@@ -1,20 +1,20 @@
 // Core type definitions for SAP Implementation Platform
 
 // ==================== CHIP TYPES ====================
-export type ChipKind = 
-  | 'country'
-  | 'users'
-  | 'employees'
-  | 'revenue'
-  | 'modules'
-  | 'timeline'
-  | 'banking'
-  | 'integration'
-  | 'compliance'
-  | 'industry'
-  | 'existing_system'
-  | 'constraint'
-  | 'priority';
+export type ChipKind =
+  | "country"
+  | "users"
+  | "employees"
+  | "revenue"
+  | "modules"
+  | "timeline"
+  | "banking"
+  | "integration"
+  | "compliance"
+  | "industry"
+  | "existing_system"
+  | "constraint"
+  | "priority";
 
 export interface Chip {
   id: string;
@@ -41,14 +41,14 @@ export interface Chip {
 // ==================== DECISION TYPES ====================
 export interface Decision {
   id: string;
-  type: 
-    | 'module_combo'
-    | 'banking_path'
-    | 'integration_posture'
-    | 'sso_mode'
-    | 'fricew_target'
-    | 'rate_region'
-    | 'pricing_target';
+  type:
+    | "module_combo"
+    | "banking_path"
+    | "integration_posture"
+    | "sso_mode"
+    | "fricew_target"
+    | "rate_region"
+    | "pricing_target";
   selected: string;
   rationale: string;
   impact: {
@@ -77,7 +77,7 @@ export interface ScenarioPlan {
 export interface Phase {
   id: string;
   name: string;
-  sapActivatePhase: 'Prepare' | 'Explore' | 'Realize' | 'Deploy' | 'Run';
+  sapActivatePhase: "Prepare" | "Explore" | "Realize" | "Deploy" | "Run";
   stream: string;
   startDay: number;
   duration: number;
@@ -90,17 +90,24 @@ export interface Phase {
 export interface Resource {
   id: string;
   name?: string;
-  role: 'Partner' | 'Director' | 'Senior Manager' | 'Manager' | 'Senior Consultant' | 'Consultant' | 'Analyst';
+  role:
+    | "Partner"
+    | "Director"
+    | "Senior Manager"
+    | "Manager"
+    | "Senior Consultant"
+    | "Consultant"
+    | "Analyst";
   allocation: number; // percentage
-  region: 'ABMY' | 'ABSG' | 'ABVN';
+  region: "ABMY" | "ABSG" | "ABVN";
   hourlyRate: number;
 }
 
 export interface Risk {
   id: string;
   description: string;
-  probability: 'low' | 'medium' | 'high';
-  impact: 'low' | 'medium' | 'high';
+  probability: "low" | "medium" | "high";
+  impact: "low" | "medium" | "high";
   mitigation: string;
 }
 
@@ -108,19 +115,25 @@ export interface Risk {
 export interface ClientProfile {
   companyName: string;
   industry: string;
-  size: 'small' | 'medium' | 'large' | 'enterprise';
+  size: "small" | "medium" | "large" | "enterprise";
   employees: number;
   annualRevenue: number;
   region: string;
-  complexity: 'standard' | 'complex' | 'extreme';
-  maturity: 'naive' | 'basic' | 'intermediate' | 'advanced';
+  complexity: "standard" | "complex" | "extreme";
+  maturity: "naive" | "basic" | "intermediate" | "advanced";
 }
 
 // ==================== SAP PACKAGE TYPES ====================
 export interface SAPPackage {
   id: string;
   name: string;
-  category: 'Finance Core' | 'Finance Advanced' | 'HR Core' | 'Supply Chain' | 'Technical' | 'Compliance';
+  category:
+    | "Finance Core"
+    | "Finance Advanced"
+    | "HR Core"
+    | "Supply Chain"
+    | "Technical"
+    | "Compliance";
   baseEffort: number;
   dependencies: string[];
   criticalPath: boolean;
@@ -136,18 +149,18 @@ export interface SAPPackage {
 export interface Override {
   id: string;
   phaseId: string;
-  field: 'effort' | 'duration' | 'resources' | 'dependencies';
+  field: "effort" | "duration" | "resources" | "dependencies";
   original: any;
   modified: any;
-  anchor?: 'keep_pd' | 'keep_fte' | 'keep_duration';
+  anchor?: "keep_pd" | "keep_fte" | "keep_duration";
   rationale?: string;
 }
 
 // ==================== GUARDRAIL TYPES ====================
 export interface Guardrail {
   id: string;
-  type: 'testing_floor' | 'deploy_window' | 'fx_completeness' | 'rate_anomaly';
-  status: 'pass' | 'warn' | 'block';
+  type: "testing_floor" | "deploy_window" | "fx_completeness" | "rate_anomaly";
+  status: "pass" | "warn" | "block";
   message: string;
   action?: string;
 }

@@ -1,6 +1,7 @@
 # SAP Implementation Cockpit
 
 ## Tech Stack
+
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript 5.3+
 - **Styling**: Tailwind CSS + shadcn/ui
