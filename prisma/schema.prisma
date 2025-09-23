@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Chip {
+  id         String   @id @default(cuid())
+  kind       String
+  value      String
+  confidence Float
+  evidence   String?
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Project {
+  id        String     @id @default(cuid())
+  name      String
+  chips     Chip[]
+  decisions Decision?
+  scenarios Scenario[]
+  timeline  Timeline?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Decision {
+  id           String  @id @default(cuid())
+  moduleCombo  String?
+  bankingPath  String?
+  rateRegion   String?
+  targetPrice  Float?
+  targetMargin Float?
+  projectId    String  @unique
+  project      Project @relation(fields: [projectId], references: [id])
+}
+
+model Scenario {
+  id        String   @id @default(cuid())
+  name      String
+  data      Json
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Timeline {
+  id        String   @id @default(cuid())
+  phases    Json
+  resources Json
+  projectId String   @unique
+  project   Project  @relation(fields: [projectId], references: [id])
+  updatedAt DateTime @updatedAt
+}
