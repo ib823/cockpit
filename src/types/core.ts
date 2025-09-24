@@ -1,178 +1,99 @@
-// Core type definitions for SAP Implementation Platform
-
-// ==================== CHIP TYPES ====================
-export type ChipKind =
-  | "country"
-  | "users"
-  | "employees"
-  | "revenue"
-  | "modules"
-  | "timeline"
-  | "banking"
-  | "integration"
-  | "compliance"
-  | "industry"
-  | "existing_system"
-  | "constraint"
-  | "priority";
-
-export interface Chip {
-  id: string;
-  kind: ChipKind;
-  raw: string;
-  parsed: {
-    value: string | number;
-    unit?: string;
-    modifier?: string;
-  };
-  source: {
-    location?: string;
-    page?: number;
-    timestamp?: string;
-  };
-  evidence?: {
-    snippet: string;
-    context: string;
-    confidence: number;
-  };
-  validated: boolean;
-}
-
-// ==================== DECISION TYPES ====================
-export interface Decision {
-  id: string;
-  type:
-    | "module_combo"
-    | "banking_path"
-    | "integration_posture"
-    | "sso_mode"
-    | "fricew_target"
-    | "rate_region"
-    | "pricing_target";
-  selected: string;
-  rationale: string;
-  impact: {
-    effort: number;
-    cost: number;
-    risk: number;
-  };
-  timestamp: string;
-}
-
-// ==================== SCENARIO TYPES ====================
-export interface ScenarioPlan {
-  id: string;
-  name: string;
-  phases: Phase[];
-  totals: {
-    personDays: number;
-    duration: number;
-    cost: number;
-    margin: number;
-  };
-  assumptions: string[];
-  risks: Risk[];
-}
+// Core TypeScript interfaces for SAP Implementation Cockpit
 
 export interface Phase {
   id: string;
   name: string;
-  sapActivatePhase: "Prepare" | "Explore" | "Realize" | "Deploy" | "Run";
-  stream: string;
-  startDay: number;
-  duration: number;
+  category: string;
+  startBusinessDay: number;
+  workingDays: number;
   effort: number;
-  resources: Resource[];
+  color: string;
+  skipHolidays: boolean;
   dependencies: string[];
-  deliverables: string[];
+  status: 'idle' | 'active' | 'completed' | 'delayed';
+  resources?: Resource[];
 }
 
 export interface Resource {
   id: string;
-  name?: string;
-  role:
-    | "Partner"
-    | "Director"
-    | "Senior Manager"
-    | "Manager"
-    | "Senior Consultant"
-    | "Consultant"
-    | "Analyst";
+  name: string;
+  role: 'Partner' | 'Director' | 'Senior Manager' | 'Manager' | 'Senior Consultant' | 'Consultant' | 'Analyst';
+  region: 'ABMY' | 'ABSG' | 'ABVN';
   allocation: number; // percentage
-  region: "ABMY" | "ABSG" | "ABVN";
-  hourlyRate: number;
+  hourlyRate?: number;
+  includeOPE?: boolean;
 }
 
-export interface Risk {
-  id: string;
-  description: string;
-  probability: "low" | "medium" | "high";
-  impact: "low" | "medium" | "high";
-  mitigation: string;
-}
-
-// ==================== CLIENT TYPES ====================
 export interface ClientProfile {
-  companyName: string;
-  industry: string;
-  size: "small" | "medium" | "large" | "enterprise";
+  company: string;
+  industry: 'manufacturing' | 'retail' | 'services' | 'healthcare' | 'finance';
+  size: 'small' | 'medium' | 'large' | 'enterprise';
+  complexity: 'standard' | 'complex' | 'extreme';
+  timelinePreference: 'relaxed' | 'normal' | 'aggressive';
+  region: 'ABMY' | 'ABSG' | 'ABVN';
   employees: number;
   annualRevenue: number;
-  region: string;
-  complexity: "standard" | "complex" | "extreme";
-  maturity: "naive" | "basic" | "intermediate" | "advanced";
 }
 
-// ==================== SAP PACKAGE TYPES ====================
 export interface SAPPackage {
   id: string;
   name: string;
-  category:
-    | "Finance Core"
-    | "Finance Advanced"
-    | "HR Core"
-    | "Supply Chain"
-    | "Technical"
-    | "Compliance";
-  baseEffort: number;
+  category: string;
+  effort: number; // person-days
   dependencies: string[];
-  criticalPath: boolean;
-  modules: {
-    id: string;
-    name: string;
-    effort: number;
-    mandatory: boolean;
-  }[];
+  description: string;
+  modules: string[];
+  complexity: number; // multiplier
 }
 
-// ==================== OVERRIDE TYPES ====================
-export interface Override {
+export interface Holiday {
+  date: string;
+  name: string;
+  country: string;
+}
+
+export interface RateCard {
+  role: string;
+  region: string;
+  hourlyRate: number;
+  includeOPE: boolean;
+}
+
+// Chip-related types from presales engine
+export interface Chip {
   id: string;
-  phaseId: string;
-  field: "effort" | "duration" | "resources" | "dependencies";
-  original: any;
-  modified: any;
-  anchor?: "keep_pd" | "keep_fte" | "keep_duration";
-  rationale?: string;
+  type: 'country' | 'entity' | 'users' | 'budget' | 'start' | 'golive' | 'bank' | 'bank_fmt' | 'eInvoice' | 'idp' | 'integration' | 'forms' | 'fricew_target' | 'module_combo' | 'fx' | 'rate_region';
+  value: string;
+  confidence: number;
+  source: 'paste' | 'upload' | 'voice' | 'manual' | 'photo_ocr';
+  evidence?: {
+    snippet: string;
+    context: string;
+    location: string;
+  };
+  validated: boolean;
+  validatedBy?: string;
+  extractedAt: Date;
 }
 
-// ==================== GUARDRAIL TYPES ====================
-export interface Guardrail {
+export interface Decision {
   id: string;
-  type: "testing_floor" | "deploy_window" | "fx_completeness" | "rate_anomaly";
-  status: "pass" | "warn" | "block";
-  message: string;
-  action?: string;
+  type: string;
+  value: string;
+  rationale: string;
+  confidence: number;
+  madeBy: string;
+  madeAt: Date;
 }
 
-// ==================== EXPORT TYPES ====================
-export interface ExportData {
-  version: string;
-  timestamp: string;
-  client: ClientProfile;
+export interface ScenarioPlan {
+  id: string;
+  name: string;
   chips: Chip[];
   decisions: Decision[];
-  scenario: ScenarioPlan;
-  overrides: Override[];
-  guardrails: Guardrail[];
+  phases: Record<string, any>;
+  resources: Resource[];
+  cost: number;
+  duration: number;
+  risk: number;
 }

@@ -1,0 +1,148 @@
+=== REPOSITORY STATUS EXTRACTION ===
+Date: Wed Sep 24 06:26:06 UTC 2025
+Repository: /workspaces/cockpit
+
+=== GIT STATUS ===
+On branch refactor/extract-timeline
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   package.json
+	deleted:    pnpm-lock.yaml
+	modified:   src/app/globals.css
+	modified:   src/app/layout.tsx
+	modified:   src/app/page.tsx
+	modified:   src/app/timeline/page.tsx
+	modified:   src/data/resource-catalog.ts
+	modified:   src/data/sap-catalog.ts
+	modified:   src/lib/timeline/date-calculations.ts
+	modified:   src/lib/timeline/phase-generation.ts
+	modified:   src/stores/timeline-store.ts
+	modified:   src/types/core.ts
+	modified:   tailwind.config.js
+	modified:   tsconfig.json
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	next.config.js
+	package-lock.json
+	postcss.config.js
+	src/app/timeline/page.tsx.backup
+	src/components/timeline/
+	visual-gantt-implementation-status.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+=== GIT LOG (Last 5 commits) ===
+b656921 feat: successfully integrated Timeline MVP - Extracted and modularized 3000+ line component - Added TypeScript types throughout - Integrated with Presales Engine - Working cost calculations and phase sequencing
+bedd208 docs: add Timeline integration documentation for future reference
+333be6e feat: complete Timeline MVP integration - WORKING
+05ca650 feat: successfully integrated Timeline MVP - Extracted and modularized 3000+ line component - Added TypeScript types throughout - Integrated with Presales Engine - Working cost calculations and phase sequencing
+e8846b9 feat: complete presales engine foundation with planning UI COMPLETED:
+
+=== FILE STRUCTURE ===
+./next-env.d.ts
+./next.config.js
+./package-lock.json
+./package.json
+./postcss.config.js
+./src/app/layout.tsx
+./src/app/page.tsx
+./src/app/presales/page.tsx
+./src/app/timeline/page.tsx
+./src/components/DecisionBar.tsx
+./src/components/PlanningCanvas.tsx
+./src/components/presales/ChipCapture.tsx
+./src/components/presales/ModeSelector.tsx
+./src/components/timeline/GanttChart.tsx
+./src/components/timeline/TimelineControls.tsx
+./src/data/resource-catalog.ts
+./src/data/sap-catalog.ts
+./src/lib/chip-parser.ts
+./src/lib/rate-cards.ts
+./src/lib/sap-packages.ts
+./src/lib/scenario-generator.ts
+./src/lib/timeline/__tests__/calculations.test.ts
+./src/lib/timeline/calculations.ts
+./src/lib/timeline/date-calculations.ts
+./src/lib/timeline/phase-generation.ts
+./src/stores/presales-store.ts
+./src/stores/timeline-store.ts
+./src/types/core.ts
+./src/utils/features.ts
+./src/utils/logger.ts
+./tailwind.config.js
+./tsconfig.json
+
+=== NEW FILES CREATED TODAY ===
+src/stores/timeline-store.ts
+src/stores/presales-store.ts
+src/utils/features.ts
+src/utils/logger.ts
+src/components/presales/ModeSelector.tsx
+src/components/presales/ChipCapture.tsx
+src/components/DecisionBar.tsx
+src/components/timeline/TimelineControls.tsx
+src/components/timeline/GanttChart.tsx
+src/components/PlanningCanvas.tsx
+src/lib/rate-cards.ts
+src/lib/scenario-generator.ts
+src/lib/timeline/__tests__/calculations.test.ts
+src/lib/timeline/calculations.ts
+src/lib/timeline/phase-generation.ts
+src/lib/timeline/date-calculations.ts
+src/lib/chip-parser.ts
+src/lib/sap-packages.ts
+src/data/resource-catalog.ts
+src/data/sap-catalog.ts
+
+=== PACKAGE.JSON STATUS ===
+{
+  "name": "sap-implementation-cockpit",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbo",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "15.5.3",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "zustand": "5.0.8",
+    "date-fns": "^3.6.0",
+    "react-window-infinite-loader": "^1.0.9"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5",
+    "eslint": "^8",
+    "eslint-config-next": "15.5.3",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  }
+}
+
+=== BUILD STATUS ===
+
+> sap-implementation-cockpit@0.1.0 type-check
+> tsc --noEmit
+
+src/components/presales/ChipCapture.tsx(63,21): error TS2339: Property 'kind' does not exist on type 'Chip'.
+src/components/presales/ChipCapture.tsx(63,34): error TS2339: Property 'raw' does not exist on type 'Chip'.
+src/lib/chip-parser.ts(2,16): error TS2305: Module '"@/types/core"' has no exported member 'ChipKind'.
+src/lib/chip-parser.ts(106,5): error TS2322: Type '{ location: string; timestamp: string; }' is not assignable to type '"paste" | "upload" | "voice" | "manual" | "photo_ocr"'.
+src/lib/chip-parser.ts(113,7): error TS2353: Object literal may only specify known properties, and 'confidence' does not exist in type '{ snippet: string; context: string; location: string; }'.
+src/lib/chip-parser.ts(211,14): error TS2339: Property 'kind' does not exist on type 'Chip'.
+
+=== LINE COUNTS ===
+Total TypeScript files:
+25
+Total lines of code:
+913
