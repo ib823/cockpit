@@ -199,3 +199,17 @@ export const getProjectEndDate = (phases: any[]): Date | null => {
   
   return businessDayToDate(latestEnd);
 };
+
+export function addBusinessDays(startDate: Date, businessDays: number): Date {
+  const result = new Date(startDate);
+  let daysAdded = 0;
+  
+  while (daysAdded < businessDays) {
+    result.setDate(result.getDate() + 1);
+    if (!isWeekend(result)) {
+      daysAdded++;
+    }
+  }
+  
+  return result;
+}
