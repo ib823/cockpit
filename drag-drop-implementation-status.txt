@@ -1,0 +1,116 @@
+=== REPOSITORY STATUS EXTRACTION ===
+Date: Wed Sep 24 11:06:00 UTC 2025
+Repository: /workspaces/cockpit
+
+=== GIT STATUS ===
+On branch refactor/extract-timeline
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   next.config.js
+	modified:   package-lock.json
+	modified:   package.json
+	modified:   src/components/timeline/GanttChart.tsx
+	modified:   src/stores/timeline-store.ts
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	drag-drop-implementation-status.txt
+	src/components/timeline/GanttChart.tsx.backup
+	src/components/timeline/GanttChart.tsx.broken
+	src/stores/timeline-store.ts.backup
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+=== GIT LOG (Last 5 commits) ===
+befaebe feat: implement visual Gantt chart components
+b656921 feat: successfully integrated Timeline MVP - Extracted and modularized 3000+ line component - Added TypeScript types throughout - Integrated with Presales Engine - Working cost calculations and phase sequencing
+bedd208 docs: add Timeline integration documentation for future reference
+333be6e feat: complete Timeline MVP integration - WORKING
+05ca650 feat: successfully integrated Timeline MVP - Extracted and modularized 3000+ line component - Added TypeScript types throughout - Integrated with Presales Engine - Working cost calculations and phase sequencing
+
+=== CURRENT BRANCH ===
+refactor/extract-timeline
+
+=== PACKAGE.JSON ===
+{
+  "name": "sap-implementation-cockpit",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbo",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "date-fns": "^3.6.0",
+    "next": "15.5.3",
+    "react": "19.1.1",
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1",
+    "react-dom": "19.1.1",
+    "react-window-infinite-loader": "^1.0.9",
+    "zustand": "5.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dnd": "3.0.2",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8",
+    "eslint-config-next": "15.5.3",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5"
+  }
+}
+
+=== KEY FILES MODIFIED ===
+total 40
+drwxrwxrwx+ 2 codespace codespace  4096 Sep 24 10:31 .
+drwxrwxrwx+ 7 codespace codespace  4096 Sep 23 23:32 ..
+-rw-rw-rw-  1 codespace codespace 11457 Sep 24 11:03 GanttChart.tsx
+-rw-rw-rw-  1 codespace codespace  4008 Sep 24 10:22 GanttChart.tsx.backup
+-rw-rw-rw-  1 codespace codespace  9387 Sep 24 10:31 GanttChart.tsx.broken
+-rw-rw-rw-  1 codespace codespace  3956 Sep 24 05:53 TimelineControls.tsx
+
+total 32
+drwxrwxrwx+  2 codespace codespace 4096 Sep 24 10:34 .
+drwxrwxrwx+ 13 codespace codespace 4096 Sep 23 23:29 ..
+-rw-rw-rw-   1 codespace codespace 2554 Sep 23 23:32 presales-store.ts
+-rw-rw-rw-   1 codespace codespace 8524 Sep 24 10:35 timeline-store.ts
+-rw-rw-rw-   1 codespace codespace 8113 Sep 24 10:22 timeline-store.ts.backup
+
+=== REACT DND DEPENDENCIES ===
+sap-implementation-cockpit@0.1.0 /workspaces/cockpit
+├─┬ @types/react-dnd@3.0.2
+│ └── react-dnd@16.0.1 deduped
+├── react-dnd-html5-backend@16.0.1
+└── react-dnd@16.0.1
+
+
+=== BUILD STATUS ===
+
+> sap-implementation-cockpit@0.1.0 type-check
+> tsc --noEmit
+
+src/components/presales/ChipCapture.tsx(63,21): error TS2339: Property 'kind' does not exist on type 'Chip'.
+src/components/presales/ChipCapture.tsx(63,34): error TS2339: Property 'raw' does not exist on type 'Chip'.
+src/components/timeline/GanttChart.tsx(108,9): error TS2540: Cannot assign to 'current' because it is a read-only property.
+src/lib/chip-parser.ts(2,16): error TS2305: Module '"@/types/core"' has no exported member 'ChipKind'.
+src/lib/chip-parser.ts(106,5): error TS2322: Type '{ location: string; timestamp: string; }' is not assignable to type '"paste" | "upload" | "voice" | "manual" | "photo_ocr"'.
+src/lib/chip-parser.ts(113,7): error TS2353: Object literal may only specify known properties, and 'confidence' does not exist in type '{ snippet: string; context: string; location: string; }'.
+src/lib/chip-parser.ts(211,14): error TS2339: Property 'kind' does not exist on type 'Chip'.
+src/lib/chip-parser.ts(211,31): error TS2339: Property 'kind' does not exist on type 'Chip'.
+src/lib/chip-parser.ts(212,23): error TS2339: Property 'parsed' does not exist on type 'Chip'.
+src/lib/chip-parser.ts(212,67): error TS2339: Property 'parsed' does not exist on type 'Chip'.
+src/lib/chip-parser.ts(213,21): error TS2339: Property 'parsed' does not exist on type 'Chip'.
+src/lib/chip-parser.ts(213,60): error TS2339: Property 'parsed' does not exist on type 'Chip'.
+src/lib/chip-parser.ts(215,19): error TS2339: Property 'parsed' does not exist on type 'Chip'.
+src/lib/chip-parser.ts(215,44): error TS2339: Property 'parsed' does not exist on type 'Chip'.
+src/lib/chip-parser.ts(229,23): error TS2339: Property 'kind' does not exist on type 'Chip'.
+src/lib/chip-parser.ts(230,20): error TS2339: Property 'kind' does not exist on type 'Chip'.
+

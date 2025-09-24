@@ -9,6 +9,8 @@ import {
   calculateResourceRequirements
 } from '@/lib/timeline/phase-generation';
 import { 
+  Holiday, 
+  DEFAULT_HOLIDAYS,
   getProjectStartDate,
   getProjectEndDate
 } from '@/lib/timeline/date-calculations';
@@ -19,7 +21,7 @@ interface TimelineState {
   profile: ClientProfile;
   selectedPackages: string[];
   phases: Phase[];
-  holidays: any[];
+  holidays: Holiday[];
   
   // View state
   zoomLevel: 'daily' | 'weekly' | 'biweekly' | 'monthly';
@@ -41,14 +43,12 @@ interface TimelineState {
   updatePhase: (id: string, updates: Partial<Phase>) => void;
   deletePhase: (id: string) => void;
   movePhase: (id: string, newStartDay: number) => void;
-  movePhaseOrder: (fromIndex: number, toIndex: number) => void;
-  togglePhaseSelection: (id: string) => void;
   
   // Actions - Resources
   updatePhaseResources: (phaseId: string, resources: Resource[]) => void;
   
   // Actions - Holidays
-  addHoliday: (holiday: any) => void;
+  addHoliday: (holiday: Holiday) => void;
   removeHoliday: (date: string) => void;
   resetHolidays: () => void;
   
@@ -82,7 +82,7 @@ export const useTimelineStore = create<TimelineState>()(
       profile: defaultProfile,
       selectedPackages: [],
       phases: [],
-      holidays: [],
+      holidays: DEFAULT_HOLIDAYS,
       zoomLevel: 'weekly',
       selectedPhaseId: null,
       clientPresentationMode: false,
@@ -173,20 +173,6 @@ export const useTimelineStore = create<TimelineState>()(
         return { phases: calculateIntelligentSequencing(updatedPhases) };
       }),
       
-      movePhaseOrder: (fromIndex, toIndex) => set(state => {
-        const newPhases = [...state.phases];
-        const [removed] = newPhases.splice(fromIndex, 1);
-        newPhases.splice(toIndex, 0, removed);
-        
-        return { 
-          phases: calculateIntelligentSequencing(newPhases)
-        };
-      }),
-      
-      togglePhaseSelection: (id) => set(state => ({
-        selectedPhaseId: state.selectedPhaseId === id ? null : id
-      })),
-      
       // Resource actions
       updatePhaseResources: (phaseId, resources) => set(state => ({
         phases: state.phases.map(phase => 
@@ -196,14 +182,17 @@ export const useTimelineStore = create<TimelineState>()(
       
       // Holiday actions
       addHoliday: (holiday) => set(state => {
-        return { holidays: [...state.holidays, holiday] };
+        if (!state.holidays.find(h => h.date === holiday.date)) {
+          return { holidays: [...state.holidays, holiday] };
+        }
+        return state;
       }),
       
       removeHoliday: (date) => set(state => ({
-        holidays: state.holidays.filter((h: any) => h.date !== date)
+        holidays: state.holidays.filter(h => h.date !== date)
       })),
       
-      resetHolidays: () => set({ holidays: [] }),
+      resetHolidays: () => set({ holidays: DEFAULT_HOLIDAYS }),
       
       // View actions
       setZoomLevel: (level) => set({ zoomLevel: level }),
