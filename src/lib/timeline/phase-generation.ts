@@ -1,450 +1,265 @@
-// Extracted from Timeline MVP - Phase Generation and Sequencing
-
+import { Phase, ClientProfile, Resource } from '@/types/core';
 import { SAP_CATALOG, DEPENDENCY_MAP } from '@/data/sap-catalog';
-import { RESOURCE_CATALOG } from '@/data/resource-catalog';
+import { generateResourceRequirements, STANDARD_TEAM_COMPOSITION } from '@/data/resource-catalog';
 
-export interface Phase {
-  id: string;
-  name: string;
-  phaseKey?: string;
-  status: 'idle' | 'active' | 'complete';
-  startBusinessDay: number;
-  workingDays: number;
-  color: string;
-  description?: string;
-  category: string;
-  dependencies: string[];
-  resources?: any[];
-  skipHolidays?: boolean;
-}
+// Phase colors for visualization
+const PHASE_COLORS = [
+  '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+  '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1'
+];
 
-export interface ClientProfile {
-  company?: string;
-  industry?: string;
-  size?: 'small' | 'medium' | 'large' | 'enterprise';
-  complexity?: 'standard' | 'complex' | 'extreme';
-  timelinePreference?: 'relaxed' | 'normal' | 'aggressive';
-  region?: string;
-  employees?: number;
-  annualRevenue?: number;
-}
-
-// Category colors
-const CATEGORY_COLORS: Record<string, string> = {
-  'Project Management': '#007AFF',
-  'Foundation': '#5856D6',
-  'Core': '#34C759',
-  'Configuration': '#FF9500',
-  'Advanced': '#FF3B30',
-  'Technical': '#AF52DE',
-  'Compliance': '#FFD60A',
-  'HR Setup': '#32D74B',
-  'SCM Setup': '#FF6482',
-  'Advanced Configuration': '#FF375F',
-  'Testing': '#30B0C7',
-  'Training': '#FFB340',
-  'Change Management': '#8E8E93'
+// SAP Activate phase distribution
+const SAP_ACTIVATE_PHASES = {
+  'Prepare': { percentage: 0.15, color: '#10B981' },    // 15% - Green
+  'Explore': { percentage: 0.25, color: '#3B82F6' },    // 25% - Blue  
+  'Realize': { percentage: 0.40, color: '#8B5CF6' },    // 40% - Purple
+  'Deploy': { percentage: 0.15, color: '#F59E0B' },     // 15% - Yellow
+  'Run': { percentage: 0.05, color: '#10B981' }         // 5% - Green
 };
 
-export function getCategoryColor(category: string): string {
-  return CATEGORY_COLORS[category] || '#8E8E93';
-}
-
-// Generate PM phases
-export function generatePMPhases(): Phase[] {
-  return [
-    {
-      id: `pm-${Date.now()}-1`,
-      name: 'Project Initiation',
-      phaseKey: 'Project Initiation',
-      status: 'idle',
-      startBusinessDay: 0,
-      workingDays: 2,
-      color: getCategoryColor('Project Management'),
-      description: 'Project setup, team onboarding, and stakeholder alignment',
-      category: 'Project Management',
-      dependencies: [],
-      skipHolidays: true
-    },
-    {
-      id: `pm-${Date.now()}-2`,
-      name: 'Project Planning',
-      phaseKey: 'Project Planning',
-      status: 'idle',
-      startBusinessDay: 2,
-      workingDays: 3,
-      color: getCategoryColor('Project Management'),
-      description: 'Detailed project planning and resource allocation',
-      category: 'Project Management',
-      dependencies: ['Project Initiation'],
-      skipHolidays: true
-    },
-    {
-      id: `pm-${Date.now()}-3`,
-      name: 'Project Closure',
-      phaseKey: 'Project Closure',
-      status: 'idle',
-      startBusinessDay: 100,
-      workingDays: 2,
-      color: getCategoryColor('Project Management'),
-      description: 'Project handover and closure activities',
-      category: 'Project Management',
-      dependencies: [],
-      skipHolidays: true
-    }
-  ];
-}
-
-// Generate FRICEW phases
-export function generateFRICEWPhases(totalEffort: number): Phase[] {
-  const fricewPercentage = 0.15;
-  const fricewEffort = Math.ceil(totalEffort * fricewPercentage);
-  
-  return [
-    {
-      id: `fricew-${Date.now()}`,
-      name: 'FRICEW Development',
-      phaseKey: 'FRICEW',
-      status: 'idle',
-      startBusinessDay: 20,
-      workingDays: fricewEffort,
-      color: getCategoryColor('Technical'),
-      description: 'Forms, Reports, Interfaces, Conversions, Enhancements, Workflows',
-      category: 'Technical',
-      dependencies: ['Master Data Setup'],
-      skipHolidays: true
-    }
-  ];
-}
-
-// Generate change management phases
-export function generateChangeManagementPhases(projectDuration: number): Phase[] {
-  const phases: Phase[] = [];
-  
-  phases.push({
-    id: `ocm-${Date.now()}-1`,
-    name: 'Change Readiness Assessment',
-    phaseKey: 'Change Readiness',
-    status: 'idle',
-    startBusinessDay: 0,
-    workingDays: 5,
-    color: getCategoryColor('Change Management'),
-    description: 'Assess organizational readiness for change',
-    category: 'Change Management',
-    dependencies: [],
-    skipHolidays: true
-  });
-  
-  phases.push({
-    id: `ocm-${Date.now()}-2`,
-    name: 'Training Development',
-    phaseKey: 'Training Development',
-    status: 'idle',
-    startBusinessDay: Math.floor(projectDuration * 0.5),
-    workingDays: 10,
-    color: getCategoryColor('Training'),
-    description: 'Develop training materials and programs',
-    category: 'Training',
-    dependencies: [],
-    skipHolidays: true
-  });
-  
-  phases.push({
-    id: `ocm-${Date.now()}-3`,
-    name: 'End User Training',
-    phaseKey: 'End User Training',
-    status: 'idle',
-    startBusinessDay: Math.floor(projectDuration * 0.8),
-    workingDays: 5,
-    color: getCategoryColor('Training'),
-    description: 'Conduct end user training sessions',
-    category: 'Training',
-    dependencies: ['Training Development'],
-    skipHolidays: true
-  });
-  
-  return phases;
-}
-
-// Build foundation phases
-export function buildFoundationPhases(selectedPackages: string[]): Phase[] {
-  const phases: Phase[] = [];
-  const foundationItems = new Set<string>();
-  
-  selectedPackages.forEach(pkgId => {
-    const pkg = SAP_CATALOG[pkgId];
-    if (pkg) {
-      pkg.dependencies.forEach(dep => foundationItems.add(dep));
-    }
-  });
-  
-  foundationItems.forEach(item => {
-    const depInfo = DEPENDENCY_MAP[item];
-    if (depInfo) {
-      phases.push({
-        id: `foundation-${Date.now()}-${Math.random()}`,
-        name: depInfo.phaseName,
-        phaseKey: item,
-        status: 'idle',
-        startBusinessDay: 0,
-        workingDays: calculateFoundationEffort(item),
-        color: getCategoryColor(depInfo.category),
-        description: `Foundation: ${item}`,
-        category: depInfo.category,
-        dependencies: depInfo.dependencies,
-        skipHolidays: true
-      });
-    }
-  });
-  
-  return phases;
-}
-
-// Calculate foundation phase effort
-function calculateFoundationEffort(foundationItem: string): number {
-  const effortMap: Record<string, number> = {
-    'Organizational Setup': 5,
-    'Master Data Setup': 8,
-    'Security Roles': 5,
-    'Organizational Structure': 4,
-    'Basic Configuration': 3
-  };
-  
-  return effortMap[foundationItem] || 3;
-}
-
-// Generate timeline from SAP package selection
-export function generateTimelineFromSAPSelection(
+// Generate phases from selected SAP packages
+export const generateTimelineFromSAPSelection = (
   selectedPackages: string[],
   profile: ClientProfile
-): Phase[] {
-  const allPhases: Phase[] = [];
+): Phase[] => {
+  if (!selectedPackages.length) return [];
+
+  const phases: Phase[] = [];
+  let phaseIndex = 0;
   
-  // Add PM phases
-  allPhases.push(...generatePMPhases());
-  
-  // Add foundation phases
-  allPhases.push(...buildFoundationPhases(selectedPackages));
-  
-  // Add package phases
-  selectedPackages.forEach(pkgId => {
-    const pkg = SAP_CATALOG[pkgId];
-    if (pkg) {
-      allPhases.push({
-        id: `pkg-${Date.now()}-${Math.random()}`,
-        name: pkg.name,
-        phaseKey: pkgId,
+  selectedPackages.forEach(packageId => {
+    const sapPackage = SAP_CATALOG[packageId];
+    if (!sapPackage) return;
+
+    // Apply complexity multiplier based on client profile
+    const complexityMultiplier = getComplexityMultiplier(profile.complexity, profile.size);
+    const adjustedEffort = Math.round(sapPackage.effort * complexityMultiplier);
+    
+    // Generate phases for each SAP Activate stage
+    Object.entries(SAP_ACTIVATE_PHASES).forEach(([stageName, stageConfig]) => {
+      const stageEffort = Math.round(adjustedEffort * stageConfig.percentage);
+      if (stageEffort === 0) return;
+
+      const phase: Phase = {
+        id: `${packageId}_${stageName}_${phaseIndex++}`,
+        name: `${sapPackage.name} - ${stageName}`,
+        category: `${sapPackage.category} - ${stageName}`,
+        startBusinessDay: 0, // Will be calculated in sequencing
+        workingDays: Math.max(5, stageEffort), // Minimum 1 week
+        effort: stageEffort,
+        color: stageConfig.color,
+        skipHolidays: true,
+        dependencies: getDependentPhases(packageId, stageName, phases),
         status: 'idle',
-        startBusinessDay: 0,
-        workingDays: adjustEffortForComplexity(pkg.effort, profile.complexity),
-        color: getCategoryColor(pkg.category),
-        description: pkg.description,
-        category: pkg.category,
-        dependencies: pkg.dependencies,
-        skipHolidays: true
+        resources: generateResourceRequirements(stageEffort, profile.region)
+      };
+
+      phases.push(phase);
+    });
+  });
+
+  // Apply intelligent sequencing
+  return calculateIntelligentSequencing(phases);
+};
+
+// Get complexity multiplier based on client profile
+const getComplexityMultiplier = (complexity: string, size: string): number => {
+  const complexityFactors = {
+    'standard': 1.0,
+    'complex': 1.3,
+    'extreme': 1.6
+  };
+
+  const sizeFactors = {
+    'small': 0.8,
+    'medium': 1.0,
+    'large': 1.2,
+    'enterprise': 1.5
+  };
+
+  return (complexityFactors[complexity as keyof typeof complexityFactors] || 1.0) *
+         (sizeFactors[size as keyof typeof sizeFactors] || 1.0);
+};
+
+// Get dependent phases for a given package and stage
+const getDependentPhases = (packageId: string, stageName: string, existingPhases: Phase[]): string[] => {
+  const dependencies: string[] = [];
+  
+  // Get package-level dependencies
+  const packageDependencies = DEPENDENCY_MAP[packageId] || [];
+  
+  packageDependencies.forEach(depPackageId => {
+    // Find the corresponding stage phase from dependent package
+    const depPhase = existingPhases.find(phase => 
+      phase.id.startsWith(`${depPackageId}_${stageName}`)
+    );
+    
+    if (depPhase) {
+      dependencies.push(depPhase.id);
+    }
+    
+    // Also depend on previous stages of the same package
+    if (stageName === 'Explore') {
+      const preparePhase = existingPhases.find(phase => 
+        phase.id.startsWith(`${depPackageId}_Prepare`)
+      );
+      if (preparePhase) dependencies.push(preparePhase.id);
+    }
+    
+    if (stageName === 'Realize') {
+      const explorePhase = existingPhases.find(phase => 
+        phase.id.startsWith(`${depPackageId}_Explore`)
+      );
+      if (explorePhase) dependencies.push(explorePhase.id);
+    }
+    
+    if (stageName === 'Deploy') {
+      const realizePhase = existingPhases.find(phase => 
+        phase.id.startsWith(`${depPackageId}_Realize`)
+      );
+      if (realizePhase) dependencies.push(realizePhase.id);
+    }
+    
+    if (stageName === 'Run') {
+      const deployPhase = existingPhases.find(phase => 
+        phase.id.startsWith(`${depPackageId}_Deploy`)
+      );
+      if (deployPhase) dependencies.push(deployPhase.id);
+    }
+  });
+
+  return dependencies;
+};
+
+// Calculate intelligent phase sequencing using topological sort
+export const calculateIntelligentSequencing = (phases: Phase[]): Phase[] => {
+  if (!phases.length) return [];
+
+  // Create a copy of phases to work with
+  const phasesWithScheduling = [...phases];
+  
+  // Topological sort to determine order
+  const visited = new Set<string>();
+  const visiting = new Set<string>();
+  const sorted: Phase[] = [];
+  
+  const visit = (phaseId: string) => {
+    if (visiting.has(phaseId)) {
+      throw new Error(`Circular dependency detected involving phase ${phaseId}`);
+    }
+    
+    if (visited.has(phaseId)) return;
+    
+    visiting.add(phaseId);
+    
+    const phase = phasesWithScheduling.find(p => p.id === phaseId);
+    if (!phase) return;
+    
+    // Visit all dependencies first
+    phase.dependencies.forEach(depId => {
+      visit(depId);
+    });
+    
+    visiting.delete(phaseId);
+    visited.add(phaseId);
+    sorted.push(phase);
+  };
+
+  // Visit all phases
+  phasesWithScheduling.forEach(phase => {
+    if (!visited.has(phase.id)) {
+      visit(phase.id);
+    }
+  });
+
+  // Calculate start dates based on dependencies
+  const phaseStartDates = new Map<string, number>();
+  
+  sorted.forEach(phase => {
+    let earliestStart = 0;
+    
+    // Find the latest end date of all dependencies
+    phase.dependencies.forEach(depId => {
+      const depStartDate = phaseStartDates.get(depId) || 0;
+      const depPhase = sorted.find(p => p.id === depId);
+      const depEndDate = depStartDate + (depPhase?.workingDays || 0);
+      
+      if (depEndDate > earliestStart) {
+        earliestStart = depEndDate;
+      }
+    });
+    
+    phaseStartDates.set(phase.id, earliestStart);
+    phase.startBusinessDay = earliestStart;
+  });
+
+  return sorted;
+};
+
+// Calculate resource requirements for a phase
+export const calculateResourceRequirements = (
+  phase: Phase,
+  profile: ClientProfile
+): Resource[] => {
+  const teamSize = Math.max(2, Math.ceil(phase.effort / 10)); // Minimum 2 people
+  const resources: Resource[] = [];
+  
+  // Apply standard team composition
+  Object.entries(STANDARD_TEAM_COMPOSITION).forEach(([role, percentage]) => {
+    const allocation = Math.round(percentage * 100);
+    
+    if (allocation > 5) { // Only include roles with meaningful allocation
+      resources.push({
+        id: `${phase.id}_${role}`,
+        name: `${role} for ${phase.name}`,
+        role: role as any,
+        region: profile.region,
+        allocation
       });
     }
   });
   
-  // Add FRICEW phases
-  const totalEffort = calculateTotalEffort(selectedPackages, profile.complexity);
-  allPhases.push(...generateFRICEWPhases(totalEffort));
-  
-  // Add change management phases
-  const estimatedDuration = estimateProjectDuration(totalEffort, profile.timelinePreference);
-  allPhases.push(...generateChangeManagementPhases(estimatedDuration));
-  
-  // Sequence all phases
-  return calculateIntelligentSequencing(allPhases);
-}
+  return resources;
+};
 
-// Adjust effort based on complexity
-function adjustEffortForComplexity(
-  baseEffort: number,
-  complexity?: 'standard' | 'complex' | 'extreme'
-): number {
-  const multipliers = {
-    standard: 1.0,
-    complex: 1.3,
-    extreme: 1.6
+// Helper function to create a new phase
+export const createPhase = (
+  name: string,
+  category: string,
+  workingDays: number,
+  colorIndex: number = 0,
+  dependencies: string[] = []
+): Phase => {
+  return {
+    id: `phase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name,
+    category,
+    startBusinessDay: 0,
+    workingDays,
+    effort: workingDays,
+    color: PHASE_COLORS[colorIndex % PHASE_COLORS.length],
+    skipHolidays: true,
+    dependencies,
+    status: 'idle',
+    resources: []
   };
+};
+
+// Validate phase dependencies
+export const validatePhaseDependencies = (phases: Phase[]): string[] => {
+  const errors: string[] = [];
+  const phaseIds = new Set(phases.map(p => p.id));
   
-  return Math.ceil(baseEffort * (multipliers[complexity || 'standard']));
-}
-
-// Calculate total effort
-function calculateTotalEffort(
-  packageIds: string[],
-  complexity?: 'standard' | 'complex' | 'extreme'
-): number {
-  return packageIds.reduce((sum, id) => {
-    const pkg = SAP_CATALOG[id];
-    if (pkg) {
-      return sum + adjustEffortForComplexity(pkg.effort, complexity);
-    }
-    return sum;
-  }, 0);
-}
-
-// Estimate project duration
-function estimateProjectDuration(
-  totalEffort: number,
-  timelinePreference?: 'relaxed' | 'normal' | 'aggressive'
-): number {
-  const teamSize = {
-    relaxed: 4,
-    normal: 6,
-    aggressive: 10
-  }[timelinePreference || 'normal'];
-  
-  const utilizationFactor = 0.8;
-  return Math.ceil(totalEffort / (teamSize * utilizationFactor));
-}
-
-// Intelligent phase sequencing using topological sort
-export function calculateIntelligentSequencing(phases: Phase[]): Phase[] {
-  const phaseMap = new Map<string, Phase>();
   phases.forEach(phase => {
-    const key = phase.phaseKey || phase.name;
-    phaseMap.set(key, { ...phase, phaseKey: key });
-  });
-  
-  const inDegree = new Map<string, number>();
-  const dependencyGraph = new Map<string, string[]>();
-  
-  phaseMap.forEach((_, key) => {
-    inDegree.set(key, 0);
-    dependencyGraph.set(key, []);
-  });
-  
-  phaseMap.forEach((phase, key) => {
-    phase.dependencies.forEach(dep => {
-      if (phaseMap.has(dep)) {
-        const currentDeps = dependencyGraph.get(dep) || [];
-        currentDeps.push(key);
-        dependencyGraph.set(dep, currentDeps);
-        inDegree.set(key, (inDegree.get(key) || 0) + 1);
+    phase.dependencies.forEach(depId => {
+      if (!phaseIds.has(depId)) {
+        errors.push(`Phase "${phase.name}" depends on non-existent phase ID: ${depId}`);
       }
     });
   });
   
-  const queue: string[] = [];
-  const earliestStart = new Map<string, number>();
-  
-  inDegree.forEach((degree, key) => {
-    if (degree === 0) {
-      queue.push(key);
-      earliestStart.set(key, 0);
-    }
-  });
-  
-  const sequenced: Phase[] = [];
-  
-  while (queue.length > 0) {
-    const key = queue.shift()!;
-    const phase = phaseMap.get(key)!;
-    const start = earliestStart.get(key) || 0;
-    
-    sequenced.push({
-      ...phase,
-      startBusinessDay: start
-    });
-    
-    const dependents = dependencyGraph.get(key) || [];
-    dependents.forEach(dependent => {
-      const currentInDegree = (inDegree.get(dependent) || 0) - 1;
-      inDegree.set(dependent, currentInDegree);
-      
-      const dependentStart = Math.max(
-        earliestStart.get(dependent) || 0,
-        start + phase.workingDays
-      );
-      earliestStart.set(dependent, dependentStart);
-      
-      if (currentInDegree === 0) {
-        queue.push(dependent);
-      }
-    });
-  }
-  
-  if (sequenced.length !== phases.length) {
-    console.warn('Dependency cycle detected, falling back to simple sequencing');
-    let currentStart = 0;
-    return phases.map(phase => {
-      const result = { ...phase, startBusinessDay: currentStart };
-      currentStart += phase.workingDays;
-      return result;
-    });
-  }
-  
-  const closurePhase = sequenced.find(p => p.phaseKey === 'Project Closure');
-  if (closurePhase) {
-    const maxEnd = Math.max(...sequenced
-      .filter(p => p.phaseKey !== 'Project Closure')
-      .map(p => p.startBusinessDay + p.workingDays));
-    closurePhase.startBusinessDay = maxEnd;
-  }
-  
-  return sequenced;
-}
+  return errors;
+};
 
-// Calculate resource requirements for a phase
-export function calculateResourceRequirements(
-  phase: Phase,
-  profile: ClientProfile
-): any[] {
-  const category = phase.category;
-  const region = profile.region || 'ABMY';
-  
-  const templates: Record<string, any[]> = {
-    'Project Management': [
-      { role: 'Manager', allocation: 50 },
-      { role: 'Senior Consultant', allocation: 30 }
-    ],
-    'Foundation': [
-      { role: 'Senior Consultant', allocation: 100 },
-      { role: 'Consultant', allocation: 80 }
-    ],
-    'Core': [
-      { role: 'Manager', allocation: 40 },
-      { role: 'Senior Consultant', allocation: 100 },
-      { role: 'Consultant', allocation: 60 }
-    ],
-    'Configuration': [
-      { role: 'Senior Consultant', allocation: 100 },
-      { role: 'Consultant', allocation: 100 },
-      { role: 'Analyst', allocation: 50 }
-    ],
-    'Technical': [
-      { role: 'Senior Consultant', allocation: 100 },
-      { role: 'Consultant', allocation: 100 }
-    ],
-    'Testing': [
-      { role: 'Consultant', allocation: 100 },
-      { role: 'Analyst', allocation: 80 }
-    ],
-    'Training': [
-      { role: 'Senior Consultant', allocation: 50 },
-      { role: 'Consultant', allocation: 100 }
-    ],
-    'Change Management': [
-      { role: 'Manager', allocation: 30 },
-      { role: 'Senior Consultant', allocation: 50 }
-    ]
-  };
-  
-  const template = templates[category] || templates['Foundation'];
-  
-  return template.map((resource, index) => {
-    const hourlyRate = RESOURCE_CATALOG[region]?.positions[resource.role]?.rate || 0;
-    return {
-      id: `${phase.id}-resource-${index}`,
-      name: `${resource.role} ${index + 1}`,
-      role: resource.role,
-      region: region,
-      allocation: resource.allocation,
-      hourlyRate: hourlyRate,
-      includeOPE: false
-    };
-  });
-}
+// Export the Phase type and related interfaces
+export type { Phase, ClientProfile, Resource };

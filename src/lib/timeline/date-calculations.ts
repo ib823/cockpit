@@ -1,172 +1,201 @@
-// Extracted from Timeline MVP - Date and Business Day Calculations
+import { Holiday } from '@/types/core';
 
-export interface BusinessDay {
-  date: Date;
-  businessDayNumber: number;
-  isToday: boolean;
-  isHoliday: boolean;
-  label?: {
-    line1: string;
-    line2: string;
-    line3?: string;
-  };
-}
-
-export interface Holiday {
-  date: string;
-  name: string;
-}
-
-export interface ZoomLevel {
-  name: string;
-  unit: number;
-  minWidth: number;
-  label: string;
-}
-
-// Malaysia public holidays 2024-2025
+// Default holidays for Malaysia, Singapore, and Vietnam
 export const DEFAULT_HOLIDAYS: Holiday[] = [
-  { date: '2024-01-25', name: 'Thaipusam' },
-  { date: '2024-02-10', name: 'Chinese New Year' },
-  { date: '2024-04-10', name: 'Hari Raya Puasa' },
-  { date: '2024-05-01', name: 'Labour Day' },
-  { date: '2024-05-22', name: 'Wesak Day' },
-  { date: '2024-06-03', name: "King's Birthday" },
-  { date: '2024-06-17', name: 'Hari Raya Haji' },
-  { date: '2024-08-31', name: 'Independence Day' },
-  { date: '2024-09-16', name: 'Malaysia Day' },
-  { date: '2024-10-31', name: 'Deepavali' },
-  { date: '2024-12-25', name: 'Christmas' },
-  { date: '2025-01-29', name: 'Chinese New Year' },
-  { date: '2025-02-13', name: 'Thaipusam' },
-  { date: '2025-03-31', name: 'Hari Raya Puasa' },
-  { date: '2025-05-01', name: 'Labour Day' },
-  { date: '2025-05-12', name: 'Wesak Day' },
-  { date: '2025-06-02', name: "King's Birthday" },
-  { date: '2025-06-07', name: 'Hari Raya Haji' },
-  { date: '2025-08-31', name: 'Independence Day' },
-  { date: '2025-09-16', name: 'Malaysia Day' },
-  { date: '2025-10-20', name: 'Deepavali' },
-  { date: '2025-12-25', name: 'Christmas' }
+  // Malaysia
+  { date: '2024-01-01', name: 'New Year\'s Day', country: 'MY' },
+  { date: '2024-04-10', name: 'Hari Raya Aidilfitri', country: 'MY' },
+  { date: '2024-04-11', name: 'Hari Raya Aidilfitri', country: 'MY' },
+  { date: '2024-05-01', name: 'Labour Day', country: 'MY' },
+  { date: '2024-05-22', name: 'Wesak Day', country: 'MY' },
+  { date: '2024-06-03', name: 'Yang di-Pertuan Agong Birthday', country: 'MY' },
+  { date: '2024-08-31', name: 'Independence Day', country: 'MY' },
+  { date: '2024-09-16', name: 'Malaysia Day', country: 'MY' },
+  { date: '2024-12-25', name: 'Christmas Day', country: 'MY' },
+  
+  // Singapore
+  { date: '2024-01-01', name: 'New Year\'s Day', country: 'SG' },
+  { date: '2024-02-10', name: 'Chinese New Year', country: 'SG' },
+  { date: '2024-02-11', name: 'Chinese New Year', country: 'SG' },
+  { date: '2024-03-29', name: 'Good Friday', country: 'SG' },
+  { date: '2024-04-10', name: 'Hari Raya Puasa', country: 'SG' },
+  { date: '2024-05-01', name: 'Labour Day', country: 'SG' },
+  { date: '2024-05-22', name: 'Vesak Day', country: 'SG' },
+  { date: '2024-08-09', name: 'National Day', country: 'SG' },
+  { date: '2024-12-25', name: 'Christmas Day', country: 'SG' },
+  
+  // Vietnam
+  { date: '2024-01-01', name: 'New Year\'s Day', country: 'VN' },
+  { date: '2024-02-08', name: 'Tet Holiday', country: 'VN' },
+  { date: '2024-02-09', name: 'Tet Holiday', country: 'VN' },
+  { date: '2024-02-10', name: 'Tet Holiday', country: 'VN' },
+  { date: '2024-04-18', name: 'Hung Kings Day', country: 'VN' },
+  { date: '2024-04-30', name: 'Liberation Day', country: 'VN' },
+  { date: '2024-05-01', name: 'Labour Day', country: 'VN' },
+  { date: '2024-09-02', name: 'National Day', country: 'VN' },
 ];
 
-// Generate business days for timeline
-export function generateBusinessDays(
-  startDate: Date,
-  count: number,
-  holidays: Holiday[] = []
-): BusinessDay[] {
-  const days: BusinessDay[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+// Base date for business day calculations
+export const BUSINESS_DAY_BASE_DATE = new Date('2024-01-01');
+
+// Check if a date is a weekend (Saturday or Sunday)
+export const isWeekend = (date: Date): boolean => {
+  const day = date.getDay();
+  return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+};
+
+// Check if a date is a holiday
+export const isHoliday = (date: Date, holidays: Holiday[] = DEFAULT_HOLIDAYS): boolean => {
+  const dateString = date.toISOString().split('T')[0];
+  return holidays.some(holiday => holiday.date === dateString);
+};
+
+// Check if a date is a business day (not weekend or holiday)
+export const isBusinessDay = (date: Date, holidays: Holiday[] = DEFAULT_HOLIDAYS): boolean => {
+  return !isWeekend(date) && !isHoliday(date, holidays);
+};
+
+// Convert business day number to actual date
+export const businessDayToDate = (
+  businessDay: number, 
+  holidays: Holiday[] = DEFAULT_HOLIDAYS, 
+  skipHolidays: boolean = true,
+  baseDate: Date = BUSINESS_DAY_BASE_DATE
+): Date => {
+  const result = new Date(baseDate);
+  let currentBusinessDay = 0;
   
-  const holidayDates = new Set(holidays.map(h => h.date));
-  
-  let currentDate = new Date(startDate);
-  let businessDayCount = 0;
-  
-  while (days.length < count) {
-    const dateStr = currentDate.toISOString().split('T')[0];
-    const dayOfWeek = currentDate.getDay();
+  while (currentBusinessDay < businessDay) {
+    result.setDate(result.getDate() + 1);
     
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      const isHoliday = holidayDates.has(dateStr);
-      const isToday = currentDate.getTime() === today.getTime();
-      
-      days.push({
-        date: new Date(currentDate),
-        businessDayNumber: businessDayCount++,
-        isToday,
-        isHoliday,
-        label: formatDateLabel(currentDate, days.length)
-      });
+    if (skipHolidays) {
+      if (isBusinessDay(result, holidays)) {
+        currentBusinessDay++;
+      }
+    } else {
+      if (!isWeekend(result)) {
+        currentBusinessDay++;
+      }
     }
-    
-    currentDate.setDate(currentDate.getDate() + 1);
   }
   
-  return days;
-}
+  return result;
+};
 
-// Format date label for timeline
-function formatDateLabel(date: Date, index: number): { line1: string; line2: string; line3?: string } {
-  const day = date.getDate();
-  const month = date.toLocaleDateString('en-US', { month: 'short' });
-  const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
+// Convert actual date to business day number
+export const dateToBusinessDay = (
+  date: Date, 
+  holidays: Holiday[] = DEFAULT_HOLIDAYS,
+  skipHolidays: boolean = true,
+  baseDate: Date = BUSINESS_DAY_BASE_DATE
+): number => {
+  let businessDay = 0;
+  const current = new Date(baseDate);
   
-  if (index === 0 || index % 5 === 0) {
-    return {
-      line1: day.toString(),
-      line2: month,
-      line3: weekday
-    };
-  }
-  
-  return {
-    line1: day.toString(),
-    line2: weekday
-  };
-}
-
-// Format date elegantly
-export function formatDateElegant(date: Date | null): string {
-  if (!date) return '—';
-  
-  const day = date.getDate();
-  const month = date.toLocaleDateString('en-US', { month: 'short' });
-  const year = date.getFullYear();
-  
-  const suffix = (d: number): string => {
-    if (d > 3 && d < 21) return 'th';
-    const suffixes = ['th', 'st', 'nd', 'rd'];
-    const v = d % 100;
-    return suffixes[(v - 20) % 10] || suffixes[v] || 'th';
-  };
-  
-  return `${day}${suffix(day)} ${month} ${year}`;
-}
-
-// Calculate project duration in readable format
-export function calculateProjectDuration(startDate: Date, endDate: Date): {
-  total: number;
-  formatted: string;
-} {
-  const msPerDay = 86400000;
-  const totalDays = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / msPerDay) + 1);
-  
-  if (totalDays < 5) {
-    return {
-      total: totalDays,
-      formatted: `${totalDays} day${totalDays !== 1 ? 's' : ''}`
-    };
-  }
-  
-  if (totalDays <= 28) {
-    const weeks = Math.floor(totalDays / 7);
-    const days = totalDays % 7;
-    const parts = [];
+  while (current < date) {
+    current.setDate(current.getDate() + 1);
     
-    if (weeks) parts.push(`${weeks} week${weeks > 1 ? 's' : ''}`);
-    if (days) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
-    
-    return {
-      total: totalDays,
-      formatted: parts.join(' ')
-    };
+    if (skipHolidays) {
+      if (isBusinessDay(current, holidays)) {
+        businessDay++;
+      }
+    } else {
+      if (!isWeekend(current)) {
+        businessDay++;
+      }
+    }
   }
   
-  const months = Math.floor(totalDays / 30);
-  const remainingDays = totalDays % 30;
-  const weeks = Math.floor(remainingDays / 7);
-  const days = remainingDays % 7;
+  return businessDay;
+};
+
+// Calculate end date based on start date and working days
+export const calculateEndDate = (
+  startDate: Date, 
+  workingDays: number,
+  holidays: Holiday[] = DEFAULT_HOLIDAYS,
+  skipHolidays: boolean = true
+): Date => {
+  const result = new Date(startDate);
+  let daysAdded = 0;
   
-  const parts = [];
-  if (months) parts.push(`${months} month${months > 1 ? 's' : ''}`);
-  if (weeks) parts.push(`${weeks} week${weeks > 1 ? 's' : ''}`);
-  if (days) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+  while (daysAdded < workingDays) {
+    result.setDate(result.getDate() + 1);
+    
+    if (skipHolidays) {
+      if (isBusinessDay(result, holidays)) {
+        daysAdded++;
+      }
+    } else {
+      if (!isWeekend(result)) {
+        daysAdded++;
+      }
+    }
+  }
   
-  return {
-    total: totalDays,
-    formatted: parts.join(' ')
-  };
-}
+  return result;
+};
+
+// Generate array of business days between two dates
+export const generateBusinessDays = (
+  startDate: Date, 
+  endDate: Date,
+  holidays: Holiday[] = DEFAULT_HOLIDAYS
+): Date[] => {
+  const businessDays: Date[] = [];
+  const current = new Date(startDate);
+  
+  while (current <= endDate) {
+    if (isBusinessDay(current, holidays)) {
+      businessDays.push(new Date(current));
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return businessDays;
+};
+
+// Format date elegantly (e.g., "Jan 15, 2024")
+export const formatDateElegant = (date: Date | null): string => {
+  if (!date) return 'Not set';
+  
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+// Calculate project duration in business days
+export const calculateProjectDuration = (
+  phases: any[],
+  holidays: Holiday[] = DEFAULT_HOLIDAYS
+): number => {
+  if (!phases.length) return 0;
+  
+  const minStart = Math.min(...phases.map(p => p.startBusinessDay));
+  const maxEnd = Math.max(...phases.map(p => p.startBusinessDay + p.workingDays));
+  
+  return maxEnd - minStart;
+};
+
+// Get project start and end dates
+export const getProjectStartDate = (phases: any[]): Date | null => {
+  if (!phases.length) return null;
+  
+  const earliestPhase = phases.reduce((earliest, phase) => 
+    phase.startBusinessDay < earliest.startBusinessDay ? phase : earliest
+  );
+  
+  return businessDayToDate(earliestPhase.startBusinessDay);
+};
+
+export const getProjectEndDate = (phases: any[]): Date | null => {
+  if (!phases.length) return null;
+  
+  const latestEnd = Math.max(...phases.map(p => 
+    p.startBusinessDay + p.workingDays
+  ));
+  
+  return businessDayToDate(latestEnd);
+};
