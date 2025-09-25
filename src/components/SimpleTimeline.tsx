@@ -1,315 +1,305 @@
-'use client';
-
-import React, { useState } from 'react';
+import React from 'react';
 import { useTimelineStore } from '@/stores/simple-timeline-store';
 
-// Simple date calculation
-const businessDayToDate = (businessDay: number): Date => {
-  const baseDate = new Date('2024-01-01');
-  const date = new Date(baseDate);
-  date.setDate(date.getDate() + Math.floor(businessDay * 1.4));
-  return date;
-};
-
-const MILESTONE_COLORS = {
-  deliverable: '#059669',
-  decision: '#dc2626',
-  golive: '#f59e0b', 
-  review: '#7c3aed'
-};
-
 export default function SimpleTimeline() {
-  const { 
-    phases, 
-    milestones, 
-    selectedMilestoneId,
-    selectedPhaseId,
-    generateTimeline, 
-    addMilestone,
-    selectMilestone,
-    selectPhase
-  } = useTimelineStore();
-
-  console.log('SimpleTimeline rendering - phases:', phases.length, 'milestones:', milestones.length);
-
-  // Calculate timeline bounds
-  const getTimelineBounds = () => {
-    if (!phases.length) {
-      return {
-        startDate: new Date('2024-01-01'),
-        endDate: new Date('2024-12-31')
-      };
-    }
-
-    const startBusinessDay = Math.min(...phases.map(p => p.startBusinessDay));
-    const endBusinessDay = Math.max(...phases.map(p => p.startBusinessDay + p.workingDays));
-
-    return {
-      startDate: businessDayToDate(startBusinessDay - 5),
-      endDate: businessDayToDate(endBusinessDay + 10)
-    };
-  };
-
-  const { startDate, endDate } = getTimelineBounds();
-
-  // Calculate positions
-  const calculatePosition = (businessDay: number): number => {
-    const milestoneDate = businessDayToDate(businessDay);
-    const totalDuration = endDate.getTime() - startDate.getTime();
-    const elapsed = milestoneDate.getTime() - startDate.getTime();
-    const chartWidth = 900;
-    const chartAreaWidth = chartWidth - 100;
-    const relativePosition = elapsed / totalDuration;
-    return Math.max(50, Math.min(chartWidth - 50, relativePosition * chartAreaWidth + 50));
-  };
+  const { phases, milestones, generateTimeline, addMilestone, selectMilestone, selectedMilestoneId } = useTimelineStore();
 
   if (!phases.length) {
     return (
-      <div className="w-full bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-        <h2 className="text-2xl font-bold mb-4">SAP Implementation Timeline</h2>
-        
-        <div className="p-8 text-center bg-gray-50 rounded-lg">
-          <div className="text-gray-400 mb-4">
-            <svg className="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <p className="text-xl font-medium text-gray-900 mb-2">No Timeline Data</p>
-          <p className="text-gray-600 mb-6">Create phases to start adding professional milestones</p>
-          <button 
-            onClick={() => {
-              console.log('Generate timeline clicked');
-              generateTimeline();
-            }}
-            className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Generate Sample Timeline
-          </button>
-        </div>
+      <div style={{ 
+        padding: '60px 40px', 
+        backgroundColor: 'white', 
+        borderRadius: '12px',
+        textAlign: 'center',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>
+          SAP Implementation Timeline
+        </h2>
+        <p style={{ color: '#6b7280', marginBottom: '32px' }}>
+          Create phases to start adding professional milestones
+        </p>
+        <button 
+          onClick={generateTimeline}
+          style={{ 
+            padding: '12px 32px', 
+            backgroundColor: '#3b82f6', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '8px', 
+            fontSize: '16px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+          }}
+        >
+          Generate Sample Timeline
+        </button>
       </div>
     );
   }
 
+  // Calculate total timeline duration
+  const maxBusinessDay = Math.max(...phases.map(p => p.startBusinessDay + p.workingDays));
+  const timelineWidth = 800;
+
   return (
-    <div className="w-full bg-white border border-gray-200 rounded-xl shadow-sm">
+    <div style={{ backgroundColor: 'white', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
       {/* Header */}
-      <div className="p-6 border-b border-gray-100">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Professional SAP Timeline</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {' '}
-          {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} | 
-          {phases.length} phases | {milestones.length} milestones
+      <div style={{ padding: '32px 40px', borderBottom: '1px solid #f3f4f6' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: '600', marginBottom: '8px', color: '#1f2937' }}>
+          Professional Timeline
+        </h2>
+        <p style={{ color: '#6b7280', fontSize: '16px' }}>
+          SAP implementation with milestone tracking
         </p>
-        
-        <div className="flex items-center gap-6 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-3 bg-green-600 transform rotate-45"></div>
-            <span>Deliverable</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-0 h-0 border-l-4 border-r-4 border-b-6 border-l-transparent border-r-transparent border-b-red-600"></div>
-            <span>Decision</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
-            <span>Go-Live</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-purple-600 rounded"></div>
-            <span>Review</span>
-          </div>
-        </div>
       </div>
 
-      {/* Visual Timeline */}
-      <div className="p-6 overflow-x-auto">
-        <div className="min-w-full">
-          {/* Canvas Timeline */}
-          <div className="relative bg-gray-50 border border-gray-200 rounded-lg p-4" style={{ height: '400px', minWidth: '900px' }}>
+      {/* Timeline Canvas */}
+      <div style={{ padding: '40px', position: 'relative' }}>
+        <div style={{ 
+          position: 'relative', 
+          height: '300px', 
+          backgroundColor: '#f9fafb',
+          borderRadius: '8px',
+          border: '1px solid #f3f4f6'
+        }}>
+          
+          {/* Timeline axis */}
+          <div style={{
+            position: 'absolute',
+            top: '50px',
+            left: '40px',
+            right: '40px',
+            height: '2px',
+            backgroundColor: '#d1d5db'
+          }} />
+
+          {/* Phase bars */}
+          {phases.map((phase, index) => {
+            const startPercent = (phase.startBusinessDay / maxBusinessDay) * 100;
+            const widthPercent = (phase.workingDays / maxBusinessDay) * 100;
+            const yPosition = 80 + (index * 70);
             
-            {/* Timeline Header */}
-            <div className="absolute top-4 left-4 right-4 h-16 bg-white border border-gray-200 rounded-lg flex items-center px-4">
-              <div>
-                <h4 className="font-semibold text-gray-900">McKinsey-Style Project Timeline</h4>
-                <p className="text-xs text-gray-500">Professional milestone management</p>
-              </div>
-            </div>
-
-            {/* Phases */}
-            {phases.map((phase, index) => {
-              const phaseStartDate = businessDayToDate(phase.startBusinessDay);
-              const phaseEndDate = businessDayToDate(phase.startBusinessDay + phase.workingDays);
-              
-              const totalDuration = endDate.getTime() - startDate.getTime();
-              const phaseStart = (phaseStartDate.getTime() - startDate.getTime()) / totalDuration;
-              const phaseDuration = (phaseEndDate.getTime() - phaseStartDate.getTime()) / totalDuration;
-              
-              const x = phaseStart * 800 + 50;
-              const width = Math.max(120, phaseDuration * 800);
-              const y = 100 + index * 70;
-
-              return (
+            return (
+              <div key={phase.id}>
+                {/* Phase bar */}
                 <div
-                  key={phase.id}
-                  className={`absolute rounded-lg cursor-pointer transition-all hover:opacity-90 ${
-                    selectedPhaseId === phase.id ? 'ring-2 ring-blue-500' : ''
-                  }`}
                   style={{
-                    left: `${x}px`,
-                    top: `${y}px`,
-                    width: `${width}px`,
-                    height: '50px',
-                    backgroundColor: phase.color
+                    position: 'absolute',
+                    left: `${40 + (startPercent * 0.01 * (timelineWidth - 80))}px`,
+                    top: `${yPosition}px`,
+                    width: `${Math.max(120, widthPercent * 0.01 * (timelineWidth - 80))}px`,
+                    height: '40px',
+                    backgroundColor: phase.color,
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    paddingLeft: '12px',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                   }}
-                  onClick={() => selectPhase(phase.id)}
                 >
-                  <div className="p-3 text-white">
-                    <div className="font-semibold text-sm">{phase.name}</div>
-                    <div className="text-xs opacity-90">{phase.workingDays} days</div>
-                  </div>
+                  {phase.name}
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
 
-            {/* Milestones */}
-            {milestones.map((milestone, index) => {
-              const x = calculatePosition(milestone.businessDay);
-              const y = 80;
-              const isSelected = selectedMilestoneId === milestone.id;
-              const color = MILESTONE_COLORS[milestone.type];
-
-              return (
-                <div key={milestone.id} className="absolute">
-                  {/* Vertical guide line */}
-                  <div 
-                    className="absolute border-l border-dashed border-gray-300 opacity-50"
-                    style={{
-                      left: `${x}px`,
-                      top: `${y + 25}px`,
-                      height: '280px'
-                    }}
-                  />
+          {/* Milestone markers - positioned ON the timeline */}
+          {milestones.map((milestone) => {
+            const xPercent = (milestone.businessDay / maxBusinessDay) * 100;
+            const xPosition = 40 + (xPercent * 0.01 * (timelineWidth - 80));
+            const isSelected = selectedMilestoneId === milestone.id;
+            
+            return (
+              <div key={milestone.id}>
+                {/* Vertical guideline */}
+                <div style={{
+                  position: 'absolute',
+                  left: `${xPosition}px`,
+                  top: '50px',
+                  width: '2px',
+                  height: '200px',
+                  backgroundColor: '#d1d5db',
+                  borderLeft: '2px dashed #9ca3af'
+                }} />
+                
+                {/* Milestone marker */}
+                <div
+                  onClick={() => selectMilestone(milestone.id)}
+                  style={{
+                    position: 'absolute',
+                    left: `${xPosition - 16}px`,
+                    top: '34px',
+                    width: '32px',
+                    height: '32px',
+                    cursor: 'pointer',
+                    transform: isSelected ? 'scale(1.2)' : 'scale(1)',
+                    transition: 'transform 0.2s ease',
+                    zIndex: 10
+                  }}
+                >
+                  {milestone.type === 'deliverable' && (
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      backgroundColor: '#059669',
+                      transform: 'rotate(45deg)',
+                      borderRadius: '4px',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      border: isSelected ? '3px solid #1f2937' : 'none'
+                    }} />
+                  )}
                   
-                  {/* Milestone marker */}
-                  <div
-                    className={`absolute cursor-pointer transition-all hover:scale-110 ${
-                      isSelected ? 'ring-2 ring-gray-700' : ''
-                    }`}
-                    style={{
-                      left: `${x - 12}px`,
-                      top: `${y}px`,
-                    }}
-                    onClick={() => selectMilestone(milestone.id)}
-                  >
-                    {/* Different shapes for different milestone types */}
-                    {milestone.type === 'deliverable' && (
-                      <div 
-                        className="w-6 h-6 transform rotate-45"
-                        style={{ backgroundColor: color }}
-                      />
-                    )}
-                    {milestone.type === 'decision' && (
-                      <div 
-                        className="w-0 h-0 border-l-4 border-r-4 border-b-6 border-l-transparent border-r-transparent"
-                        style={{ borderBottomColor: color }}
-                      />
-                    )}
-                    {milestone.type === 'golive' && (
-                      <div 
-                        className="w-6 h-6 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
-                    )}
-                    {milestone.type === 'review' && (
-                      <div 
-                        className="w-6 h-6 rounded"
-                        style={{ backgroundColor: color }}
-                      />
-                    )}
-                  </div>
+                  {milestone.type === 'decision' && (
+                    <div style={{
+                      width: '0',
+                      height: '0',
+                      borderLeft: '16px solid transparent',
+                      borderRight: '16px solid transparent',
+                      borderBottom: '28px solid #dc2626',
+                      filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))',
+                      position: 'relative',
+                      outline: isSelected ? '3px solid #1f2937' : 'none',
+                      outlineOffset: '2px'
+                    }} />
+                  )}
                   
-                  {/* Milestone label */}
-                  <div 
-                    className="absolute text-xs font-medium text-gray-700 text-center"
-                    style={{
-                      left: `${x - 40}px`,
-                      top: `${y + 30}px`,
-                      width: '80px'
-                    }}
-                  >
-                    {milestone.name.length > 12 ? milestone.name.substring(0, 12) + '...' : milestone.name}
-                  </div>
+                  {milestone.type === 'golive' && (
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      backgroundColor: '#f59e0b',
+                      borderRadius: '50%',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      border: isSelected ? '3px solid #1f2937' : 'none'
+                    }} />
+                  )}
+                  
+                  {milestone.type === 'review' && (
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      backgroundColor: '#7c3aed',
+                      borderRadius: '6px',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      border: isSelected ? '3px solid #1f2937' : 'none'
+                    }} />
+                  )}
                 </div>
-              );
-            })}
-          </div>
+                
+                {/* Milestone label */}
+                <div style={{
+                  position: 'absolute',
+                  left: `${xPosition - 40}px`,
+                  top: '10px',
+                  width: '80px',
+                  textAlign: 'center',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  color: '#374151',
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  padding: '2px 4px',
+                  borderRadius: '4px'
+                }}>
+                  {milestone.name.length > 10 ? milestone.name.substring(0, 10) + '...' : milestone.name}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Add Milestone Controls */}
-      <div className="p-6 bg-gray-50 border-t border-gray-100">
-        <h4 className="text-sm font-medium text-gray-900 mb-4">Add Professional Milestones</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Controls */}
+      <div style={{ padding: '32px 40px', borderTop: '1px solid #f3f4f6', backgroundColor: '#f9fafb' }}>
+        <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>
+          Add Milestone
+        </h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
           <button 
             onClick={() => addMilestone({
-              name: 'Requirements Sign-off',
+              name: 'Requirements',
               type: 'deliverable',
-              businessDay: Math.floor(Math.random() * 40) + 10,
+              businessDay: Math.floor(Math.random() * 30) + 10,
               status: 'pending'
             })}
-            className="flex items-center justify-center px-4 py-3 text-sm font-medium bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-colors"
+            style={{
+              padding: '12px',
+              backgroundColor: '#dcfce7',
+              color: '#166534',
+              border: '1px solid #bbf7d0',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
           >
-            <div className="w-3 h-2 bg-green-600 transform rotate-45 mr-2"></div>
-            Add Deliverable
+            Deliverable
           </button>
-          
           <button 
             onClick={() => addMilestone({
-              name: 'Stakeholder Decision',
+              name: 'Decision',
               type: 'decision',
-              businessDay: Math.floor(Math.random() * 40) + 30,
+              businessDay: Math.floor(Math.random() * 30) + 40,
               status: 'pending'
             })}
-            className="flex items-center justify-center px-4 py-3 text-sm font-medium bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-colors"
+            style={{
+              padding: '12px',
+              backgroundColor: '#fee2e2',
+              color: '#991b1b',
+              border: '1px solid #fecaca',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
           >
-            <div className="w-0 h-0 border-l-2 border-r-2 border-b-4 border-l-transparent border-r-transparent border-b-red-600 mr-2"></div>
-            Add Decision
+            Decision
           </button>
-          
           <button 
             onClick={() => addMilestone({
-              name: 'System Go-Live',
+              name: 'Go-Live',
               type: 'golive',
-              businessDay: Math.floor(Math.random() * 30) + 100,
+              businessDay: Math.floor(Math.random() * 20) + 100,
               status: 'pending'
             })}
-            className="flex items-center justify-center px-4 py-3 text-sm font-medium bg-orange-100 text-orange-800 rounded-lg hover:bg-orange-200 transition-colors"
+            style={{
+              padding: '12px',
+              backgroundColor: '#fed7aa',
+              color: '#9a3412',
+              border: '1px solid #fdba74',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
           >
-            <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-            Add Go-Live
+            Go-Live
           </button>
-          
           <button 
             onClick={() => addMilestone({
-              name: 'Project Review',
+              name: 'Review',
               type: 'review',
-              businessDay: Math.floor(Math.random() * 30) + 140,
+              businessDay: Math.floor(Math.random() * 20) + 140,
               status: 'pending'
             })}
-            className="flex items-center justify-center px-4 py-3 text-sm font-medium bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors"
+            style={{
+              padding: '12px',
+              backgroundColor: '#e9d5ff',
+              color: '#581c87',
+              border: '1px solid #c4b5fd',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
           >
-            <div className="w-3 h-3 bg-purple-600 rounded mr-2"></div>
-            Add Review
+            Review
           </button>
-        </div>
-      </div>
-
-      {/* Test Data Section */}
-      <div className="p-6 border-t border-gray-100">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Current Timeline Data</h4>
-        <div className="text-xs text-gray-600 space-y-1">
-          <div>Phases: {phases.map(p => p.name).join(', ')}</div>
-          <div>Milestones: {milestones.map(m => `${m.name} (${m.type})`).join(', ')}</div>
         </div>
       </div>
     </div>
