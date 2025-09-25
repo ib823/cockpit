@@ -14,7 +14,7 @@ import {
   getProjectStartDate,
   getProjectEndDate
 } from '@/lib/timeline/date-calculations';
-import { calculateProjectCost, formatCurrency } from '@/data/resource-catalog';
+import { getRateCard } from '@/data/resource-catalog';
 
 interface TimelineState {
   // Core data
@@ -22,6 +22,7 @@ interface TimelineState {
   selectedPackages: string[];
   phases: Phase[];
   holidays: Holiday[];
+  phaseColors: Record<string, string>;
   
   // View state
   zoomLevel: 'daily' | 'weekly' | 'biweekly' | 'monthly';
@@ -30,36 +31,27 @@ interface TimelineState {
   
   // Actions - Profile
   setProfile: (profile: Partial<ClientProfile>) => void;
-  resetProfile: () => void;
   
   // Actions - Packages
   addPackage: (packageId: string) => void;
   removePackage: (packageId: string) => void;
-  clearPackages: () => void;
   
   // Actions - Phases
   generateTimeline: () => void;
-  addPhase: (phase?: Partial<Phase>) => void;
   updatePhase: (id: string, updates: Partial<Phase>) => void;
-  deletePhase: (id: string) => void;
-  movePhase: (id: string, newStartDay: number) => void;
-  
-  // Actions - Resources
   updatePhaseResources: (phaseId: string, resources: Resource[]) => void;
   
   // Actions - Holidays
   addHoliday: (holiday: Holiday) => void;
   removeHoliday: (date: string) => void;
-  resetHolidays: () => void;
   
   // Actions - View
-  setZoomLevel: (level: 'daily' | 'weekly' | 'biweekly' | 'monthly') => void;
   selectPhase: (id: string | null) => void;
   togglePresentationMode: () => void;
+  setPhaseColor: (phaseId: string, color: string) => void;
   
   // Computed values
   getProjectCost: () => number;
-  getBlendedRate: () => number;
   getProjectStartDate: () => Date | null;
   getProjectEndDate: () => Date | null;
 }
@@ -75,6 +67,8 @@ const defaultProfile: ClientProfile = {
   annualRevenue: 100000000
 };
 
+const PHASE_COLORS = ['#3b82f6', '#10b981', '#8b5cf6'];
+
 export const useTimelineStore = create<TimelineState>()(
   persist(
     (set, get) => ({
@@ -83,104 +77,85 @@ export const useTimelineStore = create<TimelineState>()(
       selectedPackages: [],
       phases: [],
       holidays: DEFAULT_HOLIDAYS,
+      phaseColors: {},
       zoomLevel: 'weekly',
       selectedPhaseId: null,
       clientPresentationMode: false,
       
-      // Profile actions
-      setProfile: (updates) => set(state => ({
-        profile: { ...state.profile, ...updates }
+      // Actions
+      setProfile: (profile) => set(state => ({
+        profile: { ...state.profile, ...profile }
       })),
       
-      resetProfile: () => set({ profile: defaultProfile }),
-      
-      // Package actions
-      addPackage: (packageId) => set(state => {
-        if (!state.selectedPackages.includes(packageId)) {
-          return { selectedPackages: [...state.selectedPackages, packageId] };
-        }
-        return state;
-      }),
+      addPackage: (packageId) => set(state => ({
+        selectedPackages: state.selectedPackages.includes(packageId) 
+          ? state.selectedPackages
+          : [...state.selectedPackages, packageId]
+      })),
       
       removePackage: (packageId) => set(state => ({
         selectedPackages: state.selectedPackages.filter(id => id !== packageId)
       })),
       
-      clearPackages: () => set({ 
-        selectedPackages: [], 
-        phases: [] 
-      }),
-      
-      // Phase actions
       generateTimeline: () => set(state => {
+        if (!state.selectedPackages.length) return state;
+        
         try {
-          const newPhases = generateTimelineFromSAPSelection(
-            state.selectedPackages,
+          const generatedPhases = generateTimelineFromSAPSelection(
+            state.selectedPackages, 
             state.profile
           );
           
-          return {
-            phases: newPhases,
-            selectedPhaseId: null
+          const sequencedPhases = calculateIntelligentSequencing(generatedPhases);
+          
+          const phasesWithResources = sequencedPhases.map((phase, index) => {
+            const resources = calculateResourceRequirements(phase, state.profile.region);
+            
+            const resourcesWithRates = resources.map(resource => {
+              const rateCard = getRateCard(resource.role, resource.region);
+              return {
+                ...resource,
+                hourlyRate: rateCard?.hourlyRate || 400,
+                includeOPE: false
+              };
+            });
+
+            const phaseColor = PHASE_COLORS[index % PHASE_COLORS.length];
+            
+            return {
+              ...phase,
+              resources: resourcesWithRates,
+              color: phaseColor
+            };
+          });
+
+          const newPhaseColors = phasesWithResources.reduce((colors, phase) => {
+            colors[phase.id] = phase.color;
+            return colors;
+          }, {} as Record<string, string>);
+          
+          return { 
+            phases: phasesWithResources,
+            phaseColors: newPhaseColors
           };
         } catch (error) {
-          console.error('Failed to generate timeline:', error);
+          console.error('Timeline generation failed:', error);
           return state;
         }
       }),
-      
-      addPhase: (phaseData = {}) => set(state => {
-        const newPhase: Phase = {
-          id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          name: phaseData.name || 'New Phase',
-          category: phaseData.category || 'Custom',
-          startBusinessDay: phaseData.startBusinessDay || 0,
-          workingDays: phaseData.workingDays || 5,
-          effort: phaseData.effort || 5,
-          color: phaseData.color || '#3B82F6',
-          skipHolidays: phaseData.skipHolidays ?? true,
-          dependencies: phaseData.dependencies || [],
-          status: phaseData.status || 'idle',
-          resources: phaseData.resources || []
-        };
-        
-        const updatedPhases = [...state.phases, newPhase];
-        
-        return {
-          phases: calculateIntelligentSequencing(updatedPhases)
-        };
-      }),
-      
-      updatePhase: (id, updates) => set(state => {
-        const updatedPhases = state.phases.map(phase => 
+
+      updatePhase: (id, updates) => set(state => ({
+        phases: state.phases.map(phase => 
           phase.id === id ? { ...phase, ...updates } : phase
-        );
-        
-        return { 
-          phases: calculateIntelligentSequencing(updatedPhases)
-        };
-      }),
-      
-      deletePhase: (id) => set(state => ({
-        phases: state.phases.filter(phase => phase.id !== id),
-        selectedPhaseId: state.selectedPhaseId === id ? null : state.selectedPhaseId
+        )
       })),
       
-      movePhase: (id, newStartDay) => set(state => {
-        const updatedPhases = state.phases.map(phase => 
-          phase.id === id ? { ...phase, startBusinessDay: newStartDay } : phase
-        );
-        return { phases: calculateIntelligentSequencing(updatedPhases) };
-      }),
-      
-      // Resource actions
       updatePhaseResources: (phaseId, resources) => set(state => ({
         phases: state.phases.map(phase => 
           phase.id === phaseId ? { ...phase, resources } : phase
         )
       })),
       
-      // Holiday actions
       addHoliday: (holiday) => set(state => {
         if (!state.holidays.find(h => h.date === holiday.date)) {
           return { holidays: [...state.holidays, holiday] };
@@ -192,36 +167,37 @@ export const useTimelineStore = create<TimelineState>()(
         holidays: state.holidays.filter(h => h.date !== date)
       })),
       
-      resetHolidays: () => set({ holidays: DEFAULT_HOLIDAYS }),
-      
-      // View actions
-      setZoomLevel: (level) => set({ zoomLevel: level }),
       selectPhase: (id) => set({ selectedPhaseId: id }),
+      
       togglePresentationMode: () => set(state => ({
         clientPresentationMode: !state.clientPresentationMode
       })),
+
+      setPhaseColor: (phaseId, color) => set(state => ({
+        phaseColors: { ...state.phaseColors, [phaseId]: color },
+        phases: state.phases.map(phase => 
+          phase.id === phaseId ? { ...phase, color } : phase
+        )
+      })),
       
-      // Computed values
       getProjectCost: () => {
         const { phases } = get();
-        return calculateProjectCost(phases.map(p => ({ ...p, resources: p.resources || [] })), 8);
-      },
-      
-      getBlendedRate: () => {
-        const { phases } = get();
-        const allResources = phases.flatMap(p => p.resources || []);
-        if (!allResources.length) return 0;
+        if (!phases.length) return 0;
         
-        let totalCost = 0;
-        let totalAllocation = 0;
-        
-        allResources.forEach(resource => {
-          const allocation = resource.allocation / 100;
-          totalCost += (resource.hourlyRate || 0) * 8 * allocation;
-          totalAllocation += allocation;
-        });
-        
-        return totalAllocation > 0 ? totalCost / totalAllocation : 0;
+        return phases.reduce((total, phase) => {
+          if (!phase.resources || !phase.resources.length) return total;
+          
+          const phaseCost = phase.resources.reduce((phaseTotal, resource) => {
+            const hourlyRate = resource.hourlyRate || 0;
+            const allocation = resource.allocation || 0;
+            const dailyRate = hourlyRate * 8;
+            const resourceCost = dailyRate * phase.workingDays * (allocation / 100);
+            
+            return phaseTotal + resourceCost;
+          }, 0);
+          
+          return total + phaseCost;
+        }, 0);
       },
       
       getProjectStartDate: () => {
@@ -235,25 +211,7 @@ export const useTimelineStore = create<TimelineState>()(
       }
     }),
     { 
-      name: 'timeline-store',
-      partialize: (state) => ({
-        profile: state.profile,
-        selectedPackages: state.selectedPackages,
-        phases: state.phases,
-        holidays: state.holidays,
-        zoomLevel: state.zoomLevel,
-        clientPresentationMode: state.clientPresentationMode
-      })
+      name: 'timeline-store'
     }
   )
 );
-
-// Export commonly used selectors
-export const useTimelinePhases = () => useTimelineStore(state => state.phases);
-export const useTimelineProfile = () => useTimelineStore(state => state.profile);
-export const useSelectedPackages = () => useTimelineStore(state => state.selectedPackages);
-export const useProjectCost = () => useTimelineStore(state => state.getProjectCost());
-export const useProjectDates = () => useTimelineStore(state => ({
-  startDate: state.getProjectStartDate(),
-  endDate: state.getProjectEndDate()
-}));
