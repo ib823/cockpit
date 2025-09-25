@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTimelineStore } from '@/stores/timeline-store';
 import { formatCurrency } from '@/data/resource-catalog';
+import { formatDateConsistent } from '@/lib/timeline/date-calculations';
 
 const TimelineControls: React.FC = () => {
   const {
@@ -10,22 +11,12 @@ const TimelineControls: React.FC = () => {
     getProjectStartDate,
     getProjectEndDate,
     getProjectCost,
+    profile
   } = useTimelineStore();
 
   const startDate = getProjectStartDate();
   const endDate = getProjectEndDate();
   const projectCost = getProjectCost();
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return '-';
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mmm = months[date.getMonth()];
-    const yy = String(date.getFullYear()).slice(-2);
-    const ddd = days[date.getDay()];
-    return `${dd}-${mmm}-${yy} (${ddd})`;
-  };
 
   const calculateDuration = () => {
     if (!startDate || !endDate) return '-';
@@ -33,24 +24,26 @@ const TimelineControls: React.FC = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const weeks = Math.floor(diffDays / 7);
     const days = diffDays % 7;
-    if (weeks > 0) {
-      return `${weeks}w ${days}d`;
-    }
-    return `${diffDays}d`;
+    return weeks > 0 ? `${weeks}w ${days}d` : `${diffDays}d`;
+  };
+
+  const formatProjectCost = () => {
+    if (!projectCost || isNaN(projectCost)) return formatCurrency(0, profile.region);
+    return formatCurrency(projectCost, profile.region);
   };
 
   return (
-    <div className="bg-white rounded border p-4 mb-4">
+    <div className="bg-white rounded-lg border p-4 mb-4">
       <div className="flex items-center justify-between">
         <div className="flex gap-8 text-sm">
           <div>
             <div className="text-xs text-gray-500 uppercase tracking-wider">Start</div>
-            <div className="font-medium text-gray-900 mt-0.5">{formatDate(startDate)}</div>
+            <div className="font-medium text-gray-900 mt-0.5">{formatDateConsistent(startDate)}</div>
           </div>
           
           <div>
             <div className="text-xs text-gray-500 uppercase tracking-wider">End</div>
-            <div className="font-medium text-gray-900 mt-0.5">{formatDate(endDate)}</div>
+            <div className="font-medium text-gray-900 mt-0.5">{formatDateConsistent(endDate)}</div>
           </div>
 
           <div>
@@ -67,7 +60,7 @@ const TimelineControls: React.FC = () => {
             <div>
               <div className="text-xs text-gray-500 uppercase tracking-wider">Total</div>
               <div className="font-medium text-gray-900 mt-0.5">
-                {formatCurrency(projectCost, 'MY')}
+                {formatProjectCost()}
               </div>
             </div>
           )}

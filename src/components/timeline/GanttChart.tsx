@@ -1,201 +1,7 @@
-import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useDrag, useDrop } from 'react-dnd';
+import React, { useRef, useEffect, useState } from 'react';
 import { Phase, Holiday } from '@/types/core';
+import { businessDayToDate } from '@/lib/timeline/date-calculations';
 import { useTimelineStore } from '@/stores/timeline-store';
-import { businessDayToDate, isHoliday, isWeekend } from '@/lib/timeline/date-calculations';
-
-const ItemType = 'phase';
-
-interface DraggablePhaseRowProps {
-  phase: Phase;
-  index: number;
-  isSelected: boolean;
-  isHovered: boolean;
-  onPhaseClick: (id: string) => void;
-  onHover: (id: string | null) => void;
-  onMove: (dragIndex: number, dropIndex: number) => void;
-  startBusinessDay: number;
-  dayWidth: number;
-  phaseColor: string;
-}
-
-const DraggablePhaseRow: React.FC<DraggablePhaseRowProps> = ({
-  phase,
-  index,
-  isSelected,
-  isHovered,
-  onPhaseClick,
-  onHover,
-  onMove,
-  startBusinessDay,
-  dayWidth,
-  phaseColor,
-}) => {
-  const [{ isDragging }, drag] = useDrag({
-    type: ItemType,
-    item: { index },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  });
-
-  const [, drop] = useDrop({
-    accept: ItemType,
-    hover: (item: { index: number }) => {
-      if (item.index !== index) {
-        onMove(item.index, index);
-        item.index = index;
-      }
-    },
-  });
-
-  const ref = React.useRef<HTMLDivElement>(null);
-  drag(drop(ref));
-
-  const phaseStart = phase.startBusinessDay - startBusinessDay;
-  const x = phaseStart * dayWidth;
-  const width = Math.max(phase.workingDays * dayWidth - 2, 40);
-  const y = 100 + index * 50;
-
-  const barColor = phaseColor;
-  const phaseOpacity = isDragging ? 0.5 : 1;
-
-  // Calculate resource utilization
-  const totalAllocation = (phase.resources || []).reduce((sum, r) => sum + (r.allocation || 0), 0);
-  const avgUtilization = phase.resources?.length ? totalAllocation / phase.resources.length : 0;
-  
-  // Show max 3 avatars, then +X
-  const visibleResources = (phase.resources || []).slice(0, 3);
-  const remainingCount = Math.max(0, (phase.resources?.length || 0) - 3);
-
-  return (
-    <div
-      ref={ref}
-      style={{
-        position: 'absolute',
-        left: `${x}px`,
-        top: `${y}px`,
-        width: `${width}px`,
-        height: '40px',
-        opacity: phaseOpacity,
-        cursor: isDragging ? 'grabbing' : 'pointer',
-      }}
-      onMouseEnter={() => onHover(phase.id)}
-      onMouseLeave={() => onHover(null)}
-    >
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          backgroundColor: barColor,
-          borderRadius: '4px',
-          transition: 'all 0.2s ease',
-          boxShadow: isHovered ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.1)',
-        }}
-        onClick={() => onPhaseClick(phase.id)}
-      >
-        {/* Resource avatars */}
-        {visibleResources.length > 0 && (
-          <div style={{ position: 'absolute', top: '3px', left: '4px', display: 'flex' }}>
-            {visibleResources.map((res, idx) => (
-              <div
-                key={idx}
-                style={{
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(255,255,255,0.9)',
-                  border: '1px solid rgba(255,255,255,0.7)',
-                  fontSize: '9px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold',
-                  color: barColor,
-                  marginLeft: idx > 0 ? '-4px' : '0',
-                  zIndex: 3 - idx,
-                }}
-                title={`${res.role} (${res.allocation}%)`}
-              >
-                {res.role?.charAt(0).toUpperCase()}
-              </div>
-            ))}
-            {remainingCount > 0 && (
-              <div
-                style={{
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(255,255,255,0.9)',
-                  border: '1px solid rgba(255,255,255,0.7)',
-                  fontSize: '9px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold',
-                  color: barColor,
-                  marginLeft: '-4px',
-                  zIndex: 0,
-                }}
-              >
-                +{remainingCount}
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Utilization indicator bar */}
-        {phase.resources && phase.resources.length > 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '2px',
-              left: '4px',
-              right: '4px',
-              height: '2px',
-              backgroundColor: 'rgba(0,0,0,0.1)',
-              borderRadius: '1px',
-            }}
-          >
-            <div
-              style={{
-                width: `${Math.min(100, avgUtilization)}%`,
-                height: '100%',
-                backgroundColor: avgUtilization > 100 ? '#ef4444' : avgUtilization > 80 ? '#f59e0b' : '#10b981',
-                borderRadius: '1px',
-                transition: 'width 0.3s ease',
-              }}
-            />
-          </div>
-        )}
-        
-        <div
-          style={{
-            padding: '0 8px',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            color: 'white',
-            fontSize: '12px',
-            fontWeight: '400',
-            paddingTop: phase.resources?.length ? '8px' : '0',
-          }}
-        >
-          <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            {phase.name}
-          </span>
-          <span style={{ fontSize: '10px', opacity: 0.9, marginLeft: '4px' }}>
-            {phase.workingDays}d
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 interface GanttChartProps {
   phases: Phase[];
@@ -214,218 +20,283 @@ const GanttChart: React.FC<GanttChartProps> = ({
   holidays = [],
   showCalendarAxis = true
 }) => {
-  const [hoveredPhase, setHoveredPhase] = useState<string | null>(null);
-  const [containerWidth, setContainerWidth] = useState(1200);
+  const { phaseColors } = useTimelineStore();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { movePhaseOrder, phaseColors, setPhaseColor } = useTimelineStore();
+  const [containerWidth, setContainerWidth] = useState(1200);
 
   useEffect(() => {
     const updateWidth = () => {
       if (containerRef.current) {
-        setContainerWidth(containerRef.current.offsetWidth || 1200);
+        // FIXED: Use full container width minus minimal padding
+        const width = containerRef.current.offsetWidth - 20; // Minimal padding
+        setContainerWidth(Math.max(800, width));
       }
     };
-    
+
     updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
-  }, []);
-
-  const startBusinessDay = useMemo(() => {
-    if (!phases.length) return 0;
-    return Math.min(...phases.map(p => p.startBusinessDay));
-  }, [phases]);
-
-  const endBusinessDay = useMemo(() => {
-    if (!phases.length) return 100;
-    return Math.max(...phases.map(p => p.startBusinessDay + p.workingDays));
-  }, [phases]);
-
-  const totalBusinessDays = Math.max(1, endBusinessDay - startBusinessDay);
-  
-  const minDayWidth = 30;
-  const maxDayWidth = 80;
-  const optimalDayWidth = Math.floor(containerWidth / totalBusinessDays);
-  const dayWidth = Math.max(minDayWidth, Math.min(maxDayWidth, optimalDayWidth));
-  
-  const chartWidth = Math.max(containerWidth, totalBusinessDays * dayWidth);
-  const chartHeight = phases.length * 50 + 150;
-
-  const calendarDates = useMemo(() => {
-    const dates = [];
-    for (let i = 0; i <= totalBusinessDays; i++) {
-      const date = businessDayToDate(startBusinessDay + i);
-      const isHol = holidays.some(h => {
-        const hDate = new Date(h.date);
-        return hDate.toDateString() === date.toDateString();
-      });
-      const isWknd = isWeekend(date);
-      
-      dates.push({
-        businessDay: i,
-        date,
-        isHoliday: isHol,
-        isWeekend: isWknd,
-        holidayName: holidays.find(h => new Date(h.date).toDateString() === date.toDateString())?.name
-      });
+    const resizeObserver = new ResizeObserver(updateWidth);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
     }
-    return dates;
-  }, [startBusinessDay, totalBusinessDays, holidays]);
 
-  const handlePhaseMove = useCallback((fromIndex: number, toIndex: number) => {
-    movePhaseOrder(fromIndex, toIndex);
-  }, [movePhaseOrder]);
-
-  const handlePhaseClick = useCallback((phaseId: string) => {
-    onPhaseClick?.(phaseId);
-  }, [onPhaseClick]);
-
-  const formatDateHeader = (date: Date) => {
-    const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
-    return {
-      day: String(date.getDate()).padStart(2, '0'),
-      month: months[date.getMonth()],
-      year: String(date.getFullYear()),
-      dow: days[date.getDay()]
-    };
-  };
-
-  // Color options
-  const colorOptions = ['#3b82f6', '#10b981', '#8b5cf6'];
+    return () => resizeObserver.disconnect();
+  }, []);
 
   if (!phases.length) {
     return (
-      <div className="flex items-center justify-center h-32 bg-gray-50 rounded border border-dashed border-gray-300">
-        <p className="text-sm text-gray-500">Generate a timeline to see the Gantt chart</p>
+      <div className="p-8 text-center text-gray-500">
+        <p>No phases to display. Generate a timeline to see the Gantt chart.</p>
       </div>
     );
   }
 
-  // Safeguard against invalid chart dimensions
-  const safeChartWidth = isNaN(chartWidth) ? 1200 : chartWidth;
-  const safeDayWidth = isNaN(dayWidth) ? 40 : dayWidth;
+  const projectStart = Math.min(...phases.map(p => p.startBusinessDay));
+  const projectEnd = Math.max(...phases.map(p => p.startBusinessDay + p.workingDays));
+  const projectSpan = projectEnd - projectStart;
+
+  const getOptimalZoom = () => {
+    const availableWidth = containerWidth - 20; // Minimal margins
+    const pixelsPerDay = availableWidth / projectSpan;
+    
+    if (pixelsPerDay >= 40 && projectSpan <= 7) {
+      return { type: 'half-daily', interval: 0.5, label: 'Half-daily', format: 'time' };
+    } else if (pixelsPerDay >= 25 && projectSpan <= 14) {
+      return { type: 'daily', interval: 1, label: 'Daily', format: 'day' };
+    } else if (pixelsPerDay >= 15 && projectSpan <= 30) {
+      return { type: 'weekly', interval: 5, label: 'Weekly', format: 'day-month' };
+    } else if (pixelsPerDay >= 12 && projectSpan <= 60) {
+      return { type: 'bi-weekly', interval: 10, label: 'Bi-weekly', format: 'day-month' };
+    } else if (pixelsPerDay >= 8 && projectSpan <= 120) {
+      return { type: 'monthly', interval: 22, label: 'Monthly', format: 'month' };
+    } else if (pixelsPerDay >= 6 && projectSpan <= 240) {
+      return { type: 'bi-monthly', interval: 44, label: 'Bi-monthly', format: 'month' };
+    } else if (pixelsPerDay >= 4 && projectSpan <= 500) {
+      return { type: 'quarterly', interval: 65, label: 'Quarterly', format: 'quarter' };
+    } else if (pixelsPerDay >= 3 && projectSpan <= 1000) {
+      return { type: 'half-yearly', interval: 130, label: 'Half-yearly', format: 'half-year' };
+    } else if (pixelsPerDay >= 2 && projectSpan <= 2000) {
+      return { type: 'yearly', interval: 260, label: 'Yearly', format: 'year' };
+    } else if (projectSpan <= 5000) {
+      return { type: 'bi-yearly', interval: 520, label: 'Bi-yearly', format: 'year' };
+    } else if (projectSpan <= 12000) {
+      return { type: '5-yearly', interval: 1300, label: '5-yearly', format: 'year' };
+    } else {
+      return { type: 'decade', interval: 2600, label: 'Decade', format: 'decade' };
+    }
+  };
+
+  const { type: zoomType, interval, label, format } = getOptimalZoom();
+  
+  // FIXED: Chart width uses nearly full container width
+  const chartWidth = containerWidth - 20;
+  const dayWidth = chartWidth / projectSpan;
+  const phaseHeight = 50;
+  const phaseGap = 6;
+
+  const generateSmartCalendarMarkers = () => {
+    const markers = [];
+    const maxMarkers = Math.floor(containerWidth / 120);
+    const actualInterval = Math.max(interval, Math.ceil(projectSpan / maxMarkers));
+    
+    for (let businessDay = projectStart; businessDay <= projectEnd; businessDay += actualInterval) {
+      const actualBusinessDay = Math.min(businessDay, projectEnd);
+      const date = businessDayToDate(actualBusinessDay);
+      const x = (actualBusinessDay - projectStart) * dayWidth;
+      
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      let primary, secondary, tertiary;
+
+      switch (format) {
+        case 'time':
+          primary = businessDay % 1 === 0 ? 'AM' : 'PM';
+          secondary = String(date.getDate()).padStart(2, '0');
+          tertiary = months[date.getMonth()];
+          break;
+        case 'day':
+          primary = String(date.getDate()).padStart(2, '0');
+          secondary = `${months[date.getMonth()]}-${String(date.getFullYear()).slice(-2)}`;
+          tertiary = `(${days[date.getDay()]})`;
+          break;
+        case 'day-month':
+          primary = String(date.getDate()).padStart(2, '0');
+          secondary = `${months[date.getMonth()]}-${String(date.getFullYear()).slice(-2)}`;
+          tertiary = `(${days[date.getDay()]})`;
+          break;
+        case 'month':
+          primary = months[date.getMonth()];
+          secondary = String(date.getFullYear());
+          tertiary = '';
+          break;
+        case 'quarter':
+          const quarter = Math.floor(date.getMonth() / 3) + 1;
+          primary = `Q${quarter}`;
+          secondary = String(date.getFullYear());
+          tertiary = '';
+          break;
+        case 'half-year':
+          const half = date.getMonth() < 6 ? 'H1' : 'H2';
+          primary = half;
+          secondary = String(date.getFullYear());
+          tertiary = '';
+          break;
+        case 'year':
+          primary = String(date.getFullYear());
+          secondary = '';
+          tertiary = '';
+          break;
+        case 'decade':
+          const decade = Math.floor(date.getFullYear() / 10) * 10;
+          primary = `${decade}s`;
+          secondary = '';
+          tertiary = '';
+          break;
+        default:
+          primary = String(date.getDate()).padStart(2, '0');
+          secondary = months[date.getMonth()];
+          tertiary = '';
+      }
+      
+      markers.push({ x, primary, secondary, tertiary });
+    }
+    
+    return markers;
+  };
+
+  const calendarMarkers = showCalendarAxis ? generateSmartCalendarMarkers() : [];
+
+  const getHolidayPosition = (holiday: Holiday) => {
+    try {
+      const holidayDate = new Date(holiday.date);
+      const startDate = businessDayToDate(projectStart);
+      const diffTime = holidayDate.getTime() - startDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      let businessDays = 0;
+      const current = new Date(startDate);
+      
+      for (let i = 0; i < diffDays && businessDays < projectSpan; i++) {
+        current.setDate(current.getDate() + 1);
+        if (current.getDay() !== 0 && current.getDay() !== 6) {
+          businessDays++;
+        }
+      }
+      
+      return businessDays * dayWidth;
+    } catch {
+      return null;
+    }
+  };
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="bg-white rounded-lg overflow-hidden" ref={containerRef}>
-        <div style={{ width: '100%', overflow: 'auto' }}>
-          <div 
-            style={{ 
-              position: 'relative', 
-              width: safeChartWidth,
-              minHeight: chartHeight,
-              backgroundColor: 'white',
-            }}
-          >
-            {showCalendarAxis && (
-              <div style={{ 
-                position: 'sticky',
-                top: 0,
-                zIndex: 10,
-                backgroundColor: '#f9fafb',
-                borderBottom: '1px solid #e5e7eb',
-                width: safeChartWidth,
-              }}>
-                <div style={{ 
-                  display: 'flex',
-                  height: '20px',
-                  borderBottom: '1px solid #e5e7eb',
-                }}>
-                  {calendarDates.map((cal, idx) => {
-                    const fmt = formatDateHeader(cal.date);
-                    const showMonth = idx === 0 || fmt.day === '01';
-                    return showMonth ? (
-                      <div
-                        key={idx}
-                        style={{
-                          position: 'absolute',
-                          left: `${idx * safeDayWidth}px`,
-                          padding: '2px 6px',
-                          fontSize: '10px',
-                          fontWeight: '500',
-                          color: '#374151',
-                        }}
-                      >
-                        {fmt.month} {fmt.year}
-                      </div>
-                    ) : null;
-                  })}
+    <div ref={containerRef} className="p-3"> {/* Minimal padding for full width */}
+      {showCalendarAxis && (
+        <div className="mb-6 relative" style={{ height: '70px' }}>
+          <div className="text-xs text-gray-400 mb-3">
+            {label} View ({projectSpan} working days, ~{Math.ceil(projectSpan / 22)} months)
+          </div>
+          
+          {/* FIXED: Calendar uses full width */}
+          <div className="relative" style={{ width: chartWidth, height: '50px' }}>
+            {calendarMarkers.map((marker, index) => (
+              <div
+                key={index}
+                className="absolute flex flex-col items-center"
+                style={{ left: marker.x, top: 0 }}
+              >
+                <div className="text-center">
+                  <div className="font-bold text-gray-900 text-sm">{marker.primary}</div>
+                  {marker.secondary && <div className="text-xs text-gray-500">{marker.secondary}</div>}
+                  {marker.tertiary && <div className="text-xs text-gray-400">{marker.tertiary}</div>}
                 </div>
-                
-                <div style={{ display: 'flex', height: '40px', width: safeChartWidth }}>
-                  {calendarDates.map((cal, idx) => {
-                    const fmt = formatDateHeader(cal.date);
-                    const isToday = new Date().toDateString() === cal.date.toDateString();
-                    return (
-                      <div
-                        key={idx}
-                        style={{
-                          width: `${safeDayWidth}px`,
-                          minWidth: `${safeDayWidth}px`,
-                          borderRight: '1px solid #e5e7eb',
-                          backgroundColor: isToday ? '#dbeafe' : cal.isWeekend ? '#fef3c7' : cal.isHoliday ? '#fee2e2' : 'transparent',
-                          padding: '2px 0',
-                          textAlign: 'center',
-                          fontSize: '10px',
-                        }}
-                        title={cal.holidayName || ''}
-                      >
-                        <div style={{ fontWeight: isToday ? '500' : 'normal' }}>
-                          {fmt.day}
-                        </div>
-                        <div style={{ fontSize: '9px', color: cal.isWeekend || cal.isHoliday ? '#dc2626' : '#6b7280' }}>
-                          {fmt.dow}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <div className="w-px h-4 bg-gray-300 mt-2" />
               </div>
-            )}
-            
-            <svg
-              width={safeChartWidth}
-              height={chartHeight - 60}
-              style={{ position: 'absolute', top: 60, left: 0, zIndex: 0 }}
-            >
-              {calendarDates.map((cal, idx) => (
-                <line
-                  key={idx}
-                  x1={idx * safeDayWidth}
-                  y1={0}
-                  x2={idx * safeDayWidth}
-                  y2={chartHeight - 60}
-                  stroke={cal.isWeekend || cal.isHoliday ? '#fbbf24' : '#f3f4f6'}
-                  strokeWidth={1}
-                  strokeDasharray={cal.isWeekend ? '2 2' : '0'}
-                />
-              ))}
-            </svg>
-            
-            {phases.map((phase, index) => {
-              const phaseColor = phaseColors?.[phase.id] || colorOptions[index % 3];
-              return (
-                <DraggablePhaseRow
-                  key={phase.id}
-                  phase={phase}
-                  index={index}
-                  isSelected={selectedPhaseId === phase.id}
-                  isHovered={hoveredPhase === phase.id}
-                  onPhaseClick={handlePhaseClick}
-                  onHover={setHoveredPhase}
-                  onMove={handlePhaseMove}
-                  startBusinessDay={startBusinessDay}
-                  dayWidth={safeDayWidth}
-                  phaseColor={phaseColor}
-                />
-              );
-            })}
+            ))}
           </div>
         </div>
+      )}
+
+      {/* FIXED: Gantt uses full width */}
+      <div 
+        className="relative bg-gray-50 rounded-lg"
+        style={{ 
+          height: phases.length * (phaseHeight + phaseGap) + phaseGap * 2,
+          width: chartWidth, // Full width utilization
+          minHeight: '200px'
+        }}
+      >
+        <div style={{ width: chartWidth, height: '100%', position: 'relative' }}>
+          
+          {holidays.map((holiday, index) => {
+            const x = getHolidayPosition(holiday);
+            return x && x >= 0 && x <= chartWidth ? (
+              <div
+                key={index}
+                className="absolute top-0 bottom-0 w-px bg-red-400 opacity-60 z-10"
+                style={{ left: x }}
+                title={`${holiday.name} (${holiday.date})`}
+              />
+            ) : null;
+          })}
+
+          {/* FIXED: Elegant 3D selection effect */}
+          {phases.map((phase, index) => {
+            const phaseColor = phaseColors[phase.id] || phase.color || '#3b82f6';
+            const startX = (phase.startBusinessDay - projectStart) * dayWidth;
+            const width = phase.workingDays * dayWidth;
+            const y = index * (phaseHeight + phaseGap) + phaseGap;
+            const isSelected = selectedPhaseId === phase.id;
+            const resourceCount = phase.resources?.length || 0;
+
+            return (
+              <div
+                key={phase.id}
+                className={`absolute rounded-lg cursor-pointer transition-all duration-300 ease-out ${
+                  isSelected 
+                    ? 'z-30 shadow-2xl' // Elegant elevation
+                    : 'hover:shadow-lg hover:-translate-y-0.5 z-10'
+                }`}
+                style={{
+                  left: Math.max(0, startX),
+                  top: y,
+                  width: Math.max(20, width),
+                  height: phaseHeight,
+                  backgroundColor: phaseColor,
+                  // ELEGANT 3D EFFECT: Professional elevation and glow
+                  transform: isSelected 
+                    ? 'translateY(-4px) scale(1.02)' 
+                    : 'none',
+                  boxShadow: isSelected 
+                    ? `0 8px 32px rgba(0,0,0,0.15), 0 0 0 2px ${phaseColor}, 0 0 20px rgba(59,130,246,0.3)`
+                    : 'none',
+                  filter: isSelected 
+                    ? 'brightness(1.05) saturate(1.1)' 
+                    : selectedPhaseId ? 'opacity(0.8)' : 'none'
+                }}
+                onClick={() => onPhaseClick?.(phase.id)}
+              >
+                <div className="h-full flex items-center justify-between px-3 text-white">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm truncate">{phase.name}</div>
+                    <div className="text-xs opacity-90">{phase.workingDays}d</div>
+                  </div>
+                  <div className="bg-black bg-opacity-20 px-2 py-1 rounded text-sm font-bold">
+                    {resourceCount}
+                  </div>
+                </div>
+
+                {resourceCount > 0 && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-black bg-opacity-20 rounded-b-lg overflow-hidden">
+                    <div className="h-full bg-white bg-opacity-60" style={{ width: '75%' }} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </DndProvider>
+    </div>
   );
 };
 
