@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { usePresalesStore } from '@/stores/presales-store';

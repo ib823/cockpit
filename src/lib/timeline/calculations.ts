@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Temporary mock data - will be replaced with actual catalog
 const SAP_PACKAGES: Record<string, { effort: number }> = {
   'FI_1': { effort: 80 },

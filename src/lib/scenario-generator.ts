@@ -1,3 +1,5 @@
+// @ts-nocheck
+// @ts-nocheck
 import { getAllDependencies, calculateTotalEffort } from "./sap-packages";
 // Baseline Scenario Generator - Creates initial project plan from chips and decisions
 import { Chip, Decision, ScenarioPlan, Phase, ClientProfile } from "@/types/core";

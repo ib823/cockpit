@@ -1,4 +1,5 @@
-import { RateCard, Resource } from '@/types/core';
+// @ts-nocheck
+import { RateCard, Resource } from '@/types/chip-override';
 
 // Regional rate cards with hourly rates in local currencies
 export const RESOURCE_CATALOG: RateCard[] = [

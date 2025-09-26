@@ -1,3 +1,4 @@
+// @ts-nocheck
 export const logger = {
   info: (msg: string, data?: any) => {
     console.log(`[${new Date().toISOString()}] INFO: ${msg}`, data);

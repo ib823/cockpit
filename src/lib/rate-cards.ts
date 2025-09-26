@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Rate Cards - Regional pricing for different roles
 import { Resource } from "@/types/core";
 

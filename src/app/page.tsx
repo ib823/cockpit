@@ -1,25 +1,50 @@
-'use client';
-
 import Link from 'next/link';
 
 export default function HomePage() {
+  const cards = [
+    {
+      href: '/presales',
+      title: 'Presales Engine',
+      description: 'Extract requirements from RFPs using intelligent chip parsing',
+      icon: '📊',
+      color: 'from-blue-500 to-blue-600'
+    },
+    {
+      href: '/timeline',
+      title: 'Timeline Generator',
+      description: 'Create visual Gantt charts with resource allocation',
+      icon: '📅',
+      color: 'from-purple-500 to-purple-600'
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-          SAP Timeline Manager
-        </h1>
-        <p className="text-gray-600 mb-8 text-center">
-          Professional milestone management for SAP implementation projects
-        </p>
-        <Link 
-          href="/timeline"
-          className="block w-full bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
-        >
-          Open Timeline →
-        </Link>
-        <div className="mt-6 text-sm text-gray-500 text-center">
-          Features: Milestone markers • Real-time editing • Professional UX
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
+      <div className="max-w-6xl mx-auto px-6 py-24">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-bold text-white mb-4">
+            SAP Implementation Cockpit
+          </h1>
+          <p className="text-xl text-gray-300">
+            Enterprise-grade presales and project planning
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {cards.map((card) => (
+            <Link
+              key={card.href}
+              href={card.href}
+              className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all hover:scale-105"
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
+              <div className="relative">
+                <div className="text-4xl mb-4">{card.icon}</div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{card.title}</h2>
+                <p className="text-gray-600">{card.description}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

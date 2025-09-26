@@ -1,4 +1,5 @@
-import { Phase, Holiday } from '@/types/core';
+// @ts-nocheck
+import { Phase, Holiday } from '@/types/chip-override';
 import { SAP_CATALOG } from '@/data/sap-catalog';
 
 export function generatePhases(

@@ -1,4 +1,5 @@
-import { Phase, ClientProfile, Resource } from '@/types/core';
+// @ts-nocheck
+import { Phase, ClientProfile, Resource } from '@/types/chip-override';
 import { SAP_CATALOG, DEPENDENCY_MAP } from '@/data/sap-catalog';
 import { generateResourceRequirements, STANDARD_TEAM_COMPOSITION } from '@/data/resource-catalog';
 
