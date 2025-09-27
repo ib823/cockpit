@@ -1,23 +1,35 @@
 'use client';
 
-import { useState } from 'react';
+import { ChipInputSchema, sanitizeInput } from '@/core/security/validation';
 import { usePresalesStore } from '@/stores/presales-store';
+import { useState } from 'react';
 
 export default function PresalesPage() {
   const [rfpText, setRfpText] = useState('');
   const { chips, addChip, clearChips } = usePresalesStore();
   
   const handleExtract = () => {
-    // Your chip extraction logic here
-    // For now, just a dummy example
-    if (rfpText.includes('Malaysia')) {
+    // Sanitize input first
+    const cleanText = sanitizeInput(rfpText);
+    
+    if (cleanText.includes('Malaysia')) {
+      const chipData = {
+        value: 'Malaysia',
+        type: 'country' as const,
+        confidence: 0.9
+      };
+      
+      // Validate before adding
+      const validatedChip = ChipInputSchema.parse(chipData);
+      
       addChip({
         id: Date.now().toString(),
-        type: 'country',
-        value: 'Malaysia',
-        confidence: 0.9,
-        evidence: { snippet: rfpText.slice(0, 50) },
-        source: 'manual'
+        type: validatedChip.type,
+        value: validatedChip.value,
+        confidence: validatedChip.confidence,
+        metadata: { evidence: { snippet: cleanText.slice(0, 50) } },
+        source: 'manual',
+        timestamp: new Date()
       });
     }
   };
@@ -58,10 +70,12 @@ export default function PresalesPage() {
               placeholder="Paste RFP text here..."
               value={rfpText}
               onChange={(e) => setRfpText(e.target.value)}
+              maxLength={10000}
             />
             <button
               onClick={handleExtract}
-              className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              disabled={!rfpText.trim()}
+              className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-300"
             >
               Extract Chips
             </button>

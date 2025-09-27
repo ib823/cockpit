@@ -1,0 +1,260 @@
+=== REPOSITORY STATUS SNAPSHOT ===
+Date: 2025-09-27 06:32:25
+Repository: cockpit
+Path: /workspaces/cockpit
+
+=== GIT STATUS ===
+ M extract-status.sh
+ M package.json
+ M src/app/presales/page.tsx
+ M src/app/timeline/page.tsx
+ M src/stores/presales-store.ts
+ M src/types/core.ts
+?? middleware.ts
+?? pnpm-lock.yaml
+?? session_log_20250927_063225.txt
+?? src/components/shared/
+?? src/components/timeline/core/
+?? src/core/
+
+=== LAST 20 COMMITS ===
+feee8f3b feat: MVP restoration in progress - modular architecture planned - Created directory structure for modular components - timeline-store.ts exists (8539 bytes) - GanttChart.tsx.broken has drag-drop code (9387 bytes) - Timeline working with basic functionality - Directories created: core, calendar, phases, modals, resources, controls - Next: Need to create all component files for complete MVP
+4fe6d24c fix: restored working MVP with timeline and presales - Fixed 107 TypeScript errors - Restored Tailwind CSS styling (v3.4.0) - Timeline generation working (phases, dates, costs) - Presales chip extraction functional - Gantt chart visualization operational - Clean UI with proper styling Status: Production ready MVP
+46e7dd4b Your descriptive commit message here
+0b147755 docs: comprehensive handover for next session
+0ed7ff31 Merge pull request #10 from ib823/working/timeline-restored
+bf411db1 docs: add current state documentation for project knowledge
+e3a70a0f Merge pull request #9 from ib823/refactor/extract-timeline
+f7f4eadd feat: implement working milestone system with Steve Jobs UI
+11df84af Merge pull request #8 from ib823/refactor/extract-timeline
+d865a91a Merge branch 'refactor/extract-timeline' of https://github.com/ib823/cockpit into refactor/extract-timeline
+b5b2f3f2 feat: Add milestone functionality to SAP timeline
+ba403f9a Merge pull request #7 from ib823/refactor/extract-timeline
+ac4b6c6a Merge branch 'main' into refactor/extract-timeline
+d1dfd190 docs: Add comprehensive timeline system documentation for project knowledge
+d07a7739 Merge pull request #6 from ib823/refactor/extract-timeline
+c2341744 feat: Complete timeline system with intelligent zoom and real-time editing
+27ce97c4 docs: Add complete project state documentation for handover
+4e5db1ad Merge pull request #5 from ib823/refactor/extract-timeline
+3edb9d53 feat: Complete timeline implementation with resource management
+c4c7b9aa Merge pull request #4 from ib823/refactor/extract-timeline
+
+=== FILE STRUCTURE (depth=3) ===
+.
+./CURRENT_STATE.md
+./cockpit_backup_20250922_233020.tar.gz
+./PROJECT_DOCUMENTATION.md
+./README.md
+./docs
+./docs/DRAG_DROP_IMPLEMENTATION_COMPLETE.md
+./docs/VISUAL_GANTT_IMPLEMENTATION_COMPLETE.md
+./docs/NEW_CHAT_CONTINUATION_PROMPT.md
+./next.config.js
+./src
+./src/stores
+./src/stores/timeline-store.ts
+./src/stores/simple-timeline-store.ts
+./src/stores/presales-store.ts
+./src/stores/timeline-store.tsx
+./src/utils
+./src/utils/features.ts
+./src/utils/logger.ts
+./src/components
+./src/components/presales
+./src/components/SimpleTimeline.tsx
+./src/components/shared
+./src/components/DecisionBar.tsx
+./src/components/timeline
+./src/components/PlanningCanvas.tsx
+./src/lib
+./src/lib/rate-cards.ts
+./src/lib/scenario-generator.ts
+./src/lib/timeline
+./src/lib/chip-parser.ts
+./src/lib/sap-packages.ts
+./src/data
+./src/data/resource-catalog.ts
+./src/data/sap-catalog.ts
+./src/app
+./src/app/globals.css
+./src/app/presales
+./src/app/tailwind-test
+./src/app/page.tsx
+./src/app/layout.tsx
+./src/app/timeline
+./src/app/test
+./src/core
+./src/core/security
+./src/types
+./src/types/chip-override.ts
+./src/types/core.ts
+./src/types/timeline.ts
+./.gitignore
+./drag-drop-implementation-status.txt
+./postcss.config.js
+./session_log_20250927_063225.txt
+./.prettierrc.json
+./.project-knowledge
+./.project-knowledge/PROJECT_DOCUMENTATION.md
+./.project-knowledge/PROJECT_STATE.md
+./Siip development documentation.md
+./tsconfig.tsbuildinfo
+./visual-gantt-implementation-status.txt
+./extract-status.sh
+./.eslintrc.json
+./.env.example
+./tsconfig.json
+./package-lock.json
+./prisma
+./prisma/schema.prisma
+./tailwind.config.js
+./TIMELINE_INTEGRATION_COMPLETE_DOCUMENTATION.md
+./package.json
+./SAP_PRESALES_ENGINE_COMPLETE_DOCUMENTATION.md
+./next-env.d.ts
+./PROJECT_SUMMARY.md
+./NEXT_SESSION_STATE.md
+./pnpm-lock.yaml
+./create-test-milestones.js
+./repository-status.txt
+./PROJECT_STATE.md
+./.vscode
+./.vscode/extensions.json
+./.vscode/settings.json
+./middleware.ts
+./env_diagnostic.txt
+
+=== PACKAGE.JSON (scripts + dependencies) ===
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mantine/core": "8.3.2",
+    "@mantine/hooks": "8.3.2",
+    "@radix-ui/themes": "3.2.1",
+    "@types/dompurify": "3.2.0",
+    "date-fns": "4.1.0",
+    "date-fns-tz": "3.2.0",
+    "dompurify": "3.2.7",
+    "next": "15.5.3",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "zod": "4.1.11",
+    "zustand": "5.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dnd": "3.0.2",
+    "@types/react-dnd-html5-backend": "3.0.2",
+    "@types/react-dom": "^18",
+    "autoprefixer": "10.4.16",
+    "eslint": "9.36.0",
+    "eslint-config-next": "15.5.4",
+    "postcss": "8.4.31",
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1",
+    "tailwindcss": "3.4.0",
+    "typescript": "^5"
+  }
+}
+
+=== PNPM DEPENDENCIES ===
+Legend: production dependency, optional only, dev only
+
+sap-timeline-milestones@0.1.0 /workspaces/cockpit (PRIVATE)
+
+dependencies:
+@mantine/core 8.3.2
+@mantine/hooks 8.3.2
+@radix-ui/themes 3.2.1
+@types/dompurify 3.2.0
+date-fns 4.1.0
+date-fns-tz 3.2.0
+dompurify 3.2.7
+next 15.5.3
+react 19.1.1
+react-dom 19.1.1
+zod 4.1.11
+zustand 5.0.8
+
+devDependencies:
+@types/node 20.19.17
+@types/react 18.3.24
+@types/react-dnd 3.0.2
+@types/react-dnd-html5-backend 3.0.2
+@types/react-dom 18.3.7
+autoprefixer 10.4.16
+eslint 9.36.0
+eslint-config-next 15.5.4
+postcss 8.4.31
+react-dnd 16.0.1
+react-dnd-html5-backend 16.0.1
+tailwindcss 3.4.0
+typescript 5.9.2
+
+=== PYTHON PACKAGES (top 20) ===
+Package                   Version
+------------------------- --------------
+anyio                     4.9.0
+argon2-cffi               25.1.0
+argon2-cffi-bindings      21.2.0
+arrow                     1.3.0
+asttokens                 3.0.0
+async-lru                 2.0.5
+attrs                     25.3.0
+babel                     2.17.0
+beautifulsoup4            4.13.4
+bleach                    6.2.0
+certifi                   2025.7.9
+cffi                      1.17.1
+charset-normalizer        3.4.2
+colorama                  0.4.6
+comm                      0.2.2
+contourpy                 1.3.2
+cycler                    0.12.1
+debugpy                   1.8.14
+
+=== RECENTLY MODIFIED SOURCE FILES ===
+src/stores/presales-store.ts
+src/types/core.ts
+
+=== TIMELINE FILES ===
+-rw-rw-rw- 1 codespace codespace 5066 Sep 26 14:11 src/data/resource-catalog.ts
+-rw-rw-rw- 1 codespace codespace 4118 Sep 26 16:49 src/data/sap-catalog.ts
+-rw-rw-rw- 1 codespace codespace 1505 Sep 26 14:11 src/lib/timeline/calculations.ts
+-rw-rw-rw- 1 codespace codespace 1753 Sep 26 14:13 src/lib/timeline/date-calculations.ts
+-rw-rw-rw- 1 codespace codespace 1010 Sep 26 17:16 src/lib/timeline/export.ts
+-rw-rw-rw- 1 codespace codespace 8085 Sep 26 14:11 src/lib/timeline/phase-generation.ts
+-rw-rw-rw- 1 codespace codespace 1584 Sep 26 14:11 src/lib/timeline/phase-generator.ts
+-rw-r--rw- 1 codespace codespace 8539 Sep 26 14:11 src/stores/timeline-store.ts
+-rw-rw-rw- 1 codespace codespace 5623 Sep 26 17:16 src/stores/timeline-store.tsx
+-rw-rw-rw- 1 codespace codespace 4707 Sep 27 06:28 src/app/timeline/page.tsx
+
+=== LINE COUNTS ===
+  4049 total
+
+=== BUILD CHECK ===
+├ ○ /test                                  566 B         103 kB
+└ ○ /timeline                            2.19 kB         119 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/72-08b9e3df471ab2ba.js        45.9 kB
+  ├ chunks/9dda1f82-b46481d84d4744b4.js  54.2 kB
+  └ other shared chunks (total)           1.9 kB
+
+
+○  (Static)  prerendered as static content
+
+
+=== ENVIRONMENT ===
+Node: v22.17.0
+npm: 9.8.1
+pnpm: 10.13.1
+yarn: 1.22.22
+Python: Python 3.12.1
+pip: pip 25.1.1 from /usr/local/python/3.12.1/lib/python3.12/site-packages/pip (python 3.12)
+Next.js: 15.5.3

@@ -23,6 +23,8 @@ interface PresalesState {
 
   // Actions
   addChip: (chip: Chip) => void;
+  clearChips: () => void;
+  clearChips: () => void;
   addChips: (chips: Chip[]) => void;
   removeChip: (id: string) => void;
   validateChip: (id: string) => void;
@@ -50,6 +52,8 @@ export const usePresalesStore = create<PresalesState>()(
         set((state) => ({
           chips: [...state.chips, chip],
         })),
+      clearChips: () => set({ chips: [] }),
+      clearChips: () => set({ chips: [] }),
 
       addChips: (chips) =>
         set((state) => ({

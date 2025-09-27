@@ -11,7 +11,8 @@ export interface Chip {
     snippet?: string;
     context?: string;
     location?: string;
-  };
+    evidence?: { snippet: string };
+};
   timestamp: Date;
 }
 
@@ -132,6 +133,7 @@ export type ChipKind = 'country' | 'employees' | 'revenue' | 'modules' | 'timeli
 export interface ChipParsed {
   value: string | number;
   unit?: string;
+  evidence?: { snippet: string };
 }
 
 // Extend existing Chip interface
