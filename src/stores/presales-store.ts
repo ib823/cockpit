@@ -1,7 +1,6 @@
-// @ts-nocheck
+import { Chip } from "@/types/core";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Chip } from "@/types/core";
 
 interface PresalesState {
   chips: Chip[];
@@ -24,7 +23,6 @@ interface PresalesState {
   // Actions
   addChip: (chip: Chip) => void;
   clearChips: () => void;
-  clearChips: () => void;
   addChips: (chips: Chip[]) => void;
   removeChip: (id: string) => void;
   validateChip: (id: string) => void;
@@ -33,11 +31,15 @@ interface PresalesState {
   toggleAutoTransit: () => void;
   recordMetric: (type: "click" | "keystroke") => void;
   reset: () => void;
+  
+  // Add missing methods that DecisionBar expects
+  setDecisions: (decisions: PresalesState["decisions"]) => void;
+  generateBaseline: () => void;
 }
 
 export const usePresalesStore = create<PresalesState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       chips: [],
       decisions: {},
       mode: "capture",
@@ -52,7 +54,7 @@ export const usePresalesStore = create<PresalesState>()(
         set((state) => ({
           chips: [...state.chips, chip],
         })),
-      clearChips: () => set({ chips: [] }),
+
       clearChips: () => set({ chips: [] }),
 
       addChips: (chips) =>
@@ -100,6 +102,16 @@ export const usePresalesStore = create<PresalesState>()(
           isAutoTransit: true,
           metrics: { clicks: 0, keystrokes: 0, timeSpent: 0 },
         }),
+
+      // Add missing methods
+      setDecisions: (decisions) => set({ decisions }),
+      
+      generateBaseline: () => {
+        const state = get();
+        console.log('Generating baseline with decisions:', state.decisions);
+        // Add your baseline generation logic here
+        set({ mode: "plan" });
+      },
     }),
     {
       name: "presales-storage",

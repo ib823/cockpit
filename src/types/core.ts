@@ -155,3 +155,4 @@ export interface RateCard {
   hourlyRate: number;
   currency: string;
 }
+export type ChipKind = 'country' | 'employees' | 'revenue' | 'industry' | 'modules' | 'timeline' | 'integration' | 'compliance' | 'banking' | 'existing_system';

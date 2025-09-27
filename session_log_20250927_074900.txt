@@ -1,23 +1,29 @@
 === REPOSITORY STATUS SNAPSHOT ===
-Date: 2025-09-27 06:32:25
+Date: 2025-09-27 07:49:00
 Repository: cockpit
 Path: /workspaces/cockpit
 
 === GIT STATUS ===
- M extract-status.sh
- M package.json
- M src/app/presales/page.tsx
+ D drag-drop-implementation-status.txt
+ D middleware.ts
+ D repository-status.txt
+ D session_log_20250927_063225.txt
  M src/app/timeline/page.tsx
+ D src/components/DecisionBar.tsx
+ D src/components/timeline/GanttChart-fix.tsx
+ D src/components/timeline/GanttChart.simple.tsx
+ D src/components/timeline/GanttChart.tsx.broken
  M src/stores/presales-store.ts
+ D src/stores/timeline-store.tsx
  M src/types/core.ts
-?? middleware.ts
-?? pnpm-lock.yaml
-?? session_log_20250927_063225.txt
-?? src/components/shared/
-?? src/components/timeline/core/
-?? src/core/
+ D visual-gantt-implementation-status.txt
+?? full_structure.txt
+?? session_log_20250927_074900.txt
+?? src/components/presales/DecisionBar.tsx
+?? src/components/ui/
 
 === LAST 20 COMMITS ===
+3bc96df7 Session save: 2025-09-27 06:32:25
 feee8f3b feat: MVP restoration in progress - modular architecture planned - Created directory structure for modular components - timeline-store.ts exists (8539 bytes) - GanttChart.tsx.broken has drag-drop code (9387 bytes) - Timeline working with basic functionality - Directories created: core, calendar, phases, modals, resources, controls - Next: Need to create all component files for complete MVP
 4fe6d24c fix: restored working MVP with timeline and presales - Fixed 107 TypeScript errors - Restored Tailwind CSS styling (v3.4.0) - Timeline generation working (phases, dates, costs) - Presales chip extraction functional - Gantt chart visualization operational - Clean UI with proper styling Status: Production ready MVP
 46e7dd4b Your descriptive commit message here
@@ -37,7 +43,6 @@ c2341744 feat: Complete timeline system with intelligent zoom and real-time edit
 27ce97c4 docs: Add complete project state documentation for handover
 4e5db1ad Merge pull request #5 from ib823/refactor/extract-timeline
 3edb9d53 feat: Complete timeline implementation with resource management
-c4c7b9aa Merge pull request #4 from ib823/refactor/extract-timeline
 
 === FILE STRUCTURE (depth=3) ===
 .
@@ -55,7 +60,6 @@ c4c7b9aa Merge pull request #4 from ib823/refactor/extract-timeline
 ./src/stores/timeline-store.ts
 ./src/stores/simple-timeline-store.ts
 ./src/stores/presales-store.ts
-./src/stores/timeline-store.tsx
 ./src/utils
 ./src/utils/features.ts
 ./src/utils/logger.ts
@@ -63,8 +67,8 @@ c4c7b9aa Merge pull request #4 from ib823/refactor/extract-timeline
 ./src/components/presales
 ./src/components/SimpleTimeline.tsx
 ./src/components/shared
-./src/components/DecisionBar.tsx
 ./src/components/timeline
+./src/components/ui
 ./src/components/PlanningCanvas.tsx
 ./src/lib
 ./src/lib/rate-cards.ts
@@ -89,17 +93,15 @@ c4c7b9aa Merge pull request #4 from ib823/refactor/extract-timeline
 ./src/types/chip-override.ts
 ./src/types/core.ts
 ./src/types/timeline.ts
+./full_structure.txt
 ./.gitignore
-./drag-drop-implementation-status.txt
 ./postcss.config.js
-./session_log_20250927_063225.txt
 ./.prettierrc.json
 ./.project-knowledge
 ./.project-knowledge/PROJECT_DOCUMENTATION.md
 ./.project-knowledge/PROJECT_STATE.md
 ./Siip development documentation.md
 ./tsconfig.tsbuildinfo
-./visual-gantt-implementation-status.txt
 ./extract-status.sh
 ./.eslintrc.json
 ./.env.example
@@ -112,16 +114,15 @@ c4c7b9aa Merge pull request #4 from ib823/refactor/extract-timeline
 ./package.json
 ./SAP_PRESALES_ENGINE_COMPLETE_DOCUMENTATION.md
 ./next-env.d.ts
+./session_log_20250927_074900.txt
 ./PROJECT_SUMMARY.md
 ./NEXT_SESSION_STATE.md
 ./pnpm-lock.yaml
 ./create-test-milestones.js
-./repository-status.txt
 ./PROJECT_STATE.md
 ./.vscode
 ./.vscode/extensions.json
 ./.vscode/settings.json
-./middleware.ts
 ./env_diagnostic.txt
 
 === PACKAGE.JSON (scripts + dependencies) ===
@@ -232,15 +233,14 @@ src/types/core.ts
 -rw-rw-rw- 1 codespace codespace 8085 Sep 26 14:11 src/lib/timeline/phase-generation.ts
 -rw-rw-rw- 1 codespace codespace 1584 Sep 26 14:11 src/lib/timeline/phase-generator.ts
 -rw-r--rw- 1 codespace codespace 8539 Sep 26 14:11 src/stores/timeline-store.ts
--rw-rw-rw- 1 codespace codespace 5623 Sep 26 17:16 src/stores/timeline-store.tsx
--rw-rw-rw- 1 codespace codespace 4707 Sep 27 06:28 src/app/timeline/page.tsx
+-rw-rw-rw- 1 codespace codespace 1655 Sep 27 07:47 src/app/timeline/page.tsx
 
 === LINE COUNTS ===
-  4049 total
+  3780 total
 
 === BUILD CHECK ===
 ├ ○ /test                                  566 B         103 kB
-└ ○ /timeline                            2.19 kB         119 kB
+└ ○ /timeline                            5.75 kB         108 kB
 + First Load JS shared by all             102 kB
   ├ chunks/72-08b9e3df471ab2ba.js        45.9 kB
   ├ chunks/9dda1f82-b46481d84d4744b4.js  54.2 kB
