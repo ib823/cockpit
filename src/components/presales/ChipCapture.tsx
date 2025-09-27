@@ -1,82 +1,260 @@
-// @ts-nocheck
-"use client";
+// Enhanced ChipCapture Component with Completeness Validation
+'use client';
 
-import { useState } from "react";
-import { usePresalesStore } from "@/stores/presales-store";
-import { parseChips } from "@/lib/chip-parser";
+import { CompletenessBar, CompletenessRing } from '@/components/presales/CompletenessRing';
+import GapCards from '@/components/presales/GapCards';
+import { parseRFPText } from '@/lib/chip-parser';
+import { usePresalesStore } from '@/stores/presales-store';
+import { Chip } from '@/types/core';
+import React, { useEffect, useState } from 'react';
 
-export function ChipCapture() {
-  const [inputText, setInputText] = useState("");
+interface ChipCaptureProps {
+  className?: string;
+}
+
+export function ChipCapture({ className = '' }: ChipCaptureProps) {
+  const [inputText, setInputText] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Store state
   const {
     chips,
+    completeness,
+    suggestions,
     addChips,
+    clearChips,
     removeChip,
-    validateChip,
-    isAutoTransit,
-    toggleAutoTransit,
-    recordMetric,
+    calculateCompleteness,
+    handleGapFix,
+    recordMetric
   } = usePresalesStore();
 
-  const handleAddChips = () => {
-    if (inputText.trim()) {
-      const parsedChips = parseChips(inputText);
-      addChips(parsedChips);
-      setInputText("");
-      recordMetric("click");
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true);
+    // Trigger initial completeness calculation
+    calculateCompleteness();
+  }, [calculateCompleteness]);
+
+  // Process RFP text input
+  const handleProcessText = async () => {
+    if (!inputText.trim()) return;
+
+    setIsProcessing(true);
+    recordMetric('click');
+
+    try {
+      // Parse the input text to extract chips
+      const extractedChips = parseRFPText(inputText);
+      
+      if (extractedChips.length > 0) {
+        addChips(extractedChips);
+        setInputText(''); // Clear input after successful processing
+      }
+    } catch (error) {
+      console.error('Failed to process RFP text:', error);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handlePaste = () => {
-    recordMetric("click");
+  const handleClearAll = () => {
+    clearChips();
+    setInputText('');
+    recordMetric('click');
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputText(e.target.value);
-    recordMetric("keystroke");
+  const handleRemoveChip = (chipId: string) => {
+    removeChip(chipId);
+    recordMetric('click');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      handleProcessText();
+    }
+    recordMetric('keystroke');
+  };
+
+  if (!mounted) {
+    return <div className="animate-pulse bg-gray-100 h-64 rounded-lg" />;
+  }
+
+  return (
+    <div className={`space-y-6 ${className}`}>
+      {/* Header with Completeness Ring */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Requirements Capture</h3>
+          <p className="text-sm text-gray-600">Extract information from RFP or requirements document</p>
+        </div>
+        <CompletenessRing score={completeness.score} size="md" />
+      </div>
+
+      {/* Completeness Progress Bar */}
+      <CompletenessBar score={completeness.score} />
+
+      {/* Input Section */}
+      <div className="space-y-3">
+        <label htmlFor="rfp-text" className="block text-sm font-medium text-gray-700">
+          Paste RFP Text or Requirements
+        </label>
+        
+        <textarea
+          id="rfp-text"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Paste your RFP text here. For example:&#10;&#10;Malaysia manufacturing company with 500 employees and MYR 200M annual revenue.&#10;Need Finance, HR and Supply Chain modules.&#10;Go-live targeted for Q2 2024.&#10;Must integrate with Salesforce CRM.&#10;Require e-invoice compliance for LHDN."
+          className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          disabled={isProcessing}
+        />
+        
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-500">
+            Press Ctrl+Enter to process text
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={handleClearAll}
+              disabled={chips.length === 0}
+              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 disabled:opacity-50"
+            >
+              Clear All
+            </button>
+            <button
+              onClick={handleProcessText}
+              disabled={!inputText.trim() || isProcessing}
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isProcessing ? 'Processing...' : 'Extract Requirements'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Suggestions */}
+      {suggestions.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 mb-2">Suggestions</h4>
+          <ul className="space-y-1">
+            {suggestions.map((suggestion, index) => (
+              <li key={index} className="text-sm text-blue-700">
+                • {suggestion}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Extracted Chips */}
+      {chips.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium text-gray-900">Extracted Information</h4>
+            <span className="text-sm text-gray-500">{chips.length} item{chips.length !== 1 ? 's' : ''}</span>
+          </div>
+          
+          <div className="grid gap-2">
+            {chips.map((chip) => (
+              <ChipDisplay
+                key={chip.id}
+                chip={chip}
+                onRemove={() => handleRemoveChip(chip.id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Gap Cards */}
+      <GapCards
+        gaps={completeness.gaps}
+        onFixAction={handleGapFix}
+      />
+
+      {/* Completeness Summary */}
+      {completeness.score > 0 && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-medium text-gray-900">Completeness Summary</h4>
+            <span className={`text-sm font-medium ${
+              completeness.canProceed ? 'text-green-600' : 'text-gray-600'
+            }`}>
+              {completeness.canProceed ? 'Ready to proceed' : 'Needs attention'}
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div>
+              <div className="text-gray-500">Score</div>
+              <div className="font-medium">{completeness.score}%</div>
+            </div>
+            <div>
+              <div className="text-gray-500">Missing</div>
+              <div className="font-medium">{completeness.gaps.length}</div>
+            </div>
+            <div>
+              <div className="text-gray-500">Blockers</div>
+              <div className="font-medium text-red-600">{completeness.blockers.length}</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Individual chip display component
+interface ChipDisplayProps {
+  chip: Chip;
+  onRemove: () => void;
+}
+
+function ChipDisplay({ chip, onRemove }: ChipDisplayProps) {
+  const kindLabels: Record<string, string> = {
+    country: 'Country',
+    employees: 'Employees',
+    revenue: 'Revenue',
+    industry: 'Industry',
+    modules: 'Modules',
+    timeline: 'Timeline',
+    integration: 'Integration',
+    compliance: 'Compliance',
+    banking: 'Banking',
+    existing_system: 'Existing System'
+  };
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.8) return 'bg-green-100 text-green-800 border-green-200';
+    if (confidence >= 0.6) return 'bg-amber-100 text-amber-800 border-amber-200';
+    return 'bg-red-100 text-red-800 border-red-200';
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Paste or type RFP content
-        </label>
-        <textarea
-          value={inputText}
-          onChange={handleInputChange}
-          onPaste={handlePaste}
-          className="w-full h-32 px-3 py-2 border rounded-md"
-          placeholder="Paste RFP text here..."
-        />
-        <button
-          onClick={handleAddChips}
-          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Extract Chips
-        </button>
+    <div className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+      <div className="flex items-center gap-3">
+        <div className="text-sm font-medium text-gray-900">
+          {kindLabels[chip.kind] || chip.kind}
+        </div>
+        <div className="text-sm text-gray-600">
+          {chip.value}
+        </div>
+        <div className={`px-2 py-1 text-xs font-medium rounded border ${getConfidenceColor(chip.confidence || 0)}`}>
+          {Math.round((chip.confidence || 0) * 100)}%
+        </div>
       </div>
-
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-700">Extracted Chips ({chips.length})</h3>
-        {chips.map((chip) => (
-          <div key={chip.id} className="flex items-center gap-2 p-2 border rounded">
-            <span className="text-sm">
-              {chip.kind}: {(chip as any).raw}
-            </span>
-            <button onClick={() => validateChip(chip.id)} className="text-green-600 text-sm">
-              ✓
-            </button>
-            <button onClick={() => removeChip(chip.id)} className="text-red-600 text-sm">
-              ✕
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <input type="checkbox" checked={isAutoTransit} onChange={toggleAutoTransit} />
-        <label className="text-sm">Auto-transit when ready</label>
-      </div>
+      
+      <button
+        onClick={onRemove}
+        className="text-gray-400 hover:text-red-500 transition-colors"
+        title="Remove this requirement"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
     </div>
   );
 }
