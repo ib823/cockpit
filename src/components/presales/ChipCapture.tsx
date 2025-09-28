@@ -39,25 +39,28 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
 
   // Process RFP text input
   const handleProcessText = async () => {
-    if (!inputText.trim()) return;
+  if (!inputText.trim()) return;
 
-    setIsProcessing(true);
-    recordMetric('click');
+  setIsProcessing(true);
+  recordMetric('click');
 
-    try {
-      // Parse the input text to extract chips
-      const extractedChips = parseRFPText(inputText);
-      
-      if (extractedChips.length > 0) {
-        addChips(extractedChips);
-        setInputText(''); // Clear input after successful processing
-      }
-    } catch (error) {
-      console.error('Failed to process RFP text:', error);
-    } finally {
-      setIsProcessing(false);
+  try {
+    // Parse the input text to extract chips
+    const extractedChips = parseRFPText(inputText);
+    console.log('Extracted chips:', extractedChips); // Debug log
+    
+    if (extractedChips.length > 0) {
+      addChips(extractedChips);
+      setInputText(''); // Clear input after successful processing
+    } else {
+      console.log('No chips extracted from:', inputText);
     }
-  };
+  } catch (error) {
+    console.error('Failed to process RFP text:', error);
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   const handleClearAll = () => {
     clearChips();
@@ -212,51 +215,25 @@ interface ChipDisplayProps {
   onRemove: () => void;
 }
 
-function ChipDisplay({ chip, onRemove }: ChipDisplayProps) {
-  const kindLabels: Record<string, string> = {
-    country: 'Country',
-    employees: 'Employees',
-    revenue: 'Revenue',
-    industry: 'Industry',
-    modules: 'Modules',
-    timeline: 'Timeline',
-    integration: 'Integration',
-    compliance: 'Compliance',
-    banking: 'Banking',
-    existing_system: 'Existing System'
-  };
-
-  const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'bg-green-100 text-green-800 border-green-200';
-    if (confidence >= 0.6) return 'bg-amber-100 text-amber-800 border-amber-200';
-    return 'bg-red-100 text-red-800 border-red-200';
-  };
-
+const ChipDisplay = ({ chip, onRemove }: { chip: any; onRemove: () => void }) => {
   return (
-    <div className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
-      <div className="flex items-center gap-3">
-        <div className="text-sm font-medium text-gray-900">
-          {kindLabels[chip.kind] || chip.kind}
-        </div>
-        <div className="text-sm text-gray-600">
-          {chip.value}
-        </div>
-        <div className={`px-2 py-1 text-xs font-medium rounded border ${getConfidenceColor(chip.confidence || 0)}`}>
-          {Math.round((chip.confidence || 0) * 100)}%
-        </div>
+    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-gray-700">
+          {(chip as any).kind || chip.type}:
+        </span>
+        <span className="text-sm text-gray-600">
+          {(chip as any).raw || chip.value}
+        </span>
       </div>
-      
       <button
         onClick={onRemove}
-        className="text-gray-400 hover:text-red-500 transition-colors"
-        title="Remove this requirement"
+        className="text-gray-400 hover:text-red-600"
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        ×
       </button>
     </div>
   );
-}
+};
 
 export default ChipCapture;

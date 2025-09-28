@@ -1,10 +1,13 @@
 // @ts-nocheck
 // @ts-nocheck
-import { getAllDependencies, calculateTotalEffort } from "./sap-packages";
 // Baseline Scenario Generator - Creates initial project plan from chips and decisions
-import { Chip, Decision, ScenarioPlan, Phase, ClientProfile } from "@/types/core";
-import { getDefaultTeamComposition } from "./rate-cards";
+// ADD these imports at the top:
+// ADD these imports at the top:
+import { getPackageDependencies, calculatePackageEffort, SAP_CATALOG } from "@/data/sap-catalog";
+import { RATE_CARDS, DEFAULT_TEAM_COMPOSITION } from "@/data/resource-catalog";
+import { Chip, ClientProfile, Decision, Phase, ScenarioPlan } from "@/types/core";
 import { summarizeChips } from "./chip-parser";
+
 
 // SAP Activate methodology phases
 const SAP_ACTIVATE_DISTRIBUTION = {
@@ -157,7 +160,7 @@ function determinePackages(chips: Chip[], decisions: Decision[]): string[] {
 
   // Add all dependencies
   const allPackages = Array.from(packages);
-  const dependencies = getAllDependencies(allPackages);
+const dependencies = allPackages.flatMap(pkg => getPackageDependencies(pkg));
   dependencies.forEach((dep: string) => packages.add(dep));
 
   return Array.from(packages);
@@ -194,7 +197,7 @@ function extractTimeline(chips: Chip[]): { startDate: Date; endDate: Date } {
 
 // Calculate total project effort
 function calculateProjectEffort(packages: string[], profile: ClientProfile): number {
-  const baseEffort = calculateTotalEffort(packages);
+const baseEffort = calculatePackageEffort(packages);
 
   // Apply complexity multipliers
   const complexityMultipliers = {
@@ -240,11 +243,8 @@ function generatePhases(
       if (streamPackages.length === 0) return;
 
       const streamEffort = Math.round(stageEffort / Object.keys(streams).length);
-      const resources = getDefaultTeamComposition(
-        streamEffort,
-        profile.region === "Singapore" ? "ABSG" : "ABMY",
-        profile.complexity as any
-      );
+      const resources = DEFAULT_TEAM_COMPOSITION[profile.region === "Singapore" ? "SG" : "MY"] || [];
+
 
       phases.push({
         id: `phase_${Date.now()}_${Math.random()}`,

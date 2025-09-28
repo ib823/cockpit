@@ -1,133 +1,242 @@
 'use client';
 
-import { ChipInputSchema, sanitizeInput } from '@/core/security/validation';
+import { ChipCapture } from '@/components/presales/ChipCapture';
+import { DecisionBar } from '@/components/presales/DecisionBar';
 import { usePresalesStore } from '@/stores/presales-store';
-import { useState } from 'react';
+import Link from 'next/link';
+
+const modes = [
+  { label: 'Capture', value: 'capture' },
+  { label: 'Decide', value: 'decide' },
+  { label: 'Plan', value: 'plan' },
+  { label: 'Review', value: 'review' },
+  { label: 'Present', value: 'present' },
+] as const;
 
 export default function PresalesPage() {
-  const [rfpText, setRfpText] = useState('');
-  const { chips, addChip, clearChips } = usePresalesStore();
-  
-  const handleExtract = () => {
-    // Sanitize input first
-    const cleanText = sanitizeInput(rfpText);
-    
-    if (cleanText.includes('Malaysia')) {
-      const chipData = {
-        value: 'Malaysia',
-        type: 'country' as const,
-        confidence: 0.9
-      };
-      
-      // Validate before adding
-      const validatedChip = ChipInputSchema.parse(chipData);
-      
-      addChip({
-        id: Date.now().toString(),
-        type: validatedChip.type,
-        value: validatedChip.value,
-        confidence: validatedChip.confidence,
-        metadata: { evidence: { snippet: cleanText.slice(0, 50) } },
-        source: 'manual',
-        timestamp: new Date()
-      });
-    }
-  };
+  const {
+    chips,
+    decisions,
+    completeness,
+    suggestions,
+    mode,
+    isAutoTransit,
+    metrics,
+    setMode,
+    toggleAutoTransit,
+    reset,
+    generateBaseline,
+    calculateCompleteness,
+    generateTimelineFromPresales,
+  } = usePresalesStore();
+
+  const scoreColor = completeness.score >= 80 ? 'bg-green-600' : 
+                    completeness.score >= 60 ? 'bg-yellow-500' : 'bg-red-600';
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <h1 className="text-2xl font-bold">SAP Presales Engine</h1>
-          
-          {/* Workflow Steps */}
-          <div className="flex gap-2 mt-4">
-            {['Capture', 'Decide', 'Plan', 'Review', 'Present'].map((step, i) => (
-              <button
-                key={step}
-                className={`px-4 py-2 rounded ${
-                  i === 0 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-100 text-gray-600'
-                }`}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-gray-900">SAP Presales Engine</h1>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Mode</span>
+              <select
+                value={mode}
+                onChange={(e) => setMode(e.target.value as any)}
+                className="border rounded-md px-3 py-1.5 text-sm"
               >
-                {step}
-              </button>
-            ))}
+                {modes.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={toggleAutoTransit}
+              className={`text-sm rounded-md border px-3 py-1.5 ${
+                isAutoTransit ? 'bg-blue-50 border-blue-200 text-blue-700' : 'hover:bg-gray-50'
+              }`}
+            >
+              Auto-transit: <span className="font-medium">{isAutoTransit ? 'On' : 'Off'}</span>
+            </button>
+
+            <Link
+              href="/timeline"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              View Timeline
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Content */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Input Section */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold mb-4">Paste or type RFP content</h2>
-            <textarea
-              className="w-full h-64 p-4 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Paste RFP text here..."
-              value={rfpText}
-              onChange={(e) => setRfpText(e.target.value)}
-              maxLength={10000}
-            />
-            <button
-              onClick={handleExtract}
-              disabled={!rfpText.trim()}
-              className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-300"
-            >
-              Extract Chips
-            </button>
-          </div>
-
-          {/* Extracted Chips Section */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">
-                Extracted Chips ({chips.length})
-              </h2>
-              {chips.length > 0 && (
-                <button
-                  onClick={clearChips}
-                  className="text-sm text-red-600 hover:text-red-700"
-                >
-                  Clear All
-                </button>
-              )}
-            </div>
-            
-            {chips.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
-                No chips extracted yet. Paste RFP content and click Extract.
-              </p>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {chips.map((chip) => (
-                  <div
-                    key={chip.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                        {chip.type}
-                      </span>
-                      <span className="text-sm">{chip.value}</span>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {Math.round((chip.confidence || 0) * 100)}%
-                    </span>
-                  </div>
-                ))}
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Mode-specific content */}
+            {mode === 'capture' && (
+              <div className="bg-white rounded-lg border p-6">
+                <ChipCapture />
               </div>
             )}
             
-            <div className="mt-6">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" className="rounded" defaultChecked />
-                <span className="text-sm text-gray-700">Auto-transit when ready</span>
-              </label>
+            {mode === 'decide' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg border p-6">
+                  <DecisionBar />
+                </div>
+                
+                {/* Actions */}
+                <div className="bg-white rounded-lg border p-6">
+                  <h3 className="text-lg font-semibold mb-4">Actions</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => generateTimelineFromPresales()}
+                      className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+                    >
+                      Generate Timeline
+                    </button>
+                    <button
+                      onClick={() => generateBaseline()}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                      disabled={!completeness.canProceed}
+                    >
+                      Generate Baseline
+                    </button>
+                    <button
+                      onClick={() => calculateCompleteness()}
+                      className="border px-4 py-2 rounded-lg hover:bg-gray-50"
+                    >
+                      Recalculate
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {mode === 'plan' && (
+              <div className="bg-white rounded-lg border p-6">
+                <h3 className="text-lg font-semibold mb-4">Timeline Generated</h3>
+                <p className="text-gray-600 mb-4">
+                  Your project timeline has been generated based on the requirements and decisions.
+                </p>
+                <Link
+                  href="/timeline"
+                  className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  View Timeline
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Completeness Card */}
+            <div className="bg-white rounded-lg border p-6">
+              <h3 className="text-lg font-semibold mb-4">Completeness</h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Score</span>
+                  <span className="font-medium">{completeness.score}%</span>
+                </div>
+                
+                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-2 ${scoreColor} transition-all duration-300`}
+                    style={{ width: `${Math.max(0, Math.min(100, completeness.score))}%` }}
+                  />
+                </div>
+
+                <div className="mt-3">
+                  <div className="text-sm text-gray-600 mb-1">Status</div>
+                  <div
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                      completeness.canProceed ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                    }`}
+                  >
+                    {completeness.canProceed ? 'Ready to proceed' : 'Needs attention'}
+                  </div>
+                </div>
+
+                {completeness.gaps.length > 0 && (
+                  <div className="mt-4">
+                    <div className="text-sm font-medium text-gray-900 mb-2">Missing</div>
+                    <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                      {completeness.gaps.map((gap, i) => (
+                        <li key={i}>{gap}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {suggestions.length > 0 && (
+                  <div className="mt-4">
+                    <div className="text-sm font-medium text-gray-900 mb-2">Suggestions</div>
+                    <ul className="list-disc pl-5 space-y-1 text-sm text-blue-700">
+                      {suggestions.map((suggestion, i) => (
+                        <li key={i}>{suggestion}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Summary Card */}
+            <div className="bg-white rounded-lg border p-6">
+              <h3 className="text-lg font-semibold mb-4">Summary</h3>
+              <div className="grid grid-cols-1 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">{chips.length}</div>
+                  <div className="text-sm text-gray-600">Requirements</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-600">{completeness.score}%</div>
+                  <div className="text-sm text-gray-600">Complete</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {Object.keys(decisions).filter(k => decisions[k as keyof typeof decisions]).length}
+                  </div>
+                  <div className="text-sm text-gray-600">Decisions</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Metrics Card */}
+            <div className="bg-white rounded-lg border p-6">
+              <h3 className="text-lg font-semibold mb-4">Metrics</h3>
+              <div className="text-sm text-gray-700 space-y-2">
+                <div className="flex justify-between">
+                  <span>Clicks:</span>
+                  <span className="font-medium">{metrics.clicks}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Keystrokes:</span>
+                  <span className="font-medium">{metrics.keystrokes}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Time (s):</span>
+                  <span className="font-medium">{metrics.timeSpent}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Reset */}
+            <button
+              onClick={() => reset()}
+              className="w-full border border-red-200 text-red-600 px-4 py-2 rounded-lg hover:bg-red-50"
+            >
+              Reset All Data
+            </button>
           </div>
         </div>
       </div>

@@ -1,131 +1,68 @@
-// Completeness Ring Component - Visual progress indicator for requirements completion
 'use client';
 
-
 interface CompletenessRingProps {
-  score: number;           // 0-100
+  score: number;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
-  className?: string;
 }
 
-const sizeConfig = {
-  sm: {
-    container: 'w-12 h-12',
-    svg: 'w-12 h-12',
-    stroke: 2,
-    radius: 18,
-    textSize: 'text-xs'
-  },
-  md: {
-    container: 'w-16 h-16', 
-    svg: 'w-16 h-16',
-    stroke: 3,
-    radius: 26,
-    textSize: 'text-sm'
-  },
-  lg: {
-    container: 'w-24 h-24',
-    svg: 'w-24 h-24', 
-    stroke: 4,
-    radius: 38,
-    textSize: 'text-base'
-  }
-};
+export function CompletenessRing({ score, size = 'md', showLabel = true }: CompletenessRingProps) {
+  const radius = size === 'sm' ? 16 : size === 'md' ? 24 : 32;
+  const strokeWidth = size === 'sm' ? 2 : size === 'md' ? 3 : 4;
+  const normalizedRadius = radius - strokeWidth * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDasharray = `${score / 100 * circumference} ${circumference}`;
 
-function getScoreColor(score: number): { ring: string; background: string; text: string } {
-  if (score >= 80) {
-    return {
-      ring: 'stroke-green-500',
-      background: 'bg-green-50', 
-      text: 'text-green-700'
-    };
-  } else if (score >= 60) {
-    return {
-      ring: 'stroke-amber-500',
-      background: 'bg-amber-50',
-      text: 'text-amber-700'
-    };
-  } else {
-    return {
-      ring: 'stroke-red-500', 
-      background: 'bg-red-50',
-      text: 'text-red-700'
-    };
-  }
-}
+  const getColor = (score: number) => {
+    if (score >= 80) return '#10B981'; // green
+    if (score >= 60) return '#F59E0B'; // amber  
+    return '#EF4444'; // red
+  };
 
-function getScoreStatus(score: number): string {
-  if (score >= 80) return 'Ready';
-  if (score >= 60) return 'Good'; 
-  if (score >= 40) return 'Partial';
-  return 'Started';
-}
-
-export function CompletenessRing({ 
-  score, 
-  size = 'md', 
-  showLabel = true, 
-  className = '' 
-}: CompletenessRingProps) {
-  const config = sizeConfig[size];
-  const colors = getScoreColor(score);
-  const status = getScoreStatus(score);
-  
-  // SVG circle calculations
-  const circumference = 2 * Math.PI * config.radius;
-  const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
+  const ringSize = size === 'sm' ? 'w-10 h-10' : size === 'md' ? 'w-14 h-14' : 'w-18 h-18';
 
   return (
-    <div className={`flex flex-col items-center gap-2 ${className}`}>
-      <div className={`relative ${config.container}`}>
-        {/* Background circle */}
-        <div className={`absolute inset-0 rounded-full ${colors.background}`} />
-        
-        {/* Progress SVG */}
-        <svg className={`${config.svg} transform -rotate-90`} viewBox="0 0 100 100">
-          {/* Background track */}
+    <div className="flex items-center gap-3">
+      <div className={`relative ${ringSize}`}>
+        <svg
+          height={radius * 2}
+          width={radius * 2}
+          className="transform -rotate-90"
+        >
           <circle
-            cx="50"
-            cy="50"
-            r={config.radius}
-            stroke="currentColor"
-            strokeWidth={config.stroke}
-            fill="none"
-            className="text-gray-200"
+            stroke="#E5E7EB"
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
           />
-          
-          {/* Progress circle */}
           <circle
-            cx="50"
-            cy="50"
-            r={config.radius}
-            stroke="currentColor"
-            strokeWidth={config.stroke}
-            fill="none"
-            strokeLinecap="round"
+            stroke={getColor(score)}
+            fill="transparent"
+            strokeWidth={strokeWidth}
             strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            className={`transition-all duration-500 ease-out ${colors.ring}`}
+            strokeLinecap="round"
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+            style={{
+              transition: 'stroke-dasharray 0.3s ease-in-out',
+            }}
           />
         </svg>
-        
-        {/* Center text */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className={`font-semibold tabular-nums ${config.textSize} ${colors.text}`}>
-            {score}%
+          <span className={`font-bold text-gray-900 ${size === 'sm' ? 'text-xs' : size === 'md' ? 'text-sm' : 'text-base'}`}>
+            {Math.round(score)}%
           </span>
         </div>
       </div>
       
       {showLabel && (
-        <div className="text-center">
-          <div className={`text-xs font-medium ${colors.text}`}>
-            {status}
-          </div>
-          <div className="text-xs text-gray-500">
-            Completeness
+        <div className="text-sm">
+          <div className="font-medium text-gray-900">Completeness</div>
+          <div className={`text-xs ${score >= 80 ? 'text-green-600' : score >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+            {score >= 80 ? 'Ready to proceed' : score >= 60 ? 'Almost ready' : 'Needs attention'}
           </div>
         </div>
       )}
@@ -133,40 +70,19 @@ export function CompletenessRing({
   );
 }
 
-// Alternative linear progress bar version
-interface CompletenessBarProps {
-  score: number;
-  showDetails?: boolean;
-  className?: string;
-}
-
-export function CompletenessBar({ score, showDetails = true, className = '' }: CompletenessBarProps) {
-  const colors = getScoreColor(score);
-  const status = getScoreStatus(score);
+export function CompletenessBar({ score }: { score: number }) {
+  const getColor = (score: number) => {
+    if (score >= 80) return 'bg-green-500';
+    if (score >= 60) return 'bg-amber-500';
+    return 'bg-red-500';
+  };
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      {showDetails && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-medium text-gray-900">Completeness</span>
-          <span className={`font-semibold ${colors.text}`}>
-            {score}% {status}
-          </span>
-        </div>
-      )}
-      
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div
-          className={`h-2 rounded-full transition-all duration-500 ease-out ${
-            score >= 80 ? 'bg-green-500' : 
-            score >= 60 ? 'bg-amber-500' : 
-            'bg-red-500'
-          }`}
-          style={{ width: `${Math.max(0, Math.min(100, score))}%` }}
-        />
-      </div>
+    <div className="w-full bg-gray-200 rounded-full h-2">
+      <div
+        className={`h-2 rounded-full transition-all duration-300 ${getColor(score)}`}
+        style={{ width: `${score}%` }}
+      />
     </div>
   );
 }
-
-export default CompletenessRing;
