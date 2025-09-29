@@ -1,4 +1,4 @@
-import { identifyGaps } from "@/lib/chip-parser";
+import { identifyCriticalGaps } from "@/lib/enhanced-chip-parser";
 import { convertPresalesToTimeline } from "@/lib/presales-to-timeline-bridge";
 import { Chip } from "@/types/core";
 import { create } from "zustand";
@@ -30,7 +30,6 @@ interface Metrics {
 }
 
 interface PresalesState {
-  // State
   chips: Chip[];
   decisions: Decisions;
   completeness: Completeness;
@@ -39,7 +38,6 @@ interface PresalesState {
   isAutoTransit: boolean;
   metrics: Metrics;
 
-  // Actions
   addChip: (chip: Chip) => void;
   addChips: (chips: Chip[]) => void;
   clearChips: () => void;
@@ -47,21 +45,16 @@ interface PresalesState {
   validateChip: (id: string) => void;
   updateDecision: <K extends keyof Decisions>(key: K, value: Decisions[K]) => void;
   setDecisions: (decisions: Decisions) => void;
-
   setMode: (mode: Mode) => void;
   toggleAutoTransit: () => void;
-
   recordMetric: (type: "click" | "keystroke") => void;
   reset: () => void;
-
   calculateCompleteness: () => void;
   handleGapFix: (action: unknown) => void;
-
   generateBaseline: () => void;
   generateTimelineFromPresales: () => unknown | null;
 }
 
-// Initial completeness
 const initialCompleteness: Completeness = {
   score: 0,
   gaps: [],
@@ -72,7 +65,6 @@ const initialCompleteness: Completeness = {
 export const usePresalesStore = create<PresalesState>()(
   persist(
     (set, get) => ({
-      // ---- State ----
       chips: [],
       decisions: {},
       completeness: initialCompleteness,
@@ -81,7 +73,6 @@ export const usePresalesStore = create<PresalesState>()(
       isAutoTransit: true,
       metrics: { clicks: 0, keystrokes: 0, timeSpent: 0 },
 
-      // ---- Actions ----
       addChip: (chip) => {
         set((state) => ({ chips: [...state.chips, chip] }));
         get().calculateCompleteness();
@@ -121,6 +112,7 @@ export const usePresalesStore = create<PresalesState>()(
       setDecisions: (decisions) => set({ decisions }),
 
       setMode: (mode) => set({ mode }),
+      
       toggleAutoTransit: () =>
         set((state) => ({ isAutoTransit: !state.isAutoTransit })),
 
@@ -128,12 +120,8 @@ export const usePresalesStore = create<PresalesState>()(
         set((state) => ({
           metrics: {
             ...state.metrics,
-            clicks:
-              type === "click" ? state.metrics.clicks + 1 : state.metrics.clicks,
-            keystrokes:
-              type === "keystroke"
-                ? state.metrics.keystrokes + 1
-                : state.metrics.keystrokes,
+            clicks: type === "click" ? state.metrics.clicks + 1 : state.metrics.clicks,
+            keystrokes: type === "keystroke" ? state.metrics.keystrokes + 1 : state.metrics.keystrokes,
           },
         })),
 
@@ -150,21 +138,61 @@ export const usePresalesStore = create<PresalesState>()(
 
       calculateCompleteness: () => {
         const state = get();
-        const gaps = (identifyGaps(state.chips) ?? []) as string[];
-        const gapCount = gaps.length;
+        
+        if (state.chips.length === 0) {
+          set({
+            completeness: {
+              score: 0,
+              gaps: [
+                "Missing country/region information",
+                "Missing company size information", 
+                "Missing modules required",
+                "Missing timeline information",
+                "Missing legal entities count",
+                "Missing locations count",
+                "Missing user count",
+                "Missing transaction volumes"
+              ],
+              canProceed: false,
+              blockers: ["No requirements captured"]
+            },
+            suggestions: ["Please paste RFP text to extract requirements"]
+          });
+          return;
+        }
 
-        const score = Math.max(0, Math.min(100, ((10 - gapCount) / 10) * 100));
-        const canProceed = score >= 60;
-        const blockers = gaps.filter((g) =>
-          g.match(/country|modules|timeline/i)
+        const gaps = identifyCriticalGaps(state.chips as any);
+        const criticalGaps = gaps.filter((g: any) => g.severity === 'critical').length;
+        const highGaps = gaps.filter((g: any) => g.severity === 'high').length;
+        const mediumGaps = gaps.filter((g: any) => g.severity === 'medium').length;
+        
+        const maxScore = 100;
+        const criticalPenalty = 30;
+        const highPenalty = 15;
+        const mediumPenalty = 10;
+        
+        const score = Math.max(0, 
+          maxScore - 
+          (criticalGaps * criticalPenalty) - 
+          (highGaps * highPenalty) - 
+          (mediumGaps * mediumPenalty)
         );
+        
+        const canProceed = score >= 60 && criticalGaps === 0;
+        const blockers = gaps
+          .filter((g: any) => g.severity === 'critical')
+          .map((g: any) => g.field);
 
         set({
-          completeness: { score, gaps, canProceed, blockers },
-          suggestions:
-            gaps.length > 0
-              ? [`Add ${gaps.slice(0, 2).join(" and ")} to improve completeness`]
-              : [],
+          completeness: { 
+            score, 
+            gaps: gaps.map((g: any) => g.field),
+            canProceed, 
+            blockers 
+          },
+          suggestions: gaps.length > 0
+            ? gaps.slice(0, 3).map((g: any) => g.question || g.field)
+            : ["All critical information captured"]
         });
       },
 

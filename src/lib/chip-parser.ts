@@ -1,5 +1,6 @@
 // @ts-nocheck - Drop-in compatible; typings included for clarity.
 import { Chip } from "@/types/core";
+import { CRITICAL_PATTERNS, extractNumericValue, EFFORT_IMPACT_RULES } from "@/lib/critical-patterns";
 
 /* =================================================================================
  * Chip Types
@@ -22,7 +23,15 @@ export type ChipKind =
   | "contact_phone"
   | "website"
   | "document_type"
-  | "keyword";
+  | "keyword"
+  | "legal_entities"     // CRITICAL: drives GL setup effort
+  | "locations"          // CRITICAL: drives logistics complexity
+  | "currencies"         // CRITICAL: drives finance complexity
+  | "data_volume"        // CRITICAL: drives migration effort
+  | "users"              // CRITICAL: drives training/licensing
+  | "languages"          // CRITICAL: drives localization
+  | "business_units"     // CRITICAL: drives reporting complexity
+  | "legacy_systems";
 
 export type ParsedValue = {
   value: string | number;
@@ -87,6 +96,7 @@ const VOCAB = {
   SAP_MODULE_TOKENS: [
     // Core ERP
     "fi", "co", "fico", "mm", "sd", "pp", "qm", "pm", "ps", "im", "le", "wm", "ewm", "tm", "apo", "ibp",
+    "sistem\\s*kewangan|sistem\\s*hr|sistem\\s*inventori|sistem\\s*pengeluaran",
     // Finance Detail
     "aa", "ap", "ar", "gl", "cm", "trm|treasury", "bpc", "grc",
     // HR
@@ -96,6 +106,7 @@ const VOCAB = {
     "btp|cpi|integration suite|cloud integration|api management|event mesh",
     // LoB / Cloud
     "ariba", "concur", "fieldglass", "drc|einvoice|e-document|edocument|my\\s*invois",
+    
     "gts", "emd", "s\\/4hana|s4hana|sap\\s*ecc|r\\/3",
   ].join("|"),
 

@@ -1,27 +1,53 @@
 // @ts-nocheck
-// Temporary mock data - will be replaced with actual catalog
-const SAP_PACKAGES: Record<string, { effort: number }> = {
-  'FI_1': { effort: 80 },
-  'HR_1': { effort: 60 },
-  'SCM_1': { effort: 100 }
-};
+import { EffortCalculator } from '@/lib/engine/calculation/effort-calculator';
+import { ALL_SAP_MODULES } from '@/data/modules/all-modules';
+
+// Initialize the sophisticated effort calculator
+const effortCalculator = new EffortCalculator();
 
 export function calculateEffort(
   packages: string[],
-  complexity: 'standard' | 'complex' | 'extreme'
+  complexity: 'standard' | 'complex' | 'extreme',
+  clientProfile?: {
+    size: 'small' | 'medium' | 'large' | 'enterprise';
+    maturity: 'naive' | 'basic' | 'intermediate' | 'advanced';
+    industry: string;
+    employees: number;
+    annualRevenue: number;
+    region: string;
+  }
 ): number {
-  const baseEffort = packages.reduce((sum, pkg) => {
-    const pkgData = SAP_PACKAGES[pkg];
-    return sum + (pkgData?.effort || 0);
-  }, 0);
+  // Use the sophisticated EffortCalculator
+  const context = {
+    modules: packages,
+    clientProfile: {
+      size: clientProfile?.size || 'medium',
+      complexity,
+      maturity: clientProfile?.maturity || 'basic',
+      industry: clientProfile?.industry || 'default',
+      region: clientProfile?.region || 'ABMY',
+      employees: clientProfile?.employees || 500,
+      annualRevenue: clientProfile?.annualRevenue || 100000000
+    },
+    assumptions: [],
+    risks: []
+  };
   
-  const multiplier = {
-    standard: 1.0,
-    complex: 1.3,
-    extreme: 1.6
-  }[complexity];
+  const breakdown = effortCalculator.calculate(context);
   
-  return Math.ceil(baseEffort * multiplier);
+  // Log the sophisticated calculation for debugging
+  console.log('Effort Calculation Breakdown:', {
+    baseEffort: breakdown.baseEffort,
+    complexityMultiplier: breakdown.complexityMultiplier,
+    sizeMultiplier: breakdown.sizeMultiplier, 
+    maturityMultiplier: breakdown.maturityMultiplier,
+    industryMultiplier: breakdown.industryMultiplier,
+    riskBuffer: breakdown.riskBuffer,
+    totalEffort: breakdown.totalEffort,
+    confidence: breakdown.confidence
+  });
+  
+  return Math.ceil(breakdown.totalEffort);
 }
 
 export function sequencePhases(phases: any[]): any[] {

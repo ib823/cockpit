@@ -8,11 +8,12 @@ export interface Chip {
   confidence: number;
   source: ChipSource;
   metadata?: {
+    multiplier?: number;
     snippet?: string;
     context?: string;
     location?: string;
     evidence?: { snippet: string };
-};
+  };
   timestamp: Date;
 }
 
@@ -26,7 +27,15 @@ export type ChipType =
   | 'integration'
   | 'compliance'
   | 'banking'
-  | 'existing_system';
+  | 'existing_system'
+  | 'legal_entities'
+  | 'locations' 
+  | 'users'
+  | 'data_volume'
+  | 'currencies'
+  | 'languages'
+  | 'business_units'
+  | 'legacy_systems';
 
 export type ChipSource = 
   | 'paste' 
@@ -75,7 +84,7 @@ export interface Phase {
 export interface Resource {
   id: string;
   role: string;
-  allocation: number; // percentage
+  allocation: number;
   region?: string;
   hourlyRate?: number;
 }
@@ -111,7 +120,6 @@ export interface ClientProfile {
 }
 
 export interface SAPPackage {
-  effort?: number;
   id: string;
   name: string;
   description: string;
@@ -122,12 +130,11 @@ export interface SAPPackage {
 }
 
 export interface Holiday {
-  date: string; // ISO date string
+  date: string;
   name: string;
   country: string;
 }
 
-// Missing exports - add at end of file
 export type ChipKind = 'country' | 'employees' | 'revenue' | 'modules' | 'timeline' | 'integration' | 'compliance' | 'industry';
 
 export interface ChipParsed {
@@ -136,16 +143,13 @@ export interface ChipParsed {
   evidence?: { snippet: string };
 }
 
-// Extend existing Chip interface
 export interface ExtendedChip extends Chip {
   kind: ChipKind;
   raw: string;
   parsed: ChipParsed;
 }
 
-// Add missing properties to SAPPackage
 export interface SAPPackageExtended extends SAPPackage {
-  effort?: number;
   effort: number;
   complexity: number;
 }
@@ -155,4 +159,3 @@ export interface RateCard {
   hourlyRate: number;
   currency: string;
 }
-export type ChipKind = 'country' | 'employees' | 'revenue' | 'industry' | 'modules' | 'timeline' | 'integration' | 'compliance' | 'banking' | 'existing_system';

@@ -1,7 +1,26 @@
 // @ts-nocheck
 import { SAPPackage } from '@/types/chip-override';
+import { ALL_SAP_MODULES } from '@/data/modules/all-modules';
 
-export const SAP_CATALOG: Record<string, SAPPackage> = {
+// Convert the 142 module catalog to the package format
+export const SAP_CATALOG: Record<string, SAPPackage> = {};
+
+// Transform all modules to packages
+Object.entries(ALL_SAP_MODULES).forEach(([id, module]) => {
+  SAP_CATALOG[id] = {
+    id: module.id,
+    name: module.name,
+    category: module.category.toLowerCase(),
+    effort: module.baseEffort,
+    dependencies: module.dependencies,
+    description: module.description,
+    modules: [module.id],
+    complexity: module.complexity
+  };
+});
+
+// Keep the original 9 packages for backward compatibility
+const LEGACY_PACKAGES = {
   Finance_1: {
     id: 'Finance_1',
     name: 'Finance Core (FI)',
@@ -102,8 +121,19 @@ export const SAP_CATALOG: Record<string, SAPPackage> = {
   }
 };
 
-// Dependency mapping for intelligent sequencing
-export const DEPENDENCY_MAP: Record<string, string[]> = {
+// Merge legacy packages with the full module catalog  
+Object.assign(SAP_CATALOG, LEGACY_PACKAGES);
+
+// Export the dependency map from the modules
+export const DEPENDENCY_MAP: Record<string, string[]> = {};
+Object.entries(ALL_SAP_MODULES).forEach(([id, module]) => {
+  if (module.dependencies.length > 0) {
+    DEPENDENCY_MAP[id] = module.dependencies;
+  }
+});
+
+// Keep legacy dependency map for backward compatibility
+const LEGACY_DEPENDENCY_MAP: Record<string, string[]> = {
   Finance_3: ['Finance_1'],
   SCM_1: ['Finance_1'],
   SCM_2: ['SCM_1'],
@@ -111,15 +141,19 @@ export const DEPENDENCY_MAP: Record<string, string[]> = {
   Compliance_MY: ['Finance_1'],
   Analytics_1: ['Finance_1']
 };
+Object.assign(DEPENDENCY_MAP, LEGACY_DEPENDENCY_MAP);
 
-// Package categories for UI grouping
+// Package categories for UI grouping - now includes all 142 modules
 export const PACKAGE_CATEGORIES = {
-  'finance': ['Finance_1', 'Finance_3'],
-  'core': ['HCM_1'],
-  'core': ['SCM_1', 'SCM_2'],
-  'technical': ['Technical_2', 'Technical_3'],
-  'compliance': ['Compliance_MY'],
-  'technical': ['Analytics_1']
+  'Finance': Object.keys(ALL_SAP_MODULES).filter(id => ALL_SAP_MODULES[id].category === 'Finance'),
+  'SCM': Object.keys(ALL_SAP_MODULES).filter(id => ALL_SAP_MODULES[id].category === 'SCM'),
+  'HCM': Object.keys(ALL_SAP_MODULES).filter(id => ALL_SAP_MODULES[id].category === 'HCM'),
+  'Procurement': Object.keys(ALL_SAP_MODULES).filter(id => ALL_SAP_MODULES[id].category === 'Procurement'),
+  'CX': Object.keys(ALL_SAP_MODULES).filter(id => ALL_SAP_MODULES[id].category === 'CX'),
+  'Technical': Object.keys(ALL_SAP_MODULES).filter(id => ALL_SAP_MODULES[id].category === 'Technical'),
+  'Analytics': Object.keys(ALL_SAP_MODULES).filter(id => ALL_SAP_MODULES[id].category === 'Analytics'),
+  'Industry': Object.keys(ALL_SAP_MODULES).filter(id => ALL_SAP_MODULES[id].category === 'Industry'),
+  'Compliance': Object.keys(ALL_SAP_MODULES).filter(id => ALL_SAP_MODULES[id].category === 'Compliance')
 };
 
 // Effort calculation helpers

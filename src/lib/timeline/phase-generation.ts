@@ -2,6 +2,8 @@
 import { Phase, ClientProfile, Resource } from '@/types/chip-override';
 import { SAP_CATALOG, DEPENDENCY_MAP } from '@/data/sap-catalog';
 import { generateResourceRequirements, STANDARD_TEAM_COMPOSITION } from '@/data/resource-catalog';
+import { EffortCalculator } from '@/lib/engine/calculation/effort-calculator';
+import { calculateEffort } from './calculations';
 
 // Phase colors for visualization
 const PHASE_COLORS = [
@@ -28,17 +30,31 @@ export const generateTimelineFromSAPSelection = (
   const phases: Phase[] = [];
   let phaseIndex = 0;
   
+  // Calculate total effort using sophisticated EffortCalculator
+  const clientProfile = {
+    size: profile.size || 'medium',
+    maturity: profile.maturity || 'basic',
+    industry: profile.industry || 'default',
+    employees: profile.employees || 500,
+    annualRevenue: profile.annualRevenue || 100000000,
+    region: profile.region || 'ABMY'
+  };
+  
+  const totalEffort = calculateEffort(selectedPackages, profile.complexity, clientProfile);
+  console.log(`Total effort calculated: ${totalEffort} person-days using EffortCalculator`);
+  
   selectedPackages.forEach(packageId => {
     const sapPackage = SAP_CATALOG[packageId];
     if (!sapPackage) return;
 
-    // Apply complexity multiplier based on client profile
-    const complexityMultiplier = getComplexityMultiplier(profile.complexity, profile.size);
-    const adjustedEffort = Math.round(sapPackage.effort * complexityMultiplier);
+    // Calculate package proportion of total effort
+    const packageProportion = sapPackage.effort / selectedPackages.reduce((sum, p) => 
+      (SAP_CATALOG[p]?.effort || 0) + sum, 0);
+    const packageEffort = Math.round(totalEffort * packageProportion);
     
     // Generate phases for each SAP Activate stage
     Object.entries(SAP_ACTIVATE_PHASES).forEach(([stageName, stageConfig]) => {
-      const stageEffort = Math.round(adjustedEffort * stageConfig.percentage);
+      const stageEffort = Math.round(packageEffort * stageConfig.percentage);
       if (stageEffort === 0) return;
 
       const phase: Phase = {

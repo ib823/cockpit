@@ -280,7 +280,7 @@ interface ChipDisplayProps {
   onRemove: () => void;
 }
 
-const ChipDisplay = ({ chip, onRemove }: ChipDisplayProps) => {
+const ChipDisplay = ({ chip, onRemove }: { chip: any; onRemove: () => void }) => {
   return (
     <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
       <div className="flex items-center gap-2">
