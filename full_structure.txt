@@ -79,6 +79,7 @@
 │   │   │   ├── 07796122607294a2167720599b95052eec2eab
 │   │   │   └── 0a96c93eed36fefe9091f12dbdcced66557b89
 │   │   ├── 03
+│   │   │   ├── a6603ef509abb260044f3e4cf9337e01162021
 │   │   │   └── b5e4ea644dea7cb8b99a3ddd00196b86049a0d
 │   │   ├── 04
 │   │   │   ├── 0c2e8f253e06452493ab10478afc37f628c954
@@ -102,6 +103,8 @@
 │   │   │   └── bf01dcc51ce180b91b6c42b71a85363a50ed79
 │   │   ├── 11
 │   │   │   └── 26dd37044a5f6d43250ba4dc737cd4e8d0bae5
+│   │   ├── 12
+│   │   │   └── 0fb39ece7b4ae0b85b9fecf9580ee8e78dd17b
 │   │   ├── 13
 │   │   │   └── d4b6e876df398b0e2c5d92fe5368e37475b5dd
 │   │   ├── 14
@@ -127,6 +130,8 @@
 │   │   ├── 23
 │   │   │   ├── 7398b5c0fae493a341541974a63cb626fb3147
 │   │   │   └── d3b5898394286dbc786661d4566595348cc63e
+│   │   ├── 24
+│   │   │   └── eb862bc11943427a26b150051a677845d55dd7
 │   │   ├── 29
 │   │   │   ├── 1788ec09f78d9dc68004a64736124ffb2e740f
 │   │   │   └── f337c99a004468365151fab32770eb6e01f008
@@ -168,6 +173,8 @@
 │   │   ├── 3a
 │   │   │   └── 98d3d7e24ed0d8a4a18603efc2ac0791eaac5f
 │   │   ├── 3b
+│   │   │   ├── 4f38ec3c173d01d55a38648cadd8157aeca64b
+│   │   │   ├── 761474f75d0a6a310aa7f5454c91f1125ff19d
 │   │   │   ├── 883bd8c87c19f4a5ced693647185cf398aa2e4
 │   │   │   └── c96df792eff3109ae1fc8a4fcf07a9c5c6f5b1
 │   │   ├── 3e
@@ -240,13 +247,17 @@
 │   │   │   ├── 4c0a26d7e43cb0672ae487ccbc6dddbf52b7a8
 │   │   │   ├── 8da26246e4e56597118dc532705b8e0a2ce298
 │   │   │   └── c45af2ca2624353287186f36ac68a073ddda42
+│   │   ├── 67
+│   │   │   └── 31f50a1d4f826a0aed6d98fd827d068a0b8003
 │   │   ├── 68
 │   │   │   ├── 7bf6d132e7d8ab449ac3e7df24d6178670d2da
 │   │   │   └── b9911b93f7ad66af0ed4f8dc51f13c96dd5f55
 │   │   ├── 6a
+│   │   │   ├── b93d74a34fb1989e23e28653999ccb0a977404
 │   │   │   └── ec345e437876dc9cae93d4eb4cf3bc5a828981
 │   │   ├── 6b
-│   │   │   └── 960e6287cc3fce4790a8cd2864c97649911420
+│   │   │   ├── 960e6287cc3fce4790a8cd2864c97649911420
+│   │   │   └── bd4073766bbad17dcf99ee86aa0d641f37cfdf
 │   │   ├── 6d
 │   │   │   └── d17b992c59ff64eff36cd18fa21ae236dfe3d1
 │   │   ├── 6e
@@ -271,6 +282,7 @@
 │   │   ├── 78
 │   │   │   └── 03f008ba9484c37e699894d3949ed062378896
 │   │   ├── 79
+│   │   │   ├── 041f77d4fb8e8426ef43a8c8996f4ba6d4dda5
 │   │   │   └── d220d20ac4296e6b48ac5a49135a4f4a26186c
 │   │   ├── 7a
 │   │   │   ├── 19fa8939d1779c27b260d399892a84d15fc438
@@ -295,6 +307,9 @@
 │   │   │   └── 854968679dd5a722e72043830f8783b1eed113
 │   │   ├── 84
 │   │   │   └── 87c4011ba5c0e6452740c87196859141c389cf
+│   │   ├── 85
+│   │   │   ├── 73ad28257759f07ef8f9ee5832a332ccde7ff9
+│   │   │   └── a6e1db671f08db044d7a76f400a13c15820bd9
 │   │   ├── 86
 │   │   │   └── 3991b39d5f87b30caf8c83b002cae3e0cf17bd
 │   │   ├── 87
@@ -302,6 +317,7 @@
 │   │   ├── 88
 │   │   │   └── 6b66531d038cea0aef67525fcb5f837606c5e1
 │   │   ├── 89
+│   │   │   ├── d6867a1e5c75a52a43834b8591d729472e7244
 │   │   │   └── f872d819e6b8d40325597da8edbba099657ec7
 │   │   ├── 8d
 │   │   │   ├── 52d3e703f721e39d4b0a18878990a3177be5ba
@@ -325,12 +341,15 @@
 │   │   ├── 95
 │   │   │   └── 079822610da8f87a61c1ccf06fea48b4ab426c
 │   │   ├── 97
-│   │   │   └── 7ecbe578f74ff88f29f9e4f6726e4b24d36a68
+│   │   │   ├── 68a780b15adc4f80720e2f656dce98b9208571
+│   │   │   ├── 7ecbe578f74ff88f29f9e4f6726e4b24d36a68
+│   │   │   └── 8b0c76684451cad1eec32cf8727c46b656c768
 │   │   ├── 98
 │   │   │   └── 72c49e0fb0e23915e5f6b213ffbf5836905711
 │   │   ├── 99
 │   │   │   └── ec7f75b2b56b0c355474634496c87b01064cef
 │   │   ├── 9c
+│   │   │   ├── 32f4322a53a5adf769dd2ab2f62456f26f8ea3
 │   │   │   ├── 3a2961b00723ad5ad168bbd1f340e74ee34c8e
 │   │   │   └── 45c99597cd3ca8e9129fed238d1a442078bc01
 │   │   ├── 9d
@@ -346,12 +365,15 @@
 │   │   ├── a1
 │   │   │   └── 3b1ccf21dac749bde7a7bd955063196b8285e7
 │   │   ├── a3
+│   │   │   ├── 71925a4e932178cc0aac87ec0523a32e5118cb
 │   │   │   └── c8ecfb823d0ff560ebf59ed27bdbf95d513abf
 │   │   ├── a4
 │   │   │   └── 88d2f7898e69cbf6dd583b5891688498ed43f4
 │   │   ├── a5
 │   │   │   ├── 0b8dbe9a910ad039ddf24a2ec9647709ef5f7d
 │   │   │   └── a4234054b08e2ca1ab1424393010ed40322b2e
+│   │   ├── a6
+│   │   │   └── 2dfa943f776a802cc0860ebfa7f71208811246
 │   │   ├── a8
 │   │   │   └── 1205345447838484763fcd8eba8c86fbfcf5d3
 │   │   ├── a9
@@ -359,6 +381,8 @@
 │   │   ├── aa
 │   │   │   └── d5ca106ab9367b403646c8fb369dfe71c3507b
 │   │   ├── ac
+│   │   │   ├── 11d65f60308b2dca15f62124cf9d9237a63ad0
+│   │   │   ├── 2408b19842c2c0b8721cd65801c79d269dcd0a
 │   │   │   └── acb46eafea3ec737a0264aa7e89dd5936b782b
 │   │   ├── ae
 │   │   │   └── be0bdb03e7dd4c727ac119660c51fd071fde0e
@@ -395,6 +419,8 @@
 │   │   │   ├── 1c235662697830d2b675655bc17f192371178f
 │   │   │   ├── 7e6df73e7de3f3537cdaeba78969190f71ba93
 │   │   │   └── 941443417aa74929ddaf6adfb0ddbcbc78d6af
+│   │   ├── c0
+│   │   │   └── b69300d8dfde0ac2d6d1a2406cc3e01b2d02e6
 │   │   ├── c2
 │   │   │   └── 74f35ffcbb12740c3faac70f2b31803361ba08
 │   │   ├── c3
@@ -402,7 +428,8 @@
 │   │   ├── c4
 │   │   │   ├── 127ea5deba43fc868ca0a52cdd942e6ecd2f8a
 │   │   │   ├── 4951a680db0164bd78df59b06bd366a534a39b
-│   │   │   └── a0b2f2b4c7f524f973135faa1576403ca870bb
+│   │   │   ├── a0b2f2b4c7f524f973135faa1576403ca870bb
+│   │   │   └── cf04ea7c1937bd990e788398a7df9bc7cac29a
 │   │   ├── c5
 │   │   │   ├── 2bdea4c3d8c39a59d8b95989590220d912c02d
 │   │   │   ├── 582ddd713a41e216291582c42255918768b733
@@ -454,6 +481,8 @@
 │   │   │   └── 62b93578d3f8a4eb4cb8ed3a973f5aae80d9db
 │   │   ├── dd
 │   │   │   └── b06dadaf06ce034f37902b991b9dbce5fa1364
+│   │   ├── de
+│   │   │   └── 0f2d94b9d3bf14f8118c6e12bc78cd08dc59a1
 │   │   ├── df
 │   │   │   └── ba11c12e918dfeee0936ae3cdf8be19945094d
 │   │   ├── e2
@@ -469,11 +498,14 @@
 │   │   ├── e9
 │   │   │   └── cdc2d104497a70302c742bbb32fd172e1af75f
 │   │   ├── ea
+│   │   │   ├── 08958c66601fba0c10c3afa9f177f2c647edc6
 │   │   │   ├── cb41069de6ea1a2e6ae70613ac80ead02db174
 │   │   │   └── dd5d959d2403efc5e251ae0d450fc4928d7365
 │   │   ├── ec
+│   │   │   ├── 868872ec29234ce6144ee4b441d03f1119aa2f
 │   │   │   └── 891fc2cda40820701224f3ef312b4ddf9d3c27
 │   │   ├── ee
+│   │   │   ├── 13327217939b8ee3aa6b9e3c99c3e50ba9b7c5
 │   │   │   ├── 1f4a37766df83be391d0a7e568d56f6cda29ca
 │   │   │   └── 594cebd710b02ddd65ef6be60cf4478aaaa749
 │   │   ├── f2
@@ -500,6 +532,7 @@
 │   │   │   ├── 37f3eeab1a401e276f85081a3586b21ab6035f
 │   │   │   ├── 4c92ae096fc0ebd2ef23532b5816d4f4478f3d
 │   │   │   ├── 72984347834b91a3fec1ecb0de16ccaa6763f9
+│   │   │   ├── a9d4c8f4df808355df87f38279502e7308f623
 │   │   │   └── ee8f3b19b37369185b7a068f061a5f807de893
 │   │   ├── ff
 │   │   │   ├── 619be0e10b43d71c610bef02918fded2f4a0bc
@@ -555,8 +588,13 @@
 ├── SAP_PRESALES_ENGINE_COMPLETE_DOCUMENTATION.md
 ├── Siip development documentation.md
 ├── TIMELINE_INTEGRATION_COMPLETE_DOCUMENTATION.md
+├── backup_20250929_232440
+│   ├── critical-patterns.ts
+│   ├── presales-store.ts
+│   └── presales-to-timeline-bridge.ts
 ├── cockpit_backup_20250922_233020.tar.gz
 ├── create-test-milestones.js
+├── deploy-fixes.sh
 ├── docs
 │   ├── DRAG_DROP_IMPLEMENTATION_COMPLETE.md
 │   ├── NEW_CHAT_CONTINUATION_PROMPT.md
@@ -688,7 +726,8 @@
 │       ├── features.ts
 │       └── logger.ts
 ├── tailwind.config.js
+├── test-suites.ts
 ├── tsconfig.json
 └── tsconfig.tsbuildinfo
 
-242 directories, 450 files
+250 directories, 481 files

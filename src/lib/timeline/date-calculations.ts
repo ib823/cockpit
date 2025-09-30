@@ -36,13 +36,25 @@ export function formatDateElegant(date: Date | null): string {
   return `${day} ${month} ${year}`;
 }
 
-export function businessDayToDate(startDate: Date, businessDays: number): Date {
-  const result = new Date(startDate);
-  const weeks = Math.floor(businessDays / 5);
-  const remainingDays = businessDays % 5;
-  const totalDays = (weeks * 7) + remainingDays;
+export function businessDayToDate(
+  baseDate: Date,
+  businessDays: number,
+  holidays: Holiday[] = DEFAULT_HOLIDAYS
+): Date {
+  if (businessDays === 0) return new Date(baseDate); // Handle zero case
   
-  result.setDate(result.getDate() + totalDays);
+  const result = new Date(baseDate.getTime()); // Clone via timestamp
+  let remaining = businessDays;
+  let direction = businessDays > 0 ? 1 : -1;
+  remaining = Math.abs(remaining);
+  
+  while (remaining > 0) {
+    result.setDate(result.getDate() + direction);
+    if (isBusinessDay(result, holidays)) {
+      remaining--;
+    }
+  }
+  
   return result;
 }
 
