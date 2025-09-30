@@ -7,14 +7,29 @@ export interface Chip {
   value: string;
   confidence: number;
   source: ChipSource;
+  validated?: boolean;
   metadata?: {
+    // Original fields
     multiplier?: number;
     snippet?: string;
     context?: string;
     location?: string;
-    evidence?: { snippet: string };
+    evidence?: {
+      snippet: string;
+    };
+    
+    // NEW FIELDS - Add these:
+    note?: string;
+    estimated?: boolean;
+    unit?: string;
+    impact?: string;
+    range?: string;
+    inferred?: boolean;
+    originalEffort?: number;
+    originalDuration?: number;
+    adjustmentReason?: string;
   };
-  timestamp: Date;
+  timestamp?: Date;
 }
 
 export type ChipType = 

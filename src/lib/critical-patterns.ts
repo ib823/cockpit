@@ -1,4 +1,3 @@
-
 // Critical Business Complexity Patterns for SAP Estimation
 // These patterns capture the REAL effort drivers that matter
 
@@ -12,12 +11,12 @@ export const CRITICAL_PATTERNS = {
   ],
 
   locations: [
-    /\b(\d+)\s*(cawangan|pejabat|kilang|lokasi)/gi,
-    /\b(\d+)\s*(?:plant|location|site|branch|office|warehouse|DC|distribution\s*center|factory|outlet|store)/gi,
-    /\b(?:operate\s*in|presence\s*in|across)\s*(\d+)\s*(?:location|site|facility|country|region)/gi,
+    // Malay-specific patterns with mandatory space (HIGHEST PRIORITY - processed first)
+    /\b(\d+)\s+(cawangan|pejabat|kilang|lokasi)\b/gi,
+    // English patterns only (no Malay terms to prevent conflicts)
+    /\b(\d+)\s+(?:plant|location|site|branch|office|warehouse|DC|distribution\s*(?:center|centre)|factory|outlet|store)s?\b/gi,
+    /\b(?:operate\s*in|presence\s*in|across)\s+(\d+)\s+(?:location|site|facility|country|region)s?\b/gi,
     /\bmulti-site\s*\((\d+)\)/gi,
-    /\b(\d+)\s*(?:plant|location|site|branch|office|warehouse|DC|distribution\s*(?:center|centre)|factory|outlet|store|cawangan|pejabat|kilang)\b/gi,
-
   ],
 
   business_units: [
@@ -36,10 +35,13 @@ export const CRITICAL_PATTERNS = {
   ],
 
   users: [
-    /\b(\d+)\s*(?:user|seat|license|concurrent\s*user|named\s*user|pekerja|kakitangan|staff)\b/gi,  // Added Malay terms
-    /\b(?:for|support|serve|untuk)\s*(\d+)\s*(?:user|employee|staff|pekerja)\b/gi,
-    /\b(\d+)\s*(?:power|key|super)\s*user/gi,
-    /\b(\d+)\s*(?:casual|occasional|read-only)\s*user/gi
+    // Singular and plural forms with mandatory space
+    /\b(\d+)\s+(?:users?|seats?|licenses?|concurrent\s*users?|named\s*users?|employees?|pekerja|kakitangan|staff|workforce|headcount)\b/gi,
+    /\b(?:for|support|serve|untuk)\s+(\d+)\s+(?:users?|employees?|staff|pekerja)\b/gi,
+    /\b(\d+)\s+(?:power|key|super)\s*users?/gi,
+    /\b(\d+)\s+(?:casual|occasional|read-only)\s*users?/gi,
+    // Additional patterns for common phrases
+    /\b(\d+)\s+(?:active|total|concurrent)\s+(?:users?|employees?)/gi
   ],
 
   currencies: [
@@ -66,10 +68,10 @@ export const CRITICAL_PATTERNS = {
 
 export const MALAY_PATTERNS = {
   locations: [
-    /\b(\d+)\s+(cawangan|pejabat|kilang|lokasi)/gi,
+    /\b(\d+)\s+(cawangan|pejabat|kilang|lokasi)\b/gi,
   ],
   employees: [
-    /\b(\d+)\s+(pekerja|kakitangan)/gi,
+    /\b(\d+)\s+(pekerja|kakitangan)\b/gi,
   ]
 };
 
@@ -124,28 +126,32 @@ export const EFFORT_IMPACT_RULES = {
 
 export const MISSING_INFO_ALERTS = {
   legal_entities: {
-    severity: 'critical',
+    severity: 'critical' as const,
     message: 'Missing legal entity count - could be 1 or 20, massive impact on effort',
+    question: 'How many legal entities/company codes will be implemented?',
     default_assumption: 1,
-    risk_note: 'Each additional legal entity adds 10-20% effort'
+    risk_note: 'Each additional legal entity adds 10-20% effort across all modules'
   },
   locations: {
-    severity: 'high',
+    severity: 'high' as const,
     message: 'Missing location/plant count - affects logistics and master data complexity',
+    question: 'How many plants/locations/branches will be in scope?',
     default_assumption: 1,
-    risk_note: 'Multi-location rollouts can double implementation time'
+    risk_note: 'Multi-location rollouts can double implementation time due to rollout logistics'
   },
   data_volume: {
-    severity: 'high',
+    severity: 'high' as const,
     message: 'Missing transaction volumes - affects performance design and migration approach',
+    question: 'What are the daily/monthly transaction volumes?',
     default_assumption: '1000/day',
-    risk_note: 'High volumes require architecture changes and longer migration'
+    risk_note: 'High volumes (>10K/day) require different architecture and longer migration windows'
   },
   users: {
-    severity: 'medium',
+    severity: 'medium' as const,
     message: 'Missing user count - affects licensing, training, and change management',
+    question: 'How many users will access the SAP system?',
     default_assumption: 50,
-    risk_note: 'Training effort scales non-linearly with users'
+    risk_note: 'Training and change management effort scales non-linearly with user count'
   }
 };
 

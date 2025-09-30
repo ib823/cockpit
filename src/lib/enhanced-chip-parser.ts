@@ -230,6 +230,25 @@ function extractCriticalPatterns(text: string): ExtendedChip[] {
       }
     });
   }
+
+    const vagueLocationPattern = /(?:several|multiple|various|some|many)\s+(?:branches?|locations?|plants?|sites?|offices?)/gi;
+  for (const match of text.matchAll(vagueLocationPattern)) {
+    const estimate = 3; // Conservative estimate for "several"
+    
+    chips.push({
+      id: `vague_loc_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      type: 'locations',
+      value: estimate,
+      confidence: 0.4,
+      source: 'fuzzy_parser',
+      evidence: match[0],
+      metadata: {
+        estimated: true,
+        range: '2-5',
+        note: 'Estimated from vague description'
+      }
+    });
+  }
   
   // Legacy Systems
   for (const pattern of CRITICAL_PATTERNS.legacy_systems) {

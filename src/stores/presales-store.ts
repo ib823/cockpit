@@ -139,60 +139,107 @@ export const usePresalesStore = create<PresalesState>()(
       calculateCompleteness: () => {
         const state = get();
         
+        // CRITICAL: Empty input = 0% score with all gaps
         if (state.chips.length === 0) {
           set({
             completeness: {
               score: 0,
               gaps: [
-                "Missing country/region information",
-                "Missing company size information", 
-                "Missing modules required",
-                "Missing timeline information",
-                "Missing legal entities count",
-                "Missing locations count",
-                "Missing user count",
-                "Missing transaction volumes"
+                'legal_entities',
+                'locations',
+                'users',
+                'data_volume',
+                'country',
+                'industry',
+                'modules',
+                'timeline'
               ],
               canProceed: false,
-              blockers: ["No requirements captured"]
+              blockers: ['No requirements captured - please paste RFP text']
             },
-            suggestions: ["Please paste RFP text to extract requirements"]
+            suggestions: [
+              'Paste RFP text or upload document to extract requirements',
+              'Minimum required: country, industry, modules, user count',
+              'Critical factors: legal entities, locations, transaction volumes'
+            ]
           });
           return;
         }
 
-        const gaps = identifyCriticalGaps(state.chips as any);
-        const criticalGaps = gaps.filter((g: any) => g.severity === 'critical').length;
-        const highGaps = gaps.filter((g: any) => g.severity === 'high').length;
-        const mediumGaps = gaps.filter((g: any) => g.severity === 'medium').length;
+        // BALANCED SCORING: Credit for what exists + penalties for gaps
+        const chipTypes = new Set(state.chips.map(c => c.type || (c as any).kind));
         
-        const maxScore = 100;
-        const criticalPenalty = 30;
-        const highPenalty = 15;
-        const mediumPenalty = 10;
+        // Define scoring categories with weights
+        const scoringFactors = {
+          // Must-have basics (45 points)
+          country: { weight: 15, severity: 'high' },
+          industry: { weight: 15, severity: 'medium' },
+          modules: { weight: 15, severity: 'high' },
+          
+          // Critical complexity drivers (35 points)
+          legal_entities: { weight: 15, severity: 'critical' },
+          locations: { weight: 12, severity: 'high' },
+          data_volume: { weight: 8, severity: 'high' },
+          
+          // Important but not blocking (20 points)
+          users: { weight: 15, severity: 'medium' },
+          timeline: { weight: 5, severity: 'low' },
+        };
+
         
-        const score = Math.max(0, 
-          maxScore - 
-          (criticalGaps * criticalPenalty) - 
-          (highGaps * highPenalty) - 
-          (mediumGaps * mediumPenalty)
-        );
+        // Calculate positive score from captured chips
+        let score = 0;
+        const gaps: any[] = [];
         
-        const canProceed = score >= 60 && criticalGaps === 0;
-        const blockers = gaps
-          .filter((g: any) => g.severity === 'critical')
-          .map((g: any) => g.field);
+        for (const [factor, config] of Object.entries(scoringFactors)) {
+          if (chipTypes.has(factor) || chipTypes.has(factor + 's')) {
+            score += config.weight;
+          } else {
+            gaps.push({
+              field: factor,
+              severity: config.severity,
+              weight: config.weight
+            });
+          }
+        }
+        
+        // Add bonus for having multiple chips (shows detail)
+        if (state.chips.length >= 5) score += 5;
+        if (state.chips.length >= 8) score += 5;
+        
+        // Penalty for vague/low-confidence chips
+        const vagueChips = state.chips.filter(c => c.confidence < 0.6).length;
+        score = Math.max(0, score - (vagueChips * 3));
+        
+        // Final score
+        score = Math.min(100, Math.max(0, score));
+        
+        // Determine if can proceed (stricter threshold)
+        const criticalGaps = gaps.filter(g => g.severity === 'critical').length;
+        const canProceed = score >= 65 && criticalGaps === 0;
+        
+        // Build blockers list
+        const blockers: string[] = [];
+        if (criticalGaps > 0) {
+          blockers.push(`Missing ${criticalGaps} critical factor(s): ${
+            gaps.filter(g => g.severity === 'critical').map(g => g.field).join(', ')
+          }`);
+        }
+        if (score < 65 && criticalGaps === 0) {
+          blockers.push('Completeness below 65% - provide more details to proceed');
+        }
+
+        // Generate suggestions
+        const suggestions = generateSuggestions(gaps, score, vagueChips);
 
         set({
           completeness: { 
             score, 
-            gaps: gaps.map((g: any) => g.field),
+            gaps: gaps.map(g => g.field),
             canProceed, 
             blockers 
           },
-          suggestions: gaps.length > 0
-            ? gaps.slice(0, 3).map((g: any) => g.question || g.field)
-            : ["All critical information captured"]
+          suggestions
         });
       },
 
@@ -228,3 +275,55 @@ export const usePresalesStore = create<PresalesState>()(
     }
   )
 );
+
+// Helper: Check for critical chip combinations
+function checkCriticalCombinations(chips: Chip[]): boolean {
+  const chipTypes = new Set(chips.map(c => c.type || (c as any).kind));
+  
+  // Must have at least: country OR industry, AND (employees OR users), AND modules
+  const hasLocation = chipTypes.has('country') || chipTypes.has('state') || chipTypes.has('city');
+  const hasIndustry = chipTypes.has('industry');
+  const hasSize = chipTypes.has('employees') || chipTypes.has('users');
+  const hasModules = chipTypes.has('modules');
+  
+  return (hasLocation || hasIndustry) && hasSize && hasModules;
+}
+
+// Helper: Generate intelligent suggestions based on gaps
+function generateSuggestions(gaps: any[], score: number, vagueCount: number): string[] {
+  const suggestions: string[] = [];
+  
+  if (score === 0) {
+    return [
+      'Start by pasting RFP text or uploading the requirement document',
+      'We need at minimum: country, industry, modules, and user count'
+    ];
+  }
+  
+  if (gaps.length === 0) {
+    suggestions.push('✅ All critical information captured - ready to generate timeline');
+  } else {
+    // Add top 3 gap questions
+    const topGaps = gaps
+      .filter((g: any) => g.severity === 'critical' || g.severity === 'high')
+      .slice(0, 3);
+    
+    topGaps.forEach((gap: any) => {
+      suggestions.push(gap.question || `Please specify ${gap.field}`);
+    });
+  }
+  
+  if (vagueCount > 0) {
+    suggestions.push(
+      `⚠️ ${vagueCount} vague requirement(s) detected - please provide specific numbers`
+    );
+  }
+  
+  if (score < 70 && score > 0) {
+    suggestions.push(
+      `📊 ${score}% complete - provide more details to reach 70% minimum`
+    );
+  }
+  
+  return suggestions.slice(0, 4); // Max 4 suggestions
+}

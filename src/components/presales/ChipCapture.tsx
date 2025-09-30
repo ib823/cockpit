@@ -89,6 +89,48 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
     recordMetric('click');
   };
 
+  const handleProceedWithDefaults = () => {
+    const defaultChips: Chip[] = [];
+    
+    if (!chips.some(c => c.type === 'legal_entities')) {
+      defaultChips.push({
+        id: `default_${Date.now()}_1`,
+        type: 'legal_entities' as ChipType,
+        value: '1',
+        confidence: 0.5,
+        source: 'default' as ChipSource,
+        metadata: {
+          note: 'Default assumption - single entity',
+          estimated: true
+        },
+        timestamp: new Date()
+      });
+    }
+    
+    if (!chips.some(c => c.type === 'locations')) {
+      defaultChips.push({
+        id: `default_${Date.now()}_2`,
+        type: 'locations' as ChipType,
+        value: '1',
+        confidence: 0.5,
+        source: 'default' as ChipSource,
+        metadata: {
+          note: 'Default assumption - single location',
+          estimated: true
+        },
+        timestamp: new Date()
+      });
+    }
+    
+    if (defaultChips.length > 0) {
+      addChips(defaultChips);
+    }
+    
+    setTimeout(() => {
+      window.location.href = '/presales?mode=decide';
+    }, 100);
+  };
+
   const handleRemoveChip = (chipId: string) => {
     removeChip(chipId);
     recordMetric('click');
@@ -101,6 +143,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
     recordMetric('keystroke');
   };
 
+  
   if (!mounted) {
     return <div className="animate-pulse bg-gray-100 h-64 rounded-lg" />;
   }
@@ -268,6 +311,125 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
               <div className="font-medium text-red-600">{completeness.blockers.length}</div>
             </div>
           </div>
+        </div>
+      )}
+      {/* Action Buttons - Proceed to Timeline */}
+      {completeness.score > 0 && (
+        <div className="pt-4 border-t border-gray-200 space-y-3">
+          {/* Primary Action Buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Option A: Proceed with Defaults */}
+            <button
+              onClick={() => {
+                // Apply smart defaults for missing critical factors
+                const defaultChips: Chip[] = [];
+                
+                if (!chips.some(c => c.type === 'legal_entities')) {
+                  defaultChips.push({
+                    id: `default_${Date.now()}_1`,
+                    type: 'legal_entities' as ChipType,
+                    value: '1',
+                    confidence: 0.5,
+                    source: 'default' as ChipSource,
+                    metadata: {
+                      note: 'Default assumption - single entity',
+                      estimated: true
+                    },
+                    timestamp: new Date()
+                  });
+                }
+                
+                if (!chips.some(c => c.type === 'locations')) {
+                  defaultChips.push({
+                    id: `default_${Date.now()}_2`,
+                    type: 'locations' as ChipType,
+                    value: '1',
+                    confidence: 0.5,
+                    source: 'default' as ChipSource,
+                    metadata: {
+                      note: 'Default assumption - single location',
+                      estimated: true
+                    },
+                    timestamp: new Date()
+                  });
+                }
+                
+                if (!chips.some(c => c.type === 'data_volume')) {
+                  defaultChips.push({
+                    id: `default_${Date.now()}_3`,
+                    type: 'data_volume' as ChipType,
+                    value: '1000',
+                    confidence: 0.4,
+                    source: 'default' as ChipSource,
+                    metadata: {
+                      note: 'Default assumption - 1000 transactions/day',
+                      estimated: true,
+                      unit: 'transactions/day'
+                    },
+                    timestamp: new Date()
+                  });
+                }
+                
+                if (defaultChips.length > 0) {
+                  addChips(defaultChips);
+                  setTimeout(() => {
+                    window.location.href = '/presales?mode=decide';
+                  }, 200);
+                } else {
+                  window.location.href = '/presales?mode=decide';
+                }
+              }}
+              disabled={completeness.score < 50}
+              className="py-3 px-4 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <div className="text-sm">Proceed with Defaults</div>
+              <div className="text-xs text-gray-500 mt-1">Assumes single entity/location</div>
+            </button>
+            
+            {/* Option B: Generate Timeline (Full Data) */}
+            <button
+              onClick={() => window.location.href = '/presales?mode=decide'}
+              disabled={!completeness.canProceed}
+              className={`py-3 px-4 rounded-lg font-medium transition-colors ${
+                completeness.canProceed
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              <div className="text-sm">Generate Timeline</div>
+              <div className="text-xs mt-1">
+                {completeness.canProceed 
+                  ? 'Ready with complete data' 
+                  : `Need ${Math.max(0, 65 - completeness.score)}% more`}
+              </div>
+            </button>
+          </div>
+          
+          {/* Blockers Display */}
+          {!completeness.canProceed && completeness.blockers.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="text-sm font-medium text-amber-900 mb-1">
+                Why "Generate Timeline" is disabled:
+              </div>
+              <ul className="text-sm text-amber-700 space-y-1">
+                {completeness.blockers.map((blocker, idx) => (
+                  <li key={idx}>• {blocker}</li>
+                ))}
+              </ul>
+              <div className="text-xs text-amber-600 mt-2">
+                Use "Proceed with Defaults" to continue with assumptions, or add missing info above.
+              </div>
+            </div>
+          )}
+          
+          {/* Success Message */}
+          {completeness.canProceed && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="text-sm text-green-800">
+                All critical requirements captured. Ready to generate accurate timeline.
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
