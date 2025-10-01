@@ -1,776 +1,123 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { 
-  Phase, 
-  ClientProfile, 
-  Resource,
-  generateTimelineFromSAPSelection,
-  calculateIntelligentSequencing,
-  calculateResourceRequirements
-} from '@/lib/timeline/phase-generation';
-import { 
-  businessDayToDate,
-  DEFAULT_HOLIDAYS,
-  Holiday
-} from '@/lib/timeline/date-calculations';
-import { calculateProjectCost } from '@/data/resource-catalog';
+// Bridge between Presales and Timeline systems
+import { Chip, ClientProfile, Decision } from '@/types/core';
+import { generateBaselineScenario } from './scenario-generator';
 
-// ============================================================================
-// TYPE DEFINITIONS
-// ============================================================================
-
-export interface TimelineState {
-  // Core data
+export interface ConversionResult {
   profile: ClientProfile;
   selectedPackages: string[];
-  phases: Phase[];
-  holidays: Holiday[];
-  phaseColors: Record<string, string>;
-  
-  // View state
-  zoomLevel: 'daily' | 'weekly' | 'biweekly' | 'monthly';
-  selectedPhaseId: string | null;
-  clientPresentationMode: boolean;
-  
-  // Actions - Profile
-  setProfile: (profile: Partial<ClientProfile>) => void;
-  resetProfile: () => void;
-  
-  // Actions - Packages
-  addPackage: (packageId: string) => void;
-  removePackage: (packageId: string) => void;
-  clearPackages: () => void;
-  
-  // Actions - Phases
-  generateTimeline: () => void;
-  addPhase: (phase?: Partial<Phase>) => void;
-  updatePhase: (id: string, updates: Partial<Phase>, createIfMissing?: boolean) => void;
-  upsertPhase: (phase: Partial<Phase> & { id: string }) => void; // NEW: Upsert method
-  deletePhase: (id: string) => void;
-  movePhase: (id: string, newStartDay: number) => void;
-  movePhaseOrder: (fromIndex: number, toIndex: number) => void;
-  togglePhaseSelection: (id: string) => void;
-  setPhaseColor: (phaseId: string, color: string) => void;
-  
-  // Actions - Resources
-  updatePhaseResources: (phaseId: string, resources: Resource[]) => void;
-  
-  // Actions - Holidays
-  addHoliday: (holiday: Holiday) => void;
-  removeHoliday: (date: string) => void;
-  resetHolidays: () => void;
-  
-  // Actions - View
-  setZoomLevel: (level: 'daily' | 'weekly' | 'biweekly' | 'monthly') => void;
-  selectPhase: (id: string | null) => void;
-  togglePresentationMode: () => void;
-  
-  // Computed values
-  getProjectCost: () => number;
-  getBlendedRate: () => number;
-  getProjectStartDate: () => Date | null;
-  getProjectEndDate: () => Date | null;
-  getTotalPhases: () => number;
-  getTotalWorkingDays: () => number;
+  success: boolean;
+  errors: string[];
 }
 
-// ============================================================================
-// DEFAULT VALUES
-// ============================================================================
-
-const defaultProfile: ClientProfile = {
-  company: '',
-  industry: 'manufacturing',
-  size: 'medium',
-  complexity: 'standard',
-  timelinePreference: 'normal',
-  region: 'ABMY',
-  employees: 500,
-  annualRevenue: 100000000
-};
-
-const PROJECT_BASE_DATE = new Date('2024-01-01');
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
 /**
- * Calculate project start date from phases
+ * Converts presales chips and decisions into timeline configuration
  */
-function calculateProjectStartDate(phases: Phase[], holidays: Holiday[]): Date | null {
-  if (phases.length === 0) return null;
-  
+export function convertPresalesToTimeline(
+  chips: Chip[],
+  decisions: Decision[]
+): ConversionResult {
   try {
-    const earliestPhase = phases.reduce((earliest, current) => 
-      current.startBusinessDay < earliest.startBusinessDay ? current : earliest
-    );
+    // Generate baseline scenario from chips and decisions
+    const scenario = generateBaselineScenario(chips, decisions);
     
-    const startDate = businessDayToDate(
-      PROJECT_BASE_DATE, 
-      earliestPhase.startBusinessDay,
-      holidays
-    );
-    
-    if (isNaN(startDate.getTime())) {
-      console.error('Invalid start date calculated');
-      return null;
-    }
-    
-    return startDate;
-  } catch (error) {
-    console.error('Error calculating start date:', error);
-    return null;
-  }
-}
+    // Extract profile and packages
+    const profile: ClientProfile = {
+      company: chips.find(c => c.kind === 'country')?.parsed.value as string || '',
+      industry: chips.find(c => c.kind === 'industry')?.parsed.value as string || 'manufacturing',
+      size: 'medium', // Default, can be derived from employee count
+      complexity: 'standard',
+      timelinePreference: 'normal'
+    };
 
-/**
- * Calculate project end date from phases
- */
-function calculateProjectEndDate(phases: Phase[], holidays: Holiday[]): Date | null {
-  if (phases.length === 0) return null;
-  
-  try {
-    const latestPhase = phases.reduce((latest, current) => {
-      const currentEnd = current.startBusinessDay + current.workingDays;
-      const latestEnd = latest.startBusinessDay + latest.workingDays;
-      return currentEnd > latestEnd ? current : latest;
-    });
-    
-    const endBusinessDay = latestPhase.startBusinessDay + latestPhase.workingDays;
-    
-    const endDate = businessDayToDate(
-      PROJECT_BASE_DATE,
-      endBusinessDay,
-      holidays
-    );
-    
-    if (isNaN(endDate.getTime())) {
-      console.error('Invalid end date calculated');
-      return null;
-    }
-    
-    return endDate;
-  } catch (error) {
-    console.error('Error calculating end date:', error);
-    return null;
-  }
-}
-
-/**
- * Validate phase data before processing
- */
-function validatePhase(phase: Partial<Phase>): boolean {
-  if (!phase.name || phase.name.trim().length === 0) return false;
-  if (phase.workingDays !== undefined && phase.workingDays <= 0) return false;
-  if (phase.effort !== undefined && phase.effort < 0) return false;
-  return true;
-}
-
-/**
- * Create a complete Phase object from partial data
- */
-function createCompletePhase(phaseData: Partial<Phase>, existingPhase?: Phase): Phase {
-  const basePhase = existingPhase || {
-    id: phaseData.id || `phase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    name: 'New Phase',
-    category: 'Custom',
-    startBusinessDay: 0,
-    workingDays: 5,
-    effort: 5,
-    color: '#3B82F6',
-    skipHolidays: true,
-    dependencies: [],
-    status: 'idle' as const,
-    resources: []
-  };
-  
-  return {
-    ...basePhase,
-    ...phaseData
-  };
-}
-
-/**
- * Migrate old store state to new format
- */
-function migrateTimelineState(persistedState: any, version: number): any {
-  if (version === 0) {
-    const state = persistedState as any;
-    
-    const phaseColors: Record<string, string> = {};
-    if (state.phases && Array.isArray(state.phases)) {
-      state.phases.forEach((phase: any) => {
-        if (phase.id && phase.color) {
-          phaseColors[phase.id] = phase.color;
-        }
-      });
-    }
+    // Extract selected packages from scenario
+    const selectedPackages: string[] = [];
     
     return {
-      ...state,
-      phaseColors: phaseColors || {}
+      profile,
+      selectedPackages,
+      success: true,
+      errors: []
+    };
+  } catch (error) {
+    return {
+      profile: {
+        company: '',
+        industry: 'manufacturing',
+        size: 'medium',
+        complexity: 'standard',
+        timelinePreference: 'normal'
+      },
+      selectedPackages: [],
+      success: false,
+      errors: [error instanceof Error ? error.message : 'Unknown error']
     };
   }
-  
-  return persistedState;
 }
 
-// ============================================================================
-// STORE IMPLEMENTATION
-// ============================================================================
-
-export const useTimelineStore = create<TimelineState>()(
-  persist(
-    (set, get) => ({
-      // ========================================================================
-      // INITIAL STATE
-      // ========================================================================
-      profile: defaultProfile,
-      selectedPackages: [],
-      phases: [],
-      holidays: [],
-      phaseColors: {},
-      zoomLevel: 'weekly',
-      selectedPhaseId: null,
-      clientPresentationMode: false,
+/**
+ * Maps presales module chips to SAP package IDs
+ */
+export function mapModulesToPackages(chips: Chip[]): string[] {
+  const packages = new Set<string>();
+  
+  chips
+    .filter(c => c.kind === 'modules')
+    .forEach(chip => {
+      const module = chip.raw.toLowerCase();
       
-      // ========================================================================
-      // PROFILE ACTIONS
-      // ========================================================================
-      
-      setProfile: (updates: Partial<ClientProfile>) => {
-        set(state => ({
-          profile: { ...state.profile, ...updates }
-        }));
-      },
-      
-      resetProfile: () => {
-        set({ profile: defaultProfile });
-      },
-      
-      // ========================================================================
-      // PACKAGE ACTIONS
-      // ========================================================================
-      
-      addPackage: (packageId: string) => {
-        set(state => {
-          if (state.selectedPackages.includes(packageId)) {
-            return state;
-          }
-          return { 
-            selectedPackages: [...state.selectedPackages, packageId] 
-          };
-        });
-      },
-      
-      removePackage: (packageId: string) => {
-        set(state => ({
-          selectedPackages: state.selectedPackages.filter(id => id !== packageId)
-        }));
-      },
-      
-      clearPackages: () => {
-        set({ 
-          selectedPackages: [], 
-          phases: [],
-          phaseColors: {}
-        });
-      },
-      
-      // ========================================================================
-      // PHASE ACTIONS
-      // ========================================================================
-      
-      generateTimeline: () => {
-        set(state => {
-          try {
-            if (state.selectedPackages.length === 0) {
-              console.warn('No packages selected for timeline generation');
-              return state;
-            }
-            
-            const newPhases = generateTimelineFromSAPSelection(
-              state.selectedPackages,
-              state.profile
-            );
-            
-            if (!newPhases || newPhases.length === 0) {
-              console.error('Failed to generate phases from packages');
-              return state;
-            }
-            
-            console.log('Generated phases:', newPhases.length);
-            console.log('First phase sample:', newPhases[0]);
-            
-            const newColors: Record<string, string> = {};
-            newPhases.forEach(phase => {
-              if (phase.color) {
-                newColors[phase.id] = phase.color;
-              }
-            });
-            
-            return {
-              phases: newPhases,
-              phaseColors: newColors,
-              selectedPhaseId: null
-            };
-          } catch (error) {
-            console.error('Failed to generate timeline:', error);
-            return state;
-          }
-        });
-      },
-      
-      addPhase: (phaseData: Partial<Phase> = {}) => {
-        set(state => {
-          if (!validatePhase(phaseData)) {
-            console.error('Invalid phase data:', phaseData);
-            return state;
-          }
-          
-          const newPhaseId = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          const color = phaseData.color || '#3B82F6';
-          
-          const newPhase: Phase = {
-            id: newPhaseId,
-            name: phaseData.name || 'New Phase',
-            category: phaseData.category || 'Custom',
-            startBusinessDay: phaseData.startBusinessDay || 0,
-            workingDays: phaseData.workingDays || 5,
-            effort: phaseData.effort || 5,
-            color: color,
-            skipHolidays: phaseData.skipHolidays ?? true,
-            dependencies: phaseData.dependencies || [],
-            status: phaseData.status || 'idle',
-            resources: phaseData.resources || []
-          };
-          
-          const updatedPhases = [...state.phases, newPhase];
-          const updatedColors = { ...state.phaseColors, [newPhaseId]: color };
-          
-          return {
-            phases: calculateIntelligentSequencing(updatedPhases),
-            phaseColors: updatedColors
-          };
-        });
-      },
-      
-      updatePhase: (id: string, updates: Partial<Phase>, createIfMissing: boolean = false) => {
-        set(state => {
-          const phaseIndex = state.phases.findIndex(p => p.id === id);
-          
-          // FIX: If phase doesn't exist and createIfMissing is true, create it
-          if (phaseIndex === -1) {
-            if (createIfMissing) {
-              console.warn(`Phase ${id} not found, creating new phase`);
-              
-              const newPhase = createCompletePhase({ ...updates, id });
-              const updatedPhases = [...state.phases, newPhase];
-              
-              const updatedColors = updates.color 
-                ? { ...state.phaseColors, [id]: updates.color }
-                : state.phaseColors;
-              
-              return {
-                phases: calculateIntelligentSequencing(updatedPhases),
-                phaseColors: updatedColors
-              };
-            } else {
-              console.warn(`Phase ${id} not found, skipping update`);
-              return state;
-            }
-          }
-          
-          // Phase exists, update it
-          const updatedPhases = state.phases.map(phase => 
-            phase.id === id ? { ...phase, ...updates } : phase
-          );
-          
-          let updatedColors = state.phaseColors;
-          if (updates.color) {
-            updatedColors = { ...state.phaseColors, [id]: updates.color };
-          }
-          
-          return { 
-            phases: calculateIntelligentSequencing(updatedPhases),
-            phaseColors: updatedColors
-          };
-        });
-      },
-      
-      // NEW: Upsert method (update or insert)
-      upsertPhase: (phaseData: Partial<Phase> & { id: string }) => {
-        set(state => {
-          const existingIndex = state.phases.findIndex(p => p.id === phaseData.id);
-          
-          if (existingIndex === -1) {
-            // Phase doesn't exist, create it
-            const newPhase = createCompletePhase(phaseData);
-            const updatedPhases = [...state.phases, newPhase];
-            
-            const updatedColors = newPhase.color 
-              ? { ...state.phaseColors, [newPhase.id]: newPhase.color }
-              : state.phaseColors;
-            
-            return {
-              phases: calculateIntelligentSequencing(updatedPhases),
-              phaseColors: updatedColors
-            };
-          } else {
-            // Phase exists, update it
-            const existingPhase = state.phases[existingIndex];
-            const updatedPhase = createCompletePhase(phaseData, existingPhase);
-            
-            const updatedPhases = state.phases.map(phase =>
-              phase.id === phaseData.id ? updatedPhase : phase
-            );
-            
-            const updatedColors = updatedPhase.color
-              ? { ...state.phaseColors, [updatedPhase.id]: updatedPhase.color }
-              : state.phaseColors;
-            
-            return {
-              phases: calculateIntelligentSequencing(updatedPhases),
-              phaseColors: updatedColors
-            };
-          }
-        });
-      },
-      
-      deletePhase: (id: string) => {
-        set(state => {
-          const updatedPhases = state.phases.filter(phase => phase.id !== id);
-          const { [id]: removed, ...updatedColors } = state.phaseColors;
-          
-          return {
-            phases: updatedPhases,
-            phaseColors: updatedColors,
-            selectedPhaseId: state.selectedPhaseId === id ? null : state.selectedPhaseId
-          };
-        });
-      },
-      
-      movePhase: (id: string, newStartDay: number) => {
-        set(state => {
-          if (newStartDay < 0) {
-            console.error('Invalid start day:', newStartDay);
-            return state;
-          }
-          
-          const updatedPhases = state.phases.map(phase => 
-            phase.id === id 
-              ? { ...phase, startBusinessDay: newStartDay } 
-              : phase
-          );
-          
-          return { 
-            phases: calculateIntelligentSequencing(updatedPhases) 
-          };
-        });
-      },
-      
-      movePhaseOrder: (fromIndex: number, toIndex: number) => {
-        set(state => {
-          if (fromIndex < 0 || fromIndex >= state.phases.length ||
-              toIndex < 0 || toIndex >= state.phases.length) {
-            console.error('Invalid indices:', fromIndex, toIndex);
-            return state;
-          }
-          
-          const newPhases = [...state.phases];
-          const [removed] = newPhases.splice(fromIndex, 1);
-          newPhases.splice(toIndex, 0, removed);
-          
-          return { 
-            phases: calculateIntelligentSequencing(newPhases)
-          };
-        });
-      },
-      
-      togglePhaseSelection: (id: string) => {
-        set(state => ({
-          selectedPhaseId: state.selectedPhaseId === id ? null : id
-        }));
-      },
-      
-      setPhaseColor: (phaseId: string, color: string) => {
-        set(state => {
-          const phaseExists = state.phases.some(p => p.id === phaseId);
-          if (!phaseExists) {
-            console.warn(`Phase ${phaseId} not found, skipping color update`);
-            return state;
-          }
-          
-          const updatedPhases = state.phases.map(phase =>
-            phase.id === phaseId ? { ...phase, color } : phase
-          );
-          
-          const updatedColors = { ...state.phaseColors, [phaseId]: color };
-          
-          return {
-            phases: updatedPhases,
-            phaseColors: updatedColors
-          };
-        });
-      },
-      
-      // ========================================================================
-      // RESOURCE ACTIONS
-      // ========================================================================
-      
-      updatePhaseResources: (phaseId: string, resources: Resource[]) => {
-        set(state => {
-          const validResources = resources.filter(r => 
-            r.name && 
-            r.role && 
-            r.allocation >= 0 && 
-            r.allocation <= 150
-          );
-          
-          if (validResources.length !== resources.length) {
-            console.warn('Some resources were invalid and filtered out');
-          }
-          
-          return {
-            phases: state.phases.map(phase => 
-              phase.id === phaseId 
-                ? { ...phase, resources: validResources } 
-                : phase
-            )
-          };
-        });
-      },
-      
-      // ========================================================================
-      // HOLIDAY ACTIONS
-      // ========================================================================
-      
-      addHoliday: (holiday: Holiday) => {
-        set(state => {
-          if (!holiday.date || !holiday.name) {
-            console.error('Invalid holiday:', holiday);
-            return state;
-          }
-          
-          const exists = state.holidays.some(h => h.date === holiday.date);
-          if (exists) {
-            console.warn('Holiday already exists:', holiday.date);
-            return state;
-          }
-          
-          return { 
-            holidays: [...state.holidays, holiday] 
-          };
-        });
-      },
-      
-      removeHoliday: (date: string) => {
-        set(state => ({
-          holidays: state.holidays.filter(h => h.date !== date)
-        }));
-      },
-      
-      resetHolidays: () => {
-        set({ holidays: [] });
-      },
-      
-      // ========================================================================
-      // VIEW ACTIONS
-      // ========================================================================
-      
-      setZoomLevel: (level: 'daily' | 'weekly' | 'biweekly' | 'monthly') => {
-        set({ zoomLevel: level });
-      },
-      
-      selectPhase: (id: string | null) => {
-        set({ selectedPhaseId: id });
-      },
-      
-      togglePresentationMode: () => {
-        set(state => ({
-          clientPresentationMode: !state.clientPresentationMode
-        }));
-      },
-      
-      // ========================================================================
-      // COMPUTED VALUES
-      // ========================================================================
-      
-      getProjectCost: (): number => {
-        const { phases } = get();
-        
-        try {
-          if (!phases || phases.length === 0) {
-            return 0;
-          }
-          
-          try {
-            const phasesWithResources = phases.map(p => ({ 
-              ...p, 
-              resources: p.resources || [] 
-            }));
-            
-            const cost = calculateProjectCost(phasesWithResources, 8);
-            
-            if (typeof cost === 'number' && !isNaN(cost) && cost >= 0) {
-              return cost;
-            }
-          } catch (originalError) {
-            console.warn('Original calculateProjectCost failed, using fallback:', originalError);
-          }
-          
-          let totalCost = 0;
-          
-          for (const phase of phases) {
-            const resources = phase.resources || [];
-            const workingDays = phase.workingDays || 0;
-            
-            if (resources.length === 0) {
-              continue;
-            }
-            
-            for (const resource of resources) {
-              if (!resource) continue;
-              
-              const hourlyRate = typeof resource.hourlyRate === 'number' ? resource.hourlyRate : 0;
-              const allocation = typeof resource.allocation === 'number' ? resource.allocation : 100;
-              
-              if (hourlyRate === 0) {
-                console.warn(`Resource ${resource.name || 'unnamed'} has no hourly rate in phase ${phase.name}`);
-                continue;
-              }
-              
-              const allocationDecimal = allocation / 100;
-              const hours = workingDays * 8 * allocationDecimal;
-              const resourceCost = hourlyRate * hours;
-              
-              if (isNaN(resourceCost)) {
-                console.error('NaN detected:', {
-                  phase: phase.name,
-                  resource: resource.name || 'unnamed',
-                  hourlyRate,
-                  allocation,
-                  workingDays,
-                  calculation: `${hourlyRate} * ${hours}`
-                });
-                continue;
-              }
-              
-              totalCost += resourceCost;
-            }
-          }
-          
-          const finalCost = Math.round(totalCost * 100) / 100;
-          
-          if (isNaN(finalCost)) {
-            console.error('Final cost is NaN after calculation');
-            return 0;
-          }
-          
-          return finalCost;
-          
-        } catch (error) {
-          console.error('Critical error calculating project cost:', error);
-          return 0;
-        }
-      },
-      
-      getBlendedRate: (): number => {
-        const { phases } = get();
-        
-        try {
-          const allResources = phases.flatMap(p => p.resources || []);
-          if (allResources.length === 0) return 0;
-          
-          let totalCost = 0;
-          let totalAllocation = 0;
-          
-          allResources.forEach(resource => {
-            const allocation = (resource.allocation || 0) / 100;
-            const rate = resource.hourlyRate || 0;
-            
-            totalCost += rate * 8 * allocation;
-            totalAllocation += allocation;
-          });
-          
-          const blendedRate = totalAllocation > 0 ? totalCost / totalAllocation : 0;
-          
-          if (isNaN(blendedRate) || blendedRate < 0) {
-            console.error('Invalid blended rate calculated');
-            return 0;
-          }
-          
-          return Math.round(blendedRate * 100) / 100;
-        } catch (error) {
-          console.error('Error calculating blended rate:', error);
-          return 0;
-        }
-      },
-      
-      getProjectStartDate: (): Date | null => {
-        const { phases, holidays } = get();
-        return calculateProjectStartDate(phases, holidays);
-      },
-      
-      getProjectEndDate: (): Date | null => {
-        const { phases, holidays } = get();
-        return calculateProjectEndDate(phases, holidays);
-      },
-      
-      getTotalPhases: (): number => {
-        const { phases } = get();
-        return phases.length;
-      },
-      
-      getTotalWorkingDays: (): number => {
-        const { phases } = get();
-        
-        try {
-          const totalDays = phases.reduce((sum, phase) => {
-            return sum + (phase.workingDays || 0);
-          }, 0);
-          
-          return totalDays;
-        } catch (error) {
-          console.error('Error calculating total working days:', error);
-          return 0;
-        }
+      // Map common modules to packages
+      if (module.includes('finance') || module.includes('fi')) {
+        packages.add('Finance_1');
+        packages.add('Finance_3');
       }
-    }),
-    { 
-      name: 'timeline-store',
-      version: 1,
-      migrate: migrateTimelineState,
-      partialize: (state) => ({
-        profile: state.profile,
-        selectedPackages: state.selectedPackages,
-        phases: state.phases,
-        holidays: state.holidays,
-        phaseColors: state.phaseColors,
-        zoomLevel: state.zoomLevel,
-        clientPresentationMode: state.clientPresentationMode
-      })
-    }
-  )
-);
+      if (module.includes('hr') || module.includes('hcm')) {
+        packages.add('HCM_1');
+      }
+      if (module.includes('supply') || module.includes('scm')) {
+        packages.add('SCM_1');
+      }
+      if (module.includes('procurement')) {
+        packages.add('PROC_1');
+      }
+      if (module.includes('sales') || module.includes('crm')) {
+        packages.add('CX_1');
+      }
+    });
+  
+  return Array.from(packages);
+}
 
-// ============================================================================
-// CONVENIENCE SELECTORS
-// ============================================================================
-
-export const useTimelinePhases = () => useTimelineStore(state => state.phases);
-export const useTimelineProfile = () => useTimelineStore(state => state.profile);
-export const useSelectedPackages = () => useTimelineStore(state => state.selectedPackages);
-export const useProjectCost = () => useTimelineStore(state => state.getProjectCost());
-export const useProjectDates = () => useTimelineStore(state => ({
-  startDate: state.getProjectStartDate(),
-  endDate: state.getProjectEndDate()
-}));
-export const usePhaseColors = () => useTimelineStore(state => state.phaseColors);
-export const useSelectedPhase = () => useTimelineStore(state => 
-  state.phases.find(p => p.id === state.selectedPhaseId)
-);
-export const usePresentationMode = () => useTimelineStore(state => 
-  state.clientPresentationMode
-);
+/**
+ * Extracts client profile from presales chips
+ */
+export function extractClientProfile(chips: Chip[]): ClientProfile {
+  const countryChip = chips.find(c => c.kind === 'country');
+  const industryChip = chips.find(c => c.kind === 'industry');
+  const employeeChip = chips.find(c => c.kind === 'employees' || c.kind === 'users');
+  
+  // Determine size from employee count
+  let size: ClientProfile['size'] = 'medium';
+  if (employeeChip && typeof employeeChip.parsed.value === 'number') {
+    const employees = employeeChip.parsed.value;
+    if (employees < 200) size = 'small';
+    else if (employees < 1000) size = 'medium';
+    else if (employees < 5000) size = 'large';
+    else size = 'enterprise';
+  }
+  
+  // Determine complexity from integration/compliance requirements
+  let complexity: ClientProfile['complexity'] = 'standard';
+  const integrations = chips.filter(c => c.kind === 'integration').length;
+  const compliance = chips.filter(c => c.kind === 'compliance').length;
+  
+  if (integrations > 2 || compliance > 1) complexity = 'complex';
+  if (size === 'enterprise') complexity = 'complex';
+  
+  return {
+    company: countryChip?.parsed.value as string || '',
+    industry: (industryChip?.parsed.value as string) || 'manufacturing',
+    size,
+    complexity,
+    timelinePreference: 'normal'
+  };
+}

@@ -3,7 +3,6 @@ import { Phase, ClientProfile, Resource } from '@/types/chip-override';
 import { SAP_CATALOG, DEPENDENCY_MAP } from '@/data/sap-catalog';
 import { generateResourceRequirements, STANDARD_TEAM_COMPOSITION } from '@/data/resource-catalog';
 import { EffortCalculator } from '@/lib/engine/calculation/effort-calculator';
-import { calculateEffort } from './calculations';
 
 // Phase colors for visualization
 const PHASE_COLORS = [

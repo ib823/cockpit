@@ -1,46 +1,10 @@
-# Dependencies
-node_modules
-.pnp
-.pnp.js
+# Backups
+backup_*/
+*.backup
+*.bak
+*.old
 
-# Testing
-coverage
-.nyc_output
-
-# Next.js
-.next/
-out/
-build
-dist
-
-# Production
-*.env.local
-*.env.production
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Vercel
-.vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Database
-prisma/migrations/
-*.db
-*.db-journal
-
-# OS
-.DS_Store
-*.pem
-
-# IDEs
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
-.idea
+# Session logs
+session_log_*.txt
+*-status.txt
+env_diagnostic.txt
