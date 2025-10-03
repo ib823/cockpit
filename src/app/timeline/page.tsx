@@ -2,10 +2,54 @@
 
 import GanttChart from '@/components/timeline/GanttChart';
 import TimelineControls from '@/components/timeline/TimelineControls';
+import { downloadPDF, generateTimelinePDF } from '@/lib/export/pdf-generator';
 import { useTimelineStore } from '@/stores/timeline-store';
 
 export default function TimelinePage() {
-  const { phases, generateTimeline } = useTimelineStore();
+  // Destructure all needed values from store
+  const { 
+    phases, 
+    profile,
+    generateTimeline,
+    getProjectStartDate,
+    getProjectEndDate,
+    getProjectCost
+  } = useTimelineStore();
+
+  // Add PDF export handler here (inside component, after hooks)
+  const handleExportPDF = async () => {
+    try {
+      // Gather data
+      const exportData = {
+        projectName: profile.company || 'SAP Implementation',
+        startDate: getProjectStartDate()?.toLocaleDateString() || 'TBD',
+        endDate: getProjectEndDate()?.toLocaleDateString() || 'TBD',
+        totalCost: getProjectCost(),
+        currency: profile.region === 'ABSG' ? 'SGD' : 
+                  profile.region === 'ABVN' ? 'VND' : 'MYR',
+        phases: phases,
+        teamMembers: phases.flatMap(p => 
+          (p.resources || []).map(r => ({
+            name: r.name || 'Unnamed',
+            role: r.role,
+            allocation: r.allocation
+          }))
+        )
+      };
+      
+      // Generate PDF
+      const pdfBytes = await generateTimelinePDF(exportData);
+      
+      // Download
+      const filename = `timeline-${Date.now()}.pdf`;
+      downloadPDF(pdfBytes, filename);
+      
+      console.log('✅ PDF exported successfully');
+    } catch (error) {
+      console.error('❌ PDF export failed:', error);
+      alert('Failed to export PDF. Please try again.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -21,9 +65,21 @@ export default function TimelinePage() {
       <div className="max-w-7xl mx-auto px-6 py-6">
       </div>
 
-      {/* Controls */}
+      {/* Controls - Add Export button here */}
       <div className="max-w-7xl mx-auto px-6 pb-6">
-        <TimelineControls />
+        <div className="flex items-center justify-between">
+          <TimelineControls />
+          
+          {/* Export PDF button - only show if timeline exists */}
+          {phases.length > 0 && (
+            <button
+              onClick={handleExportPDF}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Export PDF
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Timeline Visualization */}
