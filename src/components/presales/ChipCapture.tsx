@@ -6,6 +6,7 @@ import GapCards from '@/components/presales/GapCards';
 import CriticalGapsAlert from '@/components/presales/CriticalGapsAlert';
 import { parseRFPTextEnhanced, identifyCriticalGaps, calculateComplexityMultiplier } from '@/lib/enhanced-chip-parser';
 import { usePresalesStore } from '@/stores/presales-store';
+import { useProjectStore } from '@/stores/project-store';
 import { Chip, ChipType, ChipSource } from '@/types/core';
 import React, { useEffect, useState, useMemo } from 'react';
 
@@ -336,9 +337,10 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
             {/* Option A: Proceed with Defaults */}
             <button
               onClick={() => {
+                const setMode = useProjectStore.getState().setMode;
                 // Apply smart defaults for missing critical factors
                 const defaultChips: Chip[] = [];
-                
+
                 if (!chips.some(c => c.type === 'legal_entities')) {
                   defaultChips.push({
                     id: `default_${Date.now()}_1`,
@@ -353,7 +355,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
                     timestamp: new Date()
                   });
                 }
-                
+
                 if (!chips.some(c => c.type === 'locations')) {
                   defaultChips.push({
                     id: `default_${Date.now()}_2`,
@@ -368,7 +370,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
                     timestamp: new Date()
                   });
                 }
-                
+
                 if (!chips.some(c => c.type === 'data_volume')) {
                   defaultChips.push({
                     id: `default_${Date.now()}_3`,
@@ -384,15 +386,11 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
                     timestamp: new Date()
                   });
                 }
-                
+
                 if (defaultChips.length > 0) {
                   addChips(defaultChips);
-                  setTimeout(() => {
-                    window.location.href = '/presales?mode=decide';
-                  }, 200);
-                } else {
-                  window.location.href = '/presales?mode=decide';
                 }
+                setMode('decide');
               }}
               disabled={completeness.score < 50}
               className="py-3 px-4 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -400,21 +398,24 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
               <div className="text-sm">Proceed with Defaults</div>
               <div className="text-xs text-gray-500 mt-1">Assumes single entity/location</div>
             </button>
-            
-            {/* Option B: Generate Timeline (Full Data) */}
+
+            {/* Option B: Go to Decisions (Full Data) */}
             <button
-              onClick={() => window.location.href = '/presales?mode=decide'}
+              onClick={() => {
+                const setMode = useProjectStore.getState().setMode;
+                setMode('decide');
+              }}
               disabled={!completeness.canProceed}
               className={`py-3 px-4 rounded-lg font-medium transition-colors ${
                 completeness.canProceed
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  ? 'gradient-blue text-white hover-lift'
                   : 'bg-gray-200 text-gray-500 cursor-not-allowed'
               }`}
             >
-              <div className="text-sm">Generate Timeline</div>
+              <div className="text-sm">Continue to Decisions →</div>
               <div className="text-xs mt-1">
-                {completeness.canProceed 
-                  ? 'Ready with complete data' 
+                {completeness.canProceed
+                  ? 'Ready with complete data'
                   : `Need ${Math.max(0, 65 - completeness.score)}% more`}
               </div>
             </button>

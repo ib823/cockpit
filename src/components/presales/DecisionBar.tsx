@@ -1,6 +1,7 @@
 "use client";
 import { DecisionPill } from "@/components/ui/DecisionPill";
 import { usePresalesStore } from "@/stores/presales-store";
+import { useProjectStore } from "@/stores/project-store";
 
 interface DecisionOption {
   id: string;
@@ -23,7 +24,9 @@ const BANKING_PATHS: DecisionOption[] = [
 ];
 
 export function DecisionBar() {
-  const { decisions, setDecisions, chips, generateBaseline } = usePresalesStore();
+  const { decisions, setDecisions, chips } = usePresalesStore();
+  const setMode = useProjectStore(state => state.setMode);
+  const regenerateTimeline = useProjectStore(state => state.regenerateTimeline);
   const completeness = (chips.length / 10) * 100; // Assuming 10 required chip types
 
   return (
@@ -71,14 +74,25 @@ export function DecisionBar() {
         />
       </div>
 
-      {completeness >= 80 && (
+      <div className="mt-4 flex gap-3">
         <button
-          onClick={() => generateBaseline()}
-          className="mt-4 gradient-blue text-white px-4 py-2 rounded-lg hover-lift shadow-md animate-fade-in"
+          onClick={() => setMode('capture')}
+          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 transition-colors"
         >
-          Generate Baseline Plan
+          ← Back to Capture
         </button>
-      )}
+        {completeness >= 80 && (
+          <button
+            onClick={() => {
+              regenerateTimeline(true); // Force regeneration
+              setMode('plan');
+            }}
+            className="flex-1 gradient-blue text-white px-4 py-2 rounded-lg hover-lift shadow-md animate-fade-in"
+          >
+            Generate Timeline →
+          </button>
+        )}
+      </div>
     </div>
   );
 }

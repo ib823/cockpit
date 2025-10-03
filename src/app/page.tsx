@@ -3,15 +3,22 @@ import Link from 'next/link';
 export default function HomePage() {
   const cards = [
     {
+      href: '/project',
+      title: 'Unified Project Workspace',
+      description: 'Capture → Decide → Plan → Present in one seamless experience',
+      icon: '🎯',
+      color: 'from-blue-500 to-purple-600'
+    },
+    {
       href: '/presales',
-      title: 'Presales Engine',
+      title: 'Presales (Legacy)',
       description: 'Extract requirements from RFPs using intelligent chip parsing',
       icon: '📊',
       color: 'from-blue-500 to-blue-600'
     },
     {
       href: '/timeline',
-      title: 'Timeline Generator',
+      title: 'Timeline (Legacy)',
       description: 'Create visual Gantt charts with resource allocation',
       icon: '📅',
       color: 'from-purple-500 to-purple-600'
@@ -30,7 +37,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {cards.map((card) => (
             <Link
               key={card.href}
