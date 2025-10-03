@@ -43,12 +43,26 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
   const handleProcessText = async () => {
   if (!inputText.trim()) return;
 
+  // SECURITY: Validate input length to prevent DoS
+  const MAX_INPUT_LENGTH = 50000; // ~50KB text
+  if (inputText.length > MAX_INPUT_LENGTH) {
+    alert(`Input too large. Maximum ${MAX_INPUT_LENGTH.toLocaleString()} characters allowed.`);
+    return;
+  }
+
   setIsProcessing(true);
   recordMetric('click');
+
+  // SECURITY: Timeout for processing to prevent ReDoS
+  const timeoutId = setTimeout(() => {
+    setIsProcessing(false);
+    alert('Processing timeout. Please try with smaller input or contact support.');
+  }, 5000); // 5 second timeout
 
   try {
     // Use enhanced parser to extract chips including critical patterns
     const extractedChips = parseRFPTextEnhanced(inputText);
+    clearTimeout(timeoutId);
     console.log('Enhanced chips extracted:', extractedChips);
     
     // Calculate complexity multiplier from critical factors
@@ -77,6 +91,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
       console.log('No chips extracted from:', inputText);
     }
   } catch (error) {
+    clearTimeout(timeoutId);
     console.error('Failed to process RFP text:', error);
   } finally {
     setIsProcessing(false);
