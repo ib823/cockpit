@@ -4,11 +4,15 @@ import GanttChart from '@/components/timeline/GanttChart';
 import TimelineControls from '@/components/timeline/TimelineControls';
 import { downloadPDF, generateTimelinePDF } from '@/lib/export/pdf-generator';
 import { useTimelineStore } from '@/stores/timeline-store';
+import { useStorageSync } from '@/hooks/useStorageSync';
 
 export default function TimelinePage() {
+  // Enable cross-tab synchronization
+  useStorageSync();
+
   // Destructure all needed values from store
-  const { 
-    phases, 
+  const {
+    phases,
     profile,
     generateTimeline,
     getProjectStartDate,
