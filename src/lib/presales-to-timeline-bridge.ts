@@ -1,6 +1,8 @@
 // src/lib/presales-to-timeline-bridge.ts
 import { detectEmployeeCount, detectMultiEntityFactors } from '@/lib/critical-patterns';
-import { Chip, ClientProfile } from '@/types/core';
+import { Chip, ClientProfile, Decision } from '@/types/core';
+import { ScenarioGenerator } from '@/lib/scenario-generator';
+import { sanitizeObject } from '@/lib/input-sanitizer';
 
 export interface TimelineConversionResult {
   profile: ClientProfile;
@@ -22,25 +24,48 @@ export function convertPresalesToTimeline(
   decisions: any
 ): TimelineConversionResult {
   try {
+    // Sanitize chips
+    const sanitizedChips = chips.map(chip => sanitizeObject(chip)) as Chip[];
+
+    // Convert decisions object to Decision array
+    const decisionArray: Decision[] = Object.entries(decisions || {}).map(([key, value]) => ({
+      id: key,
+      type: 'single' as const,
+      category: key,
+      question: key,
+      options: [String(value)],
+      selected: String(value),
+      impact: 'medium' as const,
+      timestamp: new Date()
+    }));
+
+    // Use new ScenarioGenerator
+    const generator = new ScenarioGenerator();
+    const plan = generator.generate(sanitizedChips, decisionArray);
+
     const profile = extractClientProfile(chips);
     const selectedPackages = mapModulesToPackages(chips);
-    const baseEffort = selectedPackages.length * 60;
-    const result = applyMultipliers(baseEffort, chips, decisions);
-    
-    console.log(`[Bridge] ✅ Conversion complete: ${selectedPackages.length} packages, ${result.totalEffort} PD total`);
-    
+
+    console.log(`[Bridge] ✅ Conversion complete using ScenarioGenerator: ${plan.totalEffort} PD total`);
+
     return {
       profile,
       selectedPackages,
-      totalEffort: result.totalEffort,
-      phases: [],
-      appliedMultipliers: result.multipliers,
-      warnings: result.warnings
+      totalEffort: plan.totalEffort,
+      phases: plan.phases,
+      appliedMultipliers: {
+        entity: 1.0,
+        employee: 1.0,
+        integration: 1.0,
+        compliance: 1.0,
+        total: 1.0
+      },
+      warnings: []
     };
-    
+
   } catch (error) {
     console.error('[Bridge] ❌ Conversion failed:', error);
-    
+
     return {
       profile: getDefaultProfile(),
       selectedPackages: [],

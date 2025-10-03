@@ -208,7 +208,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
             <button
               onClick={handleProcessText}
               disabled={!inputText.trim() || isProcessing}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 gradient-blue text-white text-sm font-medium rounded-lg hover-lift disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {isProcessing ? 'Processing...' : 'Extract Requirements'}
             </button>
@@ -218,7 +218,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
 
       {/* Suggestions */}
       {suggestions.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 card-shadow animate-fade-in">
           <h4 className="font-medium text-blue-900 mb-2">Suggestions</h4>
           <ul className="space-y-1">
             {suggestions.map((suggestion, index) => (
@@ -282,7 +282,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
             <span className="text-sm text-gray-500">{chips.length} item{chips.length !== 1 ? 's' : ''}</span>
           </div>
           
-          <div className="grid gap-2">
+          <div className="grid gap-2 animate-slide-up">
             {chips.map((chip) => (
               <ChipDisplay
                 key={chip.id}
@@ -459,7 +459,7 @@ interface ChipDisplayProps {
 
 const ChipDisplay = ({ chip, onRemove }: ChipDisplayProps) => {
   return (
-    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg card-shadow hover-lift">
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-gray-700">
           {(chip as any).kind || chip.type}:
@@ -470,7 +470,7 @@ const ChipDisplay = ({ chip, onRemove }: ChipDisplayProps) => {
       </div>
       <button
         onClick={onRemove}
-        className="text-gray-400 hover:text-red-600"
+        className="text-gray-400 hover:text-red-600 transition-colors"
       >
         ×
       </button>

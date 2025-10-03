@@ -115,14 +115,14 @@ export default function GanttChart() {
   
   if (safePhases.length === 0) {
     return (
-      <div className="bg-gray-50 rounded-lg p-12 text-center">
+      <div className="bg-gray-50 rounded-lg p-12 text-center card-shadow animate-fade-in">
         <p className="text-gray-500">No timeline generated yet. Select packages and click Generate Timeline.</p>
       </div>
     );
   }
-  
+
   return (
-    <div className="relative overflow-x-auto">
+    <div className="relative overflow-x-auto animate-slide-up">
       <div className="min-w-[800px] p-4">
         {/* Timeline Header */}
         <div className="flex items-center mb-4 border-b pb-2">
@@ -142,7 +142,7 @@ export default function GanttChart() {
               </div>
               <div className="flex-1 relative h-auto min-h-[60px]">
                 <div
-                  className={`absolute top-0 rounded cursor-pointer transition-all overflow-visible ${
+                  className={`absolute top-0 rounded cursor-pointer transition-all overflow-visible hover-lift ${
                     selectedPhaseId === phase.id
                       ? 'bg-blue-600 shadow-lg'
                       : 'bg-blue-500 hover:bg-blue-600'

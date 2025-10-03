@@ -1,389 +1,886 @@
-// Baseline Scenario Generator - Creates initial project plan from chips and decisions
-import { getPackageDependencies, calculatePackageEffort, SAP_CATALOG } from "@/data/sap-catalog";
-import { RATE_CARDS, DEFAULT_TEAM_COMPOSITION } from "@/data/resource-catalog";
-import { Chip, ClientProfile, Decision, Phase, ScenarioPlan } from "@/types/core";
-import { summarizeChips } from "./chip-parser";
+// src/lib/scenario-generator.ts
+import { Chip, Decision, ScenarioPlan, Phase, Resource } from '@/types/core';
+import { EstimationEngine } from './estimation-engine';
+import { ESTIMATION_CONSTANTS } from './estimation-constants';
 
-
-// SAP Activate methodology phases
-const SAP_ACTIVATE_DISTRIBUTION = {
-  Prepare: 0.05,
-  Explore: 0.2,
-  Realize: 0.45,
-  Deploy: 0.2,
-  Run: 0.1,
-};
-
-// Stream definitions for organizing work
-const STREAMS = {
-  "Core Finance": ["Finance_1", "Finance_3"],
-  "Human Capital": ["HCM_1"],
-  "Supply Chain": ["SCM_1"],
-  Technical: ["Technical_2"],
-  Compliance: ["Compliance_MY"],
-};
-
-// Generate baseline scenario from chips and decisions
-export function generateBaselineScenario(chips: Chip[], decisions: Decision[]): ScenarioPlan {
-  // Extract key information from chips
-  const clientProfile = extractClientProfile(chips);
-  const selectedPackages = determinePackages(chips, decisions);
-  const timeline = extractTimeline(chips);
-
-  // Calculate total effort
-  const totalEffort = calculateProjectEffort(selectedPackages, clientProfile);
-
-  // Generate phases
-  const phases = generatePhases(selectedPackages, totalEffort, timeline, clientProfile);
-
-  // Calculate totals
-  const totals = calculateTotals(phases, clientProfile);
-
-  // Generate assumptions
-  const assumptions = generateAssumptions(chips, decisions, clientProfile);
-
-  // Identify risks
-  const risks = identifyRisks(chips, decisions, selectedPackages);
-
-  return {
-    id: `scenario_${Date.now()}`,
-    name: "Baseline",
-    phases,
-    totalEffort: totals.effort,
-    totalCost: totals.cost,
-    duration: totals.duration,
-    assumptions,
-    risks,
-    confidence: 0.8
-  };
+// Type definitions for EstimationEngine inputs
+export interface ProjectInput {
+  companyFootprint: CompanyFootprint;
+  scopeItems: ScopeItem[];
+  usersRoles: UsersRoles;
+  dataMigration: DataMigration;
+  integrations: Integration[];
+  outputs: Outputs;
+  localization: Localization;
+  volumes: Volumes;
+  nfrSecurity: NFRSecurity;
+  envCutover: EnvCutover;
+  trainingOCM: TrainingOCM;
+  run: Run;
+  risksAssumptions: RisksAssumptions;
+  timeline: Timeline;
+  extensions: Extension[];
+  sharedServicesModel: boolean;
+  decisionVelocity: 'fast' | 'normal' | 'slow';
 }
 
-// Extract client profile from chips
-function extractClientProfile(chips: Chip[]): ClientProfile {
-  const summary = summarizeChips(chips);
+export interface CompanyFootprint {
+  legalEntities: Array<{ id: string; name: string }>;
+  currencies: string[];
+  languages: string[];
+  timezones: string[];
+}
 
-  // Extract company size from employee count
-  let size: ClientProfile["size"] = "medium";
-  const employeeChip = summary.users?.[0] || summary.employees?.[0];
-  if (employeeChip && typeof employeeChip.parsed.value === "number") {
-    const employees = employeeChip.parsed.value;
-    if (employees < 200) size = "small";
-    else if (employees < 1000) size = "medium";
-    else if (employees < 5000) size = "large";
-    else size = "enterprise";
+export interface ScopeItem {
+  id: string;
+  name: string;
+  complexity: 'small' | 'medium' | 'large' | 'xlarge';
+  variants: number;
+  criticalityPercent: number;
+  customWorkflows: number;
+  customForms: number;
+  customReports: number;
+  dependencies: string[];
+}
+
+export interface UsersRoles {
+  personas: Array<{ id: string; name: string }>;
+  totalUsers: number;
+  concurrentUsers: number;
+  shifts: number;
+  languages: string[];
+  accessibilityRequired: boolean;
+  roles: Array<{ id: string; name: string }>;
+  sodRules: number;
+  uatParticipants: number;
+  maxCohortSize: number;
+  superUsers: number;
+}
+
+export interface DataMigration {
+  objects: Array<{
+    id: string;
+    name: string;
+    complexity: 'simple' | 'medium' | 'complex';
+    recordCount: number;
+    sources: Array<{ id: string; name: string }>;
+    transformationRules: number;
+    customFields: number;
+  }>;
+  dataQuality: 'high' | 'medium' | 'low';
+  mockRuns: number;
+  reconciliationRequired: boolean;
+  piiHandling: boolean;
+  historicalYears: number;
+  cutoverWindow: number;
+  mdmInPlace: boolean;
+}
+
+export interface Integration {
+  id: string;
+  name: string;
+  protocol: 'REST' | 'SOAP' | 'OData' | 'RFC/BAPI' | 'IDoc' | 'SFTP' | 'AS2' | 'Kafka' | 'MQ' | 'File';
+  securityLevel: 'basic' | 'oauth' | 'certificate' | 'advanced';
+  transactionsPerDay: number;
+  transformationRules: number;
+  errorHandling: 'basic' | 'advanced';
+  monitoringRequired: boolean;
+  extraEnvRequired: boolean;
+  partnerInvolved: boolean;
+  reuseExistingPattern: boolean;
+  nfrRequired: boolean;
+  complianceRequired: boolean;
+  backfillRequired: boolean;
+  runbookRequired: boolean;
+}
+
+export interface Outputs {
+  forms: Array<{ id: string; complexity: 'simple' | 'medium' | 'complex' }>;
+  reports: Array<{ id: string; complexity: 'simple' | 'medium' | 'complex' }>;
+  sacConnections: number;
+  sacPages: number;
+  sacWidgets: number;
+}
+
+export interface Localization {
+  countries: string[];
+  eInvoiceModels: Array<{ country: string; model: 'API' | 'Peppol' | 'Clearance' }>;
+  whtRequired: boolean;
+  statutoryReports: number;
+  bankFormats: number;
+}
+
+export interface Volumes {
+  transactionsPerDay: number;
+  linesPerDocument: number;
+  peakFactors: Array<{ period: 'month_end' | 'quarter_end' | 'year_end' }>;
+  ilmRequired: boolean;
+}
+
+export interface NFRSecurity {
+  slaTarget: 'standard' | '99.5%' | '99.9%' | '99.95%';
+  latencyTarget: number;
+  dataResidency: boolean;
+  ssoMode: 'SAML' | 'OAuth' | 'OIDC' | 'None';
+  mfaRequired: boolean;
+  penTestRequired: boolean;
+  complianceFrameworks: string[];
+}
+
+export interface EnvCutover {
+  threeSystemLandscape: boolean;
+  extraEnvironments: number;
+  dataRefreshes: number;
+  dressRehearsals: number;
+  cutoverWindow: 'weekend' | 'under_24h' | 'under_12h';
+  freezePeriodWeeks: number;
+}
+
+export interface TrainingOCM {
+  impactAssessmentRequired: boolean;
+  commsArtifacts: number;
+  tttCohorts: number;
+  floorwalkingRequired: boolean;
+}
+
+export interface Run {
+  linesOfBusiness: number;
+  ticketsPerWeek: number;
+  triageCadence: '24x7' | 'business_hours' | 'best_effort';
+  coverageWindow: '8x5' | '12x5' | '24x5' | '24x7';
+  ktSessions: number;
+}
+
+export interface RisksAssumptions {
+  contingencyLevel: 'low' | 'medium' | 'high';
+  riskWorkshopRequired: boolean;
+  monthsOfMaintenance: number;
+}
+
+export interface Timeline {
+  hardDeadline: boolean;
+  blackoutWeeks: number;
+  externalDependencies: number;
+  workingModel: 'onsite' | 'hybrid' | 'remote';
+}
+
+export interface Extension {
+  id: string;
+  type: 'key_user' | 'in_app' | 'side_by_side';
+  workflowSteps: number;
+  customApis: number;
+  customEvents: number;
+  uiScreens: number;
+  multiTenant: boolean;
+}
+
+/**
+ * Converts chips + decisions → full project plan
+ * Uses EstimationEngine for accurate effort calculation
+ */
+export class ScenarioGenerator {
+  private engine: EstimationEngine;
+
+  constructor() {
+    this.engine = new EstimationEngine(ESTIMATION_CONSTANTS);
   }
 
-  // Extract region
-  const region = summary.country?.[0]?.parsed.value || "Malaysia";
+  /**
+   * Main generation function
+   */
+  generate(chips: Chip[], decisions: Decision[]): ScenarioPlan {
+    // Step 1: Build ProjectInput from chips
+    const projectInput = this.buildProjectInputFromChips(chips, decisions);
 
-  // Extract industry
-  const industry = summary.industry?.[0]?.parsed.value || "General";
+    // Step 2: Run estimation engine
+    const basePlan = this.engine.estimate(projectInput);
 
-  // Determine complexity based on various factors
-  let complexity: ClientProfile["complexity"] = "standard";
-  if (summary.integration && summary.integration.length > 2) complexity = "complex";
-  if (summary.compliance && summary.compliance.length > 1) complexity = "complex";
-  if (size === "enterprise") complexity = "very_complex";
+    // Step 3: Distribute effort across streams (BEFORE decision impacts)
+    const streamPlan = this.distributeToStreams(basePlan);
 
-  return {
-    company: "Client Company",
-    industry: industry as string,
-    size,
-    employees: (employeeChip?.parsed.value as number) || 500,
-    annualRevenue: (summary.revenue?.[0]?.parsed.value as number) || 0,
-    region: region as string,
-    complexity
-  };
-}
-// Determine packages based on chips and decisions
-function determinePackages(chips: Chip[], decisions: Decision[]): string[] {
-  const packages: Set<string> = new Set();
-  const summary = summarizeChips(chips);
+    // Step 4: Apply decision impacts (AFTER distribution, so changes persist)
+    const adjustedPlan = this.applyDecisionImpacts(streamPlan, decisions);
 
-  // Check module decision
-  const moduleDecision = decisions.find((d: any) => d.category === "modules");
-  if (moduleDecision) {
-    switch (moduleDecision.selected) {
-      case "finance_only":
-        packages.add("Finance_1");
-        packages.add("Finance_3");
-        break;
-      case "finance_hr":
-        packages.add("Finance_1");
-        packages.add("Finance_3");
-        packages.add("HCM_1");
-        break;
-      case "finance_scm":
-        packages.add("Finance_1");
-        packages.add("Finance_3");
-        packages.add("SCM_1");
-        break;
-      case "full_suite":
-        packages.add("Finance_1");
-        packages.add("Finance_3");
-        packages.add("HCM_1");
-        packages.add("SCM_1");
-        break;
-    }
-  } else {
-    // Default based on module chips
-    if (summary.modules) {
-      summary.modules.forEach((chip) => {
-        const moduleValue = chip.raw.toLowerCase();
-        if (moduleValue.includes("finance") || moduleValue.includes("fi")) {
-          packages.add("Finance_1");
-          packages.add("Finance_3");
-        }
-        if (moduleValue.includes("hr") || moduleValue.includes("hcm")) {
-          packages.add("HCM_1");
-        }
-        if (moduleValue.includes("supply") || moduleValue.includes("scm")) {
-          packages.add("SCM_1");
-        }
+    // Step 5: Allocate resources
+    const resourcePlan = this.allocateResources(adjustedPlan, decisions);
+
+    // Step 6: Generate timeline
+    const timelinePlan = this.generateTimeline(resourcePlan, chips);
+
+    // Step 7: Calculate costs and recalculate totalEffort from phases
+    const finalPlan = this.calculateCosts(timelinePlan, decisions);
+
+    return finalPlan;
+  }
+
+  /**
+   * Convert chips to ProjectInput structure
+   */
+  private buildProjectInputFromChips(chips: Chip[], decisions: Decision[]): ProjectInput {
+    const input: ProjectInput = {
+      companyFootprint: this.extractCompanyFootprint(chips),
+      scopeItems: this.extractScopeItems(chips, decisions),
+      usersRoles: this.extractUsersRoles(chips),
+      dataMigration: this.extractDataMigration(chips),
+      integrations: this.extractIntegrations(chips),
+      outputs: this.extractOutputs(chips),
+      localization: this.extractLocalization(chips),
+      volumes: this.extractVolumes(chips),
+      nfrSecurity: this.extractNFRSecurity(chips),
+      envCutover: this.extractEnvCutover(chips),
+      trainingOCM: this.extractTrainingOCM(chips),
+      run: this.extractRun(chips),
+      risksAssumptions: this.extractRisksAssumptions(chips),
+      timeline: this.extractTimeline(chips),
+      extensions: this.extractExtensions(chips),
+      sharedServicesModel: this.detectSharedServices(chips),
+      decisionVelocity: this.estimateDecisionVelocity(chips)
+    };
+
+    return input;
+  }
+
+  /**
+   * Extract company footprint from chips
+   */
+  private extractCompanyFootprint(chips: Chip[]): CompanyFootprint {
+    const countryChips = chips.filter(c => c.type === 'country');
+    const entityChips = chips.filter(c => c.type === 'legal_entities');
+
+    return {
+      legalEntities: entityChips.length > 0
+        ? entityChips.map(c => ({ id: c.id, name: c.value }))
+        : countryChips.map(c => ({ id: c.id, name: c.value })),
+
+      currencies: this.inferCurrencies(countryChips),
+      languages: this.inferLanguages(countryChips),
+      timezones: this.inferTimezones(countryChips)
+    };
+  }
+
+  private inferCurrencies(countryChips: Chip[]): string[] {
+    const currencyMap: Record<string, string> = {
+      'Malaysia': 'MYR',
+      'Singapore': 'SGD',
+      'Vietnam': 'VND',
+      'Thailand': 'THB',
+      'Indonesia': 'IDR',
+      'Philippines': 'PHP'
+    };
+
+    const currencies = countryChips
+      .map(c => currencyMap[c.value])
+      .filter(Boolean);
+
+    return [...new Set(currencies)];
+  }
+
+  private inferLanguages(countryChips: Chip[]): string[] {
+    const languageMap: Record<string, string[]> = {
+      'Malaysia': ['English', 'Malay'],
+      'Singapore': ['English', 'Chinese', 'Malay', 'Tamil'],
+      'Vietnam': ['English', 'Vietnamese'],
+      'Thailand': ['English', 'Thai'],
+      'Indonesia': ['English', 'Indonesian'],
+      'Philippines': ['English', 'Filipino']
+    };
+
+    const languages = countryChips
+      .flatMap(c => languageMap[c.value] || ['English']);
+
+    return [...new Set(languages)];
+  }
+
+  private inferTimezones(countryChips: Chip[]): string[] {
+    const timezoneMap: Record<string, string> = {
+      'Malaysia': 'GMT+8',
+      'Singapore': 'GMT+8',
+      'Vietnam': 'GMT+7',
+      'Thailand': 'GMT+7',
+      'Indonesia': 'GMT+7',
+      'Philippines': 'GMT+8'
+    };
+
+    const timezones = countryChips
+      .map(c => timezoneMap[c.value])
+      .filter(Boolean);
+
+    return [...new Set(timezones)];
+  }
+
+  /**
+   * Extract scope items from chips and decisions
+   */
+  private extractScopeItems(chips: Chip[], decisions: Decision[]): ScopeItem[] {
+    const moduleChips = chips.filter(c => c.type === 'modules');
+    const moduleComboDecision = decisions.find(d => d.category === 'module_combo');
+
+    const items: ScopeItem[] = [];
+
+    // Base modules
+    moduleChips.forEach(chip => {
+      items.push({
+        id: chip.id,
+        name: chip.value,
+        complexity: this.inferModuleComplexity(chip.value),
+        variants: 1,
+        criticalityPercent: 80,  // Default assumption
+        customWorkflows: this.estimateCustomWorkflows(chip.value),
+        customForms: this.estimateCustomForms(chip.value),
+        customReports: this.estimateCustomReports(chip.value),
+        dependencies: []
       });
-    }
-  }
-
-  // Add compliance if needed
-  if (summary.compliance) {
-    const region = summary.country?.[0]?.parsed.value;
-    if (region === "Malaysia") packages.add("Compliance_MY");
-  }
-
-  // Add technical components
-  packages.add("Technical_2"); // Data migration is usually needed
-
-  // Add all dependencies
-  const allPackages = Array.from(packages);
-const dependencies = allPackages.flatMap(pkg => getPackageDependencies(pkg));
-  dependencies.forEach((dep: string) => packages.add(dep));
-
-  return Array.from(packages);
-}
-
-// Extract timeline from chips
-function extractTimeline(chips: Chip[]): { startDate: Date; endDate: Date } {
-  const summary = summarizeChips(chips);
-  const now = new Date();
-
-  // Default 6-month project
-  let duration = 6;
-
-  if (summary.timeline && summary.timeline.length > 0) {
-    const timelineChip = summary.timeline[0];
-    if (timelineChip.parsed.unit === "months" && typeof timelineChip.parsed.value === "number") {
-      duration = timelineChip.parsed.value;
-    } else if (
-      timelineChip.parsed.unit === "weeks" &&
-      typeof timelineChip.parsed.value === "number"
-    ) {
-      duration = timelineChip.parsed.value / 4;
-    }
-  }
-
-  const startDate = new Date(now);
-  startDate.setDate(startDate.getDate() + 30); // Start in 1 month
-
-  const endDate = new Date(startDate);
-  endDate.setMonth(endDate.getMonth() + duration);
-
-  return { startDate, endDate };
-}
-
-// Calculate total project effort
-function calculateProjectEffort(packages: string[], profile: ClientProfile): number {
-const baseEffort = calculatePackageEffort(packages);
-
-  // Apply complexity multipliers
-  const complexityMultipliers = {
-    simple: 0.8,
-    standard: 1.0,
-    complex: 1.3,
-    very_complex: 1.5,
-    extreme: 1.6,
-  };
-
-  const sizeMultipliers = {
-    small: 0.8,
-    medium: 1.0,
-    large: 1.2,
-    enterprise: 1.5,
-  };
-
-  const adjustedEffort =
-    baseEffort *
-    complexityMultipliers[profile.complexity || "standard"] *
-    sizeMultipliers[profile.size];
-
-  return Math.round(adjustedEffort);
-}
-
-// Generate project phases
-function generatePhases(
-  packages: string[],
-  totalEffort: number,
-  _timeline: { startDate: Date; endDate: Date },
-  profile: ClientProfile
-): Phase[] {
-  const phases: Phase[] = [];
-  let currentDay = 0;
-
-  // Generate phases for each SAP Activate stage
-  Object.entries(SAP_ACTIVATE_DISTRIBUTION).forEach(([stage, percentage]) => {
-    const stageEffort = Math.round(totalEffort * percentage);
-    const stageDuration = Math.round(stageEffort / 5); // Assume 5 people average
-
-    // Create phases by stream
-    const streams = groupPackagesByStream(packages);
-
-    Object.entries(streams).forEach(([streamName, streamPackages]) => {
-      if (streamPackages.length === 0) return;
-
-      const streamEffort = Math.round(stageEffort / Object.keys(streams).length);
-      const regionKey = profile.region === "Singapore" ? "SG" : "MY";
-      const resources = (DEFAULT_TEAM_COMPOSITION as any)[regionKey] || [];
-
-
-      phases.push({
-        id: `phase_${Date.now()}_${Math.random()}`,
-        name: `${stage} - ${streamName}`,
-        category: stage,
-        startBusinessDay: currentDay,
-        workingDays: stageDuration,
-        effort: streamEffort,
-        resources,
-        dependencies: [],
-      } as any);
     });
 
-    currentDay += stageDuration;
-  });
-
-  return phases;
-}
-
-// Group packages by stream
-function groupPackagesByStream(packages: string[]): Record<string, string[]> {
-  const grouped: Record<string, string[]> = {};
-
-  Object.entries(STREAMS).forEach(([stream, streamPackages]) => {
-    const matched = packages.filter((pkg) => streamPackages.includes(pkg));
-    if (matched.length > 0) {
-      grouped[stream] = matched;
+    // Apply module combo decision
+    if (moduleComboDecision) {
+      this.applyModuleComboLogic(items, moduleComboDecision);
     }
-  });
 
-  return grouped;
-}
-
-// Generate deliverables for a phase
-function generateDeliverables(stage: string, stream: string): string[] {
-  const deliverables: Record<string, Record<string, string[]>> = {
-    Prepare: {
-      "Core Finance": ["Project Charter", "Finance Process Assessment"],
-      "Human Capital": ["HR Process Assessment", "Organization Readiness"],
-      "Supply Chain": ["Supply Chain Assessment", "Integration Points"],
-      Technical: ["Technical Architecture", "Infrastructure Plan"],
-    },
-    Explore: {
-      "Core Finance": ["Finance Blueprint", "Chart of Accounts Design"],
-      "Human Capital": ["HR Blueprint", "Org Structure Design"],
-      "Supply Chain": ["SCM Blueprint", "Master Data Design"],
-      Technical: ["Integration Design", "Data Migration Plan"],
-    },
-    Realize: {
-      "Core Finance": ["Finance Configuration", "Testing Scripts"],
-      "Human Capital": ["HR Configuration", "Payroll Testing"],
-      "Supply Chain": ["SCM Configuration", "Inventory Setup"],
-      Technical: ["Interfaces Built", "Data Migration Executed"],
-    },
-    Deploy: {
-      "Core Finance": ["UAT Completion", "Cutover Plan"],
-      "Human Capital": ["HR UAT", "Payroll Parallel Run"],
-      "Supply Chain": ["SCM UAT", "Inventory Cutover"],
-      Technical: ["Performance Testing", "Backup Procedures"],
-    },
-    Run: {
-      "Core Finance": ["Month-End Close Support", "Issue Resolution"],
-      "Human Capital": ["Payroll Support", "HR Operations"],
-      "Supply Chain": ["Inventory Support", "Order Support"],
-      Technical: ["System Monitoring", "Performance Tuning"],
-    },
-  };
-
-  return deliverables[stage]?.[stream] || ["Phase Deliverables"];
-}
-
-// Calculate project totals
-function calculateTotals(phases: Phase[], profile: ClientProfile): { personDays: number; duration: number; cost: number; margin: number; effort: number } {
-  const personDays = phases.reduce((sum, phase) => sum + (phase.effort || 0), 0);
-  const duration = Math.max(...phases.map((p) => p.startBusinessDay + p.workingDays));
-
-  // Calculate cost
-  const avgDailyRate = profile.region === "Singapore" ? 4800 : 8000; // SGD vs MYR
-  const cost = personDays * avgDailyRate;
-
-  // Default margin
-  const margin = 0.25;
-
-  return {
-    personDays,
-    duration,
-    cost: Math.round(cost),
-    margin,
-    effort: personDays,
-  };
-}
-
-// Generate project assumptions
-function generateAssumptions(
-  chips: Chip[],
-  _decisions: Decision[],
-  profile: ClientProfile
-): string[] {
-  const assumptions = [
-    "Client will provide dedicated resources for the project",
-    "Current business processes are documented and available",
-    "Decision makers are available for key project decisions",
-    "Test data will be provided by client",
-    "Standard SAP best practices will be followed",
-  ];
-
-  // Add specific assumptions based on context
-  if (profile.complexity === "very_complex") {
-    assumptions.push("Complex requirements may require additional analysis time");
+    return items;
   }
 
-  const summary = summarizeChips(chips);
-  if (summary.integration && summary.integration.length > 0) {
-    assumptions.push("Third-party systems will provide necessary APIs for integration");
+  private inferModuleComplexity(moduleName: string): 'small' | 'medium' | 'large' | 'xlarge' {
+    const complexityMap: Record<string, 'small' | 'medium' | 'large' | 'xlarge'> = {
+      'Finance': 'large',
+      'FI/CO': 'large',
+      'HR': 'medium',
+      'HCM': 'medium',
+      'Supply Chain': 'large',
+      'SCM': 'large',
+      'SD': 'medium',
+      'MM': 'medium',
+      'PP': 'large',
+      'QM': 'medium',
+      'PM': 'medium',
+      'PS': 'large'
+    };
+
+    return complexityMap[moduleName] || 'medium';
   }
 
-  return assumptions;
-}
+  private estimateCustomWorkflows(moduleName: string): number {
+    const workflowMap: Record<string, number> = {
+      'Finance': 3,
+      'HR': 5,
+      'Supply Chain': 4,
+      'SD': 2,
+      'MM': 2,
+      'PP': 3
+    };
 
-// Identify project risks
-function identifyRisks(
-  chips: Chip[],
-  _decisions: Decision[],
-  packages: string[]
-): string[] {
-  const risks: string[] = [];
-
-  // Standard risks
-  risks.push("Data quality issues during migration - Mitigation: Early data profiling and cleansing activities");
-  risks.push("User adoption challenges - Mitigation: Comprehensive training and change management program");
-
-  // Check for specific risk factors
-  const summary = summarizeChips(chips);
-
-  if (summary.integration && summary.integration.length > 2) {
-    risks.push("Complex integration requirements may delay project - Mitigation: Early proof of concept for critical integrations");
+    return workflowMap[moduleName] || 2;
   }
 
-  if (packages.length > 5) {
-    risks.push("Large scope may impact timeline - Mitigation: Consider phased approach for non-critical modules");
+  private estimateCustomForms(moduleName: string): number {
+    const formMap: Record<string, number> = {
+      'Finance': 5,
+      'HR': 8,
+      'Supply Chain': 4,
+      'SD': 3,
+      'MM': 2,
+      'PP': 3
+    };
+
+    return formMap[moduleName] || 3;
   }
 
-  return risks;
+  private estimateCustomReports(moduleName: string): number {
+    const reportMap: Record<string, number> = {
+      'Finance': 10,
+      'HR': 6,
+      'Supply Chain': 8,
+      'SD': 5,
+      'MM': 4,
+      'PP': 6
+    };
+
+    return reportMap[moduleName] || 5;
+  }
+
+  private applyModuleComboLogic(items: ScopeItem[], decision: Decision): void {
+    const selectedModules = items.map(i => i.name);
+
+    if (selectedModules.includes('Finance') && selectedModules.includes('Supply Chain')) {
+      const fiItem = items.find(i => i.name === 'Finance');
+      const scmItem = items.find(i => i.name === 'Supply Chain');
+
+      if (fiItem && scmItem) {
+        fiItem.dependencies.push(scmItem.id);
+        scmItem.complexity = 'large';
+      }
+    }
+  }
+
+  private extractUsersRoles(chips: Chip[]): UsersRoles {
+    const userChips = chips.filter(c => c.type === 'users' || c.type === 'employees');
+    const totalUsers = userChips.length > 0 ? parseInt(userChips[0].value) || 500 : 500;
+
+    return {
+      personas: [
+        { id: '1', name: 'Finance User' },
+        { id: '2', name: 'HR User' }
+      ],
+      totalUsers,
+      concurrentUsers: Math.floor(totalUsers * 0.2),
+      shifts: 1,
+      languages: ['English'],
+      accessibilityRequired: false,
+      roles: [
+        { id: '1', name: 'Finance Manager' },
+        { id: '2', name: 'HR Manager' }
+      ],
+      sodRules: 5,
+      uatParticipants: Math.min(50, Math.floor(totalUsers * 0.1)),
+      maxCohortSize: 20,
+      superUsers: Math.min(10, Math.floor(totalUsers * 0.02))
+    };
+  }
+
+  private extractDataMigration(chips: Chip[]): DataMigration {
+    const dataVolumeChips = chips.filter(c => c.type === 'data_volume');
+    const recordCount = dataVolumeChips.length > 0 ? parseInt(dataVolumeChips[0].value) || 100000 : 100000;
+
+    return {
+      objects: [
+        {
+          id: '1',
+          name: 'Master Data',
+          complexity: 'medium',
+          recordCount,
+          sources: [{ id: '1', name: 'Legacy System' }],
+          transformationRules: 5,
+          customFields: 3
+        }
+      ],
+      dataQuality: 'medium',
+      mockRuns: 2,
+      reconciliationRequired: true,
+      piiHandling: true,
+      historicalYears: 2,
+      cutoverWindow: 24,
+      mdmInPlace: false
+    };
+  }
+
+  private extractIntegrations(chips: Chip[]): Integration[] {
+    const integrationChips = chips.filter(c => c.type === 'integration');
+
+    return integrationChips.map(chip => ({
+      id: chip.id,
+      name: chip.value,
+      protocol: 'REST' as const,
+      securityLevel: 'oauth' as const,
+      transactionsPerDay: 1000,
+      transformationRules: 3,
+      errorHandling: 'basic' as const,
+      monitoringRequired: true,
+      extraEnvRequired: false,
+      partnerInvolved: false,
+      reuseExistingPattern: false,
+      nfrRequired: true,
+      complianceRequired: false,
+      backfillRequired: false,
+      runbookRequired: true
+    }));
+  }
+
+  private extractOutputs(chips: Chip[]): Outputs {
+    return {
+      forms: [
+        { id: '1', complexity: 'medium' },
+        { id: '2', complexity: 'simple' }
+      ],
+      reports: [
+        { id: '1', complexity: 'medium' },
+        { id: '2', complexity: 'complex' }
+      ],
+      sacConnections: 0,
+      sacPages: 0,
+      sacWidgets: 0
+    };
+  }
+
+  private extractLocalization(chips: Chip[]): Localization {
+    const countryChips = chips.filter(c => c.type === 'country');
+
+    return {
+      countries: countryChips.map(c => c.value),
+      eInvoiceModels: [],
+      whtRequired: false,
+      statutoryReports: 0,
+      bankFormats: 0
+    };
+  }
+
+  private extractVolumes(chips: Chip[]): Volumes {
+    return {
+      transactionsPerDay: 1000,
+      linesPerDocument: 5,
+      peakFactors: [{ period: 'month_end' }],
+      ilmRequired: false
+    };
+  }
+
+  private extractNFRSecurity(chips: Chip[]): NFRSecurity {
+    return {
+      slaTarget: 'standard',
+      latencyTarget: 1000,
+      dataResidency: false,
+      ssoMode: 'None',
+      mfaRequired: false,
+      penTestRequired: false,
+      complianceFrameworks: []
+    };
+  }
+
+  private extractEnvCutover(chips: Chip[]): EnvCutover {
+    return {
+      threeSystemLandscape: true,
+      extraEnvironments: 0,
+      dataRefreshes: 2,
+      dressRehearsals: 1,
+      cutoverWindow: 'weekend',
+      freezePeriodWeeks: 0
+    };
+  }
+
+  private extractTrainingOCM(chips: Chip[]): TrainingOCM {
+    return {
+      impactAssessmentRequired: true,
+      commsArtifacts: 5,
+      tttCohorts: 2,
+      floorwalkingRequired: true
+    };
+  }
+
+  private extractRun(chips: Chip[]): Run {
+    return {
+      linesOfBusiness: 2,
+      ticketsPerWeek: 10,
+      triageCadence: 'business_hours',
+      coverageWindow: '8x5',
+      ktSessions: 3
+    };
+  }
+
+  private extractRisksAssumptions(chips: Chip[]): RisksAssumptions {
+    return {
+      contingencyLevel: 'medium',
+      riskWorkshopRequired: true,
+      monthsOfMaintenance: 3
+    };
+  }
+
+  private extractTimeline(chips: Chip[]): Timeline {
+    return {
+      hardDeadline: false,
+      blackoutWeeks: 0,
+      externalDependencies: 2,
+      workingModel: 'hybrid'
+    };
+  }
+
+  private extractExtensions(chips: Chip[]): Extension[] {
+    return [];
+  }
+
+  private detectSharedServices(chips: Chip[]): boolean {
+    const entityChips = chips.filter(c => c.type === 'legal_entities');
+    return entityChips.length > 3;
+  }
+
+  private estimateDecisionVelocity(chips: Chip[]): 'fast' | 'normal' | 'slow' {
+    return 'normal';
+  }
+
+  /**
+   * Apply decision impacts to base plan
+   */
+  private applyDecisionImpacts(plan: ScenarioPlan, decisions: Decision[]): ScenarioPlan {
+    decisions.forEach(decision => {
+      switch (decision.category) {
+        case 'banking_path':
+          this.applyBankingPathImpact(plan, decision);
+          break;
+        case 'integration_posture':
+          this.applyIntegrationPostureImpact(plan, decision);
+          break;
+        case 'sso_mode':
+          this.applySSOImpact(plan, decision);
+          break;
+        case 'fricew_target':
+          this.applyFRICEWTargetImpact(plan, decision);
+          break;
+        case 'rate_region':
+          this.applyRateRegionImpact(plan, decision);
+          break;
+      }
+    });
+
+    return plan;
+  }
+
+  private applyBankingPathImpact(plan: ScenarioPlan, decision: Decision): void {
+    const impacts: Record<string, { effortDelta: number; costDelta: number }> = {
+      'MBC': { effortDelta: 120, costDelta: 240000 },
+      'DRC': { effortDelta: 80, costDelta: 160000 },
+      'Host-to-Host': { effortDelta: 200, costDelta: 400000 }
+    };
+
+    const selected = typeof decision.selected === 'string' ? decision.selected : decision.selected?.[0] || '';
+    const impact = impacts[selected];
+    if (!impact) return;
+
+    const integrationPhase = plan.phases.find(p => p.name.includes('Integration') && p.category === 'Realize');
+    if (integrationPhase && integrationPhase.effort) {
+      integrationPhase.effort += impact.effortDelta;
+    }
+
+    plan.totalCost += impact.costDelta;
+  }
+
+  private applyIntegrationPostureImpact(plan: ScenarioPlan, decision: Decision): void {
+    // Implement integration posture impact logic
+  }
+
+  private applySSOImpact(plan: ScenarioPlan, decision: Decision): void {
+    const impacts: Record<string, { effortDelta: number }> = {
+      'None': { effortDelta: 0 },
+      'SAML': { effortDelta: 8 },
+      'OAuth': { effortDelta: 10 },
+      'OIDC': { effortDelta: 12 }
+    };
+
+    const selected = typeof decision.selected === 'string' ? decision.selected : decision.selected?.[0] || '';
+    const impact = impacts[selected];
+    if (!impact) return;
+
+    const exploreArch = plan.phases.find(p => p.name.includes('Solution Architecture') && p.category === 'Explore');
+    const realizeArch = plan.phases.find(p => p.name.includes('Solution Architecture') && p.category === 'Realize');
+
+    if (exploreArch && exploreArch.effort) exploreArch.effort += impact.effortDelta * 0.3;
+    if (realizeArch && realizeArch.effort) realizeArch.effort += impact.effortDelta * 0.7;
+  }
+
+  private applyFRICEWTargetImpact(plan: ScenarioPlan, decision: Decision): void {
+    // Implement FRICEW target impact logic
+  }
+
+  private applyRateRegionImpact(plan: ScenarioPlan, decision: Decision): void {
+    // Rate region impacts cost, not effort
+  }
+
+  /**
+   * Distribute total effort across 8 streams
+   */
+  private distributeToStreams(plan: ScenarioPlan): ScenarioPlan {
+    const streams = [
+      'Business Transformation & OCM',
+      'Project Management',
+      'Solution Architecture',
+      'Configuration',
+      'Development & Extensions',
+      'Data Migration',
+      'Integration',
+      'Testing & Quality Assurance'
+    ];
+
+    const phases = ['Prepare', 'Explore', 'Realize', 'Deploy', 'Run'];
+    const newPhases: Phase[] = [];
+
+    streams.forEach(stream => {
+      phases.forEach(phase => {
+        const streamWeight = (ESTIMATION_CONSTANTS.STREAM_WEIGHTS as any)[stream] || 0.125;
+        const phaseWeight = (ESTIMATION_CONSTANTS.PHASE_DISTRIBUTION as any)[phase.toLowerCase()] || 0.2;
+
+        const effort = plan.totalEffort * streamWeight * phaseWeight;
+
+        newPhases.push({
+          id: `${stream}-${phase}`,
+          name: `${phase} - ${stream}`,
+          category: phase,
+          startBusinessDay: 0,
+          workingDays: 10,
+          effort: Math.round(effort * 10) / 10,
+          resources: []
+        });
+      });
+    });
+
+    plan.phases = newPhases;
+    return plan;
+  }
+
+  /**
+   * Allocate resources to plan items
+   */
+  private allocateResources(plan: ScenarioPlan, decisions: Decision[]): ScenarioPlan {
+    const rateRegionDecision = decisions.find(d => d.category === 'rate_region');
+    const region = typeof rateRegionDecision?.selected === 'string' ? rateRegionDecision.selected : 'ABMY';
+
+    plan.phases.forEach(phase => {
+      const resources = this.allocateResourcesByStream(phase.name.split(' - ')[1] || '', phase.effort || 0, region);
+      phase.resources = resources;
+    });
+
+    return plan;
+  }
+
+  private allocateResourcesByStream(stream: string, effort: number, region: string): Resource[] {
+    const allocations: Record<string, Array<{ role: string; allocation: number }>> = {
+      'Business Transformation & OCM': [
+        { role: 'Senior Manager', allocation: 0.3 },
+        { role: 'Manager', allocation: 0.4 },
+        { role: 'Senior Consultant', allocation: 0.3 }
+      ],
+      'Project Management': [
+        { role: 'Senior Manager', allocation: 0.5 },
+        { role: 'Manager', allocation: 0.5 }
+      ],
+      'Solution Architecture': [
+        { role: 'Director', allocation: 0.2 },
+        { role: 'Senior Manager', allocation: 0.4 },
+        { role: 'Manager', allocation: 0.4 }
+      ],
+      'Configuration': [
+        { role: 'Senior Consultant', allocation: 0.4 },
+        { role: 'Consultant', allocation: 0.6 }
+      ],
+      'Development & Extensions': [
+        { role: 'Senior Consultant', allocation: 0.3 },
+        { role: 'Consultant', allocation: 0.5 },
+        { role: 'Analyst', allocation: 0.2 }
+      ],
+      'Data Migration': [
+        { role: 'Manager', allocation: 0.3 },
+        { role: 'Senior Consultant', allocation: 0.4 },
+        { role: 'Consultant', allocation: 0.3 }
+      ],
+      'Integration': [
+        { role: 'Senior Manager', allocation: 0.2 },
+        { role: 'Senior Consultant', allocation: 0.5 },
+        { role: 'Consultant', allocation: 0.3 }
+      ],
+      'Testing & Quality Assurance': [
+        { role: 'Manager', allocation: 0.3 },
+        { role: 'Consultant', allocation: 0.4 },
+        { role: 'Analyst', allocation: 0.3 }
+      ]
+    };
+
+    const streamAllocations = allocations[stream] || [];
+
+    return streamAllocations.map((alloc, idx) => ({
+      id: `resource-${idx}`,
+      role: alloc.role,
+      allocation: alloc.allocation,
+      region,
+      hourlyRate: this.getHourlyRate(alloc.role, region)
+    }));
+  }
+
+  private getHourlyRate(role: string, region: string): number {
+    const rates: Record<string, Record<string, number>> = {
+      'ABMY': {
+        'Director': 200,
+        'Senior Manager': 150,
+        'Manager': 120,
+        'Senior Consultant': 100,
+        'Consultant': 80,
+        'Analyst': 60
+      },
+      'ABSG': {
+        'Director': 280,
+        'Senior Manager': 220,
+        'Manager': 180,
+        'Senior Consultant': 150,
+        'Consultant': 120,
+        'Analyst': 90
+      }
+    };
+
+    return rates[region]?.[role] || 100;
+  }
+
+  /**
+   * Generate timeline
+   */
+  private generateTimeline(plan: ScenarioPlan, chips: Chip[]): ScenarioPlan {
+    const timelineChips = chips.filter(c => c.type === 'timeline');
+    const durationMonths = timelineChips.length > 0 ? parseInt(timelineChips[0].value) || 6 : 6;
+
+    plan.duration = durationMonths * 20; // Convert to business days
+
+    // Update phase start dates
+    let currentDay = 0;
+    const phasesByCategory: Record<string, Phase[]> = {};
+
+    plan.phases.forEach(phase => {
+      if (!phasesByCategory[phase.category]) {
+        phasesByCategory[phase.category] = [];
+      }
+      phasesByCategory[phase.category].push(phase);
+    });
+
+    ['Prepare', 'Explore', 'Realize', 'Deploy', 'Run'].forEach(category => {
+      const categoryPhases = phasesByCategory[category] || [];
+      const categoryDuration = Math.floor(plan.duration * ((ESTIMATION_CONSTANTS.PHASE_DISTRIBUTION as any)[category.toLowerCase()] || 0.2));
+
+      categoryPhases.forEach(phase => {
+        phase.startBusinessDay = currentDay;
+        phase.workingDays = categoryDuration;
+      });
+
+      currentDay += categoryDuration;
+    });
+
+    return plan;
+  }
+
+  /**
+   * Calculate costs
+   */
+  private calculateCosts(plan: ScenarioPlan, decisions: Decision[]): ScenarioPlan {
+    let totalCost = 0;
+    let totalEffort = 0;
+
+    plan.phases.forEach(phase => {
+      // Sum up total effort from all phases
+      totalEffort += phase.effort || 0;
+
+      // Calculate cost per phase
+      phase.resources?.forEach(resource => {
+        const resourceCost = (phase.effort || 0) * resource.allocation * resource.hourlyRate * 8;
+        totalCost += resourceCost;
+      });
+    });
+
+    // Update plan with recalculated totals
+    plan.totalEffort = totalEffort;
+    plan.totalCost = Math.round(totalCost);
+
+    // Generate assumptions and risks
+    plan.assumptions = this.generateAssumptions(decisions);
+    plan.risks = this.generateRisks(decisions);
+
+    return plan;
+  }
+
+  private generateAssumptions(decisions: Decision[]): string[] {
+    return [
+      'Client will provide dedicated resources for the project',
+      'Current business processes are documented and available',
+      'Decision makers are available for key project decisions',
+      'Test data will be provided by client',
+      'Standard SAP best practices will be followed'
+    ];
+  }
+
+  private generateRisks(decisions: Decision[]): string[] {
+    return [
+      'Data quality issues during migration - Mitigation: Early data profiling and cleansing activities',
+      'User adoption challenges - Mitigation: Comprehensive training and change management program'
+    ];
+  }
 }

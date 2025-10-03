@@ -27,14 +27,16 @@ export function DecisionBar() {
   const completeness = (chips.length / 10) * 100; // Assuming 10 required chip types
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 card-shadow-lg animate-slide-up">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">Project Decisions</h3>
-        <div className="text-sm text-gray-600">
+        <div className={`text-sm font-medium transition-colors ${
+          completeness >= 80 ? 'text-green-600' : 'text-gray-600'
+        }`}>
           {completeness >= 80 ? '✅' : '⚠️'} {completeness.toFixed(0)}% Complete
         </div>
       </div>
-      
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <DecisionPill
           label="Module Combo"
@@ -72,7 +74,7 @@ export function DecisionBar() {
       {completeness >= 80 && (
         <button
           onClick={() => generateBaseline()}
-          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="mt-4 gradient-blue text-white px-4 py-2 rounded-lg hover-lift shadow-md animate-fade-in"
         >
           Generate Baseline Plan
         </button>

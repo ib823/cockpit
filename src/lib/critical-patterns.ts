@@ -219,9 +219,114 @@ export function detectRevenue(text: string): {
   return { amount: null, currency: null, confidence: 0, evidence: '' };
 }
 
-// Stub exports for compatibility
-export const CRITICAL_PATTERNS: any = {};
-export const EFFORT_IMPACT_RULES: any = {};
+// Pattern arrays for enhanced chip parser
+export const CRITICAL_PATTERNS = {
+  legal_entities: [
+    /(\d+)\s+(?:legal\s+)?entit(?:y|ies)/gi,
+    /(\d+)\s+(?:companies|syarikat|anak\s+syarikat)/gi,
+    /(\d+)\s+subsidiar(?:y|ies)/gi,
+    /operating\s+(\d+)\s+(?:separate|legal)\s+entities/gi
+  ],
+  locations: [
+    /(\d+)\s+(?:locations?|sites?|offices?|cawangan|branches?)/gi,
+    /operating\s+(?:in|across)\s+(\d+)\s+(?:locations?|sites?|countries?)/gi,
+    /beroperasi\s+di\s+(\d+)\s+(?:lokasi|cawangan)/gi
+  ],
+  employees: [
+    /(\d+[\d,]*)\s+(?:employees?|pekerja|workers?|staff)/gi,
+    /(?:workforce|headcount|team size)[:\s]+(\d+[\d,]*)/gi,
+    /(\d+[\d,]*)\s+orang\s+(?:pekerja|kakitangan)/gi
+  ],
+  revenue: [
+    /(MYR|SGD|USD|VND)\s*([\d,]+(?:\.\d+)?)\s*(?:million|M|billion|B|juta|bilion)?/gi,
+    /([\d,]+(?:\.\d+)?)\s*(?:million|M|billion|B|juta|bilion)?\s*(MYR|SGD|USD|VND)/gi
+  ],
+  data_volume: [
+    /(\d+[\d,]*)\s+(?:transactions?|documents?|records?)/gi,
+    /(?:processing|handling)\s+(\d+[\d,]*)\s+(?:per\s+)?(?:day|month|year)/gi
+  ],
+  integrations: [
+    /integrat(?:e|ion)\s+with\s+(\d+)\s+(?:systems?|applications?)/gi,
+    /(\d+)\s+(?:legacy|existing|third-party)\s+(?:systems?|integrations?)/gi,
+    /connect\s+to\s+(\d+)\s+(?:external|downstream)\s+systems?/gi
+  ],
+  company_codes: [
+    /(\d+)\s+company\s+codes?/gi,
+    /(\d+)\s+kod\s+syarikat/gi
+  ],
+  plants: [
+    /(\d+)\s+(?:plants?|kilang)/gi,
+    /(\d+)\s+(?:manufacturing|production)\s+(?:facilities|sites)/gi
+  ],
+  users: [
+    /(\d+[\d,]*)\s+(?:concurrent\s+)?users?/gi,
+    /(\d+[\d,]*)\s+(?:named\s+)?licenses?/gi,
+    /user\s+base\s+of\s+(\d+[\d,]*)/gi
+  ],
+  legacy_systems: [
+    /(\d+)\s+(?:legacy|existing|current)\s+systems?/gi,
+    /integrat(?:e|ion)\s+with\s+(\d+)\s+systems?/gi,
+    /replace\s+(\d+)\s+(?:legacy|existing)\s+systems?/gi
+  ]
+};
+
+export const EFFORT_IMPACT_RULES: any = {
+  legal_entities: {
+    low: { max: 1, multiplier: 1.0 },
+    medium: { max: 3, multiplier: 1.5 },
+    high: { max: 5, multiplier: 2.0 },
+    extreme: { max: 999, multiplier: 3.0 }
+  },
+  locations: {
+    low: { max: 1, multiplier: 1.0 },
+    medium: { max: 3, multiplier: 1.3 },
+    high: { max: 10, multiplier: 1.8 },
+    extreme: { max: 999, multiplier: 2.5 }
+  },
+  employees: {
+    low: { max: 100, multiplier: 1.0 },
+    medium: { max: 500, multiplier: 1.2 },
+    high: { max: 2000, multiplier: 1.5 },
+    extreme: { max: 999999, multiplier: 2.0 }
+  },
+  users: {
+    low: { max: 50, multiplier: 1.0 },
+    medium: { max: 200, multiplier: 1.1 },
+    high: { max: 1000, multiplier: 1.3 },
+    extreme: { max: 999999, multiplier: 1.6 }
+  },
+  integrations: {
+    low: { max: 2, multiplier: 1.0 },
+    medium: { max: 5, multiplier: 1.3 },
+    high: { max: 10, multiplier: 1.6 },
+    extreme: { max: 999, multiplier: 2.0 }
+  },
+  data_volume: {
+    low: { max: 1000, multiplier: 1.0 },
+    medium: { max: 10000, multiplier: 1.2 },
+    high: { max: 100000, multiplier: 1.5 },
+    extreme: { max: 9999999, multiplier: 2.0 }
+  },
+  legacy_systems: {
+    low: { max: 2, multiplier: 1.0 },
+    medium: { max: 5, multiplier: 1.4 },
+    high: { max: 10, multiplier: 1.8 },
+    extreme: { max: 999, multiplier: 2.5 }
+  },
+  company_codes: {
+    low: { max: 1, multiplier: 1.0 },
+    medium: { max: 3, multiplier: 1.2 },
+    high: { max: 5, multiplier: 1.5 },
+    extreme: { max: 999, multiplier: 2.0 }
+  },
+  plants: {
+    low: { max: 1, multiplier: 1.0 },
+    medium: { max: 3, multiplier: 1.3 },
+    high: { max: 10, multiplier: 1.7 },
+    extreme: { max: 999, multiplier: 2.2 }
+  }
+};
+
 export const MISSING_INFO_ALERTS: any[] = [];
 
 export function extractNumericValue(text: string): number | null {

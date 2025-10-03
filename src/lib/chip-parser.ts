@@ -1,5 +1,6 @@
 import { Chip } from "@/types/core";
 import { CRITICAL_PATTERNS, extractNumericValue, EFFORT_IMPACT_RULES } from "@/lib/critical-patterns";
+import { validateRfpText, sanitizeChipValue } from "@/lib/input-sanitizer";
 
 /* =================================================================================
  * Chip Types
@@ -228,8 +229,16 @@ const CHIP_PATTERNS: Partial<Record<ChipKind, RegExp[]>> = {
  * Parser Entrypoint
  * ================================================================================= */
 export function parseRFPText(text: string): Chip[] {
+  // Validate and sanitize input
+  const validation = validateRfpText(text);
+  if (!validation.valid) {
+    console.warn('RFP validation failed:', validation.error);
+    return [];
+  }
+
+  const sanitizedText = validation.sanitized;
   const chips: Chip[] = [];
-  const lines = text.split(/\r?\n/);
+  const lines = sanitizedText.split(/\r?\n/);
   const seen = new Set<string>(); // de-dup raw-span
   // capture unseen capitalized multi-word phrases as keywords (fallback)
   const fallbackKeywords: { i: number; raw: string; start: number }[] = [];
@@ -317,11 +326,16 @@ function createChip(
   const parsed = parseValue(kind, rawTrim, match);
   if (parsed == null || parsed.value == null || parsed.value === "") return null;
 
+  // Sanitize the parsed value
+  const sanitizedValue = typeof parsed.value === 'string'
+    ? sanitizeChipValue(parsed.value, kind)
+    : parsed.value;
+
   return {
     id: generateId(),
     kind,
     raw: rawTrim,
-    parsed,
+    parsed: { ...parsed, value: sanitizedValue },
     source: (location as any) || 'paste',
     evidence: {
       snippet: safeSnippet(context, match.index ?? 0, raw.length),
