@@ -105,7 +105,7 @@ export async function generateTimelinePDF(data: PDFExportData): Promise<Uint8Arr
     const rowData = [
       phase.name,
       `${phase.workingDays} days`,
-      phase.effort.toString(),
+      phase.effort?.toString() || '0',
       (phase.resources?.length || 0).toString()
     ];
     
@@ -212,14 +212,18 @@ export async function generateTimelinePDF(data: PDFExportData): Promise<Uint8Arr
  * Download PDF to user's computer
  */
 export function downloadPDF(pdfBytes: Uint8Array, filename: string) {
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  // Convert to standard Uint8Array to satisfy TypeScript's BlobPart type
+  const standardArray = new Uint8Array(pdfBytes);
+  const blob = new Blob([standardArray], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
-  
+
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
+  document.body.appendChild(link);
   link.click();
-  
+  document.body.removeChild(link);
+
   // Cleanup
   URL.revokeObjectURL(url);
 }
