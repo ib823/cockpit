@@ -34,7 +34,8 @@ const EXAMPLE_TIMELINE = {
 };
 
 export default function MagicTimelinePage() {
-  const { phases, chips } = usePresalesStore();
+  const { chips } = usePresalesStore();
+  const { phases } = useTimelineStore();
   const [showCelebration, setShowCelebration] = useState(false);
   const [timelineData, setTimelineData] = useState(EXAMPLE_TIMELINE);
 
@@ -254,7 +255,7 @@ function CelebrationOverlay({ metrics }: { metrics: any }) {
 }
 
 function MetricCard({ icon, label, value, color }: any) {
-  const colors = {
+  const colors: Record<string, string> = {
     blue: 'bg-blue-50 text-blue-600 border-blue-200',
     green: 'bg-green-50 text-green-600 border-green-200',
     purple: 'bg-purple-50 text-purple-600 border-purple-200',
@@ -262,7 +263,7 @@ function MetricCard({ icon, label, value, color }: any) {
   };
 
   return (
-    <div className={`rounded-xl p-6 border ${colors[color]}`}>
+    <div className={`rounded-xl p-6 border ${colors[color] || colors.blue}`}>
       <div className="flex items-center gap-3 mb-2">
         {icon}
         <span className="text-sm font-medium opacity-75">{label}</span>

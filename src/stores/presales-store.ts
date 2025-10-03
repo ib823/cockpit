@@ -42,8 +42,10 @@ interface PresalesState {
   clearChips: () => void;
   removeChip: (id: string) => void;
   validateChip: (id: string) => void;
+  parseText: (text: string) => void;
   updateDecision: <K extends keyof Decisions>(key: K, value: Decisions[K]) => void;
   setDecisions: (decisions: Decisions) => void;
+  setDecision: (key: keyof Decisions, value: string | number) => void;
   setMode: (mode: Mode) => void;
   toggleAutoTransit: () => void;
   recordMetric: (type: "click" | "keystroke") => void;
@@ -103,12 +105,64 @@ export const usePresalesStore = create<PresalesState>()(
         }));
       },
 
+      parseText: (text: string) => {
+        // Simple text parsing to extract chips from RFP text
+        const lines = text.split('\n').filter(line => line.trim());
+        const extractedChips: Chip[] = [];
+
+        lines.forEach((line, index) => {
+          const lowerLine = line.toLowerCase();
+          let type: ChipType = 'modules';
+          let confidence = 0.7;
+
+          // Detect chip type based on keywords
+          if (lowerLine.includes('employee') || lowerLine.includes('user')) {
+            type = 'employees';
+            confidence = 0.85;
+          } else if (lowerLine.includes('revenue') || lowerLine.includes('budget') || lowerLine.includes('myr') || lowerLine.includes('$')) {
+            type = 'revenue';
+            confidence = 0.9;
+          } else if (lowerLine.includes('module') || lowerLine.includes('finance') || lowerLine.includes('hr') || lowerLine.includes('supply chain')) {
+            type = 'modules';
+            confidence = 0.95;
+          } else if (lowerLine.includes('country') || lowerLine.includes('malaysia') || lowerLine.includes('singapore')) {
+            type = 'country';
+            confidence = 0.9;
+          } else if (lowerLine.includes('industry') || lowerLine.includes('manufacturing') || lowerLine.includes('retail')) {
+            type = 'industry';
+            confidence = 0.85;
+          } else if (lowerLine.includes('date') || lowerLine.includes('quarter') || lowerLine.includes('q1') || lowerLine.includes('q2')) {
+            type = 'timeline';
+            confidence = 0.85;
+          } else if (lowerLine.includes('integrate') || lowerLine.includes('integration')) {
+            type = 'integration';
+            confidence = 0.8;
+          }
+
+          extractedChips.push({
+            id: `chip-${Date.now()}-${index}`,
+            type,
+            value: line.trim(),
+            confidence,
+            source: line,
+            validated: false,
+          });
+        });
+
+        get().addChips(extractedChips);
+      },
+
       updateDecision: (key, value) =>
         set((state) => ({
           decisions: { ...state.decisions, [key]: value },
         })),
 
       setDecisions: (decisions) => set({ decisions }),
+
+      setDecision: (key, value) =>
+        set((state) => ({
+          decisions: { ...state.decisions, [key]: value },
+        })),
 
       setMode: (mode) => set({ mode }),
       

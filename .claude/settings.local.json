@@ -32,7 +32,8 @@
       "Bash(ss:*)",
       "Bash(do lsof:*)",
       "Bash(awk:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []
