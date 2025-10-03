@@ -65,7 +65,7 @@ export default function PresalesPage() {
             </button>
 
             <Link
-              href="/timeline"
+              href="/timeline-magic"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               View Timeline
@@ -127,7 +127,7 @@ export default function PresalesPage() {
                   Your project timeline has been generated based on the requirements and decisions.
                 </p>
                 <Link
-                  href="/timeline"
+                  href="/timeline-magic"
                   className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                 >
                   View Timeline

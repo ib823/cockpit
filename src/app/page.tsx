@@ -25,7 +25,8 @@ export default function MagicLandingPage() {
   };
 
   const handleStartProject = () => {
-    router.push('/project');
+    // Steve Jobs principle: Show value immediately, not forms
+    router.push('/timeline-magic');
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -40,8 +41,9 @@ export default function MagicLandingPage() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    // TODO: Process dropped RFP file
-    router.push('/project?mode=capture');
+    // Steve Jobs principle: Show value immediately
+    // TODO: Process dropped RFP file and generate timeline
+    router.push('/timeline-magic');
   };
 
   return (
