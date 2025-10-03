@@ -1,6 +1,5 @@
-// @ts-nocheck
 import { SAP_MODULES } from '@/data/sap-modules-complete';
-import { SAPPackage } from '@/types/chip-override';
+import { SAPPackage } from '@/types/core';
 
 // Convert the 142 module catalog to the package format
 export const SAP_CATALOG: Record<string, SAPPackage> = {};
@@ -45,7 +44,7 @@ export const PACKAGE_CATEGORIES = {
 export const calculatePackageEffort = (packageIds: string[], complexity: number = 1.0): number => {
   return packageIds.reduce((total, id) => {
     const pkg = SAP_CATALOG[id];
-    return total + (pkg ? pkg.effort * pkg.complexity * complexity : 0);
+    return total + (pkg && pkg.effort && pkg.complexity ? pkg.effort * pkg.complexity * complexity : 0);
   }, 0);
 };
 

@@ -16,7 +16,7 @@ export default function ModuleSelector() {
     
     // Category filter
     if (selectedCategory !== 'all') {
-      const categoryModuleIds = PACKAGE_CATEGORIES[selectedCategory] || [];
+      const categoryModuleIds = PACKAGE_CATEGORIES[selectedCategory as keyof typeof PACKAGE_CATEGORIES] || [];
       modules = modules.filter(m => categoryModuleIds.includes(m.id));
     }
     
@@ -79,7 +79,7 @@ export default function ModuleSelector() {
   const totalEffort = useMemo(() => {
     return selectedPackages.reduce((sum, pkgId) => {
       const pkg = SAP_CATALOG[pkgId];
-      return sum + (pkg ? pkg.effort * pkg.complexity : 0);
+      return sum + (pkg && pkg.effort && pkg.complexity ? pkg.effort * pkg.complexity : 0);
     }, 0);
   }, [selectedPackages]);
 

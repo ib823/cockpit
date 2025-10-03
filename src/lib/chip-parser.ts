@@ -1,4 +1,3 @@
-// @ts-nocheck - Drop-in compatible; typings included for clarity.
 import { Chip } from "@/types/core";
 import { CRITICAL_PATTERNS, extractNumericValue, EFFORT_IMPACT_RULES } from "@/lib/critical-patterns";
 
@@ -137,7 +136,7 @@ const VOCAB = {
 /* =================================================================================
  * Patterns
  * ================================================================================= */
-const CHIP_PATTERNS: Record<ChipKind, RegExp[]> = {
+const CHIP_PATTERNS: Partial<Record<ChipKind, RegExp[]>> = {
   country: [new RegExp(`\\b(${VOCAB.COUNTRIES})\\b`, "gi")],
   state:   [new RegExp(`\\b(${VOCAB.STATES_MY})\\b`, "gi")],
   city:    [new RegExp(`\\b(${VOCAB.CITIES_MY})\\b`, "gi")],
@@ -323,7 +322,7 @@ function createChip(
     kind,
     raw: rawTrim,
     parsed,
-    source: { location, timestamp: new Date().toISOString() },
+    source: (location as any) || 'paste',
     evidence: {
       snippet: safeSnippet(context, match.index ?? 0, raw.length),
       context: context.slice(0, 300),
@@ -333,7 +332,7 @@ function createChip(
       ? { notes: ['Peppol can be "compliance" or "integration" depending on context.'] }
       : undefined,
     validated: false,
-  };
+  } as any;
 }
 
 function parseValue(kind: ChipKind, raw: string, match: RegExpMatchArray): ParsedValue {
@@ -437,8 +436,8 @@ function calculateConfidence(kind: ChipKind, parsed: ParsedValue, raw: string): 
     case "contact_email": case "contact_phone": case "website":
     case "document_type":
       return 0.98;
-    case "employees": return parsed.value > 0 ? 0.92 : 0.7;
-    case "revenue": case "budget": return parsed.value > 0 ? 0.9 : 0.7;
+    case "employees": return (typeof parsed.value === 'number' && parsed.value > 0) ? 0.92 : 0.7;
+    case "revenue": case "budget": return (typeof parsed.value === 'number' && parsed.value > 0) ? 0.9 : 0.7;
     case "modules": return 0.9;
     case "timeline": return parsed.unit && parsed.unit !== "relative" ? 0.9 : 0.78;
     case "priority": return 0.88;
@@ -449,8 +448,8 @@ function calculateConfidence(kind: ChipKind, parsed: ParsedValue, raw: string): 
   }
 }
 
-function isDuplicate(chips: Chip[], newer: Chip): boolean {
-  const key = (c: Chip) => `${c.kind}::${String(c.parsed?.value).toLowerCase()}::${c.parsed?.unit || ""}`;
+function isDuplicate(chips: any[], newer: any): boolean {
+  const key = (c: any) => `${c.kind || c.type}::${String(c.parsed?.value || c.value).toLowerCase()}::${c.parsed?.unit || ""}`;
   const newKey = key(newer);
   return chips.some((c) => key(c) === newKey);
 }
@@ -581,11 +580,12 @@ function titleCase(s: string): string {
 /* =================================================================================
  * Summary / Gaps (same API; you can extend if you want)
  * ================================================================================= */
-export function summarizeChips(chips: Chip[]): Partial<Record<ChipKind, Chip[]>> {
-  return chips.reduce((acc, chip) => {
-    (acc[chip.kind] ??= []).push(chip);
+export function summarizeChips(chips: any[]): Partial<Record<ChipKind, any[]>> {
+  return chips.reduce((acc: any, chip: any) => {
+    const kind = chip.kind || chip.type;
+    (acc[kind] ??= []).push(chip);
     return acc;
-  }, {} as Partial<Record<ChipKind, Chip[]>>);
+  }, {} as Partial<Record<ChipKind, any[]>>);
 }
 
 export function identifyGaps(chips: Chip[]): string[] {

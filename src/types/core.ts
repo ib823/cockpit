@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Core type definitions
 
 export interface Chip {
@@ -88,20 +87,24 @@ export interface Phase {
   category: string;
   startBusinessDay: number;
   workingDays: number;
-  effort: number;
+  effort?: number;
   color?: string;
-  skipHolidays: boolean;
-  dependencies: string[];
+  skipHolidays?: boolean;
+  dependencies?: string[];
   status?: 'idle' | 'active' | 'complete';
   resources?: Resource[];
+  selected?: boolean;
+  description?: string;
+  isCritical?: boolean;
 }
 
 export interface Resource {
   id: string;
+  name?: string;
   role: string;
   allocation: number;
-  region?: string;
-  hourlyRate?: number;
+  region: string;
+  hourlyRate: number;
 }
 
 export interface Override {
@@ -128,7 +131,7 @@ export interface ClientProfile {
   industry: string;
   size: 'small' | 'medium' | 'large' | 'enterprise';
   complexity: 'simple' | 'standard' | 'complex' | 'very_complex';
-  timelinePreference: 'aggressive' | 'normal' | 'conservative';
+  timelinePreference?: 'aggressive' | 'normal' | 'conservative';
   region: string;
   employees?: number;
   annualRevenue?: number;
@@ -138,16 +141,20 @@ export interface SAPPackage {
   id: string;
   name: string;
   description: string;
-  modules: any[];
-  baseEffort: number;
+  modules?: any[];
+  baseEffort?: number;
+  effort?: number;
+  complexity?: number;
   dependencies: string[];
-  category: 'core' | 'industry' | 'technical' | 'compliance';
+  category: string;
+  licensePrice?: { sgd: number; myr: number; vnd: number };
+  criticalPath?: boolean;
 }
 
 export interface Holiday {
   date: string;
   name: string;
-  country: string;
+  country?: string;
 }
 
 export type ChipKind = 'country' | 'employees' | 'revenue' | 'modules' | 'timeline' | 'integration' | 'compliance' | 'industry';

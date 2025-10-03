@@ -299,9 +299,9 @@ function extractCriticalPatterns(text: string): ExtendedChip[] {
 }
 
 function getImpactLevel(type: string, value: number): string {
-  const rules = EFFORT_IMPACT_RULES[type];
+  const rules = (EFFORT_IMPACT_RULES as any)[type];
   if (!rules) return 'unknown';
-  
+
   if (value <= rules.low.max) return 'low';
   if (value <= rules.medium.max) return 'medium';
   if (value <= rules.high.max) return 'high';
@@ -309,7 +309,7 @@ function getImpactLevel(type: string, value: number): string {
 }
 
 function getMultiplier(type: string, value: number): number {
-  const rules = EFFORT_IMPACT_RULES[type];
+  const rules = (EFFORT_IMPACT_RULES as any)[type];
   if (!rules) return 1.0;
   
   if (value <= rules.low.max) return rules.low.multiplier;
@@ -324,11 +324,11 @@ function addImpactAnalysis(chip: ExtendedChip, allChips: ExtendedChip[]): Extend
     return chip;
   }
   
-  const impactType = chip.type === 'data_volume' && chip.metadata?.unit === 'transactions/day' 
+  const impactType = chip.type === 'data_volume' && chip.metadata?.unit === 'transactions/day'
     ? 'data_volume_transactions_per_day'
     : chip.type;
-    
-  const rules = EFFORT_IMPACT_RULES[impactType];
+
+  const rules = (EFFORT_IMPACT_RULES as any)[impactType];
   
   if (rules && typeof chip.value === 'number') {
     let multiplier = 1.0;

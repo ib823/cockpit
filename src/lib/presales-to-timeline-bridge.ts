@@ -22,11 +22,12 @@ export function convertPresalesToTimeline(
     
     // Extract profile and packages
     const profile: ClientProfile = {
-      company: chips.find(c => c.kind === 'country')?.parsed.value as string || '',
-      industry: chips.find(c => c.kind === 'industry')?.parsed.value as string || 'manufacturing',
+      company: (chips.find((c: any) => (c.kind || c.type) === 'country') as any)?.parsed?.value as string || '',
+      industry: (chips.find((c: any) => (c.kind || c.type) === 'industry') as any)?.parsed?.value as string || 'manufacturing',
       size: 'medium', // Default, can be derived from employee count
       complexity: 'standard',
-      timelinePreference: 'normal'
+      timelinePreference: 'normal',
+      region: (chips.find((c: any) => (c.kind || c.type) === 'country') as any)?.parsed?.value as string || 'ABMY'
     };
 
     // Extract selected packages from scenario
@@ -45,7 +46,8 @@ export function convertPresalesToTimeline(
         industry: 'manufacturing',
         size: 'medium',
         complexity: 'standard',
-        timelinePreference: 'normal'
+        timelinePreference: 'normal',
+        region: 'ABMY'
       },
       selectedPackages: [],
       success: false,
@@ -57,13 +59,13 @@ export function convertPresalesToTimeline(
 /**
  * Maps presales module chips to SAP package IDs
  */
-export function mapModulesToPackages(chips: Chip[]): string[] {
+export function mapModulesToPackages(chips: any[]): string[] {
   const packages = new Set<string>();
-  
+
   chips
-    .filter(c => c.kind === 'modules')
-    .forEach(chip => {
-      const module = chip.raw.toLowerCase();
+    .filter((c: any) => (c.kind || c.type) === 'modules')
+    .forEach((chip: any) => {
+      const module = (chip.raw || chip.value || '').toString().toLowerCase();
       
       // Map common modules to packages
       if (module.includes('finance') || module.includes('fi')) {
@@ -90,34 +92,35 @@ export function mapModulesToPackages(chips: Chip[]): string[] {
 /**
  * Extracts client profile from presales chips
  */
-export function extractClientProfile(chips: Chip[]): ClientProfile {
-  const countryChip = chips.find(c => c.kind === 'country');
-  const industryChip = chips.find(c => c.kind === 'industry');
-  const employeeChip = chips.find(c => c.kind === 'employees' || c.kind === 'users');
-  
+export function extractClientProfile(chips: any[]): ClientProfile {
+  const countryChip = chips.find((c: any) => (c.kind || c.type) === 'country');
+  const industryChip = chips.find((c: any) => (c.kind || c.type) === 'industry');
+  const employeeChip = chips.find((c: any) => (c.kind || c.type) === 'employees' || (c.kind || c.type) === 'users');
+
   // Determine size from employee count
   let size: ClientProfile['size'] = 'medium';
-  if (employeeChip && typeof employeeChip.parsed.value === 'number') {
-    const employees = employeeChip.parsed.value;
+  if (employeeChip && typeof (employeeChip.parsed?.value || employeeChip.value) === 'number') {
+    const employees = employeeChip.parsed?.value || employeeChip.value;
     if (employees < 200) size = 'small';
     else if (employees < 1000) size = 'medium';
     else if (employees < 5000) size = 'large';
     else size = 'enterprise';
   }
-  
+
   // Determine complexity from integration/compliance requirements
   let complexity: ClientProfile['complexity'] = 'standard';
-  const integrations = chips.filter(c => c.kind === 'integration').length;
-  const compliance = chips.filter(c => c.kind === 'compliance').length;
-  
+  const integrations = chips.filter((c: any) => (c.kind || c.type) === 'integration').length;
+  const compliance = chips.filter((c: any) => (c.kind || c.type) === 'compliance').length;
+
   if (integrations > 2 || compliance > 1) complexity = 'complex';
   if (size === 'enterprise') complexity = 'complex';
-  
+
   return {
-    company: countryChip?.parsed.value as string || '',
-    industry: (industryChip?.parsed.value as string) || 'manufacturing',
+    company: (countryChip?.parsed?.value || countryChip?.value) as string || '',
+    industry: ((industryChip?.parsed?.value || industryChip?.value) as string) || 'manufacturing',
     size,
     complexity,
-    timelinePreference: 'normal'
+    timelinePreference: 'normal',
+    region: (countryChip?.parsed?.value || countryChip?.value) as string || 'ABMY'
   };
 }

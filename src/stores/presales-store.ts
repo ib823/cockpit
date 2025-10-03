@@ -1,4 +1,3 @@
-import { identifyCriticalGaps } from "@/lib/enhanced-chip-parser";
 import { convertPresalesToTimeline } from "@/lib/presales-to-timeline-bridge";
 import { Chip } from "@/types/core";
 import { create } from "zustand";

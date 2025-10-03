@@ -7,4 +7,4 @@ backup_*/
 # Session logs
 session_log_*.txt
 *-status.txt
-env_diagnostic.txt
+env_diagnostic.txttsconfig.tsbuildinfo

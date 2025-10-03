@@ -1,8 +1,6 @@
-// @ts-nocheck
-import { Phase, ClientProfile, Resource } from '@/types/chip-override';
-import { SAP_CATALOG, DEPENDENCY_MAP } from '@/data/sap-catalog';
 import { generateResourceRequirements, STANDARD_TEAM_COMPOSITION } from '@/data/resource-catalog';
-import { EffortCalculator } from '@/lib/engine/calculation/effort-calculator';
+import { DEPENDENCY_MAP, SAP_CATALOG } from '@/data/sap-catalog';
+import { ClientProfile, Phase, Resource } from '@/types/core';
 
 // Phase colors for visualization
 const PHASE_COLORS = [
@@ -78,12 +76,37 @@ export const generateTimelineFromSAPSelection = (
   return calculateIntelligentSequencing(phases);
 };
 
+/**
+ * Calculate total effort for selected packages based on complexity and client profile
+ */
+const calculateEffort = (
+  selectedPackages: string[],
+  complexity: string,
+  clientProfile: any
+): number => {
+  // Base effort from SAP catalog
+  const baseEffort = selectedPackages.reduce((sum, packageId) => {
+    const sapPackage = SAP_CATALOG[packageId];
+    return sum + (sapPackage?.effort || 0);
+  }, 0);
+
+  // Apply complexity multiplier
+  const complexityMultiplier = getComplexityMultiplier(complexity, clientProfile.size);
+
+  // Additional factors
+  const industryMultiplier = clientProfile.industry === 'banking' ? 1.2 : 1.0;
+  const regionMultiplier = clientProfile.region === 'APSG' ? 1.1 : 1.0;
+
+  return Math.round(baseEffort * complexityMultiplier * industryMultiplier * regionMultiplier);
+};
+
 // Get complexity multiplier based on client profile
 const getComplexityMultiplier = (complexity: string, size: string): number => {
   const complexityFactors = {
+    'simple': 0.8,
     'standard': 1.0,
     'complex': 1.3,
-    'extreme': 1.6
+    'very_complex': 1.6
   };
 
   const sizeFactors = {
@@ -278,4 +301,4 @@ export const validatePhaseDependencies = (phases: Phase[]): string[] => {
 };
 
 // Export the Phase type and related interfaces
-export type { Phase, ClientProfile, Resource };
+export type { ClientProfile, Phase, Resource };

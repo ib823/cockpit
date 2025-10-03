@@ -1,19 +1,17 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { 
-  Phase, 
-  ClientProfile, 
-  Resource,
-  generateTimelineFromSAPSelection,
-  calculateIntelligentSequencing,
-  calculateResourceRequirements
-} from '@/lib/timeline/phase-generation';
-import { 
+import { calculateProjectCost } from '@/data/resource-catalog';
+import {
   businessDayToDate,
-  DEFAULT_HOLIDAYS,
   Holiday
 } from '@/lib/timeline/date-calculations';
-import { calculateProjectCost } from '@/data/resource-catalog';
+import {
+  calculateIntelligentSequencing,
+  ClientProfile,
+  generateTimelineFromSAPSelection,
+  Phase,
+  Resource
+} from '@/lib/timeline/phase-generation';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -71,6 +69,7 @@ export interface TimelineState {
   getProjectEndDate: () => Date | null;
   getTotalPhases: () => number;
   getTotalWorkingDays: () => number;
+  updatePhaseColor: (phaseId: string, color: string) => void; // Add this
 }
 
 // ============================================================================

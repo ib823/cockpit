@@ -1,8 +1,4 @@
-// @ts-nocheck
-// @ts-nocheck
 // Baseline Scenario Generator - Creates initial project plan from chips and decisions
-// ADD these imports at the top:
-// ADD these imports at the top:
 import { getPackageDependencies, calculatePackageEffort, SAP_CATALOG } from "@/data/sap-catalog";
 import { RATE_CARDS, DEFAULT_TEAM_COMPOSITION } from "@/data/resource-catalog";
 import { Chip, ClientProfile, Decision, Phase, ScenarioPlan } from "@/types/core";
@@ -53,9 +49,12 @@ export function generateBaselineScenario(chips: Chip[], decisions: Decision[]): 
     id: `scenario_${Date.now()}`,
     name: "Baseline",
     phases,
-    totals,
+    totalEffort: totals.effort,
+    totalCost: totals.cost,
+    duration: totals.duration,
     assumptions,
     risks,
+    confidence: 0.8
   };
 }
 
@@ -84,20 +83,16 @@ function extractClientProfile(chips: Chip[]): ClientProfile {
   let complexity: ClientProfile["complexity"] = "standard";
   if (summary.integration && summary.integration.length > 2) complexity = "complex";
   if (summary.compliance && summary.compliance.length > 1) complexity = "complex";
-  if (size === "enterprise") complexity = "extreme";
-
-  // Determine maturity
-  const maturity: ClientProfile["maturity"] = summary.existing_system ? "intermediate" : "basic";
+  if (size === "enterprise") complexity = "very_complex";
 
   return {
-    companyName: "Client Company",
+    company: "Client Company",
     industry: industry as string,
     size,
     employees: (employeeChip?.parsed.value as number) || 500,
     annualRevenue: (summary.revenue?.[0]?.parsed.value as number) || 0,
     region: region as string,
-    complexity,
-    maturity,
+    complexity
   };
 }
 // Determine packages based on chips and decisions
@@ -106,7 +101,7 @@ function determinePackages(chips: Chip[], decisions: Decision[]): string[] {
   const summary = summarizeChips(chips);
 
   // Check module decision
-  const moduleDecision = decisions.find((d) => d.type === "module_combo");
+  const moduleDecision = decisions.find((d: any) => d.category === "modules");
   if (moduleDecision) {
     switch (moduleDecision.selected) {
       case "finance_only":

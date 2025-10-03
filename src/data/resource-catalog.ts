@@ -1,136 +1,132 @@
-// @ts-nocheck
-import { RateCard, Resource } from '@/types/chip-override';
+import { Resource, Phase } from '@/types/core';
 
-// Regional rate cards with hourly rates in local currencies
-export const RESOURCE_CATALOG: RateCard[] = [
-  // Malaysia (MYR)
-  { role: 'Partner', region: 'ABMY', hourlyRate: 800, includeOPE: true },
-  { role: 'Director', region: 'ABMY', hourlyRate: 650, includeOPE: true },
-  { role: 'Senior Manager', region: 'ABMY', hourlyRate: 500, includeOPE: true },
-  { role: 'Manager', region: 'ABMY', hourlyRate: 400, includeOPE: true },
-  { role: 'Senior Consultant', region: 'ABMY', hourlyRate: 300, includeOPE: true },
-  { role: 'Consultant', region: 'ABMY', hourlyRate: 200, includeOPE: true },
-  { role: 'Analyst', region: 'ABMY', hourlyRate: 150, includeOPE: true },
+// Default team composition for scenarios
+export const DEFAULT_TEAM_COMPOSITION = {
+  architect: 1,
+  developer: 3,
+  consultant: 2,
+  projectManager: 1
+} as const;
 
-  // Singapore (SGD)
-  { role: 'Partner', region: 'ABSG', hourlyRate: 900, includeOPE: true },
-  { role: 'Director', region: 'ABSG', hourlyRate: 750, includeOPE: true },
-  { role: 'Senior Manager', region: 'ABSG', hourlyRate: 600, includeOPE: true },
-  { role: 'Manager', region: 'ABSG', hourlyRate: 480, includeOPE: true },
-  { role: 'Senior Consultant', region: 'ABSG', hourlyRate: 360, includeOPE: true },
-  { role: 'Consultant', region: 'ABSG', hourlyRate: 240, includeOPE: true },
-  { role: 'Analyst', region: 'ABSG', hourlyRate: 180, includeOPE: true },
+// Standard team composition (alias for backward compatibility)
+export const STANDARD_TEAM_COMPOSITION = DEFAULT_TEAM_COMPOSITION;
 
-  // Vietnam (VND) - rates in thousands
-  { role: 'Partner', region: 'ABVN', hourlyRate: 1200, includeOPE: true },
-  { role: 'Director', region: 'ABVN', hourlyRate: 1000, includeOPE: true },
-  { role: 'Senior Manager', region: 'ABVN', hourlyRate: 800, includeOPE: true },
-  { role: 'Manager', region: 'ABVN', hourlyRate: 650, includeOPE: true },
-  { role: 'Senior Consultant', region: 'ABVN', hourlyRate: 500, includeOPE: true },
-  { role: 'Consultant', region: 'ABVN', hourlyRate: 350, includeOPE: true },
-  { role: 'Analyst', region: 'ABVN', hourlyRate: 250, includeOPE: true },
-];
+// Rate cards by region
+export const RATE_CARDS = {
+  'ABMY': { // Asia Pacific - Malaysia
+    architect: 150,
+    developer: 100,
+    consultant: 120,
+    projectManager: 140,
+    currency: 'USD'
+  },
+  'APSG': { // Asia Pacific - Singapore
+    architect: 180,
+    developer: 120,
+    consultant: 140,
+    projectManager: 160,
+    currency: 'USD'
+  },
+  'NA': { // North America
+    architect: 200,
+    developer: 150,
+    consultant: 180,
+    projectManager: 190,
+    currency: 'USD'
+  },
+  'EU': { // Europe
+    architect: 180,
+    developer: 130,
+    consultant: 160,
+    projectManager: 170,
+    currency: 'EUR'
+  },
+  'default': {
+    architect: 150,
+    developer: 100,
+    consultant: 120,
+    projectManager: 140,
+    currency: 'USD'
+  }
+} as const;
 
-// Standard team composition ratios
-export const STANDARD_TEAM_COMPOSITION = {
-  'Partner': 0.05,         // 5%
-  'Director': 0.10,        // 10%
-  'Senior Manager': 0.15,   // 15%
-  'Manager': 0.20,         // 20%
-  'Senior Consultant': 0.25, // 25%
-  'Consultant': 0.20,      // 20%
-  'Analyst': 0.05          // 5%
-};
+/**
+ * Generate resource requirements based on effort and region
+ */
+export function generateResourceRequirements(
+  effortDays: number,
+  region: string = 'ABMY'
+): Resource[] {
+  const rateCard = RATE_CARDS[region as keyof typeof RATE_CARDS] || RATE_CARDS.default;
 
-// Currency formatting by region
-export const CURRENCY_FORMATTERS = {
-  'ABMY': (amount: number) => `MYR ${amount.toLocaleString()}`,
-  'ABSG': (amount: number) => `SGD ${amount.toLocaleString()}`,
-  'ABVN': (amount: number) => `VND ${(amount * 1000).toLocaleString()}`
-};
+  // Calculate team size based on effort
+  const teamMultiplier = Math.max(1, Math.ceil(effortDays / 60)); // 1 team per ~3 months
 
-// Utility functions
-export const getRateCard = (role: string, region: string): RateCard | undefined => {
-  return RESOURCE_CATALOG.find(card => card.role === role && card.region === region);
-};
-
-export const calculateBlendedRate = (resources: Resource[], hoursPerDay: number = 8): number => {
-  if (!resources.length) return 0;
-  
-  let totalCost = 0;
-  let totalAllocation = 0;
-  
-  resources.forEach(resource => {
-    const rateCard = getRateCard(resource.role, resource.region);
-    if (rateCard) {
-      const allocation = resource.allocation / 100;
-      totalCost += rateCard.hourlyRate * hoursPerDay * allocation;
-      totalAllocation += allocation;
+  const resources: Resource[] = [
+    {
+      id: `architect-${region}`,
+      name: 'Solution Architect',
+      role: 'architect',
+      allocation: DEFAULT_TEAM_COMPOSITION.architect * teamMultiplier * 0.5, // Part-time
+      region: region,
+      hourlyRate: rateCard.architect
+    },
+    {
+      id: `developer-${region}`,
+      name: 'Developer',
+      role: 'developer',
+      allocation: DEFAULT_TEAM_COMPOSITION.developer * teamMultiplier,
+      region: region,
+      hourlyRate: rateCard.developer
+    },
+    {
+      id: `consultant-${region}`,
+      name: 'Functional Consultant',
+      role: 'consultant',
+      allocation: DEFAULT_TEAM_COMPOSITION.consultant * teamMultiplier,
+      region: region,
+      hourlyRate: rateCard.consultant
+    },
+    {
+      id: `pm-${region}`,
+      name: 'Project Manager',
+      role: 'projectManager',
+      allocation: DEFAULT_TEAM_COMPOSITION.projectManager * teamMultiplier * 0.5, // Part-time
+      region: region,
+      hourlyRate: rateCard.projectManager
     }
-  });
-  
-  return totalAllocation > 0 ? totalCost / totalAllocation : 0;
-};
+  ];
 
-export const calculateProjectCost = (phases: any[], hoursPerDay: number = 8): number => {
-  return phases.reduce((total, phase) => {
-    if (!phase.resources || !phase.resources.length) return total;
-    
-    const phaseCost = phase.resources.reduce((phaseTotal: number, resource: any) => {
-      const rateCard = getRateCard(resource.role, resource.region);
-      if (!rateCard) return phaseTotal;
-      
-      const allocation = resource.allocation / 100;
-      const dailyCost = rateCard.hourlyRate * hoursPerDay * allocation;
-      const resourceCost = dailyCost * phase.workingDays;
-      
-      return phaseTotal + resourceCost;
-    }, 0);
-    
-    return total + phaseCost;
-  }, 0);
-};
+  return resources;
+}
 
-export const formatCurrency = (amount: number, region: string): string => {
-  const formatter = CURRENCY_FORMATTERS[region as keyof typeof CURRENCY_FORMATTERS];
-  return formatter ? formatter(amount) : amount.toLocaleString();
-};
+/**
+ * Calculate total project cost from phases
+ */
+export function calculateProjectCost(phases: Phase[]): {
+  totalCost: number;
+  breakdown: Record<string, number>;
+  currency: string;
+} {
+  let totalCost = 0;
+  const breakdown: Record<string, number> = {};
+  let currency = 'USD';
 
-export const generateResourceRequirements = (
-  effort: number, 
-  region: string = 'ABMY',
-  teamComposition = STANDARD_TEAM_COMPOSITION
-): Resource[] => {
-  const resources: Resource[] = [];
-  let resourceId = 1;
-  
-  Object.entries(teamComposition).forEach(([role, percentage]) => {
-    const allocation = Math.round(percentage * 100);
-    const rateCard = getRateCard(role, region);
-    
-    resources.push({
-      id: `res_${resourceId++}`,
-      name: `${role} 1`,
-      role: role as any,
-      region: region as any,
-      allocation,
-      hourlyRate: rateCard?.hourlyRate || 0,
-      includeOPE: rateCard?.includeOPE || false
+  phases.forEach(phase => {
+    if (!phase.resources || !phase.workingDays) return;
+
+    phase.resources.forEach(resource => {
+      const phaseCost = resource.allocation * resource.hourlyRate * phase.workingDays * 8; // 8 hours per day
+      totalCost += phaseCost;
+
+      const key = resource.role;
+      breakdown[key] = (breakdown[key] || 0) + phaseCost;
     });
   });
-  
-  return resources;
-};
 
-// Export commonly used values
-export const ROLES = [
-  'Partner',
-  'Director', 
-  'Senior Manager',
-  'Manager',
-  'Senior Consultant',
-  'Consultant',
-  'Analyst'
-] as const;
-
-export const REGIONS = ['ABMY', 'ABSG', 'ABVN'] as const;
+  return {
+    totalCost,
+    breakdown,
+    currency
+  };
+}
