@@ -5,9 +5,11 @@ import GanttChart from '@/components/timeline/GanttChart';
 import TimelineControls from '@/components/timeline/TimelineControls';
 import { downloadPDF, generateTimelinePDF } from '@/lib/export/pdf-generator';
 import { useTimelineStore } from '@/stores/timeline-store';
+import { usePresalesStore } from '@/stores/presales-store';
 import { useStorageSync } from '@/hooks/useStorageSync';
 import { validateStartDate, getRecommendedStartDate, formatDateForDisplay } from '@/lib/timeline/date-validation';
 import { getHolidaysByRegion, type Holiday } from '@/data/holidays';
+import type { Chip } from '@/types/core';
 
 export default function TimelinePage() {
   // Enable cross-tab synchronization
@@ -20,8 +22,12 @@ export default function TimelinePage() {
     generateTimeline,
     getProjectStartDate,
     getProjectEndDate,
-    getProjectCost
+    getProjectCost,
+    clearPackages,
+    resetProfile
   } = useTimelineStore();
+
+  const { addChips, clearChips } = usePresalesStore();
 
   // Local state for enhanced features
   const [startDate, setStartDate] = useState<Date>(getRecommendedStartDate());
@@ -63,10 +69,10 @@ export default function TimelinePage() {
         startDate: getProjectStartDate()?.toLocaleDateString() || 'TBD',
         endDate: getProjectEndDate()?.toLocaleDateString() || 'TBD',
         totalCost: getProjectCost(),
-        currency: profile.region === 'ABSG' ? 'SGD' : 
+        currency: profile.region === 'ABSG' ? 'SGD' :
                   profile.region === 'ABVN' ? 'VND' : 'MYR',
         phases: phases,
-        teamMembers: phases.flatMap(p => 
+        teamMembers: phases.flatMap(p =>
           (p.resources || []).map(r => ({
             name: r.name || 'Unnamed',
             role: r.role,
@@ -74,19 +80,123 @@ export default function TimelinePage() {
           }))
         )
       };
-      
+
       // Generate PDF
       const pdfBytes = await generateTimelinePDF(exportData);
-      
+
       // Download
       const filename = `timeline-${Date.now()}.pdf`;
       downloadPDF(pdfBytes, filename);
-      
+
       console.log('✅ PDF exported successfully');
     } catch (error) {
       console.error('❌ PDF export failed:', error);
       alert('Failed to export PDF. Please try again.');
     }
+  };
+
+  // Reset all data
+  const handleResetAll = () => {
+    if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+      clearPackages();
+      resetProfile();
+      clearChips();
+      setStartDate(getRecommendedStartDate());
+      setSelectedRegion('MY');
+      setCurrency('MYR');
+      setForexRate(null);
+      console.log('✅ All data reset');
+    }
+  };
+
+  // Generate random test data
+  const handleGenerateTestData = () => {
+    const sampleChips: Chip[] = [
+      {
+        id: `test-${Date.now()}-1`,
+        type: 'country',
+        value: 'Malaysia',
+        confidence: 0.95,
+        source: 'manual',
+        timestamp: new Date()
+      },
+      {
+        id: `test-${Date.now()}-2`,
+        type: 'employees',
+        value: Math.floor(Math.random() * 5000) + 500,
+        confidence: 0.9,
+        source: 'manual',
+        timestamp: new Date()
+      },
+      {
+        id: `test-${Date.now()}-3`,
+        type: 'revenue',
+        value: Math.floor(Math.random() * 500000000) + 50000000,
+        confidence: 0.85,
+        source: 'manual',
+        timestamp: new Date()
+      },
+      {
+        id: `test-${Date.now()}-4`,
+        type: 'modules',
+        value: ['Finance', 'HR', 'Supply Chain'][Math.floor(Math.random() * 3)],
+        confidence: 0.92,
+        source: 'manual',
+        timestamp: new Date()
+      },
+      {
+        id: `test-${Date.now()}-5`,
+        type: 'modules',
+        value: ['Sales', 'Procurement', 'Manufacturing'][Math.floor(Math.random() * 3)],
+        confidence: 0.88,
+        source: 'manual',
+        timestamp: new Date()
+      },
+      {
+        id: `test-${Date.now()}-6`,
+        type: 'timeline',
+        value: `${Math.floor(Math.random() * 12) + 6} months`,
+        confidence: 0.8,
+        source: 'manual',
+        timestamp: new Date()
+      },
+      {
+        id: `test-${Date.now()}-7`,
+        type: 'integration',
+        value: ['Legacy ERP', 'CRM System', 'Banking Interface'][Math.floor(Math.random() * 3)],
+        confidence: 0.87,
+        source: 'manual',
+        timestamp: new Date()
+      },
+      {
+        id: `test-${Date.now()}-8`,
+        type: 'legal_entities',
+        value: Math.floor(Math.random() * 5) + 1,
+        confidence: 0.9,
+        source: 'manual',
+        timestamp: new Date()
+      },
+      {
+        id: `test-${Date.now()}-9`,
+        type: 'locations',
+        value: Math.floor(Math.random() * 10) + 1,
+        confidence: 0.85,
+        source: 'manual',
+        timestamp: new Date()
+      },
+      {
+        id: `test-${Date.now()}-10`,
+        type: 'users',
+        value: Math.floor(Math.random() * 2000) + 200,
+        confidence: 0.88,
+        source: 'manual',
+        timestamp: new Date()
+      }
+    ];
+
+    clearChips();
+    addChips(sampleChips);
+    console.log('✅ Test data generated:', sampleChips.length, 'chips');
   };
 
   return (
@@ -105,7 +215,7 @@ export default function TimelinePage() {
           {/* Start Date Selector */}
           <div className="card-shadow rounded-xl p-6 bg-white hover-lift">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              🗓️ Project Start Date
+              Project Start Date
             </label>
             <input
               type="date"
@@ -135,7 +245,7 @@ export default function TimelinePage() {
           {/* Region & Holidays */}
           <div className="card-shadow rounded-xl p-6 bg-white hover-lift">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              🌍 Region & Holidays
+              Region & Holidays
             </label>
             <select
               value={selectedRegion}
@@ -158,7 +268,7 @@ export default function TimelinePage() {
           {/* Currency & Forex */}
           <div className="card-shadow rounded-xl p-6 bg-white hover-lift">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              💱 Currency
+              Currency
             </label>
             <select
               value={currency}
@@ -225,15 +335,35 @@ export default function TimelinePage() {
         <div className="flex items-center justify-between">
           <TimelineControls />
 
-          {/* Export PDF button - only show if timeline exists */}
-          {phases.length > 0 && (
+          <div className="flex items-center gap-3">
+            {/* Test Data Button */}
             <button
-              onClick={handleExportPDF}
-              className="px-4 py-2 gradient-blue text-white rounded-lg hover-lift font-medium shadow-md"
+              onClick={handleGenerateTestData}
+              className="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium transition-colors"
+              title="Generate random test data for quick testing"
             >
-              📥 Export PDF
+              Generate Test Data
             </button>
-          )}
+
+            {/* Reset Button */}
+            <button
+              onClick={handleResetAll}
+              className="px-4 py-2 border-2 border-red-600 text-red-600 rounded-lg hover:bg-red-50 font-medium transition-colors"
+              title="Clear all data and reset to defaults"
+            >
+              Reset All
+            </button>
+
+            {/* Export PDF button - only show if timeline exists */}
+            {phases.length > 0 && (
+              <button
+                onClick={handleExportPDF}
+                className="px-4 py-2 gradient-blue text-white rounded-lg hover-lift font-medium shadow-md"
+              >
+                Export PDF
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -259,7 +389,7 @@ export default function TimelinePage() {
                   : 'gradient-blue text-white hover-lift shadow-lg hover:shadow-xl transform hover:scale-105'
               }`}
             >
-              ✨ Generate Intelligent Timeline
+              Generate Intelligent Timeline
             </button>
             {(startDateError || (currency !== 'MYR' && forexError)) && (
               <p className="mt-4 text-sm text-red-600 animate-shake">

@@ -17,7 +17,22 @@
       "Bash(npm install:*)",
       "Bash(cp:*)",
       "Bash(curl:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs -r kill -9)",
+      "Bash(test:*)",
+      "Bash(npx snyk test:*)",
+      "WebSearch",
+      "Bash(pkill:*)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== $page ===\")",
+      "Bash(head:*)",
+      "Bash(done)",
+      "Bash(cat:*)",
+      "Bash(ss:*)",
+      "Bash(do lsof:*)",
+      "Bash(awk:*)",
+      "Bash(kill:*)"
     ],
     "deny": [],
     "ask": []

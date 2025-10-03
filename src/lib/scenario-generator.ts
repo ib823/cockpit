@@ -249,8 +249,8 @@ export class ScenarioGenerator {
 
     return {
       legalEntities: entityChips.length > 0
-        ? entityChips.map(c => ({ id: c.id, name: c.value }))
-        : countryChips.map(c => ({ id: c.id, name: c.value })),
+        ? entityChips.map(c => ({ id: c.id || `entity-${c.type}-${c.value}`, name: String(c.value) }))
+        : countryChips.map(c => ({ id: c.id || `country-${c.type}-${c.value}`, name: String(c.value) })),
 
       currencies: this.inferCurrencies(countryChips),
       languages: this.inferLanguages(countryChips),
@@ -269,7 +269,7 @@ export class ScenarioGenerator {
     };
 
     const currencies = countryChips
-      .map(c => currencyMap[c.value])
+      .map(c => currencyMap[String(c.value)])
       .filter(Boolean);
 
     return [...new Set(currencies)];
@@ -286,7 +286,7 @@ export class ScenarioGenerator {
     };
 
     const languages = countryChips
-      .flatMap(c => languageMap[c.value] || ['English']);
+      .flatMap(c => languageMap[String(c.value)] || ['English']);
 
     return [...new Set(languages)];
   }
@@ -302,7 +302,7 @@ export class ScenarioGenerator {
     };
 
     const timezones = countryChips
-      .map(c => timezoneMap[c.value])
+      .map(c => timezoneMap[String(c.value)])
       .filter(Boolean);
 
     return [...new Set(timezones)];
@@ -319,15 +319,16 @@ export class ScenarioGenerator {
 
     // Base modules
     moduleChips.forEach(chip => {
+      const chipValue = String(chip.value);
       items.push({
-        id: chip.id,
-        name: chip.value,
-        complexity: this.inferModuleComplexity(chip.value),
+        id: chip.id || `module-${chip.type}-${chipValue}`,
+        name: chipValue,
+        complexity: this.inferModuleComplexity(chipValue),
         variants: 1,
         criticalityPercent: 80,  // Default assumption
-        customWorkflows: this.estimateCustomWorkflows(chip.value),
-        customForms: this.estimateCustomForms(chip.value),
-        customReports: this.estimateCustomReports(chip.value),
+        customWorkflows: this.estimateCustomWorkflows(chipValue),
+        customForms: this.estimateCustomForms(chipValue),
+        customReports: this.estimateCustomReports(chipValue),
         dependencies: []
       });
     });
@@ -414,7 +415,7 @@ export class ScenarioGenerator {
 
   private extractUsersRoles(chips: Chip[]): UsersRoles {
     const userChips = chips.filter(c => c.type === 'users' || c.type === 'employees');
-    const totalUsers = userChips.length > 0 ? parseInt(userChips[0].value) || 500 : 500;
+    const totalUsers = userChips.length > 0 ? parseInt(String(userChips[0].value)) || 500 : 500;
 
     return {
       personas: [
@@ -439,7 +440,7 @@ export class ScenarioGenerator {
 
   private extractDataMigration(chips: Chip[]): DataMigration {
     const dataVolumeChips = chips.filter(c => c.type === 'data_volume');
-    const recordCount = dataVolumeChips.length > 0 ? parseInt(dataVolumeChips[0].value) || 100000 : 100000;
+    const recordCount = dataVolumeChips.length > 0 ? parseInt(String(dataVolumeChips[0].value)) || 100000 : 100000;
 
     return {
       objects: [
@@ -467,8 +468,8 @@ export class ScenarioGenerator {
     const integrationChips = chips.filter(c => c.type === 'integration');
 
     return integrationChips.map(chip => ({
-      id: chip.id,
-      name: chip.value,
+      id: chip.id || `integration-${chip.type}-${chip.value}`,
+      name: String(chip.value),
       protocol: 'REST' as const,
       securityLevel: 'oauth' as const,
       transactionsPerDay: 1000,
@@ -505,7 +506,7 @@ export class ScenarioGenerator {
     const countryChips = chips.filter(c => c.type === 'country');
 
     return {
-      countries: countryChips.map(c => c.value),
+      countries: countryChips.map(c => String(c.value)),
       eInvoiceModels: [],
       whtRequired: false,
       statutoryReports: 0,
@@ -808,7 +809,7 @@ export class ScenarioGenerator {
    */
   private generateTimeline(plan: ScenarioPlan, chips: Chip[]): ScenarioPlan {
     const timelineChips = chips.filter(c => c.type === 'timeline');
-    const durationMonths = timelineChips.length > 0 ? parseInt(timelineChips[0].value) || 6 : 6;
+    const durationMonths = timelineChips.length > 0 ? parseInt(String(timelineChips[0].value)) || 6 : 6;
 
     plan.duration = durationMonths * 20; // Convert to business days
 

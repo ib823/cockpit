@@ -1,6 +1,6 @@
 // src/stores/timeline-store.ts
 import { calculateProjectCost } from '@/data/resource-catalog';
-import { businessDayToDate, Holiday } from '@/lib/timeline/date-calculations';
+import { businessDayToDate, Holiday, calculateProjectStartDate as calcProjectStart, calculateProjectEndDate as calcProjectEnd } from '@/lib/timeline/date-calculations';
 import {
   calculateIntelligentSequencing,
   ClientProfile,

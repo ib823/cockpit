@@ -36,7 +36,7 @@ export function DecisionBar() {
         <div className={`text-sm font-medium transition-colors ${
           completeness >= 80 ? 'text-green-600' : 'text-gray-600'
         }`}>
-          {completeness >= 80 ? '✅' : '⚠️'} {completeness.toFixed(0)}% Complete
+          {completeness.toFixed(0)}% Complete
         </div>
       </div>
 

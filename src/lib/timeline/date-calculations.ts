@@ -135,11 +135,66 @@ export function generateCalendarDates(
 ): Date[] {
   const dates: Date[] = [];
   const current = new Date(startDate);
-  
+
   while (current <= endDate) {
     dates.push(new Date(current));
     current.setDate(current.getDate() + 1);
   }
-  
+
   return dates;
+}
+
+/**
+ * Calculate project start date from phases
+ */
+export function calculateProjectStartDate(
+  phases: any[],
+  holidays: Holiday[] = DEFAULT_HOLIDAYS
+): Date | null {
+  if (!phases || phases.length === 0) return null;
+
+  // Find the phase with the earliest startBusinessDay
+  const earliest = phases.reduce((min, p) =>
+    (p.startBusinessDay ?? 0) < (min.startBusinessDay ?? 0) ? p : min
+  );
+
+  // Convert business day index to calendar date
+  const startDate = businessDayToDate(
+    new Date('2024-01-01'), // Default project start
+    earliest.startBusinessDay ?? 0,
+    holidays
+  );
+
+  // Validate result
+  return isNaN(startDate.getTime()) ? null : startDate;
+}
+
+/**
+ * Calculate project end date from phases
+ */
+export function calculateProjectEndDate(
+  phases: any[],
+  holidays: Holiday[] = DEFAULT_HOLIDAYS
+): Date | null {
+  if (!phases || phases.length === 0) return null;
+
+  // Find the phase that ends latest
+  const latest = phases.reduce((max, p) => {
+    const pEnd = (p.startBusinessDay ?? 0) + (p.workingDays ?? 0);
+    const maxEnd = (max.startBusinessDay ?? 0) + (max.workingDays ?? 0);
+    return pEnd > maxEnd ? p : max;
+  });
+
+  // Calculate end business day index
+  const endBusinessDay = (latest.startBusinessDay ?? 0) + (latest.workingDays ?? 0);
+
+  // Convert to calendar date
+  const endDate = businessDayToDate(
+    new Date('2024-01-01'),
+    endBusinessDay,
+    holidays
+  );
+
+  // Validate result
+  return isNaN(endDate.getTime()) ? null : endDate;
 }

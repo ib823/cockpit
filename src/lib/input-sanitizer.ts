@@ -4,12 +4,24 @@
  * Prevents XSS, DoS, and other malicious inputs
  */
 
+import DOMPurify from 'dompurify';
+
 /**
  * Sanitize HTML/script tags from user input
  */
 export function sanitizeHtml(input: string): string {
   if (typeof input !== 'string') return '';
 
+  // Use DOMPurify for comprehensive XSS protection
+  if (typeof window !== 'undefined') {
+    return DOMPurify.sanitize(input, {
+      ALLOWED_TAGS: [], // Strip all HTML tags
+      ALLOWED_ATTR: [], // Strip all attributes
+      KEEP_CONTENT: true // Keep text content
+    });
+  }
+
+  // Fallback for server-side (shouldn't occur in client-only app)
   return input
     // Remove script tags
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')

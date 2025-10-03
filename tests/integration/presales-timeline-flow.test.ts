@@ -418,8 +418,8 @@ describe('Presales → Timeline Integration Flow', () => {
         { type: 'modules', value: 'Finance', confidence: 0.9, source: 'test' }
       ];
 
-      // @ts-expect-error Testing malformed input
-      const result = convertPresalesToTimeline(chips, null);
+      // Testing malformed input - null should be handled gracefully
+      const result = convertPresalesToTimeline(chips, null as any);
 
       // Should still work with default values
       expect(result.selectedPackages.length).toBeGreaterThan(0);

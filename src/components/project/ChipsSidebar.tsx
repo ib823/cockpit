@@ -5,20 +5,20 @@ import { usePresalesStore } from '@/stores/presales-store';
 import { Chip } from '@/types/core';
 
 const CHIP_ICONS: Record<string, string> = {
-  country: '🌍',
-  employees: '👥',
-  revenue: '💰',
-  modules: '📦',
-  timeline: '📅',
-  integration: '🔗',
-  compliance: '✅',
-  industry: '🏭',
-  banking: '🏦',
-  existing_system: '💻',
-  legal_entities: '🏢',
-  locations: '📍',
-  data_volume: '💾',
-  users: '👤'
+  country: '',
+  employees: '',
+  revenue: '',
+  modules: '',
+  timeline: '',
+  integration: '',
+  compliance: '',
+  industry: '',
+  banking: '',
+  existing_system: '',
+  legal_entities: '',
+  locations: '',
+  data_volume: '',
+  users: ''
 };
 
 export function ChipsSidebar() {
@@ -35,12 +35,11 @@ export function ChipsSidebar() {
       <div className="flex-1 overflow-auto p-4 space-y-2">
         {chips.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
-            <div className="text-4xl mb-2">📋</div>
             <div className="text-sm">No requirements yet</div>
           </div>
         ) : (
           chips.map(chip => (
-            <ChipCard key={chip.id} chip={chip} onRemove={() => removeChip(chip.id)} />
+            <ChipCard key={chip.id || `chip-${chip.type}-${chip.value}`} chip={chip} onRemove={() => removeChip(chip.id!)} />
           ))
         )}
       </div>

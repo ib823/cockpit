@@ -33,9 +33,11 @@ export default function CriticalGapsAlert() {
     const hasUsers = chips.some(c => c.type === 'users');
     
     // Get context from what we know
-    const industry = chips.find(c => c.type === 'industry')?.value || 'general';
-    const employees = parseInt(chips.find(c => c.type === 'employees')?.value || '100');
-    const revenue = parseInt(chips.find(c => c.type === 'revenue')?.value || '10000000');
+    const industry = String(chips.find(c => c.type === 'industry')?.value || 'general');
+    const employeesValue = chips.find(c => c.type === 'employees')?.value;
+    const employees = parseInt(String(employeesValue || '100'));
+    const revenueValue = chips.find(c => c.type === 'revenue')?.value;
+    const revenue = parseInt(String(revenueValue || '10000000'));
     
     const assumptions = getSmartAssumptions(industry, employees, revenue);
     

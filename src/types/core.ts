@@ -1,9 +1,9 @@
 // Core type definitions
 
 export interface Chip {
-  id: string;
+  id?: string;
   type: ChipType;
-  value: string;
+  value: string | number;
   confidence: number;
   source: ChipSource;
   validated?: boolean;
@@ -51,12 +51,13 @@ export type ChipType =
   | 'business_units'
   | 'legacy_systems';
 
-export type ChipSource = 
-  | 'paste' 
-  | 'upload' 
-  | 'voice' 
-  | 'manual' 
-  | 'photo_ocr';
+export type ChipSource =
+  | 'paste'
+  | 'upload'
+  | 'voice'
+  | 'manual'
+  | 'photo_ocr'
+  | 'test';
 
 export interface Decision {
   id: string;

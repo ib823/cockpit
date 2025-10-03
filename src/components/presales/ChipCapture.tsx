@@ -286,9 +286,9 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
           <div className="grid gap-2 animate-slide-up">
             {chips.map((chip) => (
               <ChipDisplay
-                key={chip.id}
+                key={chip.id || `chip-${chip.type}-${chip.value}`}
                 chip={chip}
-                onRemove={() => handleRemoveChip(chip.id)}
+                onRemove={() => handleRemoveChip(chip.id!)}
               />
             ))}
           </div>
