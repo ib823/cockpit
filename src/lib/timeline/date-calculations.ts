@@ -1,203 +1,145 @@
-// Complete working date calculations with business day logic
+// src/lib/timeline/date-calculations.ts
+// Business day calculation with holiday support
 
 export interface Holiday {
-  date: string; // YYYY-MM-DD format
+  date: string; // YYYY-MM-DD
   name: string;
+  region?: string;
 }
 
 export const DEFAULT_HOLIDAYS: Holiday[] = [
   { date: '2024-01-01', name: 'New Year' },
-  { date: '2024-02-10', name: 'Chinese New Year' },
+  { date: '2024-02-01', name: 'Federal Territory Day' },
+  { date: '2024-04-10', name: 'Hari Raya Aidilfitri' },
+  { date: '2024-04-11', name: 'Hari Raya Aidilfitri' },
   { date: '2024-05-01', name: 'Labour Day' },
+  { date: '2024-05-22', name: 'Wesak Day' },
+  { date: '2024-06-03', name: 'Agong Birthday' },
+  { date: '2024-06-17', name: 'Hari Raya Aidiladha' },
+  { date: '2024-07-07', name: 'Awal Muharram' },
   { date: '2024-08-31', name: 'Merdeka Day' },
+  { date: '2024-09-16', name: 'Malaysia Day' },
+  { date: '2024-09-16', name: 'Prophet Muhammad Birthday' },
+  { date: '2024-10-24', name: 'Deepavali' },
   { date: '2024-12-25', name: 'Christmas' }
 ];
 
-const BUSINESS_DAY_BASE_DATE = '2024-01-01';
-
 /**
- * Check if date is a weekend (Saturday or Sunday)
+ * Convert business day index to actual calendar date
+ * @param startDate - Project start date (e.g., new Date('2024-01-01'))
+ * @param businessDayIndex - Business day number (0 = start date)
+ * @param holidays - Array of holiday dates
+ * @returns Actual calendar date
  */
-function isWeekend(date: Date): boolean {
-  const day = date.getDay();
-  return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday
+export function businessDayToDate(
+  startDate: Date,
+  businessDayIndex: number,
+  holidays: Holiday[] = DEFAULT_HOLIDAYS
+): Date {
+  // Validation
+  if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
+    console.error('Invalid startDate:', startDate);
+    return new Date(); // Fallback to today
+  }
+  
+  if (typeof businessDayIndex !== 'number' || businessDayIndex < 0) {
+    console.error('Invalid businessDayIndex:', businessDayIndex);
+    return new Date(startDate); // Fallback to start date
+  }
+
+  // Convert holiday strings to Set for O(1) lookup
+  const holidaySet = new Set(
+    holidays.map(h => h.date)
+  );
+
+  // Start from the given date
+  const result = new Date(startDate);
+  let businessDaysAdded = 0;
+
+  // Edge case: if businessDayIndex is 0, return start date
+  if (businessDayIndex === 0) {
+    return new Date(result);
+  }
+
+  // Iterate through calendar days until we've counted enough business days
+  while (businessDaysAdded < businessDayIndex) {
+    result.setDate(result.getDate() + 1);
+    
+    const dayOfWeek = result.getDay();
+    const dateStr = result.toISOString().split('T')[0];
+    
+    // Skip weekends (0 = Sunday, 6 = Saturday)
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      continue;
+    }
+    
+    // Skip holidays
+    if (holidaySet.has(dateStr)) {
+      continue;
+    }
+    
+    businessDaysAdded++;
+  }
+
+  return result;
 }
 
 /**
- * Check if date is a holiday
+ * Calculate end date given start date and duration in business days
  */
-function isHoliday(date: Date, holidays: Holiday[]): boolean {
+export function calculateEndDate(
+  startDate: Date,
+  workingDays: number,
+  holidays: Holiday[] = DEFAULT_HOLIDAYS
+): Date {
+  return businessDayToDate(startDate, workingDays - 1, holidays);
+}
+
+/**
+ * Check if a date is a weekend
+ */
+export function isWeekend(date: Date): boolean {
+  const day = date.getDay();
+  return day === 0 || day === 6;
+}
+
+/**
+ * Check if a date is a holiday
+ */
+export function isHoliday(date: Date, holidays: Holiday[] = DEFAULT_HOLIDAYS): boolean {
   const dateStr = date.toISOString().split('T')[0];
   return holidays.some(h => h.date === dateStr);
 }
 
 /**
- * Convert business day index to actual calendar date
- * @param businessDayIndex - Zero-based index (0 = first business day)
- * @param holidays - Array of holidays to skip
- * @param baseDate - Starting date (default: 2024-01-01)
+ * Format date elegantly for UI display
  */
-export function businessDayToDate(
-  businessDayIndex: number,
-  holidays: Holiday[] = [],
-  skipHolidays: boolean = true,
-  baseDate: string = BUSINESS_DAY_BASE_DATE
-): Date {
-  const start = new Date(baseDate);
-  
-  // If index is 0 or negative, return base date
-  if (businessDayIndex <= 0) {
-    return start;
+export function formatDateElegant(date: Date): string {
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    console.error('formatDateElegant received invalid date:', date);
+    return 'Invalid Date';
   }
   
-  let current = new Date(start);
-  let count = 0;
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
-  // Iterate until we've counted enough business days
-  while (count < businessDayIndex) {
-    current.setDate(current.getDate() + 1);
-    
-    // Skip weekends
-    if (isWeekend(current)) {
-      continue;
-    }
-    
-    // Skip holidays if requested
-    if (skipHolidays && isHoliday(current, holidays)) {
-      continue;
-    }
-    
-    count++;
-  }
-  
-  return current;
+  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
 /**
- * Convert actual date to business day index
- * @param date - Target date
- * @param holidays - Array of holidays to skip
- * @param baseDate - Starting date (default: 2024-01-01)
+ * Generate array of calendar dates for timeline display
  */
-export function dateToBusinessDay(
-  date: Date,
-  holidays: Holiday[] = [],
-  skipHolidays: boolean = true,
-  baseDate: string = BUSINESS_DAY_BASE_DATE
-): number {
-  const start = new Date(baseDate);
-  const target = new Date(date);
-  
-  // If target is before or on start date, return 0
-  if (target <= start) {
-    return 0;
-  }
-  
-  let current = new Date(start);
-  let index = 0;
-  
-  // Count business days between start and target
-  while (current < target) {
-    current.setDate(current.getDate() + 1);
-    
-    // Skip weekends
-    if (isWeekend(current)) {
-      continue;
-    }
-    
-    // Skip holidays if requested
-    if (skipHolidays && isHoliday(current, holidays)) {
-      continue;
-    }
-    
-    index++;
-  }
-  
-  return index;
-}
-
-/**
- * Calculate end date given start date and working days
- */
-export function calculateEndDate(
+export function generateCalendarDates(
   startDate: Date,
-  workingDays: number,
-  holidays: Holiday[] = [],
-  skipHolidays: boolean = true
-): Date {
-  // Convert start date to business day index
-  const startIndex = dateToBusinessDay(startDate, holidays, skipHolidays);
+  endDate: Date
+): Date[] {
+  const dates: Date[] = [];
+  const current = new Date(startDate);
   
-  // Add working days
-  const endIndex = startIndex + workingDays;
-  
-  // Convert back to date
-  return businessDayToDate(endIndex, holidays, skipHolidays);
-}
-
-/**
- * Format date elegantly (e.g., "15 Jan 2024")
- */
-export function formatDateElegant(date: Date | null | undefined): string {
-  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-    return 'TBD';
+  while (current <= endDate) {
+    dates.push(new Date(current));
+    current.setDate(current.getDate() + 1);
   }
   
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  
-  return `${day} ${month} ${year}`;
-}
-
-/**
- * Get project start date from phases
- */
-export function getProjectStartDate(phases: any[]): Date | null {
-  if (!phases || phases.length === 0) {
-    return null;
-  }
-  
-  // Find earliest phase
-  const earliestPhase = phases.reduce((earliest, phase) => {
-    return phase.startBusinessDay < earliest.startBusinessDay ? phase : earliest;
-  }, phases[0]);
-  
-  return businessDayToDate(earliestPhase.startBusinessDay, DEFAULT_HOLIDAYS);
-}
-
-/**
- * Get project end date from phases
- */
-export function getProjectEndDate(phases: any[]): Date | null {
-  if (!phases || phases.length === 0) {
-    return null;
-  }
-  
-  // Find latest phase end
-  const latestPhase = phases.reduce((latest, phase) => {
-    const currentEnd = phase.startBusinessDay + (phase.workingDays || 0);
-    const latestEnd = latest.startBusinessDay + (latest.workingDays || 0);
-    return currentEnd > latestEnd ? phase : latest;
-  }, phases[0]);
-  
-  const endBusinessDay = latestPhase.startBusinessDay + (latestPhase.workingDays || 0);
-  
-  return businessDayToDate(endBusinessDay, DEFAULT_HOLIDAYS);
-}
-
-/**
- * Calculate total project duration in calendar days
- */
-export function calculateProjectDuration(phases: any[]): number {
-  const start = getProjectStartDate(phases);
-  const end = getProjectEndDate(phases);
-  
-  if (!start || !end) {
-    return 0;
-  }
-  
-  const diff = end.getTime() - start.getTime();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1; // +1 to include end date
+  return dates;
 }

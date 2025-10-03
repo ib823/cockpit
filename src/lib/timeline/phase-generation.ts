@@ -30,7 +30,6 @@ export const generateTimelineFromSAPSelection = (
   // Calculate total effort using sophisticated EffortCalculator
   const clientProfile = {
     size: profile.size || 'medium',
-    maturity: profile.maturity || 'basic',
     industry: profile.industry || 'default',
     employees: profile.employees || 500,
     annualRevenue: profile.annualRevenue || 100000000,
@@ -45,7 +44,7 @@ export const generateTimelineFromSAPSelection = (
     if (!sapPackage) return;
 
     // Calculate package proportion of total effort
-    const packageProportion = sapPackage.effort / selectedPackages.reduce((sum, p) => 
+    const packageProportion = (sapPackage.effort || 0) / selectedPackages.reduce((sum, p) =>
       (SAP_CATALOG[p]?.effort || 0) + sum, 0);
     const packageEffort = Math.round(totalEffort * packageProportion);
     
@@ -195,7 +194,7 @@ export const calculateIntelligentSequencing = (phases: Phase[]): Phase[] => {
     if (!phase) return;
     
     // Visit all dependencies first
-    phase.dependencies.forEach(depId => {
+    (phase.dependencies || []).forEach(depId => {
       visit(depId);
     });
     
@@ -218,11 +217,11 @@ export const calculateIntelligentSequencing = (phases: Phase[]): Phase[] => {
     let earliestStart = 0;
     
     // Find the latest end date of all dependencies
-    phase.dependencies.forEach(depId => {
+    (phase.dependencies || []).forEach(depId => {
       const depStartDate = phaseStartDates.get(depId) || 0;
       const depPhase = sorted.find(p => p.id === depId);
       const depEndDate = depStartDate + (depPhase?.workingDays || 0);
-      
+
       if (depEndDate > earliestStart) {
         earliestStart = depEndDate;
       }
@@ -240,24 +239,25 @@ export const calculateResourceRequirements = (
   phase: Phase,
   profile: ClientProfile
 ): Resource[] => {
-  const teamSize = Math.max(2, Math.ceil(phase.effort / 10)); // Minimum 2 people
+  const teamSize = Math.max(2, Math.ceil((phase.effort || 0) / 10)); // Minimum 2 people
   const resources: Resource[] = [];
-  
+
   // Apply standard team composition
   Object.entries(STANDARD_TEAM_COMPOSITION).forEach(([role, percentage]) => {
     const allocation = Math.round(percentage * 100);
-    
+
     if (allocation > 5) { // Only include roles with meaningful allocation
       resources.push({
         id: `${phase.id}_${role}`,
         name: `${role} for ${phase.name}`,
         role: role as any,
         region: profile.region,
-        allocation
+        allocation,
+        hourlyRate: 100 // Default hourly rate
       });
     }
   });
-  
+
   return resources;
 };
 
@@ -290,7 +290,7 @@ export const validatePhaseDependencies = (phases: Phase[]): string[] => {
   const phaseIds = new Set(phases.map(p => p.id));
   
   phases.forEach(phase => {
-    phase.dependencies.forEach(depId => {
+    (phase.dependencies || []).forEach(depId => {
       if (!phaseIds.has(depId)) {
         errors.push(`Phase "${phase.name}" depends on non-existent phase ID: ${depId}`);
       }

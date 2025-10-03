@@ -1,0 +1,38 @@
+describe('Complete User Journey', () => {
+  it('extracts chips → generates timeline → exports PDF', () => {
+    // 1. Navigate to presales
+    cy.visit('/presales');
+    
+    // 2. Paste RFP text
+    cy.get('textarea').type(`
+      Malaysia manufacturing company with 500 employees and MYR 200M revenue.
+      Need Finance, HR and Supply Chain modules.
+      Go-live Q2 2024. Must integrate with Salesforce.
+      Require e-invoice compliance for LHDN.
+      Operating 5 branches across Malaysia.
+    `);
+    
+    // 3. Extract chips
+    cy.contains('Extract').click();
+    cy.contains('8 requirements extracted', { timeout: 3000 });
+    
+    // 4. Verify completeness
+    cy.contains('75%'); // Should show completeness score
+    
+    // 5. Generate timeline
+    cy.contains('Generate Baseline Timeline').click();
+    cy.url().should('include', '/timeline');
+    
+    // 6. Verify timeline rendered
+    cy.contains('Jan 1, 2024').should('be.visible'); // NOT "NaN-undefined-aN"
+    cy.contains('MYR').should('be.visible'); // Cost displayed
+    
+    // 7. Click phase to edit
+    cy.get('[data-testid="phase-bar"]').first().click();
+    cy.contains('Edit Phase').should('be.visible');
+    
+    // 8. Export PDF (when implemented)
+    cy.contains('Export PDF').click();
+    cy.get('[data-testid="export-success"]').should('be.visible');
+  });
+});

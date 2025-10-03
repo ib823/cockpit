@@ -1,8 +1,6 @@
+// src/stores/timeline-store.ts
 import { calculateProjectCost } from '@/data/resource-catalog';
-import {
-  businessDayToDate,
-  Holiday
-} from '@/lib/timeline/date-calculations';
+import { businessDayToDate, Holiday } from '@/lib/timeline/date-calculations';
 import {
   calculateIntelligentSequencing,
   ClientProfile,
@@ -48,6 +46,7 @@ export interface TimelineState {
   movePhaseOrder: (fromIndex: number, toIndex: number) => void;
   togglePhaseSelection: (id: string) => void;
   setPhaseColor: (phaseId: string, color: string) => void;
+  updatePhaseColor: (phaseId: string, color: string) => void;
   
   // Actions - Resources
   updatePhaseResources: (phaseId: string, resources: Resource[]) => void;
@@ -69,7 +68,6 @@ export interface TimelineState {
   getProjectEndDate: () => Date | null;
   getTotalPhases: () => number;
   getTotalWorkingDays: () => number;
-  updatePhaseColor: (phaseId: string, color: string) => void; // Add this
 }
 
 // ============================================================================
@@ -95,7 +93,6 @@ const PROJECT_BASE_DATE = new Date('2024-01-01');
 
 /**
  * Calculate project start date from phases
- * FIX: Proper date calculation with validation
  */
 function calculateProjectStartDate(phases: Phase[], holidays: Holiday[]): Date | null {
   if (phases.length === 0) return null;
@@ -125,7 +122,6 @@ function calculateProjectStartDate(phases: Phase[], holidays: Holiday[]): Date |
 
 /**
  * Calculate project end date from phases
- * FIX: Proper date calculation with validation
  */
 function calculateProjectEndDate(phases: Phase[], holidays: Holiday[]): Date | null {
   if (phases.length === 0) return null;
@@ -169,7 +165,6 @@ function validatePhase(phase: Partial<Phase>): boolean {
 
 /**
  * Migrate old store state to new format
- * FIX: Add migration function for version updates
  */
 function migrateTimelineState(persistedState: any, version: number): any {
   if (version === 0) {
@@ -277,7 +272,6 @@ export const useTimelineStore = create<TimelineState>()(
               return state;
             }
             
-            // Log generated phases for debugging
             console.log('Generated phases:', newPhases.length);
             console.log('First phase sample:', newPhases[0]);
             
@@ -428,11 +422,19 @@ export const useTimelineStore = create<TimelineState>()(
           
           const updatedColors = { ...state.phaseColors, [phaseId]: color };
           
+          console.log(`[Store] Setting phase ${phaseId} color to ${color}`);
+          
           return {
             phases: updatedPhases,
             phaseColors: updatedColors
           };
         });
+      },
+      
+      // FIX: Implement the missing updatePhaseColor method
+      updatePhaseColor: (phaseId: string, color: string) => {
+        // This is an alias for setPhaseColor to maintain API compatibility
+        get().setPhaseColor(phaseId, color);
       },
       
       // ========================================================================
@@ -521,19 +523,17 @@ export const useTimelineStore = create<TimelineState>()(
         const { phases } = get();
         
         try {
-          // Validate phases exist
           if (!phases || phases.length === 0) {
             return 0;
           }
           
-          // Try the original function first
           try {
             const phasesWithResources = phases.map(p => ({ 
               ...p, 
               resources: p.resources || [] 
             }));
             
-            const cost = calculateProjectCost(phasesWithResources, 8);
+            const cost = calculateProjectCost(phasesWithResources);
             
             if (typeof cost === 'number' && !isNaN(cost) && cost >= 0) {
               return cost;
@@ -549,13 +549,9 @@ export const useTimelineStore = create<TimelineState>()(
             const resources = phase.resources || [];
             const workingDays = phase.workingDays || 0;
             
-            if (resources.length === 0) {
-              // No resources assigned, skip this phase
-              continue;
-            }
+            if (resources.length === 0) continue;
             
             for (const resource of resources) {
-              // Validate resource has all required fields
               if (!resource) continue;
               
               const hourlyRate = typeof resource.hourlyRate === 'number' ? resource.hourlyRate : 0;
@@ -566,7 +562,6 @@ export const useTimelineStore = create<TimelineState>()(
                 continue;
               }
               
-              // Calculate: hourlyRate * hours per day * days * allocation percentage
               const allocationDecimal = allocation / 100;
               const hours = workingDays * 8 * allocationDecimal;
               const resourceCost = hourlyRate * hours;
@@ -587,7 +582,6 @@ export const useTimelineStore = create<TimelineState>()(
             }
           }
           
-          // Round to 2 decimal places
           const finalCost = Math.round(totalCost * 100) / 100;
           
           if (isNaN(finalCost)) {

@@ -110,7 +110,7 @@ export function calculateProjectCost(phases: Phase[]): {
 } {
   let totalCost = 0;
   const breakdown: Record<string, number> = {};
-  let currency = 'USD';
+  const currency = 'USD';
 
   phases.forEach(phase => {
     if (!phase.resources || !phase.workingDays) return;

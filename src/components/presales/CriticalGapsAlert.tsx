@@ -194,7 +194,7 @@ export default function CriticalGapsAlert() {
       
       <div className="mt-4 text-xs text-gray-600">
         <strong>Why this matters:</strong> The difference between 1 and 10 legal entities can mean
-        6 months vs 18 months implementation. We're making assumptions that could be wildly wrong.
+        6 months vs 18 months implementation. We&apos;re making assumptions that could be wildly wrong.
       </div>
     </div>
   );

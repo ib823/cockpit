@@ -112,7 +112,7 @@ function extractCriticalPatterns(text: string): ExtendedChip[] {
     for (const match of text.matchAll(pattern)) {
       if (match[1]) {
         const value = extractNumericValue(match[1]);
-        if (value > 0) {
+        if (value !== null && value > 0) {
           chips.push({
             id: `critical_${Date.now()}_${Math.random().toString(36).slice(2)}`,
             type: 'legal_entities',
@@ -136,7 +136,7 @@ function extractCriticalPatterns(text: string): ExtendedChip[] {
     for (const match of text.matchAll(pattern)) {
       if (match[1]) {
         const value = extractNumericValue(match[1]);
-        if (value > 0) {
+        if (value !== null && value > 0) {
           chips.push({
             id: `critical_${Date.now()}_${Math.random().toString(36).slice(2)}`,
             type: 'locations',
@@ -160,7 +160,7 @@ function extractCriticalPatterns(text: string): ExtendedChip[] {
     for (const match of text.matchAll(pattern)) {
       if (match[1]) {
         const value = extractNumericValue(match[1]);
-        if (value > 0) {
+        if (value !== null && value > 0) {
           const isTransactions = /transaction|invoice|order|PO|SO/i.test(match[0]);
           const isMasterData = /SKU|material|product|customer|vendor/i.test(match[0]);
           
@@ -191,7 +191,7 @@ function extractCriticalPatterns(text: string): ExtendedChip[] {
     for (const match of text.matchAll(pattern)) {
       if (match[1]) {
         const value = extractNumericValue(match[1]);
-        if (value > 0) {
+        if (value !== null && value > 0) {
           chips.push({
             id: `critical_${Date.now()}_${Math.random().toString(36).slice(2)}`,
             type: 'users',
@@ -255,7 +255,7 @@ function extractCriticalPatterns(text: string): ExtendedChip[] {
     for (const match of text.matchAll(pattern)) {
       if (match[1]) {
         const value = extractNumericValue(match[1]);
-        if (value > 0) {
+        if (value !== null && value > 0) {
           chips.push({
             id: `critical_${Date.now()}_${Math.random().toString(36).slice(2)}`,
             type: 'legacy_systems',

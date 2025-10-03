@@ -1,5 +1,5 @@
 import { convertPresalesToTimeline } from "@/lib/presales-to-timeline-bridge";
-import { Chip } from "@/types/core";
+import { Chip, ChipType } from "@/types/core";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -191,7 +191,7 @@ export const usePresalesStore = create<PresalesState>()(
         const gaps: any[] = [];
         
         for (const [factor, config] of Object.entries(scoringFactors)) {
-          if (chipTypes.has(factor) || chipTypes.has(factor + 's')) {
+          if (chipTypes.has(factor as ChipType) || chipTypes.has((factor + 's') as ChipType)) {
             score += config.weight;
           } else {
             gaps.push({
@@ -269,7 +269,7 @@ export const usePresalesStore = create<PresalesState>()(
     {
       name: "presales-storage",
       storage: createJSONStorage(() =>
-        typeof window !== "undefined" ? localStorage : undefined
+        typeof window !== "undefined" ? localStorage : ({} as any)
       ),
     }
   )
@@ -280,10 +280,10 @@ function checkCriticalCombinations(chips: Chip[]): boolean {
   const chipTypes = new Set(chips.map(c => c.type || (c as any).kind));
   
   // Must have at least: country OR industry, AND (employees OR users), AND modules
-  const hasLocation = chipTypes.has('country') || chipTypes.has('state') || chipTypes.has('city');
-  const hasIndustry = chipTypes.has('industry');
-  const hasSize = chipTypes.has('employees') || chipTypes.has('users');
-  const hasModules = chipTypes.has('modules');
+  const hasLocation = chipTypes.has('country' as any) || chipTypes.has('locations' as any);
+  const hasIndustry = chipTypes.has('industry' as any);
+  const hasSize = chipTypes.has('employees' as any) || chipTypes.has('users' as any);
+  const hasModules = chipTypes.has('modules' as any);
   
   return (hasLocation || hasIndustry) && hasSize && hasModules;
 }

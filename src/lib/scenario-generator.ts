@@ -129,15 +129,15 @@ function determinePackages(chips: Chip[], decisions: Decision[]): string[] {
     // Default based on module chips
     if (summary.modules) {
       summary.modules.forEach((chip) => {
-        const module = chip.raw.toLowerCase();
-        if (module.includes("finance") || module.includes("fi")) {
+        const moduleValue = chip.raw.toLowerCase();
+        if (moduleValue.includes("finance") || moduleValue.includes("fi")) {
           packages.add("Finance_1");
           packages.add("Finance_3");
         }
-        if (module.includes("hr") || module.includes("hcm")) {
+        if (moduleValue.includes("hr") || moduleValue.includes("hcm")) {
           packages.add("HCM_1");
         }
-        if (module.includes("supply") || module.includes("scm")) {
+        if (moduleValue.includes("supply") || moduleValue.includes("scm")) {
           packages.add("SCM_1");
         }
       });
@@ -196,8 +196,10 @@ const baseEffort = calculatePackageEffort(packages);
 
   // Apply complexity multipliers
   const complexityMultipliers = {
+    simple: 0.8,
     standard: 1.0,
     complex: 1.3,
+    very_complex: 1.5,
     extreme: 1.6,
   };
 
@@ -238,21 +240,20 @@ function generatePhases(
       if (streamPackages.length === 0) return;
 
       const streamEffort = Math.round(stageEffort / Object.keys(streams).length);
-      const resources = DEFAULT_TEAM_COMPOSITION[profile.region === "Singapore" ? "SG" : "MY"] || [];
+      const regionKey = profile.region === "Singapore" ? "SG" : "MY";
+      const resources = (DEFAULT_TEAM_COMPOSITION as any)[regionKey] || [];
 
 
       phases.push({
         id: `phase_${Date.now()}_${Math.random()}`,
         name: `${stage} - ${streamName}`,
-        sapActivatePhase: stage as Phase["sapActivatePhase"],
-        stream: streamName,
-        startDay: currentDay,
-        duration: stageDuration,
+        category: stage,
+        startBusinessDay: currentDay,
+        workingDays: stageDuration,
         effort: streamEffort,
         resources,
         dependencies: [],
-        deliverables: generateDeliverables(stage, streamName),
-      });
+      } as any);
     });
 
     currentDay += stageDuration;
@@ -314,9 +315,9 @@ function generateDeliverables(stage: string, stream: string): string[] {
 }
 
 // Calculate project totals
-function calculateTotals(phases: Phase[], profile: ClientProfile): ScenarioPlan["totals"] {
-  const personDays = phases.reduce((sum, phase) => sum + phase.effort, 0);
-  const duration = Math.max(...phases.map((p) => p.startDay + p.duration));
+function calculateTotals(phases: Phase[], profile: ClientProfile): { personDays: number; duration: number; cost: number; margin: number; effort: number } {
+  const personDays = phases.reduce((sum, phase) => sum + (phase.effort || 0), 0);
+  const duration = Math.max(...phases.map((p) => p.startBusinessDay + p.workingDays));
 
   // Calculate cost
   const avgDailyRate = profile.region === "Singapore" ? 4800 : 8000; // SGD vs MYR
@@ -330,6 +331,7 @@ function calculateTotals(phases: Phase[], profile: ClientProfile): ScenarioPlan[
     duration,
     cost: Math.round(cost),
     margin,
+    effort: personDays,
   };
 }
 
@@ -348,12 +350,8 @@ function generateAssumptions(
   ];
 
   // Add specific assumptions based on context
-  if ((profile.complexity as any) === "extreme") {
+  if (profile.complexity === "very_complex") {
     assumptions.push("Complex requirements may require additional analysis time");
-  }
-
-  if (profile.maturity === "naive") {
-    assumptions.push("Additional change management effort may be required");
   }
 
   const summary = summarizeChips(chips);
@@ -369,47 +367,22 @@ function identifyRisks(
   chips: Chip[],
   _decisions: Decision[],
   packages: string[]
-): ScenarioPlan["risks"] {
-  const risks: ScenarioPlan["risks"] = [];
+): string[] {
+  const risks: string[] = [];
 
   // Standard risks
-  risks.push({
-    id: "risk_1",
-    description: "Data quality issues during migration",
-    probability: "medium",
-    impact: "high",
-    mitigation: "Early data profiling and cleansing activities",
-  });
-
-  risks.push({
-    id: "risk_2",
-    description: "User adoption challenges",
-    probability: "medium",
-    impact: "medium",
-    mitigation: "Comprehensive training and change management program",
-  });
+  risks.push("Data quality issues during migration - Mitigation: Early data profiling and cleansing activities");
+  risks.push("User adoption challenges - Mitigation: Comprehensive training and change management program");
 
   // Check for specific risk factors
   const summary = summarizeChips(chips);
 
   if (summary.integration && summary.integration.length > 2) {
-    risks.push({
-      id: "risk_3",
-      description: "Complex integration requirements may delay project",
-      probability: "high",
-      impact: "high",
-      mitigation: "Early proof of concept for critical integrations",
-    });
+    risks.push("Complex integration requirements may delay project - Mitigation: Early proof of concept for critical integrations");
   }
 
   if (packages.length > 5) {
-    risks.push({
-      id: "risk_4",
-      description: "Large scope may impact timeline",
-      probability: "medium",
-      impact: "high",
-      mitigation: "Consider phased approach for non-critical modules",
-    });
+    risks.push("Large scope may impact timeline - Mitigation: Consider phased approach for non-critical modules");
   }
 
   return risks;

@@ -5,7 +5,12 @@
       "Bash(cloc:*)",
       "Bash(rm:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nrefactor: timeline enhancements and code cleanup\n\n- Update timeline calculations and phase generation\n- Modify presales stores and mode selector\n- Update chip parsing and scenario generation\n- Clean up unused components and types\n- Update ESLint and TypeScript configurations\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nrefactor: timeline enhancements and code cleanup\n\n- Update timeline calculations and phase generation\n- Modify presales stores and mode selector\n- Update chip parsing and scenario generation\n- Clean up unused components and types\n- Update ESLint and TypeScript configurations\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(npm test:*)",
+      "Bash(mv:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []

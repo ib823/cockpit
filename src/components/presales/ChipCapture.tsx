@@ -409,7 +409,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
           {!completeness.canProceed && completeness.blockers.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
               <div className="text-sm font-medium text-amber-900 mb-1">
-                Why "Generate Timeline" is disabled:
+                Why &quot;Generate Timeline&quot; is disabled:
               </div>
               <ul className="text-sm text-amber-700 space-y-1">
                 {completeness.blockers.map((blocker, idx) => (
@@ -417,7 +417,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
                 ))}
               </ul>
               <div className="text-xs text-amber-600 mt-2">
-                Use "Proceed with Defaults" to continue with assumptions, or add missing info above.
+                Use &quot;Proceed with Defaults&quot; to continue with assumptions, or add missing info above.
               </div>
             </div>
           )}

@@ -149,9 +149,9 @@ const CHIP_PATTERNS: Partial<Record<ChipKind, RegExp[]>> = {
   ],
 
   employees: [
-    /\b(\d{1,3}(?:[,.]\d{3})+|\d+(?:\.\d+)?\s*k)\s*(?:employees?|staff|pax|kakitangan|pekerja|headcount|hc|f(?:ull)?t(?:ime)?e(?:quivalent)?s?|users?|workforce)\b/gi,
-    /\b(?:headcount|hc|fte|employees?)\s*[:~\-]?\s*(\d{1,3}(?:[,.]\d{3})+|\d+(?:\.\d+)?\s*k)\b/gi,
-    /\b(?:about|around|approx(?:\\.|imately)?)\s+(\d{1,3}(?:[,.]\d{3})+|\d+(?:\.\d+)?\s*k)\s+(?:staff|employees|users?)\b/gi
+    /\b(\d{1,3}(?:[,.]\d{3})+|\d+(?:\.\d+)?(?:\s*k)?)\s*(?:employees?|staff|pax|kakitangan|pekerja|headcount|hc|f(?:ull)?t(?:ime)?e(?:quivalent)?s?|users?|workforce)\b/gi,
+    /\b(?:headcount|hc|fte|employees?)\s*[:~\-]?\s*(\d{1,3}(?:[,.]\d{3})+|\d+(?:\.\d+)?(?:\s*k)?)\b/gi,
+    /\b(?:about|around|approx(?:\\.|imately)?)\s+(\d{1,3}(?:[,.]\d{3})+|\d+(?:\.\d+)?(?:\s*k)?)\s+(?:staff|employees|users?)\b/gi
   ],
 
   revenue: [
@@ -357,7 +357,7 @@ function parseValue(kind: ChipKind, raw: string, match: RegExpMatchArray): Parse
       // ensure we pick the first numeric-looking group
       const numStr = (match[2] || raw.match(/\d{1,3}(?:[.,]\d{3})*|\d+(?:\.\d+)?/)?.[0] || "0").replace(/,/g, "").replace(/\s/g, "");
       const mult = (match[3] || "").toLowerCase();
-      let value = parseFloat(numStr) * multiplierToNumber(mult);
+      const value = parseFloat(numStr) * multiplierToNumber(mult);
       const unit = normalizeCurrency(g1);
       return { value, unit };
     }
