@@ -11,7 +11,9 @@ import {
   DollarSign,
   Eye,
   Flag,
-  Plus
+  Plus,
+  Presentation,
+  Sparkles
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SlideOver } from "../shared/SlideOver";
@@ -208,6 +210,25 @@ export function PlanMode() {
             >
               <Eye className="w-4 h-4" />
               {presentationMode ? "Edit Mode" : "Present Mode"}
+            </button>
+
+            <div className="w-px h-6 bg-gray-300" />
+
+            {/* Navigation buttons */}
+            <button
+              onClick={() => setMode('optimize')}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+            >
+              <Sparkles className="w-4 h-4" />
+              Optimize Resources
+            </button>
+
+            <button
+              onClick={() => setMode('present')}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+            >
+              <Presentation className="w-4 h-4" />
+              Present
             </button>
           </div>
         </div>

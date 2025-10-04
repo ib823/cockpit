@@ -20,29 +20,51 @@ export function DeliverableMapMode() {
 
   // Auto-load modules from presales decisions
   useEffect(() => {
+    // Strategy: Try multiple sources in priority order
+    // 1. Timeline store selected packages (most recent)
+    // 2. Presales decisions (earlier in workflow)
+    // 3. Default to Finance_1
+
+    let modulesToLoad: string[] = [];
+
+    // Try presales decisions first (since that's what we know works)
     if (presalesDecisions.moduleCombo) {
-      const moduleMapping: Record<string, string[]> = {
+      const presalesMapping: Record<string, string[]> = {
         'FinanceOnly': ['Finance_1'],
         'Finance+P2P': ['Finance_1', 'Finance_2'],
         'Finance+OTC': ['Finance_1', 'Finance_3'],
         'Finance+P2P+OTC': ['Finance_1', 'Finance_2', 'Finance_3'],
         'Core+HCM': ['Finance_1', 'HCM_1'],
       };
-      
-      const selectedModules = moduleMapping[presalesDecisions.moduleCombo] || ['Finance_1'];
-      setSelectedModules(selectedModules);
-      
-      // Load tasks
-      const loadedTasks = getTasksForModules(selectedModules);
-      const tasksWithState: TaskWithState[] = loadedTasks.map(task => ({
-        ...task,
-        completed: 0,
-        delta: 100,
-        assignedResource: null,
-      }));
-      
-      setTasks(tasksWithState);
+
+      modulesToLoad = presalesMapping[presalesDecisions.moduleCombo] || ['Finance_1'];
     }
+
+    // Default fallback
+    if (modulesToLoad.length === 0) {
+      modulesToLoad = ['Finance_1']; // Always show Finance at minimum
+    }
+
+    // Remove duplicates
+    modulesToLoad = [...new Set(modulesToLoad)];
+
+    // Update store
+    setSelectedModules(modulesToLoad);
+
+    // Load tasks for selected modules
+    const loadedTasks = getTasksForModules(modulesToLoad);
+    const tasksWithState: TaskWithState[] = loadedTasks.map(task => ({
+      ...task,
+      completed: 0,
+      delta: 100,
+      assignedResource: null,
+    }));
+
+    setTasks(tasksWithState);
+
+    console.log('[ResourcePlanning] Loaded modules:', modulesToLoad);
+    console.log('[ResourcePlanning] Loaded tasks:', tasksWithState.length);
+
   }, [presalesDecisions.moduleCombo, setSelectedModules, setTasks]);
 
   const toggleModule = (moduleId: string) => {

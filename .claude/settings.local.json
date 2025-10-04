@@ -35,7 +35,9 @@
       "Bash(kill:*)",
       "Bash(pnpm add:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx next lint:*)"
+      "Bash(npx next lint:*)",
+      "Bash(1)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []
