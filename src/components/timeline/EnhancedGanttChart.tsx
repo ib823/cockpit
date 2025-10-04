@@ -1,38 +1,51 @@
 "use client";
+import { MilestoneManagerModal } from "./MilestoneManagerModal";
 
-import { useState, useMemo } from "react";
-import { useTimelineStore } from "@/stores/timeline-store";
-import { format, addDays, differenceInDays } from "date-fns";
-import { 
-  ChevronRight, 
-  ChevronDown, 
-  HelpCircle, 
-  Calendar,
-  Maximize2,
-  Minimize2,
-  Settings,
-} from "lucide-react";
-import { 
-  calculateWorkingDays, 
+import {
   addWorkingDays,
-  isHoliday,
-  getHolidayName,
+  calculateWorkingDays,
   getHolidaysInRange,
+  isHoliday
 } from "@/data/holidays";
+import { useProjectStore } from "@/stores/project-store";
+import { useTimelineStore } from "@/stores/timeline-store";
 import type { Phase } from "@/types/core";
+import { addDays, differenceInDays, format } from "date-fns";
+import {
+  Calendar,
+  Flag,
+  HelpCircle,
+  Settings,
+  Users
+} from "lucide-react";
+import { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import { HolidayManagerModal } from "./HolidayManagerModal";
 
 // Project base date for business day calculations
 const PROJECT_BASE_DATE = new Date(2024, 0, 1); // January 1, 2024
 
+interface Milestone {
+  id: string;
+  name: string;
+  date: Date;
+  color: string;
+}
+
 export function EnhancedGanttChart() {
   const { phases: rawPhases, updatePhase } = useTimelineStore();
+  const setMode = useProjectStore(state => state.setMode);
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
   const [draggedPhase, setDraggedPhase] = useState<string | null>(null);
   const [dragMode, setDragMode] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
+  const [dragStartPhase, setDragStartPhase] = useState<Phase | null>(null);
   const [showHolidayManager, setShowHolidayManager] = useState(false);
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<'ABMY' | 'ABSG' | 'ABVN'>('ABMY');
+  const dragThrottleRef = useRef<number | null>(null);
+
+  // Milestones state - initialized with computed dates
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
 
   // Convert phases with business days to phases with actual dates
   const phases = useMemo(() => {
@@ -118,87 +131,106 @@ export function EnhancedGanttChart() {
   // Drag handlers for interactive adjustment
   // Drag handlers for interactive adjustment
   const handleMouseDown = (
-    e: React.MouseEvent,
-    phaseId: string,
-    mode: 'move' | 'resize-start' | 'resize-end'
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDraggedPhase(phaseId);
-    setDragMode(mode);
-    setDragStartX(e.clientX);
-  };
+  e: React.MouseEvent,
+  phaseId: string,
+  mode: 'move' | 'resize-start' | 'resize-end'
+) => {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const phase = phases.find(p => p.id === phaseId);
+  if (!phase) return;
+  
+  setDraggedPhase(phaseId);
+  setDragMode(mode);
+  setDragStartX(e.clientX);
+  setDragStartPhase(phase);
+};
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!draggedPhase || !dragMode) return;
+const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  // Throttle to 60fps for smoothness
+  if (dragThrottleRef.current) return;
 
-    const containerWidth = window.innerWidth * 0.7; // Approximate gantt width
+  dragThrottleRef.current = window.requestAnimationFrame(() => {
+    dragThrottleRef.current = null;
+
+    if (!draggedPhase || !dragMode || !dragStartPhase) return;
+
     const deltaX = e.clientX - dragStartX;
-    
-    // Calculate days based on pixel movement
-    const pixelsPerDay = containerWidth / totalDays;
-    const deltaDays = Math.round(deltaX / pixelsPerDay);
 
-    if (deltaDays === 0) return;
+    // Calculate days moved (improved sensitivity)
+    const ganttWidth = window.innerWidth * 0.65; // Adjust based on actual width
+    const pixelsPerDay = ganttWidth / totalDays;
+    let deltaDays = Math.round(deltaX / pixelsPerDay);
+
+    // Minimum threshold to prevent jittery updates
+    if (Math.abs(deltaDays) === 0) return;
 
     const phase = phases.find(p => p.id === draggedPhase);
     if (!phase) return;
 
-    let newStartDate = new Date(phase.startDate);
-    let newEndDate = new Date(phase.endDate);
+    let newStartDate = new Date(dragStartPhase.startDate);
+    let newEndDate = new Date(dragStartPhase.endDate);
 
-    switch (dragMode) {
-      case 'move': {
-        // Move both start and end by same amount
-        newStartDate = addDays(phase.startDate, deltaDays);
-        newEndDate = addDays(phase.endDate, deltaDays);
-        
-        // Skip to next working day if landing on weekend/holiday
-        while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+  switch (dragMode) {
+    case 'move': {
+      // Move both dates by the same amount
+      newStartDate = addDays(dragStartPhase.startDate, deltaDays);
+      newEndDate = addDays(dragStartPhase.endDate, deltaDays);
+      
+      // Adjust for weekends/holidays
+      while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+        if (deltaDays > 0) {
           newStartDate = addDays(newStartDate, 1);
           newEndDate = addDays(newEndDate, 1);
+        } else {
+          newStartDate = addDays(newStartDate, -1);
+          newEndDate = addDays(newEndDate, -1);
         }
-        break;
       }
-      
-      case 'resize-start': {
-        // Adjust start date
-        newStartDate = addDays(phase.startDate, deltaDays);
-        
-        // Skip to next working day
-        while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
-          newStartDate = addDays(newStartDate, deltaDays > 0 ? 1 : -1);
-        }
-        
-        // Ensure start is before end (minimum 1 working day)
-        if (newStartDate >= phase.endDate) {
-          newStartDate = addDays(phase.endDate, -1);
-          while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
-            newStartDate = addDays(newStartDate, -1);
-          }
-        }
-        break;
-      }
-      
-      case 'resize-end': {
-        // Adjust end date
-        newEndDate = addDays(phase.endDate, deltaDays);
-        
-        // Skip to next working day
-        while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
-          newEndDate = addDays(newEndDate, deltaDays > 0 ? 1 : -1);
-        }
-        
-        // Ensure end is after start (minimum 1 working day)
-        if (newEndDate <= phase.startDate) {
-          newEndDate = addDays(phase.startDate, 1);
-          while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
-            newEndDate = addDays(newEndDate, 1);
-          }
-        }
-        break;
-      }
+      break;
     }
+    
+    case 'resize-start': {
+      // Only adjust start date, keep end fixed
+      newStartDate = addDays(dragStartPhase.startDate, deltaDays);
+      newEndDate = new Date(dragStartPhase.endDate); // Keep original end
+      
+      // Skip weekends/holidays
+      while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+        newStartDate = addDays(newStartDate, deltaDays > 0 ? 1 : -1);
+      }
+      
+      // Ensure minimum 1 working day duration
+      if (newStartDate >= newEndDate) {
+        newStartDate = addDays(newEndDate, -1);
+        while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+          newStartDate = addDays(newStartDate, -1);
+        }
+      }
+      break;
+    }
+    
+    case 'resize-end': {
+      // Only adjust end date, keep start fixed
+      newStartDate = new Date(dragStartPhase.startDate); // Keep original start
+      newEndDate = addDays(dragStartPhase.endDate, deltaDays);
+      
+      // Skip weekends/holidays
+      while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
+        newEndDate = addDays(newEndDate, deltaDays > 0 ? 1 : -1);
+      }
+      
+      // Ensure minimum 1 working day duration
+      if (newEndDate <= newStartDate) {
+        newEndDate = addDays(newStartDate, 1);
+        while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
+          newEndDate = addDays(newEndDate, 1);
+        }
+      }
+      break;
+    }
+  }
 
     const newWorkingDays = calculateWorkingDays(newStartDate, newEndDate, selectedRegion);
 
@@ -207,14 +239,14 @@ export function EnhancedGanttChart() {
       endDate: newEndDate,
       workingDays: newWorkingDays,
     });
-
-    setDragStartX(e.clientX);
-  };
+  });
+}, [draggedPhase, dragMode, dragStartPhase, dragStartX, selectedRegion, phases, totalDays, updatePhase]);
 
   const handleMouseUp = () => {
-    setDraggedPhase(null);
-    setDragMode(null);
-  };
+  setDraggedPhase(null);
+  setDragMode(null);
+  setDragStartPhase(null);
+};
 
   // Helper to check if date is weekend
   const isWeekend = (date: Date): boolean => {
@@ -226,6 +258,21 @@ export function EnhancedGanttChart() {
   const visibleHolidays = useMemo(() => {
     return getHolidaysInRange(minDate, maxDate, selectedRegion);
   }, [minDate, maxDate, selectedRegion]);
+
+  // Initialize milestones when phases are available
+  useEffect(() => {
+    if (milestones.length === 0 && phases.length > 0) {
+      const dates = phases.flatMap(p => [p.startDate, p.endDate]).filter((d): d is Date => d != null);
+      if (dates.length > 0) {
+        const min = new Date(Math.min(...dates.map(d => d.getTime())));
+        const max = new Date(Math.max(...dates.map(d => d.getTime())));
+        setMilestones([
+          { id: 'm1', name: 'Project Kickoff', date: min, color: 'bg-green-500' },
+          { id: 'm2', name: 'Go-Live', date: max, color: 'bg-purple-500' },
+        ]);
+      }
+    }
+  }, [phases, milestones.length]);
 
   if (phases.length === 0) {
     return (
@@ -270,6 +317,24 @@ export function EnhancedGanttChart() {
     >
       <Calendar className="w-4 h-4" />
       Manage Holidays
+    </button>
+
+    {/* Milestone Manager */}
+    <button
+      onClick={() => setShowMilestoneModal(true)}
+      className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 text-sm transition-colors border border-green-200"
+    >
+      <Flag className="w-4 h-4" />
+      Milestones ({milestones.length})
+    </button>
+
+    {/* Resource Allocation */}
+    <button
+      onClick={() => setMode('optimize')}
+      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm transition-colors shadow-md"
+    >
+      <Users className="w-4 h-4" />
+      Allocate Resources
     </button>
 
     <button
@@ -344,21 +409,70 @@ export function EnhancedGanttChart() {
       </div>
 
       {/* Holiday Markers */}
-      <div className="relative h-4 mt-4 border-t border-gray-200 pt-2">
-        {visibleHolidays.map((holiday, idx) => {
-          const holidayDate = new Date(holiday.date);
-          const offset = differenceInDays(holidayDate, minDate);
-          const position = (offset / totalDays) * 100;
-          
-          return (
-            <div
-              key={idx}
-              className="absolute w-px h-4 bg-red-400"
-              style={{ left: `${position}%` }}
-              title={holiday.name}
-            />
-          );
-        })}
+      <div className="relative mt-6 border-t border-gray-200 pt-4">
+  <div className="text-xs font-medium text-gray-600 mb-2">Public Holidays</div>
+  <div className="relative h-12 bg-gray-50 rounded">
+    {visibleHolidays.map((holiday, idx) => {
+      const holidayDate = new Date(holiday.date);
+      const offset = differenceInDays(holidayDate, minDate);
+      const position = (offset / totalDays) * 100;
+      
+      return (
+        <div
+          key={idx}
+          className="absolute top-0 bottom-0 group"
+          style={{ left: `${position}%` }}
+        >
+          {/* Holiday line */}
+          <div className="w-0.5 h-full bg-red-500 relative">
+            {/* Tooltip on hover */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+              <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                {holiday.name}
+                <div className="text-gray-300">{format(holidayDate, 'MMM dd, yyyy')}</div>
+              </div>
+              {/* Arrow */}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+            </div>
+          </div>
+          {/* Top marker */}
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-red-500 rounded-full border-2 border-white shadow" />
+        </div>
+      );
+    })}
+  </div>
+</div>
+
+      {/* Milestone Markers */}
+      <div className="relative mt-6 border-t border-gray-200 pt-4">
+        <div className="text-xs font-medium text-gray-600 mb-2">Project Milestones</div>
+        <div className="relative h-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded">
+          {milestones.map((milestone) => {
+            const offset = differenceInDays(milestone.date, minDate);
+            const position = (offset / totalDays) * 100;
+
+            return (
+              <div
+                key={milestone.id}
+                className="absolute top-0 bottom-0 group cursor-pointer"
+                style={{ left: `${position}%` }}
+              >
+                {/* Milestone diamond */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <div className={`w-4 h-4 ${milestone.color} rotate-45 border-2 border-white shadow-lg`} />
+                </div>
+                {/* Label */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-xs font-medium text-gray-700 whitespace-nowrap">
+                  {milestone.name}
+                </div>
+                {/* Date */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 text-xs text-gray-500 whitespace-nowrap">
+                  {format(milestone.date, 'MMM dd')}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Holiday Manager Modal */}
@@ -366,6 +480,18 @@ export function EnhancedGanttChart() {
         <HolidayManagerModal
           region={selectedRegion}
           onClose={() => setShowHolidayManager(false)}
+        />
+      )}
+
+      {/* Milestone Manager Modal */}
+      {showMilestoneModal && (
+        <MilestoneManagerModal
+          milestones={milestones}
+          onUpdate={(updated) => {
+            setMilestones(updated);
+            setShowMilestoneModal(false);
+          }}
+          onClose={() => setShowMilestoneModal(false)}
         />
       )}
     </div>
@@ -447,9 +573,12 @@ function PhaseRow({
           {/* Phase Bar */}
           <div
             className={`
-              absolute top-2 h-8 rounded-lg transition-all
-              ${isDragging ? 'opacity-70 shadow-2xl scale-105 cursor-grabbing' : 'shadow-md hover:shadow-lg cursor-grab'}
-              bg-blue-500
+              absolute top-2 h-8 rounded-lg transition-all duration-150
+              ${isDragging
+                ? 'opacity-70 shadow-2xl scale-105 cursor-grabbing ring-4 ring-blue-300'
+                : 'shadow-md hover:shadow-xl cursor-grab hover:scale-102'
+              }
+              bg-gradient-to-r from-blue-500 to-blue-600
             `}
             style={{
               left: `${position.left}%`,
