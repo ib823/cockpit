@@ -4,6 +4,9 @@ import { useCallback, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Plus, Trash2, Users, Save } from 'lucide-react';
 import type { Phase, Resource } from '@/types/core';
+import { Button } from '@/components/common/Button';
+import { Heading2, BodySM } from '@/components/common/Typography';
+import { animation } from '@/lib/design-system';
 
 interface ResourceManagerModalProps {
   phase: Phase;
@@ -98,33 +101,34 @@ export function ResourceManagerModal({ phase, onClose, onSave }: ResourceManager
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: animation.duration.normal }}
           className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between p-8 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+            <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center">
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Resource Allocation</h2>
-                <p className="text-sm text-gray-600 mt-0.5">{phase.name}</p>
+                <Heading2>Resource Allocation</Heading2>
+                <BodySM className="text-gray-600 mt-1">{phase.name}</BodySM>
               </div>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Close"
+              aria-label="Close modal"
             >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
+              <X className="w-5 h-5" />
+            </Button>
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-8">
             {/* Stats Bar */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-4 mb-8">
               <div className="bg-blue-50 rounded-lg p-4">
                 <div className="text-sm text-blue-600 font-medium">Total Resources</div>
                 <div className="text-2xl font-bold text-blue-900 mt-1">{resources.length}</div>
@@ -239,36 +243,40 @@ export function ResourceManagerModal({ phase, onClose, onSave }: ResourceManager
             </div>
 
             {/* Add Resource Button */}
-            <button
+            <Button
+              variant="secondary"
+              size="lg"
               onClick={addResource}
-              className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all flex items-center justify-center gap-2 font-medium"
+              leftIcon={<Plus className="w-5 h-5" />}
+              className="w-full border-2 border-dashed"
             >
-              <Plus className="w-5 h-5" />
               Add Resource
-            </button>
+            </Button>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
-            <div className="text-sm text-gray-600">
+          <div className="flex items-center justify-between p-8 border-t border-gray-200 bg-gray-50">
+            <div>
               {isOverAllocated && (
-                <span className="text-red-600 font-medium">⚠️ Team is over-allocated</span>
+                <BodySM className="text-red-600 font-medium">⚠️ Team is over-allocated</BodySM>
               )}
             </div>
-            <div className="flex gap-3">
-              <button
+            <div className="flex gap-4">
+              <Button
+                variant="secondary"
+                size="md"
                 onClick={onClose}
-                className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors font-medium"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
                 onClick={handleSave}
-                className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium flex items-center gap-2 shadow-lg shadow-blue-200"
+                leftIcon={<Save className="w-4 h-4" />}
               >
-                <Save className="w-4 h-4" />
                 Save Changes
-              </button>
+              </Button>
             </div>
           </div>
         </motion.div>

@@ -13,11 +13,15 @@ import {
   Flag,
   Plus,
   Presentation,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SlideOver } from "../shared/SlideOver";
 import { StatBadge } from "../shared/StatBadge";
+import { Button } from "@/components/common/Button";
+import { Heading3, BodyMD } from "@/components/common/Typography";
+import { animation } from "@/lib/design-system";
 
 // Helper to calculate phase cost
 function calculatePhaseCost(phase: Phase): number {
@@ -84,17 +88,17 @@ export function PlanMode() {
     return (
       <div className="h-full flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md">
-          <Calendar className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          
-          <h3 className="text-xl font-medium text-gray-900 mb-2">
+          <Calendar className="w-16 h-16 mx-auto text-gray-400 mb-6" />
+
+          <Heading3 className="mb-4">
             {hasEnoughData ? "Ready to Generate Timeline" : "Need More Requirements"}
-          </h3>
-          
-          <p className="text-gray-600 mb-6">
+          </Heading3>
+
+          <BodyMD className="mb-8">
             {hasEnoughData
               ? `You have ${chips.length} requirements captured (${completeness.score}% complete). Click below to generate your project timeline.`
               : `Add more requirements in Capture mode. Currently at ${completeness.score}% (need 30% minimum).`}
-          </p>
+          </BodyMD>
 
           <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded text-left text-xs font-mono">
             <div>Chips: {chips.length}</div>
@@ -152,89 +156,89 @@ export function PlanMode() {
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Toolbar */}
-      {/* Toolbar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between mb-3">
+      <div className="bg-white border-b border-gray-200 px-8 py-6">
+        <div className="flex items-center justify-between mb-4">
           {/* Left: Navigation */}
-          <div className="flex items-center gap-3">
-            <button
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setMode("decide")}
-              className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium flex items-center gap-2"
+              leftIcon={<ArrowLeft className="w-4 h-4" />}
             >
-              ← Back to Decisions
-            </button>
-            
+              Back to Decisions
+            </Button>
+
             <div className="w-px h-6 bg-gray-300" />
-            
-            <button
+
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleRegenerate}
-              className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
             >
               Regenerate Timeline
-            </button>
+            </Button>
           </div>
 
           {/* Right: View Controls */}
           <div className="flex items-center gap-4">
             {/* Zoom controls */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-              <button
+              <Button
+                variant={zoom === "week" ? "secondary" : "ghost"}
+                size="sm"
                 onClick={() => setZoom("week")}
-                className={cn(
-                  "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                  zoom === "week"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
-                )}
+                className={zoom === "week" ? "bg-white shadow-sm" : ""}
               >
                 Week
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={zoom === "month" ? "secondary" : "ghost"}
+                size="sm"
                 onClick={() => setZoom("month")}
-                className={cn(
-                  "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                  zoom === "month"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
-                )}
+                className={zoom === "month" ? "bg-white shadow-sm" : ""}
               >
                 Month
-              </button>
+              </Button>
             </div>
 
             {/* Presentation toggle */}
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setPresentationMode(!presentationMode)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200
-                         rounded-lg transition-colors text-sm font-medium"
+              leftIcon={<Eye className="w-4 h-4" />}
             >
-              <Eye className="w-4 h-4" />
               {presentationMode ? "Edit Mode" : "Present Mode"}
-            </button>
+            </Button>
 
             <div className="w-px h-6 bg-gray-300" />
 
             {/* Navigation buttons */}
-            <button
+            <Button
+              variant="primary"
+              size="sm"
               onClick={() => setMode('optimize')}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+              leftIcon={<Sparkles className="w-4 h-4" />}
+              className="bg-purple-600 hover:bg-purple-700"
             >
-              <Sparkles className="w-4 h-4" />
               Optimize Resources
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="primary"
+              size="sm"
               onClick={() => setMode('present')}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+              leftIcon={<Presentation className="w-4 h-4" />}
+              className="bg-gray-900 hover:bg-gray-800"
             >
-              <Presentation className="w-4 h-4" />
               Present
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Summary stats */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <StatBadge label="Duration" value={formatDuration(totalDuration)} icon={Calendar} />
           {!presentationMode && (
             <StatBadge label="Cost" value={formatCurrency(totalCost, "MYR")} icon={DollarSign} />
@@ -248,7 +252,8 @@ export function PlanMode() {
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-yellow-50 border-b border-yellow-200 px-6 py-3 flex items-center justify-between"
+          transition={{ duration: animation.duration.normal }}
+          className="bg-yellow-50 border-b border-yellow-200 px-8 py-4 flex items-center justify-between"
         >
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
@@ -256,13 +261,14 @@ export function PlanMode() {
               Timeline outdated - decisions changed
             </span>
           </div>
-          <button
+          <Button
+            variant="primary"
+            size="xs"
             onClick={handleRegenerate}
-            className="px-4 py-1.5 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
-                       transition-colors text-sm font-medium"
+            className="bg-yellow-600 hover:bg-yellow-700"
           >
             Regenerate
-          </button>
+          </Button>
         </motion.div>
       )}
 

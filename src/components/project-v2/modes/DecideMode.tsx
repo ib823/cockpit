@@ -14,6 +14,9 @@ import { useProjectStore } from "@/stores/project-store";
 import { motion } from "framer-motion";
 import { AlertCircle, ArrowLeft, CheckCircle, TrendingDown, TrendingUp } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/common/Button";
+import { Heading2, BodyMD, LabelMD } from "@/components/common/Typography";
+import { animation } from "@/lib/design-system";
 
 // Decision option interface
 interface DecisionOption {
@@ -198,35 +201,35 @@ export function DecideMode() {
       <div className="max-w-5xl mx-auto p-8">
         {/* Back Button */}
         <div className="mb-6">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setMode('capture')}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            leftIcon={<ArrowLeft className="w-4 h-4" />}
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">Back to Capture</span>
-          </button>
+            Back to Capture
+          </Button>
         </div>
 
         {/* Progress indicator */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: animation.duration.normal }}
           className="mb-8"
         >
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-2xl font-light text-gray-900">
-              Make {totalCount} Strategic Decisions
-            </h2>
-            <span className="text-sm text-gray-500">
+          <div className="flex items-center justify-between mb-4">
+            <Heading2>Make {totalCount} Strategic Decisions</Heading2>
+            <BodyMD color="tertiary">
               {selectedCount} of {totalCount} complete
-            </span>
+            </BodyMD>
           </div>
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${(selectedCount / totalCount) * 100}%` }}
-              transition={{ duration: 0.5 }}
-              className="h-full bg-gradient-to-r from-purple-600 to-blue-600"
+              transition={{ duration: animation.duration.slow }}
+              className="h-2 bg-gradient-to-r from-purple-600 to-blue-600"
             />
           </div>
         </motion.div>
@@ -243,9 +246,9 @@ export function DecideMode() {
                 key={decision.id}
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ delay: i * 0.1, duration: animation.duration.normal }}
                 className={cn(
-                  "bg-white p-6 rounded-2xl border-2 transition-all",
+                  "bg-white p-8 rounded-2xl border-2 transition-all",
                   selectedOption
                     ? "border-green-500 shadow-lg shadow-green-500/20"
                     : "border-gray-200 shadow-sm"
@@ -262,7 +265,7 @@ export function DecideMode() {
                 </div>
 
                 {/* Options */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {decision.options.map((option) => {
                     const isSelected = selectedOption?.id === option.id;
                     const isHovering =
@@ -277,7 +280,7 @@ export function DecideMode() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className={cn(
-                          "p-4 rounded-xl border-2 text-left transition-all cursor-pointer",
+                          "p-6 rounded-xl border-2 text-left transition-all cursor-pointer",
                           isSelected
                             ? "border-green-500 bg-green-50"
                             : isHovering
@@ -345,23 +348,25 @@ export function DecideMode() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: animation.duration.normal }}
             className="sticky bottom-8 mt-8"
           >
-            <button
+            <Button
+              variant="primary"
+              size="lg"
               onClick={handleContinue}
-              className="w-full px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white
-                         rounded-2xl hover:from-purple-700 hover:to-blue-700 transition-all
-                         hover:scale-105 font-medium text-lg shadow-xl flex items-center
-                         justify-center gap-3"
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-xl text-lg"
+              rightIcon={
+                <motion.div
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  →
+                </motion.div>
+              }
             >
               {isComplete ? "Generate Timeline" : `Continue with ${selectedCount} Decisions`}
-              <motion.div
-                animate={{ x: [0, 5, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                →
-              </motion.div>
-            </button>
+            </Button>
           </motion.div>
         )}
 

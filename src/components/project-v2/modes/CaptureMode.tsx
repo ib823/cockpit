@@ -21,6 +21,9 @@ import { ChipType } from "@/types/core";
 import { motion } from "framer-motion";
 import { AlertCircle, ArrowLeft, CheckCircle, Plus, Sparkles, Upload, Zap } from "lucide-react";
 import React, { useState } from "react";
+import { Button } from "@/components/common/Button";
+import { Heading1, Heading3, BodyLG, BodyMD, BodySM, LabelMD } from "@/components/common/Typography";
+import { animation } from "@/lib/design-system";
 
 // Sample RFP text for demo
 const SAMPLE_RFP = `Malaysia manufacturing company with 500 employees and MYR 200M annual revenue.
@@ -121,8 +124,8 @@ export function CaptureMode() {
               <Sparkles className="w-16 h-16 text-blue-600" />
             </motion.div>
           </div>
-          <h3 className="text-xl font-light text-gray-900">Extracting requirements...</h3>
-          <p className="text-sm text-gray-500 mt-2">Analyzing your RFP with AI</p>
+          <Heading3 className="mt-4">Extracting requirements...</Heading3>
+          <BodyMD className="mt-2">Analyzing your RFP with AI</BodyMD>
         </motion.div>
       </div>
     );
@@ -167,10 +170,10 @@ export function CaptureMode() {
               />
             </motion.div>
 
-            <h2 className="text-3xl font-light text-gray-900 mt-8">Drop your RFP here</h2>
-            <p className="text-gray-500 mt-3 text-lg">
+            <Heading1 className="mt-8">Drop your RFP here</Heading1>
+            <BodyLG className="mt-4">
               or paste text below to extract requirements automatically
-            </p>
+            </BodyLG>
 
             {/* Paste area */}
             <div className="mt-8 space-y-3">
@@ -182,15 +185,15 @@ export function CaptureMode() {
                            focus:ring-2 focus:ring-blue-500 focus:border-transparent
                            placeholder:text-gray-400"
               />
-              <button
+              <Button
+                variant="primary"
+                size="lg"
                 onClick={handlePaste}
                 disabled={!pasteText.trim()}
-                className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700
-                           transition-all disabled:opacity-50 disabled:cursor-not-allowed
-                           font-medium"
+                className="w-full"
               >
                 Extract Requirements
-              </button>
+              </Button>
             </div>
 
             {/* Divider */}
@@ -201,15 +204,15 @@ export function CaptureMode() {
             </div>
 
             {/* Sample button */}
-            <button
+            <Button
+              variant="primary"
+              size="md"
               onClick={loadExample}
-              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white
-                         rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all
-                         hover:scale-105 flex items-center gap-2 mx-auto font-medium shadow-lg"
+              leftIcon={<Sparkles className="w-5 h-5" />}
+              className="mx-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg"
             >
-              <Sparkles className="w-5 h-5" />
               Load Sample RFP
-            </button>
+            </Button>
           </div>
         </motion.div>
       </div>
@@ -226,13 +229,15 @@ export function CaptureMode() {
     <div className="h-full overflow-auto bg-gray-50 relative">
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-10">
-        <button
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => window.location.href = '/'}
-          className="flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-blue-600 rounded-lg transition-all shadow-md hover:shadow-lg"
+          leftIcon={<ArrowLeft className="w-4 h-4" />}
+          className="bg-white/90 hover:bg-white shadow-md hover:shadow-lg"
         >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm font-medium">Home</span>
-        </button>
+          Home
+        </Button>
       </div>
 
       <div className="max-w-4xl mx-auto p-8">
@@ -255,14 +260,14 @@ export function CaptureMode() {
                 <AlertCircle className="w-8 h-8 text-yellow-600" />
               )}
               <div>
-                <h3 className="text-lg font-medium">
+                <Heading3>
                   {isComplete ? "Requirements Complete!" : "Almost there..."}
-                </h3>
-                <p className="text-sm text-gray-600 mt-0.5">
+                </Heading3>
+                <BodyMD className="mt-1">
                   {isComplete
                     ? "All key requirements identified"
                     : `${missingGaps.length} item${missingGaps.length !== 1 ? "s" : ""} missing`}
-                </p>
+                </BodyMD>
               </div>
             </div>
             <div className="text-right">
@@ -279,9 +284,9 @@ export function CaptureMode() {
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                transition={{ duration: animation.duration.slow, ease: animation.easing.enter }}
                 className={cn(
-                  "h-full rounded-full",
+                  "h-2 rounded-full",
                   isComplete ? "bg-green-500" : "bg-yellow-500"
                 )}
               />
@@ -360,29 +365,29 @@ export function CaptureMode() {
             {/* NEW: Action buttons */}
             <div className="grid grid-cols-2 gap-3">
               {/* Smart Defaults Button */}
-              <button
+              <Button
+                variant="primary"
+                size="md"
                 onClick={handleSmartDefaults}
                 disabled={!canProceedWithDefaults}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
+                leftIcon={<Zap className="w-4 h-4" />}
+                className="flex-col items-start bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-md hover:shadow-lg"
               >
-                <Zap className="w-4 h-4" />
-                <div className="text-left">
-                  <div className="text-sm">Fill with Smart Defaults</div>
-                  <div className="text-xs opacity-90">One-click conservative estimates</div>
-                </div>
-              </button>
+                <div className="text-sm font-medium">Fill with Smart Defaults</div>
+                <div className="text-xs opacity-90 font-normal">One-click conservative estimates</div>
+              </Button>
 
               {/* Manual Entry Button */}
-              <button
+              <Button
+                variant="secondary"
+                size="md"
                 onClick={() => setShowManualEntry(true)}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-all font-medium"
+                leftIcon={<Plus className="w-4 h-4" />}
+                className="flex-col items-start"
               >
-                <Plus className="w-4 h-4" />
-                <div className="text-left">
-                  <div className="text-sm">Add Manually</div>
-                  <div className="text-xs opacity-75">Pick what to fill</div>
-                </div>
-              </button>
+                <div className="text-sm font-medium">Add Manually</div>
+                <div className="text-xs opacity-75 font-normal">Pick what to fill</div>
+              </Button>
             </div>
 
             {/* Help text */}
@@ -402,23 +407,25 @@ export function CaptureMode() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: animation.duration.normal }}
             className="sticky bottom-8"
           >
-            <button
+            <Button
+              variant="primary"
+              size="lg"
               onClick={handleContinue}
-              className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white
-                         rounded-2xl hover:from-blue-700 hover:to-purple-700 transition-all
-                         hover:scale-105 font-medium text-lg shadow-xl flex items-center
-                         justify-center gap-3"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl text-lg"
+              rightIcon={
+                <motion.div
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  →
+                </motion.div>
+              }
             >
               Continue to Decisions
-              <motion.div
-                animate={{ x: [0, 5, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                →
-              </motion.div>
-            </button>
+            </Button>
           </motion.div>
         )}
       </div>

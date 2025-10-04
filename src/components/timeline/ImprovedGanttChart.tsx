@@ -23,6 +23,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HolidayManagerModal } from "./HolidayManagerModal";
 import { MilestoneManagerModal } from "./MilestoneManagerModal";
 import { ResourceManagerModal } from "./ResourceManagerModal";
+import { Button } from "@/components/common/Button";
+import { Heading3 } from "@/components/common/Typography";
 
 interface Stream {
   id: string;
@@ -491,67 +493,73 @@ export function ImprovedGanttChart({
 
   return (
     <div
-      className="relative overflow-x-auto overflow-y-auto max-h-[calc(100vh-12rem)] bg-white rounded-lg shadow-lg p-6"
+      className="relative overflow-x-auto overflow-y-auto max-h-[calc(100vh-12rem)] bg-white rounded-lg shadow-lg p-8"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
       {/* Header Controls */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold text-gray-900">Project Timeline</h3>
+        <div className="flex items-center gap-4">
+          <Heading3>Project Timeline</Heading3>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleExpandAll}
-              className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm transition-colors"
+              leftIcon={<Maximize2 className="w-4 h-4" />}
             >
-              <Maximize2 className="w-3.5 h-3.5" />
               Expand All
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleCollapseAll}
-              className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 text-sm transition-colors"
+              leftIcon={<Minimize2 className="w-4 h-4" />}
             >
-              <Minimize2 className="w-3.5 h-3.5" />
               Collapse All
-            </button>
+            </Button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <select
             value={selectedRegion}
             onChange={(e) => setSelectedRegion(e.target.value as any)}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 transition-colors"
+            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 transition-colors focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            aria-label="Select region"
           >
             <option value="ABMY">🇲🇾 Malaysia</option>
             <option value="ABSG">🇸🇬 Singapore</option>
             <option value="ABVN">🇻🇳 Vietnam</option>
           </select>
 
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setShowHolidayModal(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 text-sm transition-colors border border-purple-200"
+            leftIcon={<Calendar className="w-4 h-4" />}
           >
-            <Calendar className="w-4 h-4" />
             Holidays ({visibleHolidays.length})
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setShowMilestoneModal(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 text-sm transition-colors border border-green-200"
+            leftIcon={<Flag className="w-4 h-4" />}
           >
-            <Flag className="w-4 h-4" />
             Milestones ({milestones.length})
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => setMode('optimize')}
-            className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm transition-colors shadow-md"
+            leftIcon={<Users className="w-4 h-4" />}
           >
-            <Users className="w-4 h-4" />
             Allocate Resources
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -711,16 +719,18 @@ export function ImprovedGanttChart({
                         <div className="text-sm text-gray-700 truncate">{phase.name}</div>
                         <div className="text-xs text-gray-500">{phase.workingDays}d</div>
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="xs"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedPhaseForResources(phase);
                         }}
-                        className="ml-2 p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors opacity-0 group-hover/phase:opacity-100"
-                        title="Manage Resources"
+                        className="ml-2 opacity-0 group-hover/phase:opacity-100"
+                        aria-label="Manage Resources"
                       >
                         <Users className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
 
                     <div className="flex-1 relative h-16">

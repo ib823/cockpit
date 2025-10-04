@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, TrendingUp, Users, Clock, AlertCircle, Flag } from "lucide-react";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { usePresalesStore } from "@/stores/presales-store";
+import { ResetButton } from "@/components/common/ResetButton";
 
 // Example timeline shown when user has no data
 const EXAMPLE_TIMELINE = {
@@ -86,14 +87,19 @@ export default function MagicTimelinePage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <h1 className="text-5xl font-light text-gray-900 mb-3">
-            {hasRealData ? "Your Timeline" : "Example Timeline"}
-          </h1>
-          <p className="text-xl text-gray-600">
-            {hasRealData
-              ? `Generated from your requirements`
-              : `This is what your timeline could look like`}
-          </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-5xl font-light text-gray-900 mb-3">
+                {hasRealData ? "Your Timeline" : "Example Timeline"}
+              </h1>
+              <p className="text-xl text-gray-600">
+                {hasRealData
+                  ? `Generated from your requirements`
+                  : `This is what your timeline could look like`}
+              </p>
+            </div>
+            <ResetButton />
+          </div>
         </motion.div>
 
         {/* Key Metrics Bar */}

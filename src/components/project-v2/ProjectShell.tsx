@@ -18,6 +18,10 @@ import { DecideMode } from "./modes/DecideMode";
 import { MiniReferenceBar } from "@/components/timeline/MiniReferenceBar";
 import { ReferenceArchitectureModal } from "@/components/timeline/ReferenceArchitectureModal";
 import { useReferenceKeyboard } from "@/hooks/useReferenceKeyboard";
+import { ResetButton } from "@/components/common/ResetButton";
+import { Heading1, BodyMD } from "@/components/common/Typography";
+import { Logo } from "@/components/common/Logo";
+import { animation } from "@/lib/design-system";
 
 // Lazy load heavy components for better performance
 const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
@@ -70,33 +74,39 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: animation.duration.normal, ease: animation.easing.enter }}
       className={`bg-gradient-to-r ${current.gradient} px-8 py-6 text-white shadow-lg`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-light tracking-tight">{current.title}</h1>
-          <p className={`${current.color} mt-1 text-sm font-light`}>{current.subtitle}</p>
+        <div className="flex items-center gap-6">
+          <Logo size="sm" theme="dark" showText={false} />
+          <div>
+            <Heading1 className="text-white">{current.title}</Heading1>
+            <BodyMD className={`${current.color} mt-2`}>{current.subtitle}</BodyMD>
+          </div>
         </div>
 
-        {typeof progress === "number" && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
-            className="flex items-center gap-3"
-          >
-            <span className="text-sm font-medium">{progress}% Complete</span>
-            <div className="w-32 h-2 bg-white/20 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="h-full bg-white rounded-full"
-              />
-            </div>
-          </motion.div>
-        )}
+        <div className="flex items-center gap-4">
+          {typeof progress === "number" && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: animation.duration.normal }}
+              className="flex items-center gap-4"
+            >
+              <span className="text-sm font-semibold">{progress}% Complete</span>
+              <div className="w-40 h-2 bg-white/20 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: animation.duration.slow, ease: animation.easing.enter }}
+                  className="h-2 bg-white rounded-full"
+                />
+              </div>
+            </motion.div>
+          )}
+          <ResetButton />
+        </div>
       </div>
     </motion.div>
   );
@@ -133,7 +143,7 @@ export function ProjectShell() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          transition={{ duration: animation.duration.normal, ease: animation.easing.standard }}
           className="flex-1 overflow-hidden"
         >
           {mode === "capture" && <CaptureMode />}
