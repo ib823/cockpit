@@ -87,9 +87,12 @@ export function EnhancedGanttChart() {
 
   // Calculate position on timeline
   const getPhasePosition = (phase: Phase) => {
+    if (!phase.startDate || !phase.endDate) {
+      return { left: 0, width: 0 };
+    }
     const startOffset = differenceInDays(phase.startDate, minDate);
     const duration = differenceInDays(phase.endDate, phase.startDate);
-    
+
     return {
       left: (startOffset / totalDays) * 100,
       width: (duration / totalDays) * 100,
@@ -347,6 +350,11 @@ function PhaseRow({
   maxDate: Date;
 }) {
   const [showTooltip, setShowTooltip] = useState(false);
+
+  if (!phase.startDate || !phase.endDate) {
+    return null;
+  }
+
   const workingDays = calculateWorkingDays(phase.startDate, phase.endDate, region);
   const holidays = getHolidaysInRange(phase.startDate, phase.endDate, region);
 
