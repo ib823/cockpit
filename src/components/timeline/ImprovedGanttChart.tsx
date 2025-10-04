@@ -3,8 +3,9 @@
 import { Phase } from "@/lib/timeline/phase-generation";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, HelpCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { format } from "date-fns";
 
 // Stream colors for visual variety
 const STREAM_COLORS = [
@@ -34,6 +35,48 @@ interface ImprovedGanttChartProps {
   onPhaseClick?: (phase: Phase) => void;
 }
 
+// Calculation Tooltip Component
+function CalculationTooltip({ phase }: { phase: Phase }) {
+  const [show, setShow] = useState(false);
+
+  // Safely handle dates
+  const startDateStr = phase.startDate
+    ? format(new Date(phase.startDate), 'MMM dd, yyyy')
+    : 'N/A';
+  const endDateStr = phase.endDate
+    ? format(new Date(phase.endDate), 'MMM dd, yyyy')
+    : 'N/A';
+
+  return (
+    <div className="relative inline-block">
+      <button
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        className="p-1 hover:bg-gray-100 rounded"
+      >
+        <HelpCircle className="w-4 h-4 text-gray-400" />
+      </button>
+
+      {show && (
+        <div className="absolute z-50 left-0 top-full mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-xl p-4 text-xs">
+          <div className="font-semibold mb-2">Calculation Breakdown</div>
+          <div className="space-y-1 text-gray-600">
+            <div>Base Effort: {phase.effort || 0} PD</div>
+            <div>Working Days: {phase.workingDays || 0} days</div>
+            <div>Start: {startDateStr}</div>
+            <div>End: {endDateStr}</div>
+            <div className="pt-2 border-t mt-2">
+              <div>Calculation: Base effort × complexity</div>
+              <div>Holidays excluded: Yes</div>
+              <div>Weekends excluded: Yes</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ImprovedGanttChart({
   phases: phasesProp,
   startDate,
@@ -56,6 +99,8 @@ export function ImprovedGanttChart({
   }, [phasesProp, storePhases, safePhases.length]);
 
   const [collapsedStreams, setCollapsedStreams] = useState<Set<string>>(new Set());
+  const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
+  const [collapseAll, setCollapseAll] = useState(false);
 
   const streams = useMemo(() => {
     if (safePhases.length === 0) return [];
@@ -176,6 +221,29 @@ export function ImprovedGanttChart({
   return (
     <div className="relative overflow-x-auto">
       <div className="min-w-[900px] p-6">
+        {/* Expand/Collapse Controls */}
+        <div className="flex items-center gap-2 mb-4">
+          <button
+            onClick={() => {
+              const allIds = safePhases.map((p) => p.id);
+              setExpandedPhases(new Set(allIds));
+              setCollapseAll(false);
+            }}
+            className="px-3 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 text-sm"
+          >
+            Expand All
+          </button>
+          <button
+            onClick={() => {
+              setExpandedPhases(new Set());
+              setCollapseAll(true);
+            }}
+            className="px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 text-sm"
+          >
+            Collapse All
+          </button>
+        </div>
+
         <div className="flex items-center mb-6 pb-3 border-b-2 border-gray-200">
           <div className="w-64 font-semibold text-gray-700">Stream / Phase</div>
           <div className="flex-1 text-sm text-gray-500 font-medium">Timeline</div>
@@ -253,8 +321,11 @@ export function ImprovedGanttChart({
                         return (
                           <div key={phase.id} className="flex items-center">
                             <div className="w-56 pr-4">
-                              <div className="text-sm text-gray-700 truncate" title={phase.name}>
-                                {phase.name}
+                              <div className="flex items-center gap-2">
+                                <div className="text-sm text-gray-700 truncate" title={phase.name}>
+                                  {phase.name}
+                                </div>
+                                <CalculationTooltip phase={phase} />
                               </div>
                               <div className="text-xs text-gray-500">
                                 {phase.effort || 0} PD • {phase.workingDays || 0} days
@@ -278,6 +349,16 @@ export function ImprovedGanttChart({
                                   if (onPhaseClick) onPhaseClick(phase);
                                 }}
                               >
+                                {/* Date labels above bar */}
+                                <div className="absolute -top-5 left-0 text-xs text-gray-600 whitespace-nowrap">
+                                  {phase.startDate
+                                    ? format(new Date(phase.startDate), "MMM dd")
+                                    : ""}
+                                </div>
+                                <div className="absolute -top-5 right-0 text-xs text-gray-600 whitespace-nowrap">
+                                  {phase.endDate ? format(new Date(phase.endDate), "MMM dd") : ""}
+                                </div>
+
                                 <div className="p-2 h-full flex flex-col justify-between text-white">
                                   <div className="flex items-center justify-between">
                                     <span className="text-xs font-semibold truncate">
