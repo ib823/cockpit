@@ -1,107 +1,76 @@
 "use client";
 
-import { Phase } from "@/lib/timeline/phase-generation";
+import {
+  calculateWorkingDays,
+  getHolidaysInRange,
+  isHoliday,
+} from "@/data/holidays";
 import { useTimelineStore } from "@/stores/timeline-store";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ChevronRight, HelpCircle } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
-
-// Stream colors for visual variety
-const STREAM_COLORS = [
-  { bg: "bg-blue-500", hover: "hover:bg-blue-600", text: "text-blue-700" },
-  { bg: "bg-purple-500", hover: "hover:bg-purple-600", text: "text-purple-700" },
-  { bg: "bg-emerald-500", hover: "hover:bg-emerald-600", text: "text-emerald-700" },
-  { bg: "bg-orange-500", hover: "hover:bg-orange-600", text: "text-orange-700" },
-  { bg: "bg-pink-500", hover: "hover:bg-pink-600", text: "text-pink-700" },
-  { bg: "bg-cyan-500", hover: "hover:bg-cyan-600", text: "text-cyan-700" },
-  { bg: "bg-amber-500", hover: "hover:bg-amber-600", text: "text-amber-700" },
-  { bg: "bg-indigo-500", hover: "hover:bg-indigo-600", text: "text-indigo-700" },
-];
+import type { Phase } from "@/types/core";
+import { addDays, differenceInDays, format } from "date-fns";
+import {
+  Calendar,
+  ChevronDown,
+  ChevronRight,
+  Flag,
+  Maximize2,
+  Minimize2
+} from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 
 interface Stream {
   id: string;
   name: string;
   phases: Phase[];
-  color: typeof STREAM_COLORS[number];
+  color: string;
   totalDays: number;
   totalEffort: number;
 }
 
-interface ImprovedGanttChartProps {
-  phases?: Phase[];
-  startDate?: Date;
-  endDate?: Date;
-  onPhaseClick?: (phase: Phase) => void;
-}
-
-// Calculation Tooltip Component
-function CalculationTooltip({ phase }: { phase: Phase }) {
-  const [show, setShow] = useState(false);
-
-  // Safely handle dates
-  const startDateStr = phase.startDate
-    ? format(new Date(phase.startDate), 'MMM dd, yyyy')
-    : 'N/A';
-  const endDateStr = phase.endDate
-    ? format(new Date(phase.endDate), 'MMM dd, yyyy')
-    : 'N/A';
-
-  return (
-    <div className="relative inline-block">
-      <button
-        onMouseEnter={() => setShow(true)}
-        onMouseLeave={() => setShow(false)}
-        className="p-1 hover:bg-gray-100 rounded"
-      >
-        <HelpCircle className="w-4 h-4 text-gray-400" />
-      </button>
-
-      {show && (
-        <div className="absolute z-50 left-0 top-full mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-xl p-4 text-xs">
-          <div className="font-semibold mb-2">Calculation Breakdown</div>
-          <div className="space-y-1 text-gray-600">
-            <div>Base Effort: {phase.effort || 0} PD</div>
-            <div>Working Days: {phase.workingDays || 0} days</div>
-            <div>Start: {startDateStr}</div>
-            <div>End: {endDateStr}</div>
-            <div className="pt-2 border-t mt-2">
-              <div>Calculation: Base effort × complexity</div>
-              <div>Holidays excluded: Yes</div>
-              <div>Weekends excluded: Yes</div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+const STREAM_COLORS = [
+  "bg-blue-500",
+  "bg-purple-500",
+  "bg-green-500",
+  "bg-orange-500",
+  "bg-pink-500",
+  "bg-indigo-500",
+  "bg-teal-500",
+  "bg-red-500",
+];
 
 export function ImprovedGanttChart({
   phases: phasesProp,
-  startDate,
-  endDate,
-  onPhaseClick,
-}: ImprovedGanttChartProps) {
+  onPhaseClick
+}: {
+  phases?: Phase[];
+  onPhaseClick?: (phase: Phase) => void;
+}) {
   const storePhases = useTimelineStore((state) => state.phases);
-  const selectedPhaseId = useTimelineStore((state) => state.selectedPhaseId);
+  const updatePhase = useTimelineStore((state) => state.updatePhase);
   const selectPhase = useTimelineStore((state) => state.selectPhase);
+  const selectedPhaseId = useTimelineStore((state) => state.selectedPhaseId);
 
-  const phases = phasesProp || storePhases || [];
-  const safePhases = Array.isArray(phases) ? phases : [];
+  const safePhases = Array.isArray(phasesProp)
+    ? phasesProp
+    : Array.isArray(storePhases)
+    ? storePhases
+    : [];
 
-  useEffect(() => {
-    console.log("[ImprovedGanttChart] Render with:", {
-      propPhases: phasesProp?.length || 0,
-      storePhases: storePhases?.length || 0,
-      safePhases: safePhases.length,
-    });
-  }, [phasesProp, storePhases, safePhases.length]);
-
+  // State
   const [collapsedStreams, setCollapsedStreams] = useState<Set<string>>(new Set());
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
-  const [collapseAll, setCollapseAll] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState<'ABMY' | 'ABSG' | 'ABVN'>('ABMY');
+  const [showHolidayModal, setShowHolidayModal] = useState(false);
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [milestones, setMilestones] = useState<Array<{ id: string; name: string; date: Date; color: string }>>([]);
+  
+  // Drag state
+  const [draggedPhase, setDraggedPhase] = useState<string | null>(null);
+  const [dragMode, setDragMode] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragStartPhase, setDragStartPhase] = useState<Phase | null>(null);
 
+  // Group phases into streams
   const streams = useMemo(() => {
     if (safePhases.length === 0) return [];
 
@@ -109,7 +78,6 @@ export function ImprovedGanttChart({
 
     safePhases.forEach((phase) => {
       const streamName = phase.category?.split(" - ")[0] || "General";
-
       if (!streamMap.has(streamName)) {
         streamMap.set(streamName, []);
       }
@@ -138,9 +106,18 @@ export function ImprovedGanttChart({
     return streamList.sort((a, b) => b.totalEffort - a.totalEffort);
   }, [safePhases]);
 
-  const { startBusinessDay, endBusinessDay, totalBusinessDays } = useMemo(() => {
+  // Calculate timeline bounds
+  const { minDate, maxDate, totalDays, startBusinessDay, endBusinessDay, totalBusinessDays } = useMemo(() => {
     if (safePhases.length === 0) {
-      return { startBusinessDay: 0, endBusinessDay: 0, totalBusinessDays: 0 };
+      const today = new Date();
+      return {
+        minDate: today,
+        maxDate: addDays(today, 180),
+        totalDays: 180,
+        startBusinessDay: 0,
+        endBusinessDay: 180,
+        totalBusinessDays: 180,
+      };
     }
 
     const start = Math.min(...safePhases.map((p) => p.startBusinessDay || 0));
@@ -148,12 +125,48 @@ export function ImprovedGanttChart({
       ...safePhases.map((p) => (p.startBusinessDay || 0) + (p.workingDays || 0))
     );
 
+    const dates = safePhases.flatMap(p => [p.startDate, p.endDate]).filter((d): d is Date => d != null && d instanceof Date);
+
+    if (dates.length === 0) {
+      const today = new Date();
+      return {
+        minDate: today,
+        maxDate: addDays(today, 180),
+        totalDays: 180,
+        startBusinessDay: 0,
+        endBusinessDay: 180,
+        totalBusinessDays: 180,
+      };
+    }
+
+    const minD = new Date(Math.min(...dates.map(d => d.getTime())));
+    const maxD = new Date(Math.max(...dates.map(d => d.getTime())));
+
     return {
+      minDate: minD,
+      maxDate: maxD,
+      totalDays: differenceInDays(maxD, minD),
       startBusinessDay: start,
       endBusinessDay: end,
       totalBusinessDays: end - start,
     };
   }, [safePhases]);
+
+  // Get holidays in range
+  const visibleHolidays = useMemo(() => {
+    return getHolidaysInRange(minDate, maxDate, selectedRegion);
+  }, [minDate, maxDate, selectedRegion]);
+
+  // Collapse/Expand handlers
+  const handleExpandAll = () => {
+    setExpandedPhases(new Set(safePhases.map(p => p.id)));
+    setCollapsedStreams(new Set());
+  };
+
+  const handleCollapseAll = () => {
+    setExpandedPhases(new Set());
+    setCollapsedStreams(new Set(streams.map(s => s.id)));
+  };
 
   const toggleStream = (streamId: string) => {
     setCollapsedStreams((prev) => {
@@ -167,6 +180,104 @@ export function ImprovedGanttChart({
     });
   };
 
+  // Drag handlers
+  const isWeekend = (date: Date): boolean => {
+    const day = date.getDay();
+    return day === 0 || day === 6;
+  };
+
+  const handleMouseDown = (
+    e: React.MouseEvent,
+    phaseId: string,
+    mode: 'move' | 'resize-start' | 'resize-end'
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const phase = safePhases.find(p => p.id === phaseId);
+    if (!phase) return;
+    
+    setDraggedPhase(phaseId);
+    setDragMode(mode);
+    setDragStartX(e.clientX);
+    setDragStartPhase(phase);
+  };
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!draggedPhase || !dragMode || !dragStartPhase) return;
+
+    const deltaX = e.clientX - dragStartX;
+    const ganttWidth = window.innerWidth * 0.6;
+    const pixelsPerDay = ganttWidth / totalBusinessDays;
+    const deltaDays = Math.round(deltaX / pixelsPerDay);
+
+    if (deltaDays === 0) return;
+
+    let newStartDate = new Date(dragStartPhase.startDate);
+    let newEndDate = new Date(dragStartPhase.endDate);
+
+    switch (dragMode) {
+      case 'move':
+        newStartDate = addDays(dragStartPhase.startDate, deltaDays);
+        newEndDate = addDays(dragStartPhase.endDate, deltaDays);
+        while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+          if (deltaDays > 0) {
+            newStartDate = addDays(newStartDate, 1);
+            newEndDate = addDays(newEndDate, 1);
+          } else {
+            newStartDate = addDays(newStartDate, -1);
+            newEndDate = addDays(newEndDate, -1);
+          }
+        }
+        break;
+      
+      case 'resize-start':
+        newStartDate = addDays(dragStartPhase.startDate, deltaDays);
+        newEndDate = new Date(dragStartPhase.endDate);
+        while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+          newStartDate = addDays(newStartDate, deltaDays > 0 ? 1 : -1);
+        }
+        if (newStartDate >= newEndDate) {
+          newStartDate = addDays(newEndDate, -1);
+          while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+            newStartDate = addDays(newStartDate, -1);
+          }
+        }
+        break;
+      
+      case 'resize-end':
+        newStartDate = new Date(dragStartPhase.startDate);
+        newEndDate = addDays(dragStartPhase.endDate, deltaDays);
+        while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
+          newEndDate = addDays(newEndDate, deltaDays > 0 ? 1 : -1);
+        }
+        if (newEndDate <= newStartDate) {
+          newEndDate = addDays(newStartDate, 1);
+          while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
+            newEndDate = addDays(newEndDate, 1);
+          }
+        }
+        break;
+    }
+
+    const newWorkingDays = calculateWorkingDays(newStartDate, newEndDate, selectedRegion);
+    const newStartBusinessDay = differenceInDays(newStartDate, minDate);
+
+    updatePhase(draggedPhase, {
+      startDate: newStartDate,
+      endDate: newEndDate,
+      workingDays: newWorkingDays,
+      startBusinessDay: newStartBusinessDay,
+    });
+  }, [draggedPhase, dragMode, dragStartPhase, dragStartX, selectedRegion, totalBusinessDays, minDate, updatePhase]);
+
+  const handleMouseUp = () => {
+    setDraggedPhase(null);
+    setDragMode(null);
+    setDragStartPhase(null);
+  };
+
+  // Resource avatars
   const renderResourceAvatars = (phase: Phase) => {
     const resources = phase.resources || [];
     if (resources.length === 0) return null;
@@ -175,7 +286,7 @@ export function ImprovedGanttChart({
     const remainingCount = resources.length - visibleCount;
 
     return (
-      <div className="flex items-center gap-1 mt-1">
+      <div className="flex items-center gap-1 mt-1 absolute bottom-1 left-2">
         {resources.slice(0, visibleCount).map((resource, idx) => {
           const initials =
             resource.name
@@ -188,7 +299,7 @@ export function ImprovedGanttChart({
           return (
             <div
               key={idx}
-              className="w-5 h-5 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-[10px] font-medium text-white"
+              className="w-6 h-6 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-[10px] font-semibold text-white backdrop-blur-sm"
               title={`${resource.name} - ${resource.role} (${resource.allocation}%)`}
             >
               {initials}
@@ -198,12 +309,37 @@ export function ImprovedGanttChart({
 
         {remainingCount > 0 && (
           <div
-            className="w-5 h-5 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-[10px] font-medium text-white"
+            className="w-6 h-6 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-[10px] font-semibold text-white backdrop-blur-sm"
             title={`${remainingCount} more team member${remainingCount > 1 ? "s" : ""}`}
           >
             +{remainingCount}
           </div>
         )}
+      </div>
+    );
+  };
+
+  // Utilization bar
+  const renderUtilizationBar = (phase: Phase) => {
+    const resources = phase.resources || [];
+    if (resources.length === 0) return null;
+
+    const avgAllocation =
+      resources.reduce((sum, r) => sum + (r.allocation || 0), 0) / resources.length;
+
+    const barColor =
+      avgAllocation > 100
+        ? "bg-red-400"
+        : avgAllocation >= 80
+        ? "bg-orange-400"
+        : "bg-green-400";
+
+    return (
+      <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/20 rounded-b-lg overflow-hidden">
+        <div
+          className={`h-full ${barColor} transition-all duration-300`}
+          style={{ width: `${Math.min(100, avgAllocation)}%` }}
+        />
       </div>
     );
   };
@@ -219,173 +355,291 @@ export function ImprovedGanttChart({
   }
 
   return (
-    <div className="relative overflow-x-auto">
-      <div className="min-w-[900px] p-6">
-        {/* Expand/Collapse Controls */}
-        <div className="flex items-center gap-2 mb-4">
-          <button
-            onClick={() => {
-              const allIds = safePhases.map((p) => p.id);
-              setExpandedPhases(new Set(allIds));
-              setCollapseAll(false);
-            }}
-            className="px-3 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 text-sm"
-          >
-            Expand All
-          </button>
-          <button
-            onClick={() => {
-              setExpandedPhases(new Set());
-              setCollapseAll(true);
-            }}
-            className="px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 text-sm"
-          >
-            Collapse All
-          </button>
+    <div 
+      className="relative overflow-x-auto bg-white rounded-lg shadow-lg p-6"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
+      {/* Header Controls */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <h3 className="text-lg font-semibold text-gray-900">Project Timeline</h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExpandAll}
+              className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm transition-colors"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              Expand All
+            </button>
+            <button
+              onClick={handleCollapseAll}
+              className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 text-sm transition-colors"
+            >
+              <Minimize2 className="w-3.5 h-3.5" />
+              Collapse All
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center mb-6 pb-3 border-b-2 border-gray-200">
-          <div className="w-64 font-semibold text-gray-700">Stream / Phase</div>
-          <div className="flex-1 text-sm text-gray-500 font-medium">Timeline</div>
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedRegion}
+            onChange={(e) => setSelectedRegion(e.target.value as any)}
+            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 transition-colors"
+          >
+            <option value="ABMY">🇲🇾 Malaysia</option>
+            <option value="ABSG">🇸🇬 Singapore</option>
+            <option value="ABVN">🇻🇳 Vietnam</option>
+          </select>
+
+          <button
+            onClick={() => setShowHolidayModal(true)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 text-sm transition-colors border border-purple-200"
+          >
+            <Calendar className="w-4 h-4" />
+            Holidays ({visibleHolidays.length})
+          </button>
+
+          <button
+            onClick={() => setShowMilestoneModal(true)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 text-sm transition-colors border border-green-200"
+          >
+            <Flag className="w-4 h-4" />
+            Milestones ({milestones.length})
+          </button>
         </div>
+      </div>
 
-        {streams.map((stream) => {
-          const isCollapsed = collapsedStreams.has(stream.id);
+      {/* Timeline Summary */}
+      <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+        <div>
+          <div className="text-xs text-gray-600 mb-1">Start Date</div>
+          <div className="font-semibold text-gray-900">{format(minDate, 'MMM dd, yyyy')}</div>
+        </div>
+        <div>
+          <div className="text-xs text-gray-600 mb-1">End Date</div>
+          <div className="font-semibold text-gray-900">{format(maxDate, 'MMM dd, yyyy')}</div>
+        </div>
+        <div>
+          <div className="text-xs text-gray-600 mb-1">Total Working Days</div>
+          <div className="font-semibold text-gray-900">
+            {safePhases.reduce((sum, p) => sum + (p.workingDays || 0), 0)} days
+          </div>
+        </div>
+        <div>
+          <div className="text-xs text-gray-600 mb-1">Holidays in Range</div>
+          <div className="font-semibold text-gray-900">{visibleHolidays.length} days</div>
+        </div>
+      </div>
 
-          return (
-            <div key={stream.id} className="mb-4">
+      {/* Month Headers */}
+      <div className="flex border-b-2 border-gray-200 pb-3 mb-4">
+        <div className="w-64 font-semibold text-gray-700 text-sm">Stream / Phase</div>
+        <div className="flex-1 relative h-6">
+          {generateMonthMarkers(minDate, maxDate, totalDays).map((marker, idx) => (
+            <div
+              key={idx}
+              className="absolute text-xs font-medium text-gray-600"
+              style={{ left: `${marker.position}%` }}
+            >
+              {marker.label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Streams */}
+      {streams.map((stream) => {
+        const isCollapsed = collapsedStreams.has(stream.id);
+
+        return (
+          <div key={stream.id} className="mb-6">
+            {/* Stream Header */}
+            <div
+              className="flex items-center mb-2 cursor-pointer group hover:bg-gray-50 rounded-lg p-2 transition-colors"
+              onClick={() => toggleStream(stream.id)}
+            >
+              <div className="w-64 flex items-center gap-2">
+                {isCollapsed ? (
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-600" />
+                )}
+                <div className={`w-3 h-3 rounded ${stream.color}`} />
+                <span className="font-semibold text-gray-900 text-sm">{stream.name}</span>
+                <span className="text-xs text-gray-500">
+                  ({stream.phases.length} phases · {stream.totalDays}d)
+                </span>
+              </div>
+            </div>
+
+            {/* Phases */}
+            {!isCollapsed &&
+              stream.phases.map((phase) => {
+                const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
+                const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
+                const isDragging = draggedPhase === phase.id;
+
+                return (
+                  <div key={phase.id} className="flex items-center mb-2 group/phase">
+                    <div className="w-64 pl-8 pr-4">
+                      <div className="text-sm text-gray-700 truncate">{phase.name}</div>
+                      <div className="text-xs text-gray-500">{phase.workingDays}d</div>
+                    </div>
+
+                    <div className="flex-1 relative h-16">
+                      {/* Phase Bar */}
+                      <div
+                        className={`
+                          absolute top-2 h-12 rounded-lg transition-all cursor-pointer
+                          ${isDragging 
+                            ? 'opacity-70 shadow-2xl scale-105 cursor-grabbing ring-2 ring-blue-400' 
+                            : `${stream.color} hover:shadow-xl cursor-grab hover:brightness-110`
+                          }
+                        `}
+                        style={{
+                          left: `${startPercent}%`,
+                          width: `${widthPercent}%`,
+                        }}
+                        onClick={() => {
+                          if (onPhaseClick) {
+                            onPhaseClick(phase);
+                          } else if (selectPhase) {
+                            selectPhase(phase.id);
+                          }
+                        }}
+                        onMouseDown={(e) => handleMouseDown(e, phase.id, 'move')}
+                      >
+                        {/* Resize Handles */}
+                        <div
+                          className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30 opacity-0 group-hover/phase:opacity-100 transition-opacity"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            handleMouseDown(e, phase.id, 'resize-start');
+                          }}
+                        />
+                        <div
+                          className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30 opacity-0 group-hover/phase:opacity-100 transition-opacity"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            handleMouseDown(e, phase.id, 'resize-end');
+                          }}
+                        />
+
+                        {/* Phase Content */}
+                        <div className="p-2 h-full flex flex-col justify-between pointer-events-none">
+                          {/* Dates */}
+                          <div className="flex justify-between text-[10px] text-white/80 font-medium">
+                            <span>{format(phase.startDate, 'MMM dd')}</span>
+                            <span>{format(phase.endDate, 'MMM dd')}</span>
+                          </div>
+
+                          {/* Duration */}
+                          <div className="text-center">
+                            <span className="text-xs font-bold text-white px-2 py-0.5 bg-black/20 rounded">
+                              {phase.workingDays}d
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Avatars */}
+                        {renderResourceAvatars(phase)}
+                        
+                        {/* Utilization */}
+                        {renderUtilizationBar(phase)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        );
+      })}
+
+      {/* Holiday Markers */}
+      <div className="relative mt-8 border-t border-gray-200 pt-4">
+        <div className="text-xs font-medium text-gray-600 mb-2 px-2">Public Holidays</div>
+        <div className="relative h-12 bg-gradient-to-b from-red-50 to-transparent rounded">
+          {visibleHolidays.map((holiday, idx) => {
+            const holidayDate = new Date(holiday.date);
+            const offset = differenceInDays(holidayDate, minDate);
+            const position = (offset / totalDays) * 100;
+            
+            return (
               <div
-                className="flex items-center mb-2 cursor-pointer group"
-                onClick={() => toggleStream(stream.id)}
+                key={idx}
+                className="absolute top-0 bottom-0 group"
+                style={{ left: `calc(16rem + ${position}% * (100% - 16rem) / 100)` }}
               >
-                <div className="w-64 flex items-center gap-2">
-                  {isCollapsed ? (
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                  )}
-                  <div className="flex items-center gap-2 flex-1">
-                    <div
-                      className={`w-3 h-3 rounded-full ${stream.color.bg}`}
-                      aria-hidden="true"
-                    />
-                    <span className="font-semibold text-gray-800 group-hover:text-gray-900 transition-colors">
-                      {stream.name}
-                    </span>
-                    <span className="text-xs text-gray-500 font-normal">
-                      ({stream.phases.length} phase{stream.phases.length !== 1 ? "s" : ""})
-                    </span>
+                <div className="w-0.5 h-full bg-red-500 relative">
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                    <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                      {holiday.name}
+                      <div className="text-gray-300">{format(holidayDate, 'MMM dd, yyyy')}</div>
+                    </div>
                   </div>
                 </div>
-
-                {isCollapsed && (
-                  <div className="flex-1 relative h-8">
-                    {stream.phases.map((phase, idx) => {
-                      const startPercent =
-                        ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
-                      const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
-
-                      return (
-                        <div
-                          key={phase.id}
-                          className={`absolute top-0 h-8 ${stream.color.bg} rounded opacity-70 transition-all duration-200 group-hover:opacity-90`}
-                          style={{
-                            left: `${startPercent}%`,
-                            width: `${widthPercent}%`,
-                            zIndex: idx,
-                          }}
-                          title={`${phase.name} (${phase.workingDays}d)`}
-                        />
-                      );
-                    })}
-                  </div>
-                )}
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-red-500 rounded-full border-2 border-white shadow" />
               </div>
-
-              <AnimatePresence>
-                {!isCollapsed && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="overflow-hidden"
-                  >
-                    <div className="ml-6 space-y-2">
-                      {stream.phases.map((phase) => {
-                        const startPercent =
-                          ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
-                        const widthPercent =
-                          ((phase.workingDays || 0) / totalBusinessDays) * 100;
-
-                        return (
-                          <div key={phase.id} className="flex items-center">
-                            <div className="w-56 pr-4">
-                              <div className="flex items-center gap-2">
-                                <div className="text-sm text-gray-700 truncate" title={phase.name}>
-                                  {phase.name}
-                                </div>
-                                <CalculationTooltip phase={phase} />
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {phase.effort || 0} PD • {phase.workingDays || 0} days
-                              </div>
-                            </div>
-                            <div className="flex-1 relative h-16">
-                              <motion.div
-                                initial={{ scaleX: 0 }}
-                                animate={{ scaleX: 1 }}
-                                transition={{ duration: 0.3, delay: 0.1 }}
-                                className={`absolute top-0 h-16 ${stream.color.bg} ${stream.color.hover} rounded-lg cursor-pointer transition-all shadow-sm hover:shadow-md ${
-                                  selectedPhaseId === phase.id ? "ring-2 ring-gray-900" : ""
-                                }`}
-                                style={{
-                                  left: `${startPercent}%`,
-                                  width: `${widthPercent}%`,
-                                  transformOrigin: "left",
-                                }}
-                                onClick={() => {
-                                  if (selectPhase) selectPhase(phase.id);
-                                  if (onPhaseClick) onPhaseClick(phase);
-                                }}
-                              >
-                                {/* Date labels above bar */}
-                                <div className="absolute -top-5 left-0 text-xs text-gray-600 whitespace-nowrap">
-                                  {phase.startDate
-                                    ? format(new Date(phase.startDate), "MMM dd")
-                                    : ""}
-                                </div>
-                                <div className="absolute -top-5 right-0 text-xs text-gray-600 whitespace-nowrap">
-                                  {phase.endDate ? format(new Date(phase.endDate), "MMM dd") : ""}
-                                </div>
-
-                                <div className="p-2 h-full flex flex-col justify-between text-white">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs font-semibold truncate">
-                                      {phase.name.split(" - ").pop()}
-                                    </span>
-                                    <span className="text-xs font-medium ml-2">
-                                      {phase.workingDays}d
-                                    </span>
-                                  </div>
-
-                                  {renderResourceAvatars(phase)}
-                                </div>
-                              </motion.div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
+
+      {/* Milestone Markers */}
+      {milestones.length > 0 && (
+        <div className="relative mt-6 border-t border-gray-200 pt-4">
+          <div className="text-xs font-medium text-gray-600 mb-2 px-2">Project Milestones</div>
+          <div className="relative h-16 bg-gradient-to-r from-green-50 to-purple-50 rounded">
+            {milestones.map((milestone) => {
+              const offset = differenceInDays(milestone.date, minDate);
+              const position = (offset / totalDays) * 100;
+              
+              return (
+                <div
+                  key={milestone.id}
+                  className="absolute top-0 bottom-0"
+                  style={{ left: `calc(16rem + ${position}% * (100% - 16rem) / 100)` }}
+                >
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <div className={`w-4 h-4 ${milestone.color} rotate-45 border-2 border-white shadow-lg`} />
+                  </div>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-xs font-medium text-gray-700 whitespace-nowrap">
+                    {milestone.name}
+                  </div>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 text-xs text-gray-500 whitespace-nowrap">
+                    {format(milestone.date, 'MMM dd')}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default ImprovedGanttChart;
+// Helper: Generate month markers
+function generateMonthMarkers(startDate: Date, endDate: Date, totalDays: number): Array<{ position: number; label: string }> {
+  const markers: Array<{ position: number; label: string }> = [];
+  
+  let current = new Date(startDate);
+  current.setDate(1);
+  
+  while (current <= endDate) {
+    const offset = differenceInDays(current, startDate);
+    const position = (offset / totalDays) * 100;
+    
+    markers.push({
+      position: Math.max(0, position),
+      label: format(current, 'MMM yyyy'),
+    });
+    
+    current = new Date(current.getFullYear(), current.getMonth() + 1, 1);
+  }
+  
+  return markers;
+}
