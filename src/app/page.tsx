@@ -12,7 +12,7 @@
  */
 
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, Clock, Package2, Sparkles, TrendingUp, Upload } from "lucide-react";
+import { ArrowRight, CheckCircle, Clock, Sparkles, TrendingUp, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -266,37 +266,6 @@ export default function MagicLandingPage() {
             >
               View Demo
             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Tools */}
-      <div className="bg-gray-50 py-16 border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-light text-gray-900 mb-2">Additional Tools</h3>
-            <p className="text-gray-600">Visualize and plan your SAP architecture</p>
-          </div>
-
-          <div className="max-w-xl mx-auto">
-            <motion.a
-              href="/ea-diagram"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="group flex items-start gap-4 p-6 bg-white rounded-lg border-2 border-gray-200 hover:border-purple-500 transition-all hover:shadow-lg cursor-pointer"
-            >
-              <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors flex-shrink-0">
-                <Package2 className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="flex-1">
-                <h4 className="text-xl font-semibold text-gray-900 mb-2">EA Diagram</h4>
-                <p className="text-gray-600 text-sm">
-                  Visual enterprise architecture diagram with auto-generation from RFP chips
-                </p>
-              </div>
-              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors flex-shrink-0 mt-1" />
-            </motion.a>
           </div>
         </div>
       </div>
