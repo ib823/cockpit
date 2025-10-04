@@ -22,14 +22,30 @@ import {
 import type { Phase } from "@/types/core";
 import { HolidayManagerModal } from "./HolidayManagerModal";
 
+// Project base date for business day calculations
+const PROJECT_BASE_DATE = new Date(2024, 0, 1); // January 1, 2024
+
 export function EnhancedGanttChart() {
-  const { phases, updatePhase } = useTimelineStore();
+  const { phases: rawPhases, updatePhase } = useTimelineStore();
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
   const [draggedPhase, setDraggedPhase] = useState<string | null>(null);
   const [dragMode, setDragMode] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [showHolidayManager, setShowHolidayManager] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<'ABMY' | 'ABSG' | 'ABVN'>('ABMY');
+
+  // Convert phases with business days to phases with actual dates
+  const phases = useMemo(() => {
+    return rawPhases.map(phase => ({
+      ...phase,
+      startDate: addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion),
+      endDate: addWorkingDays(
+        PROJECT_BASE_DATE,
+        (phase.startBusinessDay || 0) + (phase.workingDays || 0),
+        selectedRegion
+      ),
+    }));
+  }, [rawPhases, selectedRegion]);
 
   // Calculate timeline bounds
   const { minDate, maxDate, totalDays } = useMemo(() => {
