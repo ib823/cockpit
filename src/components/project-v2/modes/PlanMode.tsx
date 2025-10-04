@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useTimelineStore, type Phase } from "@/stores/timeline-store";
 import { useProjectStore } from "@/stores/project-store";
+import { usePresalesStore } from "@/stores/presales-store";
 import { EmptyState } from "../shared/EmptyState";
 import { SlideOver } from "../shared/SlideOver";
 import { StatBadge } from "../shared/StatBadge";
@@ -34,19 +35,20 @@ function calculatePhaseCost(phase: Phase): number {
 export function PlanMode() {
   const { phases, selectedPackages, getProjectCost } = useTimelineStore();
   const { setMode, regenerateTimeline, timelineIsStale } = useProjectStore();
+  const { chips, completeness } = usePresalesStore();
   const totalCost = getProjectCost();
 
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
   const [zoom, setZoom] = useState<"week" | "month">("month");
   const [presentationMode, setPresentationMode] = useState(false);
 
-  // Auto-generate timeline if empty
+  // Auto-generate timeline if empty and we have requirements
   useEffect(() => {
-    if (phases.length === 0 && selectedPackages.length === 0) {
-      // Trigger first-time generation with default package
-      console.log("[PlanMode] No timeline - trigger generation");
+    if (phases.length === 0 && chips.length > 0 && completeness.score >= 30) {
+      console.log("[PlanMode] Auto-generating timeline from presales data...");
+      regenerateTimeline(true);
     }
-  }, [phases.length, selectedPackages.length]);
+  }, [phases.length, chips.length, completeness.score]);
 
   // Handle timeline regeneration
   const handleRegenerate = () => {
@@ -58,17 +60,31 @@ export function PlanMode() {
 
   // Empty state - no timeline yet
   if (phases.length === 0) {
+    // Check if we have enough data to generate
+    const hasEnoughData = chips.length > 0 && completeness.score >= 30;
+
     return (
       <EmptyState
         icon={Calendar}
-        title="No project plan yet"
-        description="Generate a timeline from your requirements and decisions"
-        action={{
-          label: "Generate Timeline",
-          onClick: handleRegenerate,
-        }}
+        title={hasEnoughData ? "Generating your project plan..." : "Need more requirements"}
+        description={
+          hasEnoughData
+            ? "Creating timeline from your captured requirements"
+            : "Please capture requirements and make decisions first"
+        }
+        action={
+          hasEnoughData
+            ? {
+                label: "Retry Generation",
+                onClick: handleRegenerate,
+              }
+            : {
+                label: "Capture Requirements",
+                onClick: () => setMode("capture"),
+              }
+        }
         secondaryAction={{
-          label: "Review Decisions",
+          label: hasEnoughData ? "Review Decisions" : "View Decisions",
           onClick: () => setMode("decide"),
         }}
       />

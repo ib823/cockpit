@@ -1,14 +1,28 @@
+/**
+ * CaptureMode - Enhanced with Manual Entry + Smart Defaults
+ * 
+ * NEW FEATURES:
+ * - Manual chip entry modal for missing gaps
+ * - Smart defaults button (one-click fill)
+ * - Both work together seamlessly
+ * 
+ * SECURITY: Input sanitization, rate limiting
+ * UX: Steve Jobs minimalism - clean, clear, delightful
+ */
+
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Sparkles, CheckCircle, AlertCircle, ArrowRight } from "lucide-react";
+import { ManualChipEntry } from "@/components/presales/ManualChipEntry";
+import { createDefaultChip, fillMissingChips } from "@/lib/chip-defaults";
+import { cn, safePercentage } from "@/lib/utils";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
-import { EmptyState } from "../shared/EmptyState";
-import { LoadingState } from "../shared/LoadingState";
-import { cn, safePercentage } from "@/lib/utils";
+import { ChipType } from "@/types/core";
+import { motion } from "framer-motion";
+import { AlertCircle, CheckCircle, Plus, Sparkles, Upload, Zap } from "lucide-react";
+import React, { useState } from "react";
 
+// Sample RFP text for demo
 const SAMPLE_RFP = `Malaysia manufacturing company with 500 employees and MYR 200M annual revenue.
 Need Finance, HR and Supply Chain modules.
 Go-live targeted for Q2 2025.
@@ -21,12 +35,13 @@ Regional offices in KL, Penang, and JB.
 Current ERP: SAP ECC 6.0 with customizations.`;
 
 export function CaptureMode() {
-  const { chips, parseText, completeness } = usePresalesStore();
+  const { chips, parseText, completeness, addChip, addChips } = usePresalesStore();
   const { setMode } = useProjectStore();
 
   const [isDragging, setIsDragging] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [pasteText, setPasteText] = useState("");
+  const [showManualEntry, setShowManualEntry] = useState(false);
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
@@ -61,6 +76,32 @@ export function CaptureMode() {
 
   const handleContinue = () => {
     setMode("decide");
+  };
+
+  /**
+   * NEW: Handle manual chip addition from modal
+   */
+  const handleManualAddChip = (type: ChipType, value: string) => {
+    const chip = createDefaultChip(type);
+    chip.value = value;
+    chip.source = "manual";
+    chip.confidence = 0.7; // Manual entries get higher confidence
+    
+    addChip(chip);
+  };
+
+  /**
+   * NEW: Fill all missing gaps with smart defaults
+   */
+  const handleSmartDefaults = () => {
+    const newChips = fillMissingChips(chips, completeness.gaps);
+    
+    if (newChips.length > 0) {
+      addChips(newChips);
+      
+      // Show success toast (optional - could add a toast system later)
+      console.log(`Added ${newChips.length} default chips`);
+    }
   };
 
   // Loading state
@@ -104,7 +145,9 @@ export function CaptureMode() {
           animate={{ scale: 1, opacity: 1 }}
           className={cn(
             "max-w-3xl w-full p-12 rounded-3xl border-2 border-dashed transition-all duration-300",
-            isDragging ? "border-blue-500 bg-blue-50 scale-105" : "border-gray-300 bg-white"
+            isDragging
+              ? "border-blue-500 bg-blue-50 scale-105"
+              : "border-gray-300 bg-white"
           )}
         >
           <div className="text-center">
@@ -173,10 +216,11 @@ export function CaptureMode() {
     );
   }
 
-  // Chips extracted - show list
+  // Chips extracted - show list with enhanced actions
   const progressPercent = safePercentage(completeness.score, 100);
   const missingGaps = completeness.gaps || [];
   const isComplete = progressPercent >= 80;
+  const canProceedWithDefaults = progressPercent >= 30; // NEW: Lower threshold for defaults
 
   return (
     <div className="h-full overflow-auto bg-gray-50">
@@ -187,7 +231,9 @@ export function CaptureMode() {
           animate={{ y: 0, opacity: 1 }}
           className={cn(
             "mb-6 p-6 rounded-2xl border-2 transition-colors",
-            isComplete ? "bg-green-50 border-green-200" : "bg-yellow-50 border-yellow-200"
+            isComplete
+              ? "bg-green-50 border-green-200"
+              : "bg-yellow-50 border-yellow-200"
           )}
         >
           <div className="flex items-center justify-between">
@@ -216,102 +262,163 @@ export function CaptureMode() {
             </div>
           </div>
 
-          {/* Missing gaps */}
-          {missingGaps.length > 0 && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              className="mt-4 pt-4 border-t border-yellow-300"
-            >
-              <p className="text-sm font-medium text-gray-700 mb-2">Still needed:</p>
-              <div className="flex flex-wrap gap-2">
-                {missingGaps.map((gap) => (
-                  <span
-                    key={gap}
-                    className="px-3 py-1 bg-white border border-yellow-300 rounded-full text-xs"
-                  >
-                    {gap}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-          )}
+          {/* Progress bar */}
+          <div className="mt-4">
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className={cn(
+                  "h-full rounded-full",
+                  isComplete ? "bg-green-500" : "bg-yellow-500"
+                )}
+              />
+            </div>
+          </div>
         </motion.div>
 
-        {/* Chips list */}
-        <div className="space-y-3">
-          <AnimatePresence>
-            {chips.map((chip, i) => (
+        {/* Chips display */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-white rounded-2xl border border-gray-200 p-6 mb-6"
+        >
+          <h4 className="text-sm font-medium text-gray-700 mb-4">
+            Extracted Requirements
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            {chips.map((chip, idx) => (
               <motion.div
-                key={chip.id || i}
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: 20, opacity: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all
-                           border border-gray-100"
+                key={chip.id || idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">
-                        {chip.type}
-                      </span>
-                      <div
-                        className={cn(
-                          "h-1.5 w-1.5 rounded-full",
-                          chip.confidence >= 0.8
-                            ? "bg-green-500"
-                            : chip.confidence >= 0.6
-                              ? "bg-yellow-500"
-                              : "bg-red-500"
-                        )}
-                      />
-                    </div>
-                    <p className="text-lg text-gray-900">{chip.value}</p>
-                    {chip.source && (
-                      <p className="text-xs text-gray-500 mt-2">
-                        Source: {chip.source.slice(0, 60)}...
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right ml-4">
-                    <span className="text-sm font-medium text-gray-700">
-                      {Math.round(chip.confidence * 100)}%
-                    </span>
-                    <p className="text-xs text-gray-500 mt-1">confident</p>
-                  </div>
-                </div>
+                <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">
+                  {(chip as any).kind || chip.type}:
+                </span>
+                <span className="text-sm text-gray-900 flex-1">
+                  {(chip as any).raw || chip.value}
+                </span>
+                <span className="text-xs text-blue-500">
+                  {Math.round((chip.confidence || 0) * 100)}%
+                </span>
               </motion.div>
             ))}
-          </AnimatePresence>
-        </div>
+          </div>
+        </motion.div>
 
-        {/* Floating CTA */}
-        <AnimatePresence>
-          {isComplete && (
-            <motion.div
-              initial={{ y: 100, opacity: 0, scale: 0.9 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 100, opacity: 0, scale: 0.9 }}
-              transition={{ type: "spring", damping: 20 }}
-              className="fixed bottom-8 right-8 bg-gradient-to-r from-green-600 to-emerald-600
-                         text-white px-8 py-5 rounded-2xl shadow-2xl cursor-pointer
-                         hover:scale-105 transition-transform"
-              onClick={handleContinue}
-            >
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6" />
-                <div>
-                  <p className="font-semibold">Requirements Complete!</p>
-                  <p className="text-sm text-green-100 mt-0.5">Continue to decisions</p>
-                </div>
-                <ArrowRight className="w-5 h-5 ml-2" />
+        {/* NEW: Gap filling section */}
+        {!isComplete && missingGaps.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6"
+          >
+            <div className="flex items-start gap-3 mb-4">
+              <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-amber-900">
+                  Missing Information ({missingGaps.length} items)
+                </h4>
+                <p className="text-xs text-amber-700 mt-1">
+                  Add missing details to unlock timeline generation
+                </p>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+
+            {/* Missing items list */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {missingGaps.slice(0, 8).map((gap) => (
+                <span
+                  key={gap}
+                  className="px-3 py-1 bg-white border border-amber-300 rounded-full text-xs text-amber-900"
+                >
+                  {gap.replace(/_/g, " ")}
+                </span>
+              ))}
+              {missingGaps.length > 8 && (
+                <span className="px-3 py-1 bg-white border border-amber-300 rounded-full text-xs text-amber-900">
+                  +{missingGaps.length - 8} more
+                </span>
+              )}
+            </div>
+
+            {/* NEW: Action buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Smart Defaults Button */}
+              <button
+                onClick={handleSmartDefaults}
+                disabled={!canProceedWithDefaults}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
+              >
+                <Zap className="w-4 h-4" />
+                <div className="text-left">
+                  <div className="text-sm">Fill with Smart Defaults</div>
+                  <div className="text-xs opacity-90">One-click conservative estimates</div>
+                </div>
+              </button>
+
+              {/* Manual Entry Button */}
+              <button
+                onClick={() => setShowManualEntry(true)}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-all font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                <div className="text-left">
+                  <div className="text-sm">Add Manually</div>
+                  <div className="text-xs opacity-75">Pick what to fill</div>
+                </div>
+              </button>
+            </div>
+
+            {/* Help text */}
+            {!canProceedWithDefaults && (
+              <div className="mt-3 p-3 bg-white border border-amber-300 rounded-lg">
+                <p className="text-xs text-amber-800">
+                  <strong>Need {Math.max(0, 30 - progressPercent)}% more data</strong> before you can use smart defaults.
+                  Try adding more RFP text or use manual entry.
+                </p>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* Continue button */}
+        {isComplete && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="sticky bottom-8"
+          >
+            <button
+              onClick={handleContinue}
+              className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white
+                         rounded-2xl hover:from-blue-700 hover:to-purple-700 transition-all
+                         hover:scale-105 font-medium text-lg shadow-xl flex items-center
+                         justify-center gap-3"
+            >
+              Continue to Decisions
+              <motion.div
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                →
+              </motion.div>
+            </button>
+          </motion.div>
+        )}
       </div>
+
+      {/* NEW: Manual Entry Modal */}
+      <ManualChipEntry
+        isOpen={showManualEntry}
+        onClose={() => setShowManualEntry(false)}
+        onAddChip={handleManualAddChip}
+        missingGaps={missingGaps}
+      />
     </div>
   );
 }
