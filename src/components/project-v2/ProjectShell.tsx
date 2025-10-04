@@ -15,6 +15,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { lazy, Suspense } from "react";
 import { CaptureMode } from "./modes/CaptureMode";
 import { DecideMode } from "./modes/DecideMode";
+import { MiniReferenceBar } from "@/components/timeline/MiniReferenceBar";
+import { ReferenceArchitectureModal } from "@/components/timeline/ReferenceArchitectureModal";
+import { useReferenceKeyboard } from "@/hooks/useReferenceKeyboard";
 
 // Lazy load heavy components for better performance
 const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
@@ -106,13 +109,22 @@ export function ProjectShell() {
   const mode = useProjectStore((state) => state.mode);
   const { completeness } = usePresalesStore();
 
+  // Enable keyboard shortcuts for SAP Activate Reference
+  useReferenceKeyboard();
+
   // Calculate progress for Capture mode
   const captureProgress = mode === "capture" ? safePercentage(completeness.score, 100) : undefined;
+
+  // Show MiniReferenceBar in plan and optimize modes
+  const showReferenceBar = mode === "plan" || mode === "optimize";
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
       {/* Mode indicator (contextual hero banner) */}
       <ModeIndicator mode={mode} progress={captureProgress} />
+
+      {/* SAP Activate Reference Bar (sticky header for plan/optimize modes) */}
+      {showReferenceBar && <MiniReferenceBar />}
 
       {/* Mode-specific view (animated transitions) */}
       <AnimatePresence mode="wait">
@@ -164,6 +176,9 @@ export function ProjectShell() {
           )}
         </motion.div>
       </AnimatePresence>
+
+      {/* SAP Activate Reference Modal (global - triggered by keyboard or button) */}
+      <ReferenceArchitectureModal />
     </div>
   );
 }

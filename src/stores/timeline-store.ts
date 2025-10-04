@@ -76,6 +76,7 @@ export interface TimelineState {
 
   // Computed values
   getProjectCost: () => number;
+  getProjectCostWithWrappers: () => { core: number; wrappers: number; total: number };
   getBlendedRate: () => number;
   getTotalEffort: () => number;
   getProjectStartDate: () => Date | null;
@@ -661,6 +662,32 @@ export const useTimelineStore = create<TimelineState>()(
         } catch (error) {
           console.error("Critical error calculating project cost:", error);
           return 0;
+        }
+      },
+
+      getProjectCostWithWrappers: (): { core: number; wrappers: number; total: number } => {
+        const coreCost = get().getProjectCost();
+
+        // Import wrapper calculations from wrappers store
+        // This is a circular dependency, but safe because we're only reading
+        if (typeof window === 'undefined') {
+          return { core: coreCost, wrappers: 0, total: coreCost };
+        }
+
+        try {
+          const wrappersStore = require('@/stores/wrappers-store').useWrappersStore;
+          const { calculations } = wrappersStore.getState();
+
+          const wrappersCost = calculations.reduce((sum: number, calc: any) => sum + calc.wrapperCost, 0);
+
+          return {
+            core: coreCost,
+            wrappers: wrappersCost,
+            total: coreCost + wrappersCost,
+          };
+        } catch (error) {
+          console.warn('Could not load wrappers store:', error);
+          return { core: coreCost, wrappers: 0, total: coreCost };
         }
       },
 

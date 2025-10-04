@@ -37,7 +37,8 @@
       "Bash(npx tsc:*)",
       "Bash(npx next lint:*)",
       "Bash(1)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "SlashCommand(/init)"
     ],
     "deny": [],
     "ask": []

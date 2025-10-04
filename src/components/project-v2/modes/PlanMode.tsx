@@ -268,7 +268,7 @@ export function PlanMode() {
 
       {/* Timeline visualization */}
       <div className="flex-1 overflow-hidden bg-white">
-        <ImprovedGanttChart 
+        <ImprovedGanttChart   
           onPhaseClick={(phase) => setSelectedPhase(phase)}
         />
       </div>
