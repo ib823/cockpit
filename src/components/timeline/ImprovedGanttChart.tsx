@@ -22,6 +22,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HolidayManagerModal } from "./HolidayManagerModal";
 import { MilestoneManagerModal } from "./MilestoneManagerModal";
+import { ResourceManagerModal } from "./ResourceManagerModal";
 
 interface Stream {
   id: string;
@@ -100,13 +101,20 @@ export function ImprovedGanttChart({
   const [showHolidayModal, setShowHolidayModal] = useState(false);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [milestones, setMilestones] = useState<Array<{ id: string; name: string; date: Date; color: string }>>([]);
-  
+
   // Drag state
   const [draggedPhase, setDraggedPhase] = useState<string | null>(null);
   const [dragMode, setDragMode] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [dragStartPhase, setDragStartPhase] = useState<Phase | null>(null);
   const dragThrottleRef = useRef<number | null>(null);
+
+  // Edit mode state
+  const [editingField, setEditingField] = useState<{ phaseId: string; field: 'start' | 'end' | 'duration' } | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
+
+  // Resource management state
+  const [selectedPhaseForResources, setSelectedPhaseForResources] = useState<Phase | null>(null);
 
   // Group phases into streams
   const streams = useMemo(() => {
@@ -233,6 +241,69 @@ export function ImprovedGanttChart({
     });
   };
 
+  // Handle editable date/duration updates
+  const handleDateDurationUpdate = useCallback((
+    phase: Phase,
+    field: 'start' | 'end' | 'duration',
+    newValue: string
+  ) => {
+    if (!updatePhase) return;
+
+    const startDate = phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion);
+    const endDate = phase.endDate || addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), selectedRegion);
+
+    let updatedPhase: Partial<Phase> = {};
+
+    if (field === 'duration') {
+      // Update duration (working days)
+      const newDuration = parseInt(newValue, 10);
+      if (isNaN(newDuration) || newDuration <= 0) return;
+
+      const newEndDate = addWorkingDays(startDate, newDuration, selectedRegion);
+      const newEndBusinessDay = calculateWorkingDays(PROJECT_BASE_DATE, newEndDate, selectedRegion);
+
+      updatedPhase = {
+        ...phase,
+        workingDays: newDuration,
+        endDate: newEndDate,
+      };
+    } else if (field === 'start') {
+      // Update start date
+      const newStartDate = new Date(newValue);
+      if (isNaN(newStartDate.getTime())) return;
+
+      // Calculate new start business day
+      const newStartBusinessDay = calculateWorkingDays(PROJECT_BASE_DATE, newStartDate, selectedRegion);
+
+      // Recalculate end date based on duration
+      const newEndDate = addWorkingDays(newStartDate, phase.workingDays || 0, selectedRegion);
+
+      updatedPhase = {
+        ...phase,
+        startDate: newStartDate,
+        startBusinessDay: newStartBusinessDay,
+        endDate: newEndDate,
+      };
+    } else if (field === 'end') {
+      // Update end date
+      const newEndDate = new Date(newValue);
+      if (isNaN(newEndDate.getTime())) return;
+
+      // Calculate new duration
+      const newDuration = calculateWorkingDays(startDate, newEndDate, selectedRegion);
+      if (newDuration <= 0) return;
+
+      updatedPhase = {
+        ...phase,
+        endDate: newEndDate,
+        workingDays: newDuration,
+      };
+    }
+
+    updatePhase(phase.id, updatedPhase);
+    setEditingField(null);
+  }, [updatePhase, selectedRegion]);
+
   // Drag handlers
   const isWeekend = (date: Date): boolean => {
     const day = date.getDay();
@@ -272,13 +343,17 @@ export function ImprovedGanttChart({
 
       if (deltaDays === 0) return;
 
-      let newStartDate = new Date(dragStartPhase.startDate);
-      let newEndDate = new Date(dragStartPhase.endDate);
+      // Get start and end dates with fallbacks
+      const currentStartDate = dragStartPhase.startDate || addWorkingDays(PROJECT_BASE_DATE, dragStartPhase.startBusinessDay || 0, selectedRegion);
+      const currentEndDate = dragStartPhase.endDate || addWorkingDays(PROJECT_BASE_DATE, (dragStartPhase.startBusinessDay || 0) + (dragStartPhase.workingDays || 0), selectedRegion);
+
+      let newStartDate = new Date(currentStartDate);
+      let newEndDate = new Date(currentEndDate);
 
     switch (dragMode) {
       case 'move':
-        newStartDate = addDays(dragStartPhase.startDate, deltaDays);
-        newEndDate = addDays(dragStartPhase.endDate, deltaDays);
+        newStartDate = addDays(currentStartDate, deltaDays);
+        newEndDate = addDays(currentEndDate, deltaDays);
         while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
           if (deltaDays > 0) {
             newStartDate = addDays(newStartDate, 1);
@@ -289,10 +364,10 @@ export function ImprovedGanttChart({
           }
         }
         break;
-      
+
       case 'resize-start':
-        newStartDate = addDays(dragStartPhase.startDate, deltaDays);
-        newEndDate = new Date(dragStartPhase.endDate);
+        newStartDate = addDays(currentStartDate, deltaDays);
+        newEndDate = new Date(currentEndDate);
         while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
           newStartDate = addDays(newStartDate, deltaDays > 0 ? 1 : -1);
         }
@@ -303,10 +378,10 @@ export function ImprovedGanttChart({
           }
         }
         break;
-      
+
       case 'resize-end':
-        newStartDate = new Date(dragStartPhase.startDate);
-        newEndDate = addDays(dragStartPhase.endDate, deltaDays);
+        newStartDate = new Date(currentStartDate);
+        newEndDate = addDays(currentEndDate, deltaDays);
         while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
           newEndDate = addDays(newEndDate, deltaDays > 0 ? 1 : -1);
         }
@@ -415,8 +490,8 @@ export function ImprovedGanttChart({
   }
 
   return (
-    <div 
-      className="relative overflow-x-auto bg-white rounded-lg shadow-lg p-6"
+    <div
+      className="relative overflow-x-auto overflow-y-auto max-h-[calc(100vh-12rem)] bg-white rounded-lg shadow-lg p-6"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
@@ -518,8 +593,55 @@ export function ImprovedGanttChart({
         </div>
       </div>
 
-      {/* Streams */}
-      {streams.map((stream) => {
+      {/* Timeline Area with Vertical Markers */}
+      <div className="relative">
+        {/* Holiday Vertical Lines - Behind everything */}
+        {visibleHolidays.map((holiday, idx) => {
+          const holidayDate = new Date(holiday.date);
+          const offset = differenceInDays(holidayDate, minDate);
+          const position = (offset / totalDays) * 100;
+
+          return (
+            <div
+              key={`holiday-line-${idx}`}
+              className="absolute top-0 bottom-0 z-0 group cursor-help"
+              style={{ left: `calc(16rem + ${position}% * (100% - 16rem) / 100)` }}
+            >
+              <div className="w-0.5 h-full bg-red-300/40 group-hover:bg-red-500/60 transition-colors" />
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap">
+                  <div className="font-semibold">{holiday.name}</div>
+                  <div className="text-gray-300 text-[10px]">{format(holidayDate, 'EEEE, MMM dd, yyyy')}</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Milestone Vertical Lines - Behind everything */}
+        {milestones.map((milestone) => {
+          const offset = differenceInDays(milestone.date, minDate);
+          const position = (offset / totalDays) * 100;
+
+          return (
+            <div
+              key={`milestone-line-${milestone.id}`}
+              className="absolute top-0 bottom-0 z-0 group cursor-help"
+              style={{ left: `calc(16rem + ${position}% * (100% - 16rem) / 100)` }}
+            >
+              <div className="w-0.5 h-full bg-green-400/40 group-hover:bg-green-600/60 transition-colors" />
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap">
+                  <div className="font-semibold">{milestone.name}</div>
+                  <div className="text-gray-300 text-[10px]">{format(milestone.date, 'MMM dd, yyyy')}</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Streams */}
+        {streams.map((stream) => {
         const isCollapsed = collapsedStreams.has(stream.id);
 
         return (
@@ -543,6 +665,38 @@ export function ImprovedGanttChart({
               </div>
             </div>
 
+            {/* Collapsed Mini Reference Bar */}
+            {isCollapsed && (
+              <div className="flex items-center mb-2">
+                <div className="w-64 pl-8" />
+                <div className="flex-1 relative h-8">
+                  {/* Combined mini bar showing all phases */}
+                  {stream.phases.map((phase) => {
+                    const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
+                    const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
+
+                    return (
+                      <div
+                        key={phase.id}
+                        className={`absolute top-1 h-6 rounded ${stream.color} opacity-60 hover:opacity-90 cursor-pointer transition-opacity`}
+                        style={{
+                          left: `${startPercent}%`,
+                          width: `${widthPercent}%`,
+                        }}
+                        onClick={() => {
+                          toggleStream(stream.id); // Expand on click
+                          if (selectPhase) {
+                            selectPhase(phase.id);
+                          }
+                        }}
+                        title={`${phase.name} (${phase.workingDays}d)`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Phases */}
             {!isCollapsed &&
               stream.phases.map((phase) => {
@@ -552,9 +706,21 @@ export function ImprovedGanttChart({
 
                 return (
                   <div key={phase.id} className="flex items-center mb-2 group/phase">
-                    <div className="w-64 pl-8 pr-4">
-                      <div className="text-sm text-gray-700 truncate">{phase.name}</div>
-                      <div className="text-xs text-gray-500">{phase.workingDays}d</div>
+                    <div className="w-64 pl-8 pr-4 flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-700 truncate">{phase.name}</div>
+                        <div className="text-xs text-gray-500">{phase.workingDays}d</div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPhaseForResources(phase);
+                        }}
+                        className="ml-2 p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors opacity-0 group-hover/phase:opacity-100"
+                        title="Manage Resources"
+                      >
+                        <Users className="w-4 h-4" />
+                      </button>
                     </div>
 
                     <div className="flex-1 relative h-16">
@@ -597,24 +763,105 @@ export function ImprovedGanttChart({
                         />
 
                         {/* Phase Content */}
-                        <div className="p-2 h-full flex flex-col justify-between pointer-events-none">
-                          {/* Dates */}
-                          <div className="flex justify-between text-[10px] text-white/80 font-medium">
-                            <span>{format(phase.startDate, 'MMM dd')}</span>
-                            <span>{format(phase.endDate, 'MMM dd')}</span>
+                        <div className="p-2 h-full flex flex-col justify-between">
+                          {/* Dates - Editable */}
+                          <div className="flex justify-between text-[10px] text-white/80 font-medium gap-1">
+                            {/* Start Date */}
+                            {editingField?.phaseId === phase.id && editingField.field === 'start' ? (
+                              <input
+                                type="date"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => handleDateDurationUpdate(phase, 'start', editValue)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleDateDurationUpdate(phase, 'start', editValue);
+                                  if (e.key === 'Escape') setEditingField(null);
+                                }}
+                                autoFocus
+                                className="w-20 px-1 text-gray-900 rounded pointer-events-auto"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : (
+                              <span
+                                className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors pointer-events-auto"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const startDate = phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion);
+                                  setEditingField({ phaseId: phase.id, field: 'start' });
+                                  setEditValue(format(startDate, 'yyyy-MM-dd'));
+                                }}
+                                title="Click to edit start date"
+                              >
+                                {phase.startDate ? format(phase.startDate, 'MMM dd') : format(addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion), 'MMM dd')}
+                              </span>
+                            )}
+
+                            {/* End Date */}
+                            {editingField?.phaseId === phase.id && editingField.field === 'end' ? (
+                              <input
+                                type="date"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => handleDateDurationUpdate(phase, 'end', editValue)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleDateDurationUpdate(phase, 'end', editValue);
+                                  if (e.key === 'Escape') setEditingField(null);
+                                }}
+                                autoFocus
+                                className="w-20 px-1 text-gray-900 rounded pointer-events-auto"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : (
+                              <span
+                                className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors pointer-events-auto"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const endDate = phase.endDate || addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), selectedRegion);
+                                  setEditingField({ phaseId: phase.id, field: 'end' });
+                                  setEditValue(format(endDate, 'yyyy-MM-dd'));
+                                }}
+                                title="Click to edit end date"
+                              >
+                                {phase.endDate ? format(phase.endDate, 'MMM dd') : format(addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), selectedRegion), 'MMM dd')}
+                              </span>
+                            )}
                           </div>
 
-                          {/* Duration */}
+                          {/* Duration - Editable */}
                           <div className="text-center">
-                            <span className="text-xs font-bold text-white px-2 py-0.5 bg-black/20 rounded">
-                              {phase.workingDays}d
-                            </span>
+                            {editingField?.phaseId === phase.id && editingField.field === 'duration' ? (
+                              <input
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => handleDateDurationUpdate(phase, 'duration', editValue)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleDateDurationUpdate(phase, 'duration', editValue);
+                                  if (e.key === 'Escape') setEditingField(null);
+                                }}
+                                autoFocus
+                                className="w-16 px-1 text-gray-900 rounded text-center pointer-events-auto"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : (
+                              <span
+                                className="text-xs font-bold text-white px-2 py-0.5 bg-black/20 rounded cursor-pointer hover:bg-black/30 transition-colors pointer-events-auto"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingField({ phaseId: phase.id, field: 'duration' });
+                                  setEditValue(String(phase.workingDays || 0));
+                                }}
+                                title="Click to edit duration (business days)"
+                              >
+                                {phase.workingDays}d
+                              </span>
+                            )}
                           </div>
                         </div>
 
                         {/* Avatars */}
                         {renderResourceAvatars(phase)}
-                        
+
                         {/* Utilization */}
                         {renderUtilizationBar(phase)}
                       </div>
@@ -625,67 +872,21 @@ export function ImprovedGanttChart({
           </div>
         );
       })}
-
-      {/* Holiday Markers */}
-      <div className="relative mt-8 border-t border-gray-200 pt-4">
-        <div className="text-xs font-medium text-gray-600 mb-2 px-2">Public Holidays</div>
-        <div className="relative h-12 bg-gradient-to-b from-red-50 to-transparent rounded">
-          {visibleHolidays.map((holiday, idx) => {
-            const holidayDate = new Date(holiday.date);
-            const offset = differenceInDays(holidayDate, minDate);
-            const position = (offset / totalDays) * 100;
-            
-            return (
-              <div
-                key={idx}
-                className="absolute top-0 bottom-0 group"
-                style={{ left: `calc(16rem + ${position}% * (100% - 16rem) / 100)` }}
-              >
-                <div className="w-0.5 h-full bg-red-500 relative">
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                    <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                      {holiday.name}
-                      <div className="text-gray-300">{format(holidayDate, 'MMM dd, yyyy')}</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-red-500 rounded-full border-2 border-white shadow" />
-              </div>
-            );
-          })}
-        </div>
       </div>
 
-      {/* Milestone Markers */}
-      {milestones.length > 0 && (
-        <div className="relative mt-6 border-t border-gray-200 pt-4">
-          <div className="text-xs font-medium text-gray-600 mb-2 px-2">Project Milestones</div>
-          <div className="relative h-16 bg-gradient-to-r from-green-50 to-purple-50 rounded">
-            {milestones.map((milestone) => {
-              const offset = differenceInDays(milestone.date, minDate);
-              const position = (offset / totalDays) * 100;
-              
-              return (
-                <div
-                  key={milestone.id}
-                  className="absolute top-0 bottom-0"
-                  style={{ left: `calc(16rem + ${position}% * (100% - 16rem) / 100)` }}
-                >
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <div className={`w-4 h-4 ${milestone.color} rotate-45 border-2 border-white shadow-lg`} />
-                  </div>
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-xs font-medium text-gray-700 whitespace-nowrap">
-                    {milestone.name}
-                  </div>
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 text-xs text-gray-500 whitespace-nowrap">
-                    {format(milestone.date, 'MMM dd')}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      {/* Legend */}
+      <div className="mt-8 flex items-center gap-6 text-xs border-t border-gray-200 pt-4">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-red-300/40 rounded"></div>
+          <span className="text-gray-600">Public Holidays ({visibleHolidays.length})</span>
         </div>
-      )}
+        {milestones.length > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-400/40 rounded"></div>
+            <span className="text-gray-600">Milestones ({milestones.length})</span>
+          </div>
+        )}
+      </div>
 
       {/* Holiday Manager Modal */}
       {showHolidayModal && (
@@ -704,6 +905,17 @@ export function ImprovedGanttChart({
             setShowMilestoneModal(false);
           }}
           onClose={() => setShowMilestoneModal(false)}
+        />
+      )}
+
+      {/* Resource Manager Modal */}
+      {selectedPhaseForResources && updatePhase && (
+        <ResourceManagerModal
+          phase={selectedPhaseForResources}
+          onClose={() => setSelectedPhaseForResources(null)}
+          onSave={(resources) => {
+            updatePhase(selectedPhaseForResources.id, { resources });
+          }}
         />
       )}
     </div>

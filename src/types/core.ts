@@ -92,6 +92,8 @@ export interface Phase {
   description?: string;
   isCritical?: boolean;
   progress?: number; // Optional progress percentage (0-100)
+  startDate?: Date; // Computed from startBusinessDay
+  endDate?: Date; // Computed from startBusinessDay + workingDays
 }
 
 export interface Resource {
