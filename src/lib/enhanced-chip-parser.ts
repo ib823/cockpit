@@ -263,6 +263,30 @@ function extractCriticalPatterns(text: string): ExtendedChip[] {
     }
   }
 
+  // Integrations
+  for (const pattern of CRITICAL_PATTERNS.integrations) {
+    for (const match of text.matchAll(pattern)) {
+      if (match[1]) {
+        const value = extractNumericValue(match[1]);
+        if (value !== null && value > 0) {
+          chips.push({
+            id: `critical_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            type: "integrations",
+            value: value,
+            confidence: 0.87,
+            source: "critical_parser",
+            evidence: match[0],
+            metadata: {
+              unit: "systems",
+              impact: getImpactLevel("integrations", value),
+              multiplier: getMultiplier("integrations", value),
+            },
+          });
+        }
+      }
+    }
+  }
+
   // Transaction Volumes (separate from general data_volume)
   const transactionPatterns = [
     /(\d+[\d,]*(?:\.\d+)?)\s*(?:k|m|thousand|million)?\s+(?:transactions?|invoices?|orders?|PO|SO)\s+(?:per\s+)?(?:day|month|year)/gi,

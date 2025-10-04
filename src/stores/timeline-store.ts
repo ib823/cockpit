@@ -754,6 +754,13 @@ export const useTimelineStore = create<TimelineState>()(
         zoomLevel: state.zoomLevel,
         clientPresentationMode: state.clientPresentationMode,
       }),
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error("[TimelineStore] Failed to rehydrate from localStorage:", error);
+          // Clear corrupted data
+          localStorage.removeItem("timeline-store");
+        }
+      },
     }
   )
 );

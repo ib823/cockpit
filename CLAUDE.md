@@ -179,6 +179,14 @@ npm test -- input-sanitizer.test.ts --run
 npm run test:coverage
 ```
 
+**Known test failures (as of current state - 8/244 tests failing):**
+- Presales-timeline flow: Compliance multiplier calculation - test expects different calculation
+- Presales-timeline flow: Total multiplier cap at 5.0x - not implemented
+- Presales-timeline flow: Negative employee count handling - not implemented
+- Presales-timeline flow: High complexity warning generation - not implemented
+- Timeline generation flow: Visual phase editing integration - setPhases/setSelectedPackages usage
+- Production readiness: Corrupted localStorage handling - test environment issue (store already initialized)
+
 ## Key Patterns
 
 ### Completeness Validation

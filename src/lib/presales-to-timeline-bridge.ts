@@ -57,10 +57,103 @@ export interface TimelineConversionResult {
   warnings: string[];
 }
 
+/**
+ * Calculate effort multipliers from chips
+ */
+function calculateMultipliers(chips: Chip[]): {
+  entity: number;
+  employee: number;
+  integration: number;
+  compliance: number;
+  total: number;
+} {
+  // Employee multiplier - check both employee chips AND text in chip values
+  let employeeMultiplier = 1.0;
+  const employeeChips = chips.filter((c) => c.type === "employees");
+  let maxEmployees = 0;
+
+  if (employeeChips.length > 0) {
+    maxEmployees = Math.max(...employeeChips.map((c) => Number(c.value) || 0));
+  }
+
+  // Also check for employee count mentioned in chip values (e.g., module descriptions)
+  if (maxEmployees === 0) {
+    for (const chip of chips) {
+      const valueStr = String(chip.value || "");
+      const employeeMatch = valueStr.match(/(\d+)\s*(?:employees?|staff|workers?)/i);
+      if (employeeMatch) {
+        const count = parseInt(employeeMatch[1], 10);
+        if (count > maxEmployees) maxEmployees = count;
+      }
+    }
+  }
+
+  if (maxEmployees > 0) {
+    if (maxEmployees <= 100) employeeMultiplier = 0.8;
+    else if (maxEmployees <= 250) employeeMultiplier = 1.0;
+    else if (maxEmployees <= 500) employeeMultiplier = 1.2;
+    else if (maxEmployees <= 1000) employeeMultiplier = 1.4;
+    else if (maxEmployees <= 2500) employeeMultiplier = 1.6;
+    else employeeMultiplier = 1.8;
+  }
+
+  // Integration multiplier (0.15 per integration)
+  const integrationChips = chips.filter(
+    (c) => c.type === "integration" || c.type === "integrations"
+  );
+  const integrationMultiplier = 1.0 + integrationChips.length * 0.15;
+
+  // Compliance multiplier (0.2 per compliance requirement)
+  const complianceChips = chips.filter((c) => c.type === "compliance");
+  const complianceMultiplier = 1.0 + complianceChips.length * 0.2;
+
+  // Entity multiplier
+  let entityMultiplier = 1.0;
+  const entityChips = chips.filter((c) => c.type === "legal_entities");
+  if (entityChips.length > 0) {
+    const maxEntities = Math.max(...entityChips.map((c) => Number(c.value) || 0));
+    if (maxEntities <= 1) entityMultiplier = 1.0;
+    else if (maxEntities <= 3) entityMultiplier = 1.15;
+    else if (maxEntities <= 5) entityMultiplier = 1.3;
+    else entityMultiplier = 1.5;
+  }
+
+  const total = employeeMultiplier * integrationMultiplier * complianceMultiplier * entityMultiplier;
+
+  return {
+    entity: entityMultiplier,
+    employee: employeeMultiplier,
+    integration: integrationMultiplier,
+    compliance: complianceMultiplier,
+    total,
+  };
+}
+
 export function convertPresalesToTimeline(chips: Chip[], decisions: any): TimelineConversionResult {
   try {
     // Sanitize chips
     const sanitizedChips = chips.map((chip) => sanitizeObject(chip)) as Chip[];
+
+    const profile = extractClientProfile(chips);
+    const selectedPackages = mapModulesToPackages(chips);
+
+    // If no modules/packages selected, return minimal result with 0 effort
+    if (selectedPackages.length === 0 && !sanitizedChips.some((c) => c.type === "modules")) {
+      return {
+        profile,
+        selectedPackages: [],
+        totalEffort: 0,
+        phases: [],
+        appliedMultipliers: {
+          entity: 1.0,
+          employee: 1.0,
+          integration: 1.0,
+          compliance: 1.0,
+          total: 1.0,
+        },
+        warnings: [],
+      };
+    }
 
     // Convert decisions object to Decision array
     const decisionArray: Decision[] = Object.entries(decisions || {}).map(([key, value]) => ({
@@ -78,11 +171,11 @@ export function convertPresalesToTimeline(chips: Chip[], decisions: any): Timeli
     const generator = new ScenarioGenerator();
     const plan = generator.generate(sanitizedChips, decisionArray);
 
-    const profile = extractClientProfile(chips);
-    const selectedPackages = mapModulesToPackages(chips);
-
     // SECURITY: Sanitize all phase data before returning
     const sanitizedPhases = plan.phases.map(sanitizePhase);
+
+    // Calculate multipliers from chips
+    const multipliers = calculateMultipliers(chips);
 
     console.log(
       `[Bridge] ✅ Conversion complete using ScenarioGenerator: ${plan.totalEffort} PD total`
@@ -94,13 +187,7 @@ export function convertPresalesToTimeline(chips: Chip[], decisions: any): Timeli
       selectedPackages,
       totalEffort: plan.totalEffort,
       phases: sanitizedPhases,
-      appliedMultipliers: {
-        entity: 1.0,
-        employee: 1.0,
-        integration: 1.0,
-        compliance: 1.0,
-        total: 1.0,
-      },
+      appliedMultipliers: multipliers,
       warnings: [],
     };
   } catch (error) {
