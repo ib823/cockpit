@@ -2,6 +2,8 @@ import { convertPresalesToTimeline } from "@/lib/presales-to-timeline-bridge";
 import { Chip, ChipType } from "@/types/core";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { sanitizeChipValue } from "@/lib/input-sanitizer";
+import { globalRateLimiter } from "@/lib/rate-limiter";
 
 // Types
 export type Mode = "capture" | "decide" | "plan" | "review" | "present";
@@ -63,6 +65,12 @@ const initialCompleteness: Completeness = {
   blockers: [],
 };
 
+// SECURITY: Limits to prevent DoS attacks
+const MAX_CHIPS_TOTAL = 100; // Maximum total chips allowed
+const MAX_CHIP_VALUE_LENGTH = 200; // Maximum characters per chip value
+const RATE_LIMIT_CHIPS = 20; // Max 20 chips per minute
+const RATE_LIMIT_WINDOW = 60000; // 1 minute window
+
 export const usePresalesStore = create<PresalesState>()(
   persist(
     (set, get) => ({
@@ -75,12 +83,62 @@ export const usePresalesStore = create<PresalesState>()(
       metrics: { clicks: 0, keystrokes: 0, timeSpent: 0 },
 
       addChip: (chip) => {
-        set((state) => ({ chips: [...state.chips, chip] }));
+        const state = get();
+
+        // SECURITY: Check rate limit
+        if (!globalRateLimiter.check("add-chip", RATE_LIMIT_CHIPS, RATE_LIMIT_WINDOW)) {
+          console.warn("⚠️ Rate limit exceeded: Too many chips added too quickly");
+          return;
+        }
+
+        // SECURITY: Check total chip limit
+        if (state.chips.length >= MAX_CHIPS_TOTAL) {
+          console.warn(`⚠️ Maximum chip limit reached (${MAX_CHIPS_TOTAL})`);
+          return;
+        }
+
+        // SECURITY: Sanitize chip value
+        const sanitizedChip = {
+          ...chip,
+          value:
+            typeof chip.value === "string"
+              ? sanitizeChipValue(chip.value, chip.type)
+              : chip.value,
+        };
+
+        set((state) => ({ chips: [...state.chips, sanitizedChip] }));
         get().calculateCompleteness();
       },
 
       addChips: (chips) => {
-        set((state) => ({ chips: [...state.chips, ...chips] }));
+        const state = get();
+
+        // SECURITY: Check rate limit
+        if (!globalRateLimiter.check("add-chips-batch", 5, RATE_LIMIT_WINDOW)) {
+          console.warn("⚠️ Rate limit exceeded: Too many batch additions");
+          return;
+        }
+
+        // SECURITY: Check total chip limit
+        if (state.chips.length + chips.length > MAX_CHIPS_TOTAL) {
+          console.warn(
+            `⚠️ Cannot add ${chips.length} chips: Would exceed limit of ${MAX_CHIPS_TOTAL}`
+          );
+          // Add only up to the limit
+          const allowedCount = MAX_CHIPS_TOTAL - state.chips.length;
+          chips = chips.slice(0, allowedCount);
+        }
+
+        // SECURITY: Sanitize all chip values
+        const sanitizedChips = chips.map((chip) => ({
+          ...chip,
+          value:
+            typeof chip.value === "string"
+              ? sanitizeChipValue(chip.value, chip.type)
+              : chip.value,
+        }));
+
+        set((state) => ({ chips: [...state.chips, ...sanitizedChips] }));
         get().calculateCompleteness();
       },
 
