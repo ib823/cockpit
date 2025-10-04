@@ -1,6 +1,3 @@
-import { EAContextPanel } from "@/components/ea-diagram/EAContextPanel";
-import { EAFloatingWidget } from "@/components/ea-diagram/EAFloatingWidget";
-import { EAProvider } from "@/components/ea-diagram/EAProvider";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -17,11 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <EAProvider>
-          {children}
-          <EAFloatingWidget />
-          <EAContextPanel />
-        </EAProvider>
+        {children}
       </body>
     </html>
   );
