@@ -1,27 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { ImprovedGanttChart } from "@/components/timeline/ImprovedGanttChart";
+import { cn, formatCurrency, formatDuration } from "@/lib/utils";
+import { usePresalesStore } from "@/stores/presales-store";
+import { useProjectStore } from "@/stores/project-store";
+import { useTimelineStore, type Phase } from "@/stores/timeline-store";
 import { motion } from "framer-motion";
 import {
-  ZoomIn,
-  ZoomOut,
-  Eye,
   Calendar,
   DollarSign,
-  Users,
+  Eye,
   Flag,
-  Plus,
-  Edit2,
-  ChevronRight,
+  Plus
 } from "lucide-react";
-import { useTimelineStore, type Phase } from "@/stores/timeline-store";
-import { useProjectStore } from "@/stores/project-store";
-import { usePresalesStore } from "@/stores/presales-store";
-import { EmptyState } from "../shared/EmptyState";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SlideOver } from "../shared/SlideOver";
 import { StatBadge } from "../shared/StatBadge";
-import { formatDuration, formatCurrency, cn } from "@/lib/utils";
-import { ImprovedGanttChart } from "@/components/timeline/ImprovedGanttChart";
 
 // Helper to calculate phase cost
 function calculatePhaseCost(phase: Phase): number {
@@ -62,87 +56,160 @@ export function PlanMode() {
     }
   }, [phases.length, chips.length, completeness.score, regenerateTimeline]);
 
-  // Handle timeline regeneration
-  const handleRegenerate = () => {
+  // Memoized callbacks for performance
+  const handleRegenerate = useCallback(() => {
     regenerateTimeline(true);
-  };
+  }, [regenerateTimeline]);
 
-  // Calculate total duration
-  const totalDuration = phases.reduce((sum, phase) => sum + phase.workingDays, 0);
+  // Memoize expensive calculations
+  const totalDuration = useMemo(
+    () => phases.reduce((sum, phase) => sum + phase.workingDays, 0),
+    [phases]
+  );
 
   // Empty state - no timeline yet
+  // ========================================
+// COPY-PASTE SOLUTION: Add this to PlanMode.tsx
+// ========================================
+
+// STEP 1: Find the empty state section in PlanMode (around line 70-90)
+// Look for: if (phases.length === 0) {
+
+// Empty state - no timeline yet
   if (phases.length === 0) {
-    // Check if we have enough data to generate
     const hasEnoughData = chips.length > 0 && completeness.score >= 30;
 
     return (
-      <EmptyState
-        icon={Calendar}
-        title={hasEnoughData ? "Generating your project plan..." : "Need more requirements"}
-        description={
-          hasEnoughData
-            ? "Creating timeline from your captured requirements"
-            : "Please capture requirements and make decisions first"
-        }
-        action={
-          hasEnoughData
-            ? {
-                label: "Retry Generation",
-                onClick: handleRegenerate,
-              }
-            : {
-                label: "Capture Requirements",
-                onClick: () => setMode("capture"),
-              }
-        }
-        secondaryAction={{
-          label: hasEnoughData ? "Review Decisions" : "View Decisions",
-          onClick: () => setMode("decide"),
-        }}
-      />
+      <div className="h-full flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md">
+          <Calendar className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          
+          <h3 className="text-xl font-medium text-gray-900 mb-2">
+            {hasEnoughData ? "Ready to Generate Timeline" : "Need More Requirements"}
+          </h3>
+          
+          <p className="text-gray-600 mb-6">
+            {hasEnoughData
+              ? `You have ${chips.length} requirements captured (${completeness.score}% complete). Click below to generate your project timeline.`
+              : `Add more requirements in Capture mode. Currently at ${completeness.score}% (need 30% minimum).`}
+          </p>
+
+          <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded text-left text-xs font-mono">
+            <div>Chips: {chips.length}</div>
+            <div>Completeness: {completeness.score}%</div>
+            <div>Phases: {phases.length}</div>
+            <div>Can Generate: {hasEnoughData ? "YES ✅" : "NO ❌"}</div>
+          </div>
+
+          {hasEnoughData && (
+            <button
+              onClick={() => {
+                console.log("🔧 [MANUAL] Force regenerating timeline...");
+                console.log(`   Input: ${chips.length} chips, ${completeness.score}% complete`);
+                
+                regenerateTimeline(true);
+                
+                setTimeout(() => {
+                  const updatedPhases = useTimelineStore.getState().phases;
+                  const updatedPackages = useTimelineStore.getState().selectedPackages;
+                  
+                  console.log(`   ✅ Generated: ${updatedPhases.length} phases, ${updatedPackages.length} packages`);
+                  
+                  if (updatedPhases.length > 0) {
+                    alert(`Success! Generated ${updatedPhases.length} phases. Reloading page...`);
+                    window.location.reload();
+                  } else {
+                    alert("Generation failed. Check console for errors.");
+                    console.error("Timeline generation produced 0 phases");
+                  }
+                }, 1500);
+              }}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
+            >
+              🚀 Generate Timeline Now
+            </button>
+          )}
+
+          {!hasEnoughData && (
+            <button
+              onClick={() => setMode("capture")}
+              className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              ← Back to Capture Mode
+            </button>
+          )}
+        </div>
+      </div>
     );
   }
+// STEP 3: Save the file
+// STEP 4: Refresh browser
+// STEP 5: Click "Generate Timeline Now" button
+// STEP 6: Check console logs and wait for success message
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Toolbar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {/* Zoom controls */}
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+      {/* Toolbar */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between mb-3">
+          {/* Left: Navigation */}
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setZoom("week")}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                zoom === "week"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              )}
+              onClick={() => setMode("decide")}
+              className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium flex items-center gap-2"
             >
-              Week
+              ← Back to Decisions
             </button>
+            
+            <div className="w-px h-6 bg-gray-300" />
+            
             <button
-              onClick={() => setZoom("month")}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                zoom === "month"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              )}
+              onClick={handleRegenerate}
+              className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
             >
-              Month
+              Regenerate Timeline
             </button>
           </div>
 
-          {/* Presentation toggle */}
-          <button
-            onClick={() => setPresentationMode(!presentationMode)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200
-                       rounded-lg transition-colors text-sm font-medium"
-          >
-            <Eye className="w-4 h-4" />
-            {presentationMode ? "Edit Mode" : "Present Mode"}
-          </button>
+          {/* Right: View Controls */}
+          <div className="flex items-center gap-4">
+            {/* Zoom controls */}
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setZoom("week")}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                  zoom === "week"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                )}
+              >
+                Week
+              </button>
+              <button
+                onClick={() => setZoom("month")}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                  zoom === "month"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                )}
+              >
+                Month
+              </button>
+            </div>
+
+            {/* Presentation toggle */}
+            <button
+              onClick={() => setPresentationMode(!presentationMode)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200
+                         rounded-lg transition-colors text-sm font-medium"
+            >
+              <Eye className="w-4 h-4" />
+              {presentationMode ? "Edit Mode" : "Present Mode"}
+            </button>
+          </div>
         </div>
 
         {/* Summary stats */}
@@ -178,9 +245,11 @@ export function PlanMode() {
         </motion.div>
       )}
 
-      {/* Timeline visualization - Steve Jobs-level UX */}
+      {/* Timeline visualization */}
       <div className="flex-1 overflow-hidden bg-white">
-        <ImprovedGanttChart />
+        <ImprovedGanttChart 
+          onPhaseClick={(phase) => setSelectedPhase(phase)}
+        />
       </div>
 
       {/* Phase inspector slide-over */}

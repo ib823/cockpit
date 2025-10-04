@@ -7,12 +7,17 @@
 
 "use client";
 
+import { lazy, Suspense } from "react";
 import { safePercentage } from "@/lib/utils";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
 import { AnimatePresence, motion } from "framer-motion";
 import { CaptureMode } from "./modes/CaptureMode";
 import { DecideMode } from "./modes/DecideMode";
+
+// Lazy load heavy components for better performance
+const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
+const PresentMode = lazy(() => import("./modes/PresentMode").then(m => ({ default: m.PresentMode })));
 
 /**
  * Mode Indicator - Hero banner for each mode
@@ -113,12 +118,28 @@ export function ProjectShell() {
           {mode === "capture" && <CaptureMode />}
           {mode === "decide" && <DecideMode />}
           {mode === "plan" && (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center text-gray-500">
-                <h2 className="text-2xl font-light mb-2">Plan Mode</h2>
-                <p className="text-sm">Timeline view coming soon...</p>
+            <Suspense fallback={
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                  <p className="text-sm">Loading timeline...</p>
+                </div>
               </div>
-            </div>
+            }>
+              <PlanMode />
+            </Suspense>
+          )}
+          {mode === "present" && (
+            <Suspense fallback={
+              <div className="h-full flex items-center justify-center bg-gray-900">
+                <div className="text-center text-gray-300">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                  <p className="text-sm">Loading presentation...</p>
+                </div>
+              </div>
+            }>
+              <PresentMode />
+            </Suspense>
           )}
         </motion.div>
       </AnimatePresence>

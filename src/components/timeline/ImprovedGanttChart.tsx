@@ -31,6 +31,7 @@ interface ImprovedGanttChartProps {
   phases?: Phase[];
   startDate?: Date;
   endDate?: Date;
+  onPhaseClick?: (phase: Phase) => void;
 }
 
 export function ImprovedGanttChart({

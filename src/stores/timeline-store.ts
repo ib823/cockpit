@@ -586,27 +586,28 @@ export const useTimelineStore = create<TimelineState>()(
       getProjectCost: (): number => {
         const { phases } = get();
 
+        // Early return for performance
+        if (!phases || phases.length === 0) {
+          return 0;
+        }
+
         try {
-          if (!phases || phases.length === 0) {
-            return 0;
+          const phasesWithResources = phases.map((p) => ({
+            ...p,
+            resources: p.resources || [],
+          }));
+
+          const cost = calculateProjectCost(phasesWithResources);
+
+          if (typeof cost === "number" && !isNaN(cost) && cost >= 0) {
+            return cost;
           }
+        } catch (originalError) {
+          console.warn("Original calculateProjectCost failed, using fallback:", originalError);
+        }
 
-          try {
-            const phasesWithResources = phases.map((p) => ({
-              ...p,
-              resources: p.resources || [],
-            }));
-
-            const cost = calculateProjectCost(phasesWithResources);
-
-            if (typeof cost === "number" && !isNaN(cost) && cost >= 0) {
-              return cost;
-            }
-          } catch (originalError) {
-            console.warn("Original calculateProjectCost failed, using fallback:", originalError);
-          }
-
-          // Fallback: Manual calculation
+        // Fallback: Manual calculation
+        try {
           let totalCost = 0;
 
           for (const phase of phases) {
