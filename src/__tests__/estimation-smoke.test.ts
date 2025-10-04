@@ -1,68 +1,68 @@
 // src/__tests__/estimation-smoke.test.ts
-import { describe, it, expect } from 'vitest';
-import { ScenarioGenerator } from '@/lib/scenario-generator';
-import { Chip, Decision } from '@/types/core';
+import { describe, it, expect } from "vitest";
+import { ScenarioGenerator } from "@/lib/scenario-generator";
+import { Chip, Decision } from "@/types/core";
 
-describe('Estimation Smoke Tests', () => {
+describe("Estimation Smoke Tests", () => {
   const generator = new ScenarioGenerator();
 
-  it('generates plan from minimal chips', () => {
+  it("generates plan from minimal chips", () => {
     const chips: Chip[] = [
       {
-        id: '1',
-        type: 'country',
-        value: 'Malaysia',
+        id: "1",
+        type: "country",
+        value: "Malaysia",
         confidence: 0.9,
-        source: 'paste',
+        source: "paste",
         validated: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       {
-        id: '2',
-        type: 'employees',
-        value: '500',
+        id: "2",
+        type: "employees",
+        value: "500",
         confidence: 0.85,
-        source: 'paste',
+        source: "paste",
         validated: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       {
-        id: '3',
-        type: 'modules',
-        value: 'Finance',
+        id: "3",
+        type: "modules",
+        value: "Finance",
         confidence: 0.9,
-        source: 'paste',
+        source: "paste",
         validated: true,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     ];
 
     const decisions: Decision[] = [
       {
-        id: 'd1',
-        type: 'single',
-        category: 'module_combo',
-        question: 'Which modules?',
-        options: ['FI'],
-        selected: 'FI',
-        impact: 'medium',
-        timestamp: new Date()
+        id: "d1",
+        type: "single",
+        category: "module_combo",
+        question: "Which modules?",
+        options: ["FI"],
+        selected: "FI",
+        impact: "medium",
+        timestamp: new Date(),
       },
       {
-        id: 'd2',
-        type: 'single',
-        category: 'rate_region',
-        question: 'Which region?',
-        options: ['ABMY'],
-        selected: 'ABMY',
-        impact: 'low',
-        timestamp: new Date()
-      }
+        id: "d2",
+        type: "single",
+        category: "rate_region",
+        question: "Which region?",
+        options: ["ABMY"],
+        selected: "ABMY",
+        impact: "low",
+        timestamp: new Date(),
+      },
     ];
 
     const plan = generator.generate(chips, decisions);
 
-    console.log('✅ Baseline Test Results:');
+    console.log("✅ Baseline Test Results:");
     console.log(`   Total Effort: ${plan.totalEffort} PD`);
     console.log(`   Base Cost: MYR ${plan.totalCost.toLocaleString()}`);
     console.log(`   Duration: ${plan.duration} business days`);
@@ -79,19 +79,62 @@ describe('Estimation Smoke Tests', () => {
     expect(plan.assumptions.length).toBeGreaterThan(0);
   });
 
-  it('banking path decision increases effort', () => {
+  it("banking path decision increases effort", () => {
     const baseChips: Chip[] = [
-      { id: '1', type: 'country', value: 'Malaysia', confidence: 0.9, source: 'paste', validated: true, timestamp: new Date() },
-      { id: '2', type: 'modules', value: 'Finance', confidence: 0.9, source: 'paste', validated: true, timestamp: new Date() }
+      {
+        id: "1",
+        type: "country",
+        value: "Malaysia",
+        confidence: 0.9,
+        source: "paste",
+        validated: true,
+        timestamp: new Date(),
+      },
+      {
+        id: "2",
+        type: "modules",
+        value: "Finance",
+        confidence: 0.9,
+        source: "paste",
+        validated: true,
+        timestamp: new Date(),
+      },
     ];
 
     const noBankingDecisions: Decision[] = [
-      { id: 'd1', type: 'single', category: 'rate_region', question: 'Region?', options: ['ABMY'], selected: 'ABMY', impact: 'low', timestamp: new Date() }
+      {
+        id: "d1",
+        type: "single",
+        category: "rate_region",
+        question: "Region?",
+        options: ["ABMY"],
+        selected: "ABMY",
+        impact: "low",
+        timestamp: new Date(),
+      },
     ];
 
     const mbcDecisions: Decision[] = [
-      { id: 'd1', type: 'single', category: 'rate_region', question: 'Region?', options: ['ABMY'], selected: 'ABMY', impact: 'low', timestamp: new Date() },
-      { id: 'd2', type: 'single', category: 'banking_path', question: 'Banking?', options: ['MBC'], selected: 'MBC', impact: 'high', timestamp: new Date() }
+      {
+        id: "d1",
+        type: "single",
+        category: "rate_region",
+        question: "Region?",
+        options: ["ABMY"],
+        selected: "ABMY",
+        impact: "low",
+        timestamp: new Date(),
+      },
+      {
+        id: "d2",
+        type: "single",
+        category: "banking_path",
+        question: "Banking?",
+        options: ["MBC"],
+        selected: "MBC",
+        impact: "high",
+        timestamp: new Date(),
+      },
     ];
 
     const planNoBank = generator.generate(baseChips, noBankingDecisions);
@@ -100,7 +143,7 @@ describe('Estimation Smoke Tests', () => {
     // MBC should add ~120 PD
     const delta = planMBC.totalEffort - planNoBank.totalEffort;
 
-    console.log('✅ Banking Path Test Results:');
+    console.log("✅ Banking Path Test Results:");
     console.log(`   No Banking: ${planNoBank.totalEffort} PD`);
     console.log(`   With MBC: ${planMBC.totalEffort} PD`);
     console.log(`   Delta: +${delta} PD (expected ~120)`);
@@ -113,21 +156,78 @@ describe('Estimation Smoke Tests', () => {
     expect(planMBC.totalEffort).not.toBe(planNoBank.totalEffort);
   });
 
-  it('multi-entity increases effort', () => {
+  it("multi-entity increases effort", () => {
     const singleEntity: Chip[] = [
-      { id: '1', type: 'country', value: 'Malaysia', confidence: 0.9, source: 'paste', validated: true, timestamp: new Date() },
-      { id: '2', type: 'modules', value: 'Finance', confidence: 0.9, source: 'paste', validated: true, timestamp: new Date() }
+      {
+        id: "1",
+        type: "country",
+        value: "Malaysia",
+        confidence: 0.9,
+        source: "paste",
+        validated: true,
+        timestamp: new Date(),
+      },
+      {
+        id: "2",
+        type: "modules",
+        value: "Finance",
+        confidence: 0.9,
+        source: "paste",
+        validated: true,
+        timestamp: new Date(),
+      },
     ];
 
     const multiEntity: Chip[] = [
-      { id: '1', type: 'country', value: 'Malaysia', confidence: 0.9, source: 'paste', validated: true, timestamp: new Date() },
-      { id: '2', type: 'country', value: 'Singapore', confidence: 0.9, source: 'paste', validated: true, timestamp: new Date() },
-      { id: '3', type: 'country', value: 'Vietnam', confidence: 0.9, source: 'paste', validated: true, timestamp: new Date() },
-      { id: '4', type: 'modules', value: 'Finance', confidence: 0.9, source: 'paste', validated: true, timestamp: new Date() }
+      {
+        id: "1",
+        type: "country",
+        value: "Malaysia",
+        confidence: 0.9,
+        source: "paste",
+        validated: true,
+        timestamp: new Date(),
+      },
+      {
+        id: "2",
+        type: "country",
+        value: "Singapore",
+        confidence: 0.9,
+        source: "paste",
+        validated: true,
+        timestamp: new Date(),
+      },
+      {
+        id: "3",
+        type: "country",
+        value: "Vietnam",
+        confidence: 0.9,
+        source: "paste",
+        validated: true,
+        timestamp: new Date(),
+      },
+      {
+        id: "4",
+        type: "modules",
+        value: "Finance",
+        confidence: 0.9,
+        source: "paste",
+        validated: true,
+        timestamp: new Date(),
+      },
     ];
 
     const decisions: Decision[] = [
-      { id: 'd1', type: 'single', category: 'rate_region', question: 'Region?', options: ['ABMY'], selected: 'ABMY', impact: 'low', timestamp: new Date() }
+      {
+        id: "d1",
+        type: "single",
+        category: "rate_region",
+        question: "Region?",
+        options: ["ABMY"],
+        selected: "ABMY",
+        impact: "low",
+        timestamp: new Date(),
+      },
     ];
 
     const planSingle = generator.generate(singleEntity, decisions);
@@ -136,7 +236,7 @@ describe('Estimation Smoke Tests', () => {
     // 3 entities should add ~2 × 8 PD entity adder = 16 PD
     const delta = planMulti.totalEffort - planSingle.totalEffort;
 
-    console.log('✅ Multi-Entity Test Results:');
+    console.log("✅ Multi-Entity Test Results:");
     console.log(`   Single Entity: ${planSingle.totalEffort} PD`);
     console.log(`   Three Entities: ${planMulti.totalEffort} PD`);
     console.log(`   Delta: +${delta} PD (expected ~16)`);

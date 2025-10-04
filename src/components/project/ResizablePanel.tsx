@@ -1,10 +1,10 @@
 // src/components/project/ResizablePanel.tsx
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from "react";
 
 interface ResizablePanelProps {
-  side: 'left' | 'right';
+  side: "left" | "right";
   width: number;
   onResize: (width: number) => void;
   children: React.ReactNode;
@@ -18,7 +18,7 @@ export function ResizablePanel({
   onResize,
   children,
   minWidth = 240,
-  maxWidth = 600
+  maxWidth = 600,
 }: ResizablePanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -32,7 +32,7 @@ export function ResizablePanel({
       const rect = panelRef.current.getBoundingClientRect();
       let newWidth;
 
-      if (side === 'left') {
+      if (side === "left") {
         newWidth = e.clientX - rect.left;
       } else {
         newWidth = rect.right - e.clientX;
@@ -46,26 +46,22 @@ export function ResizablePanel({
       setIsDragging(false);
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDragging, side, minWidth, maxWidth, onResize]);
 
   return (
-    <div
-      ref={panelRef}
-      className="relative flex-shrink-0"
-      style={{ width: `${width}px` }}
-    >
+    <div ref={panelRef} className="relative flex-shrink-0" style={{ width: `${width}px` }}>
       {children}
 
       {/* Resize handle */}
       <div
-        className={`absolute top-0 ${side === 'left' ? 'right-0' : 'left-0'} h-full w-1 cursor-col-resize hover:bg-blue-500 transition-colors group`}
+        className={`absolute top-0 ${side === "left" ? "right-0" : "left-0"} h-full w-1 cursor-col-resize hover:bg-blue-500 transition-colors group`}
         onMouseDown={() => setIsDragging(true)}
       >
         <div className="absolute top-1/2 -translate-y-1/2 w-1 h-12 bg-gray-300 group-hover:bg-blue-500 transition-colors" />

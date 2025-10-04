@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { ProjectShell } from '@/components/project-v2/ProjectShell';
+import { ProjectShell } from "@/components/project-v2/ProjectShell";
 
 /**
  * New Project Page - Steve Jobs-level UX Transformation

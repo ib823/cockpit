@@ -17,9 +17,12 @@ Business Logic: Intelligent sequencing, dependency resolution
 
 ✅ VERIFIED WORKING COMMANDS:
 bashcd /workspaces/cockpit
-npm run dev  # Starts successfully on port 3001
+npm run dev # Starts successfully on port 3001
+
 # Navigate to timeline, select packages, generate timeline
+
 # Drag phase handles (⋮⋮⋮) up/down - works immediately
+
 DRAG & DROP IMPLEMENTATION DETAILS
 Technology: React DND with HTML5Backend + hybrid HTML/SVG
 Key Features: Immediate drag functionality, smooth animations, dependency resolution
@@ -33,9 +36,9 @@ Timeline Enhancements: Dependency lines, critical path highlighting
 
 Dependencies Status:
 json{
-  "react-dnd": "16.0.1",
-  "react-dnd-html5-backend": "16.0.1", 
-  "@types/react-dnd": "3.0.2"
+"react-dnd": "16.0.1",
+"react-dnd-html5-backend": "16.0.1",
+"@types/react-dnd": "3.0.2"
 }
 CRITICAL EXECUTION RULES
 

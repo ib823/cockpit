@@ -7,6 +7,7 @@
 ## 📋 WHAT CHANGED
 
 ### Before (Old UI) ❌
+
 - Generic 3-panel layout for all modes
 - Confusing tab navigation
 - Blank empty states
@@ -15,6 +16,7 @@
 - Present mode still showed edit controls
 
 ### After (New UI) ✅
+
 - **Mode-specific layouts** - Each mode optimized for its task
 - **Contextual hero banners** - Clear mode indicators with progress
 - **Beautiful empty states** - Guidance and sample actions
@@ -27,11 +29,13 @@
 ## 🎨 DESIGN SYSTEM
 
 ### Typography
+
 - **Font**: System font stack (San Francisco on Mac, Segoe on Windows)
 - **Weights**: Light (300), Regular (400), Medium (500), Semibold (600)
 - **Scale**: 7xl (72px) → 6xl (60px) → 5xl (48px) → 3xl (30px) → xl (20px)
 
 ### Colors
+
 ```css
 Primary:   #3b82f6 (Blue)   - Capture mode
 Secondary: #8b5cf6 (Purple) - Decide mode
@@ -40,10 +44,12 @@ Neutral:   #1f2937 (Gray)   - Present mode
 ```
 
 ### Spacing
+
 - Base unit: 8px
 - Scale: 2 (8px), 3 (12px), 4 (16px), 6 (24px), 8 (32px), 12 (48px)
 
 ### Motion
+
 - Duration: 300ms standard, 600ms slow
 - Easing: ease-in-out for mode transitions, spring for interactions
 - FPS target: 60fps
@@ -79,9 +85,11 @@ src/
 ## 🚦 MODES OVERVIEW
 
 ### 1. CAPTURE MODE (Blue)
+
 **Purpose**: Extract requirements from RFPs
 
 **Features**:
+
 - Full-screen drop zone with drag & drop
 - Paste area for text input
 - Sample RFP button
@@ -96,9 +104,11 @@ src/
 ---
 
 ### 2. DECIDE MODE (Purple)
+
 **Purpose**: Make 5 strategic decisions
 
 **Features**:
+
 - Large decision cards (not tiny pills)
 - 3-option selection per decision
 - Hover for instant impact preview
@@ -107,6 +117,7 @@ src/
 - Floating CTA when all decided
 
 **Decisions**:
+
 1. Module Selection (Finance, P2P, OTC, HCM)
 2. Banking Integration (Manual, H2H, MBC)
 3. Single Sign-On (Day One, Staged)
@@ -119,9 +130,11 @@ src/
 ---
 
 ### 3. PLAN MODE (Green)
+
 **Purpose**: Adjust timeline and resources
 
 **Features**:
+
 - Horizontal timeline (full-width)
 - Zoom controls (week/month view)
 - Presentation toggle
@@ -136,9 +149,11 @@ src/
 ---
 
 ### 4. PRESENT MODE (Dark)
+
 **Purpose**: Client-ready presentation
 
 **Features**:
+
 - Full-screen Keynote-style slides
 - 5 slides: Cover, Requirements, Timeline, Team, Summary
 - Dot navigation at bottom
@@ -148,6 +163,7 @@ src/
 - **Zero edit controls**
 
 **Slides**:
+
 1. Cover - Project title + summary
 2. Requirements - Chip cards
 3. Timeline - Animated phase bars
@@ -161,13 +177,16 @@ src/
 ## 🔧 INSTALLATION
 
 ### 1. Dependencies Already Installed ✅
+
 ```bash
 # These were already added
 pnpm add framer-motion lucide-react clsx tailwind-merge
 ```
 
 ### 2. Files Created ✅
+
 All component files have been created in the correct locations:
+
 - `/src/lib/utils.ts`
 - `/src/components/project-v2/ProjectShell.tsx`
 - `/src/components/project-v2/modes/*.tsx` (4 mode components)
@@ -176,6 +195,7 @@ All component files have been created in the correct locations:
 - `/src/app/project/page.tsx`
 
 ### 3. Test
+
 ```bash
 pnpm dev
 
@@ -187,6 +207,7 @@ pnpm dev
 ## 🧪 TESTING CHECKLIST
 
 ### Capture Mode
+
 - [ ] Drop zone accepts drag & drop
 - [ ] Paste area works
 - [ ] Sample RFP button loads chips
@@ -196,6 +217,7 @@ pnpm dev
 - [ ] Continue button transitions to Decide
 
 ### Decide Mode
+
 - [ ] All 5 decisions visible
 - [ ] Hover shows impact preview
 - [ ] Selected option has green border
@@ -204,6 +226,7 @@ pnpm dev
 - [ ] Generate Plan button works
 
 ### Plan Mode
+
 - [ ] Timeline fills full width
 - [ ] Click phase opens inspector
 - [ ] Click outside closes inspector
@@ -213,6 +236,7 @@ pnpm dev
 - [ ] Regenerate button works
 
 ### Present Mode
+
 - [ ] Full-screen takeover (no chrome)
 - [ ] Arrow keys navigate slides
 - [ ] Dot navigation works
@@ -222,6 +246,7 @@ pnpm dev
 - [ ] Smooth slide transitions
 
 ### Keyboard Navigation
+
 - [ ] Tab navigates focusable elements
 - [ ] Enter activates buttons
 - [ ] ESC closes modals/present mode
@@ -237,6 +262,7 @@ pnpm dev
 - **Bundle Size**: <500KB (gzipped)
 
 **Optimization techniques**:
+
 - Framer Motion lazy animations
 - React.memo for heavy components
 - useCallback for event handlers
@@ -247,6 +273,7 @@ pnpm dev
 ## ♿ ACCESSIBILITY
 
 ### WCAG 2.1 AA Compliance
+
 - [x] Keyboard navigation
 - [x] Focus indicators
 - [x] ARIA labels
@@ -254,6 +281,7 @@ pnpm dev
 - [x] Screen reader support
 
 ### Keyboard Shortcuts
+
 - `Tab`: Navigate elements
 - `Enter`: Activate/Select
 - `ESC`: Close/Exit
@@ -264,12 +292,15 @@ pnpm dev
 ## 🐛 KNOWN ISSUES & FIXES
 
 ### Issue 1: Mode transitions feel sluggish
+
 **Fix**: Reduce animation duration in ProjectShell from 300ms to 200ms
 
 ### Issue 2: Slide-over blocks canvas
+
 **Fix**: Slide-over max-width is 40% of screen, auto-closes on canvas click
 
 ### Issue 3: Empty states not discoverable
+
 **Fix**: A/B test with/without sample buttons, track "Load Example" clicks
 
 ---
@@ -277,6 +308,7 @@ pnpm dev
 ## 🚀 DEPLOYMENT
 
 ### Production Checklist
+
 - [ ] Run `pnpm build` - ensure no errors
 - [ ] Test all 4 modes
 - [ ] Verify presentation mode hides costs
@@ -286,12 +318,14 @@ pnpm dev
 - [ ] Enable feature flag (if using)
 
 ### Rollout Strategy
+
 1. **Week 1**: Internal dogfooding (5 users)
 2. **Week 2**: Beta users (20 users)
 3. **Week 3**: 50% rollout
 4. **Week 4**: 100% rollout
 
 ### Success Metrics
+
 - Time to first chip: <10 seconds
 - Capture → Decide transition: >80%
 - Present mode usage: >50%
@@ -302,6 +336,7 @@ pnpm dev
 ## 📝 CHANGE LOG
 
 ### v2.0.0 (2025-10-03)
+
 - ✨ Complete UX transformation
 - ✨ Mode-specific layouts
 - ✨ Keynote-style Present mode
@@ -328,6 +363,7 @@ pnpm dev
 ## 📞 SUPPORT
 
 Questions? Issues?
+
 1. Check this README first
 2. Review the code comments
 3. Test with sample data

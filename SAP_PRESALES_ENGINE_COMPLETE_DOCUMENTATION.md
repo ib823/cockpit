@@ -1,4 +1,5 @@
 # SAP PRESALES ENGINE - COMPLETE DEVELOPMENT DOCUMENTATION
+
 **Generated**: September 23, 2025  
 **Repository**: https://github.com/ib823/cockpit  
 **Session Duration**: Initial setup to working prototype  
@@ -7,6 +8,7 @@
 ## 🎯 EXECUTIVE SUMMARY
 
 Successfully built the foundation of an SAP Presales Engine that:
+
 - Extracts 10 types of structured data from RFP text with 70-90% confidence
 - Provides decision-making interface for module selection, banking, and regions
 - Includes planning canvas with 5 phases × 8 streams for effort estimation
@@ -14,28 +16,29 @@ Successfully built the foundation of an SAP Presales Engine that:
 - Implements secure JSON import/export without file uploads
 
 ## 📁 REPOSITORY STRUCTURE
+
 /workspaces/cockpit/
 ├── src/
-│   ├── app/
-│   │   ├── layout.tsx (9 lines) - Root layout
-│   │   ├── page.tsx (71 lines) - Home page
-│   │   └── presales/
-│   │       └── page.tsx (62 lines) - Main presales interface
-│   ├── components/
-│   │   ├── DecisionBar.tsx (92 lines) - Module/banking/region selection
-│   │   ├── PlanningCanvas.tsx (65 lines) - Effort estimation grid
-│   │   └── presales/
-│   │       ├── ChipCapture.tsx (83 lines) - RFP text extraction UI
-│   │       └── ModeSelector.tsx (35 lines) - Workflow navigation
-│   ├── lib/
-│   │   ├── chip-parser.ts (267 lines) - V2 parser with pattern matching
-│   │   ├── rate-cards.ts (169 lines) - Regional pricing (MY/SG/VN)
-│   │   ├── sap-packages.ts (172 lines) - SAP package catalog
-│   │   └── scenario-generator.ts (419 lines) - Chips to project plan
-│   ├── stores/
-│   │   └── presales-store.ts (103 lines) - Zustand state management
-│   └── types/
-│       └── core.ts (178 lines) - TypeScript definitions
+│ ├── app/
+│ │ ├── layout.tsx (9 lines) - Root layout
+│ │ ├── page.tsx (71 lines) - Home page
+│ │ └── presales/
+│ │ └── page.tsx (62 lines) - Main presales interface
+│ ├── components/
+│ │ ├── DecisionBar.tsx (92 lines) - Module/banking/region selection
+│ │ ├── PlanningCanvas.tsx (65 lines) - Effort estimation grid
+│ │ └── presales/
+│ │ ├── ChipCapture.tsx (83 lines) - RFP text extraction UI
+│ │ └── ModeSelector.tsx (35 lines) - Workflow navigation
+│ ├── lib/
+│ │ ├── chip-parser.ts (267 lines) - V2 parser with pattern matching
+│ │ ├── rate-cards.ts (169 lines) - Regional pricing (MY/SG/VN)
+│ │ ├── sap-packages.ts (172 lines) - SAP package catalog
+│ │ └── scenario-generator.ts (419 lines) - Chips to project plan
+│ ├── stores/
+│ │ └── presales-store.ts (103 lines) - Zustand state management
+│ └── types/
+│ └── core.ts (178 lines) - TypeScript definitions
 ├── package.json - Dependencies and scripts
 ├── tsconfig.json - TypeScript configuration
 ├── tailwind.config.js - Styling configuration
@@ -46,6 +49,7 @@ Successfully built the foundation of an SAP Presales Engine that:
 ## 🚀 FEATURES IMPLEMENTED
 
 ### 1. **Chip Extraction System (100% Complete)**
+
 - **10 Chip Types Supported**:
   - `country`: Malaysia, Singapore, Vietnam, Thailand, Indonesia, Philippines
   - `employees`: Employee count extraction with number formatting
@@ -65,6 +69,7 @@ Successfully built the foundation of an SAP Presales Engine that:
   - Context preservation for evidence
 
 ### 2. **Decision Bar Component (100% Complete)**
+
 - Module combo selection (Finance Only, Finance+HR, Full Suite)
 - Banking path options (Manual, Host-to-Host, Multi-Bank Connect)
 - Region selection with currency (MY/MYR, SG/SGD, VN/VND)
@@ -72,6 +77,7 @@ Successfully built the foundation of an SAP Presales Engine that:
 - Auto-saves selections to Zustand store
 
 ### 3. **Planning Canvas (UI Complete, Logic Pending)**
+
 - 5 SAP Activate phases: Prepare, Explore, Realize, Deploy, Run
 - 8 work streams: PMO, Finance, HR, Supply Chain, Integration, Data, Testing, OCM
 - Effort input cells with validation
@@ -79,6 +85,7 @@ Successfully built the foundation of an SAP Presales Engine that:
 - Responsive table with hover states
 
 ### 4. **State Management (100% Complete)**
+
 ```typescript
 interface PresalesState {
   chips: Chip[];
@@ -274,3 +281,4 @@ TypeScript provides type safety throughout
 Ready for Phase 2: Wiring the canvas to state and implementing baseline scenario generation.
 
 This documentation represents the complete state of the repository as of September 23, 2025. All code is functional, TypeScript-compliant, and ready for the next development phase.
+```

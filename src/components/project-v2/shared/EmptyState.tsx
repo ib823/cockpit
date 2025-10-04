@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { type LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { motion } from "framer-motion";
+import { type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -28,7 +28,7 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <div className={cn('flex items-center justify-center h-full', className)}>
+    <div className={cn("flex items-center justify-center h-full", className)}>
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -38,18 +38,14 @@ export function EmptyState({
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+          transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
         >
           <Icon className="w-24 h-24 mx-auto text-gray-300" strokeWidth={1} />
         </motion.div>
 
-        <h2 className="text-2xl font-light text-gray-900 mt-6">
-          {title}
-        </h2>
+        <h2 className="text-2xl font-light text-gray-900 mt-6">{title}</h2>
 
-        <p className="text-gray-500 mt-2 text-sm">
-          {description}
-        </p>
+        <p className="text-gray-500 mt-2 text-sm">{description}</p>
 
         {(action || secondaryAction) && (
           <div className="flex flex-col gap-3 mt-8">

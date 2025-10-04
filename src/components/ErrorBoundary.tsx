@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { Component, ReactNode } from 'react';
+import React, { Component, ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -19,7 +19,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     };
   }
 
@@ -28,15 +28,15 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
-    
+
     // Send to error tracking service (future: Sentry, etc.)
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       // TODO: Send to error tracking
     }
   }
@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     });
   };
 
@@ -80,16 +80,12 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
             </div>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {process.env.NODE_ENV === "development" && this.state.error && (
               <div className="mb-4 p-4 bg-red-50 rounded border border-red-200">
-                <p className="text-sm font-mono text-red-800 mb-2">
-                  {this.state.error.toString()}
-                </p>
+                <p className="text-sm font-mono text-red-800 mb-2">{this.state.error.toString()}</p>
                 {this.state.errorInfo && (
                   <details className="text-xs font-mono text-red-700">
-                    <summary className="cursor-pointer hover:text-red-900">
-                      Stack trace
-                    </summary>
+                    <summary className="cursor-pointer hover:text-red-900">Stack trace</summary>
                     <pre className="mt-2 whitespace-pre-wrap">
                       {this.state.errorInfo.componentStack}
                     </pre>
@@ -106,7 +102,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 Try Again
               </button>
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={() => (window.location.href = "/")}
                 className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
               >
                 Go Home

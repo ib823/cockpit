@@ -1,8 +1,8 @@
 // src/lib/export/pdf-generator.ts
 // PDF generation for timeline export
 
-import type { Phase } from '@/lib/timeline/phase-generation';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import type { Phase } from "@/lib/timeline/phase-generation";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 export interface PDFExportData {
   projectName: string;
@@ -25,62 +25,62 @@ export async function generateTimelinePDF(data: PDFExportData): Promise<Uint8Arr
   // Create new PDF
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([612, 792]); // US Letter size
-  
+
   // Load fonts
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  
+
   const { width, height } = page.getSize();
   let yPosition = height - 50;
-  
+
   // Title
-  page.drawText('SAP Implementation Timeline', {
+  page.drawText("SAP Implementation Timeline", {
     x: 50,
     y: yPosition,
     size: 24,
     font: fontBold,
-    color: rgb(0, 0, 0)
+    color: rgb(0, 0, 0),
   });
-  
+
   yPosition -= 40;
-  
+
   // Project Info
   const projectInfo = [
     `Project: ${data.projectName}`,
     `Duration: ${data.startDate} - ${data.endDate}`,
     `Total Cost: ${data.currency} ${formatNumber(data.totalCost)}`,
-    `Team Size: ${data.teamMembers.length} members`
+    `Team Size: ${data.teamMembers.length} members`,
   ];
-  
-  projectInfo.forEach(line => {
+
+  projectInfo.forEach((line) => {
     page.drawText(line, {
       x: 50,
       y: yPosition,
       size: 12,
       font: font,
-      color: rgb(0, 0, 0)
+      color: rgb(0, 0, 0),
     });
     yPosition -= 20;
   });
-  
+
   yPosition -= 20;
-  
+
   // Section: Phases
-  page.drawText('Implementation Phases', {
+  page.drawText("Implementation Phases", {
     x: 50,
     y: yPosition,
     size: 16,
     font: fontBold,
-    color: rgb(0, 0, 0)
+    color: rgb(0, 0, 0),
   });
-  
+
   yPosition -= 25;
-  
+
   // Phase table header
   const tableX = 50;
   const colWidths = [150, 100, 80, 100];
-  
-  const headers = ['Phase', 'Duration', 'Effort (PD)', 'Team Size'];
+
+  const headers = ["Phase", "Duration", "Effort (PD)", "Team Size"];
   headers.forEach((header, i) => {
     const x = tableX + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
     page.drawText(header, {
@@ -88,27 +88,27 @@ export async function generateTimelinePDF(data: PDFExportData): Promise<Uint8Arr
       y: yPosition,
       size: 10,
       font: fontBold,
-      color: rgb(0, 0, 0)
+      color: rgb(0, 0, 0),
     });
   });
-  
+
   yPosition -= 20;
-  
+
   // Phase rows
-  data.phases.forEach(phase => {
+  data.phases.forEach((phase) => {
     if (yPosition < 50) {
       // Add new page if needed
       const newPage = pdfDoc.addPage([612, 792]);
       yPosition = height - 50;
     }
-    
+
     const rowData = [
       phase.name,
       `${phase.workingDays} days`,
-      phase.effort?.toString() || '0',
-      (phase.resources?.length || 0).toString()
+      phase.effort?.toString() || "0",
+      (phase.resources?.length || 0).toString(),
     ];
-    
+
     rowData.forEach((data, i) => {
       const x = tableX + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
       page.drawText(data, {
@@ -116,72 +116,68 @@ export async function generateTimelinePDF(data: PDFExportData): Promise<Uint8Arr
         y: yPosition,
         size: 9,
         font: font,
-        color: rgb(0, 0, 0)
+        color: rgb(0, 0, 0),
       });
     });
-    
+
     yPosition -= 18;
   });
-  
+
   yPosition -= 30;
-  
+
   // Section: Team
   if (yPosition < 100) {
     const newPage = pdfDoc.addPage([612, 792]);
     yPosition = height - 50;
   }
-  
-  page.drawText('Project Team', {
+
+  page.drawText("Project Team", {
     x: 50,
     y: yPosition,
     size: 16,
     font: fontBold,
-    color: rgb(0, 0, 0)
+    color: rgb(0, 0, 0),
   });
-  
+
   yPosition -= 25;
-  
+
   // Team table
-  const teamHeaders = ['Name', 'Role', 'Allocation'];
+  const teamHeaders = ["Name", "Role", "Allocation"];
   teamHeaders.forEach((header, i) => {
-    const x = tableX + (i * 150);
+    const x = tableX + i * 150;
     page.drawText(header, {
       x,
       y: yPosition,
       size: 10,
       font: fontBold,
-      color: rgb(0, 0, 0)
+      color: rgb(0, 0, 0),
     });
   });
-  
+
   yPosition -= 20;
-  
-  data.teamMembers.forEach(member => {
+
+  data.teamMembers.forEach((member) => {
     if (yPosition < 50) {
       const newPage = pdfDoc.addPage([612, 792]);
       yPosition = height - 50;
     }
-    
-    const teamData = [
-      member.name,
-      member.role,
-      `${member.allocation}%`
-    ];
-    
+
+    const teamData = [member.name, member.role, `${member.allocation}%`];
+
     teamData.forEach((data, i) => {
-      const x = tableX + (i * 150);
+      const x = tableX + i * 150;
       page.drawText(data, {
         x,
         y: yPosition,
         size: 9,
         font: font,
-        color: rgb(0, 0, 0)
+        color: rgb(0, 0, 0),
       });
     });
-    
+
     yPosition -= 18;
   });
-  
+
   // Footer
   const pageCount = pdfDoc.getPageCount();
   for (let i = 0; i < pageCount; i++) {
@@ -191,18 +187,18 @@ export async function generateTimelinePDF(data: PDFExportData): Promise<Uint8Arr
       y: 30,
       size: 8,
       font: font,
-      color: rgb(0.5, 0.5, 0.5)
+      color: rgb(0.5, 0.5, 0.5),
     });
-    
-    currentPage.drawText('Generated by SAP Implementation Cockpit', {
+
+    currentPage.drawText("Generated by SAP Implementation Cockpit", {
       x: 50,
       y: 30,
       size: 8,
       font: font,
-      color: rgb(0.5, 0.5, 0.5)
+      color: rgb(0.5, 0.5, 0.5),
     });
   }
-  
+
   // Serialize PDF
   const pdfBytes = await pdfDoc.save();
   return pdfBytes;
@@ -214,10 +210,10 @@ export async function generateTimelinePDF(data: PDFExportData): Promise<Uint8Arr
 export function downloadPDF(pdfBytes: Uint8Array, filename: string) {
   // Convert to standard Uint8Array to satisfy TypeScript's BlobPart type
   const standardArray = new Uint8Array(pdfBytes);
-  const blob = new Blob([standardArray], { type: 'application/pdf' });
+  const blob = new Blob([standardArray], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
 
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = url;
   link.download = filename;
   document.body.appendChild(link);
@@ -232,8 +228,8 @@ export function downloadPDF(pdfBytes: Uint8Array, filename: string) {
  * Format number with thousands separator
  */
 function formatNumber(num: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   }).format(num);
 }

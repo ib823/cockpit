@@ -1,14 +1,9 @@
-'use client';
+"use client";
 
-import { type ProjectMode } from '@/stores/project-store';
-import {
-  FileText,
-  CheckCircle,
-  LayoutGrid,
-  Presentation,
-  type LucideIcon
-} from 'lucide-react';
-import { motion } from 'framer-motion';
+import { type ProjectMode } from "@/stores/project-store";
+import { FileText, CheckCircle, LayoutGrid, Presentation, type LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
+import { ResetButton } from "./ResetButton";
 
 interface ModeConfig {
   icon: LucideIcon;
@@ -21,31 +16,31 @@ interface ModeConfig {
 const MODE_CONFIG: Record<ProjectMode, ModeConfig> = {
   capture: {
     icon: FileText,
-    title: 'Extract Requirements',
-    subtitle: 'Drop your RFP or paste text to identify project requirements',
-    gradient: 'from-blue-500 to-blue-700',
-    textColor: 'text-blue-50',
+    title: "Extract Requirements",
+    subtitle: "Drop your RFP or paste text to identify project requirements",
+    gradient: "from-blue-500 to-blue-700",
+    textColor: "text-blue-50",
   },
   decide: {
     icon: CheckCircle,
-    title: 'Make Key Decisions',
-    subtitle: 'Shape your project with 5 strategic decisions',
-    gradient: 'from-purple-500 to-purple-700',
-    textColor: 'text-purple-50',
+    title: "Make Key Decisions",
+    subtitle: "Shape your project with 5 strategic decisions",
+    gradient: "from-purple-500 to-purple-700",
+    textColor: "text-purple-50",
   },
   plan: {
     icon: LayoutGrid,
-    title: 'Plan Timeline',
-    subtitle: 'Adjust phases, resources, and schedule',
-    gradient: 'from-green-500 to-green-700',
-    textColor: 'text-green-50',
+    title: "Plan Timeline",
+    subtitle: "Adjust phases, resources, and schedule",
+    gradient: "from-green-500 to-green-700",
+    textColor: "text-green-50",
   },
   present: {
     icon: Presentation,
-    title: 'Present Mode',
-    subtitle: 'Client-ready presentation view',
-    gradient: 'from-gray-900 to-black',
-    textColor: 'text-gray-50',
+    title: "Present Mode",
+    subtitle: "Client-ready presentation view",
+    gradient: "from-gray-900 to-black",
+    textColor: "text-gray-50",
   },
 };
 
@@ -58,7 +53,7 @@ interface ModeIndicatorProps {
 export function ModeIndicator({
   mode,
   progress,
-  showProgress = mode === 'capture'
+  showProgress = mode === "capture",
 }: ModeIndicatorProps) {
   const config = MODE_CONFIG[mode];
   const Icon = config.icon;
@@ -83,30 +78,39 @@ export function ModeIndicator({
           </motion.div>
           <div>
             <h1 className="text-3xl font-light tracking-tight">{config.title}</h1>
-            <p className={`${config.textColor} mt-1 text-sm font-light`}>
-              {config.subtitle}
-            </p>
+            <p className={`${config.textColor} mt-1 text-sm font-light`}>{config.subtitle}</p>
           </div>
         </div>
 
-        {showProgress && typeof progress === 'number' && (
+        <div className="flex items-center gap-4">
+          {showProgress && typeof progress === "number" && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+              className="flex items-center gap-3"
+            >
+              <span className="text-sm font-medium">{progress}% Complete</span>
+              <div className="w-32 h-2 bg-white/20 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="h-full bg-white rounded-full"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Reset Button (always visible) */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
-            className="flex items-center gap-3"
+            transition={{ delay: 0.3, duration: 0.3 }}
           >
-            <span className="text-sm font-medium">{progress}% Complete</span>
-            <div className="w-32 h-2 bg-white/20 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="h-full bg-white rounded-full"
-              />
-            </div>
+            <ResetButton />
           </motion.div>
-        )}
+        </div>
       </div>
     </motion.div>
   );

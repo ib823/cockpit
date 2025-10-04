@@ -1,16 +1,16 @@
 // src/stores/project-store.ts
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { usePresalesStore } from './presales-store';
-import { useTimelineStore } from './timeline-store';
-import { convertPresalesToTimeline } from '@/lib/presales-to-timeline-bridge';
-import { debounce } from 'lodash';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { usePresalesStore } from "./presales-store";
+import { useTimelineStore } from "./timeline-store";
+import { convertPresalesToTimeline } from "@/lib/presales-to-timeline-bridge";
+import { debounce } from "lodash";
 
-export type ProjectMode = 'capture' | 'decide' | 'plan' | 'present';
+export type ProjectMode = "capture" | "decide" | "plan" | "present";
 
 interface ManualOverride {
   phaseId: string;
-  field: 'duration' | 'effort' | 'resources';
+  field: "duration" | "effort" | "resources";
   originalValue: any;
   manualValue: any;
   reason?: string;
@@ -40,6 +40,7 @@ interface ProjectState {
   applyOverridesToPhases: (phases: any[]) => any[];
   setLeftPanelWidth: (width: number) => void;
   setRightPanelWidth: (width: number) => void;
+  reset: () => void;
 
   // Internal
   _debouncedRegenerate: (() => void) | null;
@@ -49,8 +50,8 @@ export const useProjectStore = create<ProjectState>()(
   persist(
     (set, get) => ({
       // Initial state
-      mode: 'capture',
-      projectId: 'default',
+      mode: "capture",
+      projectId: "default",
       timelineIsStale: false,
       lastGeneratedAt: null,
       manualOverrides: [],
@@ -62,7 +63,7 @@ export const useProjectStore = create<ProjectState>()(
         set({ mode });
 
         // Auto-regenerate when switching to plan mode
-        if (mode === 'plan' && get().timelineIsStale) {
+        if (mode === "plan" && get().timelineIsStale) {
           get().regenerateTimeline();
         }
       },
@@ -73,7 +74,7 @@ export const useProjectStore = create<ProjectState>()(
         // Trigger debounced regenerate (500ms after last change)
         if (!get()._debouncedRegenerate) {
           const debouncedFn = debounce(() => {
-            if (get().mode === 'plan') {
+            if (get().mode === "plan") {
               get().regenerateTimeline();
             }
           }, 500);
@@ -99,7 +100,7 @@ export const useProjectStore = create<ProjectState>()(
         const result = convertPresalesToTimeline(presales.chips, presales.decisions);
 
         if (!result || result.totalEffort === 0) {
-          console.error('[Project] Timeline regeneration failed');
+          console.error("[Project] Timeline regeneration failed");
           return;
         }
 
@@ -113,23 +114,27 @@ export const useProjectStore = create<ProjectState>()(
         useTimelineStore.setState({ phases: [] });
 
         // Add each phase with overrides
-        phasesWithOverrides.forEach(phase => {
+        phasesWithOverrides.forEach((phase) => {
           timelineStore.addPhase(phase);
         });
 
         set({
           timelineIsStale: false,
-          lastGeneratedAt: new Date()
+          lastGeneratedAt: new Date(),
         });
 
-        console.log('[Project] ✅ Timeline regenerated with', manualOverrides.length, 'overrides preserved');
+        console.log(
+          "[Project] ✅ Timeline regenerated with",
+          manualOverrides.length,
+          "overrides preserved"
+        );
       },
 
       addManualOverride: (override) => {
-        set(state => ({
-          manualOverrides: [...state.manualOverrides, { ...override, timestamp: new Date() }]
+        set((state) => ({
+          manualOverrides: [...state.manualOverrides, { ...override, timestamp: new Date() }],
         }));
-        console.log('[Project] Manual override added:', override);
+        console.log("[Project] Manual override added:", override);
       },
 
       clearManualOverrides: () => {
@@ -139,11 +144,11 @@ export const useProjectStore = create<ProjectState>()(
       applyOverridesToPhases: (phases) => {
         const { manualOverrides } = get();
 
-        return phases.map(phase => {
-          const overrides = manualOverrides.filter(o => o.phaseId === phase.id);
+        return phases.map((phase) => {
+          const overrides = manualOverrides.filter((o) => o.phaseId === phase.id);
 
           const modifiedPhase = { ...phase };
-          overrides.forEach(override => {
+          overrides.forEach((override) => {
             modifiedPhase[override.field] = override.manualValue;
             modifiedPhase._hasManualOverride = true;
             modifiedPhase._overrideReason = override.reason;
@@ -159,10 +164,22 @@ export const useProjectStore = create<ProjectState>()(
 
       setRightPanelWidth: (width) => {
         set({ rightPanelWidth: Math.max(300, Math.min(600, width)) });
-      }
+      },
+
+      reset: () => {
+        set({
+          mode: "capture",
+          projectId: "default",
+          timelineIsStale: false,
+          lastGeneratedAt: null,
+          manualOverrides: [],
+          leftPanelWidth: 320,
+          rightPanelWidth: 384,
+        });
+      },
     }),
     {
-      name: 'project-storage',
+      name: "project-storage",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         mode: state.mode,
@@ -170,13 +187,13 @@ export const useProjectStore = create<ProjectState>()(
         leftPanelWidth: state.leftPanelWidth,
         rightPanelWidth: state.rightPanelWidth,
         // Don't persist stale state or overrides
-      })
+      }),
     }
   )
 );
 
 // Hook into presales store changes
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   usePresalesStore.subscribe((state, prevState) => {
     // Check if chips or decisions changed
     if (state.chips !== prevState.chips || state.decisions !== prevState.decisions) {

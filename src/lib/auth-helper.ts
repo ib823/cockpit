@@ -2,7 +2,8 @@
 // SECURITY: Authentication helper utilities (ready for future implementation)
 // This file provides the foundation for adding authentication when needed
 
-import { hash, compare } from 'bcryptjs';
+import { compare, hash } from "bcryptjs";
+import crypto from "crypto";
 
 /**
  * Hash a password securely using bcrypt
@@ -32,33 +33,33 @@ export async function verifyPassword(password: string, hashedPassword: string): 
  */
 export function validatePasswordStrength(password: string): { valid: boolean; error?: string } {
   if (!password || password.length < 12) {
-    return { valid: false, error: 'Password must be at least 12 characters long' };
+    return { valid: false, error: "Password must be at least 12 characters long" };
   }
 
   // Check for uppercase
   if (!/[A-Z]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least one uppercase letter' };
+    return { valid: false, error: "Password must contain at least one uppercase letter" };
   }
 
   // Check for lowercase
   if (!/[a-z]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least one lowercase letter' };
+    return { valid: false, error: "Password must contain at least one lowercase letter" };
   }
 
   // Check for number
   if (!/[0-9]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least one number' };
+    return { valid: false, error: "Password must contain at least one number" };
   }
 
   // Check for special character
   if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least one special character' };
+    return { valid: false, error: "Password must contain at least one special character" };
   }
 
   // Check for common passwords (basic list - expand in production)
-  const commonPasswords = ['password123', 'admin123', 'qwerty123', '123456789'];
-  if (commonPasswords.some(common => password.toLowerCase().includes(common))) {
-    return { valid: false, error: 'Password is too common' };
+  const commonPasswords = ["password123", "admin123", "qwerty123", "123456789"];
+  if (commonPasswords.some((common) => password.toLowerCase().includes(common))) {
+    return { valid: false, error: "Password is too common" };
   }
 
   return { valid: true };
@@ -70,15 +71,14 @@ export function validatePasswordStrength(password: string): { valid: boolean; er
  * @returns Random hex string
  */
 export function generateSecureToken(length: number = 32): string {
-  if (typeof window !== 'undefined' && window.crypto) {
+  if (typeof window !== "undefined" && window.crypto) {
     // Browser environment
     const array = new Uint8Array(length);
     window.crypto.getRandomValues(array);
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
   } else {
     // Node.js environment
-    const crypto = require('crypto');
-    return crypto.randomBytes(length).toString('hex');
+    return crypto.randomBytes(length).toString("hex");
   }
 }
 
@@ -89,7 +89,8 @@ export function generateSecureToken(length: number = 32): string {
  */
 export function validateEmail(email: string): boolean {
   // RFC 5322 compliant regex (simplified)
-  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  const emailRegex =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   return emailRegex.test(email);
 }
 
@@ -97,14 +98,14 @@ export function validateEmail(email: string): boolean {
  * Session configuration constants
  */
 export const SESSION_CONFIG = {
-  cookieName: 'app_session',
-  password: process.env.SESSION_SECRET || 'complex_password_at_least_32_characters_long',
+  cookieName: "app_session",
+  password: process.env.SESSION_SECRET || "complex_password_at_least_32_characters_long",
   cookieOptions: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === "production",
     httpOnly: true,
-    sameSite: 'lax' as const,
+    sameSite: "lax" as const,
     maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: '/',
+    path: "/",
   },
 } as const;
 
@@ -114,7 +115,10 @@ export const SESSION_CONFIG = {
  * @param maxAgeSeconds - Maximum session age in seconds (default: 7 days)
  * @returns True if session is still valid
  */
-export function isSessionValid(sessionCreatedAt: number, maxAgeSeconds: number = 7 * 24 * 60 * 60): boolean {
+export function isSessionValid(
+  sessionCreatedAt: number,
+  maxAgeSeconds: number = 7 * 24 * 60 * 60
+): boolean {
   const now = Date.now();
   const sessionAge = (now - sessionCreatedAt) / 1000;
   return sessionAge < maxAgeSeconds;
@@ -145,7 +149,10 @@ export function generateCsrfToken(): string {
  * @param expectedToken - Expected token value
  * @returns True if token is valid
  */
-export function validateCsrfToken(token: string | null | undefined, expectedToken: string): boolean {
+export function validateCsrfToken(
+  token: string | null | undefined,
+  expectedToken: string
+): boolean {
   if (!token || !expectedToken) return false;
   return token === expectedToken;
 }
@@ -155,7 +162,7 @@ export interface User {
   id: string;
   email: string;
   name?: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
   createdAt: Date;
   updatedAt: Date;
 }

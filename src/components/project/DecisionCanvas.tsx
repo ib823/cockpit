@@ -1,7 +1,7 @@
 // src/components/project/DecisionCanvas.tsx
-'use client';
+"use client";
 
-import { DecisionBar } from '@/components/presales/DecisionBar';
+import { DecisionBar } from "@/components/presales/DecisionBar";
 
 export function DecisionCanvas() {
   return (

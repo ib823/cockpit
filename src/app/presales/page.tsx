@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { ChipCapture } from '@/components/presales/ChipCapture';
-import { DecisionBar } from '@/components/presales/DecisionBar';
-import { usePresalesStore } from '@/stores/presales-store';
-import Link from 'next/link';
+import { ChipCapture } from "@/components/presales/ChipCapture";
+import { DecisionBar } from "@/components/presales/DecisionBar";
+import { usePresalesStore } from "@/stores/presales-store";
+import Link from "next/link";
 
 const modes = [
-  { label: 'Capture', value: 'capture' },
-  { label: 'Decide', value: 'decide' },
-  { label: 'Plan', value: 'plan' },
-  { label: 'Review', value: 'review' },
-  { label: 'Present', value: 'present' },
+  { label: "Capture", value: "capture" },
+  { label: "Decide", value: "decide" },
+  { label: "Plan", value: "plan" },
+  { label: "Review", value: "review" },
+  { label: "Present", value: "present" },
 ] as const;
 
 export default function PresalesPage() {
@@ -30,8 +30,12 @@ export default function PresalesPage() {
     generateTimelineFromPresales,
   } = usePresalesStore();
 
-  const scoreColor = completeness.score >= 80 ? 'bg-green-600' : 
-                    completeness.score >= 60 ? 'bg-yellow-500' : 'bg-red-600';
+  const scoreColor =
+    completeness.score >= 80
+      ? "bg-green-600"
+      : completeness.score >= 60
+        ? "bg-yellow-500"
+        : "bg-red-600";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -58,10 +62,10 @@ export default function PresalesPage() {
             <button
               onClick={toggleAutoTransit}
               className={`text-sm rounded-md border px-3 py-1.5 ${
-                isAutoTransit ? 'bg-blue-50 border-blue-200 text-blue-700' : 'hover:bg-gray-50'
+                isAutoTransit ? "bg-blue-50 border-blue-200 text-blue-700" : "hover:bg-gray-50"
               }`}
             >
-              Auto-transit: <span className="font-medium">{isAutoTransit ? 'On' : 'Off'}</span>
+              Auto-transit: <span className="font-medium">{isAutoTransit ? "On" : "Off"}</span>
             </button>
 
             <Link
@@ -80,18 +84,18 @@ export default function PresalesPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Mode-specific content */}
-            {mode === 'capture' && (
+            {mode === "capture" && (
               <div className="bg-white rounded-lg border p-6">
                 <ChipCapture />
               </div>
             )}
-            
-            {mode === 'decide' && (
+
+            {mode === "decide" && (
               <div className="space-y-6">
                 <div className="bg-white rounded-lg border p-6">
                   <DecisionBar />
                 </div>
-                
+
                 {/* Actions */}
                 <div className="bg-white rounded-lg border p-6">
                   <h3 className="text-lg font-semibold mb-4">Actions</h3>
@@ -119,8 +123,8 @@ export default function PresalesPage() {
                 </div>
               </div>
             )}
-            
-            {mode === 'plan' && (
+
+            {mode === "plan" && (
               <div className="bg-white rounded-lg border p-6">
                 <h3 className="text-lg font-semibold mb-4">Timeline Generated</h3>
                 <p className="text-gray-600 mb-4">
@@ -141,13 +145,13 @@ export default function PresalesPage() {
             {/* Completeness Card */}
             <div className="bg-white rounded-lg border p-6">
               <h3 className="text-lg font-semibold mb-4">Completeness</h3>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Score</span>
                   <span className="font-medium">{completeness.score}%</span>
                 </div>
-                
+
                 <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
                   <div
                     className={`h-2 ${scoreColor} transition-all duration-300`}
@@ -159,10 +163,12 @@ export default function PresalesPage() {
                   <div className="text-sm text-gray-600 mb-1">Status</div>
                   <div
                     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                      completeness.canProceed ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                      completeness.canProceed
+                        ? "bg-green-50 text-green-700"
+                        : "bg-red-50 text-red-700"
                     }`}
                   >
-                    {completeness.canProceed ? 'Ready to proceed' : 'Needs attention'}
+                    {completeness.canProceed ? "Ready to proceed" : "Needs attention"}
                   </div>
                 </div>
 
@@ -204,7 +210,10 @@ export default function PresalesPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-purple-600">
-                    {Object.keys(decisions).filter(k => decisions[k as keyof typeof decisions]).length}
+                    {
+                      Object.keys(decisions).filter((k) => decisions[k as keyof typeof decisions])
+                        .length
+                    }
                   </div>
                   <div className="text-sm text-gray-600">Decisions</div>
                 </div>

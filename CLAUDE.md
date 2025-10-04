@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **SAP Implementation Cockpit** - A Next.js application that transforms SAP implementation presales workflows from weeks into minutes. Extracts requirements from RFPs, makes key decisions, and generates project timelines with cost estimates.
 
 **Tech Stack:**
+
 - Next.js 15 (App Router) with TypeScript
 - Zustand for state management with localStorage persistence
 - Tailwind CSS + Framer Motion for UI
@@ -16,6 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Common Commands
 
 ### Development
+
 ```bash
 npm run dev           # Start development server (localhost:3000)
 npm run build         # Production build
@@ -24,6 +26,7 @@ npm run type-check    # TypeScript validation
 ```
 
 ### Testing
+
 ```bash
 npm test                    # Run all tests with Vitest
 npm run test:integration    # Integration tests only
@@ -32,6 +35,7 @@ npm run test:coverage      # Generate coverage report
 ```
 
 ### Analysis
+
 ```bash
 npm run analyze     # Bundle size analysis (ANALYZE=true next build)
 ```
@@ -75,6 +79,7 @@ RFP Text Input → Chip Parser → Presales Store → Bridge → Timeline Store
 ```
 
 **Key modules:**
+
 - **chip-parser.ts**: Extracts structured data from unstructured RFP text
 - **presales-to-timeline-bridge.ts**: Converts chips → ClientProfile + SAP packages
 - **scenario-generator.ts**: Generates baseline project plans from chips
@@ -86,12 +91,14 @@ RFP Text Input → Chip Parser → Presales Store → Bridge → Timeline Store
 The new UX follows Steve Jobs principles (see COMPLETE_UX_TRANSFORMATION.md):
 
 **Unified Workflow (`/project` → `/timeline-magic`):**
+
 1. **Capture** - Extract requirements from RFPs (chip extraction)
 2. **Decide** - Make key decisions (modules, pricing, SSO)
 3. **Plan** - Generate and refine timeline
 4. **Present** - Client-ready presentation mode (full-screen)
 
 **Components structure:**
+
 - `src/components/project-v2/ProjectShell.tsx` - Main orchestrator
 - `src/components/project-v2/modes/` - Mode-specific views
 - `src/components/presales/` - Chip capture & decision components
@@ -106,6 +113,7 @@ The new UX follows Steve Jobs principles (see COMPLETE_UX_TRANSFORMATION.md):
 ### Security
 
 The app has strict security measures (see next.config.js):
+
 - CSP headers with strict content policy
 - Input sanitization on all user data (input-sanitizer.ts)
 - Rate limiting on computation-heavy operations
@@ -115,9 +123,10 @@ The app has strict security measures (see next.config.js):
 ## Path Aliases
 
 All imports use `@/*` alias:
+
 ```typescript
-import { usePresalesStore } from '@/stores/presales-store';
-import { Chip } from '@/types/core';
+import { usePresalesStore } from "@/stores/presales-store";
+import { Chip } from "@/types/core";
 ```
 
 Configured in tsconfig.json: `"@/*": ["./src/*"]`
@@ -133,20 +142,26 @@ Configured in tsconfig.json: `"@/*": ["./src/*"]`
 ## Key Patterns
 
 ### Completeness Validation
+
 The completeness algorithm (presales-store.ts:192-297) is critical:
+
 - 0% score if no chips (shows all gaps)
 - Weighted scoring: country (15), industry (15), modules (15), legal entities (15), etc.
 - Minimum 65% + no critical gaps to proceed to decide mode
 - Bonus points for chip quantity and quality (confidence > 0.6)
 
 ### Timeline Generation
+
 Two-step process:
+
 1. Bridge converts chips → ClientProfile + package selection
 2. ScenarioGenerator creates phases with effort estimation
 3. Timeline store renders with date calculations
 
 ### Manual Overrides
+
 Users can manually edit generated timelines:
+
 - Overrides stored in project-store
 - Preserved across regenerations
 - Shows warning before regenerating with active overrides
@@ -162,6 +177,7 @@ Users can manually edit generated timelines:
 ## Database (Optional)
 
 Prisma schema defined in `prisma/schema.prisma` but currently unused:
+
 - App runs entirely client-side with localStorage
 - Backend models: Project, Chip, Decision, Scenario, Timeline
 - Database optional for future collaboration/persistence features
@@ -169,6 +185,7 @@ Prisma schema defined in `prisma/schema.prisma` but currently unused:
 ## Current State
 
 The app underwent a complete UX transformation (Oct 2025):
+
 - New magic timeline with instant gratification (example shown immediately)
 - Steve Jobs-inspired design principles (focus, simplicity, delight)
 - All navigation redirects to `/timeline-magic` (see middleware.ts)

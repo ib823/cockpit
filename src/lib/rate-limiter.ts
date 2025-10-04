@@ -17,7 +17,7 @@ export class RateLimiter {
     const attempts = this.attempts.get(key) || [];
 
     // Remove attempts outside the time window
-    const recentAttempts = attempts.filter(timestamp => now - timestamp < windowMs);
+    const recentAttempts = attempts.filter((timestamp) => now - timestamp < windowMs);
 
     if (recentAttempts.length >= maxAttempts) {
       return false; // Rate limit exceeded
@@ -49,7 +49,7 @@ export class RateLimiter {
   getRemaining(key: string, maxAttempts = 10, windowMs = 60000): number {
     const now = Date.now();
     const attempts = this.attempts.get(key) || [];
-    const recentAttempts = attempts.filter(timestamp => now - timestamp < windowMs);
+    const recentAttempts = attempts.filter((timestamp) => now - timestamp < windowMs);
     return Math.max(0, maxAttempts - recentAttempts.length);
   }
 }

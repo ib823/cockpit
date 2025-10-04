@@ -2,7 +2,6 @@
 // Run these tests after deploying the fixes
 
 export const TEST_CASES = {
-  
   // ============================================
   // TEST #1: MALAY PATTERN EXTRACTION
   // ============================================
@@ -13,34 +12,34 @@ export const TEST_CASES = {
         text: "Syarikat dengan 500 pekerja, 5 cawangan",
         expected: {
           employees: 500,
-          locations: 5
+          locations: 5,
         },
-        description: "Should extract 500 employees and 5 locations (not 3)"
+        description: "Should extract 500 employees and 5 locations (not 3)",
       },
       {
         text: "Company dengan 1200 kakitangan, operating 8 pejabat",
         expected: {
           employees: 1200,
-          locations: 8
+          locations: 8,
         },
-        description: "Should extract 1200 staff and 8 offices"
+        description: "Should extract 1200 staff and 8 offices",
       },
       {
         text: "Manufacturing firm, 3 kilang, 750 pekerja",
         expected: {
           employees: 750,
-          locations: 3
+          locations: 3,
         },
-        description: "Should extract 3 factories and 750 workers"
+        description: "Should extract 3 factories and 750 workers",
       },
       {
         text: "15 lokasi across Malaysia, 2500 employees",
         expected: {
           employees: 2500,
-          locations: 15
+          locations: 15,
         },
-        description: "Should extract 15 locations and 2500 employees"
-      }
+        description: "Should extract 15 locations and 2500 employees",
+      },
     ],
     howToTest: `
       1. Go to http://localhost:3000/presales
@@ -53,8 +52,8 @@ export const TEST_CASES = {
       "✅ Extracts correct number from Malay terms",
       "✅ No false positives from other numbers in text",
       "✅ No duplicate location chips",
-      "✅ Confidence score ≥ 0.85 for all Malay extractions"
-    ]
+      "✅ Confidence score ≥ 0.85 for all Malay extractions",
+    ],
   },
 
   // ============================================
@@ -68,37 +67,37 @@ export const TEST_CASES = {
         expected: {
           multiplier: 1.0,
           baseEffort: 100,
-          adjustedEffort: 100
+          adjustedEffort: 100,
         },
-        description: "Low complexity = 1.0x multiplier (no change)"
+        description: "Low complexity = 1.0x multiplier (no change)",
       },
       {
         text: "12 legal entities, 15 plants, 1000 users, 50K transactions/day",
         expected: {
           multiplier: 3.2,
           baseEffort: 100,
-          adjustedEffort: 320
+          adjustedEffort: 320,
         },
-        description: "High complexity = ~3.2x multiplier"
+        description: "High complexity = ~3.2x multiplier",
       },
       {
         text: "5 subsidiaries, 8 locations, 500 users",
         expected: {
           multiplier: 1.95,
           baseEffort: 100,
-          adjustedEffort: 195
+          adjustedEffort: 195,
         },
-        description: "Medium complexity = ~1.95x multiplier"
+        description: "Medium complexity = ~1.95x multiplier",
       },
       {
         text: "3 legal entities, 2 branches, 100 users, 5000 transactions/day",
         expected: {
           multiplier: 1.5,
           baseEffort: 100,
-          adjustedEffort: 150
+          adjustedEffort: 150,
         },
-        description: "Low-medium complexity = ~1.5x multiplier"
-      }
+        description: "Low-medium complexity = ~1.5x multiplier",
+      },
     ],
     howToTest: `
       1. Go to http://localhost:3000/presales
@@ -116,8 +115,8 @@ export const TEST_CASES = {
       "✅ Phase durations proportionally longer",
       "✅ Phase metadata contains multiplier and original values",
       "✅ Total project cost reflects multiplier",
-      "✅ Multiplier caps at 5.0x maximum"
-    ]
+      "✅ Multiplier caps at 5.0x maximum",
+    ],
   },
 
   // ============================================
@@ -131,46 +130,46 @@ export const TEST_CASES = {
         expected: {
           score: 0,
           canProceed: false,
-          suggestions: ["Paste RFP text", "Minimum required"]
+          suggestions: ["Paste RFP text", "Minimum required"],
         },
-        description: "Empty input = 0% score"
+        description: "Empty input = 0% score",
       },
       {
         text: "Need SAP system",
         expected: {
           score: 0,
           canProceed: false,
-          suggestions: ["specify legal entities", "specify locations"]
+          suggestions: ["specify legal entities", "specify locations"],
         },
-        description: "Vague input = 0-20% score"
+        description: "Vague input = 0-20% score",
       },
       {
         text: "Few hundred people, several branches",
         expected: {
           score: 30,
           canProceed: false,
-          suggestions: ["vague requirement", "specific numbers"]
+          suggestions: ["vague requirement", "specific numbers"],
         },
-        description: "Fuzzy numbers = 30-50% score with penalties"
+        description: "Fuzzy numbers = 30-50% score with penalties",
       },
       {
         text: "Malaysia, manufacturing, 500 employees, Finance module needed",
         expected: {
           score: 60,
           canProceed: false,
-          suggestions: ["How many legal entities", "How many locations"]
+          suggestions: ["How many legal entities", "How many locations"],
         },
-        description: "Basic info without critical factors = 60% (below 70% threshold)"
+        description: "Basic info without critical factors = 60% (below 70% threshold)",
       },
       {
         text: "Malaysia manufacturing, 3 legal entities, 5 plants, 500 employees, Finance + SCM modules",
         expected: {
           score: 85,
           canProceed: true,
-          suggestions: ["All critical information captured"]
+          suggestions: ["All critical information captured"],
         },
-        description: "Complete with critical factors = 85%+"
-      }
+        description: "Complete with critical factors = 85%+",
+      },
     ],
     howToTest: `
       1. Go to http://localhost:3000/presales
@@ -190,8 +189,8 @@ export const TEST_CASES = {
       "✅ Cannot proceed unless score ≥ 70%",
       "✅ Gap cards show for all missing critical info",
       "✅ Suggestions are specific and helpful",
-      "✅ No more 'All requirements captured' for incomplete inputs"
-    ]
+      "✅ No more 'All requirements captured' for incomplete inputs",
+    ],
   },
 
   // ============================================
@@ -239,9 +238,9 @@ export const TEST_CASES = {
       "✅ Completeness scoring reflects true readiness",
       "✅ No TypeScript errors in console",
       "✅ No rendering glitches",
-      "✅ Data persists across page reloads"
-    ]
-  }
+      "✅ Data persists across page reloads",
+    ],
+  },
 };
 
 // ============================================
@@ -249,25 +248,25 @@ export const TEST_CASES = {
 // ============================================
 export async function runAutomatedTests() {
   console.log("🧪 Running SAP Presales Cockpit Test Suite...\n");
-  
+
   let passed = 0;
   let failed = 0;
-  
+
   // Test 1: Malay Pattern
   console.log("TEST 1: Malay Pattern Extraction");
   // Implementation would call parseRFPTextEnhanced() and verify outputs
-  
+
   // Test 2: Complexity Multiplier
   console.log("TEST 2: Complexity Multiplier Integration");
   // Implementation would call calculateComplexityMultiplier() and verify
-  
+
   // Test 3: Completeness Scoring
   console.log("TEST 3: Completeness Scoring");
   // Implementation would test calculateCompleteness() logic
-  
+
   console.log(`\n✅ Passed: ${passed}`);
   console.log(`❌ Failed: ${failed}`);
-  
+
   return { passed, failed };
 }
 

@@ -1,29 +1,29 @@
 // src/components/project/Inspector.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useProjectStore } from '@/stores/project-store';
-import { useTimelineStore } from '@/stores/timeline-store';
+import { useState } from "react";
+import { useProjectStore } from "@/stores/project-store";
+import { useTimelineStore, useTotalEffort } from "@/stores/timeline-store";
 
 export function Inspector() {
-  const mode = useProjectStore(state => state.mode);
-  const lastGeneratedAt = useProjectStore(state => state.lastGeneratedAt);
-  const manualOverrides = useProjectStore(state => state.manualOverrides);
-  const phases = useTimelineStore(state => state.phases);
+  const mode = useProjectStore((state) => state.mode);
+  const lastGeneratedAt = useProjectStore((state) => state.lastGeneratedAt);
+  const manualOverrides = useProjectStore((state) => state.manualOverrides);
+  const phases = useTimelineStore((state) => state.phases);
 
-  const [selectedRegion, setSelectedRegion] = useState<'MY' | 'SG' | 'VN' | 'TH'>('MY');
-  const [resourceName, setResourceName] = useState('');
-  const [resourceRole, setResourceRole] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState<"MY" | "SG" | "VN" | "TH">("MY");
+  const [resourceName, setResourceName] = useState("");
+  const [resourceRole, setResourceRole] = useState("");
 
-  const totalEffort = phases.reduce((sum, p) => sum + (p.effort || 0), 0);
+  const totalEffort = useTotalEffort();
   const totalDuration = phases.reduce((sum, p) => sum + (p.workingDays || 0), 0);
 
   const handleAddResource = () => {
     if (resourceName && resourceRole) {
       // Add resource to timeline store
-      console.log('Add resource:', { name: resourceName, role: resourceRole });
-      setResourceName('');
-      setResourceRole('');
+      console.log("Add resource:", { name: resourceName, role: resourceRole });
+      setResourceName("");
+      setResourceRole("");
     }
   };
 
@@ -35,7 +35,7 @@ export function Inspector() {
       </div>
 
       <div className="flex-1 overflow-auto p-4 space-y-4">
-        {mode === 'plan' && phases.length > 0 && (
+        {mode === "plan" && phases.length > 0 && (
           <>
             {/* Project Summary */}
             <div className="bg-white rounded-lg p-4 card-shadow">
@@ -135,14 +135,14 @@ export function Inspector() {
           </>
         )}
 
-        {mode === 'capture' && (
+        {mode === "capture" && (
           <div className="text-center py-12 text-gray-400">
             <div className="text-3xl mb-2">📝</div>
             <div className="text-sm">Capture requirements to see details</div>
           </div>
         )}
 
-        {mode === 'decide' && (
+        {mode === "decide" && (
           <div className="bg-white rounded-lg p-4 card-shadow">
             <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">
               Decision Impact

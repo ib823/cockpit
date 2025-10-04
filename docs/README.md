@@ -19,14 +19,18 @@ Welcome to the Project V2 UX Transformation documentation!
 ### 🎯 For Everyone
 
 #### [COMPLETION_SUMMARY.md](./COMPLETION_SUMMARY.md)
+
 **Current status and achievement summary**
+
 - ✅ What's completed
 - 📁 File structure
 - 🧪 Testing checklist
 - 📊 Success metrics
 
 #### [QUICK_REFERENCE.md](./QUICK_REFERENCE.md)
+
 **Quick lookups and shortcuts**
+
 - Mode cheat sheet
 - Keyboard shortcuts
 - File locations
@@ -38,7 +42,9 @@ Welcome to the Project V2 UX Transformation documentation!
 ### 🔧 For Developers
 
 #### [PROJECT_V2_TRANSFORMATION.md](./PROJECT_V2_TRANSFORMATION.md)
+
 **Technical overview and design system**
+
 - What changed (before/after)
 - Design system details
 - Complete file structure
@@ -46,7 +52,9 @@ Welcome to the Project V2 UX Transformation documentation!
 - Installation guide
 
 #### [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
+
 **Testing and deployment steps**
+
 - Deployment steps
 - Comprehensive testing checklists
 - Troubleshooting guide
@@ -54,7 +62,9 @@ Welcome to the Project V2 UX Transformation documentation!
 - Production deployment
 
 #### [FILE_MANIFEST.md](./FILE_MANIFEST.md)
+
 **Complete file inventory**
+
 - All files with line counts
 - Component descriptions
 - Statistics & metrics
@@ -65,7 +75,9 @@ Welcome to the Project V2 UX Transformation documentation!
 ### 💼 For Stakeholders
 
 #### [BEFORE_AFTER_COMPARISON.md](./BEFORE_AFTER_COMPARISON.md)
+
 **Business case and ROI**
+
 - Side-by-side mode comparisons
 - User journey improvements
 - Business impact analysis
@@ -119,9 +131,11 @@ docs/
 ## 🚀 Getting Started
 
 ### 1. Read the Summary
+
 Start with [COMPLETION_SUMMARY.md](./COMPLETION_SUMMARY.md) to understand what's been completed.
 
 ### 2. Test Locally
+
 ```bash
 cd /workspaces/cockpit
 pnpm dev
@@ -129,9 +143,11 @@ pnpm dev
 ```
 
 ### 3. Follow Testing Checklist
+
 Use the checklist in [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) to verify all features work.
 
 ### 4. Learn the Details
+
 Read [PROJECT_V2_TRANSFORMATION.md](./PROJECT_V2_TRANSFORMATION.md) for technical details.
 
 ---
@@ -139,12 +155,14 @@ Read [PROJECT_V2_TRANSFORMATION.md](./PROJECT_V2_TRANSFORMATION.md) for technica
 ## 📊 Key Achievements
 
 ### User Experience
+
 - ✅ **90% faster** time to value (30s → 3s)
 - ✅ **67% fewer** clicks (6 → 2)
 - ✅ **100% better** empty states
 - ✅ **350% increase** in delight (2/10 → 9/10)
 
 ### Technical
+
 - ✅ **13 component files** created
 - ✅ **Mode-specific layouts** for each task
 - ✅ **60fps animations** throughout
@@ -152,6 +170,7 @@ Read [PROJECT_V2_TRANSFORMATION.md](./PROJECT_V2_TRANSFORMATION.md) for technica
 - ✅ **Full keyboard navigation**
 
 ### Documentation
+
 - ✅ **6 comprehensive guides** (56KB total)
 - ✅ **Complete file inventory**
 - ✅ **Testing checklists**
@@ -173,15 +192,18 @@ This transformation follows **Apple's design principles**:
 ## 📁 Component Overview
 
 ### Main Shell
+
 - **ProjectShell** - Main orchestrator for all modes
 
 ### 4 Modes
+
 - **CaptureMode** - Extract requirements from RFPs (Blue)
 - **DecideMode** - Make 5 strategic decisions (Purple)
 - **PlanMode** - Adjust timeline & resources (Green)
 - **PresentMode** - Client-ready presentation (Dark)
 
 ### 5 Shared Components
+
 - **ModeIndicator** - Hero banner for each mode
 - **SlideOver** - Slide-in drawer/panel
 - **EmptyState** - Beautiful fallback views
@@ -193,6 +215,7 @@ This transformation follows **Apple's design principles**:
 ## 🔗 Quick Links
 
 ### Documentation
+
 - [Current Status](./COMPLETION_SUMMARY.md)
 - [Quick Reference](./QUICK_REFERENCE.md)
 - [Technical Guide](./PROJECT_V2_TRANSFORMATION.md)
@@ -201,6 +224,7 @@ This transformation follows **Apple's design principles**:
 - [Business Case](./BEFORE_AFTER_COMPARISON.md)
 
 ### External Resources
+
 - [Framer Motion Docs](https://www.framer.com/motion/)
 - [Lucide Icons](https://lucide.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
@@ -210,17 +234,22 @@ This transformation follows **Apple's design principles**:
 ## 🆘 Need Help?
 
 ### Step 1: Check Documentation
+
 - **Quick fixes**: [QUICK_REFERENCE.md](./QUICK_REFERENCE.md)
 - **Testing issues**: [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
 - **Technical details**: [PROJECT_V2_TRANSFORMATION.md](./PROJECT_V2_TRANSFORMATION.md)
 
 ### Step 2: Common Issues
+
 Most issues are covered in:
+
 - [QUICK_REFERENCE.md - Common Issues & Fixes](./QUICK_REFERENCE.md#-common-issues--fixes)
 - [DEPLOYMENT_GUIDE.md - Troubleshooting](./DEPLOYMENT_GUIDE.md#common-issues--solutions)
 
 ### Step 3: File Locations
+
 Need to find a specific file? Check:
+
 - [FILE_MANIFEST.md](./FILE_MANIFEST.md)
 - [QUICK_REFERENCE.md - File Locations](./QUICK_REFERENCE.md#-file-locations)
 
@@ -229,6 +258,7 @@ Need to find a specific file? Check:
 ## 📝 Change Log
 
 ### v2.0.0 (October 3, 2025)
+
 - ✨ Complete UX transformation
 - ✨ Mode-specific layouts
 - ✨ Keynote-style Present mode
@@ -245,6 +275,7 @@ Need to find a specific file? Check:
 **This transformation delivers:**
 
 ### Before ❌
+
 - Generic 3-panel layout
 - Confusing navigation
 - Blank empty states
@@ -252,6 +283,7 @@ Need to find a specific file? Check:
 - Costs visible in Present mode
 
 ### After ✅
+
 - Mode-specific layouts
 - Clear primary actions
 - Beautiful empty states

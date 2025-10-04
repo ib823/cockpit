@@ -27,6 +27,7 @@
    - **Integration**: Seamless dependency resolution after reordering
 
 ### **Dependencies Added:**
+
 ```json
 {
   "react-dnd": "16.0.1",
@@ -59,3 +60,4 @@ Production-ready with comprehensive error handling
 ✅ Cross-browser: Chrome, Edge, Firefox tested
 
 Ready for production deployment and continued development.
+```

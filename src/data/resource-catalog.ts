@@ -1,11 +1,11 @@
-import { Resource, Phase } from '@/types/core';
+import { Resource, Phase } from "@/types/core";
 
 // Default team composition for scenarios
 export const DEFAULT_TEAM_COMPOSITION = {
   architect: 1,
   developer: 3,
   consultant: 2,
-  projectManager: 1
+  projectManager: 1,
 } as const;
 
 // Standard team composition (alias for backward compatibility)
@@ -13,41 +13,45 @@ export const STANDARD_TEAM_COMPOSITION = DEFAULT_TEAM_COMPOSITION;
 
 // Rate cards by region
 export const RATE_CARDS = {
-  'ABMY': { // Asia Pacific - Malaysia
+  ABMY: {
+    // Asia Pacific - Malaysia
     architect: 150,
     developer: 100,
     consultant: 120,
     projectManager: 140,
-    currency: 'USD'
+    currency: "USD",
   },
-  'APSG': { // Asia Pacific - Singapore
+  APSG: {
+    // Asia Pacific - Singapore
     architect: 180,
     developer: 120,
     consultant: 140,
     projectManager: 160,
-    currency: 'USD'
+    currency: "USD",
   },
-  'NA': { // North America
+  NA: {
+    // North America
     architect: 200,
     developer: 150,
     consultant: 180,
     projectManager: 190,
-    currency: 'USD'
+    currency: "USD",
   },
-  'EU': { // Europe
+  EU: {
+    // Europe
     architect: 180,
     developer: 130,
     consultant: 160,
     projectManager: 170,
-    currency: 'EUR'
+    currency: "EUR",
   },
-  'default': {
+  default: {
     architect: 150,
     developer: 100,
     consultant: 120,
     projectManager: 140,
-    currency: 'USD'
-  }
+    currency: "USD",
+  },
 } as const;
 
 /**
@@ -55,7 +59,7 @@ export const RATE_CARDS = {
  */
 export function generateResourceRequirements(
   effortDays: number,
-  region: string = 'ABMY'
+  region: string = "ABMY"
 ): Resource[] {
   const rateCard = RATE_CARDS[region as keyof typeof RATE_CARDS] || RATE_CARDS.default;
 
@@ -65,36 +69,36 @@ export function generateResourceRequirements(
   const resources: Resource[] = [
     {
       id: `architect-${region}`,
-      name: 'Solution Architect',
-      role: 'architect',
+      name: "Solution Architect",
+      role: "architect",
       allocation: DEFAULT_TEAM_COMPOSITION.architect * teamMultiplier * 0.5, // Part-time
       region: region,
-      hourlyRate: rateCard.architect
+      hourlyRate: rateCard.architect,
     },
     {
       id: `developer-${region}`,
-      name: 'Developer',
-      role: 'developer',
+      name: "Developer",
+      role: "developer",
       allocation: DEFAULT_TEAM_COMPOSITION.developer * teamMultiplier,
       region: region,
-      hourlyRate: rateCard.developer
+      hourlyRate: rateCard.developer,
     },
     {
       id: `consultant-${region}`,
-      name: 'Functional Consultant',
-      role: 'consultant',
+      name: "Functional Consultant",
+      role: "consultant",
       allocation: DEFAULT_TEAM_COMPOSITION.consultant * teamMultiplier,
       region: region,
-      hourlyRate: rateCard.consultant
+      hourlyRate: rateCard.consultant,
     },
     {
       id: `pm-${region}`,
-      name: 'Project Manager',
-      role: 'projectManager',
+      name: "Project Manager",
+      role: "projectManager",
       allocation: DEFAULT_TEAM_COMPOSITION.projectManager * teamMultiplier * 0.5, // Part-time
       region: region,
-      hourlyRate: rateCard.projectManager
-    }
+      hourlyRate: rateCard.projectManager,
+    },
   ];
 
   return resources;
@@ -110,12 +114,12 @@ export function calculateProjectCost(phases: Phase[]): {
 } {
   let totalCost = 0;
   const breakdown: Record<string, number> = {};
-  const currency = 'USD';
+  const currency = "USD";
 
-  phases.forEach(phase => {
+  phases.forEach((phase) => {
     if (!phase.resources || !phase.workingDays) return;
 
-    phase.resources.forEach(resource => {
+    phase.resources.forEach((resource) => {
       const phaseCost = resource.allocation * resource.hourlyRate * phase.workingDays * 8; // 8 hours per day
       totalCost += phaseCost;
 
@@ -127,6 +131,6 @@ export function calculateProjectCost(phases: Phase[]): {
   return {
     totalCost,
     breakdown,
-    currency
+    currency,
   };
 }

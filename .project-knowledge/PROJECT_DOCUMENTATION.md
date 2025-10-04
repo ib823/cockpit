@@ -1,9 +1,11 @@
 # SAP Implementation Cockpit - Development Documentation
 
 ## Project Overview
+
 A sophisticated SAP implementation planning tool built with Next.js 15, TypeScript, and React. Features timeline visualization, resource management, and comprehensive project planning capabilities.
 
 ## Current State (As of this session)
+
 - **Branch**: refactor/extract-timeline
 - **Framework**: Next.js 15.5.3 with Turbopack
 - **Styling**: Tailwind CSS
@@ -11,37 +13,40 @@ A sophisticated SAP implementation planning tool built with Next.js 15, TypeScri
 - **Key Libraries**: react-dnd, react-dnd-html5-backend
 
 ## File Structure
+
 src/
 ├── app/
-│   ├── page.tsx (Landing page)
-│   ├── timeline/
-│   │   └── page.tsx (Main timeline interface)
-│   └── layout.tsx (Root layout with hydration fix)
+│ ├── page.tsx (Landing page)
+│ ├── timeline/
+│ │ └── page.tsx (Main timeline interface)
+│ └── layout.tsx (Root layout with hydration fix)
 ├── components/
-│   └── timeline/
-│       ├── GanttChart.tsx (Main timeline visualization)
-│       └── TimelineControls.tsx (Project metrics display)
+│ └── timeline/
+│ ├── GanttChart.tsx (Main timeline visualization)
+│ └── TimelineControls.tsx (Project metrics display)
 ├── lib/
-│   └── timeline/
-│       ├── date-calculations.ts (Business day calculations)
-│       └── phase-generator.ts (Phase creation logic)
+│ └── timeline/
+│ ├── date-calculations.ts (Business day calculations)
+│ └── phase-generator.ts (Phase creation logic)
 ├── stores/
-│   └── timeline-store.ts (Zustand store with persistence)
+│ └── timeline-store.ts (Zustand store with persistence)
 ├── data/
-│   ├── sap-catalog.ts (SAP package definitions)
-│   └── resource-catalog.ts (Resource rates and costs)
+│ ├── sap-catalog.ts (SAP package definitions)
+│ └── resource-catalog.ts (Resource rates and costs)
 └── types/
 └── core.ts (TypeScript definitions)
 
 ## Implemented Features
 
 ### 1. Timeline Visualization
+
 - Gantt chart with calendar axis showing dates
 - Drag-and-drop phase reordering
 - Visual distinction for weekends and holidays
 - Phase bars with duration display
 
 ### 2. Resource Management
+
 - Add/remove team members per phase
 - Allocation percentage control (0-150%)
 - Resource avatars on phase bars (max 3, then +X)
@@ -53,17 +58,20 @@ src/
   - Under-utilized count
 
 ### 3. Holiday Management
+
 - Add/remove holidays with date picker
 - Visual highlighting on calendar
 - Intended to extend phase duration (partially implemented)
 
 ### 4. Cost Calculation
+
 - Per-resource hourly rates
 - Total project cost calculation
 - Region-specific currency formatting
 - Presentation mode to hide costs
 
 ### 5. UI/UX Design
+
 - Minimalist interface following Steve Jobs principles
 - No emojis in professional interface
 - Clean typography with light font weights
@@ -73,6 +81,7 @@ src/
 ## Known Issues and Bugs
 
 ### Critical Issues
+
 1. **Date Display Bug**: Shows "NaN-undefined-aN (undefined)" instead of proper dates
    - Root cause: Date calculation returning invalid values
    - Location: TimelineControls.tsx and GanttChart.tsx
@@ -86,6 +95,7 @@ src/
    - Logic exists but not properly integrated
 
 ### Minor Issues
+
 1. Resource avatars might not show immediately after adding
 2. Utilization bar calculation needs verification
 3. Some phase dependencies not properly handled
@@ -93,18 +103,21 @@ src/
 ## Key Decisions and Lessons Learned
 
 ### Architecture Decisions
+
 1. **Zustand over Context**: Better performance for frequent updates
 2. **Modular Components**: Separate concerns for maintainability
 3. **Business Day Calculations**: Custom implementation for flexibility
 4. **Persistent Storage**: Local storage for user preferences
 
 ### UI/UX Decisions
+
 1. **No Emojis**: Professional enterprise software aesthetic
 2. **Minimal Colors**: Gray scale with selective blue accents
 3. **Inline Actions**: Click phases directly for resources
 4. **Dashboard Integration**: Metrics in same modal as management
 
 ### Technical Lessons
+
 1. **Hydration Issues**: Browser extensions can cause React hydration mismatches
    - Solution: suppressHydrationWarning on body tag
 2. **File Updates in Dev**: Sometimes need to clear .next cache
@@ -114,11 +127,13 @@ src/
 ## Configuration and Setup
 
 ### Environment
+
 - Node.js runtime in GitHub Codespaces
 - Port 3000 for development server
 - Turbopack for faster builds
 
 ### Key Commands
+
 ```bash
 npm run dev          # Start development server
 npm run build        # Production build
@@ -173,3 +188,4 @@ Use simple terminal commands, no shell scripts
 Test all date calculations with edge cases
 Maintain minimalist design principles
 Keep professional tone without emojis
+```

@@ -1,7 +1,7 @@
 // src/middleware.ts
 // SECURITY: Server-side middleware for rate limiting and security headers
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 // Server-side rate limiter using Map (in-memory)
 // For production, consider using Redis or similar distributed cache
@@ -26,7 +26,11 @@ function cleanupRateLimitMap() {
 /**
  * Check rate limit for a given identifier (IP address)
  */
-function checkRateLimit(identifier: string): { allowed: boolean; remaining: number; resetTime: number } {
+function checkRateLimit(identifier: string): {
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+} {
   const now = Date.now();
   const record = rateLimitMap.get(identifier);
 
@@ -50,7 +54,11 @@ function checkRateLimit(identifier: string): { allowed: boolean; remaining: numb
   // Increment counter
   record.count++;
   rateLimitMap.set(identifier, record);
-  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - record.count, resetTime: record.resetTime };
+  return {
+    allowed: true,
+    remaining: MAX_REQUESTS_PER_WINDOW - record.count,
+    resetTime: record.resetTime,
+  };
 }
 
 /**
@@ -58,12 +66,12 @@ function checkRateLimit(identifier: string): { allowed: boolean; remaining: numb
  */
 function getClientIdentifier(request: NextRequest): string {
   // Try to get real IP from common proxy headers
-  const forwarded = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
+  const forwarded = request.headers.get("x-forwarded-for");
+  const realIp = request.headers.get("x-real-ip");
 
   if (forwarded) {
     // x-forwarded-for may contain multiple IPs, take the first one
-    return forwarded.split(',')[0].trim();
+    return forwarded.split(",")[0].trim();
   }
 
   if (realIp) {
@@ -71,7 +79,7 @@ function getClientIdentifier(request: NextRequest): string {
   }
 
   // Fallback to a default identifier
-  return 'unknown';
+  return "unknown";
 }
 
 /**
@@ -79,15 +87,15 @@ function getClientIdentifier(request: NextRequest): string {
  */
 export function middleware(request: NextRequest) {
   // SECURITY: Block requests with internal Next.js headers (CVE-2025-29927)
-  const subrequestHeader = request.headers.get('x-middleware-subrequest');
+  const subrequestHeader = request.headers.get("x-middleware-subrequest");
   if (subrequestHeader) {
-    console.warn('Blocked request with x-middleware-subrequest header', {
+    console.warn("Blocked request with x-middleware-subrequest header", {
       url: request.url,
       ip: getClientIdentifier(request),
       timestamp: new Date().toISOString(),
     });
 
-    return new NextResponse('Forbidden', { status: 403 });
+    return new NextResponse("Forbidden", { status: 403 });
   }
 
   // Get client identifier
@@ -103,11 +111,11 @@ export function middleware(request: NextRequest) {
     // Rate limit exceeded
     const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
 
-    response = new NextResponse('Too Many Requests', {
+    response = new NextResponse("Too Many Requests", {
       status: 429,
       headers: {
-        'Content-Type': 'text/plain',
-        'Retry-After': retryAfter.toString(),
+        "Content-Type": "text/plain",
+        "Retry-After": retryAfter.toString(),
       },
     });
   } else {
@@ -116,9 +124,9 @@ export function middleware(request: NextRequest) {
   }
 
   // Add rate limit headers to all responses
-  response.headers.set('X-RateLimit-Limit', MAX_REQUESTS_PER_WINDOW.toString());
-  response.headers.set('X-RateLimit-Remaining', remaining.toString());
-  response.headers.set('X-RateLimit-Reset', Math.ceil(resetTime / 1000).toString());
+  response.headers.set("X-RateLimit-Limit", MAX_REQUESTS_PER_WINDOW.toString());
+  response.headers.set("X-RateLimit-Remaining", remaining.toString());
+  response.headers.set("X-RateLimit-Reset", Math.ceil(resetTime / 1000).toString());
 
   return response;
 }
@@ -133,6 +141,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (images, etc.)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

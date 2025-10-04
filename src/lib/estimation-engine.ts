@@ -1,19 +1,19 @@
 // src/lib/estimation-engine.ts
-import { ScenarioPlan } from '@/types/core';
+import { ScenarioPlan } from "@/types/core";
 import type {
   ProjectInput,
   CompanyFootprint,
   ScopeItem,
   UsersRoles,
   DataMigration,
-  Integration
-} from './scenario-generator';
+  Integration,
+} from "./scenario-generator";
 
 interface Totals {
-  e: number;   // Explore
-  r: number;   // Realize
-  d: number;   // Deploy
-  ru: number;  // Run
+  e: number; // Explore
+  r: number; // Realize
+  d: number; // Deploy
+  ru: number; // Run
 }
 
 class EstimationEngine {
@@ -33,7 +33,7 @@ class EstimationEngine {
     this.addEffort(t, this.estimateCompanyFootprint(project.companyFootprint));
 
     // §4.2 Scope Items
-    project.scopeItems.forEach(item => {
+    project.scopeItems.forEach((item) => {
       this.addEffort(t, this.estimateScopeItem(item));
     });
 
@@ -44,7 +44,7 @@ class EstimationEngine {
     this.addEffort(t, this.estimateDataMigration(project.dataMigration));
 
     // §4.5 Integrations
-    project.integrations.forEach(integration => {
+    project.integrations.forEach((integration) => {
       this.addEffort(t, this.estimateIntegration(integration));
     });
 
@@ -76,7 +76,7 @@ class EstimationEngine {
     this.addEffort(t, this.estimateTimeline(project.timeline));
 
     // §4.15 Extensions
-    project.extensions.forEach(extension => {
+    project.extensions.forEach((extension) => {
       this.addEffort(t, this.estimateExtension(extension));
     });
 
@@ -93,7 +93,7 @@ class EstimationEngine {
   // §4.1 Company & Footprint
   private estimateCompanyFootprint(footprint: CompanyFootprint): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
-    
+
     // Base effort
     t.e += this.constants.BASE_EXPLORE;
     t.r += this.constants.BASE_REALIZE;
@@ -104,10 +104,10 @@ class EstimationEngine {
     const entityCount = footprint.legalEntities.length;
     if (entityCount > 1) {
       const adder = (entityCount - 1) * this.constants.ENTITY_ADDER;
-      t.e += adder * 0.15;  // 15% in Explore
-      t.r += adder * 0.50;  // 50% in Realize
-      t.d += adder * 0.25;  // 25% in Deploy
-      t.ru += adder * 0.10; // 10% in Run
+      t.e += adder * 0.15; // 15% in Explore
+      t.r += adder * 0.5; // 50% in Realize
+      t.d += adder * 0.25; // 25% in Deploy
+      t.ru += adder * 0.1; // 10% in Run
     }
 
     // Currency adders
@@ -159,7 +159,8 @@ class EstimationEngine {
     }
 
     // Criticality factor
-    const criticalityMultiplier = 1 + (item.criticalityPercent / 100) * this.constants.CRITICALITY_FACTOR;
+    const criticalityMultiplier =
+      1 + (item.criticalityPercent / 100) * this.constants.CRITICALITY_FACTOR;
     t.e *= criticalityMultiplier;
     t.r *= criticalityMultiplier;
     t.d *= criticalityMultiplier;
@@ -277,7 +278,7 @@ class EstimationEngine {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
 
     // Per-object baseline
-    migration.objects.forEach(obj => {
+    migration.objects.forEach((obj) => {
       const base = this.constants.MIGRATION_OBJECT_BASE[obj.complexity];
       t.e += base * 0.1;
       t.r += base * 0.4;
@@ -340,13 +341,14 @@ class EstimationEngine {
     }
 
     // Cutover tightness
-    if (migration.cutoverWindow < 24) {  // hours
+    if (migration.cutoverWindow < 24) {
+      // hours
       t.d += this.constants.TIGHT_CUTOVER_ADDER;
     }
 
     // MDM discount
     if (migration.mdmInPlace) {
-      t.r *= 0.85;  // 15% discount
+      t.r *= 0.85; // 15% discount
       t.d *= 0.85;
     }
 
@@ -430,12 +432,13 @@ class EstimationEngine {
     // Protocol baseline
     const protoBase = (this.constants.PROTOCOL_BASELINES as any)[integration.protocol] || 15;
     t.e += protoBase * 0.15;
-    t.r += protoBase * 0.50;
+    t.r += protoBase * 0.5;
     t.d += protoBase * 0.25;
-    t.ru += protoBase * 0.10;
+    t.ru += protoBase * 0.1;
 
     // Security factor
-    const securityFactor = (this.constants.SECURITY_FACTORS as any)[integration.securityLevel] || 1.0;
+    const securityFactor =
+      (this.constants.SECURITY_FACTORS as any)[integration.securityLevel] || 1.0;
     t.e *= securityFactor;
     t.r *= securityFactor;
     t.d *= securityFactor;
@@ -447,13 +450,14 @@ class EstimationEngine {
 
     // Transformation rules
     if (integration.transformationRules > 0) {
-      const transAdder = integration.transformationRules * this.constants.INTEGRATION_TRANSFORMATION_ADDER;
+      const transAdder =
+        integration.transformationRules * this.constants.INTEGRATION_TRANSFORMATION_ADDER;
       t.r += transAdder * 0.7;
       t.d += transAdder * 0.3;
     }
 
     // Error handling complexity
-    if (integration.errorHandling === 'advanced') {
+    if (integration.errorHandling === "advanced") {
       t.r += this.constants.ERROR_HANDLING_ADDER * 0.6;
       t.d += this.constants.ERROR_HANDLING_ADDER * 0.4;
     }
@@ -480,7 +484,7 @@ class EstimationEngine {
 
     // Reuse discount
     if (integration.reuseExistingPattern) {
-      t.r *= 0.75;  // 25% discount
+      t.r *= 0.75; // 25% discount
       t.d *= 0.75;
     }
 
@@ -538,23 +542,23 @@ class EstimationEngine {
   // Global adjustments
   private applySharedServicesDiscount(t: Totals, project: ProjectInput): void {
     if (project.sharedServicesModel) {
-      t.e *= 0.85;  // 15% discount
+      t.e *= 0.85; // 15% discount
       t.r *= 0.85;
       t.d *= 0.85;
-      t.ru *= 0.90; // Smaller discount for Run
+      t.ru *= 0.9; // Smaller discount for Run
     }
   }
 
   private applyDecisionVelocitySurcharge(t: Totals, project: ProjectInput): void {
-    if (project.decisionVelocity === 'slow') {
-      t.e *= 1.15;  // 15% surcharge
-      t.r *= 1.10;  // 10% surcharge
-      t.d *= 1.05;  // 5% surcharge
+    if (project.decisionVelocity === "slow") {
+      t.e *= 1.15; // 15% surcharge
+      t.r *= 1.1; // 10% surcharge
+      t.d *= 1.05; // 5% surcharge
     }
   }
 
-  private applyContingency(t: Totals, level: 'low' | 'medium' | 'high'): void {
-    const factors = { low: 1.07, medium: 1.10, high: 1.12 };
+  private applyContingency(t: Totals, level: "low" | "medium" | "high"): void {
+    const factors = { low: 1.07, medium: 1.1, high: 1.12 };
     const factor = factors[level];
     t.e *= factor;
     t.r *= factor;
@@ -568,14 +572,14 @@ class EstimationEngine {
 
     return {
       id: `plan_${Date.now()}`,
-      name: 'Baseline Plan',
+      name: "Baseline Plan",
       phases: [],
       totalEffort,
       totalCost: 0,
       duration: 0,
       risks: [],
       assumptions: [],
-      confidence: 0.8
+      confidence: 0.8,
     };
   }
 }
@@ -583,10 +587,10 @@ class EstimationEngine {
 // Constants (from Playbook §8)
 const CONSTANTS = {
   // Base effort
-  BASE_EXPLORE: 40,    // PD
-  BASE_REALIZE: 180,   // PD
-  BASE_DEPLOY: 80,     // PD
-  BASE_RUN: 20,        // PD per month
+  BASE_EXPLORE: 40, // PD
+  BASE_REALIZE: 180, // PD
+  BASE_DEPLOY: 80, // PD
+  BASE_RUN: 20, // PD per month
 
   // Company & Footprint (§4.1)
   ENTITY_ADDER: 8,
@@ -599,7 +603,7 @@ const CONSTANTS = {
     small: { e: 5, r: 20, d: 10, ru: 2 },
     medium: { e: 10, r: 40, d: 20, ru: 4 },
     large: { e: 20, r: 80, d: 40, ru: 8 },
-    xlarge: { e: 40, r: 160, d: 80, ru: 16 }
+    xlarge: { e: 40, r: 160, d: 80, ru: 16 },
   },
   VARIANT_FACTOR: 0.3,
   CRITICALITY_FACTOR: 0.2,
@@ -624,13 +628,13 @@ const CONSTANTS = {
   MIGRATION_OBJECT_BASE: {
     simple: 5,
     medium: 12,
-    complex: 25
+    complex: 25,
   },
   SOURCE_ADDER: 3,
   QUALITY_FACTORS: {
     high: 1.0,
     medium: 1.3,
-    low: 1.8
+    low: 1.8,
   },
   TRANSFORMATION_ADDER: 1,
   CUSTOM_FIELD_ADDER: 0.5,
@@ -642,20 +646,20 @@ const CONSTANTS = {
 
   // Integrations (§4.5)
   PROTOCOL_BASELINES: {
-    'REST': 15,
-    'SOAP': 18,
-    'OData': 12,
-    'RFC/BAPI': 20,
-    'IDoc': 22,
-    'SFTP': 10,
-    'AS2': 25,
-    'Kafka': 30
+    REST: 15,
+    SOAP: 18,
+    OData: 12,
+    "RFC/BAPI": 20,
+    IDoc: 22,
+    SFTP: 10,
+    AS2: 25,
+    Kafka: 30,
   },
   SECURITY_FACTORS: {
     basic: 1.0,
     oauth: 1.2,
     certificate: 1.3,
-    advanced: 1.5
+    advanced: 1.5,
   },
   INTEGRATION_TRANSFORMATION_ADDER: 2,
   ERROR_HANDLING_ADDER: 5,

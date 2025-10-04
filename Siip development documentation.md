@@ -13,15 +13,15 @@ graph TB
     A[SIIP Platform] --> B[Presales Engine]
     A --> C[Timeline Configurator]
     A --> D[Intelligence Engine]
-    
+
     B --> B1[Chip Extraction]
     B --> B2[Decision Cards]
     B --> B3[Scenario Generation]
-    
+
     C --> C1[Planning Canvas]
     C --> C2[Resource Allocation]
     C --> C3[Gantt Visualization]
-    
+
     D --> D1[Pattern Recognition]
     D --> D2[Effort Prediction]
     D --> D3[Risk Assessment]
@@ -30,6 +30,7 @@ graph TB
 ### Technology Stack
 
 **Frontend:**
+
 - Next.js 14 (App Router)
 - TypeScript 5.3+
 - Tailwind CSS 3.4+
@@ -38,12 +39,14 @@ graph TB
 - Zustand (global state)
 
 **Backend:**
+
 - Next.js API Routes
 - Prisma (ORM)
 - PostgreSQL (database)
 - Redis (caching)
 
 **Infrastructure:**
+
 - Vercel (deployment)
 - Supabase (database hosting)
 - Upstash (Redis hosting)
@@ -53,6 +56,7 @@ graph TB
 ### Phase 1: Foundation (Weeks 1-2)
 
 #### Week 1: Project Setup
+
 ```bash
 # Initialize Next.js project
 npx create-next-app@latest siip --typescript --tailwind --app
@@ -72,6 +76,7 @@ pnpm add -D husky lint-staged @typescript-eslint/parser
 ```
 
 #### Week 2: Core Architecture
+
 ```typescript
 // src/types/siip.ts - Core Type System
 export interface Chip {
@@ -79,7 +84,7 @@ export interface Chip {
   type: ChipType;
   value: string;
   confidence: number;
-  source: 'paste' | 'upload' | 'voice' | 'manual';
+  source: "paste" | "upload" | "voice" | "manual";
   evidence?: {
     snippet: string;
     context: string;
@@ -90,10 +95,23 @@ export interface Chip {
   timestamp: Date;
 }
 
-export type ChipType = 
-  | 'country' | 'entity' | 'users' | 'budget' | 'start' | 'golive'
-  | 'bank' | 'bank_fmt' | 'eInvoice' | 'idp' | 'integration'
-  | 'forms' | 'fricew_target' | 'module_combo' | 'fx' | 'rate_region';
+export type ChipType =
+  | "country"
+  | "entity"
+  | "users"
+  | "budget"
+  | "start"
+  | "golive"
+  | "bank"
+  | "bank_fmt"
+  | "eInvoice"
+  | "idp"
+  | "integration"
+  | "forms"
+  | "fricew_target"
+  | "module_combo"
+  | "fx"
+  | "rate_region";
 
 export interface Decision {
   id: string;
@@ -105,9 +123,14 @@ export interface Decision {
   timestamp: Date;
 }
 
-export type DecisionType = 
-  | 'module_combo' | 'banking_path' | 'integration_posture'
-  | 'sso_mode' | 'fricew_target' | 'rate_region' | 'pricing_target';
+export type DecisionType =
+  | "module_combo"
+  | "banking_path"
+  | "integration_posture"
+  | "sso_mode"
+  | "fricew_target"
+  | "rate_region"
+  | "pricing_target";
 
 export interface ScenarioPlan {
   id: string;
@@ -126,60 +149,61 @@ export interface ScenarioPlan {
 ### Phase 2: Chip System (Weeks 3-4)
 
 #### Chip Extraction Engine
+
 ```typescript
 // src/lib/chip-extractor.ts
 export class ChipExtractor {
   private patterns: Map<ChipType, RegExp> = new Map([
-    ['country', /(Malaysia|Singapore|Vietnam|Thailand)/gi],
-    ['employees', /(\d+)\s+employees?/gi],
-    ['revenue', /(MYR|SGD|USD)\s*([\d,.]+)\s*(million|M)/gi],
-    ['modules', /(Finance|HR|HCM|Supply Chain|SCM)/gi],
-    ['timeline', /(Q[1-4]\s+\d{4})/gi],
-    ['integration', /(Salesforce|Oracle|Microsoft|Azure)/gi],
-    ['compliance', /(e-invoice|MyInvois|LHDN)/gi],
-    ['banking', /(Host-to-Host|banking)/gi],
-    ['sso', /(SSO|Azure AD|ADFS)/gi]
+    ["country", /(Malaysia|Singapore|Vietnam|Thailand)/gi],
+    ["employees", /(\d+)\s+employees?/gi],
+    ["revenue", /(MYR|SGD|USD)\s*([\d,.]+)\s*(million|M)/gi],
+    ["modules", /(Finance|HR|HCM|Supply Chain|SCM)/gi],
+    ["timeline", /(Q[1-4]\s+\d{4})/gi],
+    ["integration", /(Salesforce|Oracle|Microsoft|Azure)/gi],
+    ["compliance", /(e-invoice|MyInvois|LHDN)/gi],
+    ["banking", /(Host-to-Host|banking)/gi],
+    ["sso", /(SSO|Azure AD|ADFS)/gi],
   ]);
-  
+
   extract(text: string): Chip[] {
     const chips: Chip[] = [];
-    
+
     for (const [type, pattern] of this.patterns) {
       const matches = text.match(pattern);
       if (matches) {
-        matches.forEach(match => {
+        matches.forEach((match) => {
           chips.push({
             id: generateId(),
             type,
             value: match.trim(),
             confidence: this.calculateConfidence(type, match, text),
-            source: 'paste',
+            source: "paste",
             validated: false,
-            timestamp: new Date()
+            timestamp: new Date(),
           });
         });
       }
     }
-    
+
     return this.deduplicateChips(chips);
   }
-  
+
   private calculateConfidence(type: ChipType, match: string, context: string): number {
     // Implementation of confidence scoring algorithm
     const baseConfidence = 0.8;
     const contextBonus = this.analyzeContext(match, context);
     return Math.min(baseConfidence + contextBonus, 1.0);
   }
-  
+
   private analyzeContext(match: string, context: string): number {
     // Context analysis for confidence boost
     return 0.1;
   }
-  
+
   private deduplicateChips(chips: Chip[]): Chip[] {
     // Remove duplicate chips based on type and normalized value
     const seen = new Set<string>();
-    return chips.filter(chip => {
+    return chips.filter((chip) => {
       const key = `${chip.type}:${chip.value.toLowerCase()}`;
       if (seen.has(key)) return false;
       seen.add(key);
@@ -190,6 +214,7 @@ export class ChipExtractor {
 ```
 
 #### Chip Management Components
+
 ```typescript
 // src/components/chips/chip-display.tsx
 import { motion, AnimatePresence } from 'framer-motion';
@@ -217,7 +242,7 @@ export const ChipDisplay: React.FC<ChipDisplayProps> = ({
     sso: 'bg-gray-500'
     // ... rest of chip types
   };
-  
+
   return (
     <div className="flex flex-wrap gap-3">
       <AnimatePresence>
@@ -264,14 +289,15 @@ export const ChipDisplay: React.FC<ChipDisplayProps> = ({
 ### Phase 3: Decision Engine (Weeks 5-6)
 
 #### Decision Card System
+
 ```typescript
 // src/components/decisions/decision-cards.tsx
 export const DecisionCards: React.FC = () => {
   const [decisions, setDecisions] = useDecisionStore(state => [
-    state.decisions, 
+    state.decisions,
     state.setDecision
   ]);
-  
+
   const decisionConfigs: DecisionConfig[] = [
     {
       type: 'module_combo',
@@ -325,7 +351,7 @@ export const DecisionCards: React.FC = () => {
     }
     // ... more decision configurations
   ];
-  
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {decisionConfigs.map(config => (
@@ -344,6 +370,7 @@ export const DecisionCards: React.FC = () => {
 ### Phase 4: Planning Canvas (Weeks 7-8)
 
 #### Effort Allocation Grid
+
 ```typescript
 // src/components/planning/effort-grid.tsx
 export const EffortGrid: React.FC = () => {
@@ -351,14 +378,14 @@ export const EffortGrid: React.FC = () => {
     state.effortData,
     state.updateEffort
   ]);
-  
+
   const streams = [
     'Finance', 'Procurement', 'Integration', 'Data Migration',
     'Testing', 'Change Management', 'Project Management'
   ];
-  
+
   const phases = ['Prepare', 'Explore', 'Realize', 'Deploy', 'Run'];
-  
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div className="grid grid-cols-[200px_repeat(5,1fr)_120px] bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-600 uppercase tracking-wider">
@@ -368,7 +395,7 @@ export const EffortGrid: React.FC = () => {
         ))}
         <div className="p-4 border-l border-gray-200">Total PD</div>
       </div>
-      
+
       {streams.map(stream => (
         <EffortRow
           key={stream}
@@ -389,7 +416,7 @@ const EffortRow: React.FC<{
   onUpdate: (phase: string, value: number) => void;
 }> = ({ stream, phases, effortData, onUpdate }) => {
   const total = phases.reduce((sum, phase) => sum + (effortData[phase] || 0), 0);
-  
+
   return (
     <div className="grid grid-cols-[200px_repeat(5,1fr)_120px] border-b border-gray-100 hover:bg-gray-50">
       <div className="p-4 font-medium bg-gray-50 border-r border-gray-200">
@@ -415,31 +442,32 @@ const EffortRow: React.FC<{
 ```
 
 #### Speed Grammar Parser
+
 ```typescript
 // src/lib/speed-grammar.ts
 export class SpeedGrammarParser {
   private commands: Map<string, CommandHandler> = new Map([
-    ['price', this.handlePriceCommand],
-    ['margin', this.handleMarginCommand],
-    ['reduce', this.handleReduceCommand],
-    ['shift', this.handleShiftCommand],
-    ['overlay', this.handleOverlayCommand]
+    ["price", this.handlePriceCommand],
+    ["margin", this.handleMarginCommand],
+    ["reduce", this.handleReduceCommand],
+    ["shift", this.handleShiftCommand],
+    ["overlay", this.handleOverlayCommand],
   ]);
-  
+
   parse(input: string): Command | null {
     // Handle effort allocation: "8d @SC(FI)"
     const effortMatch = input.match(/^(\d+)([dw])\s+@(\w+)\((\w+)\)(?:\s+@([\d.]+)FTE)?$/);
     if (effortMatch) {
       return {
-        type: 'effort',
+        type: "effort",
         duration: parseInt(effortMatch[1]),
-        unit: effortMatch[2] as 'd' | 'w',
+        unit: effortMatch[2] as "d" | "w",
         role: effortMatch[3],
         stream: effortMatch[4],
-        fte: effortMatch[5] ? parseFloat(effortMatch[5]) : 1.0
+        fte: effortMatch[5] ? parseFloat(effortMatch[5]) : 1.0,
       };
     }
-    
+
     // Handle commands: "/price 650000 lock"
     const commandMatch = input.match(/^\/(\w+)\s+(.+)$/);
     if (commandMatch) {
@@ -449,45 +477,45 @@ export class SpeedGrammarParser {
         return handler.call(this, args);
       }
     }
-    
+
     // Handle templates: "+template:Explore(Finance, Medium)"
     const templateMatch = input.match(/^\+template:(\w+)\(([^)]+)\)$/);
     if (templateMatch) {
       return {
-        type: 'template',
+        type: "template",
         phase: templateMatch[1],
-        parameters: templateMatch[2].split(',').map(p => p.trim())
+        parameters: templateMatch[2].split(",").map((p) => p.trim()),
       };
     }
-    
+
     return null;
   }
-  
+
   private handlePriceCommand(args: string): Command {
     const match = args.match(/^(\d+)\s+(lock|unlock)?$/);
     return {
-      type: 'price',
-      value: parseInt(match?.[1] || '0'),
-      lock: match?.[2] === 'lock'
+      type: "price",
+      value: parseInt(match?.[1] || "0"),
+      lock: match?.[2] === "lock",
     };
   }
-  
+
   private handleMarginCommand(args: string): Command {
     const match = args.match(/^(\d+)\s+(lock|unlock)?$/);
     return {
-      type: 'margin',
-      value: parseInt(match?.[1] || '0'),
-      lock: match?.[2] === 'lock'
+      type: "margin",
+      value: parseInt(match?.[1] || "0"),
+      lock: match?.[2] === "lock",
     };
   }
-  
+
   private handleReduceCommand(args: string): Command {
     const match = args.match(/^(\w+)\s+(\d+)\s+keep:([\w,]+)$/);
     return {
-      type: 'reduce',
-      phase: match?.[1] || '',
-      percentage: parseInt(match?.[2] || '0'),
-      keep: match?.[3]?.split(',') || []
+      type: "reduce",
+      phase: match?.[1] || "",
+      percentage: parseInt(match?.[2] || "0"),
+      keep: match?.[3]?.split(",") || [],
     };
   }
 }
@@ -496,6 +524,7 @@ export class SpeedGrammarParser {
 ### Phase 5: Timeline Visualization (Weeks 9-10)
 
 #### Gantt Chart Component
+
 ```typescript
 // src/components/timeline/gantt-chart.tsx
 import { useMemo, useCallback } from 'react';
@@ -513,11 +542,11 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 }) => {
   const timelineData = useMemo(() => {
     const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     return phases.map(phase => {
       const phaseStartDays = Math.ceil((phase.startDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       const phaseDuration = Math.ceil((phase.endDate.getTime() - phase.startDate.getTime()) / (1000 * 60 * 60 * 24));
-      
+
       return {
         ...phase,
         leftPosition: (phaseStartDays / totalDays) * 100,
@@ -525,18 +554,18 @@ export const GanttChart: React.FC<GanttChartProps> = ({
       };
     });
   }, [phases, startDate, endDate]);
-  
+
   const handlePhaseDrag = useCallback((phaseId: string, newLeftPosition: number) => {
     const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const newStartDays = (newLeftPosition / 100) * totalDays;
     const newStartDate = new Date(startDate.getTime() + newStartDays * 24 * 60 * 60 * 1000);
-    
+
     onPhaseUpdate?.(phaseId, { startDate: newStartDate });
   }, [startDate, endDate, onPhaseUpdate]);
-  
+
   const renderPhase = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => {
     const phase = timelineData[index];
-    
+
     return (
       <div style={style} className="flex items-center px-4 border-b border-gray-100">
         <div className="w-48 font-medium text-sm">
@@ -554,7 +583,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
       </div>
     );
   }, [timelineData, handlePhaseDrag]);
-  
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -564,7 +593,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
           <div className="w-24 text-sm font-medium text-gray-600 text-center">Effort</div>
         </div>
       </div>
-      
+
       <List
         height={400}
         itemCount={timelineData.length}
@@ -608,43 +637,44 @@ const GanttBar: React.FC<{
 ### Phase 6: State Management (Week 11)
 
 #### Zustand Store Architecture
+
 ```typescript
 // src/store/siip-store.ts
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { Chip, Decision, ScenarioPlan, EffortData } from '@/types/siip';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { Chip, Decision, ScenarioPlan, EffortData } from "@/types/siip";
 
 interface SIIPStore {
   // Current state
-  currentScenario: 'A' | 'B' | 'C';
+  currentScenario: "A" | "B" | "C";
   currentStage: number;
-  
+
   // Data
   chips: Chip[];
   decisions: Record<string, Decision>;
-  scenarios: Record<'A' | 'B' | 'C', ScenarioPlan>;
+  scenarios: Record<"A" | "B" | "C", ScenarioPlan>;
   effortData: EffortData;
-  
+
   // Actions
-  setCurrentScenario: (scenario: 'A' | 'B' | 'C') => void;
+  setCurrentScenario: (scenario: "A" | "B" | "C") => void;
   setCurrentStage: (stage: number) => void;
-  
+
   // Chip management
   addChips: (chips: Chip[]) => void;
   updateChip: (chipId: string, updates: Partial<Chip>) => void;
   validateChip: (chipId: string, isValid: boolean) => void;
-  
+
   // Decision management
   setDecision: (type: string, optionId: string) => void;
-  
+
   // Effort management
   updateEffort: (stream: string, phase: string, value: number) => void;
   applySpeedGrammar: (command: string) => void;
-  
+
   // Scenario management
   generateScenarios: () => void;
-  cloneScenario: (from: 'A' | 'B' | 'C', to: 'A' | 'B' | 'C') => void;
-  
+  cloneScenario: (from: "A" | "B" | "C", to: "A" | "B" | "C") => void;
+
   // Calculations
   calculateTotals: () => ProjectTotals;
   validateGuardrails: () => GuardrailResult;
@@ -654,108 +684,111 @@ export const useSIIPStore = create<SIIPStore>()(
   persist(
     (set, get) => ({
       // Initial state
-      currentScenario: 'A',
+      currentScenario: "A",
       currentStage: 0,
       chips: [],
       decisions: {},
       scenarios: {
-        A: createEmptyScenario('Aggressive'),
-        B: createEmptyScenario('Balanced'),
-        C: createEmptyScenario('Conservative')
+        A: createEmptyScenario("Aggressive"),
+        B: createEmptyScenario("Balanced"),
+        C: createEmptyScenario("Conservative"),
       },
       effortData: {},
-      
+
       // Actions
       setCurrentScenario: (scenario) => set({ currentScenario: scenario }),
       setCurrentStage: (stage) => set({ currentStage: stage }),
-      
-      addChips: (newChips) => set(state => ({
-        chips: [...state.chips, ...newChips]
-      })),
-      
-      updateChip: (chipId, updates) => set(state => ({
-        chips: state.chips.map(chip =>
-          chip.id === chipId ? { ...chip, ...updates } : chip
-        )
-      })),
-      
-      validateChip: (chipId, isValid) => set(state => ({
-        chips: state.chips.map(chip =>
-          chip.id === chipId ? { ...chip, validated: isValid } : chip
-        )
-      })),
-      
-      setDecision: (type, optionId) => set(state => ({
-        decisions: {
-          ...state.decisions,
-          [type]: {
-            id: generateId(),
-            type,
-            selected: optionId,
-            timestamp: new Date(),
-            // ... other decision properties
-          }
-        }
-      })),
-      
-      updateEffort: (stream, phase, value) => set(state => ({
-        effortData: {
-          ...state.effortData,
-          [stream]: {
-            ...state.effortData[stream],
-            [phase]: value
-          }
-        }
-      })),
-      
+
+      addChips: (newChips) =>
+        set((state) => ({
+          chips: [...state.chips, ...newChips],
+        })),
+
+      updateChip: (chipId, updates) =>
+        set((state) => ({
+          chips: state.chips.map((chip) => (chip.id === chipId ? { ...chip, ...updates } : chip)),
+        })),
+
+      validateChip: (chipId, isValid) =>
+        set((state) => ({
+          chips: state.chips.map((chip) =>
+            chip.id === chipId ? { ...chip, validated: isValid } : chip
+          ),
+        })),
+
+      setDecision: (type, optionId) =>
+        set((state) => ({
+          decisions: {
+            ...state.decisions,
+            [type]: {
+              id: generateId(),
+              type,
+              selected: optionId,
+              timestamp: new Date(),
+              // ... other decision properties
+            },
+          },
+        })),
+
+      updateEffort: (stream, phase, value) =>
+        set((state) => ({
+          effortData: {
+            ...state.effortData,
+            [stream]: {
+              ...state.effortData[stream],
+              [phase]: value,
+            },
+          },
+        })),
+
       applySpeedGrammar: (command) => {
         const parser = new SpeedGrammarParser();
         const parsed = parser.parse(command);
-        
+
         if (parsed) {
           // Apply the parsed command to the state
           switch (parsed.type) {
-            case 'price':
+            case "price":
               // Handle price locking
               break;
-            case 'margin':
+            case "margin":
               // Handle margin adjustment
               break;
-            case 'effort':
+            case "effort":
               // Handle effort allocation
-              get().updateEffort(parsed.stream, 'realize', parsed.duration);
+              get().updateEffort(parsed.stream, "realize", parsed.duration);
               break;
           }
         }
       },
-      
+
       generateScenarios: () => {
         const { chips, decisions } = get();
         const generator = new ScenarioGenerator();
         const scenarios = generator.generate(chips, decisions);
-        
+
         set({ scenarios });
       },
-      
+
       calculateTotals: () => {
         const { effortData, scenarios, currentScenario } = get();
         const calculator = new ProjectCalculator();
         return calculator.calculate(effortData, scenarios[currentScenario]);
       },
-      
+
       validateGuardrails: () => {
         const { effortData } = get();
         const validator = new GuardrailValidator();
         return validator.validate(effortData);
-      }
+      },
     }),
     {
-      name: 'siip-storage',
+      name: "siip-storage",
       partialize: (state) => ({
         chips: state.chips,
         decisions: state.decisions,
-        effortData: state.effortData
-      })
+        effortData: state.effortData,
+      }),
     }
   )
 );
@@ -764,136 +797,140 @@ export const useSIIPStore = create<SIIPStore>()(
 ### Phase 7: Export & PDF Generation (Week 12)
 
 #### PDF Generation Service
+
 ```typescript
 // src/lib/pdf-generator.ts
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export class ProposalGenerator {
   async generatePDF(scenario: ScenarioPlan, client: ClientProfile): Promise<Blob> {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    
+    const pdf = new jsPDF("p", "mm", "a4");
+
     // Cover page
     await this.addCoverPage(pdf, scenario, client);
-    
+
     // Executive summary
     pdf.addPage();
     await this.addExecutiveSummary(pdf, scenario);
-    
+
     // Solution architecture
     pdf.addPage();
     await this.addSolutionArchitecture(pdf, scenario);
-    
+
     // Timeline
-    pdf.addPage('l'); // Landscape
+    pdf.addPage("l"); // Landscape
     await this.addTimeline(pdf, scenario);
-    
+
     // Investment breakdown
     pdf.addPage();
     await this.addInvestmentBreakdown(pdf, scenario);
-    
+
     // Next steps
     pdf.addPage();
     await this.addNextSteps(pdf, scenario, client);
-    
-    return pdf.output('blob');
+
+    return pdf.output("blob");
   }
-  
+
   private async addCoverPage(pdf: jsPDF, scenario: ScenarioPlan, client: ClientProfile) {
     // Add client logo if provided
     if (client.logo) {
-      pdf.addImage(client.logo, 'PNG', 20, 20, 60, 20);
+      pdf.addImage(client.logo, "PNG", 20, 20, 60, 20);
     }
-    
+
     // Add company logo
-    pdf.addImage('/logo.png', 'PNG', 130, 20, 60, 20);
-    
+    pdf.addImage("/logo.png", "PNG", 130, 20, 60, 20);
+
     // Title
     pdf.setFontSize(28);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('SAP S/4HANA Implementation Proposal', 105, 80, { align: 'center' });
-    
+    pdf.setFont("helvetica", "bold");
+    pdf.text("SAP S/4HANA Implementation Proposal", 105, 80, { align: "center" });
+
     // Client name
     pdf.setFontSize(20);
     pdf.setTextColor(0, 122, 255);
-    pdf.text(client.companyName, 105, 100, { align: 'center' });
-    
+    pdf.text(client.companyName, 105, 100, { align: "center" });
+
     // Details box
     const details = [
-      ['Proposal Date:', new Date().toLocaleDateString()],
-      ['Project Duration:', `${scenario.totals.months} months`],
-      ['Total Investment:', `${scenario.totals.currency} ${scenario.totals.sellPrice.toLocaleString()}`],
-      ['Success Probability:', '94%']
+      ["Proposal Date:", new Date().toLocaleDateString()],
+      ["Project Duration:", `${scenario.totals.months} months`],
+      [
+        "Total Investment:",
+        `${scenario.totals.currency} ${scenario.totals.sellPrice.toLocaleString()}`,
+      ],
+      ["Success Probability:", "94%"],
     ];
-    
+
     let yPos = 120;
     pdf.setFontSize(12);
     pdf.setTextColor(0, 0, 0);
-    
+
     details.forEach(([label, value]) => {
-      pdf.setFont('helvetica', 'bold');
+      pdf.setFont("helvetica", "bold");
       pdf.text(label, 30, yPos);
-      pdf.setFont('helvetica', 'normal');
+      pdf.setFont("helvetica", "normal");
       pdf.text(value, 100, yPos);
       yPos += 10;
     });
   }
-  
+
   private async addTimeline(pdf: jsPDF, scenario: ScenarioPlan) {
     // Create timeline visualization
     const canvas = await this.createTimelineCanvas(scenario);
-    const imgData = canvas.toDataURL('image/png');
-    
-    pdf.addImage(imgData, 'PNG', 20, 50, 257, 150); // Landscape dimensions
-    
+    const imgData = canvas.toDataURL("image/png");
+
+    pdf.addImage(imgData, "PNG", 20, 50, 257, 150); // Landscape dimensions
+
     // Add phase details
     const phases = scenario.phases;
     let yPos = 220;
-    
+
     Object.entries(phases).forEach(([phase, config]) => {
       pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'bold');
+      pdf.setFont("helvetica", "bold");
       pdf.text(phase, 20, yPos);
-      
-      pdf.setFont('helvetica', 'normal');
+
+      pdf.setFont("helvetica", "normal");
       pdf.text(`${config.durationWeeks} weeks`, 60, yPos);
       pdf.text(`${config.effort} PD`, 100, yPos);
-      
+
       yPos += 7;
     });
   }
-  
+
   private async createTimelineCanvas(scenario: ScenarioPlan): Promise<HTMLCanvasElement> {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = 1000;
     canvas.height = 400;
-    
-    const ctx = canvas.getContext('2d')!;
-    
+
+    const ctx = canvas.getContext("2d")!;
+
     // Draw timeline bars
     const phases = Object.entries(scenario.phases);
     const totalWeeks = phases.reduce((sum, [, config]) => sum + (config.durationWeeks || 0), 0);
-    
+
     let currentX = 50;
     const barHeight = 40;
-    const colors = ['#30D158', '#007AFF', '#5856D6', '#FF9F0A', '#30D158'];
-    
+    const colors = ["#30D158", "#007AFF", "#5856D6", "#FF9F0A", "#30D158"];
+
     phases.forEach(([phase, config], index) => {
       const width = ((config.durationWeeks || 0) / totalWeeks) * 800;
-      
+
       // Draw bar
       ctx.fillStyle = colors[index % colors.length];
       ctx.fillRect(currentX, 150, width, barHeight);
-      
+
       // Draw text
-      ctx.fillStyle = 'white';
-      ctx.font = '14px Arial';
-      ctx.textAlign = 'center';
+      ctx.fillStyle = "white";
+      ctx.font = "14px Arial";
+      ctx.textAlign = "center";
       ctx.fillText(phase, currentX + width / 2, 175);
-      
+
       currentX += width;
     });
-    
+
     return canvas;
   }
 }
@@ -902,47 +939,49 @@ export class ProposalGenerator {
 ## Testing Strategy
 
 ### Unit Tests
+
 ```typescript
 // src/__tests__/chip-extractor.test.ts
-import { ChipExtractor } from '@/lib/chip-extractor';
+import { ChipExtractor } from "@/lib/chip-extractor";
 
-describe('ChipExtractor', () => {
+describe("ChipExtractor", () => {
   const extractor = new ChipExtractor();
-  
-  it('extracts country chips correctly', () => {
-    const text = 'We are a Malaysian manufacturing company';
+
+  it("extracts country chips correctly", () => {
+    const text = "We are a Malaysian manufacturing company";
     const chips = extractor.extract(text);
-    
+
     expect(chips).toHaveLength(2);
     expect(chips[0]).toMatchObject({
-      type: 'country',
-      value: 'Malaysian',
-      confidence: expect.any(Number)
+      type: "country",
+      value: "Malaysian",
+      confidence: expect.any(Number),
     });
     expect(chips[1]).toMatchObject({
-      type: 'industry',
-      value: 'manufacturing'
+      type: "industry",
+      value: "manufacturing",
     });
   });
-  
-  it('calculates confidence scores', () => {
-    const text = 'Malaysia Malaysia Singapore';
+
+  it("calculates confidence scores", () => {
+    const text = "Malaysia Malaysia Singapore";
     const chips = extractor.extract(text);
-    
-    const malaysiaChip = chips.find(c => c.value === 'Malaysia');
+
+    const malaysiaChip = chips.find((c) => c.value === "Malaysia");
     expect(malaysiaChip?.confidence).toBeGreaterThan(0.8);
   });
-  
-  it('deduplicates similar chips', () => {
-    const text = 'Malaysia malaysian Malaysian';
+
+  it("deduplicates similar chips", () => {
+    const text = "Malaysia malaysian Malaysian";
     const chips = extractor.extract(text);
-    
-    expect(chips.filter(c => c.type === 'country')).toHaveLength(1);
+
+    expect(chips.filter((c) => c.type === "country")).toHaveLength(1);
   });
 });
 ```
 
 ### Integration Tests
+
 ```typescript
 // src/__tests__/integration/planning-flow.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -951,27 +990,27 @@ import { PlanningCanvas } from '@/components/planning/planning-canvas';
 describe('Planning Flow Integration', () => {
   it('updates effort allocation and recalculates totals', async () => {
     render(<PlanningCanvas />);
-    
+
     // Find Finance/Realize input
     const input = screen.getByDisplayValue('45');
-    
+
     // Update value
     fireEvent.change(input, { target: { value: '60' } });
-    
+
     // Verify total updates
     await waitFor(() => {
       expect(screen.getByText('122')).toBeInTheDocument(); // 107 + 15
     });
   });
-  
+
   it('processes speed grammar commands', async () => {
     render(<PlanningCanvas />);
-    
+
     const commandInput = screen.getByPlaceholderText('/price 650000 lock');
-    
+
     fireEvent.change(commandInput, { target: { value: '8d @SC(FI)' } });
     fireEvent.keyDown(commandInput, { key: 'Enter' });
-    
+
     await waitFor(() => {
       // Verify effort allocation updated
       expect(screen.getByDisplayValue('8')).toBeInTheDocument();
@@ -981,32 +1020,33 @@ describe('Planning Flow Integration', () => {
 ```
 
 ### E2E Tests
+
 ```typescript
 // cypress/e2e/complete-flow.cy.ts
-describe('Complete SIIP Flow', () => {
-  it('processes RFP to final proposal', () => {
-    cy.visit('/');
-    
+describe("Complete SIIP Flow", () => {
+  it("processes RFP to final proposal", () => {
+    cy.visit("/");
+
     // Stage 1: Paste RFP
     cy.get('[data-testid="rfp-input"]').type(
-      'Malaysian manufacturing company, 850 employees, need Finance and HR modules'
+      "Malaysian manufacturing company, 850 employees, need Finance and HR modules"
     );
-    
+
     // Verify chips extracted
-    cy.get('[data-testid="chip"]').should('have.length.at.least', 3);
-    
+    cy.get('[data-testid="chip"]').should("have.length.at.least", 3);
+
     // Stage 2: Make decisions
     cy.get('[data-testid="decision-card"]').first().click();
     cy.get('[data-testid="decision-option"]').first().click();
-    
+
     // Stage 3: Configure effort
-    cy.get('[data-testid="effort-input"]').first().clear().type('50');
-    
+    cy.get('[data-testid="effort-input"]').first().clear().type("50");
+
     // Stage 4: Generate proposal
     cy.get('[data-testid="generate-proposal"]').click();
-    
+
     // Verify PDF generated
-    cy.get('[data-testid="download-pdf"]').should('be.visible');
+    cy.get('[data-testid="download-pdf"]').should("be.visible");
   });
 });
 ```
@@ -1014,6 +1054,7 @@ describe('Complete SIIP Flow', () => {
 ## Performance Optimization
 
 ### Code Splitting
+
 ```typescript
 // src/app/layout.tsx
 import dynamic from 'next/dynamic';
@@ -1031,13 +1072,14 @@ const GanttChart = dynamic(() => import('@/components/timeline/gantt-chart'), {
 ```
 
 ### Virtual Scrolling
+
 ```typescript
 // For large datasets (50+ SAP packages)
 import { FixedSizeList as List } from 'react-window';
 
 export const PackageList: React.FC = () => {
   const packages = useSAPPackages(); // 50+ packages
-  
+
   return (
     <List
       height={400}
@@ -1058,21 +1100,22 @@ export const PackageList: React.FC = () => {
 ## Security Implementation
 
 ### Input Validation
+
 ```typescript
 // src/lib/validation.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const chipSchema = z.object({
-  type: z.enum(['country', 'employees', 'revenue', /* ... */]),
+  type: z.enum(["country", "employees", "revenue" /* ... */]),
   value: z.string().min(1).max(100),
   confidence: z.number().min(0).max(1),
-  source: z.enum(['paste', 'upload', 'voice', 'manual'])
+  source: z.enum(["paste", "upload", "voice", "manual"]),
 });
 
 export const decisionSchema = z.object({
-  type: z.enum(['module_combo', 'banking_path', /* ... */]),
+  type: z.enum(["module_combo", "banking_path" /* ... */]),
   selected: z.string().min(1),
-  rationale: z.string().max(500)
+  rationale: z.string().max(500),
 });
 
 export function validateChipInput(input: unknown): Chip {
@@ -1081,21 +1124,22 @@ export function validateChipInput(input: unknown): Chip {
 ```
 
 ### XSS Prevention
+
 ```typescript
 // src/lib/sanitize.ts
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 
 export function sanitizeHTML(html: string): string {
   return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong'],
-    ALLOWED_ATTR: []
+    ALLOWED_TAGS: ["b", "i", "em", "strong"],
+    ALLOWED_ATTR: [],
   });
 }
 
 export function sanitizeText(text: string): string {
   return text
-    .replace(/[<>]/g, '') // Remove HTML brackets
-    .replace(/javascript:/gi, '') // Remove JS protocols
+    .replace(/[<>]/g, "") // Remove HTML brackets
+    .replace(/javascript:/gi, "") // Remove JS protocols
     .slice(0, 1000); // Limit length
 }
 ```
@@ -1103,6 +1147,7 @@ export function sanitizeText(text: string): string {
 ## Deployment Configuration
 
 ### Vercel Deployment
+
 ```json
 // vercel.json
 {
@@ -1128,6 +1173,7 @@ export function sanitizeText(text: string): string {
 ```
 
 ### Environment Configuration
+
 ```bash
 # .env.local
 DATABASE_URL="postgresql://user:pass@host:5432/siip"
@@ -1144,6 +1190,7 @@ ENABLE_COLLABORATION=false
 ## Development Team Handoff
 
 ### Repository Structure
+
 ```
 siip/
 ├── src/
@@ -1168,6 +1215,7 @@ siip/
 ```
 
 ### Getting Started
+
 ```bash
 # 1. Clone and setup
 git clone <repository-url>
@@ -1187,6 +1235,7 @@ pnpm test:e2e
 ```
 
 ### Development Workflow
+
 1. **Feature Development**: Create feature branch from `main`
 2. **Component First**: Build components in isolation with Storybook
 3. **State Integration**: Connect components to Zustand store
@@ -1196,6 +1245,7 @@ pnpm test:e2e
 7. **Deployment**: Merge to main triggers Vercel deployment
 
 ### Critical Success Factors
+
 1. **Data Fidelity**: Preserve all existing SAP package definitions and calculations
 2. **Performance**: Maintain sub-200ms response times for chip extraction
 3. **Accessibility**: WCAG 2.1 AA compliance for all interactive elements
@@ -1203,15 +1253,15 @@ pnpm test:e2e
 5. **Type Safety**: 100% TypeScript coverage with strict mode
 
 ### Next Phase: Intelligence Layer
+
 After core platform completion, implement:
+
 - ML-based effort prediction
 - Pattern recognition for similar projects
 - Automated risk assessment
 - Portfolio-level insights and benchmarking
 
 This documentation provides the complete roadmap for transforming the SIIP mockup into a production-ready platform that scales SAP implementation expertise.
-
-
 
 Siip Complete Mockup
 
@@ -2273,9 +2323,8 @@ Siip Complete Mockup
                             placeholder="Example:
 
 We are a Malaysian manufacturing company with 850 employees looking to implement SAP S/4HANA. Our annual revenue is MYR 120 million. We need Finance and Procurement modules, HR for payroll and time tracking, integration with banking via Host-to-Host, and Salesforce integration. Project timeline: Q1 2025 to Q4 2025. We need MyInvois compliance, have 12 custom forms and 8 reports to rebuild, and use Microsoft Azure AD for SSO."
-                            oninput="extractChips(this.value)"
-                        ></textarea>
-                        
+oninput="extractChips(this.value)" ></textarea>
+
                         <div class="chips-container">
                             <div class="chips-header">
                                 <div class="extraction-status"></div>
@@ -2287,14 +2336,14 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Stage 2: Decision Cards -->
                 <div class="stage decision-cards">
                     <div class="stage-header">
                         <h1 class="stage-title">Configure Solution</h1>
                         <p class="stage-subtitle">Make key decisions that shape your implementation approach and timeline.</p>
                     </div>
-                    
+
                     <div class="decision-grid">
                         <div class="decision-card" onclick="selectDecision(this, 'module_combo')">
                             <div class="decision-header">
@@ -2316,7 +2365,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="decision-card" onclick="selectDecision(this, 'banking_path')">
                             <div class="decision-header">
                                 <h3 class="decision-title">Banking Integration</h3>
@@ -2337,7 +2386,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="decision-card" onclick="selectDecision(this, 'integration_posture')">
                             <div class="decision-header">
                                 <h3 class="decision-title">Integration Platform</h3>
@@ -2354,7 +2403,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="decision-card" onclick="selectDecision(this, 'sso_mode')">
                             <div class="decision-header">
                                 <h3 class="decision-title">SSO Implementation</h3>
@@ -2371,7 +2420,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="decision-card" onclick="selectDecision(this, 'fricew_target')">
                             <div class="decision-header">
                                 <h3 class="decision-title">FRICEW Strategy</h3>
@@ -2392,7 +2441,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="decision-card" onclick="selectDecision(this, 'rate_region')">
                             <div class="decision-header">
                                 <h3 class="decision-title">Rate Card & FX</h3>
@@ -2415,14 +2464,14 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Stage 3: Planning Canvas -->
                 <div class="stage planning-canvas">
                     <div class="stage-header">
                         <h1 class="stage-title">Planning Canvas</h1>
                         <p class="stage-subtitle">Configure effort allocation across SAP Activate phases and workstreams.</p>
                     </div>
-                    
+
                     <div class="canvas-header">
                         <div class="canvas-controls">
                             <div class="anchor-toggle">
@@ -2432,7 +2481,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="planning-grid">
                         <div class="grid-header">
                             <div>Stream</div>
@@ -2443,7 +2492,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                             <div>Run</div>
                             <div>Total PD</div>
                         </div>
-                        
+
                         <div class="grid-row">
                             <div class="stream-label">Finance</div>
                             <div class="effort-cell"><input type="number" class="effort-input" value="12" onchange="updateEffort('finance', 'prepare', this.value)"></div>
@@ -2453,7 +2502,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                             <div class="effort-cell"><input type="number" class="effort-input" value="8" onchange="updateEffort('finance', 'run', this.value)"></div>
                             <div class="stream-total">107</div>
                         </div>
-                        
+
                         <div class="grid-row">
                             <div class="stream-label">Procurement</div>
                             <div class="effort-cell"><input type="number" class="effort-input" value="8" onchange="updateEffort('procurement', 'prepare', this.value)"></div>
@@ -2463,7 +2512,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                             <div class="effort-cell"><input type="number" class="effort-input" value="6" onchange="updateEffort('procurement', 'run', this.value)"></div>
                             <div class="stream-total">76</div>
                         </div>
-                        
+
                         <div class="grid-row">
                             <div class="stream-label">Integration</div>
                             <div class="effort-cell"><input type="number" class="effort-input" value="6" onchange="updateEffort('integration', 'prepare', this.value)"></div>
@@ -2473,7 +2522,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                             <div class="effort-cell"><input type="number" class="effort-input" value="4" onchange="updateEffort('integration', 'run', this.value)"></div>
                             <div class="stream-total">65</div>
                         </div>
-                        
+
                         <div class="grid-row">
                             <div class="stream-label">Data Migration</div>
                             <div class="effort-cell"><input type="number" class="effort-input" value="4" onchange="updateEffort('data', 'prepare', this.value)"></div>
@@ -2483,7 +2532,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                             <div class="effort-cell"><input type="number" class="effort-input" value="2" onchange="updateEffort('data', 'run', this.value)"></div>
                             <div class="stream-total">48</div>
                         </div>
-                        
+
                         <div class="grid-row">
                             <div class="stream-label">Testing</div>
                             <div class="effort-cell"><input type="number" class="effort-input" value="2" onchange="updateEffort('testing', 'prepare', this.value)"></div>
@@ -2493,7 +2542,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                             <div class="effort-cell"><input type="number" class="effort-input" value="3" onchange="updateEffort('testing', 'run', this.value)"></div>
                             <div class="stream-total">64</div>
                         </div>
-                        
+
                         <div class="grid-row">
                             <div class="stream-label">Change Mgmt</div>
                             <div class="effort-cell"><input type="number" class="effort-input" value="8" onchange="updateEffort('ocm', 'prepare', this.value)"></div>
@@ -2503,7 +2552,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                             <div class="effort-cell"><input type="number" class="effort-input" value="12" onchange="updateEffort('ocm', 'run', this.value)"></div>
                             <div class="stream-total">72</div>
                         </div>
-                        
+
                         <div class="grid-row">
                             <div class="stream-label">Project Mgmt</div>
                             <div class="effort-cell"><input type="number" class="effort-input" value="15" onchange="updateEffort('pmo', 'prepare', this.value)"></div>
@@ -2514,7 +2563,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                             <div class="stream-total">90</div>
                         </div>
                     </div>
-                    
+
                     <div class="mini-timeline">
                         <h3 class="timeline-header">Project Timeline (14 months)</h3>
                         <div class="timeline-bars">
@@ -2526,21 +2575,21 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Stage 4: Scenario Comparison -->
                 <div class="stage scenario-comparison">
                     <div class="stage-header">
                         <h1 class="stage-title">Scenario Comparison</h1>
                         <p class="stage-subtitle">Compare different implementation approaches and select the optimal scenario.</p>
                     </div>
-                    
+
                     <div class="comparison-header">
                         <div>
                             <h2>Implementation Options</h2>
                             <p>Generated scenarios based on your requirements and decisions</p>
                         </div>
                     </div>
-                    
+
                     <div class="scenario-cards">
                         <div class="scenario-card active">
                             <h3 class="scenario-name">Scenario A: Aggressive</h3>
@@ -2563,7 +2612,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="scenario-card">
                             <h3 class="scenario-name">Scenario B: Balanced</h3>
                             <div class="scenario-metrics">
@@ -2585,7 +2634,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="scenario-card">
                             <h3 class="scenario-name">Scenario C: Conservative</h3>
                             <div class="scenario-metrics">
@@ -2610,7 +2659,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                     </div>
                 </div>
             </div>
-            
+
             <!-- Right Sidebar - Resources & Export -->
             <aside class="right-sidebar">
                 <div class="sidebar-section">
@@ -2646,7 +2695,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="sidebar-section">
                     <h3 class="section-title">Exchange Rates</h3>
                     <div class="fx-rates">
@@ -2664,7 +2713,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="sidebar-section">
                     <h3 class="section-title">Export Options</h3>
                     <div class="export-actions">
@@ -2684,7 +2733,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                 </div>
             </aside>
         </main>
-        
+
         <!-- Footer - Project Totals -->
         <footer class="footer">
             <div class="totals-section">
@@ -2713,14 +2762,14 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                     <div class="total-label">Margin</div>
                 </div>
             </div>
-            
+
             <div class="action-buttons">
                 <button class="secondary-button" onclick="saveScenario()">Save Scenario</button>
                 <button class="primary-button" onclick="generateProposal()">Generate Proposal</button>
             </div>
         </footer>
     </div>
-    
+
     <script>
         // SIIP Application State
         let currentStage = 0;
@@ -2733,7 +2782,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
             B: { name: 'Balanced', pd: 645, months: 14, cost: 2100000, risk: 'Medium' },
             C: { name: 'Conservative', pd: 758, months: 16, cost: 2400000, risk: 'Low' }
         };
-        
+
         // Chip Types and Extraction Patterns
         const chipTypes = {
             country: { pattern: /(Malaysia|Singapore|Vietnam|Thailand|Indonesia)/gi, confidence: 0.9 },
@@ -2747,7 +2796,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
             banking: { pattern: /(Host-to-Host|banking|bank)/gi, confidence: 0.80 },
             sso: { pattern: /(SSO|single sign|Azure AD|ADFS)/gi, confidence: 0.88 }
         };
-        
+
         // Navigation Functions
         function showStage(index) {
             // Update navigation
@@ -2755,34 +2804,34 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                 item.classList.remove('active');
                 if (i === index) item.classList.add('active');
             });
-            
+
             // Update content
             document.querySelectorAll('.stage').forEach(stage => stage.classList.remove('active'));
             document.querySelectorAll('.stage')[index]?.classList.add('active');
-            
+
             currentStage = index;
         }
-        
+
         function switchScenario(scenario) {
             document.querySelectorAll('.scenario-tab').forEach(tab => tab.classList.remove('active'));
             event.target.classList.add('active');
             currentScenario = scenario;
-            
+
             // Update totals in footer
             const data = scenarioData[scenario];
             updateFooterTotals(data);
         }
-        
+
         // Chip Extraction
         function extractChips(text) {
             chips = [];
             const chipsDisplay = document.getElementById('chips-display');
-            
+
             if (!text.trim()) {
                 chipsDisplay.innerHTML = '';
                 return;
             }
-            
+
             // Extract chips using patterns
             Object.entries(chipTypes).forEach(([type, config]) => {
                 const matches = text.match(config.pattern);
@@ -2797,16 +2846,16 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                     });
                 }
             });
-            
+
             // Render chips
             renderChips();
-            
+
             // Auto-advance if enough chips
             if (chips.length >= 5) {
                 setTimeout(() => showStage(1), 2000);
             }
         }
-        
+
         function renderChips() {
             const chipsDisplay = document.getElementById('chips-display');
             chipsDisplay.innerHTML = chips.map(chip => `
@@ -2817,34 +2866,34 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                 </div>
             `).join('');
         }
-        
+
         // Decision Management
         function selectDecision(card, decisionType) {
             document.querySelectorAll('.decision-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
         }
-        
+
         function selectOption(event, optionId) {
             event.stopPropagation();
             const card = event.target.closest('.decision-card');
             card.querySelectorAll('.decision-option').forEach(opt => opt.classList.remove('selected'));
             event.target.classList.add('selected');
         }
-        
+
         // Planning Canvas
         function updateEffort(stream, phase, value) {
             if (!effortData[stream]) effortData[stream] = {};
             effortData[stream][phase] = parseInt(value);
-            
+
             // Recalculate totals
             calculateTotals();
         }
-        
+
         function setAnchor(mode) {
             document.querySelectorAll('.anchor-option').forEach(opt => opt.classList.remove('active'));
             event.target.classList.add('active');
         }
-        
+
         function calculateTotals() {
             // Recalculate stream totals and update display
             document.querySelectorAll('.grid-row').forEach((row, index) => {
@@ -2852,14 +2901,14 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                 const total = Array.from(inputs).reduce((sum, input) => sum + parseInt(input.value || 0), 0);
                 row.querySelector('.stream-total').textContent = total;
             });
-            
+
             // Update footer totals
             const totalPD = Array.from(document.querySelectorAll('.stream-total'))
                 .reduce((sum, el) => sum + parseInt(el.textContent || 0), 0);
-            
+
             updateFooterTotals({ pd: totalPD, cost: totalPD * 3500 });
         }
-        
+
         // Speed Grammar Processing
         function handleSpeedGrammar(event) {
             if (event.key === 'Enter') {
@@ -2868,16 +2917,16 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                 event.target.value = '';
             }
         }
-        
+
         function processSpeedGrammar(command) {
             console.log('Processing command:', command);
-            
+
             // Examples of speed grammar patterns:
             // 8d @SC(FI) - 8 days Senior Consultant Finance
             // /price 650000 lock - Lock price at 650K
             // /margin 22 lock - Lock margin at 22%
             // +overlay:MY eInvoice - Add Malaysia e-invoice overlay
-            
+
             if (command.startsWith('/price')) {
                 const price = command.match(/(\d+)/)?.[1];
                 if (price) {
@@ -2890,33 +2939,33 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                 }
             }
         }
-        
+
         // Export Functions
         function exportToPDF() {
             console.log('Generating PDF proposal...');
             // Integration with PDF generation
         }
-        
+
         function exportToCSV() {
             console.log('Exporting effort data to CSV...');
             // CSV export functionality
         }
-        
+
         function generateShareableLink() {
             const url = `${window.location.origin}/?scenario=${currentScenario}&data=${btoa(JSON.stringify(effortData))}`;
             navigator.clipboard.writeText(url);
             alert('Shareable link copied to clipboard!');
         }
-        
+
         function exportAssumptions() {
             console.log('Generating assumptions document...');
         }
-        
+
         // Present Mode
         function togglePresentMode() {
             document.body.classList.toggle('present-mode');
         }
-        
+
         // Utility Functions
         function updateFooterTotals(data) {
             if (data.pd) {
@@ -2926,7 +2975,7 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                 document.querySelectorAll('.total-value')[1].textContent = `MYR ${data.cost.toLocaleString()}`;
             }
         }
-        
+
         function saveScenario() {
             console.log('Saving scenario data...');
             localStorage.setItem('siip-scenario', JSON.stringify({
@@ -2936,28 +2985,29 @@ We are a Malaysian manufacturing company with 850 employees looking to implement
                 effort: effortData
             }));
         }
-        
+
         function generateProposal() {
             console.log('Generating final proposal...');
             showStage(3);
         }
-        
+
         // Initialize Application
         document.addEventListener('DOMContentLoaded', () => {
             // Load sample data for demonstration
             setTimeout(() => {
                 const sampleText = `We are a Malaysian manufacturing company with 850 employees looking to implement SAP S/4HANA. Our annual revenue is MYR 120 million. We need Finance and Procurement modules, HR for payroll and time tracking, integration with banking via Host-to-Host, and Salesforce integration. Project timeline: Q1 2025 to Q4 2025. We need MyInvois compliance, have 12 custom forms and 8 reports to rebuild, and use Microsoft Azure AD for SSO.`;
-                
+
                 const textInput = document.querySelector('.text-input');
                 if (textInput && !textInput.value) {
                     textInput.value = sampleText;
                     extractChips(sampleText);
                 }
             }, 3000);
-            
+
             // Initialize calculations
             calculateTotals();
         });
     </script>
+
 </body>
 </html>

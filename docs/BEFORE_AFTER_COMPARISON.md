@@ -15,6 +15,7 @@
 ### CAPTURE MODE
 
 #### Before ❌
+
 ```
 ┌─────────────────────────────────────┐
 │ [Capture] [Decide] [Plan] [Present]│  ← Generic tabs
@@ -27,12 +28,14 @@
 ```
 
 **Problems**:
+
 - No clear primary action
 - Blank canvas = confusion
 - Sidebars always visible (clutter)
 - No empty state guidance
 
 #### After ✅
+
 ```
 ┌─────────────────────────────────────────────┐
 │ 📄 EXTRACT REQUIREMENTS                     │  ← Hero banner
@@ -49,6 +52,7 @@
 ```
 
 **Improvements**:
+
 - ✅ Single primary action (drop zone)
 - ✅ Clear guidance ("Drop your RFP here")
 - ✅ Sample button for instant value
@@ -61,6 +65,7 @@
 ### DECIDE MODE
 
 #### Before ❌
+
 ```
 ┌─────────────────────────────────────┐
 │ Decision Pills (tiny, hard to tap) │
@@ -71,12 +76,14 @@
 ```
 
 **Problems**:
+
 - Pills too small
 - Impact preview hidden
 - No visual comparison
 - Confusing interaction model
 
 #### After ✅
+
 ```
 ┌─────────────────────────────────────────────┐
 │ ✓ MAKE KEY DECISIONS                        │
@@ -97,6 +104,7 @@
 ```
 
 **Improvements**:
+
 - ✅ Large, tappable cards
 - ✅ Instant impact preview (hover)
 - ✅ Visual delta indicators
@@ -108,6 +116,7 @@
 ### PLAN MODE
 
 #### Before ❌
+
 ```
 ┌─────────────────────────────────────┐
 │ Chips  │    Grid + Timeline    │Insp│  ← Cluttered
@@ -120,12 +129,14 @@
 ```
 
 **Problems**:
+
 - Grid too complex
 - Sidebars clutter view
 - Timeline tiny and hard to read
 - No guidance on what to edit
 
 #### After ✅
+
 ```
 ┌─────────────────────────────────────────────┐
 │ 📊 PLAN TIMELINE    [Week|Month] [Present] │  ← Toolbar
@@ -151,6 +162,7 @@
 ```
 
 **Improvements**:
+
 - ✅ Timeline = hero element (100% width)
 - ✅ Inspector slides in when needed
 - ✅ Clear visual hierarchy
@@ -163,6 +175,7 @@
 ### PRESENT MODE
 
 #### Before ❌
+
 ```
 ┌─────────────────────────────────────┐
 │ Edit controls still visible! 😱     │  ← NOT client-safe
@@ -176,12 +189,14 @@
 ```
 
 **Problems**:
+
 - Edit controls visible (embarrassing)
 - Costs showing (confidential)
 - Sidebars visible (unprofessional)
 - Not full-screen
 
 #### After ✅
+
 ```
 ┌─────────────────────────────────────────────┐
 │ [X]                              [1/5]      │  ← Minimal chrome
@@ -199,6 +214,7 @@
 ```
 
 **Improvements**:
+
 - ✅ Full-screen takeover
 - ✅ ZERO edit controls
 - ✅ Costs completely hidden
@@ -211,20 +227,21 @@
 
 ## Metrics Comparison
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Time to First Value** | ~30 seconds | <3 seconds | **90% faster** |
-| **Clicks to Generate Plan** | 6+ clicks | 2 clicks | **67% fewer** |
-| **Empty State Confusion** | High (blank screens) | Zero (guided) | **100% better** |
-| **Present Mode Safety** | Unsafe (costs visible) | Safe (hidden) | **Critical fix** |
-| **Animation Smoothness** | None | 60fps | **Infinite better** |
-| **User Delight Score** | 2/10 | 9/10 | **350% better** |
+| Metric                      | Before                 | After         | Improvement         |
+| --------------------------- | ---------------------- | ------------- | ------------------- |
+| **Time to First Value**     | ~30 seconds            | <3 seconds    | **90% faster**      |
+| **Clicks to Generate Plan** | 6+ clicks              | 2 clicks      | **67% fewer**       |
+| **Empty State Confusion**   | High (blank screens)   | Zero (guided) | **100% better**     |
+| **Present Mode Safety**     | Unsafe (costs visible) | Safe (hidden) | **Critical fix**    |
+| **Animation Smoothness**    | None                   | 60fps         | **Infinite better** |
+| **User Delight Score**      | 2/10                   | 9/10          | **350% better**     |
 
 ---
 
 ## User Journey Comparison
 
 ### Before Journey ❌
+
 ```
 1. Land on /project → See 3 panels → Confused (5s)
 2. Click "Capture" tab → Blank canvas → Confused (10s)
@@ -237,6 +254,7 @@ Total time: 40+ seconds of confusion and embarrassment
 ```
 
 ### After Journey ✅
+
 ```
 1. Land on /project → Hero banner → Understand immediately (<1s)
 2. See drop zone → Drop RFP or click sample → Chips fly in (<5s)
@@ -253,6 +271,7 @@ Total time: <20 seconds of delight and professionalism
 ## Code Comparison
 
 ### Before (Old Architecture)
+
 ```typescript
 // One layout for everything
 <div className="grid grid-cols-12">
@@ -263,12 +282,14 @@ Total time: <20 seconds of delight and professionalism
 ```
 
 **Problems**:
+
 - One-size-fits-all layout
 - No mode-specific optimization
 - Hard to maintain
 - Poor UX
 
 ### After (New Architecture)
+
 ```typescript
 // Mode-specific layouts
 if (mode === 'present') {
@@ -286,6 +307,7 @@ return (
 ```
 
 **Improvements**:
+
 - ✅ Mode-specific layouts
 - ✅ Easy to maintain
 - ✅ Better UX
@@ -296,6 +318,7 @@ return (
 ## Visual Design Comparison
 
 ### Before
+
 - Gray everywhere (boring)
 - No animations (static)
 - Tiny buttons (hard to tap)
@@ -303,6 +326,7 @@ return (
 - Generic (looks like admin panel)
 
 ### After
+
 - ✅ Mode-specific colors (blue/purple/green/dark)
 - ✅ Smooth animations (60fps)
 - ✅ Large interactive areas (accessible)
@@ -314,18 +338,21 @@ return (
 ## Business Impact
 
 ### For Users
+
 - **Faster**: 90% reduction in time to value
 - **Clearer**: No confusion, obvious next steps
 - **Confident**: Can present to clients without embarrassment
 - **Delighted**: "Wow" moments in first 30 seconds
 
 ### For Business
+
 - **Higher conversion**: More users complete workflow
 - **Better demos**: Present mode impresses clients
 - **Reduced support**: Less confusion = fewer tickets
 - **Competitive advantage**: Best-in-class UX
 
 ### For Developers
+
 - **Easier to maintain**: Mode-specific components
 - **Testable**: Clear component boundaries
 - **Scalable**: Add new modes easily
@@ -338,9 +365,11 @@ return (
 **Question**: If Steve Jobs used this for 30 seconds, what would he say?
 
 ### Before ❌
+
 > "What is this? Why are there three panels? Why do I have to click 'Generate'? Why does 'Present' mode show edit buttons? This is amateur hour. Start over."
 
 ### After ✅
+
 > "Now THIS is how you build software. The drop zone is obvious. The decisions are clear. The timeline is beautiful. And Present mode? I could show this to a board of directors. Ship it."
 
 ---
@@ -348,16 +377,19 @@ return (
 ## Success Criteria
 
 ### Week 1 (Internal)
+
 - [ ] All team members prefer v2
 - [ ] Zero major bugs
 - [ ] Performance metrics hit targets
 
 ### Week 2 (Beta)
+
 - [ ] 80%+ of beta users prefer v2
 - [ ] Time to first chip <10s
 - [ ] Capture→Decide transition >80%
 
 ### Week 4 (Full Launch)
+
 - [ ] NPS +20 points
 - [ ] Present mode usage >50%
 - [ ] Support tickets -30%
@@ -367,14 +399,14 @@ return (
 
 ## Final Verdict
 
-| Aspect | Before | After | Grade |
-|--------|--------|-------|-------|
-| **Visual Design** | 3/10 | 9/10 | **A** |
-| **Usability** | 2/10 | 9/10 | **A** |
-| **Delight** | 1/10 | 9/10 | **A+** |
-| **Performance** | 5/10 | 9/10 | **A** |
-| **Professionalism** | 4/10 | 10/10 | **A+** |
-| **Client-Safe** | 0/10 | 10/10 | **A+** |
+| Aspect              | Before | After | Grade  |
+| ------------------- | ------ | ----- | ------ |
+| **Visual Design**   | 3/10   | 9/10  | **A**  |
+| **Usability**       | 2/10   | 9/10  | **A**  |
+| **Delight**         | 1/10   | 9/10  | **A+** |
+| **Performance**     | 5/10   | 9/10  | **A**  |
+| **Professionalism** | 4/10   | 10/10 | **A+** |
+| **Client-Safe**     | 0/10   | 10/10 | **A+** |
 
 **Overall**: **From D- to A+**
 
@@ -383,12 +415,14 @@ return (
 ## Key Takeaways
 
 ### Design Principles Applied
+
 1. **Focus** - One primary action per screen
 2. **Simplicity** - Remove everything unnecessary
 3. **Delight** - Smooth animations, beautiful states
 4. **Integration** - Everything works together seamlessly
 
 ### What Made the Difference
+
 - Mode-specific layouts (not one-size-fits-all)
 - Beautiful empty states (not blank screens)
 - Progressive disclosure (not everything at once)
@@ -396,6 +430,7 @@ return (
 - Smooth animations (60fps, not static)
 
 ### Lessons Learned
+
 - Users need guidance, not options
 - Empty states are opportunities, not failures
 - Animations communicate, not just decorate
@@ -407,6 +442,7 @@ return (
 ## Conclusion
 
 This isn't just a UI update - it's a **complete UX transformation** that:
+
 - Puts users first (not engineers)
 - Makes every interaction delightful
 - Enables confident client presentations

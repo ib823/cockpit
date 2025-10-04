@@ -19,23 +19,25 @@ pnpm dev
 
 ## 🎯 Mode Cheat Sheet
 
-| Mode | Purpose | Primary Action | Keyboard | Next Step |
-|------|---------|----------------|----------|-----------|
-| **Capture** | Extract requirements | Drop RFP / Load Sample | None | → Decide |
-| **Decide** | Make decisions | Select 5 options | Tab/Enter | → Plan |
-| **Plan** | Adjust timeline | Click phases | Arrows/ESC | → Present |
-| **Present** | Show clients | Navigate slides | Arrows/ESC | Exit |
+| Mode        | Purpose              | Primary Action         | Keyboard   | Next Step |
+| ----------- | -------------------- | ---------------------- | ---------- | --------- |
+| **Capture** | Extract requirements | Drop RFP / Load Sample | None       | → Decide  |
+| **Decide**  | Make decisions       | Select 5 options       | Tab/Enter  | → Plan    |
+| **Plan**    | Adjust timeline      | Click phases           | Arrows/ESC | → Present |
+| **Present** | Show clients         | Navigate slides        | Arrows/ESC | Exit      |
 
 ---
 
 ## ⌨️ Keyboard Shortcuts
 
 ### Global
+
 - `Tab` - Navigate focusable elements
 - `Enter` - Activate button/selection
 - `ESC` - Close modal/exit present mode
 
 ### Present Mode Only
+
 - `←` - Previous slide
 - `→` - Next slide
 - `Click dots` - Jump to slide
@@ -117,29 +119,34 @@ Gray:     #6b7280
 ## 🐛 Common Issues & Fixes
 
 ### "Cannot find module 'framer-motion'"
+
 ```bash
 pnpm add framer-motion lucide-react clsx tailwind-merge
 ```
 
 ### "Type error: Phase is not defined"
+
 ```typescript
 // Check src/stores/timeline-store.ts exports Phase type
 export type Phase = { ... };
 ```
 
 ### "Animations feel slow"
+
 ```typescript
 // In components, reduce duration:
 transition={{ duration: 0.2 }} // was 0.3
 ```
 
 ### "Empty state not showing"
+
 ```typescript
 // Check if condition in mode component:
 if (chips.length === 0) return <EmptyState ... />
 ```
 
 ### "Store hooks not found"
+
 ```typescript
 // Verify stores exist and export hooks
 // src/stores/project-store.ts → export { useProjectStore }
@@ -151,13 +158,13 @@ if (chips.length === 0) return <EmptyState ... />
 
 ## 📊 Key Metrics
 
-| Metric | Target | Measure |
-|--------|--------|---------|
-| Time to First Chip | <10s | Analytics |
-| FPS (animations) | 60fps | Chrome DevTools |
-| Lighthouse Score | >90 | Lighthouse CI |
-| Capture→Decide transition | >80% | Analytics |
-| Present Mode usage | >50% | Analytics |
+| Metric                    | Target | Measure         |
+| ------------------------- | ------ | --------------- |
+| Time to First Chip        | <10s   | Analytics       |
+| FPS (animations)          | 60fps  | Chrome DevTools |
+| Lighthouse Score          | >90    | Lighthouse CI   |
+| Capture→Decide transition | >80%   | Analytics       |
+| Present Mode usage        | >50%   | Analytics       |
 
 ---
 
@@ -214,32 +221,36 @@ ProjectShell (Main Orchestrator)
 ## 🧩 Component Props Quick Reference
 
 ### ProjectShell
+
 ```typescript
 // No props - uses global stores
 ```
 
 ### ModeIndicator
+
 ```typescript
 interface Props {
-  mode: 'capture' | 'decide' | 'plan' | 'present';
-  progress?: number;           // Optional progress (0-100)
-  showProgress?: boolean;      // Show progress bar?
+  mode: "capture" | "decide" | "plan" | "present";
+  progress?: number; // Optional progress (0-100)
+  showProgress?: boolean; // Show progress bar?
 }
 ```
 
 ### SlideOver
+
 ```typescript
 interface Props {
   open: boolean;
   onClose: () => void;
   title?: string;
-  width?: number | string;     // Default: 480
+  width?: number | string; // Default: 480
   children: React.ReactNode;
-  side?: 'left' | 'right';     // Default: 'right'
+  side?: "left" | "right"; // Default: 'right'
 }
 ```
 
 ### EmptyState
+
 ```typescript
 interface Props {
   icon: LucideIcon;
@@ -258,22 +269,24 @@ interface Props {
 ```
 
 ### StatBadge
+
 ```typescript
 interface Props {
   label: string;
   value: string | number;
   icon?: LucideIcon;
-  variant?: 'default' | 'success' | 'warning' | 'danger';
-  trend?: 'up' | 'down' | 'neutral';
+  variant?: "default" | "success" | "warning" | "danger";
+  trend?: "up" | "down" | "neutral";
   className?: string;
 }
 ```
 
 ### LoadingState
+
 ```typescript
 interface Props {
-  type?: 'chip' | 'timeline' | 'decision';
-  count?: number;              // Default: 3
+  type?: "chip" | "timeline" | "decision";
+  count?: number; // Default: 3
   className?: string;
 }
 ```
@@ -283,6 +296,7 @@ interface Props {
 ## 🔍 Debugging Tips
 
 ### Check Store State
+
 ```typescript
 // In Chrome DevTools Console
 // (Requires React DevTools extension)
@@ -290,6 +304,7 @@ interface Props {
 ```
 
 ### Monitor Animations
+
 ```javascript
 // Chrome DevTools > Performance
 // Record → Interact → Stop → Analyze FPS
@@ -297,6 +312,7 @@ interface Props {
 ```
 
 ### View Bundle Size
+
 ```bash
 # After build
 pnpm build
@@ -304,6 +320,7 @@ pnpm build
 ```
 
 ### Test Keyboard Navigation
+
 ```bash
 # Use Tab to navigate
 # Check focus indicators are visible
@@ -315,27 +332,32 @@ pnpm build
 ## 🆘 Need Help?
 
 ### Step 1: Check Documentation
+
 1. `docs/PROJECT_V2_TRANSFORMATION.md` - Full overview
 2. `docs/DEPLOYMENT_GUIDE.md` - Testing & deployment
 3. `docs/QUICK_REFERENCE.md` - This file
 
 ### Step 2: Review Code
+
 - Read component comments
 - Check PropTypes/interfaces
 - Look for TODO comments
 
 ### Step 3: Test with Sample Data
+
 ```typescript
 // In CaptureMode.tsx
-const SAMPLE_RFP = `...`;  // Use this for testing
+const SAMPLE_RFP = `...`; // Use this for testing
 ```
 
 ### Step 4: Check Browser Console
+
 - Look for errors
 - Check network requests
 - Verify imports resolved
 
 ### Step 5: Ask for Help
+
 - Document the issue
 - Include steps to reproduce
 - Share screenshots
@@ -346,18 +368,21 @@ const SAMPLE_RFP = `...`;  // Use this for testing
 ## 📈 Success Indicators
 
 ### Week 1
+
 - ✓ All modes load without errors
 - ✓ Animations smooth (60fps)
 - ✓ Keyboard navigation works
 - ✓ Internal team approves
 
 ### Week 2-3
+
 - ✓ User feedback positive
 - ✓ Time to first chip <10s
 - ✓ Present mode usage >50%
 - ✓ No critical bugs reported
 
 ### Month 1
+
 - ✓ Full rollout complete
 - ✓ Metrics exceed targets
 - ✓ User satisfaction high

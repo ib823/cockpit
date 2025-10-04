@@ -8,20 +8,20 @@ export interface Holiday {
 }
 
 export const DEFAULT_HOLIDAYS: Holiday[] = [
-  { date: '2024-01-01', name: 'New Year' },
-  { date: '2024-02-01', name: 'Federal Territory Day' },
-  { date: '2024-04-10', name: 'Hari Raya Aidilfitri' },
-  { date: '2024-04-11', name: 'Hari Raya Aidilfitri' },
-  { date: '2024-05-01', name: 'Labour Day' },
-  { date: '2024-05-22', name: 'Wesak Day' },
-  { date: '2024-06-03', name: 'Agong Birthday' },
-  { date: '2024-06-17', name: 'Hari Raya Aidiladha' },
-  { date: '2024-07-07', name: 'Awal Muharram' },
-  { date: '2024-08-31', name: 'Merdeka Day' },
-  { date: '2024-09-16', name: 'Malaysia Day' },
-  { date: '2024-09-16', name: 'Prophet Muhammad Birthday' },
-  { date: '2024-10-24', name: 'Deepavali' },
-  { date: '2024-12-25', name: 'Christmas' }
+  { date: "2024-01-01", name: "New Year" },
+  { date: "2024-02-01", name: "Federal Territory Day" },
+  { date: "2024-04-10", name: "Hari Raya Aidilfitri" },
+  { date: "2024-04-11", name: "Hari Raya Aidilfitri" },
+  { date: "2024-05-01", name: "Labour Day" },
+  { date: "2024-05-22", name: "Wesak Day" },
+  { date: "2024-06-03", name: "Agong Birthday" },
+  { date: "2024-06-17", name: "Hari Raya Aidiladha" },
+  { date: "2024-07-07", name: "Awal Muharram" },
+  { date: "2024-08-31", name: "Merdeka Day" },
+  { date: "2024-09-16", name: "Malaysia Day" },
+  { date: "2024-09-16", name: "Prophet Muhammad Birthday" },
+  { date: "2024-10-24", name: "Deepavali" },
+  { date: "2024-12-25", name: "Christmas" },
 ];
 
 /**
@@ -38,19 +38,17 @@ export function businessDayToDate(
 ): Date {
   // Validation
   if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
-    console.error('Invalid startDate:', startDate);
+    console.error("Invalid startDate:", startDate);
     return new Date(); // Fallback to today
   }
-  
-  if (typeof businessDayIndex !== 'number' || businessDayIndex < 0) {
-    console.error('Invalid businessDayIndex:', businessDayIndex);
+
+  if (typeof businessDayIndex !== "number" || businessDayIndex < 0) {
+    console.error("Invalid businessDayIndex:", businessDayIndex);
     return new Date(startDate); // Fallback to start date
   }
 
   // Convert holiday strings to Set for O(1) lookup
-  const holidaySet = new Set(
-    holidays.map(h => h.date)
-  );
+  const holidaySet = new Set(holidays.map((h) => h.date));
 
   // Start from the given date
   const result = new Date(startDate);
@@ -64,20 +62,20 @@ export function businessDayToDate(
   // Iterate through calendar days until we've counted enough business days
   while (businessDaysAdded < businessDayIndex) {
     result.setDate(result.getDate() + 1);
-    
+
     const dayOfWeek = result.getDay();
-    const dateStr = result.toISOString().split('T')[0];
-    
+    const dateStr = result.toISOString().split("T")[0];
+
     // Skip weekends (0 = Sunday, 6 = Saturday)
     if (dayOfWeek === 0 || dayOfWeek === 6) {
       continue;
     }
-    
+
     // Skip holidays
     if (holidaySet.has(dateStr)) {
       continue;
     }
-    
+
     businessDaysAdded++;
   }
 
@@ -107,8 +105,8 @@ export function isWeekend(date: Date): boolean {
  * Check if a date is a holiday
  */
 export function isHoliday(date: Date, holidays: Holiday[] = DEFAULT_HOLIDAYS): boolean {
-  const dateStr = date.toISOString().split('T')[0];
-  return holidays.some(h => h.date === dateStr);
+  const dateStr = date.toISOString().split("T")[0];
+  return holidays.some((h) => h.date === dateStr);
 }
 
 /**
@@ -116,23 +114,32 @@ export function isHoliday(date: Date, holidays: Holiday[] = DEFAULT_HOLIDAYS): b
  */
 export function formatDateElegant(date: Date): string {
   if (!(date instanceof Date) || isNaN(date.getTime())) {
-    console.error('formatDateElegant received invalid date:', date);
-    return 'Invalid Date';
+    console.error("formatDateElegant received invalid date:", date);
+    return "Invalid Date";
   }
-  
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
 /**
  * Generate array of calendar dates for timeline display
  */
-export function generateCalendarDates(
-  startDate: Date,
-  endDate: Date
-): Date[] {
+export function generateCalendarDates(startDate: Date, endDate: Date): Date[] {
   const dates: Date[] = [];
   const current = new Date(startDate);
 
@@ -160,7 +167,7 @@ export function calculateProjectStartDate(
 
   // Convert business day index to calendar date
   const startDate = businessDayToDate(
-    new Date('2024-01-01'), // Default project start
+    new Date("2024-01-01"), // Default project start
     earliest.startBusinessDay ?? 0,
     holidays
   );
@@ -189,11 +196,7 @@ export function calculateProjectEndDate(
   const endBusinessDay = (latest.startBusinessDay ?? 0) + (latest.workingDays ?? 0);
 
   // Convert to calendar date
-  const endDate = businessDayToDate(
-    new Date('2024-01-01'),
-    endBusinessDay,
-    holidays
-  );
+  const endDate = businessDayToDate(new Date("2024-01-01"), endBusinessDay, holidays);
 
   // Validate result
   return isNaN(endDate.getTime()) ? null : endDate;

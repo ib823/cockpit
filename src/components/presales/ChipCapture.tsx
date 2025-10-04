@@ -1,21 +1,25 @@
 // Enhanced ChipCapture Component with Completeness Validation
-'use client';
+"use client";
 
-import { CompletenessBar, CompletenessRing } from '@/components/presales/CompletenessRing';
-import GapCards from '@/components/presales/GapCards';
-import CriticalGapsAlert from '@/components/presales/CriticalGapsAlert';
-import { parseRFPTextEnhanced, identifyCriticalGaps, calculateComplexityMultiplier } from '@/lib/enhanced-chip-parser';
-import { usePresalesStore } from '@/stores/presales-store';
-import { useProjectStore } from '@/stores/project-store';
-import { Chip, ChipType, ChipSource } from '@/types/core';
-import React, { useEffect, useState, useMemo } from 'react';
+import { CompletenessBar, CompletenessRing } from "@/components/presales/CompletenessRing";
+import GapCards from "@/components/presales/GapCards";
+import CriticalGapsAlert from "@/components/presales/CriticalGapsAlert";
+import {
+  parseRFPTextEnhanced,
+  identifyCriticalGaps,
+  calculateComplexityMultiplier,
+} from "@/lib/enhanced-chip-parser";
+import { usePresalesStore } from "@/stores/presales-store";
+import { useProjectStore } from "@/stores/project-store";
+import { Chip, ChipType, ChipSource } from "@/types/core";
+import React, { useEffect, useState, useMemo } from "react";
 
 interface ChipCaptureProps {
   className?: string;
 }
 
-export function ChipCapture({ className = '' }: ChipCaptureProps) {
-  const [inputText, setInputText] = useState('');
+export function ChipCapture({ className = "" }: ChipCaptureProps) {
+  const [inputText, setInputText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [complexityMultiplier, setComplexityMultiplier] = useState<number>(1.0);
@@ -30,7 +34,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
     removeChip,
     calculateCompleteness,
     handleGapFix,
-    recordMetric
+    recordMetric,
   } = usePresalesStore();
 
   // Handle hydration
@@ -42,124 +46,123 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
 
   // Process RFP text input
   const handleProcessText = async () => {
-  if (!inputText.trim()) return;
+    if (!inputText.trim()) return;
 
-  // SECURITY: Validate input length to prevent DoS
-  const MAX_INPUT_LENGTH = 50000; // ~50KB text
-  if (inputText.length > MAX_INPUT_LENGTH) {
-    alert(`Input too large. Maximum ${MAX_INPUT_LENGTH.toLocaleString()} characters allowed.`);
-    return;
-  }
-
-  setIsProcessing(true);
-  recordMetric('click');
-
-  // SECURITY: Timeout for processing to prevent ReDoS
-  const timeoutId = setTimeout(() => {
-    setIsProcessing(false);
-    alert('Processing timeout. Please try with smaller input or contact support.');
-  }, 5000); // 5 second timeout
-
-  try {
-    // Use enhanced parser to extract chips including critical patterns
-    const extractedChips = parseRFPTextEnhanced(inputText);
-    clearTimeout(timeoutId);
-    console.log('Enhanced chips extracted:', extractedChips);
-    
-    // Calculate complexity multiplier from critical factors
-    const multiplier = calculateComplexityMultiplier(extractedChips);
-    setComplexityMultiplier(multiplier);
-    console.log('Complexity multiplier:', multiplier);
-    
-    // Convert enhanced chips to store format
-    const storeChips: Chip[] = extractedChips.map(chip => ({
-      id: chip.id,
-      type: chip.type as ChipType,
-      value: String(chip.value),
-      confidence: chip.confidence,
-      source: 'paste' as ChipSource,
-      metadata: {
-        evidence: { snippet: chip.evidence || '' },
-        ...chip.metadata
-      },
-      timestamp: chip.timestamp || new Date()
-    }));
-    
-    if (storeChips.length > 0) {
-      addChips(storeChips);
-      setInputText(''); // Clear input after successful processing
-    } else {
-      console.log('No chips extracted from:', inputText);
+    // SECURITY: Validate input length to prevent DoS
+    const MAX_INPUT_LENGTH = 50000; // ~50KB text
+    if (inputText.length > MAX_INPUT_LENGTH) {
+      alert(`Input too large. Maximum ${MAX_INPUT_LENGTH.toLocaleString()} characters allowed.`);
+      return;
     }
-  } catch (error) {
-    clearTimeout(timeoutId);
-    console.error('Failed to process RFP text:', error);
-  } finally {
-    setIsProcessing(false);
-  }
-};
+
+    setIsProcessing(true);
+    recordMetric("click");
+
+    // SECURITY: Timeout for processing to prevent ReDoS
+    const timeoutId = setTimeout(() => {
+      setIsProcessing(false);
+      alert("Processing timeout. Please try with smaller input or contact support.");
+    }, 5000); // 5 second timeout
+
+    try {
+      // Use enhanced parser to extract chips including critical patterns
+      const extractedChips = parseRFPTextEnhanced(inputText);
+      clearTimeout(timeoutId);
+      console.log("Enhanced chips extracted:", extractedChips);
+
+      // Calculate complexity multiplier from critical factors
+      const multiplier = calculateComplexityMultiplier(extractedChips);
+      setComplexityMultiplier(multiplier);
+      console.log("Complexity multiplier:", multiplier);
+
+      // Convert enhanced chips to store format
+      const storeChips: Chip[] = extractedChips.map((chip) => ({
+        id: chip.id,
+        type: chip.type as ChipType,
+        value: String(chip.value),
+        confidence: chip.confidence,
+        source: "paste" as ChipSource,
+        metadata: {
+          evidence: { snippet: chip.evidence || "" },
+          ...chip.metadata,
+        },
+        timestamp: chip.timestamp || new Date(),
+      }));
+
+      if (storeChips.length > 0) {
+        addChips(storeChips);
+        setInputText(""); // Clear input after successful processing
+      } else {
+        console.log("No chips extracted from:", inputText);
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      console.error("Failed to process RFP text:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleClearAll = () => {
     clearChips();
-    setInputText('');
-    recordMetric('click');
+    setInputText("");
+    recordMetric("click");
   };
 
   const handleProceedWithDefaults = () => {
     const defaultChips: Chip[] = [];
-    
-    if (!chips.some(c => c.type === 'legal_entities')) {
+
+    if (!chips.some((c) => c.type === "legal_entities")) {
       defaultChips.push({
         id: `default_${Date.now()}_1`,
-        type: 'legal_entities' as ChipType,
-        value: '1',
+        type: "legal_entities" as ChipType,
+        value: "1",
         confidence: 0.5,
-        source: 'default' as ChipSource,
+        source: "default" as ChipSource,
         metadata: {
-          note: 'Default assumption - single entity',
-          estimated: true
+          note: "Default assumption - single entity",
+          estimated: true,
         },
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     }
-    
-    if (!chips.some(c => c.type === 'locations')) {
+
+    if (!chips.some((c) => c.type === "locations")) {
       defaultChips.push({
         id: `default_${Date.now()}_2`,
-        type: 'locations' as ChipType,
-        value: '1',
+        type: "locations" as ChipType,
+        value: "1",
         confidence: 0.5,
-        source: 'default' as ChipSource,
+        source: "default" as ChipSource,
         metadata: {
-          note: 'Default assumption - single location',
-          estimated: true
+          note: "Default assumption - single location",
+          estimated: true,
         },
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     }
-    
+
     if (defaultChips.length > 0) {
       addChips(defaultChips);
     }
-    
+
     setTimeout(() => {
-      window.location.href = '/presales?mode=decide';
+      window.location.href = "/presales?mode=decide";
     }, 100);
   };
 
   const handleRemoveChip = (chipId: string) => {
     removeChip(chipId);
-    recordMetric('click');
+    recordMetric("click");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       handleProcessText();
     }
-    recordMetric('keystroke');
+    recordMetric("keystroke");
   };
 
-  
   if (!mounted) {
     return <div className="animate-pulse bg-gray-100 h-64 rounded-lg" />;
   }
@@ -170,7 +173,9 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Requirements Capture</h3>
-          <p className="text-sm text-gray-600">Extract information from RFP or requirements document</p>
+          <p className="text-sm text-gray-600">
+            Extract information from RFP or requirements document
+          </p>
         </div>
         <CompletenessRing score={completeness.score} size="md" />
       </div>
@@ -183,7 +188,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
         <label htmlFor="rfp-text" className="block text-sm font-medium text-gray-700">
           Paste RFP Text or Requirements
         </label>
-        
+
         <textarea
           id="rfp-text"
           value={inputText}
@@ -193,11 +198,9 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
           className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
           disabled={isProcessing}
         />
-        
+
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-500">
-            Press Ctrl+Enter to process text
-          </p>
+          <p className="text-xs text-gray-500">Press Ctrl+Enter to process text</p>
           <div className="flex gap-2">
             <button
               onClick={handleClearAll}
@@ -211,7 +214,7 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
               disabled={!inputText.trim() || isProcessing}
               className="px-4 py-2 gradient-blue text-white text-sm font-medium rounded-lg hover-lift disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {isProcessing ? 'Processing...' : 'Extract Requirements'}
+              {isProcessing ? "Processing..." : "Extract Requirements"}
             </button>
           </div>
         </div>
@@ -241,32 +244,39 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-amber-600 text-sm">Total Complexity Multiplier:</span>
-              <span className={`ml-2 text-2xl font-bold ${
-                complexityMultiplier >= 3.0 ? 'text-red-600' :
-                complexityMultiplier >= 2.0 ? 'text-orange-600' :
-                complexityMultiplier >= 1.5 ? 'text-yellow-600' :
-                'text-green-600'
-              }`}>
+              <span
+                className={`ml-2 text-2xl font-bold ${
+                  complexityMultiplier >= 3.0
+                    ? "text-red-600"
+                    : complexityMultiplier >= 2.0
+                      ? "text-orange-600"
+                      : complexityMultiplier >= 1.5
+                        ? "text-yellow-600"
+                        : "text-green-600"
+                }`}
+              >
                 {complexityMultiplier.toFixed(2)}x
               </span>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">
-                Base effort will be multiplied by this factor
-              </p>
+              <p className="text-sm text-gray-600">Base effort will be multiplied by this factor</p>
               <p className="text-xs text-gray-500">
                 Based on legal entities, locations, data volumes, etc.
               </p>
             </div>
           </div>
-          
+
           {/* Show what's driving the complexity */}
           <div className="mt-3 pt-3 border-t border-amber-200">
             <p className="text-xs font-medium text-amber-800 mb-2">Key Complexity Drivers:</p>
             <div className="flex flex-wrap gap-2">
-              {chips.filter(c => c.metadata?.multiplier && c.metadata.multiplier > 1.0)
-                .map(chip => (
-                  <span key={chip.id} className="text-xs bg-white px-2 py-1 rounded border border-amber-300">
+              {chips
+                .filter((c) => c.metadata?.multiplier && c.metadata.multiplier > 1.0)
+                .map((chip) => (
+                  <span
+                    key={chip.id}
+                    className="text-xs bg-white px-2 py-1 rounded border border-amber-300"
+                  >
                     {chip.type}: {chip.value} ({(chip.metadata?.multiplier || 1).toFixed(1)}x)
                   </span>
                 ))}
@@ -280,9 +290,11 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-gray-900">Extracted Information</h4>
-            <span className="text-sm text-gray-500">{chips.length} item{chips.length !== 1 ? 's' : ''}</span>
+            <span className="text-sm text-gray-500">
+              {chips.length} item{chips.length !== 1 ? "s" : ""}
+            </span>
           </div>
-          
+
           <div className="grid gap-2 animate-slide-up">
             {chips.map((chip) => (
               <ChipDisplay
@@ -296,23 +308,22 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
       )}
 
       {/* Gap Cards */}
-      <GapCards
-        gaps={completeness.gaps}
-        onFixAction={handleGapFix}
-      />
+      <GapCards gaps={completeness.gaps} onFixAction={handleGapFix} />
 
       {/* Completeness Summary */}
       {completeness.score > 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <h4 className="font-medium text-gray-900">Completeness Summary</h4>
-            <span className={`text-sm font-medium ${
-              completeness.canProceed ? 'text-green-600' : 'text-gray-600'
-            }`}>
-              {completeness.canProceed ? 'Ready to proceed' : 'Needs attention'}
+            <span
+              className={`text-sm font-medium ${
+                completeness.canProceed ? "text-green-600" : "text-gray-600"
+              }`}
+            >
+              {completeness.canProceed ? "Ready to proceed" : "Needs attention"}
             </span>
           </div>
-          
+
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <div className="text-gray-500">Score</div>
@@ -341,56 +352,56 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
                 // Apply smart defaults for missing critical factors
                 const defaultChips: Chip[] = [];
 
-                if (!chips.some(c => c.type === 'legal_entities')) {
+                if (!chips.some((c) => c.type === "legal_entities")) {
                   defaultChips.push({
                     id: `default_${Date.now()}_1`,
-                    type: 'legal_entities' as ChipType,
-                    value: '1',
+                    type: "legal_entities" as ChipType,
+                    value: "1",
                     confidence: 0.5,
-                    source: 'default' as ChipSource,
+                    source: "default" as ChipSource,
                     metadata: {
-                      note: 'Default assumption - single entity',
-                      estimated: true
+                      note: "Default assumption - single entity",
+                      estimated: true,
                     },
-                    timestamp: new Date()
+                    timestamp: new Date(),
                   });
                 }
 
-                if (!chips.some(c => c.type === 'locations')) {
+                if (!chips.some((c) => c.type === "locations")) {
                   defaultChips.push({
                     id: `default_${Date.now()}_2`,
-                    type: 'locations' as ChipType,
-                    value: '1',
+                    type: "locations" as ChipType,
+                    value: "1",
                     confidence: 0.5,
-                    source: 'default' as ChipSource,
+                    source: "default" as ChipSource,
                     metadata: {
-                      note: 'Default assumption - single location',
-                      estimated: true
+                      note: "Default assumption - single location",
+                      estimated: true,
                     },
-                    timestamp: new Date()
+                    timestamp: new Date(),
                   });
                 }
 
-                if (!chips.some(c => c.type === 'data_volume')) {
+                if (!chips.some((c) => c.type === "data_volume")) {
                   defaultChips.push({
                     id: `default_${Date.now()}_3`,
-                    type: 'data_volume' as ChipType,
-                    value: '1000',
+                    type: "data_volume" as ChipType,
+                    value: "1000",
                     confidence: 0.4,
-                    source: 'default' as ChipSource,
+                    source: "default" as ChipSource,
                     metadata: {
-                      note: 'Default assumption - 1000 transactions/day',
+                      note: "Default assumption - 1000 transactions/day",
                       estimated: true,
-                      unit: 'transactions/day'
+                      unit: "transactions/day",
                     },
-                    timestamp: new Date()
+                    timestamp: new Date(),
                   });
                 }
 
                 if (defaultChips.length > 0) {
                   addChips(defaultChips);
                 }
-                setMode('decide');
+                setMode("decide");
               }}
               disabled={completeness.score < 50}
               className="py-3 px-4 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -403,24 +414,24 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
             <button
               onClick={() => {
                 const setMode = useProjectStore.getState().setMode;
-                setMode('decide');
+                setMode("decide");
               }}
               disabled={!completeness.canProceed}
               className={`py-3 px-4 rounded-lg font-medium transition-colors ${
                 completeness.canProceed
-                  ? 'gradient-blue text-white hover-lift'
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  ? "gradient-blue text-white hover-lift"
+                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
               }`}
             >
               <div className="text-sm">Continue to Decisions →</div>
               <div className="text-xs mt-1">
                 {completeness.canProceed
-                  ? 'Ready with complete data'
+                  ? "Ready with complete data"
                   : `Need ${Math.max(0, 65 - completeness.score)}% more`}
               </div>
             </button>
           </div>
-          
+
           {/* Blockers Display */}
           {!completeness.canProceed && completeness.blockers.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
@@ -433,11 +444,12 @@ export function ChipCapture({ className = '' }: ChipCaptureProps) {
                 ))}
               </ul>
               <div className="text-xs text-amber-600 mt-2">
-                Use &quot;Proceed with Defaults&quot; to continue with assumptions, or add missing info above.
+                Use &quot;Proceed with Defaults&quot; to continue with assumptions, or add missing
+                info above.
               </div>
             </div>
           )}
-          
+
           {/* Success Message */}
           {completeness.canProceed && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
@@ -465,14 +477,9 @@ const ChipDisplay = ({ chip, onRemove }: ChipDisplayProps) => {
         <span className="text-sm font-medium text-gray-700">
           {(chip as any).kind || chip.type}:
         </span>
-        <span className="text-sm text-gray-600">
-          {(chip as any).raw || chip.value}
-        </span>
+        <span className="text-sm text-gray-600">{(chip as any).raw || chip.value}</span>
       </div>
-      <button
-        onClick={onRemove}
-        className="text-gray-400 hover:text-red-600 transition-colors"
-      >
+      <button onClick={onRemove} className="text-gray-400 hover:text-red-600 transition-colors">
         ×
       </button>
     </div>

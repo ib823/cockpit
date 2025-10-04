@@ -35,6 +35,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 This application implements the following security measures:
 
 ### 1. Input Validation & Sanitization
+
 - **DOMPurify** for XSS prevention
 - Input length validation (50KB limit for RFP text)
 - Numeric bounds checking
@@ -42,6 +43,7 @@ This application implements the following security measures:
 - Recursive object sanitization
 
 ### 2. Security Headers
+
 - Content Security Policy (CSP) with `unsafe-eval` only in development
 - X-Frame-Options: DENY
 - X-Content-Type-Options: nosniff
@@ -50,21 +52,25 @@ This application implements the following security measures:
 - Permissions-Policy
 
 ### 3. Rate Limiting
+
 - Server-side rate limiting via middleware (60 req/min per IP)
 - Client-side rate limiting for DoS prevention
 - Processing timeouts (5s for RFP parsing)
 
 ### 4. CVE Protection
+
 - **CVE-2025-29927**: Protected via middleware blocking `x-middleware-subrequest` header
 - Regular dependency updates via Dependabot
 - Automated security scanning via GitHub Actions
 
 ### 5. Error Handling
+
 - Sanitized error messages in production
 - No information disclosure through errors
 - Secure logging with minimal sensitive data
 
 ### 6. Data Protection
+
 - No sensitive data stored in localStorage without encryption
 - Environment variables properly scoped (`NEXT_PUBLIC_*` for client)
 - No hardcoded secrets or API keys
@@ -73,6 +79,7 @@ This application implements the following security measures:
 ## Dependency Security
 
 ### Automated Scanning
+
 - **npm audit**: Weekly automated scans
 - **Dependabot**: Automatic dependency updates
 - **Semgrep**: Static code analysis
@@ -80,6 +87,7 @@ This application implements the following security measures:
 - **TruffleHog**: Secret detection
 
 ### Current Dependency Status
+
 All dependencies are up-to-date with no known critical vulnerabilities as of last scan.
 
 ## Development Guidelines
@@ -149,6 +157,7 @@ All dependencies are up-to-date with no known critical vulnerabilities as of las
 ## Contact
 
 For security-related questions or concerns:
+
 - Email: [your-security-email@example.com]
 - Security Advisory: Create a security advisory on GitHub
 

@@ -1,9 +1,9 @@
 // src/components/project/PhaseCard.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useProjectStore } from '@/stores/project-store';
-import { usePresalesStore } from '@/stores/presales-store';
+import { useState } from "react";
+import { useProjectStore } from "@/stores/project-store";
+import { usePresalesStore } from "@/stores/presales-store";
 
 interface PhaseCardProps {
   phase: any;
@@ -14,8 +14,8 @@ export function PhaseCard({ phase }: PhaseCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [manualDuration, setManualDuration] = useState(phase.workingDays || 0);
 
-  const chips = usePresalesStore(state => state.chips);
-  const addManualOverride = useProjectStore(state => state.addManualOverride);
+  const chips = usePresalesStore((state) => state.chips);
+  const addManualOverride = useProjectStore((state) => state.addManualOverride);
 
   // Calculate reasoning
   const reasoning = calculateReasoning(phase, chips);
@@ -23,11 +23,11 @@ export function PhaseCard({ phase }: PhaseCardProps) {
   const handleSaveManualEdit = () => {
     addManualOverride({
       phaseId: phase.id,
-      field: 'duration',
+      field: "duration",
       originalValue: phase.workingDays,
       manualValue: manualDuration,
-      reason: 'Manual adjustment by user',
-      timestamp: new Date()
+      reason: "Manual adjustment by user",
+      timestamp: new Date(),
     });
     setIsEditing(false);
   };
@@ -38,13 +38,11 @@ export function PhaseCard({ phase }: PhaseCardProps) {
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-lg font-medium text-gray-900">{phase.name}</h3>
-          <p className="text-sm text-gray-500 mt-1">{phase.stream || 'Core Phase'}</p>
+          <p className="text-sm text-gray-500 mt-1">{phase.stream || "Core Phase"}</p>
         </div>
 
         {phase._hasManualOverride && (
-          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
-            Manual Edit
-          </span>
+          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Manual Edit</span>
         )}
       </div>
 
@@ -61,16 +59,12 @@ export function PhaseCard({ phase }: PhaseCardProps) {
               autoFocus
             />
           ) : (
-            <div className="text-xl font-semibold text-gray-900">
-              {phase.workingDays || 0} days
-            </div>
+            <div className="text-xl font-semibold text-gray-900">{phase.workingDays || 0} days</div>
           )}
         </div>
         <div>
           <div className="text-xs text-gray-500">Effort</div>
-          <div className="text-xl font-semibold text-gray-900">
-            {phase.effort || 0} PD
-          </div>
+          <div className="text-xl font-semibold text-gray-900">{phase.effort || 0} PD</div>
         </div>
         <div>
           <div className="text-xs text-gray-500">Team</div>
@@ -85,7 +79,7 @@ export function PhaseCard({ phase }: PhaseCardProps) {
         onClick={() => setShowReasoning(!showReasoning)}
         className="text-sm text-blue-600 hover:text-blue-700 mb-2"
       >
-        {showReasoning ? '▼ Hide' : '▶ Why these numbers?'}
+        {showReasoning ? "▼ Hide" : "▶ Why these numbers?"}
       </button>
 
       {showReasoning && (
@@ -145,9 +139,9 @@ export function PhaseCard({ phase }: PhaseCardProps) {
 
 // Calculate reasoning from chips
 function calculateReasoning(phase: any, chips: any[]) {
-  const employeeChip = chips.find(c => c.type === 'employees');
-  const moduleChips = chips.filter(c => c.type === 'module');
-  const complianceChips = chips.filter(c => c.type === 'compliance');
+  const employeeChip = chips.find((c) => c.type === "employees");
+  const moduleChips = chips.filter((c) => c.type === "module");
+  const complianceChips = chips.filter((c) => c.type === "compliance");
 
   const duration = [];
   const effort = [];
@@ -167,25 +161,27 @@ function calculateReasoning(phase: any, chips: any[]) {
   }
 
   if (complianceChips.length > 0) {
-    duration.push(`${complianceChips.length} compliance req (+${complianceChips.length * 2} weeks)`);
+    duration.push(
+      `${complianceChips.length} compliance req (+${complianceChips.length * 2} weeks)`
+    );
   }
 
   // Effort reasoning
-  moduleChips.forEach(mod => {
+  moduleChips.forEach((mod) => {
     effort.push(`${mod.value} module: base 80 PD`);
   });
 
-  const integrationChips = chips.filter(c => c.type === 'integration');
-  integrationChips.forEach(int => {
+  const integrationChips = chips.filter((c) => c.type === "integration");
+  integrationChips.forEach((int) => {
     effort.push(`${int.value} integration: +20 PD`);
   });
 
   // Default if no specific reasoning
   if (duration.length === 0) {
-    duration.push('Standard SAP Activate methodology');
+    duration.push("Standard SAP Activate methodology");
   }
   if (effort.length === 0) {
-    effort.push('Base effort from package configuration');
+    effort.push("Base effort from package configuration");
   }
 
   return { duration, effort };

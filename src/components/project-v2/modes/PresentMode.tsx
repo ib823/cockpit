@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Calendar, Users, Flag, TrendingUp } from 'lucide-react';
-import { useTimelineStore } from '@/stores/timeline-store';
-import { useProjectStore } from '@/stores/project-store';
-import { usePresalesStore } from '@/stores/presales-store';
-import { formatDuration, cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ChevronLeft, ChevronRight, Calendar, Users, Flag, TrendingUp } from "lucide-react";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { useProjectStore } from "@/stores/project-store";
+import { usePresalesStore } from "@/stores/presales-store";
+import { formatDuration, cn } from "@/lib/utils";
 
 interface Slide {
   id: string;
@@ -22,14 +22,14 @@ export function PresentMode() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Calculate summary stats (hide costs for client)
-  const totalDuration = phases.reduce((sum, phase) => sum + phase.duration, 0);
+  const totalDuration = phases.reduce((sum, phase) => sum + phase.workingDays, 0);
   const totalResources = phases.reduce((sum, phase) => sum + (phase.resources?.length || 0), 0);
 
   // Create slides
   const slides: Slide[] = [
     {
-      id: 'cover',
-      title: 'Cover',
+      id: "cover",
+      title: "Cover",
       component: (
         <div className="text-center">
           <motion.div
@@ -41,15 +41,16 @@ export function PresentMode() {
               Your SAP Implementation Plan
             </h1>
             <p className="text-3xl text-gray-400 font-light">
-              {formatDuration(totalDuration)} · {phases.length} phases · {totalResources} consultants
+              {formatDuration(totalDuration)} · {phases.length} phases · {totalResources}{" "}
+              consultants
             </p>
           </motion.div>
         </div>
       ),
     },
     {
-      id: 'requirements',
-      title: 'Requirements',
+      id: "requirements",
+      title: "Requirements",
       component: (
         <div>
           <motion.h2
@@ -69,7 +70,7 @@ export function PresentMode() {
                 className="p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10"
               >
                 <div className="text-sm text-gray-400 uppercase tracking-wide mb-2">
-                  {chip.kind}
+                  {chip.type}
                 </div>
                 <div className="text-xl font-light">{chip.value}</div>
               </motion.div>
@@ -79,8 +80,8 @@ export function PresentMode() {
       ),
     },
     {
-      id: 'timeline',
-      title: 'Timeline',
+      id: "timeline",
+      title: "Timeline",
       component: (
         <div>
           <motion.h2
@@ -92,7 +93,7 @@ export function PresentMode() {
           </motion.h2>
           <div className="space-y-8">
             {phases.map((phase, i) => {
-              const widthPercent = (phase.duration / totalDuration) * 100;
+              const widthPercent = (phase.workingDays / totalDuration) * 100;
 
               return (
                 <motion.div
@@ -104,7 +105,7 @@ export function PresentMode() {
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="text-2xl font-light">{phase.name}</h3>
-                    <span className="text-gray-400">{formatDuration(phase.duration)}</span>
+                    <span className="text-gray-400">{formatDuration(phase.workingDays)}</span>
                   </div>
                   <div
                     className="h-20 rounded-2xl relative overflow-hidden"
@@ -128,8 +129,8 @@ export function PresentMode() {
       ),
     },
     {
-      id: 'team',
-      title: 'Team Structure',
+      id: "team",
+      title: "Team Structure",
       component: (
         <div>
           <motion.h2
@@ -163,8 +164,8 @@ export function PresentMode() {
       ),
     },
     {
-      id: 'summary',
-      title: 'Summary',
+      id: "summary",
+      title: "Summary",
       component: (
         <div className="text-center">
           <motion.div
@@ -213,17 +214,17 @@ export function PresentMode() {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft' && currentSlide > 0) {
+      if (e.key === "ArrowLeft" && currentSlide > 0) {
         setCurrentSlide(currentSlide - 1);
-      } else if (e.key === 'ArrowRight' && currentSlide < slides.length - 1) {
+      } else if (e.key === "ArrowRight" && currentSlide < slides.length - 1) {
         setCurrentSlide(currentSlide + 1);
-      } else if (e.key === 'Escape') {
-        setMode('plan');
+      } else if (e.key === "Escape") {
+        setMode("plan");
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentSlide, slides.length, setMode]);
 
   return (
@@ -237,7 +238,7 @@ export function PresentMode() {
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.4, ease: 'easeInOut' }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
             >
               {slides[currentSlide].component}
             </motion.div>
@@ -252,10 +253,8 @@ export function PresentMode() {
             key={slide.id}
             onClick={() => setCurrentSlide(i)}
             className={cn(
-              'transition-all rounded-full',
-              i === currentSlide
-                ? 'w-8 h-2 bg-white'
-                : 'w-2 h-2 bg-white/30 hover:bg-white/50'
+              "transition-all rounded-full",
+              i === currentSlide ? "w-8 h-2 bg-white" : "w-2 h-2 bg-white/30 hover:bg-white/50"
             )}
             aria-label={`Go to slide ${i + 1}`}
           />
@@ -287,7 +286,7 @@ export function PresentMode() {
 
       {/* Exit button */}
       <button
-        onClick={() => setMode('plan')}
+        onClick={() => setMode("plan")}
         className="fixed top-8 right-8 w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm
                    flex items-center justify-center hover:bg-white/20 transition-colors group"
         aria-label="Exit presentation"

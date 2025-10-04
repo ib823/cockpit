@@ -13,14 +13,15 @@ export function validateStartDate(startDate: Date): { valid: boolean; error?: st
   if (startDate < now) {
     return {
       valid: false,
-      error: 'Start date cannot be in the past'
+      error: "Start date cannot be in the past",
     };
   }
 
   if (startDate < oneMonthFromNow) {
     return {
       valid: false,
-      error: 'Start date must be at least 1 month from today. SAP implementations require proper planning time.'
+      error:
+        "Start date must be at least 1 month from today. SAP implementations require proper planning time.",
     };
   }
 
@@ -41,9 +42,9 @@ export function getRecommendedStartDate(): Date {
  * Format date for display
  */
 export function formatDateForDisplay(date: Date): string {
-  return date.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 }

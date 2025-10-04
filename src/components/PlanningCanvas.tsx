@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-const PHASES = ['Prepare', 'Explore', 'Realize', 'Deploy', 'Run'];
-const STREAMS = ['PMO', 'Finance', 'HR', 'Supply Chain', 'Integration', 'Data', 'Testing', 'OCM'];
+const PHASES = ["Prepare", "Explore", "Realize", "Deploy", "Run"];
+const STREAMS = ["PMO", "Finance", "HR", "Supply Chain", "Integration", "Data", "Testing", "OCM"];
 
 export default function PlanningCanvas() {
-  const [, setSelectedCell] = useState<{stream: string; phase: string} | null>(null);
+  const [, setSelectedCell] = useState<{ stream: string; phase: string } | null>(null);
 
   return (
     <div className="overflow-x-auto">
@@ -14,8 +14,11 @@ export default function PlanningCanvas() {
         <thead>
           <tr>
             <th className="border bg-gray-50 px-4 py-2 text-left text-sm font-medium">Stream</th>
-            {PHASES.map(phase => (
-              <th key={phase} className="border bg-gray-50 px-4 py-2 text-center text-sm font-medium">
+            {PHASES.map((phase) => (
+              <th
+                key={phase}
+                className="border bg-gray-50 px-4 py-2 text-center text-sm font-medium"
+              >
                 {phase}
               </th>
             ))}
@@ -23,14 +26,14 @@ export default function PlanningCanvas() {
           </tr>
         </thead>
         <tbody>
-          {STREAMS.map(stream => (
+          {STREAMS.map((stream) => (
             <tr key={stream}>
               <td className="border px-4 py-2 text-sm font-medium">{stream}</td>
-              {PHASES.map(phase => (
-                <td 
+              {PHASES.map((phase) => (
+                <td
                   key={`${stream}-${phase}`}
                   className="border px-2 py-1 text-center hover:bg-blue-50 cursor-pointer"
-                  onClick={() => setSelectedCell({stream, phase})}
+                  onClick={() => setSelectedCell({ stream, phase })}
                 >
                   <input
                     type="number"
@@ -40,23 +43,22 @@ export default function PlanningCanvas() {
                   />
                 </td>
               ))}
-              <td className="border bg-gray-50 px-4 py-2 text-center text-sm font-semibold">
-                0d
-              </td>
+              <td className="border bg-gray-50 px-4 py-2 text-center text-sm font-semibold">0d</td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr>
             <td className="border bg-gray-100 px-4 py-2 text-sm font-semibold">Total</td>
-            {PHASES.map(phase => (
-              <td key={phase} className="border bg-gray-100 px-4 py-2 text-center text-sm font-semibold">
+            {PHASES.map((phase) => (
+              <td
+                key={phase}
+                className="border bg-gray-100 px-4 py-2 text-center text-sm font-semibold"
+              >
                 0d
               </td>
             ))}
-            <td className="border bg-gray-200 px-4 py-2 text-center text-sm font-bold">
-              0d
-            </td>
+            <td className="border bg-gray-200 px-4 py-2 text-center text-sm font-bold">0d</td>
           </tr>
         </tfoot>
       </table>

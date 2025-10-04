@@ -16,7 +16,7 @@ export interface Chip {
     evidence?: {
       snippet: string;
     };
-    
+
     // NEW FIELDS - Add these:
     note?: string;
     estimated?: boolean;
@@ -31,42 +31,36 @@ export interface Chip {
   timestamp?: Date;
 }
 
-export type ChipType = 
-  | 'country' 
-  | 'employees' 
-  | 'revenue' 
-  | 'industry'
-  | 'modules'
-  | 'timeline'
-  | 'integration'
-  | 'compliance'
-  | 'banking'
-  | 'existing_system'
-  | 'legal_entities'
-  | 'locations' 
-  | 'users'
-  | 'data_volume'
-  | 'currencies'
-  | 'languages'
-  | 'business_units'
-  | 'legacy_systems';
+export type ChipType =
+  | "country"
+  | "employees"
+  | "revenue"
+  | "industry"
+  | "modules"
+  | "timeline"
+  | "integration"
+  | "compliance"
+  | "banking"
+  | "existing_system"
+  | "legal_entities"
+  | "locations"
+  | "users"
+  | "data_volume"
+  | "currencies"
+  | "languages"
+  | "business_units"
+  | "legacy_systems";
 
-export type ChipSource =
-  | 'paste'
-  | 'upload'
-  | 'voice'
-  | 'manual'
-  | 'photo_ocr'
-  | 'test';
+export type ChipSource = "paste" | "upload" | "voice" | "manual" | "photo_ocr" | "test";
 
 export interface Decision {
   id: string;
-  type: 'single' | 'multiple' | 'range';
+  type: "single" | "multiple" | "range";
   category: string;
   question: string;
   options: string[];
   selected?: string | string[];
-  impact: 'low' | 'medium' | 'high';
+  impact: "low" | "medium" | "high";
   timestamp: Date;
 }
 
@@ -92,11 +86,12 @@ export interface Phase {
   color?: string;
   skipHolidays?: boolean;
   dependencies?: string[];
-  status?: 'idle' | 'active' | 'complete';
+  status?: "idle" | "active" | "complete";
   resources?: Resource[];
   selected?: boolean;
   description?: string;
   isCritical?: boolean;
+  progress?: number; // Optional progress percentage (0-100)
 }
 
 export interface Resource {
@@ -111,7 +106,7 @@ export interface Resource {
 export interface Override {
   id: string;
   targetId: string;
-  type: 'effort' | 'duration' | 'resource';
+  type: "effort" | "duration" | "resource";
   originalValue: any;
   newValue: any;
   reason?: string;
@@ -120,19 +115,19 @@ export interface Override {
 
 export interface Guardrail {
   id: string;
-  type: 'min' | 'max' | 'ratio' | 'dependency';
+  type: "min" | "max" | "ratio" | "dependency";
   target: string;
   value: number | string;
-  severity: 'warning' | 'error';
+  severity: "warning" | "error";
   message: string;
 }
 
 export interface ClientProfile {
   company: string;
   industry: string;
-  size: 'small' | 'medium' | 'large' | 'enterprise';
-  complexity: 'simple' | 'standard' | 'complex' | 'very_complex';
-  timelinePreference?: 'aggressive' | 'normal' | 'conservative';
+  size: "small" | "medium" | "large" | "enterprise";
+  complexity: "simple" | "standard" | "complex" | "very_complex";
+  timelinePreference?: "aggressive" | "normal" | "conservative";
   region: string;
   employees?: number;
   annualRevenue?: number;
@@ -158,7 +153,15 @@ export interface Holiday {
   country?: string;
 }
 
-export type ChipKind = 'country' | 'employees' | 'revenue' | 'modules' | 'timeline' | 'integration' | 'compliance' | 'industry';
+export type ChipKind =
+  | "country"
+  | "employees"
+  | "revenue"
+  | "modules"
+  | "timeline"
+  | "integration"
+  | "compliance"
+  | "industry";
 
 export interface ChipParsed {
   value: string | number;

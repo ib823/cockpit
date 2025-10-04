@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Sparkles, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
-import { usePresalesStore } from '@/stores/presales-store';
-import { useProjectStore } from '@/stores/project-store';
-import { EmptyState } from '../shared/EmptyState';
-import { LoadingState } from '../shared/LoadingState';
-import { cn, safePercentage } from '@/lib/utils';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Upload, Sparkles, CheckCircle, AlertCircle, ArrowRight } from "lucide-react";
+import { usePresalesStore } from "@/stores/presales-store";
+import { useProjectStore } from "@/stores/project-store";
+import { EmptyState } from "../shared/EmptyState";
+import { LoadingState } from "../shared/LoadingState";
+import { cn, safePercentage } from "@/lib/utils";
 
 const SAMPLE_RFP = `Malaysia manufacturing company with 500 employees and MYR 200M annual revenue.
 Need Finance, HR and Supply Chain modules.
@@ -26,17 +26,17 @@ export function CaptureMode() {
 
   const [isDragging, setIsDragging] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [pasteText, setPasteText] = useState('');
+  const [pasteText, setPasteText] = useState("");
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
 
-    const text = e.dataTransfer.getData('text');
+    const text = e.dataTransfer.getData("text");
     if (text) {
       setIsExtracting(true);
       // Simulate extraction delay for UX
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
       parseText(text);
       setIsExtracting(false);
     }
@@ -46,21 +46,21 @@ export function CaptureMode() {
     if (!pasteText.trim()) return;
 
     setIsExtracting(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800));
     parseText(pasteText);
-    setPasteText('');
+    setPasteText("");
     setIsExtracting(false);
   };
 
   const loadExample = async () => {
     setIsExtracting(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     parseText(SAMPLE_RFP);
     setIsExtracting(false);
   };
 
   const handleContinue = () => {
-    setMode('decide');
+    setMode("decide");
   };
 
   // Loading state
@@ -75,7 +75,7 @@ export function CaptureMode() {
           <div className="w-16 h-16 mx-auto mb-6">
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             >
               <Sparkles className="w-16 h-16 text-blue-600" />
             </motion.div>
@@ -92,7 +92,10 @@ export function CaptureMode() {
     return (
       <div
         className="h-full flex items-center justify-center p-8"
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
       >
@@ -100,32 +103,28 @@ export function CaptureMode() {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className={cn(
-            'max-w-3xl w-full p-12 rounded-3xl border-2 border-dashed transition-all duration-300',
-            isDragging
-              ? 'border-blue-500 bg-blue-50 scale-105'
-              : 'border-gray-300 bg-white'
+            "max-w-3xl w-full p-12 rounded-3xl border-2 border-dashed transition-all duration-300",
+            isDragging ? "border-blue-500 bg-blue-50 scale-105" : "border-gray-300 bg-white"
           )}
         >
           <div className="text-center">
             <motion.div
               animate={{
                 y: isDragging ? -10 : 0,
-                scale: isDragging ? 1.1 : 1
+                scale: isDragging ? 1.1 : 1,
               }}
               transition={{ duration: 0.3 }}
             >
               <Upload
                 className={cn(
-                  'w-24 h-24 mx-auto transition-colors duration-300',
-                  isDragging ? 'text-blue-500' : 'text-gray-300'
+                  "w-24 h-24 mx-auto transition-colors duration-300",
+                  isDragging ? "text-blue-500" : "text-gray-300"
                 )}
                 strokeWidth={1}
               />
             </motion.div>
 
-            <h2 className="text-3xl font-light text-gray-900 mt-8">
-              Drop your RFP here
-            </h2>
+            <h2 className="text-3xl font-light text-gray-900 mt-8">Drop your RFP here</h2>
             <p className="text-gray-500 mt-3 text-lg">
               or paste text below to extract requirements automatically
             </p>
@@ -187,10 +186,8 @@ export function CaptureMode() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className={cn(
-            'mb-6 p-6 rounded-2xl border-2 transition-colors',
-            isComplete
-              ? 'bg-green-50 border-green-200'
-              : 'bg-yellow-50 border-yellow-200'
+            "mb-6 p-6 rounded-2xl border-2 transition-colors",
+            isComplete ? "bg-green-50 border-green-200" : "bg-yellow-50 border-yellow-200"
           )}
         >
           <div className="flex items-center justify-between">
@@ -202,20 +199,19 @@ export function CaptureMode() {
               )}
               <div>
                 <h3 className="text-lg font-medium">
-                  {isComplete ? 'Requirements Complete!' : 'Almost there...'}
+                  {isComplete ? "Requirements Complete!" : "Almost there..."}
                 </h3>
                 <p className="text-sm text-gray-600 mt-0.5">
                   {isComplete
-                    ? 'All key requirements identified'
-                    : `${missingGaps.length} item${missingGaps.length !== 1 ? 's' : ''} missing`
-                  }
+                    ? "All key requirements identified"
+                    : `${missingGaps.length} item${missingGaps.length !== 1 ? "s" : ""} missing`}
                 </p>
               </div>
             </div>
             <div className="text-right">
               <div className="text-3xl font-light">{progressPercent}%</div>
               <div className="text-xs text-gray-500 mt-1">
-                {chips.length} requirement{chips.length !== 1 ? 's' : ''}
+                {chips.length} requirement{chips.length !== 1 ? "s" : ""}
               </div>
             </div>
           </div>
@@ -224,7 +220,7 @@ export function CaptureMode() {
           {missingGaps.length > 0 && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
+              animate={{ height: "auto", opacity: 1 }}
               className="mt-4 pt-4 border-t border-yellow-300"
             >
               <p className="text-sm font-medium text-gray-700 mb-2">Still needed:</p>
@@ -261,12 +257,16 @@ export function CaptureMode() {
                       <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">
                         {chip.type}
                       </span>
-                      <div className={cn(
-                        'h-1.5 w-1.5 rounded-full',
-                        chip.confidence >= 0.8 ? 'bg-green-500' :
-                        chip.confidence >= 0.6 ? 'bg-yellow-500' :
-                        'bg-red-500'
-                      )} />
+                      <div
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          chip.confidence >= 0.8
+                            ? "bg-green-500"
+                            : chip.confidence >= 0.6
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
+                        )}
+                      />
                     </div>
                     <p className="text-lg text-gray-900">{chip.value}</p>
                     {chip.source && (
@@ -294,7 +294,7 @@ export function CaptureMode() {
               initial={{ y: 100, opacity: 0, scale: 0.9 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 100, opacity: 0, scale: 0.9 }}
-              transition={{ type: 'spring', damping: 20 }}
+              transition={{ type: "spring", damping: 20 }}
               className="fixed bottom-8 right-8 bg-gradient-to-r from-green-600 to-emerald-600
                          text-white px-8 py-5 rounded-2xl shadow-2xl cursor-pointer
                          hover:scale-105 transition-transform"

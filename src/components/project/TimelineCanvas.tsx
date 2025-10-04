@@ -1,15 +1,15 @@
 // src/components/project/TimelineCanvas.tsx
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useProjectStore } from '@/stores/project-store';
-import { useTimelineStore } from '@/stores/timeline-store';
-import GanttChart from '@/components/timeline/GanttChart';
+import { useEffect } from "react";
+import { useProjectStore } from "@/stores/project-store";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { ImprovedGanttChart } from "@/components/timeline/ImprovedGanttChart";
 
 export function TimelineCanvas() {
-  const regenerateTimeline = useProjectStore(state => state.regenerateTimeline);
-  const timelineIsStale = useProjectStore(state => state.timelineIsStale);
-  const phases = useTimelineStore(state => state.phases);
+  const regenerateTimeline = useProjectStore((state) => state.regenerateTimeline);
+  const timelineIsStale = useProjectStore((state) => state.timelineIsStale);
+  const phases = useTimelineStore((state) => state.phases);
 
   useEffect(() => {
     // Auto-generate on first load if needed
@@ -51,7 +51,7 @@ export function TimelineCanvas() {
         </div>
       )}
 
-      <GanttChart />
+      <ImprovedGanttChart />
     </div>
   );
 }

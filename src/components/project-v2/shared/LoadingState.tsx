@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface LoadingStateProps {
-  type?: 'chip' | 'timeline' | 'decision';
+  type?: "chip" | "timeline" | "decision";
   count?: number;
   className?: string;
 }
@@ -79,11 +79,7 @@ function DecisionSkeleton() {
   );
 }
 
-export function LoadingState({
-  type = 'chip',
-  count = 3,
-  className
-}: LoadingStateProps) {
+export function LoadingState({ type = "chip", count = 3, className }: LoadingStateProps) {
   const Skeleton = {
     chip: ChipSkeleton,
     timeline: TimelineSkeleton,
@@ -91,7 +87,7 @@ export function LoadingState({
   }[type];
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn("space-y-3", className)}>
       {Array.from({ length: count }).map((_, i) => (
         <motion.div
           key={i}

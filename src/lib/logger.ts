@@ -8,7 +8,7 @@ export const logger = {
    * SECURITY: Stripped in production to prevent information disclosure
    */
   log: (...args: any[]) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.log(...args);
     }
   },
@@ -17,8 +17,8 @@ export const logger = {
    * Info-level logging
    */
   info: (message: string, data?: unknown) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[INFO] ${message}`, data || '');
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[INFO] ${message}`, data || "");
     }
   },
 
@@ -26,8 +26,8 @@ export const logger = {
    * Warning messages - development only
    */
   warn: (message: string, data?: unknown) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(`[WARN] ${message}`, data || '');
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`[WARN] ${message}`, data || "");
     }
   },
 
@@ -36,15 +36,15 @@ export const logger = {
    * SECURITY: Prevents stack trace disclosure in production
    */
   error: (message: string, error?: unknown) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[ERROR] ${message}`, error || '');
+    if (process.env.NODE_ENV === "development") {
+      console.error(`[ERROR] ${message}`, error || "");
     } else {
       // SECURITY: Sanitized error message in production
-      console.error(`[ERROR] ${message}`, 'Details hidden in production');
+      console.error(`[ERROR] ${message}`, "Details hidden in production");
     }
 
     // In production, send to error tracking (Sentry, etc.)
-    if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined') {
+    if (process.env.NODE_ENV === "production" && typeof window !== "undefined") {
       // window.Sentry?.captureException(error);
     }
   },
@@ -53,8 +53,8 @@ export const logger = {
    * Debug-level logging - development only
    */
   debug: (message: string, data?: unknown) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug(`[DEBUG] ${message}`, data || '');
+    if (process.env.NODE_ENV === "development") {
+      console.debug(`[DEBUG] ${message}`, data || "");
     }
-  }
+  },
 };

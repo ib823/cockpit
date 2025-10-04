@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * MAGIC TIMELINE PAGE
@@ -12,25 +12,25 @@
  * 5. Celebration animation on completion
  */
 
-import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, TrendingUp, Users, Clock, AlertCircle, Flag } from 'lucide-react';
-import { useTimelineStore } from '@/stores/timeline-store';
-import { usePresalesStore } from '@/stores/presales-store';
+import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { CheckCircle, TrendingUp, Users, Clock, AlertCircle, Flag } from "lucide-react";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { usePresalesStore } from "@/stores/presales-store";
 
 // Example timeline shown when user has no data
 const EXAMPLE_TIMELINE = {
-  name: 'Finance + HR Implementation',
+  name: "Finance + HR Implementation",
   phases: [
-    { id: 'prep', name: 'Prepare', days: 15, color: '#3b82f6', resources: 3 },
-    { id: 'explore', name: 'Explore', days: 45, color: '#10b981', resources: 5 },
-    { id: 'realize', name: 'Realize', days: 90, color: '#f59e0b', resources: 8 },
-    { id: 'deploy', name: 'Deploy', days: 30, color: '#8b5cf6', resources: 6 },
-    { id: 'run', name: 'Run', days: 20, color: '#06b6d4', resources: 4 }
+    { id: "prep", name: "Prepare", days: 15, color: "#3b82f6", resources: 3 },
+    { id: "explore", name: "Explore", days: 45, color: "#10b981", resources: 5 },
+    { id: "realize", name: "Realize", days: 90, color: "#f59e0b", resources: 8 },
+    { id: "deploy", name: "Deploy", days: 30, color: "#8b5cf6", resources: 6 },
+    { id: "run", name: "Run", days: 20, color: "#06b6d4", resources: 4 },
   ],
   totalDays: 200,
   totalCost: 850000,
-  teamSize: 12
+  teamSize: 12,
 };
 
 export default function MagicTimelinePage() {
@@ -56,18 +56,18 @@ export default function MagicTimelinePage() {
   // Calculate metrics
   const metrics = useMemo(() => {
     const months = Math.ceil(timelineData.totalDays / 20);
-    const currencyFormatted = new Intl.NumberFormat('en-MY', {
-      style: 'currency',
-      currency: 'MYR',
+    const currencyFormatted = new Intl.NumberFormat("en-MY", {
+      style: "currency",
+      currency: "MYR",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(timelineData.totalCost);
 
     return {
-      duration: `${months} month${months > 1 ? 's' : ''}`,
+      duration: `${months} month${months > 1 ? "s" : ""}`,
       cost: currencyFormatted,
       team: `${timelineData.teamSize} people`,
-      phases: timelineData.phases.length
+      phases: timelineData.phases.length,
     };
   }, [timelineData]);
 
@@ -75,9 +75,7 @@ export default function MagicTimelinePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Celebration Overlay */}
       <AnimatePresence>
-        {showCelebration && (
-          <CelebrationOverlay metrics={metrics} />
-        )}
+        {showCelebration && <CelebrationOverlay metrics={metrics} />}
       </AnimatePresence>
 
       {/* Main Content */}
@@ -89,7 +87,7 @@ export default function MagicTimelinePage() {
           className="mb-12"
         >
           <h1 className="text-5xl font-light text-gray-900 mb-3">
-            {hasRealData ? 'Your Timeline' : 'Example Timeline'}
+            {hasRealData ? "Your Timeline" : "Example Timeline"}
           </h1>
           <p className="text-xl text-gray-600">
             {hasRealData
@@ -171,10 +169,7 @@ export default function MagicTimelinePage() {
               type="warning"
               text="Realize phase has tight resource allocation - consider adding 2 more team members"
             />
-            <Insight
-              type="info"
-              text="Go-live scheduled for Q3 2025, allowing for UAT buffer"
-            />
+            <Insight type="info" text="Go-live scheduled for Q3 2025, allowing for UAT buffer" />
           </div>
         </motion.div>
 
@@ -188,19 +183,19 @@ export default function MagicTimelinePage() {
           <div className="bg-white rounded-full shadow-2xl px-8 py-4 flex items-center gap-4">
             <button
               className="px-6 py-3 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-all hover:scale-105"
-              onClick={() => alert('Present mode coming soon!')}
+              onClick={() => alert("Present mode coming soon!")}
             >
               Present to Client
             </button>
             <button
               className="px-6 py-3 bg-gray-100 text-gray-700 rounded-full font-medium hover:bg-gray-200 transition-all"
-              onClick={() => alert('Refine coming soon!')}
+              onClick={() => alert("Refine coming soon!")}
             >
               Refine Timeline
             </button>
             <button
               className="px-6 py-3 bg-gray-100 text-gray-700 rounded-full font-medium hover:bg-gray-200 transition-all"
-              onClick={() => alert('Export coming soon!')}
+              onClick={() => alert("Export coming soon!")}
             >
               Export PDF
             </button>
@@ -225,7 +220,7 @@ function CelebrationOverlay({ metrics }: { metrics: any }) {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: 'spring', duration: 0.6 }}
+          transition={{ type: "spring", duration: 0.6 }}
         >
           <CheckCircle className="w-24 h-24 text-white mx-auto mb-6" />
         </motion.div>
@@ -256,10 +251,10 @@ function CelebrationOverlay({ metrics }: { metrics: any }) {
 
 function MetricCard({ icon, label, value, color }: any) {
   const colors: Record<string, string> = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-200',
-    green: 'bg-green-50 text-green-600 border-green-200',
-    purple: 'bg-purple-50 text-purple-600 border-purple-200',
-    orange: 'bg-orange-50 text-orange-600 border-orange-200'
+    blue: "bg-blue-50 text-blue-600 border-blue-200",
+    green: "bg-green-50 text-green-600 border-green-200",
+    purple: "bg-purple-50 text-purple-600 border-purple-200",
+    orange: "bg-orange-50 text-orange-600 border-orange-200",
   };
 
   return (
@@ -291,11 +286,11 @@ function PhaseBar({ phase, totalDays, index, allPhases }: any) {
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${widthPercent}%` }}
-          transition={{ delay: index * 0.1, duration: 0.5, ease: 'easeOut' }}
+          transition={{ delay: index * 0.1, duration: 0.5, ease: "easeOut" }}
           className="absolute top-0 h-full rounded-lg cursor-pointer transition-all hover:opacity-90"
           style={{
             left: `${startPercent}%`,
-            backgroundColor: phase.color
+            backgroundColor: phase.color,
           }}
         >
           <div className="p-3 text-white">
@@ -308,17 +303,17 @@ function PhaseBar({ phase, totalDays, index, allPhases }: any) {
   );
 }
 
-function Insight({ type, text }: { type: 'success' | 'warning' | 'info'; text: string }) {
+function Insight({ type, text }: { type: "success" | "warning" | "info"; text: string }) {
   const styles = {
-    success: 'bg-green-50 border-green-200 text-green-800',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    info: 'bg-blue-50 border-blue-200 text-blue-800'
+    success: "bg-green-50 border-green-200 text-green-800",
+    warning: "bg-yellow-50 border-yellow-200 text-yellow-800",
+    info: "bg-blue-50 border-blue-200 text-blue-800",
   };
 
   const icons = {
-    success: '✓',
-    warning: '⚠',
-    info: 'ℹ'
+    success: "✓",
+    warning: "⚠",
+    info: "ℹ",
   };
 
   return (

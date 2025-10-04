@@ -1,7 +1,7 @@
 // src/lib/scenario-generator.ts
-import { Chip, Decision, ScenarioPlan, Phase, Resource } from '@/types/core';
-import { EstimationEngine } from './estimation-engine';
-import { ESTIMATION_CONSTANTS } from './estimation-constants';
+import { Chip, Decision, ScenarioPlan, Phase, Resource } from "@/types/core";
+import { EstimationEngine } from "./estimation-engine";
+import { ESTIMATION_CONSTANTS } from "./estimation-constants";
 
 // Type definitions for EstimationEngine inputs
 export interface ProjectInput {
@@ -21,7 +21,7 @@ export interface ProjectInput {
   timeline: Timeline;
   extensions: Extension[];
   sharedServicesModel: boolean;
-  decisionVelocity: 'fast' | 'normal' | 'slow';
+  decisionVelocity: "fast" | "normal" | "slow";
 }
 
 export interface CompanyFootprint {
@@ -34,7 +34,7 @@ export interface CompanyFootprint {
 export interface ScopeItem {
   id: string;
   name: string;
-  complexity: 'small' | 'medium' | 'large' | 'xlarge';
+  complexity: "small" | "medium" | "large" | "xlarge";
   variants: number;
   criticalityPercent: number;
   customWorkflows: number;
@@ -61,13 +61,13 @@ export interface DataMigration {
   objects: Array<{
     id: string;
     name: string;
-    complexity: 'simple' | 'medium' | 'complex';
+    complexity: "simple" | "medium" | "complex";
     recordCount: number;
     sources: Array<{ id: string; name: string }>;
     transformationRules: number;
     customFields: number;
   }>;
-  dataQuality: 'high' | 'medium' | 'low';
+  dataQuality: "high" | "medium" | "low";
   mockRuns: number;
   reconciliationRequired: boolean;
   piiHandling: boolean;
@@ -79,11 +79,21 @@ export interface DataMigration {
 export interface Integration {
   id: string;
   name: string;
-  protocol: 'REST' | 'SOAP' | 'OData' | 'RFC/BAPI' | 'IDoc' | 'SFTP' | 'AS2' | 'Kafka' | 'MQ' | 'File';
-  securityLevel: 'basic' | 'oauth' | 'certificate' | 'advanced';
+  protocol:
+    | "REST"
+    | "SOAP"
+    | "OData"
+    | "RFC/BAPI"
+    | "IDoc"
+    | "SFTP"
+    | "AS2"
+    | "Kafka"
+    | "MQ"
+    | "File";
+  securityLevel: "basic" | "oauth" | "certificate" | "advanced";
   transactionsPerDay: number;
   transformationRules: number;
-  errorHandling: 'basic' | 'advanced';
+  errorHandling: "basic" | "advanced";
   monitoringRequired: boolean;
   extraEnvRequired: boolean;
   partnerInvolved: boolean;
@@ -95,8 +105,8 @@ export interface Integration {
 }
 
 export interface Outputs {
-  forms: Array<{ id: string; complexity: 'simple' | 'medium' | 'complex' }>;
-  reports: Array<{ id: string; complexity: 'simple' | 'medium' | 'complex' }>;
+  forms: Array<{ id: string; complexity: "simple" | "medium" | "complex" }>;
+  reports: Array<{ id: string; complexity: "simple" | "medium" | "complex" }>;
   sacConnections: number;
   sacPages: number;
   sacWidgets: number;
@@ -104,7 +114,7 @@ export interface Outputs {
 
 export interface Localization {
   countries: string[];
-  eInvoiceModels: Array<{ country: string; model: 'API' | 'Peppol' | 'Clearance' }>;
+  eInvoiceModels: Array<{ country: string; model: "API" | "Peppol" | "Clearance" }>;
   whtRequired: boolean;
   statutoryReports: number;
   bankFormats: number;
@@ -113,15 +123,15 @@ export interface Localization {
 export interface Volumes {
   transactionsPerDay: number;
   linesPerDocument: number;
-  peakFactors: Array<{ period: 'month_end' | 'quarter_end' | 'year_end' }>;
+  peakFactors: Array<{ period: "month_end" | "quarter_end" | "year_end" }>;
   ilmRequired: boolean;
 }
 
 export interface NFRSecurity {
-  slaTarget: 'standard' | '99.5%' | '99.9%' | '99.95%';
+  slaTarget: "standard" | "99.5%" | "99.9%" | "99.95%";
   latencyTarget: number;
   dataResidency: boolean;
-  ssoMode: 'SAML' | 'OAuth' | 'OIDC' | 'None';
+  ssoMode: "SAML" | "OAuth" | "OIDC" | "None";
   mfaRequired: boolean;
   penTestRequired: boolean;
   complianceFrameworks: string[];
@@ -132,7 +142,7 @@ export interface EnvCutover {
   extraEnvironments: number;
   dataRefreshes: number;
   dressRehearsals: number;
-  cutoverWindow: 'weekend' | 'under_24h' | 'under_12h';
+  cutoverWindow: "weekend" | "under_24h" | "under_12h";
   freezePeriodWeeks: number;
 }
 
@@ -146,13 +156,13 @@ export interface TrainingOCM {
 export interface Run {
   linesOfBusiness: number;
   ticketsPerWeek: number;
-  triageCadence: '24x7' | 'business_hours' | 'best_effort';
-  coverageWindow: '8x5' | '12x5' | '24x5' | '24x7';
+  triageCadence: "24x7" | "business_hours" | "best_effort";
+  coverageWindow: "8x5" | "12x5" | "24x5" | "24x7";
   ktSessions: number;
 }
 
 export interface RisksAssumptions {
-  contingencyLevel: 'low' | 'medium' | 'high';
+  contingencyLevel: "low" | "medium" | "high";
   riskWorkshopRequired: boolean;
   monthsOfMaintenance: number;
 }
@@ -161,12 +171,12 @@ export interface Timeline {
   hardDeadline: boolean;
   blackoutWeeks: number;
   externalDependencies: number;
-  workingModel: 'onsite' | 'hybrid' | 'remote';
+  workingModel: "onsite" | "hybrid" | "remote";
 }
 
 export interface Extension {
   id: string;
-  type: 'key_user' | 'in_app' | 'side_by_side';
+  type: "key_user" | "in_app" | "side_by_side";
   workflowSteps: number;
   customApis: number;
   customEvents: number;
@@ -234,7 +244,7 @@ export class ScenarioGenerator {
       timeline: this.extractTimeline(chips),
       extensions: this.extractExtensions(chips),
       sharedServicesModel: this.detectSharedServices(chips),
-      decisionVelocity: this.estimateDecisionVelocity(chips)
+      decisionVelocity: this.estimateDecisionVelocity(chips),
     };
 
     return input;
@@ -244,66 +254,68 @@ export class ScenarioGenerator {
    * Extract company footprint from chips
    */
   private extractCompanyFootprint(chips: Chip[]): CompanyFootprint {
-    const countryChips = chips.filter(c => c.type === 'country');
-    const entityChips = chips.filter(c => c.type === 'legal_entities');
+    const countryChips = chips.filter((c) => c.type === "country");
+    const entityChips = chips.filter((c) => c.type === "legal_entities");
 
     return {
-      legalEntities: entityChips.length > 0
-        ? entityChips.map(c => ({ id: c.id || `entity-${c.type}-${c.value}`, name: String(c.value) }))
-        : countryChips.map(c => ({ id: c.id || `country-${c.type}-${c.value}`, name: String(c.value) })),
+      legalEntities:
+        entityChips.length > 0
+          ? entityChips.map((c) => ({
+              id: c.id || `entity-${c.type}-${c.value}`,
+              name: String(c.value),
+            }))
+          : countryChips.map((c) => ({
+              id: c.id || `country-${c.type}-${c.value}`,
+              name: String(c.value),
+            })),
 
       currencies: this.inferCurrencies(countryChips),
       languages: this.inferLanguages(countryChips),
-      timezones: this.inferTimezones(countryChips)
+      timezones: this.inferTimezones(countryChips),
     };
   }
 
   private inferCurrencies(countryChips: Chip[]): string[] {
     const currencyMap: Record<string, string> = {
-      'Malaysia': 'MYR',
-      'Singapore': 'SGD',
-      'Vietnam': 'VND',
-      'Thailand': 'THB',
-      'Indonesia': 'IDR',
-      'Philippines': 'PHP'
+      Malaysia: "MYR",
+      Singapore: "SGD",
+      Vietnam: "VND",
+      Thailand: "THB",
+      Indonesia: "IDR",
+      Philippines: "PHP",
     };
 
-    const currencies = countryChips
-      .map(c => currencyMap[String(c.value)])
-      .filter(Boolean);
+    const currencies = countryChips.map((c) => currencyMap[String(c.value)]).filter(Boolean);
 
     return [...new Set(currencies)];
   }
 
   private inferLanguages(countryChips: Chip[]): string[] {
     const languageMap: Record<string, string[]> = {
-      'Malaysia': ['English', 'Malay'],
-      'Singapore': ['English', 'Chinese', 'Malay', 'Tamil'],
-      'Vietnam': ['English', 'Vietnamese'],
-      'Thailand': ['English', 'Thai'],
-      'Indonesia': ['English', 'Indonesian'],
-      'Philippines': ['English', 'Filipino']
+      Malaysia: ["English", "Malay"],
+      Singapore: ["English", "Chinese", "Malay", "Tamil"],
+      Vietnam: ["English", "Vietnamese"],
+      Thailand: ["English", "Thai"],
+      Indonesia: ["English", "Indonesian"],
+      Philippines: ["English", "Filipino"],
     };
 
-    const languages = countryChips
-      .flatMap(c => languageMap[String(c.value)] || ['English']);
+    const languages = countryChips.flatMap((c) => languageMap[String(c.value)] || ["English"]);
 
     return [...new Set(languages)];
   }
 
   private inferTimezones(countryChips: Chip[]): string[] {
     const timezoneMap: Record<string, string> = {
-      'Malaysia': 'GMT+8',
-      'Singapore': 'GMT+8',
-      'Vietnam': 'GMT+7',
-      'Thailand': 'GMT+7',
-      'Indonesia': 'GMT+7',
-      'Philippines': 'GMT+8'
+      Malaysia: "GMT+8",
+      Singapore: "GMT+8",
+      Vietnam: "GMT+7",
+      Thailand: "GMT+7",
+      Indonesia: "GMT+7",
+      Philippines: "GMT+8",
     };
 
-    const timezones = countryChips
-      .map(c => timezoneMap[String(c.value)])
-      .filter(Boolean);
+    const timezones = countryChips.map((c) => timezoneMap[String(c.value)]).filter(Boolean);
 
     return [...new Set(timezones)];
   }
@@ -312,24 +324,24 @@ export class ScenarioGenerator {
    * Extract scope items from chips and decisions
    */
   private extractScopeItems(chips: Chip[], decisions: Decision[]): ScopeItem[] {
-    const moduleChips = chips.filter(c => c.type === 'modules');
-    const moduleComboDecision = decisions.find(d => d.category === 'module_combo');
+    const moduleChips = chips.filter((c) => c.type === "modules");
+    const moduleComboDecision = decisions.find((d) => d.category === "module_combo");
 
     const items: ScopeItem[] = [];
 
     // Base modules
-    moduleChips.forEach(chip => {
+    moduleChips.forEach((chip) => {
       const chipValue = String(chip.value);
       items.push({
         id: chip.id || `module-${chip.type}-${chipValue}`,
         name: chipValue,
         complexity: this.inferModuleComplexity(chipValue),
         variants: 1,
-        criticalityPercent: 80,  // Default assumption
+        criticalityPercent: 80, // Default assumption
         customWorkflows: this.estimateCustomWorkflows(chipValue),
         customForms: this.estimateCustomForms(chipValue),
         customReports: this.estimateCustomReports(chipValue),
-        dependencies: []
+        dependencies: [],
       });
     });
 
@@ -341,33 +353,33 @@ export class ScenarioGenerator {
     return items;
   }
 
-  private inferModuleComplexity(moduleName: string): 'small' | 'medium' | 'large' | 'xlarge' {
-    const complexityMap: Record<string, 'small' | 'medium' | 'large' | 'xlarge'> = {
-      'Finance': 'large',
-      'FI/CO': 'large',
-      'HR': 'medium',
-      'HCM': 'medium',
-      'Supply Chain': 'large',
-      'SCM': 'large',
-      'SD': 'medium',
-      'MM': 'medium',
-      'PP': 'large',
-      'QM': 'medium',
-      'PM': 'medium',
-      'PS': 'large'
+  private inferModuleComplexity(moduleName: string): "small" | "medium" | "large" | "xlarge" {
+    const complexityMap: Record<string, "small" | "medium" | "large" | "xlarge"> = {
+      Finance: "large",
+      "FI/CO": "large",
+      HR: "medium",
+      HCM: "medium",
+      "Supply Chain": "large",
+      SCM: "large",
+      SD: "medium",
+      MM: "medium",
+      PP: "large",
+      QM: "medium",
+      PM: "medium",
+      PS: "large",
     };
 
-    return complexityMap[moduleName] || 'medium';
+    return complexityMap[moduleName] || "medium";
   }
 
   private estimateCustomWorkflows(moduleName: string): number {
     const workflowMap: Record<string, number> = {
-      'Finance': 3,
-      'HR': 5,
-      'Supply Chain': 4,
-      'SD': 2,
-      'MM': 2,
-      'PP': 3
+      Finance: 3,
+      HR: 5,
+      "Supply Chain": 4,
+      SD: 2,
+      MM: 2,
+      PP: 3,
     };
 
     return workflowMap[moduleName] || 2;
@@ -375,12 +387,12 @@ export class ScenarioGenerator {
 
   private estimateCustomForms(moduleName: string): number {
     const formMap: Record<string, number> = {
-      'Finance': 5,
-      'HR': 8,
-      'Supply Chain': 4,
-      'SD': 3,
-      'MM': 2,
-      'PP': 3
+      Finance: 5,
+      HR: 8,
+      "Supply Chain": 4,
+      SD: 3,
+      MM: 2,
+      PP: 3,
     };
 
     return formMap[moduleName] || 3;
@@ -388,93 +400,94 @@ export class ScenarioGenerator {
 
   private estimateCustomReports(moduleName: string): number {
     const reportMap: Record<string, number> = {
-      'Finance': 10,
-      'HR': 6,
-      'Supply Chain': 8,
-      'SD': 5,
-      'MM': 4,
-      'PP': 6
+      Finance: 10,
+      HR: 6,
+      "Supply Chain": 8,
+      SD: 5,
+      MM: 4,
+      PP: 6,
     };
 
     return reportMap[moduleName] || 5;
   }
 
   private applyModuleComboLogic(items: ScopeItem[], decision: Decision): void {
-    const selectedModules = items.map(i => i.name);
+    const selectedModules = items.map((i) => i.name);
 
-    if (selectedModules.includes('Finance') && selectedModules.includes('Supply Chain')) {
-      const fiItem = items.find(i => i.name === 'Finance');
-      const scmItem = items.find(i => i.name === 'Supply Chain');
+    if (selectedModules.includes("Finance") && selectedModules.includes("Supply Chain")) {
+      const fiItem = items.find((i) => i.name === "Finance");
+      const scmItem = items.find((i) => i.name === "Supply Chain");
 
       if (fiItem && scmItem) {
         fiItem.dependencies.push(scmItem.id);
-        scmItem.complexity = 'large';
+        scmItem.complexity = "large";
       }
     }
   }
 
   private extractUsersRoles(chips: Chip[]): UsersRoles {
-    const userChips = chips.filter(c => c.type === 'users' || c.type === 'employees');
+    const userChips = chips.filter((c) => c.type === "users" || c.type === "employees");
     const totalUsers = userChips.length > 0 ? parseInt(String(userChips[0].value)) || 500 : 500;
 
     return {
       personas: [
-        { id: '1', name: 'Finance User' },
-        { id: '2', name: 'HR User' }
+        { id: "1", name: "Finance User" },
+        { id: "2", name: "HR User" },
       ],
       totalUsers,
       concurrentUsers: Math.floor(totalUsers * 0.2),
       shifts: 1,
-      languages: ['English'],
+      languages: ["English"],
       accessibilityRequired: false,
       roles: [
-        { id: '1', name: 'Finance Manager' },
-        { id: '2', name: 'HR Manager' }
+        { id: "1", name: "Finance Manager" },
+        { id: "2", name: "HR Manager" },
       ],
       sodRules: 5,
       uatParticipants: Math.min(50, Math.floor(totalUsers * 0.1)),
       maxCohortSize: 20,
-      superUsers: Math.min(10, Math.floor(totalUsers * 0.02))
+      superUsers: Math.min(10, Math.floor(totalUsers * 0.02)),
     };
   }
 
   private extractDataMigration(chips: Chip[]): DataMigration {
-    const dataVolumeChips = chips.filter(c => c.type === 'data_volume');
-    const recordCount = dataVolumeChips.length > 0 ? parseInt(String(dataVolumeChips[0].value)) || 100000 : 100000;
+    const dataVolumeChips = chips.filter((c) => c.type === "data_volume");
+    const recordCount =
+      dataVolumeChips.length > 0 ? parseInt(String(dataVolumeChips[0].value)) || 100000 : 100000;
 
     return {
       objects: [
         {
-          id: '1',
-          name: 'Master Data',
-          complexity: 'medium',
+          id: "1",
+          name: "Master Data",
+          complexity: "medium",
           recordCount,
-          sources: [{ id: '1', name: 'Legacy System' }],
+          sources: [{ id: "1", name: "Legacy System" }],
           transformationRules: 5,
-          customFields: 3
-        }
+          customFields: 3,
+        },
       ],
-      dataQuality: 'medium',
+      dataQuality: "medium",
       mockRuns: 2,
       reconciliationRequired: true,
       piiHandling: true,
       historicalYears: 2,
       cutoverWindow: 24,
-      mdmInPlace: false
+      mdmInPlace: false,
     };
   }
 
   private extractIntegrations(chips: Chip[]): Integration[] {
-    const integrationChips = chips.filter(c => c.type === 'integration');
+    const integrationChips = chips.filter((c) => c.type === "integration");
 
-    return integrationChips.map(chip => ({
+    return integrationChips.map((chip) => ({
       id: chip.id || `integration-${chip.type}-${chip.value}`,
       name: String(chip.value),
-      protocol: 'REST' as const,
-      securityLevel: 'oauth' as const,
+      protocol: "REST" as const,
+      securityLevel: "oauth" as const,
       transactionsPerDay: 1000,
       transformationRules: 3,
-      errorHandling: 'basic' as const,
+      errorHandling: "basic" as const,
       monitoringRequired: true,
       extraEnvRequired: false,
       partnerInvolved: false,
@@ -482,35 +495,35 @@ export class ScenarioGenerator {
       nfrRequired: true,
       complianceRequired: false,
       backfillRequired: false,
-      runbookRequired: true
+      runbookRequired: true,
     }));
   }
 
   private extractOutputs(chips: Chip[]): Outputs {
     return {
       forms: [
-        { id: '1', complexity: 'medium' },
-        { id: '2', complexity: 'simple' }
+        { id: "1", complexity: "medium" },
+        { id: "2", complexity: "simple" },
       ],
       reports: [
-        { id: '1', complexity: 'medium' },
-        { id: '2', complexity: 'complex' }
+        { id: "1", complexity: "medium" },
+        { id: "2", complexity: "complex" },
       ],
       sacConnections: 0,
       sacPages: 0,
-      sacWidgets: 0
+      sacWidgets: 0,
     };
   }
 
   private extractLocalization(chips: Chip[]): Localization {
-    const countryChips = chips.filter(c => c.type === 'country');
+    const countryChips = chips.filter((c) => c.type === "country");
 
     return {
-      countries: countryChips.map(c => String(c.value)),
+      countries: countryChips.map((c) => String(c.value)),
       eInvoiceModels: [],
       whtRequired: false,
       statutoryReports: 0,
-      bankFormats: 0
+      bankFormats: 0,
     };
   }
 
@@ -518,20 +531,20 @@ export class ScenarioGenerator {
     return {
       transactionsPerDay: 1000,
       linesPerDocument: 5,
-      peakFactors: [{ period: 'month_end' }],
-      ilmRequired: false
+      peakFactors: [{ period: "month_end" }],
+      ilmRequired: false,
     };
   }
 
   private extractNFRSecurity(chips: Chip[]): NFRSecurity {
     return {
-      slaTarget: 'standard',
+      slaTarget: "standard",
       latencyTarget: 1000,
       dataResidency: false,
-      ssoMode: 'None',
+      ssoMode: "None",
       mfaRequired: false,
       penTestRequired: false,
-      complianceFrameworks: []
+      complianceFrameworks: [],
     };
   }
 
@@ -541,8 +554,8 @@ export class ScenarioGenerator {
       extraEnvironments: 0,
       dataRefreshes: 2,
       dressRehearsals: 1,
-      cutoverWindow: 'weekend',
-      freezePeriodWeeks: 0
+      cutoverWindow: "weekend",
+      freezePeriodWeeks: 0,
     };
   }
 
@@ -551,7 +564,7 @@ export class ScenarioGenerator {
       impactAssessmentRequired: true,
       commsArtifacts: 5,
       tttCohorts: 2,
-      floorwalkingRequired: true
+      floorwalkingRequired: true,
     };
   }
 
@@ -559,17 +572,17 @@ export class ScenarioGenerator {
     return {
       linesOfBusiness: 2,
       ticketsPerWeek: 10,
-      triageCadence: 'business_hours',
-      coverageWindow: '8x5',
-      ktSessions: 3
+      triageCadence: "business_hours",
+      coverageWindow: "8x5",
+      ktSessions: 3,
     };
   }
 
   private extractRisksAssumptions(chips: Chip[]): RisksAssumptions {
     return {
-      contingencyLevel: 'medium',
+      contingencyLevel: "medium",
       riskWorkshopRequired: true,
-      monthsOfMaintenance: 3
+      monthsOfMaintenance: 3,
     };
   }
 
@@ -578,7 +591,7 @@ export class ScenarioGenerator {
       hardDeadline: false,
       blackoutWeeks: 0,
       externalDependencies: 2,
-      workingModel: 'hybrid'
+      workingModel: "hybrid",
     };
   }
 
@@ -587,33 +600,33 @@ export class ScenarioGenerator {
   }
 
   private detectSharedServices(chips: Chip[]): boolean {
-    const entityChips = chips.filter(c => c.type === 'legal_entities');
+    const entityChips = chips.filter((c) => c.type === "legal_entities");
     return entityChips.length > 3;
   }
 
-  private estimateDecisionVelocity(chips: Chip[]): 'fast' | 'normal' | 'slow' {
-    return 'normal';
+  private estimateDecisionVelocity(chips: Chip[]): "fast" | "normal" | "slow" {
+    return "normal";
   }
 
   /**
    * Apply decision impacts to base plan
    */
   private applyDecisionImpacts(plan: ScenarioPlan, decisions: Decision[]): ScenarioPlan {
-    decisions.forEach(decision => {
+    decisions.forEach((decision) => {
       switch (decision.category) {
-        case 'banking_path':
+        case "banking_path":
           this.applyBankingPathImpact(plan, decision);
           break;
-        case 'integration_posture':
+        case "integration_posture":
           this.applyIntegrationPostureImpact(plan, decision);
           break;
-        case 'sso_mode':
+        case "sso_mode":
           this.applySSOImpact(plan, decision);
           break;
-        case 'fricew_target':
+        case "fricew_target":
           this.applyFRICEWTargetImpact(plan, decision);
           break;
-        case 'rate_region':
+        case "rate_region":
           this.applyRateRegionImpact(plan, decision);
           break;
       }
@@ -624,16 +637,19 @@ export class ScenarioGenerator {
 
   private applyBankingPathImpact(plan: ScenarioPlan, decision: Decision): void {
     const impacts: Record<string, { effortDelta: number; costDelta: number }> = {
-      'MBC': { effortDelta: 120, costDelta: 240000 },
-      'DRC': { effortDelta: 80, costDelta: 160000 },
-      'Host-to-Host': { effortDelta: 200, costDelta: 400000 }
+      MBC: { effortDelta: 120, costDelta: 240000 },
+      DRC: { effortDelta: 80, costDelta: 160000 },
+      "Host-to-Host": { effortDelta: 200, costDelta: 400000 },
     };
 
-    const selected = typeof decision.selected === 'string' ? decision.selected : decision.selected?.[0] || '';
+    const selected =
+      typeof decision.selected === "string" ? decision.selected : decision.selected?.[0] || "";
     const impact = impacts[selected];
     if (!impact) return;
 
-    const integrationPhase = plan.phases.find(p => p.name.includes('Integration') && p.category === 'Realize');
+    const integrationPhase = plan.phases.find(
+      (p) => p.name.includes("Integration") && p.category === "Realize"
+    );
     if (integrationPhase && integrationPhase.effort) {
       integrationPhase.effort += impact.effortDelta;
     }
@@ -647,18 +663,23 @@ export class ScenarioGenerator {
 
   private applySSOImpact(plan: ScenarioPlan, decision: Decision): void {
     const impacts: Record<string, { effortDelta: number }> = {
-      'None': { effortDelta: 0 },
-      'SAML': { effortDelta: 8 },
-      'OAuth': { effortDelta: 10 },
-      'OIDC': { effortDelta: 12 }
+      None: { effortDelta: 0 },
+      SAML: { effortDelta: 8 },
+      OAuth: { effortDelta: 10 },
+      OIDC: { effortDelta: 12 },
     };
 
-    const selected = typeof decision.selected === 'string' ? decision.selected : decision.selected?.[0] || '';
+    const selected =
+      typeof decision.selected === "string" ? decision.selected : decision.selected?.[0] || "";
     const impact = impacts[selected];
     if (!impact) return;
 
-    const exploreArch = plan.phases.find(p => p.name.includes('Solution Architecture') && p.category === 'Explore');
-    const realizeArch = plan.phases.find(p => p.name.includes('Solution Architecture') && p.category === 'Realize');
+    const exploreArch = plan.phases.find(
+      (p) => p.name.includes("Solution Architecture") && p.category === "Explore"
+    );
+    const realizeArch = plan.phases.find(
+      (p) => p.name.includes("Solution Architecture") && p.category === "Realize"
+    );
 
     if (exploreArch && exploreArch.effort) exploreArch.effort += impact.effortDelta * 0.3;
     if (realizeArch && realizeArch.effort) realizeArch.effort += impact.effortDelta * 0.7;
@@ -677,23 +698,24 @@ export class ScenarioGenerator {
    */
   private distributeToStreams(plan: ScenarioPlan): ScenarioPlan {
     const streams = [
-      'Business Transformation & OCM',
-      'Project Management',
-      'Solution Architecture',
-      'Configuration',
-      'Development & Extensions',
-      'Data Migration',
-      'Integration',
-      'Testing & Quality Assurance'
+      "Business Transformation & OCM",
+      "Project Management",
+      "Solution Architecture",
+      "Configuration",
+      "Development & Extensions",
+      "Data Migration",
+      "Integration",
+      "Testing & Quality Assurance",
     ];
 
-    const phases = ['Prepare', 'Explore', 'Realize', 'Deploy', 'Run'];
+    const phases = ["Prepare", "Explore", "Realize", "Deploy", "Run"];
     const newPhases: Phase[] = [];
 
-    streams.forEach(stream => {
-      phases.forEach(phase => {
+    streams.forEach((stream) => {
+      phases.forEach((phase) => {
         const streamWeight = (ESTIMATION_CONSTANTS.STREAM_WEIGHTS as any)[stream] || 0.125;
-        const phaseWeight = (ESTIMATION_CONSTANTS.PHASE_DISTRIBUTION as any)[phase.toLowerCase()] || 0.2;
+        const phaseWeight =
+          (ESTIMATION_CONSTANTS.PHASE_DISTRIBUTION as any)[phase.toLowerCase()] || 0.2;
 
         const effort = plan.totalEffort * streamWeight * phaseWeight;
 
@@ -704,7 +726,7 @@ export class ScenarioGenerator {
           startBusinessDay: 0,
           workingDays: 10,
           effort: Math.round(effort * 10) / 10,
-          resources: []
+          resources: [],
         });
       });
     });
@@ -717,11 +739,16 @@ export class ScenarioGenerator {
    * Allocate resources to plan items
    */
   private allocateResources(plan: ScenarioPlan, decisions: Decision[]): ScenarioPlan {
-    const rateRegionDecision = decisions.find(d => d.category === 'rate_region');
-    const region = typeof rateRegionDecision?.selected === 'string' ? rateRegionDecision.selected : 'ABMY';
+    const rateRegionDecision = decisions.find((d) => d.category === "rate_region");
+    const region =
+      typeof rateRegionDecision?.selected === "string" ? rateRegionDecision.selected : "ABMY";
 
-    plan.phases.forEach(phase => {
-      const resources = this.allocateResourcesByStream(phase.name.split(' - ')[1] || '', phase.effort || 0, region);
+    plan.phases.forEach((phase) => {
+      const resources = this.allocateResourcesByStream(
+        phase.name.split(" - ")[1] || "",
+        phase.effort || 0,
+        region
+      );
       phase.resources = resources;
     });
 
@@ -730,44 +757,44 @@ export class ScenarioGenerator {
 
   private allocateResourcesByStream(stream: string, effort: number, region: string): Resource[] {
     const allocations: Record<string, Array<{ role: string; allocation: number }>> = {
-      'Business Transformation & OCM': [
-        { role: 'Senior Manager', allocation: 0.3 },
-        { role: 'Manager', allocation: 0.4 },
-        { role: 'Senior Consultant', allocation: 0.3 }
+      "Business Transformation & OCM": [
+        { role: "Senior Manager", allocation: 0.3 },
+        { role: "Manager", allocation: 0.4 },
+        { role: "Senior Consultant", allocation: 0.3 },
       ],
-      'Project Management': [
-        { role: 'Senior Manager', allocation: 0.5 },
-        { role: 'Manager', allocation: 0.5 }
+      "Project Management": [
+        { role: "Senior Manager", allocation: 0.5 },
+        { role: "Manager", allocation: 0.5 },
       ],
-      'Solution Architecture': [
-        { role: 'Director', allocation: 0.2 },
-        { role: 'Senior Manager', allocation: 0.4 },
-        { role: 'Manager', allocation: 0.4 }
+      "Solution Architecture": [
+        { role: "Director", allocation: 0.2 },
+        { role: "Senior Manager", allocation: 0.4 },
+        { role: "Manager", allocation: 0.4 },
       ],
-      'Configuration': [
-        { role: 'Senior Consultant', allocation: 0.4 },
-        { role: 'Consultant', allocation: 0.6 }
+      Configuration: [
+        { role: "Senior Consultant", allocation: 0.4 },
+        { role: "Consultant", allocation: 0.6 },
       ],
-      'Development & Extensions': [
-        { role: 'Senior Consultant', allocation: 0.3 },
-        { role: 'Consultant', allocation: 0.5 },
-        { role: 'Analyst', allocation: 0.2 }
+      "Development & Extensions": [
+        { role: "Senior Consultant", allocation: 0.3 },
+        { role: "Consultant", allocation: 0.5 },
+        { role: "Analyst", allocation: 0.2 },
       ],
-      'Data Migration': [
-        { role: 'Manager', allocation: 0.3 },
-        { role: 'Senior Consultant', allocation: 0.4 },
-        { role: 'Consultant', allocation: 0.3 }
+      "Data Migration": [
+        { role: "Manager", allocation: 0.3 },
+        { role: "Senior Consultant", allocation: 0.4 },
+        { role: "Consultant", allocation: 0.3 },
       ],
-      'Integration': [
-        { role: 'Senior Manager', allocation: 0.2 },
-        { role: 'Senior Consultant', allocation: 0.5 },
-        { role: 'Consultant', allocation: 0.3 }
+      Integration: [
+        { role: "Senior Manager", allocation: 0.2 },
+        { role: "Senior Consultant", allocation: 0.5 },
+        { role: "Consultant", allocation: 0.3 },
       ],
-      'Testing & Quality Assurance': [
-        { role: 'Manager', allocation: 0.3 },
-        { role: 'Consultant', allocation: 0.4 },
-        { role: 'Analyst', allocation: 0.3 }
-      ]
+      "Testing & Quality Assurance": [
+        { role: "Manager", allocation: 0.3 },
+        { role: "Consultant", allocation: 0.4 },
+        { role: "Analyst", allocation: 0.3 },
+      ],
     };
 
     const streamAllocations = allocations[stream] || [];
@@ -777,28 +804,28 @@ export class ScenarioGenerator {
       role: alloc.role,
       allocation: alloc.allocation,
       region,
-      hourlyRate: this.getHourlyRate(alloc.role, region)
+      hourlyRate: this.getHourlyRate(alloc.role, region),
     }));
   }
 
   private getHourlyRate(role: string, region: string): number {
     const rates: Record<string, Record<string, number>> = {
-      'ABMY': {
-        'Director': 200,
-        'Senior Manager': 150,
-        'Manager': 120,
-        'Senior Consultant': 100,
-        'Consultant': 80,
-        'Analyst': 60
+      ABMY: {
+        Director: 200,
+        "Senior Manager": 150,
+        Manager: 120,
+        "Senior Consultant": 100,
+        Consultant: 80,
+        Analyst: 60,
       },
-      'ABSG': {
-        'Director': 280,
-        'Senior Manager': 220,
-        'Manager': 180,
-        'Senior Consultant': 150,
-        'Consultant': 120,
-        'Analyst': 90
-      }
+      ABSG: {
+        Director: 280,
+        "Senior Manager": 220,
+        Manager: 180,
+        "Senior Consultant": 150,
+        Consultant: 120,
+        Analyst: 90,
+      },
     };
 
     return rates[region]?.[role] || 100;
@@ -808,8 +835,9 @@ export class ScenarioGenerator {
    * Generate timeline
    */
   private generateTimeline(plan: ScenarioPlan, chips: Chip[]): ScenarioPlan {
-    const timelineChips = chips.filter(c => c.type === 'timeline');
-    const durationMonths = timelineChips.length > 0 ? parseInt(String(timelineChips[0].value)) || 6 : 6;
+    const timelineChips = chips.filter((c) => c.type === "timeline");
+    const durationMonths =
+      timelineChips.length > 0 ? parseInt(String(timelineChips[0].value)) || 6 : 6;
 
     plan.duration = durationMonths * 20; // Convert to business days
 
@@ -817,18 +845,21 @@ export class ScenarioGenerator {
     let currentDay = 0;
     const phasesByCategory: Record<string, Phase[]> = {};
 
-    plan.phases.forEach(phase => {
+    plan.phases.forEach((phase) => {
       if (!phasesByCategory[phase.category]) {
         phasesByCategory[phase.category] = [];
       }
       phasesByCategory[phase.category].push(phase);
     });
 
-    ['Prepare', 'Explore', 'Realize', 'Deploy', 'Run'].forEach(category => {
+    ["Prepare", "Explore", "Realize", "Deploy", "Run"].forEach((category) => {
       const categoryPhases = phasesByCategory[category] || [];
-      const categoryDuration = Math.floor(plan.duration * ((ESTIMATION_CONSTANTS.PHASE_DISTRIBUTION as any)[category.toLowerCase()] || 0.2));
+      const categoryDuration = Math.floor(
+        plan.duration *
+          ((ESTIMATION_CONSTANTS.PHASE_DISTRIBUTION as any)[category.toLowerCase()] || 0.2)
+      );
 
-      categoryPhases.forEach(phase => {
+      categoryPhases.forEach((phase) => {
         phase.startBusinessDay = currentDay;
         phase.workingDays = categoryDuration;
       });
@@ -846,12 +877,12 @@ export class ScenarioGenerator {
     let totalCost = 0;
     let totalEffort = 0;
 
-    plan.phases.forEach(phase => {
+    plan.phases.forEach((phase) => {
       // Sum up total effort from all phases
       totalEffort += phase.effort || 0;
 
       // Calculate cost per phase
-      phase.resources?.forEach(resource => {
+      phase.resources?.forEach((resource) => {
         const resourceCost = (phase.effort || 0) * resource.allocation * resource.hourlyRate * 8;
         totalCost += resourceCost;
       });
@@ -870,18 +901,18 @@ export class ScenarioGenerator {
 
   private generateAssumptions(decisions: Decision[]): string[] {
     return [
-      'Client will provide dedicated resources for the project',
-      'Current business processes are documented and available',
-      'Decision makers are available for key project decisions',
-      'Test data will be provided by client',
-      'Standard SAP best practices will be followed'
+      "Client will provide dedicated resources for the project",
+      "Current business processes are documented and available",
+      "Decision makers are available for key project decisions",
+      "Test data will be provided by client",
+      "Standard SAP best practices will be followed",
     ];
   }
 
   private generateRisks(decisions: Decision[]): string[] {
     return [
-      'Data quality issues during migration - Mitigation: Early data profiling and cleansing activities',
-      'User adoption challenges - Mitigation: Comprehensive training and change management program'
+      "Data quality issues during migration - Mitigation: Early data profiling and cleansing activities",
+      "User adoption challenges - Mitigation: Comprehensive training and change management program",
     ];
   }
 }

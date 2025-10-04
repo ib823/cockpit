@@ -1,7 +1,7 @@
 // src/components/project/CaptureCanvas.tsx
-'use client';
+"use client";
 
-import { ChipCapture } from '@/components/presales/ChipCapture';
+import { ChipCapture } from "@/components/presales/ChipCapture";
 
 export function CaptureCanvas() {
   return (

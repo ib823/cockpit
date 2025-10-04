@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import { useTimelineStore } from '@/stores/timeline-store';
+import { useState, useEffect } from "react";
+import { useTimelineStore } from "@/stores/timeline-store";
 
 export default function TimelineControls() {
-  const { 
-    phases, 
+  const {
+    phases,
     profile,
     getProjectCost,
     getProjectStartDate,
@@ -12,34 +13,54 @@ export default function TimelineControls() {
     clientPresentationMode,
     togglePresentationMode,
     setZoomLevel,
-    zoomLevel
+    zoomLevel,
   } = useTimelineStore();
-  
+
+  // Prevent hydration mismatch by only rendering dates on client
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Safe currency formatting
   const formatCurrency = (amount: any, region: string) => {
     const safeAmount = Number(amount) || 0;
-    
-    if (region === 'ABSG') {
+
+    if (region === "ABSG") {
       return `SGD ${safeAmount.toLocaleString()}`;
-    } else if (region === 'ABVN') {
+    } else if (region === "ABVN") {
       return `VND ${safeAmount.toLocaleString()}`;
     }
     return `MYR ${safeAmount.toLocaleString()}`;
   };
-  
+
   // Safe date formatting
   const formatDate = (date: any) => {
     if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-      return 'TBD';
+      return "TBD";
     }
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   };
-  
-  const startDate = getProjectStartDate ? getProjectStartDate() : null;
-  const endDate = getProjectEndDate ? getProjectEndDate() : null;
+
+  const startDate = mounted && getProjectStartDate ? getProjectStartDate() : null;
+  const endDate = mounted && getProjectEndDate ? getProjectEndDate() : null;
   const totalCost = getProjectCost ? getProjectCost() : 0;
-  
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
       <div className="flex justify-between items-center">
@@ -59,15 +80,17 @@ export default function TimelineControls() {
           {!clientPresentationMode && (
             <div>
               <p className="text-sm text-gray-600">Total Cost</p>
-              <p className="text-lg font-semibold">{formatCurrency(totalCost, profile?.region || 'ABMY')}</p>
+              <p className="text-lg font-semibold">
+                {formatCurrency(totalCost, profile?.region || "ABMY")}
+              </p>
             </div>
           )}
         </div>
-        
+
         <div className="flex gap-4">
           {setZoomLevel && (
-            <select 
-              value={zoomLevel || 'weekly'} 
+            <select
+              value={zoomLevel || "weekly"}
               onChange={(e) => setZoomLevel(e.target.value as any)}
               className="px-4 py-2 border rounded-lg"
             >
@@ -77,17 +100,15 @@ export default function TimelineControls() {
               <option value="monthly">Monthly</option>
             </select>
           )}
-          
+
           {togglePresentationMode && (
             <button
               onClick={togglePresentationMode}
               className={`px-4 py-2 rounded-lg ${
-                clientPresentationMode 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-700'
+                clientPresentationMode ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"
               }`}
             >
-              {clientPresentationMode ? 'Exit Presentation' : 'Presentation Mode'}
+              {clientPresentationMode ? "Exit Presentation" : "Presentation Mode"}
             </button>
           )}
         </div>

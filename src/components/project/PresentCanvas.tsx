@@ -1,5 +1,5 @@
 // src/components/project/PresentCanvas.tsx
-'use client';
+"use client";
 
 export function PresentCanvas() {
   return (
