@@ -19,7 +19,7 @@ import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
 import { ChipType } from "@/types/core";
 import { motion } from "framer-motion";
-import { AlertCircle, CheckCircle, Plus, Sparkles, Upload, Zap } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle, Plus, Sparkles, Upload, Zap } from "lucide-react";
 import React, { useState } from "react";
 
 // Sample RFP text for demo
@@ -223,7 +223,18 @@ export function CaptureMode() {
   const canProceedWithDefaults = progressPercent >= 30; // NEW: Lower threshold for defaults
 
   return (
-    <div className="h-full overflow-auto bg-gray-50">
+    <div className="h-full overflow-auto bg-gray-50 relative">
+      {/* Back Button */}
+      <div className="absolute top-6 left-6 z-10">
+        <button
+          onClick={() => window.location.href = '/'}
+          className="flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-blue-600 rounded-lg transition-all shadow-md hover:shadow-lg"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="text-sm font-medium">Home</span>
+        </button>
+      </div>
+
       <div className="max-w-4xl mx-auto p-8">
         {/* Progress card */}
         <motion.div
