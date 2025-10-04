@@ -2,7 +2,45 @@
 import { detectEmployeeCount, detectMultiEntityFactors } from "@/lib/critical-patterns";
 import { Chip, ClientProfile, Decision } from "@/types/core";
 import { ScenarioGenerator } from "@/lib/scenario-generator";
-import { sanitizeObject } from "@/lib/input-sanitizer";
+import { sanitizeObject, sanitizeHtml } from "@/lib/input-sanitizer";
+
+/**
+ * SECURITY: Additional sanitization layer for chip values
+ * Defense-in-depth: Even if chips bypass presales-store validation
+ */
+function sanitizeChipValue(value: any): string {
+  const str = String(value || "");
+  return str
+    .replace(/<[^>]*>/g, "") // Remove HTML tags
+    .replace(/javascript:/gi, "") // Remove JS protocol
+    .replace(/data:/gi, "") // Remove data protocol
+    .replace(/on\w+\s*=/gi, "") // Remove event handlers
+    .slice(0, 1000); // Prevent DoS (1000 char limit)
+}
+
+/**
+ * SECURITY: Validate and sanitize phase data before rendering
+ * Prevents XSS in phase names, descriptions, and metadata
+ */
+function sanitizePhase(phase: any): any {
+  return {
+    ...phase,
+    id: sanitizeHtml(String(phase.id || "")),
+    name: sanitizeHtml(String(phase.name || "")),
+    description: phase.description ? sanitizeHtml(String(phase.description)) : undefined,
+    category: phase.category ? sanitizeHtml(String(phase.category)) : undefined,
+    workingDays: Math.max(0, Math.min(1000, Number(phase.workingDays) || 0)), // Clamp to 0-1000
+    startBusinessDay: Math.max(0, Number(phase.startBusinessDay) || 0),
+    effort: Math.max(0, Number(phase.effort) || 0),
+    resources: phase.resources?.map((r: any) => ({
+      ...r,
+      name: sanitizeHtml(String(r.name || "")),
+      role: sanitizeHtml(String(r.role || "")),
+      allocation: Math.max(0, Math.min(100, Number(r.allocation) || 0)),
+      hourlyRate: Math.max(0, Number(r.hourlyRate) || 0),
+    })),
+  };
+}
 
 export interface TimelineConversionResult {
   profile: ClientProfile;
@@ -43,15 +81,19 @@ export function convertPresalesToTimeline(chips: Chip[], decisions: any): Timeli
     const profile = extractClientProfile(chips);
     const selectedPackages = mapModulesToPackages(chips);
 
+    // SECURITY: Sanitize all phase data before returning
+    const sanitizedPhases = plan.phases.map(sanitizePhase);
+
     console.log(
       `[Bridge] ✅ Conversion complete using ScenarioGenerator: ${plan.totalEffort} PD total`
     );
+    console.log(`[Bridge] 🔒 Sanitized ${sanitizedPhases.length} phases for rendering`);
 
     return {
       profile,
       selectedPackages,
       totalEffort: plan.totalEffort,
-      phases: plan.phases,
+      phases: sanitizedPhases,
       appliedMultipliers: {
         entity: 1.0,
         employee: 1.0,
@@ -90,7 +132,8 @@ export function mapModulesToPackages(chips: Chip[]): string[] {
   );
 
   moduleChips.forEach((chip) => {
-    const moduleName = String(chip.value || "").toLowerCase();
+    // SECURITY: Sanitize chip value before processing
+    const moduleName = sanitizeChipValue(chip.value).toLowerCase();
 
     console.log(`[Bridge] Mapping module: "${moduleName}"`);
 
@@ -173,14 +216,16 @@ export function extractClientProfile(chips: Chip[]): ClientProfile {
 
   let region: "ABMY" | "ABSG" | "ABVN" = "ABMY";
   if (countryChip) {
-    const country = String(countryChip.value || "").toLowerCase();
+    // SECURITY: Sanitize before string comparison
+    const country = sanitizeChipValue(countryChip.value).toLowerCase();
     if (country.includes("singapore")) region = "ABSG";
     else if (country.includes("vietnam")) region = "ABVN";
   }
 
   return {
-    company: String(countryChip?.value || ""),
-    industry: String(industryChip?.value || "manufacturing"),
+    // SECURITY: Sanitize all string values in profile
+    company: sanitizeChipValue(countryChip?.value || ""),
+    industry: sanitizeChipValue(industryChip?.value || "manufacturing"),
     size,
     complexity,
     timelinePreference: "normal",
