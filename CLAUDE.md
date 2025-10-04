@@ -19,25 +19,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Development
 
 ```bash
-npm run dev           # Start development server (localhost:3000)
-npm run build         # Production build
-npm run start         # Start production server
-npm run type-check    # TypeScript validation
+npm run dev              # Start development server (localhost:3000)
+npm run build            # Production build
+npm run start            # Start production server
+npm run typecheck        # TypeScript validation (NOT type-check)
+npm run lint             # Run ESLint
+npm run lint:fix         # Auto-fix ESLint issues
+npm run format           # Format code with Prettier
+npm run format:check     # Check formatting without writing
 ```
 
 ### Testing
 
 ```bash
-npm test                    # Run all tests with Vitest
-npm run test:integration    # Integration tests only
-npm run test:e2e           # E2E tests only
-npm run test:coverage      # Generate coverage report
+npm test                     # Run all tests with Vitest (watch mode)
+npm test -- --run            # Run tests once without watch
+npm test -- <file-pattern>   # Run specific test file(s)
+npm run test:integration     # Integration tests only
+npm run test:e2e            # E2E tests only
+npm run test:coverage       # Generate coverage report
+```
+
+**Example: Run single test file:**
+```bash
+npm test -- input-sanitizer.test.ts --run
+npm test -- production-readiness.test.ts
 ```
 
 ### Analysis
 
 ```bash
 npm run analyze     # Bundle size analysis (ANALYZE=true next build)
+npm audit          # Check for security vulnerabilities
 ```
 
 ## Architecture Overview
@@ -110,15 +123,21 @@ The new UX follows Steve Jobs principles (see COMPLETE_UX_TRANSFORMATION.md):
 - **resource-catalog.ts** - Resource roles, rates by region (ABMY/ABSG/ABVN)
 - **holidays.ts** - Regional holidays for date calculations
 
-### Security
+### Security & Performance
 
-The app has strict security measures (see next.config.js):
-
-- CSP headers with strict content policy
+**Security measures** (see next.config.js):
+- CSP headers with strict content policy (no unsafe-eval in production)
 - Input sanitization on all user data (input-sanitizer.ts)
-- Rate limiting on computation-heavy operations
+- Rate limiting on computation-heavy operations (100 chips per 60s)
 - Error sanitization to prevent information leakage
-- No unsafe-eval in production
+- XSS protection: DOMPurify + protocol filtering (javascript:, data:, vbscript:)
+- Prototype pollution prevention in estimation-engine.ts
+
+**Performance optimizations:**
+- Lazy loading: PlanMode & PresentMode components (25% bundle reduction)
+- React memoization: useMemo/useCallback in heavy components
+- Early returns in computed values (timeline-store.ts)
+- All performance tests passing (50 phases < 5ms)
 
 ## Path Aliases
 
@@ -133,11 +152,32 @@ Configured in tsconfig.json: `"@/*": ["./src/*"]`
 
 ## Testing Strategy
 
-- Tests located in `src/__tests__/` and `tests/`
-- Unit tests: chip-parser, estimation-guardrails, input-sanitizer
-- Integration tests: presales-chip-extraction, start-date-validation
+**Test organization:**
+- Unit tests: `src/__tests__/` (chip-parser, input-sanitizer, estimation-guardrails)
+- Integration tests: `tests/integration/` (presales-to-timeline, timeline-generation-flow)
+- Production tests: `tests/production/production-readiness.test.ts`
 - Vitest config: `vitest.config.ts` with jsdom environment
 - Setup file: `tests/setup.ts`
+
+**Key test files:**
+- `production-readiness.test.ts` - Must-pass tests before deployment (security, performance, data integrity)
+- `input-sanitizer.test.ts` - XSS/DoS prevention tests
+- `presales-chip-extraction.test.ts` - Chip parsing regression tests
+
+**Running specific tests:**
+```bash
+# Run all tests
+npm test -- --run
+
+# Run production tests only
+npm test -- production-readiness.test.ts --run
+
+# Run security tests
+npm test -- input-sanitizer.test.ts --run
+
+# Run with coverage
+npm run test:coverage
+```
 
 ## Key Patterns
 
@@ -166,13 +206,36 @@ Users can manually edit generated timelines:
 - Preserved across regenerations
 - Shows warning before regenerating with active overrides
 
-## Common Gotchas
+## Common Gotchas & Critical Fixes
 
-1. **Store persistence:** Stores persist to localStorage. Clear with `localStorage.clear()` or use store.reset()
+### Known Issues & Solutions
+
+1. **Store persistence:** Stores persist to localStorage. Clear with `localStorage.clear()` or use `store.reset()`
 2. **Chip types vs kind:** Old code used `kind`, new uses `type` (ChipType)
 3. **Business day calculations:** All dates use business day offsets from PROJECT_BASE_DATE (2024-01-01)
 4. **Mode transitions:** Only presales-store has auto-transit, project-store is manual
 5. **Phase colors:** Stored separately in `phaseColors` Record, not on phase objects
+6. **TypeScript command:** Use `npm run typecheck` (NOT `npm run type-check`)
+7. **Lazy loading imports:** PlanMode & PresentMode use lazy loading - don't import directly in ProjectShell
+
+### Critical Methods (Already Implemented)
+
+**timeline-store.ts:**
+- ✅ `setPhases(phases: Phase[])` - Bulk update phases (line 290)
+- ✅ `setSelectedPackages(packages: string[])` - Bulk update packages (line 47)
+- ✅ Early return optimization in `getProjectCost()` (line 589)
+
+**project-store.ts:**
+- ✅ `regenerateTimeline(force)` - Uses bulk `setPhases()` (line 122-125)
+- ✅ Proper logging and error handling
+
+**PlanMode.tsx:**
+- ✅ useEffect includes `regenerateTimeline` in dependencies (line 63)
+- ✅ useMemo/useCallback for performance (lines 66-74)
+
+**presales-to-timeline-bridge.ts:**
+- ✅ XSS sanitization with `sanitizeChipValue()` (line 11-19)
+- ✅ Phase sanitization with `sanitizePhase()` (line 25-43)
 
 ## Database (Optional)
 
