@@ -98,8 +98,9 @@ function calculateMultipliers(chips: Chip[]): {
   }
 
   // Integration multiplier (0.15 per integration)
+  // Note: enhanced-chip-parser may create "integrations" (plural) type
   const integrationChips = chips.filter(
-    (c) => c.type === "integration" || c.type === "integrations"
+    (c) => c.type === "integration" || (c.type as string) === "integrations"
   );
   const integrationMultiplier = 1.0 + integrationChips.length * 0.15;
 
