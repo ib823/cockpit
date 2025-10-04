@@ -325,7 +325,7 @@ export function ManualChipEntry({
           {/* Footer Hint */}
           <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
             <p className="text-xs text-gray-600 text-center">
-              You can add multiple chips. Click "Done" when finished.
+              You can add multiple chips. Click &quot;Done&quot; when finished.
             </p>
           </div>
         </motion.div>

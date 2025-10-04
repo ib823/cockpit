@@ -143,8 +143,20 @@ class EstimationEngine {
   private estimateScopeItem(item: ScopeItem): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
 
+    // Validate complexity to prevent prototype pollution
+    const validComplexities = ["small", "medium", "large", "xlarge"] as const;
+    if (!validComplexities.includes(item.complexity as any)) {
+      console.warn(`Invalid complexity: ${item.complexity}, defaulting to medium`);
+      item.complexity = "medium";
+    }
+
     // Base effort by complexity
     const base = this.constants.SCOPE_BASE[item.complexity];
+    if (!base) {
+      console.error(`No base found for complexity: ${item.complexity}`);
+      return t;
+    }
+
     t.e += base.e;
     t.r += base.r;
     t.d += base.d;

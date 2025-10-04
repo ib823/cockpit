@@ -14,11 +14,17 @@ export function sanitizeHtml(input: string): string {
 
   // Use DOMPurify for comprehensive XSS protection
   if (typeof window !== "undefined") {
-    return DOMPurify.sanitize(input, {
+    const sanitized = DOMPurify.sanitize(input, {
       ALLOWED_TAGS: [], // Strip all HTML tags
       ALLOWED_ATTR: [], // Strip all attributes
       KEEP_CONTENT: true, // Keep text content
     });
+
+    // Additional sanitization for protocol-based attacks
+    return sanitized
+      .replace(/javascript:/gi, "")
+      .replace(/vbscript:/gi, "")
+      .replace(/data:/gi, "");
   }
 
   // Fallback for server-side (shouldn't occur in client-only app)

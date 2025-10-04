@@ -215,6 +215,143 @@ function extractCriticalPatterns(text: string): ExtendedChip[] {
     }
   }
 
+  // Company Codes
+  for (const pattern of CRITICAL_PATTERNS.company_codes) {
+    for (const match of text.matchAll(pattern)) {
+      if (match[1]) {
+        const value = extractNumericValue(match[1]);
+        if (value !== null && value > 0) {
+          chips.push({
+            id: `critical_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            type: "company_codes",
+            value: value,
+            confidence: 0.9,
+            source: "critical_parser",
+            evidence: match[0],
+            metadata: {
+              unit: "company codes",
+              impact: getImpactLevel("company_codes", value),
+              multiplier: getMultiplier("company_codes", value),
+            },
+          });
+        }
+      }
+    }
+  }
+
+  // Plants
+  for (const pattern of CRITICAL_PATTERNS.plants) {
+    for (const match of text.matchAll(pattern)) {
+      if (match[1]) {
+        const value = extractNumericValue(match[1]);
+        if (value !== null && value > 0) {
+          chips.push({
+            id: `critical_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            type: "plants",
+            value: value,
+            confidence: 0.88,
+            source: "critical_parser",
+            evidence: match[0],
+            metadata: {
+              unit: "plants",
+              impact: getImpactLevel("plants", value),
+              multiplier: getMultiplier("plants", value),
+            },
+          });
+        }
+      }
+    }
+  }
+
+  // Transaction Volumes (separate from general data_volume)
+  const transactionPatterns = [
+    /(\d+[\d,]*(?:\.\d+)?)\s*(?:k|m|thousand|million)?\s+(?:transactions?|invoices?|orders?|PO|SO)\s+(?:per\s+)?(?:day|month|year)/gi,
+    /process(?:ing)?\s+(\d+[\d,]*(?:\.\d+)?)\s*(?:k|m|thousand|million)?\s+(?:transactions?|invoices?)/gi,
+  ];
+
+  for (const pattern of transactionPatterns) {
+    for (const match of text.matchAll(pattern)) {
+      if (match[1]) {
+        const value = extractNumericValue(match[1]);
+        if (value !== null && value > 0) {
+          chips.push({
+            id: `critical_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            type: "transaction_volumes",
+            value: value,
+            confidence: 0.85,
+            source: "critical_parser",
+            evidence: match[0],
+            metadata: {
+              unit: /per\s+day/i.test(match[0]) ? "transactions/day" : "transactions",
+              impact: getImpactLevel("data_volume", value),
+              multiplier: getMultiplier("data_volume", value),
+            },
+          });
+        }
+      }
+    }
+  }
+
+  // Revenue (with currency detection)
+  const revenuePatterns = [
+    /(?:annual\s+)?(?:revenue|turnover|sales)(?:\s+of)?\s+(?:approximately|about|around)?\s*([A-Z]{3})?\s*([A-Z$€£¥₹]{1,3})?\s*(\d+[\d,]*(?:\.\d+)?)\s*(?:k|m|mn|b|bn|thousand|million|billion)?/gi,
+    /(\d+[\d,]*(?:\.\d+)?)\s*(?:k|m|mn|b|bn|thousand|million|billion)?\s+([A-Z]{3}|[A-Z$€£¥₹]{1,3})\s+(?:annual\s+)?(?:revenue|turnover|sales)/gi,
+  ];
+
+  for (const pattern of revenuePatterns) {
+    for (const match of text.matchAll(pattern)) {
+      const valueIndex = match[3] || match[1];
+      if (valueIndex) {
+        const value = extractNumericValue(valueIndex);
+        if (value !== null && value > 0) {
+          const currency = match[1] || match[2] || "MYR";
+          chips.push({
+            id: `critical_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            type: "revenue",
+            value: value,
+            confidence: 0.85,
+            source: "critical_parser",
+            evidence: match[0],
+            metadata: {
+              unit: currency,
+              impact: getImpactLevel("revenue", value),
+              multiplier: 1.0,
+            },
+          });
+        }
+      }
+    }
+  }
+
+  // Employees (enhanced with more patterns)
+  const employeePatterns = [
+    /(\d+[\d,]*(?:\.\d+)?)\s*(?:k|thousand|m|million)?\s+(?:employees?|staff|workers?|people)/gi,
+    /(?:workforce|headcount)\s+(?:of\s+)?(?:approximately|about|around)?\s*(\d+[\d,]*(?:\.\d+)?)\s*(?:k|thousand|m|million)?/gi,
+  ];
+
+  for (const pattern of employeePatterns) {
+    for (const match of text.matchAll(pattern)) {
+      if (match[1]) {
+        const value = extractNumericValue(match[1]);
+        if (value !== null && value > 0) {
+          chips.push({
+            id: `critical_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            type: "employees",
+            value: value,
+            confidence: 0.88,
+            source: "critical_parser",
+            evidence: match[0],
+            metadata: {
+              unit: "employees",
+              impact: getImpactLevel("employees", value),
+              multiplier: 1.0,
+            },
+          });
+        }
+      }
+    }
+  }
+
   // Vague Employee Pattern
   const vagueEmployeePattern =
     /(?:few|several|many)\s+(hundred|thousand)\s+(?:people|employees|staff)/gi;
