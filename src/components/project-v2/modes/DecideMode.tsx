@@ -329,8 +329,8 @@ export function DecideMode() {
           })}
         </div>
 
-        {/* Continue button */}
-        {isComplete && (
+        {/* Continue button - Allow proceeding with 2+ decisions */}
+        {selectedCount >= 2 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -343,7 +343,7 @@ export function DecideMode() {
                          hover:scale-105 font-medium text-lg shadow-xl flex items-center
                          justify-center gap-3"
             >
-              Generate Timeline
+              {isComplete ? "Generate Timeline" : `Continue with ${selectedCount} Decisions`}
               <motion.div
                 animate={{ x: [0, 5, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
@@ -363,6 +363,8 @@ export function DecideMode() {
           </div>
         )}
       </div>
+      {/* Navigation Button - Add this at the bottom */}
+      
     </div>
   );
 }

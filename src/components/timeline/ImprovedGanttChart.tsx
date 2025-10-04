@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import { Phase } from "@/lib/timeline/phase-generation";
 import { useTimelineStore } from "@/stores/timeline-store";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 // Stream colors for visual variety
 const STREAM_COLORS = [
@@ -38,6 +38,7 @@ export function ImprovedGanttChart({
   phases: phasesProp,
   startDate,
   endDate,
+  onPhaseClick,
 }: ImprovedGanttChartProps) {
   const storePhases = useTimelineStore((state) => state.phases);
   const selectedPhaseId = useTimelineStore((state) => state.selectedPhaseId);
@@ -46,7 +47,6 @@ export function ImprovedGanttChart({
   const phases = phasesProp || storePhases || [];
   const safePhases = Array.isArray(phases) ? phases : [];
 
-  // **ADD DIAGNOSTIC LOGGING**
   useEffect(() => {
     console.log("[ImprovedGanttChart] Render with:", {
       propPhases: phasesProp?.length || 0,
@@ -55,19 +55,14 @@ export function ImprovedGanttChart({
     });
   }, [phasesProp, storePhases, safePhases.length]);
 
-  // Track which streams are collapsed
   const [collapsedStreams, setCollapsedStreams] = useState<Set<string>>(new Set());
 
-  // Group phases into streams by category
   const streams = useMemo(() => {
     if (safePhases.length === 0) return [];
 
-    // Group by category (e.g., "Finance - Prepare", "HR - Explore")
     const streamMap = new Map<string, Phase[]>();
 
     safePhases.forEach((phase) => {
-      // Extract stream name from category or phase name
-      // e.g., "Finance - Prepare" -> "Finance"
       const streamName = phase.category?.split(" - ")[0] || "General";
 
       if (!streamMap.has(streamName)) {
@@ -76,7 +71,6 @@ export function ImprovedGanttChart({
       streamMap.get(streamName)!.push(phase);
     });
 
-    // Convert to Stream objects
     const streamList: Stream[] = [];
     let colorIndex = 0;
 
@@ -96,11 +90,9 @@ export function ImprovedGanttChart({
       colorIndex++;
     });
 
-    // Sort by total effort (descending)
     return streamList.sort((a, b) => b.totalEffort - a.totalEffort);
   }, [safePhases]);
 
-  // Calculate timeline bounds
   const { startBusinessDay, endBusinessDay, totalBusinessDays } = useMemo(() => {
     if (safePhases.length === 0) {
       return { startBusinessDay: 0, endBusinessDay: 0, totalBusinessDays: 0 };
@@ -118,7 +110,6 @@ export function ImprovedGanttChart({
     };
   }, [safePhases]);
 
-  // Toggle stream collapse
   const toggleStream = (streamId: string) => {
     setCollapsedStreams((prev) => {
       const next = new Set(prev);
@@ -131,7 +122,6 @@ export function ImprovedGanttChart({
     });
   };
 
-  // Render resource avatars
   const renderResourceAvatars = (phase: Phase) => {
     const resources = phase.resources || [];
     if (resources.length === 0) return null;
@@ -186,19 +176,16 @@ export function ImprovedGanttChart({
   return (
     <div className="relative overflow-x-auto">
       <div className="min-w-[900px] p-6">
-        {/* Timeline Header */}
         <div className="flex items-center mb-6 pb-3 border-b-2 border-gray-200">
           <div className="w-64 font-semibold text-gray-700">Stream / Phase</div>
           <div className="flex-1 text-sm text-gray-500 font-medium">Timeline</div>
         </div>
 
-        {/* Streams */}
         {streams.map((stream) => {
           const isCollapsed = collapsedStreams.has(stream.id);
 
           return (
             <div key={stream.id} className="mb-4">
-              {/* Stream Header */}
               <div
                 className="flex items-center mb-2 cursor-pointer group"
                 onClick={() => toggleStream(stream.id)}
@@ -223,7 +210,6 @@ export function ImprovedGanttChart({
                   </div>
                 </div>
 
-                {/* Stream summary bar (when collapsed) */}
                 {isCollapsed && (
                   <div className="flex-1 relative h-8">
                     {stream.phases.map((phase, idx) => {
@@ -248,7 +234,6 @@ export function ImprovedGanttChart({
                 )}
               </div>
 
-              {/* Phase Bars (expanded) */}
               <AnimatePresence>
                 {!isCollapsed && (
                   <motion.div
@@ -288,7 +273,10 @@ export function ImprovedGanttChart({
                                   width: `${widthPercent}%`,
                                   transformOrigin: "left",
                                 }}
-                                onClick={() => selectPhase && selectPhase(phase.id)}
+                                onClick={() => {
+                                  if (selectPhase) selectPhase(phase.id);
+                                  if (onPhaseClick) onPhaseClick(phase);
+                                }}
                               >
                                 <div className="p-2 h-full flex flex-col justify-between text-white">
                                   <div className="flex items-center justify-between">
@@ -300,7 +288,6 @@ export function ImprovedGanttChart({
                                     </span>
                                   </div>
 
-                                  {/* Resource avatars */}
                                   {renderResourceAvatars(phase)}
                                 </div>
                               </motion.div>

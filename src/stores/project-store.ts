@@ -1,12 +1,12 @@
 // src/stores/project-store.ts
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { usePresalesStore } from "./presales-store";
-import { useTimelineStore } from "./timeline-store";
 import { convertPresalesToTimeline } from "@/lib/presales-to-timeline-bridge";
 import { debounce } from "lodash";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { usePresalesStore } from "./presales-store";
+import { useTimelineStore } from "./timeline-store";
 
-export type ProjectMode = "capture" | "decide" | "plan" | "present";
+export type ProjectMode = 'capture' | 'decide' | 'plan' | 'optimize' | 'present';
 
 interface ManualOverride {
   phaseId: string;

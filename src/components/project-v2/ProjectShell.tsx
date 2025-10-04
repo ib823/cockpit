@@ -7,17 +7,20 @@
 
 "use client";
 
-import { lazy, Suspense } from "react";
 import { safePercentage } from "@/lib/utils";
+import { ResourcePlanningShell } from "@/components/resource-planning";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
 import { AnimatePresence, motion } from "framer-motion";
+import { lazy, Suspense } from "react";
 import { CaptureMode } from "./modes/CaptureMode";
 import { DecideMode } from "./modes/DecideMode";
 
 // Lazy load heavy components for better performance
 const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
 const PresentMode = lazy(() => import("./modes/PresentMode").then(m => ({ default: m.PresentMode })));
+const OptimizeMode = lazy(() => import("@/components/resource-planning").then(m => ({ default: m.ResourcePlanningShell })));
+
 
 /**
  * Mode Indicator - Hero banner for each mode
@@ -41,6 +44,12 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
       subtitle: "Review and adjust your project plan",
       gradient: "from-green-600 to-green-700",
       color: "text-green-100",
+    },
+    optimize: {
+      title: "Optimize Resources",
+      subtitle: "Fine-tune team allocation and deliverables",
+      gradient: "from-indigo-600 to-indigo-700",
+      color: "text-indigo-100",
     },
     present: {
       title: "Present",
@@ -127,6 +136,18 @@ export function ProjectShell() {
               </div>
             }>
               <PlanMode />
+            </Suspense>
+          )}
+          {mode === "optimize" && (
+            <Suspense fallback={
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                  <p className="text-sm">Loading resource optimization...</p>
+                </div>
+              </div>
+            }>
+              <OptimizeMode />
             </Suspense>
           )}
           {mode === "present" && (
