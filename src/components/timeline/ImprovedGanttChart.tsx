@@ -6,6 +6,7 @@ import {
   getHolidaysInRange,
   isHoliday,
 } from "@/data/holidays";
+import { useProjectStore } from "@/stores/project-store";
 import { useTimelineStore } from "@/stores/timeline-store";
 import type { Phase } from "@/types/core";
 import { addDays, differenceInDays, format } from "date-fns";
@@ -15,9 +16,12 @@ import {
   ChevronRight,
   Flag,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Users
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { HolidayManagerModal } from "./HolidayManagerModal";
+import { MilestoneManagerModal } from "./MilestoneManagerModal";
 
 interface Stream {
   id: string;
@@ -50,6 +54,7 @@ export function ImprovedGanttChart({
   const updatePhase = useTimelineStore((state) => state.updatePhase);
   const selectPhase = useTimelineStore((state) => state.selectPhase);
   const selectedPhaseId = useTimelineStore((state) => state.selectedPhaseId);
+  const setMode = useProjectStore(state => state.setMode);
 
   const rawPhases = Array.isArray(phasesProp)
     ? phasesProp
@@ -101,6 +106,7 @@ export function ImprovedGanttChart({
   const [dragMode, setDragMode] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [dragStartPhase, setDragStartPhase] = useState<Phase | null>(null);
+  const dragThrottleRef = useRef<number | null>(null);
 
   // Group phases into streams
   const streams = useMemo(() => {
@@ -189,6 +195,21 @@ export function ImprovedGanttChart({
     return getHolidaysInRange(minDate, maxDate, selectedRegion);
   }, [minDate, maxDate, selectedRegion]);
 
+  // Initialize milestones when phases are available
+  useEffect(() => {
+    if (milestones.length === 0 && safePhases.length > 0) {
+      const dates = safePhases.flatMap(p => [p.startDate, p.endDate]).filter((d): d is Date => d != null && d instanceof Date);
+      if (dates.length > 0) {
+        const min = new Date(Math.min(...dates.map(d => d.getTime())));
+        const max = new Date(Math.max(...dates.map(d => d.getTime())));
+        setMilestones([
+          { id: 'm1', name: 'Project Kickoff', date: min, color: 'bg-green-500' },
+          { id: 'm2', name: 'Go-Live', date: max, color: 'bg-purple-500' },
+        ]);
+      }
+    }
+  }, [safePhases, milestones.length]);
+
   // Collapse/Expand handlers
   const handleExpandAll = () => {
     setExpandedPhases(new Set(safePhases.map(p => p.id)));
@@ -236,17 +257,23 @@ export function ImprovedGanttChart({
   };
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!draggedPhase || !dragMode || !dragStartPhase) return;
+    // Throttle to 60fps for smoothness
+    if (dragThrottleRef.current) return;
 
-    const deltaX = e.clientX - dragStartX;
-    const ganttWidth = window.innerWidth * 0.6;
-    const pixelsPerDay = ganttWidth / totalBusinessDays;
-    const deltaDays = Math.round(deltaX / pixelsPerDay);
+    dragThrottleRef.current = window.requestAnimationFrame(() => {
+      dragThrottleRef.current = null;
 
-    if (deltaDays === 0) return;
+      if (!draggedPhase || !dragMode || !dragStartPhase) return;
 
-    let newStartDate = new Date(dragStartPhase.startDate);
-    let newEndDate = new Date(dragStartPhase.endDate);
+      const deltaX = e.clientX - dragStartX;
+      const ganttWidth = window.innerWidth * 0.6;
+      const pixelsPerDay = ganttWidth / totalBusinessDays;
+      const deltaDays = Math.round(deltaX / pixelsPerDay);
+
+      if (deltaDays === 0) return;
+
+      let newStartDate = new Date(dragStartPhase.startDate);
+      let newEndDate = new Date(dragStartPhase.endDate);
 
     switch (dragMode) {
       case 'move':
@@ -292,14 +319,15 @@ export function ImprovedGanttChart({
         break;
     }
 
-    const newWorkingDays = calculateWorkingDays(newStartDate, newEndDate, selectedRegion);
-    const newStartBusinessDay = differenceInDays(newStartDate, minDate);
+      const newWorkingDays = calculateWorkingDays(newStartDate, newEndDate, selectedRegion);
+      const newStartBusinessDay = differenceInDays(newStartDate, minDate);
 
-    updatePhase(draggedPhase, {
-      startDate: newStartDate,
-      endDate: newEndDate,
-      workingDays: newWorkingDays,
-      startBusinessDay: newStartBusinessDay,
+      updatePhase(draggedPhase, {
+        startDate: newStartDate,
+        endDate: newEndDate,
+        workingDays: newWorkingDays,
+        startBusinessDay: newStartBusinessDay,
+      });
     });
   }, [draggedPhase, dragMode, dragStartPhase, dragStartX, selectedRegion, totalBusinessDays, minDate, updatePhase]);
 
@@ -441,6 +469,14 @@ export function ImprovedGanttChart({
             <Flag className="w-4 h-4" />
             Milestones ({milestones.length})
           </button>
+
+          <button
+            onClick={() => setMode('optimize')}
+            className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm transition-colors shadow-md"
+          >
+            <Users className="w-4 h-4" />
+            Allocate Resources
+          </button>
         </div>
       </div>
 
@@ -525,10 +561,10 @@ export function ImprovedGanttChart({
                       {/* Phase Bar */}
                       <div
                         className={`
-                          absolute top-2 h-12 rounded-lg transition-all cursor-pointer
-                          ${isDragging 
-                            ? 'opacity-70 shadow-2xl scale-105 cursor-grabbing ring-2 ring-blue-400' 
-                            : `${stream.color} hover:shadow-xl cursor-grab hover:brightness-110`
+                          absolute top-2 h-12 rounded-lg transition-all duration-150 cursor-pointer
+                          ${isDragging
+                            ? 'opacity-70 shadow-2xl scale-105 cursor-grabbing ring-4 ring-blue-300'
+                            : `${stream.color} hover:shadow-xl cursor-grab hover:scale-102 hover:brightness-110`
                           }
                         `}
                         style={{
@@ -649,6 +685,26 @@ export function ImprovedGanttChart({
             })}
           </div>
         </div>
+      )}
+
+      {/* Holiday Manager Modal */}
+      {showHolidayModal && (
+        <HolidayManagerModal
+          region={selectedRegion}
+          onClose={() => setShowHolidayModal(false)}
+        />
+      )}
+
+      {/* Milestone Manager Modal */}
+      {showMilestoneModal && (
+        <MilestoneManagerModal
+          milestones={milestones}
+          onUpdate={(updated) => {
+            setMilestones(updated);
+            setShowMilestoneModal(false);
+          }}
+          onClose={() => setShowMilestoneModal(false)}
+        />
       )}
     </div>
   );
