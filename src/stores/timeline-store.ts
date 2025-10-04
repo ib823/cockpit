@@ -44,8 +44,10 @@ export interface TimelineState {
   addPackage: (packageId: string) => void;
   removePackage: (packageId: string) => void;
   clearPackages: () => void;
+  setSelectedPackages: (packages: string[]) => void;
 
   // Actions - Phases
+  setPhases: (phases: Phase[]) => void;
   generateTimeline: () => void;
   addPhase: (phase?: Partial<Phase>) => void;
   updatePhase: (id: string, updates: Partial<Phase>) => void;
@@ -276,9 +278,31 @@ export const useTimelineStore = create<TimelineState>()(
         });
       },
 
+      setSelectedPackages: (packages: string[]) => {
+        console.log(`[TimelineStore] Setting ${packages.length} selected packages`);
+        set({ selectedPackages: packages });
+      },
+
       // ========================================================================
       // PHASE ACTIONS
       // ========================================================================
+
+      setPhases: (newPhases: Phase[]) => {
+        console.log(`[TimelineStore] Setting ${newPhases.length} phases`);
+
+        const newColors: Record<string, string> = {};
+        newPhases.forEach((phase) => {
+          if (phase.color) {
+            newColors[phase.id] = phase.color;
+          }
+        });
+
+        set({
+          phases: newPhases,
+          phaseColors: newColors,
+          selectedPhaseId: null,
+        });
+      },
 
       generateTimeline: () => {
         set((state) => {

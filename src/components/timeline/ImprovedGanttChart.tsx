@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Phase } from "@/lib/timeline/phase-generation";
@@ -44,6 +44,15 @@ export function ImprovedGanttChart({
 
   const phases = phasesProp || storePhases || [];
   const safePhases = Array.isArray(phases) ? phases : [];
+
+  // **ADD DIAGNOSTIC LOGGING**
+  useEffect(() => {
+    console.log("[ImprovedGanttChart] Render with:", {
+      propPhases: phasesProp?.length || 0,
+      storePhases: storePhases?.length || 0,
+      safePhases: safePhases.length,
+    });
+  }, [phasesProp, storePhases, safePhases.length]);
 
   // Track which streams are collapsed
   const [collapsedStreams, setCollapsedStreams] = useState<Set<string>>(new Set());

@@ -44,11 +44,23 @@ export function PlanMode() {
 
   // Auto-generate timeline if empty and we have requirements
   useEffect(() => {
+    console.log("[PlanMode] Check auto-generate:", {
+      phaseCount: phases.length,
+      chipCount: chips.length,
+      completeness: completeness.score,
+    });
+
     if (phases.length === 0 && chips.length > 0 && completeness.score >= 30) {
-      console.log("[PlanMode] Auto-generating timeline from presales data...");
+      console.log("[PlanMode] 🚀 Triggering auto-generate timeline...");
       regenerateTimeline(true);
+
+      // Give stores time to update
+      setTimeout(() => {
+        const updatedPhases = useTimelineStore.getState().phases;
+        console.log(`[PlanMode] After regeneration: ${updatedPhases.length} phases`);
+      }, 100);
     }
-  }, [phases.length, chips.length, completeness.score]);
+  }, [phases.length, chips.length, completeness.score, regenerateTimeline]);
 
   // Handle timeline regeneration
   const handleRegenerate = () => {

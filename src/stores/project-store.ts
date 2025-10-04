@@ -88,46 +88,51 @@ export const useProjectStore = create<ProjectState>()(
         const { manualOverrides } = get();
 
         if (!force && manualOverrides.length > 0) {
-          // Has manual edits - warn user
           const confirmRegenerate = window.confirm(
             `You have ${manualOverrides.length} manual edit(s). Regenerating will preserve them but may cause inconsistencies. Continue?`
           );
           if (!confirmRegenerate) return;
         }
 
-        // Get fresh data from presales store
-        const presales = usePresalesStore.getState();
-        const result = convertPresalesToTimeline(presales.chips, presales.decisions);
+        console.log("[ProjectStore] 🔄 Starting timeline regeneration...");
 
-        if (!result || result.totalEffort === 0) {
-          console.error("[Project] Timeline regeneration failed");
+        const presalesStore = usePresalesStore.getState();
+        const timelineStore = useTimelineStore.getState();
+
+        const chips = presalesStore.chips;
+        const decisions = presalesStore.decisions;
+
+        console.log(`[ProjectStore] Input: ${chips.length} chips, decisions:`, decisions);
+
+        if (chips.length === 0) {
+          console.warn("[ProjectStore] ⚠️ No chips available - cannot generate timeline");
           return;
         }
 
-        // Apply manual overrides on top of new baseline
-        const phasesWithOverrides = get().applyOverridesToPhases(result.phases);
+        // Convert presales data to timeline
+        const result = convertPresalesToTimeline(chips, decisions);
 
-        // Update timeline store - clear existing phases and add new ones
-        const timelineStore = useTimelineStore.getState();
-
-        // Clear existing phases by setting empty array
-        useTimelineStore.setState({ phases: [] });
-
-        // Add each phase with overrides
-        phasesWithOverrides.forEach((phase) => {
-          timelineStore.addPhase(phase);
+        console.log(`[ProjectStore] ✅ Conversion result:`, {
+          phases: result.phases.length,
+          packages: result.selectedPackages.length,
+          effort: result.totalEffort,
         });
 
-        set({
-          timelineIsStale: false,
-          lastGeneratedAt: new Date(),
-        });
+        // **CRITICAL FIX**: Update timeline store with generated data
+        if (result.phases && result.phases.length > 0) {
+          timelineStore.setPhases(result.phases);
+          timelineStore.setSelectedPackages(result.selectedPackages);
+          timelineStore.setProfile(result.profile);
 
-        console.log(
-          "[Project] ✅ Timeline regenerated with",
-          manualOverrides.length,
-          "overrides preserved"
-        );
+          console.log(`[ProjectStore] ✅ Timeline store updated with ${result.phases.length} phases`);
+
+          set({
+            timelineIsStale: false,
+            lastGeneratedAt: new Date(),
+          });
+        } else {
+          console.error("[ProjectStore] ❌ No phases generated from conversion");
+        }
       },
 
       addManualOverride: (override) => {

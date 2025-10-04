@@ -33,7 +33,8 @@
       "Bash(do lsof:*)",
       "Bash(awk:*)",
       "Bash(kill:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
