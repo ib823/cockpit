@@ -116,12 +116,14 @@ export function EnhancedGanttChart() {
   };
 
   // Drag handlers for interactive adjustment
+  // Drag handlers for interactive adjustment
   const handleMouseDown = (
     e: React.MouseEvent,
     phaseId: string,
     mode: 'move' | 'resize-start' | 'resize-end'
   ) => {
     e.preventDefault();
+    e.stopPropagation();
     setDraggedPhase(phaseId);
     setDragMode(mode);
     setDragStartX(e.clientX);
@@ -130,37 +132,72 @@ export function EnhancedGanttChart() {
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!draggedPhase || !dragMode) return;
 
+    const containerWidth = window.innerWidth * 0.7; // Approximate gantt width
     const deltaX = e.clientX - dragStartX;
-    const deltaDays = Math.round((deltaX / window.innerWidth) * totalDays);
+    
+    // Calculate days based on pixel movement
+    const pixelsPerDay = containerWidth / totalDays;
+    const deltaDays = Math.round(deltaX / pixelsPerDay);
 
     if (deltaDays === 0) return;
 
     const phase = phases.find(p => p.id === draggedPhase);
     if (!phase) return;
 
-    let newStartDate = phase.startDate;
-    let newEndDate = phase.endDate;
+    let newStartDate = new Date(phase.startDate);
+    let newEndDate = new Date(phase.endDate);
 
     switch (dragMode) {
-      case 'move':
-        newStartDate = addWorkingDays(phase.startDate, deltaDays, selectedRegion);
-        const originalDuration = calculateWorkingDays(phase.startDate, phase.endDate, selectedRegion);
-        newEndDate = addWorkingDays(newStartDate, originalDuration, selectedRegion);
+      case 'move': {
+        // Move both start and end by same amount
+        newStartDate = addDays(phase.startDate, deltaDays);
+        newEndDate = addDays(phase.endDate, deltaDays);
+        
+        // Skip to next working day if landing on weekend/holiday
+        while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+          newStartDate = addDays(newStartDate, 1);
+          newEndDate = addDays(newEndDate, 1);
+        }
         break;
+      }
       
-      case 'resize-start':
-        newStartDate = addWorkingDays(phase.startDate, deltaDays, selectedRegion);
+      case 'resize-start': {
+        // Adjust start date
+        newStartDate = addDays(phase.startDate, deltaDays);
+        
+        // Skip to next working day
+        while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+          newStartDate = addDays(newStartDate, deltaDays > 0 ? 1 : -1);
+        }
+        
+        // Ensure start is before end (minimum 1 working day)
         if (newStartDate >= phase.endDate) {
-          newStartDate = addWorkingDays(phase.endDate, -1, selectedRegion);
+          newStartDate = addDays(phase.endDate, -1);
+          while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+            newStartDate = addDays(newStartDate, -1);
+          }
         }
         break;
+      }
       
-      case 'resize-end':
-        newEndDate = addWorkingDays(phase.endDate, deltaDays, selectedRegion);
+      case 'resize-end': {
+        // Adjust end date
+        newEndDate = addDays(phase.endDate, deltaDays);
+        
+        // Skip to next working day
+        while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
+          newEndDate = addDays(newEndDate, deltaDays > 0 ? 1 : -1);
+        }
+        
+        // Ensure end is after start (minimum 1 working day)
         if (newEndDate <= phase.startDate) {
-          newEndDate = addWorkingDays(phase.startDate, 1, selectedRegion);
+          newEndDate = addDays(phase.startDate, 1);
+          while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
+            newEndDate = addDays(newEndDate, 1);
+          }
         }
         break;
+      }
     }
 
     const newWorkingDays = calculateWorkingDays(newStartDate, newEndDate, selectedRegion);
@@ -177,6 +214,12 @@ export function EnhancedGanttChart() {
   const handleMouseUp = () => {
     setDraggedPhase(null);
     setDragMode(null);
+  };
+
+  // Helper to check if date is weekend
+  const isWeekend = (date: Date): boolean => {
+    const day = date.getDay();
+    return day === 0 || day === 6;
   };
 
   // Get holidays in visible range
@@ -200,57 +243,43 @@ export function EnhancedGanttChart() {
       onMouseLeave={handleMouseUp}
     >
       {/* Header Controls */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold text-gray-900">Project Timeline</h3>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleExpandAll}
-              className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 text-sm transition-colors"
-            >
-              <Maximize2 className="w-3 h-3" />
-              Expand All
-            </button>
-            <button
-              onClick={handleCollapseAll}
-              className="flex items-center gap-1 px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 text-sm transition-colors"
-            >
-              <Minimize2 className="w-3 h-3" />
-              Collapse All
-            </button>
-          </div>
-        </div>
+<div className="flex items-center justify-between mb-6">
+  <div className="flex items-center gap-3">
+    <h3 className="text-lg font-semibold text-gray-900">Project Timeline</h3>
+    <div className="text-sm text-gray-600">
+      {phases.length} phases
+    </div>
+  </div>
 
-        <div className="flex items-center gap-3">
-          {/* Region Selector */}
-          <select
-            value={selectedRegion}
-            onChange={(e) => setSelectedRegion(e.target.value as any)}
-            className="px-3 py-1 border border-gray-300 rounded text-sm"
-          >
-            <option value="ABMY">Malaysia</option>
-            <option value="ABSG">Singapore</option>
-            <option value="ABVN">Vietnam</option>
-          </select>
+  <div className="flex items-center gap-3">
+    {/* Region Selector */}
+    <select
+      value={selectedRegion}
+      onChange={(e) => setSelectedRegion(e.target.value as any)}
+      className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 transition-colors"
+    >
+      <option value="ABMY">🇲🇾 Malaysia</option>
+      <option value="ABSG">🇸🇬 Singapore</option>
+      <option value="ABVN">🇻🇳 Vietnam</option>
+    </select>
 
-          {/* Holiday Manager */}
-          <button
-            onClick={() => setShowHolidayManager(true)}
-            className="flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-600 rounded hover:bg-purple-100 text-sm transition-colors"
-          >
-            <Calendar className="w-4 h-4" />
-            Holidays ({visibleHolidays.length})
-          </button>
+    {/* Holiday Manager */}
+    <button
+      onClick={() => setShowHolidayManager(true)}
+      className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 text-sm transition-colors border border-purple-200"
+    >
+      <Calendar className="w-4 h-4" />
+      Manage Holidays
+    </button>
 
-          <button
-            className="flex items-center gap-2 px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 text-sm transition-colors"
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </button>
-        </div>
-      </div>
-
+    <button
+      className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 text-sm transition-colors border border-gray-200"
+    >
+      <Settings className="w-4 h-4" />
+      Settings
+    </button>
+  </div>
+</div>
       {/* Timeline Summary */}
       <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
         <div>
@@ -344,6 +373,7 @@ export function EnhancedGanttChart() {
 }
 
 // Phase Row Component
+// Phase Row Component
 function PhaseRow({
   phase,
   isExpanded,
@@ -366,11 +396,6 @@ function PhaseRow({
   maxDate: Date;
 }) {
   const [showTooltip, setShowTooltip] = useState(false);
-
-  if (!phase.startDate || !phase.endDate) {
-    return null;
-  }
-
   const workingDays = calculateWorkingDays(phase.startDate, phase.endDate, region);
   const holidays = getHolidaysInRange(phase.startDate, phase.endDate, region);
 
@@ -379,16 +404,10 @@ function PhaseRow({
       <div className="flex items-center hover:bg-gray-50 py-2 rounded">
         {/* Phase Name */}
         <div className="w-64 shrink-0 flex items-center gap-2 px-3">
-          <button
-            onClick={onToggleExpand}
-            className="p-1 hover:bg-gray-200 rounded"
-          >
-            {isExpanded ? (
-              <ChevronDown className="w-4 h-4 text-gray-600" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-gray-600" />
-            )}
-          </button>
+          {/* Chevron - currently decorative, can be functional if phases have sub-items */}
+          <div className="w-6 h-6 flex items-center justify-center">
+            <div className="w-2 h-2 rounded-full bg-blue-500" />
+          </div>
           
           <div className="flex-1 min-w-0">
             <div className="font-medium text-sm text-gray-900 truncate">
@@ -429,9 +448,8 @@ function PhaseRow({
           <div
             className={`
               absolute top-2 h-8 rounded-lg transition-all
-              ${isDragging ? 'opacity-60 shadow-2xl scale-105' : 'shadow-md hover:shadow-lg'}
-              ${phase.color || 'bg-blue-500'}
-              cursor-move
+              ${isDragging ? 'opacity-70 shadow-2xl scale-105 cursor-grabbing' : 'shadow-md hover:shadow-lg cursor-grab'}
+              bg-blue-500
             `}
             style={{
               left: `${position.left}%`,
@@ -441,48 +459,45 @@ function PhaseRow({
           >
             {/* Resize Handle - Start */}
             <div
-              className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-black/20 group-hover:bg-black/10"
+              className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
               onMouseDown={(e) => {
                 e.stopPropagation();
                 onMouseDown(e, phase.id, 'resize-start');
               }}
-            />
+              title="Drag to adjust start date"
+            >
+              <div className="w-1 h-4 bg-white/50 rounded" />
+            </div>
 
             {/* Date Labels */}
-            <div className="absolute -top-5 left-1 text-xs text-gray-600 font-medium whitespace-nowrap">
+            <div className="absolute -top-5 left-1 text-xs text-gray-600 font-medium whitespace-nowrap pointer-events-none">
               {format(phase.startDate, 'MMM dd')}
             </div>
-            <div className="absolute -top-5 right-1 text-xs text-gray-600 font-medium whitespace-nowrap">
+            <div className="absolute -top-5 right-1 text-xs text-gray-600 font-medium whitespace-nowrap pointer-events-none">
               {format(phase.endDate, 'MMM dd')}
             </div>
 
             {/* Duration Label */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white text-xs font-semibold px-2 bg-black/20 rounded">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-white text-xs font-semibold px-2 py-1 bg-black/20 rounded">
                 {workingDays}d
               </span>
             </div>
 
             {/* Resize Handle - End */}
             <div
-              className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-black/20 group-hover:bg-black/10"
+              className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
               onMouseDown={(e) => {
                 e.stopPropagation();
                 onMouseDown(e, phase.id, 'resize-end');
               }}
-            />
+              title="Drag to adjust end date"
+            >
+              <div className="w-1 h-4 bg-white/50 rounded" />
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Sub-phases (if expanded) */}
-      {isExpanded && phase.dependencies && phase.dependencies.length > 0 && (
-        <div className="ml-8 border-l-2 border-gray-200 pl-4 py-2">
-          <div className="text-xs text-gray-500">
-            Dependencies: {phase.dependencies.join(', ')}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
