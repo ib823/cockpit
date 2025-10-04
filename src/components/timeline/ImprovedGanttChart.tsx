@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  addWorkingDays,
   calculateWorkingDays,
   getHolidaysInRange,
   isHoliday,
@@ -50,11 +51,42 @@ export function ImprovedGanttChart({
   const selectPhase = useTimelineStore((state) => state.selectPhase);
   const selectedPhaseId = useTimelineStore((state) => state.selectedPhaseId);
 
-  const safePhases = Array.isArray(phasesProp)
+  const rawPhases = Array.isArray(phasesProp)
     ? phasesProp
     : Array.isArray(storePhases)
     ? storePhases
     : [];
+
+  // Project base date for business day calculations
+  const PROJECT_BASE_DATE = new Date(2024, 0, 1); // January 1, 2024
+
+  // Compute phases with dates if they don't have them
+  const safePhases = useMemo(() => {
+    return rawPhases.map(phase => {
+      // If phase already has dates, use them
+      if (phase.startDate && phase.endDate) {
+        return phase;
+      }
+
+      // Otherwise compute from business days
+      const startDate = addWorkingDays(
+        PROJECT_BASE_DATE,
+        phase.startBusinessDay || 0,
+        'ABMY' // Default region
+      );
+      const endDate = addWorkingDays(
+        PROJECT_BASE_DATE,
+        (phase.startBusinessDay || 0) + (phase.workingDays || 0),
+        'ABMY'
+      );
+
+      return {
+        ...phase,
+        startDate,
+        endDate,
+      };
+    });
+  }, [rawPhases]);
 
   // State
   const [collapsedStreams, setCollapsedStreams] = useState<Set<string>>(new Set());
