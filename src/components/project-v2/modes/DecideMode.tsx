@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
 import { motion } from "framer-motion";
-import { AlertCircle, CheckCircle, TrendingDown, TrendingUp } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle, TrendingDown, TrendingUp } from "lucide-react";
 import { useState } from "react";
 
 // Decision option interface
@@ -196,6 +196,17 @@ export function DecideMode() {
   return (
     <div className="h-full overflow-auto bg-gray-50">
       <div className="max-w-5xl mx-auto p-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <button
+            onClick={() => setMode('capture')}
+            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm font-medium">Back to Capture</span>
+          </button>
+        </div>
+
         {/* Progress indicator */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
