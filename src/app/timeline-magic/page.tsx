@@ -1,25 +1,79 @@
 "use client";
 
 /**
- * MAGIC TIMELINE PAGE
- * Steve Jobs Principle: "Show me something beautiful immediately, then let me refine it"
+ * MAGIC TIMELINE / RESET EXPERIENCE PAGE
  *
- * Key Changes from Old Timeline:
- * 1. NO "Generate" button - timeline appears instantly
- * 2. Example project shown on empty state
- * 3. Every change updates timeline in real-time
- * 4. Direct manipulation - edit inline, no modals
- * 5. Celebration animation on completion
+ * Dual Purpose:
+ * 1. When user has data: Show beautiful timeline visualization
+ * 2. When empty (reset/first visit): Calm reading experience with rotating inspirational quotes
+ *
+ * Design Philosophy: Simple, beautiful, focused on reading and reflection.
+ * No distractions, just inspiration and a gentle transition.
  */
 
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, TrendingUp, Users, Clock, AlertCircle, Flag } from "lucide-react";
+import {
+  CheckCircle,
+  TrendingUp,
+  Users,
+  Clock,
+  AlertCircle,
+  Flag,
+  Sparkles,
+  Coffee,
+  ArrowRight,
+} from "lucide-react";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { usePresalesStore } from "@/stores/presales-store";
 import { ResetButton } from "@/components/common/ResetButton";
+import Link from "next/link";
 
-// Example timeline shown when user has no data
+// Inspirational quotes from visionaries
+const INSPIRATION_QUOTES = [
+  {
+    quote: "The best way to predict the future is to invent it.",
+    author: "Alan Kay",
+    role: "Computer Scientist",
+  },
+  {
+    quote: "Simplicity is the ultimate sophistication.",
+    author: "Leonardo da Vinci",
+    role: "Renaissance Polymath",
+  },
+  {
+    quote: "Design is not just what it looks like and feels like. Design is how it works.",
+    author: "Steve Jobs",
+    role: "Apple Co-founder",
+  },
+  {
+    quote: "The only way to do great work is to love what you do.",
+    author: "Steve Jobs",
+    role: "Apple Co-founder",
+  },
+  {
+    quote: "Innovation distinguishes between a leader and a follower.",
+    author: "Steve Jobs",
+    role: "Apple Co-founder",
+  },
+  {
+    quote: "Think different. Start fresh. Build something amazing.",
+    author: "Apple",
+    role: "Think Different Campaign",
+  },
+  {
+    quote: "Stay hungry. Stay foolish.",
+    author: "Steve Jobs",
+    role: "Apple Co-founder",
+  },
+  {
+    quote: "Less is more.",
+    author: "Ludwig Mies van der Rohe",
+    role: "Architect",
+  },
+];
+
+// Example timeline shown when user has data
 const EXAMPLE_TIMELINE = {
   name: "Finance + HR Implementation",
   phases: [
@@ -37,22 +91,170 @@ const EXAMPLE_TIMELINE = {
 export default function MagicTimelinePage() {
   const { chips } = usePresalesStore();
   const { phases } = useTimelineStore();
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [timelineData, setTimelineData] = useState(EXAMPLE_TIMELINE);
+  const [currentQuote, setCurrentQuote] = useState(0);
 
-  // Check if user has real data or using example
-  const hasRealData = chips && chips.length > 0;
+  // Check if user has real data
+  const hasRealData = (chips && chips.length > 0) || (phases && phases.length > 0);
+
+  // Rotate quotes every 8 seconds
+  useEffect(() => {
+    if (!hasRealData) {
+      const interval = setInterval(() => {
+        setCurrentQuote((prev) => (prev + 1) % INSPIRATION_QUOTES.length);
+      }, 8000);
+      return () => clearInterval(interval);
+    }
+  }, [hasRealData]);
+
+  // Show empty state if no data
+  if (!hasRealData) {
+    return <EmptyStateExperience currentQuoteIndex={currentQuote} />;
+  }
+
+  // Show timeline visualization if has data
+  return <TimelineVisualization />;
+}
+
+// ============================================================================
+// EMPTY STATE EXPERIENCE - Minimal, Beautiful, Focused on Reading
+// ============================================================================
+
+function EmptyStateExperience({ currentQuoteIndex }: { currentQuoteIndex: number }) {
+  const quote = INSPIRATION_QUOTES[currentQuoteIndex];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden flex items-center justify-center">
+      {/* Ambient floating shapes - subtle and calming */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{
+            y: [0, -30, 0],
+            x: [0, 20, 0],
+            rotate: [0, 10, 0],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-20 left-20 w-64 h-64 bg-blue-200/20 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            y: [0, 40, 0],
+            x: [0, -30, 0],
+            rotate: [0, -15, 0],
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-40 right-20 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            y: [0, -20, 0],
+            x: [0, 15, 0],
+          }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/2 left-1/3 w-72 h-72 bg-pink-200/20 rounded-full blur-3xl"
+        />
+      </div>
+
+      {/* Main Content - Centered Quote Card */}
+      <div className="relative z-10 max-w-4xl mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          {/* Quote Card */}
+          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-16 border border-white/30">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentQuoteIndex}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+                className="text-center"
+              >
+                {/* Icon */}
+                <motion.div
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="mb-8"
+                >
+                  <Coffee className="w-16 h-16 text-indigo-400 mx-auto" />
+                </motion.div>
+
+                {/* Quote Text */}
+                <p className="text-4xl md:text-5xl font-light text-gray-800 italic leading-relaxed mb-10">
+                  &ldquo;{quote.quote}&rdquo;
+                </p>
+
+                {/* Author */}
+                <div className="text-xl text-gray-600 mb-12">
+                  <span className="font-medium">— {quote.author}</span>
+                  <span className="text-gray-400 ml-3">• {quote.role}</span>
+                </div>
+
+                {/* Quote Progress Dots */}
+                <div className="flex justify-center gap-2 mb-12">
+                  {INSPIRATION_QUOTES.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-2 rounded-full transition-all duration-500 ${
+                        idx === currentQuoteIndex
+                          ? "w-8 bg-indigo-500"
+                          : "w-2 bg-gray-300 hover:bg-indigo-300 cursor-pointer"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Gentle CTA */}
+                <div className="pt-8 border-t border-gray-200/50">
+                  <Link href="/project">
+                    <button className="group px-10 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full font-medium text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3 mx-auto">
+                      <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                      <span>Begin Your Journey</span>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </Link>
+                  <p className="text-gray-400 mt-4 text-sm">
+                    Take a moment. When ready, start creating.
+                  </p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Subtle hint text */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.5, duration: 1 }}
+            className="text-center text-gray-400 text-sm mt-8"
+          >
+            Let the words settle. There&apos;s no rush.
+          </motion.p>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// TIMELINE VISUALIZATION - When user has data
+// ============================================================================
+
+function TimelineVisualization() {
+  const { chips } = usePresalesStore();
+  const { phases } = useTimelineStore();
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [timelineData] = useState(EXAMPLE_TIMELINE);
 
   // Auto-generate timeline when chips change
   useEffect(() => {
-    if (hasRealData) {
-      // TODO: Generate from chips
-      // For now, show example
-      setTimelineData(EXAMPLE_TIMELINE);
+    if (chips && chips.length > 0) {
       setShowCelebration(true);
       setTimeout(() => setShowCelebration(false), 3000);
     }
-  }, [chips, hasRealData]);
+  }, [chips]);
 
   // Calculate metrics
   const metrics = useMemo(() => {
@@ -89,14 +291,8 @@ export default function MagicTimelinePage() {
         >
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-5xl font-light text-gray-900 mb-3">
-                {hasRealData ? "Your Timeline" : "Example Timeline"}
-              </h1>
-              <p className="text-xl text-gray-600">
-                {hasRealData
-                  ? `Generated from your requirements`
-                  : `This is what your timeline could look like`}
-              </p>
+              <h1 className="text-5xl font-light text-gray-900 mb-3">Your Timeline</h1>
+              <p className="text-xl text-gray-600">Generated from your requirements</p>
             </div>
             <ResetButton />
           </div>
@@ -212,7 +408,9 @@ export default function MagicTimelinePage() {
   );
 }
 
-// Components
+// ============================================================================
+// SHARED COMPONENTS
+// ============================================================================
 
 function CelebrationOverlay({ metrics }: { metrics: any }) {
   return (

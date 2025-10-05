@@ -76,7 +76,7 @@ export interface TimelineState {
 
   // Computed values
   getProjectCost: () => number;
-  getProjectCostWithWrappers: () => { core: number; wrappers: number; total: number };
+  getProjectCostWithWrappers: () => Promise<{ core: number; wrappers: number; total: number }>;
   getBlendedRate: () => number;
   getTotalEffort: () => number;
   getProjectStartDate: () => Date | null;
@@ -665,7 +665,7 @@ export const useTimelineStore = create<TimelineState>()(
         }
       },
 
-      getProjectCostWithWrappers: (): { core: number; wrappers: number; total: number } => {
+      getProjectCostWithWrappers: async (): Promise<{ core: number; wrappers: number; total: number }> => {
         const coreCost = get().getProjectCost();
 
         // Import wrapper calculations from wrappers store
@@ -675,8 +675,8 @@ export const useTimelineStore = create<TimelineState>()(
         }
 
         try {
-          const wrappersStore = import('@/stores/wrappers-store').useWrappersStore;
-          const { calculations } = wrappersStore.getState();
+          const { useWrappersStore } = await import('@/stores/wrappers-store');
+          const { calculations } = useWrappersStore.getState();
 
           const wrappersCost = calculations.reduce((sum: number, calc: any) => sum + calc.wrapperCost, 0);
 

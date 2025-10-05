@@ -99,7 +99,7 @@ describe("ErrorBoundary", () => {
   describe("Development vs Production Behavior", () => {
     it("shows error details in development mode", () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "development";
+      (process.env as any).NODE_ENV = "development";
 
       render(
         <ErrorBoundary>
@@ -113,12 +113,12 @@ describe("ErrorBoundary", () => {
       // Should have stack trace details
       expect(screen.getByText("Stack trace")).toBeInTheDocument();
 
-      process.env.NODE_ENV = originalEnv;
+      (process.env as any).NODE_ENV = originalEnv;
     });
 
     it("hides error details in production mode", () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "production";
+      (process.env as any).NODE_ENV = "production";
 
       render(
         <ErrorBoundary>
@@ -133,7 +133,7 @@ describe("ErrorBoundary", () => {
       expect(screen.queryByText(/Test crash/)).not.toBeInTheDocument();
       expect(screen.queryByText("Stack trace")).not.toBeInTheDocument();
 
-      process.env.NODE_ENV = originalEnv;
+      (process.env as any).NODE_ENV = originalEnv;
     });
   });
 
@@ -168,9 +168,9 @@ describe("ErrorBoundary", () => {
 
       expect(errorCall).toBeDefined();
       // The error and errorInfo are logged after the message
-      expect(errorCall![1]).toBeInstanceOf(Error);
-      expect(errorCall![1].message).toBe("Test crash");
-      expect(errorCall![2]).toHaveProperty("componentStack");
+      expect((errorCall as any)[1]).toBeInstanceOf(Error);
+      expect((errorCall as any)[1].message).toBe("Test crash");
+      expect((errorCall as any)[2]).toHaveProperty("componentStack");
     });
   });
 
@@ -193,7 +193,7 @@ describe("ErrorBoundary", () => {
       expect(window.location.href).toBe("/");
 
       // Restore
-      window.location = originalLocation;
+      (window as any).location = originalLocation;
     });
   });
 
@@ -430,7 +430,7 @@ describe("ErrorBoundary", () => {
   describe("Production Error Tracking", () => {
     it("should prepare for error tracking integration", () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "production";
+      (process.env as any).NODE_ENV = "production";
 
       render(
         <ErrorBoundary>
@@ -444,7 +444,7 @@ describe("ErrorBoundary", () => {
       // TODO: In future, verify Sentry/error tracking service call
       // This test documents the planned integration point
 
-      process.env.NODE_ENV = originalEnv;
+      (process.env as any).NODE_ENV = originalEnv;
     });
   });
 });
