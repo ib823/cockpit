@@ -73,20 +73,7 @@ const INSPIRATION_QUOTES = [
   },
 ];
 
-// Example timeline shown when user has data
-const EXAMPLE_TIMELINE = {
-  name: "Finance + HR Implementation",
-  phases: [
-    { id: "prep", name: "Prepare", days: 15, color: "#3b82f6", resources: 3 },
-    { id: "explore", name: "Explore", days: 45, color: "#10b981", resources: 5 },
-    { id: "realize", name: "Realize", days: 90, color: "#f59e0b", resources: 8 },
-    { id: "deploy", name: "Deploy", days: 30, color: "#8b5cf6", resources: 6 },
-    { id: "run", name: "Run", days: 20, color: "#06b6d4", resources: 4 },
-  ],
-  totalDays: 200,
-  totalCost: 850000,
-  teamSize: 12,
-};
+// MILESTONE 2: Removed EXAMPLE_TIMELINE - now uses real data from stores
 
 export default function MagicTimelinePage() {
   const { chips } = usePresalesStore();
@@ -244,9 +231,9 @@ function EmptyStateExperience({ currentQuoteIndex }: { currentQuoteIndex: number
 
 function TimelineVisualization() {
   const { chips } = usePresalesStore();
-  const { phases } = useTimelineStore();
+  const timelineStore = useTimelineStore();
+  const { phases, getProjectCost, getTotalWorkingDays, profile } = timelineStore;
   const [showCelebration, setShowCelebration] = useState(false);
-  const [timelineData] = useState(EXAMPLE_TIMELINE);
 
   // Auto-generate timeline when chips change
   useEffect(() => {
@@ -256,23 +243,33 @@ function TimelineVisualization() {
     }
   }, [chips]);
 
-  // Calculate metrics
+  // MILESTONE 2: Calculate metrics from REAL timeline data
   const metrics = useMemo(() => {
-    const months = Math.ceil(timelineData.totalDays / 20);
+    const totalDays = getTotalWorkingDays();
+    const totalCost = getProjectCost();
+    const months = Math.ceil(totalDays / 20);
+
     const currencyFormatted = new Intl.NumberFormat("en-MY", {
       style: "currency",
       currency: "MYR",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(timelineData.totalCost);
+    }).format(totalCost);
+
+    // Calculate peak team size from phases
+    const teamSize = phases.reduce((max, phase) => {
+      const phaseTeamSize = (phase.resources || []).length;
+      return Math.max(max, phaseTeamSize);
+    }, 0);
 
     return {
       duration: `${months} month${months > 1 ? "s" : ""}`,
       cost: currencyFormatted,
-      team: `${timelineData.teamSize} people`,
-      phases: timelineData.phases.length,
+      team: `${teamSize} people`,
+      phases: phases.length,
+      totalDays: totalDays,
     };
-  }, [timelineData]);
+  }, [phases, getProjectCost, getTotalWorkingDays]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -339,13 +336,26 @@ function TimelineVisualization() {
           className="bg-white rounded-2xl shadow-xl p-8"
         >
           <div className="space-y-6">
-            {timelineData.phases.map((phase, index) => (
+            {/* MILESTONE 2: Use real phases from timeline store */}
+            {phases.map((phase, index) => (
               <PhaseBar
                 key={phase.id}
-                phase={phase}
-                totalDays={timelineData.totalDays}
+                phase={{
+                  id: phase.id,
+                  name: phase.name,
+                  days: phase.workingDays,
+                  color: phase.color,
+                  resources: (phase.resources || []).length,
+                }}
+                totalDays={metrics.totalDays}
                 index={index}
-                allPhases={timelineData.phases}
+                allPhases={phases.map(p => ({
+                  id: p.id,
+                  name: p.name,
+                  days: p.workingDays,
+                  color: p.color,
+                  resources: (p.resources || []).length,
+                }))}
               />
             ))}
           </div>

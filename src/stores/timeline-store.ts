@@ -38,6 +38,7 @@ export interface TimelineState {
 
   // Actions - Profile
   setProfile: (profile: Partial<ClientProfile>) => void;
+  setProjectInfo: (info: { company: string; industry: string; employees: number }) => void;
   resetProfile: () => void;
 
   // Actions - Packages
@@ -243,6 +244,18 @@ export const useTimelineStore = create<TimelineState>()(
       setProfile: (updates: Partial<ClientProfile>) => {
         set((state) => ({
           profile: { ...state.profile, ...updates },
+        }));
+      },
+
+      setProjectInfo: (info: { company: string; industry: string; employees: number }) => {
+        console.log('[TimelineStore] Setting project info:', info);
+        set((state) => ({
+          profile: {
+            ...state.profile,
+            company: info.company,
+            industry: info.industry as any,
+            employees: info.employees,
+          },
         }));
       },
 

@@ -393,6 +393,38 @@ export const usePresalesStore = create<PresalesState>()(
         try {
           const result = convertPresalesToTimeline(chips, decisions);
           console.log("Timeline generation result:", result);
+
+          // MILESTONE 1 FIX: Actually load the generated data into timeline store
+          if (result) {
+            // Import timeline store dynamically to avoid circular dependencies
+            import('@/stores/timeline-store').then(({ useTimelineStore }) => {
+              const timelineStore = useTimelineStore.getState();
+
+              // Set project info from profile
+              if (result.profile) {
+                timelineStore.setProjectInfo({
+                  company: result.profile.company || '',
+                  industry: result.profile.industry || 'manufacturing',
+                  employees: result.profile.employees || 500,
+                });
+              }
+
+              // Set selected packages
+              if (result.selectedPackages && result.selectedPackages.length > 0) {
+                timelineStore.setSelectedPackages(result.selectedPackages);
+              }
+
+              // Set phases
+              if (result.phases && result.phases.length > 0) {
+                console.log(`[PresalesStore] Loading ${result.phases.length} phases into timeline store`);
+                timelineStore.setPhases(result.phases);
+              } else {
+                console.warn('[PresalesStore] No phases generated, attempting timeline generation');
+                timelineStore.generateTimeline();
+              }
+            });
+          }
+
           set({ mode: "plan" });
           return result;
         } catch (err) {

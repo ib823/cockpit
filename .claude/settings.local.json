@@ -39,7 +39,9 @@
       "Bash(1)",
       "Bash(echo:*)",
       "SlashCommand(/init)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []
