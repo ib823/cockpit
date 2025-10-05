@@ -1,0 +1,36 @@
+/**
+ * Passkey & Audit models (no Role/User duplicates)
+ * You already have Role and User; we only add the new tables.
+ */
+
+model Authenticator {
+  id           String   @id                // credentialId (base64url)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  publicKey    Bytes
+  counter      Int
+  transports   String[]
+  deviceType   String
+  backedUp     Boolean
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @default(now())
+}
+
+model EmailApproval {
+  email            String   @id
+  tokenHash        String
+  tokenExpiresAt   DateTime
+  approvedByUserId String
+  usedAt           DateTime?
+  createdAt        DateTime @default(now())
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "login" | "timeline.generate" | "admin.approve" | ...
+  createdAt DateTime @default(now())
+  meta      Json?
+  @@index([userId, type, createdAt])
+}

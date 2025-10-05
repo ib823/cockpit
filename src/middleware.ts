@@ -2,6 +2,7 @@
 // SECURITY: Server-side middleware for rate limiting and security headers
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getSession } from "./lib/session";
 
 // Server-side rate limiter using Map (in-memory)
 // For production, consider using Redis or similar distributed cache
@@ -85,7 +86,7 @@ function getClientIdentifier(request: NextRequest): string {
 /**
  * Main middleware function
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // SECURITY: Block requests with internal Next.js headers (CVE-2025-29927)
   const subrequestHeader = request.headers.get("x-middleware-subrequest");
   if (subrequestHeader) {
@@ -96,6 +97,26 @@ export function middleware(request: NextRequest) {
     });
 
     return new NextResponse("Forbidden", { status: 403 });
+  }
+
+  // Check authentication for protected routes
+  const { pathname } = request.nextUrl;
+
+  // Public paths that don't require authentication
+  const publicPaths = ['/login', '/api/auth'];
+  const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
+
+  // Static assets and Next.js internal paths
+  const isStaticAsset =
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/static') ||
+    /\.(ico|png|jpg|jpeg|svg|gif|webp|woff|woff2|ttf|eot|otf)$/.test(pathname);
+
+  if (!isPublicPath && !isStaticAsset) {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
   }
 
   // Get client identifier
