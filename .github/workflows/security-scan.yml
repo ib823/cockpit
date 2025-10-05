@@ -63,7 +63,7 @@ jobs:
             p/typescript
             p/react
             p/nextjs
-        # continue-on-error: true
+            continue-on-error: true
 
   secret-scan:
     name: Secret Detection Scan
