@@ -675,7 +675,7 @@ export const useTimelineStore = create<TimelineState>()(
         }
 
         try {
-          const wrappersStore = require('@/stores/wrappers-store').useWrappersStore;
+          const wrappersStore = import('@/stores/wrappers-store').useWrappersStore;
           const { calculations } = wrappersStore.getState();
 
           const wrappersCost = calculations.reduce((sum: number, calc: any) => sum + calc.wrapperCost, 0);
