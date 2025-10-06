@@ -42,6 +42,7 @@ export async function GET() {
       return {
         id: user.id,
         email: user.email,
+        name: user.name,
         status,
         exception: user.exception,
         accessExpiresAt: user.accessExpiresAt,

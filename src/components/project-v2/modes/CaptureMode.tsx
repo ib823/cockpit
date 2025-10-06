@@ -97,7 +97,7 @@ export function CaptureMode() {
    * NEW: Fill all missing gaps with smart defaults
    */
   const handleSmartDefaults = () => {
-    const newChips = fillMissingChips(chips, completeness.gaps);
+    const newChips = fillMissingChips(chips, completeness?.gaps || []);
     
     if (newChips.length > 0) {
       addChips(newChips);
@@ -220,7 +220,7 @@ export function CaptureMode() {
   }
 
   // Chips extracted - show list with enhanced actions
-  const progressPercent = safePercentage(completeness.score, 100);
+  const progressPercent = safePercentage(completeness?.score || 0, 100);
   const missingGaps = completeness.gaps || [];
   const isComplete = progressPercent >= 80;
   const canProceedWithDefaults = progressPercent >= 30; // NEW: Lower threshold for defaults

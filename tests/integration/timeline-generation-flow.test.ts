@@ -18,36 +18,32 @@ describe("Timeline Generation Flow (FIX 1-4)", () => {
   });
 
   it("should generate timeline when regenerateTimeline is called with chips", () => {
-    const presalesStore = usePresalesStore.getState();
-    const projectStore = useProjectStore.getState();
-    const timelineStore = useTimelineStore.getState();
-
     // Add some test chips
     const testChips: Chip[] = [
       {
         id: "chip-1",
-        type: "country",
+        type: "COUNTRY",
         value: "Malaysia",
         confidence: 0.9,
         source: "paste",
       },
       {
         id: "chip-2",
-        type: "industry",
+        type: "INDUSTRY",
         value: "Manufacturing",
         confidence: 0.9,
         source: "paste",
       },
       {
         id: "chip-3",
-        type: "modules",
+        type: "MODULES",
         value: "Finance, HR, Supply Chain",
         confidence: 0.9,
         source: "paste",
       },
       {
         id: "chip-4",
-        type: "employees",
+        type: "EMPLOYEES",
         value: "500",
         confidence: 0.9,
         source: "paste",
@@ -55,33 +51,32 @@ describe("Timeline Generation Flow (FIX 1-4)", () => {
     ];
 
     // Add chips to presales store
-    testChips.forEach((chip) => presalesStore.addChip(chip));
+    testChips.forEach((chip) => usePresalesStore.getState().addChip(chip));
 
     // Add some decisions
-    presalesStore.updateDecision("moduleCombo", "finance_p2p");
-    presalesStore.updateDecision("rateRegion", "ABMY");
+    usePresalesStore.getState().updateDecision("moduleCombo", "finance_p2p");
+    usePresalesStore.getState().updateDecision("rateRegion", "ABMY");
 
-    // Verify chips were added
-    expect(presalesStore.chips.length).toBeGreaterThanOrEqual(4);
-    expect(presalesStore.completeness.score).toBeGreaterThan(0);
+    // Verify chips were added (get fresh state)
+    expect(usePresalesStore.getState().chips.length).toBeGreaterThanOrEqual(4);
+    expect(usePresalesStore.getState().completeness).toBeDefined();
+    expect(usePresalesStore.getState().completeness.score).toBeGreaterThan(0);
 
     // Trigger timeline generation
     console.log("[TEST] Triggering timeline regeneration...");
-    projectStore.regenerateTimeline(true);
+    useProjectStore.getState().regenerateTimeline(true);
 
     // Check timeline store was updated
-    const updatedPhases = timelineStore.phases;
+    const updatedPhases = useTimelineStore.getState().phases;
     console.log(`[TEST] After regeneration: ${updatedPhases.length} phases`);
 
     // Verify phases were generated
     expect(updatedPhases.length).toBeGreaterThan(0);
-    expect(timelineStore.selectedPackages.length).toBeGreaterThan(0);
-    expect(timelineStore.profile.company).toBeDefined();
+    expect(useTimelineStore.getState().selectedPackages.length).toBeGreaterThan(0);
+    expect(useTimelineStore.getState().profile.company).toBeDefined();
   });
 
   it("should use setPhases method to update timeline store", () => {
-    const timelineStore = useTimelineStore.getState();
-
     // Test setPhases method
     const testPhases = [
       {
@@ -112,41 +107,33 @@ describe("Timeline Generation Flow (FIX 1-4)", () => {
       },
     ];
 
-    timelineStore.setPhases(testPhases);
+    useTimelineStore.getState().setPhases(testPhases);
 
-    expect(timelineStore.phases).toHaveLength(2);
-    expect(timelineStore.phases[0].id).toBe("phase-1");
-    expect(timelineStore.phases[1].id).toBe("phase-2");
+    const updatedStore = useTimelineStore.getState();
+    expect(updatedStore.phases).toHaveLength(2);
+    expect(updatedStore.phases[0].id).toBe("phase-1");
+    expect(updatedStore.phases[1].id).toBe("phase-2");
   });
 
   it("should use setSelectedPackages method", () => {
-    const timelineStore = useTimelineStore.getState();
-
     const testPackages = ["Finance_1", "Finance_3", "HCM_1"];
-    timelineStore.setSelectedPackages(testPackages);
+    useTimelineStore.getState().setSelectedPackages(testPackages);
 
-    expect(timelineStore.selectedPackages).toEqual(testPackages);
+    expect(useTimelineStore.getState().selectedPackages).toEqual(testPackages);
   });
 
   it("should not generate timeline if no chips exist", () => {
-    const projectStore = useProjectStore.getState();
-    const timelineStore = useTimelineStore.getState();
-
     // Try to generate with no chips
-    projectStore.regenerateTimeline(true);
+    useProjectStore.getState().regenerateTimeline(true);
 
     // Should not have created phases
-    expect(timelineStore.phases.length).toBe(0);
+    expect(useTimelineStore.getState().phases.length).toBe(0);
   });
 
   it("should log diagnostic messages during generation", () => {
-    const presalesStore = usePresalesStore.getState();
-    const projectStore = useProjectStore.getState();
-
     // Add minimal chips
-    presalesStore.addChip({
-      id: "chip-1",
-      type: "modules",
+    usePresalesStore.getState().addChip({
+      type: "MODULES",
       value: "Finance",
       confidence: 0.9,
       source: "paste",
@@ -160,7 +147,7 @@ describe("Timeline Generation Flow (FIX 1-4)", () => {
       originalLog(...args);
     };
 
-    projectStore.regenerateTimeline(true);
+    useProjectStore.getState().regenerateTimeline(true);
 
     // Restore console.log
     console.log = originalLog;

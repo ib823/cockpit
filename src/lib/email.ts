@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -6,18 +7,19 @@ const resend = process.env.RESEND_API_KEY
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
-export async function sendAccessCode(email: string, code: string) {
-  if (!resend) {
-    console.log('[DEV] Email not sent (no RESEND_API_KEY). Code:', code);
-    return { success: false, devMode: true };
-  }
+// Gmail SMTP transporter (free option)
+const gmailTransporter = process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD
+  ? nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    })
+  : null;
 
-  try {
-    await resend.emails.send({
-      from: FROM_EMAIL,
-      to: email,
-      subject: 'Your Cockpit Access Code',
-      html: `
+function emailTemplate(code: string): string {
+  return `
         <!DOCTYPE html>
         <html>
           <head>
@@ -41,7 +43,7 @@ export async function sendAccessCode(email: string, code: string) {
                 <!-- Code Box -->
                 <div style="background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
                   <div style="font-size: 42px; font-weight: 700; letter-spacing: 8px; color: #0f172a; font-family: 'Courier New', monospace;">
-                    ${code}
+                    \${code}
                   </div>
                 </div>
 
@@ -80,12 +82,45 @@ export async function sendAccessCode(email: string, code: string) {
             </div>
           </body>
         </html>
-      `,
-    });
+`;
+}
 
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to send email:', error);
-    return { success: false, error };
+export async function sendAccessCode(email: string, code: string) {
+  // Priority 1: Try Gmail SMTP (free, built-in)
+  if (gmailTransporter) {
+    try {
+      await gmailTransporter.sendMail({
+        from: `"Cockpit" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: 'Your Cockpit Access Code',
+        html: emailTemplate(code),
+      });
+      console.log('[Gmail] Email sent to:', email);
+      return { success: true, provider: 'gmail' };
+    } catch (error) {
+      console.error('[Gmail] Failed to send email:', error);
+      // Fall through to Resend
+    }
   }
+
+  // Priority 2: Try Resend API
+  if (resend) {
+    try {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        subject: 'Your Cockpit Access Code',
+        html: emailTemplate(code),
+      });
+      console.log('[Resend] Email sent to:', email);
+      return { success: true, provider: 'resend' };
+    } catch (error) {
+      console.error('[Resend] Failed to send email:', error);
+      return { success: false, error };
+    }
+  }
+
+  // No email provider configured
+  console.log('[DEV] Email not sent (no email provider configured). Code:', code);
+  return { success: false, devMode: true };
 }

@@ -4,8 +4,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model User {
@@ -25,13 +25,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  authenticators  Authenticator[] @relation("UserAuthenticators")
-  auditEvents     AuditEvent[]    @relation("UserAuditEvents")
-  exception       Boolean         @default(false)
-  accessExpiresAt DateTime        @default(now())
-  firstLoginAt    DateTime?
-  lastLoginAt     DateTime?
-  timelinesGenerated Int          @default(0)
+  authenticators     Authenticator[] @relation("UserAuthenticators")
+  auditEvents        AuditEvent[]    @relation("UserAuditEvents")
+  exception          Boolean         @default(false)
+  accessExpiresAt    DateTime        @default(now())
+  firstLoginAt       DateTime?
+  lastLoginAt        DateTime?
+  timelinesGenerated Int             @default(0)
   lastTimelineAt     DateTime?
 
   @@index([email])
@@ -112,12 +112,15 @@ model Project {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  chips     Chip[]
-  phases    Phase[]
-  resources Resource[]
-  snapshots Snapshot[]
-  shares    Share[]
-  comments  Comment[]
+  chips            Chip[]
+  phases           Phase[]
+  resources        Resource[]
+  snapshots        Snapshot[]
+  shares           Share[]
+  comments         Comment[]
+  ricefwItems      RicefwItem[]
+  formItems        FormItem[]
+  integrationItems IntegrationItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -163,6 +166,13 @@ enum ChipType {
   COMPLIANCE
   LEGAL_ENTITIES
   SSO
+  BANKING
+  EXISTING_SYSTEM
+  LOCATIONS
+  USERS
+  DATA_VOLUME
+  CURRENCIES
+  LANGUAGES
 }
 
 model Phase {
@@ -343,4 +353,85 @@ model AuditEvent {
   meta      Json?
 
   @@index([userId, type, createdAt])
+}
+
+model PushSubscription {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  subscription Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([email])
+  @@map("push_subscriptions")
+}
+
+model MagicToken {
+  id         String    @id @default(cuid())
+  email      String
+  token      String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  deviceInfo String?   @db.Text
+  ipAddress  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@map("magic_tokens")
+}
+
+model RicefwItem {
+  id            String   @id @default(cuid())
+  projectId     String
+  type          String // 'report' | 'interface' | 'conversion' | 'enhancement' | 'form' | 'workflow'
+  name          String
+  description   String?  @db.Text
+  complexity    String // 'S' | 'M' | 'L'
+  count         Int
+  effortPerItem Decimal  @db.Decimal(10, 2)
+  totalEffort   Decimal  @db.Decimal(10, 2)
+  phase         String // 'explore' | 'realize' | 'deploy'
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([projectId, type])
+  @@map("ricefw_items")
+}
+
+model FormItem {
+  id         String   @id @default(cuid())
+  projectId  String
+  name       String
+  type       String // 'po' | 'invoice' | 'deliveryNote' | 'custom'
+  languages  String[] // Array of ISO codes
+  complexity String // 'S' | 'M' | 'L'
+  effort     Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("form_items")
+}
+
+model IntegrationItem {
+  id         String   @id @default(cuid())
+  projectId  String
+  name       String
+  type       String // 'api' | 'file' | 'database' | 'realtime' | 'batch'
+  source     String
+  target     String
+  complexity String // 'S' | 'M' | 'L'
+  volume     String // 'low' | 'medium' | 'high'
+  effort     Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("integration_items")
 }

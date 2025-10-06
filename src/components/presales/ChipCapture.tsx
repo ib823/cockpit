@@ -112,10 +112,10 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
   const handleProceedWithDefaults = () => {
     const defaultChips: Chip[] = [];
 
-    if (!chips.some((c) => c.type === "legal_entities")) {
+    if (!chips.some((c) => c.type === "LEGAL_ENTITIES")) {
       defaultChips.push({
         id: `default_${Date.now()}_1`,
-        type: "legal_entities" as ChipType,
+        type: "LEGAL_ENTITIES",
         value: "1",
         confidence: 0.5,
         source: "default" as ChipSource,
@@ -127,10 +127,10 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
       });
     }
 
-    if (!chips.some((c) => c.type === "locations")) {
+    if (!chips.some((c) => c.type === "LOCATIONS")) {
       defaultChips.push({
         id: `default_${Date.now()}_2`,
-        type: "locations" as ChipType,
+        type: "LOCATIONS",
         value: "1",
         confidence: 0.5,
         source: "default" as ChipSource,
@@ -177,11 +177,11 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
             Extract information from RFP or requirements document
           </p>
         </div>
-        <CompletenessRing score={completeness.score} size="md" />
+        <CompletenessRing score={completeness?.score || 0} size="md" />
       </div>
 
       {/* Completeness Progress Bar */}
-      <CompletenessBar score={completeness.score} />
+      <CompletenessBar score={completeness?.score || 0} />
 
       {/* Input Section */}
       <div className="space-y-3">
@@ -308,40 +308,40 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
       )}
 
       {/* Gap Cards */}
-      <GapCards gaps={completeness.gaps} onFixAction={handleGapFix} />
+      <GapCards gaps={completeness?.gaps || []} onFixAction={handleGapFix} />
 
       {/* Completeness Summary */}
-      {completeness.score > 0 && (
+      {(completeness?.score || 0) > 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <h4 className="font-medium text-gray-900">Completeness Summary</h4>
             <span
               className={`text-sm font-medium ${
-                completeness.canProceed ? "text-green-600" : "text-gray-600"
+                completeness?.canProceed ? "text-green-600" : "text-gray-600"
               }`}
             >
-              {completeness.canProceed ? "Ready to proceed" : "Needs attention"}
+              {completeness?.canProceed ? "Ready to proceed" : "Needs attention"}
             </span>
           </div>
 
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <div className="text-gray-500">Score</div>
-              <div className="font-medium">{completeness.score}%</div>
+              <div className="font-medium">{completeness?.score || 0}%</div>
             </div>
             <div>
               <div className="text-gray-500">Missing</div>
-              <div className="font-medium">{completeness.gaps.length}</div>
+              <div className="font-medium">{(completeness?.gaps || []).length}</div>
             </div>
             <div>
               <div className="text-gray-500">Blockers</div>
-              <div className="font-medium text-red-600">{completeness.blockers.length}</div>
+              <div className="font-medium text-red-600">{(completeness?.blockers || []).length}</div>
             </div>
           </div>
         </div>
       )}
       {/* Action Buttons - Proceed to Timeline */}
-      {completeness.score > 0 && (
+      {(completeness?.score || 0) > 0 && (
         <div className="pt-4 border-t border-gray-200 space-y-3">
           {/* Primary Action Buttons */}
           <div className="grid grid-cols-2 gap-3">
@@ -352,10 +352,10 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
                 // Apply smart defaults for missing critical factors
                 const defaultChips: Chip[] = [];
 
-                if (!chips.some((c) => c.type === "legal_entities")) {
+                if (!chips.some((c) => c.type === "LEGAL_ENTITIES")) {
                   defaultChips.push({
                     id: `default_${Date.now()}_1`,
-                    type: "legal_entities" as ChipType,
+                    type: "LEGAL_ENTITIES" as ChipType,
                     value: "1",
                     confidence: 0.5,
                     source: "default" as ChipSource,
@@ -367,10 +367,10 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
                   });
                 }
 
-                if (!chips.some((c) => c.type === "locations")) {
+                if (!chips.some((c) => c.type === "LOCATIONS")) {
                   defaultChips.push({
                     id: `default_${Date.now()}_2`,
-                    type: "locations" as ChipType,
+                    type: "LOCATIONS" as ChipType,
                     value: "1",
                     confidence: 0.5,
                     source: "default" as ChipSource,
@@ -382,10 +382,10 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
                   });
                 }
 
-                if (!chips.some((c) => c.type === "data_volume")) {
+                if (!chips.some((c) => c.type === "DATA_VOLUME")) {
                   defaultChips.push({
                     id: `default_${Date.now()}_3`,
-                    type: "data_volume" as ChipType,
+                    type: "DATA_VOLUME" as ChipType,
                     value: "1000",
                     confidence: 0.4,
                     source: "default" as ChipSource,
@@ -403,7 +403,7 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
                 }
                 setMode("decide");
               }}
-              disabled={completeness.score < 50}
+              disabled={(completeness?.score || 0) < 50}
               className="py-3 px-4 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <div className="text-sm">Proceed with Defaults</div>
@@ -416,30 +416,30 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
                 const setMode = useProjectStore.getState().setMode;
                 setMode("decide");
               }}
-              disabled={!completeness.canProceed}
+              disabled={!completeness?.canProceed}
               className={`py-3 px-4 rounded-lg font-medium transition-colors ${
-                completeness.canProceed
+                completeness?.canProceed
                   ? "gradient-blue text-white hover-lift"
                   : "bg-gray-200 text-gray-500 cursor-not-allowed"
               }`}
             >
               <div className="text-sm">Continue to Decisions →</div>
               <div className="text-xs mt-1">
-                {completeness.canProceed
+                {completeness?.canProceed
                   ? "Ready with complete data"
-                  : `Need ${Math.max(0, 65 - completeness.score)}% more`}
+                  : `Need ${Math.max(0, 65 - (completeness?.score || 0))}% more`}
               </div>
             </button>
           </div>
 
           {/* Blockers Display */}
-          {!completeness.canProceed && completeness.blockers.length > 0 && (
+          {!completeness?.canProceed && (completeness?.blockers || []).length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
               <div className="text-sm font-medium text-amber-900 mb-1">
                 Why &quot;Generate Timeline&quot; is disabled:
               </div>
               <ul className="text-sm text-amber-700 space-y-1">
-                {completeness.blockers.map((blocker, idx) => (
+                {(completeness?.blockers || []).map((blocker, idx) => (
                   <li key={idx}>• {blocker}</li>
                 ))}
               </ul>
@@ -451,7 +451,7 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
           )}
 
           {/* Success Message */}
-          {completeness.canProceed && (
+          {completeness?.canProceed && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <div className="text-sm text-green-800">
                 All critical requirements captured. Ready to generate accurate timeline.

@@ -21,15 +21,15 @@ export interface CompletenessResult {
 
 // Minimum chip requirements for project generation
 const REQUIRED_CHIP_TYPES: ChipType[] = [
-  "country",
-  "industry",
-  "modules",
+  "COUNTRY",
+  "INDUSTRY",
+  "MODULES",
 ];
 
 const RECOMMENDED_CHIP_TYPES: ChipType[] = [
-  "employees",
-  "legal_entities",
-  "locations",
+  "EMPLOYEES",
+  "LEGAL_ENTITIES",
+  "LOCATIONS",
 ];
 
 /**
@@ -99,14 +99,14 @@ export function validateChip(chip: Chip): { valid: boolean; errors: string[] } {
   }
 
   // Type-specific validation
-  if (chip.type === 'employees' && typeof chip.value === 'string') {
+  if (chip.type === 'EMPLOYEES' && typeof chip.value === 'string') {
     const numValue = parseInt(chip.value);
     if (isNaN(numValue) || numValue <= 0) {
       errors.push('Employee count must be a positive number');
     }
   }
 
-  if (chip.type === 'revenue' && typeof chip.value === 'string') {
+  if (chip.type === 'REVENUE' && typeof chip.value === 'string') {
     const numValue = parseFloat(chip.value.replace(/[^\d.-]/g, ''));
     if (isNaN(numValue) || numValue <= 0) {
       errors.push('Revenue must be a positive number');

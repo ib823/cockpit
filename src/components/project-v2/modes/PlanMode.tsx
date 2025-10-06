@@ -47,10 +47,9 @@ export function PlanMode() {
     console.log("[PlanMode] Check auto-generate:", {
       phaseCount: phases.length,
       chipCount: chips.length,
-      completeness: completeness.score,
-    });
+              completeness: completeness?.score || 0,    });
 
-    if (phases.length === 0 && chips.length > 0 && completeness.score >= 30) {
+    if (phases.length === 0 && chips.length > 0 && (completeness?.score || 0) >= 30) {
       console.log("[PlanMode] 🚀 Triggering auto-generate timeline...");
       regenerateTimeline(true);
 
@@ -60,7 +59,7 @@ export function PlanMode() {
         console.log(`[PlanMode] After regeneration: ${updatedPhases.length} phases`);
       }, 100);
     }
-  }, [phases.length, chips.length, completeness.score, regenerateTimeline]);
+  }, [phases.length, chips.length, completeness?.score, regenerateTimeline]);
 
   // Memoized callbacks for performance
   const handleRegenerate = useCallback(() => {
@@ -83,7 +82,7 @@ export function PlanMode() {
 
 // Empty state - no timeline yet
   if (phases.length === 0) {
-    const hasEnoughData = chips.length > 0 && completeness.score >= 30;
+    const hasEnoughData = chips.length > 0 && (completeness?.score || 0) >= 30;
 
     return (
       <div className="h-full flex items-center justify-center bg-gray-50">
@@ -96,13 +95,13 @@ export function PlanMode() {
 
           <BodyMD className="mb-8">
             {hasEnoughData
-              ? `You have ${chips.length} requirements captured (${completeness.score}% complete). Click below to generate your project timeline.`
-              : `Add more requirements in Capture mode. Currently at ${completeness.score}% (need 30% minimum).`}
+              ? `You have ${chips.length} requirements captured (${completeness?.score || 0}% complete). Click below to generate your project timeline.`
+              : `Add more requirements in Capture mode. Currently at ${completeness?.score || 0}% (need 30% minimum).`}
           </BodyMD>
 
           <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded text-left text-xs font-mono">
             <div>Chips: {chips.length}</div>
-            <div>Completeness: {completeness.score}%</div>
+            <div>Completeness: {completeness?.score || 0}%</div>
             <div>Phases: {phases.length}</div>
             <div>Can Generate: {hasEnoughData ? "YES ✅" : "NO ❌"}</div>
           </div>
@@ -111,7 +110,7 @@ export function PlanMode() {
             <button
               onClick={() => {
                 console.log("🔧 [MANUAL] Force regenerating timeline...");
-                console.log(`   Input: ${chips.length} chips, ${completeness.score}% complete`);
+                console.log(`   Input: ${chips.length} chips, ${completeness?.score || 0}% complete`);
                 
                 regenerateTimeline(true);
                 
@@ -273,8 +272,8 @@ export function PlanMode() {
       )}
 
       {/* Timeline visualization */}
-      <div className="flex-1 overflow-hidden bg-white">
-        <ImprovedGanttChart   
+      <div className="flex-1 overflow-auto bg-white">
+        <ImprovedGanttChart
           onPhaseClick={(phase) => setSelectedPhase(phase)}
         />
       </div>

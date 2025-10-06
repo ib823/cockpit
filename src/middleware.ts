@@ -110,6 +110,7 @@ export async function middleware(request: NextRequest) {
   const isStaticAsset =
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
+    pathname === '/sw.js' || // Service Worker
     /\.(ico|png|jpg|jpeg|svg|gif|webp|woff|woff2|ttf|eot|otf)$/.test(pathname);
 
   if (!isPublicPath && !isStaticAsset) {

@@ -20,7 +20,7 @@ try {
 } catch { redis = null; }
 
 const mem = new Map<string, { v: string; t: ReturnType<typeof setTimeout> }>();
-const ttlSec = 60;
+const ttlSec = 300; // 5 minutes - enough time for user to complete passkey prompt
 
 export const challenges = {
   async set(key: string, val: string) {

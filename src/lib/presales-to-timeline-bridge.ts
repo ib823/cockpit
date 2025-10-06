@@ -57,19 +57,23 @@ export interface TimelineConversionResult {
   warnings: string[];
 }
 
-/**
- * Calculate effort multipliers from chips
- */
-function calculateMultipliers(chips: Chip[]): {
+interface MultipliersResult {
   entity: number;
   employee: number;
   integration: number;
   compliance: number;
   total: number;
-} {
+  warnings: string[];
+}
+
+/**
+ * Calculate effort multipliers from chips
+ */
+function calculateMultipliers(chips: Chip[]): MultipliersResult {
+  const warnings: string[] = [];
   // Employee multiplier - check both employee chips AND text in chip values
   let employeeMultiplier = 1.0;
-  const employeeChips = chips.filter((c) => c.type === "employees");
+  const employeeChips = chips.filter((c) => c.type === "EMPLOYEES");
   let maxEmployees = 0;
 
   if (employeeChips.length > 0) {
@@ -100,17 +104,17 @@ function calculateMultipliers(chips: Chip[]): {
   // Integration multiplier (0.15 per integration)
   // Note: enhanced-chip-parser may create "integrations" (plural) type
   const integrationChips = chips.filter(
-    (c) => c.type === "integration" || (c.type as string) === "integrations"
+    (c) => c.type === "INTEGRATION" || (c.type as string) === "integrations"
   );
   const integrationMultiplier = 1.0 + integrationChips.length * 0.15;
 
-  // Compliance multiplier (0.2 per compliance requirement)
-  const complianceChips = chips.filter((c) => c.type === "compliance");
-  const complianceMultiplier = 1.0 + complianceChips.length * 0.2;
+  // Compliance multiplier (0.1 per compliance requirement)
+  const complianceChips = chips.filter((c) => c.type === "COMPLIANCE");
+  const complianceMultiplier = 1.0 + complianceChips.length * 0.1;
 
   // Entity multiplier
   let entityMultiplier = 1.0;
-  const entityChips = chips.filter((c) => c.type === "legal_entities");
+  const entityChips = chips.filter((c) => c.type === "LEGAL_ENTITIES");
   if (entityChips.length > 0) {
     const maxEntities = Math.max(...entityChips.map((c) => Number(c.value) || 0));
     if (maxEntities <= 1) entityMultiplier = 1.0;
@@ -119,7 +123,17 @@ function calculateMultipliers(chips: Chip[]): {
     else entityMultiplier = 1.5;
   }
 
-  const total = employeeMultiplier * integrationMultiplier * complianceMultiplier * entityMultiplier;
+  const total = Math.min(
+    5.0,
+    employeeMultiplier * integrationMultiplier * complianceMultiplier * entityMultiplier
+  );
+
+  // Generate warnings for high complexity
+  if (total > 3.0) {
+    warnings.push(
+      `⚠️ Very high complexity multiplier (${total.toFixed(1)}x). Consider phased rollout.`
+    );
+  }
 
   return {
     entity: entityMultiplier,
@@ -127,6 +141,7 @@ function calculateMultipliers(chips: Chip[]): {
     integration: integrationMultiplier,
     compliance: complianceMultiplier,
     total,
+    warnings,
   };
 }
 
@@ -139,7 +154,7 @@ export function convertPresalesToTimeline(chips: Chip[], decisions: any): Timeli
     const selectedPackages = mapModulesToPackages(chips);
 
     // If no modules/packages selected, return minimal result with 0 effort
-    if (selectedPackages.length === 0 && !sanitizedChips.some((c) => c.type === "modules")) {
+    if (selectedPackages.length === 0 && !sanitizedChips.some((c) => c.type === "MODULES")) {
       return {
         profile,
         selectedPackages: [],
@@ -176,7 +191,7 @@ export function convertPresalesToTimeline(chips: Chip[], decisions: any): Timeli
     const sanitizedPhases = plan.phases.map(sanitizePhase);
 
     // Calculate multipliers from chips
-    const multipliers = calculateMultipliers(chips);
+    const multipliersResult = calculateMultipliers(chips);
 
     console.log(
       `[Bridge] ✅ Conversion complete using ScenarioGenerator: ${plan.totalEffort} PD total`
@@ -188,8 +203,14 @@ export function convertPresalesToTimeline(chips: Chip[], decisions: any): Timeli
       selectedPackages,
       totalEffort: plan.totalEffort,
       phases: sanitizedPhases,
-      appliedMultipliers: multipliers,
-      warnings: [],
+      appliedMultipliers: {
+        entity: multipliersResult.entity,
+        employee: multipliersResult.employee,
+        integration: multipliersResult.integration,
+        compliance: multipliersResult.compliance,
+        total: multipliersResult.total,
+      },
+      warnings: multipliersResult.warnings,
     };
   } catch (error) {
     console.error("[Bridge] ❌ Conversion failed:", error);
@@ -216,7 +237,7 @@ export function mapModulesToPackages(chips: Chip[]): string[] {
 
   // Filter chips by type (Chip interface uses 'type' not 'kind')
   const moduleChips = chips.filter(
-    (c) => c.type === "modules" || c.type === "industry" // Some modules come through as industry
+    (c) => c.type === "MODULES" || c.type === "INDUSTRY" // Some modules come through as industry
   );
 
   moduleChips.forEach((chip) => {
@@ -275,9 +296,9 @@ export function extractClientProfile(chips: Chip[]): ClientProfile {
   // Chips should already be sanitized, but double-check for security
   const sanitizedChips = chips.map((chip) => sanitizeObject(chip)) as Chip[];
 
-  const countryChip = sanitizedChips.find((c) => c.type === "country");
-  const industryChip = sanitizedChips.find((c) => c.type === "industry");
-  const employeeChip = sanitizedChips.find((c) => c.type === "employees" || c.type === "users");
+  const countryChip = sanitizedChips.find((c) => c.type === "COUNTRY");
+  const industryChip = sanitizedChips.find((c) => c.type === "INDUSTRY");
+  const employeeChip = sanitizedChips.find((c) => c.type === "EMPLOYEES" || c.type === "USERS");
 
   let size: ClientProfile["size"] = "medium";
   let employees = 500;
@@ -296,8 +317,8 @@ export function extractClientProfile(chips: Chip[]): ClientProfile {
   }
 
   let complexity: ClientProfile["complexity"] = "standard";
-  const integrations = chips.filter((c) => c.type === "integration").length;
-  const compliance = chips.filter((c) => c.type === "compliance").length;
+  const integrations = chips.filter((c) => c.type === "INTEGRATION").length;
+  const compliance = chips.filter((c) => c.type === "COMPLIANCE").length;
 
   if (integrations > 2 || compliance > 1) complexity = "complex";
   if (size === "enterprise") complexity = "complex";
@@ -366,7 +387,7 @@ function applyMultipliers(
     );
   }
 
-  const integrationChips = chips.filter((c) => c.type === "integration");
+  const integrationChips = chips.filter((c) => c.type === "INTEGRATION");
   if (integrationChips.length > 0) {
     multipliers.integration = 1 + integrationChips.length * 0.15;
     console.log(
@@ -374,7 +395,7 @@ function applyMultipliers(
     );
   }
 
-  const complianceChips = chips.filter((c) => c.type === "compliance");
+  const complianceChips = chips.filter((c) => c.type === "COMPLIANCE");
   if (complianceChips.length > 0) {
     multipliers.compliance = 1 + complianceChips.length * 0.1;
     console.log(

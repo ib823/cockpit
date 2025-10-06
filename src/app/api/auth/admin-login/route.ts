@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const { email, code } = await req.json().catch(() => ({}));
     if (!email || !code) {
       return NextResponse.json(
-        { ok: false, error: 'Email and code required' },
+        { ok: false, message: 'Email and code required' },
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { ok: false, error: 'Invalid credentials' },
+        { ok: false, message: 'Invalid credentials' },
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     // Check access expiry (unless exception)
     if (!user.exception && user.accessExpiresAt <= new Date()) {
       return NextResponse.json(
-        { ok: false, error: 'Access expired' },
+        { ok: false, message: 'Access expired' },
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     const approval = await prisma.emailApproval.findUnique({ where: { email } });
     if (!approval || approval.usedAt || approval.tokenExpiresAt < new Date()) {
       return NextResponse.json(
-        { ok: false, error: 'Invalid or expired code' },
+        { ok: false, message: 'Invalid or expired code' },
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -44,23 +44,34 @@ export async function POST(req: Request) {
     const codeValid = await compare(code, approval.tokenHash);
     if (!codeValid) {
       return NextResponse.json(
-        { ok: false, error: 'Invalid code' },
+        { ok: false, message: 'Invalid code' },
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Mark code as used
-    await prisma.emailApproval.update({
-      where: { email },
-      data: { usedAt: new Date() },
-    });
+    const now = new Date();
 
-    // Create session
-    await prisma.auditEvent.create({
-      data: { userId: user.id, type: 'admin_login' },
-    });
+    // Mark code as used and update login timestamps
+    await prisma.$transaction([
+      prisma.emailApproval.update({
+        where: { email },
+        data: { usedAt: now },
+      }),
+      prisma.user.update({
+        where: { id: user.id },
+        data: {
+          lastLoginAt: now,
+          firstLoginAt: user.firstLoginAt ?? now,
+        },
+      }),
+      prisma.auditEvent.create({
+        data: { userId: user.id, type: 'admin_login' },
+      }),
+    ]);
 
-    await setSession({ sub: user.id, role: user.role as 'USER' | 'ADMIN' });
+    // Map MANAGER to USER for session purposes
+    const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
+    await setSession({ sub: user.id, role: sessionRole });
 
     return NextResponse.json(
       { ok: true },
@@ -69,7 +80,7 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error('admin-login error', e);
     return NextResponse.json(
-      { ok: false, error: 'Internal error' },
+      { ok: false, message: 'Internal error' },
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

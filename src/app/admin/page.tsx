@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import AccessCodeModal from '@/components/admin/AccessCodeModal';
 
 interface User {
   id: string;
   email: string;
+  name: string | null;
   status: 'active' | 'pending' | 'expired';
   exception: boolean;
   accessExpiresAt: string;
@@ -22,9 +24,14 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [generatedEmail, setGeneratedEmail] = useState('');
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -44,8 +51,33 @@ export default function AdminPage() {
     }
   }
 
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+    } catch (e) {
+      console.error('Logout failed', e);
+      setLoggingOut(false);
+    }
+  }
+
   async function createAccess() {
     if (!email) return;
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    // Check if email already exists
+    const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (existingUser) {
+      setError('This email is already in the system');
+      return;
+    }
 
     setSending(true);
     setError('');
@@ -55,14 +87,18 @@ export default function AdminPage() {
       const res = await fetch('/api/admin/approve-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, name }),
       });
 
       const data = await res.json();
 
       if (data.ok) {
-        setSuccess(`✓ Email approved. Code will be sent when user tries to login.`);
+        // Show modal with QR code and copy functionality
+        setGeneratedCode(data.code);
+        setGeneratedEmail(data.email);
+        setModalOpen(true);
         setEmail('');
+        setName('');
         fetchUsers();
       } else {
         setError(data.error || 'Failed to approve email');
@@ -180,72 +216,179 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+    <div className="min-h-screen bg-white">
+      <style jsx>{`
+        @keyframes subtle-pulse {
+          0%, 100% { opacity: 0.05; }
+          50% { opacity: 0.1; }
+        }
+        .subtle-pulse {
+          animation: subtle-pulse 3s ease-in-out infinite;
+        }
+      `}</style>
+
+      {/* Subtle ambient background - matches login theme */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full blur-3xl subtle-pulse" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100 rounded-full blur-3xl subtle-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+
+      {/* Header - Minimal and clean */}
+      <div className="relative bg-white/80 backdrop-blur-sm border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-slate-900">Admin Dashboard</h1>
-              <p className="text-sm text-slate-600 mt-1">Manage user access and monitor activity</p>
+              <h1 className="text-3xl font-light text-slate-900 tracking-tight">Cockpit</h1>
+              <p className="text-sm text-slate-600 mt-1">Admin Dashboard</p>
             </div>
-            <button
-              onClick={() => router.push('/')}
-              className="text-sm text-slate-600 hover:text-slate-900 transition-colors px-4 py-2 rounded-lg hover:bg-slate-100"
-            >
-              Back to app →
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Go to App */}
+              <button
+                onClick={() => router.push('/')}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Go to App
+              </button>
+
+              {/* Logout */}
+              <button
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all disabled:opacity-50"
+              >
+                {loggingOut ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Logging out...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Create Access Card */}
-        <div className="bg-white rounded-xl border border-slate-200 p-6 mb-8 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900 mb-2">Approve User</h2>
-          <p className="text-sm text-slate-600 mb-4">Approve email address. User will receive access code when they first login.</p>
+      <div className="relative max-w-7xl mx-auto px-6 py-8">
+        {/* Create Access Card - Minimal design */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm">
+          <h2 className="text-lg font-medium text-slate-900 mb-4">Approve User</h2>
 
-          <div className="flex gap-3">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && createAccess()}
-              placeholder="user@company.com"
-              className="flex-1 px-4 py-2.5 border border-slate-300 rounded-lg
-                       focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
-            />
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && createAccess()}
+                placeholder="Full Name"
+                className="flex-1 px-4 py-3 border-b-2 border-slate-200 focus:border-slate-900 focus:outline-none transition-colors bg-transparent"
+              />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && createAccess()}
+                placeholder="user@company.com"
+                className="flex-1 px-4 py-3 border-b-2 border-slate-200 focus:border-slate-900 focus:outline-none transition-colors bg-transparent"
+              />
+            </div>
             <button
               onClick={createAccess}
               disabled={sending || !email}
-              className="px-6 py-2.5 bg-slate-900 text-white rounded-lg font-medium
-                       hover:bg-slate-800 transition-colors disabled:opacity-30
-                       disabled:cursor-not-allowed whitespace-nowrap"
+              className="w-full px-6 py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              {sending ? 'Approving...' : 'Approve Email'}
+              {sending ? 'Approving...' : 'Approve User'}
             </button>
           </div>
 
           {success && (
-            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
-              <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <p className="text-sm text-green-800">{success}</p>
+            <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-xl flex items-start gap-3">
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-sm text-green-900 font-medium">{success}</p>
             </div>
           )}
 
           {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl flex items-start gap-3">
+              <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <p className="text-sm text-red-900 font-medium">{error}</p>
             </div>
           )}
         </div>
 
+        {/* Stats Cards - Visual icons */}
+        <div className="grid gap-4 md:grid-cols-3 mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-3xl font-light text-slate-900">
+                  {users.filter(u => u.status === 'active').length}
+                </p>
+                <p className="text-sm text-slate-600">Active</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-3xl font-light text-slate-900">
+                  {users.filter(u => u.status === 'pending').length}
+                </p>
+                <p className="text-sm text-slate-600">Pending</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-3xl font-light text-slate-900">
+                  {users.reduce((sum, u) => sum + (u.timelinesGenerated || 0), 0)}
+                </p>
+                <p className="text-sm text-slate-600">Timelines</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Users Table */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">Users</h2>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-slate-200">
+            <h2 className="text-lg font-medium text-slate-900">Users</h2>
           </div>
 
           {loading ? (
@@ -254,15 +397,15 @@ export default function AdminPage() {
             </div>
           ) : users.length === 0 ? (
             <div className="p-12 text-center">
-              <p className="text-slate-500">No users yet. Add one above to get started.</p>
+              <p className="text-slate-500">No users yet. Approve one above to get started.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-slate-50/50 border-b border-slate-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                      Email
+                      User
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
                       Status
@@ -286,10 +429,15 @@ export default function AdminPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div>
-                          <p className="text-sm font-medium text-slate-900">{user.email}</p>
+                          {user.name && (
+                            <p className="text-sm font-medium text-slate-900">{user.name}</p>
+                          )}
+                          <p className={`text-sm ${user.name ? 'text-slate-600' : 'font-medium text-slate-900'}`}>
+                            {user.email}
+                          </p>
                           {user.exception && (
                             <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                               No Expiry
@@ -358,10 +506,7 @@ export default function AdminPage() {
                                 : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
                             }`}
                           >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M infinity" />
-                              <text x="12" y="16" fontSize="16" textAnchor="middle" fill="currentColor" fontWeight="bold">∞</text>
-                            </svg>
+                            <span className="text-lg font-bold">∞</span>
                           </button>
 
                           {/* Extend Access */}
@@ -394,58 +539,15 @@ export default function AdminPage() {
             </div>
           )}
         </div>
-
-        {/* Info Panel */}
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-slate-900">
-                  {users.filter(u => u.status === 'active').length}
-                </p>
-                <p className="text-sm text-slate-600">Active Users</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-yellow-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-slate-900">
-                  {users.filter(u => u.status === 'pending').length}
-                </p>
-                <p className="text-sm text-slate-600">Pending Setup</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-slate-900">
-                  {users.reduce((sum, u) => sum + (u.timelinesGenerated || 0), 0)}
-                </p>
-                <p className="text-sm text-slate-600">Total Timelines</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
+
+      {/* Access Code Modal */}
+      <AccessCodeModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        email={generatedEmail}
+        code={generatedCode}
+      />
     </div>
   );
 }

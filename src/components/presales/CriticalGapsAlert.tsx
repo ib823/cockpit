@@ -20,23 +20,19 @@ export default function CriticalGapsAlert() {
 
   // ALL HOOKS MUST BE BEFORE ANY CONDITIONAL RETURNS
   useEffect(() => {
-    analyzeCriticalGaps();
-  }, [chips]);
-
-  const analyzeCriticalGaps = () => {
     const foundGaps: CriticalGap[] = [];
 
     // Check what critical info is missing
-    const hasLegalEntities = chips.some((c) => c.type === "legal_entities");
-    const hasLocations = chips.some((c) => c.type === "locations");
-    const hasDataVolume = chips.some((c) => c.type === "data_volume");
-    const hasUsers = chips.some((c) => c.type === "users");
+    const hasLegalEntities = chips.some((c) => c.type === "LEGAL_ENTITIES");
+    const hasLocations = chips.some((c) => c.type === "LOCATIONS");
+    const hasDataVolume = chips.some((c) => c.type === "DATA_VOLUME");
+    const hasUsers = chips.some((c) => c.type === "USERS");
 
     // Get context from what we know
-    const industry = String(chips.find((c) => c.type === "industry")?.value || "general");
-    const employeesValue = chips.find((c) => c.type === "employees")?.value;
+    const industry = String(chips.find((c) => c.type === "INDUSTRY")?.value || "general");
+    const employeesValue = chips.find((c) => c.type === "EMPLOYEES")?.value;
     const employees = parseInt(String(employeesValue || "100"));
-    const revenueValue = chips.find((c) => c.type === "revenue")?.value;
+    const revenueValue = chips.find((c) => c.type === "REVENUE")?.value;
     const revenue = parseInt(String(revenueValue || "10000000"));
 
     const assumptions = getSmartAssumptions(industry, employees, revenue);
@@ -87,7 +83,7 @@ export default function CriticalGapsAlert() {
     }
 
     setGaps(foundGaps);
-  };
+  }, [chips]);
 
   const calculateTotalRisk = () => {
     const criticalCount = gaps.filter((g) => g.severity === "critical").length;

@@ -6,7 +6,7 @@ const nextConfig = {
   },
   // SECURITY: Enable linting for security patterns
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
 
   // SECURITY: Add security headers
@@ -14,6 +14,24 @@ const nextConfig = {
     const isDev = process.env.NODE_ENV === "development";
 
     return [
+      // Service Worker - must be served with correct headers
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
+          },
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Service-Worker-Allowed",
+            value: "/",
+          },
+        ],
+      },
       {
         source: "/:path*",
         headers: [
@@ -27,11 +45,13 @@ const nextConfig = {
               "img-src 'self' data: https: blob:",
               "font-src 'self'",
               "connect-src 'self'",
+              "worker-src 'self' blob:",  // Allow service workers
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
               "object-src 'none'",
-              "upgrade-insecure-requests",
+              // Remove upgrade-insecure-requests in dev for localhost
+              ...(isDev ? [] : ["upgrade-insecure-requests"]),
             ].join("; "),
           },
           {
@@ -48,7 +68,7 @@ const nextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+            value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), notifications=(self)",
           },
           {
             key: "Strict-Transport-Security",
@@ -63,19 +83,51 @@ const nextConfig = {
     ];
   },
 
-  // Enable bundle analyzer when ANALYZE=true
-  ...(process.env.ANALYZE === "true" && {
-    webpack: (config, { isServer }) => {
-      if (!isServer) {
-        config.optimization = {
-          ...config.optimization,
-          concatenateModules: true,
-          usedExports: true,
-        };
-      }
-      return config;
-    },
-  }),
+  webpack: (config, { isServer, webpack }) => {
+    // Fix for Node.js built-in modules in browser
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        // Node.js built-in modules that should not be bundled for browser
+        async_hooks: false,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+        path: false,
+        os: false,
+        stream: false,
+        buffer: false,
+        child_process: false,
+        dns: false,
+        http: false,
+        https: false,
+        zlib: false,
+      };
+
+      // Ignore node: protocol modules in browser bundles
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /^node:/,
+          (resource) => {
+            resource.request = resource.request.replace(/^node:/, '');
+          }
+        )
+      );
+    }
+
+    // Existing bundle analyzer logic
+    if (process.env.ANALYZE === "true" && !isServer) {
+      config.optimization = {
+        ...config.optimization,
+        concatenateModules: true,
+        usedExports: true,
+      };
+    }
+
+    return config;
+  },
+
 };
 
 module.exports = nextConfig;
