@@ -16,7 +16,7 @@ export function TimelineCanvas() {
     if (phases.length === 0) {
       regenerateTimeline(true);
     }
-  }, []);
+  }, [phases.length, regenerateTimeline]);
 
   if (phases.length === 0) {
     return (

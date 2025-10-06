@@ -28,7 +28,7 @@ const BANKING_PATHS: DecisionOption[] = [
 ];
 
 export function DecisionBar() {
-  const { decisions, setDecisions, chips } = usePresalesStore();
+  const { decisions, updateDecision, chips } = usePresalesStore();
   const setMode = useProjectStore((state) => state.setMode);
   const regenerateTimeline = useProjectStore((state) => state.regenerateTimeline);
   const completeness = (chips.length / 10) * 100; // Assuming 10 required chip types
@@ -51,13 +51,13 @@ export function DecisionBar() {
           label="Module Combo"
           value={decisions.moduleCombo}
           options={MODULE_COMBOS}
-          onChange={(id) => setDecisions({ ...decisions, moduleCombo: id })}
+          onChange={(id) => updateDecision("moduleCombo", id)}
         />
         <DecisionPill
           label="Banking Path"
           value={decisions.bankingPath}
           options={BANKING_PATHS}
-          onChange={(id) => setDecisions({ ...decisions, bankingPath: id })}
+          onChange={(id) => updateDecision("bankingPath", id)}
         />
         <DecisionPill
           label="Rate Region"
@@ -67,7 +67,7 @@ export function DecisionBar() {
             { id: "SG", label: "Singapore (SGD)" },
             { id: "VN", label: "Vietnam (VND)" },
           ]}
-          onChange={(id) => setDecisions({ ...decisions, rateRegion: id })}
+          onChange={(id) => updateDecision("rateRegion", id)}
         />
         <DecisionPill
           label="SSO Mode"
@@ -76,7 +76,7 @@ export function DecisionBar() {
             { id: "day_one", label: "Day One SSO" },
             { id: "staged", label: "Staged Rollout" },
           ]}
-          onChange={(id) => setDecisions({ ...decisions, ssoMode: id })}
+          onChange={(id) => updateDecision("ssoMode", id)}
         />
       </div>
 

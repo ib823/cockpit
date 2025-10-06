@@ -32,24 +32,24 @@ export interface Chip {
 }
 
 export type ChipType =
-  | "country"
-  | "employees"
-  | "revenue"
-  | "industry"
-  | "modules"
-  | "timeline"
-  | "integration"
-  | "compliance"
-  | "banking"
-  | "existing_system"
-  | "legal_entities"
-  | "locations"
-  | "users"
-  | "data_volume"
-  | "currencies"
-  | "languages"
-  | "business_units"
-  | "legacy_systems";
+  | "COUNTRY"
+  | "EMPLOYEES"
+  | "REVENUE"
+  | "INDUSTRY"
+  | "MODULES"
+  | "TIMELINE"
+  | "INTEGRATION"
+  | "COMPLIANCE"
+  | "BANKING"
+  | "EXISTING_SYSTEM"
+  | "LEGAL_ENTITIES"
+  | "LOCATIONS"
+  | "USERS"
+  | "DATA_VOLUME"
+  | "CURRENCIES"
+  | "LANGUAGES"
+  | "BUSINESS_UNITS"
+  | "LEGACY_SYSTEMS";
 
 export type ChipSource = "paste" | "upload" | "voice" | "manual" | "photo_ocr" | "test";
 
@@ -76,6 +76,17 @@ export interface ScenarioPlan {
   confidence: number;
 }
 
+export interface Task {
+  id: string;
+  name: string;
+  effortPercent: number; // Percentage of phase effort (0-100)
+  effort?: number; // Calculated from phase effort * effortPercent
+  daysPercent: number; // Percentage of phase duration (0-100)
+  workingDays?: number; // Calculated from phase workingDays * daysPercent
+  defaultRole: string; // Default role for this task
+  description?: string;
+}
+
 export interface Phase {
   id: string;
   name: string;
@@ -94,6 +105,7 @@ export interface Phase {
   progress?: number; // Optional progress percentage (0-100)
   startDate?: Date; // Computed from startBusinessDay
   endDate?: Date; // Computed from startBusinessDay + workingDays
+  tasks?: Task[]; // Generic task breakdown
 }
 
 export interface Resource {

@@ -14,11 +14,17 @@
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, Clock, Sparkles, TrendingUp, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { LogoutButton } from "@/components/common/LogoutButton";
 
 export default function MagicLandingPage() {
   const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const handleStartDemo = () => {
     router.push("/timeline-magic");
@@ -40,12 +46,18 @@ export default function MagicLandingPage() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+    if (!isHydrated) return;
     // TODO: Process dropped RFP file and generate timeline
     router.push("/project");
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Logout Button - Minimal, top-right */}
+      <div className="absolute top-6 right-6 z-50">
+        <LogoutButton />
+      </div>
+
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 py-24">
@@ -93,12 +105,14 @@ export default function MagicLandingPage() {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`group relative border-4 border-dashed rounded-3xl p-20 transition-all duration-300 cursor-pointer ${
-                isDragging
-                  ? "border-blue-500 bg-blue-50 scale-105"
-                  : "border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50/50"
+              className={`group relative border-4 border-dashed rounded-3xl p-20 transition-all duration-300 ${
+                !isHydrated
+                  ? "border-gray-300 bg-white opacity-50 cursor-wait"
+                  : isDragging
+                    ? "border-blue-500 bg-blue-50 scale-105 cursor-pointer"
+                    : "border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer"
               }`}
-              onClick={handleStartProject}
+              onClick={isHydrated ? handleStartProject : undefined}
             >
               <div className="text-center">
                 <motion.div
@@ -118,9 +132,15 @@ export default function MagicLandingPage() {
                   PDF, Word, or paste text — we&apos;ll figure it out
                 </p>
 
-                <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-medium shadow-lg hover:bg-blue-700 transition-all hover:scale-105">
+                <div
+                  className={`inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-medium shadow-lg transition-all ${
+                    isHydrated
+                      ? 'hover:bg-blue-700 hover:scale-105 cursor-pointer'
+                      : 'opacity-50 cursor-wait'
+                  }`}
+                >
                   <Sparkles className="w-5 h-5" />
-                  <span>Or start from scratch</span>
+                  <span>{isHydrated ? 'Or start from scratch' : 'Loading...'}</span>
                   <ArrowRight className="w-5 h-5" />
                 </div>
               </div>
@@ -138,10 +158,17 @@ export default function MagicLandingPage() {
 
             <button
               onClick={handleStartDemo}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white border-2 border-gray-300 text-gray-700 rounded-full font-medium shadow-md hover:border-blue-500 hover:text-blue-600 transition-all"
+              disabled={!isHydrated}
+              className={`inline-flex items-center gap-2 px-8 py-4 bg-white border-2 border-gray-300 text-gray-700 rounded-full font-medium shadow-md transition-all ${
+                isHydrated
+                  ? 'hover:border-blue-500 hover:text-blue-600 cursor-pointer'
+                  : 'opacity-50 cursor-wait'
+              }`}
             >
-              <span>View Example Timeline</span>
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">2 min</span>
+              <span>{isHydrated ? 'View Example Timeline' : 'Loading...'}</span>
+              {isHydrated && (
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">2 min</span>
+              )}
             </button>
           </motion.div>
         </div>
@@ -255,16 +282,26 @@ export default function MagicLandingPage() {
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={handleStartProject}
-              className="px-10 py-5 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-xl hover:bg-blue-700 transition-all hover:scale-105"
+              disabled={!isHydrated}
+              className={`px-10 py-5 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-xl transition-all ${
+                isHydrated
+                  ? 'hover:bg-blue-700 hover:scale-105 cursor-pointer'
+                  : 'opacity-50 cursor-wait'
+              }`}
             >
-              Start Your First Project
+              {isHydrated ? 'Start Your First Project' : 'Loading...'}
             </button>
 
             <button
               onClick={handleStartDemo}
-              className="px-10 py-5 bg-white border-2 border-gray-300 text-gray-700 text-lg font-semibold rounded-full hover:border-blue-500 hover:text-blue-600 transition-all"
+              disabled={!isHydrated}
+              className={`px-10 py-5 bg-white border-2 border-gray-300 text-gray-700 text-lg font-semibold rounded-full transition-all ${
+                isHydrated
+                  ? 'hover:border-blue-500 hover:text-blue-600 cursor-pointer'
+                  : 'opacity-50 cursor-wait'
+              }`}
             >
-              View Demo
+              {isHydrated ? 'View Demo' : 'Loading...'}
             </button>
           </div>
         </div>

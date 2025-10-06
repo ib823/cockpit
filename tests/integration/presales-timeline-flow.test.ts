@@ -12,11 +12,11 @@ describe("Presales → Timeline Integration Flow", () => {
   describe("Full Flow: Chips → Timeline", () => {
     it("should auto-populate timeline from presales chips", () => {
       const chips: Chip[] = [
-        { type: "country", value: "Malaysia", confidence: 0.9, source: "test" },
-        { type: "employees", value: 1000, confidence: 0.9, source: "test" },
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
-        { type: "modules", value: "HR", confidence: 0.9, source: "test" },
-        { type: "legal_entities", value: 5, confidence: 0.9, source: "test" },
+        { type: "COUNTRY", value: "Malaysia", confidence: 0.9, source: "test" },
+        { type: "EMPLOYEES", value: 1000, confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "HR", confidence: 0.9, source: "test" },
+        { type: "LEGAL_ENTITIES", value: 5, confidence: 0.9, source: "test" },
       ];
 
       const decisions = {};
@@ -32,8 +32,8 @@ describe("Presales → Timeline Integration Flow", () => {
 
     it("should apply multi-entity multiplier correctly", () => {
       const chipsWithMultiEntity: Chip[] = [
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
-        { type: "modules", value: "5 legal entities", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "5 legal entities", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(chipsWithMultiEntity, {});
@@ -46,9 +46,9 @@ describe("Presales → Timeline Integration Flow", () => {
 
     it("should map modules to packages correctly", () => {
       const chips: Chip[] = [
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
-        { type: "modules", value: "HR", confidence: 0.9, source: "test" },
-        { type: "modules", value: "Supply Chain", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "HR", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Supply Chain", confidence: 0.9, source: "test" },
       ];
 
       const packages = mapModulesToPackages(chips);
@@ -91,7 +91,7 @@ describe("Presales → Timeline Integration Flow", () => {
   describe("Incomplete Data Handling", () => {
     it("should handle missing country chip", () => {
       const chips: Chip[] = [
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(chips, {});
@@ -103,8 +103,8 @@ describe("Presales → Timeline Integration Flow", () => {
 
     it("should handle missing employee count", () => {
       const chips: Chip[] = [
-        { type: "country", value: "Singapore", confidence: 0.9, source: "test" },
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "COUNTRY", value: "Singapore", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(chips, {});
@@ -116,8 +116,8 @@ describe("Presales → Timeline Integration Flow", () => {
 
     it("should handle no modules selected", () => {
       const chips: Chip[] = [
-        { type: "country", value: "Malaysia", confidence: 0.9, source: "test" },
-        { type: "employees", value: 1000, confidence: 0.9, source: "test" },
+        { type: "COUNTRY", value: "Malaysia", confidence: 0.9, source: "test" },
+        { type: "EMPLOYEES", value: 1000, confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(chips, {});
@@ -155,7 +155,7 @@ describe("Presales → Timeline Integration Flow", () => {
       testCases.forEach(({ text, expectedRange }) => {
         const chips: Chip[] = [
           {
-            type: "modules",
+            type: "MODULES",
             value: `Finance implementation for company with ${text}`,
             confidence: 0.9,
             source: "test",
@@ -172,10 +172,10 @@ describe("Presales → Timeline Integration Flow", () => {
 
     it("should apply integration multiplier correctly", () => {
       const chips: Chip[] = [
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
-        { type: "integration", value: "Salesforce", confidence: 0.9, source: "test" },
-        { type: "integration", value: "Oracle", confidence: 0.9, source: "test" },
-        { type: "integration", value: "Legacy ERP", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "Salesforce", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "Oracle", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "Legacy ERP", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(chips, {});
@@ -186,9 +186,9 @@ describe("Presales → Timeline Integration Flow", () => {
 
     it("should apply compliance multiplier correctly", () => {
       const chips: Chip[] = [
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
-        { type: "compliance", value: "SOX", confidence: 0.9, source: "test" },
-        { type: "compliance", value: "GDPR", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "COMPLIANCE", value: "SOX", confidence: 0.9, source: "test" },
+        { type: "COMPLIANCE", value: "GDPR", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(chips, {});
@@ -200,19 +200,19 @@ describe("Presales → Timeline Integration Flow", () => {
     it("should cap total multiplier at 5.0x", () => {
       const chips: Chip[] = [
         {
-          type: "modules",
+          type: "MODULES",
           value: "Finance HR SCM implementation with 10000 employees and 20 legal entities",
           confidence: 0.9,
           source: "test",
         },
-        { type: "integration", value: "System1", confidence: 0.9, source: "test" },
-        { type: "integration", value: "System2", confidence: 0.9, source: "test" },
-        { type: "integration", value: "System3", confidence: 0.9, source: "test" },
-        { type: "integration", value: "System4", confidence: 0.9, source: "test" },
-        { type: "integration", value: "System5", confidence: 0.9, source: "test" },
-        { type: "compliance", value: "SOX", confidence: 0.9, source: "test" },
-        { type: "compliance", value: "GDPR", confidence: 0.9, source: "test" },
-        { type: "compliance", value: "HIPAA", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System1", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System2", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System3", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System4", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System5", confidence: 0.9, source: "test" },
+        { type: "COMPLIANCE", value: "SOX", confidence: 0.9, source: "test" },
+        { type: "COMPLIANCE", value: "GDPR", confidence: 0.9, source: "test" },
+        { type: "COMPLIANCE", value: "HIPAA", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(chips, {});
@@ -228,13 +228,13 @@ describe("Presales → Timeline Integration Flow", () => {
     it("should combine all multipliers correctly", () => {
       const chips: Chip[] = [
         {
-          type: "modules",
+          type: "MODULES",
           value: "Finance and HR implementation for 500 employees with 3 legal entities",
           confidence: 0.9,
           source: "test",
         },
-        { type: "integration", value: "Salesforce", confidence: 0.9, source: "test" },
-        { type: "compliance", value: "SOX", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "Salesforce", confidence: 0.9, source: "test" },
+        { type: "COMPLIANCE", value: "SOX", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(chips, {});
@@ -260,7 +260,7 @@ describe("Presales → Timeline Integration Flow", () => {
 
       testCases.forEach(({ country, expectedRegion }) => {
         const chips: Chip[] = [
-          { type: "country", value: country, confidence: 0.9, source: "test" },
+          { type: "COUNTRY", value: country, confidence: 0.9, source: "test" },
         ];
 
         const profile = extractClientProfile(chips);
@@ -278,7 +278,7 @@ describe("Presales → Timeline Integration Flow", () => {
 
       testCases.forEach(({ employees, expectedSize }) => {
         const chips: Chip[] = [
-          { type: "employees", value: employees, confidence: 0.9, source: "test" },
+          { type: "EMPLOYEES", value: employees, confidence: 0.9, source: "test" },
         ];
 
         const profile = extractClientProfile(chips);
@@ -288,16 +288,16 @@ describe("Presales → Timeline Integration Flow", () => {
 
     it("should detect complexity from integrations and compliance", () => {
       const simpleChips: Chip[] = [
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
       ];
 
       const complexChips: Chip[] = [
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
-        { type: "integration", value: "System1", confidence: 0.9, source: "test" },
-        { type: "integration", value: "System2", confidence: 0.9, source: "test" },
-        { type: "integration", value: "System3", confidence: 0.9, source: "test" },
-        { type: "compliance", value: "SOX", confidence: 0.9, source: "test" },
-        { type: "compliance", value: "GDPR", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System1", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System2", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System3", confidence: 0.9, source: "test" },
+        { type: "COMPLIANCE", value: "SOX", confidence: 0.9, source: "test" },
+        { type: "COMPLIANCE", value: "GDPR", confidence: 0.9, source: "test" },
       ];
 
       const simpleProfile = extractClientProfile(simpleChips);
@@ -308,7 +308,7 @@ describe("Presales → Timeline Integration Flow", () => {
     });
 
     it("should mark enterprise size as complex automatically", () => {
-      const chips: Chip[] = [{ type: "employees", value: 10000, confidence: 0.9, source: "test" }];
+      const chips: Chip[] = [{ type: "EMPLOYEES", value: 10000, confidence: 0.9, source: "test" }];
 
       const profile = extractClientProfile(chips);
 
@@ -320,7 +320,7 @@ describe("Presales → Timeline Integration Flow", () => {
   describe("Module to Package Mapping", () => {
     it("should map Finance module correctly", () => {
       const chips: Chip[] = [
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
       ];
 
       const packages = mapModulesToPackages(chips);
@@ -334,7 +334,7 @@ describe("Presales → Timeline Integration Flow", () => {
 
       testCases.forEach((moduleName) => {
         const chips: Chip[] = [
-          { type: "modules", value: moduleName, confidence: 0.9, source: "test" },
+          { type: "MODULES", value: moduleName, confidence: 0.9, source: "test" },
         ];
 
         const packages = mapModulesToPackages(chips);
@@ -347,7 +347,7 @@ describe("Presales → Timeline Integration Flow", () => {
 
       testCases.forEach((moduleName) => {
         const chips: Chip[] = [
-          { type: "modules", value: moduleName, confidence: 0.9, source: "test" },
+          { type: "MODULES", value: moduleName, confidence: 0.9, source: "test" },
         ];
 
         const packages = mapModulesToPackages(chips);
@@ -360,7 +360,7 @@ describe("Presales → Timeline Integration Flow", () => {
 
       testCases.forEach((moduleName) => {
         const chips: Chip[] = [
-          { type: "modules", value: moduleName, confidence: 0.9, source: "test" },
+          { type: "MODULES", value: moduleName, confidence: 0.9, source: "test" },
         ];
 
         const packages = mapModulesToPackages(chips);
@@ -373,7 +373,7 @@ describe("Presales → Timeline Integration Flow", () => {
 
       testCases.forEach((moduleName) => {
         const chips: Chip[] = [
-          { type: "modules", value: moduleName, confidence: 0.9, source: "test" },
+          { type: "MODULES", value: moduleName, confidence: 0.9, source: "test" },
         ];
 
         const packages = mapModulesToPackages(chips);
@@ -383,10 +383,10 @@ describe("Presales → Timeline Integration Flow", () => {
 
     it("should handle multiple modules without duplicates", () => {
       const chips: Chip[] = [
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
-        { type: "modules", value: "FI", confidence: 0.9, source: "test" }, // Should not duplicate
-        { type: "modules", value: "HR", confidence: 0.9, source: "test" },
-        { type: "modules", value: "HCM", confidence: 0.9, source: "test" }, // Should not duplicate
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "FI", confidence: 0.9, source: "test" }, // Should not duplicate
+        { type: "MODULES", value: "HR", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "HCM", confidence: 0.9, source: "test" }, // Should not duplicate
       ];
 
       const packages = mapModulesToPackages(chips);
@@ -405,8 +405,8 @@ describe("Presales → Timeline Integration Flow", () => {
   describe("Error Handling", () => {
     it("should handle invalid chip data gracefully", () => {
       const invalidChips: Chip[] = [
-        { type: "employees", value: "not a number", confidence: 0.9, source: "test" },
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "EMPLOYEES", value: "not a number", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(invalidChips, {});
@@ -418,21 +418,21 @@ describe("Presales → Timeline Integration Flow", () => {
 
     it("should handle negative employee count", () => {
       const chips: Chip[] = [
-        { type: "employees", value: -100, confidence: 0.9, source: "test" },
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "EMPLOYEES", value: -100, confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(chips, {});
 
-      // extractClientProfile uses the value directly from chip, even if negative
-      // This test documents current behavior (no validation in extractClientProfile)
-      expect(result.profile.employees).toBe(-100);
-      expect(result.profile.size).toBe("small"); // Negative gets classified as < 200
+      // sanitizeNumber clamps negative values to 0 for security
+      // This test documents current behavior (negative values are sanitized to 0)
+      expect(result.profile.employees).toBe(0);
+      expect(result.profile.size).toBe("small"); // 0 gets classified as < 200
     });
 
     it("should handle malformed decisions object", () => {
       const chips: Chip[] = [
-        { type: "modules", value: "Finance", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance", confidence: 0.9, source: "test" },
       ];
 
       // Testing malformed input - null should be handled gracefully
@@ -447,16 +447,16 @@ describe("Presales → Timeline Integration Flow", () => {
     it("should warn when complexity multiplier is very high", () => {
       const chips: Chip[] = [
         {
-          type: "modules",
+          type: "MODULES",
           value: "Finance implementation for 5000 employees with 15 legal entities",
           confidence: 0.9,
           source: "test",
         },
-        { type: "integration", value: "System1", confidence: 0.9, source: "test" },
-        { type: "integration", value: "System2", confidence: 0.9, source: "test" },
-        { type: "integration", value: "System3", confidence: 0.9, source: "test" },
-        { type: "compliance", value: "SOX", confidence: 0.9, source: "test" },
-        { type: "compliance", value: "GDPR", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System1", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System2", confidence: 0.9, source: "test" },
+        { type: "INTEGRATION", value: "System3", confidence: 0.9, source: "test" },
+        { type: "COMPLIANCE", value: "SOX", confidence: 0.9, source: "test" },
+        { type: "COMPLIANCE", value: "GDPR", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(chips, {});
@@ -470,7 +470,7 @@ describe("Presales → Timeline Integration Flow", () => {
     it("should warn about multi-entity complexity", () => {
       const chips: Chip[] = [
         {
-          type: "modules",
+          type: "MODULES",
           value: "Finance for company with 10 legal entities",
           confidence: 0.9,
           source: "test",

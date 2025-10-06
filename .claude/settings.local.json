@@ -41,7 +41,11 @@
       "SlashCommand(/init)",
       "Bash(pnpm:*)",
       "Bash(npx prisma generate:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx tsx:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr checks:*)"
     ],
     "deny": [],
     "ask": []

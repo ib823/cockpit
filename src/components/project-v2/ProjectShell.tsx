@@ -8,7 +8,6 @@
 "use client";
 
 import { safePercentage } from "@/lib/utils";
-import { ResourcePlanningShell } from "@/components/resource-planning";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
 import { AnimatePresence, motion } from "framer-motion";
@@ -19,6 +18,7 @@ import { MiniReferenceBar } from "@/components/timeline/MiniReferenceBar";
 import { ReferenceArchitectureModal } from "@/components/timeline/ReferenceArchitectureModal";
 import { useReferenceKeyboard } from "@/hooks/useReferenceKeyboard";
 import { ResetButton } from "@/components/common/ResetButton";
+import { LogoutButton } from "@/components/common/LogoutButton";
 import { Heading1, BodyMD } from "@/components/common/Typography";
 import { Logo } from "@/components/common/Logo";
 import { animation } from "@/lib/design-system";
@@ -26,7 +26,7 @@ import { animation } from "@/lib/design-system";
 // Lazy load heavy components for better performance
 const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
 const PresentMode = lazy(() => import("./modes/PresentMode").then(m => ({ default: m.PresentMode })));
-const OptimizeMode = lazy(() => import("@/components/resource-planning").then(m => ({ default: m.ResourcePlanningShell })));
+const OptimizeMode = lazy(() => import("./modes/OptimizeMode").then(m => ({ default: m.OptimizeMode })));
 
 
 /**
@@ -86,7 +86,7 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {typeof progress === "number" && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -105,6 +105,7 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
               </div>
             </motion.div>
           )}
+          <LogoutButton />
           <ResetButton />
         </div>
       </div>
@@ -123,7 +124,7 @@ export function ProjectShell() {
   useReferenceKeyboard();
 
   // Calculate progress for Capture mode
-  const captureProgress = mode === "capture" ? safePercentage(completeness.score, 100) : undefined;
+  const captureProgress = mode === "capture" ? safePercentage(completeness?.score || 0, 100) : undefined;
 
   // Show MiniReferenceBar in plan and optimize modes
   const showReferenceBar = mode === "plan" || mode === "optimize";

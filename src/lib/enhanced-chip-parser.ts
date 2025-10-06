@@ -35,7 +35,7 @@ export function parseRFPTextEnhanced(text: string): ExtendedChip[] {
   // Convert base chips to extended format
   const extendedChips: ExtendedChip[] = baseChips.map((chip) => ({
     id: chip.id || `chip_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-    type: (chip as any).kind || chip.type,
+    type: ((chip as any).kind || chip.type || "").toLowerCase(),
     value: (chip as any).parsed?.value || chip.value || (chip as any).raw,
     confidence: (chip as any).evidence?.confidence?.score || chip.confidence || 0.8,
     source: "base_parser",
