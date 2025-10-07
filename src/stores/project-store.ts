@@ -28,6 +28,10 @@ interface ProjectState {
   lastGeneratedAt: Date | null;
   manualOverrides: ManualOverride[];
 
+  // Regenerate modal state
+  showRegenerateModal: boolean;
+  regenerateCallback: (() => void) | null;
+
   // Panel sizes
   leftPanelWidth: number;
   rightPanelWidth: number;
@@ -35,6 +39,8 @@ interface ProjectState {
   // Actions
   setMode: (mode: ProjectMode) => void;
   regenerateTimeline: (force?: boolean) => void;
+  confirmRegenerate: () => void;
+  cancelRegenerate: () => void;
   markTimelineStale: () => void;
   addManualOverride: (override: ManualOverride) => void;
   clearManualOverrides: () => void;
@@ -45,6 +51,7 @@ interface ProjectState {
 
   // Internal
   _debouncedRegenerate: (() => void) | null;
+  _performRegeneration: () => void;
 }
 
 export const useProjectStore = create<ProjectState>()(
@@ -56,6 +63,8 @@ export const useProjectStore = create<ProjectState>()(
       timelineIsStale: false,
       lastGeneratedAt: null,
       manualOverrides: [],
+      showRegenerateModal: false,
+      regenerateCallback: null,
       leftPanelWidth: 320,
       rightPanelWidth: 384,
       _debouncedRegenerate: null,
@@ -92,15 +101,64 @@ export const useProjectStore = create<ProjectState>()(
       },
 
       regenerateTimeline: (force = false) => {
-        const { manualOverrides } = get();
+        const { manualOverrides, showRegenerateModal } = get();
+        const timelineStore = useTimelineStore.getState();
+        const currentPhases = timelineStore.phases;
 
-        if (!force && manualOverrides.length > 0) {
-          const confirmRegenerate = window.confirm(
-            `You have ${manualOverrides.length} manual edit(s). Regenerating will preserve them but may cause inconsistencies. Continue?`
-          );
-          if (!confirmRegenerate) return;
+        // If modal is already shown, don't show it again
+        if (showRegenerateModal) return;
+
+        // If force regeneration or no manual edits or no existing phases, proceed directly
+        if (force || manualOverrides.length === 0 || currentPhases.length === 0) {
+          get()._performRegeneration();
+          return;
         }
 
+        // Otherwise, show modal for user confirmation
+        // Track that preview was shown
+        track("regenerate_preview_shown", {
+          manualEditCount: manualOverrides.length,
+        });
+
+        set({
+          showRegenerateModal: true,
+          regenerateCallback: () => {
+            get()._performRegeneration();
+          },
+        });
+      },
+
+      confirmRegenerate: () => {
+        const { regenerateCallback, manualOverrides } = get();
+
+        // Track confirmation
+        track("regenerate_confirmed", {
+          manualEditCount: manualOverrides.length,
+        });
+
+        set({ showRegenerateModal: false });
+
+        if (regenerateCallback) {
+          regenerateCallback();
+          set({ regenerateCallback: null });
+        }
+      },
+
+      cancelRegenerate: () => {
+        const { manualOverrides } = get();
+
+        // Track cancellation
+        track("regenerate_cancelled", {
+          manualEditCount: manualOverrides.length,
+        });
+
+        set({
+          showRegenerateModal: false,
+          regenerateCallback: null,
+        });
+      },
+
+      _performRegeneration: () => {
         console.log("[ProjectStore] 🔄 Starting timeline regeneration...");
 
         const presalesStore = usePresalesStore.getState();
