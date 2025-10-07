@@ -1,12 +1,13 @@
 // src/stores/project-store.ts
 import { convertPresalesToTimeline } from "@/lib/presales-to-timeline-bridge";
+import { track } from "@/lib/analytics";
 import { debounce } from "lodash";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { usePresalesStore } from "./presales-store";
 import { useTimelineStore } from "./timeline-store";
 
-export type ProjectMode = 'capture' | 'decide' | 'plan' | 'optimize' | 'present';
+export type ProjectMode = 'capture' | 'decide' | 'plan' | 'present';
 
 interface ManualOverride {
   phaseId: string;
@@ -60,7 +61,13 @@ export const useProjectStore = create<ProjectState>()(
       _debouncedRegenerate: null,
 
       setMode: (mode) => {
+        const prevMode = get().mode;
         set({ mode });
+
+        // Track mode transition
+        if (prevMode !== mode) {
+          track("mode_transition", { from: prevMode, to: mode });
+        }
 
         // Auto-regenerate when switching to plan mode
         if (mode === "plan" && get().timelineIsStale) {
@@ -125,6 +132,13 @@ export const useProjectStore = create<ProjectState>()(
           timelineStore.setProfile(result.profile);
 
           console.log(`[ProjectStore] ✅ Timeline store updated with ${result.phases.length} phases`);
+
+          // Track timeline generation
+          track("timeline_generated", {
+            phaseCount: result.phases.length,
+            chipCount: chips.length,
+            totalEffort: result.totalEffort || 0,
+          });
 
           set({
             timelineIsStale: false,

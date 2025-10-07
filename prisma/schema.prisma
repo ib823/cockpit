@@ -4,8 +4,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model User {
@@ -15,16 +15,25 @@ model User {
   name          String?
   image         String?
   role          Role      @default(USER)
-  
-  accounts      Account[]
-  sessions      Session[]
-  projects      Project[]
-  comments      Comment[]
-  auditLogs     AuditLog[]
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+
+  accounts  Account[]
+  sessions  Session[]
+  projects  Project[]
+  comments  Comment[]
+  auditLogs AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authenticators     Authenticator[] @relation("UserAuthenticators")
+  auditEvents        AuditEvent[]    @relation("UserAuditEvents")
+  exception          Boolean         @default(false)
+  accessExpiresAt    DateTime        @default(now())
+  firstLoginAt       DateTime?
+  lastLoginAt        DateTime?
+  timelinesGenerated Int             @default(0)
+  lastTimelineAt     DateTime?
+
   @@index([email])
   @@map("users")
 }
@@ -49,7 +58,7 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([provider, providerAccountId])
   @@index([userId])
   @@map("accounts")
@@ -61,7 +70,7 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
   @@map("sessions")
 }
@@ -70,49 +79,52 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-  
+
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
 
 model Project {
-  id                 String        @id @default(cuid())
-  name               String
-  description        String?       @db.Text
-  status             ProjectStatus @default(DRAFT)
-  
-  clientName         String?
-  industry           String?
-  region             String?
-  employees          Int?
-  revenue            Decimal?      @db.Decimal(15, 2)
-  legalEntities      Int?
-  
+  id          String        @id @default(cuid())
+  name        String
+  description String?       @db.Text
+  status      ProjectStatus @default(DRAFT)
+
+  clientName    String?
+  industry      String?
+  region        String?
+  employees     Int?
+  revenue       Decimal? @db.Decimal(15, 2)
+  legalEntities Int?
+
   moduleCombo        String?
   complexity         String?
   ssoMode            String?
   integrationPosture String?
   rateRegion         String?
-  
-  totalEffort        Decimal?      @db.Decimal(10, 2)
-  totalCost          Decimal?      @db.Decimal(15, 2)
-  duration           Int?
-  startDate          DateTime?
-  endDate            DateTime?
-  
-  ownerId            String
-  owner              User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  
-  chips              Chip[]
-  phases             Phase[]
-  resources          Resource[]
-  snapshots          Snapshot[]
-  shares             Share[]
-  comments           Comment[]
-  
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  
+
+  totalEffort Decimal?  @db.Decimal(10, 2)
+  totalCost   Decimal?  @db.Decimal(15, 2)
+  duration    Int?
+  startDate   DateTime?
+  endDate     DateTime?
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  chips            Chip[]
+  phases           Phase[]
+  resources        Resource[]
+  snapshots        Snapshot[]
+  shares           Share[]
+  comments         Comment[]
+  ricefwItems      RicefwItem[]
+  formItems        FormItem[]
+  integrationItems IntegrationItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([ownerId])
   @@index([status])
   @@index([createdAt])
@@ -127,17 +139,17 @@ enum ProjectStatus {
 }
 
 model Chip {
-  id         String   @id @default(cuid())
-  projectId  String
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   type       ChipType
   value      String   @db.Text
   confidence Decimal  @db.Decimal(3, 2)
   evidence   String?  @db.Text
-  
-  createdAt  DateTime @default(now())
-  
+
+  createdAt DateTime @default(now())
+
   @@index([projectId])
   @@index([type])
   @@map("chips")
@@ -154,58 +166,65 @@ enum ChipType {
   COMPLIANCE
   LEGAL_ENTITIES
   SSO
+  BANKING
+  EXISTING_SYSTEM
+  LOCATIONS
+  USERS
+  DATA_VOLUME
+  CURRENCIES
+  LANGUAGES
 }
 
 model Phase {
-  id               String     @id @default(cuid())
-  projectId        String
-  project          Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   name             String
   category         String
   workingDays      Int
-  effort           Decimal    @db.Decimal(10, 2)
+  effort           Decimal @db.Decimal(10, 2)
   startBusinessDay Int
-  color            String     @default("blue")
-  dependencies     String?    @db.Text
+  color            String  @default("blue")
+  dependencies     String? @db.Text
   order            Int
-  
-  resources        Resource[]
-  
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
-  
+
+  resources Resource[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([projectId])
   @@index([order])
   @@map("phases")
 }
 
 model Resource {
-  id         String   @id @default(cuid())
-  projectId  String
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  phaseId    String?
-  phase      Phase?   @relation(fields: [phaseId], references: [id], onDelete: SetNull)
-  
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseId   String?
+  phase     Phase?  @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+
   name       String
   role       String
   region     String
   allocation Int
-  hourlyRate Decimal  @db.Decimal(10, 2)
-  
-  createdAt  DateTime @default(now())
-  
+  hourlyRate Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
   @@index([projectId])
   @@index([phaseId])
   @@map("resources")
 }
 
 model Holiday {
-  id        String   @id @default(cuid())
-  name      String
-  date      DateTime @db.Date
-  region    String
-  
+  id     String   @id @default(cuid())
+  name   String
+  date   DateTime @db.Date
+  region String
+
   @@unique([date, region])
   @@index([region])
   @@index([date])
@@ -213,73 +232,73 @@ model Holiday {
 }
 
 model Share {
-  id           String    @id @default(cuid())
-  projectId    String
-  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   token        String    @unique @default(cuid())
   expiresAt    DateTime?
   viewCount    Int       @default(0)
   lastViewedAt DateTime?
-  
-  createdAt    DateTime  @default(now())
-  
+
+  createdAt DateTime @default(now())
+
   @@index([token])
   @@index([projectId])
   @@map("shares")
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  content   String   @db.Text
-  resolved  Boolean  @default(false)
-  
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  content  String  @db.Text
+  resolved Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([projectId])
   @@index([userId])
   @@map("comments")
 }
 
 model Snapshot {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   version   Int
   data      Json
   createdBy String
   label     String?
-  
+
   createdAt DateTime @default(now())
-  
+
   @@unique([projectId, version])
   @@index([projectId])
   @@map("snapshots")
 }
 
 model AuditLog {
-  id        String      @id @default(cuid())
-  userId    String
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  action    AuditAction
-  entity    String
-  entityId  String
-  changes   Json?
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  action   AuditAction
+  entity   String
+  entityId String
+  changes  Json?
+
   ipAddress String?
-  userAgent String?     @db.Text
-  
-  createdAt DateTime    @default(now())
-  
+  userAgent String? @db.Text
+
+  createdAt DateTime @default(now())
+
   @@index([userId])
   @@index([entity, entityId])
   @@index([createdAt])
@@ -294,4 +313,115 @@ enum AuditAction {
   EXPORT
   APPROVE
   ARCHIVE
+}
+
+// ---- passkey models v2 ----
+/**
+ * Passkey & Audit models (no Role/User duplicates)
+ * You already have Role and User; we only add the new tables.
+ */
+
+model Authenticator {
+  id         String   @id
+  user       User     @relation("UserAuthenticators", fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  publicKey  Bytes
+  counter    Int
+  transports String[]
+  deviceType String
+  backedUp   Boolean
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+}
+
+model EmailApproval {
+  email            String    @id
+  tokenHash        String
+  tokenExpiresAt   DateTime
+  approvedByUserId String
+  usedAt           DateTime?
+  createdAt        DateTime  @default(now())
+  codeSent         Boolean   @default(false)
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserAuditEvents", fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  createdAt DateTime @default(now())
+  meta      Json?
+
+  @@index([userId, type, createdAt])
+}
+
+
+model MagicToken {
+  id         String    @id @default(cuid())
+  email      String
+  token      String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  deviceInfo String?   @db.Text
+  ipAddress  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@map("magic_tokens")
+}
+
+model RicefwItem {
+  id            String   @id @default(cuid())
+  projectId     String
+  type          String // 'report' | 'interface' | 'conversion' | 'enhancement' | 'form' | 'workflow'
+  name          String
+  description   String?  @db.Text
+  complexity    String // 'S' | 'M' | 'L'
+  count         Int
+  effortPerItem Decimal  @db.Decimal(10, 2)
+  totalEffort   Decimal  @db.Decimal(10, 2)
+  phase         String // 'explore' | 'realize' | 'deploy'
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([projectId, type])
+  @@map("ricefw_items")
+}
+
+model FormItem {
+  id         String   @id @default(cuid())
+  projectId  String
+  name       String
+  type       String // 'po' | 'invoice' | 'deliveryNote' | 'custom'
+  languages  String[] // Array of ISO codes
+  complexity String // 'S' | 'M' | 'L'
+  effort     Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("form_items")
+}
+
+model IntegrationItem {
+  id         String   @id @default(cuid())
+  projectId  String
+  name       String
+  type       String // 'api' | 'file' | 'database' | 'realtime' | 'batch'
+  source     String
+  target     String
+  complexity String // 'S' | 'M' | 'L'
+  volume     String // 'low' | 'medium' | 'high'
+  effort     Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("integration_items")
 }

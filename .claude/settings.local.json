@@ -41,7 +41,22 @@
       "SlashCommand(/init)",
       "Bash(pnpm:*)",
       "Bash(npx prisma generate:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx tsx:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr checks:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(node:*)",
+      "Bash(npx web-push:*)",
+      "Bash(npx prisma:*)",
+      "Bash(pgrep:*)",
+      "Read(//tmp/**)",
+      "Bash(git checkout:*)",
+      "Bash(find:*)",
+      "Bash(git rm:*)",
+      "Bash(openssl rand:*)",
+      "Bash(NEXT_LINT_DISABLED=true npm run build)"
     ],
     "deny": [],
     "ask": []

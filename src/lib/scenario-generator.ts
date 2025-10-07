@@ -254,8 +254,8 @@ export class ScenarioGenerator {
    * Extract company footprint from chips
    */
   private extractCompanyFootprint(chips: Chip[]): CompanyFootprint {
-    const countryChips = chips.filter((c) => c.type === "country");
-    const entityChips = chips.filter((c) => c.type === "legal_entities");
+    const countryChips = chips.filter((c) => c.type === "COUNTRY");
+    const entityChips = chips.filter((c) => c.type === "LEGAL_ENTITIES");
 
     return {
       legalEntities:
@@ -324,7 +324,7 @@ export class ScenarioGenerator {
    * Extract scope items from chips and decisions
    */
   private extractScopeItems(chips: Chip[], decisions: Decision[]): ScopeItem[] {
-    const moduleChips = chips.filter((c) => c.type === "modules");
+    const moduleChips = chips.filter((c) => c.type === "MODULES");
     const moduleComboDecision = decisions.find((d) => d.category === "module_combo");
 
     const items: ScopeItem[] = [];
@@ -426,7 +426,7 @@ export class ScenarioGenerator {
   }
 
   private extractUsersRoles(chips: Chip[]): UsersRoles {
-    const userChips = chips.filter((c) => c.type === "users" || c.type === "employees");
+    const userChips = chips.filter((c) => c.type === "USERS" || c.type === "EMPLOYEES");
     const totalUsers = userChips.length > 0 ? parseInt(String(userChips[0].value)) || 500 : 500;
 
     return {
@@ -451,7 +451,7 @@ export class ScenarioGenerator {
   }
 
   private extractDataMigration(chips: Chip[]): DataMigration {
-    const dataVolumeChips = chips.filter((c) => c.type === "data_volume");
+    const dataVolumeChips = chips.filter((c) => c.type === "DATA_VOLUME");
     const recordCount =
       dataVolumeChips.length > 0 ? parseInt(String(dataVolumeChips[0].value)) || 100000 : 100000;
 
@@ -478,7 +478,7 @@ export class ScenarioGenerator {
   }
 
   private extractIntegrations(chips: Chip[]): Integration[] {
-    const integrationChips = chips.filter((c) => c.type === "integration");
+    const integrationChips = chips.filter((c) => c.type === "INTEGRATION");
 
     return integrationChips.map((chip) => ({
       id: chip.id || `integration-${chip.type}-${chip.value}`,
@@ -516,7 +516,7 @@ export class ScenarioGenerator {
   }
 
   private extractLocalization(chips: Chip[]): Localization {
-    const countryChips = chips.filter((c) => c.type === "country");
+    const countryChips = chips.filter((c) => c.type === "COUNTRY");
 
     return {
       countries: countryChips.map((c) => String(c.value)),
@@ -600,7 +600,7 @@ export class ScenarioGenerator {
   }
 
   private detectSharedServices(chips: Chip[]): boolean {
-    const entityChips = chips.filter((c) => c.type === "legal_entities");
+    const entityChips = chips.filter((c) => c.type === "LEGAL_ENTITIES");
     return entityChips.length > 3;
   }
 
@@ -835,7 +835,7 @@ export class ScenarioGenerator {
    * Generate timeline
    */
   private generateTimeline(plan: ScenarioPlan, chips: Chip[]): ScenarioPlan {
-    const timelineChips = chips.filter((c) => c.type === "timeline");
+    const timelineChips = chips.filter((c) => c.type === "TIMELINE");
     const durationMonths =
       timelineChips.length > 0 ? parseInt(String(timelineChips[0].value)) || 6 : 6;
 

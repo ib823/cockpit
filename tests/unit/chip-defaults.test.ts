@@ -55,45 +55,45 @@ describe("sanitizeChipValue", () => {
 
 describe("validateChipValue", () => {
   it("should reject empty values", () => {
-    const result = validateChipValue("country", "");
+    const result = validateChipValue("COUNTRY", "");
     expect(result.isValid).toBe(false);
     expect(result.error).toBe("Value cannot be empty");
   });
 
   it("should validate country options", () => {
-    expect(validateChipValue("country", "Malaysia").isValid).toBe(true);
-    expect(validateChipValue("country", "InvalidCountry").isValid).toBe(false);
+    expect(validateChipValue("COUNTRY", "Malaysia").isValid).toBe(true);
+    expect(validateChipValue("COUNTRY", "InvalidCountry").isValid).toBe(false);
   });
 
   it("should validate numeric patterns", () => {
-    expect(validateChipValue("legal_entities", "5").isValid).toBe(true);
-    expect(validateChipValue("legal_entities", "abc").isValid).toBe(false);
+    expect(validateChipValue("LEGAL_ENTITIES", "5").isValid).toBe(true);
+    expect(validateChipValue("LEGAL_ENTITIES", "abc").isValid).toBe(false);
   });
 
   it("should validate numeric ranges", () => {
-    expect(validateChipValue("users", "50").isValid).toBe(true);
-    expect(validateChipValue("users", "0").isValid).toBe(false); // Min is 1
-    expect(validateChipValue("users", "200000").isValid).toBe(false); // Max is 100000
+    expect(validateChipValue("USERS", "50").isValid).toBe(true);
+    expect(validateChipValue("USERS", "0").isValid).toBe(false); // Min is 1
+    expect(validateChipValue("USERS", "200000").isValid).toBe(false); // Max is 100000
   });
 
   it("should validate timeline format", () => {
-    expect(validateChipValue("timeline", "6 months").isValid).toBe(true);
-    expect(validateChipValue("timeline", "12 weeks").isValid).toBe(true);
-    expect(validateChipValue("timeline", "invalid").isValid).toBe(false);
+    expect(validateChipValue("TIMELINE", "6 months").isValid).toBe(true);
+    expect(validateChipValue("TIMELINE", "12 weeks").isValid).toBe(true);
+    expect(validateChipValue("TIMELINE", "invalid").isValid).toBe(false);
   });
 
   it("should allow any text for fields without strict validation", () => {
-    expect(validateChipValue("integration", "Custom API").isValid).toBe(true);
-    expect(validateChipValue("compliance", "GDPR compliant").isValid).toBe(true);
+    expect(validateChipValue("INTEGRATION", "Custom API").isValid).toBe(true);
+    expect(validateChipValue("COMPLIANCE", "GDPR compliant").isValid).toBe(true);
   });
 });
 
 describe("createDefaultChip", () => {
   it("should create valid chip with defaults", () => {
-    const chip = createDefaultChip("country");
+    const chip = createDefaultChip("COUNTRY");
     
     expect(chip.id).toBeDefined();
-    expect(chip.type).toBe("country");
+    expect(chip.type).toBe("COUNTRY");
     expect(chip.value).toBe("Malaysia");
     expect(chip.confidence).toBe(0.3);
     expect(chip.source).toBe("default");
@@ -102,8 +102,8 @@ describe("createDefaultChip", () => {
   });
 
   it("should create different chips for different types", () => {
-    const countryChip = createDefaultChip("country"); // confidence: 0.3
-    const legalEntitiesChip = createDefaultChip("legal_entities"); // confidence: 0.4
+    const countryChip = createDefaultChip("COUNTRY"); // confidence: 0.3
+    const legalEntitiesChip = createDefaultChip("LEGAL_ENTITIES"); // confidence: 0.4
     
     expect(countryChip.value).toBe("Malaysia");
     expect(legalEntitiesChip.value).toBe("1");
@@ -111,14 +111,14 @@ describe("createDefaultChip", () => {
   });
 
   it("should have unique IDs", () => {
-    const chip1 = createDefaultChip("country");
-    const chip2 = createDefaultChip("country");
+    const chip1 = createDefaultChip("COUNTRY");
+    const chip2 = createDefaultChip("COUNTRY");
     
     expect(chip1.id).not.toBe(chip2.id);
   });
 
   it("should include descriptive notes", () => {
-    const chip = createDefaultChip("legal_entities");
+    const chip = createDefaultChip("LEGAL_ENTITIES");
     
     expect(chip.metadata?.note).toBeDefined();
     expect(chip.metadata?.note).toContain("single entity");
@@ -130,14 +130,14 @@ describe("fillMissingChips", () => {
     const existingChips: Chip[] = [
       {
         id: "1",
-        type: "country",
+        type: "COUNTRY",
         value: "Malaysia",
         confidence: 0.9,
         source: "paste",
       },
     ];
 
-    const gaps = ["legal_entities", "locations", "users"];
+    const gaps = ["LEGAL_ENTITIES", "LOCATIONS", "USERS"];
     const newChips = fillMissingChips(existingChips, gaps);
 
     expect(newChips).toHaveLength(3);
@@ -148,25 +148,25 @@ describe("fillMissingChips", () => {
     const existingChips: Chip[] = [
       {
         id: "1",
-        type: "country",
+        type: "COUNTRY",
         value: "Malaysia",
         confidence: 0.9,
         source: "paste",
       },
     ];
 
-    const gaps = ["country", "legal_entities"]; // country already exists
+    const gaps = ["COUNTRY", "LEGAL_ENTITIES"]; // country already exists
     const newChips = fillMissingChips(existingChips, gaps);
 
     expect(newChips).toHaveLength(1);
-    expect(newChips[0].type).toBe("legal_entities");
+    expect(newChips[0].type).toBe("LEGAL_ENTITIES");
   });
 
   it("should return empty array if no gaps", () => {
     const existingChips: Chip[] = [
       {
         id: "1",
-        type: "country",
+        type: "COUNTRY",
         value: "Malaysia",
         confidence: 0.9,
         source: "paste",
@@ -181,30 +181,30 @@ describe("fillMissingChips", () => {
 
   it("should skip invalid gap types", () => {
     const existingChips: Chip[] = [];
-    const gaps = ["country", "invalid_type"];
+    const gaps = ["COUNTRY", "invalid_type"];
     const newChips = fillMissingChips(existingChips, gaps);
 
     expect(newChips).toHaveLength(1);
-    expect(newChips[0].type).toBe("country");
+    expect(newChips[0].type).toBe("COUNTRY");
   });
 });
 
 describe("getInputType", () => {
   it("should return 'select' for option-based types", () => {
-    expect(getInputType("country")).toBe("select");
-    expect(getInputType("industry")).toBe("select");
-    expect(getInputType("currencies")).toBe("select");
+    expect(getInputType("COUNTRY")).toBe("select");
+    expect(getInputType("INDUSTRY")).toBe("select");
+    expect(getInputType("CURRENCIES")).toBe("select");
   });
 
   it("should return 'number' for numeric types", () => {
-    expect(getInputType("legal_entities")).toBe("number");
-    expect(getInputType("locations")).toBe("number");
-    expect(getInputType("users")).toBe("number");
+    expect(getInputType("LEGAL_ENTITIES")).toBe("number");
+    expect(getInputType("LOCATIONS")).toBe("number");
+    expect(getInputType("USERS")).toBe("number");
   });
 
   it("should return 'text' for free-form types", () => {
-    expect(getInputType("integration")).toBe("text");
-    expect(getInputType("compliance")).toBe("text");
+    expect(getInputType("INTEGRATION")).toBe("text");
+    expect(getInputType("COMPLIANCE")).toBe("text");
   });
 });
 
@@ -245,13 +245,13 @@ describe("Rate Limiting", () => {
 describe("CHIP_DEFAULTS coverage", () => {
   it("should have defaults for all common chip types", () => {
     const requiredTypes: ChipType[] = [
-      "country",
-      "legal_entities",
-      "locations",
-      "users",
-      "data_volume",
-      "industry",
-      "modules",
+      "COUNTRY",
+      "LEGAL_ENTITIES",
+      "LOCATIONS",
+      "USERS",
+      "DATA_VOLUME",
+      "INDUSTRY",
+      "MODULES",
     ];
 
     requiredTypes.forEach((type) => {
@@ -282,13 +282,13 @@ describe("CHIP_VALIDATION coverage", () => {
 
   it("should have specific validation rules for critical types", () => {
     // Numeric types should have min/max
-    expect(CHIP_VALIDATION.legal_entities.min).toBeDefined();
-    expect(CHIP_VALIDATION.locations.min).toBeDefined();
-    expect(CHIP_VALIDATION.users.min).toBeDefined();
+    expect(CHIP_VALIDATION.LEGAL_ENTITIES.min).toBeDefined();
+    expect(CHIP_VALIDATION.LOCATIONS.min).toBeDefined();
+    expect(CHIP_VALIDATION.USERS.min).toBeDefined();
 
     // Select types should have options
-    expect(CHIP_VALIDATION.country.options).toBeDefined();
-    expect(CHIP_VALIDATION.industry.options).toBeDefined();
-    expect(CHIP_VALIDATION.currencies.options).toBeDefined();
+    expect(CHIP_VALIDATION.COUNTRY.options).toBeDefined();
+    expect(CHIP_VALIDATION.INDUSTRY.options).toBeDefined();
+    expect(CHIP_VALIDATION.CURRENCIES.options).toBeDefined();
   });
 });

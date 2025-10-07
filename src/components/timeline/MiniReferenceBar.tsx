@@ -50,7 +50,7 @@ export function MiniReferenceBar() {
             className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg hover:bg-blue-50 transition-colors border border-blue-200"
           >
             <Sparkles className="w-4 h-4 text-purple-600" />
-            <span className="text-sm font-medium text-gray-900">SAP Activate</span>
+            <span className="text-sm font-medium text-gray-900">Reference Diagram</span>
           </button>
 
           <div className="flex items-center gap-1.5">

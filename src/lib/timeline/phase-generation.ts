@@ -1,7 +1,149 @@
 import { generateResourceRequirements, STANDARD_TEAM_COMPOSITION } from "@/data/resource-catalog";
 import { DEPENDENCY_MAP, SAP_CATALOG } from "@/data/sap-catalog";
-import { ClientProfile, Phase, Resource } from "@/types/core";
-import { formatEffort } from "@/stores/timeline-store";
+import { ClientProfile, Phase, Resource, Task } from "@/types/core";
+
+// Helper to format effort values
+const formatEffort = (effort: number): number => Math.round(effort);
+
+/**
+ * Generate default 3 tasks for each phase based on SAP Activate stage
+ */
+const generateDefaultTasks = (stageName: string): Task[] => {
+  const taskTemplates: Record<string, Task[]> = {
+    Prepare: [
+      {
+        id: `${stageName}_task_1`,
+        name: "Task 1",
+        effortPercent: 33.33,
+        daysPercent: 33.33,
+        defaultRole: "Project Manager",
+        description: "Project initiation and planning"
+      },
+      {
+        id: `${stageName}_task_2`,
+        name: "Task 2",
+        effortPercent: 33.33,
+        daysPercent: 33.33,
+        defaultRole: "Business Analyst",
+        description: "Requirements gathering"
+      },
+      {
+        id: `${stageName}_task_3`,
+        name: "Task 3",
+        effortPercent: 33.34,
+        daysPercent: 33.34,
+        defaultRole: "Solution Architect",
+        description: "Solution design"
+      }
+    ],
+    Explore: [
+      {
+        id: `${stageName}_task_1`,
+        name: "Task 1",
+        effortPercent: 33.33,
+        daysPercent: 33.33,
+        defaultRole: "Business Analyst",
+        description: "Business process mapping"
+      },
+      {
+        id: `${stageName}_task_2`,
+        name: "Task 2",
+        effortPercent: 33.33,
+        daysPercent: 33.33,
+        defaultRole: "Solution Architect",
+        description: "Technical architecture design"
+      },
+      {
+        id: `${stageName}_task_3`,
+        name: "Task 3",
+        effortPercent: 33.34,
+        daysPercent: 33.34,
+        defaultRole: "Functional Consultant",
+        description: "Fit-gap analysis"
+      }
+    ],
+    Realize: [
+      {
+        id: `${stageName}_task_1`,
+        name: "Task 1",
+        effortPercent: 33.33,
+        daysPercent: 33.33,
+        defaultRole: "Developer",
+        description: "Configuration and development"
+      },
+      {
+        id: `${stageName}_task_2`,
+        name: "Task 2",
+        effortPercent: 33.33,
+        daysPercent: 33.33,
+        defaultRole: "Functional Consultant",
+        description: "System integration testing"
+      },
+      {
+        id: `${stageName}_task_3`,
+        name: "Task 3",
+        effortPercent: 33.34,
+        daysPercent: 33.34,
+        defaultRole: "Quality Analyst",
+        description: "User acceptance testing"
+      }
+    ],
+    Deploy: [
+      {
+        id: `${stageName}_task_1`,
+        name: "Task 1",
+        effortPercent: 33.33,
+        daysPercent: 33.33,
+        defaultRole: "Deployment Manager",
+        description: "Deployment preparation"
+      },
+      {
+        id: `${stageName}_task_2`,
+        name: "Task 2",
+        effortPercent: 33.33,
+        daysPercent: 33.33,
+        defaultRole: "Developer",
+        description: "Production cutover"
+      },
+      {
+        id: `${stageName}_task_3`,
+        name: "Task 3",
+        effortPercent: 33.34,
+        daysPercent: 33.34,
+        defaultRole: "Training Specialist",
+        description: "User training"
+      }
+    ],
+    Run: [
+      {
+        id: `${stageName}_task_1`,
+        name: "Task 1",
+        effortPercent: 33.33,
+        daysPercent: 33.33,
+        defaultRole: "Support Analyst",
+        description: "Hypercare support"
+      },
+      {
+        id: `${stageName}_task_2`,
+        name: "Task 2",
+        effortPercent: 33.33,
+        daysPercent: 33.33,
+        defaultRole: "Project Manager",
+        description: "Performance monitoring"
+      },
+      {
+        id: `${stageName}_task_3`,
+        name: "Task 3",
+        effortPercent: 33.34,
+        daysPercent: 33.34,
+        defaultRole: "Business Analyst",
+        description: "Continuous improvement"
+      }
+    ]
+  };
+
+  return taskTemplates[stageName] || taskTemplates.Prepare;
+};
 
 // Phase colors for visualization
 const PHASE_COLORS = [
@@ -75,6 +217,7 @@ export const generateTimelineFromSAPSelection = (
         dependencies: getDependentPhases(packageId, stageName, phases),
         status: "idle",
         resources: generateResourceRequirements(stageEffort, profile.region),
+        tasks: [], // No default tasks - user creates them manually
       };
 
       phases.push(phase);

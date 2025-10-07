@@ -25,6 +25,7 @@ import { MilestoneManagerModal } from "./MilestoneManagerModal";
 import { ResourceManagerModal } from "./ResourceManagerModal";
 import { Button } from "@/components/common/Button";
 import { Heading3 } from "@/components/common/Typography";
+import { generateTasksForPhase } from "@/lib/task-templates";
 
 interface Stream {
   id: string;
@@ -46,6 +47,9 @@ const STREAM_COLORS = [
   "bg-red-500",
 ];
 
+// Project base date for business day calculations - use current year
+const PROJECT_BASE_DATE = new Date(new Date().getFullYear(), 0, 1); // January 1 of current year
+
 export function ImprovedGanttChart({
   phases: phasesProp,
   onPhaseClick
@@ -64,9 +68,6 @@ export function ImprovedGanttChart({
     : Array.isArray(storePhases)
     ? storePhases
     : [];
-
-  // Project base date for business day calculations
-  const PROJECT_BASE_DATE = new Date(2024, 0, 1); // January 1, 2024
 
   // Compute phases with dates if they don't have them
   const safePhases = useMemo(() => {
@@ -96,7 +97,7 @@ export function ImprovedGanttChart({
     });
   }, [rawPhases]);
 
-  // State
+  // State - Default to all collapsed
   const [collapsedStreams, setCollapsedStreams] = useState<Set<string>>(new Set());
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
   const [selectedRegion, setSelectedRegion] = useState<'ABMY' | 'ABSG' | 'ABVN'>('ABMY');
@@ -205,7 +206,7 @@ export function ImprovedGanttChart({
     return getHolidaysInRange(minDate, maxDate, selectedRegion);
   }, [minDate, maxDate, selectedRegion]);
 
-  // Initialize milestones when phases are available
+  // Initialize milestones and default collapsed state when phases are available
   useEffect(() => {
     if (milestones.length === 0 && safePhases.length > 0) {
       const dates = safePhases.flatMap(p => [p.startDate, p.endDate]).filter((d): d is Date => d != null && d instanceof Date);
@@ -218,7 +219,12 @@ export function ImprovedGanttChart({
         ]);
       }
     }
-  }, [safePhases, milestones.length]);
+
+    // Default all streams to collapsed on initial load
+    if (streams.length > 0 && collapsedStreams.size === 0) {
+      setCollapsedStreams(new Set(streams.map(s => s.id)));
+    }
+  }, [safePhases, milestones.length, streams, collapsedStreams.size]);
 
   // Collapse/Expand handlers
   const handleExpandAll = () => {
@@ -238,6 +244,18 @@ export function ImprovedGanttChart({
         next.delete(streamId);
       } else {
         next.add(streamId);
+      }
+      return next;
+    });
+  };
+
+  const togglePhase = (phaseId: string) => {
+    setExpandedPhases((prev) => {
+      const next = new Set(prev);
+      if (next.has(phaseId)) {
+        next.delete(phaseId);
+      } else {
+        next.add(phaseId);
       }
       return next;
     });
@@ -493,7 +511,7 @@ export function ImprovedGanttChart({
 
   return (
     <div
-      className="relative overflow-x-auto overflow-y-auto max-h-[calc(100vh-12rem)] bg-white rounded-lg shadow-lg p-8"
+      className="relative overflow-x-auto bg-white rounded-lg shadow-lg p-8"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
@@ -552,14 +570,7 @@ export function ImprovedGanttChart({
             Milestones ({milestones.length})
           </Button>
 
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setMode('optimize')}
-            leftIcon={<Users className="w-4 h-4" />}
-          >
-            Allocate Resources
-          </Button>
+          {/* Optimize button removed - now part of Plan mode tabs */}
         </div>
       </div>
 
@@ -603,7 +614,7 @@ export function ImprovedGanttChart({
 
       {/* Timeline Area with Vertical Markers */}
       <div className="relative">
-        {/* Holiday Vertical Lines - Behind everything */}
+        {/* Holiday Markers - Triangle at top */}
         {visibleHolidays.map((holiday, idx) => {
           const holidayDate = new Date(holiday.date);
           const offset = differenceInDays(holidayDate, minDate);
@@ -611,37 +622,56 @@ export function ImprovedGanttChart({
 
           return (
             <div
-              key={`holiday-line-${idx}`}
-              className="absolute top-0 bottom-0 z-0 group cursor-help"
-              style={{ left: `calc(16rem + ${position}% * (100% - 16rem) / 100)` }}
+              key={`holiday-${idx}`}
+              className="absolute top-0 z-20 group cursor-help pointer-events-auto"
+              style={{ left: `calc(16rem + (100% - 16rem) * ${position / 100} - 6px)` }}
             >
-              <div className="w-0.5 h-full bg-red-300/40 group-hover:bg-red-500/60 transition-colors" />
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap">
-                  <div className="font-semibold">{holiday.name}</div>
-                  <div className="text-gray-300 text-[10px]">{format(holidayDate, 'EEEE, MMM dd, yyyy')}</div>
+              {/* Triangle marker */}
+              <div className="relative">
+                <svg width="12" height="12" viewBox="0 0 12 12" className="drop-shadow-md">
+                  <polygon
+                    points="6,0 12,12 0,12"
+                    className="fill-red-500 group-hover:fill-red-600 transition-colors"
+                  />
+                </svg>
+
+                {/* Tooltip on hover */}
+                <div className="absolute top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                  <div className="bg-red-600 text-white text-xs px-3 py-2 rounded-lg shadow-xl">
+                    <div className="font-semibold">{holiday.name}</div>
+                    <div className="text-red-100 text-[10px] mt-0.5">{format(holidayDate, 'EEEE, MMM dd, yyyy')}</div>
+                  </div>
+                  {/* Arrow pointer */}
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-red-600 rotate-45"></div>
                 </div>
               </div>
             </div>
           );
         })}
 
-        {/* Milestone Vertical Lines - Behind everything */}
+        {/* Milestone Markers - Flag at top, higher z-index */}
         {milestones.map((milestone) => {
           const offset = differenceInDays(milestone.date, minDate);
           const position = (offset / totalDays) * 100;
 
           return (
             <div
-              key={`milestone-line-${milestone.id}`}
-              className="absolute top-0 bottom-0 z-0 group cursor-help"
-              style={{ left: `calc(16rem + ${position}% * (100% - 16rem) / 100)` }}
+              key={`milestone-${milestone.id}`}
+              className="absolute top-0 z-30 group cursor-help pointer-events-auto"
+              style={{ left: `calc(16rem + (100% - 16rem) * ${position / 100} - 8px)` }}
             >
-              <div className="w-0.5 h-full bg-green-400/40 group-hover:bg-green-600/60 transition-colors" />
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-xl whitespace-nowrap">
-                  <div className="font-semibold">{milestone.name}</div>
-                  <div className="text-gray-300 text-[10px]">{format(milestone.date, 'MMM dd, yyyy')}</div>
+              {/* Flag marker */}
+              <div className="relative">
+                <Flag className="w-4 h-4 text-purple-600 fill-purple-600 drop-shadow-md group-hover:text-purple-700 group-hover:fill-purple-700 transition-colors" />
+
+                {/* Tooltip on hover */}
+                <div className="absolute top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                  <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-lg shadow-xl">
+                    <div className="font-semibold">{milestone.name}</div>
+                    <div className="text-purple-100 text-[10px] mt-0.5">{format(milestone.date, 'MMM dd, yyyy')}</div>
+                  </div>
+                  {/* Arrow pointer */}
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-purple-600 rotate-45"></div>
                 </div>
               </div>
             </div>
@@ -673,35 +703,80 @@ export function ImprovedGanttChart({
               </div>
             </div>
 
-            {/* Collapsed Mini Reference Bar */}
+            {/* Collapsed View - Show ALL phases with full details */}
             {isCollapsed && (
-              <div className="flex items-center mb-2">
-                <div className="w-64 pl-8" />
-                <div className="flex-1 relative h-8">
-                  {/* Combined mini bar showing all phases */}
-                  {stream.phases.map((phase) => {
-                    const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
-                    const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
+              <div className="space-y-2">
+                {stream.phases.map((phase) => {
+                  const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
+                  const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
 
-                    return (
-                      <div
-                        key={phase.id}
-                        className={`absolute top-1 h-6 rounded ${stream.color} opacity-60 hover:opacity-90 cursor-pointer transition-opacity`}
-                        style={{
-                          left: `${startPercent}%`,
-                          width: `${widthPercent}%`,
-                        }}
-                        onClick={() => {
-                          toggleStream(stream.id); // Expand on click
-                          if (selectPhase) {
-                            selectPhase(phase.id);
-                          }
-                        }}
-                        title={`${phase.name} (${phase.workingDays}d)`}
-                      />
-                    );
-                  })}
-                </div>
+                  return (
+                    <div key={phase.id} className="flex items-center group/phase">
+                      <div className="w-64 pl-8 pr-4 flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm text-gray-700 truncate">{phase.name}</div>
+                          <div className="text-xs text-gray-500">{phase.workingDays}d • {phase.effort}md</div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPhaseForResources(phase);
+                          }}
+                          className="ml-2 opacity-0 group-hover/phase:opacity-100"
+                          aria-label="Allocate Resources"
+                        >
+                          <Users className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      <div className="flex-1 relative h-16">
+                        {/* Full insightful phase bar */}
+                        <div
+                          className={`absolute top-2 h-12 rounded-lg ${stream.color} hover:shadow-xl hover:brightness-110 transition-all cursor-pointer`}
+                          style={{
+                            left: `${startPercent}%`,
+                            width: `${widthPercent}%`,
+                          }}
+                          onClick={() => {
+                            if (onPhaseClick) {
+                              onPhaseClick(phase);
+                            } else if (selectPhase) {
+                              selectPhase(phase.id);
+                            }
+                          }}
+                        >
+                          {/* Phase Content */}
+                          <div className="p-2 h-full flex flex-col justify-between">
+                            {/* Dates */}
+                            <div className="flex justify-between text-[10px] text-white/80 font-medium gap-1">
+                              <span>
+                                {phase.startDate ? format(phase.startDate, 'MMM dd') : format(addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion), 'MMM dd')}
+                              </span>
+                              <span>
+                                {phase.endDate ? format(phase.endDate, 'MMM dd') : format(addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), selectedRegion), 'MMM dd')}
+                              </span>
+                            </div>
+
+                            {/* Duration */}
+                            <div className="text-center">
+                              <span className="text-xs font-bold text-white px-2 py-0.5 bg-black/20 rounded">
+                                {phase.workingDays}d
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Avatars */}
+                          {renderResourceAvatars(phase)}
+
+                          {/* Utilization */}
+                          {renderUtilizationBar(phase)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -711,50 +786,76 @@ export function ImprovedGanttChart({
                 const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
                 const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
                 const isDragging = draggedPhase === phase.id;
+                const isPhaseExpanded = expandedPhases.has(phase.id);
+
+                // Tasks are manually created by user (no auto-generation)
+                const phaseTasks = phase.tasks || [];
 
                 return (
-                  <div key={phase.id} className="flex items-center mb-2 group/phase">
-                    <div className="w-64 pl-8 pr-4 flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-gray-700 truncate">{phase.name}</div>
-                        <div className="text-xs text-gray-500">{phase.workingDays}d</div>
+                  <div key={phase.id}>
+                    {/* Phase Row */}
+                    <div className="flex items-center mb-2 group/phase">
+                      <div className="w-64 pl-8 pr-4 flex items-center justify-between">
+                        <div className="flex-1 min-w-0 flex items-center gap-2">
+                          {phaseTasks && phaseTasks.length > 0 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePhase(phase.id);
+                              }}
+                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              aria-label={isPhaseExpanded ? "Collapse tasks" : "Expand tasks"}
+                            >
+                              {isPhaseExpanded ? (
+                                <ChevronDown className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                            </button>
+                          )}
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-700 truncate">{phase.name}</div>
+                            <div className="text-xs text-gray-500">{phase.workingDays}d • {phase.effort}md</div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPhaseForResources(phase);
+                          }}
+                          className="ml-2 opacity-0 group-hover/phase:opacity-100"
+                          aria-label="Allocate Resources"
+                        >
+                          <Users className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedPhaseForResources(phase);
-                        }}
-                        className="ml-2 opacity-0 group-hover/phase:opacity-100"
-                        aria-label="Manage Resources"
-                      >
-                        <Users className="w-4 h-4" />
-                      </Button>
-                    </div>
 
                     <div className="flex-1 relative h-16">
                       {/* Phase Bar */}
                       <div
                         className={`
-                          absolute top-2 h-12 rounded-lg transition-all duration-150 cursor-pointer
+                          absolute top-2 h-12 rounded-lg transition-all duration-150
                           ${isDragging
                             ? 'opacity-70 shadow-2xl scale-105 cursor-grabbing ring-4 ring-blue-300'
-                            : `${stream.color} hover:shadow-xl cursor-grab hover:scale-102 hover:brightness-110`
+                            : `${stream.color} hover:shadow-xl hover:brightness-110`
                           }
                         `}
                         style={{
                           left: `${startPercent}%`,
                           width: `${widthPercent}%`,
                         }}
-                        onClick={() => {
-                          if (onPhaseClick) {
-                            onPhaseClick(phase);
-                          } else if (selectPhase) {
-                            selectPhase(phase.id);
+                        onClick={(e) => {
+                          // Only trigger if not dragging (click vs drag detection)
+                          if (!isDragging) {
+                            if (onPhaseClick) {
+                              onPhaseClick(phase);
+                            } else if (selectPhase) {
+                              selectPhase(phase.id);
+                            }
                           }
                         }}
-                        onMouseDown={(e) => handleMouseDown(e, phase.id, 'move')}
                       >
                         {/* Resize Handles */}
                         <div
@@ -876,6 +977,36 @@ export function ImprovedGanttChart({
                         {renderUtilizationBar(phase)}
                       </div>
                     </div>
+                    </div>
+
+                    {/* Tasks - Shown when phase is expanded */}
+                    {isPhaseExpanded && phaseTasks && phaseTasks.length > 0 && (
+                      <div className="ml-12 mt-1 mb-3 space-y-1">
+                        {phaseTasks.map((task, idx) => (
+                          <div key={task.id} className="flex items-center text-xs group/task">
+                            <div className="w-52 pr-4 text-gray-600">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-400">└</span>
+                                <span className="truncate">{task.name}</span>
+                              </div>
+                              <div className="text-[10px] text-gray-400 ml-4">
+                                {task.workingDays}d • {task.effort}md • {task.defaultRole}
+                              </div>
+                            </div>
+                            <div className="flex-1 relative h-8">
+                              <div
+                                className={`absolute top-1 h-6 rounded ${stream.color} opacity-30 hover:opacity-50 transition-opacity`}
+                                style={{
+                                  left: `${startPercent + (widthPercent * (idx / phaseTasks.length))}%`,
+                                  width: `${widthPercent * (1 / phaseTasks.length)}%`,
+                                }}
+                                title={`${task.name} - ${task.defaultRole}`}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -887,12 +1018,14 @@ export function ImprovedGanttChart({
       {/* Legend */}
       <div className="mt-8 flex items-center gap-6 text-xs border-t border-gray-200 pt-4">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-red-300/40 rounded"></div>
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <polygon points="6,0 12,12 0,12" className="fill-red-500" />
+          </svg>
           <span className="text-gray-600">Public Holidays ({visibleHolidays.length})</span>
         </div>
         {milestones.length > 0 && (
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-400/40 rounded"></div>
+            <Flag className="w-3 h-3 text-purple-600 fill-purple-600" />
             <span className="text-gray-600">Milestones ({milestones.length})</span>
           </div>
         )}

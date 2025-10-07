@@ -8,7 +8,7 @@ export default function GanttChart() {
   const { phases = [], selectedPhaseId, selectPhase } = useTimelineStore();
 
   // Safety check for phases
-  const safePhases = Array.isArray(phases) ? phases : [];
+  const safePhases = useMemo(() => (Array.isArray(phases) ? phases : []), [phases]);
 
   // Helper: Render resource avatars
   const renderResourceAvatars = (phase: Phase) => {

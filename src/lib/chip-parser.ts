@@ -536,22 +536,27 @@ function createChip(
   const sanitizedValue =
     typeof parsed.value === "string" ? sanitizeChipValue(parsed.value, kind) : parsed.value;
 
+  // Convert kind to type (uppercase) for Chip interface
+  const chipType = kind.toUpperCase() as any;
+
   return {
     id: generateId(),
-    kind,
-    raw: rawTrim,
-    parsed: { ...parsed, value: sanitizedValue },
+    type: chipType,
+    value: sanitizedValue,
+    confidence: calculateConfidence(kind, parsed, rawTrim),
     source: (location as any) || "paste",
-    evidence: {
+    validated: false,
+    metadata: {
       snippet: safeSnippet(context, match.index ?? 0, raw.length),
       context: context.slice(0, 300),
-      confidence: calculateConfidence(kind, parsed, rawTrim),
-    },
-    meta:
-      kind === "integration" && /peppol/i.test(rawTrim)
-        ? { notes: ['Peppol can be "compliance" or "integration" depending on context.'] }
+      unit: parsed.unit,
+      evidence: {
+        snippet: safeSnippet(context, match.index ?? 0, raw.length),
+      },
+      note: kind === "integration" && /peppol/i.test(rawTrim)
+        ? 'Peppol can be "compliance" or "integration" depending on context.'
         : undefined,
-    validated: false,
+    },
   } as any;
 }
 
@@ -569,8 +574,8 @@ function parseValue(kind: ChipKind, raw: string, match: RegExpMatchArray): Parse
     }
 
     case "employees": {
-      const token =
-        (match[1] ?? raw).match(/\d{1,3}(?:[.,]\d{3})+|\d+(?:\.\d+)?\s*[kK]?|\d+/)?.[0] ?? "";
+      // Try to extract from capture group first, then from raw
+      const token = match[1] || raw.match(/\d{1,3}(?:[.,]\d{3})+|\d+(?:\.\d+)?\s*[kK]?|\d+/)?.[0] || "";
       return { value: toNumberWithFlexibleMultiplier(token), unit: "employees" };
     }
 

@@ -15,94 +15,94 @@ export const CHIP_DEFAULTS: Record<ChipType, {
   note: string;
   unit?: string;
 }> = {
-  country: {
+  COUNTRY: {
     value: "Malaysia",
     confidence: 0.3,
     note: "Default assumption - verify actual country",
   },
-  legal_entities: {
+  LEGAL_ENTITIES: {
     value: "1",
     confidence: 0.4,
     note: "Assumed single entity - common for SMEs",
   },
-  locations: {
+  LOCATIONS: {
     value: "1",
     confidence: 0.4,
     note: "Assumed single location - verify if multi-site",
   },
-  users: {
+  USERS: {
     value: "50",
     confidence: 0.3,
     note: "Conservative estimate - typical small deployment",
   },
-  data_volume: {
+  DATA_VOLUME: {
     value: "10000",
     confidence: 0.3,
     note: "Estimated low volume - verify actual data size",
     unit: "transactions/month",
   },
-  industry: {
+  INDUSTRY: {
     value: "Manufacturing",
     confidence: 0.3,
     note: "Default industry - update based on client sector",
   },
-  modules: {
+  MODULES: {
     value: "Finance",
     confidence: 0.4,
     note: "Core module assumption - add others as needed",
   },
-  currencies: {
+  CURRENCIES: {
     value: "MYR",
     confidence: 0.4,
     note: "Default to MYR - update for multi-currency needs",
   },
-  languages: {
+  LANGUAGES: {
     value: "EN",
     confidence: 0.5,
     note: "English default - add local languages if required",
   },
-  business_units: {
+  BUSINESS_UNITS: {
     value: "1",
     confidence: 0.4,
     note: "Single business unit assumption",
   },
-  legacy_systems: {
+  LEGACY_SYSTEMS: {
     value: "0",
     confidence: 0.3,
     note: "Assumed greenfield - update if replacing systems",
   },
-  employees: {
+  EMPLOYEES: {
     value: "100",
     confidence: 0.3,
     note: "Small organization estimate",
   },
-  revenue: {
+  REVENUE: {
     value: "10000000",
     confidence: 0.2,
     note: "Revenue estimate - update with actual figures",
     unit: "MYR/year",
   },
-  timeline: {
+  TIMELINE: {
     value: "6 months",
     confidence: 0.3,
     note: "Standard timeline assumption",
   },
-  integration: {
+  INTEGRATION: {
     value: "None",
     confidence: 0.5,
     note: "No integrations assumed initially",
   },
-  compliance: {
+  COMPLIANCE: {
     value: "Standard",
     confidence: 0.4,
     note: "Basic compliance requirements",
   },
-  banking: {
+  BANKING: {
     value: "Manual",
     confidence: 0.4,
     note: "Manual banking assumed - upgrade if needed",
   },
-  existing_system: {
+  EXISTING_SYSTEM: {
     value: "None",
     confidence: 0.4,
     note: "Greenfield assumption",
@@ -118,34 +118,34 @@ export const CHIP_VALIDATION: Record<ChipType, {
   validator?: (value: string) => boolean;
   errorMessage: string;
 }> = {
-  country: {
+  COUNTRY: {
     options: ["Malaysia", "Singapore", "Vietnam", "Thailand", "Indonesia", "Philippines"],
     errorMessage: "Please select a valid country",
   },
-  legal_entities: {
+  LEGAL_ENTITIES: {
     pattern: /^\d+$/,
     min: 1,
     max: 1000,
     errorMessage: "Must be a number between 1-1000",
   },
-  locations: {
+  LOCATIONS: {
     pattern: /^\d+$/,
     min: 1,
     max: 1000,
     errorMessage: "Must be a number between 1-1000",
   },
-  users: {
+  USERS: {
     pattern: /^\d+$/,
     min: 1,
     max: 100000,
     errorMessage: "Must be a number between 1-100,000",
   },
-  data_volume: {
+  DATA_VOLUME: {
     pattern: /^\d+$/,
     min: 1,
     errorMessage: "Must be a positive number",
   },
-  industry: {
+  INDUSTRY: {
     options: [
       "Manufacturing",
       "Retail",
@@ -159,56 +159,56 @@ export const CHIP_VALIDATION: Record<ChipType, {
     ],
     errorMessage: "Please select a valid industry",
   },
-  modules: {
+  MODULES: {
     options: ["Finance", "HR", "Supply Chain", "Manufacturing", "Sales", "CRM"],
     errorMessage: "Please select valid modules",
   },
-  currencies: {
+  CURRENCIES: {
     options: ["MYR", "SGD", "USD", "EUR", "GBP", "VND", "THB"],
     errorMessage: "Please select a valid currency",
   },
-  languages: {
+  LANGUAGES: {
     options: ["EN", "MS", "ZH", "TA", "VI", "TH", "ID"],
     errorMessage: "Please select valid languages",
   },
-  business_units: {
+  BUSINESS_UNITS: {
     pattern: /^\d+$/,
     min: 1,
     max: 100,
     errorMessage: "Must be a number between 1-100",
   },
-  legacy_systems: {
+  LEGACY_SYSTEMS: {
     pattern: /^\d+$/,
     min: 0,
     max: 50,
     errorMessage: "Must be a number between 0-50",
   },
-  employees: {
+  EMPLOYEES: {
     pattern: /^\d+$/,
     min: 1,
     max: 1000000,
     errorMessage: "Must be a number between 1-1,000,000",
   },
-  revenue: {
+  REVENUE: {
     pattern: /^\d+$/,
     min: 0,
     errorMessage: "Must be a positive number",
   },
-  timeline: {
+  TIMELINE: {
     pattern: /^\d+\s*(months?|weeks?|days?)/i,
     errorMessage: "Format: '6 months' or '12 weeks'",
   },
-  integration: {
+  INTEGRATION: {
     errorMessage: "Describe integration requirements",
   },
-  compliance: {
+  COMPLIANCE: {
     errorMessage: "Describe compliance requirements",
   },
-  banking: {
+  BANKING: {
     options: ["Manual", "Host-to-Host", "API", "SWIFT"],
     errorMessage: "Please select a banking integration type",
   },
-  existing_system: {
+  EXISTING_SYSTEM: {
     errorMessage: "Describe existing system (or 'None')",
   },
 };

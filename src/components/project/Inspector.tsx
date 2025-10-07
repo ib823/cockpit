@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useProjectStore } from "@/stores/project-store";
-import { useTimelineStore, useTotalEffort } from "@/stores/timeline-store";
+import { useTimelineStore } from "@/stores/timeline-store";
 
 export function Inspector() {
   const mode = useProjectStore((state) => state.mode);
@@ -15,7 +15,7 @@ export function Inspector() {
   const [resourceName, setResourceName] = useState("");
   const [resourceRole, setResourceRole] = useState("");
 
-  const totalEffort = useTotalEffort();
+  const totalEffort = phases.reduce((sum, p) => sum + (p.effort || 0), 0);
   const totalDuration = phases.reduce((sum, p) => sum + (p.workingDays || 0), 0);
 
   const handleAddResource = () => {

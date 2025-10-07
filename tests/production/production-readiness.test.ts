@@ -44,6 +44,9 @@ describe("Production Readiness - MUST DO Tests", () => {
     });
 
     it("handles corrupted localStorage gracefully", () => {
+      // Reset store state first
+      useTimelineStore.getState().reset();
+
       // Simulate corrupted JSON
       localStorage.setItem("timeline-store", "{invalid json}");
 
@@ -124,13 +127,13 @@ describe("Production Readiness - MUST DO Tests", () => {
     it("sanitizes XSS attempts in chip values", () => {
       const maliciousChips: Chip[] = [
         {
-          type: "country",
+          type: "COUNTRY",
           value: '<script>alert("xss")</script>',
           confidence: 0.9,
           source: "test",
         },
         {
-          type: "modules",
+          type: "MODULES",
           value: "Finance<img src=x onerror=alert(1)>",
           confidence: 0.9,
           source: "test",
@@ -149,7 +152,7 @@ describe("Production Readiness - MUST DO Tests", () => {
 
     it("handles extremely large input strings gracefully", () => {
       const hugeChips: Chip[] = [
-        { type: "modules", value: "A".repeat(100000), confidence: 0.9, source: "test" }, // 100KB
+        { type: "MODULES", value: "A".repeat(100000), confidence: 0.9, source: "test" }, // 100KB
       ];
 
       // Should not crash or hang
@@ -161,15 +164,15 @@ describe("Production Readiness - MUST DO Tests", () => {
 
     it("handles negative and extreme numeric values", () => {
       const extremeChips: Chip[] = [
-        { type: "employees", value: -999999999, confidence: 0.9, source: "test" },
-        { type: "employees", value: Number.MAX_SAFE_INTEGER, confidence: 0.9, source: "test" },
-        { type: "employees", value: NaN, confidence: 0.9, source: "test" },
-        { type: "employees", value: Infinity, confidence: 0.9, source: "test" },
+        { type: "EMPLOYEES", value: -999999999, confidence: 0.9, source: "test" },
+        { type: "EMPLOYEES", value: Number.MAX_SAFE_INTEGER, confidence: 0.9, source: "test" },
+        { type: "EMPLOYEES", value: NaN, confidence: 0.9, source: "test" },
+        { type: "EMPLOYEES", value: Infinity, confidence: 0.9, source: "test" },
       ];
 
       extremeChips.forEach((chip) => {
         const result = convertPresalesToTimeline(
-          [{ type: "modules", value: "Finance", confidence: 0.9, source: "test" }, chip],
+          [{ type: "MODULES", value: "Finance", confidence: 0.9, source: "test" }, chip],
           {}
         );
 
@@ -182,8 +185,8 @@ describe("Production Readiness - MUST DO Tests", () => {
 
     it("handles special characters and Unicode correctly", () => {
       const specialChips: Chip[] = [
-        { type: "country", value: "马来西亚 (Malaysia) 🇲🇾", confidence: 0.9, source: "test" },
-        { type: "modules", value: "Finance™ & HR®", confidence: 0.9, source: "test" },
+        { type: "COUNTRY", value: "马来西亚 (Malaysia) 🇲🇾", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "Finance™ & HR®", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(specialChips, {});
@@ -194,8 +197,8 @@ describe("Production Readiness - MUST DO Tests", () => {
 
     it("prevents prototype pollution attacks", () => {
       const pollutionChips: Chip[] = [
-        { type: "modules", value: "__proto__", confidence: 0.9, source: "test" },
-        { type: "modules", value: "constructor", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "__proto__", confidence: 0.9, source: "test" },
+        { type: "MODULES", value: "constructor", confidence: 0.9, source: "test" },
       ];
 
       const result = convertPresalesToTimeline(pollutionChips, {});
@@ -215,7 +218,7 @@ describe("Production Readiness - MUST DO Tests", () => {
         selectedPackages: [],
         phaseColors: {},
         holidays: [],
-        zoomLevel: "daily",
+        zoomLevel: "week",
         selectedPhaseId: null,
         clientPresentationMode: false,
       });
@@ -247,11 +250,9 @@ describe("Production Readiness - MUST DO Tests", () => {
     });
 
     it("handles 100 resources across phases efficiently", () => {
-      const store = useTimelineStore.getState();
-
       // Create 10 phases with 10 resources each
       for (let phaseIdx = 0; phaseIdx < 10; phaseIdx++) {
-        store.addPhase({
+        useTimelineStore.getState().addPhase({
           name: `Phase ${phaseIdx}`,
           workingDays: 20,
           effort: 40,
@@ -276,7 +277,7 @@ describe("Production Readiness - MUST DO Tests", () => {
             hourlyRate: 150,
           }));
 
-        store.updatePhaseResources(phase.id, resources);
+        useTimelineStore.getState().updatePhaseResources(phase.id, resources);
       });
 
       const endTime = performance.now();
@@ -342,7 +343,7 @@ describe("Production Readiness - MUST DO Tests", () => {
 
       // Simulate rapid user interactions
       for (let i = 0; i < 100; i++) {
-        store.setZoomLevel(i % 2 === 0 ? "daily" : "weekly");
+        store.setZoomLevel(i % 2 === 0 ? "week" : "month");
         store.togglePresentationMode();
       }
 
@@ -384,7 +385,7 @@ describe("Production Readiness - MUST DO Tests", () => {
       const sensitiveContext = {
         userId: "user-123",
         apiKey: "secret-key-abc",
-        password: "hunter2",
+        password: process.env.TEST_DUMMY_PASSWORD || "dummy-test-password",
         action: "saveTimeline",
       };
 
@@ -432,7 +433,7 @@ describe("Production Readiness - MUST DO Tests", () => {
         selectedPackages: [],
         phaseColors: {},
         holidays: [],
-        zoomLevel: "daily",
+        zoomLevel: "week",
         selectedPhaseId: null,
         clientPresentationMode: false,
       });

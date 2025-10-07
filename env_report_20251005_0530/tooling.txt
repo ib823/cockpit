@@ -1,0 +1,23 @@
+/home/codespace/nvm/current/bin/node
+v22.17.0
+/home/codespace/nvm/current/bin/npm
+9.8.1
+/home/codespace/nvm/current/bin/pnpm
+10.13.1
+Next.js v15.5.3
+Version 5.9.2
+vitest/3.2.4 linux-x64 node-v22.17.0
+30.1.3
+Prisma schema loaded from prisma/schema.prisma
+prisma                  : 6.16.2
+@prisma/client          : 6.16.2
+Computed binaryTarget   : debian-openssl-1.1.x
+Operating System        : linux
+Architecture            : x64
+Node.js                 : v22.17.0
+TypeScript              : 5.9.2
+Query Engine (Node-API) : libquery-engine 1c57fdcd7e44b29b9313256c76699e91c3ac3c43 (at node_modules/@prisma/engines/libquery_engine-debian-openssl-1.1.x.so.node)
+PSL                     : @prisma/prisma-schema-wasm 6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43
+Schema Engine           : schema-engine-cli 1c57fdcd7e44b29b9313256c76699e91c3ac3c43 (at node_modules/@prisma/engines/schema-engine-debian-openssl-1.1.x)
+Default Engines Hash    : 1c57fdcd7e44b29b9313256c76699e91c3ac3c43
+Studio                  : 0.511.0
