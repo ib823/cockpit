@@ -16,7 +16,6 @@ describe('Slide Generator', () => {
       value: 'Malaysia',
       confidence: 0.9,
       source: 'manual',
-      extractedAt: new Date(),
     },
     {
       id: '2',
@@ -24,7 +23,6 @@ describe('Slide Generator', () => {
       value: 'Manufacturing',
       confidence: 0.8,
       source: 'manual',
-      extractedAt: new Date(),
     },
   ];
 
@@ -32,38 +30,57 @@ describe('Slide Generator', () => {
     {
       id: 'phase-1',
       name: 'Discovery',
+      category: 'Prepare',
       startBusinessDay: 0,
       workingDays: 20,
       effort: 100,
       color: '#3b82f6',
-      resources: ['PM', 'BA'],
+      resources: [
+        { id: 'r1', role: 'PM', allocation: 1, region: 'ABMY', hourlyRate: 150 },
+        { id: 'r2', role: 'BA', allocation: 1, region: 'ABMY', hourlyRate: 120 },
+      ],
     },
     {
       id: 'phase-2',
       name: 'Design',
+      category: 'Explore',
       startBusinessDay: 20,
       workingDays: 30,
       effort: 150,
       color: '#8b5cf6',
-      resources: ['PM', 'BA', 'Architect'],
+      resources: [
+        { id: 'r1', role: 'PM', allocation: 1, region: 'ABMY', hourlyRate: 150 },
+        { id: 'r2', role: 'BA', allocation: 1, region: 'ABMY', hourlyRate: 120 },
+        { id: 'r3', role: 'Architect', allocation: 1, region: 'ABMY', hourlyRate: 180 },
+      ],
     },
     {
       id: 'phase-3',
       name: 'Build',
+      category: 'Realize',
       startBusinessDay: 50,
       workingDays: 60,
       effort: 300,
       color: '#10b981',
-      resources: ['PM', 'Developer', 'Developer', 'QA'],
+      resources: [
+        { id: 'r1', role: 'PM', allocation: 1, region: 'ABMY', hourlyRate: 150 },
+        { id: 'r4', role: 'Developer', allocation: 1, region: 'ABMY', hourlyRate: 100 },
+        { id: 'r5', role: 'Developer', allocation: 1, region: 'ABMY', hourlyRate: 100 },
+        { id: 'r6', role: 'QA', allocation: 1, region: 'ABMY', hourlyRate: 90 },
+      ],
     },
     {
       id: 'phase-4',
       name: 'Deploy',
+      category: 'Deploy',
       startBusinessDay: 110,
       workingDays: 20,
       effort: 80,
       color: '#f59e0b',
-      resources: ['PM', 'DevOps'],
+      resources: [
+        { id: 'r1', role: 'PM', allocation: 1, region: 'ABMY', hourlyRate: 150 },
+        { id: 'r7', role: 'DevOps', allocation: 1, region: 'ABMY', hourlyRate: 110 },
+      ],
     },
   ];
 
