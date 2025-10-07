@@ -23,8 +23,10 @@ import { LogoutButton } from "@/components/common/LogoutButton";
 import { Heading1, BodyMD } from "@/components/common/Typography";
 import { Logo } from "@/components/common/Logo";
 import { animation } from "@/lib/design-system";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, HelpCircle } from "lucide-react";
 import { ThemeToggleCompact } from "@/components/theme/ThemeToggle";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 // Lazy load heavy components for better performance
 const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
@@ -34,7 +36,7 @@ const PresentMode = lazy(() => import("./modes/PresentMode").then(m => ({ defaul
 /**
  * Mode Indicator - Hero banner for each mode
  */
-function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) {
+function ModeIndicator({ mode, progress, onHelpClick }: { mode: string; progress?: number; onHelpClick?: () => void }) {
   const config: Record<string, { title: string; subtitle: string; gradient: string; color: string }> = {
     capture: {
       title: "Capture Requirements",
@@ -111,6 +113,16 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
               {progress}%
             </motion.div>
           )}
+          {onHelpClick && (
+            <button
+              onClick={onHelpClick}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors group"
+              aria-label="Start tour"
+              title="Start interactive tour"
+            >
+              <HelpCircle className="w-5 h-5 text-white/80 group-hover:text-white transition-colors" />
+            </button>
+          )}
           <ThemeToggleCompact />
           <LogoutButton theme="dark" />
           <ResetButton />
@@ -161,6 +173,7 @@ export function ProjectShell() {
   const setMode = useProjectStore((state) => state.setMode);
   const { completeness } = usePresalesStore();
   const searchParams = useSearchParams();
+  const { startOnboarding } = useOnboarding();
 
   // Check if coming from estimator
   const [showEstimatorBanner, setShowEstimatorBanner] = useState(false);
@@ -188,7 +201,7 @@ export function ProjectShell() {
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
       {/* Mode indicator (contextual hero banner) */}
-      <ModeIndicator mode={mode} progress={captureProgress} />
+      <ModeIndicator mode={mode} progress={captureProgress} onHelpClick={startOnboarding} />
 
       {/* Estimator Banner (shows when source=estimator) */}
       <AnimatePresence>
@@ -302,6 +315,9 @@ export function ProjectShell() {
           </button>
         </div>
       </div>
+
+      {/* Onboarding Tour */}
+      <OnboardingTour />
     </div>
   );
 }
