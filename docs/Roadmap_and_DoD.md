@@ -114,31 +114,34 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 
 ---
 
-### P1-2: PDF Export in PresentMode (2 days)
+### P1-2: PDF Export in PresentMode (2 days) ✅ COMPLETED
 
 **Why:** **Critical** - 60% of sessions need export to complete workflow.
 
 **Tasks:**
-1. Install `jspdf` and `html2canvas`
-2. Create `src/lib/presentation/pdf-exporter.ts`
-3. Add "Export PDF" button to PresentMode
-4. Render each slide to canvas → PDF
-5. Add loading state during export
-6. Track export completion analytics
+1. ✅ Install `jspdf` and `html2canvas`
+2. ✅ Create `src/lib/presentation/pdf-exporter.ts`
+3. ✅ Add "Export PDF" button to PresentMode
+4. ✅ Render each slide to canvas → PDF
+5. ✅ Add loading state during export
+6. ✅ Track export completion analytics
 
 **Definition of Done:**
-- [ ] "Export PDF" button visible in PresentMode
-- [ ] Clicking shows loading state
-- [ ] PDF downloads with all slides
-- [ ] PDF quality readable (high res)
-- [ ] File name = project name + date
-- [ ] Export tracked: track('export_complete', {format: 'pdf'})
-- [ ] Error handling (shows toast on failure)
-- [ ] Works on mobile (downloads correctly)
+- [x] "Export PDF" button visible in PresentMode
+- [x] Clicking shows loading state
+- [x] PDF downloads with all slides
+- [x] PDF quality readable (high res)
+- [x] File name = project name + date
+- [x] Export tracked: track('export_complete', {format: 'pdf'})
+- [x] Error handling (shows toast on failure)
+- [x] Works on mobile (downloads correctly)
 
 **Risk:** Medium - Canvas rendering may fail on some browsers
 
 **Mitigation:** Add fallback: "Download HTML" if PDF fails
+
+**Completion Date:** 2025-10-07 (from earlier commit)
+**Implementation:** Integrated with P2-2 dynamic slides - exports visible slides only
 
 ---
 
