@@ -246,6 +246,92 @@ export function JobsGanttChart({
         </div>
       </div>
 
+      {/* Timeline Ruler - Date scale */}
+      <div className="px-6 pt-4 pb-2">
+        <div className="relative h-16 border-b border-gray-200">
+          {/* Generate month markers */}
+          {(() => {
+            const markers = [];
+            const totalDays = differenceInDays(maxDate, minDate);
+            const monthCount = Math.ceil(totalDays / 30);
+
+            for (let i = 0; i <= monthCount; i++) {
+              const markerDate = new Date(minDate);
+              markerDate.setDate(markerDate.getDate() + (i * 30));
+
+              if (markerDate <= maxDate) {
+                const position = ((differenceInDays(markerDate, minDate) / totalDays) * 100);
+                markers.push(
+                  <div key={i} className="absolute top-0 bottom-0 flex flex-col items-center" style={{ left: `${position}%` }}>
+                    <div className="w-px h-full bg-gray-200" />
+                    <div className="absolute top-0 text-[10px] font-medium text-gray-500 -translate-x-1/2 bg-white px-2">
+                      {format(markerDate, 'MMM yyyy')}
+                    </div>
+                    <div className="absolute bottom-0 text-[9px] text-gray-400 -translate-x-1/2 bg-white px-1">
+                      {format(markerDate, 'd')}
+                    </div>
+                  </div>
+                );
+              }
+            }
+            return markers;
+          })()}
+
+          {/* Holiday markers - red vertical lines */}
+          {holidays.map((holiday, idx) => {
+            const holidayDate = new Date(holiday.date);
+            const totalDays = differenceInDays(maxDate, minDate);
+            const position = ((differenceInDays(holidayDate, minDate) / totalDays) * 100);
+
+            if (position >= 0 && position <= 100) {
+              return (
+                <div
+                  key={`holiday-${idx}`}
+                  className="absolute top-0 bottom-0 flex flex-col items-center group/marker z-10"
+                  style={{ left: `${position}%` }}
+                >
+                  <div className="w-0.5 h-full bg-red-400/60" />
+                  <div className="absolute -top-1 w-2 h-2 rounded-full bg-red-500" />
+                  <div className="absolute -bottom-8 opacity-0 group-hover/marker:opacity-100 transition-opacity pointer-events-none">
+                    <div className="bg-red-500 text-white text-[9px] px-2 py-1 rounded shadow-lg whitespace-nowrap -translate-x-1/2">
+                      {holiday.name}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })}
+
+          {/* Milestone markers - flag icons */}
+          {milestones.map((milestone, idx) => {
+            const totalDays = differenceInDays(maxDate, minDate);
+            const position = ((differenceInDays(milestone.date, minDate) / totalDays) * 100);
+
+            if (position >= 0 && position <= 100) {
+              return (
+                <div
+                  key={milestone.id}
+                  className="absolute top-0 bottom-0 flex flex-col items-center group/marker z-10"
+                  style={{ left: `${position}%` }}
+                >
+                  <div className="w-0.5 h-full bg-purple-400/60" />
+                  <div className="absolute -top-2">
+                    <Flag className="w-3 h-3 text-purple-600" />
+                  </div>
+                  <div className="absolute -bottom-8 opacity-0 group-hover/marker:opacity-100 transition-opacity pointer-events-none">
+                    <div className="bg-purple-600 text-white text-[9px] px-2 py-1 rounded shadow-lg whitespace-nowrap -translate-x-1/2">
+                      {milestone.name}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      </div>
+
       {/* Timeline - Pure, clean, focused */}
       <div className="px-6 py-4">
         <div className="space-y-4">
@@ -368,9 +454,6 @@ export function JobsGanttChart({
                                       <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${activatePhase.color}`} />
                                       <span className="text-sm text-gray-700">{task.name}</span>
                                       <span className="text-xs text-gray-400">{task.workingDays}d</span>
-                                      {task.effort && (
-                                        <span className="text-xs text-gray-500">{task.effort} PD</span>
-                                      )}
                                     </div>
 
                                     {/* Subtle task bar */}
@@ -399,58 +482,6 @@ export function JobsGanttChart({
             );
           })}
         </div>
-
-        {/* Milestones & Holidays Section */}
-        {(milestones.length > 0 || holidays.length > 0) && (
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              <Flag className="w-4 h-4" />
-              Milestones & Holidays
-            </h3>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Milestones */}
-              {milestones.length > 0 && (
-                <div className="bg-white rounded-xl border border-gray-200 p-4">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                    Key Milestones ({milestones.length})
-                  </div>
-                  <div className="space-y-2">
-                    {milestones.map((milestone) => (
-                      <div key={milestone.id} className="flex items-center gap-3 text-sm">
-                        <Flag className="w-4 h-4 text-purple-600" style={{ color: milestone.color }} />
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900">{milestone.name}</div>
-                          <div className="text-xs text-gray-500">{format(milestone.date, 'MMM dd, yyyy')}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Holidays */}
-              {holidays.length > 0 && (
-                <div className="bg-white rounded-xl border border-gray-200 p-4">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                    Holidays ({holidays.length})
-                  </div>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {holidays.map((holiday, idx) => (
-                      <div key={idx} className="flex items-center gap-3 text-sm">
-                        <CalendarIcon className="w-4 h-4 text-red-500" />
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900">{holiday.name}</div>
-                          <div className="text-xs text-gray-500">{format(new Date(holiday.date), 'MMM dd, yyyy')}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Minimal footer - context when needed */}

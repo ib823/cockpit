@@ -127,7 +127,7 @@ export default function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-gray-900">
-              We know what you're going through
+              We know what you&apos;re going through
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Every SAP presales consultant faces the same challenges.
@@ -204,7 +204,7 @@ export default function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-gray-900">
-              Join 500+ consultants who've
+              Join 500+ consultants who&apos;ve
               <br />
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 reclaimed their weekends
@@ -254,7 +254,7 @@ export default function LandingPage() {
                     <div className="text-sm text-gray-600">{testimonial.role}</div>
                   </div>
                 </div>
-                <p className="text-gray-700 leading-relaxed mb-4">"{testimonial.quote}"</p>
+                <p className="text-gray-700 leading-relaxed mb-4">&quot;{testimonial.quote}&quot;</p>
                 <div className="text-sm text-gray-500">{testimonial.company}</div>
               </motion.div>
             ))}
@@ -292,7 +292,7 @@ export default function LandingPage() {
             Ready to reclaim your weekends?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Join 500+ consultants who've eliminated the Friday RFP nightmare
+            Join 500+ consultants who&apos;ve eliminated the Friday RFP nightmare
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
