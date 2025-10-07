@@ -181,8 +181,8 @@ export function getTaskTemplatesForPhase(phaseName: string, phaseCategory?: stri
 export function calculateTaskMetrics(tasks: Task[], phaseEffort: number, phaseWorkingDays: number): Task[] {
   return tasks.map(task => ({
     ...task,
-    effort: Math.round((task.effortPercent / 100) * phaseEffort * 10) / 10,
-    workingDays: Math.round((task.daysPercent / 100) * phaseWorkingDays)
+    effort: Math.round(((task.effortPercent || 0) / 100) * phaseEffort * 10) / 10,
+    workingDays: Math.round(((task.daysPercent || 0) / 100) * phaseWorkingDays)
   }));
 }
 

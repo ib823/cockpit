@@ -997,8 +997,8 @@ export function ImprovedGanttChart({
                               <div
                                 className={`absolute top-1 h-6 rounded ${stream.color} opacity-30 hover:opacity-50 transition-opacity`}
                                 style={{
-                                  left: `${startPercent + (widthPercent * (phaseTasks.slice(0, idx).reduce((sum, t) => sum + t.daysPercent, 0) / 100))}%`,
-                                  width: `${widthPercent * (task.daysPercent / 100)}%`,
+                                  left: `${startPercent + (widthPercent * (idx / phaseTasks.length))}%`,
+                                  width: `${widthPercent * (1 / phaseTasks.length)}%`,
                                 }}
                                 title={`${task.name} - ${task.defaultRole}`}
                               />

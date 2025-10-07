@@ -57,6 +57,21 @@ export type AnalyticsEvent =
     }
   // Project events
   | {
+      name: 'mode_transition';
+      props: {
+        from: 'capture' | 'decide' | 'plan' | 'present';
+        to: 'capture' | 'decide' | 'plan' | 'present';
+      };
+    }
+  | {
+      name: 'timeline_generated';
+      props: {
+        phaseCount: number;
+        chipCount: number;
+        totalEffort: number;
+      };
+    }
+  | {
       name: 'plan_entered';
       props: {
         completeness: number;
@@ -77,6 +92,24 @@ export type AnalyticsEvent =
       };
     }
   // Presentation events
+  | {
+      name: 'presentation_export_started';
+      props: {
+        slideCount: number;
+      };
+    }
+  | {
+      name: 'presentation_export_complete';
+      props: {
+        slideCount: number;
+      };
+    }
+  | {
+      name: 'presentation_export_failed';
+      props: {
+        error: string;
+      };
+    }
   | {
       name: 'export_complete';
       props: {

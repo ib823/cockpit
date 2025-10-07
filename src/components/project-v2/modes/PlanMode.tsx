@@ -818,7 +818,7 @@ function AddResourceModal({
                 <select
                   value={newResource.region}
                   onChange={(e) => {
-                    const region = e.target.value as any;
+                    const region = e.target.value as "ABMY" | "ABSG" | "ABVN";
                     setNewResource({
                       ...newResource,
                       region,
@@ -1168,11 +1168,11 @@ function TaskRow({
 
   // Calculate task position within phase (for visual bar)
   const taskStart = task.startDate || phaseStartDate;
-  const taskEnd = task.endDate || addWorkingDays(taskStart, task.workingDays, 'ABMY');
+  const taskEnd = task.endDate || addWorkingDays(taskStart, task.workingDays || 1, 'ABMY');
   const phaseDuration = calculateWorkingDays(phaseStartDate, phaseEndDate, 'ABMY');
   const taskOffsetDays = calculateWorkingDays(phaseStartDate, taskStart, 'ABMY');
   const taskPositionPercent = (taskOffsetDays / phaseDuration) * 100;
-  const taskWidthPercent = (task.workingDays / phaseDuration) * 100;
+  const taskWidthPercent = ((task.workingDays || 1) / phaseDuration) * 100;
 
   return (
     <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
@@ -1236,7 +1236,7 @@ function TaskRow({
                 onChange={(e) => {
                   const date = parse(e.target.value, 'yyyy-MM-dd', new Date());
                   if (isValid(date)) {
-                    const newEndDate = addWorkingDays(date, task.workingDays, 'ABMY');
+                    const newEndDate = addWorkingDays(date, task.workingDays || 1, 'ABMY');
                     onUpdate({ startDate: date, endDate: newEndDate });
                   }
                 }}

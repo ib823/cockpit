@@ -81,8 +81,10 @@ export interface Task {
   name: string;
   startDate?: Date; // Must be >= phase.startDate
   endDate?: Date; // Must be <= phase.endDate
-  workingDays: number; // Calculated from start/end dates
-  effort: number; // Man-days effort
+  workingDays?: number; // Calculated from start/end dates or effortPercent
+  effort?: number; // Man-days effort or calculated from effortPercent
+  effortPercent?: number; // Percentage of phase effort (for templates)
+  daysPercent?: number; // Percentage of phase duration (for templates)
   resources?: Resource[]; // Resources assigned to this task (drawn from phase resources)
   defaultRole?: string; // Suggested role for this task
   description?: string;

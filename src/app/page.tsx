@@ -65,13 +65,14 @@ export default function MagicLandingPage() {
             className="text-center mb-16"
           >
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-gray-900 mb-6 tracking-tight">
-              Turn weeks of estimation
+              From RFP to Proposal
               <br />
-              into <span className="font-semibold text-blue-600">15 minutes</span>
+              in <span className="font-semibold text-blue-600">10 Minutes</span>
             </h1>
 
             <p className="text-lg sm:text-xl md:text-2xl text-gray-600 font-light mb-4">
-              SAP consultants worldwide use Cockpit to win deals faster
+              Not 10 hours. Not 10 spreadsheets.<br />
+              Just 10 minutes of your time.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-gray-500">
@@ -253,28 +254,39 @@ export default function MagicLandingPage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
-              onClick={handleStartProject}
-              disabled={!isHydrated}
-              className={`px-10 py-5 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-xl transition-all ${
-                isHydrated
-                  ? 'hover:bg-blue-700 hover:scale-105 cursor-pointer'
-                  : 'opacity-50 cursor-wait'
-              }`}
-            >
-              {isHydrated ? 'Start Your First Project' : 'Loading...'}
-            </button>
-            <button
               onClick={() => router.push('/estimator')}
               disabled={!isHydrated}
-              className={`px-10 py-5 bg-white text-blue-600 text-lg font-semibold rounded-full shadow-xl border-2 border-blue-600 transition-all ${
+              className={`px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-semibold rounded-xl shadow-xl transition-all ${
                 isHydrated
-                  ? 'hover:bg-blue-50 hover:scale-105 cursor-pointer'
+                  ? 'hover:shadow-2xl hover:scale-105 cursor-pointer'
                   : 'opacity-50 cursor-wait'
               }`}
             >
-              {isHydrated ? 'Quick Estimator' : 'Loading...'}
+              {isHydrated ? 'Try Quick Estimate (No login required)' : 'Loading...'}
+            </button>
+            <button
+              onClick={handleStartProject}
+              disabled={!isHydrated}
+              className={`px-6 py-3 bg-white text-gray-700 text-lg font-medium rounded-xl border-2 border-gray-300 transition-all ${
+                isHydrated
+                  ? 'hover:border-gray-400 hover:bg-gray-50 cursor-pointer'
+                  : 'opacity-50 cursor-wait'
+              }`}
+            >
+              {isHydrated ? 'Full Demo →' : 'Loading...'}
             </button>
           </div>
+
+          {isHydrated && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-3 text-sm text-gray-500"
+            >
+              Get a ballpark number in 30 seconds. No credit card. No commitment.
+            </motion.p>
+          )}
         </div>
       </div>
 

@@ -16,16 +16,22 @@
 import { motion } from 'framer-motion';
 import { Calculator, Info, Package, ArrowRight, Rocket } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { formulaEngine, PROFILE_PRESETS, type EstimatorInputs } from '@/lib/estimator/formula-engine';
 import { l3CatalogComplete } from '@/lib/estimator/l3-catalog-complete';
 import type { L3Item } from '@/lib/estimator/formula-engine';
 import { convertEstimateToChips, generateProjectName, extractEstimateMetadata } from '@/lib/estimator/to-chips-converter';
 import { usePresalesStore } from '@/stores/presales-store';
+import { GratitudeAnimation } from '@/components/common/GratitudeAnimation';
+import { track } from '@/lib/analytics';
 
 export default function EstimatorPage() {
   const router = useRouter();
   const { addChips } = usePresalesStore();
+
+  // Gratitude animation state
+  const [showGratitude, setShowGratitude] = useState(false);
+  const [hasShownEstimate, setHasShownEstimate] = useState(false);
 
   // Profile selection
   const [profileIndex, setProfileIndex] = useState(1); // Singapore Mid-Market default
@@ -62,6 +68,21 @@ export default function EstimatorPage() {
     };
     return formulaEngine.calculateTotal(inputs);
   }, [profile, selectedL3Items, integrations, inAppExt, btpExt, countries, entities, languages, peakSessions]);
+
+  // Show gratitude animation on first estimate
+  useEffect(() => {
+    if (estimate.totalEffort > 0 && !hasShownEstimate) {
+      setShowGratitude(true);
+      setHasShownEstimate(true);
+
+      // Track estimate shown event
+      track('estimate_shown', {
+        duration: estimate.duration.months * 30 * 8 * 60 * 1000, // approximate ms
+        totalMD: Math.round(estimate.totalEffort),
+        confidence: estimate.confidence,
+      });
+    }
+  }, [estimate, hasShownEstimate]);
 
   // Timeline phases (SAP Activate)
   const phases = [
@@ -100,7 +121,12 @@ export default function EstimatorPage() {
   };
 
   return (
-    <div className="h-screen flex bg-gray-50 overflow-hidden">
+    <>
+      <GratitudeAnimation
+        show={showGratitude}
+        onComplete={() => setShowGratitude(false)}
+      />
+      <div className="h-screen flex bg-gray-50 overflow-hidden">
       {/* LEFT: INPUTS */}
       <div className="w-[420px] bg-white border-r border-gray-200 overflow-y-auto">
         <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
@@ -424,6 +450,7 @@ export default function EstimatorPage() {
         />
       )}
     </div>
+    </>
   );
 }
 
@@ -474,8 +501,10 @@ function L3SelectorModal({
   // Apply industry preset
   const applyPreset = (presetKey: keyof typeof INDUSTRY_PRESETS) => {
     const preset = INDUSTRY_PRESETS[presetKey];
-    const allItems = modules.flatMap(m => l3CatalogComplete.getByModule(m));
-    const presetItems = allItems.filter(item => preset.codes.includes(item.code));
+    const allItems = modules.flatMap((m: string) => l3CatalogComplete.getByModule(m));
+    const presetItems = allItems.filter((item: L3Item) =>
+      (preset.codes as readonly string[]).includes(item.code)
+    );
 
     // Add preset items that aren't already selected
     const newItems = presetItems.filter(
