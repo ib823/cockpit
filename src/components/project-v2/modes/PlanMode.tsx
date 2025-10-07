@@ -25,14 +25,20 @@ import {
   Edit2,
   X,
   Trash2,
-  CheckCircle2
+  CheckCircle2,
+  Layers
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Heading3, BodyMD } from "@/components/common/Typography";
+import { ResourcePanel } from "@/components/resource-planning";
+import { RicefwPanel } from "@/components/estimation/RicefwPanel";
 import type { Task } from "@/types/core";
 
 const PROJECT_BASE_DATE = new Date(new Date().getFullYear(), 0, 1);
+
+// Tab types for PlanMode (merged from OptimizeMode per spec: Holistic_Redesign_V2.md)
+type PlanTab = 'timeline' | 'resources' | 'ricefw';
 
 export function PlanMode() {
   const { phases, selectedPackages, getProjectCost, updatePhase } = useTimelineStore();
@@ -41,6 +47,7 @@ export function PlanMode() {
   const totalCost = getProjectCost();
 
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
+  const [activeTab, setActiveTab] = useState<PlanTab>('timeline');
 
   // Auto-generate timeline if empty and we have requirements
   useEffect(() => {
@@ -125,16 +132,6 @@ export function PlanMode() {
             <Button
               variant="primary"
               size="sm"
-              onClick={() => setMode('optimize')}
-              leftIcon={<Sparkles className="w-4 h-4" />}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              Optimize
-            </Button>
-
-            <Button
-              variant="primary"
-              size="sm"
               onClick={() => setMode('present')}
               leftIcon={<Presentation className="w-4 h-4" />}
               className="bg-gray-900 hover:bg-gray-800"
@@ -161,6 +158,48 @@ export function PlanMode() {
         </div>
       </div>
 
+      {/* Tab Navigation (merged from OptimizeMode per spec: Holistic_Redesign_V2.md) */}
+      <div className="shrink-0 bg-white border-b border-gray-200 px-6">
+        <div className="flex gap-1">
+          <button
+            onClick={() => setActiveTab('timeline')}
+            className={cn(
+              "px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-px",
+              activeTab === 'timeline'
+                ? "border-blue-600 text-blue-700"
+                : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+            )}
+          >
+            <Calendar className="w-4 h-4 inline mr-2" />
+            Timeline
+          </button>
+          <button
+            onClick={() => setActiveTab('resources')}
+            className={cn(
+              "px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-px",
+              activeTab === 'resources'
+                ? "border-blue-600 text-blue-700"
+                : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+            )}
+          >
+            <UsersIcon className="w-4 h-4 inline mr-2" />
+            Resources
+          </button>
+          <button
+            onClick={() => setActiveTab('ricefw')}
+            className={cn(
+              "px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-px",
+              activeTab === 'ricefw'
+                ? "border-blue-600 text-blue-700"
+                : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+            )}
+          >
+            <Layers className="w-4 h-4 inline mr-2" />
+            RICEFW
+          </button>
+        </div>
+      </div>
+
       {/* Stale warning */}
       {timelineIsStale && (
         <div className="shrink-0 bg-yellow-50 border-b border-yellow-200 px-6 py-2 flex items-center justify-between">
@@ -181,9 +220,25 @@ export function PlanMode() {
         </div>
       )}
 
-      {/* Timeline - Fills remaining space, internal scrolling */}
-      <div className="flex-1 min-h-0 overflow-auto bg-gray-50 p-6">
-        <JobsGanttChart onPhaseClick={(phase) => setSelectedPhase(phase)} />
+      {/* Tab Content - Fills remaining space, internal scrolling */}
+      <div className="flex-1 min-h-0 overflow-auto bg-gray-50">
+        {activeTab === 'timeline' && (
+          <div className="p-6">
+            <JobsGanttChart onPhaseClick={(phase) => setSelectedPhase(phase)} />
+          </div>
+        )}
+
+        {activeTab === 'resources' && (
+          <div className="p-6">
+            <ResourcePanel phases={phases} />
+          </div>
+        )}
+
+        {activeTab === 'ricefw' && (
+          <div className="p-6">
+            <RicefwPanel />
+          </div>
+        )}
       </div>
 
       {/* Phase Details Panel - Right slide-over with edit controls */}

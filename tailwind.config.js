@@ -1,5 +1,10 @@
 /** @type {import('tailwindcss').Config} */
+
+// Import design tokens (Per spec: Design_Tokens_ChangeList.md)
+const { colors, borderRadius, shadows } = require('./src/lib/design-tokens');
+
 module.exports = {
+  darkMode: 'class', // Enable class-based dark mode (use data-theme="dark")
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -63,59 +68,35 @@ module.exports = {
         'prose': '65ch',
       },
       colors: {
-        // Brand colors from /src/config/brand.ts
-        primary: {
-          50: "#eff6ff",
-          100: "#dbeafe",
-          200: "#bfdbfe",
-          300: "#93c5fd",
-          400: "#60a5fa",
-          500: "#3b82f6",
-          600: "#2563eb",
-          700: "#1d4ed8",
-          800: "#1e40af",
-          900: "#1e3a8a",
-        },
-        accent: {
-          50: "#faf5ff",
-          100: "#f3e8ff",
-          200: "#e9d5ff",
-          300: "#d8b4fe",
-          400: "#c084fc",
-          500: "#a855f7",
-          600: "#9333ea",
-          700: "#7e22ce",
-          800: "#6b21a8",
-          900: "#581c87",
-        },
-        success: {
-          50: "#f0fdf4",
-          100: "#dcfce7",
-          500: "#22c55e",
-          600: "#16a34a",
-          700: "#15803d",
-        },
-        warning: {
-          50: "#fffbeb",
-          100: "#fef3c7",
-          500: "#f59e0b",
-          600: "#d97706",
-          700: "#b45309",
-        },
-        error: {
-          50: "#fef2f2",
-          100: "#fee2e2",
-          500: "#ef4444",
-          600: "#dc2626",
-          700: "#b91c1c",
-        },
+        // Design tokens from src/lib/design-tokens.ts
+        // Light mode colors (will be overridden by [data-theme="dark"] in globals.css)
+        primary: colors.light.primary,
+        accent: colors.light.accent,
+        success: colors.light.success,
+        warning: colors.light.warning,
+        error: colors.light.error,
+        gray: colors.light.gray,
+
+        // CSS variable references for theme-aware colors
+        background: 'var(--color-bg)',
+        'background-secondary': 'var(--color-bg-secondary)',
+        foreground: 'var(--color-text-primary)',
+        'foreground-secondary': 'var(--color-text-secondary)',
+        border: 'var(--color-border)',
+      },
+      borderRadius: {
+        ...borderRadius,
+      },
+      boxShadow: {
+        ...shadows,
       },
       animation: {
         "fade-in": "fadeIn 0.3s ease-in",
         "slide-up": "slideUp 0.4s ease-out",
         "slide-down": "slideDown 0.4s ease-out",
         shake: "shake 0.5s ease-in-out",
-        glow: "glow 2s ease-in-out infinite",
+        // Note: 'glow' animation defined but kept for focus states
+        "focus-glow": "glow 2s ease-in-out infinite",
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       keyframes: {

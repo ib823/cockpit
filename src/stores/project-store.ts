@@ -6,7 +6,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { usePresalesStore } from "./presales-store";
 import { useTimelineStore } from "./timeline-store";
 
-export type ProjectMode = 'capture' | 'decide' | 'plan' | 'optimize' | 'present';
+export type ProjectMode = 'capture' | 'decide' | 'plan' | 'present';
 
 interface ManualOverride {
   phaseId: string;

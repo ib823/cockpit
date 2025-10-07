@@ -28,7 +28,6 @@ import { Sparkles, X } from "lucide-react";
 // Lazy load heavy components for better performance
 const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
 const PresentMode = lazy(() => import("./modes/PresentMode").then(m => ({ default: m.PresentMode })));
-const OptimizeMode = lazy(() => import("./modes/OptimizeMode").then(m => ({ default: m.OptimizeMode })));
 
 
 /**
@@ -50,15 +49,9 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
     },
     plan: {
       title: "Plan Timeline",
-      subtitle: "Review and adjust your project plan",
+      subtitle: "Timeline, Resources & RICEFW",
       gradient: "from-green-600 to-green-700",
       color: "text-green-100",
-    },
-    optimize: {
-      title: "Optimize Resources",
-      subtitle: "Fine-tune team allocation and deliverables",
-      gradient: "from-indigo-600 to-indigo-700",
-      color: "text-indigo-100",
     },
     present: {
       title: "Present",
@@ -187,8 +180,8 @@ export function ProjectShell() {
   // Calculate progress for Capture mode
   const captureProgress = mode === "capture" ? safePercentage(completeness?.score || 0, 100) : undefined;
 
-  // Show MiniReferenceBar in plan and optimize modes
-  const showReferenceBar = mode === "plan" || mode === "optimize";
+  // Show MiniReferenceBar in plan mode
+  const showReferenceBar = mode === "plan";
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
@@ -227,18 +220,6 @@ export function ProjectShell() {
               </div>
             }>
               <PlanMode />
-            </Suspense>
-          )}
-          {mode === "optimize" && (
-            <Suspense fallback={
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                  <p className="text-sm">Loading resource optimization...</p>
-                </div>
-              </div>
-            }>
-              <OptimizeMode />
             </Suspense>
           )}
           {mode === "present" && (
@@ -302,20 +283,6 @@ export function ProjectShell() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             <span className="text-xs font-medium">Plan</span>
-          </button>
-
-          <button
-            onClick={() => setMode("optimize")}
-            className={`flex flex-col items-center justify-center min-h-[56px] rounded-lg transition-all ${
-              mode === "optimize"
-                ? "bg-indigo-100 text-indigo-700"
-                : "text-gray-600 hover:bg-gray-100 active:scale-95"
-            }`}
-          >
-            <svg className="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span className="text-xs font-medium">Optimize</span>
           </button>
 
           <button
