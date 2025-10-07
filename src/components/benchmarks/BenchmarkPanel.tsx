@@ -72,7 +72,7 @@ function MetricCard({ comparison }: { comparison: BenchmarkComparison }) {
       animate={{ opacity: 1, y: 0 }}
       className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
             {metricName}
@@ -95,7 +95,7 @@ function MetricCard({ comparison }: { comparison: BenchmarkComparison }) {
       </div>
 
       {/* Benchmark range */}
-      <div className="mb-3">
+      <div className="mb-4">
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
           <span>Benchmark Range</span>
           <span>Median: {formatValue(benchmark.median)}</span>
@@ -305,7 +305,7 @@ export function BenchmarkPanel() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-4 mb-6">
         <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
           <BarChart3 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
         </div>

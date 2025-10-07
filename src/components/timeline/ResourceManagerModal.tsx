@@ -148,7 +148,7 @@ export function ResourceManagerModal({ phase, onClose, onSave }: ResourceManager
             </div>
 
             {/* Resource List */}
-            <div className="space-y-3 mb-4">
+            <div className="space-y-4 mb-4">
               {resources.map((resource, idx) => (
                 <motion.div
                   key={resource.id}
@@ -157,7 +157,7 @@ export function ResourceManagerModal({ phase, onClose, onSave }: ResourceManager
                   exit={{ opacity: 0, y: -10 }}
                   className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all"
                 >
-                  <div className="grid grid-cols-12 gap-3 items-center">
+                  <div className="grid grid-cols-12 gap-4 items-center">
                     {/* Name */}
                     <div className="col-span-3">
                       <label className="text-xs font-medium text-gray-600 block mb-1">Name</label>

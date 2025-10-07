@@ -83,7 +83,7 @@ export function PhaseCard({ phase }: PhaseCardProps) {
       </button>
 
       {showReasoning && (
-        <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
+        <div className="bg-gray-50 rounded-lg p-4 space-y-4 text-sm">
           <div>
             <div className="font-medium text-gray-700 mb-2">Duration: {phase.workingDays} days</div>
             {reasoning.duration.map((reason, idx) => (

@@ -138,7 +138,7 @@ export function OnboardingTour() {
           {/* Header */}
           <div className="p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3 flex-1">
+              <div className="flex items-start gap-4 flex-1">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
@@ -179,7 +179,7 @@ export function OnboardingTour() {
           </div>
 
           {/* Footer */}
-          <div className="px-6 pb-6 flex items-center justify-between gap-3">
+          <div className="px-6 pb-6 flex items-center justify-between gap-4">
             <button
               onClick={skipOnboarding}
               className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"

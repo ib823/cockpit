@@ -274,7 +274,7 @@ export function JobsGanttChart({
                       </motion.div>
                       <div>
                         <h3 className="text-base font-semibold text-gray-900">{activatePhase.name}</h3>
-                        <div className="flex items-center gap-3 mt-0.5">
+                        <div className="flex items-center gap-4 mt-0.5">
                           <span className="text-xs text-gray-500">{activatePhase.workingDays} days</span>
                           <span className="text-xs text-gray-400">·</span>
                           <span className="text-xs text-gray-500">{activatePhase.totalEffort} hours</span>
@@ -305,7 +305,7 @@ export function JobsGanttChart({
                     <motion.div
                       initial={{ scaleX: 0, originX: 0 }}
                       animate={{ scaleX: 1 }}
-                      transition={{ delay: phaseIndex * 0.1 + 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ delay: phaseIndex * 0.1 + 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                       className={`absolute inset-y-0 bg-gradient-to-r ${activatePhase.color} shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
                       style={{
                         left: `${startPercent}%`,
@@ -328,7 +328,7 @@ export function JobsGanttChart({
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden"
                     >
                       <div className="mt-2 ml-6 space-y-2">
@@ -344,7 +344,7 @@ export function JobsGanttChart({
                               transition={{ delay: taskIndex * 0.1, duration: 0.3 }}
                               className="group/task"
                             >
-                              <div className="flex items-center gap-3 mb-1.5">
+                              <div className="flex items-center gap-4 mb-1.5">
                                 <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${activatePhase.color}`} />
                                 <span className="text-sm text-gray-700">{task.name}</span>
                                 <span className="text-xs text-gray-400">{task.workingDays}d</span>

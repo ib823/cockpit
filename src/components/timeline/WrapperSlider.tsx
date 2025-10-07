@@ -20,8 +20,8 @@ export function WrapperSlider({ wrapper, calculation }: WrapperSliderProps) {
   return (
     <div className="p-4 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-4">
           <div
             className="w-4 h-4 rounded-full"
             style={{ backgroundColor: wrapper.color }}
@@ -32,7 +32,7 @@ export function WrapperSlider({ wrapper, calculation }: WrapperSliderProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {/* Percentage display */}
           <div className="text-right">
             <div className="text-lg font-bold text-gray-900">
@@ -59,7 +59,7 @@ export function WrapperSlider({ wrapper, calculation }: WrapperSliderProps) {
       </div>
 
       {/* Slider */}
-      <div className="mb-3">
+      <div className="mb-4">
         <Slider.Root
           className="relative flex items-center select-none touch-none w-full h-5"
           value={[wrapper.currentPercentage]}

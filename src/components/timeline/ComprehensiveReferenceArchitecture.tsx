@@ -122,7 +122,7 @@ export function ComprehensiveReferenceArchitecture() {
         </div>
 
         {/* Countries Grid */}
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
           {businessContext.countries.map((country) => (
             <div
               key={country.code}
@@ -151,7 +151,7 @@ export function ComprehensiveReferenceArchitecture() {
         onToggle={() => toggleSection('strategy')}
         badge={`${getCriticalDrivers().length} critical`}
       >
-        <div className="space-y-3">
+        <div className="space-y-4">
           {strategyDrivers.map((driver) => (
             <motion.div
               key={driver.id}
@@ -209,7 +209,7 @@ export function ComprehensiveReferenceArchitecture() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* SAP Core Modules */}
           <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-4">
               <Boxes className="w-5 h-5 text-blue-600" />
               <h4 className="font-semibold text-blue-900">SAP Core Modules</h4>
             </div>
@@ -233,7 +233,7 @@ export function ComprehensiveReferenceArchitecture() {
 
           {/* SAP Supplements */}
           <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="w-5 h-5 text-purple-600" />
               <h4 className="font-semibold text-purple-900">SAP Supplements</h4>
             </div>
@@ -255,7 +255,7 @@ export function ComprehensiveReferenceArchitecture() {
 
           {/* External Systems */}
           <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-4">
               <Workflow className="w-5 h-5 text-green-600" />
               <h4 className="font-semibold text-green-900">External Systems</h4>
             </div>
@@ -290,7 +290,7 @@ export function ComprehensiveReferenceArchitecture() {
 
         {/* Integration Details */}
         <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Info className="w-4 h-4" />
             Integration Details
           </h4>
@@ -325,7 +325,7 @@ export function ComprehensiveReferenceArchitecture() {
         onToggle={() => toggleSection('activate')}
         badge="5 phases"
       >
-        <div className="grid grid-cols-5 gap-3">
+        <div className="grid grid-cols-5 gap-4">
           {[
             {
               name: 'Prepare',
@@ -375,7 +375,7 @@ export function ComprehensiveReferenceArchitecture() {
               </div>
 
               {/* Progress indicator */}
-              <div className="mt-3 h-1 bg-blue-200 rounded-full overflow-hidden">
+              <div className="mt-4 h-1 bg-blue-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-600 rounded-full"
                   style={{ width: `${((index + 1) / 5) * 100}%` }}
@@ -402,7 +402,7 @@ export function ComprehensiveReferenceArchitecture() {
                 key={wrapper.id}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
               >
-                <div className="flex items-center gap-3 flex-1">
+                <div className="flex items-center gap-4 flex-1">
                   <div
                     className="w-4 h-4 rounded-full"
                     style={{ backgroundColor: wrapper.color }}
@@ -476,7 +476,7 @@ function Section({ title, icon, isExpanded, onToggle, badge, children }: Section
         onClick={onToggle}
         className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {isExpanded ? (
             <ChevronDown className="w-5 h-5 text-gray-400" />
           ) : (

@@ -122,7 +122,7 @@ export function ProjectStartDatePicker({
           {!validation.isValid && (
             <button
               onClick={handleSuggestNextWorkingDay}
-              className="w-full mb-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+              className="w-full mb-4 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
             >
               Use Next Working Day → {format(getNextWorkingDay(selectedDate, region), 'MMM dd')}
             </button>
@@ -146,7 +146,7 @@ export function ProjectStartDatePicker({
           </div>
 
           {/* Region Indicator */}
-          <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500">
+          <div className="mt-4 pt-3 border-t border-gray-200 text-xs text-gray-500">
             Holiday calendar: {region === 'ABMY' ? '🇲🇾 Malaysia' : region === 'ABSG' ? '🇸🇬 Singapore' : '🇻🇳 Vietnam'}
           </div>
         </div>

@@ -303,7 +303,7 @@ export function ManualChipEntry({
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-4 pt-4">
               <button
                 type="button"
                 onClick={onClose}

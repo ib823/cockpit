@@ -57,7 +57,9 @@
       "Bash(git rm:*)",
       "Bash(openssl rand:*)",
       "Bash(NEXT_LINT_DISABLED=true npm run build)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(do echo \"=== $dir ===\")",
+      "Bash(ls src/components/$dir/*.tsx)"
     ],
     "deny": [],
     "ask": []

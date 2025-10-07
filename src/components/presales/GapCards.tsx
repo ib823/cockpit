@@ -203,7 +203,7 @@ export default function GapCards({ gaps, onFixAction, className = "" }: GapCards
 
                   <button
                     onClick={() => handleAddClick(gap)}
-                    className={`ml-3 px-3 py-1 text-sm rounded-md transition-colors ${styles.button}`}
+                    className={`ml-4 px-3 py-1 text-sm rounded-md transition-colors ${styles.button}`}
                   >
                     Add
                   </button>

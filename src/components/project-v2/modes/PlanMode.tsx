@@ -130,7 +130,7 @@ export function PlanMode() {
             </Button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <ExportButton variant="secondary" size="sm" />
             <Button
               variant="primary"
@@ -145,16 +145,16 @@ export function PlanMode() {
         </div>
 
         {/* Summary stats */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
             <Calendar className="w-4 h-4 text-blue-600" />
             <span className="text-sm font-semibold text-blue-900">{formatDuration(totalDuration)}</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-lg">
+          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg">
             <DollarSign className="w-4 h-4 text-green-600" />
             <span className="text-sm font-semibold text-green-900">{formatCurrency(totalCost, "MYR")}</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg">
+          <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-lg">
             <Flag className="w-4 h-4 text-purple-600" />
             <span className="text-sm font-semibold text-purple-900">{phases.length} Phases</span>
           </div>
@@ -218,7 +218,7 @@ export function PlanMode() {
       {/* Stale warning */}
       {timelineIsStale && (
         <div className="shrink-0 bg-yellow-50 border-b border-yellow-200 px-6 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
             <span className="text-sm font-medium text-yellow-900">
               Timeline outdated - decisions changed
@@ -321,7 +321,7 @@ export function PlanMode() {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="bg-blue-50 rounded-xl p-3 text-center">
                     <div className="text-2xl font-bold text-blue-900">{selectedPhase.workingDays}</div>
                     <div className="text-xs text-blue-600 mt-1">Days</div>
@@ -367,7 +367,7 @@ export function PlanMode() {
 
                 {/* Cost */}
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
                     Investment
                   </h3>
                   <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 text-white">
@@ -439,10 +439,10 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
 
   return (
     <div>
-      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
         Timeline
       </h3>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {/* Start Date */}
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
           <div className="flex-1">
@@ -469,7 +469,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
               setEditMode('start');
               setTempValue(format(startDate, 'yyyy-MM-dd'));
             }}
-            className="ml-3 p-2 hover:bg-white rounded-lg transition-colors"
+            className="ml-4 p-2 hover:bg-white rounded-lg transition-colors"
           >
             <Edit2 className="w-4 h-4 text-gray-400" />
           </button>
@@ -501,7 +501,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
               setEditMode('end');
               setTempValue(format(endDate, 'yyyy-MM-dd'));
             }}
-            className="ml-3 p-2 hover:bg-white rounded-lg transition-colors"
+            className="ml-4 p-2 hover:bg-white rounded-lg transition-colors"
           >
             <Edit2 className="w-4 h-4 text-gray-400" />
           </button>
@@ -533,7 +533,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
               setEditMode('duration');
               setTempValue(String(phase.workingDays || 0));
             }}
-            className="ml-3 p-2 hover:bg-white rounded-lg transition-colors"
+            className="ml-4 p-2 hover:bg-white rounded-lg transition-colors"
           >
             <Edit2 className="w-4 h-4 text-gray-400" />
           </button>
@@ -595,7 +595,7 @@ function ResourceSection({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
           Team ({resources.length})
         </h3>
@@ -909,7 +909,7 @@ function AddResourceModal({
           <div className="text-sm text-gray-600">
             This will add <span className="font-semibold">${estimatedCost.toLocaleString()}</span> to phase cost
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-4">
             <Button variant="ghost" onClick={onCancel}>
               Cancel
             </Button>
@@ -1014,7 +1014,7 @@ function TaskSection({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
           Tasks / Milestones ({tasks.length})
         </h3>
@@ -1051,7 +1051,7 @@ function TaskSection({
 
       {/* Add Task Form */}
       {isAdding && (
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-3">
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-4">
           <input
             type="text"
             placeholder="Task name"
@@ -1061,7 +1061,7 @@ function TaskSection({
             autoFocus
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-gray-600 mb-1 block">Start Date</label>
               <input
@@ -1096,7 +1096,7 @@ function TaskSection({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-gray-600 mb-1 block">Effort (man-days)</label>
               <input
@@ -1244,7 +1244,7 @@ function TaskRow({
 
       {/* Edit Mode */}
       {isEditing && (
-        <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
+        <div className="mt-4 pt-3 border-t border-gray-200 space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-xs text-gray-600 mb-1 block">Start Date</label>
