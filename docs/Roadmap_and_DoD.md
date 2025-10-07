@@ -385,7 +385,7 @@ npm test -- estimator-to-project-flow.test.ts
 - [ ] Success metrics hit targets (or plan adjust)
 - [ ] No P0/P1 bugs in production
 - [ ] Analytics tracking live (all events firing)
-- [ ] Documentation updated (README, CLAUDE.md)
+- [ ] Documentation updated (README, DEVELOPER_GUIDE.md)
 - [ ] User interviews conducted (5 users, positive feedback)
 
 ---

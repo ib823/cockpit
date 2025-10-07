@@ -62,10 +62,19 @@ export function PlanMode() {
     regenerateTimeline(true);
   }, [regenerateTimeline]);
 
-  const totalDuration = useMemo(
-    () => phases.reduce((sum, phase) => sum + phase.workingDays, 0),
-    [phases]
-  );
+  const totalDuration = useMemo(() => {
+    if (phases.length === 0) return 0;
+
+    // Calculate actual project duration (start of first phase to end of last phase)
+    const sortedPhases = [...phases].sort((a, b) => a.startBusinessDay - b.startBusinessDay);
+    const firstPhase = sortedPhases[0];
+    const lastPhase = sortedPhases[sortedPhases.length - 1];
+
+    const projectStart = firstPhase.startBusinessDay;
+    const projectEnd = lastPhase.startBusinessDay + lastPhase.workingDays;
+
+    return projectEnd - projectStart;
+  }, [phases]);
 
   // Empty state
   if (phases.length === 0) {

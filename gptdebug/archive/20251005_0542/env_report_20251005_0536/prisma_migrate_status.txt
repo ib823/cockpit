@@ -1,9 +1,0 @@
-Environment variables loaded from .env
-Prisma schema loaded from prisma/schema.prisma
-Datasource "db": PostgreSQL database "neondb", schema "public" at "ep-noisy-term-a171r0le.ap-southeast-1.aws.neon.tech"
-
-No migration found in prisma/migrations
-The current database is not managed by Prisma Migrate.
-        
-Read more about how to baseline an existing production database:
-https://pris.ly/d/migrate-baseline

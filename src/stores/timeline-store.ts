@@ -47,6 +47,7 @@ interface TimelineState {
   deletePhase: (phaseId: string) => void;
   updatePhase: (phaseId: string, updates: Partial<Phase>) => void;
   updatePhaseResources: (phaseId: string, resources: Resource[]) => void;
+  removeTaskFromPhase: (phaseId: string, taskId: string) => void;
   selectPhase: (phaseId: string | null) => void;
   addPackage: (pkg: string) => void;
   removePackage: (pkg: string) => void;
@@ -195,6 +196,15 @@ export const useTimelineStore = create<TimelineState>()(
                     r.allocation >= 0 && r.allocation <= 150
                 );
                 phase.resources = validResources;
+            }
+        });
+    },
+
+    removeTaskFromPhase: (phaseId, taskId) => {
+        set(state => {
+            const phase = state.phases.find((p: Phase) => p.id === phaseId);
+            if (phase && phase.tasks) {
+                phase.tasks = phase.tasks.filter(t => t.id !== taskId);
             }
         });
     },

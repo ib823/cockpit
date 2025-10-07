@@ -1,6 +1,6 @@
-# Claude Code Reference Guide
+# Abidbn Reference Guide
 
-## For Claude Code: Use This Toolkit
+## For Abidbn: Use This Toolkit
 
 When building pages for SAP Cockpit, ALWAYS reference this UI toolkit.
 

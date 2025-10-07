@@ -524,15 +524,15 @@ export default function EmptyStateExample() {
 
 ---
 
-## **STEP 6: HOW TO USE WITH CLAUDE CODE**
+## **STEP 6: HOW TO USE WITH DEVELOPERS**
 
-Create a reference file for Claude Code:
+Create a reference file for Abidbn:
 ```bash
-touch docs/ui-toolkit/CLAUDE_CODE_REFERENCE.md
-docs/ui-toolkit/CLAUDE_CODE_REFERENCE.md
-markdown# Claude Code Reference Guide
+touch docs/ui-toolkit/DEVELOPER_REFERENCE.md
+docs/ui-toolkit/DEVELOPER_REFERENCE.md
+markdown# Abidbn Reference Guide
 
-## For Claude Code: Use This Toolkit
+## For Abidbn: Use This Toolkit
 
 When building pages for SAP Cockpit, ALWAYS reference this UI toolkit.
 
@@ -624,7 +624,7 @@ ls src/lib/
 cat docs/ui-toolkit/README.md
 
 QUICK REFERENCE FOR YOU
-When asking Claude Code to build something:
+When asking Abidbn to build something:
 
 "Build a dashboard page using the UI toolkit in /docs/ui-toolkit/. Use components from /src/components/ and follow patterns in USAGE_EXAMPLES.md"
 
@@ -658,7 +658,7 @@ touch src/components/domain/{GanttChart,PhaseCard,DecisionCard,ChatMessage,Celeb
 touch src/lib/{design-tokens,responsive,utils,index}.ts
 
 # Create documentation
-touch docs/ui-toolkit/{README,COMPONENTS,DESIGN_SYSTEM,USAGE_EXAMPLES,CLAUDE_CODE_REFERENCE}.md
+touch docs/ui-toolkit/{README,COMPONENTS,DESIGN_SYSTEM,USAGE_EXAMPLES,DEVELOPER_REFERENCE}.md
 
 # Create master index
 touch src/components/index.ts
@@ -672,9 +672,9 @@ echo "   4. Check docs/ui-toolkit/README.md"
 Then run:
 bash./setup-ui-toolkit.sh
 
-Now you have everything organized! Claude Code can easily reference:
+Now you have everything organized! Abidbn can easily reference:
 
 Components: /src/components/
 Design System: /src/lib/design-tokens.ts
 Examples: /docs/ui-toolkit/USAGE_EXAMPLES.md
-Quick Ref: /docs/ui-toolkit/CLAUDE_CODE_REFERENCE.md
+Quick Ref: /docs/ui-toolkit/DEVELOPER_REFERENCE.md

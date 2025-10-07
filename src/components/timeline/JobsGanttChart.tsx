@@ -2,9 +2,9 @@
 
 import { useTimelineStore } from "@/stores/timeline-store";
 import type { Phase } from "@/types/core";
-import { addWorkingDays } from "@/data/holidays";
-import { format, differenceInDays } from "date-fns";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { addWorkingDays, getHolidaysInRange, type Holiday } from "@/data/holidays";
+import { format, differenceInDays, isWeekend, isSameDay } from "date-fns";
+import { ChevronDown, ChevronRight, Flag, Calendar as CalendarIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -155,7 +155,7 @@ export function JobsGanttChart({
     });
   }, [rawPhases]);
 
-  const { minDate, maxDate, totalBusinessDays, totalDuration } = useMemo(() => {
+  const { minDate, maxDate, totalBusinessDays, totalDuration, holidays, milestones } = useMemo(() => {
     const start = Math.min(...activatePhases.map(p => p.startBusinessDay));
     const end = Math.max(...activatePhases.map(p => p.endBusinessDay));
 
@@ -176,11 +176,25 @@ export function JobsGanttChart({
       durationDisplay = `${months} months`;
     }
 
+    // Get holidays in project range
+    const projectHolidays = getHolidaysInRange(minD, maxD, selectedRegion);
+
+    // Generate milestones (end of each SAP Activate phase)
+    const projectMilestones = activatePhases.map(phase => ({
+      id: `milestone-${phase.id}`,
+      name: `${phase.name} Complete`,
+      date: addWorkingDays(PROJECT_BASE_DATE, phase.endBusinessDay, selectedRegion),
+      phase: phase.id,
+      color: phase.color,
+    }));
+
     return {
       minDate: minD,
       maxDate: maxD,
       totalBusinessDays: totalDays,
       totalDuration: durationDisplay,
+      holidays: projectHolidays,
+      milestones: projectMilestones,
     };
   }, [activatePhases, selectedRegion]);
 
@@ -321,9 +335,9 @@ export function JobsGanttChart({
                   </div>
                 </div>
 
-                {/* Expanded Tasks - Elegant reveal */}
+                {/* Expanded Tasks - Show actual tasks from phase.tasks */}
                 <AnimatePresence>
-                  {isExpanded && (
+                  {isExpanded && activatePhase.phases.length > 0 && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
@@ -332,38 +346,49 @@ export function JobsGanttChart({
                       className="overflow-hidden"
                     >
                       <div className="mt-2 ml-6 space-y-2">
-                        {activatePhase.tasks.map((task, taskIndex) => {
-                          const taskStartPercent = startPercent + (widthPercent * (activatePhase.tasks.slice(0, taskIndex).reduce((sum, t) => sum + t.workingDays, 0) / activatePhase.workingDays));
-                          const taskWidthPercent = widthPercent * (task.workingDays / activatePhase.workingDays);
+                        {activatePhase.phases.map((phase, phaseIdx) => {
+                          const phaseTasks = phase.tasks || [];
+                          if (phaseTasks.length === 0) return null;
 
                           return (
-                            <motion.div
-                              key={task.id}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: taskIndex * 0.1, duration: 0.3 }}
-                              className="group/task"
-                            >
-                              <div className="flex items-center gap-4 mb-1.5">
-                                <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${activatePhase.color}`} />
-                                <span className="text-sm text-gray-700">{task.name}</span>
-                                <span className="text-xs text-gray-400">{task.workingDays}d</span>
-                              </div>
+                            <div key={phase.id} className="mb-3">
+                              <div className="text-xs font-medium text-gray-500 mb-2">{phase.name}</div>
+                              {phaseTasks.map((task, taskIndex) => {
+                                const taskWidthPercent = ((task.workingDays || 0) / activatePhase.workingDays) * widthPercent;
 
-                              {/* Subtle task bar - aligned within phase timeline only */}
-                              <div className="relative h-2 rounded-full bg-gray-100 ml-4" style={{ width: `calc(100% - 1rem)` }}>
-                                <motion.div
-                                  initial={{ scaleX: 0, originX: 0 }}
-                                  animate={{ scaleX: 1 }}
-                                  transition={{ delay: taskIndex * 0.1 + 0.2, duration: 0.5 }}
-                                  className={`absolute inset-y-0 bg-gradient-to-r ${activatePhase.color} rounded-full opacity-40 group-hover/task:opacity-60 transition-opacity`}
-                                  style={{
-                                    left: `${(taskIndex === 0 ? 0 : activatePhase.tasks.slice(0, taskIndex).reduce((sum, t) => sum + t.workingDays, 0) / activatePhase.workingDays * 100)}%`,
-                                    width: `${(task.workingDays / activatePhase.workingDays) * 100}%`,
-                                  }}
-                                />
-                              </div>
-                            </motion.div>
+                                return (
+                                  <motion.div
+                                    key={task.id}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: taskIndex * 0.05, duration: 0.3 }}
+                                    className="group/task"
+                                  >
+                                    <div className="flex items-center gap-4 mb-1.5">
+                                      <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${activatePhase.color}`} />
+                                      <span className="text-sm text-gray-700">{task.name}</span>
+                                      <span className="text-xs text-gray-400">{task.workingDays}d</span>
+                                      {task.effort && (
+                                        <span className="text-xs text-gray-500">{task.effort} PD</span>
+                                      )}
+                                    </div>
+
+                                    {/* Subtle task bar */}
+                                    <div className="relative h-2 rounded-full bg-gray-100 ml-4" style={{ width: `calc(100% - 1rem)` }}>
+                                      <motion.div
+                                        initial={{ scaleX: 0, originX: 0 }}
+                                        animate={{ scaleX: 1 }}
+                                        transition={{ delay: taskIndex * 0.05 + 0.2, duration: 0.5 }}
+                                        className={`absolute inset-y-0 bg-gradient-to-r ${activatePhase.color} rounded-full opacity-40 group-hover/task:opacity-60 transition-opacity`}
+                                        style={{
+                                          width: `${(taskWidthPercent / widthPercent) * 100}%`,
+                                        }}
+                                      />
+                                    </div>
+                                  </motion.div>
+                                );
+                              })}
+                            </div>
                           );
                         })}
                       </div>
@@ -374,12 +399,64 @@ export function JobsGanttChart({
             );
           })}
         </div>
+
+        {/* Milestones & Holidays Section */}
+        {(milestones.length > 0 || holidays.length > 0) && (
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <Flag className="w-4 h-4" />
+              Milestones & Holidays
+            </h3>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Milestones */}
+              {milestones.length > 0 && (
+                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    Key Milestones ({milestones.length})
+                  </div>
+                  <div className="space-y-2">
+                    {milestones.map((milestone) => (
+                      <div key={milestone.id} className="flex items-center gap-3 text-sm">
+                        <Flag className="w-4 h-4 text-purple-600" style={{ color: milestone.color }} />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{milestone.name}</div>
+                          <div className="text-xs text-gray-500">{format(milestone.date, 'MMM dd, yyyy')}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Holidays */}
+              {holidays.length > 0 && (
+                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    Holidays ({holidays.length})
+                  </div>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {holidays.map((holiday, idx) => (
+                      <div key={idx} className="flex items-center gap-3 text-sm">
+                        <CalendarIcon className="w-4 h-4 text-red-500" />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{holiday.name}</div>
+                          <div className="text-xs text-gray-500">{format(new Date(holiday.date), 'MMM dd, yyyy')}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Minimal footer - context when needed */}
       <div className="px-8 py-4 border-t border-gray-100 bg-gray-50/50">
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>SAP Activate Methodology</span>
+          <span>SAP Activate Methodology • {milestones.length} Milestones • {holidays.length} Holidays</span>
           <span>Click any phase to expand details</span>
         </div>
       </div>
