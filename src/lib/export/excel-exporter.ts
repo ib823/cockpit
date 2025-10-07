@@ -257,7 +257,7 @@ function createRequirementsSheet(chips: Chip[]): XLSX.WorkSheet {
     'Value',
     'Confidence',
     'Source',
-    'Category',
+    'Validated',
   ];
 
   const rows = chips.map((chip) => [
@@ -265,7 +265,7 @@ function createRequirementsSheet(chips: Chip[]): XLSX.WorkSheet {
     chip.value,
     chip.confidence ? `${(chip.confidence * 100).toFixed(0)}%` : 'N/A',
     chip.source || 'Manual',
-    chip.category || 'N/A',
+    chip.validated ? 'Yes' : 'No',
   ]);
 
   const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
@@ -276,7 +276,7 @@ function createRequirementsSheet(chips: Chip[]): XLSX.WorkSheet {
     { wch: 50 },  // Value
     { wch: 12 },  // Confidence
     { wch: 15 },  // Source
-    { wch: 20 },  // Category
+    { wch: 12 },  // Validated
   ];
 
   // Bold header row
