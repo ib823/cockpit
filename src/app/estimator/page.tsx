@@ -22,12 +22,14 @@ import { l3CatalogComplete } from '@/lib/estimator/l3-catalog-complete';
 import type { L3Item } from '@/lib/estimator/formula-engine';
 import { convertEstimateToChips, generateProjectName, extractEstimateMetadata } from '@/lib/estimator/to-chips-converter';
 import { usePresalesStore } from '@/stores/presales-store';
+import { useUnifiedProjectStore, createFromEstimator } from '@/stores/unified-project-store';
 import { GratitudeAnimation } from '@/components/common/GratitudeAnimation';
 import { track } from '@/lib/analytics';
 
 export default function EstimatorPage() {
   const router = useRouter();
   const { addChips } = usePresalesStore();
+  const { saveProject } = useUnifiedProjectStore();
 
   // Gratitude animation state
   const [showGratitude, setShowGratitude] = useState(false);
@@ -108,14 +110,26 @@ export default function EstimatorPage() {
       peakSessions
     };
 
-    // Convert to chips
-    const chips = convertEstimateToChips(inputs);
+    // Generate project name
+    const projectName = generateProjectName(inputs);
 
-    // Add to presales store
+    // Create unified project from estimator
+    const unifiedProject = createFromEstimator(inputs, estimate, projectName);
+
+    // Save to unified store (dual-write will sync to legacy stores)
+    saveProject(unifiedProject);
+
+    // Also add chips to presales store for backward compatibility
+    // (this is redundant due to dual-write, but ensures immediate availability)
+    const chips = convertEstimateToChips(inputs);
     addChips(chips);
 
+    console.log('[Estimator] ✅ Created project from estimate:', unifiedProject.id);
+
+    // Track tier transition
+    track('tier_transition', { from: 1, to: 2 });
+
     // Navigate to project with source flag
-    const projectName = generateProjectName(inputs);
     const encodedName = encodeURIComponent(projectName);
     router.push(`/project?mode=plan&source=estimator&name=${encodedName}`);
   };
