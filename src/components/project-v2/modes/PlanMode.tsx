@@ -26,19 +26,21 @@ import {
   X,
   Trash2,
   CheckCircle2,
-  Layers
+  Layers,
+  BarChart3
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Heading3, BodyMD } from "@/components/common/Typography";
 import { ExportButton } from "@/components/export/ExportButton";
+import { BenchmarkPanel } from "@/components/benchmarks/BenchmarkPanel";
 // ResourcePanel and RicefwPanel imports removed - using placeholders for now
 import type { Task } from "@/types/core";
 
 const PROJECT_BASE_DATE = new Date(new Date().getFullYear(), 0, 1);
 
 // Tab types for PlanMode (merged from OptimizeMode per spec: Holistic_Redesign_V2.md)
-type PlanTab = 'timeline' | 'resources' | 'ricefw';
+type PlanTab = 'timeline' | 'resources' | 'ricefw' | 'benchmarks';
 
 export function PlanMode() {
   const { phases, selectedPackages, getProjectCost, updatePhase } = useTimelineStore();
@@ -175,6 +177,18 @@ export function PlanMode() {
             Timeline
           </button>
           <button
+            onClick={() => setActiveTab('benchmarks')}
+            className={cn(
+              "px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-px",
+              activeTab === 'benchmarks'
+                ? "border-blue-600 text-blue-700"
+                : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+            )}
+          >
+            <BarChart3 className="w-4 h-4 inline mr-2" />
+            Benchmarks
+          </button>
+          <button
             onClick={() => setActiveTab('resources')}
             className={cn(
               "px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-px",
@@ -227,6 +241,10 @@ export function PlanMode() {
           <div className="p-6">
             <JobsGanttChart onPhaseClick={(phase) => setSelectedPhase(phase)} />
           </div>
+        )}
+
+        {activeTab === 'benchmarks' && (
+          <BenchmarkPanel />
         )}
 
         {activeTab === 'resources' && (
