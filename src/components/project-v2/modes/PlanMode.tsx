@@ -653,7 +653,7 @@ function ResourceSection({
           <UsersIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
           <p className="text-sm text-gray-500">No team members assigned yet</p>
           <p className="text-xs text-gray-400 mt-1">
-            Click "Add Resource" to allocate people to this phase
+            Click &quot;Add Resource&quot; to allocate people to this phase
           </p>
         </div>
       )}
@@ -705,7 +705,7 @@ function AddResourceModal({
     const baseRate = regionRates[newResource.region].default;
     const multiplier = roleMultipliers[newResource.role] || 1.0;
     return Math.round(baseRate * multiplier);
-  }, [newResource.role, newResource.region]);
+  }, [newResource.role, newResource.region, regionRates, roleMultipliers]);
 
   // Calculate cost insights
   const totalHours = (phase.workingDays || 0) * 8 * (newResource.allocation / 100);
