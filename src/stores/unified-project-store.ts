@@ -160,6 +160,7 @@ interface UnifiedProjectState {
 
   // --- Utility Actions ---
   reset: () => void;
+  addMigratedProject: (project: UnifiedProject) => void;
   migrateFromLegacy: () => void;
 }
 
@@ -857,6 +858,25 @@ export const useUnifiedProjectStore = create<UnifiedProjectState>()(
           projects: {},
           isLoading: false,
           error: null,
+        });
+      },
+
+      addMigratedProject: (project) => {
+        const { projects } = get();
+
+        set({
+          projects: {
+            ...projects,
+            [project.id]: project,
+          },
+          currentProject: project,
+        });
+
+        console.log('[UnifiedStore] ✅ Added migrated project:', {
+          id: project.id,
+          name: project.name,
+          chips: project.presales.chips.length,
+          phases: project.timeline.phases.length,
         });
       },
 

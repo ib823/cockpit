@@ -285,8 +285,13 @@ export function isMigrationComplete(): boolean {
 /**
  * Auto-migration on app load
  * Call this from app initialization
+ *
+ * @param addToStore - Callback to add migrated project to unified store
+ * @returns The migrated project if successful, null otherwise
  */
-export function autoMigrateIfNeeded(): UnifiedProject | null {
+export function autoMigrateIfNeeded(
+  addToStore?: (project: UnifiedProject) => void
+): UnifiedProject | null {
   // Skip if already migrated
   if (isMigrationComplete()) {
     console.log('[Migration] ℹ️ Migration already complete, skipping');
@@ -308,6 +313,11 @@ export function autoMigrateIfNeeded(): UnifiedProject | null {
   const migratedProject = migrateLegacyToUnified();
 
   if (migratedProject) {
+    // Add to unified store if callback provided
+    if (addToStore) {
+      addToStore(migratedProject);
+    }
+
     // Mark as migrated
     clearLegacyStores();
     return migratedProject;

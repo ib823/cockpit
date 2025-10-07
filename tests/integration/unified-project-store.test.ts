@@ -60,6 +60,7 @@ describe('UnifiedProjectStore', () => {
         type: 'COUNTRY',
         value: 'Singapore',
         confidence: 0.9,
+        source: 'manual',
       });
 
       const store = useUnifiedProjectStore.getState();
@@ -71,8 +72,8 @@ describe('UnifiedProjectStore', () => {
 
     it('should add multiple chips', () => {
       useUnifiedProjectStore.getState().addChips([
-        { type: 'COUNTRY', value: 'Singapore', confidence: 0.9 },
-        { type: 'INDUSTRY', value: 'Manufacturing', confidence: 0.8 },
+        { type: 'COUNTRY', value: 'Singapore', confidence: 0.9, source: 'manual' },
+        { type: 'INDUSTRY', value: 'Manufacturing', confidence: 0.8, source: 'manual' },
       ]);
 
       const store = useUnifiedProjectStore.getState();
@@ -85,6 +86,7 @@ describe('UnifiedProjectStore', () => {
         type: 'COUNTRY',
         value: 'Singapore',
         confidence: 0.9,
+        source: 'manual',
       });
 
       const chipId = useUnifiedProjectStore.getState().currentProject!.presales.chips[0].id!;
@@ -102,9 +104,9 @@ describe('UnifiedProjectStore', () => {
 
       // Add chips
       useUnifiedProjectStore.getState().addChips([
-        { type: 'COUNTRY', value: 'Singapore', confidence: 0.9 },
-        { type: 'INDUSTRY', value: 'Manufacturing', confidence: 0.8 },
-        { type: 'MODULE', value: 'FI', confidence: 0.9 },
+        { type: 'COUNTRY', value: 'Singapore', confidence: 0.9, source: 'manual' },
+        { type: 'INDUSTRY', value: 'Manufacturing', confidence: 0.8, source: 'manual' },
+        { type: 'MODULES', value: 'FI', confidence: 0.9, source: 'manual' },
       ]);
 
       // Should have score now
