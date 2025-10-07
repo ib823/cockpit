@@ -1,63 +1,107 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import QRCode from 'qrcode';
+import { useState } from 'react';
 
 interface AccessCodeModalProps {
   isOpen: boolean;
   onClose: () => void;
   email: string;
   code: string;
+  magicUrl?: string;
 }
 
-export default function AccessCodeModal({ isOpen, onClose, email, code }: AccessCodeModalProps) {
-  const [qrDataUrl, setQrDataUrl] = useState('');
-  const [copied, setCopied] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+export default function AccessCodeModal({ isOpen, onClose, email, code, magicUrl }: AccessCodeModalProps) {
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && code && canvasRef.current) {
-      // Generate QR code with login data
-      const loginData = JSON.stringify({ email, code });
-      QRCode.toCanvas(canvasRef.current, loginData, {
-        width: 256,
-        margin: 2,
-        color: {
-          dark: '#0f172a',
-          light: '#ffffff',
-        },
-      }).catch(console.error);
-
-      // Also generate data URL for download
-      QRCode.toDataURL(loginData, { width: 512, margin: 2 })
-        .then(setQrDataUrl)
-        .catch(console.error);
-    }
-  }, [isOpen, code, email]);
-
-  const handleCopy = async () => {
+  const handleCopyCode = async () => {
     try {
       await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
     }
   };
 
-  const handleDownloadQR = () => {
-    if (!qrDataUrl) return;
-    const link = document.createElement('a');
-    link.download = `access-code-${email}.png`;
-    link.href = qrDataUrl;
-    link.click();
+  const handleCopyLink = async () => {
+    if (!magicUrl) return;
+    try {
+      await navigator.clipboard.writeText(magicUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleOpenEmail = () => {
+    const subject = 'Welcome to Cockpit - Your Access is Ready!';
+
+    const bodyText = `Hi there,
+
+Welcome to Cockpit! Your access has been approved and you're all set to get started.
+
+Choose your preferred way to login:
+
+========================================
+
+MAGIC LINK (Quick Login)
+${magicUrl || 'N/A'}
+Expires in: 2 minutes
+
+========================================
+
+6-DIGIT CODE (Manual Entry)
+${code}
+Expires in: 7 days
+
+========================================
+
+How to Get Started:
+
+Option 1 (Recommended):
+- Click the magic link above for instant access
+- Set up your passkey (fingerprint/Face ID)
+- Done! You're logged in
+
+Option 2 (Manual):
+- Visit the login page
+- Enter your email
+- Enter the 6-digit code above
+- Set up your passkey
+- Start using Cockpit!
+
+========================================
+
+Security Tip:
+After setup, you'll use your device's passkey (fingerprint or Face ID) to sign in. No passwords needed!
+
+Need help? Reply to this email or contact your admin.
+
+Best regards,
+The Cockpit Team
+
+========================================
+This is an automated message from SAP Implementation Cockpit.`;
+
+    // Create mailto link
+    const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+
+    // Try to open in a new window first (more reliable)
+    const opened = window.open(mailtoLink, '_blank');
+
+    // Fallback to direct location change if popup blocked
+    if (!opened) {
+      window.location.href = mailtoLink;
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -69,43 +113,69 @@ export default function AccessCodeModal({ isOpen, onClose, email, code }: Access
         </button>
 
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100 mb-4">
-            <svg className="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Access Approved!</h2>
           <p className="text-sm text-slate-600">
-            Share this code with <span className="font-medium text-slate-900">{email}</span>
+            Access code ready for <span className="font-medium text-slate-900">{email}</span>
           </p>
         </div>
 
-        {/* QR Code */}
-        <div className="bg-slate-50 rounded-xl p-6 mb-6">
-          <div className="flex justify-center mb-4">
-            <canvas ref={canvasRef} className="rounded-lg shadow-sm" />
+        {/* Magic Link Section */}
+        {magicUrl && (
+          <div className="mb-6">
+            <div className="text-center mb-3">
+              <h3 className="text-sm font-semibold text-slate-700 mb-1">Magic Link</h3>
+              <p className="text-xs text-slate-500">Expires in 2 minutes</p>
+            </div>
+            <div className="relative">
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 overflow-hidden">
+                <p className="text-xs text-blue-900 font-mono truncate text-center">
+                  {magicUrl}
+                </p>
+              </div>
+              <button
+                onClick={handleCopyLink}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
+              >
+                {copiedLink ? (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Copied
+                  </span>
+                ) : (
+                  'Copy'
+                )}
+              </button>
+            </div>
           </div>
-          <p className="text-xs text-center text-slate-500">Scan with phone to auto-fill login</p>
-        </div>
+        )}
 
-        {/* Code Display */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-2">6-Digit Code</label>
+        {/* 6-Digit Code Section */}
+        <div className="mb-8">
+          <div className="text-center mb-3">
+            <h3 className="text-sm font-semibold text-slate-700 mb-1">6-Digit Code</h3>
+            <p className="text-xs text-slate-500">Expires in 7 days</p>
+          </div>
           <div className="relative">
-            <input
-              type="text"
-              value={code}
-              readOnly
-              className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-center text-2xl font-mono font-bold text-slate-900 tracking-widest"
-            />
+            <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-6">
+              <p className="text-4xl font-bold text-slate-900 font-mono tracking-widest text-center">
+                {code}
+              </p>
+            </div>
             <button
-              onClick={handleCopy}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 transition-colors"
+              onClick={handleCopyCode}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-medium hover:bg-slate-800 transition-colors"
             >
-              {copied ? (
+              {copiedCode ? (
                 <span className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   Copied
@@ -117,32 +187,24 @@ export default function AccessCodeModal({ isOpen, onClose, email, code }: Access
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="space-y-3">
-          <button
-            onClick={handleDownloadQR}
-            className="w-full px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Download QR Code
-          </button>
+        {/* Email Button */}
+        <button
+          onClick={handleOpenEmail}
+          className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 mb-4"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Open Email Client
+        </button>
 
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-2.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
-          >
-            Done
-          </button>
-        </div>
-
-        {/* Info */}
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs text-blue-800">
-            <strong>Expires:</strong> 7 days • <strong>One-time use</strong> • Secure delivery via email/QR
-          </p>
-        </div>
+        {/* Done Button */}
+        <button
+          onClick={onClose}
+          className="w-full px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+        >
+          Done
+        </button>
       </div>
     </div>
   );

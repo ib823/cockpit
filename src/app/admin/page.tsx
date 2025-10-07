@@ -31,11 +31,27 @@ export default function AdminPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
   const [generatedEmail, setGeneratedEmail] = useState('');
+  const [generatedMagicUrl, setGeneratedMagicUrl] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ email: string; name: string | null } | null>(null);
 
   useEffect(() => {
     fetchUsers();
+    fetchCurrentUser();
   }, []);
+
+  async function fetchCurrentUser() {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.ok && data.user) {
+        setCurrentUser({ email: data.user.email, name: data.user.name });
+      }
+    } catch (e) {
+      console.error('Failed to fetch current user', e);
+    }
+  }
 
   async function fetchUsers() {
     try {
@@ -53,6 +69,7 @@ export default function AdminPage() {
 
   async function handleLogout() {
     setLoggingOut(true);
+    setShowLogoutModal(false);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       router.push('/login');
@@ -93,9 +110,10 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (data.ok) {
-        // Show modal with QR code and copy functionality
+        // Show modal with magic link and code
         setGeneratedCode(data.code);
         setGeneratedEmail(data.email);
+        setGeneratedMagicUrl(data.magicUrl || '');
         setModalOpen(true);
         setEmail('');
         setName('');
@@ -241,7 +259,19 @@ export default function AdminPage() {
               <h1 className="text-3xl font-light text-slate-900 tracking-tight">Cockpit</h1>
               <p className="text-sm text-slate-600 mt-1">Admin Dashboard</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              {/* Current User Info */}
+              {currentUser && (
+                <div className="text-right">
+                  <p className="text-sm font-medium text-slate-900">
+                    {currentUser.name || 'Admin'}
+                  </p>
+                  <p className="text-xs text-slate-600">
+                    {currentUser.email}
+                  </p>
+                </div>
+              )}
+
               {/* Go to App */}
               <button
                 onClick={() => router.push('/')}
@@ -255,7 +285,7 @@ export default function AdminPage() {
 
               {/* Logout */}
               <button
-                onClick={handleLogout}
+                onClick={() => setShowLogoutModal(true)}
                 disabled={loggingOut}
                 className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all disabled:opacity-50"
               >
@@ -401,7 +431,81 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              {/* Mobile Card View */}
+              <div className="block md:hidden divide-y divide-slate-200">
+                {users.map((user) => (
+                  <div key={user.id} className="p-4 hover:bg-slate-50/50">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        {user.name && (
+                          <p className="text-sm font-medium text-slate-900">{user.name}</p>
+                        )}
+                        <p className={`text-sm ${user.name ? 'text-slate-600' : 'font-medium text-slate-900'}`}>
+                          {user.email}
+                        </p>
+                      </div>
+                      {getStatusBadge(user)}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">First Login</p>
+                        <p className="text-slate-900">{user.firstLoginAt ? formatRelative(user.firstLoginAt) : '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Last Active</p>
+                        <p className="text-slate-900">{user.lastLoginAt ? formatRelative(user.lastLoginAt) : '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Timelines</p>
+                        <p className="font-medium text-slate-900">{user.timelinesGenerated || 0}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Access Expires</p>
+                        <p className="text-slate-900">
+                          {user.exception ? 'Never' : (
+                            new Date(user.accessExpiresAt) > new Date()
+                              ? `${Math.ceil((new Date(user.accessExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))}d`
+                              : 'Expired'
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleException(user.id, user.exception)}
+                        className={`flex-1 min-h-[44px] p-2 rounded-lg transition-colors ${
+                          user.exception
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
+                        <span className="text-lg font-bold">∞</span>
+                      </button>
+                      <button
+                        onClick={() => extendAccess(user.id, user.email)}
+                        className="flex-1 min-h-[44px] p-2 bg-green-50 text-green-600 rounded-lg"
+                      >
+                        <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => deleteUser(user.id, user.email)}
+                        className="flex-1 min-h-[44px] p-2 bg-red-50 text-red-600 rounded-lg"
+                      >
+                        <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <table className="w-full hidden md:table">
                 <thead className="bg-slate-50/50 border-b border-slate-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
@@ -500,7 +604,7 @@ export default function AdminPage() {
                           <button
                             onClick={() => toggleException(user.id, user.exception)}
                             title={user.exception ? 'Disable exception (re-enable expiry)' : 'Enable exception (never expires)'}
-                            className={`p-2 rounded-lg transition-colors ${
+                            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg transition-colors ${
                               user.exception
                                 ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                 : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
@@ -513,9 +617,9 @@ export default function AdminPage() {
                           <button
                             onClick={() => extendAccess(user.id, user.email)}
                             title="Extend access by 7 days"
-                            className="p-2 text-slate-400 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
+                            className="min-h-[44px] min-w-[44px] p-2 text-slate-400 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
                           >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
                           </button>
@@ -524,9 +628,9 @@ export default function AdminPage() {
                           <button
                             onClick={() => deleteUser(user.id, user.email)}
                             title="Delete user"
-                            className="p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                            className="min-h-[44px] min-w-[44px] p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
                           >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
@@ -547,7 +651,51 @@ export default function AdminPage() {
         onClose={() => setModalOpen(false)}
         email={generatedEmail}
         code={generatedCode}
+        magicUrl={generatedMagicUrl}
       />
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-slate-200">
+            <div className="text-center">
+              {/* Icon */}
+              <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                Logout
+              </h3>
+
+              {/* Personalized Message */}
+              <p className="text-slate-600 mb-6">
+                Are you sure you want to logout{currentUser?.name ? `, ${currentUser.name}` : ''}?
+              </p>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="flex-1 px-4 py-3 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
+                >
+                  {loggingOut ? 'Logging out...' : 'Logout'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

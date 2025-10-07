@@ -38,14 +38,15 @@ export async function POST(req: Request) {
     // Check expiry
     if (new Date() > magicToken.expiresAt) {
       return NextResponse.json(
-        { ok: false, error: 'This link has expired (valid for 5 minutes)' },
+        { ok: false, error: 'This link has expired (valid for 2 minutes)' },
         { status: 401 }
       );
     }
 
-    // Get user
+    // Get user with authenticators
     const user = await prisma.user.findUnique({
       where: { email: magicToken.email },
+      include: { authenticators: true },
     });
 
     if (!user) {
@@ -63,53 +64,87 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get IP address for audit
+    // Get IP address and enhanced fingerprinting for audit
     const forwarded = req.headers.get('x-forwarded-for');
     const ip = forwarded ? forwarded.split(',')[0] : req.headers.get('x-real-ip') || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+
+    // Enhanced device fingerprint for security
+    const enhancedDeviceInfo = {
+      ...(deviceInfo ? JSON.parse(deviceInfo) : {}),
+      ip,
+      userAgent,
+      timestamp: new Date().toISOString(),
+    };
 
     // Mark token as used
     await prisma.magicToken.update({
       where: { token },
       data: {
         usedAt: new Date(),
-        deviceInfo,
+        deviceInfo: JSON.stringify(enhancedDeviceInfo),
         ipAddress: ip,
       },
     });
 
-    // Update user login stats
-    await prisma.user.update({
-      where: { email: magicToken.email },
-      data: {
-        lastLoginAt: new Date(),
-        firstLoginAt: user.firstLoginAt || new Date(),
-      },
+    // Check if user has a passkey (Authenticator)
+    const hasPasskey = await prisma.authenticator.findFirst({
+      where: { userId: user.id },
     });
 
-    // Create session (map MANAGER to USER for session purposes)
-    const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
-    await setSession({ sub: user.id, role: sessionRole });
+    // Import webauthn utilities
+    const { generateRegistrationOptions, generateAuthenticationOptions, challenges, rpID, rpName, origin } = await import('../../../../lib/webauthn');
 
-    // Log audit event
-    await prisma.auditEvent.create({
-      data: {
-        userId: user.id,
-        type: 'MAGIC_LINK_LOGIN',
-        meta: {
-          ip,
-          deviceInfo,
-          tokenExpiry: magicToken.expiresAt,
+    // If no passkey, generate registration options for passkey setup
+    if (!hasPasskey) {
+      const registrationOptions = await generateRegistrationOptions({
+        rpName,
+        rpID,
+        userName: user.email,
+        userDisplayName: user.name || user.email,
+        timeout: 60000,
+        attestationType: 'none',
+        authenticatorSelection: {
+          residentKey: 'preferred',
+          userVerification: 'preferred',
         },
-      },
+      });
+
+      // Store challenge for verification (must match finish-register key)
+      await challenges.set(`reg:${user.email}`, registrationOptions.challenge);
+
+      return NextResponse.json({
+        ok: true,
+        requiresPasskeyRegistration: true,
+        options: registrationOptions,
+        email: user.email,
+        name: user.name,
+        message: 'Please set up your passkey to complete login',
+      });
+    }
+
+    // User has passkey - generate authentication challenge
+    const authOptions = await generateAuthenticationOptions({
+      rpID,
+      allowCredentials: user.authenticators.map((auth: any) => ({
+        id: auth.id,
+        type: 'public-key' as const,
+        transports: auth.transports as AuthenticatorTransport[],
+      })),
+      userVerification: 'preferred',
+      timeout: 60000,
     });
+
+    // Store challenge for verification
+    await challenges.set(`auth:${user.email}`, authOptions.challenge);
 
     return NextResponse.json({
       ok: true,
-      user: {
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      requiresPasskeyAuth: true,
+      options: authOptions,
+      email: user.email,
+      name: user.name,
+      message: 'Please authenticate with your passkey',
     });
   } catch (error) {
     console.error('Magic login error:', error);

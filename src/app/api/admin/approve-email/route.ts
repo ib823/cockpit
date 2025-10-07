@@ -29,7 +29,8 @@ export async function POST(req: Request) {
 
     // Generate code but don't send it yet
     const code = generateCode();
-    const tokenHash = await hash(code, 10);
+    // SECURITY FIX: Increased bcrypt rounds from 10 to 12 for stronger hashing
+    const tokenHash = await hash(code, 12);
     const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
     // Create or update user (pending status)
@@ -65,9 +66,9 @@ export async function POST(req: Request) {
       },
     });
 
-    // Generate magic token for instant login (push notification)
+    // Generate magic token for instant login via email
     const magicToken = generateMagicToken();
-    const magicTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+    const magicTokenExpiry = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes (reduced for email security)
 
     await prisma.magicToken.create({
       data: {
@@ -77,28 +78,22 @@ export async function POST(req: Request) {
       },
     });
 
-    // Try to send email immediately (optional - won't block on failure)
-    sendAccessCode(email, code).catch(err => {
+    // Try to send email immediately with magic link (optional - won't block on failure)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const magicUrl = `${baseUrl}/login?token=${magicToken}`;
+
+    sendAccessCode(email, code, magicUrl).catch(err => {
       console.error('Failed to send access code email:', err);
     });
-
-    // Try to send push notification with magic link (optional - won't block on failure)
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/push/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code, magicToken }),
-      });
-    } catch (err) {
-      console.error('Failed to send push notification:', err);
-    }
 
     return NextResponse.json(
       {
         ok: true,
         message: 'Email approved. Code will be sent when user tries to login.',
-        code, // Return code for QR generation & clipboard
-        email
+        code, // Return code for clipboard
+        email,
+        magicUrl, // Magic link URL
+        magicLinkExpiry: '2 minutes'
       },
       { headers: { 'Content-Type': 'application/json' } }
     );

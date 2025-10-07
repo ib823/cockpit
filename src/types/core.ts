@@ -79,12 +79,14 @@ export interface ScenarioPlan {
 export interface Task {
   id: string;
   name: string;
-  effortPercent: number; // Percentage of phase effort (0-100)
-  effort?: number; // Calculated from phase effort * effortPercent
-  daysPercent: number; // Percentage of phase duration (0-100)
-  workingDays?: number; // Calculated from phase workingDays * daysPercent
-  defaultRole: string; // Default role for this task
+  startDate?: Date; // Must be >= phase.startDate
+  endDate?: Date; // Must be <= phase.endDate
+  workingDays: number; // Calculated from start/end dates
+  effort: number; // Man-days effort
+  resources?: Resource[]; // Resources assigned to this task (drawn from phase resources)
+  defaultRole?: string; // Suggested role for this task
   description?: string;
+  status?: "not_started" | "in_progress" | "completed";
 }
 
 export interface Phase {

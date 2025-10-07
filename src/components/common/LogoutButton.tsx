@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { LogOut, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { animation } from "@/lib/design-system";
 
 /**
@@ -15,10 +15,32 @@ import { animation } from "@/lib/design-system";
  * - Smooth animations for delight
  * - Responsive design (mobile-first)
  */
-export function LogoutButton({ variant = "button" }: { variant?: "button" | "menu-item" }) {
+export function LogoutButton({ variant = "button", theme = "light" }: { variant?: "button" | "menu-item"; theme?: "light" | "dark" }) {
   const router = useRouter();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ email: string; name: string | null } | null>(null);
+
+  useEffect(() => {
+    fetchCurrentUser();
+  }, []);
+
+  async function fetchCurrentUser() {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (!res.ok) {
+        // API endpoint doesn't exist or returned error - fail silently
+        return;
+      }
+      const data = await res.json();
+      if (data.ok && data.user) {
+        setCurrentUser({ email: data.user.email, name: data.user.name });
+      }
+    } catch (e) {
+      // Network error or API doesn't exist - fail silently
+      // Jobs + Ive: "It just works" - no error messages for missing features
+    }
+  }
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -60,29 +82,44 @@ export function LogoutButton({ variant = "button" }: { variant?: "button" | "men
           isLoggingOut={isLoggingOut}
           onClose={() => setShowConfirmation(false)}
           onConfirm={handleLogout}
+          currentUser={currentUser}
         />
       </>
     );
   }
 
+  const isDark = theme === "dark";
+
   return (
-    <>
+    <div className="flex flex-col items-end gap-1">
       <button
         onClick={() => setShowConfirmation(true)}
-        className="px-3 py-2 sm:px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all flex items-center gap-2 border border-gray-300 text-sm"
+        className={`px-3 py-2 sm:px-4 rounded-lg font-medium transition-all flex items-center gap-2 text-sm ${
+          isDark
+            ? 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+        }`}
         title="Logout"
       >
         <LogOut className="w-4 h-4" />
         <span className="hidden sm:inline">Logout</span>
       </button>
 
+      {/* Current User Email - Under button */}
+      {currentUser && (
+        <p className={`text-xs hidden sm:block ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+          {currentUser.email}
+        </p>
+      )}
+
       <ConfirmationDialog
         isOpen={showConfirmation}
         isLoggingOut={isLoggingOut}
         onClose={() => setShowConfirmation(false)}
         onConfirm={handleLogout}
+        currentUser={currentUser}
       />
-    </>
+    </div>
   );
 }
 
@@ -91,11 +128,13 @@ function ConfirmationDialog({
   isLoggingOut,
   onClose,
   onConfirm,
+  currentUser,
 }: {
   isOpen: boolean;
   isLoggingOut: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  currentUser: { email: string; name: string | null } | null;
 }) {
   return (
     <AnimatePresence>
@@ -131,7 +170,7 @@ function ConfirmationDialog({
               <p className="text-sm sm:text-base text-gray-600 text-center mb-6 sm:mb-8">
                 {isLoggingOut
                   ? "Please wait while we sign you out."
-                  : "Are you sure you want to logout? Your work is automatically saved."
+                  : `Are you sure you want to logout${currentUser?.name ? `, ${currentUser.name}` : ''}?`
                 }
               </p>
 

@@ -31,7 +31,7 @@ export function ResourcePanel({
   phaseId,
   phaseName,
   phaseEffort,
-  resources,
+  resources = [], // Default to empty array
   onUpdateResource,
   onAddResource,
   onRemoveResource,

@@ -217,7 +217,7 @@ export const generateTimelineFromSAPSelection = (
         dependencies: getDependentPhases(packageId, stageName, phases),
         status: "idle",
         resources: generateResourceRequirements(stageEffort, profile.region),
-        tasks: generateDefaultTasks(stageName), // Add 3 default tasks per phase
+        tasks: [], // No default tasks - user creates them manually
       };
 
       phases.push(phase);

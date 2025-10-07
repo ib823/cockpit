@@ -97,7 +97,7 @@ export function ImprovedGanttChart({
     });
   }, [rawPhases]);
 
-  // State
+  // State - Default to all collapsed
   const [collapsedStreams, setCollapsedStreams] = useState<Set<string>>(new Set());
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
   const [selectedRegion, setSelectedRegion] = useState<'ABMY' | 'ABSG' | 'ABVN'>('ABMY');
@@ -206,7 +206,7 @@ export function ImprovedGanttChart({
     return getHolidaysInRange(minDate, maxDate, selectedRegion);
   }, [minDate, maxDate, selectedRegion]);
 
-  // Initialize milestones when phases are available
+  // Initialize milestones and default collapsed state when phases are available
   useEffect(() => {
     if (milestones.length === 0 && safePhases.length > 0) {
       const dates = safePhases.flatMap(p => [p.startDate, p.endDate]).filter((d): d is Date => d != null && d instanceof Date);
@@ -219,7 +219,12 @@ export function ImprovedGanttChart({
         ]);
       }
     }
-  }, [safePhases, milestones.length]);
+
+    // Default all streams to collapsed on initial load
+    if (streams.length > 0 && collapsedStreams.size === 0) {
+      setCollapsedStreams(new Set(streams.map(s => s.id)));
+    }
+  }, [safePhases, milestones.length, streams, collapsedStreams.size]);
 
   // Collapse/Expand handlers
   const handleExpandAll = () => {
@@ -705,52 +710,80 @@ export function ImprovedGanttChart({
               </div>
             </div>
 
-            {/* Collapsed Mini Reference Bar */}
+            {/* Collapsed View - Show ALL phases with full details */}
             {isCollapsed && (
-              <div className="flex items-center mb-2 group/collapsed">
-                <div className="w-64 pl-8 pr-4 flex items-center justify-end">
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // For collapsed view, allow resource allocation on the first phase or show all
-                      const firstPhase = stream.phases[0];
-                      if (firstPhase) {
-                        setSelectedPhaseForResources(firstPhase);
-                      }
-                    }}
-                    className="opacity-0 group-hover/collapsed:opacity-100"
-                    aria-label="Manage Stream Resources"
-                  >
-                    <Users className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="flex-1 relative h-8">
-                  {/* Combined mini bar showing all phases */}
-                  {stream.phases.map((phase) => {
-                    const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
-                    const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
+              <div className="space-y-2">
+                {stream.phases.map((phase) => {
+                  const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
+                  const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
 
-                    return (
-                      <div
-                        key={phase.id}
-                        className={`absolute top-1 h-6 rounded ${stream.color} opacity-60 hover:opacity-90 cursor-pointer transition-opacity`}
-                        style={{
-                          left: `${startPercent}%`,
-                          width: `${widthPercent}%`,
-                        }}
-                        onClick={() => {
-                          toggleStream(stream.id); // Expand on click
-                          if (selectPhase) {
-                            selectPhase(phase.id);
-                          }
-                        }}
-                        title={`${phase.name} (${phase.workingDays}d)`}
-                      />
-                    );
-                  })}
-                </div>
+                  return (
+                    <div key={phase.id} className="flex items-center group/phase">
+                      <div className="w-64 pl-8 pr-4 flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm text-gray-700 truncate">{phase.name}</div>
+                          <div className="text-xs text-gray-500">{phase.workingDays}d • {phase.effort}md</div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPhaseForResources(phase);
+                          }}
+                          className="ml-2 opacity-0 group-hover/phase:opacity-100"
+                          aria-label="Allocate Resources"
+                        >
+                          <Users className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      <div className="flex-1 relative h-16">
+                        {/* Full insightful phase bar */}
+                        <div
+                          className={`absolute top-2 h-12 rounded-lg ${stream.color} hover:shadow-xl hover:brightness-110 transition-all cursor-pointer`}
+                          style={{
+                            left: `${startPercent}%`,
+                            width: `${widthPercent}%`,
+                          }}
+                          onClick={() => {
+                            if (onPhaseClick) {
+                              onPhaseClick(phase);
+                            } else if (selectPhase) {
+                              selectPhase(phase.id);
+                            }
+                          }}
+                        >
+                          {/* Phase Content */}
+                          <div className="p-2 h-full flex flex-col justify-between">
+                            {/* Dates */}
+                            <div className="flex justify-between text-[10px] text-white/80 font-medium gap-1">
+                              <span>
+                                {phase.startDate ? format(phase.startDate, 'MMM dd') : format(addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion), 'MMM dd')}
+                              </span>
+                              <span>
+                                {phase.endDate ? format(phase.endDate, 'MMM dd') : format(addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), selectedRegion), 'MMM dd')}
+                              </span>
+                            </div>
+
+                            {/* Duration */}
+                            <div className="text-center">
+                              <span className="text-xs font-bold text-white px-2 py-0.5 bg-black/20 rounded">
+                                {phase.workingDays}d
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Avatars */}
+                          {renderResourceAvatars(phase)}
+
+                          {/* Utilization */}
+                          {renderUtilizationBar(phase)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -762,13 +795,8 @@ export function ImprovedGanttChart({
                 const isDragging = draggedPhase === phase.id;
                 const isPhaseExpanded = expandedPhases.has(phase.id);
 
-                // Generate tasks for this phase if not already present
-                const phaseTasks = phase.tasks || generateTasksForPhase(
-                  phase.name,
-                  phase.category,
-                  phase.effort || 0,
-                  phase.workingDays || 0
-                );
+                // Tasks are manually created by user (no auto-generation)
+                const phaseTasks = phase.tasks || [];
 
                 return (
                   <div key={phase.id}>

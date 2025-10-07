@@ -85,7 +85,9 @@ export function OptimizeMode() {
                   Allocate resources by phase. Resources are assigned at the phase level, not by individual tasks.
                 </BodyMD>
 
-                <ResourcePanel phases={phases} />
+                {/* TODO: Fix ResourcePanel to work with multiple phases */}
+                {/* <ResourcePanel phases={phases} /> */}
+                <BodyMD className="text-gray-500 italic">Resource panel implementation pending...</BodyMD>
               </div>
 
               {/* Summary Cards */}

@@ -103,7 +103,7 @@ RFP Text Input → Chip Parser → Presales Store → Bridge → Timeline Store
 
 The new UX follows Steve Jobs principles (see COMPLETE_UX_TRANSFORMATION.md):
 
-**Unified Workflow (`/project` → `/timeline-magic`):**
+**Unified Workflow (`/project`):**
 
 1. **Capture** - Extract requirements from RFPs (chip extraction)
 2. **Decide** - Make key decisions (modules, pricing, SSO)
@@ -259,7 +259,6 @@ The app underwent a complete UX transformation (Oct 2025):
 
 - New magic timeline with instant gratification (example shown immediately)
 - Steve Jobs-inspired design principles (focus, simplicity, delight)
-- All navigation redirects to `/timeline-magic` (see middleware.ts)
-- Legacy routes (/presales, /timeline) still functional but not linked
+- Main workflow available at `/project` route
 
 Active development focus: Project V2 workflow (4-mode UX)

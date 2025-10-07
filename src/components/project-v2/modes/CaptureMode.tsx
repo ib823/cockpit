@@ -24,6 +24,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Heading1, Heading3, BodyLG, BodyMD, BodySM, LabelMD } from "@/components/common/Typography";
 import { animation } from "@/lib/design-system";
+import { showSuccess } from "@/lib/toast";
 
 // Sample RFP text for demo
 const SAMPLE_RFP = `Malaysia manufacturing company with 500 employees and MYR 200M annual revenue.
@@ -101,9 +102,9 @@ export function CaptureMode() {
     
     if (newChips.length > 0) {
       addChips(newChips);
-      
-      // Show success toast (optional - could add a toast system later)
-      console.log(`Added ${newChips.length} default chips`);
+
+      // Show success toast
+      showSuccess(`Added ${newChips.length} default chips`);
     }
   };
 

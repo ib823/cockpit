@@ -1,0 +1,481 @@
+/**
+ * WHITEBOARD V3 - ENHANCED WITH L3 SELECTOR + GANTT
+ *
+ * Jobs/Ive Design: Clean, focused, delightful
+ * Features:
+ * - Complete 158 L3 item catalog
+ * - Module-based selection
+ * - Live Gantt chart preview
+ * - Mathematical justification
+ */
+
+'use client';
+
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, TrendingUp, Target, Database, Check, Plus, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useMemo } from 'react';
+import { formulaEngine, type EstimatorInputs, PROFILE_PRESETS } from '@/lib/estimator/formula-engine';
+import { theoremEngine } from '@/lib/estimator/theorem-engine';
+import { l3CatalogComplete } from '@/lib/estimator/l3-catalog-complete';
+import type { L3Item } from '@/lib/estimator/formula-engine';
+import {
+  StatCard,
+  BarItem,
+  BenchmarkChart,
+  ConfidenceMeter,
+  MetricCard,
+  RegressionTable,
+  Tooltip
+} from '@/components/estimator/EstimatorComponents';
+
+const TABS = [
+  { id: 'scope', label: 'Scope' },
+  { id: 'pareto', label: 'Pareto' },
+  { id: 'regression', label: 'Validation' },
+  { id: 'timeline', label: 'Timeline' }
+];
+
+export default function WhiteboardV3Page() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState('scope');
+  const [profile, setProfile] = useState(PROFILE_PRESETS[1]);
+  const [selectedL3Items, setSelectedL3Items] = useState<L3Item[]>([]);
+  const [integrations, setIntegrations] = useState(2);
+  const [countries, setCountries] = useState(1);
+  const [entities, setEntities] = useState(1);
+  const [inAppExtensions, setInAppExtensions] = useState(0);
+  const [btpExtensions, setBtpExtensions] = useState(0);
+  const [showL3Selector, setShowL3Selector] = useState(false);
+
+  // Get available modules
+  const modules = l3CatalogComplete.getModules();
+
+  // Calculate estimate
+  const inputs: EstimatorInputs = {
+    profile,
+    modules: profile.modules,
+    l3Items: selectedL3Items,
+    integrations,
+    inAppExtensions,
+    btpExtensions,
+    countries,
+    entities,
+    languages: 1,
+    peakSessions: 100
+  };
+
+  const estimate = formulaEngine.calculateTotal(inputs);
+  const theorems = theoremEngine.generateAllTheorems(inputs, estimate);
+
+  // Generate timeline phases
+  const phases = useMemo(() => {
+    const { duration } = estimate;
+    const totalWeeks = duration.weeks;
+
+    return [
+      { name: 'Prepare', weeks: Math.ceil(totalWeeks * 0.12), start: 0, color: 'blue' },
+      { name: 'Explore', weeks: Math.ceil(totalWeeks * 0.18), start: Math.ceil(totalWeeks * 0.12), color: 'purple' },
+      { name: 'Realize', weeks: Math.ceil(totalWeeks * 0.45), start: Math.ceil(totalWeeks * 0.30), color: 'green' },
+      { name: 'Deploy', weeks: Math.ceil(totalWeeks * 0.15), start: Math.ceil(totalWeeks * 0.75), color: 'orange' },
+      { name: 'Run', weeks: Math.ceil(totalWeeks * 0.10), start: Math.ceil(totalWeeks * 0.90), color: 'gray' }
+    ];
+  }, [estimate.duration.weeks]);
+
+  // Handle L3 item toggle
+  const toggleL3Item = (item: L3Item) => {
+    setSelectedL3Items(prev =>
+      prev.find(i => i.id === item.id)
+        ? prev.filter(i => i.id !== item.id)
+        : [...prev, item]
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="border-b border-gray-100 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
+          <button
+            onClick={() => router.push('/estimator-v3')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">Back</span>
+          </button>
+
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-3xl font-light text-gray-900">{estimate.totalEffort} MD</div>
+              <div className="text-sm text-gray-500">{estimate.duration.months} months</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-8 py-12">
+        {/* Formula Breakdown */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-12 mb-12 border border-gray-100 shadow-xl"
+        >
+          <h2 className="text-3xl font-light text-gray-900 mb-8">Live Formula</h2>
+
+          <div className="font-mono text-xl leading-loose mb-8">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-gray-500">Total =</span>
+              <Tooltip content="Base Core Effort">
+                <span className="text-blue-600 font-semibold px-3 py-1 bg-blue-50 rounded-lg">
+                  {estimate.bce}
+                </span>
+              </Tooltip>
+              <span className="text-gray-500">×</span>
+              <Tooltip content={`Scope Breadth: ${integrations} integrations, ${selectedL3Items.length} L3 items`}>
+                <span className="text-purple-600 font-semibold px-3 py-1 bg-purple-50 rounded-lg cursor-help">
+                  ({estimate.sbMultiplier.toFixed(2)})
+                </span>
+              </Tooltip>
+              <span className="text-gray-500">×</span>
+              <Tooltip content={`Process Complexity: ${inAppExtensions} in-app + ${btpExtensions} BTP`}>
+                <span className="text-orange-600 font-semibold px-3 py-1 bg-orange-50 rounded-lg cursor-help">
+                  ({estimate.pcMultiplier.toFixed(2)})
+                </span>
+              </Tooltip>
+              <span className="text-gray-500">×</span>
+              <Tooltip content={`Org Scale: ${countries} countries, ${entities} entities`}>
+                <span className="text-green-600 font-semibold px-3 py-1 bg-green-50 rounded-lg cursor-help">
+                  ({estimate.osgMultiplier.toFixed(2)})
+                </span>
+              </Tooltip>
+              <span className="text-gray-500">+</span>
+              <Tooltip content="Factory Wrapper">
+                <span className="text-gray-600 font-semibold px-3 py-1 bg-gray-50 rounded-lg cursor-help">
+                  {estimate.fw}
+                </span>
+              </Tooltip>
+            </div>
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <motion.span
+                className="text-5xl font-light text-gray-900"
+                key={estimate.totalEffort}
+                initial={{ scale: 1.1, color: '#3B82F6' }}
+                animate={{ scale: 1, color: '#111827' }}
+                transition={{ duration: 0.3 }}
+              >
+                {estimate.totalEffort} MD
+              </motion.span>
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-4 gap-4">
+            <StatCard label="SB" value={`+${Math.round((estimate.sbMultiplier - 1) * 100)}%`} color="purple" />
+            <StatCard label="PC" value={`+${Math.round((estimate.pcMultiplier - 1) * 100)}%`} color="orange" />
+            <StatCard label="OSG" value={`+${Math.round((estimate.osgMultiplier - 1) * 100)}%`} color="green" />
+            <StatCard label="FW" value={`${estimate.fw} MD`} color="gray" />
+          </div>
+        </motion.div>
+
+        {/* Tabs */}
+        <div className="mb-8">
+          <div className="flex gap-2 border-b border-gray-200">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-6 py-3 text-base font-medium transition-all border-b-2 -mb-px ${
+                  activeTab === tab.id
+                    ? 'border-gray-900 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <AnimatePresence mode="wait">
+          {activeTab === 'scope' && (
+            <motion.div
+              key="scope"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-8"
+            >
+              {/* L3 Item Selector */}
+              <div className="bg-gray-50 rounded-3xl p-12 border border-gray-100">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-2xl font-light text-gray-900">Scope Items</h3>
+                  <button
+                    onClick={() => setShowL3Selector(!showL3Selector)}
+                    className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Add L3 Items
+                  </button>
+                </div>
+
+                {/* Selected L3 Items */}
+                {selectedL3Items.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    {selectedL3Items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200"
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900">{item.code} - {item.name}</div>
+                          <div className="text-sm text-gray-500">Tier {item.tier} • {item.module}</div>
+                        </div>
+                        <button
+                          onClick={() => toggleL3Item(item)}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-400">
+                    No L3 items selected. Using profile defaults.
+                  </div>
+                )}
+
+                {/* L3 Selector Modal */}
+                <AnimatePresence>
+                  {showL3Selector && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-8"
+                      onClick={() => setShowL3Selector(false)}
+                    >
+                      <motion.div
+                        className="bg-white rounded-3xl p-12 max-w-6xl w-full max-h-[80vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center justify-between mb-8">
+                          <h3 className="text-3xl font-light text-gray-900">Select L3 Scope Items</h3>
+                          <button
+                            onClick={() => setShowL3Selector(false)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            <X className="w-8 h-8" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-8">
+                          {modules.slice(0, 8).map((module) => {
+                            const items = l3CatalogComplete.getByModule(module);
+                            return (
+                              <div key={module}>
+                                <h4 className="text-lg font-medium text-gray-900 mb-4">{module} ({items.length} items)</h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                  {items.map((item) => {
+                                    const isSelected = selectedL3Items.find(i => i.id === item.id);
+                                    return (
+                                      <button
+                                        key={item.id}
+                                        onClick={() => toggleL3Item(item)}
+                                        className={`text-left p-4 rounded-xl border-2 transition-all ${
+                                          isSelected
+                                            ? 'border-gray-900 bg-gray-50'
+                                            : 'border-gray-200 hover:border-gray-300'
+                                        }`}
+                                      >
+                                        <div className="flex items-start justify-between">
+                                          <div>
+                                            <div className="font-medium text-gray-900">{item.code} - {item.name}</div>
+                                            <div className="text-sm text-gray-500 mt-1">{item.description}</div>
+                                            <div className="mt-2 inline-block px-2 py-1 bg-gray-100 rounded text-xs font-medium text-gray-600">
+                                              Tier {item.tier} • {item.coefficient}
+                                            </div>
+                                          </div>
+                                          {isSelected && <Check className="w-5 h-5 text-gray-900" />}
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Input Controls */}
+              <div className="grid grid-cols-2 gap-8">
+                <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
+                  <h4 className="text-lg font-medium text-gray-900 mb-6">Scope Breadth</h4>
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Integrations</label>
+                      <input
+                        type="number"
+                        value={integrations}
+                        onChange={(e) => setIntegrations(Number(e.target.value))}
+                        className="w-full h-12 px-4 border-2 border-gray-200 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
+                  <h4 className="text-lg font-medium text-gray-900 mb-6">Org Scale</h4>
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Countries</label>
+                      <input
+                        type="number"
+                        value={countries}
+                        onChange={(e) => setCountries(Number(e.target.value))}
+                        className="w-full h-12 px-4 border-2 border-gray-200 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Legal Entities</label>
+                      <input
+                        type="number"
+                        value={entities}
+                        onChange={(e) => setEntities(Number(e.target.value))}
+                        className="w-full h-12 px-4 border-2 border-gray-200 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'pareto' && (
+            <motion.div
+              key="pareto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-gray-50 rounded-3xl p-12 border border-gray-100"
+            >
+              <h3 className="text-2xl font-light text-gray-900 mb-8">80/20 Effort Drivers</h3>
+              <div className="space-y-4 mb-8">
+                {theorems.pareto.drivers.map((driver) => (
+                  <BarItem
+                    key={driver.label}
+                    label={driver.label}
+                    value={driver.percentOfTotal}
+                    color={driver.category === 'base' ? 'blue' : driver.category === 'scope' ? 'purple' : driver.category === 'geography' ? 'orange' : 'gray'}
+                  />
+                ))}
+              </div>
+              <div className="p-6 bg-amber-50 border border-amber-200 rounded-2xl">
+                <p className="text-amber-900">⚠️ {theorems.pareto.recommendation}</p>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'regression' && (
+            <motion.div
+              key="regression"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-8"
+            >
+              <div className="bg-gray-50 rounded-3xl p-12 border border-gray-100">
+                <h3 className="text-2xl font-light text-gray-900 mb-8">Statistical Validation</h3>
+                <RegressionTable variables={theorems.regression.variables} />
+                <div className="mt-8 grid grid-cols-3 gap-6">
+                  <MetricCard icon={TrendingUp} label="R²" value={theorems.regression.modelFit.rSquared.toFixed(2)} color="blue" />
+                  <MetricCard icon={Target} label="MAPE" value={`${theorems.regression.modelFit.mape.toFixed(1)}%`} color="purple" />
+                  <MetricCard icon={Database} label="Projects" value={theorems.regression.projectCount.toString()} color="green" />
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-3xl p-12 border border-gray-100">
+                <h3 className="text-2xl font-light text-gray-900 mb-8">Benchmark Comparison</h3>
+                <BenchmarkChart
+                  yourEstimate={theorems.benchmark.yourEstimate}
+                  benchmarks={[350, 450, 490, 520, 600, 750]}
+                />
+                <ConfidenceMeter value={theorems.benchmark.confidenceLevel} />
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'timeline' && (
+            <motion.div
+              key="timeline"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-gray-50 rounded-3xl p-12 border border-gray-100"
+            >
+              <h3 className="text-2xl font-light text-gray-900 mb-8">Project Timeline</h3>
+
+              {/* Gantt Chart */}
+              <div className="space-y-6 mb-8">
+                {phases.map((phase, index) => {
+                  const colors = {
+                    blue: 'bg-blue-500',
+                    purple: 'bg-purple-500',
+                    green: 'bg-green-500',
+                    orange: 'bg-orange-500',
+                    gray: 'bg-gray-500'
+                  };
+                  const widthPercent = (phase.weeks / estimate.duration.weeks) * 100;
+
+                  return (
+                    <motion.div
+                      key={phase.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      className="flex items-center gap-4"
+                    >
+                      <div className="w-32 text-base font-medium text-gray-700">{phase.name}</div>
+                      <div className="flex-1 h-20 rounded-2xl overflow-hidden relative bg-white border-2 border-gray-200">
+                        <motion.div
+                          className={`h-full ${colors[phase.color as keyof typeof colors]} flex items-center justify-center`}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${widthPercent}%` }}
+                          transition={{ duration: 0.8, delay: index * 0.1 + 0.2 }}
+                        >
+                          <span className="text-white font-semibold">{phase.weeks} weeks</span>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Timeline Summary */}
+              <div className="grid grid-cols-3 gap-6">
+                <div className="p-6 bg-white rounded-2xl border-2 border-gray-200">
+                  <div className="text-sm text-gray-600 mb-1">Total Duration</div>
+                  <div className="text-3xl font-light text-gray-900">{estimate.duration.weeks} weeks</div>
+                </div>
+                <div className="p-6 bg-white rounded-2xl border-2 border-gray-200">
+                  <div className="text-sm text-gray-600 mb-1">Start to Go-Live</div>
+                  <div className="text-3xl font-light text-gray-900">{estimate.duration.months} months</div>
+                </div>
+                <div className="p-6 bg-white rounded-2xl border-2 border-gray-200">
+                  <div className="text-sm text-gray-600 mb-1">Team Size</div>
+                  <div className="text-3xl font-light text-gray-900">{estimate.fte} consultants</div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}

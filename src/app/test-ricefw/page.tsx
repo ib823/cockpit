@@ -187,14 +187,14 @@ export default function TestRicefwPage() {
               <div>
                 <Text weight="semibold">1. Load Sample Scenario</Text>
                 <Text size="sm" color="muted">
-                  Click "Load Sample Scenario" to populate with recommended RICEFW items for a
+                  Click &quot;Load Sample Scenario&quot; to populate with recommended RICEFW items for a
                   multi-country manufacturing implementation
                 </Text>
               </div>
               <div>
                 <Text weight="semibold">2. Create New Items</Text>
                 <Text size="sm" color="muted">
-                  Click "Add RICEFW Item" to create custom reports, interfaces, conversions, etc.
+                  Click &quot;Add RICEFW Item&quot; to create custom reports, interfaces, conversions, etc.
                 </Text>
               </div>
               <div>
@@ -224,7 +224,7 @@ export default function TestRicefwPage() {
               <div>
                 <Text weight="semibold">7. Check Debug Info</Text>
                 <Text size="sm" color="muted">
-                  Expand the "Debug Information" section to see the raw data structures
+                  Expand the &quot;Debug Information&quot; section to see the raw data structures
                 </Text>
               </div>
             </ResponsiveStack>

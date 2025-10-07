@@ -35,7 +35,7 @@ export function ResetButton({ variant = "button" }: { variant?: "button" | "menu
     setShowConfirmation(false);
 
     // Reload page to reset all state
-    window.location.href = "/timeline-magic";
+    window.location.href = "/";
   };
 
   if (variant === "menu-item") {
