@@ -4,7 +4,7 @@
 const { colors, borderRadius, shadows } = require('./src/lib/design-tokens');
 
 module.exports = {
-  darkMode: 'class', // Enable class-based dark mode (use data-theme="dark")
+  darkMode: 'class', // Enable class-based dark mode
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",

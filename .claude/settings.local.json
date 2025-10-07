@@ -56,7 +56,8 @@
       "Bash(find:*)",
       "Bash(git rm:*)",
       "Bash(openssl rand:*)",
-      "Bash(NEXT_LINT_DISABLED=true npm run build)"
+      "Bash(NEXT_LINT_DISABLED=true npm run build)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": []

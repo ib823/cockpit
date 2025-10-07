@@ -24,6 +24,7 @@ import { Heading1, BodyMD } from "@/components/common/Typography";
 import { Logo } from "@/components/common/Logo";
 import { animation } from "@/lib/design-system";
 import { Sparkles, X } from "lucide-react";
+import { ThemeToggleCompact } from "@/components/theme/ThemeToggle";
 
 // Lazy load heavy components for better performance
 const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
@@ -110,6 +111,7 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
               {progress}%
             </motion.div>
           )}
+          <ThemeToggleCompact />
           <LogoutButton theme="dark" />
           <ResetButton />
         </div>
