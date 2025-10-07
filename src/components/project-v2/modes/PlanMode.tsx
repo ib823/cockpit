@@ -31,6 +31,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Heading3, BodyMD } from "@/components/common/Typography";
+import { ExportButton } from "@/components/export/ExportButton";
 // ResourcePanel and RicefwPanel imports removed - using placeholders for now
 import type { Task } from "@/types/core";
 
@@ -127,7 +128,8 @@ export function PlanMode() {
             </Button>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <ExportButton variant="secondary" size="sm" />
             <Button
               variant="primary"
               size="sm"
