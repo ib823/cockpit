@@ -225,9 +225,9 @@ export function BenchmarkPanel() {
 
   // Extract project characteristics from chips and decisions
   const projectChars: ProjectCharacteristics = useMemo(() => {
-    const moduleChips = chips.filter((c) => c.type === 'SAP_MODULE');
-    const legalEntityChips = chips.filter((c) => c.type === 'LEGAL_ENTITY');
-    const userChips = chips.filter((c) => c.type === 'USERS' || c.type === 'HEADCOUNT');
+    const moduleChips = chips.filter((c) => c.type === 'MODULES');
+    const legalEntityChips = chips.filter((c) => c.type === 'LEGAL_ENTITIES');
+    const userChips = chips.filter((c) => c.type === 'USERS' || c.type === 'EMPLOYEES');
     const integrationChips = chips.filter((c) => c.type === 'INTEGRATION');
 
     // Extract counts
@@ -238,9 +238,11 @@ export function BenchmarkPanel() {
     let userCount = 100; // Default
     if (userChips.length > 0) {
       const userValue = userChips[0].value;
-      const match = userValue.match(/\d+/);
+      const match = typeof userValue === 'string' ? userValue.match(/\d+/) : null;
       if (match) {
         userCount = parseInt(match[0], 10);
+      } else if (typeof userValue === 'number') {
+        userCount = userValue;
       }
     }
 
@@ -257,8 +259,10 @@ export function BenchmarkPanel() {
 
     // Check for legacy migration
     const migrationChips = chips.filter((c) =>
-      c.value.toLowerCase().includes('migration') ||
-      c.value.toLowerCase().includes('legacy')
+      typeof c.value === 'string' && (
+        c.value.toLowerCase().includes('migration') ||
+        c.value.toLowerCase().includes('legacy')
+      )
     );
     const hasLegacyMigration = migrationChips.length > 0;
 
@@ -279,7 +283,9 @@ export function BenchmarkPanel() {
 
   // Generate benchmark report
   const report = useMemo(() => {
-    return compareToBenchmarks(phases, projectChars, industry, country);
+    const industryStr = typeof industry === 'string' ? industry : undefined;
+    const countryStr = typeof country === 'string' ? country : undefined;
+    return compareToBenchmarks(phases, projectChars, industryStr, countryStr);
   }, [phases, projectChars, industry, country]);
 
   // Filter to show only important metrics
