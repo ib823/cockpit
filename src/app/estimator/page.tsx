@@ -427,6 +427,26 @@ export default function EstimatorPage() {
   );
 }
 
+// Industry presets for L3 selector
+const INDUSTRY_PRESETS = {
+  manufacturing: {
+    name: 'Manufacturing',
+    codes: ['PP-001', 'QM-001', 'MM-001', 'PM-001', 'SD-001'],
+  },
+  retail: {
+    name: 'Retail & Distribution',
+    codes: ['SD-001', 'SD-002', 'MM-002', 'WM-001', 'LE-001'],
+  },
+  finance: {
+    name: 'Financial Services',
+    codes: ['FI-001', 'CO-001', 'TR-001', 'RE-001', 'BPC-001'],
+  },
+  utilities: {
+    name: 'Utilities',
+    codes: ['IS-U-001', 'PM-002', 'CS-001', 'SD-003'],
+  },
+} as const;
+
 // L3 Item Selector Modal
 function L3SelectorModal({
   selectedItems,
@@ -438,6 +458,9 @@ function L3SelectorModal({
   onClose: () => void;
 }) {
   const [localSelected, setLocalSelected] = useState(selectedItems);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [tierFilter, setTierFilter] = useState<'A' | 'B' | 'C' | null>(null);
+
   const modules = l3CatalogComplete.getModules();
 
   const toggleItem = (item: L3Item) => {
@@ -448,6 +471,36 @@ function L3SelectorModal({
     );
   };
 
+  // Apply industry preset
+  const applyPreset = (presetKey: keyof typeof INDUSTRY_PRESETS) => {
+    const preset = INDUSTRY_PRESETS[presetKey];
+    const allItems = modules.flatMap(m => l3CatalogComplete.getByModule(m));
+    const presetItems = allItems.filter(item => preset.codes.includes(item.code));
+
+    // Add preset items that aren't already selected
+    const newItems = presetItems.filter(
+      item => !localSelected.find(s => s.id === item.id)
+    );
+
+    if (newItems.length > 0) {
+      setLocalSelected(prev => [...prev, ...newItems]);
+    }
+  };
+
+  // Filter modules and items
+  const filteredModules = modules.map(module => ({
+    module,
+    items: l3CatalogComplete.getByModule(module).filter(item => {
+      const matchesSearch =
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.code.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesTier = tierFilter === null || item.tier === tierFilter;
+
+      return matchesSearch && matchesTier;
+    })
+  })).filter(m => m.items.length > 0);
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <motion.div
@@ -456,7 +509,7 @@ function L3SelectorModal({
         className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col"
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-semibold text-gray-900">Select L3 Scope Items</h2>
@@ -469,22 +522,89 @@ function L3SelectorModal({
               ×
             </button>
           </div>
+
+          {/* Search Input */}
+          <div>
+            <input
+              type="text"
+              placeholder="Search L3 items by name or code..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* Tier Filter */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setTierFilter(null)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                tierFilter === null
+                  ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              All Tiers
+            </button>
+            {(['A', 'B', 'C'] as const).map(tier => (
+              <button
+                key={tier}
+                onClick={() => setTierFilter(tier)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  tierFilter === tier
+                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Tier {tier}
+              </button>
+            ))}
+          </div>
+
+          {/* Industry Presets */}
+          <div>
+            <p className="text-sm text-gray-600 mb-2">Quick Select by Industry:</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(INDUSTRY_PRESETS).map(([key, preset]) => (
+                <button
+                  key={key}
+                  onClick={() => applyPreset(key as keyof typeof INDUSTRY_PRESETS)}
+                  className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all"
+                >
+                  + {preset.name}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {modules.map(module => {
-            const items = l3CatalogComplete.getByModule(module);
-            return (
+          {filteredModules.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No items match your search criteria</p>
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setTierFilter(null);
+                }}
+                className="mt-3 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Clear filters
+              </button>
+            </div>
+          ) : (
+            filteredModules.map(({ module, items }) => (
               <div key={module}>
                 <h3 className="font-semibold text-gray-900 mb-3">{module} ({items.length})</h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {items.map(item => {
                     const isSelected = localSelected.find(i => i.id === item.id);
                     return (
                       <button
                         key={item.id}
                         onClick={() => toggleItem(item)}
+                        title={item.description || item.name}
                         className={`text-left px-3 py-2 rounded-lg border text-xs transition-colors ${
                           isSelected
                             ? 'bg-blue-50 border-blue-300'
@@ -499,8 +619,8 @@ function L3SelectorModal({
                   })}
                 </div>
               </div>
-            );
-          })}
+            ))
+          )}
         </div>
 
         {/* Footer */}
