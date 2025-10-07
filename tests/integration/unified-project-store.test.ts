@@ -10,14 +10,17 @@ import { migrateLegacyToUnified, autoMigrateIfNeeded } from '@/lib/store-migrati
 
 describe('UnifiedProjectStore', () => {
   beforeEach(() => {
+    // Clear localStorage to prevent persist middleware interference
+    localStorage.clear();
+
     // Reset store before each test
     useUnifiedProjectStore.getState().reset();
   });
 
   describe('Project Management', () => {
     it('should create a new project', () => {
-      const store = useUnifiedProjectStore.getState();
-      const projectId = store.createProject('Test Project');
+      const projectId = useUnifiedProjectStore.getState().createProject('Test Project');
+      const store = useUnifiedProjectStore.getState(); // Get fresh state after action
 
       expect(projectId).toBeTruthy();
       expect(store.currentProject).toBeTruthy();
@@ -26,21 +29,21 @@ describe('UnifiedProjectStore', () => {
     });
 
     it('should load an existing project', () => {
-      const store = useUnifiedProjectStore.getState();
-      const projectId = store.createProject('Project 1');
-      const project2Id = store.createProject('Project 2');
+      const projectId = useUnifiedProjectStore.getState().createProject('Project 1');
+      const project2Id = useUnifiedProjectStore.getState().createProject('Project 2');
 
       // Load first project
-      store.loadProject(projectId);
+      useUnifiedProjectStore.getState().loadProject(projectId);
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.name).toBe('Project 1');
     });
 
     it('should delete a project', () => {
-      const store = useUnifiedProjectStore.getState();
-      const projectId = store.createProject('Test Project');
+      const projectId = useUnifiedProjectStore.getState().createProject('Test Project');
 
-      store.deleteProject(projectId);
+      useUnifiedProjectStore.getState().deleteProject(projectId);
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject).toBeNull();
       expect(store.projects[projectId]).toBeUndefined();
@@ -49,18 +52,17 @@ describe('UnifiedProjectStore', () => {
 
   describe('Presales Actions', () => {
     beforeEach(() => {
-      const store = useUnifiedProjectStore.getState();
-      store.createProject('Test Project');
+      useUnifiedProjectStore.getState().createProject('Test Project');
     });
 
     it('should add a chip', () => {
-      const store = useUnifiedProjectStore.getState();
-
-      store.addChip({
+      useUnifiedProjectStore.getState().addChip({
         type: 'COUNTRY',
         value: 'Singapore',
         confidence: 0.9,
       });
+
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.presales.chips).toHaveLength(1);
       expect(store.currentProject?.presales.chips[0].value).toBe('Singapore');
@@ -68,53 +70,52 @@ describe('UnifiedProjectStore', () => {
     });
 
     it('should add multiple chips', () => {
-      const store = useUnifiedProjectStore.getState();
-
-      store.addChips([
+      useUnifiedProjectStore.getState().addChips([
         { type: 'COUNTRY', value: 'Singapore', confidence: 0.9 },
         { type: 'INDUSTRY', value: 'Manufacturing', confidence: 0.8 },
       ]);
+
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.presales.chips).toHaveLength(2);
     });
 
     it('should remove a chip', () => {
-      const store = useUnifiedProjectStore.getState();
-
-      store.addChip({
+      useUnifiedProjectStore.getState().addChip({
         type: 'COUNTRY',
         value: 'Singapore',
         confidence: 0.9,
       });
 
-      const chipId = store.currentProject!.presales.chips[0].id!;
+      const chipId = useUnifiedProjectStore.getState().currentProject!.presales.chips[0].id!;
 
-      store.removeChip(chipId);
+      useUnifiedProjectStore.getState().removeChip(chipId);
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.presales.chips).toHaveLength(0);
     });
 
     it('should calculate completeness', () => {
-      const store = useUnifiedProjectStore.getState();
-
       // Start with 0 score
+      let store = useUnifiedProjectStore.getState();
       expect(store.currentProject?.presales.completeness.score).toBe(0);
 
       // Add chips
-      store.addChips([
+      useUnifiedProjectStore.getState().addChips([
         { type: 'COUNTRY', value: 'Singapore', confidence: 0.9 },
         { type: 'INDUSTRY', value: 'Manufacturing', confidence: 0.8 },
         { type: 'MODULE', value: 'FI', confidence: 0.9 },
       ]);
 
       // Should have score now
+      store = useUnifiedProjectStore.getState();
       expect(store.currentProject?.presales.completeness.score).toBeGreaterThan(0);
     });
 
     it('should update decisions', () => {
-      const store = useUnifiedProjectStore.getState();
+      useUnifiedProjectStore.getState().updateDecision('moduleCombo', 'S4HANA');
 
-      store.updateDecision('moduleCombo', 'S4HANA');
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.presales.decisions.moduleCombo).toBe('S4HANA');
       expect(store.currentProject?.timelineIsStale).toBe(true);
@@ -123,13 +124,10 @@ describe('UnifiedProjectStore', () => {
 
   describe('Timeline Actions', () => {
     beforeEach(() => {
-      const store = useUnifiedProjectStore.getState();
-      store.createProject('Test Project');
+      useUnifiedProjectStore.getState().createProject('Test Project');
     });
 
     it('should set phases', () => {
-      const store = useUnifiedProjectStore.getState();
-
       const phases = [
         {
           name: 'Prepare',
@@ -145,7 +143,8 @@ describe('UnifiedProjectStore', () => {
         },
       ];
 
-      store.setPhases(phases as any[]);
+      useUnifiedProjectStore.getState().setPhases(phases as any[]);
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.timeline.phases).toHaveLength(2);
       expect(store.currentProject?.timeline.phases[0].name).toBe('Prepare');
@@ -153,48 +152,46 @@ describe('UnifiedProjectStore', () => {
     });
 
     it('should add a phase', () => {
-      const store = useUnifiedProjectStore.getState();
-
-      store.addPhase({
+      useUnifiedProjectStore.getState().addPhase({
         name: 'Deploy',
         category: 'SAP Activate',
         startBusinessDay: 50,
         workingDays: 15,
       } as any);
+
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.timeline.phases).toHaveLength(1);
     });
 
     it('should update a phase', () => {
-      const store = useUnifiedProjectStore.getState();
-
-      store.addPhase({
+      useUnifiedProjectStore.getState().addPhase({
         name: 'Deploy',
         category: 'SAP Activate',
         startBusinessDay: 50,
         workingDays: 15,
       } as any);
 
-      const phaseId = store.currentProject!.timeline.phases[0].id;
+      const phaseId = useUnifiedProjectStore.getState().currentProject!.timeline.phases[0].id;
 
-      store.updatePhase(phaseId, { workingDays: 20 });
+      useUnifiedProjectStore.getState().updatePhase(phaseId, { workingDays: 20 });
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.timeline.phases[0].workingDays).toBe(20);
     });
 
     it('should delete a phase', () => {
-      const store = useUnifiedProjectStore.getState();
-
-      store.addPhase({
+      useUnifiedProjectStore.getState().addPhase({
         name: 'Deploy',
         category: 'SAP Activate',
         startBusinessDay: 50,
         workingDays: 15,
       } as any);
 
-      const phaseId = store.currentProject!.timeline.phases[0].id;
+      const phaseId = useUnifiedProjectStore.getState().currentProject!.timeline.phases[0].id;
 
-      store.deletePhase(phaseId);
+      useUnifiedProjectStore.getState().deletePhase(phaseId);
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.timeline.phases).toHaveLength(0);
     });
@@ -202,40 +199,39 @@ describe('UnifiedProjectStore', () => {
 
   describe('Workflow Actions', () => {
     beforeEach(() => {
-      const store = useUnifiedProjectStore.getState();
-      store.createProject('Test Project');
+      useUnifiedProjectStore.getState().createProject('Test Project');
     });
 
     it('should change mode', () => {
-      const store = useUnifiedProjectStore.getState();
-
+      let store = useUnifiedProjectStore.getState();
       expect(store.currentProject?.mode).toBe('capture');
 
-      store.setMode('decide');
+      useUnifiedProjectStore.getState().setMode('decide');
+      store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.mode).toBe('decide');
     });
 
     it('should mark timeline as stale', () => {
-      const store = useUnifiedProjectStore.getState();
-
+      let store = useUnifiedProjectStore.getState();
       expect(store.currentProject?.timelineIsStale).toBe(false);
 
-      store.markTimelineStale();
+      useUnifiedProjectStore.getState().markTimelineStale();
+      store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.timelineIsStale).toBe(true);
     });
 
     it('should add manual overrides', () => {
-      const store = useUnifiedProjectStore.getState();
-
-      store.addManualOverride({
+      useUnifiedProjectStore.getState().addManualOverride({
         phaseId: 'phase-1',
         field: 'duration',
         originalValue: 30,
         manualValue: 35,
         reason: 'Extended for testing',
       });
+
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.manualOverrides).toHaveLength(1);
       expect(store.currentProject?.manualOverrides[0].manualValue).toBe(35);
@@ -244,33 +240,32 @@ describe('UnifiedProjectStore', () => {
 
   describe('UI Actions', () => {
     beforeEach(() => {
-      const store = useUnifiedProjectStore.getState();
-      store.createProject('Test Project');
+      useUnifiedProjectStore.getState().createProject('Test Project');
     });
 
     it('should change zoom level', () => {
-      const store = useUnifiedProjectStore.getState();
+      useUnifiedProjectStore.getState().setZoomLevel('week');
 
-      store.setZoomLevel('week');
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.ui.zoomLevel).toBe('week');
     });
 
     it('should toggle presentation mode', () => {
-      const store = useUnifiedProjectStore.getState();
-
+      let store = useUnifiedProjectStore.getState();
       expect(store.currentProject?.ui.clientPresentationMode).toBe(false);
 
-      store.togglePresentationMode();
+      useUnifiedProjectStore.getState().togglePresentationMode();
+      store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.ui.clientPresentationMode).toBe(true);
     });
 
     it('should update panel widths', () => {
-      const store = useUnifiedProjectStore.getState();
+      useUnifiedProjectStore.getState().setLeftPanelWidth(400);
+      useUnifiedProjectStore.getState().setRightPanelWidth(500);
 
-      store.setLeftPanelWidth(400);
-      store.setRightPanelWidth(500);
+      const store = useUnifiedProjectStore.getState();
 
       expect(store.currentProject?.ui.leftPanelWidth).toBe(400);
       expect(store.currentProject?.ui.rightPanelWidth).toBe(500);
