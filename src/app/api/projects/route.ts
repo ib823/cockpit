@@ -1,16 +1,17 @@
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { getServerSession } from 'next-auth';
+import { getSession } from '@/lib/session';
 import { NextResponse } from 'next/server';
 
+export const runtime = 'nodejs';
+
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const session = await getSession();
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { id: session.sub },
   });
 
   if (!user) {
@@ -27,13 +28,13 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const session = await getSession();
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { id: session.sub },
   });
 
   if (!user) {
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
   }
 
   const data = await req.json();
-  
+
   const project = await prisma.project.create({
     data: {
       name: data.name || 'Untitled Project',

@@ -31,16 +31,9 @@ const MODE_CONFIG: Record<ProjectMode, ModeConfig> = {
   plan: {
     icon: LayoutGrid,
     title: "Plan Timeline",
-    subtitle: "Adjust phases, resources, and schedule",
+    subtitle: "Timeline, Resources & RICEFW",
     gradient: "from-green-500 to-green-700",
     textColor: "text-green-50",
-  },
-  optimize: {
-    icon: Sparkles,
-    title: "Optimize Resources",
-    subtitle: "Fine-tune team allocation and deliverables",
-    gradient: "from-indigo-500 to-indigo-700",
-    textColor: "text-indigo-50",
   },
   present: {
     icon: Presentation,

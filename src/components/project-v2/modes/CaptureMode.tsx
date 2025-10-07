@@ -24,6 +24,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Heading1, Heading3, BodyLG, BodyMD, BodySM, LabelMD } from "@/components/common/Typography";
 import { animation } from "@/lib/design-system";
+import { showSuccess } from "@/lib/toast";
 
 // Sample RFP text for demo
 const SAMPLE_RFP = `Malaysia manufacturing company with 500 employees and MYR 200M annual revenue.
@@ -97,13 +98,13 @@ export function CaptureMode() {
    * NEW: Fill all missing gaps with smart defaults
    */
   const handleSmartDefaults = () => {
-    const newChips = fillMissingChips(chips, completeness.gaps);
+    const newChips = fillMissingChips(chips, completeness?.gaps || []);
     
     if (newChips.length > 0) {
       addChips(newChips);
-      
-      // Show success toast (optional - could add a toast system later)
-      console.log(`Added ${newChips.length} default chips`);
+
+      // Show success toast
+      showSuccess(`Added ${newChips.length} default chips`);
     }
   };
 
@@ -220,7 +221,7 @@ export function CaptureMode() {
   }
 
   // Chips extracted - show list with enhanced actions
-  const progressPercent = safePercentage(completeness.score, 100);
+  const progressPercent = safePercentage(completeness?.score || 0, 100);
   const missingGaps = completeness.gaps || [];
   const isComplete = progressPercent >= 80;
   const canProceedWithDefaults = progressPercent >= 30; // NEW: Lower threshold for defaults

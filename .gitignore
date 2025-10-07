@@ -41,3 +41,7 @@ next-env.d.ts
 
 # prisma
 /prisma/migrations
+# Environment files
+.env.local
+.env
+.env*.local

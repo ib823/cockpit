@@ -7,7 +7,7 @@ describe("ChipParser", () => {
     const chips = parseRFPText(text);
 
     expect(chips.length).toBeGreaterThan(0);
-    expect(chips.some((c: any) => c.kind === "country")).toBe(true);
+    expect(chips.some((c: any) => c.type === "COUNTRY")).toBe(true);
   });
 
   it("should extract employee count", () => {
@@ -15,7 +15,7 @@ describe("ChipParser", () => {
     const chips = parseRFPText(text);
 
     expect(chips.length).toBeGreaterThan(0);
-    expect(chips.some((c: any) => c.kind === "employees")).toBe(true);
+    expect(chips.some((c: any) => c.type === "EMPLOYEES")).toBe(true);
   });
 
   it("should handle malicious input safely", () => {
@@ -31,7 +31,7 @@ describe("ChipParser", () => {
     const text = "Need Finance, HR, and Supply Chain modules";
     const chips = parseRFPText(text);
 
-    const moduleChips = chips.filter((c: any) => c.kind === "modules");
+    const moduleChips = chips.filter((c: any) => c.type === "MODULES");
     expect(moduleChips.length).toBeGreaterThanOrEqual(1);
   });
 });

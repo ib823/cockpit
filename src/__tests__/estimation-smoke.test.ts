@@ -10,7 +10,7 @@ describe("Estimation Smoke Tests", () => {
     const chips: Chip[] = [
       {
         id: "1",
-        type: "country",
+        type: "COUNTRY",
         value: "Malaysia",
         confidence: 0.9,
         source: "paste",
@@ -19,7 +19,7 @@ describe("Estimation Smoke Tests", () => {
       },
       {
         id: "2",
-        type: "employees",
+        type: "EMPLOYEES",
         value: "500",
         confidence: 0.85,
         source: "paste",
@@ -28,7 +28,7 @@ describe("Estimation Smoke Tests", () => {
       },
       {
         id: "3",
-        type: "modules",
+        type: "MODULES",
         value: "Finance",
         confidence: 0.9,
         source: "paste",
@@ -83,7 +83,7 @@ describe("Estimation Smoke Tests", () => {
     const baseChips: Chip[] = [
       {
         id: "1",
-        type: "country",
+        type: "COUNTRY",
         value: "Malaysia",
         confidence: 0.9,
         source: "paste",
@@ -92,7 +92,7 @@ describe("Estimation Smoke Tests", () => {
       },
       {
         id: "2",
-        type: "modules",
+        type: "MODULES",
         value: "Finance",
         confidence: 0.9,
         source: "paste",
@@ -160,7 +160,7 @@ describe("Estimation Smoke Tests", () => {
     const singleEntity: Chip[] = [
       {
         id: "1",
-        type: "country",
+        type: "COUNTRY",
         value: "Malaysia",
         confidence: 0.9,
         source: "paste",
@@ -169,7 +169,7 @@ describe("Estimation Smoke Tests", () => {
       },
       {
         id: "2",
-        type: "modules",
+        type: "MODULES",
         value: "Finance",
         confidence: 0.9,
         source: "paste",
@@ -181,7 +181,7 @@ describe("Estimation Smoke Tests", () => {
     const multiEntity: Chip[] = [
       {
         id: "1",
-        type: "country",
+        type: "COUNTRY",
         value: "Malaysia",
         confidence: 0.9,
         source: "paste",
@@ -190,7 +190,7 @@ describe("Estimation Smoke Tests", () => {
       },
       {
         id: "2",
-        type: "country",
+        type: "COUNTRY",
         value: "Singapore",
         confidence: 0.9,
         source: "paste",
@@ -199,7 +199,7 @@ describe("Estimation Smoke Tests", () => {
       },
       {
         id: "3",
-        type: "country",
+        type: "COUNTRY",
         value: "Vietnam",
         confidence: 0.9,
         source: "paste",
@@ -208,7 +208,7 @@ describe("Estimation Smoke Tests", () => {
       },
       {
         id: "4",
-        type: "modules",
+        type: "MODULES",
         value: "Finance",
         confidence: 0.9,
         source: "paste",

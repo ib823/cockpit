@@ -7,7 +7,7 @@ describe("Presales → Timeline Integration", () => {
     const chips: Chip[] = [
       {
         id: "1",
-        type: "country",
+        type: "COUNTRY",
         value: "Malaysia",
         confidence: 0.9,
         source: "paste",
@@ -16,7 +16,7 @@ describe("Presales → Timeline Integration", () => {
       },
       {
         id: "2",
-        type: "employees",
+        type: "EMPLOYEES",
         value: "500",
         confidence: 0.85,
         source: "paste",
@@ -25,7 +25,7 @@ describe("Presales → Timeline Integration", () => {
       },
       {
         id: "3",
-        type: "modules",
+        type: "MODULES",
         value: "Finance",
         confidence: 0.9,
         source: "paste",
@@ -50,7 +50,7 @@ describe("Presales → Timeline Integration", () => {
     const chipsWithBranches: Chip[] = [
       {
         id: "1",
-        type: "country",
+        type: "COUNTRY",
         value: "Malaysia",
         confidence: 0.9,
         source: "paste",
@@ -59,7 +59,7 @@ describe("Presales → Timeline Integration", () => {
       },
       {
         id: "2",
-        type: "modules",
+        type: "MODULES",
         value: "Finance",
         confidence: 0.9,
         source: "paste",

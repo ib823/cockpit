@@ -8,25 +8,26 @@
 "use client";
 
 import { safePercentage } from "@/lib/utils";
-import { ResourcePlanningShell } from "@/components/resource-planning";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
 import { AnimatePresence, motion } from "framer-motion";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CaptureMode } from "./modes/CaptureMode";
 import { DecideMode } from "./modes/DecideMode";
 import { MiniReferenceBar } from "@/components/timeline/MiniReferenceBar";
 import { ReferenceArchitectureModal } from "@/components/timeline/ReferenceArchitectureModal";
 import { useReferenceKeyboard } from "@/hooks/useReferenceKeyboard";
 import { ResetButton } from "@/components/common/ResetButton";
+import { LogoutButton } from "@/components/common/LogoutButton";
 import { Heading1, BodyMD } from "@/components/common/Typography";
 import { Logo } from "@/components/common/Logo";
 import { animation } from "@/lib/design-system";
+import { Sparkles, X } from "lucide-react";
 
 // Lazy load heavy components for better performance
 const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
 const PresentMode = lazy(() => import("./modes/PresentMode").then(m => ({ default: m.PresentMode })));
-const OptimizeMode = lazy(() => import("@/components/resource-planning").then(m => ({ default: m.ResourcePlanningShell })));
 
 
 /**
@@ -48,15 +49,9 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
     },
     plan: {
       title: "Plan Timeline",
-      subtitle: "Review and adjust your project plan",
+      subtitle: "Timeline, Resources & RICEFW",
       gradient: "from-green-600 to-green-700",
       color: "text-green-100",
-    },
-    optimize: {
-      title: "Optimize Resources",
-      subtitle: "Fine-tune team allocation and deliverables",
-      gradient: "from-indigo-600 to-indigo-700",
-      color: "text-indigo-100",
     },
     present: {
       title: "Present",
@@ -75,24 +70,24 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: animation.duration.normal, ease: animation.easing.enter }}
-      className={`bg-gradient-to-r ${current.gradient} px-8 py-6 text-white shadow-lg`}
+      className={`bg-gradient-to-r ${current.gradient} px-6 py-3 text-white shadow-lg`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Logo size="sm" theme="dark" showText={false} />
           <div>
-            <Heading1 className="text-white">{current.title}</Heading1>
-            <BodyMD className={`${current.color} mt-2`}>{current.subtitle}</BodyMD>
+            <Heading1 className="text-white text-base sm:text-lg md:text-xl">{current.title}</Heading1>
+            <BodyMD className={`${current.color} mt-0.5 text-xs hidden sm:block`}>{current.subtitle}</BodyMD>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-2 sm:gap-3">
           {typeof progress === "number" && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: animation.duration.normal }}
-              className="flex items-center gap-4"
+              className="hidden lg:flex items-center gap-4 mt-2"
             >
               <span className="text-sm font-semibold">{progress}% Complete</span>
               <div className="w-40 h-2 bg-white/20 rounded-full overflow-hidden">
@@ -105,8 +100,52 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
               </div>
             </motion.div>
           )}
+          {typeof progress === "number" && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: animation.duration.normal }}
+              className="lg:hidden text-sm font-semibold mt-2"
+            >
+              {progress}%
+            </motion.div>
+          )}
+          <LogoutButton theme="dark" />
           <ResetButton />
         </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/**
+ * EstimatorBanner - Shows when user comes from Quick Estimate
+ */
+function EstimatorBanner({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-3 text-white shadow-md relative"
+    >
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Sparkles className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Timeline from Quick Estimate</p>
+            <p className="text-xs text-blue-100">
+              Review and refine your estimate • Add details • Export when ready
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={onDismiss}
+          className="p-1 hover:bg-white/20 rounded transition-colors"
+          aria-label="Dismiss banner"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
     </motion.div>
   );
@@ -117,21 +156,44 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
  */
 export function ProjectShell() {
   const mode = useProjectStore((state) => state.mode);
+  const setMode = useProjectStore((state) => state.setMode);
   const { completeness } = usePresalesStore();
+  const searchParams = useSearchParams();
+
+  // Check if coming from estimator
+  const [showEstimatorBanner, setShowEstimatorBanner] = useState(false);
+
+  useEffect(() => {
+    const source = searchParams?.get('source');
+    if (source === 'estimator') {
+      setShowEstimatorBanner(true);
+
+      // Auto-dismiss after 10 seconds
+      const timer = setTimeout(() => setShowEstimatorBanner(false), 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   // Enable keyboard shortcuts for SAP Activate Reference
   useReferenceKeyboard();
 
   // Calculate progress for Capture mode
-  const captureProgress = mode === "capture" ? safePercentage(completeness.score, 100) : undefined;
+  const captureProgress = mode === "capture" ? safePercentage(completeness?.score || 0, 100) : undefined;
 
-  // Show MiniReferenceBar in plan and optimize modes
-  const showReferenceBar = mode === "plan" || mode === "optimize";
+  // Show MiniReferenceBar in plan mode
+  const showReferenceBar = mode === "plan";
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
       {/* Mode indicator (contextual hero banner) */}
       <ModeIndicator mode={mode} progress={captureProgress} />
+
+      {/* Estimator Banner (shows when source=estimator) */}
+      <AnimatePresence>
+        {showEstimatorBanner && (
+          <EstimatorBanner onDismiss={() => setShowEstimatorBanner(false)} />
+        )}
+      </AnimatePresence>
 
       {/* SAP Activate Reference Bar (sticky header for plan/optimize modes) */}
       {showReferenceBar && <MiniReferenceBar />}
@@ -144,7 +206,7 @@ export function ProjectShell() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: animation.duration.normal, ease: animation.easing.standard }}
-          className="flex-1 overflow-hidden"
+          className="flex-1 overflow-hidden pb-20 md:pb-0"
         >
           {mode === "capture" && <CaptureMode />}
           {mode === "decide" && <DecideMode />}
@@ -158,18 +220,6 @@ export function ProjectShell() {
               </div>
             }>
               <PlanMode />
-            </Suspense>
-          )}
-          {mode === "optimize" && (
-            <Suspense fallback={
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                  <p className="text-sm">Loading resource optimization...</p>
-                </div>
-              </div>
-            }>
-              <OptimizeMode />
             </Suspense>
           )}
           {mode === "present" && (
@@ -189,6 +239,67 @@ export function ProjectShell() {
 
       {/* SAP Activate Reference Modal (global - triggered by keyboard or button) */}
       <ReferenceArchitectureModal />
+
+      {/* Mobile Bottom Navigation (visible on small screens only) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+        <div className="grid grid-cols-5 gap-1 p-2">
+          <button
+            onClick={() => setMode("capture")}
+            className={`flex flex-col items-center justify-center min-h-[56px] rounded-lg transition-all ${
+              mode === "capture"
+                ? "bg-blue-100 text-blue-700"
+                : "text-gray-600 hover:bg-gray-100 active:scale-95"
+            }`}
+          >
+            <svg className="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="text-xs font-medium">Capture</span>
+          </button>
+
+          <button
+            onClick={() => setMode("decide")}
+            className={`flex flex-col items-center justify-center min-h-[56px] rounded-lg transition-all ${
+              mode === "decide"
+                ? "bg-purple-100 text-purple-700"
+                : "text-gray-600 hover:bg-gray-100 active:scale-95"
+            }`}
+          >
+            <svg className="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            <span className="text-xs font-medium">Decide</span>
+          </button>
+
+          <button
+            onClick={() => setMode("plan")}
+            className={`flex flex-col items-center justify-center min-h-[56px] rounded-lg transition-all ${
+              mode === "plan"
+                ? "bg-green-100 text-green-700"
+                : "text-gray-600 hover:bg-gray-100 active:scale-95"
+            }`}
+          >
+            <svg className="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span className="text-xs font-medium">Plan</span>
+          </button>
+
+          <button
+            onClick={() => setMode("present")}
+            className={`flex flex-col items-center justify-center min-h-[56px] rounded-lg transition-all ${
+              mode === "present"
+                ? "bg-gray-800 text-white"
+                : "text-gray-600 hover:bg-gray-100 active:scale-95"
+            }`}
+          >
+            <svg className="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span className="text-xs font-medium">Present</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

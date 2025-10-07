@@ -2,6 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   CSS VARIABLES FOR THEMING
+   Per spec: Design_Tokens_ChangeList.md
+   ============================================ */
+
+:root {
+  /* Light mode colors */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+
+  /* Success */
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+
+  /* Warning */
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+
+  /* Error */
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+}
+
+/* Dark mode theme */
+[data-theme="dark"] {
+  --color-primary-50: #1e3a8a;
+  --color-primary-100: #1e40af;
+  --color-primary-200: #1d4ed8;
+  --color-primary-300: #2563eb;
+  --color-primary-400: #3b82f6;
+  --color-primary-500: #60a5fa;
+  --color-primary-600: #93c5fd;
+  --color-primary-700: #bfdbfe;
+  --color-primary-800: #dbeafe;
+  --color-primary-900: #eff6ff;
+
+  --color-bg: #111827;
+  --color-bg-secondary: #1f2937;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-border: #374151;
+
+  /* Success */
+  --color-success-500: #4ade80;
+  --color-success-600: #86efac;
+
+  /* Warning */
+  --color-warning-500: #fbbf24;
+  --color-warning-600: #fcd34d;
+
+  /* Error */
+  --color-error-500: #f87171;
+  --color-error-600: #fca5a5;
+}
+
+/* Accessibility: Fixed font sizes for prefers-reduced-data */
+@media (prefers-reduced-data: reduce) {
+  :root {
+    --font-size-base: 16px;
+  }
+
+  html {
+    font-size: var(--font-size-base);
+  }
+}
+
+/* Accessibility: Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 /* Apple-inspired base styles */
 * {
   -webkit-font-smoothing: antialiased;
