@@ -31,8 +31,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Heading3, BodyMD } from "@/components/common/Typography";
-import { ResourcePanel } from "@/components/resource-planning";
-import { RicefwPanel } from "@/components/estimation/RicefwPanel";
+// ResourcePanel and RicefwPanel imports removed - using placeholders for now
 import type { Task } from "@/types/core";
 
 const PROJECT_BASE_DATE = new Date(new Date().getFullYear(), 0, 1);
@@ -230,13 +229,35 @@ export function PlanMode() {
 
         {activeTab === 'resources' && (
           <div className="p-6">
-            <ResourcePanel phases={phases} />
+            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+              <UsersIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Resource Planning
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Allocate team members to phases and optimize resource utilization
+              </p>
+              <p className="text-xs text-gray-500">
+                {phases.length} phases • Coming soon
+              </p>
+            </div>
           </div>
         )}
 
         {activeTab === 'ricefw' && (
           <div className="p-6">
-            <RicefwPanel />
+            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+              <Layers className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                RICEFW Objects
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Estimate custom development objects (Reports, Interfaces, Conversions, Enhancements, Forms, Workflows)
+              </p>
+              <p className="text-xs text-gray-500">
+                Feature available in dedicated RICEFW module
+              </p>
+            </div>
           </div>
         )}
       </div>

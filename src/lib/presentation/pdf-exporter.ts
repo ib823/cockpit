@@ -132,11 +132,7 @@ export function isPDFExportSupported(): boolean {
   if (typeof window === 'undefined') return false;
 
   // Check for required browser APIs
-  return !!(
-    window.HTMLCanvasElement &&
-    HTMLCanvasElement.prototype.toDataURL &&
-    window.Blob
-  );
+  return !!(window.HTMLCanvasElement && window.Blob);
 }
 
 /**

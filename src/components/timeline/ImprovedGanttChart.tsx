@@ -570,14 +570,7 @@ export function ImprovedGanttChart({
             Milestones ({milestones.length})
           </Button>
 
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setMode('optimize')}
-            leftIcon={<Users className="w-4 h-4" />}
-          >
-            Allocate Resources
-          </Button>
+          {/* Optimize button removed - now part of Plan mode tabs */}
         </div>
       </div>
 
