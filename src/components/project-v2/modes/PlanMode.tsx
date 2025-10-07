@@ -32,6 +32,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Heading3, BodyMD } from "@/components/common/Typography";
 import { ExportButton } from "@/components/export/ExportButton";
+import { RegenerateModal, calculateRegenerateDiff } from "@/components/project-v2/modals/RegenerateModal";
 // ResourcePanel and RicefwPanel imports removed - using placeholders for now
 import type { Task } from "@/types/core";
 
@@ -42,12 +43,35 @@ type PlanTab = 'timeline' | 'resources' | 'ricefw';
 
 export function PlanMode() {
   const { phases, selectedPackages, getProjectCost, updatePhase } = useTimelineStore();
-  const { setMode, regenerateTimeline, timelineIsStale } = useProjectStore();
+  const {
+    setMode,
+    regenerateTimeline,
+    confirmRegenerate,
+    cancelRegenerate,
+    showRegenerateModal,
+    manualOverrides,
+    timelineIsStale
+  } = useProjectStore();
   const { chips, completeness, decisions } = usePresalesStore();
   const totalCost = getProjectCost();
 
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
   const [activeTab, setActiveTab] = useState<PlanTab>('timeline');
+
+  // Calculate diff for regenerate modal (estimated preview)
+  const regenerateDiff = useMemo(() => {
+    // For now, we estimate the diff - in real implementation,
+    // we'd pre-calculate the new timeline before showing modal
+    const currentDuration = phases.reduce((sum, p) => sum + p.workingDays, 0);
+
+    return calculateRegenerateDiff(
+      phases,
+      phases, // TODO: Calculate actual new phases for accurate diff
+      manualOverrides,
+      totalCost,
+      totalCost // TODO: Calculate new cost for accurate diff
+    );
+  }, [phases, manualOverrides, totalCost]);
 
   // Auto-generate timeline if empty and we have requirements
   useEffect(() => {
@@ -364,6 +388,14 @@ export function PlanMode() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Regenerate Preview Modal */}
+      <RegenerateModal
+        show={showRegenerateModal}
+        diff={regenerateDiff}
+        onConfirm={confirmRegenerate}
+        onCancel={cancelRegenerate}
+      />
     </div>
   );
 }
