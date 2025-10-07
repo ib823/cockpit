@@ -10,6 +10,7 @@
 import { safePercentage } from "@/lib/utils";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
+import { useTimelineStore } from "@/stores/timeline-store";
 import { AnimatePresence, motion } from "framer-motion";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -195,8 +196,11 @@ export function ProjectShell() {
   // Calculate progress for Capture mode
   const captureProgress = mode === "capture" ? safePercentage(completeness?.score || 0, 100) : undefined;
 
-  // Show MiniReferenceBar in plan mode
-  const showReferenceBar = mode === "plan";
+  // Show MiniReferenceBar in plan mode ONLY when there's real data
+  // Hide demo/default data to avoid confusion
+  const { phases } = useTimelineStore();
+  const { chips } = usePresalesStore();
+  const showReferenceBar = mode === "plan" && phases.length > 0 && chips.length >= 3;
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">

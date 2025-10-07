@@ -162,11 +162,25 @@ export function JobsGanttChart({
     const minD = addWorkingDays(PROJECT_BASE_DATE, start, selectedRegion);
     const maxD = addWorkingDays(PROJECT_BASE_DATE, end, selectedRegion);
 
+    const totalDays = end - start;
+    const months = Math.floor(totalDays / 20);
+    const weeks = Math.floor(totalDays / 5);
+
+    // Show in most appropriate unit
+    let durationDisplay;
+    if (totalDays < 10) {
+      durationDisplay = `${totalDays} days`;
+    } else if (totalDays < 60) {
+      durationDisplay = `${weeks} weeks`;
+    } else {
+      durationDisplay = `${months} months`;
+    }
+
     return {
       minDate: minD,
       maxDate: maxD,
-      totalBusinessDays: end - start,
-      totalDuration: `${Math.ceil((end - start) / 20)} months`,
+      totalBusinessDays: totalDays,
+      totalDuration: durationDisplay,
     };
   }, [activatePhases, selectedRegion]);
 

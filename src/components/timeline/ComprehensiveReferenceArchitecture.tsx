@@ -38,6 +38,9 @@ export function ComprehensiveReferenceArchitecture() {
   const { getTotalWrapperEffort, wrappers } = useWrappersStore();
   const { phases, getProjectCost } = useTimelineStore();
 
+  // Show message if no real project data
+  const hasRealData = phases.length > 0 && businessContext.clientName !== 'Example Corp';
+
   // Calculate efforts
   const coreModuleEffort = phases.reduce((sum, phase) => sum + (phase.workingDays || 0), 0);
   const wrapperEffort = getTotalWrapperEffort();
@@ -70,6 +73,18 @@ export function ComprehensiveReferenceArchitecture() {
           </div>
         </div>
       </div>
+
+      {/* Demo Data Warning */}
+      {!hasRealData && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-6 py-3">
+          <div className="flex items-center gap-2 text-sm text-yellow-800">
+            <Info className="w-4 h-4" />
+            <p>
+              <strong>Demo Data:</strong> This reference shows example data. Generate a timeline from your requirements in Plan mode to see your actual project architecture.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Section 1: Business Context */}
       <Section
