@@ -10,6 +10,7 @@
 import { safePercentage } from "@/lib/utils";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
+import { useUnifiedProjectStore } from "@/stores/unified-project-store";
 import { AnimatePresence, motion } from "framer-motion";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -159,9 +160,18 @@ export function ProjectShell() {
   const setMode = useProjectStore((state) => state.setMode);
   const { completeness } = usePresalesStore();
   const searchParams = useSearchParams();
+  const { syncToLegacyStores, currentProject } = useUnifiedProjectStore();
 
   // Check if coming from estimator
   const [showEstimatorBanner, setShowEstimatorBanner] = useState(false);
+
+  // Initialize: Sync unified store to legacy stores on mount
+  useEffect(() => {
+    if (currentProject) {
+      console.log('[ProjectShell] 🔄 Syncing unified project to legacy stores on mount');
+      syncToLegacyStores();
+    }
+  }, []); // Only run once on mount
 
   useEffect(() => {
     const source = searchParams?.get('source');

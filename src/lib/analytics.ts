@@ -91,6 +91,18 @@ export type AnalyticsEvent =
         manualEditCount: number;
       };
     }
+  | {
+      name: 'regenerate_confirmed';
+      props: {
+        manualEditCount: number;
+      };
+    }
+  | {
+      name: 'regenerate_cancelled';
+      props: {
+        manualEditCount: number;
+      };
+    }
   // Presentation events
   | {
       name: 'presentation_export_started';
