@@ -1,0 +1,92 @@
+# Claude.ai Assessment - Files to Ignore
+
+# Build artifacts & dependencies
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel/
+.turbo/
+pnpm-lock.yaml
+
+# Generated files
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+.contentlayer/
+*.generated.ts
+
+# Environment & secrets
+.env
+.env.local
+.env.production
+.env.development
+*.pem
+*.key
+
+# Cache & temp
+.cache/
+.temp/
+tmp/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Git metadata
+.git/
+.gitignore
+.gitattributes
+
+# IDE configs
+.vscode/
+.idea/
+*.swp
+*.swo
+.eslintcache
+
+# Test artifacts
+coverage/
+.nyc_output/
+*.test.js.snap
+__snapshots__/
+
+# Public assets (images, fonts, icons)
+public/images/
+public/fonts/
+public/icons/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# Documentation (redundant after CODEBASE_OVERVIEW.md)
+docs/archive/
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+
+# Migration files (unless debugging specific migration)
+prisma/migrations/
+
+# Demo/example files
+examples/
+demos/
+*.example.ts
+*.example.tsx
+
+# Config files (low priority)
+.prettierrc
+.prettierignore
+.editorconfig
+postcss.config.js
+vitest.config.ts
+
+# GitHub workflows (unless CI/CD issues)
+.github/

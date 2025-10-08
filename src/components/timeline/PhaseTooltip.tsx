@@ -15,12 +15,12 @@ export function PhaseTooltip({ phase, region }: PhaseTooltipProps) {
   
   return (
     <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 max-w-sm text-sm">
-      <div className="border-b pb-3 mb-3">
+      <div className="border-b pb-3 mb-4">
         <h3 className="font-semibold text-gray-900">{phase.name}</h3>
         <p className="text-xs text-gray-500 mt-1">{phase.category || 'Implementation Phase'}</p>
       </div>
       
-      <div className="space-y-2 mb-3">
+      <div className="space-y-2 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-gray-600">
             <Clock size={14} />
@@ -47,7 +47,7 @@ export function PhaseTooltip({ phase, region }: PhaseTooltipProps) {
       </div>
       
       {resources.length > 0 && (
-        <div className="border-t pt-3 mb-3">
+        <div className="border-t pt-3 mb-4">
           <div className="text-xs font-medium text-gray-700 mb-2">Team Allocation</div>
           <div className="space-y-1">
             {resources.map((r, idx) => (

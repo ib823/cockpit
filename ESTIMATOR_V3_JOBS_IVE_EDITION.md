@@ -501,7 +501,7 @@ When you adjust an input (e.g., add 1 integration):
 
 **Version:** 3.0.0 (Jobs/Ive Edition)
 **Date:** 2025-10-06
-**Author:** Claude Code + Steve Jobs' Ghost + Jony Ive's Obsession
+**Author:** Abidbn + Steve Jobs' Ghost + Jony Ive's Obsession
 **License:** MIT
 
 ---

@@ -68,8 +68,8 @@ export function ResponsiveStack({
   const spacingClasses = {
     none: 'space-y-0',
     xs: 'space-y-1 sm:space-y-2',
-    sm: 'space-y-2 sm:space-y-3',
-    md: 'space-y-3 sm:space-y-4 lg:space-y-6',
+    sm: 'space-y-2 sm:space-y-4',
+    md: 'space-y-4 sm:space-y-4 lg:space-y-6',
     lg: 'space-y-4 sm:space-y-6 lg:space-y-8',
     xl: 'space-y-6 sm:space-y-8 lg:space-y-10',
     '2xl': 'space-y-8 sm:space-y-10 lg:space-y-12',
@@ -150,7 +150,7 @@ export function ResponsiveGrid({
   const gapClasses = {
     none: 'gap-0',
     xs: 'gap-2',
-    sm: 'gap-3 sm:gap-4',
+    sm: 'gap-4 sm:gap-4',
     md: 'gap-4 sm:gap-6',
     lg: 'gap-6 sm:gap-8',
   };

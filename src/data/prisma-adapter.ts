@@ -71,7 +71,7 @@ export class PrismaAdapter implements IDAL {
           userAgent: audit.userAgent,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create audit log:', error);
       // Don't throw - audit failure shouldn't break business operations
     }
@@ -101,8 +101,8 @@ export class PrismaAdapter implements IDAL {
 
       return this.mapProject(project);
     } catch (error: any) {
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid project data', error.errors);
+      if (error instanceof Error && error.name === 'ZodError') {
+        throw new ValidationError('Invalid project data', (error as any).errors);
       }
       throw new DALError('Failed to create project', 'DATABASE', error);
     }
@@ -115,7 +115,7 @@ export class PrismaAdapter implements IDAL {
       });
 
       return project ? this.mapProject(project) : null;
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to get project', 'DATABASE', error);
     }
   }
@@ -148,8 +148,8 @@ export class PrismaAdapter implements IDAL {
       return this.mapProject(project);
     } catch (error: any) {
       if (error instanceof NotFoundError) throw error;
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid project data', error.errors);
+      if (error instanceof Error && error.name === 'ZodError') {
+        throw new ValidationError('Invalid project data', (error as any).errors);
       }
       throw new DALError('Failed to update project', 'DATABASE', error);
     }
@@ -163,7 +163,7 @@ export class PrismaAdapter implements IDAL {
 
       await this.createAuditLog(audit, 'Project', id, { deleted: true });
     } catch (error: any) {
-      if (error.code === 'P2025') {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
         throw new NotFoundError('Project', id);
       }
       throw new DALError('Failed to delete project', 'DATABASE', error);
@@ -184,7 +184,7 @@ export class PrismaAdapter implements IDAL {
       });
 
       return projects.map(p => this.mapProject(p));
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to list projects', 'DATABASE', error);
     }
   }
@@ -212,8 +212,8 @@ export class PrismaAdapter implements IDAL {
 
       return this.mapPhase(phase);
     } catch (error: any) {
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid phase data', error.errors);
+      if (error instanceof Error && error.name === 'ZodError') {
+        throw new ValidationError('Invalid phase data', (error as any).errors);
       }
       throw new DALError('Failed to create phase', 'DATABASE', error);
     }
@@ -227,7 +227,7 @@ export class PrismaAdapter implements IDAL {
       });
 
       return phase ? this.mapPhase(phase) : null;
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to get phase', 'DATABASE', error);
     }
   }
@@ -260,8 +260,8 @@ export class PrismaAdapter implements IDAL {
       return this.mapPhase(phase);
     } catch (error: any) {
       if (error instanceof NotFoundError) throw error;
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid phase data', error.errors);
+      if (error instanceof Error && error.name === 'ZodError') {
+        throw new ValidationError('Invalid phase data', (error as any).errors);
       }
       throw new DALError('Failed to update phase', 'DATABASE', error);
     }
@@ -291,7 +291,7 @@ export class PrismaAdapter implements IDAL {
       });
 
       return phases.map(p => this.mapPhase(p));
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to list phases', 'DATABASE', error);
     }
   }
@@ -389,7 +389,7 @@ export class PrismaAdapter implements IDAL {
       });
 
       return resource ? this.mapResource(resource) : null;
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to get resource', 'DATABASE', error);
     }
   }
@@ -444,7 +444,7 @@ export class PrismaAdapter implements IDAL {
       });
 
       return resources.map(r => this.mapResource(r));
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to list resources', 'DATABASE', error);
     }
   }
@@ -532,7 +532,7 @@ export class PrismaAdapter implements IDAL {
         createdAt: snapshot.createdAt,
         updatedAt: snapshot.createdAt,
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to get RICEFW item', 'DATABASE', error);
     }
   }
@@ -609,7 +609,7 @@ export class PrismaAdapter implements IDAL {
         createdAt: s.createdAt,
         updatedAt: s.createdAt,
       }));
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to list RICEFW items', 'DATABASE', error);
     }
   }
@@ -664,7 +664,7 @@ export class PrismaAdapter implements IDAL {
         ...(s.data as any),
         createdAt: s.createdAt,
       }));
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to list forms', 'DATABASE', error);
     }
   }
@@ -719,7 +719,7 @@ export class PrismaAdapter implements IDAL {
         ...(s.data as any),
         createdAt: s.createdAt,
       }));
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to list integrations', 'DATABASE', error);
     }
   }
@@ -763,7 +763,7 @@ export class PrismaAdapter implements IDAL {
       });
 
       return chips.map(c => this.mapChip(c));
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to list chips', 'DATABASE', error);
     }
   }
@@ -824,7 +824,7 @@ export class PrismaAdapter implements IDAL {
         data: snapshot.data as Record<string, any>,
         label: snapshot.label ?? undefined,
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to get snapshot', 'DATABASE', error);
     }
   }
@@ -843,7 +843,7 @@ export class PrismaAdapter implements IDAL {
         data: s.data as Record<string, any>,
         label: s.label ?? undefined,
       }));
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to list snapshots', 'DATABASE', error);
     }
   }
@@ -868,7 +868,7 @@ export class PrismaAdapter implements IDAL {
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       throw new DALError('Failed to get audit log', 'DATABASE', error);
     }
   }

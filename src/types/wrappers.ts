@@ -1,6 +1,8 @@
 // src/types/wrappers.ts
 export type WrapperType =
-  | 'project-management'
+  | 'pmo'
+  | 'basis'
+  | 'security-authorization'
   | 'change-management'
   | 'data-migration'
   | 'testing'
@@ -15,6 +17,7 @@ export interface Wrapper {
   color: string;
   icon: string; // Lucide icon name
   sapActivatePhase: 'prepare' | 'explore' | 'realize' | 'deploy' | 'run';
+  category: 'infrastructure' | 'implementation' | 'support'; // New: categorize wrappers
 }
 
 export interface WrapperCalculation {
@@ -26,14 +29,37 @@ export interface WrapperCalculation {
 
 export const DEFAULT_WRAPPERS: Wrapper[] = [
   {
-    id: 'project-management',
-    name: 'Project Management',
-    description: 'Project planning, governance, steering, and coordination',
+    id: 'pmo',
+    name: 'PMO (Project Management Office)',
+    description: 'Project planning, governance, steering, coordination, and portfolio management',
     defaultPercentage: 15,
     currentPercentage: 15,
     color: '#3b82f6', // blue-500
     icon: 'Briefcase',
     sapActivatePhase: 'prepare',
+    category: 'support',
+  },
+  {
+    id: 'basis',
+    name: 'Basis (SAP Technical Foundation)',
+    description: 'SAP infrastructure, system administration, performance tuning, and technical operations',
+    defaultPercentage: 10,
+    currentPercentage: 10,
+    color: '#6366f1', // indigo-500
+    icon: 'Server',
+    sapActivatePhase: 'prepare',
+    category: 'infrastructure',
+  },
+  {
+    id: 'security-authorization',
+    name: 'Security & Authorization',
+    description: 'Role design, authorization objects, GRC compliance, and security policies',
+    defaultPercentage: 8,
+    currentPercentage: 8,
+    color: '#ec4899', // pink-500
+    icon: 'Shield',
+    sapActivatePhase: 'explore',
+    category: 'infrastructure',
   },
   {
     id: 'change-management',
@@ -44,6 +70,7 @@ export const DEFAULT_WRAPPERS: Wrapper[] = [
     color: '#8b5cf6', // purple-500
     icon: 'Users',
     sapActivatePhase: 'explore',
+    category: 'support',
   },
   {
     id: 'data-migration',
@@ -54,6 +81,7 @@ export const DEFAULT_WRAPPERS: Wrapper[] = [
     color: '#10b981', // green-500
     icon: 'Database',
     sapActivatePhase: 'realize',
+    category: 'implementation',
   },
   {
     id: 'testing',
@@ -64,6 +92,7 @@ export const DEFAULT_WRAPPERS: Wrapper[] = [
     color: '#f59e0b', // amber-500
     icon: 'CheckCircle',
     sapActivatePhase: 'realize',
+    category: 'implementation',
   },
   {
     id: 'cutover-hypercare',
@@ -74,6 +103,7 @@ export const DEFAULT_WRAPPERS: Wrapper[] = [
     color: '#ef4444', // red-500
     icon: 'Rocket',
     sapActivatePhase: 'deploy',
+    category: 'support',
   },
 ];
 

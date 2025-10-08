@@ -73,7 +73,7 @@ export function OptimizationMode() {
             disabled={isOptimizing}
             className={`
               px-8 py-4 rounded-lg font-semibold text-lg
-              transition-all duration-200 inline-flex items-center gap-3
+              transition-all duration-200 inline-flex items-center gap-4
               ${isOptimizing
                 ? 'bg-white/20 cursor-wait'
                 : 'bg-white text-purple-600 hover:scale-105 hover:shadow-2xl'
@@ -137,7 +137,7 @@ export function OptimizationMode() {
                 </h3>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {optimizationResult.bottlenecks.map((bottleneck, idx) => (
                   <BottleneckCard key={idx} bottleneck={bottleneck} />
                 ))}
@@ -155,7 +155,7 @@ export function OptimizationMode() {
                 </h3>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {optimizationResult.opportunities.map((opportunity, idx) => (
                   <OpportunityCard key={idx} opportunity={opportunity} />
                 ))}
@@ -169,7 +169,7 @@ export function OptimizationMode() {
               Resource Allocation
             </h3>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               {optimizationResult.resources.map((resource) => (
                 <ResourceRow key={resource.id} resource={resource} />
               ))}
@@ -196,7 +196,7 @@ function MetricCard({ icon, label, value, color, subtitle }: {
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
-      <div className={`w-12 h-12 rounded-lg ${colorClasses} flex items-center justify-center mb-3`}>
+      <div className={`w-12 h-12 rounded-lg ${colorClasses} flex items-center justify-center mb-4`}>
         {icon}
       </div>
       <div className="text-sm text-gray-600 mb-1">{label}</div>

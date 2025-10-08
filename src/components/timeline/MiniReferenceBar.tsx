@@ -36,6 +36,11 @@ export function MiniReferenceBar() {
   const grandTotalEffort = coreEffort + totalWrapperEffort;
   const grandTotalCost = coreEffortCost + totalWrapperCost;
 
+  // Don't render if no phases (no real project data)
+  if (phases.length === 0 || coreEffort === 0) {
+    return null;
+  }
+
   return (
     <motion.div
       initial={false}

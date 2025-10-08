@@ -2,6 +2,7 @@ import { Holiday } from '@/lib/timeline/date-calculations';
 import type { Phase, Resource } from '@/types/core';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import { persist } from 'zustand/middleware';
 import {
   ResourcePlan,
   PhaseResource,
@@ -47,6 +48,7 @@ interface TimelineState {
   deletePhase: (phaseId: string) => void;
   updatePhase: (phaseId: string, updates: Partial<Phase>) => void;
   updatePhaseResources: (phaseId: string, resources: Resource[]) => void;
+  removeTaskFromPhase: (phaseId: string, taskId: string) => void;
   selectPhase: (phaseId: string | null) => void;
   addPackage: (pkg: string) => void;
   removePackage: (pkg: string) => void;
@@ -76,7 +78,8 @@ interface TimelineState {
 // --- Store ---
 
 export const useTimelineStore = create<TimelineState>()(
-  immer((set, get) => ({
+  persist(
+    immer((set, get) => ({
     // --- Initial State ---
     projectId: null,
     isLoading: false,
@@ -199,6 +202,15 @@ export const useTimelineStore = create<TimelineState>()(
         });
     },
 
+    removeTaskFromPhase: (phaseId, taskId) => {
+        set(state => {
+            const phase = state.phases.find((p: Phase) => p.id === phaseId);
+            if (phase && phase.tasks) {
+                phase.tasks = phase.tasks.filter(t => t.id !== taskId);
+            }
+        });
+    },
+
     selectPhase: (phaseId) => {
         set({ selectedPhaseId: phaseId });
     },
@@ -312,6 +324,20 @@ export const useTimelineStore = create<TimelineState>()(
         region: 'US-East',
       });
     },
-  }))
+  })),
+    {
+      name: 'cockpit-timeline-storage',
+      partialize: (state) => ({
+        phases: state.phases,
+        selectedPackages: state.selectedPackages,
+        zoomLevel: state.zoomLevel,
+        clientPresentationMode: state.clientPresentationMode,
+        region: state.region,
+        selectedPhaseId: state.selectedPhaseId,
+        phaseColors: state.phaseColors,
+      }),
+      version: 1,
+    }
+  )
 );
 

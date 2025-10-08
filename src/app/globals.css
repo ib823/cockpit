@@ -1,218 +1,272 @@
+/**
+ * Global Styles - SAP Implementation Cockpit
+ * Minimalist, Steve Jobs-inspired design system
+ */
+
+@import '../styles/tokens.css';
+@import '../styles/motion.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================
-   CSS VARIABLES FOR THEMING
-   Per spec: Design_Tokens_ChangeList.md
-   ============================================ */
+/* ═══════════════════════════════════════════════════════
+   Base Styles
+   ═══════════════════════════════════════════════════════ */
 
-:root {
-  /* Light mode colors */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f9fafb;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-border: #e5e7eb;
-
-  /* Success */
-  --color-success-500: #22c55e;
-  --color-success-600: #16a34a;
-
-  /* Warning */
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-
-  /* Error */
-  --color-error-500: #ef4444;
-  --color-error-600: #dc2626;
-}
-
-/* Dark mode theme */
-[data-theme="dark"] {
-  --color-primary-50: #1e3a8a;
-  --color-primary-100: #1e40af;
-  --color-primary-200: #1d4ed8;
-  --color-primary-300: #2563eb;
-  --color-primary-400: #3b82f6;
-  --color-primary-500: #60a5fa;
-  --color-primary-600: #93c5fd;
-  --color-primary-700: #bfdbfe;
-  --color-primary-800: #dbeafe;
-  --color-primary-900: #eff6ff;
-
-  --color-bg: #111827;
-  --color-bg-secondary: #1f2937;
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #9ca3af;
-  --color-border: #374151;
-
-  /* Success */
-  --color-success-500: #4ade80;
-  --color-success-600: #86efac;
-
-  /* Warning */
-  --color-warning-500: #fbbf24;
-  --color-warning-600: #fcd34d;
-
-  /* Error */
-  --color-error-500: #f87171;
-  --color-error-600: #fca5a5;
-}
-
-/* Accessibility: Fixed font sizes for prefers-reduced-data */
-@media (prefers-reduced-data: reduce) {
-  :root {
-    --font-size-base: 16px;
-  }
-
-  html {
-    font-size: var(--font-size-base);
-  }
-}
-
-/* Accessibility: Respect prefers-reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  html {
-    scroll-behavior: auto;
-  }
-}
-
-/* Apple-inspired base styles */
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
 }
 
-/* Smooth scrolling */
 html {
+  font-family: var(--font-sans);
+  font-feature-settings: 'ss01', 'cv02';
   scroll-behavior: smooth;
 }
 
-/* Focus states - Apple-like blue ring */
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 2px solid #007aff;
-  outline-offset: 2px;
+body {
+  color: var(--ink);
+  background: var(--surface);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
 }
+
+/* ═══════════════════════════════════════════════════════
+   Focus States (Apple-like)
+   ═══════════════════════════════════════════════════════ */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex='0']:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Typography
+   ═══════════════════════════════════════════════════════ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--ink);
+}
+
+p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--dur) var(--ease);
+}
+
+a:hover {
+  color: var(--accent-strong);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Utilities
+   ═══════════════════════════════════════════════════════ */
 
 @layer utilities {
-  /* Card shadows (Apple-like depth) */
-  .card-shadow {
-    box-shadow:
-      0 1px 3px rgba(0, 0, 0, 0.12),
-      0 1px 2px rgba(0, 0, 0, 0.24);
+  /* Hairline borders */
+  .hairline {
+    border-width: 1px;
   }
 
-  .card-shadow-lg {
-    box-shadow:
-      0 10px 20px rgba(0, 0, 0, 0.15),
-      0 3px 6px rgba(0, 0, 0, 0.1);
+  .hairline-b {
+    border-bottom-width: 1px;
   }
 
-  /* Hover lift effect */
-  .hover-lift {
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+  .hairline-t {
+    border-top-width: 1px;
   }
 
-  .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  .hairline-l {
+    border-left-width: 1px;
   }
 
-  /* Gradient backgrounds */
-  .gradient-blue {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  .hairline-r {
+    border-right-width: 1px;
   }
 
-  .gradient-green {
-    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+  /* Subtle borders using color-mix */
+  .border-subtle {
+    border-color: color-mix(in oklab, var(--ink) 10%, transparent);
   }
 
-  .gradient-purple {
-    background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  /* Content-first layout */
+  .content-max-w {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  /* Glass morphism */
-  .glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  /* Hide visually but keep for screen readers */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
 
-  .glass-dark {
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Client-safe mode (hide cost elements) */
+  [data-client-safe='true'] .cost-element {
+    display: none;
   }
 }
 
-/* Chip design system */
-.chip-card {
-  border-radius: 12px;
-  border: 2px solid rgb(229, 231, 235);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* ═══════════════════════════════════════════════════════
+   Component Patterns
+   ═══════════════════════════════════════════════════════ */
 
-.chip-card:hover {
-  border-color: rgb(147, 197, 253);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
-}
-
-@keyframes slide-in-right {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
+@layer components {
+  /* Subtle card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
   }
-  to {
-    transform: translateX(0);
+
+  .card-hover {
+    @apply card;
+    transition: all var(--dur) var(--ease);
+  }
+
+  .card-hover:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  /* Input base */
+  .input {
+    height: 40px;
+    padding: 0 var(--s-12);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 0.875rem;
+    transition: all var(--dur) var(--ease);
+  }
+
+  .input:hover {
+    border-color: var(--ink-muted);
+  }
+
+  .input:focus {
+    outline: 2px solid var(--focus);
+    outline-offset: 0;
+    border-color: var(--focus);
+  }
+
+  .input::placeholder {
+    color: var(--ink-muted);
+  }
+
+  /* Button reset */
+  .btn-reset {
+    appearance: none;
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Scrollbar Styling (subtle, minimal)
+   ═══════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-sub);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: var(--r-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-muted);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) var(--surface-sub);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Loading States
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
     opacity: 1;
   }
-}
-
-.animate-slide-in-right {
-  animation: slide-in-right 0.3s ease-out;
-}
-
-@keyframes pulse-ring {
-  0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-  }
-  70% {
-    transform: scale(1);
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-  }
-  100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  50% {
+    opacity: 0.5;
   }
 }
 
-.pulse-ring {
-  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.skeleton {
+  animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background: var(--surface-sub);
+  border-radius: var(--r-sm);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Print Styles
+   ═══════════════════════════════════════════════════════ */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  a {
+    text-decoration: underline;
+  }
 }

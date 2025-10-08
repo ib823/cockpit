@@ -16,13 +16,11 @@ import {
   ChevronRight,
   Flag,
   Maximize2,
-  Minimize2,
-  Users
+  Minimize2
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HolidayManagerModal } from "./HolidayManagerModal";
 import { MilestoneManagerModal } from "./MilestoneManagerModal";
-import { ResourceManagerModal } from "./ResourceManagerModal";
 import { Button } from "@/components/common/Button";
 import { Heading3 } from "@/components/common/Typography";
 import { generateTasksForPhase } from "@/lib/task-templates";
@@ -115,9 +113,6 @@ export function ImprovedGanttChart({
   // Edit mode state
   const [editingField, setEditingField] = useState<{ phaseId: string; field: 'start' | 'end' | 'duration' } | null>(null);
   const [editValue, setEditValue] = useState<string>('');
-
-  // Resource management state
-  const [selectedPhaseForResources, setSelectedPhaseForResources] = useState<Phase | null>(null);
 
   // Group phases into streams
   const streams = useMemo(() => {
@@ -544,7 +539,7 @@ export function ImprovedGanttChart({
           <select
             value={selectedRegion}
             onChange={(e) => setSelectedRegion(e.target.value as any)}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 transition-colors focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 transition-colors focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             aria-label="Select region"
           >
             <option value="ABMY">🇲🇾 Malaysia</option>
@@ -712,23 +707,11 @@ export function ImprovedGanttChart({
 
                   return (
                     <div key={phase.id} className="flex items-center group/phase">
-                      <div className="w-64 pl-8 pr-4 flex items-center justify-between">
+                      <div className="w-64 pl-8 pr-4">
                         <div className="flex-1 min-w-0">
                           <div className="text-sm text-gray-700 truncate">{phase.name}</div>
                           <div className="text-xs text-gray-500">{phase.workingDays}d • {phase.effort}md</div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedPhaseForResources(phase);
-                          }}
-                          className="ml-2 opacity-0 group-hover/phase:opacity-100"
-                          aria-label="Allocate Resources"
-                        >
-                          <Users className="w-4 h-4" />
-                        </Button>
                       </div>
 
                       <div className="flex-1 relative h-16">
@@ -795,7 +778,7 @@ export function ImprovedGanttChart({
                   <div key={phase.id}>
                     {/* Phase Row */}
                     <div className="flex items-center mb-2 group/phase">
-                      <div className="w-64 pl-8 pr-4 flex items-center justify-between">
+                      <div className="w-64 pl-8 pr-4 flex items-center">
                         <div className="flex-1 min-w-0 flex items-center gap-2">
                           {phaseTasks && phaseTasks.length > 0 && (
                             <button
@@ -818,18 +801,6 @@ export function ImprovedGanttChart({
                             <div className="text-xs text-gray-500">{phase.workingDays}d • {phase.effort}md</div>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedPhaseForResources(phase);
-                          }}
-                          className="ml-2 opacity-0 group-hover/phase:opacity-100"
-                          aria-label="Allocate Resources"
-                        >
-                          <Users className="w-4 h-4" />
-                        </Button>
                       </div>
 
                     <div className="flex-1 relative h-16">
@@ -981,7 +952,7 @@ export function ImprovedGanttChart({
 
                     {/* Tasks - Shown when phase is expanded */}
                     {isPhaseExpanded && phaseTasks && phaseTasks.length > 0 && (
-                      <div className="ml-12 mt-1 mb-3 space-y-1">
+                      <div className="ml-12 mt-1 mb-4 space-y-1">
                         {phaseTasks.map((task, idx) => (
                           <div key={task.id} className="flex items-center text-xs group/task">
                             <div className="w-52 pr-4 text-gray-600">
@@ -1048,17 +1019,6 @@ export function ImprovedGanttChart({
             setShowMilestoneModal(false);
           }}
           onClose={() => setShowMilestoneModal(false)}
-        />
-      )}
-
-      {/* Resource Manager Modal */}
-      {selectedPhaseForResources && updatePhase && (
-        <ResourceManagerModal
-          phase={selectedPhaseForResources}
-          onClose={() => setSelectedPhaseForResources(null)}
-          onSave={(resources) => {
-            updatePhase(selectedPhaseForResources.id, { resources });
-          }}
         />
       )}
     </div>

@@ -314,35 +314,35 @@ export const SnapshotSchema = z.object({
 // VALIDATION HELPERS
 // ============================================================================
 
-export function validateProject(data: any): z.infer<typeof ProjectSchema> {
+export function validateProject(data: unknown): z.infer<typeof ProjectSchema> {
   return ProjectSchema.parse(data);
 }
 
-export function validatePhase(data: any): z.infer<typeof PhaseSchema> {
+export function validatePhase(data: unknown): z.infer<typeof PhaseSchema> {
   return PhaseSchema.parse(data);
 }
 
-export function validateResource(data: any): z.infer<typeof ResourceSchema> {
+export function validateResource(data: unknown): z.infer<typeof ResourceSchema> {
   return ResourceSchema.parse(data);
 }
 
-export function validateRicefwItem(data: any): z.infer<typeof RicefwItemSchema> {
+export function validateRicefwItem(data: unknown): z.infer<typeof RicefwItemSchema> {
   return RicefwItemSchema.parse(data);
 }
 
-export function validateFormSpec(data: any): z.infer<typeof FormSpecSchema> {
+export function validateFormSpec(data: unknown): z.infer<typeof FormSpecSchema> {
   return FormSpecSchema.parse(data);
 }
 
-export function validateIntegrationSpec(data: any): z.infer<typeof IntegrationSpecSchema> {
+export function validateIntegrationSpec(data: unknown): z.infer<typeof IntegrationSpecSchema> {
   return IntegrationSpecSchema.parse(data);
 }
 
-export function validateChip(data: any): z.infer<typeof ChipSchema> {
+export function validateChip(data: unknown): z.infer<typeof ChipSchema> {
   return ChipSchema.parse(data);
 }
 
-export function validateSnapshot(data: any): z.infer<typeof SnapshotSchema> {
+export function validateSnapshot(data: unknown): z.infer<typeof SnapshotSchema> {
   return SnapshotSchema.parse(data);
 }
 

@@ -1,0 +1,189 @@
+/**
+ * Motion Design System
+ * Subtle, fast, purposeful. No bouncing.
+ * 150-200ms transitions, ease-out curves.
+ */
+
+/* ═══════════════════════════════════════════════════════
+   Base Transition Mixins
+   ═══════════════════════════════════════════════════════ */
+
+.transition-fast {
+  transition-duration: var(--dur);
+  transition-timing-function: var(--ease);
+}
+
+.transition-slow {
+  transition-duration: var(--dur-slow);
+  transition-timing-function: var(--ease);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Common Transitions
+   ═══════════════════════════════════════════════════════ */
+
+.transition-colors {
+  transition-property: color, background-color, border-color, fill, stroke;
+  transition-duration: var(--dur);
+  transition-timing-function: var(--ease);
+}
+
+.transition-opacity {
+  transition-property: opacity;
+  transition-duration: var(--dur);
+  transition-timing-function: var(--ease);
+}
+
+.transition-transform {
+  transition-property: transform;
+  transition-duration: var(--dur);
+  transition-timing-function: var(--ease);
+}
+
+.transition-all {
+  transition: all var(--dur) var(--ease);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Hover Effects (subtle scale, no large transforms)
+   ═══════════════════════════════════════════════════════ */
+
+.hover-lift {
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+}
+
+.hover-scale {
+  transition: transform var(--dur) var(--ease);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Keyframe Animations
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-left {
+  from {
+    transform: translateX(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-right {
+  from {
+    transform: translateX(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Utility Classes
+   ═══════════════════════════════════════════════════════ */
+
+.animate-fade-in {
+  animation: fade-in var(--dur) var(--ease);
+}
+
+.animate-fade-out {
+  animation: fade-out var(--dur) var(--ease);
+}
+
+.animate-slide-up {
+  animation: slide-up var(--dur) var(--ease);
+}
+
+.animate-slide-down {
+  animation: slide-down var(--dur) var(--ease);
+}
+
+.animate-slide-left {
+  animation: slide-left var(--dur) var(--ease);
+}
+
+.animate-slide-right {
+  animation: slide-right var(--dur) var(--ease);
+}
+
+.animate-scale-in {
+  animation: scale-in var(--dur) var(--ease);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Reduced Motion (Accessibility)
+   ═══════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

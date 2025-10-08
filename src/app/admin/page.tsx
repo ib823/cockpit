@@ -1,7 +1,38 @@
 'use client';
 
+/**
+ * ADMIN DASHBOARD - VIBE DESIGN SYSTEM VERSION
+ *
+ * Professional Monday.com-style admin interface
+ * Migrated from custom Tailwind to Vibe for consistency
+ */
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  Button,
+  TextField,
+  Heading,
+  Box,
+  Flex,
+  Chips,
+  Modal,
+  ModalContent,
+  Loader,
+  IconButton,
+  Divider,
+} from 'monday-ui-react-core';
+import {
+  Home,
+  LogOut,
+  Delete,
+  Add,
+  Check,
+  Alert,
+  Team,
+} from 'monday-ui-react-core/icons';
+import 'monday-ui-react-core/dist/main.css';
+import '../../styles/vibe-theme.css';
 import AccessCodeModal from '@/components/admin/AccessCodeModal';
 
 interface User {
@@ -19,7 +50,7 @@ interface User {
   hasPasskey: boolean;
 }
 
-export default function AdminPage() {
+export default function AdminPageVibe() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,11 +66,29 @@ export default function AdminPage() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ email: string; name: string | null } | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     fetchUsers();
     fetchCurrentUser();
   }, []);
+
+  // Auto-hide notifications
+  useEffect(() => {
+    if (success || error) {
+      setShowToast(true);
+      setToastType(success ? 'success' : 'error');
+      setToastMessage(success || error);
+
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 3500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [success, error]);
 
   async function fetchCurrentUser() {
     try {
@@ -184,27 +233,12 @@ export default function AdminPage() {
 
   function getStatusBadge(user: User) {
     if (user.status === 'active') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          <span className="h-1.5 w-1.5 rounded-full bg-green-600"></span>
-          Active
-        </span>
-      );
+      return <Chips label="Active" readOnly color={Chips.colors.POSITIVE} />;
     }
     if (user.status === 'expired') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-          <span className="h-1.5 w-1.5 rounded-full bg-red-600"></span>
-          Expired
-        </span>
-      );
+      return <Chips label="Expired" readOnly color={Chips.colors.NEGATIVE} />;
     }
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-        <span className="h-1.5 w-1.5 rounded-full bg-yellow-600"></span>
-        Pending
-      </span>
-    );
+    return <Chips label="Pending" readOnly />;
   }
 
   function formatDate(date: string | null) {
@@ -234,407 +268,355 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <style jsx>{`
-        @keyframes subtle-pulse {
-          0%, 100% { opacity: 0.05; }
-          50% { opacity: 0.1; }
-        }
-        .subtle-pulse {
-          animation: subtle-pulse 3s ease-in-out infinite;
-        }
-      `}</style>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F6F7FB 0%, #E6F0FF 100%)' }}>
+      {/* Professional Toast Notifications */}
+      {showToast && (
+        <div style={{
+          position: 'fixed',
+          top: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          animation: 'slideDown 0.4s ease-out',
+        }}>
+          <Box
+            padding={Box.paddings.MEDIUM}
+            rounded={Box.roundeds.MEDIUM}
+            style={{
+              background: toastType === 'error' ? '#FFF4E5' : '#E6F7F1',
+              border: `1px solid ${toastType === 'error' ? '#FDAB3D' : '#00C875'}`,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              minWidth: '300px',
+            }}
+          >
+            <Flex align={Flex.align.CENTER} gap={Flex.gaps.SMALL}>
+              {toastType === 'error' ? (
+                <Alert style={{ color: '#FDAB3D' }} />
+              ) : (
+                <Check style={{ color: '#00C875' }} />
+              )}
+              <span style={{
+                fontSize: '14px',
+                fontWeight: 500,
+                color: toastType === 'error' ? '#9B5C00' : '#007A48',
+              }}>
+                {toastMessage}
+              </span>
+            </Flex>
+          </Box>
+        </div>
+      )}
 
-      {/* Subtle ambient background - matches login theme */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full blur-3xl subtle-pulse" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100 rounded-full blur-3xl subtle-pulse" style={{ animationDelay: '1s' }} />
-      </div>
-
-      {/* Header - Minimal and clean */}
-      <div className="relative bg-white/80 backdrop-blur-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
+      {/* Header */}
+      <Box
+        padding={Box.paddings.LARGE}
+        style={{
+          background: 'white',
+          borderBottom: '1px solid var(--vibe-ui-border-color-light)',
+          marginBottom: '24px',
+        }}
+      >
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          <Flex justify={Flex.justify.SPACE_BETWEEN} align={Flex.align.CENTER}>
             <div>
-              <h1 className="text-3xl font-light text-slate-900 tracking-tight">Cockpit</h1>
-              <p className="text-sm text-slate-600 mt-1">Admin Dashboard</p>
+              <Heading type={Heading.types.h1} value="SAP Cockpit" style={{ margin: 0 }} />
+              <p style={{ fontSize: '14px', color: '#676879', marginTop: '4px' }}>Admin Dashboard</p>
             </div>
-            <div className="flex items-center gap-4">
-              {/* Current User Info */}
+
+            <Flex gap={Flex.gaps.MEDIUM} align={Flex.align.CENTER}>
               {currentUser && (
-                <div className="text-right">
-                  <p className="text-sm font-medium text-slate-900">
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#323338', margin: 0 }}>
                     {currentUser.name || 'Admin'}
                   </p>
-                  <p className="text-xs text-slate-600">
+                  <p style={{ fontSize: '12px', color: '#676879', margin: 0 }}>
                     {currentUser.email}
                   </p>
                 </div>
               )}
 
-              {/* Go to App */}
-              <button
+              <Button
                 onClick={() => router.push('/')}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-all"
+                kind={Button.kinds.TERTIARY}
+                size={Button.sizes.MEDIUM}
+                leftIcon={Home}
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
                 Go to App
-              </button>
+              </Button>
 
-              {/* Logout */}
-              <button
+              <Button
                 onClick={() => setShowLogoutModal(true)}
                 disabled={loggingOut}
-                className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all disabled:opacity-50"
+                kind={Button.kinds.PRIMARY}
+                size={Button.sizes.MEDIUM}
+                leftIcon={LogOut}
               >
-                {loggingOut ? (
-                  <>
-                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Logging out...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+                {loggingOut ? 'Logging out...' : 'LogOut'}
+              </Button>
+            </Flex>
+          </Flex>
         </div>
-      </div>
+      </Box>
 
-      <div className="relative max-w-7xl mx-auto px-6 py-8">
-        {/* Create Access Card - Minimal design */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm">
-          <h2 className="text-lg font-medium text-slate-900 mb-4">Approve User</h2>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 24px 24px' }}>
+        {/* Approve User Form */}
+        <Box
+          padding={Box.paddings.LARGE}
+          rounded={Box.roundeds.MEDIUM}
+          style={{
+            background: 'white',
+            marginBottom: '24px',
+            boxShadow: 'var(--vibe-shadow-medium)',
+          }}
+        >
+          <Heading type={Heading.types.h3} value="Approve User" style={{ marginBottom: '16px' }} />
 
-          <div className="space-y-3">
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && createAccess()}
-                placeholder="Full Name"
-                className="flex-1 px-4 py-3 border-b-2 border-slate-200 focus:border-slate-900 focus:outline-none transition-colors bg-transparent"
-              />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && createAccess()}
-                placeholder="user@company.com"
-                className="flex-1 px-4 py-3 border-b-2 border-slate-200 focus:border-slate-900 focus:outline-none transition-colors bg-transparent"
-              />
-            </div>
-            <button
+          <Flex direction={Flex.directions.COLUMN} gap={Flex.gaps.MEDIUM}>
+            <Flex gap={Flex.gaps.MEDIUM}>
+              <div style={{ flex: 1 }}>
+                <TextField
+                  value={name}
+                  onChange={setName}
+                  onKeyDown={(e: any) => e.key === 'Enter' && createAccess()}
+                  placeholder="Full Name"
+                  size="large"
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <TextField
+                  value={email}
+                  onChange={setEmail}
+                  onKeyDown={(e: any) => e.key === 'Enter' && createAccess()}
+                  placeholder="user@company.com"
+                  size="large"
+                  validation={error ? { status: 'error', text: error } : undefined}
+                />
+              </div>
+            </Flex>
+
+            <Button
               onClick={createAccess}
               disabled={sending || !email}
-              className="w-full px-6 py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              kind={Button.kinds.PRIMARY}
+              size={Button.sizes.LARGE}
+              style={{ width: '100%' }}
             >
               {sending ? 'Approving...' : 'Approve User'}
-            </button>
-          </div>
+            </Button>
+          </Flex>
+        </Box>
 
-          {success && (
-            <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-xl flex items-start gap-3">
-              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
+        {/* Stats Cards */}
+        <Flex gap={Flex.gaps.MEDIUM} style={{ marginBottom: '24px' }}>
+          <Box
+            padding={Box.paddings.MEDIUM}
+            rounded={Box.roundeds.MEDIUM}
+            style={{
+              flex: 1,
+              background: 'linear-gradient(135deg, #00C875 0%, #00A95F 100%)',
+              color: 'white',
+              boxShadow: 'var(--vibe-shadow-medium)',
+            }}
+          >
+            <Flex direction={Flex.directions.COLUMN} gap={Flex.gaps.XS}>
+              <div style={{ opacity: 0.9, fontSize: '12px' }}>Active Users</div>
+              <div style={{ fontSize: '32px', fontWeight: 700 }}>
+                {users.filter(u => u.status === 'active').length}
               </div>
-              <p className="text-sm text-green-900 font-medium">{success}</p>
-            </div>
-          )}
+            </Flex>
+          </Box>
 
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl flex items-start gap-3">
-              <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+          <Box
+            padding={Box.paddings.MEDIUM}
+            rounded={Box.roundeds.MEDIUM}
+            style={{
+              flex: 1,
+              background: 'linear-gradient(135deg, #FDAB3D 0%, #F59E0B 100%)',
+              color: 'white',
+              boxShadow: 'var(--vibe-shadow-medium)',
+            }}
+          >
+            <Flex direction={Flex.directions.COLUMN} gap={Flex.gaps.XS}>
+              <div style={{ opacity: 0.9, fontSize: '12px' }}>Pending</div>
+              <div style={{ fontSize: '32px', fontWeight: 700 }}>
+                {users.filter(u => u.status === 'pending').length}
               </div>
-              <p className="text-sm text-red-900 font-medium">{error}</p>
-            </div>
-          )}
-        </div>
+            </Flex>
+          </Box>
 
-        {/* Stats Cards - Visual icons */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-5">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
+          <Box
+            padding={Box.paddings.MEDIUM}
+            rounded={Box.roundeds.MEDIUM}
+            style={{
+              flex: 1,
+              background: 'linear-gradient(135deg, #0073EA 0%, #6161FF 100%)',
+              color: 'white',
+              boxShadow: 'var(--vibe-shadow-medium)',
+            }}
+          >
+            <Flex direction={Flex.directions.COLUMN} gap={Flex.gaps.XS}>
+              <div style={{ opacity: 0.9, fontSize: '12px' }}>Timelines Generated</div>
+              <div style={{ fontSize: '32px', fontWeight: 700 }}>
+                {users.reduce((sum, u) => sum + (u.timelinesGenerated || 0), 0)}
               </div>
-              <div>
-                <p className="text-3xl font-light text-slate-900">
-                  {users.filter(u => u.status === 'active').length}
-                </p>
-                <p className="text-sm text-slate-600">Active</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-5">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-3xl font-light text-slate-900">
-                  {users.filter(u => u.status === 'pending').length}
-                </p>
-                <p className="text-sm text-slate-600">Pending</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-5">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-3xl font-light text-slate-900">
-                  {users.reduce((sum, u) => sum + (u.timelinesGenerated || 0), 0)}
-                </p>
-                <p className="text-sm text-slate-600">Timelines</p>
-              </div>
-            </div>
-          </div>
-        </div>
+            </Flex>
+          </Box>
+        </Flex>
 
         {/* Users Table */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-200">
-            <h2 className="text-lg font-medium text-slate-900">Users</h2>
-          </div>
+        <Box
+          padding={Box.paddings.LARGE}
+          rounded={Box.roundeds.MEDIUM}
+          style={{
+            background: 'white',
+            boxShadow: 'var(--vibe-shadow-medium)',
+          }}
+        >
+          <Heading type={Heading.types.h3} value="Users" style={{ marginBottom: '16px' }} />
 
           {loading ? (
-            <div className="p-12 text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900"></div>
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <Loader size={Loader.sizes.LARGE} />
             </div>
           ) : users.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="text-slate-500">No users yet. Approve one above to get started.</p>
+            <div style={{ textAlign: 'center', padding: '40px 0', color: '#676879' }}>
+              <Team style={{ fontSize: '48px', opacity: 0.3, marginBottom: '12px' }} />
+              <p>No users yet. Approve one above to get started.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              {/* Mobile Card View */}
-              <div className="block md:hidden divide-y divide-slate-200">
-                {users.map((user) => (
-                  <div key={user.id} className="p-4 hover:bg-slate-50/50">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        {user.name && (
-                          <p className="text-sm font-medium text-slate-900">{user.name}</p>
-                        )}
-                        <p className={`text-sm ${user.name ? 'text-slate-600' : 'font-medium text-slate-900'}`}>
-                          {user.email}
-                        </p>
-                      </div>
-                      {getStatusBadge(user)}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 text-sm mb-3">
-                      <div>
-                        <p className="text-xs text-slate-500 mb-1">First Login</p>
-                        <p className="text-slate-900">{user.firstLoginAt ? formatRelative(user.firstLoginAt) : '—'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 mb-1">Last Active</p>
-                        <p className="text-slate-900">{user.lastLoginAt ? formatRelative(user.lastLoginAt) : '—'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 mb-1">Timelines</p>
-                        <p className="font-medium text-slate-900">{user.timelinesGenerated || 0}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 mb-1">Access Expires</p>
-                        <p className="text-slate-900">
-                          {user.exception ? 'Never' : (
-                            new Date(user.accessExpiresAt) > new Date()
-                              ? `${Math.ceil((new Date(user.accessExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))}d`
-                              : 'Expired'
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleException(user.id, user.exception)}
-                        className={`flex-1 min-h-[44px] p-2 rounded-lg transition-colors ${
-                          user.exception
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-slate-100 text-slate-600'
-                        }`}
-                      >
-                        <span className="text-lg font-bold">∞</span>
-                      </button>
-                      <button
-                        onClick={() => extendAccess(user.id, user.email)}
-                        className="flex-1 min-h-[44px] p-2 bg-green-50 text-green-600 rounded-lg"
-                      >
-                        <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => deleteUser(user.id, user.email)}
-                        className="flex-1 min-h-[44px] p-2 bg-red-50 text-red-600 rounded-lg"
-                      >
-                        <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Desktop Table View */}
-              <table className="w-full hidden md:table">
-                <thead className="bg-slate-50/50 border-b border-slate-200">
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead style={{ background: '#F6F7FB', borderBottom: '1px solid var(--vibe-ui-border-color-light)' }}>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#676879', textTransform: 'uppercase' }}>
                       User
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#676879', textTransform: 'uppercase' }}>
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#676879', textTransform: 'uppercase' }}>
                       First Login
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#676879', textTransform: 'uppercase' }}>
                       Last Active
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#676879', textTransform: 'uppercase' }}>
                       Timelines
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#676879', textTransform: 'uppercase' }}>
                       Access Expires
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th style={{ padding: '12px', textAlign: 'right', fontSize: '12px', fontWeight: 600, color: '#676879', textTransform: 'uppercase' }}>
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4">
+                <tbody style={{ borderBottom: '1px solid var(--vibe-ui-border-color-light)' }}>
+                  {users.map((user, idx) => (
+                    <tr key={user.id} style={{ borderBottom: idx < users.length - 1 ? '1px solid var(--vibe-ui-border-color-light)' : 'none' }}>
+                      <td style={{ padding: '16px' }}>
                         <div>
                           {user.name && (
-                            <p className="text-sm font-medium text-slate-900">{user.name}</p>
+                            <p style={{ fontSize: '14px', fontWeight: 600, color: '#323338', margin: 0 }}>
+                              {user.name}
+                            </p>
                           )}
-                          <p className={`text-sm ${user.name ? 'text-slate-600' : 'font-medium text-slate-900'}`}>
+                          <p style={{ fontSize: '14px', color: '#676879', margin: 0 }}>
                             {user.email}
                           </p>
                           {user.exception && (
-                            <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                              No Expiry
-                            </span>
+                            <div style={{ marginTop: '4px' }}>
+                              <Chips label="No Expiry" readOnly color={Chips.colors.PRIMARY} />
+                            </div>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td style={{ padding: '16px' }}>
                         {getStatusBadge(user)}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-slate-900">
+                      <td style={{ padding: '16px' }}>
+                        <div style={{ fontSize: '14px', color: '#323338' }}>
                           {user.firstLoginAt ? formatDate(user.firstLoginAt) : '—'}
                         </div>
                         {user.firstLoginAt && (
-                          <div className="text-xs text-slate-500">
+                          <div style={{ fontSize: '12px', color: '#676879' }}>
                             {formatRelative(user.firstLoginAt)}
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-slate-900">
+                      <td style={{ padding: '16px' }}>
+                        <div style={{ fontSize: '14px', color: '#323338' }}>
                           {user.lastLoginAt ? formatDate(user.lastLoginAt) : '—'}
                         </div>
                         {user.lastLoginAt && (
-                          <div className="text-xs text-slate-500">
+                          <div style={{ fontSize: '12px', color: '#676879' }}>
                             {formatRelative(user.lastLoginAt)}
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-slate-900">
+                      <td style={{ padding: '16px' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#323338' }}>
                           {user.timelinesGenerated || 0}
                         </div>
                         {user.lastTimelineAt && (
-                          <div className="text-xs text-slate-500">
+                          <div style={{ fontSize: '12px', color: '#676879' }}>
                             Last: {formatRelative(user.lastTimelineAt)}
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td style={{ padding: '16px' }}>
                         {user.exception ? (
-                          <span className="text-sm text-slate-500">Never</span>
+                          <span style={{ fontSize: '14px', color: '#676879' }}>Never</span>
                         ) : (
                           <div>
-                            <div className="text-sm text-slate-900">
+                            <div style={{ fontSize: '14px', color: '#323338' }}>
                               {formatDate(user.accessExpiresAt)}
                             </div>
                             {new Date(user.accessExpiresAt) > new Date() && (
-                              <div className="text-xs text-slate-500">
+                              <div style={{ fontSize: '12px', color: '#676879' }}>
                                 {Math.ceil((new Date(user.accessExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days left
                               </div>
                             )}
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-2">
+                      <td style={{ padding: '16px' }}>
+                        <Flex gap={Flex.gaps.SMALL} justify={Flex.justify.END}>
                           {/* Toggle Exception */}
                           <button
                             onClick={() => toggleException(user.id, user.exception)}
                             title={user.exception ? 'Disable exception (re-enable expiry)' : 'Enable exception (never expires)'}
-                            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg transition-colors ${
-                              user.exception
-                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
-                            }`}
+                            style={{
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              border: 'none',
+                              background: user.exception ? 'rgba(0, 115, 234, 0.1)' : '#F6F7FB',
+                              color: user.exception ? '#0073EA' : '#676879',
+                              cursor: 'pointer',
+                              fontSize: '18px',
+                              fontWeight: 700,
+                              transition: 'all 0.2s',
+                            }}
                           >
-                            <span className="text-lg font-bold">∞</span>
+                            ∞
                           </button>
 
                           {/* Extend Access */}
-                          <button
+                          <IconButton
+                            icon={Add}
+                            kind={IconButton.kinds.TERTIARY}
+                            ariaLabel="Extend access by 7 days"
                             onClick={() => extendAccess(user.id, user.email)}
-                            title="Extend access by 7 days"
-                            className="min-h-[44px] min-w-[44px] p-2 text-slate-400 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
-                          >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                          </button>
+                          />
 
                           {/* Delete User */}
-                          <button
+                          <IconButton
+                            icon={Delete}
+                            kind={IconButton.kinds.TERTIARY}
+                            ariaLabel="Delete user"
                             onClick={() => deleteUser(user.id, user.email)}
-                            title="Delete user"
-                            className="min-h-[44px] min-w-[44px] p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
-                          >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
+                          />
+                        </Flex>
                       </td>
                     </tr>
                   ))}
@@ -642,7 +624,7 @@ export default function AdminPage() {
               </table>
             </div>
           )}
-        </div>
+        </Box>
       </div>
 
       {/* Access Code Modal */}
@@ -655,47 +637,52 @@ export default function AdminPage() {
       />
 
       {/* Logout Confirmation Modal */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-slate-200">
-            <div className="text-center">
-              {/* Icon */}
-              <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </div>
-
-              {/* Title */}
-              <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                Logout
-              </h3>
-
-              {/* Personalized Message */}
-              <p className="text-slate-600 mb-6">
+      <Modal
+        show={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        title="Logout"
+        width="medium"
+      >
+        <ModalContent>
+          <Flex direction={Flex.directions.COLUMN} gap={Flex.gaps.LARGE} style={{ textAlign: 'center' }}>
+            <div>
+              <LogOut style={{ fontSize: '48px', color: '#FDAB3D', marginBottom: '16px' }} />
+              <p style={{ fontSize: '16px', color: '#323338', margin: 0 }}>
                 Are you sure you want to logout{currentUser?.name ? `, ${currentUser.name}` : ''}?
               </p>
-
-              {/* Actions */}
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowLogoutModal(false)}
-                  className="flex-1 px-4 py-3 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleLogout}
-                  disabled={loggingOut}
-                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
-                >
-                  {loggingOut ? 'Logging out...' : 'Logout'}
-                </button>
-              </div>
             </div>
-          </div>
-        </div>
-      )}
+
+            <Flex gap={Flex.gaps.SMALL} justify={Flex.justify.CENTER}>
+              <Button
+                kind={Button.kinds.TERTIARY}
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                kind={Button.kinds.PRIMARY}
+                onClick={handleLogout}
+                disabled={loggingOut}
+              >
+                {loggingOut ? 'Logging out...' : 'Logout'}
+              </Button>
+            </Flex>
+          </Flex>
+        </ModalContent>
+      </Modal>
+
+      <style jsx>{`
+        @keyframes slideDown {
+          from {
+            transform: translate(-50%, -100%);
+            opacity: 0;
+          }
+          to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }

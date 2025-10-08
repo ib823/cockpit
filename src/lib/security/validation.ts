@@ -7,6 +7,13 @@
 
 import DOMPurify from 'dompurify';
 import { z } from 'zod';
+import {
+  RicefwItemSchema,
+  FormSpecSchema as FormItemSchema,
+  IntegrationSpecSchema as IntegrationItemSchema,
+  PhaseSchema,
+  ChipSchema,
+} from '@/data/dal';
 
 // ============================================================================
 // Constants
@@ -118,82 +125,10 @@ export function sanitizeObjectKeys<T extends Record<string, any>>(
 // ============================================================================
 
 /**
- * Schema for RICEFW item validation
+ * NOTE: Core entity schemas (RicefwItem, FormItem, IntegrationItem, Phase, Chip, etc.)
+ * are now imported from src/data/dal.ts to serve as the single source of truth.
+ * This prevents validation inconsistencies across the codebase.
  */
-export const RicefwItemSchema = z.object({
-  id: z.string().max(100),
-  projectId: z.string().max(100),
-  type: z.enum(['report', 'interface', 'conversion', 'enhancement', 'form', 'workflow']),
-  name: z.string().min(1).max(200),
-  description: z.string().max(1000).optional(),
-  complexity: z.enum(['S', 'M', 'L']),
-  count: z.number().int().min(1).max(1000),
-  effortPerItem: z.number().min(0).max(1000),
-  totalEffort: z.number().min(0).max(100000),
-  phase: z.enum(['explore', 'realize', 'deploy']),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-});
-
-/**
- * Schema for Form item validation
- */
-export const FormItemSchema = z.object({
-  id: z.string().max(100),
-  projectId: z.string().max(100),
-  name: z.string().min(1).max(200),
-  type: z.enum(['po', 'invoice', 'deliveryNote', 'custom']),
-  languages: z.array(z.string().max(10)).max(50),
-  complexity: z.enum(['S', 'M', 'L']),
-  effort: z.number().min(0).max(10000),
-  createdAt: z.date().optional(),
-});
-
-/**
- * Schema for Integration item validation
- */
-export const IntegrationItemSchema = z.object({
-  id: z.string().max(100),
-  projectId: z.string().max(100),
-  name: z.string().min(1).max(200),
-  type: z.enum(['api', 'file', 'database', 'realtime', 'batch']),
-  source: z.string().max(200),
-  target: z.string().max(200),
-  complexity: z.enum(['S', 'M', 'L']),
-  volume: z.enum(['low', 'medium', 'high', 'very-high']),
-  effort: z.number().min(0).max(10000),
-  createdAt: z.date().optional(),
-});
-
-/**
- * Schema for Phase validation
- */
-export const PhaseSchema = z.object({
-  id: z.string().max(100),
-  name: z.string().min(1).max(200),
-  category: z.string().max(100),
-  startBusinessDay: z.number().int().min(0).max(10000),
-  workingDays: z.number().int().min(0).max(1000),
-  effort: z.number().min(0).max(10000).optional(),
-  color: z.string().max(20).optional(),
-  skipHolidays: z.boolean().optional(),
-  dependencies: z.array(z.string().max(100)).max(100).optional(),
-  status: z.enum(['idle', 'active', 'complete']).optional(),
-});
-
-/**
- * Schema for Chip validation
- */
-export const ChipSchema = z.object({
-  id: z.string().max(100).optional(),
-  type: z.string().max(50),
-  value: z.union([z.string().max(5000), z.number()]),
-  confidence: z.number().min(0).max(1),
-  source: z.enum(['paste', 'upload', 'voice', 'manual', 'photo_ocr', 'test']),
-  validated: z.boolean().optional(),
-  metadata: z.record(z.string(), z.any()).optional(),
-  timestamp: z.date().optional(),
-});
 
 // ============================================================================
 // Validation Functions

@@ -177,7 +177,7 @@ export function CaptureMode() {
             </BodyLG>
 
             {/* Paste area */}
-            <div className="mt-8 space-y-3">
+            <div className="mt-8 space-y-4">
               <textarea
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
@@ -254,7 +254,7 @@ export function CaptureMode() {
           )}
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {isComplete ? (
                 <CheckCircle className="w-8 h-8 text-green-600" />
               ) : (
@@ -304,7 +304,7 @@ export function CaptureMode() {
           <h4 className="text-sm font-medium text-gray-700 mb-4">
             Extracted Requirements
           </h4>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             {chips.map((chip, idx) => (
               <motion.div
                 key={chip.id || idx}
@@ -334,7 +334,7 @@ export function CaptureMode() {
             animate={{ opacity: 1, y: 0 }}
             className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6"
           >
-            <div className="flex items-start gap-3 mb-4">
+            <div className="flex items-start gap-4 mb-4">
               <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
               <div className="flex-1">
                 <h4 className="text-sm font-semibold text-amber-900">
@@ -364,7 +364,7 @@ export function CaptureMode() {
             </div>
 
             {/* NEW: Action buttons */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {/* Smart Defaults Button */}
               <Button
                 variant="primary"
@@ -393,7 +393,7 @@ export function CaptureMode() {
 
             {/* Help text */}
             {!canProceedWithDefaults && (
-              <div className="mt-3 p-3 bg-white border border-amber-300 rounded-lg">
+              <div className="mt-4 p-3 bg-white border border-amber-300 rounded-lg">
                 <p className="text-xs text-amber-800">
                   <strong>Need {Math.max(0, 30 - progressPercent)}% more data</strong> before you can use smart defaults.
                   Try adding more RFP text or use manual entry.

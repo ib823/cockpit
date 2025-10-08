@@ -48,12 +48,12 @@ export function EmptyState({
         <p className="text-gray-500 mt-2 text-sm">{description}</p>
 
         {(action || secondaryAction) && (
-          <div className="flex flex-col gap-3 mt-8">
+          <div className="flex flex-col gap-4 mt-8">
             {action && (
               <motion.button
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.15 }}
                 onClick={action.onClick}
                 className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700
                            transition-all hover:scale-105 font-medium shadow-lg shadow-blue-600/30"

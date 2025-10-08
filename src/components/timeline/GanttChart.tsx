@@ -139,7 +139,7 @@ export default function GanttChart() {
           const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
 
           return (
-            <div key={phase.id} className="flex items-center mb-3">
+            <div key={phase.id} className="flex items-center mb-4">
               <div className="w-48 pr-4 text-sm truncate">{phase.name}</div>
               <div className="flex-1 relative h-auto min-h-[60px]">
                 <div

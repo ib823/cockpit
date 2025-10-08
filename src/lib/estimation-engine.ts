@@ -368,70 +368,70 @@ class EstimationEngine {
   }
 
   // §4.6 Forms, Reports, Analytics
-  private estimateOutputs(outputs: any): Totals {
+  private estimateOutputs(outputs: unknown): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
     // Placeholder implementation
     return t;
   }
 
   // §4.7 Localization
-  private estimateLocalization(localization: any): Totals {
+  private estimateLocalization(localization: unknown): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
     // Placeholder implementation
     return t;
   }
 
   // §4.8 Volumes
-  private estimateVolumes(volumes: any): Totals {
+  private estimateVolumes(volumes: unknown): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
     // Placeholder implementation
     return t;
   }
 
   // §4.9 NFR & Security
-  private estimateNFRSecurity(nfrSecurity: any): Totals {
+  private estimateNFRSecurity(nfrSecurity: unknown): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
     // Placeholder implementation
     return t;
   }
 
   // §4.10 Environments & Cutover
-  private estimateEnvCutover(envCutover: any): Totals {
+  private estimateEnvCutover(envCutover: unknown): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
     // Placeholder implementation
     return t;
   }
 
   // §4.11 Training & OCM
-  private estimateTrainingOCM(trainingOCM: any): Totals {
+  private estimateTrainingOCM(trainingOCM: unknown): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
     // Placeholder implementation
     return t;
   }
 
   // §4.12 Run Support
-  private estimateRun(run: any): Totals {
+  private estimateRun(run: unknown): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
     // Placeholder implementation
     return t;
   }
 
   // §4.13 Risks & Assumptions
-  private estimateRisksAssumptions(risksAssumptions: any): Totals {
+  private estimateRisksAssumptions(risksAssumptions: unknown): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
     // Placeholder implementation
     return t;
   }
 
   // §4.14 Timeline Constraints
-  private estimateTimeline(timeline: any): Totals {
+  private estimateTimeline(timeline: unknown): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
     // Placeholder implementation
     return t;
   }
 
   // §4.15 Extensions
-  private estimateExtension(extension: any): Totals {
+  private estimateExtension(extension: unknown): Totals {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
     // Placeholder implementation
     return t;

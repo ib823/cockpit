@@ -1,0 +1,117 @@
+/**
+ * Design Tokens - Minimalist, Steve Jobs-inspired
+ * Zero inline styles. Zero hardcoded colors.
+ * Apple HIG principles: Focus, Deference, Depth
+ */
+
+:root {
+  /* ═══ Brand ═══ */
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-subtle: #dbeafe;
+
+  /* ═══ Greys (neutral, not blue-tinted) ═══ */
+  --ink: #0f172a;
+  --ink-dim: #475569;
+  --ink-muted: #64748b;
+  --surface: #ffffff;
+  --surface-sub: #f8fafc;
+  --surface-raised: #ffffff;
+  --line: #e5e7eb;
+
+  /* ═══ States ═══ */
+  --success: #16a34a;
+  --success-bg: #dcfce7;
+  --warn: #f59e0b;
+  --warn-bg: #fef3c7;
+  --danger: #ef4444;
+  --danger-bg: #fee2e2;
+
+  /* ═══ Focus ═══ */
+  --focus: #3b82f6;
+  --focus-ring: 0 0 0 2px var(--focus);
+
+  /* ═══ Radii ═══ */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-full: 9999px;
+
+  /* ═══ Spacing (8px base grid) ═══ */
+  --s-4: 4px;
+  --s-8: 8px;
+  --s-12: 12px;
+  --s-16: 16px;
+  --s-20: 20px;
+  --s-24: 24px;
+  --s-32: 32px;
+  --s-40: 40px;
+  --s-48: 48px;
+  --s-64: 64px;
+
+  /* ═══ Shadows (very subtle) ═══ */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
+
+  /* ═══ Typography ═══ */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Monaco', 'Cascadia Code', 'Courier New', monospace;
+
+  /* ═══ Motion ═══ */
+  --dur: 180ms;
+  --dur-slow: 300ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* ═══ Gantt Timeline Colors ═══ */
+  --g-grid: #eef2f6;
+  --g-weekend: rgba(2, 6, 23, 0.03);
+  --g-holiday: rgba(244, 63, 94, 0.06);
+  --g-bar: #111827; /* dark charcoal bars, not blue */
+  --g-bar-accent: var(--accent);
+  --g-bar-critical: #ef4444;
+  --g-bar-progress: #10b981;
+  --g-baseline: #9ca3af;
+  --g-today: #fb923c;
+  --g-link: #6b7280;
+
+  /* ═══ Z-index layers ═══ */
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-toast: 1060;
+  --z-tooltip: 1070;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Dark Mode
+   ═══════════════════════════════════════════════════════ */
+:root.dark,
+[data-theme='dark'] {
+  --ink: #e5e7eb;
+  --ink-dim: #cbd5e1;
+  --ink-muted: #94a3b8;
+  --surface: #0b0f17;
+  --surface-sub: #0f1520;
+  --surface-raised: #1a1f2e;
+  --line: #1f2937;
+
+  --accent-subtle: #1e3a8a;
+
+  --success-bg: #14532d;
+  --warn-bg: #78350f;
+  --danger-bg: #7f1d1d;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.5);
+
+  --g-grid: #1f2937;
+  --g-weekend: rgba(255, 255, 255, 0.03);
+  --g-holiday: rgba(244, 63, 94, 0.1);
+  --g-bar: #e5e7eb;
+  --g-baseline: #6b7280;
+}

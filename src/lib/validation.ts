@@ -1,23 +1,15 @@
 /**
  * Zod Schemas for Data Validation
  *
- * These schemas define the shape of our data and are used by the DAL
- * to validate data at the application's boundaries (API, forms, etc.).
- * This ensures data integrity and provides type safety.
+ * NOTE: Core entity schemas (Project, Phase, Resource, Chip, etc.) are now
+ * centralized in src/data/dal.ts to prevent validation inconsistencies.
+ * Import from there for all database-backed entities.
+ *
+ * This file contains ONLY schemas for non-persisted or domain-specific entities.
  */
 import { z } from 'zod';
 
-// --- Base Schemas ---
-
-export const ChipSchema = z.object({
-  id: z.string().cuid(),
-  projectId: z.string().cuid(),
-  type: z.string(),
-  value: z.any(),
-  confidence: z.number().min(0).max(1),
-  source: z.string(),
-  validated: z.boolean(),
-});
+// --- Domain-Specific Schemas (Non-DAL) ---
 
 export const DecisionSchema = z.object({
   id: z.string().cuid(),
@@ -28,34 +20,6 @@ export const DecisionSchema = z.object({
   ssoMode: z.string().optional(),
   targetPrice: z.number().optional(),
   targetMargin: z.number().optional(),
-});
-
-export const ProjectSchema = z.object({
-  id: z.string().cuid(),
-  name: z.string(),
-  status: z.string(),
-  ownerId: z.string(),
-});
-
-export const PhaseSchema = z.object({
-  id: z.string().cuid(),
-  projectId: z.string().cuid(),
-  name: z.string(),
-  order: z.number(),
-  start: z.date(),
-  end: z.date(),
-  duration: z.number(),
-  effort: z.number(),
-  cost: z.number(),
-});
-
-export const ResourceSchema = z.object({
-  id: z.string().cuid(),
-  projectId: z.string().cuid(),
-  name: z.string(),
-  role: z.string(),
-  allocation: z.number(),
-  cost: z.number(),
 });
 
 export const RicefwSchema = z.object({

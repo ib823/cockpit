@@ -143,7 +143,7 @@ export function RicefwPanel({
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
             { key: 'reports', label: 'Reports', color: 'blue' },
             { key: 'interfaces', label: 'Interfaces', color: 'green' },

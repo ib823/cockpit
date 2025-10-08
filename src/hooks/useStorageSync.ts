@@ -45,25 +45,19 @@ export function useStorageSync() {
           });
 
           if (currentState !== incomingState) {
-            // Option 1: Simple reload (recommended for MVP)
-            console.log("[StorageSync] State changed, reloading page...");
-            window.location.reload();
+            // Ask user before reloading to prevent data loss
+            console.log("[StorageSync] State changed, prompting user...");
+            const userConfirmed = window.confirm(
+              "Timeline was updated in another tab. Reload to see changes?\n\n" +
+              "(Any unsaved work in this tab will be lost)"
+            );
 
-            // Option 2: Hydrate store without reload (advanced)
-            // Uncomment this and remove reload() for smoother UX:
-            /*
-            if (newState.state) {
-              useTimelineStore.setState({
-                phases: newState.state.phases || [],
-                selectedPackages: newState.state.selectedPackages || [],
-                profile: newState.state.profile || currentStore.profile,
-                phaseColors: newState.state.phaseColors || {},
-                holidays: newState.state.holidays || [],
-                zoomLevel: newState.state.zoomLevel || 'daily',
-                clientPresentationMode: newState.state.clientPresentationMode || false
-              });
+            if (userConfirmed) {
+              console.log("[StorageSync] User confirmed, reloading page...");
+              window.location.reload();
+            } else {
+              console.log("[StorageSync] User cancelled reload, keeping current state");
             }
-            */
           }
         } catch (error) {
           console.error("[StorageSync] Failed to sync state:", error);

@@ -150,7 +150,7 @@ export default function CriticalGapsAlert() {
         </button>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {gaps.map((gap, index) => (
           <div key={index} className="bg-white rounded-lg p-3 border">
             <div className="flex items-start justify-between">

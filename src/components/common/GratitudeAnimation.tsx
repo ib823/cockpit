@@ -47,13 +47,13 @@ export function GratitudeAnimation({ show, onComplete }: GratitudeAnimationProps
       <motion.div
         initial={{ scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: "spring", duration: 0.6 }}
+        transition={{ type: "spring", duration: 0.5 }}
         className="bg-white rounded-2xl p-8 text-center shadow-2xl max-w-md mx-4"
       >
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: "spring", duration: 0.6 }}
+          transition={{ type: "spring", duration: 0.5 }}
           className="mb-4"
         >
           <Sparkles className="w-16 h-16 mx-auto text-blue-600" />

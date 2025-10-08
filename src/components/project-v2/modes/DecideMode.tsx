@@ -256,7 +256,7 @@ export function DecideMode() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                       <h3 className="text-lg font-semibold text-gray-900">{decision.label}</h3>
                       {selectedOption && <CheckCircle className="w-5 h-5 text-green-600" />}
                     </div>
@@ -293,7 +293,7 @@ export function DecideMode() {
 
                         {/* Quick impact preview */}
                         {option.impact && (isSelected || isHovering) && (
-                          <div className="mt-3 pt-3 border-t border-gray-200 flex flex-wrap gap-2 text-xs">
+                          <div className="mt-4 pt-3 border-t border-gray-200 flex flex-wrap gap-2 text-xs">
                             {option.impact.duration !== undefined &&
                               option.impact.duration !== 0 && (
                                 <span

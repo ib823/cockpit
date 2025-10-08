@@ -118,7 +118,7 @@ export default function QRScanner({ onScan }: QRScannerProps) {
   return (
     <div className="space-y-4">
       {!scanning ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <button
             onClick={startScanning}
             className="w-full px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg text-slate-600 hover:border-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center gap-2"
@@ -154,7 +154,7 @@ export default function QRScanner({ onScan }: QRScannerProps) {
           </label>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="relative rounded-lg overflow-hidden bg-black">
             <video
               ref={videoRef}

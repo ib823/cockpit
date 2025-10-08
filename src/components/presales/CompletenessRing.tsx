@@ -22,7 +22,7 @@ export function CompletenessRing({ score, size = "md", showLabel = true }: Compl
   const ringSize = size === "sm" ? "w-10 h-10" : size === "md" ? "w-14 h-14" : "w-18 h-18";
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-4">
       <div className={`relative ${ringSize}`}>
         <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
           <circle

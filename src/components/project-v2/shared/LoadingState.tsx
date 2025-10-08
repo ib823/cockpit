@@ -69,7 +69,7 @@ function DecisionSkeleton() {
       <div className="space-y-4">
         <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
         <div className="h-4 w-full bg-gray-200 rounded animate-pulse" />
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-10 flex-1 bg-gray-200 rounded-lg animate-pulse" />
           ))}
@@ -87,7 +87,7 @@ export function LoadingState({ type = "chip", count = 3, className }: LoadingSta
   }[type];
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-4", className)}>
       {Array.from({ length: count }).map((_, i) => (
         <motion.div
           key={i}

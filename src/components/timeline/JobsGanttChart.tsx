@@ -2,9 +2,9 @@
 
 import { useTimelineStore } from "@/stores/timeline-store";
 import type { Phase } from "@/types/core";
-import { addWorkingDays } from "@/data/holidays";
-import { format, differenceInDays } from "date-fns";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { addWorkingDays, getHolidaysInRange, type Holiday } from "@/data/holidays";
+import { format, differenceInDays, isWeekend, isSameDay } from "date-fns";
+import { ChevronDown, ChevronRight, Flag, Calendar as CalendarIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -155,18 +155,46 @@ export function JobsGanttChart({
     });
   }, [rawPhases]);
 
-  const { minDate, maxDate, totalBusinessDays, totalDuration } = useMemo(() => {
+  const { minDate, maxDate, totalBusinessDays, totalDuration, holidays, milestones } = useMemo(() => {
     const start = Math.min(...activatePhases.map(p => p.startBusinessDay));
     const end = Math.max(...activatePhases.map(p => p.endBusinessDay));
 
     const minD = addWorkingDays(PROJECT_BASE_DATE, start, selectedRegion);
     const maxD = addWorkingDays(PROJECT_BASE_DATE, end, selectedRegion);
 
+    const totalDays = end - start;
+    const months = Math.floor(totalDays / 20);
+    const weeks = Math.floor(totalDays / 5);
+
+    // Show in most appropriate unit
+    let durationDisplay;
+    if (totalDays < 10) {
+      durationDisplay = `${totalDays} days`;
+    } else if (totalDays < 60) {
+      durationDisplay = `${weeks} weeks`;
+    } else {
+      durationDisplay = `${months} months`;
+    }
+
+    // Get holidays in project range
+    const projectHolidays = getHolidaysInRange(minD, maxD, selectedRegion);
+
+    // Generate milestones (end of each SAP Activate phase)
+    const projectMilestones = activatePhases.map(phase => ({
+      id: `milestone-${phase.id}`,
+      name: `${phase.name} Complete`,
+      date: addWorkingDays(PROJECT_BASE_DATE, phase.endBusinessDay, selectedRegion),
+      phase: phase.id,
+      color: phase.color,
+    }));
+
     return {
       minDate: minD,
       maxDate: maxD,
-      totalBusinessDays: end - start,
-      totalDuration: `${Math.ceil((end - start) / 20)} months`,
+      totalBusinessDays: totalDays,
+      totalDuration: durationDisplay,
+      holidays: projectHolidays,
+      milestones: projectMilestones,
     };
   }, [activatePhases, selectedRegion]);
 
@@ -218,6 +246,92 @@ export function JobsGanttChart({
         </div>
       </div>
 
+      {/* Timeline Ruler - Date scale */}
+      <div className="px-6 pt-4 pb-2">
+        <div className="relative h-16 border-b border-gray-200">
+          {/* Generate month markers */}
+          {(() => {
+            const markers = [];
+            const totalDays = differenceInDays(maxDate, minDate);
+            const monthCount = Math.ceil(totalDays / 30);
+
+            for (let i = 0; i <= monthCount; i++) {
+              const markerDate = new Date(minDate);
+              markerDate.setDate(markerDate.getDate() + (i * 30));
+
+              if (markerDate <= maxDate) {
+                const position = ((differenceInDays(markerDate, minDate) / totalDays) * 100);
+                markers.push(
+                  <div key={i} className="absolute top-0 bottom-0 flex flex-col items-center" style={{ left: `${position}%` }}>
+                    <div className="w-px h-full bg-gray-200" />
+                    <div className="absolute top-0 text-[10px] font-medium text-gray-500 -translate-x-1/2 bg-white px-2">
+                      {format(markerDate, 'MMM yyyy')}
+                    </div>
+                    <div className="absolute bottom-0 text-[9px] text-gray-400 -translate-x-1/2 bg-white px-1">
+                      {format(markerDate, 'd')}
+                    </div>
+                  </div>
+                );
+              }
+            }
+            return markers;
+          })()}
+
+          {/* Holiday markers - red vertical lines */}
+          {holidays.map((holiday, idx) => {
+            const holidayDate = new Date(holiday.date);
+            const totalDays = differenceInDays(maxDate, minDate);
+            const position = ((differenceInDays(holidayDate, minDate) / totalDays) * 100);
+
+            if (position >= 0 && position <= 100) {
+              return (
+                <div
+                  key={`holiday-${idx}`}
+                  className="absolute top-0 bottom-0 flex flex-col items-center group/marker z-10"
+                  style={{ left: `${position}%` }}
+                >
+                  <div className="w-0.5 h-full bg-red-400/60" />
+                  <div className="absolute -top-1 w-2 h-2 rounded-full bg-red-500" />
+                  <div className="absolute -bottom-8 opacity-0 group-hover/marker:opacity-100 transition-opacity pointer-events-none">
+                    <div className="bg-red-500 text-white text-[9px] px-2 py-1 rounded shadow-lg whitespace-nowrap -translate-x-1/2">
+                      {holiday.name}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })}
+
+          {/* Milestone markers - flag icons */}
+          {milestones.map((milestone, idx) => {
+            const totalDays = differenceInDays(maxDate, minDate);
+            const position = ((differenceInDays(milestone.date, minDate) / totalDays) * 100);
+
+            if (position >= 0 && position <= 100) {
+              return (
+                <div
+                  key={milestone.id}
+                  className="absolute top-0 bottom-0 flex flex-col items-center group/marker z-10"
+                  style={{ left: `${position}%` }}
+                >
+                  <div className="w-0.5 h-full bg-purple-400/60" />
+                  <div className="absolute -top-2">
+                    <Flag className="w-3 h-3 text-purple-600" />
+                  </div>
+                  <div className="absolute -bottom-8 opacity-0 group-hover/marker:opacity-100 transition-opacity pointer-events-none">
+                    <div className="bg-purple-600 text-white text-[9px] px-2 py-1 rounded shadow-lg whitespace-nowrap -translate-x-1/2">
+                      {milestone.name}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      </div>
+
       {/* Timeline - Pure, clean, focused */}
       <div className="px-6 py-4">
         <div className="space-y-4">
@@ -260,7 +374,7 @@ export function JobsGanttChart({
                       </motion.div>
                       <div>
                         <h3 className="text-base font-semibold text-gray-900">{activatePhase.name}</h3>
-                        <div className="flex items-center gap-3 mt-0.5">
+                        <div className="flex items-center gap-4 mt-0.5">
                           <span className="text-xs text-gray-500">{activatePhase.workingDays} days</span>
                           <span className="text-xs text-gray-400">·</span>
                           <span className="text-xs text-gray-500">{activatePhase.totalEffort} hours</span>
@@ -291,7 +405,7 @@ export function JobsGanttChart({
                     <motion.div
                       initial={{ scaleX: 0, originX: 0 }}
                       animate={{ scaleX: 1 }}
-                      transition={{ delay: phaseIndex * 0.1 + 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ delay: phaseIndex * 0.1 + 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                       className={`absolute inset-y-0 bg-gradient-to-r ${activatePhase.color} shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
                       style={{
                         left: `${startPercent}%`,
@@ -307,49 +421,57 @@ export function JobsGanttChart({
                   </div>
                 </div>
 
-                {/* Expanded Tasks - Elegant reveal */}
+                {/* Expanded Tasks - Show actual tasks from phase.tasks */}
                 <AnimatePresence>
-                  {isExpanded && (
+                  {isExpanded && activatePhase.phases.length > 0 && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden"
                     >
                       <div className="mt-2 ml-6 space-y-2">
-                        {activatePhase.tasks.map((task, taskIndex) => {
-                          const taskStartPercent = startPercent + (widthPercent * (activatePhase.tasks.slice(0, taskIndex).reduce((sum, t) => sum + t.workingDays, 0) / activatePhase.workingDays));
-                          const taskWidthPercent = widthPercent * (task.workingDays / activatePhase.workingDays);
+                        {activatePhase.phases.map((phase, phaseIdx) => {
+                          const phaseTasks = phase.tasks || [];
+                          if (phaseTasks.length === 0) return null;
 
                           return (
-                            <motion.div
-                              key={task.id}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: taskIndex * 0.1, duration: 0.3 }}
-                              className="group/task"
-                            >
-                              <div className="flex items-center gap-3 mb-1.5">
-                                <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${activatePhase.color}`} />
-                                <span className="text-sm text-gray-700">{task.name}</span>
-                                <span className="text-xs text-gray-400">{task.workingDays}d</span>
-                              </div>
+                            <div key={phase.id} className="mb-3">
+                              <div className="text-xs font-medium text-gray-500 mb-2">{phase.name}</div>
+                              {phaseTasks.map((task, taskIndex) => {
+                                const taskWidthPercent = ((task.workingDays || 0) / activatePhase.workingDays) * widthPercent;
 
-                              {/* Subtle task bar - aligned within phase timeline only */}
-                              <div className="relative h-2 rounded-full bg-gray-100 ml-4" style={{ width: `calc(100% - 1rem)` }}>
-                                <motion.div
-                                  initial={{ scaleX: 0, originX: 0 }}
-                                  animate={{ scaleX: 1 }}
-                                  transition={{ delay: taskIndex * 0.1 + 0.2, duration: 0.5 }}
-                                  className={`absolute inset-y-0 bg-gradient-to-r ${activatePhase.color} rounded-full opacity-40 group-hover/task:opacity-60 transition-opacity`}
-                                  style={{
-                                    left: `${(taskIndex === 0 ? 0 : activatePhase.tasks.slice(0, taskIndex).reduce((sum, t) => sum + t.workingDays, 0) / activatePhase.workingDays * 100)}%`,
-                                    width: `${(task.workingDays / activatePhase.workingDays) * 100}%`,
-                                  }}
-                                />
-                              </div>
-                            </motion.div>
+                                return (
+                                  <motion.div
+                                    key={task.id}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: taskIndex * 0.05, duration: 0.3 }}
+                                    className="group/task"
+                                  >
+                                    <div className="flex items-center gap-4 mb-1.5">
+                                      <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${activatePhase.color}`} />
+                                      <span className="text-sm text-gray-700">{task.name}</span>
+                                      <span className="text-xs text-gray-400">{task.workingDays}d</span>
+                                    </div>
+
+                                    {/* Subtle task bar */}
+                                    <div className="relative h-2 rounded-full bg-gray-100 ml-4" style={{ width: `calc(100% - 1rem)` }}>
+                                      <motion.div
+                                        initial={{ scaleX: 0, originX: 0 }}
+                                        animate={{ scaleX: 1 }}
+                                        transition={{ delay: taskIndex * 0.05 + 0.2, duration: 0.5 }}
+                                        className={`absolute inset-y-0 bg-gradient-to-r ${activatePhase.color} rounded-full opacity-40 group-hover/task:opacity-60 transition-opacity`}
+                                        style={{
+                                          width: `${(taskWidthPercent / widthPercent) * 100}%`,
+                                        }}
+                                      />
+                                    </div>
+                                  </motion.div>
+                                );
+                              })}
+                            </div>
                           );
                         })}
                       </div>
@@ -365,7 +487,7 @@ export function JobsGanttChart({
       {/* Minimal footer - context when needed */}
       <div className="px-8 py-4 border-t border-gray-100 bg-gray-50/50">
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>SAP Activate Methodology</span>
+          <span>SAP Activate Methodology • {milestones.length} Milestones • {holidays.length} Holidays</span>
           <span>Click any phase to expand details</span>
         </div>
       </div>

@@ -19,15 +19,32 @@ export const RATE_CARDS = {
     developer: 100,
     consultant: 120,
     projectManager: 140,
-    currency: "USD",
+    basis: 130,
+    security: 125,
+    currency: "MYR",
+    costIndex: 1.0,
   },
-  APSG: {
+  ABSG: {
     // Asia Pacific - Singapore
     architect: 180,
     developer: 120,
     consultant: 140,
     projectManager: 160,
+    basis: 155,
+    security: 150,
+    currency: "SGD",
+    costIndex: 1.2,
+  },
+  ABVN: {
+    // Asia Pacific - Vietnam
+    architect: 120,
+    developer: 80,
+    consultant: 95,
+    projectManager: 110,
+    basis: 100,
+    security: 95,
     currency: "USD",
+    costIndex: 0.6,
   },
   NA: {
     // North America
@@ -35,7 +52,10 @@ export const RATE_CARDS = {
     developer: 150,
     consultant: 180,
     projectManager: 190,
+    basis: 175,
+    security: 170,
     currency: "USD",
+    costIndex: 1.8,
   },
   EU: {
     // Europe
@@ -43,14 +63,20 @@ export const RATE_CARDS = {
     developer: 130,
     consultant: 160,
     projectManager: 170,
+    basis: 155,
+    security: 150,
     currency: "EUR",
+    costIndex: 1.5,
   },
   default: {
     architect: 150,
     developer: 100,
     consultant: 120,
     projectManager: 140,
+    basis: 130,
+    security: 125,
     currency: "USD",
+    costIndex: 1.0,
   },
 } as const;
 

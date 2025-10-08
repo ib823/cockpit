@@ -39,7 +39,7 @@ export function Inspector() {
           <>
             {/* Project Summary */}
             <div className="bg-white rounded-lg p-4 card-shadow">
-              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-4">
                 Project Summary
               </h3>
               <div className="space-y-2">
@@ -63,7 +63,7 @@ export function Inspector() {
             {/* Manual Overrides */}
             {manualOverrides.length > 0 && (
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                <h3 className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-3">
+                <h3 className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-4">
                   Manual Edits ({manualOverrides.length})
                 </h3>
                 <div className="space-y-2">
@@ -78,7 +78,7 @@ export function Inspector() {
 
             {/* Resources Panel */}
             <div className="bg-white rounded-lg p-4 card-shadow">
-              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-4">
                 Team Resources
               </h3>
               <div className="space-y-2">
@@ -108,13 +108,13 @@ export function Inspector() {
 
             {/* Holidays Panel */}
             <div className="bg-white rounded-lg p-4 card-shadow">
-              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-4">
                 Holidays ({selectedRegion})
               </h3>
               <select
                 value={selectedRegion}
                 onChange={(e) => setSelectedRegion(e.target.value as any)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 mb-3"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 mb-4"
               >
                 <option value="MY">🇲🇾 Malaysia</option>
                 <option value="SG">🇸🇬 Singapore</option>
@@ -144,7 +144,7 @@ export function Inspector() {
 
         {mode === "decide" && (
           <div className="bg-white rounded-lg p-4 card-shadow">
-            <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">
+            <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-4">
               Decision Impact
             </h3>
             <p className="text-sm text-gray-600">

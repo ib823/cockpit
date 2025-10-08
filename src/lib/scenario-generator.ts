@@ -658,7 +658,52 @@ export class ScenarioGenerator {
   }
 
   private applyIntegrationPostureImpact(plan: ScenarioPlan, decision: Decision): void {
-    // Implement integration posture impact logic
+    // Integration posture affects Integration stream effort based on architecture approach
+    const effortMultipliers: Record<string, number> = {
+      "Point-to-Point": 1.4,      // 40% more effort (hard to maintain, duplicate code)
+      "Hub-and-Spoke": 1.0,       // Baseline (middleware/ESB approach)
+      "Cloud-First": 0.8,         // 20% less effort (API-led, modern patterns)
+      "Hybrid": 1.15,             // 15% more effort (mix of approaches, coordination overhead)
+    };
+
+    const selected =
+      typeof decision.selected === "string" ? decision.selected : decision.selected?.[0] || "Hub-and-Spoke";
+    const multiplier = effortMultipliers[selected] || 1.0;
+
+    // Find all Integration phases across SAP Activate stages
+    const integrationPhases = plan.phases.filter((p) =>
+      p.name.includes("Integration")
+    );
+
+    if (integrationPhases.length === 0) {
+      // Fallback: affect all Realize phases if Integration phases not found
+      const realizePhases = plan.phases.filter((p) => p.category === "Realize");
+      realizePhases.forEach((phase) => {
+        if (phase.effort) {
+          phase.effort = phase.effort * multiplier;
+        }
+      });
+    } else {
+      // Apply multiplier to Integration phases
+      integrationPhases.forEach((phase) => {
+        if (phase.effort) {
+          const originalEffort = phase.effort;
+          phase.effort = originalEffort * multiplier;
+        }
+      });
+    }
+
+    // Recalculate total effort
+    plan.totalEffort = plan.phases.reduce((sum, p) => sum + (p.effort || 0), 0);
+
+    // Add assumption to explain the adjustment
+    if (multiplier !== 1.0) {
+      const percentChange = ((multiplier - 1.0) * 100).toFixed(0);
+      const direction = multiplier > 1.0 ? "increase" : "reduction";
+      plan.assumptions.push(
+        `Integration posture '${selected}' applied ${Math.abs(Number(percentChange))}% effort ${direction} to Integration stream (multiplier: ${multiplier})`
+      );
+    }
   }
 
   private applySSOImpact(plan: ScenarioPlan, decision: Decision): void {
@@ -686,11 +731,92 @@ export class ScenarioGenerator {
   }
 
   private applyFRICEWTargetImpact(plan: ScenarioPlan, decision: Decision): void {
-    // Implement FRICEW target impact logic
+    // FRICEW target adjusts effort in Development & Extensions stream
+    // based on anticipated custom development volume (Low/Medium/High)
+    const impactMultipliers: Record<string, number> = {
+      Low: 1.10,      // 10% additional effort for minimal customization
+      Medium: 1.25,   // 25% additional effort for moderate customization
+      High: 1.50,     // 50% additional effort for extensive customization
+      None: 1.0,      // No additional customization
+    };
+
+    const selected =
+      typeof decision.selected === "string" ? decision.selected : decision.selected?.[0] || "Low";
+    const multiplier = impactMultipliers[selected] || 1.0;
+
+    // Find all Development & Extensions phases across all SAP Activate stages
+    const devPhases = plan.phases.filter((p) =>
+      p.name.includes("Development & Extensions")
+    );
+
+    if (devPhases.length === 0) {
+      // Fallback: adjust Realize phases if Development & Extensions not found
+      const realizePhases = plan.phases.filter((p) => p.category === "Realize");
+      realizePhases.forEach((phase) => {
+        if (phase.effort) {
+          const originalEffort = phase.effort;
+          phase.effort = originalEffort * multiplier;
+        }
+      });
+    } else {
+      // Apply multiplier to Development & Extensions phases
+      devPhases.forEach((phase) => {
+        if (phase.effort) {
+          const originalEffort = phase.effort;
+          phase.effort = originalEffort * multiplier;
+        }
+      });
+    }
+
+    // Recalculate total effort
+    plan.totalEffort = plan.phases.reduce((sum, p) => sum + (p.effort || 0), 0);
+
+    // Add assumption to explain the adjustment
+    if (multiplier !== 1.0) {
+      const percentIncrease = ((multiplier - 1.0) * 100).toFixed(0);
+      plan.assumptions.push(
+        `FRICEW target '${selected}' applied ${percentIncrease}% effort increase to Development & Extensions (multiplier: ${multiplier})`
+      );
+    }
   }
 
   private applyRateRegionImpact(plan: ScenarioPlan, decision: Decision): void {
     // Rate region impacts cost, not effort
+    // Uses costIndex multipliers from resource-catalog.ts RATE_CARDS
+    const costMultipliers: Record<string, number> = {
+      ABMY: 1.0,    // Malaysia (baseline)
+      ABSG: 1.2,    // Singapore (20% premium)
+      ABVN: 0.6,    // Vietnam (40% discount)
+      NA: 1.8,      // North America (80% premium)
+      EU: 1.5,      // Europe (50% premium)
+      default: 1.0, // Fallback
+    };
+
+    const selected =
+      typeof decision.selected === "string" ? decision.selected : decision.selected?.[0] || "ABMY";
+    const multiplier = costMultipliers[selected] || costMultipliers.default;
+
+    // Apply cost multiplier to total cost
+    const originalCost = plan.totalCost;
+    plan.totalCost = originalCost * multiplier;
+
+    // Apply multiplier to resource hourly rates across all phases
+    plan.phases.forEach((phase) => {
+      if (phase.resources && phase.resources.length > 0) {
+        phase.resources.forEach((resource) => {
+          resource.hourlyRate = resource.hourlyRate * multiplier;
+        });
+      }
+    });
+
+    // Add assumption to explain the cost adjustment
+    if (multiplier !== 1.0) {
+      const percentChange = ((multiplier - 1.0) * 100).toFixed(0);
+      const direction = multiplier > 1.0 ? "increase" : "decrease";
+      plan.assumptions.push(
+        `Rate region '${selected}' applied ${Math.abs(Number(percentChange))}% cost ${direction} (multiplier: ${multiplier})`
+      );
+    }
   }
 
   /**

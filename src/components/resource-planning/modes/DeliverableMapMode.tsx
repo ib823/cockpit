@@ -188,7 +188,7 @@ function ModuleNode({
       {/* Module Header */}
       <button
         onClick={onToggle}
-        className="w-full px-6 py-4 flex items-center gap-3 hover:bg-purple-50/50 transition-colors group"
+        className="w-full px-6 py-4 flex items-center gap-4 hover:bg-purple-50/50 transition-colors group"
       >
         {isExpanded ? (
           <ChevronDown className="w-5 h-5 text-purple-600" />
@@ -241,7 +241,7 @@ function SubModuleNode({
       {/* Sub-Module Header */}
       <button
         onClick={onToggle}
-        className="w-full px-12 py-3 flex items-center gap-3 hover:bg-white/50 transition-colors group"
+        className="w-full px-12 py-3 flex items-center gap-4 hover:bg-white/50 transition-colors group"
       >
         {isExpanded ? (
           <ChevronDown className="w-4 h-4 text-purple-500" />
@@ -263,12 +263,12 @@ function SubModuleNode({
           {subModule.configurations.map((config) => (
             <div
               key={config.id}
-              className="flex items-center gap-3 py-2 px-4 border-l-2 border-gray-200 hover:border-purple-300 transition-colors"
+              className="flex items-center gap-4 py-2 px-4 border-l-2 border-gray-200 hover:border-purple-300 transition-colors"
             >
               <span className="text-lg">{getRiskIcon(config.riskLevel)}</span>
               <div className="flex-1">
                 <div className="text-sm font-medium text-gray-700">{config.name}</div>
-                <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-3">
+                <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-4">
                   <span>{config.baseEffort} PD</span>
                   <span className="text-gray-300">•</span>
                   <span>{config.category}</span>

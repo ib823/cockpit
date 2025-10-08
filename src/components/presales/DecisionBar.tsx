@@ -80,7 +80,7 @@ export function DecisionBar() {
         />
       </div>
 
-      <div className="mt-4 flex gap-3">
+      <div className="mt-4 flex gap-4">
         <button
           onClick={() => setMode("capture")}
           className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 transition-colors"

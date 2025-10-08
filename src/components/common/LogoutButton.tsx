@@ -164,7 +164,7 @@ function ConfirmationDialog({
               </div>
 
               {/* Content */}
-              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 text-center mb-2 sm:mb-3">
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 text-center mb-2 sm:mb-4">
                 {isLoggingOut ? "Logging out..." : "Logout?"}
               </h2>
               <p className="text-sm sm:text-base text-gray-600 text-center mb-6 sm:mb-8">
@@ -176,7 +176,7 @@ function ConfirmationDialog({
 
               {/* Actions */}
               {!isLoggingOut && (
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                   <button
                     onClick={onClose}
                     className="flex-1 px-4 py-2.5 sm:py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all text-sm sm:text-base"

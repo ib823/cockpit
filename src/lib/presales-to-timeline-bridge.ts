@@ -1,6 +1,6 @@
 // src/lib/presales-to-timeline-bridge.ts
 import { detectEmployeeCount, detectMultiEntityFactors } from "@/lib/critical-patterns";
-import { Chip, ClientProfile, Decision } from "@/types/core";
+import { Chip, ClientProfile, Decision, Phase } from "@/types/core";
 import { ScenarioGenerator } from "@/lib/scenario-generator";
 import { sanitizeObject, sanitizeHtml } from "@/lib/input-sanitizer";
 
@@ -8,7 +8,7 @@ import { sanitizeObject, sanitizeHtml } from "@/lib/input-sanitizer";
  * SECURITY: Additional sanitization layer for chip values
  * Defense-in-depth: Even if chips bypass presales-store validation
  */
-function sanitizeChipValue(value: any): string {
+function sanitizeChipValue(value:unknown): string {
   const str = String(value || "");
   return str
     .replace(/<[^>]*>/g, "") // Remove HTML tags
@@ -46,7 +46,7 @@ export interface TimelineConversionResult {
   profile: ClientProfile;
   selectedPackages: string[];
   totalEffort: number;
-  phases: any[];
+  phases: Phase[];
   appliedMultipliers: {
     entity: number;
     employee: number;
@@ -145,7 +145,7 @@ function calculateMultipliers(chips: Chip[]): MultipliersResult {
   };
 }
 
-export function convertPresalesToTimeline(chips: Chip[], decisions: any): TimelineConversionResult {
+export function convertPresalesToTimeline(chips: Chip[], decisions:unknown): TimelineConversionResult {
   try {
     // Sanitize chips
     const sanitizedChips = chips.map((chip) => sanitizeObject(chip)) as Chip[];

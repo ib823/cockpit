@@ -1,8 +1,19 @@
 'use client';
 
+/**
+ * LOGIN PAGE - VIBE DESIGN SYSTEM VERSION
+ *
+ * Professional Monday.com-style login with WebAuthn passkey support
+ * Migrated from custom Tailwind to Vibe for consistency
+ */
+
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Button, TextField, Loader, Box, Flex, Heading } from 'monday-ui-react-core';
+import { Email, Check, Alert } from 'monday-ui-react-core/icons';
+import 'monday-ui-react-core/dist/main.css';
+import '../../styles/vibe-theme.css';
 
 function getDeviceInfo() {
   return {
@@ -13,23 +24,7 @@ function getDeviceInfo() {
   };
 }
 
-// 12 high-contrast colors for the continue button
-const BUTTON_COLORS = [
-  { bg: 'bg-blue-600', hover: 'hover:bg-blue-700', border: 'border-blue-600', focus: 'focus:border-blue-600' },
-  { bg: 'bg-purple-600', hover: 'hover:bg-purple-700', border: 'border-purple-600', focus: 'focus:border-purple-600' },
-  { bg: 'bg-pink-600', hover: 'hover:bg-pink-700', border: 'border-pink-600', focus: 'focus:border-pink-600' },
-  { bg: 'bg-red-600', hover: 'hover:bg-red-700', border: 'border-red-600', focus: 'focus:border-red-600' },
-  { bg: 'bg-orange-600', hover: 'hover:bg-orange-700', border: 'border-orange-600', focus: 'focus:border-orange-600' },
-  { bg: 'bg-amber-600', hover: 'hover:bg-amber-700', border: 'border-amber-600', focus: 'focus:border-amber-600' },
-  { bg: 'bg-lime-600', hover: 'hover:bg-lime-700', border: 'border-lime-600', focus: 'focus:border-lime-600' },
-  { bg: 'bg-green-600', hover: 'hover:bg-green-700', border: 'border-green-600', focus: 'focus:border-green-600' },
-  { bg: 'bg-teal-600', hover: 'hover:bg-teal-700', border: 'border-teal-600', focus: 'focus:border-teal-600' },
-  { bg: 'bg-cyan-600', hover: 'hover:bg-cyan-700', border: 'border-cyan-600', focus: 'focus:border-cyan-600' },
-  { bg: 'bg-indigo-600', hover: 'hover:bg-indigo-700', border: 'border-indigo-600', focus: 'focus:border-indigo-600' },
-  { bg: 'bg-violet-600', hover: 'hover:bg-violet-700', border: 'border-violet-600', focus: 'focus:border-violet-600' },
-];
-
-export default function LoginPage() {
+export default function LoginPageVibe() {
   const router = useRouter();
   const [stage, setStage] = useState<'email' | 'code' | 'waiting' | 'done'>('email');
   const [email, setEmail] = useState('');
@@ -39,12 +34,11 @@ export default function LoginPage() {
   const [userName, setUserName] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [shake, setShake] = useState(false);
-  const [showSymbolState, setShowSymbolState] = useState(false);
-  const [symbolType, setSymbolType] = useState<'warning' | 'success'>('warning');
-  const [colorIndex, setColorIndex] = useState(0);
+  const [showToast, setShowToast] = useState(false);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [isAuthInProgress, setIsAuthInProgress] = useState(false);
 
-  // Handle magic link login and rate limit errors
+  // Handle magic link login on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
@@ -54,29 +48,31 @@ export default function LoginPage() {
     if (error === 'rate_limit') {
       const minutes = Math.ceil(parseInt(retryAfter || '60') / 60);
       setErrorMessage(`Too many attempts. Please try again in ${minutes} minute${minutes !== 1 ? 's' : ''}.`);
-      showSymbol('warning');
+      showNotification('error', `Too many attempts. Please try again in ${minutes} minute${minutes !== 1 ? 's' : ''}.`);
     } else if (token) {
       handleMagicLinkLogin(token);
     }
   }, []);
 
-  const showSymbol = (type: 'warning' | 'success') => {
-    setSymbolType(type);
-    setShowSymbolState(true);
+  // Toast notification handler
+  const showNotification = (type: 'success' | 'error', msg: string) => {
+    setToastType(type);
+    if (type === 'error') {
+      setErrorMessage(msg);
+    } else {
+      setMessage(msg);
+    }
+    setShowToast(true);
+
+    // Auto-hide
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3500);
 
     // Vibrate if supported
     if ('vibrate' in navigator) {
-      if (type === 'warning') {
-        navigator.vibrate([100, 50, 100]); // Double vibrate for error
-      } else {
-        navigator.vibrate(200); // Single smooth vibrate for success
-      }
+      navigator.vibrate(type === 'error' ? [100, 50, 100] : [200]);
     }
-
-    // Auto-hide after 3.5 seconds
-    setTimeout(() => {
-      setShowSymbolState(false);
-    }, 3500);
   };
 
   async function handleMagicLinkLogin(token: string) {
@@ -122,13 +118,13 @@ export default function LoginPage() {
             if (result.ok) {
               setStage('done');
               setMessage(`Welcome, ${data.name || ''}!`);
-              showSymbol('success');
+              showNotification('success', `Welcome, ${data.name || ''}!`);
               setIsAuthInProgress(false);
               setTimeout(() => router.push('/'), 2000);
             } else {
               setStage('email');
               setErrorMessage(result.message || 'Passkey registration failed');
-              showSymbol('warning');
+              showNotification('error', result.message || 'Passkey registration failed');
               setIsAuthInProgress(false);
             }
           } catch (err: any) {
@@ -136,7 +132,7 @@ export default function LoginPage() {
             const isTimeout = err.name === 'NotAllowedError' && (err.message?.includes('timeout') || err.message?.includes('timed out'));
             setStage('email');
             setErrorMessage(isTimeout ? 'Passkey registration timed out' : 'Passkey registration cancelled or failed');
-            showSymbol('warning');
+            showNotification('error', isTimeout ? 'Passkey registration timed out' : 'Passkey registration cancelled or failed');
             setIsAuthInProgress(false);
           }
           return;
@@ -163,13 +159,13 @@ export default function LoginPage() {
             if (result.ok) {
               setStage('done');
               setMessage(`Welcome back${data.name ? `, ${data.name}` : ''}!`);
-              showSymbol('success');
+              showNotification('success', `Welcome back${data.name ? `, ${data.name}` : ''}!`);
               setIsAuthInProgress(false);
               setTimeout(() => router.push('/'), 2000);
             } else {
               setStage('email');
               setErrorMessage(result.message || 'Authentication failed');
-              showSymbol('warning');
+              showNotification('error', result.message || 'Authentication failed');
               setIsAuthInProgress(false);
             }
           } catch (err: any) {
@@ -177,7 +173,7 @@ export default function LoginPage() {
             const isTimeout = err.name === 'NotAllowedError' && (err.message?.includes('timeout') || err.message?.includes('timed out'));
             setStage('email');
             setErrorMessage(isTimeout ? 'Passkey timed out' : 'Passkey authentication cancelled or failed');
-            showSymbol('warning');
+            showNotification('error', isTimeout ? 'Passkey timed out' : 'Passkey authentication cancelled or failed');
             setIsAuthInProgress(false);
           }
           return;
@@ -190,7 +186,7 @@ export default function LoginPage() {
       } else {
         setStage('email');
         setErrorMessage(data.error || 'Invalid or expired link');
-        showSymbol('warning');
+        showNotification('error', data.error || 'Invalid or expired link');
         setShake(true);
         setTimeout(() => setShake(false), 500);
         setIsAuthInProgress(false);
@@ -199,7 +195,7 @@ export default function LoginPage() {
       console.error('Magic link login error:', err);
       setStage('email');
       setErrorMessage('Magic link authentication failed');
-      showSymbol('warning');
+      showNotification('error', 'Magic link authentication failed');
       setShake(true);
       setTimeout(() => setShake(false), 500);
       setIsAuthInProgress(false);
@@ -249,7 +245,7 @@ export default function LoginPage() {
         setStage('email');
         setMessage('');
         setErrorMessage(data?.message || 'Login failed. Please try again.');
-        showSymbol('warning');
+        showNotification('error', data?.message || 'Login failed. Please try again.');
         setShake(true);
         setTimeout(() => setShake(false), 500);
         setTimeout(() => setErrorMessage(''), 5000); // Clear error after 5s
@@ -282,7 +278,7 @@ export default function LoginPage() {
         console.error('Failed to parse finish-login response:', e);
         setStage('email');
         setErrorMessage('Login failed. Please try again.');
-        showSymbol('warning');
+        showNotification('error', 'Login failed. Please try again.');
         setShake(true);
         setTimeout(() => setShake(false), 500);
         setTimeout(() => setErrorMessage(''), 5000);
@@ -294,7 +290,7 @@ export default function LoginPage() {
         setStage('done');
         const name = result.user?.name;
         setMessage(`Welcome back${name ? `, ${name}` : ''}`);
-        showSymbol('success');
+        showNotification('success', `Welcome back${name ? `, ${name}` : ''}`);
         setIsAuthInProgress(false);
         setTimeout(() => router.push('/'), 2000);
       } else {
@@ -302,7 +298,7 @@ export default function LoginPage() {
         if (result.challengeExpired) {
           setStage('email');
           setErrorMessage('Session expired');
-          showSymbol('warning');
+          showNotification('error', 'Session expired');
           setShake(true);
           setTimeout(() => setShake(false), 500);
           setIsAuthInProgress(false);
@@ -314,7 +310,7 @@ export default function LoginPage() {
         } else {
           setStage('email');
           setErrorMessage(result.message || 'Authentication failed');
-          showSymbol('warning');
+          showNotification('error', result.message || 'Authentication failed');
           setShake(true);
           setTimeout(() => setShake(false), 500);
           setTimeout(() => setErrorMessage(''), 5000);
@@ -331,7 +327,7 @@ export default function LoginPage() {
         const isTimeout = err.message?.includes('timeout') || err.message?.includes('timed out');
         setStage('code');
         setErrorMessage(isTimeout ? 'Passkey timed out - use code instead' : 'Passkey cancelled - use code instead');
-        showSymbol('warning');
+        showNotification('error', isTimeout ? 'Passkey timed out - use code instead' : 'Passkey cancelled - use code instead');
         setShake(true);
         setTimeout(() => setShake(false), 500);
         setTimeout(() => setErrorMessage(''), 5000);
@@ -339,7 +335,7 @@ export default function LoginPage() {
         // Passkey authentication was aborted
         setStage('code');
         setErrorMessage('Passkey unavailable - use code instead');
-        showSymbol('warning');
+        showNotification('error', 'Passkey unavailable - use code instead');
         setShake(true);
         setTimeout(() => setShake(false), 500);
         setTimeout(() => setErrorMessage(''), 5000);
@@ -347,7 +343,7 @@ export default function LoginPage() {
         // Other errors - show code page as fallback
         setStage('code');
         setErrorMessage(err.message || 'Passkey error - use code instead');
-        showSymbol('warning');
+        showNotification('error', err.message || 'Passkey error - use code instead');
         setShake(true);
         setTimeout(() => setShake(false), 500);
         setTimeout(() => setErrorMessage(''), 5000);
@@ -376,7 +372,7 @@ export default function LoginPage() {
         if (result.ok) {
           setStage('done');
           setMessage('Welcome, Admin!');
-          showSymbol('success');
+          showNotification('success', 'Welcome, Admin!');
           setIsAuthInProgress(false);
 
           // Redirect immediately for better UX
@@ -386,7 +382,7 @@ export default function LoginPage() {
         } else {
           setStage('code');
           setErrorMessage('Invalid');
-          showSymbol('warning');
+          showNotification('error', 'Invalid');
           setShake(true);
           setTimeout(() => setShake(false), 500);
           setIsAuthInProgress(false);
@@ -406,7 +402,7 @@ export default function LoginPage() {
       if (!res.ok || !data.ok || !data.options) {
         setStage('code');
         setErrorMessage('Invalid');
-        showSymbol('warning');
+        showNotification('error', 'Invalid');
         setShake(true);
         setTimeout(() => setShake(false), 500);
         setIsAuthInProgress(false);
@@ -433,7 +429,7 @@ export default function LoginPage() {
         setStage('done');
         const name = result.user?.name;
         setMessage(name ? `Welcome, ${name}!` : 'Welcome!');
-        showSymbol('success');
+        showNotification('success', name ? `Welcome, ${name}!` : 'Welcome!');
         setIsAuthInProgress(false);
         setTimeout(() => router.push('/'), 2000);
       } else {
@@ -441,7 +437,7 @@ export default function LoginPage() {
         if (result.challengeExpired) {
           setStage('code');
           setErrorMessage('Session expired');
-          showSymbol('warning');
+          showNotification('error', 'Session expired');
           setShake(true);
           setTimeout(() => setShake(false), 500);
           setIsAuthInProgress(false);
@@ -455,7 +451,7 @@ export default function LoginPage() {
         } else {
           setStage('code');
           setErrorMessage(result.message || 'Registration failed');
-          showSymbol('warning');
+          showNotification('error', result.message || 'Registration failed');
           setShake(true);
           setTimeout(() => setShake(false), 500);
           setTimeout(() => setErrorMessage(''), 5000);
@@ -470,16 +466,19 @@ export default function LoginPage() {
       // Show helpful error message for passkey issues
       if (err.name === 'SecurityError' || err.message?.includes('invalid domain')) {
         setErrorMessage('Passkey requires localhost or HTTPS');
+        showNotification('error', 'Passkey requires localhost or HTTPS');
       } else if (err.name === 'NotAllowedError') {
         const isTimeout = err.message?.includes('timeout') || err.message?.includes('timed out');
         setErrorMessage(isTimeout ? 'Passkey registration timed out' : 'Passkey registration was cancelled');
+        showNotification('error', isTimeout ? 'Passkey registration timed out' : 'Passkey registration was cancelled');
       } else if (err.name === 'AbortError') {
         setErrorMessage('Passkey registration was aborted');
+        showNotification('error', 'Passkey registration was aborted');
       } else {
         setErrorMessage('Registration failed. Please try again.');
+        showNotification('error', 'Registration failed. Please try again.');
       }
 
-      showSymbol('warning');
       setShake(true);
       setTimeout(() => setShake(false), 500);
       setTimeout(() => setErrorMessage(''), 5000);
@@ -487,174 +486,220 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #F6F7FB 0%, #E6F0FF 100%)',
+      position: 'relative',
+    }}>
+      {/* Professional Toast Notifications */}
+      {showToast && (
+        <div style={{
+          position: 'fixed',
+          top: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          animation: 'slideDown 0.4s ease-out',
+        }}>
+          <Box
+            padding={Box.paddings.MEDIUM}
+            rounded={Box.roundeds.MEDIUM}
+            style={{
+              background: toastType === 'error' ? '#FFF4E5' : '#E6F7F1',
+              border: `1px solid ${toastType === 'error' ? '#FDAB3D' : '#00C875'}`,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              minWidth: '300px',
+            }}
+          >
+            <Flex align={Flex.align.CENTER} gap={Flex.gaps.SMALL}>
+              {toastType === 'error' ? (
+                <Alert style={{ color: '#FDAB3D' }} />
+              ) : (
+                <Check style={{ color: '#00C875' }} />
+              )}
+              <span style={{
+                fontSize: '14px',
+                fontWeight: 500,
+                color: toastType === 'error' ? '#9B5C00' : '#007A48',
+              }}>
+                {toastType === 'error' ? errorMessage : message}
+              </span>
+            </Flex>
+          </Box>
+        </div>
+      )}
+
+      {/* Login Card */}
+      <Box
+        padding={Box.paddings.LARGE}
+        rounded={Box.roundeds.MEDIUM}
+        style={{
+          width: '100%',
+          maxWidth: '400px',
+          background: 'white',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+          margin: '0 24px',
+        }}
+        className={shake ? 'shake' : ''}
+      >
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            background: 'var(--vibe-gradient-primary)',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+          }}>
+            <Email style={{ color: 'white', fontSize: '24px' }} />
+          </div>
+          <Heading type={Heading.types.h2} value="SAP Cockpit" style={{ margin: 0, marginBottom: '8px' }} />
+          <p style={{ fontSize: '14px', color: '#676879', margin: 0 }}>
+            {stage === 'email' && 'Enter your email to continue'}
+            {stage === 'code' && (isAdmin ? 'Enter admin code' : 'Enter verification code')}
+            {stage === 'waiting' && 'Authenticating...'}
+            {stage === 'done' && 'Success!'}
+          </p>
+        </div>
+
+        {/* Email Stage */}
+        {stage === 'email' && (
+          <Flex direction={Flex.directions.COLUMN} gap={Flex.gaps.MEDIUM}>
+            <TextField
+              value={email}
+              onChange={setEmail}
+              onKeyDown={(e: any) => e.key === 'Enter' && email.includes('@') && handleContinue()}
+              placeholder="Enter your email"
+              autoFocus
+              size="large"
+              validation={errorMessage ? { status: 'error', text: errorMessage } : undefined}
+            />
+
+            <Button
+              onClick={handleContinue}
+              disabled={!email.includes('@') || isAuthInProgress}
+              kind={Button.kinds.PRIMARY}
+              size={Button.sizes.LARGE}
+              style={{ width: '100%' }}
+            >
+              Continue
+            </Button>
+          </Flex>
+        )}
+
+        {/* Code Stage */}
+        {stage === 'code' && (
+          <Flex direction={Flex.directions.COLUMN} gap={Flex.gaps.MEDIUM}>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              onKeyDown={(e) => e.key === 'Enter' && code.length === 6 && handleRegister()}
+              placeholder="000000"
+              maxLength={6}
+              autoFocus
+              style={{
+                width: '100%',
+                padding: '16px',
+                textAlign: 'center',
+                fontSize: '24px',
+                fontFamily: 'monospace',
+                letterSpacing: '0.2em',
+                border: `2px solid ${code.length === 6 ? '#0073EA' : '#C3C6D4'}`,
+                borderRadius: '8px',
+                outline: 'none',
+                transition: 'border-color 0.2s',
+              }}
+            />
+
+            <Button
+              onClick={handleRegister}
+              disabled={code.length !== 6 || isAuthInProgress}
+              kind={Button.kinds.PRIMARY}
+              size={Button.sizes.LARGE}
+              style={{ width: '100%' }}
+            >
+              Verify
+            </Button>
+
+            <Button
+              onClick={() => {
+                setStage('email');
+                setCode('');
+                setMessage('');
+                setIsAuthInProgress(false);
+              }}
+              kind={Button.kinds.TERTIARY}
+              size={Button.sizes.MEDIUM}
+              style={{ width: '100%' }}
+            >
+              Back to email
+            </Button>
+          </Flex>
+        )}
+
+        {/* Waiting Stage */}
+        {stage === 'waiting' && (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Loader size={Loader.sizes.LARGE} />
+            <p style={{ marginTop: '16px', color: '#676879', fontSize: '14px' }}>
+              Please complete authentication...
+            </p>
+          </div>
+        )}
+
+        {/* Success Stage */}
+        {stage === 'done' && (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              background: 'var(--vibe-gradient-success)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+            }}>
+              <Check style={{ color: 'white', fontSize: '32px' }} />
+            </div>
+            <Heading type={Heading.types.h3} value={message} style={{ margin: 0, color: '#323338' }} />
+            <p style={{ marginTop: '8px', color: '#676879', fontSize: '14px' }}>
+              Redirecting...
+            </p>
+          </div>
+        )}
+      </Box>
+
       <style jsx>{`
-        @keyframes slide-down {
+        @keyframes slideDown {
           from {
-            transform: translateY(-200%);
+            transform: translate(-50%, -100%);
             opacity: 0;
           }
           to {
-            transform: translateY(0);
+            transform: translate(-50%, 0);
             opacity: 1;
           }
         }
-        @keyframes slide-up {
-          from {
-            transform: translateY(0);
-            opacity: 1;
-          }
-          to {
-            transform: translateY(-200%);
-            opacity: 0;
-          }
-        }
+
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
           10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
           20%, 40%, 60%, 80% { transform: translateX(8px); }
         }
-        .slide-down {
-          animation: slide-down 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-        .slide-up {
-          animation: slide-up 0.4s ease-in forwards;
-        }
+
         .shake {
           animation: shake 0.5s;
         }
       `}</style>
-
-      {/* Top Banner - Error/Invalid - Slides down to 1/3 of page */}
-      {showSymbolState && symbolType === 'warning' && errorMessage && (
-        <div className={`fixed inset-x-0 z-50 pointer-events-none flex items-start justify-center ${showSymbolState ? 'slide-down' : 'slide-up'}`}
-             style={{ top: '0', height: '33.333vh' }}>
-          <div className="mt-6 mx-4 bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-amber-200/50 py-4 px-6 pointer-events-auto max-w-md text-center min-w-[200px]"
-               style={{
-                 boxShadow: '0 10px 40px -10px rgba(251, 191, 36, 0.3), 0 0 0 1px rgba(251, 191, 36, 0.1)'
-               }}>
-            <p className="text-sm text-amber-900 font-medium tracking-tight">{errorMessage}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Top Banner - Verified - Slides down to 1/3 of page */}
-      {showSymbolState && symbolType === 'success' && (
-        <div className={`fixed inset-x-0 z-50 pointer-events-none flex items-start justify-center ${showSymbolState ? 'slide-down' : 'slide-up'}`}
-             style={{ top: '0', height: '33.333vh' }}>
-          <div className="mt-6 mx-4 bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-emerald-200/50 py-4 px-6 pointer-events-auto max-w-md text-center min-w-[200px]"
-               style={{
-                 boxShadow: '0 10px 40px -10px rgba(16, 185, 129, 0.3), 0 0 0 1px rgba(16, 185, 129, 0.1)'
-               }}>
-            <p className="text-sm text-emerald-900 font-medium tracking-tight">Verified</p>
-          </div>
-        </div>
-      )}
-
-      <div className={`w-full max-w-sm px-6 ${shake ? 'shake' : ''}`}>
-        {/* Minimal Header - No branding */}
-        <div className="mb-12"></div>
-
-        {/* Login Container - Morphs between states */}
-        <div className={`
-          relative transition-all duration-1000 ease-out
-          ${stage === 'done' ? 'liquid-morph' : ''}
-        `}>
-          {/* Email Stage */}
-          {stage === 'email' && (
-            <div className="space-y-6">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  setEmail(newValue);
-                  setErrorMessage(''); // Clear error when typing
-
-                  // Change color based on email length (cycles through colors)
-                  if (newValue.length > 0) {
-                    setColorIndex(newValue.length % BUTTON_COLORS.length);
-                  }
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && email.includes('@') && handleContinue()}
-                placeholder="Email"
-                autoFocus
-                className={`w-full px-4 py-3 text-base border-b-2 focus:outline-none transition-all duration-300 bg-transparent placeholder:text-slate-400 ${
-                  email.includes('@')
-                    ? `${BUTTON_COLORS[colorIndex].border} ${BUTTON_COLORS[colorIndex].focus}`
-                    : 'border-slate-200 focus:border-slate-200'
-                }`}
-              />
-
-              <button
-                onClick={handleContinue}
-                disabled={!email.includes('@') || isAuthInProgress}
-                className={`w-full py-3 text-white rounded-lg font-medium transition-all duration-300 ${
-                  email.includes('@') && !isAuthInProgress
-                    ? `${BUTTON_COLORS[colorIndex].bg} ${BUTTON_COLORS[colorIndex].hover} cursor-pointer`
-                    : 'bg-slate-300 cursor-not-allowed'
-                }`}
-              >
-                Continue
-              </button>
-            </div>
-          )}
-
-          {/* Code Stage */}
-          {stage === 'code' && (
-            <div className="space-y-6">
-              <div>
-                <p className="text-sm text-slate-600 mb-4 text-center">
-                  {isAdmin ? 'Enter your admin code' : 'Enter the code from your admin'}
-                </p>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  onKeyDown={(e) => e.key === 'Enter' && code.length === 6 && handleRegister()}
-                  placeholder="000000"
-                  maxLength={6}
-                  autoFocus
-                  className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border-b-2 border-slate-200 focus:border-slate-900 focus:outline-none transition-colors bg-transparent"
-                />
-              </div>
-              <button
-                onClick={handleRegister}
-                disabled={code.length !== 6 || isAuthInProgress}
-                className="w-full py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                Verify
-              </button>
-              <button
-                onClick={() => {
-                  setStage('email');
-                  setCode('');
-                  setMessage('');
-                  setIsAuthInProgress(false);
-                }}
-                className="w-full text-sm text-slate-500 hover:text-slate-900 transition-colors"
-              >
-                Back
-              </button>
-            </div>
-          )}
-
-          {/* Waiting Stage */}
-          {stage === 'waiting' && (
-            <div className="text-center py-8">
-              <div className="inline-block h-16 w-16 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
-            </div>
-          )}
-
-          {/* Success Stage */}
-          {stage === 'done' && (
-            <div className="text-center py-8">
-              <p className="text-xl text-slate-900 font-medium">{message}</p>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
