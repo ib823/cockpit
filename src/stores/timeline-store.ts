@@ -2,6 +2,7 @@ import { Holiday } from '@/lib/timeline/date-calculations';
 import type { Phase, Resource } from '@/types/core';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import { persist } from 'zustand/middleware';
 import {
   ResourcePlan,
   PhaseResource,
@@ -77,7 +78,8 @@ interface TimelineState {
 // --- Store ---
 
 export const useTimelineStore = create<TimelineState>()(
-  immer((set, get) => ({
+  persist(
+    immer((set, get) => ({
     // --- Initial State ---
     projectId: null,
     isLoading: false,
@@ -322,6 +324,20 @@ export const useTimelineStore = create<TimelineState>()(
         region: 'US-East',
       });
     },
-  }))
+  })),
+    {
+      name: 'cockpit-timeline-storage',
+      partialize: (state) => ({
+        phases: state.phases,
+        selectedPackages: state.selectedPackages,
+        zoomLevel: state.zoomLevel,
+        clientPresentationMode: state.clientPresentationMode,
+        region: state.region,
+        selectedPhaseId: state.selectedPhaseId,
+        phaseColors: state.phaseColors,
+      }),
+      version: 1,
+    }
+  )
 );
 

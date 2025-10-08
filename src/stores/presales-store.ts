@@ -1,6 +1,7 @@
 import { Chip } from '@/types/core';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import { persist } from 'zustand/middleware';
 import { parseRFPText } from '@/lib/chip-parser';
 
 // --- State & Types ---
@@ -43,7 +44,8 @@ interface PresalesState {
 // --- Store ---
 
 export const usePresalesStore = create<PresalesState>()(
-  immer((set, get) => ({
+  persist(
+    immer((set, get) => ({
     // --- Initial State ---
     projectId: null,
     isLoading: false,
@@ -154,6 +156,16 @@ export const usePresalesStore = create<PresalesState>()(
         suggestions: [],
       });
     },
-  }))
+  })),
+    {
+      name: 'cockpit-presales-storage',
+      partialize: (state) => ({
+        chips: state.chips,
+        decisions: state.decisions,
+        mode: state.mode,
+      }),
+      version: 1,
+    }
+  )
 );
 

@@ -531,7 +531,7 @@ export function identifyCriticalGaps(chips: ExtendedChip[]): any[] {
   const gaps = [];
   const chipTypes = new Set(chips.map((c) => c.type));
 
-  for (const [field, alert] of Object.entries(MISSING_INFO_ALERTS)) {
+  for (const [field, alert] of Object.entries(MISSING_INFO_ALERTS) as [string, any][]) {
     if (!chipTypes.has(field)) {
       gaps.push({
         field,

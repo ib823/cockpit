@@ -4,7 +4,7 @@ import { JobsGanttChart } from "@/components/timeline/JobsGanttChart";
 import { cn, formatCurrency, formatDuration } from "@/lib/utils";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
-import { useTimelineStore, type Phase } from "@/stores/timeline-store";
+import { useTimelineStore, type Phase, type Resource } from "@/stores/timeline-store";
 import { addWorkingDays, calculateWorkingDays } from "@/data/holidays";
 import { format, parse, isValid, isBefore, isAfter } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -592,7 +592,7 @@ function ResourceSection({
   phase: Phase;
   decisions: any;
   updatePhase: any;
-  onResourceUpdate: (resources: any[]) => void;
+  onResourceUpdate: (resources: Resource[]) => void;
 }) {
   const resources = phase.resources || [];
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -750,7 +750,7 @@ function TaskSection({
   onTaskUpdate,
 }: {
   phase: Phase;
-  updatePhase: any;
+  updatePhase:unknown;
   onTaskUpdate: (tasks: Task[]) => void;
 }) {
   const tasks = phase.tasks || [];

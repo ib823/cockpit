@@ -321,7 +321,7 @@ export const EFFORT_IMPACT_RULES: any = {
   },
 };
 
-export const MISSING_INFO_ALERTS: any[] = [];
+export const MISSING_INFO_ALERTS:unknown[] = [];
 
 export function extractNumericValue(text: string): number | null {
   const match = text.match(/\d+/);
