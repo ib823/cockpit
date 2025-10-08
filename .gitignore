@@ -60,3 +60,11 @@ SESSION_*.md
 cockpit_*.zip
 deploy-fixes.sh
 setup-ui-toolkit.sh
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# Claude.ai knowledge archives
+claude-project-knowledge/
+claude-assessment*.zip
+
