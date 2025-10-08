@@ -6,8 +6,8 @@
 
 'use client';
 
+import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { Segmented, type SegmentedOption } from '../ui';
 
 const MODE_OPTIONS: SegmentedOption[] = [
@@ -22,7 +22,8 @@ export const ModeNav: React.FC = () => {
   const pathname = usePathname();
 
   // Determine active mode based on pathname
-  const activeMode = MODE_OPTIONS.find((opt) => pathname.startsWith(opt.value))
+  //const activeMode = MODE_OPTIONS.find((opt) => pathname.startsWith(opt.value))
+  const activeMode = MODE_OPTIONS.find((opt) => pathname?.startsWith(opt.value))
     ?.value || '/project/capture';
 
   const handleModeChange = (value: string) => {
