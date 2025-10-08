@@ -1,10 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 
-// Import design tokens (Per spec: Design_Tokens_ChangeList.md)
-const { colors, borderRadius, shadows } = require('./src/lib/design-tokens');
-
 module.exports = {
-  darkMode: 'class', // Enable class-based dark mode
+  darkMode: ['class', '[data-theme="dark"]'], // Support both class and data-theme
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -68,27 +65,12 @@ module.exports = {
         'prose': '65ch',
       },
       colors: {
-        // Design tokens from src/lib/design-tokens.ts
-        // Light mode colors (will be overridden by [data-theme="dark"] in globals.css)
-        primary: colors.light.primary,
-        accent: colors.light.accent,
-        success: colors.light.success,
-        warning: colors.light.warning,
-        error: colors.light.error,
-        gray: colors.light.gray,
-
-        // CSS variable references for theme-aware colors
-        background: 'var(--color-bg)',
-        'background-secondary': 'var(--color-bg-secondary)',
-        foreground: 'var(--color-text-primary)',
-        'foreground-secondary': 'var(--color-text-secondary)',
-        border: 'var(--color-border)',
-      },
-      borderRadius: {
-        ...borderRadius,
-      },
-      boxShadow: {
-        ...shadows,
+        // Use CSS variables for theme-aware colors
+        // All colors are defined in src/styles/tokens.css
+        transparent: 'transparent',
+        current: 'currentColor',
+        white: '#ffffff',
+        black: '#000000',
       },
       animation: {
         "fade-in": "fadeIn 0.3s ease-in",

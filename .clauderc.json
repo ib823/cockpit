@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "design": {
+    "philosophy": "Minimalist, Steve Jobs-inspired. Focus, Deference, Depth.",
+    "minimal": true,
+    "noInlineStyles": true,
+    "noHardcodedColors": true,
+    "tokens": "src/styles/tokens.css",
+    "motion": "src/styles/motion.css"
+  },
+  "rules": {
+    "styles": {
+      "inlineStyles": "Use className with CSS variables. Only positional inline styles allowed for AeroTimeline overlays.",
+      "colors": "All colors must use var(--token-name) from tokens.css. No hex codes in components.",
+      "borders": "Use 1px hairlines. Heavy borders forbidden.",
+      "shadows": "Very subtle only. Use var(--shadow-sm/md/lg).",
+      "animations": "150-200ms, ease-out. No bouncing."
+    },
+    "accessibility": {
+      "focusVisible": "All interactive elements must have focus-visible styles using var(--focus).",
+      "keyboard": "All interactions must be keyboard accessible.",
+      "ariaLabels": "Provide meaningful aria-labels for icons and controls.",
+      "contrast": "≥ 4.5:1 for text. Do not encode state by color alone."
+    },
+    "components": {
+      "hitTargets": "≥ 40px for interactive elements.",
+      "buttonVariants": "primary, ghost, subtle, danger only.",
+      "sizes": "sm (32px), md (40px), lg (48px)."
+    }
+  },
+  "architecture": {
+    "store": "src/lib/unified-project-store.ts - single source of truth",
+    "components": {
+      "ui": "src/app/_components/ui/ - micro component library",
+      "shell": "src/app/_components/shell/ - TopBar, ModeNav, ClientSafeToggle",
+      "timeline": "src/app/_components/timeline/ - AeroTimeline + engine"
+    },
+    "dateUtils": "src/app/_components/timeline/utils/date.ts - business-day math, zero NaN bugs"
+  },
+  "testing": {
+    "unit": "vitest for date utilities and business logic",
+    "e2e": "playwright for timeline interactions",
+    "a11y": "axe for accessibility smoke tests"
+  }
+}
