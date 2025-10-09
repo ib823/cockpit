@@ -2,7 +2,7 @@
 
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 function getDeviceInfo() {
   return {

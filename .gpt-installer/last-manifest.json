@@ -1,0 +1,60 @@
+{
+  "files": [
+    {
+      "path": "src/lib/auth.ts",
+      "action": "add",
+      "sha256_after": "2b16e8bb9eb8e8291267c3a92bca5a14c0f21184c3c7361f3d048c3afbaeef97",
+      "mode": "0o664",
+      "note": "written"
+    },
+    {
+      "path": "src/app/api/auth/[...nextauth]/route.ts",
+      "action": "add",
+      "sha256_after": "01962104c47ef51843b4e4fad621fb271f86afd1772757702474ee708588954b",
+      "mode": "0o664",
+      "note": "written"
+    },
+    {
+      "path": "src/app/login/page.tsx",
+      "action": "replace",
+      "sha256_after": "782ffe8179dabc1e30d998840739089371025841599d91617e48de4e59a248f5",
+      "mode": "0o664",
+      "note": "written"
+    },
+    {
+      "path": "src/app/admin/page.tsx",
+      "action": "replace",
+      "sha256_after": "18187ac1a2e68a9e96e4a90972f7fb933956f8e4da7ad9a45a2be190d6c73354",
+      "mode": "0o664",
+      "note": "written"
+    },
+    {
+      "path": "src/components/project-v2/modes/ResourcePanelVibe.tsx",
+      "action": "replace",
+      "sha256_after": "6c981486fc34ff71aee8b58a1b420b1815c8403028c3279da8514050b2c46a7e",
+      "mode": "0o664",
+      "note": "written"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "action": "replace",
+      "sha256_after": "47fb61e31f644d41d9baa5637d5c0c15b4ca896ab85db02247e960f5abbc8dc5",
+      "mode": "0o664",
+      "note": "written"
+    },
+    {
+      "path": ".env.example",
+      "action": "replace",
+      "sha256_after": "a5784952a7f941c44b8416f61e20ffb94a7fb63f4258ffe902c6cc77d6271936",
+      "mode": "0o664",
+      "note": "written"
+    },
+    {
+      "path": "package.json",
+      "action": "replace",
+      "sha256_after": "26348f24ca0bae21046938d512503642791fa2b198d6f4da7d3457f949cd39f1",
+      "mode": "0o664",
+      "note": "written"
+    }
+  ]
+}

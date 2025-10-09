@@ -1,58 +1,22 @@
-/**
- * Checkbox Component - Minimal checkbox with label
- */
-
 'use client';
+import React from "react";
 
-import React from 'react';
-import { clsx } from 'clsx';
+function cx(...a:any[]){return a.filter(Boolean).join(' ');}
 
-export interface CheckboxProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  label?: string;
-  helperText?: string;
+type Props = Omit<React.ComponentProps<'input'>,'type'> & {
+  label?: React.ReactNode;
+  containerClassName?: string;
+};
+
+export default function Checkbox({ id: providedId, label, className, containerClassName, ...rest }: Props){
+  const generatedId = React.useId();
+  const checkboxId = providedId || generatedId;
+  return (
+    <div className={cx('flex flex-col gap-1', containerClassName)}>
+      <label htmlFor={checkboxId} className="inline-flex items-center gap-2 text-sm">
+        <input id={checkboxId} type="checkbox" className={cx('h-4 w-4', className)} {...rest} />
+        {label}
+      </label>
+    </div>
+  );
 }
-
-export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ label, helperText, className, disabled, id, ...props }, ref) => {
-    const checkboxId = id || `checkbox-${React.useId()}`;
-
-    return (
-      <div className={clsx('flex flex-col gap-1', className)}>
-        <div className="flex items-start gap-2">
-          <input
-            ref={ref}
-            type="checkbox"
-            id={checkboxId}
-            disabled={disabled}
-            className={clsx(
-              'mt-0.5 w-4 h-4 rounded-[var(--r-sm)] border-[var(--line)]',
-              'text-[var(--accent)] bg-[var(--surface)]',
-              'focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-0',
-              'transition-all duration-[var(--dur)] ease-[var(--ease)]',
-              'cursor-pointer',
-              disabled && 'opacity-50 cursor-not-allowed'
-            )}
-            {...props}
-          />
-          {label && (
-            <label
-              htmlFor={checkboxId}
-              className={clsx(
-                'text-sm text-[var(--ink)] cursor-pointer select-none',
-                disabled && 'opacity-50 cursor-not-allowed'
-              )}
-            >
-              {label}
-            </label>
-          )}
-        </div>
-        {helperText && (
-          <p className="text-xs text-[var(--ink-muted)] ml-6">{helperText}</p>
-        )}
-      </div>
-    );
-  }
-);
-
-Checkbox.displayName = 'Checkbox';

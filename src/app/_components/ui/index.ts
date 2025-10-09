@@ -1,16 +1,12 @@
-/**
- * UI Component Library - Minimalist Design System
- * Export all components for easy importing
- */
+/** UI Barrel — AntD passthroughs + local components */
 
-export { Button, type ButtonProps } from './Button';
-export { Segmented, type SegmentedProps, type SegmentedOption } from './Segmented';
-export { Input, type InputProps } from './Input';
-export { Select, type SelectProps, type SelectOption } from './Select';
-export { Checkbox, type CheckboxProps } from './Checkbox';
-export { Tooltip, type TooltipProps } from './Tooltip';
-export { ToastProvider, toast } from './Toast';
-export { Empty, type EmptyProps } from './Empty';
-export { Sheet, type SheetProps } from './Sheet';
-export { Dialog, type DialogProps } from './Dialog';
-export { Kbd, type KbdProps } from './Kbd';
+// AntD passthroughs used around the app
+export { Button, Tooltip, Segmented, Empty } from 'antd';
+export type { SegmentedValue } from 'antd/es/segmented';
+
+// Local components (re-export all named exports; no default aliasing to avoid duplicates)
+export * from './Input';
+export * from './Checkbox';
+
+// Our minimal Sheet (Drawer-based) wrapper
+export { default as Sheet } from './Sheet';

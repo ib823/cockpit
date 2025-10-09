@@ -2,8 +2,8 @@
  * Select Component - Minimal select dropdown
  */
 
-import React from 'react';
 import { clsx } from 'clsx';
+import React from 'react';
 
 export interface SelectOption {
   label: string;
@@ -33,8 +33,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     },
     ref
   ) => {
-    const selectId = id || `select-${React.useId()}`;
-
+    //const selectId = id || `select-${React.useId()}`;
+    const generatedId = React.useId();
+    const selectId = providedId || generatedId;
     return (
       <div className={clsx('flex flex-col gap-1.5', className)}>
         {label && (
