@@ -1,10 +1,9 @@
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/session';
+import { randomUUID, randomBytes } from 'crypto';
+import { requireAdmin } from '@/lib/nextauth-helpers';
 import { hash } from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { sendAccessCode } from '@/lib/email';
-import crypto from 'crypto';
-
 export const runtime = 'nodejs';
 
 function generateCode(): string {
@@ -12,7 +11,7 @@ function generateCode(): string {
 }
 
 function generateMagicToken(): string {
-  return crypto.randomBytes(32).toString('hex'); // 64 character secure token
+  return randomBytes(32).toString('hex'); // 64 character secure token
 }
 
 export async function POST(req: Request) {
@@ -34,18 +33,20 @@ export async function POST(req: Request) {
     const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
     // Create or update user (pending status)
-    await prisma.user.upsert({
+    await prisma.users.upsert({
       where: { email },
       update: {
         name: name || undefined,
         accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
       create: {
+      id: randomUUID(),
         email,
         name: name || null,
         role: 'USER',
         exception: false,
         accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(),
       },
     });
 
@@ -55,14 +56,14 @@ export async function POST(req: Request) {
       update: {
         tokenHash,
         tokenExpiresAt,
-        approvedByUserId: session.sub,
+        approvedByUserId: session.user.id,
         usedAt: null,
       },
       create: {
         email,
         tokenHash,
         tokenExpiresAt,
-        approvedByUserId: session.sub,
+        approvedByUserId: session.user.id,
       },
     });
 
@@ -70,8 +71,9 @@ export async function POST(req: Request) {
     const magicToken = generateMagicToken();
     const magicTokenExpiry = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes (reduced for email security)
 
-    await prisma.magicToken.create({
+    await prisma.magic_tokens.create({
       data: {
+        id: randomUUID(),
         email,
         token: magicToken,
         expiresAt: magicTokenExpiry,

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/session';
+import { requireAdmin } from '@/lib/nextauth-helpers';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -12,7 +12,7 @@ export async function POST(
     await requireAdmin();
     const { id } = await params;
 
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id },
       data: {
         accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),

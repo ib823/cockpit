@@ -1,7 +1,7 @@
 import { Role } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
-import { setSession } from '../../../../lib/session';
+import { createAuthSession } from '@/lib/nextauth-helpers';
 import { challenges, origin, rpID, verifyRegistrationResponse } from '../../../../lib/webauthn';
 
 export const runtime = 'nodejs';
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     // Use a transaction to ensure all or nothing
     const user = await prisma.$transaction(async (tx) => {
-      const newUser = await tx.user.upsert({
+      const newUser = await tx.users.upsert({
         where: { email },
         update: {
           firstLoginAt: new Date(), // Update first login time on passkey registration
@@ -49,6 +49,7 @@ export async function POST(req: Request) {
           role: Role.USER,
           accessExpiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
           firstLoginAt: new Date(), // Set first login time on creation
+          updatedAt: new Date(),
         },
       });
 
@@ -76,7 +77,7 @@ export async function POST(req: Request) {
 
     // Map MANAGER to USER for session purposes
     const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
-    await setSession({ sub: user.id, role: sessionRole });
+    await createAuthSession(user.id, user.email, sessionRole);
 
     return NextResponse.json({ ok: true, user: { name: user.name } });
 

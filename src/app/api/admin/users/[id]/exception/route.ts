@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/session';
+import { requireAdmin } from '@/lib/nextauth-helpers';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -13,7 +13,7 @@ export async function POST(
     const { id } = await params;
     const { exception } = await req.json().catch(() => ({ exception: false }));
 
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id },
       data: {
         exception,

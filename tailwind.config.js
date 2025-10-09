@@ -1,12 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 
 module.exports = {
-  darkMode: ['class', '[data-theme="dark"]'], // Support both class and data-theme
+  darkMode: ['class', '[data-theme="dark"]'],
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     container: {
@@ -36,7 +33,6 @@ module.exports = {
     },
     extend: {
       fontSize: {
-        // Fluid typography with clamp()
         'xs': ['clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)', { lineHeight: '1.5' }],
         'sm': ['clamp(0.875rem, 0.8rem + 0.375vw, 1rem)', { lineHeight: '1.5' }],
         'base': ['clamp(1rem, 0.9rem + 0.5vw, 1.125rem)', { lineHeight: '1.6' }],
@@ -48,7 +44,6 @@ module.exports = {
         '5xl': ['clamp(3rem, 2.5rem + 2.5vw, 3.75rem)', { lineHeight: '1.1' }],
       },
       spacing: {
-        // Responsive spacing
         'fluid-xs': 'clamp(0.25rem, 0.2rem + 0.25vw, 0.5rem)',
         'fluid-sm': 'clamp(0.5rem, 0.4rem + 0.5vw, 1rem)',
         'fluid-md': 'clamp(1rem, 0.8rem + 1vw, 1.5rem)',
@@ -65,8 +60,6 @@ module.exports = {
         'prose': '65ch',
       },
       colors: {
-        // Use CSS variables for theme-aware colors
-        // All colors are defined in src/styles/tokens.css
         transparent: 'transparent',
         current: 'currentColor',
         white: '#ffffff',
@@ -77,7 +70,6 @@ module.exports = {
         "slide-up": "slideUp 0.4s ease-out",
         "slide-down": "slideDown 0.4s ease-out",
         shake: "shake 0.5s ease-in-out",
-        // Note: 'glow' animation defined but kept for focus states
         "focus-glow": "glow 2s ease-in-out infinite",
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },

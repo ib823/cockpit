@@ -129,7 +129,7 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
           ]}
           value={viewMode}
           onChange={(v) => setViewMode(v as ViewMode)}
-          size="sm"
+          size="small"
         />
       </div>
 

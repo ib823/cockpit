@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.users.findUnique({ where: { email } });
     const isAdmin = !!user && user.role === 'ADMIN';
 
     return NextResponse.json(

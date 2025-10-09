@@ -33,9 +33,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     },
     ref
   ) => {
-    //const selectId = id || `select-${React.useId()}`;
     const generatedId = React.useId();
-    const selectId = providedId || generatedId;
+    const selectId = id || generatedId;
     return (
       <div className={clsx('flex flex-col gap-1.5', className)}>
         {label && (

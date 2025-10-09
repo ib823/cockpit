@@ -2,7 +2,8 @@
 // SECURITY: Server-side middleware for rate limiting and security headers
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSession } from "./lib/session";
+import { decode } from "next-auth/jwt";
+import { randomUUID } from "crypto";
 
 // Server-side rate limiter using Redis (distributed) or Map fallback
 let rateLimitStore: any = null;
@@ -175,7 +176,18 @@ export async function middleware(request: NextRequest) {
     /\.(ico|png|jpg|jpeg|svg|gif|webp|woff|woff2|ttf|eot|otf)$/.test(pathname);
 
   if (!isPublicPath && !isStaticAsset) {
-    const session = await getSession();
+    // Get session token from cookie (edge-compatible)
+    const token = request.cookies.get('next-auth.session-token')?.value;
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // Decode JWT token (edge-compatible)
+    const session = await decode({
+      token,
+      secret: process.env.NEXTAUTH_SECRET!,
+    });
+
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
@@ -185,7 +197,7 @@ export async function middleware(request: NextRequest) {
       if (session.role !== 'ADMIN') {
         // Non-admin trying to access admin routes - redirect to home
         console.warn('[SECURITY] Unauthorized admin access attempt', {
-          userId: session.sub,
+          userId: session.userId,
           role: session.role,
           path: pathname,
           ip: getClientIdentifier(request),
@@ -198,7 +210,8 @@ export async function middleware(request: NextRequest) {
           const { prisma } = await import('./lib/db');
           await prisma.auditEvent.create({
             data: {
-              userId: session.sub,
+              id: randomUUID(),
+              userId: session.userId as string,
               type: 'unauthorized_admin_access',
               meta: {
                 path: pathname,
@@ -216,7 +229,7 @@ export async function middleware(request: NextRequest) {
 
       // SECURITY: Log all admin access for audit
       console.log('[AUDIT] Admin access', {
-        userId: session.sub,
+        userId: session.userId,
         role: session.role,
         path: pathname,
         ip: getClientIdentifier(request),
@@ -225,9 +238,9 @@ export async function middleware(request: NextRequest) {
     }
 
     // SECURITY: Validate role hasn't changed (defense in depth)
-    if (session.role !== 'USER' && session.role !== 'ADMIN') {
+    if (session.role !== 'USER' && session.role !== 'ADMIN' && session.role !== 'MANAGER') {
       console.error('[SECURITY] Invalid role in session', {
-        userId: session.sub,
+        userId: session.userId,
         role: session.role,
       });
       return NextResponse.redirect(new URL('/login', request.url));

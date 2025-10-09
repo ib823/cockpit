@@ -1,24 +1,151 @@
 name: CI
+
 on:
-  push: { branches: ["**"] }
-  pull_request: {}
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  lint:
+    name: Lint & Typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      - run: corepack enable
-      - run: pnpm -v || npm -v
-      - run: pnpm i --frozen-lockfile
-      - run: pnpm prisma generate || true
-      - run: |
-          if [ -d prisma/migrations ] && [ "$(ls -A prisma/migrations)" ]; then
-            pnpm prisma migrate deploy || true
-          else
-            pnpm prisma db push || true
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_ci
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Run TypeScript type check
+        run: pnpm typecheck
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_ci
+
+      - name: Run tests
+        run: pnpm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_ci
+          NEXTAUTH_SECRET: test-secret-for-ci-minimum-32-characters-long-abcdefgh
+          NEXTAUTH_URL: http://localhost:3000
+          NODE_ENV: test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_ci
+
+      - name: Build application
+        run: pnpm build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_ci
+          NEXTAUTH_SECRET: test-secret-for-ci-minimum-32-characters-long-abcdefgh
+          NEXTAUTH_URL: http://localhost:3000
+          NODE_ENV: production
+          SKIP_ENV_VALIDATION: true
+
+      - name: Check build output
+        run: |
+          if [ ! -d .next ]; then
+            echo "Build failed: .next directory not found"
+            exit 1
           fi
-      - run: pnpm build
-      - run: pnpm test || true
+          echo "Build successful"
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run pnpm audit
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Check for vulnerable dependencies
+        run: |
+          AUDIT_RESULT=$(pnpm audit --json --audit-level=critical 2>/dev/null || echo '{"error": "audit failed"}')
+          echo "$AUDIT_RESULT"
+
+          # Parse and fail if critical vulnerabilities found
+          CRITICAL_COUNT=$(echo "$AUDIT_RESULT" | grep -o '"critical":[0-9]*' | grep -o '[0-9]*' || echo "0")
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "❌ Found $CRITICAL_COUNT critical vulnerabilities"
+            exit 1
+          fi
+          echo "✅ No critical vulnerabilities found"

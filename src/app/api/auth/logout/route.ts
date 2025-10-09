@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logout } from '@/lib/session';
+import { destroyAuthSession } from '@/lib/nextauth-helpers';
 
 export const runtime = 'nodejs';
 
@@ -10,8 +10,8 @@ export const runtime = 'nodejs';
  */
 export async function POST(req: NextRequest) {
   try {
-    // SECURITY: Use proper logout with Redis session revocation
-    await logout();
+    // SECURITY: Destroy NextAuth session
+    await destroyAuthSession();
 
     return NextResponse.json({
       ok: true,

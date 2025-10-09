@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       attestationType: 'none',
       // It's a good practice to exclude credentials of existing users with the same email
       // to prevent re-registration on a device that already has a passkey for this user.
-      excludeCredentials: (await prisma.authenticator.findMany({ where: { user: { email } } })).map(auth => ({
+      excludeCredentials: (await prisma.authenticator.findMany({ where: { users: { email } } })).map((auth: any) => ({
         id: auth.id,
         type: 'public-key',
         transports: auth.transports as any,

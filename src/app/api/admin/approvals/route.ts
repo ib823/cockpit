@@ -1,15 +1,15 @@
 import { prisma } from '../../../../lib/db';
-import { requireAdmin } from '../../../../lib/session';
+import { requireAdmin } from '@/lib/nextauth-helpers';
 import { hash } from 'bcryptjs';
 import { Role } from '@prisma/client';
 import { NextResponse } from 'next/server';
-
+import { randomUUID } from 'crypto';
 export const runtime = 'nodejs';
 function six() { return Math.floor(100000 + Math.random() * 900000).toString(); }
 
 export async function GET() {
   await requireAdmin();
-  const users = await prisma.user.findMany({ include: { authenticators: true }, orderBy: { createdAt: 'desc' } });
+  const users = await prisma.users.findMany({ include: { Authenticator: true }, orderBy: { createdAt: 'desc' } });
   const approvals = await prisma.emailApproval.findMany();
   const byEmail = new Map(approvals.map(a => [a.email, a]));
 
@@ -27,7 +27,7 @@ export async function GET() {
     });
 
     let status: 'pending'|'approved'|'enrolled'|'expired' = 'pending';
-    if (u.authenticators.length > 0 && !expired) status = 'enrolled';
+    if (u.Authenticator.length > 0 && !expired) status = 'enrolled';
     else if (appr && !appr.usedAt && appr.tokenExpiresAt > new Date()) status = 'approved';
     else if (expired) status = 'expired';
 
@@ -60,23 +60,24 @@ export async function POST(req: Request) {
       tokenHash,
       tokenExpiresAt: new Date(Date.now() + 5 * 60 * 1000),
       usedAt: null,
-      approvedByUserId: admin.sub as string,
+      approvedByUserId: admin.user.id as string,
     },
     create: {
       email,
       tokenHash,
       tokenExpiresAt: new Date(Date.now() + 5 * 60 * 1000),
-      approvedByUserId: admin.sub as string,
+      approvedByUserId: admin.user.id as string,
     },
   });
 
-  await prisma.user.upsert({
+  await prisma.users.upsert({
     where: { email },
     update: {},
-    create: { email, role: Role.USER, accessExpiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000) },
+    create: {
+      id: randomUUID(), email, role: Role.USER, accessExpiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000), updatedAt: new Date() },
   });
 
-  await prisma.auditEvent.create({ data: { userId: admin.sub as string, type: 'admin.approve', meta: { email } } });
+  await prisma.auditEvent.create({ data: { id: randomUUID(), userId: admin.user.id as string, type: 'admin.approve', meta: { email } } });
 
   return NextResponse.json({ ok: true, code });
 }
@@ -86,14 +87,14 @@ export async function PATCH(req: Request) {
   const { email, action } = await req.json() as { email: string; action: 'toggle-exception'|'disable'|'reapprove' };
 
   if (action === 'toggle-exception') {
-    const cur = await prisma.user.findUnique({ where: { email } });
+    const cur = await prisma.users.findUnique({ where: { email } });
     if (!cur) return NextResponse.json({ ok: false }, { status: 404 });
-    await prisma.user.update({ where: { email }, data: { exception: !cur.exception } });
+    await prisma.users.update({ where: { email }, data: { exception: !cur.exception } });
     return NextResponse.json({ ok: true });
   }
 
   if (action === 'disable') {
-    await prisma.user.update({ where: { email }, data: { accessExpiresAt: new Date() } });
+    await prisma.users.update({ where: { email }, data: { accessExpiresAt: new Date() } });
     return NextResponse.json({ ok: true });
   }
 
@@ -103,7 +104,8 @@ export async function PATCH(req: Request) {
     await prisma.emailApproval.upsert({
       where: { email },
       update: { tokenHash, tokenExpiresAt: new Date(Date.now() + 5 * 60 * 1000), usedAt: null },
-      create: { email, tokenHash, tokenExpiresAt: new Date(Date.now() + 5 * 60 * 1000), approvedByUserId: 'system' },
+      create: {
+      email, tokenHash, tokenExpiresAt: new Date(Date.now() + 5 * 60 * 1000), approvedByUserId: 'system' },
     });
     return NextResponse.json({ ok: true, code });
   }

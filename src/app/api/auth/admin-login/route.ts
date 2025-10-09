@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/db';
-import { setSession } from '@/lib/session';
+import { createAuthSession } from '@/lib/nextauth-helpers';
 import { compare } from 'bcryptjs';
 import { NextResponse } from 'next/server';
-
+import { randomUUID } from 'crypto';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     // Check if user exists and is admin
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.users.findUnique({ where: { email } });
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { ok: false, message: 'Invalid credentials' },
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         where: { email },
         data: { usedAt: now },
       }),
-      prisma.user.update({
+      prisma.users.update({
         where: { id: user.id },
         data: {
           lastLoginAt: now,
@@ -65,13 +65,13 @@ export async function POST(req: Request) {
         },
       }),
       prisma.auditEvent.create({
-        data: { userId: user.id, type: 'admin_login' },
+        data: { id: randomUUID(), userId: user.id, type: 'admin_login' },
       }),
     ]);
 
     // Map MANAGER to USER for session purposes
     const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
-    await setSession({ sub: user.id, role: sessionRole });
+    await createAuthSession(user.id, user.email, sessionRole);
 
     return NextResponse.json(
       { ok: true },

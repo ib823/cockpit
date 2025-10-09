@@ -8,9 +8,9 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
-import { Segmented, type SegmentedOption } from '../ui';
+import { Segmented } from '../ui';
 
-const MODE_OPTIONS: SegmentedOption[] = [
+const MODE_OPTIONS = [
   { label: 'Capture', value: '/project/capture' },
   { label: 'Decide', value: '/project/decide' },
   { label: 'Plan', value: '/project/plan' },
@@ -35,7 +35,7 @@ export const ModeNav: React.FC = () => {
       options={MODE_OPTIONS}
       value={activeMode}
       onChange={handleModeChange}
-      size="md"
+      size="middle"
     />
   );
 };

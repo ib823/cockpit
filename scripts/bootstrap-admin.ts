@@ -6,7 +6,7 @@
 
 import { PrismaClient, Role } from '@prisma/client';
 import { hash } from 'bcryptjs';
-
+import { randomUUID } from 'crypto';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -26,17 +26,19 @@ async function main() {
   const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
   // Create temp admin user to approve themselves
-  const adminUser = await prisma.user.upsert({
+  const adminUser = await prisma.users.upsert({
     where: { email },
     update: {
       role: Role.ADMIN,
       exception: true, // No expiration
     },
     create: {
+      id: randomUUID(),
       email,
       role: Role.ADMIN,
       exception: true,
       accessExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(),
     },
   });
 
