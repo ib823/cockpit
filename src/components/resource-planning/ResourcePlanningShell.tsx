@@ -87,7 +87,7 @@ export function ResourcePlanningShell() {
             </div>
 
             {/* Mode Pills */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="flex gap-2">
                 <ModePill
                   active={mode === 'deliverable'}

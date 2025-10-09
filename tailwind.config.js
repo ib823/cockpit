@@ -1,15 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 
-// Import design tokens (Per spec: Design_Tokens_ChangeList.md)
-const { colors, borderRadius, shadows } = require('./src/lib/design-tokens');
-
 module.exports = {
-  darkMode: 'class', // Enable class-based dark mode (use data-theme="dark")
+  darkMode: ['class', '[data-theme="dark"]'],
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     container: {
@@ -39,7 +33,6 @@ module.exports = {
     },
     extend: {
       fontSize: {
-        // Fluid typography with clamp()
         'xs': ['clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)', { lineHeight: '1.5' }],
         'sm': ['clamp(0.875rem, 0.8rem + 0.375vw, 1rem)', { lineHeight: '1.5' }],
         'base': ['clamp(1rem, 0.9rem + 0.5vw, 1.125rem)', { lineHeight: '1.6' }],
@@ -51,7 +44,6 @@ module.exports = {
         '5xl': ['clamp(3rem, 2.5rem + 2.5vw, 3.75rem)', { lineHeight: '1.1' }],
       },
       spacing: {
-        // Responsive spacing
         'fluid-xs': 'clamp(0.25rem, 0.2rem + 0.25vw, 0.5rem)',
         'fluid-sm': 'clamp(0.5rem, 0.4rem + 0.5vw, 1rem)',
         'fluid-md': 'clamp(1rem, 0.8rem + 1vw, 1.5rem)',
@@ -68,34 +60,16 @@ module.exports = {
         'prose': '65ch',
       },
       colors: {
-        // Design tokens from src/lib/design-tokens.ts
-        // Light mode colors (will be overridden by [data-theme="dark"] in globals.css)
-        primary: colors.light.primary,
-        accent: colors.light.accent,
-        success: colors.light.success,
-        warning: colors.light.warning,
-        error: colors.light.error,
-        gray: colors.light.gray,
-
-        // CSS variable references for theme-aware colors
-        background: 'var(--color-bg)',
-        'background-secondary': 'var(--color-bg-secondary)',
-        foreground: 'var(--color-text-primary)',
-        'foreground-secondary': 'var(--color-text-secondary)',
-        border: 'var(--color-border)',
-      },
-      borderRadius: {
-        ...borderRadius,
-      },
-      boxShadow: {
-        ...shadows,
+        transparent: 'transparent',
+        current: 'currentColor',
+        white: '#ffffff',
+        black: '#000000',
       },
       animation: {
         "fade-in": "fadeIn 0.3s ease-in",
         "slide-up": "slideUp 0.4s ease-out",
         "slide-down": "slideDown 0.4s ease-out",
         shake: "shake 0.5s ease-in-out",
-        // Note: 'glow' animation defined but kept for focus states
         "focus-glow": "glow 2s ease-in-out infinite",
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },

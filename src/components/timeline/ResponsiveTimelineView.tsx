@@ -70,7 +70,7 @@ export function ResponsiveTimelineView() {
           >
             {/* Technical Effort Card */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                   <Calendar className="w-5 h-5 text-blue-600" />
                 </div>
@@ -85,7 +85,7 @@ export function ResponsiveTimelineView() {
 
             {/* Wrapper Effort Card */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                   <Clock className="w-5 h-5 text-purple-600" />
                 </div>
@@ -100,7 +100,7 @@ export function ResponsiveTimelineView() {
 
             {/* Total Cost Card */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-green-600" />
                 </div>
@@ -115,7 +115,7 @@ export function ResponsiveTimelineView() {
 
             {/* Margin Card */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-indigo-600" />
                 </div>
@@ -144,7 +144,7 @@ export function ResponsiveTimelineView() {
                 key={phaseAllocation.phaseId}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
+                transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
               >
                 <ResourcePanel
                   phaseId={phaseAllocation.phaseId}
@@ -169,7 +169,7 @@ export function ResponsiveTimelineView() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.4 }}
+            transition={{ duration: 0.3, delay: 0.5 }}
           >
             <ResponsiveStack spacing="md">
               <Heading as="h2" className="text-gray-900">

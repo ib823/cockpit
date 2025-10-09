@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
-import { setSession } from '../../../../lib/session';
+import { createAuthSession } from '@/lib/nextauth-helpers';
 import { challenges, origin, rpID, verifyAuthenticationResponse } from '../../../../lib/webauthn';
-
+import { randomUUID } from 'crypto';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
@@ -25,16 +25,16 @@ export async function POST(req: Request) {
     // Delete challenge immediately to prevent duplicate requests from processing
     await challenges.del(`auth:${email}`);
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email },
-      include: { authenticators: true },
+      include: { Authenticator: true },
     });
 
     if (!user) {
       return NextResponse.json({ ok: false, message: 'Invalid credentials.' }, { status: 401 });
     }
 
-    const authenticator = user.authenticators.find(auth => auth.id === response.id);
+    const authenticator = user.Authenticator.find(auth => auth.id === response.id);
     if (!authenticator) {
       return NextResponse.json({ ok: false, message: 'This passkey is not registered for this account.' }, { status: 404 });
     }
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         where: { id: authenticator.id },
         data: { counter: newCounter, lastUsedAt: now },
       }),
-      prisma.user.update({
+      prisma.users.update({
         where: { id: user.id },
         data: {
           lastLoginAt: now,
@@ -74,6 +74,7 @@ export async function POST(req: Request) {
       }),
       prisma.auditEvent.create({
         data: {
+          id: randomUUID(),
           userId: user.id,
           type: 'login',
           meta: {
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
     // Challenge already deleted earlier to prevent duplicate processing
     // Map MANAGER to USER for session purposes
     const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
-    await setSession({ sub: user.id, role: sessionRole });
+    await createAuthSession(user.id, user.email, sessionRole);
 
     return NextResponse.json({ ok: true, user: { name: user.name } });
 

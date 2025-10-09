@@ -38,14 +38,14 @@ export default function SecurityEducationModal({
              transform: 'translateZ(20px)'
            }}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-5 border-b-2 border-amber-100">
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-6 border-b-2 border-amber-100">
           <div className="text-center">
             <h2 className="text-lg text-amber-900 font-semibold">Use Personal Devices Only</h2>
           </div>
         </div>
 
         {/* Content */}
-        <div className="px-6 py-5 bg-white text-center space-y-3">
+        <div className="px-6 py-6 bg-white text-center space-y-4">
           <p className="text-base text-slate-800">Your phone, laptop, or tablet</p>
           <p className="text-base text-slate-800 font-medium">Never on shared or public devices</p>
           <p className="text-sm text-slate-600">Does not work in private browsing (e.g., incognito, Tor)</p>

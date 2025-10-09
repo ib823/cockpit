@@ -45,3 +45,26 @@ next-env.d.ts
 .env.local
 .env
 .env*.local
+
+# AI/Development artifacts
+.claude/
+gptdebug/
+env_report_*/
+*_COMPLETE.md
+*_STATUS.md
+*_DELIVERY.md
+*_INTEGRATION.md
+*_REPORT.md
+*_AUDIT*.md
+SESSION_*.md
+cockpit_*.zip
+deploy-fixes.sh
+setup-ui-toolkit.sh
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# Claude.ai knowledge archives
+claude-project-knowledge/
+claude-assessment*.zip
+

@@ -25,7 +25,7 @@ export function Logo({
   const logoPath = getLogoPath(theme);
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-4 ${className}`}>
       {/* Logo Image */}
       <div className="relative" style={{ width: dimensions.width, height: dimensions.height }}>
         <Image

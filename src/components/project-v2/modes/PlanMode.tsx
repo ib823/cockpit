@@ -4,7 +4,7 @@ import { JobsGanttChart } from "@/components/timeline/JobsGanttChart";
 import { cn, formatCurrency, formatDuration } from "@/lib/utils";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
-import { useTimelineStore, type Phase } from "@/stores/timeline-store";
+import { useTimelineStore, type Phase, type Resource } from "@/stores/timeline-store";
 import { addWorkingDays, calculateWorkingDays } from "@/data/holidays";
 import { format, parse, isValid, isBefore, isAfter } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,19 +26,21 @@ import {
   X,
   Trash2,
   CheckCircle2,
-  Layers
+  Layers,
+  BarChart3
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Heading3, BodyMD } from "@/components/common/Typography";
 import { ExportButton } from "@/components/export/ExportButton";
+import { BenchmarkPanel } from "@/components/benchmarks/BenchmarkPanel";
 // ResourcePanel and RicefwPanel imports removed - using placeholders for now
 import type { Task } from "@/types/core";
 
 const PROJECT_BASE_DATE = new Date(new Date().getFullYear(), 0, 1);
 
 // Tab types for PlanMode (merged from OptimizeMode per spec: Holistic_Redesign_V2.md)
-type PlanTab = 'timeline' | 'resources' | 'ricefw';
+type PlanTab = 'timeline' | 'resources' | 'ricefw' | 'benchmarks';
 
 export function PlanMode() {
   const { phases, selectedPackages, getProjectCost, updatePhase } = useTimelineStore();
@@ -60,10 +62,19 @@ export function PlanMode() {
     regenerateTimeline(true);
   }, [regenerateTimeline]);
 
-  const totalDuration = useMemo(
-    () => phases.reduce((sum, phase) => sum + phase.workingDays, 0),
-    [phases]
-  );
+  const totalDuration = useMemo(() => {
+    if (phases.length === 0) return 0;
+
+    // Calculate actual project duration (start of first phase to end of last phase)
+    const sortedPhases = [...phases].sort((a, b) => a.startBusinessDay - b.startBusinessDay);
+    const firstPhase = sortedPhases[0];
+    const lastPhase = sortedPhases[sortedPhases.length - 1];
+
+    const projectStart = firstPhase.startBusinessDay;
+    const projectEnd = lastPhase.startBusinessDay + lastPhase.workingDays;
+
+    return projectEnd - projectStart;
+  }, [phases]);
 
   // Empty state
   if (phases.length === 0) {
@@ -128,7 +139,7 @@ export function PlanMode() {
             </Button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <ExportButton variant="secondary" size="sm" />
             <Button
               variant="primary"
@@ -143,16 +154,16 @@ export function PlanMode() {
         </div>
 
         {/* Summary stats */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
             <Calendar className="w-4 h-4 text-blue-600" />
             <span className="text-sm font-semibold text-blue-900">{formatDuration(totalDuration)}</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-lg">
+          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg">
             <DollarSign className="w-4 h-4 text-green-600" />
             <span className="text-sm font-semibold text-green-900">{formatCurrency(totalCost, "MYR")}</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg">
+          <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-lg">
             <Flag className="w-4 h-4 text-purple-600" />
             <span className="text-sm font-semibold text-purple-900">{phases.length} Phases</span>
           </div>
@@ -173,6 +184,18 @@ export function PlanMode() {
           >
             <Calendar className="w-4 h-4 inline mr-2" />
             Timeline
+          </button>
+          <button
+            onClick={() => setActiveTab('benchmarks')}
+            className={cn(
+              "px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-px",
+              activeTab === 'benchmarks'
+                ? "border-blue-600 text-blue-700"
+                : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+            )}
+          >
+            <BarChart3 className="w-4 h-4 inline mr-2" />
+            Benchmarks
           </button>
           <button
             onClick={() => setActiveTab('resources')}
@@ -204,7 +227,7 @@ export function PlanMode() {
       {/* Stale warning */}
       {timelineIsStale && (
         <div className="shrink-0 bg-yellow-50 border-b border-yellow-200 px-6 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
             <span className="text-sm font-medium text-yellow-900">
               Timeline outdated - decisions changed
@@ -227,6 +250,10 @@ export function PlanMode() {
           <div className="p-6">
             <JobsGanttChart onPhaseClick={(phase) => setSelectedPhase(phase)} />
           </div>
+        )}
+
+        {activeTab === 'benchmarks' && (
+          <BenchmarkPanel />
         )}
 
         {activeTab === 'resources' && (
@@ -303,7 +330,7 @@ export function PlanMode() {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="bg-blue-50 rounded-xl p-3 text-center">
                     <div className="text-2xl font-bold text-blue-900">{selectedPhase.workingDays}</div>
                     <div className="text-xs text-blue-600 mt-1">Days</div>
@@ -346,19 +373,6 @@ export function PlanMode() {
                     setSelectedPhase({ ...selectedPhase, resources });
                   }}
                 />
-
-                {/* Cost */}
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                    Investment
-                  </h3>
-                  <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 text-white">
-                    <div className="text-3xl font-semibold">
-                      {formatCurrency(calculatePhaseCost(selectedPhase), "MYR")}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">Phase budget</div>
-                  </div>
-                </div>
               </div>
             </motion.div>
           </>
@@ -421,10 +435,10 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
 
   return (
     <div>
-      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
         Timeline
       </h3>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {/* Start Date */}
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
           <div className="flex-1">
@@ -451,7 +465,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
               setEditMode('start');
               setTempValue(format(startDate, 'yyyy-MM-dd'));
             }}
-            className="ml-3 p-2 hover:bg-white rounded-lg transition-colors"
+            className="ml-4 p-2 hover:bg-white rounded-lg transition-colors"
           >
             <Edit2 className="w-4 h-4 text-gray-400" />
           </button>
@@ -483,7 +497,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
               setEditMode('end');
               setTempValue(format(endDate, 'yyyy-MM-dd'));
             }}
-            className="ml-3 p-2 hover:bg-white rounded-lg transition-colors"
+            className="ml-4 p-2 hover:bg-white rounded-lg transition-colors"
           >
             <Edit2 className="w-4 h-4 text-gray-400" />
           </button>
@@ -515,7 +529,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
               setEditMode('duration');
               setTempValue(String(phase.workingDays || 0));
             }}
-            className="ml-3 p-2 hover:bg-white rounded-lg transition-colors"
+            className="ml-4 p-2 hover:bg-white rounded-lg transition-colors"
           >
             <Edit2 className="w-4 h-4 text-gray-400" />
           </button>
@@ -525,7 +539,50 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
   );
 }
 
-// Resource Section Component
+// Quick Team Templates for fast allocation
+const TEAM_TEMPLATES = {
+  lite: {
+    name: "Lite Team",
+    description: "Small project, 2-3 people",
+    members: [
+      { role: "consultant", count: 1, allocation: 100 },
+      { role: "developer", count: 1, allocation: 100 },
+      { role: "projectManager", count: 1, allocation: 50 },
+    ]
+  },
+  standard: {
+    name: "Standard Team",
+    description: "Medium project, 4-6 people",
+    members: [
+      { role: "architect", count: 1, allocation: 50 },
+      { role: "consultant", count: 2, allocation: 100 },
+      { role: "developer", count: 2, allocation: 100 },
+      { role: "projectManager", count: 1, allocation: 75 },
+    ]
+  },
+  enterprise: {
+    name: "Enterprise Team",
+    description: "Large project, 8+ people",
+    members: [
+      { role: "architect", count: 1, allocation: 100 },
+      { role: "consultant", count: 3, allocation: 100 },
+      { role: "developer", count: 4, allocation: 100 },
+      { role: "projectManager", count: 1, allocation: 100 },
+      { role: "basis", count: 1, allocation: 50 },
+    ]
+  }
+};
+
+const ROLE_CONFIG: Record<string, { name: string; icon: string; baseRate: number; color: string }> = {
+  architect: { name: "Solution Architect", icon: "🏗️", baseRate: 180, color: "blue" },
+  consultant: { name: "Functional Consultant", icon: "💼", baseRate: 140, color: "purple" },
+  developer: { name: "Developer", icon: "💻", baseRate: 120, color: "green" },
+  projectManager: { name: "Project Manager", icon: "📊", baseRate: 160, color: "orange" },
+  basis: { name: "Basis Admin", icon: "⚙️", baseRate: 155, color: "gray" },
+  security: { name: "Security Specialist", icon: "🔒", baseRate: 150, color: "red" },
+};
+
+// Resource Section Component - Redesigned for speed and efficiency
 function ResourceSection({
   phase,
   decisions,
@@ -535,375 +592,156 @@ function ResourceSection({
   phase: Phase;
   decisions: any;
   updatePhase: any;
-  onResourceUpdate: (resources: any[]) => void;
+  onResourceUpdate: (resources: Resource[]) => void;
 }) {
   const resources = phase.resources || [];
-  const [isAdding, setIsAdding] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
 
-  // Get skillsets from decisions (connected to planning/decide)
-  const requiredSkillsets = useMemo(() => {
-    const skillsets = new Set<string>();
-
-    // Based on module combo decision
-    if (decisions?.moduleCombo) {
-      const combo = decisions.moduleCombo;
-      if (combo.includes('SuccessFactors')) skillsets.add('SF Consultant');
-      if (combo.includes('S/4HANA')) skillsets.add('S4 Consultant');
-      if (combo.includes('Ariba')) skillsets.add('Ariba Specialist');
-    }
-
-    // Based on SSO decision
-    if (decisions?.ssoMode && decisions.ssoMode !== 'none') {
-      skillsets.add('Security Architect');
-    }
-
-    // Always need project management
-    skillsets.add('Project Manager');
-    skillsets.add('Business Analyst');
-
-    return Array.from(skillsets);
-  }, [decisions]);
-
-  const handleAddResource = (resource: any) => {
-    const updatedResources = [...resources, resource];
-    onResourceUpdate(updatedResources);
-    setIsAdding(false);
+  const applyTemplate = (templateKey: keyof typeof TEAM_TEMPLATES) => {
+    const template = TEAM_TEMPLATES[templateKey];
+    const newResources = template.members.flatMap(member => {
+      const roleConfig = ROLE_CONFIG[member.role];
+      return Array.from({ length: member.count }, (_, i) => ({
+        id: `resource-${Date.now()}-${member.role}-${i}`,
+        name: `${roleConfig.name} ${i + 1}`,
+        role: member.role,
+        allocation: member.allocation,
+        region: "ABMY" as const,
+        hourlyRate: roleConfig.baseRate,
+      }));
+    });
+    onResourceUpdate(newResources);
+    setShowQuickAdd(false);
   };
 
-  const handleDeleteResource = (index: number) => {
-    const updatedResources = resources.filter((_, idx) => idx !== index);
-    onResourceUpdate(updatedResources);
+  const updateResourceAllocation = (idx: number, allocation: number) => {
+    const updated = [...resources];
+    updated[idx] = { ...updated[idx], allocation };
+    onResourceUpdate(updated);
   };
+
+  const deleteResource = (idx: number) => {
+    onResourceUpdate(resources.filter((_, i) => i !== idx));
+  };
+
+  const totalCost = resources.reduce((sum, r) => {
+    const hours = (phase.workingDays || 0) * 8 * (r.allocation / 100);
+    return sum + (hours * r.hourlyRate);
+  }, 0);
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          Team ({resources.length})
-        </h3>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Team ({resources.length})
+          </h3>
+          {totalCost > 0 && (
+            <p className="text-xs text-gray-400 mt-0.5">
+              Cost: {formatCurrency(totalCost, "MYR")}
+            </p>
+          )}
+        </div>
         <Button
           variant="secondary"
           size="xs"
-          leftIcon={<Plus className="w-3 h-3" />}
-          onClick={() => setIsAdding(true)}
+          leftIcon={<Sparkles className="w-3 h-3" />}
+          onClick={() => setShowQuickAdd(!showQuickAdd)}
         >
-          Add Resource
+          Quick Team
         </Button>
       </div>
 
-      {/* Required Skillsets (from decisions) */}
-      {requiredSkillsets.length > 0 && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="text-xs font-medium text-blue-900 mb-2">Required Skills (from your decisions):</div>
-          <div className="flex flex-wrap gap-2">
-            {requiredSkillsets.map((skill) => (
-              <span key={skill} className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
-                {skill}
-              </span>
+      {/* Quick Team Templates */}
+      {showQuickAdd && (
+        <div className="mb-4 p-4 bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-xl space-y-2">
+          <div className="text-xs font-semibold text-gray-700 mb-3">Choose a team template:</div>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(TEAM_TEMPLATES).map(([key, template]) => (
+              <button
+                key={key}
+                onClick={() => applyTemplate(key as keyof typeof TEAM_TEMPLATES)}
+                className="p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all text-left group"
+              >
+                <div className="text-sm font-semibold text-gray-900 group-hover:text-blue-700">
+                  {template.name}
+                </div>
+                <div className="text-[10px] text-gray-500 mt-1">
+                  {template.description}
+                </div>
+                <div className="text-[10px] text-gray-400 mt-2">
+                  {template.members.reduce((sum, m) => sum + m.count, 0)} people
+                </div>
+              </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Add Resource Modal */}
-      {isAdding && (
-        <AddResourceModal
-          phase={phase}
-          requiredSkills={requiredSkillsets}
-          onAdd={handleAddResource}
-          onCancel={() => setIsAdding(false)}
-        />
-      )}
-
-      {/* Assigned Resources */}
+      {/* Team Members - Fast adjustment with sliders */}
       {resources.length > 0 ? (
-        <div className="space-y-2">
-          {resources.map((resource, idx) => (
-            <div
-              key={idx}
-              className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors group"
-            >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-                {(resource.name || resource.role).charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">{resource.name || resource.role}</div>
-                <div className="text-sm text-gray-500">{resource.role} • {resource.region}</div>
-                <div className="text-xs text-gray-400 mt-1">
-                  ${resource.hourlyRate}/hr • {((phase.workingDays || 0) * 8 * (resource.allocation / 100)).toFixed(1)} hours
+        <div className="space-y-3">
+          {resources.map((resource, idx) => {
+            const roleConfig = ROLE_CONFIG[resource.role] || { name: resource.role, icon: "👤", color: "gray" };
+            const hours = (phase.workingDays || 0) * 8 * (resource.allocation / 100);
+            const cost = hours * resource.hourlyRate;
+
+            return (
+              <div key={idx} className="p-3 bg-gray-50 rounded-xl border border-gray-200 group hover:border-gray-300 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{roleConfig.icon}</span>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{roleConfig.name}</div>
+                      <div className="text-[10px] text-gray-500">{formatCurrency(cost, "MYR")}</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => deleteResource(idx)}
+                    className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded transition-all"
+                  >
+                    <X className="w-3 h-3 text-red-400" />
+                  </button>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-semibold text-gray-900">{resource.allocation}%</div>
-                <div className="text-xs text-gray-500">allocation</div>
-                <div className="text-xs font-semibold text-green-700 mt-1">
-                  ${(((phase.workingDays || 0) * 8 * (resource.allocation / 100)) * resource.hourlyRate).toLocaleString()}
-                </div>
-              </div>
-              <button
-                onClick={() => handleDeleteResource(idx)}
-                className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded transition-all"
-                title="Remove resource"
-              >
-                <Trash2 className="w-4 h-4 text-red-400" />
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-          <UsersIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">No team members assigned yet</p>
-          <p className="text-xs text-gray-400 mt-1">
-            Click &quot;Add Resource&quot; to allocate people to this phase
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
 
-// Add Resource Modal Component
-function AddResourceModal({
-  phase,
-  requiredSkills,
-  onAdd,
-  onCancel,
-}: {
-  phase: Phase;
-  requiredSkills: string[];
-  onAdd: (resource: any) => void;
-  onCancel: () => void;
-}) {
-  const [newResource, setNewResource] = useState({
-    name: "",
-    role: requiredSkills[0] || "",
-    allocation: 100,
-    region: "ABMY" as "ABMY" | "ABSG" | "ABVN",
-    hourlyRate: 150,
-  });
-
-  // Region-specific rates (MYR)
-  const regionRates = {
-    ABMY: { min: 100, max: 300, default: 150 },
-    ABSG: { min: 150, max: 400, default: 200 },
-    ABVN: { min: 50, max: 150, default: 80 },
-  };
-
-  // Role-based rate multipliers
-  const roleMultipliers: Record<string, number> = {
-    "Project Manager": 1.5,
-    "Business Analyst": 1.2,
-    "SF Consultant": 1.3,
-    "S4 Consultant": 1.4,
-    "Ariba Specialist": 1.3,
-    "Security Architect": 1.6,
-    "Developer": 1.0,
-    "Tester": 0.9,
-  };
-
-  // Calculate suggested rate
-  const suggestedRate = useMemo(() => {
-    const baseRate = regionRates[newResource.region].default;
-    const multiplier = roleMultipliers[newResource.role] || 1.0;
-    return Math.round(baseRate * multiplier);
-  }, [newResource.role, newResource.region, regionRates, roleMultipliers]);
-
-  // Calculate cost insights
-  const totalHours = (phase.workingDays || 0) * 8 * (newResource.allocation / 100);
-  const estimatedCost = totalHours * newResource.hourlyRate;
-
-  const handleAdd = () => {
-    if (!newResource.name || !newResource.role) {
-      showError("Please fill in all required fields");
-      return;
-    }
-
-    onAdd({
-      id: `resource-${Date.now()}`,
-      ...newResource,
-    });
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-      >
-        {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-900">Add Team Member</h2>
-              <p className="text-sm text-gray-500 mt-1">Allocate resources to {phase.name}</p>
-            </div>
-            <button
-              onClick={onCancel}
-              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center"
-            >
-              <X className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Cost Insight Banner */}
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-gray-700">Estimated Cost Impact</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
-                  ${estimatedCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {totalHours.toFixed(1)} hours @ ${newResource.hourlyRate}/hr
-                </div>
-              </div>
-              <DollarSign className="w-12 h-12 text-blue-600 opacity-50" />
-            </div>
-          </div>
-
-          {/* Form Fields */}
-          <div className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Name *
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., John Doe"
-                value={newResource.name}
-                onChange={(e) => setNewResource({ ...newResource, name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                autoFocus
-              />
-            </div>
-
-            {/* Role */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Role * {requiredSkills.includes(newResource.role) && <span className="text-blue-600">(Required skill)</span>}
-              </label>
-              <select
-                value={newResource.role}
-                onChange={(e) => setNewResource({ ...newResource, role: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {requiredSkills.length > 0 && (
-                  <optgroup label="Required Skills (from decisions)">
-                    {requiredSkills.map((skill) => (
-                      <option key={skill} value={skill}>
-                        {skill} ⭐
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                <optgroup label="Other Roles">
-                  <option value="Developer">Developer</option>
-                  <option value="Tester">Tester</option>
-                  <option value="Solution Architect">Solution Architect</option>
-                  <option value="Technical Lead">Technical Lead</option>
-                </optgroup>
-              </select>
-            </div>
-
-            {/* Region and Allocation */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Region
-                </label>
-                <select
-                  value={newResource.region}
-                  onChange={(e) => {
-                    const region = e.target.value as "ABMY" | "ABSG" | "ABVN";
-                    setNewResource({
-                      ...newResource,
-                      region,
-                      hourlyRate: regionRates[region].default * (roleMultipliers[newResource.role] || 1.0),
-                    });
-                  }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="ABMY">🇲🇾 Malaysia (MYR)</option>
-                  <option value="ABSG">🇸🇬 Singapore (SGD)</option>
-                  <option value="ABVN">🇻🇳 Vietnam (VND)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Allocation (%)
-                </label>
-                <div className="relative">
+                {/* Quick allocation slider */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[10px] text-gray-500">
+                    <span>Allocation</span>
+                    <span className="font-semibold text-gray-900">{resource.allocation}%</span>
+                  </div>
                   <input
                     type="range"
-                    min="10"
+                    min="0"
                     max="100"
-                    step="10"
-                    value={newResource.allocation}
-                    onChange={(e) => setNewResource({ ...newResource, allocation: parseInt(e.target.value) })}
-                    className="w-full"
+                    step="25"
+                    value={resource.allocation}
+                    onChange={(e) => updateResourceAllocation(idx, parseInt(e.target.value))}
+                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
-                  <div className="text-center mt-2">
-                    <span className="text-2xl font-bold text-gray-900">{newResource.allocation}%</span>
+                  <div className="flex justify-between text-[9px] text-gray-400">
+                    <span>0%</span>
+                    <span>25%</span>
+                    <span>50%</span>
+                    <span>75%</span>
+                    <span>100%</span>
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Hourly Rate */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hourly Rate (MYR)
-                <span className="text-sm text-gray-500 ml-2">
-                  Suggested: ${suggestedRate}/hr
-                </span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <span className="text-gray-500">$</span>
-                </div>
-                <input
-                  type="number"
-                  min={regionRates[newResource.region].min}
-                  max={regionRates[newResource.region].max}
-                  step="10"
-                  value={newResource.hourlyRate}
-                  onChange={(e) => setNewResource({ ...newResource, hourlyRate: parseInt(e.target.value) })}
-                  className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-                <span>Min: ${regionRates[newResource.region].min}</span>
-                <span>Max: ${regionRates[newResource.region].max}</span>
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
-
-        {/* Footer */}
-        <div className="p-6 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            This will add <span className="font-semibold">${estimatedCost.toLocaleString()}</span> to phase cost
-          </div>
-          <div className="flex gap-3">
-            <Button variant="ghost" onClick={onCancel}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleAdd}>
-              Add to Team
-            </Button>
-          </div>
+      ) : (
+        <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+          <UsersIcon className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+          <p className="text-xs text-gray-500">No team assigned</p>
+          <p className="text-[10px] text-gray-400 mt-1">Use Quick Team to get started</p>
         </div>
-      </motion.div>
+      )}
     </div>
   );
 }
+
 
 // Task Section Component
 function TaskSection({
@@ -912,7 +750,7 @@ function TaskSection({
   onTaskUpdate,
 }: {
   phase: Phase;
-  updatePhase: any;
+  updatePhase:unknown;
   onTaskUpdate: (tasks: Task[]) => void;
 }) {
   const tasks = phase.tasks || [];
@@ -920,18 +758,14 @@ function TaskSection({
   const [newTask, setNewTask] = useState<Partial<Task>>({
     name: "",
     workingDays: 1,
-    effort: 1,
+    description: "",
   });
 
   const phaseStartDate = phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, 'ABMY');
   const phaseEndDate = phase.endDate || addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), 'ABMY');
 
-  const availableResources = phase.resources || [];
-  const allocatedEffort = tasks.reduce((sum, task) => sum + (task.effort || 0), 0);
-  const remainingEffort = (phase.effort || 0) - allocatedEffort;
-
   const handleAddTask = () => {
-    if (!newTask.name || !newTask.workingDays || !newTask.effort) return;
+    if (!newTask.name || !newTask.workingDays) return;
 
     // Default task dates to phase start
     const taskStartDate = newTask.startDate || phaseStartDate;
@@ -949,8 +783,6 @@ function TaskSection({
       startDate: taskStartDate,
       endDate: taskEndDate,
       workingDays: newTask.workingDays,
-      effort: newTask.effort,
-      defaultRole: newTask.defaultRole,
       description: newTask.description,
       status: "not_started",
     };
@@ -958,7 +790,7 @@ function TaskSection({
     const updatedTasks = [...tasks, task];
     onTaskUpdate(updatedTasks);
     setIsAdding(false);
-    setNewTask({ name: "", workingDays: 1, effort: 1 });
+    setNewTask({ name: "", workingDays: 1, description: "" });
   };
 
   const handleDeleteTask = (taskId: string) => {
@@ -996,7 +828,7 @@ function TaskSection({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
           Tasks / Milestones ({tasks.length})
         </h3>
@@ -1010,30 +842,9 @@ function TaskSection({
         </Button>
       </div>
 
-      {/* Effort Budget Indicator */}
-      <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-600">Effort Allocated</span>
-          <span className={`text-sm font-semibold ${remainingEffort < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-            {allocatedEffort} / {phase.effort || 0} man-days
-          </span>
-        </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className={`h-full transition-all ${
-              remainingEffort < 0 ? 'bg-red-500' : remainingEffort === 0 ? 'bg-green-500' : 'bg-blue-500'
-            }`}
-            style={{ width: `${Math.min(100, (allocatedEffort / (phase.effort || 1)) * 100)}%` }}
-          />
-        </div>
-        {remainingEffort < 0 && (
-          <p className="text-xs text-red-600 mt-1">⚠️ Over-allocated by {Math.abs(remainingEffort)} man-days</p>
-        )}
-      </div>
-
       {/* Add Task Form */}
       {isAdding && (
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-3">
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-4">
           <input
             type="text"
             placeholder="Task name"
@@ -1043,7 +854,7 @@ function TaskSection({
             autoFocus
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-gray-600 mb-1 block">Start Date</label>
               <input
@@ -1078,35 +889,15 @@ function TaskSection({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-gray-600 mb-1 block">Effort (man-days)</label>
-              <input
-                type="number"
-                min="0.5"
-                step="0.5"
-                max={remainingEffort > 0 ? remainingEffort : undefined}
-                value={newTask.effort || 1}
-                onChange={(e) => setNewTask({ ...newTask, effort: parseFloat(e.target.value) })}
-                className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-600 mb-1 block">Role</label>
-              <select
-                value={newTask.defaultRole || ""}
-                onChange={(e) => setNewTask({ ...newTask, defaultRole: e.target.value })}
-                className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm"
-              >
-                <option value="">Select role...</option>
-                {availableResources.map((r, idx) => (
-                  <option key={idx} value={r.role}>
-                    {r.role}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label className="text-xs text-gray-600 mb-1 block">Description (optional)</label>
+            <textarea
+              placeholder="What needs to be done in this task..."
+              value={newTask.description || ""}
+              onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+              className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm resize-none"
+              rows={3}
+            />
           </div>
 
           <div className="flex items-center gap-2">
@@ -1176,26 +967,43 @@ function TaskRow({
   const taskPositionPercent = (taskOffsetDays / phaseDuration) * 100;
   const taskWidthPercent = ((task.workingDays || 1) / phaseDuration) * 100;
 
+  // Status color mapping
+  const statusConfig = {
+    not_started: { bg: 'bg-gray-100', border: 'border-gray-300', text: 'text-gray-600', dot: 'bg-gray-400' },
+    in_progress: { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', dot: 'bg-blue-500' },
+    completed: { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-700', dot: 'bg-green-500' },
+  };
+
+  const status = task.status || 'not_started';
+  const config = statusConfig[status];
+
   return (
-    <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
-      <div className="flex items-start justify-between mb-2">
+    <div className={`p-3 rounded-xl border ${config.border} ${config.bg} hover:shadow-md transition-all`}>
+      <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <div className="font-medium text-gray-900 text-sm">{task.name}</div>
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="flex items-center gap-2 mb-1">
+            <div className={`w-2 h-2 rounded-full ${config.dot}`} />
+            <div className="font-medium text-gray-900 text-sm">{task.name}</div>
+          </div>
+          <div className="text-xs text-gray-500 ml-4">
             {task.startDate && task.endDate ? (
               <>
-                {format(task.startDate, 'MMM dd')} → {format(task.endDate, 'MMM dd')} • {task.workingDays}d • {task.effort}md
+                {format(task.startDate, 'MMM dd')} → {format(task.endDate, 'MMM dd')}
               </>
             ) : (
               <>
-                {task.workingDays}d • {task.effort}md
+                {task.workingDays || 1} day{(task.workingDays || 1) > 1 ? 's' : ''}
               </>
             )}
-            {task.defaultRole && <> • {task.defaultRole}</>}
           </div>
+          {task.description && (
+            <div className="text-xs text-gray-600 ml-4 mt-1 italic">
+              {task.description}
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 ml-2">
           <button
             onClick={() => setIsEditing(!isEditing)}
             className="p-1.5 hover:bg-white rounded transition-colors"
@@ -1213,20 +1021,39 @@ function TaskRow({
         </div>
       </div>
 
-      {/* Task visual bar (within phase) */}
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
-        <div
-          className="h-full bg-blue-500 rounded-full"
-          style={{
-            marginLeft: `${taskPositionPercent}%`,
-            width: `${taskWidthPercent}%`,
-          }}
-        />
+      {/* Granular timeline visualization - mini Gantt within phase */}
+      <div className="space-y-1">
+        {/* Timeline ruler */}
+        <div className="flex items-center justify-between text-[10px] text-gray-400 px-1">
+          <span>{format(phaseStartDate, 'MMM dd')}</span>
+          <span className="text-gray-300">Phase Duration: {phase.workingDays}d</span>
+          <span>{format(phaseEndDate, 'MMM dd')}</span>
+        </div>
+
+        {/* Task bar on timeline */}
+        <div className="relative w-full h-6 bg-gray-200/50 rounded-lg overflow-hidden">
+          <div
+            className={cn(
+              "absolute top-0 h-full rounded-lg shadow-sm flex items-center justify-center",
+              status === 'not_started' && "bg-gradient-to-r from-gray-400 to-gray-600",
+              status === 'in_progress' && "bg-gradient-to-r from-blue-500 to-blue-700",
+              status === 'completed' && "bg-gradient-to-r from-green-500 to-green-700"
+            )}
+            style={{
+              left: `${Math.max(0, taskPositionPercent)}%`,
+              width: `${Math.min(100 - Math.max(0, taskPositionPercent), taskWidthPercent)}%`,
+            }}
+          >
+            <div className="text-[10px] font-semibold text-white px-2 truncate">
+              {task.workingDays || 1} day{(task.workingDays || 1) > 1 ? 's' : ''}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Edit Mode */}
       {isEditing && (
-        <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
+        <div className="mt-4 pt-3 border-t border-gray-200 space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-xs text-gray-600 mb-1 block">Start Date</label>
@@ -1263,31 +1090,27 @@ function TaskRow({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-xs text-gray-600 mb-1 block">Effort (man-days)</label>
-              <input
-                type="number"
-                min="0.5"
-                step="0.5"
-                value={task.effort}
-                onChange={(e) => onUpdate({ effort: parseFloat(e.target.value) })}
-                className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
-              />
-            </div>
+          <div>
+            <label className="text-xs text-gray-600 mb-1 block">Status</label>
+            <select
+              value={task.status || "not_started"}
+              onChange={(e) => onUpdate({ status: e.target.value as any })}
+              className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+            >
+              <option value="not_started">Not Started</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
 
-            <div>
-              <label className="text-xs text-gray-600 mb-1 block">Status</label>
-              <select
-                value={task.status || "not_started"}
-                onChange={(e) => onUpdate({ status: e.target.value as any })}
-                className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
-              >
-                <option value="not_started">Not Started</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
+          <div>
+            <label className="text-xs text-gray-600 mb-1 block">Description</label>
+            <textarea
+              value={task.description || ""}
+              onChange={(e) => onUpdate({ description: e.target.value })}
+              className="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+              rows={2}
+            />
           </div>
 
           <Button

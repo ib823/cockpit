@@ -10,20 +10,22 @@
 import { safePercentage } from "@/lib/utils";
 import { usePresalesStore } from "@/stores/presales-store";
 import { useProjectStore } from "@/stores/project-store";
+import { useTimelineStore } from "@/stores/timeline-store";
 import { AnimatePresence, motion } from "framer-motion";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CaptureMode } from "./modes/CaptureMode";
 import { DecideMode } from "./modes/DecideMode";
-import { MiniReferenceBar } from "@/components/timeline/MiniReferenceBar";
-import { ReferenceArchitectureModal } from "@/components/timeline/ReferenceArchitectureModal";
-import { useReferenceKeyboard } from "@/hooks/useReferenceKeyboard";
+import { EnterpriseArchitectureModal } from "@/components/timeline/EnterpriseArchitectureModal";
 import { ResetButton } from "@/components/common/ResetButton";
 import { LogoutButton } from "@/components/common/LogoutButton";
 import { Heading1, BodyMD } from "@/components/common/Typography";
 import { Logo } from "@/components/common/Logo";
 import { animation } from "@/lib/design-system";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, HelpCircle } from "lucide-react";
+import { ThemeToggleCompact } from "@/components/theme/ThemeToggle";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 // Lazy load heavy components for better performance
 const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
@@ -33,7 +35,7 @@ const PresentMode = lazy(() => import("./modes/PresentMode").then(m => ({ defaul
 /**
  * Mode Indicator - Hero banner for each mode
  */
-function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) {
+function ModeIndicator({ mode, progress, onHelpClick }: { mode: string; progress?: number; onHelpClick?: () => void }) {
   const config: Record<string, { title: string; subtitle: string; gradient: string; color: string }> = {
     capture: {
       title: "Capture Requirements",
@@ -81,12 +83,12 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
           </div>
         </div>
 
-        <div className="flex items-start gap-2 sm:gap-3">
+        <div className="flex items-start gap-2 sm:gap-4">
           {typeof progress === "number" && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: animation.duration.normal }}
+              transition={{ delay: 0.15, duration: animation.duration.normal }}
               className="hidden lg:flex items-center gap-4 mt-2"
             >
               <span className="text-sm font-semibold">{progress}% Complete</span>
@@ -104,12 +106,23 @@ function ModeIndicator({ mode, progress }: { mode: string; progress?: number }) 
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: animation.duration.normal }}
+              transition={{ delay: 0.15, duration: animation.duration.normal }}
               className="lg:hidden text-sm font-semibold mt-2"
             >
               {progress}%
             </motion.div>
           )}
+          {onHelpClick && (
+            <button
+              onClick={onHelpClick}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors group"
+              aria-label="Start tour"
+              title="Start interactive tour"
+            >
+              <HelpCircle className="w-5 h-5 text-white/80 group-hover:text-white transition-colors" />
+            </button>
+          )}
+          <ThemeToggleCompact />
           <LogoutButton theme="dark" />
           <ResetButton />
         </div>
@@ -130,7 +143,7 @@ function EstimatorBanner({ onDismiss }: { onDismiss: () => void }) {
       className="bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-3 text-white shadow-md relative"
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Sparkles className="w-5 h-5" />
           <div>
             <p className="font-medium">Timeline from Quick Estimate</p>
@@ -159,6 +172,7 @@ export function ProjectShell() {
   const setMode = useProjectStore((state) => state.setMode);
   const { completeness } = usePresalesStore();
   const searchParams = useSearchParams();
+  const { startOnboarding } = useOnboarding();
 
   // Check if coming from estimator
   const [showEstimatorBanner, setShowEstimatorBanner] = useState(false);
@@ -174,19 +188,13 @@ export function ProjectShell() {
     }
   }, [searchParams]);
 
-  // Enable keyboard shortcuts for SAP Activate Reference
-  useReferenceKeyboard();
-
   // Calculate progress for Capture mode
   const captureProgress = mode === "capture" ? safePercentage(completeness?.score || 0, 100) : undefined;
-
-  // Show MiniReferenceBar in plan mode
-  const showReferenceBar = mode === "plan";
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
       {/* Mode indicator (contextual hero banner) */}
-      <ModeIndicator mode={mode} progress={captureProgress} />
+      <ModeIndicator mode={mode} progress={captureProgress} onHelpClick={startOnboarding} />
 
       {/* Estimator Banner (shows when source=estimator) */}
       <AnimatePresence>
@@ -194,9 +202,6 @@ export function ProjectShell() {
           <EstimatorBanner onDismiss={() => setShowEstimatorBanner(false)} />
         )}
       </AnimatePresence>
-
-      {/* SAP Activate Reference Bar (sticky header for plan/optimize modes) */}
-      {showReferenceBar && <MiniReferenceBar />}
 
       {/* Mode-specific view (animated transitions) */}
       <AnimatePresence mode="wait">
@@ -236,9 +241,6 @@ export function ProjectShell() {
           )}
         </motion.div>
       </AnimatePresence>
-
-      {/* SAP Activate Reference Modal (global - triggered by keyboard or button) */}
-      <ReferenceArchitectureModal />
 
       {/* Mobile Bottom Navigation (visible on small screens only) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
@@ -300,6 +302,9 @@ export function ProjectShell() {
           </button>
         </div>
       </div>
+
+      {/* Onboarding Tour */}
+      <OnboardingTour />
     </div>
   );
 }

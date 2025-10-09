@@ -7,7 +7,6 @@ import { format, differenceInDays, addDays } from "date-fns";
 import {
   ChevronDown,
   ChevronRight,
-  Users,
   Calendar,
   Flag,
   Maximize2,
@@ -16,7 +15,6 @@ import {
 import { useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Heading3 } from "@/components/common/Typography";
-import { ResourceManagerModal } from "./ResourceManagerModal";
 import { HolidayManagerModal } from "./HolidayManagerModal";
 import { MilestoneManagerModal } from "./MilestoneManagerModal";
 import { getHolidaysInRange } from "@/data/holidays";
@@ -99,7 +97,6 @@ export function ActivateGanttChart({
   const [showHolidayModal, setShowHolidayModal] = useState(false);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [milestones, setMilestones] = useState<Array<{ id: string; name: string; date: Date; color: string }>>([]);
-  const [selectedPhaseForResources, setSelectedPhaseForResources] = useState<Phase | null>(null);
 
   // Group phases by SAP Activate methodology
   const activatePhases = useMemo((): ActivatePhaseData[] => {
@@ -409,7 +406,7 @@ export function ActivateGanttChart({
             <div key={activatePhase.id} className="mb-2">
               {/* Phase Row */}
               <div className="flex items-center mb-2 group/phase">
-                <div className="w-64 pr-4 flex items-center justify-between">
+                <div className="w-64 pr-4 flex items-center">
                   <div className="flex-1 min-w-0 flex items-center gap-2">
                     <button
                       onClick={() => togglePhase(activatePhase.id)}
@@ -427,20 +424,6 @@ export function ActivateGanttChart({
                       <div className="text-xs text-gray-500">{activatePhase.workingDays}d • {activatePhase.effort}md</div>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (activatePhase.phases[0]) {
-                        setSelectedPhaseForResources(activatePhase.phases[0]);
-                      }
-                    }}
-                    className="ml-2 opacity-0 group-hover/phase:opacity-100"
-                    aria-label="Allocate Resources"
-                  >
-                    <Users className="w-4 h-4" />
-                  </Button>
                 </div>
 
                 <div className="flex-1 relative h-16">
@@ -536,16 +519,6 @@ export function ActivateGanttChart({
             setShowMilestoneModal(false);
           }}
           onClose={() => setShowMilestoneModal(false)}
-        />
-      )}
-
-      {selectedPhaseForResources && updatePhase && (
-        <ResourceManagerModal
-          phase={selectedPhaseForResources}
-          onClose={() => setSelectedPhaseForResources(null)}
-          onSave={(resources) => {
-            updatePhase(selectedPhaseForResources.id, { resources });
-          }}
         />
       )}
     </div>

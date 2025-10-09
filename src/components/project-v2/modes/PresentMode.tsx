@@ -44,7 +44,7 @@ export function PresentMode() {
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5 }}
           >
             <h1 className="text-7xl font-thin mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               Your SAP Implementation Plan
@@ -110,7 +110,7 @@ export function PresentMode() {
                   initial={{ x: -50, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: i * 0.15 }}
-                  className="space-y-3"
+                  className="space-y-4"
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="text-2xl font-light">{phase.name}</h3>
@@ -180,7 +180,7 @@ export function PresentMode() {
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5 }}
           >
             <h2 className="text-5xl font-light mb-12">Project Summary</h2>
 
@@ -235,8 +235,25 @@ export function PresentMode() {
     track("presentation_export_started", { slideCount: slidesWithNotes.length });
 
     try {
-      await exportToPDF(slidesWithNotes, "SAP Implementation Proposal");
-      track("presentation_export_complete", { slideCount: slidesWithNotes.length });
+      // Collect all slide DOM elements for PDF export
+      const slideElements: HTMLElement[] = [];
+      slidesWithNotes.forEach((slide, idx) => {
+        const element = document.querySelector(`[data-slide-id="${slide.id}"]`) as HTMLElement;
+        if (element) {
+          slideElements.push(element);
+        }
+      });
+
+      if (slideElements.length === 0) {
+        throw new Error("No slide elements found for export");
+      }
+
+      await exportToPDF(slideElements, {
+        fileName: "SAP-Implementation-Proposal.pdf",
+        quality: 0.95,
+        format: "16:9"
+      });
+      track("presentation_export_complete", { slideCount: slideElements.length });
     } catch (error) {
       console.error("[PresentMode] PDF export failed:", error);
       track("presentation_export_failed", { error: String(error) });
@@ -272,10 +289,11 @@ export function PresentMode() {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
+              data-slide-id={slidesWithNotes[currentSlide].id}
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             >
               {slidesWithNotes[currentSlide].component}
             </motion.div>
@@ -284,7 +302,7 @@ export function PresentMode() {
       </div>
 
       {/* Navigation dots */}
-      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3">
+      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-4">
         {slidesWithNotes.map((slide, i) => (
           <button
             key={slide.id}
@@ -322,7 +340,7 @@ export function PresentMode() {
       </div>
 
       {/* Top Controls */}
-      <div className="fixed top-8 right-8 flex items-center gap-3">
+      <div className="fixed top-8 right-8 flex items-center gap-4">
         {/* Export PDF button */}
         <button
           onClick={handleExportPDF}

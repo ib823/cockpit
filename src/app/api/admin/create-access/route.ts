@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/session';
+import { randomUUID } from 'crypto';
+import { requireAdmin } from '@/lib/nextauth-helpers';
 import { sendAccessCode } from '@/lib/email';
 import { hash } from 'bcryptjs';
 import { NextResponse } from 'next/server';
-
 export const runtime = 'nodejs';
 
 function generateCode(): string {
@@ -29,16 +29,18 @@ export async function POST(req: Request) {
     const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
     // Create or update user
-    await prisma.user.upsert({
+    await prisma.users.upsert({
       where: { email },
       update: {
         accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
       create: {
+      id: randomUUID(),
         email,
         role: 'USER',
         exception: false,
         accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(),
       },
     });
 
@@ -48,14 +50,14 @@ export async function POST(req: Request) {
       update: {
         tokenHash,
         tokenExpiresAt,
-        approvedByUserId: session.sub,
+        approvedByUserId: session.user.id,
         usedAt: null,
       },
       create: {
         email,
         tokenHash,
         tokenExpiresAt,
-        approvedByUserId: session.sub,
+        approvedByUserId: session.user.id,
       },
     });
 

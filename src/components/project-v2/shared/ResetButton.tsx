@@ -65,7 +65,7 @@ export function ResetButton() {
               </div>
 
               {/* Title */}
-              <h2 className="text-2xl font-semibold text-gray-900 text-center mb-3">
+              <h2 className="text-2xl font-semibold text-gray-900 text-center mb-4">
                 Clear All Data?
               </h2>
 
@@ -98,7 +98,7 @@ export function ResetButton() {
               </p>
 
               {/* Actions */}
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <motion.button
                   onClick={() => setShowConfirm(false)}
                   disabled={isResetting}
@@ -157,7 +157,7 @@ export function ResetButton() {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", damping: 15, stiffness: 300 }}
+                transition={{ delay: 0.15, type: "spring", damping: 15, stiffness: 300 }}
                 className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6"
               >
                 <CheckCircle className="w-10 h-10 text-green-600" />

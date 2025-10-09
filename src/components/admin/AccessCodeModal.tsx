@@ -128,7 +128,7 @@ This is an automated message from SAP Implementation Cockpit.`;
         {/* Magic Link Section */}
         {magicUrl && (
           <div className="mb-6">
-            <div className="text-center mb-3">
+            <div className="text-center mb-4">
               <h3 className="text-sm font-semibold text-slate-700 mb-1">Magic Link</h3>
               <p className="text-xs text-slate-500">Expires in 2 minutes</p>
             </div>
@@ -159,7 +159,7 @@ This is an automated message from SAP Implementation Cockpit.`;
 
         {/* 6-Digit Code Section */}
         <div className="mb-8">
-          <div className="text-center mb-3">
+          <div className="text-center mb-4">
             <h3 className="text-sm font-semibold text-slate-700 mb-1">6-Digit Code</h3>
             <p className="text-xs text-slate-500">Expires in 7 days</p>
           </div>

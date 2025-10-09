@@ -2,7 +2,8 @@
 // SECURITY: Server-side middleware for rate limiting and security headers
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSession } from "./lib/session";
+import { decode } from "next-auth/jwt";
+import { randomUUID } from "crypto";
 
 // Server-side rate limiter using Redis (distributed) or Map fallback
 let rateLimitStore: any = null;
@@ -175,7 +176,18 @@ export async function middleware(request: NextRequest) {
     /\.(ico|png|jpg|jpeg|svg|gif|webp|woff|woff2|ttf|eot|otf)$/.test(pathname);
 
   if (!isPublicPath && !isStaticAsset) {
-    const session = await getSession();
+    // Get session token from cookie (edge-compatible)
+    const token = request.cookies.get('next-auth.session-token')?.value;
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // Decode JWT token (edge-compatible)
+    const session = await decode({
+      token,
+      secret: process.env.NEXTAUTH_SECRET!,
+    });
+
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
@@ -185,7 +197,7 @@ export async function middleware(request: NextRequest) {
       if (session.role !== 'ADMIN') {
         // Non-admin trying to access admin routes - redirect to home
         console.warn('[SECURITY] Unauthorized admin access attempt', {
-          userId: session.sub,
+          userId: session.userId,
           role: session.role,
           path: pathname,
           ip: getClientIdentifier(request),
@@ -198,7 +210,8 @@ export async function middleware(request: NextRequest) {
           const { prisma } = await import('./lib/db');
           await prisma.auditEvent.create({
             data: {
-              userId: session.sub,
+              id: randomUUID(),
+              userId: session.userId as string,
               type: 'unauthorized_admin_access',
               meta: {
                 path: pathname,
@@ -216,7 +229,7 @@ export async function middleware(request: NextRequest) {
 
       // SECURITY: Log all admin access for audit
       console.log('[AUDIT] Admin access', {
-        userId: session.sub,
+        userId: session.userId,
         role: session.role,
         path: pathname,
         ip: getClientIdentifier(request),
@@ -225,33 +238,45 @@ export async function middleware(request: NextRequest) {
     }
 
     // SECURITY: Validate role hasn't changed (defense in depth)
-    if (session.role !== 'USER' && session.role !== 'ADMIN') {
+    if (session.role !== 'USER' && session.role !== 'ADMIN' && session.role !== 'MANAGER') {
       console.error('[SECURITY] Invalid role in session', {
-        userId: session.sub,
+        userId: session.userId,
         role: session.role,
       });
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }
 
-  // DEVELOPMENT: Rate limiting disabled for now
-  // TODO: Re-enable before production deployment
-  /*
+  // SECURITY: Rate limiting enabled for production
   const clientId = getClientIdentifier(request);
   const { allowed, remaining, resetTime } = await checkRateLimit(clientId, pathname);
 
   if (!allowed) {
     const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
     const isApiRoute = pathname.startsWith('/api/');
+    
+    // Log rate limit violation for security monitoring
+    console.warn('[SECURITY] Rate limit exceeded', {
+      ip: clientId,
+      path: pathname,
+      timestamp: new Date().toISOString(),
+    });
 
     if (isApiRoute) {
       return new NextResponse(
-        JSON.stringify({ ok: false, message: 'Too many requests. Please try again later.' }),
+        JSON.stringify({ 
+          ok: false, 
+          message: 'Too many requests. Please try again later.',
+          retryAfter 
+        }),
         {
           status: 429,
           headers: {
             "Content-Type": "application/json",
             "Retry-After": retryAfter.toString(),
+            "X-RateLimit-Limit": MAX_REQUESTS_PER_WINDOW.toString(),
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": resetTime.toString(),
           },
         }
       );
@@ -262,10 +287,34 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
   }
-  */
 
-  // Allow request to proceed
-  return NextResponse.next();
+  // Allow request to proceed with security headers
+  const response = NextResponse.next();
+  
+  // Add rate limit headers to all responses
+  response.headers.set('X-RateLimit-Limit', MAX_REQUESTS_PER_WINDOW.toString());
+  response.headers.set('X-RateLimit-Remaining', remaining.toString());
+  response.headers.set('X-RateLimit-Reset', resetTime.toString());
+  
+  // SECURITY: Add comprehensive security headers
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.vercel-insights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.resend.com https://*.upstash.io; frame-ancestors 'none';"
+  );
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  
+  // HSTS header only in production
+  if (process.env.NODE_ENV === 'production') {
+    response.headers.set(
+      'Strict-Transport-Security',
+      'max-age=63072000; includeSubDomains; preload'
+    );
+  }
+  
+  return response;
 }
 
 // Configure which routes to apply middleware to

@@ -184,7 +184,7 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
       <CompletenessBar score={completeness?.score || 0} />
 
       {/* Input Section */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <label htmlFor="rfp-text" className="block text-sm font-medium text-gray-700">
           Paste RFP Text or Requirements
         </label>
@@ -240,7 +240,7 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
       {/* Complexity Analysis - Based on Real Factors */}
       {complexityMultiplier > 1.0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <h4 className="font-medium text-amber-900 mb-3">Complexity Impact Analysis</h4>
+          <h4 className="font-medium text-amber-900 mb-4">Complexity Impact Analysis</h4>
           <div className="flex items-center justify-between">
             <div>
               <span className="text-amber-600 text-sm">Total Complexity Multiplier:</span>
@@ -267,7 +267,7 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
           </div>
 
           {/* Show what's driving the complexity */}
-          <div className="mt-3 pt-3 border-t border-amber-200">
+          <div className="mt-4 pt-3 border-t border-amber-200">
             <p className="text-xs font-medium text-amber-800 mb-2">Key Complexity Drivers:</p>
             <div className="flex flex-wrap gap-2">
               {chips
@@ -287,7 +287,7 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
 
       {/* Extracted Chips */}
       {chips.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-gray-900">Extracted Information</h4>
             <span className="text-sm text-gray-500">
@@ -342,9 +342,9 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
       )}
       {/* Action Buttons - Proceed to Timeline */}
       {(completeness?.score || 0) > 0 && (
-        <div className="pt-4 border-t border-gray-200 space-y-3">
+        <div className="pt-4 border-t border-gray-200 space-y-4">
           {/* Primary Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             {/* Option A: Proceed with Defaults */}
             <button
               onClick={() => {

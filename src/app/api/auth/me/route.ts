@@ -1,4 +1,4 @@
-import { getSession } from '@/lib/session';
+import { getSession } from '@/lib/nextauth-helpers';
 import { prisma } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
@@ -16,8 +16,8 @@ export async function GET() {
     }
 
     // Get user details from database
-    const user = await prisma.user.findUnique({
-      where: { id: session.sub },
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
       select: {
         id: true,
         email: true,

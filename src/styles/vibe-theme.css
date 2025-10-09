@@ -1,0 +1,207 @@
+/**
+ * VIBE DESIGN SYSTEM - PROFESSIONAL THEME
+ *
+ * Monday.com-inspired professional color scheme
+ * - Primary: Professional Blue (#0073EA)
+ * - Secondary: Deep Purple (#6161FF)
+ * - Accent: Teal (#00C875)
+ * - Professional, not playful
+ */
+
+:root {
+  /* Primary Colors - Professional Blue */
+  --vibe-primary-color: #0073EA;
+  --vibe-primary-hover-color: #0060C2;
+  --vibe-primary-selected-color: #004C99;
+
+  /* Secondary Colors - Deep Purple */
+  --vibe-secondary-color: #6161FF;
+  --vibe-secondary-hover-color: #5151E5;
+  --vibe-secondary-selected-color: #4141CC;
+
+  /* Accent Colors - Success Green */
+  --vibe-accent-color: #00C875;
+  --vibe-accent-hover-color: #00A95F;
+  --vibe-accent-selected-color: #008A4A;
+
+  /* Semantic Colors */
+  --vibe-success-color: #00C875;
+  --vibe-warning-color: #FDAB3D;
+  --vibe-error-color: #E44258;
+  --vibe-info-color: #0073EA;
+
+  /* Neutral Colors */
+  --vibe-ui-border-color: #C3C6D4;
+  --vibe-ui-border-color-light: #E6E9EF;
+  --vibe-text-color-on-primary: #FFFFFF;
+  --vibe-text-color-on-inverted: #FFFFFF;
+
+  /* Backgrounds */
+  --vibe-background-color: #FFFFFF;
+  --vibe-secondary-background-color: #F6F7FB;
+  --vibe-tertiary-background-color: #E6E9EF;
+
+  /* Professional Gradients */
+  --vibe-gradient-primary: linear-gradient(135deg, #0073EA 0%, #6161FF 100%);
+  --vibe-gradient-success: linear-gradient(135deg, #00C875 0%, #00A95F 100%);
+  --vibe-gradient-dark: linear-gradient(135deg, #323338 0%, #1F1F1F 100%);
+
+  /* Shadows */
+  --vibe-shadow-small: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --vibe-shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --vibe-shadow-large: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+/* Override Vibe's default button colors to match our professional theme */
+.monday-style-button--kind-primary {
+  background-color: var(--vibe-primary-color) !important;
+}
+
+.monday-style-button--kind-primary:hover {
+  background-color: var(--vibe-primary-hover-color) !important;
+}
+
+/* Professional gradient cards */
+.vibe-gradient-card-primary {
+  background: var(--vibe-gradient-primary);
+  color: white;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.vibe-gradient-card-success {
+  background: var(--vibe-gradient-success);
+  color: white;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.vibe-gradient-card-dark {
+  background: var(--vibe-gradient-dark);
+  color: white;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+/* Professional stat cards */
+.vibe-stat-card {
+  background: white;
+  border: 1px solid var(--vibe-ui-border-color-light);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: var(--vibe-shadow-small);
+  transition: all 0.2s ease;
+}
+
+.vibe-stat-card:hover {
+  box-shadow: var(--vibe-shadow-medium);
+  border-color: var(--vibe-primary-color);
+}
+
+.vibe-stat-card-primary {
+  background: linear-gradient(135deg, #F0F7FF 0%, #E6F0FF 100%);
+  border-color: var(--vibe-primary-color);
+}
+
+.vibe-stat-card-success {
+  background: linear-gradient(135deg, #F0FDF7 0%, #E6FCF3 100%);
+  border-color: var(--vibe-success-color);
+}
+
+.vibe-stat-card-purple {
+  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FF 100%);
+  border-color: var(--vibe-secondary-color);
+}
+
+/* Professional section headers */
+.vibe-section-header {
+  font-size: 18px;
+  font-weight: 600;
+  color: #323338;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Professional tags/chips */
+.vibe-chip-professional {
+  background: var(--vibe-secondary-background-color);
+  color: #323338;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vibe-chip-primary {
+  background: rgba(0, 115, 234, 0.1);
+  color: var(--vibe-primary-color);
+}
+
+.vibe-chip-success {
+  background: rgba(0, 200, 117, 0.1);
+  color: var(--vibe-success-color);
+}
+
+.vibe-chip-warning {
+  background: rgba(253, 171, 61, 0.1);
+  color: var(--vibe-warning-color);
+}
+
+.vibe-chip-error {
+  background: rgba(228, 66, 88, 0.1);
+  color: var(--vibe-error-color);
+}
+
+/* Professional panels */
+.vibe-panel {
+  background: white;
+  border: 1px solid var(--vibe-ui-border-color-light);
+  border-radius: 8px;
+  box-shadow: var(--vibe-shadow-small);
+}
+
+.vibe-panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--vibe-ui-border-color-light);
+  background: var(--vibe-secondary-background-color);
+}
+
+.vibe-panel-content {
+  padding: 20px;
+}
+
+/* Professional buttons with icons */
+.vibe-button-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Smooth transitions */
+.vibe-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Professional hover states */
+.vibe-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--vibe-shadow-medium);
+}
+
+/* Monday.com-style divider */
+.vibe-divider {
+  height: 1px;
+  background: var(--vibe-ui-border-color-light);
+  margin: 24px 0;
+}
+
+.vibe-divider-vertical {
+  width: 1px;
+  background: var(--vibe-ui-border-color-light);
+  height: 100%;
+}

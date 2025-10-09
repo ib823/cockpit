@@ -11,8 +11,8 @@
 
 'use client';
 
-import { useMemo, useCallback, useRef, useEffect } from 'react';
-import { recompute, recomputeRicefw, recomputePhases, recomputeCosts, ProjectInputs, ComputedOutputs } from '@/lib/engine/recompute';
+import { ComputedOutputs, ProjectInputs, recompute, recomputeCosts, recomputePhases, recomputeRicefw } from '@/lib/engine/recompute';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 // ============================================================================
 // Types

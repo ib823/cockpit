@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/session';
+import { requireAdmin } from '@/lib/nextauth-helpers';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -12,7 +12,7 @@ export async function DELETE(
     await requireAdmin();
     const { id } = await params;
 
-    await prisma.user.delete({
+    await prisma.users.delete({
       where: { id },
     });
 

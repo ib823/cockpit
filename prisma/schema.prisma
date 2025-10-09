@@ -8,151 +8,346 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified DateTime?
-  name          String?
-  image         String?
-  role          Role      @default(USER)
-
-  accounts  Account[]
-  sessions  Session[]
-  projects  Project[]
-  comments  Comment[]
-  auditLogs AuditLog[]
-
+model AuditEvent {
+  id        String   @id
+  userId    String
+  type      String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  meta      Json?
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  authenticators     Authenticator[] @relation("UserAuthenticators")
-  auditEvents        AuditEvent[]    @relation("UserAuditEvents")
-  exception          Boolean         @default(false)
-  accessExpiresAt    DateTime        @default(now())
-  firstLoginAt       DateTime?
-  lastLoginAt        DateTime?
-  timelinesGenerated Int             @default(0)
-  lastTimelineAt     DateTime?
-
-  @@index([email])
-  @@map("users")
+  @@index([userId, type, createdAt])
 }
 
-enum Role {
-  USER
-  MANAGER
-  ADMIN
+model Authenticator {
+  id         String   @id
+  userId     String
+  publicKey  Bytes
+  counter    Int
+  transports String[]
+  deviceType String
+  backedUp   Boolean
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+  users      users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Account {
-  id                String  @id @default(cuid())
+model EmailApproval {
+  email            String    @id
+  tokenHash        String
+  tokenExpiresAt   DateTime
+  approvedByUserId String
+  usedAt           DateTime?
+  createdAt        DateTime  @default(now())
+  codeSent         Boolean   @default(false)
+}
+
+model accounts {
+  id                String  @id
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  users             users   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
-  @@map("accounts")
 }
 
-model Session {
-  id           String   @id @default(cuid())
+model audit_logs {
+  id        String      @id
+  userId    String
+  action    AuditAction
+  entity    String
+  entityId  String
+  changes   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime    @default(now())
+  users     users       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+  @@index([userId])
+}
+
+model chips {
+  id         String   @id
+  projectId  String
+  createdAt  DateTime @default(now())
+  confidence Decimal  @db.Decimal(3, 2)
+  evidence   String?
+  type       ChipType
+  value      String
+  projects   projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([type])
+}
+
+model comments {
+  id        String   @id
+  projectId String
+  userId    String
+  content   String
+  resolved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  projects  projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+}
+
+model form_items {
+  id         String   @id
+  projectId  String
+  name       String
+  type       String
+  languages  String[]
+  complexity String
+  effort     Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  projects   projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model holidays {
+  id     String   @id
+  name   String
+  date   DateTime @db.Date
+  region String
+
+  @@unique([date, region])
+  @@index([date])
+  @@index([region])
+}
+
+model integration_items {
+  id         String   @id
+  projectId  String
+  name       String
+  type       String
+  source     String
+  target     String
+  complexity String
+  volume     String
+  effort     Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  projects   projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model magic_tokens {
+  id         String    @id
+  email      String
+  token      String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  deviceInfo String?
+  ipAddress  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([email])
+  @@index([token])
+}
+
+model phases {
+  id               String      @id
+  projectId        String
+  name             String
+  workingDays      Int
+  color            String      @default("blue")
+  order            Int
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime
+  category         String
+  dependencies     String?
+  effort           Decimal     @db.Decimal(10, 2)
+  startBusinessDay Int
+  projects         projects    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  resources        resources[]
+
+  @@index([order])
+  @@index([projectId])
+}
+
+model projects {
+  id                 String              @id
+  name               String
+  description        String?
+  status             ProjectStatus       @default(DRAFT)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime
+  clientName         String?
+  complexity         String?
+  duration           Int?
+  employees          Int?
+  endDate            DateTime?
+  industry           String?
+  integrationPosture String?
+  legalEntities      Int?
+  moduleCombo        String?
+  ownerId            String
+  rateRegion         String?
+  region             String?
+  revenue            Decimal?            @db.Decimal(15, 2)
+  ssoMode            String?
+  startDate          DateTime?
+  totalCost          Decimal?            @db.Decimal(15, 2)
+  totalEffort        Decimal?            @db.Decimal(10, 2)
+  chips              chips[]
+  comments           comments[]
+  form_items         form_items[]
+  integration_items  integration_items[]
+  phases             phases[]
+  users              users               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  resources          resources[]
+  ricefw_items       ricefw_items[]
+  shares             shares[]
+  snapshots          snapshots[]
+
+  @@index([createdAt])
+  @@index([ownerId])
+  @@index([status])
+}
+
+model push_subscriptions {
+  id           String   @id
+  email        String   @unique
+  subscription Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+
+  @@index([email])
+}
+
+model resources {
+  id         String   @id
+  projectId  String
+  phaseId    String?
+  name       String
+  role       String
+  allocation Int
+  createdAt  DateTime @default(now())
+  hourlyRate Decimal  @db.Decimal(10, 2)
+  region     String
+  phases     phases?  @relation(fields: [phaseId], references: [id])
+  projects   projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([phaseId])
+  @@index([projectId])
+}
+
+model ricefw_items {
+  id            String   @id
+  projectId     String
+  type          String
+  name          String
+  description   String?
+  complexity    String
+  count         Int
+  effortPerItem Decimal  @db.Decimal(10, 2)
+  totalEffort   Decimal  @db.Decimal(10, 2)
+  phase         String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+  projects      projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([projectId, type])
+}
+
+model sessions {
+  id           String   @id
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@map("sessions")
 }
 
-model VerificationToken {
+model shares {
+  id           String    @id
+  projectId    String
+  token        String    @unique
+  expiresAt    DateTime?
+  viewCount    Int       @default(0)
+  lastViewedAt DateTime?
+  createdAt    DateTime  @default(now())
+  projects     projects  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([token])
+}
+
+model snapshots {
+  id        String   @id
+  projectId String
+  data      Json
+  createdAt DateTime @default(now())
+  createdBy String
+  label     String?
+  version   Int
+  projects  projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, version])
+  @@index([projectId])
+}
+
+model users {
+  id                 String          @id
+  email              String          @unique
+  name               String?
+  createdAt          DateTime        @default(now())
+  emailVerified      DateTime?
+  image              String?
+  role               Role            @default(USER)
+  updatedAt          DateTime
+  accessExpiresAt    DateTime        @default(now())
+  exception          Boolean         @default(false)
+  firstLoginAt       DateTime?
+  lastLoginAt        DateTime?
+  lastTimelineAt     DateTime?
+  timelinesGenerated Int             @default(0)
+  AuditEvent         AuditEvent[]
+  Authenticator      Authenticator[]
+  accounts           accounts[]
+  audit_logs         audit_logs[]
+  comments           comments[]
+  projects           projects[]
+  sessions           sessions[]
+
+  @@index([email])
+}
+
+model verification_tokens {
   identifier String
   token      String   @unique
   expires    DateTime
 
   @@unique([identifier, token])
-  @@map("verification_tokens")
 }
 
-model Project {
-  id          String        @id @default(cuid())
-  name        String
-  description String?       @db.Text
-  status      ProjectStatus @default(DRAFT)
-
-  clientName    String?
-  industry      String?
-  region        String?
-  employees     Int?
-  revenue       Decimal? @db.Decimal(15, 2)
-  legalEntities Int?
-
-  moduleCombo        String?
-  complexity         String?
-  ssoMode            String?
-  integrationPosture String?
-  rateRegion         String?
-
-  totalEffort Decimal?  @db.Decimal(10, 2)
-  totalCost   Decimal?  @db.Decimal(15, 2)
-  duration    Int?
-  startDate   DateTime?
-  endDate     DateTime?
-
-  ownerId String
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-
-  chips            Chip[]
-  phases           Phase[]
-  resources        Resource[]
-  snapshots        Snapshot[]
-  shares           Share[]
-  comments         Comment[]
-  ricefwItems      RicefwItem[]
-  formItems        FormItem[]
-  integrationItems IntegrationItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([ownerId])
-  @@index([status])
-  @@index([createdAt])
-  @@map("projects")
-}
-
-enum ProjectStatus {
-  DRAFT
-  IN_REVIEW
-  APPROVED
-  ARCHIVED
-}
-
-model Chip {
-  id        String  @id @default(cuid())
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  type       ChipType
-  value      String   @db.Text
-  confidence Decimal  @db.Decimal(3, 2)
-  evidence   String?  @db.Text
-
-  createdAt DateTime @default(now())
-
-  @@index([projectId])
-  @@index([type])
-  @@map("chips")
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  SHARE
+  EXPORT
+  APPROVE
+  ARCHIVE
 }
 
 enum ChipType {
@@ -175,253 +370,15 @@ enum ChipType {
   LANGUAGES
 }
 
-model Phase {
-  id        String  @id @default(cuid())
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  name             String
-  category         String
-  workingDays      Int
-  effort           Decimal @db.Decimal(10, 2)
-  startBusinessDay Int
-  color            String  @default("blue")
-  dependencies     String? @db.Text
-  order            Int
-
-  resources Resource[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([projectId])
-  @@index([order])
-  @@map("phases")
+enum ProjectStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  ARCHIVED
 }
 
-model Resource {
-  id        String  @id @default(cuid())
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  phaseId   String?
-  phase     Phase?  @relation(fields: [phaseId], references: [id], onDelete: SetNull)
-
-  name       String
-  role       String
-  region     String
-  allocation Int
-  hourlyRate Decimal @db.Decimal(10, 2)
-
-  createdAt DateTime @default(now())
-
-  @@index([projectId])
-  @@index([phaseId])
-  @@map("resources")
-}
-
-model Holiday {
-  id     String   @id @default(cuid())
-  name   String
-  date   DateTime @db.Date
-  region String
-
-  @@unique([date, region])
-  @@index([region])
-  @@index([date])
-  @@map("holidays")
-}
-
-model Share {
-  id        String  @id @default(cuid())
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  token        String    @unique @default(cuid())
-  expiresAt    DateTime?
-  viewCount    Int       @default(0)
-  lastViewedAt DateTime?
-
-  createdAt DateTime @default(now())
-
-  @@index([token])
-  @@index([projectId])
-  @@map("shares")
-}
-
-model Comment {
-  id        String  @id @default(cuid())
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  content  String  @db.Text
-  resolved Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([projectId])
-  @@index([userId])
-  @@map("comments")
-}
-
-model Snapshot {
-  id        String  @id @default(cuid())
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  version   Int
-  data      Json
-  createdBy String
-  label     String?
-
-  createdAt DateTime @default(now())
-
-  @@unique([projectId, version])
-  @@index([projectId])
-  @@map("snapshots")
-}
-
-model AuditLog {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  action   AuditAction
-  entity   String
-  entityId String
-  changes  Json?
-
-  ipAddress String?
-  userAgent String? @db.Text
-
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([entity, entityId])
-  @@index([createdAt])
-  @@map("audit_logs")
-}
-
-enum AuditAction {
-  CREATE
-  UPDATE
-  DELETE
-  SHARE
-  EXPORT
-  APPROVE
-  ARCHIVE
-}
-
-// ---- passkey models v2 ----
-/**
- * Passkey & Audit models (no Role/User duplicates)
- * You already have Role and User; we only add the new tables.
- */
-
-model Authenticator {
-  id         String   @id
-  user       User     @relation("UserAuthenticators", fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
-  publicKey  Bytes
-  counter    Int
-  transports String[]
-  deviceType String
-  backedUp   Boolean
-  createdAt  DateTime @default(now())
-  lastUsedAt DateTime @default(now())
-}
-
-model EmailApproval {
-  email            String    @id
-  tokenHash        String
-  tokenExpiresAt   DateTime
-  approvedByUserId String
-  usedAt           DateTime?
-  createdAt        DateTime  @default(now())
-  codeSent         Boolean   @default(false)
-}
-
-model AuditEvent {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation("UserAuditEvents", fields: [userId], references: [id], onDelete: Cascade)
-  type      String
-  createdAt DateTime @default(now())
-  meta      Json?
-
-  @@index([userId, type, createdAt])
-}
-
-
-model MagicToken {
-  id         String    @id @default(cuid())
-  email      String
-  token      String    @unique
-  expiresAt  DateTime
-  usedAt     DateTime?
-  deviceInfo String?   @db.Text
-  ipAddress  String?
-  createdAt  DateTime  @default(now())
-
-  @@index([token])
-  @@index([email])
-  @@map("magic_tokens")
-}
-
-model RicefwItem {
-  id            String   @id @default(cuid())
-  projectId     String
-  type          String // 'report' | 'interface' | 'conversion' | 'enhancement' | 'form' | 'workflow'
-  name          String
-  description   String?  @db.Text
-  complexity    String // 'S' | 'M' | 'L'
-  count         Int
-  effortPerItem Decimal  @db.Decimal(10, 2)
-  totalEffort   Decimal  @db.Decimal(10, 2)
-  phase         String // 'explore' | 'realize' | 'deploy'
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@index([projectId, type])
-  @@map("ricefw_items")
-}
-
-model FormItem {
-  id         String   @id @default(cuid())
-  projectId  String
-  name       String
-  type       String // 'po' | 'invoice' | 'deliveryNote' | 'custom'
-  languages  String[] // Array of ISO codes
-  complexity String // 'S' | 'M' | 'L'
-  effort     Decimal  @db.Decimal(10, 2)
-  createdAt  DateTime @default(now())
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@map("form_items")
-}
-
-model IntegrationItem {
-  id         String   @id @default(cuid())
-  projectId  String
-  name       String
-  type       String // 'api' | 'file' | 'database' | 'realtime' | 'batch'
-  source     String
-  target     String
-  complexity String // 'S' | 'M' | 'L'
-  volume     String // 'low' | 'medium' | 'high'
-  effort     Decimal  @db.Decimal(10, 2)
-  createdAt  DateTime @default(now())
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@map("integration_items")
+enum Role {
+  USER
+  MANAGER
+  ADMIN
 }

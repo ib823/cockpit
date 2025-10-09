@@ -12,9 +12,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: 'Email is required.' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email },
-      include: { authenticators: true },
+      include: { Authenticator: true },
     });
 
     // Check if user exists and is approved
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
     // If user has no passkeys, they need to go through registration.
     // Check if they have a pending approval (EmailApproval record)
-    if (user.authenticators.length === 0) {
+    if (user.Authenticator.length === 0) {
       const approval = await prisma.emailApproval.findUnique({
         where: { email }
       });
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     const options = await generateAuthenticationOptions({
       rpID,
       userVerification: 'required',
-      allowCredentials: user.authenticators.map(a => ({
+      allowCredentials: user.Authenticator.map(a => ({
         id: a.id,
         type: 'public-key',
         transports: a.transports as any,

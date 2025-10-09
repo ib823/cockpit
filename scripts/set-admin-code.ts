@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { hash } from 'bcryptjs';
-
 const prisma = new PrismaClient();
 
 async function main() {
@@ -10,17 +10,19 @@ async function main() {
   const tokenHash = await hash(code, 10);
   const tokenExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year
 
-  const adminUser = await prisma.user.upsert({
+  const adminUser = await prisma.users.upsert({
     where: { email },
     update: {
       role: 'ADMIN',
       exception: true,
     },
     create: {
+      id: randomUUID(),
       email,
       role: 'ADMIN',
       exception: true,
       accessExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(),
     },
   });
 

@@ -56,7 +56,7 @@ export function DecisionPill({ label, value, options, onChange }: DecisionPillPr
                   <div className="text-xs text-gray-500 mt-1">{option.description}</div>
                 )}
                 {hoveredOption === option.id && option.impact && (
-                  <div className="text-xs text-gray-600 mt-1 flex gap-3">
+                  <div className="text-xs text-gray-600 mt-1 flex gap-4">
                     <span>Cost: {option.impact.cost}x</span>
                     <span>Duration: {option.impact.duration}x</span>
                     <span>Risk: {option.impact.risk}x</span>

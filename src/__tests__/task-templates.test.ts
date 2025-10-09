@@ -64,27 +64,27 @@ describe('Task Templates', () => {
     });
 
     it('Prepare tasks should sum to 100% effort', () => {
-      const totalEffort = TASK_TEMPLATES.prepare.reduce((sum, t) => sum + t.effortPercent, 0);
+      const totalEffort = TASK_TEMPLATES.prepare.reduce((sum, t) => sum + (t.effortPercent || 0), 0);
       expect(totalEffort).toBe(100);
     });
 
     it('Explore tasks should sum to 100% effort', () => {
-      const totalEffort = TASK_TEMPLATES.explore.reduce((sum, t) => sum + t.effortPercent, 0);
+      const totalEffort = TASK_TEMPLATES.explore.reduce((sum, t) => sum + (t.effortPercent || 0), 0);
       expect(totalEffort).toBe(100);
     });
 
     it('Realize tasks should sum to 100% effort', () => {
-      const totalEffort = TASK_TEMPLATES.realize.reduce((sum, t) => sum + t.effortPercent, 0);
+      const totalEffort = TASK_TEMPLATES.realize.reduce((sum, t) => sum + (t.effortPercent || 0), 0);
       expect(totalEffort).toBe(100);
     });
 
     it('Deploy tasks should sum to 100% effort', () => {
-      const totalEffort = TASK_TEMPLATES.deploy.reduce((sum, t) => sum + t.effortPercent, 0);
+      const totalEffort = TASK_TEMPLATES.deploy.reduce((sum, t) => sum + (t.effortPercent || 0), 0);
       expect(totalEffort).toBe(100);
     });
 
     it('Run tasks should sum to 100% effort', () => {
-      const totalEffort = TASK_TEMPLATES.run.reduce((sum, t) => sum + t.effortPercent, 0);
+      const totalEffort = TASK_TEMPLATES.run.reduce((sum, t) => sum + (t.effortPercent || 0), 0);
       expect(totalEffort).toBe(100);
     });
 

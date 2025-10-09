@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/session';
+import { requireAdmin } from '@/lib/nextauth-helpers';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -8,15 +8,15 @@ export async function GET() {
   try {
     await requireAdmin();
 
-    const users = await prisma.user.findMany({
+    const users = await prisma.users.findMany({
       where: {
         role: { not: 'ADMIN' },
       },
       include: {
-        authenticators: true,
+        authenticator: true,
         _count: {
           select: {
-            auditEvents: true,
+            auditEvent: true,
           },
         },
       },
@@ -27,7 +27,7 @@ export async function GET() {
 
     const usersWithStatus = users.map((user) => {
       const now = new Date();
-      const hasPasskey = user.authenticators.length > 0;
+      const hasPasskey = user.authenticator.length > 0;
       const expired = !user.exception && user.accessExpiresAt <= now;
 
       let status: 'active' | 'pending' | 'expired';

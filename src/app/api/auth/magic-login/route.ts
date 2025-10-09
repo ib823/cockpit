@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/db';
-import { setSession } from '@/lib/session';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -16,7 +15,7 @@ export async function POST(req: Request) {
     }
 
     // Find magic token
-    const magicToken = await prisma.magicToken.findUnique({
+    const magicToken = await prisma.magic_tokens.findUnique({
       where: { token },
     });
 
@@ -44,9 +43,9 @@ export async function POST(req: Request) {
     }
 
     // Get user with authenticators
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email: magicToken.email },
-      include: { authenticators: true },
+      include: { Authenticator: true },
     });
 
     if (!user) {
@@ -78,7 +77,7 @@ export async function POST(req: Request) {
     };
 
     // Mark token as used
-    await prisma.magicToken.update({
+    await prisma.magic_tokens.update({
       where: { token },
       data: {
         usedAt: new Date(),
@@ -126,7 +125,7 @@ export async function POST(req: Request) {
     // User has passkey - generate authentication challenge
     const authOptions = await generateAuthenticationOptions({
       rpID,
-      allowCredentials: user.authenticators.map((auth: any) => ({
+      allowCredentials: user.Authenticator.map((auth: any) => ({
         id: auth.id,
         type: 'public-key' as const,
         transports: auth.transports as AuthenticatorTransport[],

@@ -2,156 +2,150 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: ["**"]
   pull_request:
     branches: [main, develop]
-  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  install:
-    name: Install Dependencies
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
   lint:
-    name: Lint Code
+    name: Lint & Typecheck
     runs-on: ubuntu-latest
-    needs: install
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "pnpm"
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_ci
 
       - name: Run ESLint
         run: pnpm lint
-
-  typecheck:
-    name: Type Check
-    runs-on: ubuntu-latest
-    needs: install
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Run TypeScript type check
         run: pnpm typecheck
 
   test:
-    name: Run Tests
+    name: Test
     runs-on: ubuntu-latest
-    needs: install
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "pnpm"
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_ci
 
       - name: Run tests
         run: pnpm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_ci
+          NEXTAUTH_SECRET: test-secret-for-ci-minimum-32-characters-long-abcdefgh
+          NEXTAUTH_URL: http://localhost:3000
+          NODE_ENV: test
 
   build:
-    name: Build Application
+    name: Build
     runs-on: ubuntu-latest
-    needs: install
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "pnpm"
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_ci
+
       - name: Build application
         run: pnpm build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_ci
+          NEXTAUTH_SECRET: test-secret-for-ci-minimum-32-characters-long-abcdefgh
+          NEXTAUTH_URL: http://localhost:3000
+          NODE_ENV: production
+          SKIP_ENV_VALIDATION: true
 
       - name: Check build output
         run: |
-          if [ ! -d ".next" ]; then
-            echo "Build output directory not found"
+          if [ ! -d .next ]; then
+            echo "Build failed: .next directory not found"
             exit 1
           fi
           echo "Build successful"
 
-  ci-summary:
-    name: CI Summary
+  security:
+    name: Security Audit
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, test, build]
-    if: always()
     steps:
-      - name: Check CI Status
-        run: |
-          echo "=== CI Pipeline Summary ==="
-          echo "Lint: ${{ needs.lint.result }}"
-          echo "TypeCheck: ${{ needs.typecheck.result }}"
-          echo "Tests: ${{ needs.test.result }}"
-          echo "Build: ${{ needs.build.result }}"
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-          if [[ "${{ needs.lint.result }}" != "success" ]] || \
-             [[ "${{ needs.typecheck.result }}" != "success" ]] || \
-             [[ "${{ needs.test.result }}" != "success" ]] || \
-             [[ "${{ needs.build.result }}" != "success" ]]; then
-            echo "CI pipeline failed"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run pnpm audit
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Check for vulnerable dependencies
+        run: |
+          AUDIT_RESULT=$(pnpm audit --json --audit-level=critical 2>/dev/null || echo '{"error": "audit failed"}')
+          echo "$AUDIT_RESULT"
+
+          # Parse and fail if critical vulnerabilities found
+          CRITICAL_COUNT=$(echo "$AUDIT_RESULT" | grep -o '"critical":[0-9]*' | grep -o '[0-9]*' || echo "0")
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "❌ Found $CRITICAL_COUNT critical vulnerabilities"
             exit 1
           fi
-
-          echo "All CI checks passed"
+          echo "✅ No critical vulnerabilities found"
