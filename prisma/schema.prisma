@@ -27,9 +27,12 @@ model Authenticator {
   transports String[]
   deviceType String
   backedUp   Boolean
+  nickname   String?
   createdAt  DateTime @default(now())
   lastUsedAt DateTime @default(now())
   users      users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model EmailApproval {
@@ -157,9 +160,11 @@ model magic_tokens {
   deviceInfo String?
   ipAddress  String?
   createdAt  DateTime  @default(now())
+  type       String    @default("otp")
 
   @@index([email])
   @@index([token])
+  @@index([type])
 }
 
 model phases {
@@ -273,9 +278,13 @@ model sessions {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  deviceInfo   Json?
+  ipAddress    String?
+  lastActivity DateTime @default(now())
   users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([lastActivity])
 }
 
 model shares {
@@ -321,6 +330,7 @@ model users {
   lastLoginAt        DateTime?
   lastTimelineAt     DateTime?
   timelinesGenerated Int             @default(0)
+  lastSeenAt         DateTime?
   AuditEvent         AuditEvent[]
   Authenticator      Authenticator[]
   accounts           accounts[]
@@ -331,6 +341,7 @@ model users {
   ganttProjects      GanttProject[]
 
   @@index([email])
+  @@index([lastSeenAt])
 }
 
 model verification_tokens {

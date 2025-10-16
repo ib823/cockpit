@@ -24,7 +24,7 @@ function checkRateLimit(ip: string, limit: number, windowMs: number): boolean {
 
 const publicPaths = ['/', '/login', '/api/auth'];
 const adminPaths = ['/admin'];
-const protectedPaths = ['/gantt-tool', '/project', '/estimator', '/dashboard']; // Require authentication
+const protectedPaths = ['/gantt-tool', '/project', '/estimator', '/dashboard', '/account']; // Require authentication
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -80,7 +80,7 @@ export async function middleware(request: NextRequest) {
     
     // Admin authorization
     if (adminPaths.some(p => pathname.startsWith(p))) {
-      if (token.role !== 'admin') {
+      if (token.role !== 'ADMIN') {
         return new Response('Forbidden', { status: 403 });
       }
     }
