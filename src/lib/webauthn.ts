@@ -9,7 +9,7 @@ import { Redis } from '@upstash/redis';
 export const rpName = 'Cockpit';
 const dev = process.env.NODE_ENV !== 'production';
 export const rpID = process.env.WEBAUTHN_RP_ID ?? (dev ? 'localhost' : '');
-export const origin = process.env.WEBAUTHN_ORIGIN ?? (dev ? 'http://localhost:3000' : '');
+export const origin = process.env.WEBAUTHN_ORIGIN ?? (dev ? 'http://localhost:3001' : '');
 
 // Challenge store with automatic fallback to in-memory (dev-safe)
 const url = process.env.UPSTASH_REDIS_REST_URL;

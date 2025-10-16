@@ -12,6 +12,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: 'Email is required.' }, { status: 400 });
     }
 
+    // Validate email format to prevent injection attacks
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email) || email.length > 255) {
+      return NextResponse.json({
+        ok: false,
+        message: 'Invalid email format.'
+      }, { status: 400 });
+    }
+
     const user = await prisma.users.findUnique({
       where: { email },
       include: { Authenticator: true },

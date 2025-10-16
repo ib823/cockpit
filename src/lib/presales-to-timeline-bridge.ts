@@ -3,19 +3,27 @@ import { detectEmployeeCount, detectMultiEntityFactors } from "@/lib/critical-pa
 import { Chip, ClientProfile, Decision, Phase } from "@/types/core";
 import { ScenarioGenerator } from "@/lib/scenario-generator";
 import { sanitizeObject, sanitizeHtml } from "@/lib/input-sanitizer";
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
- * SECURITY: Additional sanitization layer for chip values
- * Defense-in-depth: Even if chips bypass presales-store validation
+ * SECURITY: DOMPurify-based sanitization for chip values
+ * Defense-in-depth: Battle-tested sanitization that handles edge cases
+ * Prevents XSS attacks in user-provided chip data
  */
-function sanitizeChipValue(value:unknown): string {
-  const str = String(value || "");
-  return str
-    .replace(/<[^>]*>/g, "") // Remove HTML tags
-    .replace(/javascript:/gi, "") // Remove JS protocol
-    .replace(/data:/gi, "") // Remove data protocol
-    .replace(/on\w+\s*=/gi, "") // Remove event handlers
-    .slice(0, 1000); // Prevent DoS (1000 char limit)
+function sanitizeChipValue(value: unknown): string {
+  if (!value) return '';
+
+  // Limit length to prevent DoS attacks (1000 char max)
+  const str = String(value).slice(0, 1000);
+
+  // Strip ALL HTML tags and attributes using DOMPurify
+  const clean = DOMPurify.sanitize(str, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: []
+  });
+
+  // Additional protocol removal for defense-in-depth
+  return clean.replace(/javascript:/gi, '');
 }
 
 /**

@@ -10,8 +10,27 @@
  * - Tier C (0.010): E2E statutory, 3+ variants, high risk
  */
 
-import type { L3Item } from './formula-engine';
-import { TIER_COEFFICIENTS } from './formula-engine';
+/**
+ * L3 Item in formula engine format
+ */
+export interface L3Item {
+  id: string;
+  code: string;
+  name: string;
+  module: string;
+  tier: 'A' | 'B' | 'C';
+  coefficient: number;
+  description: string;
+}
+
+/**
+ * Tier coefficients for formula calculation
+ */
+export const TIER_COEFFICIENTS = {
+  A: 0.006,
+  B: 0.008,
+  C: 0.010,
+} as const;
 
 /**
  * Complete L3 catalog organized by module

@@ -1,0 +1,149 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next"
+  },
+  "navigation": {
+    "home": "Home",
+    "estimator": "Estimator",
+    "timeline": "Timeline",
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "estimator": {
+    "title": "SAP Cockpit Estimator",
+    "subtitle": "Project Estimation Tool",
+    "scopeBreadth": "Scope Breadth (Sb)",
+    "processComplexity": "Process Complexity (Pc)",
+    "orgScale": "Organizational Scale (Os)",
+    "capacity": "Capacity Planning",
+    "l3Selection": "Select L3 Items",
+    "l3ModalTitle": "L3 Scope Catalog",
+    "totalEffort": "Total Effort",
+    "duration": "Duration",
+    "saveScenario": "Save Scenario",
+    "generateTimeline": "Generate Timeline",
+    "results": "Results",
+    "inputs": "Inputs",
+    "searchPlaceholder": "Search L3 items...",
+    "selectedItems": "{count} items selected",
+    "noItemsSelected": "No items selected",
+    "phases": {
+      "prepare": "Prepare",
+      "explore": "Explore",
+      "realize": "Realize",
+      "deploy": "Deploy",
+      "run": "Run"
+    },
+    "inputs": {
+      "fte": "Team Size (FTE)",
+      "utilization": "Utilization Rate",
+      "overlapFactor": "Phase Overlap",
+      "integrations": "Integrations",
+      "customForms": "Custom Forms",
+      "fitToStandard": "Fit to Standard",
+      "legalEntities": "Legal Entities",
+      "countries": "Countries",
+      "languages": "Languages"
+    },
+    "uncertainty": {
+      "title": "Uncertainty Analysis",
+      "low": "Low Uncertainty",
+      "medium": "Medium Uncertainty",
+      "high": "High Uncertainty",
+      "bestCase": "Best Case (P10)",
+      "expected": "Expected (P50)",
+      "buffer": "Buffer (P90)",
+      "riskAssessment": "Risk Assessment"
+    },
+    "sensitivity": {
+      "title": "Sensitivity Analysis",
+      "description": "What Moves the Estimate?",
+      "durationImpact": "Duration Impact",
+      "effortImpact": "Effort Impact",
+      "topVariable": "{variable} has the highest impact"
+    },
+    "optimization": {
+      "title": "Optimization Suggestions",
+      "achieveTarget": "Achieve Target",
+      "scenarios": "Optimization Strategies",
+      "applyChanges": "Apply Changes"
+    }
+  },
+  "timeline": {
+    "title": "Project Timeline",
+    "ganttChart": "Gantt Chart",
+    "resources": "Resources",
+    "milestones": "Milestones",
+    "holidays": "Holidays",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "autoSync": "Auto-sync Enabled",
+    "locked": "Timeline Locked",
+    "regenerate": "Regenerate Timeline",
+    "export": "Export",
+    "resourcePlan": "Resource Plan",
+    "role": "Role",
+    "allocation": "Allocation",
+    "cost": "Cost"
+  },
+  "export": {
+    "title": "Export Options",
+    "pdf": "Export PDF",
+    "powerpoint": "Export PowerPoint",
+    "csv": "Export CSV",
+    "generating": "Generating export...",
+    "success": "Export generated successfully",
+    "error": "Failed to generate export"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "recentProjects": "Recent Projects",
+    "statistics": "Statistics",
+    "quickActions": "Quick Actions"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "users": "Users",
+    "settings": "Settings",
+    "auditLog": "Audit Log",
+    "securitySettings": "Security Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "createAccount": "Create Account",
+    "welcomeBack": "Welcome Back",
+    "signInToContinue": "Sign in to continue"
+  },
+  "errors": {
+    "unauthorized": "Unauthorized access",
+    "notFound": "Page not found",
+    "serverError": "Server error occurred",
+    "validationError": "Validation error",
+    "networkError": "Network connection error"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "minLength": "Must be at least {min} characters",
+    "maxLength": "Must be at most {max} characters",
+    "numberRequired": "Must be a number",
+    "positiveNumber": "Must be a positive number"
+  }
+}

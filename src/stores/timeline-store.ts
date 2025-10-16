@@ -135,7 +135,7 @@ export const useTimelineStore = create<TimelineState>()(
       set({ isLoading: true, error: null, projectId });
       try {
         // Load from localStorage for now (client-side)
-        // TODO: In production, fetch from API route
+        // Note: Future enhancement - fetch from API route for server-side persistence
         const phases: Phase[] = [];
         const resources: Resource[] = [];
         set((state) => {
@@ -337,6 +337,37 @@ export const useTimelineStore = create<TimelineState>()(
         phaseColors: state.phaseColors,
       }),
       version: 1,
+      migrate: (persistedState: any, version: number) => {
+        console.log(`[TimelineStore Migration] Starting from v${version}`);
+
+        if (version === 0) {
+          // Handle v0 data structure where state was nested
+          const oldState = persistedState.state || persistedState;
+
+          return {
+            // Preserve all existing data
+            phases: oldState.phases || [],
+            selectedPackages: oldState.selectedPackages || [],
+            zoomLevel: oldState.zoomLevel || 'month',
+            clientPresentationMode: oldState.clientPresentationMode || false,
+            region: oldState.region || 'US-East',
+            selectedPhaseId: oldState.selectedPhaseId || null,
+
+            // Add new v1 fields with defaults
+            phaseColors: oldState.phaseColors || {},
+          };
+        }
+
+        return persistedState;
+      },
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          console.log('[TimelineStore] Hydration complete:', {
+            phases: state.phases?.length || 0,
+            packages: state.selectedPackages?.length || 0,
+          });
+        }
+      },
     }
   )
 );

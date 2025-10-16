@@ -1,21 +1,33 @@
-/**
- * Decide Page (Tier 2)
- * Presales chip selection and decision making
- * Placeholder for future implementation
- */
-
-import React from 'react';
-import { Empty } from '@/app/_components/ui';
-import { CheckSquare } from 'lucide-react';
+'use client';
+import { Card, Button, Space } from 'antd';
+import { ArrowRightOutlined } from '@ant-design/icons';
+import { AppLayout } from '@/components/project-v2/AppLayout';
+import { useRouter } from 'next/navigation';
 
 export default function DecidePage() {
+  const router = useRouter();
+
   return (
-    <div className="py-12">
-      <Empty
-        icon={<CheckSquare size={48} />}
-        title="Make Decisions"
-        description="Select presales chips and make implementation decisions. This feeds into the timeline planning."
-      />
-    </div>
+    <AppLayout progress={50}>
+      <Space direction="vertical" size="large" className="w-full">
+        <Card>
+          <h2 className="text-2xl font-semibold mb-4">Decision Analysis</h2>
+          <p className="text-gray-600">
+            Review requirements and make key decisions about your SAP implementation approach.
+          </p>
+        </Card>
+
+        <div className="flex justify-center mt-8">
+          <Button 
+            type="primary" 
+            size="large" 
+            icon={<ArrowRightOutlined />}
+            onClick={() => router.push('/project/plan')}
+          >
+            Continue to Planning
+          </Button>
+        </div>
+      </Space>
+    </AppLayout>
   );
 }

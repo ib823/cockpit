@@ -1,0 +1,149 @@
+{
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "loading": "Wird geladen...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "next": "Weiter"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "estimator": "Schätzungstool",
+    "timeline": "Zeitplan",
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "profile": "Profil",
+    "logout": "Abmelden"
+  },
+  "estimator": {
+    "title": "SAP Cockpit Schätzungstool",
+    "subtitle": "Projektschätzungstool",
+    "scopeBreadth": "Umfangsbreite (Sb)",
+    "processComplexity": "Prozesskomplexität (Pc)",
+    "orgScale": "Organisationsgröße (Os)",
+    "capacity": "Kapazitätsplanung",
+    "l3Selection": "L3-Elemente auswählen",
+    "l3ModalTitle": "L3-Umfangskatalog",
+    "totalEffort": "Gesamtaufwand",
+    "duration": "Dauer",
+    "saveScenario": "Szenario speichern",
+    "generateTimeline": "Zeitplan generieren",
+    "results": "Ergebnisse",
+    "inputs": "Eingaben",
+    "searchPlaceholder": "L3-Elemente suchen...",
+    "selectedItems": "{count} Elemente ausgewählt",
+    "noItemsSelected": "Keine Elemente ausgewählt",
+    "phases": {
+      "prepare": "Vorbereiten",
+      "explore": "Erkunden",
+      "realize": "Realisieren",
+      "deploy": "Bereitstellen",
+      "run": "Betreiben"
+    },
+    "inputs": {
+      "fte": "Teamgröße (FTE)",
+      "utilization": "Auslastung",
+      "overlapFactor": "Phasenüberlappung",
+      "integrations": "Integrationen",
+      "customForms": "Benutzerdefinierte Formulare",
+      "fitToStandard": "Standardkonformität",
+      "legalEntities": "Rechtsträger",
+      "countries": "Länder",
+      "languages": "Sprachen"
+    },
+    "uncertainty": {
+      "title": "Unsicherheitsanalyse",
+      "low": "Geringe Unsicherheit",
+      "medium": "Mittlere Unsicherheit",
+      "high": "Hohe Unsicherheit",
+      "bestCase": "Bester Fall (P10)",
+      "expected": "Erwartet (P50)",
+      "buffer": "Puffer (P90)",
+      "riskAssessment": "Risikobewertung"
+    },
+    "sensitivity": {
+      "title": "Sensitivitätsanalyse",
+      "description": "Was beeinflusst die Schätzung?",
+      "durationImpact": "Dauerauswirkung",
+      "effortImpact": "Aufwandsauswirkung",
+      "topVariable": "{variable} hat den größten Einfluss"
+    },
+    "optimization": {
+      "title": "Optimierungsvorschläge",
+      "achieveTarget": "Ziel erreichen",
+      "scenarios": "Optimierungsstrategien",
+      "applyChanges": "Änderungen anwenden"
+    }
+  },
+  "timeline": {
+    "title": "Projektzeitplan",
+    "ganttChart": "Gantt-Diagramm",
+    "resources": "Ressourcen",
+    "milestones": "Meilensteine",
+    "holidays": "Feiertage",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "autoSync": "Auto-Sync aktiviert",
+    "locked": "Zeitplan gesperrt",
+    "regenerate": "Zeitplan neu generieren",
+    "export": "Exportieren",
+    "resourcePlan": "Ressourcenplan",
+    "role": "Rolle",
+    "allocation": "Zuweisung",
+    "cost": "Kosten"
+  },
+  "export": {
+    "title": "Exportoptionen",
+    "pdf": "PDF exportieren",
+    "powerpoint": "PowerPoint exportieren",
+    "csv": "CSV exportieren",
+    "generating": "Export wird generiert...",
+    "success": "Export erfolgreich generiert",
+    "error": "Exportgenerierung fehlgeschlagen"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "recentProjects": "Letzte Projekte",
+    "statistics": "Statistiken",
+    "quickActions": "Schnellaktionen"
+  },
+  "admin": {
+    "title": "Admin-Panel",
+    "users": "Benutzer",
+    "settings": "Einstellungen",
+    "auditLog": "Prüfprotokoll",
+    "securitySettings": "Sicherheitseinstellungen"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "logout": "Abmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "forgotPassword": "Passwort vergessen?",
+    "createAccount": "Konto erstellen",
+    "welcomeBack": "Willkommen zurück",
+    "signInToContinue": "Anmelden um fortzufahren"
+  },
+  "errors": {
+    "unauthorized": "Nicht autorisierter Zugriff",
+    "notFound": "Seite nicht gefunden",
+    "serverError": "Serverfehler aufgetreten",
+    "validationError": "Validierungsfehler",
+    "networkError": "Netzwerkverbindungsfehler"
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich",
+    "invalidEmail": "Ungültige E-Mail-Adresse",
+    "minLength": "Muss mindestens {min} Zeichen lang sein",
+    "maxLength": "Darf höchstens {max} Zeichen lang sein",
+    "numberRequired": "Muss eine Zahl sein",
+    "positiveNumber": "Muss eine positive Zahl sein"
+  }
+}

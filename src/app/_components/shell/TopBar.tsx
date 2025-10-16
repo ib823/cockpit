@@ -33,12 +33,12 @@ export const TopBar: React.FC = () => {
             <ClientSafeToggle />
             <div className="w-px h-6 bg-[var(--line)]" />
             <Tooltip title="Export project">
-              <Button type="text" size="small" aria-label="Export">
+              <Button variant="ghost" size="sm" aria-label="Export">
                 <Download size={16} />
               </Button>
             </Tooltip>
             <Tooltip title="Share project">
-              <Button type="text" size="small" aria-label="Share">
+              <Button variant="ghost" size="sm" aria-label="Share">
                 <Share2 size={16} />
               </Button>
             </Tooltip>

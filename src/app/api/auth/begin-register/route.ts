@@ -9,9 +9,18 @@ export async function POST(req: Request) {
   try {
     const { email, code } = await req.json().catch(() => ({}));
 
-    if (!email || !code || code.length !== 6) {
+    // Validate email format
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!email || !emailRegex.test(email) || email.length > 255) {
       return NextResponse.json(
-        { ok: false, message: 'Invalid email or code format.' },
+        { ok: false, message: 'Invalid email format.' },
+        { status: 400 }
+      );
+    }
+
+    if (!code || code.length !== 6) {
+      return NextResponse.json(
+        { ok: false, message: 'Invalid code format.' },
         { status: 400 }
       );
     }

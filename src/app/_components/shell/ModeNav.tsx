@@ -1,41 +1,35 @@
-/**
- * ModeNav Component
- * Segmented control for Capture / Decide / Plan / Present modes
- * Reflects active route, supports keyboard navigation
- */
-
 'use client';
+import { useRouter, usePathname } from 'next/navigation';
 
-import { usePathname, useRouter } from 'next/navigation';
-import React from 'react';
-import { Segmented } from '../ui';
-
-const MODE_OPTIONS = [
-  { label: 'Capture', value: '/project/capture' },
-  { label: 'Decide', value: '/project/decide' },
-  { label: 'Plan', value: '/project/plan' },
-  { label: 'Present', value: '/project/present' },
+const modes = [
+  { id: 'capture', label: 'Capture', path: '/project/capture' },
+  { id: 'decide', label: 'Decide', path: '/project/decide' },
+  { id: 'plan', label: 'Plan', path: '/project/plan' },
+  { id: 'present', label: 'Present', path: '/project/present' },
 ];
 
-export const ModeNav: React.FC = () => {
+export const ModeNav = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Determine active mode based on pathname
-  //const activeMode = MODE_OPTIONS.find((opt) => pathname.startsWith(opt.value))
-  const activeMode = MODE_OPTIONS.find((opt) => pathname?.startsWith(opt.value))
-    ?.value || '/project/capture';
-
-  const handleModeChange = (value: string) => {
-    router.push(value);
-  };
-
   return (
-    <Segmented
-      options={MODE_OPTIONS}
-      value={activeMode}
-      onChange={handleModeChange}
-      size="middle"
-    />
+    <div className="border-b border-gray-200 bg-white">
+      <nav className="flex space-x-8 px-6">
+        {modes.map((mode) => {
+          const isActive = pathname === mode.path;
+          return (
+            <button
+              key={mode.id}
+              onClick={() => router.push(mode.path)}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                isActive ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {mode.label}
+            </button>
+          );
+        })}
+      </nav>
+    </div>
   );
 };

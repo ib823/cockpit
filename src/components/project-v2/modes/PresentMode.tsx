@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Calendar, Users, Flag, TrendingUp, FileDown, StickyNote } from "lucide-react";
@@ -21,9 +22,10 @@ interface Slide {
 export function PresentMode() {
   const { phases } = useTimelineStore();
   const { chips } = usePresalesStore();
-  const { setMode } = useProjectStore();
-
+  
+  const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
+
   const [showNotes, setShowNotes] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -270,7 +272,7 @@ export function PresentMode() {
       } else if (e.key === "ArrowRight" && currentSlide < slidesWithNotes.length - 1) {
         setCurrentSlide(currentSlide + 1);
       } else if (e.key === "Escape") {
-        setMode("plan");
+        router.push("/project/plan");
       } else if (e.key === "n" || e.key === "N") {
         // Toggle notes with 'n' key
         setShowNotes(!showNotes);
@@ -279,7 +281,7 @@ export function PresentMode() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentSlide, slidesWithNotes.length, setMode, showNotes]);
+  }, [currentSlide, slidesWithNotes.length, router, showNotes]);
 
   return (
     <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-hidden">
@@ -355,7 +357,7 @@ export function PresentMode() {
 
         {/* Exit button */}
         <button
-          onClick={() => setMode("plan")}
+          onClick={() => router.push("/project/plan")}
           className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm
                      flex items-center justify-center hover:bg-white/20 transition-colors group"
           aria-label="Exit presentation"

@@ -8,8 +8,35 @@
  */
 
 import type { Chip, ChipType } from '@/types/core';
-import type { EstimatorInputs } from './formula-engine';
+import type { EstimatorInputs as BaseEstimatorInputs } from './types';
 import { sanitizeHtml } from '@/lib/input-sanitizer';
+
+// Extended estimator inputs with legacy properties
+interface EstimatorInputs extends BaseEstimatorInputs {
+  modules?: string[];
+  employees?: number;
+  revenue?: number;
+  industry?: string;
+  country?: string;
+  existingSystem?: string;
+  entities?: number;
+  peakSessions?: number;
+  l3Items?: Array<{ code: string; module: string }>;
+  inAppExtensions?: number;
+  btpExtensions?: number;
+}
+
+// Extended profile with id and complexity
+interface ProfileWithExtras {
+  id?: string;
+  complexity?: string;
+  name: string;
+  region?: string;
+  description?: string;
+  baseFT: number;
+  basis: number;
+  securityAuth: number;
+}
 
 // Helper for safe input sanitization
 const sanitizeInput = (input: string) => sanitizeHtml(input).substring(0, 500);
@@ -43,7 +70,7 @@ export function convertEstimateToChips(inputs: EstimatorInputs): Chip[] {
     chips.push({
       id: `chip-countries-${Date.now() + 1}`,
       type: 'COUNTRY' as ChipType,
-      value: inputs.countries === 1 ? inputs.profile.id.split('-')[0].toUpperCase() : `${inputs.countries} countries`,
+      value: inputs.countries === 1 ? (inputs.profile.region || 'XX').toUpperCase() : `${inputs.countries} countries`,
       confidence: inputs.countries === 1 ? 1.0 : 0.8,
       source: 'manual',
       validated: true,
@@ -199,7 +226,7 @@ export function convertEstimateToChips(inputs: EstimatorInputs): Chip[] {
  */
 export function generateProjectName(inputs: EstimatorInputs): string {
   const profileName = inputs.profile.name.split(' (')[0]; // "Singapore Mid-Market"
-  const moduleList = inputs.modules.slice(0, 2).join('+'); // "FI+CO"
+  const moduleList = (inputs.modules || []).slice(0, 2).join('+') || 'SAP'; // "FI+CO"
   const timestamp = new Date().toISOString().split('T')[0]; // "2024-01-15"
 
   return sanitizeInput(`${profileName} ${moduleList} - ${timestamp}`);
@@ -211,21 +238,21 @@ export function generateProjectName(inputs: EstimatorInputs): string {
 export function extractEstimateMetadata(inputs: EstimatorInputs) {
   return {
     source: 'estimator' as const,
-    estimatorProfile: inputs.profile.id,
-    estimatorComplexity: inputs.profile.complexity,
+    estimatorProfile: inputs.profile.name,
+    estimatorComplexity: inputs.profile.description || 'Standard',
     scopeBreadth: {
-      l3Count: inputs.l3Items?.length || 0,
+      l3Count: inputs.l3Items?.length || inputs.selectedL3Items.length,
       integrations: inputs.integrations,
     },
     processComplexity: {
-      inAppExtensions: inputs.inAppExtensions,
-      btpExtensions: inputs.btpExtensions,
+      inAppExtensions: inputs.inAppExtensions || 0,
+      btpExtensions: inputs.btpExtensions || 0,
     },
     orgScale: {
       countries: inputs.countries,
-      entities: inputs.entities,
+      entities: inputs.legalEntities,
       languages: inputs.languages,
-      peakSessions: inputs.peakSessions,
+      peakSessions: inputs.peakSessions || 0,
     },
   };
 }

@@ -6,8 +6,19 @@
  */
 
 import { L3_SCOPE_ITEMS, type L3ScopeItem, getL3ItemByCode, getL3ItemsByModule, getL3ItemsByTier, L3_MODULES } from '@/data/l3-catalog';
-import type { L3Item } from './formula-engine';
-import { TIER_COEFFICIENTS } from './formula-engine';
+
+/**
+ * L3 Item in formula engine format
+ */
+export interface L3Item {
+  id: string;
+  code: string;
+  name: string;
+  module: string;
+  tier: 'A' | 'B' | 'C';
+  coefficient: number;
+  description: string;
+}
 
 /**
  * Convert L3ScopeItem to L3Item (formula engine format)

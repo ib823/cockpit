@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/nextauth-helpers';
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 
 export const runtime = 'nodejs';
 
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
 
   const project = await prisma.projects.create({
     data: {
+      id: randomUUID(),
       name: data.name || 'Untitled Project',
       ownerId: user.id,
       status: 'DRAFT',

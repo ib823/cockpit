@@ -1,9 +1,11 @@
 import { prisma } from '@/lib/db';
-import { createAuthSession } from '@/lib/nextauth-helpers';
+import { createSessionToken } from '@/lib/nextauth-helpers';
 import { compare } from 'bcryptjs';
-import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
+import { env } from '@/lib/env';
+import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
+
 
 export async function POST(req: Request) {
   try {
@@ -71,7 +73,18 @@ export async function POST(req: Request) {
 
     // Map MANAGER to USER for session purposes
     const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
-    await createAuthSession(user.id, user.email, sessionRole);
+    //await createAuthSession(user.id, user.email, sessionRole);
+    const token = await createSessionToken(user.id, user.email, sessionRole);
+
+    return NextResponse.json(
+      { ok: true },
+      { 
+        headers: { 
+          'Content-Type': 'application/json',
+          'Set-Cookie': `next-auth.session-token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${env.NODE_ENV === 'production' ? '; Secure' : ''}`
+        } 
+      }
+    );
 
     return NextResponse.json(
       { ok: true },

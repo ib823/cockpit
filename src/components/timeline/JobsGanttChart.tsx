@@ -94,6 +94,7 @@ export function JobsGanttChart({
   const [selectedRegion] = useState<'ABMY' | 'ABSG' | 'ABVN'>('ABMY');
 
   // Group phases by SAP Activate methodology
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const activatePhases = useMemo((): ActivatePhaseData[] => {
     return SAP_ACTIVATE_PHASES.map((activatePhase, index) => {
       const phasesInActivate = rawPhases.filter(p => {

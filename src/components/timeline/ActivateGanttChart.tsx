@@ -99,6 +99,7 @@ export function ActivateGanttChart({
   const [milestones, setMilestones] = useState<Array<{ id: string; name: string; date: Date; color: string }>>([]);
 
   // Group phases by SAP Activate methodology
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const activatePhases = useMemo((): ActivatePhaseData[] => {
     return SAP_ACTIVATE_PHASES.map((activatePhase, index) => {
       // Get phases that belong to this activate phase

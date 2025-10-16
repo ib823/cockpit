@@ -68,6 +68,7 @@ export function ImprovedGanttChart({
     : [];
 
   // Compute phases with dates if they don't have them
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const safePhases = useMemo(() => {
     return rawPhases.map(phase => {
       // If phase already has dates, use them

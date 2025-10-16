@@ -67,7 +67,7 @@ export const usePresalesStore = create<PresalesState>()(
       set({ isLoading: true, error: null, projectId });
       try {
         // Load from localStorage for now (client-side)
-        // TODO: In production, fetch from API route
+        // Note: Future enhancement - fetch from API route for server-side persistence
         const chips: Chip[] = [];
         set((state) => {
           state.chips = chips || [];

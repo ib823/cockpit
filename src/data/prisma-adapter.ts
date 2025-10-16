@@ -1,11 +1,12 @@
 /**
  * Prisma Adapter for DAL
- * 
+ *
  * Concrete implementation of IDAL using Prisma ORM and PostgreSQL
  */
 
 import { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
+import { randomUUID } from 'crypto';
 import {
     AuditContext,
     Chip,
@@ -62,6 +63,7 @@ export class PrismaAdapter implements IDAL {
     try {
       await this.prisma.audit_logs.create({
         data: {
+          id: randomUUID(),
           userId: audit.userId,
           action: audit.action,
           entity,
@@ -90,7 +92,9 @@ export class PrismaAdapter implements IDAL {
 
       const project = await this.prisma.projects.create({
         data: {
+          id: randomUUID(),
           ...validated,
+          updatedAt: new Date(),
           revenue: validated.revenue ? new Decimal(validated.revenue) : null,
           totalEffort: validated.totalEffort ? new Decimal(validated.totalEffort) : null,
           totalCost: validated.totalCost ? new Decimal(validated.totalCost) : null,
@@ -202,7 +206,9 @@ export class PrismaAdapter implements IDAL {
 
       const phase = await this.prisma.phases.create({
         data: {
+          id: randomUUID(),
           ...validated,
+          updatedAt: new Date(),
           effort: new Decimal(validated.effort),
           dependencies: validated.dependencies ? JSON.stringify(validated.dependencies) : null,
         },
@@ -304,15 +310,17 @@ export class PrismaAdapter implements IDAL {
       const validated = phases.map(p => validatePhase(p));
 
       const created = await this.prisma.$transaction(
-        validated.map(p =>
-          this.prisma.phases.create({
+        validated.map(p => {
+          return this.prisma.phases.create({
             data: {
+              id: randomUUID(),
               ...p,
+              updatedAt: new Date(),
               effort: new Decimal(p.effort),
               dependencies: p.dependencies ? JSON.stringify(p.dependencies) : null,
             },
-          })
-        )
+          });
+        })
       );
 
       await this.createAuditLog(audit, 'Phase', 'bulk', { count: created.length });
@@ -366,6 +374,7 @@ export class PrismaAdapter implements IDAL {
 
       const resource = await this.prisma.resources.create({
         data: {
+          id: randomUUID(),
           ...validated,
           hourlyRate: new Decimal(validated.hourlyRate),
         },
@@ -460,6 +469,7 @@ export class PrismaAdapter implements IDAL {
         validated.map(r =>
           this.prisma.resources.create({
             data: {
+              id: randomUUID(),
               ...r,
               hourlyRate: new Decimal(r.hourlyRate),
             },
@@ -492,6 +502,7 @@ export class PrismaAdapter implements IDAL {
       // Store in Snapshot table temporarily until we add RICEFW table to schema
       const snapshot = await this.prisma.snapshots.create({
         data: {
+          id: randomUUID(),
           projectId: validated.projectId,
           version: Date.now(),
           data: validated as any,
@@ -627,6 +638,7 @@ export class PrismaAdapter implements IDAL {
 
       const snapshot = await this.prisma.snapshots.create({
         data: {
+          id: randomUUID(),
           projectId: validated.projectId,
           version: Date.now(),
           data: validated as any,
@@ -682,6 +694,7 @@ export class PrismaAdapter implements IDAL {
 
       const snapshot = await this.prisma.snapshots.create({
         data: {
+          id: randomUUID(),
           projectId: validated.projectId,
           version: Date.now(),
           data: validated as any,
@@ -737,6 +750,7 @@ export class PrismaAdapter implements IDAL {
 
       const chip = await this.prisma.chips.create({
         data: {
+          id: randomUUID(),
           ...validated,
           confidence: new Decimal(validated.confidence),
         },
@@ -795,7 +809,10 @@ export class PrismaAdapter implements IDAL {
       const validated = validateSnapshot(data);
 
       const snapshot = await this.prisma.snapshots.create({
-        data: validated,
+        data: {
+          id: randomUUID(),
+          ...validated,
+        },
       });
 
       await this.createAuditLog(audit, 'Snapshot', snapshot.id, { created: validated });
@@ -859,7 +876,7 @@ export class PrismaAdapter implements IDAL {
         orderBy: { createdAt: 'desc' },
         take: limit,
         include: {
-          user: {
+          users: {
             select: {
               id: true,
               name: true,

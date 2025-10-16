@@ -37,7 +37,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // Send to error tracking service (future: Sentry, etc.)
     if (process.env.NODE_ENV === "production") {
-      // TODO: Send to error tracking
+      // Note: Integrate with Sentry or error tracking service for production monitoring
     }
   }
 

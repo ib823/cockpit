@@ -1,29 +1,14 @@
-/**
- * NextAuth Configuration
- * Unified authentication system for the application
- * Supports credentials (admin bootstrap) and passkey authentication
- */
-
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { PrismaClient } from '@prisma/client';
-import NextAuth from 'next-auth';
+import { compare } from 'bcryptjs';
 import type { AuthOptions, Session, User } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import Credentials from 'next-auth/providers/credentials';
-import { compare } from 'bcryptjs';
-
-const prisma = new PrismaClient();
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import { prisma } from './db';
 
 export const authConfig = {
-  // JWT strategy (stateless sessions)
-  session: { strategy: 'jwt', maxAge: 24 * 60 * 60 }, // 24 hours
-
-  // Prisma adapter for user/account management
   adapter: PrismaAdapter(prisma),
-
-  // Authentication providers
+  session: { strategy: 'database', maxAge: 30 * 24 * 60 * 60 },
   providers: [
-    // Credentials provider for admin bootstrap and testing
     Credentials({
       id: 'credentials',
       name: 'Credentials',
@@ -32,27 +17,51 @@ export const authConfig = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
+        console.log('[AUTH DEBUG] authorize called with:', {
+          hasEmail: !!credentials?.email,
+          hasPassword: !!credentials?.password,
+          email: credentials?.email,
+        });
+
         if (!credentials?.email || !credentials?.password) {
+          console.log('[AUTH DEBUG] Missing credentials');
           return null;
         }
 
         const email = credentials.email as string;
         const password = credentials.password as string;
 
-        // Find user in database
         const user = await prisma.users.findUnique({
           where: { email }
         });
 
+        console.log('[AUTH DEBUG] User lookup:', {
+          email,
+          found: !!user,
+          role: user?.role,
+        });
+
         if (!user) {
+          console.log('[AUTH DEBUG] User not found');
           return null;
         }
 
-        // Admin bootstrap: Check env var password hash
-        if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD_HASH &&
-            email === process.env.ADMIN_EMAIL) {
-          const isValid = await compare(password, process.env.ADMIN_PASSWORD_HASH);
+        // Check EmailApproval table for 6-digit code
+        const emailApproval = await prisma.emailApproval.findUnique({
+          where: { email }
+        });
+
+        console.log('[AUTH DEBUG] EmailApproval check:', {
+          found: !!emailApproval,
+          expired: emailApproval ? emailApproval.tokenExpiresAt < new Date() : null
+        });
+
+        if (emailApproval && emailApproval.tokenExpiresAt > new Date()) {
+          const isValid = await compare(password, emailApproval.tokenHash);
+          console.log('[AUTH DEBUG] Code valid:', isValid);
+
           if (isValid) {
+            console.log('[AUTH DEBUG] Login successful via EmailApproval!');
             return {
               id: user.id,
               email: user.email,
@@ -62,13 +71,26 @@ export const authConfig = {
           }
         }
 
-        // For other users, password authentication is not supported
-        // (use passkeys or magic links instead)
+        // Fallback: Check env var (legacy)
+        if (process.env.ADMIN_PASSWORD_HASH && 
+            email === process.env.ADMIN_EMAIL) {
+          const isValid = await compare(password, process.env.ADMIN_PASSWORD_HASH);
+          if (isValid) {
+            console.log('[AUTH DEBUG] Login successful via env var!');
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+            };
+          }
+        }
+
+        console.log('[AUTH DEBUG] Login failed - no valid auth method');
         return null;
       },
     }),
 
-    // Passkey provider (credential verification happens in separate API routes)
     Credentials({
       id: 'webauthn',
       name: 'Passkey',
@@ -76,26 +98,17 @@ export const authConfig = {
         email: { label: 'Email', type: 'text' }
       },
       async authorize(credentials) {
-        if (!credentials?.email) {
-          return null;
-        }
+        if (!credentials?.email) return null;
 
-        // Passkey verification already done by WebAuthn API routes
-        // This just fetches the user to create a session
         const user = await prisma.users.findUnique({
           where: { email: credentials.email as string }
         });
 
-        if (!user) {
-          return null;
-        }
+        if (!user) return null;
 
-        // Check if user's access has expired
         const isExpired = !user.exception && user.accessExpiresAt &&
                          user.accessExpiresAt <= new Date();
-        if (isExpired) {
-          return null;
-        }
+        if (isExpired) return null;
 
         return {
           id: user.id,
@@ -107,18 +120,14 @@ export const authConfig = {
     }),
   ],
 
-  // Callbacks for session management
   callbacks: {
-    // Add user info to JWT token
     async jwt({ token, user, trigger }: { token: JWT; user?: User; trigger?: string }) {
-      // Initial sign in - add user data to token
       if (user) {
         token.userId = user.id;
         token.email = user.email;
         token.role = user.role || 'USER';
       }
 
-      // Update trigger - refresh user data from DB
       if (trigger === 'update') {
         const dbUser = await prisma.users.findUnique({
           where: { id: token.userId as string }
@@ -132,7 +141,6 @@ export const authConfig = {
       return token;
     },
 
-    // Add JWT data to session object
     async session({ session, token }: { session: Session; token: JWT }) {
       if (token) {
         session.user = {
@@ -146,12 +154,10 @@ export const authConfig = {
     },
   },
 
-  // Custom pages
   pages: {
     signIn: '/login',
     error: '/login',
   },
 
-  // Enable debug logging in development
   debug: process.env.NODE_ENV === 'development',
 } satisfies AuthOptions;

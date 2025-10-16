@@ -140,6 +140,13 @@ a:hover {
   [data-client-safe='true'] .cost-element {
     display: none;
   }
+
+  /* Force button visibility - override any hover-based hiding */
+  .always-visible {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-flex !important;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -269,4 +276,82 @@ a:hover {
   a {
     text-decoration: underline;
   }
+}
+
+/* Unified Design System */
+:root {
+  /* Brand Colors */
+  --primary: #1890ff;
+  --primary-hover: #40a9ff;
+  
+  /* Surfaces */
+  --surface: #f9fafb;
+  --surface-elevated: #ffffff;
+  
+  /* Text */
+  --ink: #1f2937;
+  --ink-dim: #6b7280;
+  
+  /* Borders */
+  --border: #e5e7eb;
+}
+
+/* Fix Ant Design Modal centering */
+.ant-modal-wrap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.ant-modal {
+  top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Fix modal centering */
+.ant-modal-wrap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.ant-modal {
+  top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Fix modal centering */
+
+/* ═══════════════════════════════════════════════════════
+   vis-timeline Phase Styles (SAP Activate)
+   ═══════════════════════════════════════════════════════ */
+
+.phase-prepare {
+  background-color: #91d5ff !important;
+  border-color: #40a9ff !important;
+  color: #001d66 !important;
+}
+
+.phase-explore {
+  background-color: #b7eb8f !important;
+  border-color: #52c41a !important;
+  color: #135200 !important;
+}
+
+.phase-realize {
+  background-color: #ffd591 !important;
+  border-color: #fa8c16 !important;
+  color: #613400 !important;
+}
+
+.phase-deploy {
+  background-color: #ffadd2 !important;
+  border-color: #eb2f96 !important;
+  color: #780650 !important;
+}
+
+.phase-run {
+  background-color: #d3adf7 !important;
+  border-color: #722ed1 !important;
+  color: #22075e !important;
 }

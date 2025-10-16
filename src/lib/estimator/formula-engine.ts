@@ -1,425 +1,233 @@
 /**
- * FORMULA ENGINE
+ * SAP Cockpit - Formula Engine
  *
- * Core calculation logic for SAP effort estimation:
- * Total MD = BCE × (1 + SB) × (1 + PC) × (1 + OSG) + FW
+ * Core calculation logic for L3-based estimation following SAP Activate methodology
  *
+ * Formula: E_total = E_FT + E_fixed + E_PMO
  * Where:
- * - BCE = Base Core Effort (378 MD for Finance+MM baseline)
- * - SB = Scope Breadth (modules, L3 items, integrations)
- * - PC = Process Complexity (extensions: in-app +0.01, BTP +0.05)
- * - OSG = Org Scale & Geography (countries, entities, languages)
- * - FW = Factory Wrapper (97 MD: PM 65 + Basis 24 + S&A 8)
+ * - E_FT = Base_FT × (1 + Sb) × (1 + Pc) × (1 + Os)
+ * - E_fixed = Basis + Security & Auth
+ * - E_PMO = Duration × PMO_rate (iterative)
+ * - Duration = (E_total / Capacity) × Overlap
  */
 
-export interface EstimatorInputs {
-  // Base profile
-  profile: ProfilePreset;
+import type {
+  EstimatorInputs,
+  EstimatorResults,
+  PhaseBreakdown,
+  L3ScopeItem,
+} from './types';
 
-  // Scope Breadth (SB)
-  modules: string[];
-  l3Items: L3Item[];
-  integrations: number;
-
-  // Process Complexity (PC)
-  inAppExtensions: number;
-  btpExtensions: number;
-
-  // Org Scale & Geography (OSG)
-  countries: number;
-  entities: number;
-  languages: number;
-  peakSessions: number;
-}
-
-export interface EstimateResult {
-  // Breakdown
-  bce: number;           // Base Core Effort
-  sbEffort: number;      // Scope Breadth effort
-  pcEffort: number;      // Process Complexity effort
-  osgEffort: number;     // Org Scale & Geography effort
-  fw: number;            // Factory Wrapper
-
-  // Multipliers
-  sbMultiplier: number;  // 1 + SB
-  pcMultiplier: number;  // 1 + PC
-  osgMultiplier: number; // 1 + OSG
-
-  // Totals
-  coreEffort: number;    // BCE × (1+SB) × (1+PC) × (1+OSG)
-  totalEffort: number;   // coreEffort + FW
-
-  // Derived metrics
-  duration: {
-    weeks: number;
-    months: number;
-  };
-  fte: number;
-  cost: {
-    currency: string;
-    amount: number;
-  };
-
-  // Justification
-  description: string;
-  confidence: number; // 0-100
-}
-
-export interface ProfilePreset {
-  id: string;
-  name: string;
-  bce: number;
-  modules: string[];
-  description: string;
-  complexity: number; // 1-5
-}
-
-export interface L3Item {
-  id: string;
-  code: string;         // e.g., "2TW" (GL Master Data)
-  name: string;
-  module: string;       // FI, CO, MM, SD, etc.
-  tier: 'A' | 'B' | 'C';
-  coefficient: number;  // 0.006, 0.008, 0.010
-  description: string;
-}
-
-// Preset profiles
-export const PROFILE_PRESETS: ProfilePreset[] = [
-  {
-    id: 'my-sme',
-    name: 'Malaysia SME (Finance)',
-    bce: 378,
-    modules: ['FI', 'CO'],
-    description: 'Standard finance impl with basic procurement, no integrations',
-    complexity: 2
-  },
-  {
-    id: 'sg-mid',
-    name: 'Singapore Mid-Market (Finance+MM)',
-    bce: 520,
-    modules: ['FI', 'CO', 'MM'],
-    description: 'Finance + Materials Management with standard integrations',
-    complexity: 3
-  },
-  {
-    id: 'multi-ent',
-    name: 'Multi-Country Enterprise',
-    bce: 890,
-    modules: ['FI', 'CO', 'MM', 'SD'],
-    description: 'Multi-country rollout with complex requirements',
-    complexity: 4
-  }
-];
-
-// L3 Tier coefficients
-export const TIER_COEFFICIENTS = {
-  A: 0.006, // Standard config, single variant, low risk
-  B: 0.008, // Cross-module touch, 2 variants, medium risk
-  C: 0.010  // E2E statutory, 3+ variants, high risk
-};
-
-// Extension coefficients
-export const EXTENSION_COEFFICIENTS = {
-  inApp: 0.01,  // In-app extension (Fiori, custom fields)
-  btp: 0.05     // BTP extension (CAP services, integrations)
-};
-
-// Geography coefficients
-export const GEOGRAPHY_COEFFICIENTS = {
-  countryBase: 0.10,      // +10% per additional country
-  entityBase: 0.05,       // +5% per additional legal entity
-  languageBase: 0.02,     // +2% per additional language
-  sessionBase: 0.01       // +1% per 100 peak sessions
-};
-
-// Factory wrapper base
-export const FACTORY_WRAPPER_BASE = 97; // PM 65 + Basis 24 + S&A 8
-
-// Resource assumptions
-export const RESOURCE_ASSUMPTIONS = {
-  fteDefault: 6,                    // 6 consultants
-  workDaysPerMonth: 22,
-  bufferPercent: 0.15,              // 15% contingency
-  ratesByRegion: {
-    ABMY: 1580,                     // RM per day
-    ABSG: 2100,                     // SGD per day
-    ABVN: 850                       // USD per day
-  },
-  defaultRegion: 'ABMY' as const
-};
+import {
+  FORMULA_CONSTANTS,
+  PHASE_WEIGHTS,
+  validateInputs,
+} from './types';
 
 /**
- * Core formula engine
+ * Main Formula Engine class
  */
 export class FormulaEngine {
   /**
-   * Calculate total estimate from inputs
+   * Calculate Scope Breadth coefficient (Sb)
+   *
+   * Formula: Sb = Σ(L3 coefficients) + (integrations × 0.02)
    */
-  calculateTotal(inputs: EstimatorInputs): EstimateResult {
-    // 1. Base Core Effort
-    const bce = inputs.profile.bce;
+  calculateScopeBreadth(selectedItems: L3ScopeItem[], integrations: number): number {
+    const itemCoefficients = selectedItems
+      .filter(item => item.complexityMetrics?.defaultTier !== 'D')
+      .reduce((sum, item) => sum + (item.complexityMetrics?.coefficient ?? 0), 0);
 
-    // 2. Scope Breadth (SB)
-    const sbMultiplier = this.calculateSB(
-      inputs.modules,
-      inputs.l3Items,
-      inputs.integrations
-    );
-    const sbEffort = Math.round(bce * (sbMultiplier - 1));
+    const integrationFactor = integrations * FORMULA_CONSTANTS.INTEGRATION_FACTOR;
 
-    // 3. Process Complexity (PC)
-    const pcMultiplier = this.calculatePC(
-      inputs.inAppExtensions,
-      inputs.btpExtensions
-    );
-    const pcEffort = Math.round(bce * sbMultiplier * (pcMultiplier - 1));
+    return Math.max(0, itemCoefficients + integrationFactor);
+  }
 
-    // 4. Org Scale & Geography (OSG)
-    const osgMultiplier = this.calculateOSG(
-      inputs.countries,
-      inputs.entities,
-      inputs.languages,
-      inputs.peakSessions
-    );
-    const osgEffort = Math.round(bce * sbMultiplier * pcMultiplier * (osgMultiplier - 1));
+  /**
+   * Calculate Process Complexity coefficient (Pc)
+   *
+   * Formula: Pc = (extra_forms × 0.01) + ((1 - fit_to_standard) × 0.25)
+   */
+  calculateProcessComplexity(customForms: number, fitToStandard: number): number {
+    const extraForms = Math.max(0, customForms - FORMULA_CONSTANTS.BASELINE_FORMS);
+    const formsFactor = extraForms * FORMULA_CONSTANTS.EXTRA_FORM_FACTOR;
 
-    // 5. Core effort (before wrapper)
-    const coreEffort = Math.round(bce * sbMultiplier * pcMultiplier * osgMultiplier);
+    const fitGap = Math.max(0, 1 - fitToStandard);
+    const fitFactor = fitGap * FORMULA_CONSTANTS.FIT_GAP_FACTOR;
 
-    // 6. Factory Wrapper (scales slightly with scope)
-    const fw = this.calculateFW(sbMultiplier, inputs.countries);
+    return Math.max(0, formsFactor + fitFactor);
+  }
 
-    // 7. Total effort
-    const totalEffort = coreEffort + fw;
+  /**
+   * Calculate Organizational Scale coefficient (Os)
+   *
+   * Formula: Os = (entities - 1) × 0.03 + (countries - 1) × 0.05 + (languages - 1) × 0.02
+   */
+  calculateOrgScale(legalEntities: number, countries: number, languages: number): number {
+    const entitiesFactor = Math.max(0, legalEntities - 1) * FORMULA_CONSTANTS.ENTITY_FACTOR;
+    const countriesFactor = Math.max(0, countries - 1) * FORMULA_CONSTANTS.COUNTRY_FACTOR;
+    const languagesFactor = Math.max(0, languages - 1) * FORMULA_CONSTANTS.LANGUAGE_FACTOR;
 
-    // 8. Derived metrics
-    const duration = this.calculateDuration(totalEffort);
-    const fte = RESOURCE_ASSUMPTIONS.fteDefault;
-    const cost = this.calculateCost(totalEffort, RESOURCE_ASSUMPTIONS.defaultRegion);
+    return Math.max(0, entitiesFactor + countriesFactor + languagesFactor);
+  }
 
-    // 9. Justification
-    const description = this.generateDescription(inputs);
-    const confidence = this.calculateConfidence(inputs);
+  /**
+   * Calculate total estimation with PMO iteration
+   *
+   * This is the main calculation method that combines all coefficients and
+   * performs iterative PMO calculation until convergence.
+   */
+  calculateTotal(inputs: EstimatorInputs): EstimatorResults {
+    const validationErrors = validateInputs(inputs);
+    if (validationErrors.length > 0) {
+      throw new Error(`Invalid inputs: ${validationErrors.map(e => e.message).join(', ')}`);
+    }
+
+    // Step 1: Calculate coefficients
+    const Sb = this.calculateScopeBreadth(inputs.selectedL3Items, inputs.integrations);
+    const Pc = this.calculateProcessComplexity(inputs.customForms, inputs.fitToStandard);
+    const Os = this.calculateOrgScale(inputs.legalEntities, inputs.countries, inputs.languages);
+
+    // Step 2: Calculate functional/technical effort
+    const E_FT = inputs.profile.baseFT * (1 + Sb) * (1 + Pc) * (1 + Os);
+
+    // Step 3: Calculate fixed effort
+    const E_fixed = inputs.profile.basis + inputs.profile.securityAuth;
+
+    // Step 4: Calculate capacity (MD per month)
+    const capacity = inputs.fte * FORMULA_CONSTANTS.WORKING_DAYS_PER_MONTH * inputs.utilization;
+
+    if (capacity <= 0) {
+      throw new Error('Capacity must be positive (check FTE and utilization values)');
+    }
+
+    // Step 5: Iterative PMO calculation
+    let D = ((E_FT + E_fixed) / capacity) * inputs.overlapFactor;
+    let E_PMO = 0;
+
+    for (let i = 0; i < FORMULA_CONSTANTS.MAX_PMO_ITERATIONS; i++) {
+      const D_prev = D;
+      E_PMO = D * FORMULA_CONSTANTS.PMO_MONTHLY_RATE;
+      D = ((E_FT + E_fixed + E_PMO) / capacity) * inputs.overlapFactor;
+
+      if (Math.abs(D - D_prev) < FORMULA_CONSTANTS.PMO_CONVERGENCE_THRESHOLD) {
+        break;
+      }
+    }
+
+    const E_total = E_FT + E_fixed + E_PMO;
+
+    // Step 6: Distribute across phases
+    const phases = this.distributePhases(E_total, D);
 
     return {
-      bce,
-      sbEffort,
-      pcEffort,
-      osgEffort,
-      fw,
-      sbMultiplier,
-      pcMultiplier,
-      osgMultiplier,
-      coreEffort,
-      totalEffort,
-      duration,
-      fte,
-      cost,
-      description,
-      confidence
+      totalMD: E_total,
+      durationMonths: D,
+      pmoMD: E_PMO,
+      phases,
+      capacityPerMonth: capacity,
+      coefficients: { Sb, Pc, Os },
+      intermediateValues: {
+        E_FT,
+        E_fixed,
+        D_raw: ((E_FT + E_fixed) / capacity),
+      },
     };
   }
 
   /**
-   * Calculate Scope Breadth (SB) multiplier
-   * SB = modules + L3 items + integrations
+   * Distribute total effort and duration across SAP Activate phases
    */
-  calculateSB(
-    modules: string[],
-    l3Items: L3Item[],
-    integrations: number
-  ): number {
-    let sb = 0;
+  private distributePhases(totalMD: number, totalDuration: number): PhaseBreakdown[] {
+    const phases: PhaseBreakdown[] = [];
 
-    // Module additions (beyond baseline FI+CO)
-    const baselineModules = ['FI', 'CO'];
-    const extraModules = modules.filter(m => !baselineModules.includes(m));
-    sb += extraModules.length * 0.03; // +3% per extra module
+    for (const [phaseName, weight] of Object.entries(PHASE_WEIGHTS)) {
+      phases.push({
+        phaseName: phaseName as PhaseBreakdown['phaseName'],
+        effortMD: totalMD * weight,
+        durationMonths: totalDuration * weight,
+      });
+    }
 
-    // L3 items by tier
-    const l3Contribution = l3Items.reduce((sum, item) => {
-      return sum + item.coefficient;
-    }, 0);
-    sb += l3Contribution;
-
-    // Integrations
-    sb += integrations * 0.03; // +3% per integration
-
-    return 1 + sb; // Return as multiplier (1 + SB)
+    return phases;
   }
 
   /**
-   * Calculate Process Complexity (PC) multiplier
-   * PC = in-app extensions + BTP extensions
+   * Calculate dates for each phase based on start date
    */
-  calculatePC(inAppExtensions: number, btpExtensions: number): number {
-    let pc = 0;
+  calculatePhaseDates(phases: PhaseBreakdown[], startDate: Date): PhaseBreakdown[] {
+    let currentDate = new Date(startDate);
 
-    pc += inAppExtensions * EXTENSION_COEFFICIENTS.inApp;
-    pc += btpExtensions * EXTENSION_COEFFICIENTS.btp;
+    return phases.map(phase => {
+      const phaseStartDate = new Date(currentDate);
+      const phaseEndDate = new Date(currentDate);
+      phaseEndDate.setMonth(phaseEndDate.getMonth() + phase.durationMonths);
 
-    return 1 + pc; // Return as multiplier (1 + PC)
+      currentDate = new Date(phaseEndDate);
+
+      return { ...phase, startDate: phaseStartDate, endDate: phaseEndDate };
+    });
   }
 
   /**
-   * Calculate Org Scale & Geography (OSG) multiplier
-   * OSG = countries + entities + languages + sessions
+   * Detect Tier D items in selection
    */
-  calculateOSG(
-    countries: number,
-    entities: number,
-    languages: number,
-    peakSessions: number
-  ): number {
-    let osg = 0;
-
-    // Additional countries (first country is baseline)
-    if (countries > 1) {
-      osg += (countries - 1) * GEOGRAPHY_COEFFICIENTS.countryBase;
-    }
-
-    // Additional entities
-    if (entities > 1) {
-      osg += (entities - 1) * GEOGRAPHY_COEFFICIENTS.entityBase;
-    }
-
-    // Additional languages
-    if (languages > 1) {
-      osg += (languages - 1) * GEOGRAPHY_COEFFICIENTS.languageBase;
-    }
-
-    // Peak sessions (per 100 users)
-    if (peakSessions > 100) {
-      osg += Math.floor(peakSessions / 100) * GEOGRAPHY_COEFFICIENTS.sessionBase;
-    }
-
-    return 1 + osg; // Return as multiplier (1 + OSG)
+  detectTierDItems(selectedItems: L3ScopeItem[]): string[] {
+    return selectedItems
+      .filter(item => item.complexityMetrics?.defaultTier === 'D')
+      .map(item => item.l3Code);
   }
 
   /**
-   * Calculate Factory Wrapper
-   * Scales slightly with scope and geography
+   * Generate warnings based on inputs and results
    */
-  calculateFW(sbMultiplier: number, countries: number): number {
-    let fw = FACTORY_WRAPPER_BASE;
+  generateWarnings(inputs: EstimatorInputs, results: EstimatorResults): string[] {
+    const warnings: string[] = [];
 
-    // Scale up slightly for large scope
-    if (sbMultiplier > 1.2) {
-      fw = Math.round(fw * 1.1); // +10% for complex scope
+    const tierDItems = this.detectTierDItems(inputs.selectedL3Items);
+    if (tierDItems.length > 0) {
+      warnings.push(`⚠️ ${tierDItems.length} Tier D items require custom pricing: ${tierDItems.join(', ')}`);
     }
 
-    // Scale up for multi-country
-    if (countries > 2) {
-      fw = Math.round(fw * 1.15); // +15% for 3+ countries
+    const totalComplexity = results.coefficients.Sb + results.coefficients.Pc + results.coefficients.Os;
+    if (totalComplexity > 0.5) {
+      warnings.push(`⚠️ High complexity detected (${(totalComplexity * 100).toFixed(0)}%). Consider phased rollout.`);
     }
 
-    return fw;
-  }
-
-  /**
-   * Calculate duration (weeks and months)
-   */
-  calculateDuration(totalEffort: number): { weeks: number; months: number } {
-    const { fteDefault, workDaysPerMonth, bufferPercent } = RESOURCE_ASSUMPTIONS;
-
-    // Nominal duration
-    const nominalMonths = totalEffort / (fteDefault * workDaysPerMonth);
-
-    // With buffer
-    const paddedMonths = nominalMonths * (1 + bufferPercent);
-
-    return {
-      weeks: Math.ceil(paddedMonths * 4.33), // 4.33 weeks per month
-      months: Math.round(paddedMonths * 10) / 10 // Round to 1 decimal
-    };
-  }
-
-  /**
-   * Calculate cost
-   */
-  calculateCost(
-    totalEffort: number,
-    region: keyof typeof RESOURCE_ASSUMPTIONS.ratesByRegion
-  ): { currency: string; amount: number } {
-    const rate = RESOURCE_ASSUMPTIONS.ratesByRegion[region];
-    const amount = Math.round(totalEffort * rate);
-
-    const currencies = {
-      ABMY: 'RM',
-      ABSG: 'SGD',
-      ABVN: 'USD'
-    };
-
-    return {
-      currency: currencies[region],
-      amount
-    };
-  }
-
-  /**
-   * Generate human-readable description
-   */
-  generateDescription(inputs: EstimatorInputs): string {
-    const parts: string[] = [];
-
-    // Base description from profile
-    parts.push(inputs.profile.description);
-
-    // Integrations
-    if (inputs.integrations > 0) {
-      parts.push(`${inputs.integrations} integration${inputs.integrations > 1 ? 's' : ''}`);
+    if (inputs.utilization < 0.7) {
+      warnings.push(`⚠️ Low utilization (${(inputs.utilization * 100).toFixed(0)}%). This may indicate resource availability issues.`);
     }
 
-    // Extensions
-    const totalExt = inputs.inAppExtensions + inputs.btpExtensions;
-    if (totalExt > 0) {
-      parts.push(`${totalExt} custom extension${totalExt > 1 ? 's' : ''}`);
+    if (inputs.overlapFactor < 0.65) {
+      warnings.push(`⚠️ Aggressive phase overlap (${(inputs.overlapFactor * 100).toFixed(0)}%). High risk of quality issues.`);
     }
 
-    // Geography
-    if (inputs.countries > 1) {
-      parts.push(`${inputs.countries} countries`);
+    if (results.durationMonths > 12) {
+      warnings.push(`⚠️ Duration exceeds 12 months. Consider splitting into multiple phases.`);
     }
 
-    return parts.join(' • ');
-  }
-
-  /**
-   * Calculate confidence score (0-100)
-   * Based on data completeness and risk factors
-   */
-  calculateConfidence(inputs: EstimatorInputs): number {
-    let confidence = 100;
-
-    // Reduce for high complexity
-    if (inputs.profile.complexity >= 4) {
-      confidence -= 10;
+    if (inputs.fte > 20) {
+      warnings.push(`⚠️ Large team size (${inputs.fte} FTE). Coordination overhead may be underestimated.`);
     }
 
-    // Reduce for many integrations
-    if (inputs.integrations > 3) {
-      confidence -= 5;
-    }
-
-    // Reduce for BTP extensions (higher risk)
-    if (inputs.btpExtensions > 0) {
-      confidence -= 10;
-    }
-
-    // Reduce for multi-country
-    if (inputs.countries > 2) {
-      confidence -= 5;
-    }
-
-    // Reduce if no L3 items (less detailed scope)
-    if (inputs.l3Items.length === 0) {
-      confidence -= 15;
-    }
-
-    return Math.max(confidence, 50); // Minimum 50%
+    return warnings;
   }
 }
 
-// Export singleton instance
+/**
+ * Singleton instance for use throughout the application
+ */
 export const formulaEngine = new FormulaEngine();
+
+/**
+ * Quick calculation function for convenience
+ */
+export function calculateEstimate(inputs: EstimatorInputs): {
+  results: EstimatorResults;
+  warnings: string[];
+} {
+  const results = formulaEngine.calculateTotal(inputs);
+  const warnings = formulaEngine.generateWarnings(inputs, results);
+
+  return { results, warnings };
+}

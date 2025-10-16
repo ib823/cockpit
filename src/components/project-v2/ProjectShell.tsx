@@ -211,7 +211,7 @@ export function ProjectShell() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: animation.duration.normal, ease: animation.easing.standard }}
-          className="flex-1 overflow-hidden pb-20 md:pb-0"
+          className="flex-1 overflow-y-auto pb-20 md:pb-0"
         >
           {mode === "capture" && <CaptureMode />}
           {mode === "decide" && <DecideMode />}

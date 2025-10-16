@@ -5,7 +5,6 @@
  */
 
 import { getServerSession } from 'next-auth';
-import { encode } from 'next-auth/jwt';
 import { cookies } from 'next/headers';
 import { authConfig } from './auth';
 import { env } from './env';
@@ -80,25 +79,64 @@ export async function isAuthenticated(): Promise<boolean> {
 
 /**
  * Manually create a NextAuth session (for custom auth flows)
- * Use this in custom WebAuthn/magic link routes after successful authentication
- * This creates a proper NextAuth JWT session without using the standard flow
+ * Uses jose directly for JWT signing (bypasses NextAuth's encode to avoid JWE issues)
  */
-export async function createAuthSession(userId: string, email: string, role: 'USER' | 'MANAGER' | 'ADMIN'): Promise<void> {
-  const token = await encode({
-    token: {
-      userId,
-      email,
-      role,
-      sub: userId,
-    },
-    secret: env.NEXTAUTH_SECRET,
-    maxAge: 24 * 60 * 60, // 24 hours
-  });
+/**
+ * Manually create a NextAuth session (for custom auth flows)
+ * Creates JWT manually using Node crypto to avoid jose version conflicts
+ */
+/**
+ * Create JWT token for session (caller must set cookie)
+ */
+export async function createSessionToken(
+  userId: string, 
+  email: string, 
+  role: 'USER' | 'MANAGER' | 'ADMIN'
+): Promise<string> {
+  const crypto = await import('crypto');
+  
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    userId,
+    email,
+    role,
+    sub: userId,
+    name: email.split('@')[0],
+    iat: now,
+    exp: now + (24 * 60 * 60)
+  };
+  
+  const base64UrlEncode = (obj: object) =>
+    Buffer.from(JSON.stringify(obj))
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+  
+  const headerEncoded = base64UrlEncode(header);
+  const payloadEncoded = base64UrlEncode(payload);
+  const signatureInput = `${headerEncoded}.${payloadEncoded}`;
+  
+  const signature = crypto.createHmac('sha256', env.NEXTAUTH_SECRET)
+    .update(signatureInput)
+    .digest('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+  
+  return `${headerEncoded}.${payloadEncoded}.${signature}`;
 
+  // Set the session cookie
+  const cookieStore = await cookies();
+  cookieStore.delete('next-auth.session-token');
+}
+export async function createAuthSession(userId: string, email: string, role: string) {
+  const token = await createSessionToken(userId, email, role as "USER" | "MANAGER" | "ADMIN");
   const cookieStore = await cookies();
   cookieStore.set('next-auth.session-token', token, {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: 24 * 60 * 60,
@@ -107,9 +145,9 @@ export async function createAuthSession(userId: string, email: string, role: 'US
 
 /**
  * Destroy the current NextAuth session
- * Use this in logout routes
  */
-export async function destroyAuthSession(): Promise<void> {
+export async function destroyAuthSession() {
   const cookieStore = await cookies();
   cookieStore.delete('next-auth.session-token');
+  cookieStore.delete('__Secure-next-auth.session-token');
 }

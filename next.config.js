@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: ['http://127.0.0.1', 'http://localhost'],
   // SECURITY: Enable type checking for safety
   typescript: {
     ignoreBuildErrors: false,
@@ -131,3 +132,14 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
+// Suppress React 19 warnings
+if (typeof window !== 'undefined') {
+  const originalError = console.error;
+  console.error = (...args) => {
+    if (typeof args[0] === 'string' && args[0].includes('antd: compatible')) {
+      return;
+    }
+    originalError.apply(console, args);
+  };
+}

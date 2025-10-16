@@ -1,5 +1,6 @@
 import { Role } from '@prisma/client';
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { prisma } from '../../../../lib/db';
 import { createAuthSession } from '@/lib/nextauth-helpers';
 import { challenges, origin, rpID, verifyRegistrationResponse } from '../../../../lib/webauthn';
@@ -10,7 +11,13 @@ export async function POST(req: Request) {
   try {
     const { email, response } = await req.json().catch(() => ({}));
 
-    if (!email || !response) {
+    // Validate email format
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!email || !emailRegex.test(email) || email.length > 255) {
+      return NextResponse.json({ ok: false, message: 'Invalid email format.' }, { status: 400 });
+    }
+
+    if (!response) {
       return NextResponse.json({ ok: false, message: 'Missing required fields.' }, { status: 400 });
     }
 
@@ -45,6 +52,7 @@ export async function POST(req: Request) {
           firstLoginAt: new Date(), // Update first login time on passkey registration
         },
         create: {
+          id: randomUUID(),
           email,
           role: Role.USER,
           accessExpiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),

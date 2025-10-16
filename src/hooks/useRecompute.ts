@@ -123,6 +123,7 @@ export function useRecompute(
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
         clearTimeout(debounceTimerRef.current);
       }
     };

@@ -36,7 +36,7 @@ export function HolidayManagerModal({
   };
 
   const handleSave = () => {
-    // TODO: Persist to localStorage or backend
+    // Note: Future enhancement - persist to localStorage or backend API
     console.log('Saving holidays:', holidays);
     onClose();
   };

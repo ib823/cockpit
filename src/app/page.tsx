@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Sparkles, CheckCircle, Clock, TrendingUp, Users, Zap, BarChart3, Calendar } from 'lucide-react';
+import { ArrowRight, CheckCircle, Clock, TrendingUp, Users, Zap, BarChart3, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { LogoutButton } from "@/components/common/LogoutButton";
+import { Spin } from 'antd';
 
 /**
  * LANDING PAGE - Emotional First Impression
@@ -18,18 +20,40 @@ import { LogoutButton } from "@/components/common/LogoutButton";
 
 export default function LandingPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [showDemo, setShowDemo] = useState(false);
 
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.push('/dashboard');
+    }
+  }, [status, session, router]);
+
+  // Show loading while checking auth
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Spin size="large" />
+          <p className="text-gray-600 mt-4">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't show landing page if redirecting
+  if (status === 'authenticated') {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-blue-100">
       {/* Navigation */}
       <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold">SAP Cockpit</span>
+            <span className="text-2xl font-bold text-gray-900">SAP Cockpit</span>
           </div>
           <div className="flex items-center gap-4">
             <button
@@ -52,7 +76,7 @@ export default function LandingPage() {
           className="text-center max-w-4xl mx-auto"
         >
           {/* Headline - Outcome focused */}
-          <h1 className="text-5xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-5xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-blue-900 to-blue-700 bg-clip-text text-transparent leading-tight">
             From RFP to Proposal
             <br />
             in 10 Minutes
@@ -71,7 +95,7 @@ export default function LandingPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => router.push('/estimator')}
-              className="group px-8 py-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl text-lg font-semibold shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3"
+              className="group px-8 py-5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl text-lg font-semibold shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3"
             >
               <Zap className="w-6 h-6" />
               <span>Try Quick Estimate</span>
@@ -187,7 +211,7 @@ export default function LandingPage() {
             className="mt-16 text-center"
           >
             <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-6 py-3 rounded-full font-semibold">
-              <Sparkles className="w-5 h-5" />
+              <CheckCircle className="w-5 h-5" />
               <span>All solved in under 10 minutes</span>
             </div>
           </motion.div>
@@ -206,7 +230,7 @@ export default function LandingPage() {
             <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-gray-900">
               Join 500+ consultants who&apos;ve
               <br />
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
                 reclaimed their weekends
               </span>
             </h2>
@@ -246,7 +270,7 @@ export default function LandingPage() {
                 className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
                     {testimonial.avatar}
                   </div>
                   <div>
@@ -265,7 +289,7 @@ export default function LandingPage() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 text-center text-white"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-3xl p-12 text-center text-white"
           >
             <div className="grid md:grid-cols-4 gap-8">
               {[

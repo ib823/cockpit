@@ -10,7 +10,23 @@
  * - Effort calibration (learning curves)
  */
 
-import type { EstimatorInputs, EstimateResult } from './formula-engine';
+import type { EstimatorInputs as BaseEstimatorInputs, EstimatorResults } from './types';
+
+// Extended estimator inputs with additional fields used by theorem engine
+export interface EstimatorInputs extends BaseEstimatorInputs {
+  inAppExtensions?: number;
+  btpExtensions?: number;
+}
+
+// Legacy estimate result interface
+export interface EstimateResult {
+  totalEffort: number;
+  bce: number;
+  sbEffort: number;
+  pcEffort: number;
+  osgEffort: number;
+  fw: number;
+}
 
 export interface ParetoAnalysis {
   drivers: ParetoDriver[];
@@ -244,12 +260,12 @@ export class TheoremEngine {
     const factors: SensitivityFactor[] = [];
 
     // Factor 1: Base effort (±10%)
-    const bceVariation = inputs.profile.bce * 0.1;
+    const bceVariation = inputs.profile.baseFT * 0.1;
     factors.push({
       name: 'Base effort',
-      baseValue: inputs.profile.bce,
-      lowValue: inputs.profile.bce - bceVariation,
-      highValue: inputs.profile.bce + bceVariation,
+      baseValue: inputs.profile.baseFT,
+      lowValue: inputs.profile.baseFT - bceVariation,
+      highValue: inputs.profile.baseFT + bceVariation,
       lowEstimate: baselineTotal - bceVariation,
       highEstimate: baselineTotal + bceVariation,
       swingMD: bceVariation * 2,
@@ -287,7 +303,7 @@ export class TheoremEngine {
     }
 
     // Factor 4: Extensions (±10%)
-    const totalExt = inputs.inAppExtensions + inputs.btpExtensions;
+    const totalExt = (inputs.inAppExtensions || 0) + (inputs.btpExtensions || 0);
     if (totalExt > 0) {
       const extSwing = baselineTotal * 0.01 * 0.1 * totalExt;
       factors.push({

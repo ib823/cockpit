@@ -328,6 +328,7 @@ model users {
   comments           comments[]
   projects           projects[]
   sessions           sessions[]
+  ganttProjects      GanttProject[]
 
   @@index([email])
 }
@@ -381,4 +382,394 @@ enum Role {
   USER
   MANAGER
   ADMIN
+}
+
+// ============================================
+// SAP Cockpit - Phase 1: L3-Based Estimator Models
+// ============================================
+
+/// Organization for multi-tenancy support
+model Organization {
+  id              String            @id @default(cuid())
+  name            String
+  settings        Json              // { defaultRateCard, holidayCalendars, allowTierD }
+  members         TeamMember[]
+  scenarios       Scenario[]
+  savedSelections SavedSelection[]
+  rateCards       RateCard[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([name])
+}
+
+/// Team member with role-based access control
+model TeamMember {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           UserRole     @default(VIEWER)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+enum UserRole {
+  ADMIN
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+/// Line of Business (12 LOBs)
+model Lob {
+  id                  String        @id @default(cuid())
+  lobName             String        @unique
+  l3Count             Int
+  releaseTag          String
+  navigatorSectionUrl String
+  l3ScopeItems        L3ScopeItem[]
+  createdAt           DateTime      @default(now())
+
+  @@index([lobName])
+}
+
+/// L3 Scope Item (293 items from SAP Process Navigator)
+model L3ScopeItem {
+  id                  String              @id @default(cuid())
+  lobId               String
+  lob                 Lob                 @relation(fields: [lobId], references: [id], onDelete: Cascade)
+  module              String?
+  l3Code              String              @unique
+  l3Name              String
+  processNavigatorUrl String
+  formerCode          String?
+  releaseTag          String
+  complexityMetrics   ComplexityMetrics?
+  integrationDetails  IntegrationDetails?
+  createdAt           DateTime            @default(now())
+
+  @@index([lobId])
+  @@index([l3Code])
+  @@index([module])
+}
+
+/// Complexity metrics for each L3 item
+model ComplexityMetrics {
+  id                 String      @id @default(cuid())
+  l3Id               String      @unique
+  l3ScopeItem        L3ScopeItem @relation(fields: [l3Id], references: [id], onDelete: Cascade)
+  defaultTier        String      // A, B, C, D
+  coefficient        Float?      // NULL for Tier D
+  tierRationale      String
+  crossModuleTouches String?     // e.g., "FI↔CO"
+  localizationFlag   Boolean     @default(false)
+  extensionRisk      String      // Low, Med, High
+  createdAt          DateTime    @default(now())
+
+  @@index([defaultTier])
+  @@index([extensionRisk])
+}
+
+/// Integration details for each L3 item
+model IntegrationDetails {
+  id                          String      @id @default(cuid())
+  l3Id                        String      @unique
+  l3ScopeItem                 L3ScopeItem @relation(fields: [l3Id], references: [id], onDelete: Cascade)
+  integrationPackageAvailable String      // Yes, No, NA
+  testScriptExists            Boolean     @default(true)
+  createdAt                   DateTime    @default(now())
+}
+
+/// Saved L3 selection bundles for reuse
+model SavedSelection {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  l3ItemIds      String[]     // Array of L3 codes
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      String
+  isPublic       Boolean      @default(false)
+  usageCount     Int          @default(0)
+  tags           String[]
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([createdBy])
+  @@index([isPublic])
+}
+
+/// Rate card for resource costing
+model RateCard {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  country        String
+  currency       String
+  rates          Json         // { role: dailyRate }
+  effectiveFrom  DateTime
+  effectiveTo    DateTime?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, isActive])
+  @@index([country])
+}
+
+/// Scenario (saved estimate with results)
+model Scenario {
+  id              String            @id @default(cuid())
+  userId          String
+  organizationId  String?
+  organization    Organization?     @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  name            String
+  inputs          Json              // EstimatorInputs
+  totalMD         Float
+  durationMonths  Float
+  pmoMD           Float
+  phases          Json              // PhaseBreakdown[]
+  startDate       DateTime?
+  resources       Json?             // ResourceAllocation[]
+  versions        ScenarioVersion[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([createdAt])
+}
+
+/// Scenario version history for audit trail
+model ScenarioVersion {
+  id            String   @id @default(cuid())
+  scenarioId    String
+  scenario      Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  label         String?
+  snapshot      Json     // Complete scenario state
+  changes       Json?    // Diff from previous version
+  changeReason  String?
+  createdBy     String
+  createdAt     DateTime @default(now())
+
+  @@unique([scenarioId, versionNumber])
+  @@index([scenarioId])
+  @@index([createdAt])
+}
+
+// ============================================
+// Gantt Tool - Database Models
+// ============================================
+
+/// Gantt Project - Main project container
+model GanttProject {
+  id          String   @id @default(cuid())
+  userId      String   // Owner of the project
+  name        String
+  description String?  @db.Text
+  startDate   DateTime @db.Date
+
+  // View settings stored as JSON for flexibility
+  viewSettings Json    // GanttViewSettings type
+
+  // Relationships
+  phases      GanttPhase[]
+  milestones  GanttMilestone[]
+  holidays    GanttHoliday[]
+  resources   GanttResource[]
+
+  // Sharing and collaboration
+  shares      GanttProjectShare[]
+
+  // Budget (stored as JSON for flexibility)
+  budget      Json?   // ProjectBudget type
+
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Soft delete support
+  deletedAt   DateTime?
+
+  // User relationship
+  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([deletedAt])
+}
+
+/// Gantt Phase - Major project phases
+model GanttPhase {
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String
+  description String?  @db.Text
+  color       String   // Hex color code
+  startDate   DateTime @db.Date
+  endDate     DateTime @db.Date
+  collapsed   Boolean  @default(false)
+  order       Int      @default(0) // Display order
+
+  // Dependencies stored as array of phase IDs
+  dependencies String[] // Array of GanttPhase IDs
+
+  // Relationships
+  project     GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks       GanttTask[]
+  phaseResourceAssignments GanttPhaseResourceAssignment[]
+
+  @@index([projectId])
+  @@index([order])
+}
+
+/// Gantt Task - Individual tasks within phases
+model GanttTask {
+  id          String   @id @default(cuid())
+  phaseId     String
+  name        String
+  description String?  @db.Text
+  startDate   DateTime @db.Date
+  endDate     DateTime @db.Date
+  progress    Int      @default(0) // 0-100
+  assignee    String?  // Legacy field, use resourceAssignments instead
+  order       Int      @default(0) // Display order within phase
+
+  // Dependencies stored as array of task IDs
+  dependencies String[] // Array of GanttTask IDs
+
+  // Relationships
+  phase       GanttPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  resourceAssignments GanttTaskResourceAssignment[]
+
+  @@index([phaseId])
+  @@index([order])
+}
+
+/// Gantt Milestone - Key project milestones
+model GanttMilestone {
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String
+  description String?  @db.Text
+  date        DateTime @db.Date
+  icon        String   // Lucide icon name
+  color       String   // Hex color code
+
+  // Relationships
+  project     GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([date])
+}
+
+/// Gantt Holiday - Project holidays/non-working days
+model GanttHoliday {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  date      DateTime @db.Date
+  region    String   // e.g., "US", "MY", "Global"
+  type      String   // "public" | "company" | "custom"
+
+  // Relationships
+  project   GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([date])
+}
+
+/// Gantt Resource - Team members and their roles
+model GanttResource {
+  id            String   @id @default(cuid())
+  projectId     String
+  name          String   // Role name (not person name)
+  category      String   // ResourceCategory enum value
+  description   String   @db.Text
+  designation   String   // ResourceDesignation enum value
+
+  // Organization hierarchy
+  managerResourceId String? // ID of manager resource
+  email         String?
+  department    String?
+  location      String?
+  projectRole   String?
+
+  // Cost tracking
+  rateType          String? // "hourly" | "daily" | "fixed"
+  hourlyRate        Decimal? @db.Decimal(10, 2)
+  dailyRate         Decimal? @db.Decimal(10, 2)
+  currency          String?  // e.g., "USD", "MYR"
+  utilizationTarget Int?     // 0-100
+
+  // Metadata
+  createdAt     DateTime @default(now())
+
+  // Relationships
+  project       GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskAssignments GanttTaskResourceAssignment[]
+  phaseAssignments GanttPhaseResourceAssignment[]
+
+  @@index([projectId])
+  @@index([category])
+}
+
+/// Task Resource Assignment - Links resources to tasks
+model GanttTaskResourceAssignment {
+  id                  String   @id @default(cuid())
+  taskId              String
+  resourceId          String
+  assignmentNotes     String   @db.Text // What they do on this task
+  allocationPercentage Int     // 0-100
+  assignedAt          DateTime @default(now())
+
+  // Relationships
+  task      GanttTask     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  resource  GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, resourceId]) // Prevent duplicate assignments
+  @@index([taskId])
+  @@index([resourceId])
+}
+
+/// Phase Resource Assignment - Links PM resources to phases
+model GanttPhaseResourceAssignment {
+  id                  String   @id @default(cuid())
+  phaseId             String
+  resourceId          String
+  assignmentNotes     String   @db.Text
+  allocationPercentage Int     // 0-100
+  assignedAt          DateTime @default(now())
+
+  // Relationships
+  phase     GanttPhase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  resource  GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@unique([phaseId, resourceId]) // Prevent duplicate assignments
+  @@index([phaseId])
+  @@index([resourceId])
+}
+
+/// Gantt Project Share - Share projects with view-only access
+model GanttProjectShare {
+  id           String    @id @default(cuid())
+  projectId    String
+  token        String    @unique // Public share token
+  expiresAt    DateTime?
+  viewCount    Int       @default(0)
+  lastViewedAt DateTime?
+  createdAt    DateTime  @default(now())
+  createdBy    String    // User ID who created the share
+
+  // Relationships
+  project      GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([token])
 }

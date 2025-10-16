@@ -1,0 +1,149 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "next": "Siguiente"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "estimator": "Estimador",
+    "timeline": "Cronograma",
+    "dashboard": "Panel",
+    "admin": "Administración",
+    "profile": "Perfil",
+    "logout": "Cerrar sesión"
+  },
+  "estimator": {
+    "title": "Estimador SAP Cockpit",
+    "subtitle": "Herramienta de Estimación de Proyectos",
+    "scopeBreadth": "Amplitud del Alcance (Sb)",
+    "processComplexity": "Complejidad del Proceso (Pc)",
+    "orgScale": "Escala Organizacional (Os)",
+    "capacity": "Planificación de Capacidad",
+    "l3Selection": "Seleccionar Elementos L3",
+    "l3ModalTitle": "Catálogo de Alcance L3",
+    "totalEffort": "Esfuerzo Total",
+    "duration": "Duración",
+    "saveScenario": "Guardar Escenario",
+    "generateTimeline": "Generar Cronograma",
+    "results": "Resultados",
+    "inputs": "Entradas",
+    "searchPlaceholder": "Buscar elementos L3...",
+    "selectedItems": "{count} elementos seleccionados",
+    "noItemsSelected": "Sin elementos seleccionados",
+    "phases": {
+      "prepare": "Preparar",
+      "explore": "Explorar",
+      "realize": "Realizar",
+      "deploy": "Desplegar",
+      "run": "Ejecutar"
+    },
+    "inputs": {
+      "fte": "Tamaño del Equipo (FTE)",
+      "utilization": "Tasa de Utilización",
+      "overlapFactor": "Superposición de Fases",
+      "integrations": "Integraciones",
+      "customForms": "Formularios Personalizados",
+      "fitToStandard": "Ajuste al Estándar",
+      "legalEntities": "Entidades Legales",
+      "countries": "Países",
+      "languages": "Idiomas"
+    },
+    "uncertainty": {
+      "title": "Análisis de Incertidumbre",
+      "low": "Baja Incertidumbre",
+      "medium": "Incertidumbre Media",
+      "high": "Alta Incertidumbre",
+      "bestCase": "Mejor Caso (P10)",
+      "expected": "Esperado (P50)",
+      "buffer": "Margen (P90)",
+      "riskAssessment": "Evaluación de Riesgo"
+    },
+    "sensitivity": {
+      "title": "Análisis de Sensibilidad",
+      "description": "¿Qué Mueve la Estimación?",
+      "durationImpact": "Impacto en Duración",
+      "effortImpact": "Impacto en Esfuerzo",
+      "topVariable": "{variable} tiene el mayor impacto"
+    },
+    "optimization": {
+      "title": "Sugerencias de Optimización",
+      "achieveTarget": "Alcanzar Objetivo",
+      "scenarios": "Estrategias de Optimización",
+      "applyChanges": "Aplicar Cambios"
+    }
+  },
+  "timeline": {
+    "title": "Cronograma del Proyecto",
+    "ganttChart": "Diagrama de Gantt",
+    "resources": "Recursos",
+    "milestones": "Hitos",
+    "holidays": "Días Festivos",
+    "startDate": "Fecha de Inicio",
+    "endDate": "Fecha de Fin",
+    "autoSync": "Sincronización Automática Activada",
+    "locked": "Cronograma Bloqueado",
+    "regenerate": "Regenerar Cronograma",
+    "export": "Exportar",
+    "resourcePlan": "Plan de Recursos",
+    "role": "Rol",
+    "allocation": "Asignación",
+    "cost": "Costo"
+  },
+  "export": {
+    "title": "Opciones de Exportación",
+    "pdf": "Exportar PDF",
+    "powerpoint": "Exportar PowerPoint",
+    "csv": "Exportar CSV",
+    "generating": "Generando exportación...",
+    "success": "Exportación generada exitosamente",
+    "error": "Error al generar exportación"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "recentProjects": "Proyectos Recientes",
+    "statistics": "Estadísticas",
+    "quickActions": "Acciones Rápidas"
+  },
+  "admin": {
+    "title": "Panel de Administración",
+    "users": "Usuarios",
+    "settings": "Configuración",
+    "auditLog": "Registro de Auditoría",
+    "securitySettings": "Configuración de Seguridad"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar Sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidó su contraseña?",
+    "createAccount": "Crear Cuenta",
+    "welcomeBack": "Bienvenido de Nuevo",
+    "signInToContinue": "Inicie sesión para continuar"
+  },
+  "errors": {
+    "unauthorized": "Acceso no autorizado",
+    "notFound": "Página no encontrada",
+    "serverError": "Error del servidor",
+    "validationError": "Error de validación",
+    "networkError": "Error de conexión de red"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "Dirección de correo electrónico no válida",
+    "minLength": "Debe tener al menos {min} caracteres",
+    "maxLength": "Debe tener como máximo {max} caracteres",
+    "numberRequired": "Debe ser un número",
+    "positiveNumber": "Debe ser un número positivo"
+  }
+}
