@@ -70,3 +70,47 @@ tsconfig.tsbuildinfo
 claude-project-knowledge/
 claude-assessment*.zip
 
+# Temporary import/setup scripts and data
+*-import*.js
+*-import*.html
+add-*.js
+create-*.js
+assign-*.js
+fix-*.js
+update-*.js
+generate-*.js
+insert-*.js
+direct-*.js
+browser-*.js
+import-*.js
+test-gantt-api.js
+
+# Project data files (temporary/generated)
+kpj-project.json
+lppsa-*.json
+*-project.json
+*-phases.json
+*-tasks*.json
+*-tasks*.csv
+*.xlsx
+import-instructions.txt
+
+# Temporary documentation
+LPPSA*.md
+KPJ*.md
+ADMIN_LOGIN.md
+GANTT_TOOL_*.md
+IMPORT_*.md
+RECONNECT_STATE.md
+
+# Old/backup files
+*.old.tsx
+*.backup
+
+# Public temporary import files
+/public/*-import*.html
+/public/import-*.html
+/public/cleanup-*.html
+/public/kpj-*.json
+/public/lppsa-*.json
+
