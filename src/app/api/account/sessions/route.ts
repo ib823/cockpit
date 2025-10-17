@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authConfig as authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { getToken } from 'next-auth/jwt';
 import UAParser from 'ua-parser-js';

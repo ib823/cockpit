@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ['http://127.0.0.1', 'http://localhost'],
+
+  // React 19 compatibility
+  experimental: {
+    reactCompiler: false,
+  },
+
   // SECURITY: Enable type checking for safety
   typescript: {
     ignoreBuildErrors: false,

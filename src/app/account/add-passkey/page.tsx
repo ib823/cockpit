@@ -147,8 +147,8 @@ export default function AddPasskeyPage() {
         {/* Info */}
         <div className="mt-6 p-4 bg-blue-50 rounded-md">
           <p className="text-xs text-blue-900">
-            <strong>What's a passkey?</strong> Passkeys are a secure, passwordless way to sign in using
-            your device's biometric authentication (fingerprint, face recognition) or device PIN.
+            <strong>What&apos;s a passkey?</strong> Passkeys are a secure, passwordless way to sign in using
+            your device&apos;s biometric authentication (fingerprint, face recognition) or device PIN.
           </p>
         </div>
       </div>
