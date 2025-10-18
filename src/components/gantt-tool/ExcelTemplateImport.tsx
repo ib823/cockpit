@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { parseExcelTemplate, transformToGanttProject, ParsedExcelData } from '@/lib/gantt-tool/excel-template-parser';
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { FileSpreadsheet, Copy, Download, AlertCircle, CheckCircle, Upload } from 'lucide-react';
+import { generateCopyPasteTemplate } from '@/lib/gantt-tool/copy-paste-template-generator';
 
 export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   const [pastedData, setPastedData] = useState('');
@@ -76,8 +77,6 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
         // Append to existing project
         console.log('[ExcelImport] Appending to current project:', currentProject.id);
 
-        const store = useGanttToolStoreV2.getState();
-
         // Add all resources first (if they don't already exist)
         const existingResourceNames = new Set(currentProject.resources.map(r => r.name));
         for (const resource of ganttData.resources) {
@@ -92,29 +91,30 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           }
         }
 
-        // Add all phases with their tasks
-        for (const phase of ganttData.phases) {
-          addPhase({
-            name: phase.name,
-            startDate: phase.startDate,
-            endDate: phase.endDate,
-            description: phase.description,
-            color: phase.color,
-            collapsed: phase.collapsed,
-            tasks: phase.tasks.map(task => ({
-              name: task.name,
-              startDate: task.startDate,
-              endDate: task.endDate,
-              description: task.description,
-              progress: task.progress,
-              resourceAssignments: task.resourceAssignments,
-            })),
-            resourceAssignments: phase.resourceAssignments,
-          });
+        // Update the project with new phases and tasks via API
+        // This is more reliable than trying to add them one by one through the store
+        const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phases: [
+              ...currentProject.phases,
+              ...ganttData.phases,
+            ],
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[ExcelImport] Failed to append phases:', errorText);
+          throw new Error(`Failed to append data: ${errorText}`);
         }
 
-        // Save the project
-        await saveProject();
+        console.log('[ExcelImport] Phases appended successfully');
+
+        // Refresh the project from the API
+        const store = useGanttToolStoreV2.getState();
+        await store.fetchProject(currentProject.id);
 
         console.log('[ExcelImport] Append complete!');
         onClose();
@@ -196,20 +196,24 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       <div className="p-6 bg-blue-50 border-b border-blue-200">
         <h3 className="font-semibold text-blue-900 mb-2">📋 How to Import:</h3>
         <ol className="text-sm text-blue-800 space-y-1 ml-4 list-decimal">
-          <li>Open your Excel file with tasks and resources</li>
-          <li>Select all data (including headers)</li>
-          <li>Copy (Ctrl+C or Cmd+C)</li>
-          <li>Click in the box below and paste (Ctrl+V or Cmd+V)</li>
-          <li>Review the preview and click "Import Project"</li>
+          <li><strong>Download the template</strong> using the button below</li>
+          <li><strong>Open the template</strong> in Excel and fill in your tasks and resources</li>
+          <li><strong>Select ALL data</strong> (header + tasks + empty row + resources) and copy (Ctrl+C)</li>
+          <li><strong>Paste below</strong> (Ctrl+V) into the text area</li>
+          <li><strong>Review the preview</strong> and choose to create new or add to current project</li>
         </ol>
+        <div className="mt-2 p-2 bg-blue-100 rounded text-xs text-blue-900">
+          <strong>💡 Tip:</strong> The template shows the exact format needed. Keep the weekly headers (W 01, W 02, etc.) and use 2 spaces before task names to make them subtasks.
+        </div>
 
         <button
-          onClick={() => {
-            // Download template
-            const link = document.createElement('a');
-            link.href = '/templates/gantt-import-template.xlsx';
-            link.download = 'gantt-import-template.xlsx';
-            link.click();
+          onClick={async () => {
+            try {
+              await generateCopyPasteTemplate();
+            } catch (err) {
+              console.error('Failed to generate template:', err);
+              setError('Failed to generate template. Please try again.');
+            }
           }}
           className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-900"
         >
