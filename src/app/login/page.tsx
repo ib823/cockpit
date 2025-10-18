@@ -191,8 +191,19 @@ export default function LoginEmailFirst() {
             <div className="space-y-6">
               {/* Error Message */}
               {err && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                  {err}
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm space-y-3">
+                  <p>{err}</p>
+                  <button
+                    onClick={() => {
+                      setStatus(null);
+                      setEmail('');
+                      setCode('');
+                      setErr(null);
+                    }}
+                    className="w-full py-2 bg-white border border-red-300 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                  >
+                    Start Over
+                  </button>
                 </div>
               )}
 
@@ -217,6 +228,21 @@ export default function LoginEmailFirst() {
                 >
                   Continue
                 </button>
+              )}
+
+              {status?.needsAction === 'not_found' && (
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-600 text-center">
+                    This email is not registered or approved for access.
+                  </p>
+                  <button
+                    onClick={() => { setStatus(null); setEmail(''); setErr(null); }}
+                    disabled={busy}
+                    className="w-full py-3 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Try Different Email
+                  </button>
+                </div>
               )}
 
               {status?.needsAction === 'login' && (
