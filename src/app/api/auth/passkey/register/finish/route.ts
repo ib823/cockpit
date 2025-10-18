@@ -8,9 +8,6 @@ import {
   origin,
   challenges,
 } from '@/lib/webauthn';
-import type {
-  RegistrationResponseJSON,
-} from '@simplewebauthn/types';
 
 // POST /api/auth/passkey/register/finish - Complete passkey registration
 export async function POST(req: NextRequest) {
@@ -37,7 +34,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { credential, nickname } = body as {
-      credential: RegistrationResponseJSON;
+      credential: any; // WebAuthn credential response
       nickname?: string;
     };
 

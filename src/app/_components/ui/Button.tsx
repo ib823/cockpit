@@ -41,7 +41,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       'inline-flex items-center justify-center gap-2',
       'font-medium transition-all duration-[var(--dur)] ease-[var(--ease)]',
       'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-      'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
+      'disabled:opacity-50 disabled:cursor-not-allowed disabled:',
       fullWidth && 'w-full'
     );
 
@@ -94,7 +94,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {isLoading && (
           <svg
-            className="animate-spin h-4 w-4"
+            className="animate-spin h-4 w-4 align-middle"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

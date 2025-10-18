@@ -448,7 +448,7 @@ function TimelineView({
 
                         {/* Tooltip */}
                         {week.contributingTasks.length > 0 && (
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2   transition-opacity  z-50">
                             <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-xl whitespace-nowrap max-w-xs">
                               <div className="font-semibold mb-1">{week.weekLabel}: {allocation}%</div>
                               <div className="space-y-0.5 text-[10px]">

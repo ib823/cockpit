@@ -18,9 +18,23 @@ export function LogoutButton({
   const handleLogout = async () => {
     setLoading(true);
     try {
+      // Call logout endpoint
       await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
+
+      // SECURITY: Clear all local storage and session storage
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+
+      // SECURITY: Use replace instead of push to prevent back button from returning
+      // Also add timestamp to prevent caching
+      router.replace('/login?logged_out=' + Date.now());
+
+      // SECURITY: Reload to clear any in-memory state
+      window.location.href = '/login';
     } catch (error) {
+      console.error('Logout error:', error);
       setLoading(false);
     }
   };

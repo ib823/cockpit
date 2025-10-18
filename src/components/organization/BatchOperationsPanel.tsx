@@ -7,7 +7,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { Drawer, Form, Select, Button, Typography, Space, List, Tag, message } from 'antd';
+import { Drawer, Form, Select, Button, Typography, Space, List, Tag, App } from 'antd';
 import {
   TeamOutlined,
   SaveOutlined,
@@ -33,6 +33,7 @@ export function BatchOperationsPanel({
   onUpdate,
   onClearSelection
 }: BatchOperationsPanelProps) {
+  const { message } = App.useApp();
   const [form] = Form.useForm();
   const currentProject = useGanttToolStore((state) => state.currentProject);
   const assignManager = useGanttToolStore((state) => state.assignManager);
@@ -74,7 +75,7 @@ export function BatchOperationsPanel({
         message.error(`Failed to assign manager to ${errorCount} resource(s)`);
       }
     });
-  }, [selectedResourceIds, assignManager, form, onUpdate, onClearSelection, onClose]);
+  }, [selectedResourceIds, assignManager, form, onUpdate, onClearSelection, onClose, message]);
 
   const handleBatchRemoveManager = useCallback(() => {
     let successCount = 0;
@@ -88,7 +89,7 @@ export function BatchOperationsPanel({
     onUpdate();
     onClearSelection();
     onClose();
-  }, [selectedResourceIds, unassignManager, onUpdate, onClearSelection, onClose]);
+  }, [selectedResourceIds, unassignManager, onUpdate, onClearSelection, onClose, message]);
 
   return (
     <Drawer

@@ -11,6 +11,9 @@ function generateOTP(): string {
 }
 
 export async function POST(req: Request) {
+  if (process.env.ENABLE_MAGIC_LINKS !== 'true') {
+    return NextResponse.json({ ok: false, message: 'Disabled' }, { status: 404 });
+  }
   try {
     const { email } = await req.json();
 

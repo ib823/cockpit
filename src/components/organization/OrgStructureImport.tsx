@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Modal, Upload, Button, Typography, Alert, Table, message, Select } from 'antd';
+import { Modal, Upload, Button, Typography, Alert, Table, App, Select } from 'antd';
 import {
   UploadOutlined,
   CheckCircleOutlined,
@@ -43,6 +43,7 @@ interface OrgStructureImportProps {
 }
 
 export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgStructureImportProps) {
+  const { message } = App.useApp();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [parsedData, setParsedData] = useState<ParsedResource[]>([]);
   const [importing, setImporting] = useState(false);
@@ -163,7 +164,7 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
       message.error(`Failed to parse file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
     return false; // Prevent auto-upload
-  }, [parseFile]);
+  }, [parseFile, message]);
 
   const handleImport = useCallback(async () => {
     if (!currentProject) return;
@@ -223,7 +224,7 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
     } finally {
       setImporting(false);
     }
-  }, [parsedData, currentProject, addResource, assignManager, onImportComplete, onClose]);
+  }, [parsedData, currentProject, addResource, assignManager, onImportComplete, onClose, message]);
 
   const columns = [
     {

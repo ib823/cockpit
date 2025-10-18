@@ -28,10 +28,20 @@ const protectedPaths = ['/gantt-tool', '/project', '/estimator', '/dashboard', '
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Skip static files
   if (pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname === '/sw.js') {
     return NextResponse.next();
+  }
+
+  // Log all requests for debugging
+  console.log(`[Middleware] ${request.method} ${pathname}`);
+
+  // Stricter root redirect at edge
+  if (pathname === '/') {
+    const token = await getToken({ req: request });
+    const url = new URL(token ? (token.role === 'ADMIN' ? '/admin' : '/dashboard') : '/login', request.url);
+    return NextResponse.redirect(url);
   }
   
   // Rate limiting (100 req/min per IP)
@@ -92,7 +102,15 @@ export async function middleware(request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-  
+
+  // CRITICAL: Prevent browser caching of authenticated pages
+  // This stops the back button from showing cached content after logout
+  if (!publicPaths.some(p => pathname.startsWith(p))) {
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, private, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+  }
+
   return response;
 }
 

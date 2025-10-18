@@ -13,7 +13,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Modal, Tabs, Button, Progress, Tag, Divider, message } from 'antd';
+import { Modal, Tabs, Button, Progress, Tag, Divider, App } from 'antd';
 import {
   FileText,
   Download,
@@ -42,6 +42,7 @@ interface ProposalGenerationModalProps {
 }
 
 export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationModalProps) {
+  const { message } = App.useApp();
   const { currentProject, getProjectDuration } = useGanttToolStore();
   const [activeTab, setActiveTab] = useState('summary');
   const [isExporting, setIsExporting] = useState(false);

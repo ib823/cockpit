@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { prisma, withRetry } from '@/lib/db';
 import { z } from 'zod';
 
 // Validation schema for creating a project
@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const projects = await prisma.ganttProject.findMany({
+    // Use withRetry wrapper for database queries
+    const projects = await withRetry(() => prisma.ganttProject.findMany({
       where: {
         userId: session.user.id,
         deletedAt: null,
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
       orderBy: {
         updatedAt: 'desc',
       },
-    });
+    }));
 
     // Serialize dates to strings for frontend
     const serializedProjects = projects.map(project => ({
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
     const validatedData = CreateProjectSchema.parse(body);
 
     // Check for duplicate project name (case-insensitive)
-    const existingProject = await prisma.ganttProject.findFirst({
+    const existingProject = await withRetry(() => prisma.ganttProject.findFirst({
       where: {
         userId: session.user.id,
         name: {
@@ -142,7 +143,7 @@ export async function POST(request: NextRequest) {
         },
         deletedAt: null,
       },
-    });
+    }));
 
     if (existingProject) {
       return NextResponse.json(
@@ -151,7 +152,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const project = await prisma.ganttProject.create({
+    // Use transaction with retry for create + audit log
+    const project = await withRetry(() => prisma.$transaction(async (tx) => {
+      const newProject = await tx.ganttProject.create({
       data: {
         userId: session.user.id,
         name: validatedData.name,
@@ -166,22 +169,25 @@ export async function POST(request: NextRequest) {
         holidays: true,
         resources: true,
       },
-    });
+      });
 
-    // Audit log
-    await prisma.audit_logs.create({
+      // Audit log
+      await tx.audit_logs.create({
       data: {
         id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         userId: session.user.id,
         action: 'CREATE',
         entity: 'gantt_project',
-        entityId: project.id,
+        entityId: newProject.id,
         changes: {
           name: validatedData.name,
           startDate: validatedData.startDate,
         },
       },
-    });
+      });
+
+      return newProject;
+    }));
 
     // Serialize dates to strings for frontend
     const serializedProject = {

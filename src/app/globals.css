@@ -355,3 +355,17 @@ a:hover {
   border-color: #722ed1 !important;
   color: #22075e !important;
 }
+
+/* Hide stray header/nav links to /gantt or /estimator (keeps dashboard cards intact) */
+header a[href="/gantt"], nav a[href="/gantt"],
+header a[href="/estimator"], nav a[href="/estimator"] { display: none !important; }
+
+/* Overlay safety: visually hidden overlays cannot capture clicks */
+.fixed.inset-0[hidden],
+.fixed.inset-0.opacity-0,
+.fixed.inset-0[aria-hidden="true"],
+[role="dialog"][aria-hidden="true"] { pointer-events: none !important; }
+
+/* Common portal containers */
+[data-headlessui-portal] .fixed.inset-0.opacity-0,
+[data-radix-portal] .fixed.inset-0.opacity-0 { pointer-events: none !important; }

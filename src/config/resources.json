@@ -1,0 +1,18 @@
+{
+  "catalog": [
+    { "id": "pm",      "name": "Project Manager",        "required": [] },
+    { "id": "func",    "name": "Functional Consultant",  "required": [] },
+    { "id": "tech",    "name": "Technical Consultant",   "required": [] },
+    { "id": "qa",      "name": "QA / Tester",            "required": [] },
+    { "id": "abap",    "name": "ABAP Developer",         "required": [] },
+    { "id": "basis",   "name": "Basis/Infra",            "required": [] }
+  ],
+  "aliases": {
+    "pm": ["project manager","proj mgr","pmo"],
+    "func": ["functional consultant","fc","consultant (functional)"],
+    "tech": ["technical consultant","tc","consultant (technical)"],
+    "qa": ["qa","tester","testing"],
+    "abap": ["abap","abap dev","abap developer"],
+    "basis": ["basis","infra","infrastructure","basis/infra"]
+  }
+}

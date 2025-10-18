@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
 import { createAuthSession } from '@/lib/nextauth-helpers';
-import { challenges, origin, rpID, verifyAuthenticationResponse } from '../../../../lib/webauthn';
 import { randomUUID } from 'crypto';
+import { challenges, verifyAuthenticationResponse, rpID } from '../../../../lib/webauthn';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
+  const expectedOrigin = process.env.WEBAUTHN_ORIGIN ?? new URL(process.env.NEXTAUTH_URL ?? req.url).origin;
   try {
-    const { email, response } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const email = String(body.email ?? '').trim().toLowerCase();
+    const response = body.response;
 
     if (!email || !response) {
       return NextResponse.json({ ok: false, message: 'Missing required fields.' }, { status: 400 });
@@ -42,7 +45,7 @@ export async function POST(req: Request) {
     const verification = await verifyAuthenticationResponse({
       response,
       expectedChallenge,
-      expectedOrigin: origin,
+      expectedOrigin: expectedOrigin,
       expectedRPID: rpID,
       credential: {
         id: authenticator.id,
@@ -89,7 +92,7 @@ export async function POST(req: Request) {
     const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
     await createAuthSession(user.id, user.email, sessionRole);
 
-    return NextResponse.json({ ok: true, user: { name: user.name } });
+    return NextResponse.json({ ok: true, user: { name: user.name, role: user.role } });
 
   } catch (e) {
     console.error('Finish login failed:', e);

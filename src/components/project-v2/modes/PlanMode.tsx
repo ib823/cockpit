@@ -698,7 +698,7 @@ function ResourceSection({
                   </div>
                   <button
                     onClick={() => deleteResource(idx)}
-                    className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded transition-all"
+                    className="p-1   hover:bg-red-50 rounded transition-all"
                   >
                     <X className="w-3 h-3 text-red-400" />
                   </button>

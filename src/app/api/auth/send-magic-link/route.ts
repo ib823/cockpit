@@ -6,6 +6,9 @@ import { sendAccessCode } from '@/lib/email';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
+  if (process.env.ENABLE_MAGIC_LINKS !== 'true') {
+    return NextResponse.json({ ok: false, message: 'Disabled' }, { status: 404 });
+  }
   try {
     const body = await req.json();
     console.log('[send-magic-link] Request body:', body);

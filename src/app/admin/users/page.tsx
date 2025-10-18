@@ -42,12 +42,7 @@ export default async function UsersPage() {
                 Admin Dashboard
               </Link>
               <div className="flex gap-4">
-                <Link href="/gantt-tool" className="text-gray-600 hover:text-gray-900">
-                  Gantt Tool
-                </Link>
-                <Link href="/estimator" className="text-gray-600 hover:text-gray-900">
-                  Estimator
-                </Link>
+
               </div>
             </div>
             <Link

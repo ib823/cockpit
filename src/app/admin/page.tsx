@@ -20,12 +20,7 @@ export default async function AdminDashboard() {
             <div className="flex items-center gap-8">
               <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
               <div className="flex gap-4">
-                <Link href="/gantt-tool" className="text-gray-600 hover:text-gray-900">
-                  Gantt Tool
-                </Link>
-                <Link href="/estimator" className="text-gray-600 hover:text-gray-900">
-                  Estimator
-                </Link>
+
               </div>
             </div>
             <div className="flex items-center gap-4">

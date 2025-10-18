@@ -7,7 +7,9 @@ export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
-    const { email, code } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const email = String(body.email ?? '').trim().toLowerCase();
+    const code = body.code;
 
     // Validate email format
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;

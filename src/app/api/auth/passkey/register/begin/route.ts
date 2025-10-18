@@ -46,13 +46,12 @@ export async function POST(req: NextRequest) {
     const options = await generateRegistrationOptions({
       rpName,
       rpID,
-      userID: user.id,
+      userID: new TextEncoder().encode(user.id),
       userName: user.email,
       userDisplayName: user.name || user.email,
       // Exclude existing authenticators to prevent re-registration
       excludeCredentials: user.Authenticator.map((auth) => ({
-        id: Buffer.from(auth.publicKey),
-        type: 'public-key',
+        id: Buffer.from(auth.publicKey).toString('base64url'),
         transports: auth.transports as AuthenticatorTransport[],
       })),
       authenticatorSelection: {
