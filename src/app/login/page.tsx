@@ -18,6 +18,8 @@ export default function LoginEmailFirst() {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [stage, setStage] = useState<'input' | 'creating' | 'verifying' | 'success'>('input');
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
   const onCheck = async () => {
     setErr(null);
@@ -43,6 +45,7 @@ export default function LoginEmailFirst() {
     if (!e) return;
     setBusy(true);
     setErr(null);
+    setStage('creating');
     try {
       const begin = await fetch('/api/auth/begin-login', {
         method: 'POST',
@@ -52,12 +55,14 @@ export default function LoginEmailFirst() {
 
       if (!begin.ok) {
         setErr(begin.message || 'Invalid. Contact Admin.');
+        setStage('input');
         return;
       }
 
       // Use SimpleWebAuthn for authentication
       const credential = await startAuthentication({ optionsJSON: begin.options });
 
+      setStage('verifying');
       const finish = await fetch('/api/auth/finish-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,13 +71,19 @@ export default function LoginEmailFirst() {
 
       if (!finish.ok) {
         setErr(finish.message || 'Invalid passkey. Try again or Contact Admin.');
+        setStage('input');
         return;
       }
 
+      setStage('success');
+      setSuccessMessage('Login successful!');
       const role = finish?.user?.role;
-      router.replace(role === 'ADMIN' ? '/admin' : '/dashboard');
+      setTimeout(() => {
+        router.replace(role === 'ADMIN' ? '/admin' : '/dashboard');
+      }, 1500);
     } catch (e: any) {
       setErr('Invalid passkey. Try again or Contact Admin.');
+      setStage('input');
     } finally {
       setBusy(false);
     }
@@ -84,6 +95,7 @@ export default function LoginEmailFirst() {
     if (!e || !c) return;
     setBusy(true);
     setErr(null);
+    setStage('creating');
     try {
       const begin = await fetch('/api/auth/begin-register', {
         method: 'POST',
@@ -93,12 +105,14 @@ export default function LoginEmailFirst() {
 
       if (!begin.ok) {
         setErr(begin.message || 'Invalid code. Please try again.');
+        setStage('input');
         return;
       }
 
       // Use SimpleWebAuthn for registration
       const credential = await startRegistration({ optionsJSON: begin.options });
 
+      setStage('verifying');
       const finish = await fetch('/api/auth/finish-register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -107,84 +121,172 @@ export default function LoginEmailFirst() {
 
       if (!finish.ok) {
         setErr(finish.message || 'Registration failed. Please try again.');
+        setStage('input');
         return;
       }
 
+      setStage('success');
+      setSuccessMessage('Passkey registered successfully!');
       const role = finish?.user?.role;
-      router.replace(role === 'ADMIN' ? '/admin' : '/dashboard');
+      setTimeout(() => {
+        router.replace(role === 'ADMIN' ? '/admin' : '/dashboard');
+      }, 1500);
     } catch (e: any) {
       if (e.name === 'NotAllowedError') {
         setErr('Passkey creation was cancelled.');
       } else {
         setErr('Invalid. Contact Admin.');
       }
+      setStage('input');
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">Sign in</h1>
-      <label className="block text-sm">
-        Work email
-        <input
-          type="email"
-          className="mt-1 w-full border rounded p-2"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="you@company.com"
-        />
-      </label>
-      <button onClick={onCheck} disabled={busy} className="px-4 py-2 border rounded disabled:opacity-50">
-        Continue
-      </button>
-
-      {status?.needsAction === 'login' && (
-        <div className="space-y-2">
-          <p className="text-sm text-gray-600">Welcome back. Use your passkey to continue.</p>
-          <div className="flex gap-2">
-            <button onClick={onPasskeyLogin} disabled={busy} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 disabled:bg-gray-400">
-              Use Passkey
-            </button>
-            <button
-              onClick={() => { setStatus(null); setErr(null); }}
-              disabled={busy}
-              className="px-4 py-2 border border-gray-300 rounded disabled:opacity-50 hover:bg-gray-50"
-            >
-              Change email
-            </button>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="w-full max-w-md px-6">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">
+              {stage === 'input' && 'Sign in'}
+              {stage === 'creating' && 'Creating Passkey'}
+              {stage === 'verifying' && 'Verifying'}
+              {stage === 'success' && 'Success!'}
+            </h1>
+            <p className="text-sm text-slate-600">
+              {stage === 'input' && 'Enter your work email to continue'}
+              {stage === 'creating' && 'Follow your browser prompt...'}
+              {stage === 'verifying' && 'Completing registration...'}
+              {stage === 'success' && 'Redirecting to dashboard...'}
+            </p>
           </div>
-        </div>
-      )}
 
-      {status?.needsAction === 'enter_invite' && (
-        <div className="space-y-2">
-          <p className="text-sm text-gray-600">Enter the 6-digit code to proceed</p>
-          <input
-            inputMode="numeric"
-            maxLength={6}
-            className="w-full border rounded p-2 tracking-widest"
-            placeholder="••••••"
-            value={code}
-            onChange={e => setCode(e.target.value.replace(/[^0-9]/g,''))}
-          />
-          <div className="flex gap-2">
-            <button onClick={onRegisterWithCode} disabled={busy || code.length !== 6} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 disabled:bg-gray-400">
-              Continue
-            </button>
-            <button
-              onClick={() => { setStatus(null); setCode(''); setErr(null); }}
-              disabled={busy}
-              className="px-4 py-2 border border-gray-300 rounded disabled:opacity-50 hover:bg-gray-50"
-            >
-              Change email
-            </button>
-          </div>
-        </div>
-      )}
+          {/* Loading/Success States */}
+          {(stage === 'creating' || stage === 'verifying') && (
+            <div className="text-center py-8">
+              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 mb-4"></div>
+              <p className="text-slate-600">
+                {stage === 'creating' && 'Waiting for passkey...'}
+                {stage === 'verifying' && 'Verifying credentials...'}
+              </p>
+            </div>
+          )}
 
-      {err && <div className="text-sm text-red-700 bg-red-50 border rounded p-3">{err}</div>}
+          {stage === 'success' && (
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-xl text-slate-900 font-semibold mb-2">{successMessage}</p>
+              <p className="text-sm text-slate-600">Please wait...</p>
+            </div>
+          )}
+
+          {/* Input Stage */}
+          {stage === 'input' && (
+            <div className="space-y-6">
+              {/* Error Message */}
+              {err && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {err}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Work Email
+                </label>
+                <input
+                  type="email"
+                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                />
+              </div>
+
+              {!status && (
+                <button
+                  onClick={onCheck}
+                  disabled={busy}
+                  className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                >
+                  Continue
+                </button>
+              )}
+
+              {status?.needsAction === 'login' && (
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-600 text-center">Welcome back! Use your passkey to continue.</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={onPasskeyLogin}
+                      disabled={busy}
+                      className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                      </svg>
+                      Use Passkey
+                    </button>
+                    <button
+                      onClick={() => { setStatus(null); setErr(null); }}
+                      disabled={busy}
+                      className="px-4 py-3 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {status?.needsAction === 'enter_invite' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      6-Digit Code
+                    </label>
+                    <input
+                      inputMode="numeric"
+                      maxLength={6}
+                      className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                      placeholder="000000"
+                      value={code}
+                      onChange={e => setCode(e.target.value.replace(/[^0-9]/g,''))}
+                    />
+                    <p className="text-xs text-slate-500 mt-2 text-center">
+                      Enter the code provided by your administrator
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={onRegisterWithCode}
+                      disabled={busy || code.length !== 6}
+                      className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      Create Passkey
+                    </button>
+                    <button
+                      onClick={() => { setStatus(null); setCode(''); setErr(null); }}
+                      disabled={busy}
+                      className="px-4 py-3 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
