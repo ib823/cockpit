@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 
 type EmailStatus = {
   registered: boolean;
@@ -54,27 +55,13 @@ export default function LoginEmailFirst() {
         return;
       }
 
-      // Browser WebAuthn get()
-      // Rely on the server to send a valid "publicKey" options object
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const cred: PublicKeyCredential = await navigator.credentials.get({ publicKey: begin.options });
-      const response = {
-        id: cred.id,
-        type: cred.type,
-        rawId: btoa(String.fromCharCode(...new Uint8Array(cred.rawId as ArrayBuffer))),
-        response: {
-          clientDataJSON: btoa(String.fromCharCode(...new Uint8Array((cred.response as AuthenticatorAssertionResponse).clientDataJSON))),
-          authenticatorData: btoa(String.fromCharCode(...new Uint8Array((cred.response as AuthenticatorAssertionResponse).authenticatorData))),
-          signature: btoa(String.fromCharCode(...new Uint8Array((cred.response as AuthenticatorAssertionResponse).signature))),
-          userHandle: (cred.response as any).userHandle ? btoa(String.fromCharCode(...new Uint8Array((cred.response as any).userHandle))) : null,
-        },
-      };
+      // Use SimpleWebAuthn for authentication
+      const credential = await startAuthentication({ optionsJSON: begin.options });
 
       const finish = await fetch('/api/auth/finish-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: e, response }),
+        body: JSON.stringify({ email: e, response: credential }),
       }).then(r => r.json());
 
       if (!finish.ok) {
@@ -104,32 +91,33 @@ export default function LoginEmailFirst() {
         body: JSON.stringify({ email: e, code: c }),
       }).then(r => r.json());
 
-      // Browser WebAuthn create()
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const cred: PublicKeyCredential = await navigator.credentials.create({ publicKey: begin.options }) as PublicKeyCredential;
+      if (!begin.ok) {
+        setErr(begin.message || 'Invalid code. Please try again.');
+        return;
+      }
 
-      const att = cred.response as AuthenticatorAttestationResponse;
-      const response = {
-        id: cred.id,
-        type: cred.type,
-        rawId: btoa(String.fromCharCode(...new Uint8Array(cred.rawId as ArrayBuffer))),
-        response: {
-          clientDataJSON: btoa(String.fromCharCode(...new Uint8Array(att.clientDataJSON))),
-          attestationObject: btoa(String.fromCharCode(...new Uint8Array(att.attestationObject))),
-        },
-      };
+      // Use SimpleWebAuthn for registration
+      const credential = await startRegistration({ optionsJSON: begin.options });
 
       const finish = await fetch('/api/auth/finish-register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: e, response }),
+        body: JSON.stringify({ email: e, response: credential }),
       }).then(r => r.json());
+
+      if (!finish.ok) {
+        setErr(finish.message || 'Registration failed. Please try again.');
+        return;
+      }
 
       const role = finish?.user?.role;
       router.replace(role === 'ADMIN' ? '/admin' : '/dashboard');
     } catch (e: any) {
-      setErr('Invalid. Contact Admin.');
+      if (e.name === 'NotAllowedError') {
+        setErr('Passkey creation was cancelled.');
+      } else {
+        setErr('Invalid. Contact Admin.');
+      }
     } finally {
       setBusy(false);
     }
