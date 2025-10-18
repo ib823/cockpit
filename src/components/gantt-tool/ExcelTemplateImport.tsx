@@ -16,8 +16,9 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   const [parsed, setParsed] = useState<ParsedExcelData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [importMode, setImportMode] = useState<'new' | 'append'>('new');
 
-  const { createProject } = useGanttToolStoreV2();
+  const { currentProject, addPhase, addResource, saveProject } = useGanttToolStoreV2();
 
   // Handle paste
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -52,8 +53,14 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
     if (!parsed) return;
 
     setIsImporting(true);
+    setError(null);
+
     try {
-      console.log('[ExcelImport] Starting import...', { tasksCount: parsed.tasks.length, resourcesCount: parsed.resources.length });
+      console.log('[ExcelImport] Starting import...', {
+        mode: importMode,
+        tasksCount: parsed.tasks.length,
+        resourcesCount: parsed.resources.length
+      });
 
       const projectName = `Imported Project - ${new Date().toLocaleDateString()}`;
       const ganttData = transformToGanttProject(parsed, projectName);
@@ -65,55 +72,103 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
         tasksCount: ganttData.phases.reduce((sum, p) => sum + p.tasks.length, 0),
       });
 
-      // Create project with full structure via API
-      console.log('[ExcelImport] Creating project...');
-      const response = await fetch('/api/gantt-tool/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: ganttData.name,
-          description: 'Imported from Excel template',
-          startDate: ganttData.startDate,
-          viewSettings: ganttData.viewSettings,
-        }),
-      });
+      if (importMode === 'append' && currentProject) {
+        // Append to existing project
+        console.log('[ExcelImport] Appending to current project:', currentProject.id);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[ExcelImport] Failed to create project:', errorText);
-        throw new Error(`Failed to create project: ${errorText}`);
+        const store = useGanttToolStoreV2.getState();
+
+        // Add all resources first (if they don't already exist)
+        const existingResourceNames = new Set(currentProject.resources.map(r => r.name));
+        for (const resource of ganttData.resources) {
+          if (!existingResourceNames.has(resource.name)) {
+            addResource({
+              name: resource.name,
+              role: resource.role || 'Consultant',
+              category: resource.category,
+              designation: resource.designation,
+              costPerDay: resource.costPerDay,
+            });
+          }
+        }
+
+        // Add all phases with their tasks
+        for (const phase of ganttData.phases) {
+          addPhase({
+            name: phase.name,
+            startDate: phase.startDate,
+            endDate: phase.endDate,
+            description: phase.description,
+            color: phase.color,
+            collapsed: phase.collapsed,
+            tasks: phase.tasks.map(task => ({
+              name: task.name,
+              startDate: task.startDate,
+              endDate: task.endDate,
+              description: task.description,
+              progress: task.progress,
+              resourceAssignments: task.resourceAssignments,
+            })),
+            resourceAssignments: phase.resourceAssignments,
+          });
+        }
+
+        // Save the project
+        await saveProject();
+
+        console.log('[ExcelImport] Append complete!');
+        onClose();
+      } else {
+        // Create new project
+        console.log('[ExcelImport] Creating new project...');
+        const response = await fetch('/api/gantt-tool/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: ganttData.name,
+            description: 'Imported from Excel template',
+            startDate: ganttData.startDate,
+            viewSettings: ganttData.viewSettings,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[ExcelImport] Failed to create project:', errorText);
+          throw new Error(`Failed to create project: ${errorText}`);
+        }
+
+        const { project } = await response.json();
+        console.log('[ExcelImport] Project created:', project.id);
+
+        // Update project with phases, tasks, and resources
+        console.log('[ExcelImport] Updating with phases and resources...');
+        const updateResponse = await fetch(`/api/gantt-tool/projects/${project.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phases: ganttData.phases,
+            resources: ganttData.resources,
+          }),
+        });
+
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text();
+          console.error('[ExcelImport] Failed to update project:', errorText);
+          throw new Error(`Failed to import project data: ${errorText}`);
+        }
+
+        console.log('[ExcelImport] Project updated successfully');
+
+        // Refresh projects list and load the new project
+        console.log('[ExcelImport] Loading project...');
+        const store = useGanttToolStoreV2.getState();
+        await store.fetchProjects();
+        await store.fetchProject(project.id);
+
+        console.log('[ExcelImport] Import complete!');
+        onClose();
       }
-
-      const { project } = await response.json();
-      console.log('[ExcelImport] Project created:', project.id);
-
-      // Update project with phases, tasks, and resources
-      console.log('[ExcelImport] Updating with phases and resources...');
-      const updateResponse = await fetch(`/api/gantt-tool/projects/${project.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phases: ganttData.phases,
-          resources: ganttData.resources,
-        }),
-      });
-
-      if (!updateResponse.ok) {
-        const errorText = await updateResponse.text();
-        console.error('[ExcelImport] Failed to update project:', errorText);
-        throw new Error(`Failed to import project data: ${errorText}`);
-      }
-
-      console.log('[ExcelImport] Project updated successfully');
-
-      // Refresh projects list and load the new project
-      console.log('[ExcelImport] Loading project...');
-      const store = useGanttToolStoreV2.getState();
-      await store.fetchProjects();
-      await store.fetchProject(project.id); // Fetch from API and load
-
-      console.log('[ExcelImport] Import complete!');
-      onClose();
     } catch (err) {
       console.error('[ExcelImport] Import failed:', err);
       setError(err instanceof Error ? err.message : 'Failed to import project');
@@ -223,6 +278,46 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
+            {/* Import Mode Selection */}
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="font-semibold text-blue-900 mb-3">Import Mode:</h4>
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="importMode"
+                    value="new"
+                    checked={importMode === 'new'}
+                    onChange={(e) => setImportMode('new')}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <div>
+                    <span className="font-medium text-blue-900">Create New Project</span>
+                    <p className="text-xs text-blue-700">Import as a brand new project</p>
+                  </div>
+                </label>
+                <label className={`flex items-center gap-3 ${currentProject ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
+                  <input
+                    type="radio"
+                    name="importMode"
+                    value="append"
+                    checked={importMode === 'append'}
+                    onChange={(e) => setImportMode('append')}
+                    disabled={!currentProject}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <div>
+                    <span className="font-medium text-blue-900">Add to Current Project</span>
+                    <p className="text-xs text-blue-700">
+                      {currentProject
+                        ? `Append to "${currentProject.name}"`
+                        : 'No project loaded - create or load a project first'}
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             {/* Task Preview */}
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
@@ -287,11 +382,13 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
         </button>
         <button
           onClick={handleImport}
-          disabled={!parsed || isImporting}
+          disabled={!parsed || isImporting || (importMode === 'append' && !currentProject)}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <Upload className="w-4 h-4" />
-          {isImporting ? 'Importing...' : 'Import Project'}
+          {isImporting
+            ? importMode === 'append' ? 'Adding...' : 'Importing...'
+            : importMode === 'append' ? 'Add to Project' : 'Import Project'}
         </button>
       </div>
     </div>
