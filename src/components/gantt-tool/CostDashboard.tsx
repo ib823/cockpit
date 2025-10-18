@@ -22,13 +22,13 @@ import {
   PieChart,
   BarChart3,
 } from 'lucide-react';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { calculateProjectCost, checkBudgetAlerts } from '@/lib/gantt-tool/cost-calculator';
 import type { ResourceCategory } from '@/types/gantt-tool';
 import { RESOURCE_CATEGORIES } from '@/types/gantt-tool';
 
 export function CostDashboard() {
-  const { currentProject } = useGanttToolStore();
+  const { currentProject } = useGanttToolStoreV2();
 
   const costData = useMemo(() => {
     if (!currentProject) return null;

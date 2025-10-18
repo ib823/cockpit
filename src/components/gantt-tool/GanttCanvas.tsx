@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 as useGanttToolStore } from '@/stores/gantt-tool-store-v2';
 import { useMemo, useRef, useState, useCallback } from 'react';
 import { differenceInDays, format, addDays, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, eachQuarterOfInterval, eachYearOfInterval, startOfWeek, startOfMonth, startOfQuarter, startOfYear, getDay, getMonth, getQuarter } from 'date-fns';
 import { ChevronDown, ChevronRight, Flag, Users, ChevronUp, MoveUp, MoveDown, ArrowRightToLine, Maximize2 } from 'lucide-react';
@@ -54,7 +54,6 @@ export function GanttCanvas() {
     openSidePanel,
     selection,
     movePhase,
-    resizePhase,
     moveTask,
     reorderPhase,
     reorderTask,

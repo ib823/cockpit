@@ -13,13 +13,13 @@
 
 'use client';
 
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { differenceInDays } from 'date-fns';
 import { X, Maximize2, GripVertical } from 'lucide-react';
 import React, { useState, useRef } from 'react';
 
 export function GanttMinimap() {
-  const { currentProject, focusedPhaseId, exitFocusMode, getProjectDuration } = useGanttToolStore();
+  const { currentProject, focusedPhaseId, exitFocusMode, getProjectDuration } = useGanttToolStoreV2();
 
   // Draggable state
   const [position, setPosition] = useState({ x: window.innerWidth - 310, y: 24 }); // Default top-right

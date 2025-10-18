@@ -13,7 +13,7 @@
 
 'use client';
 
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { useState, useMemo, useEffect } from 'react';
 import {
   X,
@@ -141,7 +141,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
     unassignResourceFromTask,
     updatePhaseResourceAssignment,
     updateTaskResourceAssignment,
-  } = useGanttToolStore();
+  } = useGanttToolStoreV2();
 
   // Find the item (phase or task)
   const item = useMemo(() => {

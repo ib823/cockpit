@@ -11,7 +11,7 @@ import { useState, useCallback } from 'react';
 import { X, Download, Upload, AlertCircle, CheckCircle, FileSpreadsheet, Info, Copy } from 'lucide-react';
 import { generateImportTemplate } from '@/lib/gantt-tool/import-template-generator';
 import { parseImportFile, type ImportResult } from '@/lib/gantt-tool/import-parser';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { ExcelTemplateImport } from './ExcelTemplateImport';
 
 interface ImportModalProps {
@@ -21,7 +21,7 @@ interface ImportModalProps {
 type TabType = 'upload' | 'paste';
 
 export function ImportModal({ onClose }: ImportModalProps) {
-  const importProject = useGanttToolStore((state) => state.importProject);
+  const importProject = useGanttToolStoreV2((state) => state.importProject);
 
   const [activeTab, setActiveTab] = useState<TabType>('paste');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

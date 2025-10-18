@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { X, AlertTriangle, Calendar as CalendarIcon, Flag as FlagIcon, Users, Plus, Trash2, AlertCircle, Sliders } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { PHASE_COLOR_PRESETS, MILESTONE_COLOR_PRESETS, RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
@@ -35,7 +35,7 @@ export function GanttSidePanel() {
     getMilestoneById,
     addHoliday,
     deleteHoliday,
-  } = useGanttToolStore();
+  } = useGanttToolStoreV2();
 
   // Track if we should enable real-time updates
   const [enableRealTimeUpdate] = useState(true);
@@ -203,7 +203,7 @@ function PhaseForm({
   enableRealTimeUpdate?: boolean;
   updatePhase?: (id: string, data: Partial<PhaseFormData>) => void;
 }) {
-  const { currentProject } = useGanttToolStore();
+  const { currentProject } = useGanttToolStoreV2();
   const existingPhase = itemId ? getPhaseById(itemId) : null;
 
   const [formData, setFormData] = useState<PhaseFormData>({
@@ -487,7 +487,7 @@ function PhaseForm({
             <button
               type="button"
               onClick={() => {
-                const { openSidePanel, addMilestone } = useGanttToolStore.getState();
+                const { openSidePanel, addMilestone } = useGanttToolStoreV2.getState();
                 // Quick add milestone at end date
                 const milestoneName = `${formData.name || 'Phase'} Complete`;
                 addMilestone({
@@ -614,7 +614,7 @@ function TaskForm({
 
   const {
     currentProject,
-  } = useGanttToolStore();
+  } = useGanttToolStoreV2();
 
   // Get selected phase for validation
   const selectedPhase = phases.find(p => p.id === formData.phaseId);
@@ -897,7 +897,7 @@ function TaskForm({
             <button
               type="button"
               onClick={() => {
-                const { addMilestone } = useGanttToolStore.getState();
+                const { addMilestone } = useGanttToolStoreV2.getState();
                 // Quick add milestone at task end date
                 const milestoneName = `${formData.name || 'Task'} Complete`;
                 addMilestone({

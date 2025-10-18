@@ -31,7 +31,7 @@ import {
   Award,
   Zap,
 } from 'lucide-react';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { differenceInDays, format } from 'date-fns';
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
 import { exportToPDF } from '@/lib/gantt-tool/export-utils';
@@ -43,7 +43,7 @@ interface ProposalGenerationModalProps {
 
 export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationModalProps) {
   const { message } = App.useApp();
-  const { currentProject, getProjectDuration } = useGanttToolStore();
+  const { currentProject, getProjectDuration } = useGanttToolStoreV2();
   const [activeTab, setActiveTab] = useState('summary');
   const [isExporting, setIsExporting] = useState(false);
 

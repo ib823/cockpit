@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { useState, useMemo } from 'react';
 import {
   Plus,
@@ -32,7 +32,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     addResource,
     updateResource,
     deleteResource,
-  } = useGanttToolStore();
+  } = useGanttToolStoreV2();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<ResourceCategory | 'all'>('all');

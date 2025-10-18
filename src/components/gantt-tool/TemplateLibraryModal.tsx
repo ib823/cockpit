@@ -13,7 +13,7 @@ import { useState, useMemo } from 'react';
 import { Modal, Tabs, Input, Badge, Tag } from 'antd';
 import { Search, Star, Calendar, CheckCircle, BookOpen, Rocket, TrendingUp, Building } from 'lucide-react';
 import { PROJECT_TEMPLATES, getTemplatesByCategory, type ProjectTemplate } from '@/lib/gantt-tool/project-templates';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { format } from 'date-fns';
 
 interface Props {
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export function TemplateLibraryModal({ isOpen, onClose }: Props) {
-  const { createProjectFromTemplate } = useGanttToolStore();
+  const { createProjectFromTemplate } = useGanttToolStoreV2();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null);

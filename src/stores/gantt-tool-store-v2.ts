@@ -59,6 +59,8 @@ interface GanttToolStateV2 {
   fetchProjects: () => Promise<void>;
   fetchProject: (projectId: string) => Promise<void>;
   createProject: (name: string, startDate: string, description?: string) => Promise<void>;
+  importProject: (data: GanttProject) => Promise<void>;
+  createProjectFromTemplate: (template: GanttProject) => Promise<void>;
   saveProject: () => Promise<void>; // Auto-save current project to API
   deleteProject: (projectId: string) => Promise<void>;
   loadProject: (projectId: string) => void;
@@ -312,6 +314,62 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           state.isSyncing = false;
         });
       }
+    },
+
+    importProject: async (data: GanttProject) => {
+      set((state) => {
+        state.isSyncing = true;
+        state.syncError = null;
+      });
+
+      try {
+        // Create project via API with imported data
+        const response = await fetch('/api/gantt-tool/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...data,
+            // Generate new ID and timestamps
+            id: undefined, // Let server generate
+            createdAt: undefined,
+            updatedAt: undefined,
+          }),
+        });
+
+        if (!response.ok) {
+          if (response.status === 409) {
+            const error = await response.json();
+            throw new Error(error.error || 'Project name already exists');
+          }
+          throw new Error('Failed to import project');
+        }
+
+        const responseData = await response.json();
+
+        set((state) => {
+          state.currentProject = responseData.project;
+          state.projects.push(responseData.project);
+          state.isSyncing = false;
+          state.lastSyncAt = new Date();
+          state.manuallyUnloaded = false;
+        });
+
+        // Fetch all projects to refresh the list
+        await get().fetchProjects();
+      } catch (error) {
+        set((state) => {
+          state.syncError = error instanceof Error ? error.message : 'Unknown error';
+          state.isSyncing = false;
+        });
+      }
+    },
+
+    createProjectFromTemplate: async (template: GanttProject) => {
+      // Templates are just imported projects with a different name
+      await get().importProject({
+        ...template,
+        name: `${template.name} (Copy)`,
+      });
     },
 
     saveProject: async () => {
