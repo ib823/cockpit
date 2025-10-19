@@ -743,7 +743,14 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       set((state) => {
         if (!state.currentProject) return;
         const phase = state.currentProject.phases.find((p) => p.id === data.phaseId);
-        if (!phase) return;
+
+        // FIX ISSUE #13: Add phase existence check to prevent race conditions
+        if (!phase) {
+          throw new Error(
+            'Cannot add task: The selected phase no longer exists. ' +
+            'It may have been deleted by another user. Please refresh the page to see the latest project state.'
+          );
+        }
 
         const snapshot = cloneProject(state.currentProject);
         if (snapshot) {
@@ -785,7 +792,14 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         if (!state.currentProject) return;
 
         const phase = state.currentProject.phases.find((p) => p.id === phaseId);
-        if (!phase) return;
+
+        // FIX ISSUE #13: Add phase existence check to prevent race conditions
+        if (!phase) {
+          throw new Error(
+            'Cannot update task: The parent phase no longer exists. ' +
+            'It may have been deleted by another user. Please refresh the page to see the latest project state.'
+          );
+        }
 
         const task = phase.tasks.find((t) => t.id === taskId);
         if (task) {

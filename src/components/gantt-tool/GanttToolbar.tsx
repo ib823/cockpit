@@ -27,6 +27,7 @@ import {
   Redo2,
   BarChart3,
   Network,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   FileImageOutlined,
@@ -56,9 +57,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { exportToPNG, exportToPDF, exportToExcel } from '@/lib/gantt-tool/export-utils';
 import { ResourceManagementModal } from './ResourceManagementModal';
-import { ImportModal } from './ImportModal';
+import { ImportModalV2 } from './ImportModalV2';
 import { ProposalGenerationModal } from './ProposalGenerationModal';
 import { TemplateLibraryModal } from './TemplateLibraryModal';
+import { DuplicateCleanupModal } from './DuplicateCleanupModal';
 import type { MenuProps } from 'antd';
 import dayjs from 'dayjs';
 
@@ -73,7 +75,7 @@ export function GanttToolbar({
   showContextPanel = true,
   onToggleContextPanel,
   showQuickResourcePanel = false,
-  onToggleQuickResourcePanel
+  onToggleQuickResourcePanel,
 }: GanttToolbarProps = {}) {
   const router = useRouter();
   const { modal } = App.useApp();
@@ -143,6 +145,7 @@ export function GanttToolbar({
   const [showImportModal, setShowImportModal] = useState(false);
   const [showProposalModal, setShowProposalModal] = useState(false);
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
+  const [showDuplicateCleanup, setShowDuplicateCleanup] = useState(false);
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
   const [editedProjectName, setEditedProjectName] = useState('');
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
@@ -289,6 +292,20 @@ export function GanttToolbar({
       label: 'New Project',
       icon: <PlusOutlined />,
       onClick: handleCreateNewProject,
+    },
+    {
+      key: 'cleanup-duplicates',
+      label: (
+        <div className="py-1">
+          <div className="font-semibold text-orange-600 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            Remove Duplicates
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5">Clean up duplicate phases</div>
+        </div>
+      ),
+      onClick: () => setShowDuplicateCleanup(true),
+      style: { backgroundColor: '#fff7ed' },
     },
     {
       key: 'templates',
@@ -440,7 +457,7 @@ export function GanttToolbar({
           </div>
         </div>
 
-        {showImportModal && <ImportModal onClose={() => setShowImportModal(false)} />}
+        {showImportModal && <ImportModalV2 onClose={() => setShowImportModal(false)} />}
 
         <Modal
           title="Create New Project"
@@ -569,6 +586,7 @@ export function GanttToolbar({
                 </button>
               </Tooltip>
             </div>
+
           </div>
 
           {/* Right: The Revolutionary 5 Actions */}
@@ -821,7 +839,7 @@ export function GanttToolbar({
         <ResourceManagementModal onClose={() => setShowResourceModal(false)} />
       )}
 
-      {showImportModal && <ImportModal onClose={() => setShowImportModal(false)} />}
+      {showImportModal && <ImportModalV2 onClose={() => setShowImportModal(false)} />}
 
       {showProposalModal && (
         <ProposalGenerationModal
@@ -834,6 +852,13 @@ export function GanttToolbar({
         <TemplateLibraryModal
           isOpen={showTemplateLibrary}
           onClose={() => setShowTemplateLibrary(false)}
+        />
+      )}
+
+      {showDuplicateCleanup && (
+        <DuplicateCleanupModal
+          isOpen={showDuplicateCleanup}
+          onClose={() => setShowDuplicateCleanup(false)}
         />
       )}
 

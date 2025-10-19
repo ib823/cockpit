@@ -12,6 +12,10 @@ import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { FileSpreadsheet, Copy, Download, AlertCircle, CheckCircle, Upload } from 'lucide-react';
 import { generateCopyPasteTemplate } from '@/lib/gantt-tool/copy-paste-template-generator';
 
+// FIX ISSUE #16: Add file size limits
+const MAX_ROWS = 500; // Maximum total rows (tasks + resources)
+const MAX_PASTE_SIZE = 1024 * 1024; // 1MB maximum paste size
+
 export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   const [pastedData, setPastedData] = useState('');
   const [parsed, setParsed] = useState<ParsedExcelData | null>(null);
@@ -24,11 +28,44 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   // Handle paste
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const tsvData = e.clipboardData.getData('text');
+
+    // FIX ISSUE #16: Check paste size before processing
+    if (tsvData.length > MAX_PASTE_SIZE) {
+      setError(
+        `⚠️ Data size too large (${(tsvData.length / 1024).toFixed(0)}KB)\n\n` +
+        `Maximum allowed: ${(MAX_PASTE_SIZE / 1024).toFixed(0)}KB\n\n` +
+        `Your data is too large to import. Please:\n` +
+        `• Reduce the number of rows\n` +
+        `• Split into multiple smaller imports\n` +
+        `• Remove unnecessary columns\n\n` +
+        `If you need to import large datasets, please contact support.`
+      );
+      setParsed(null);
+      return;
+    }
+
     setPastedData(tsvData);
 
     // Auto-parse on paste
     try {
       const result = parseExcelTemplate(tsvData);
+
+      // FIX ISSUE #16: Check row count after parsing
+      const totalRows = result.tasks.length + result.resources.length;
+      if (totalRows > MAX_ROWS) {
+        setError(
+          `⚠️ Too many rows to import (${totalRows} rows)\n\n` +
+          `Maximum allowed: ${MAX_ROWS} total rows (tasks + resources)\n\n` +
+          `Your import contains:\n` +
+          `• ${result.tasks.length} tasks\n` +
+          `• ${result.resources.length} resources\n` +
+          `• Total: ${totalRows} rows\n\n` +
+          `Please split your data into multiple smaller imports or contact support for bulk import assistance.`
+        );
+        setParsed(null);
+        return;
+      }
+
       setParsed(result);
       setError(null);
     } catch (err) {
@@ -39,8 +76,32 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
   // Handle manual parse
   const handleParse = () => {
+    // FIX ISSUE #16: Check paste size before processing
+    if (pastedData.length > MAX_PASTE_SIZE) {
+      setError(
+        `⚠️ Data size too large (${(pastedData.length / 1024).toFixed(0)}KB)\n\n` +
+        `Maximum allowed: ${(MAX_PASTE_SIZE / 1024).toFixed(0)}KB\n\n` +
+        `Please reduce the amount of data and try again.`
+      );
+      setParsed(null);
+      return;
+    }
+
     try {
       const result = parseExcelTemplate(pastedData);
+
+      // FIX ISSUE #16: Check row count after parsing
+      const totalRows = result.tasks.length + result.resources.length;
+      if (totalRows > MAX_ROWS) {
+        setError(
+          `⚠️ Too many rows to import (${totalRows} rows)\n\n` +
+          `Maximum allowed: ${MAX_ROWS} total rows\n\n` +
+          `Please reduce the number of rows and try again.`
+        );
+        setParsed(null);
+        return;
+      }
+
       setParsed(result);
       setError(null);
     } catch (err) {
@@ -91,6 +152,21 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           }
         }
 
+        // Deduplicate phases by name - only add phases that don't already exist
+        const existingPhaseNames = new Set(currentProject.phases.map(p => p.name.toLowerCase().trim()));
+        const newPhases = ganttData.phases.filter(
+          (phase: any) => !existingPhaseNames.has(phase.name.toLowerCase().trim())
+        );
+
+        if (newPhases.length === 0) {
+          console.warn('[ExcelImport] All phases already exist in the project. Nothing to append.');
+          setError('All phases from the import already exist in the current project. No new data was added.');
+          setIsImporting(false);
+          return;
+        }
+
+        console.log('[ExcelImport] Appending', newPhases.length, 'new phases (', ganttData.phases.length - newPhases.length, 'duplicates skipped)');
+
         // Update the project with new phases and tasks via API
         // This is more reliable than trying to add them one by one through the store
         const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
@@ -99,7 +175,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           body: JSON.stringify({
             phases: [
               ...currentProject.phases,
-              ...ganttData.phases,
+              ...newPhases,
             ],
           }),
         });
@@ -203,7 +279,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           <li><strong>Review the preview</strong> and choose to create new or add to current project</li>
         </ol>
         <div className="mt-2 p-2 bg-blue-100 rounded text-xs text-blue-900">
-          <strong>💡 Tip:</strong> The template shows the exact format needed. Keep the weekly headers (W 01, W 02, etc.) and use 2 spaces before task names to make them subtasks.
+          <strong>💡 Tip:</strong> The template shows the exact format needed. Keep the weekly date headers (e.g., 2-Feb-26, 9-Feb-26), enter phase names and task names in separate columns (tasks with the same phase name will be grouped together), and use standard designations (Senior Manager, Manager, Senior Consultant, Consultant, Analyst) for resources.
         </div>
 
         <button
@@ -234,6 +310,11 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           placeholder="Paste your Excel data here... (Ctrl+V)"
           className="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
+        {/* FIX ISSUE #16: Show limits to users */}
+        <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+          <span>{pastedData.split('\n').filter(l => l.trim()).length} lines pasted</span>
+          <span>Limits: {MAX_ROWS} rows max • {(MAX_PASTE_SIZE / 1024).toFixed(0)}KB max size</span>
+        </div>
 
         {!parsed && pastedData && (
           <button
@@ -330,11 +411,15 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
               <div className="p-4 max-h-48 overflow-auto">
                 <ul className="space-y-2 text-sm">
                   {parsed.tasks.slice(0, 10).map((task, i) => (
-                    <li key={i} className={`flex items-center gap-2 ${task.level === 1 ? 'ml-6' : ''}`}>
-                      <span className={`font-medium ${task.level === 0 ? 'text-blue-600' : 'text-gray-700'}`}>
-                        {task.level === 0 ? '📁' : '📄'} {task.name}
+                    <li key={i} className="flex items-center gap-2">
+                      <span className="font-medium text-blue-600">
+                        📁 {task.phaseName}
                       </span>
-                      <span className="text-gray-500">
+                      <span className="text-gray-400">→</span>
+                      <span className="font-medium text-gray-700">
+                        📄 {task.name}
+                      </span>
+                      <span className="text-gray-500 text-xs">
                         ({task.startDate} → {task.endDate})
                       </span>
                     </li>

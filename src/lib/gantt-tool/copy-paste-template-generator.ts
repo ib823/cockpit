@@ -18,10 +18,12 @@ export async function generateCopyPasteTemplate() {
 
   // Calculate weekly columns (12 weeks starting from today)
   const projectStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const weekHeaders = ['Task Name', 'Start Date', 'End Date'];
+  const weekHeaders = ['Phase', 'Task Name', 'Start Date', 'End Date'];
 
+  // Generate weekly headers with actual Monday dates (e.g., "2-Feb-26")
   for (let i = 0; i < 12; i++) {
-    weekHeaders.push(`W ${String(i + 1).padStart(2, '0')}`);
+    const weekDate = addWeeks(projectStart, i);
+    weekHeaders.push(format(weekDate, 'd-MMM-yy'));
   }
 
   // Add header row
@@ -38,38 +40,41 @@ export async function generateCopyPasteTemplate() {
   headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
 
   // Set column widths
-  sheet.getColumn(1).width = 40; // Task Name
-  sheet.getColumn(2).width = 12; // Start Date
-  sheet.getColumn(3).width = 12; // End Date
-  for (let i = 4; i <= weekHeaders.length; i++) {
-    sheet.getColumn(i).width = 6; // Weekly columns
+  sheet.getColumn(1).width = 20; // Phase
+  sheet.getColumn(2).width = 30; // Task Name
+  sheet.getColumn(3).width = 30; // Start Date (full format)
+  sheet.getColumn(4).width = 30; // End Date (full format)
+  for (let i = 5; i <= weekHeaders.length; i++) {
+    sheet.getColumn(i).width = 12; // Weekly columns (date format)
   }
 
-  // Add example phases and tasks
+  // Add example phases and tasks (using full date format)
   const exampleData = [
-    ['Prepare', '2025-01-15', '2025-02-28', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Project charter', '2025-01-15', '2025-01-30', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Setup environments', '2025-02-01', '2025-02-15', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Team onboarding', '2025-02-15', '2025-02-28', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['Explore', '2025-03-01', '2025-04-30', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Gather requirements', '2025-03-01', '2025-03-20', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Design solution', '2025-03-21', '2025-04-15', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Review design', '2025-04-16', '2025-04-30', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['Realize', '2025-05-01', '2025-09-30', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Configuration', '2025-05-01', '2025-06-30', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Development', '2025-07-01', '2025-08-15', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Unit testing', '2025-08-16', '2025-09-30', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['Deploy', '2025-10-01', '2025-11-30', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Integration testing', '2025-10-01', '2025-10-20', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  UAT', '2025-10-21', '2025-11-10', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['  Go-live', '2025-11-26', '2025-11-30', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], // Empty row separator
+    ['Prepare', 'Project charter', 'Monday, 15 January, 2025', 'Thursday, 30 January, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Prepare', 'Setup environments', 'Saturday, 1 February, 2025', 'Saturday, 15 February, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Prepare', 'Team onboarding', 'Saturday, 15 February, 2025', 'Friday, 28 February, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Explore', 'Gather requirements', 'Saturday, 1 March, 2025', 'Thursday, 20 March, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Explore', 'Design solution', 'Friday, 21 March, 2025', 'Tuesday, 15 April, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Explore', 'Review design', 'Wednesday, 16 April, 2025', 'Wednesday, 30 April, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Realize', 'Configuration', 'Thursday, 1 May, 2025', 'Monday, 30 June, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Realize', 'Development', 'Tuesday, 1 July, 2025', 'Friday, 15 August, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Realize', 'Unit testing', 'Saturday, 16 August, 2025', 'Tuesday, 30 September, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Deploy', 'Integration testing', 'Wednesday, 1 October, 2025', 'Monday, 20 October, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Deploy', 'UAT', 'Tuesday, 21 October, 2025', 'Monday, 10 November, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Deploy', 'Go-live', 'Wednesday, 26 November, 2025', 'Sunday, 30 November, 2025', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], // Empty row separator
   ];
 
   exampleData.forEach(row => sheet.addRow(row));
 
-  // Add resource section header
-  const resourceHeaderRow = sheet.addRow(['Role', 'Resource Name', '', ...Array(12).fill('')]);
+  // Add resource section header (with Start Date and End Date columns for consistency)
+  const resourceWeekHeaders = [];
+  for (let i = 0; i < 12; i++) {
+    const weekDate = addWeeks(projectStart, i);
+    resourceWeekHeaders.push(format(weekDate, 'd-MMM-yy'));
+  }
+
+  const resourceHeaderRow = sheet.addRow(['Role', 'Designation', 'Start Date', 'End Date', ...resourceWeekHeaders]);
   resourceHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
   resourceHeaderRow.fill = {
     type: 'pattern',
@@ -80,11 +85,11 @@ export async function generateCopyPasteTemplate() {
 
   // Add example resources with weekly effort
   const exampleResources = [
-    ['Project Manager', 'PM Smith', '', '5', '5', '5', '5', '5', '5', '5', '5', '3', '3', '3', '3'],
-    ['Technical Lead', 'Tech Jones', '', '0', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5'],
-    ['Finance Consultant', 'Finance Brown', '', '0', '0', '3', '5', '5', '5', '5', '3', '0', '0', '0', '0'],
-    ['Developer', 'Dev Wilson', '', '0', '0', '0', '0', '5', '5', '5', '5', '5', '5', '5', '3'],
-    ['QA Analyst', 'QA Taylor', '', '0', '0', '0', '0', '0', '0', '0', '5', '5', '5', '5', '5'],
+    ['Project Manager', 'Senior Manager', '', '', '5', '5', '5', '5', '5', '5', '5', '5', '3', '3', '3', '3'],
+    ['Technical Lead', 'Manager', '', '', '0', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5'],
+    ['Finance Consultant', 'Senior Consultant', '', '', '0', '0', '3', '5', '5', '5', '5', '3', '0', '0', '0', '0'],
+    ['Developer', 'Consultant', '', '', '0', '0', '0', '0', '5', '5', '5', '5', '5', '5', '5', '3'],
+    ['QA Analyst', 'Analyst', '', '', '0', '0', '0', '0', '0', '0', '0', '5', '5', '5', '5', '5'],
   ];
 
   exampleResources.forEach(row => sheet.addRow(row));
@@ -96,15 +101,18 @@ export async function generateCopyPasteTemplate() {
   instructionsRow.font = { bold: true, size: 12, color: { argb: 'FFEF4444' } };
 
   const instructions = [
-    '1. PHASES: Task names without indentation become phases (e.g., "Prepare", "Explore")',
-    '2. TASKS: Task names with 2 spaces at the start become tasks (e.g., "  Project charter")',
-    '3. DATES: Format must be YYYY-MM-DD (e.g., 2025-01-15)',
-    '4. RESOURCES: Add resources below the empty row, with Role and Resource Name',
-    '5. WEEKLY EFFORT: Numbers in weekly columns represent mandays (0-5)',
-    '6. COPY ALL: Select ALL data (header + tasks + resources) then copy (Ctrl+C)',
-    '7. PASTE: Go to the import dialog and paste (Ctrl+V) into the text area',
+    '1. PHASES: Enter phase name in the "Phase" column (e.g., "Prepare", "Explore")',
+    '2. TASKS: Enter task name in the "Task Name" column (e.g., "Project charter")',
+    '3. GROUPING: Tasks with the same phase name will be grouped together in one phase',
+    '4. DATES: Format must be "Day, DD Month, YYYY" (e.g., "Monday, 2 February, 2026")',
+    '5. RESOURCES: Add resources below the empty row, with Role, Designation, and optional dates',
+    '6. DESIGNATIONS: Use standard levels (Senior Manager, Manager, Senior Consultant, Consultant, Analyst)',
+    '7. WEEKLY EFFORT: Numbers in weekly columns represent mandays (0-5)',
+    '8. WEEKLY HEADERS: Column headers show Monday dates (e.g., 2-Feb-26) for each week',
+    '9. COPY ALL: Select ALL data (header + tasks + resources) then copy (Ctrl+C)',
+    '10. PASTE: Go to the import dialog and paste (Ctrl+V) into the text area',
     '',
-    '⚠️ IMPORTANT: Keep the weekly column headers (W 01, W 02, etc.) - they are required!',
+    '⚠️ IMPORTANT: Keep the weekly column headers (dates) - they are required for parsing!',
   ];
 
   instructions.forEach(instruction => {

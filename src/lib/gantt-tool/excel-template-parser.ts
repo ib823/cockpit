@@ -9,10 +9,10 @@ import { format, parse, addDays } from 'date-fns';
 import { nanoid } from 'nanoid';
 
 export interface ParsedTask {
+  phaseName: string;
   name: string;
   startDate: string; // YYYY-MM-DD
   endDate: string;   // YYYY-MM-DD
-  level: number;     // 0 = phase, 1 = task
 }
 
 export interface ParsedResource {
@@ -31,26 +31,37 @@ export interface ParsedExcelData {
 
 /**
  * Parse TSV data from Excel clipboard
+ *
+ * FIX ISSUE #12: Validates all dates and reports errors instead of silent fallback
  */
 export function parseExcelTemplate(tsvData: string): ParsedExcelData {
   const lines = tsvData.split('\n').map(line => line.split('\t'));
+  const dateErrors: string[] = [];
 
-  // Find the row with weekly column headers (e.g., "W 01", "W 02")
+  // Find the row with weekly column headers (e.g., "2-Feb-26", "9-Feb-26" or legacy "W 01", "W 02")
   let weeklyHeaderRow = -1;
   let weeklyColumns: string[] = [];
 
   for (let i = 0; i < Math.min(10, lines.length); i++) {
     const row = lines[i];
-    const weekPattern = row.filter(cell => /W\s*\d+/.test(cell || ''));
+    // Match date format (d-MMM-yy) or legacy W format
+    const weekPattern = row.filter(cell => /\d{1,2}-[A-Za-z]{3}-\d{2}/.test(cell || '') || /W\s*\d+/.test(cell || ''));
     if (weekPattern.length > 5) {
       weeklyHeaderRow = i;
-      weeklyColumns = row.slice(row.findIndex(cell => /W\s*\d+/.test(cell || '')));
+      weeklyColumns = row.slice(row.findIndex(cell => /\d{1,2}-[A-Za-z]{3}-\d{2}/.test(cell || '') || /W\s*\d+/.test(cell || '')));
       break;
     }
   }
 
   if (weeklyHeaderRow === -1) {
-    throw new Error('Could not find weekly column headers (W 01, W 02, etc.)');
+    throw new Error(
+      'Could not find weekly column headers.\n\n' +
+      'Expected format: Column headers should include weekly dates like "2-Feb-26", "9-Feb-26", etc.\n\n' +
+      'Please make sure you:\n' +
+      '1. Copied the entire table including the header row\n' +
+      '2. Used the provided Excel template format\n' +
+      '3. Included both task data and weekly columns'
+    );
   }
 
   // Parse tasks (rows between header and resource section)
@@ -59,41 +70,68 @@ export function parseExcelTemplate(tsvData: string): ParsedExcelData {
 
   for (let i = weeklyHeaderRow + 1; i < lines.length; i++) {
     const row = lines[i];
-    const firstCell = row[0]?.trim();
+    const phaseName = row[0]?.trim();
+    const taskName = row[1]?.trim();
 
     // Empty row or "Role" column indicates start of resource section
-    if (!firstCell || firstCell.toLowerCase() === 'role') {
+    if (!phaseName || phaseName.toLowerCase() === 'role') {
       taskEndRow = i;
       break;
     }
 
     // Parse task row
-    const taskName = firstCell;
-    const startDateStr = row[1]?.trim(); // Start Date column
-    const endDateStr = row[2]?.trim();   // End Date column
+    const startDateStr = row[2]?.trim(); // Start Date column
+    const endDateStr = row[3]?.trim();   // End Date column
 
-    if (taskName && startDateStr && endDateStr) {
-      const level = taskName.startsWith(' ') ? 1 : 0; // Indented = task, not indented = phase
+    if (phaseName && taskName && startDateStr && endDateStr) {
+      // FIX ISSUE #12: Validate dates and collect errors
+      const startDateResult = parseExcelDate(startDateStr);
+      const endDateResult = parseExcelDate(endDateStr);
 
-      tasks.push({
-        name: taskName.trim(),
-        startDate: parseExcelDate(startDateStr),
-        endDate: parseExcelDate(endDateStr),
-        level,
-      });
+      if (startDateResult.error) {
+        dateErrors.push(`Row ${i + 1} (${phaseName} - ${taskName}): Start date error - ${startDateResult.error}`);
+      }
+      if (endDateResult.error) {
+        dateErrors.push(`Row ${i + 1} (${phaseName} - ${taskName}): End date error - ${endDateResult.error}`);
+      }
+
+      // Only add task if both dates are valid
+      if (!startDateResult.error && !endDateResult.error) {
+        tasks.push({
+          phaseName,
+          name: taskName,
+          startDate: startDateResult.date,
+          endDate: endDateResult.date,
+        });
+      }
     }
+  }
+
+  // FIX ISSUE #12: Throw error if any dates are invalid
+  if (dateErrors.length > 0) {
+    const errorMessage = `Found ${dateErrors.length} invalid date(s) in your import:\n\n` +
+      dateErrors.slice(0, 10).join('\n') +
+      (dateErrors.length > 10 ? `\n\n... and ${dateErrors.length - 10} more errors` : '') +
+      '\n\nPlease fix these dates and try again. Accepted formats:\n' +
+      '• "Monday, 2 February, 2026"\n' +
+      '• "2026-02-02"\n' +
+      '• "02/02/2026"';
+
+    throw new Error(errorMessage);
   }
 
   // Parse resources (rows after task section)
   const resources: ParsedResource[] = [];
-  const weekStartIndex = lines[weeklyHeaderRow].findIndex(cell => /W\s*\d+/.test(cell || ''));
+  const weekStartIndex = lines[weeklyHeaderRow].findIndex(cell => /\d{1,2}-[A-Za-z]{3}-\d{2}/.test(cell || '') || /W\s*\d+/.test(cell || ''));
 
   for (let i = taskEndRow + 1; i < lines.length; i++) {
     const row = lines[i];
-    const resourceName = row[0]?.trim();
-    const role = row[1]?.trim();
+    const role = row[0]?.trim(); // Role (e.g., "Project Manager")
+    const designation = row[1]?.trim(); // Designation (e.g., "Senior Manager")
+    // row[2] = Start Date (optional, not used by gantt tool)
+    // row[3] = End Date (optional, not used by gantt tool)
 
-    if (!resourceName || !role) continue;
+    if (!role || !designation) continue;
 
     // Parse weekly effort (mandays)
     const weeklyEffort: { week: number; days: number }[] = [];
@@ -108,9 +146,9 @@ export function parseExcelTemplate(tsvData: string): ParsedExcelData {
     }
 
     resources.push({
-      name: resourceName,
-      role,
-      category: inferCategory(role),
+      name: role, // Use role as name since we don't track individual names
+      role: designation, // Store designation in role field for backward compatibility
+      category: inferCategory(designation),
       weeklyEffort,
     });
   }
@@ -128,46 +166,72 @@ export function parseExcelTemplate(tsvData: string): ParsedExcelData {
 
 /**
  * Parse Excel date formats
- * Supports: "12.00", "Monday, 12 January 2026", "2026-01-12"
+ * Supports: "Monday, 2 February, 2026", "Monday, 12 January 2026", "2026-01-12"
+ *
+ * FIX ISSUE #12: Returns error instead of silent fallback to prevent data corruption
  */
-function parseExcelDate(dateStr: string): string {
-  // Try ISO format first
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    return dateStr;
+function parseExcelDate(dateStr: string): { date: string; error?: string } {
+  if (!dateStr || dateStr.trim() === '') {
+    return {
+      date: '',
+      error: `Empty date value. Please provide a valid date.`
+    };
   }
 
-  // Try "Monday, 12 January 2026" format
-  try {
-    const parsed = parse(dateStr, 'EEEE, dd MMMM yyyy', new Date());
+  const trimmed = dateStr.trim();
+
+  // Try ISO format first (YYYY-MM-DD)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    // Validate it's a real date
+    const parsed = new Date(trimmed);
     if (!isNaN(parsed.getTime())) {
-      return format(parsed, 'yyyy-MM-dd');
+      return { date: trimmed };
     }
-  } catch {}
-
-  // Try "12.00" format (assume week number)
-  const weekMatch = dateStr.match(/(\d+)\.(\d+)/);
-  if (weekMatch) {
-    const week = parseInt(weekMatch[1], 10);
-    // Approximate: assume project starts on Jan 1, 2026
-    const projectStart = new Date(2026, 0, 1);
-    const weekDate = addDays(projectStart, week * 7);
-    return format(weekDate, 'yyyy-MM-dd');
   }
 
-  // Fallback: return today
-  return format(new Date(), 'yyyy-MM-dd');
+  // Try various human-readable formats
+  const formats = [
+    'EEEE, d MMMM, yyyy',      // Monday, 2 February, 2026
+    'EEEE, dd MMMM yyyy',      // Monday, 12 January 2026
+    'EEEE, d MMMM yyyy',       // Monday, 2 January 2026
+    'd MMMM yyyy',             // 2 February 2026
+    'dd MMMM yyyy',            // 12 January 2026
+    'yyyy-MM-dd',              // 2026-01-12
+    'dd/MM/yyyy',              // 12/01/2026
+    'MM/dd/yyyy',              // 01/12/2026
+  ];
+
+  for (const formatStr of formats) {
+    try {
+      const parsed = parse(trimmed, formatStr, new Date());
+      if (!isNaN(parsed.getTime())) {
+        // Additional validation: year should be reasonable (1900-2100)
+        const year = parsed.getFullYear();
+        if (year >= 1900 && year <= 2100) {
+          return { date: format(parsed, 'yyyy-MM-dd') };
+        }
+      }
+    } catch {}
+  }
+
+  // FIX ISSUE #12: Return error instead of silent fallback
+  return {
+    date: '',
+    error: `Invalid date format: "${trimmed}". Expected formats: "Monday, 2 February, 2026", "2026-02-02", or "02/02/2026"`
+  };
 }
 
 /**
- * Infer resource category from role
+ * Infer resource category from designation
  */
-function inferCategory(role: string): string {
-  const roleLower = role.toLowerCase();
+function inferCategory(designation: string): string {
+  const designationLower = designation.toLowerCase();
 
-  if (roleLower.includes('manager')) return 'management';
-  if (roleLower.includes('consultant')) return 'functional';
-  if (roleLower.includes('developer') || roleLower.includes('abap')) return 'technical';
-  if (roleLower.includes('architect')) return 'functional';
+  if (designationLower.includes('manager')) return 'management';
+  if (designationLower.includes('consultant')) return 'functional';
+  if (designationLower.includes('developer') || designationLower.includes('abap')) return 'technical';
+  if (designationLower.includes('architect')) return 'functional';
+  if (designationLower.includes('analyst')) return 'functional';
 
   return 'other';
 }
@@ -187,30 +251,49 @@ export function transformToGanttProject(
 } {
   const { tasks, resources, projectStartDate } = parsed;
 
-  // Group tasks into phases (level 0) and sub-tasks (level 1)
-  const phases: any[] = [];
-  let currentPhase: any = null;
+  // Group tasks by phase name
+  const phaseMap = new Map<string, ParsedTask[]>();
 
   for (const task of tasks) {
-    if (task.level === 0) {
-      // Create new phase
-      currentPhase = {
-        id: nanoid(),
-        name: task.name,
-        description: '',
-        color: PHASE_COLORS[phases.length % PHASE_COLORS.length],
-        startDate: task.startDate,
-        endDate: task.endDate,
-        collapsed: false,
-        order: phases.length,
-        dependencies: [],
-        tasks: [],
-        phaseResourceAssignments: [],
-      };
-      phases.push(currentPhase);
-    } else if (task.level === 1 && currentPhase) {
-      // Add task to current phase
-      currentPhase.tasks.push({
+    if (!phaseMap.has(task.phaseName)) {
+      phaseMap.set(task.phaseName, []);
+    }
+    phaseMap.get(task.phaseName)!.push(task);
+  }
+
+  // Create phases from grouped tasks
+  const phases: any[] = [];
+  let phaseOrder = 0;
+
+  for (const [phaseName, phaseTasks] of phaseMap.entries()) {
+    // Calculate phase date range from tasks
+    const taskDates = phaseTasks.map(t => ({
+      start: new Date(t.startDate),
+      end: new Date(t.endDate),
+    }));
+
+    const phaseStartDate = format(
+      new Date(Math.min(...taskDates.map(d => d.start.getTime()))),
+      'yyyy-MM-dd'
+    );
+
+    const phaseEndDate = format(
+      new Date(Math.max(...taskDates.map(d => d.end.getTime()))),
+      'yyyy-MM-dd'
+    );
+
+    // Create phase
+    const phase = {
+      id: nanoid(),
+      name: phaseName,
+      description: '',
+      color: PHASE_COLORS[phaseOrder % PHASE_COLORS.length],
+      startDate: phaseStartDate,
+      endDate: phaseEndDate,
+      collapsed: false,
+      order: phaseOrder,
+      dependencies: [],
+      tasks: phaseTasks.map((task, idx) => ({
         id: nanoid(),
         name: task.name,
         description: '',
@@ -218,11 +301,15 @@ export function transformToGanttProject(
         endDate: task.endDate,
         progress: 0,
         assignee: null,
-        order: currentPhase.tasks.length,
+        order: idx,
         dependencies: [],
         resourceAssignments: [],
-      });
-    }
+      })),
+      phaseResourceAssignments: [],
+    };
+
+    phases.push(phase);
+    phaseOrder++;
   }
 
   // Create resources
@@ -293,12 +380,17 @@ export function transformToGanttProject(
   };
 }
 
-function inferDesignation(role: string): string {
-  const roleLower = role.toLowerCase();
+function inferDesignation(designation: string): string {
+  const designationLower = designation.toLowerCase();
 
-  if (roleLower.includes('lead') || roleLower.includes('manager')) return 'lead';
-  if (roleLower.includes('senior')) return 'senior_consultant';
-  if (roleLower.includes('principal')) return 'principal';
+  // Map standard designation strings to system enum values
+  if (designationLower.includes('senior manager')) return 'senior_manager';
+  if (designationLower === 'manager') return 'manager';
+  if (designationLower.includes('senior consultant')) return 'senior_consultant';
+  if (designationLower === 'consultant') return 'consultant';
+  if (designationLower === 'analyst') return 'analyst';
+  if (designationLower.includes('lead')) return 'lead';
+  if (designationLower.includes('principal')) return 'principal';
 
   return 'consultant';
 }

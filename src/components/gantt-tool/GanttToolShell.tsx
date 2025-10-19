@@ -14,11 +14,14 @@ import { GanttCanvas } from './GanttCanvas';
 import { GanttSidePanel } from './GanttSidePanel';
 import { QuickResourcePanel } from './QuickResourcePanel';
 import { MissionControlModal } from './MissionControlModal';
-import { ImportModal } from './ImportModal';
+import { ImportModalV2 } from './ImportModalV2';
 import { format } from 'date-fns';
 import { Calendar, Plus, Upload, AlertTriangle, Loader2 } from 'lucide-react';
+import { Modal, Form, Input, DatePicker, App } from 'antd';
+import dayjs from 'dayjs';
 
 export function GanttToolShell() {
+  const { modal } = App.useApp();
   const {
     currentProject,
     projects,
@@ -37,6 +40,26 @@ export function GanttToolShell() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showContextPanel, setShowContextPanel] = useState(false);
   const [showQuickResourcePanel, setShowQuickResourcePanel] = useState(false);
+  const [showWelcomeCreateModal, setShowWelcomeCreateModal] = useState(false);
+  const [welcomeCreateForm] = Form.useForm();
+
+  // Handler for creating project from welcome screen
+  const handleWelcomeCreateProject = (values: { projectName: string; startDate: any }) => {
+    // Check for duplicate name
+    const isDuplicate = projects.some(p => p.name.toLowerCase() === values.projectName.toLowerCase());
+    if (isDuplicate) {
+      modal.error({
+        title: 'Duplicate Project Name',
+        content: `A project named "${values.projectName}" already exists. Please choose a different name.`,
+      });
+      return;
+    }
+
+    const startDate = values.startDate.format('YYYY-MM-DD');
+    createProject(values.projectName, startDate);
+    setShowWelcomeCreateModal(false);
+    welcomeCreateForm.resetFields();
+  };
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -186,10 +209,7 @@ export function GanttToolShell() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-4 mb-6">
               <button
-                onClick={() => {
-                  const today = format(new Date(), 'yyyy-MM-dd');
-                  createProject('My First Project', today, '');
-                }}
+                onClick={() => setShowWelcomeCreateModal(true)}
                 className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 <Plus className="w-5 h-5" />
@@ -240,8 +260,38 @@ export function GanttToolShell() {
           </div>
         </div>
 
-        {/* Import Modal */}
-        {showImportModal && <ImportModal onClose={() => setShowImportModal(false)} />}
+        {/* Import Modal V2 */}
+        {showImportModal && <ImportModalV2 onClose={() => setShowImportModal(false)} />}
+
+        {/* Create Project Modal */}
+        <Modal
+          title="Create New Project"
+          open={showWelcomeCreateModal}
+          onOk={() => welcomeCreateForm.submit()}
+          onCancel={() => {
+            setShowWelcomeCreateModal(false);
+            welcomeCreateForm.resetFields();
+          }}
+          okText="Create"
+        >
+          <Form form={welcomeCreateForm} layout="vertical" onFinish={handleWelcomeCreateProject}>
+            <Form.Item
+              name="projectName"
+              label="Project Name"
+              rules={[{ required: true, message: 'Please enter project name' }]}
+            >
+              <Input placeholder="Enterprise CRM Implementation" size="large" />
+            </Form.Item>
+            <Form.Item
+              name="startDate"
+              label="Start Date"
+              rules={[{ required: true, message: 'Please select start date' }]}
+              initialValue={dayjs()}
+            >
+              <DatePicker style={{ width: '100%' }} size="large" />
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
     );
   }
@@ -294,7 +344,7 @@ export function GanttToolShell() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Gantt Canvas (Main Timeline) */}
+        {/* Content: Gantt Canvas */}
         <div className="flex-1 overflow-auto">
           {currentProject ? (
             <GanttCanvas />
