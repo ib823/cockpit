@@ -1,3 +1,21 @@
 {
-  "crons": [{ "path": "/api/cron/revoke", "schedule": "0 5 * * *" }]
+  "buildCommand": "pnpm install && pnpm build",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/revoke",
+      "schedule": "0 5 * * *"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "regions": ["iad1"],
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 10
+    }
+  }
 }

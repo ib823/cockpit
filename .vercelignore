@@ -1,0 +1,102 @@
+# Vercel Ignore - Files to exclude from deployment
+
+# Development
+node_modules
+.git
+.github
+.vscode
+.idea
+
+# Testing
+/coverage
+test-results-*.log
+ultimate-test-results-*.log
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+/tests
+
+# Documentation (keep essential docs, exclude temp)
+LPPSA*.md
+KPJ*.md
+ADMIN_LOGIN.md
+GANTT_TOOL_*.md
+IMPORT_*.md
+RECONNECT_STATE.md
+*_COMPLETE.md
+*_STATUS.md
+*_DELIVERY.md
+*_INTEGRATION.md
+*_REPORT.md
+*_AUDIT*.md
+SESSION_*.md
+
+# AI/Development artifacts
+.claude/
+gptdebug/
+env_report_*/
+claude-project-knowledge/
+claude-assessment*.zip
+
+# Temporary scripts and data
+*-import*.js
+*-import*.html
+add-*.js
+create-*.js
+assign-*.js
+fix-*.js
+update-*.js
+generate-*.js
+insert-*.js
+direct-*.js
+browser-*.js
+import-*.js
+test-gantt-api.js
+
+# Project data files
+kpj-project.json
+lppsa-*.json
+*-project.json
+*-phases.json
+*-tasks*.json
+*-tasks*.csv
+*.xlsx
+import-instructions.txt
+
+# Build artifacts (Vercel builds fresh)
+.next/
+out/
+build/
+dist/
+tsconfig.tsbuildinfo
+
+# Environment files (set in Vercel dashboard)
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Audit files
+.audit/
+
+# Scripts
+scripts/*.ts
+verify*.sh
+deploy-fixes.sh
+setup-ui-toolkit.sh
+
+# Backups
+*.old.tsx
+*.backup
+cockpit_*.zip
+
+# Public temporary files
+/public/*-import*.html
+/public/import-*.html
+/public/cleanup-*.html
+/public/kpj-*.json
+/public/lppsa-*.json
