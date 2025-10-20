@@ -1,0 +1,491 @@
+Unused files (210)
+.audit/.eslintrc.cjs                                                                
+.audit/.eslintrc.js                                                                 
+.audit/next.config.js                                                               
+.gpt-backup/20251009T001637Z/src/app/admin/page.tsx                                 
+.gpt-backup/20251009T001637Z/src/app/login/page.tsx                                 
+.gpt-backup/20251009T001637Z/src/components/project-v2/modes/ResourcePanelVibe.tsx  
+.gpt-backup/20251009T002105Z/src/app/_components/ui/Checkbox.tsx                    
+.gpt-backup/20251009T002105Z/src/app/_components/ui/Input.tsx                       
+.gpt-backup/20251009T002105Z/src/app/api/auth/[...nextauth]/route.ts                
+.gpt-backup/20251009T003422Z/src/app/_components/ui/index.ts                        
+.gpt-backup/20251009T003422Z/src/app/api/auth/[...nextauth]/route.ts                
+.gpt-backup/20251009T003422Z/src/components/project-v2/modes/ResourcePanelVibe.tsx  
+.gpt-backup/20251009T004216Z/src/app/_components/ui/index.ts                        
+.gpt-backup/20251009T004216Z/src/app/_components/ui/Sheet.tsx                       
+.gpt-backup/20251009T014341Z/src/shims/monday-ui-react-core.tsx                     
+.gpt-backup/20251009T014341Z/src/shims/monday-ui-react-core/icons.tsx               
+i18n.ts                                                                             
+lib/session.ts                                                                      
+public/sw.js                                                                        
+scripts/bootstrap-admin.ts                                                          
+scripts/check-admin-user.ts                                                         
+scripts/check-email-approval.ts                                                     
+scripts/clear-admin-passkeys.ts                                                     
+scripts/fix-admin-approval.ts                                                       
+scripts/generate-admin-code.ts                                                      
+scripts/set-admin-code.ts                                                           
+src/app/_components/shell/ClientSafeToggle.tsx                                      
+src/app/_components/shell/ModeNav.tsx                                               
+src/app/_components/shell/TopBar.tsx                                                
+src/app/_components/timeline/AeroTimeline.tsx                                       
+src/app/_components/timeline/types.ts                                               
+src/app/_components/timeline/useTimelineEngine.ts                                   
+src/app/_components/ui/Button.tsx                                                   
+src/app/_components/ui/Checkbox.tsx                                                 
+src/app/_components/ui/Dialog.tsx                                                   
+src/app/_components/ui/Empty.tsx                                                    
+src/app/_components/ui/index.ts                                                     
+src/app/_components/ui/Input.tsx                                                    
+src/app/_components/ui/Kbd.tsx                                                      
+src/app/_components/ui/Segmented.tsx                                                
+src/app/_components/ui/Select.tsx                                                   
+src/app/_components/ui/Sheet.tsx                                                    
+src/app/_components/ui/Toast.tsx                                                    
+src/app/_components/ui/Tooltip.tsx                                                  
+src/app/admin/page.tailwind.tsx                                                     
+src/components/admin/AccessCodeModal.tsx                                            
+src/components/benchmarks/BenchmarkPanel.tsx                                        
+src/components/common/Button.tsx                                                    
+src/components/common/CommandPalette.tsx                                            
+src/components/common/EmptyState.tsx                                                
+src/components/common/GratitudeAnimation.tsx                                        
+src/components/common/index.ts                                                      
+src/components/common/Logo.tsx                                                      
+src/components/common/ResetButton.tsx                                               
+src/components/common/Spinner.tsx                                                   
+src/components/common/Typography.tsx                                                
+src/components/dashboard/DashboardContent.tsx                                       
+src/components/data-display/Badge.tsx                                               
+src/components/data-display/Card.tsx                                                
+src/components/data-display/Progress.tsx                                            
+src/components/data-display/StatCard.tsx                                            
+src/components/domain/CelebrationModal.tsx                                          
+src/components/domain/ChatMessage.tsx                                               
+src/components/domain/DecisionCard.tsx                                              
+src/components/domain/GanttChart.tsx                                                
+src/components/domain/PhaseCard.tsx                                                 
+src/components/estimator/ConfidenceRibbon.tsx                                       
+src/components/estimator/EstimatorComponents.tsx                                    
+src/components/estimator/TornadoChart.tsx                                           
+src/components/export/ExportButton.tsx                                              
+src/components/forms/Checkbox.tsx                                                   
+src/components/forms/FileUpload.tsx                                                 
+src/components/forms/FormField.tsx                                                  
+src/components/forms/Radio.tsx                                                      
+src/components/forms/Select.tsx                                                     
+src/components/gantt-tool/BudgetManagementModal.tsx                                 
+src/components/gantt-tool/ContextPanel.tsx                                          
+src/components/gantt-tool/CostDashboard.tsx                                         
+src/components/index.ts                                                             
+src/components/Layout.tsx                                                           
+src/components/layout/AppLayout.tsx                                                 
+src/components/layout/Container.tsx                                                 
+src/components/layout/Footer.tsx                                                    
+src/components/layout/Header.tsx                                                    
+src/components/layout/Section.tsx                                                   
+src/components/login/QRScanner.tsx                                                  
+src/components/login/SecurityEducationModal.tsx                                     
+src/components/onboarding/OnboardingTour.tsx                                        
+src/components/organization/BatchOperationsPanel.tsx                                
+src/components/organization/OrgChartNode.tsx                                        
+src/components/organization/OrgChartTemplateSelector.tsx                            
+src/components/organization/OrgStructureImport.tsx                                  
+src/components/organization/ResourceDetailPanel.tsx                                 
+src/components/PlanningCanvas.tsx                                                   
+src/components/presales/ChipCapture.tsx                                             
+src/components/presales/CompletenessRing.tsx                                        
+src/components/presales/CriticalGapsAlert.tsx                                       
+src/components/presales/DecisionBar.tsx                                             
+src/components/presales/GapCards.tsx                                                
+src/components/presales/ManualChipEntry.tsx                                         
+src/components/presales/ModeSelector.tsx                                            
+src/components/project-v2/index.ts                                                  
+src/components/project-v2/modals/RegenerateModal.tsx                                
+src/components/project-v2/modes/CaptureMode.tsx                                     
+src/components/project-v2/modes/DecideMode.tsx                                      
+src/components/project-v2/modes/PlanMode.tsx                                        
+src/components/project-v2/ProjectShell.tsx                                          
+src/components/project-v2/shared/EmptyState.tsx                                     
+src/components/project-v2/shared/LoadingState.tsx                                   
+src/components/project-v2/shared/ModeIndicator.tsx                                  
+src/components/project-v2/shared/ResetButton.tsx                                    
+src/components/project-v2/shared/SlideOver.tsx                                      
+src/components/project-v2/shared/StatBadge.tsx                                      
+src/components/project/CaptureCanvas.tsx                                            
+src/components/project/ChipsSidebar.tsx                                             
+src/components/project/DecisionCanvas.tsx                                           
+src/components/project/Inspector.tsx                                                
+src/components/project/PhaseCard.tsx                                                
+src/components/project/PresentCanvas.tsx                                            
+src/components/project/ProjectCanvas.tsx                                            
+src/components/project/ResizablePanel.tsx                                           
+src/components/project/TimelineCanvas.tsx                                           
+src/components/resource-planning/index.tsx                                          
+src/components/resource-planning/WrapperPanel.tsx                                   
+src/components/theme/ThemeToggle.tsx                                                
+src/components/timeline/ActivateGanttChart.tsx                                      
+src/components/timeline/ComprehensiveReferenceArchitecture.tsx                      
+src/components/timeline/core/TimelineContainer.tsx                                  
+src/components/timeline/EnterpriseArchitectureModal.tsx                             
+src/components/timeline/GanttChart.tsx                                              
+src/components/timeline/HolidayManagerModal.tsx                                     
+src/components/timeline/ImprovedGanttChart.tsx                                      
+src/components/timeline/JobsGanttChart.tsx                                          
+src/components/timeline/MilestoneManagerModal.tsx                                   
+src/components/timeline/MiniReferenceBar.tsx                                        
+src/components/timeline/OptimizationModal.tsx                                       
+src/components/timeline/PhaseTooltip.tsx                                            
+src/components/timeline/ProjectStartDatePicker.tsx                                  
+src/components/timeline/ReferenceArchitectureModal.tsx                              
+src/components/timeline/ResourceManagerModal.tsx                                    
+src/components/timeline/ResponsiveTimelineView.tsx                                  
+src/components/timeline/SAPActivateReference.tsx                                    
+src/components/timeline/TimelineControls.tsx                                        
+src/components/timeline/WrapperSlider.tsx                                           
+src/components/ui/DecisionPill.tsx                                                  
+src/components/ui/tooltip.tsx                                                       
+src/config/brand.ts                                                                 
+src/data/l3-catalog-complete-293.ts                                                 
+src/data/l3-catalog-full-293.ts                                                     
+src/data/sap-activate-deliverables.ts                                               
+src/data/sap-activate-skillsets.ts                                                  
+src/hooks/useRecompute.ts                                                           
+src/hooks/useReferenceKeyboard.ts                                                   
+src/hooks/useStorageSync.ts                                                         
+src/hooks/useWrapperPhases.ts                                                       
+src/lib/api-helpers.ts                                                              
+src/lib/api-validators.ts                                                           
+src/lib/audit.ts                                                                    
+src/lib/auth-helper.ts                                                              
+src/lib/benchmarks/benchmark-comparator.ts                                          
+src/lib/benchmarks/benchmark-data.ts                                                
+src/lib/completeness-validator.ts                                                   
+src/lib/cost-calculator.ts                                                          
+src/lib/csrf.ts                                                                     
+src/lib/decision-support/monte-carlo.ts                                             
+src/lib/design-system.ts                                                            
+src/lib/design-tokens.ts                                                            
+src/lib/engine/aggregator.ts                                                        
+src/lib/engine/recompute.ts                                                         
+src/lib/error-sanitizer.ts                                                          
+src/lib/estimator/goal-seek.ts                                                      
+src/lib/estimator/pert-engine.ts                                                    
+src/lib/estimator/sensitivity-analysis.ts                                           
+src/lib/estimator/to-chips-converter.ts                                             
+src/lib/export-reference.ts                                                         
+src/lib/export/excel-exporter.ts                                                    
+src/lib/export/pdf-generator.ts                                                     
+src/lib/exports/csv-export.ts                                                       
+src/lib/exports/pdf-export.tsx                                                      
+src/lib/exports/pptx-export.ts                                                      
+src/lib/features.ts                                                                 
+src/lib/fte-calculator.ts                                                           
+src/lib/gantt-tool/migrate-to-database.ts                                           
+src/lib/index.ts                                                                    
+src/lib/logger.ts                                                                   
+src/lib/monitoring/posthog.ts                                                       
+src/lib/monitoring/sentry.ts                                                        
+src/lib/organization/layout-calculator.ts                                           
+src/lib/rate-limit.ts                                                               
+src/lib/rate-limiter.ts                                                             
+src/lib/reset-all-data.ts                                                           
+src/lib/responsive.tsx                                                              
+src/lib/security/index.ts                                                           
+src/lib/security/secrets.ts                                                         
+src/lib/security/validation.ts                                                      
+src/lib/timeline/date-calculations-fixed.ts                                         
+src/lib/toast.ts                                                                    
+src/lib/unified-project-store.ts                                                    
+src/lib/validation.ts                                                               
+src/lib/validators.ts                                                               
+src/stores/preferences-store.ts                                                     
+src/stores/project-context-store.ts                                                 
+src/stores/wrappers-store.ts                                                        
+src/styles/design-tokens.ts                                                         
+src/types/project-context.ts                                                        
+src/types/timeline.ts                                                               
+src/types/wrappers.ts                                                               
+src/utils/features.ts                                                               
+src/utils/logger.ts                                                                 
+test-suites.ts                                                                      
+Unused dependencies (20)
+@auth/prisma-adapter    package.json:37:6
+@hookform/resolvers     package.json:38:6
+@radix-ui/react-slider  package.json:42:6
+@react-pdf/renderer     package.json:43:6
+@types/dagre            package.json:47:6
+@types/dompurify        package.json:48:6
+cmdk                    package.json:54:6
+dagre                   package.json:56:6
+date-fns-tz             package.json:58:6
+file-saver              package.json:61:6
+html-to-image           package.json:63:6
+jose                    package.json:67:6
+jspdf-autotable         package.json:69:6
+next-intl               package.json:74:6
+pdf-lib                 package.json:76:6
+react-hook-form         package.json:82:6
+react-hot-toast         package.json:83:6
+reactflow               package.json:86:6
+web-push                package.json:93:6
+xlsx                    package.json:94:6
+Unused devDependencies (17)
+@types/bcryptjs                      package.json:102:6
+@types/file-saver                    package.json:103:6
+@types/jsonwebtoken                  package.json:105:6
+@types/react-dnd                     package.json:109:6
+@types/react-dnd-html5-backend       package.json:110:6
+@types/react-virtualized-auto-sizer  package.json:112:6
+@types/react-window                  package.json:113:6
+@types/ua-parser-js                  package.json:114:6
+@types/web-push                      package.json:115:6
+@typescript-eslint/eslint-plugin     package.json:116:6
+@typescript-eslint/parser            package.json:117:6
+eslint                               package.json:120:6
+eslint-config-next                   package.json:121:6
+eslint-config-prettier               package.json:122:6
+jest                                 package.json:123:6
+react-dnd                            package.json:127:6
+react-dnd-html5-backend              package.json:128:6
+Unlisted dependencies (9)
+dayjs             src/app/timeline/page.tsx:23:30                   
+dayjs             src/components/admin/UserManagementClient.tsx:6:19
+dayjs             src/components/gantt-tool/GanttToolbar.tsx:65:19  
+dayjs             src/components/gantt-tool/GanttToolShell.tsx:22:19
+nanoid            src/lib/gantt-tool/default-resources.ts:9:10      
+nanoid            src/lib/gantt-tool/excel-template-parser.ts:9:10  
+@playwright/test  tests/e2e/estimator-flow.spec.ts:14:30            
+@playwright/test  tests/e2e/login-flows.spec.ts:13:41               
+jsdom             vitest.config.ts                                  
+Unlisted binaries (2)
+tsx         package.json
+playwright  package.json
+Unused exports (107)
+useOnboarding                   function  src/components/onboarding/OnboardingProvider.tsx:29:17   
+ONBOARDING_STEPS                          src/components/onboarding/OnboardingProvider.tsx:40:14   
+default                         function  src/components/project-v2/modes/ResourcePanelVibe.tsx:7:8
+AllocationMode                            src/components/resource-planning/index.ts:1:9            
+DeliverableMapMode                        src/components/resource-planning/index.ts:2:9            
+OptimizationMode                          src/components/resource-planning/index.ts:3:9            
+ResourcePanel                             src/components/resource-planning/index.ts:5:9            
+ResourcePanel                   function  src/components/resource-planning/ResourcePanel.tsx:30:17 
+useTheme                        function  src/components/theme/ThemeProvider.tsx:61:17             
+Select                          function  src/components/ui/select.tsx:19:17                       
+SelectTrigger                   function  src/components/ui/select.tsx:36:17                       
+SelectValue                     function  src/components/ui/select.tsx:68:17                       
+SelectContent                   function  src/components/ui/select.tsx:72:17                       
+SelectItem                      function  src/components/ui/select.tsx:98:17                       
+HOLIDAYS                                  src/data/holidays.ts:21:14                               
+isHoliday                       function  src/data/holidays.ts:930:17                              
+getHolidayName                  function  src/data/holidays.ts:938:17                              
+calculateWorkingDays            function  src/data/holidays.ts:961:17                              
+addWorkingDays                  function  src/data/holidays.ts:986:17                              
+getNextWorkingDay               function  src/data/holidays.ts:1010:17                             
+getPrismaClient                 function  src/data/prisma-adapter.ts:37:17                         
+DEFAULT_TEAM_COMPOSITION                  src/data/resource-catalog.ts:4:14                        
+calculateProjectCost            function  src/data/resource-catalog.ts:136:17                      
+PACKAGE_CATEGORIES                        src/data/sap-catalog.ts:31:14                            
+calculatePackageEffort                    src/data/sap-catalog.ts:44:14                            
+getPackageDependencies                    src/data/sap-catalog.ts:53:14                            
+validateDependencies                      src/data/sap-catalog.ts:57:14                            
+SAP_PACKAGES                              src/data/sap-catalog.ts:73:14                            
+FINANCE_DELIVERABLES                      src/data/sap-deliverables.ts:35:14                       
+MM_DELIVERABLES                           src/data/sap-deliverables.ts:281:14                      
+TECHNICAL_DELIVERABLES                    src/data/sap-deliverables.ts:466:14                      
+WRAPPER_DELIVERABLES                      src/data/sap-deliverables.ts:618:14                      
+getDeliverableTree              function  src/data/sap-deliverables.ts:779:17                      
+identifyUser                    function  src/lib/analytics.ts:179:17                              
+trackPageView                   function  src/lib/analytics.ts:197:17                              
+resetUser                       function  src/lib/analytics.ts:210:17                              
+isAnalyticsEnabled              function  src/lib/analytics.ts:223:17                              
+posthog                                   src/lib/analytics.ts:231:9                               
+parseChips                                src/lib/chip-parser.ts:504:14                            
+summarizeChips                  function  src/lib/chip-parser.ts:883:17                            
+identifyGaps                    function  src/lib/chip-parser.ts:894:17                            
+detectRevenue                   function  src/lib/critical-patterns.ts:183:17                      
+getSmartAssumptions             function  src/lib/critical-patterns.ts:331:17                      
+PERTEngine                      class     src/lib/decision-support/pert-engine.ts:28:14            
+identifyCriticalGaps            function  src/lib/enhanced-chip-parser.ts:530:17                   
+calculateComplexityMultiplier   function  src/lib/enhanced-chip-parser.ts:547:17                   
+CONSTANTS                                 src/lib/estimation-engine.ts:690:9                       
+L3_CATALOG_COMPLETE                       src/lib/estimator/l3-catalog-complete.ts:41:14           
+L3CatalogComplete               class     src/lib/estimator/l3-catalog-complete.ts:52:14           
+L3_STATS_COMPLETE                         src/lib/estimator/l3-catalog-complete.ts:147:14          
+L3_CATALOG                                src/lib/estimator/l3-catalog-complete.ts:150:32          
+l3Catalog                                 src/lib/estimator/l3-catalog-complete.ts:151:30          
+TIER_COEFFICIENTS                         src/lib/estimator/l3-catalog.ts:29:14                    
+DEFAULT_RATE_CARD                         src/lib/estimator/types.ts:216:14                        
+useSharedFormulaWorker          function  src/lib/estimator/use-formula-worker.ts:214:17           
+detectDelimiter                 function  src/lib/excelPaste.ts:3:17                               
+calculateTaskCost               function  src/lib/gantt-tool/cost-calculator.ts:33:17              
+calculatePhaseCost              function  src/lib/gantt-tool/cost-calculator.ts:73:17              
+calculateWhatIfScenario         function  src/lib/gantt-tool/cost-calculator.ts:290:17             
+DEFAULT_RESOURCE_RATES                    src/lib/gantt-tool/cost-calculator.ts:338:14             
+applyDefaultRates               function  src/lib/gantt-tool/cost-calculator.ts:351:17             
+STANDARD_SAP_ORG_TEMPLATE                 src/lib/gantt-tool/org-chart-templates.ts:42:14          
+SIMPLIFIED_SAP_ORG_TEMPLATE               src/lib/gantt-tool/org-chart-templates.ts:471:14         
+ORG_CHART_TEMPLATES                       src/lib/gantt-tool/org-chart-templates.ts:574:14         
+getOrgChartTemplate             function  src/lib/gantt-tool/org-chart-templates.ts:582:17         
+getTemplateById                 function  src/lib/gantt-tool/project-templates.ts:420:17           
+getPopularTemplates             function  src/lib/gantt-tool/project-templates.ts:424:17           
+isWeekend                       function  src/lib/gantt-tool/working-days.ts:16:17                 
+isHoliday                       function  src/lib/gantt-tool/working-days.ts:24:17                 
+isWorkingDay                    function  src/lib/gantt-tool/working-days.ts:32:17                 
+getNextWorkingDay               function  src/lib/gantt-tool/working-days.ts:40:17                 
+getPreviousWorkingDay           function  src/lib/gantt-tool/working-days.ts:54:17                 
+calculateWorkingDays            function  src/lib/gantt-tool/working-days.ts:67:17                 
+formatWorkingDaysDuration       function  src/lib/gantt-tool/working-days.ts:169:17                
+getWeekColumns                  function  src/lib/pilotImport.ts:20:17                             
+buildWeekCalendar               function  src/lib/pilotImport.ts:27:17                             
+generatePDFFileName             function  src/lib/presentation/pdf-exporter.ts:148:17              
+reorderSlides                   function  src/lib/presentation/slide-generator.ts:256:17           
+toggleSlideVisibility           function  src/lib/presentation/slide-generator.ts:266:17           
+resolveRole                     function  src/lib/resourceCatalog.ts:10:17                         
+DEFAULT_HOURLY_RATES                      src/lib/resourcing/model.ts:80:14                        
+WRAPPER_DEFAULTS                          src/lib/resourcing/model.ts:105:14                       
+bulkCreateRicefwItems           function  src/lib/ricefw/calculator.ts:66:17                       
+getComplexityDistribution       function  src/lib/ricefw/calculator.ts:211:17                      
+optimizeRicefwScope             function  src/lib/ricefw/calculator.ts:242:17                      
+COMPLEXITY_MULTIPLIERS                    src/lib/ricefw/model.ts:104:14                           
+PHASE_DISTRIBUTION                        src/lib/ricefw/model.ts:151:14                           
+calculateRicefwEffort           function  src/lib/ricefw/model.ts:191:17                           
+calculatePhaseDistribution      function  src/lib/ricefw/model.ts:204:17                           
+validateRicefwItem              function  src/lib/ricefw/model.ts:309:17                           
+calculateProjectStartDate       function  src/lib/timeline/date-calculations.ts:157:17             
+calculateProjectEndDate         function  src/lib/timeline/date-calculations.ts:182:17             
+formatDateForDisplay            function  src/lib/timeline/date-validation.ts:44:17                
+calculateIntelligentSequencing            src/lib/timeline/phase-generation.ts:332:14              
+calculateResourceRequirements             src/lib/timeline/phase-generation.ts:397:14              
+createPhase                               src/lib/timeline/phase-generation.ts:422:14              
+validatePhaseDependencies                 src/lib/timeline/phase-generation.ts:445:14              
+formatCurrency                  function  src/lib/utils.ts:27:17                                   
+debounce                        function  src/lib/utils.ts:39:17                                   
+safePercentage                  function  src/lib/utils.ts:59:17                                   
+truncate                        function  src/lib/utils.ts:67:17                                   
+randomTestEmail                 function  tests/auth/helpers/auth-helpers.ts:73:17                 
+extractSessionCookie            function  tests/auth/helpers/auth-helpers.ts:80:17                 
+getRateLimitHeaders             function  tests/auth/helpers/auth-helpers.ts:91:17                 
+assertStatus                    function  tests/auth/helpers/auth-helpers.ts:103:17                
+assertJsonMatch                 function  tests/auth/helpers/auth-helpers.ts:112:23                
+MockChallengeStore              class     tests/auth/helpers/test-setup.ts:233:14                  
+Unused exported types (114)
+FormPanelProps            interface  src/components/estimation/FormPanel.tsx:14:18        
+IntegrationPanelProps     interface  src/components/estimation/IntegrationPanel.tsx:14:18 
+RicefwPanelProps          interface  src/components/estimation/RicefwPanel.tsx:32:18      
+RicefwSummaryProps        interface  src/components/estimation/RicefwSummary.tsx:16:18    
+OnboardingStep            interface  src/components/onboarding/OnboardingProvider.tsx:5:18
+BadgeProps                interface  src/components/ui/badge.tsx:10:18                    
+ButtonProps               interface  src/components/ui/button.tsx:10:18                   
+ContainerProps            interface  src/components/ui/Container.tsx:10:18                
+InputProps                interface  src/components/ui/input.tsx:10:18                    
+LabelProps                interface  src/components/ui/label.tsx:10:18                    
+ResponsiveShellProps      interface  src/components/ui/ResponsiveShell.tsx:10:18          
+ResponsiveStackProps      interface  src/components/ui/ResponsiveShell.tsx:57:18          
+ResponsiveCardProps       interface  src/components/ui/ResponsiveShell.tsx:91:18          
+ResponsiveGridProps       interface  src/components/ui/ResponsiveShell.tsx:129:18         
+SelectProps               interface  src/components/ui/select.tsx:12:18                   
+TextareaProps             interface  src/components/ui/textarea.tsx:10:18                 
+HeadingProps              interface  src/components/ui/Typography.tsx:10:18               
+TextProps                 interface  src/components/ui/Typography.tsx:61:18               
+Wrapper                   interface  src/data/dal.ts:53:18                                
+ChipSource                type       src/data/dal.ts:137:13                               
+ChipType                  type       src/data/dal.ts:150:13                               
+Holiday                   interface  src/data/holidays.ts:11:18                           
+HolidayCalendar           interface  src/data/holidays.ts:16:18                           
+SAPModule                 interface  src/data/sap-modules-complete.ts:2:18                
+AnalyticsEvent            type       src/lib/analytics.ts:41:13                           
+ChipKind                  type       src/lib/chip-parser.ts:12:13                         
+ParsedValue               type       src/lib/chip-parser.ts:40:13                         
+CriticalFactor            interface  src/lib/critical-patterns.ts:4:18                    
+MultiEntityDetection      interface  src/lib/critical-patterns.ts:12:18                   
+PERTInputs                interface  src/lib/decision-support/pert-engine.ts:8:18         
+ExtendedChip              interface  src/lib/enhanced-chip-parser.ts:12:18                
+EstimationConstants       type       src/lib/estimation-constants.ts:281:13               
+ProjectInput              type       src/lib/estimation-engine.ts:691:14                  
+Totals                    type       src/lib/estimation-engine.ts:691:28                  
+GuardrailViolation        interface  src/lib/estimation-guardrails.ts:4:18                
+L3Item                    interface  src/lib/estimator/l3-catalog-complete.ts:13:18       
+L3Item                    interface  src/lib/estimator/l3-catalog.ts:16:18                
+EstimatorInputs           interface  src/lib/estimator/theorem-engine.ts:16:18            
+EstimateResult            interface  src/lib/estimator/theorem-engine.ts:22:18            
+ParetoAnalysis            interface  src/lib/estimator/theorem-engine.ts:31:18            
+ParetoDriver              interface  src/lib/estimator/theorem-engine.ts:39:18            
+RegressionAnalysis        interface  src/lib/estimator/theorem-engine.ts:47:18            
+RegressionVariable        interface  src/lib/estimator/theorem-engine.ts:61:18            
+SensitivityAnalysis       interface  src/lib/estimator/theorem-engine.ts:69:18            
+SensitivityFactor         interface  src/lib/estimator/theorem-engine.ts:76:18            
+BenchmarkValidation       interface  src/lib/estimator/theorem-engine.ts:87:18            
+BenchmarkProject          interface  src/lib/estimator/theorem-engine.ts:101:18           
+EffortCalibration         interface  src/lib/estimator/theorem-engine.ts:107:18           
+ConfidenceInterval        interface  src/lib/estimator/theorem-engine.ts:115:18           
+ComplexityMetrics         interface  src/lib/estimator/types.ts:29:18                     
+IntegrationDetails        interface  src/lib/estimator/types.ts:41:18                     
+ResourceAllocation        interface  src/lib/estimator/types.ts:205:18                    
+ValidationError           interface  src/lib/estimator/types.ts:257:18                    
+Scenario                  interface  src/lib/estimator/types.ts:319:18                    
+ScenarioVersion           interface  src/lib/estimator/types.ts:339:18                    
+CalculationMetadata       interface  src/lib/estimator/types.ts:366:18                    
+UseFormulaWorkerReturn    interface  src/lib/estimator/use-formula-worker.ts:22:18        
+ProjectData               interface  src/lib/exports/powerpoint-generator.ts:11:18        
+ParsedTask                interface  src/lib/gantt-tool/excel-template-parser.ts:11:18    
+ParsedResource            interface  src/lib/gantt-tool/excel-template-parser.ts:18:18    
+ImportValidationError     interface  src/lib/gantt-tool/import-parser.ts:20:18            
+OrgChartTemplateResource  interface  src/lib/gantt-tool/org-chart-templates.ts:19:18      
+TemplateTask              type       src/lib/gantt-tool/project-templates.ts:19:13        
+TemplatePhase             type       src/lib/gantt-tool/project-templates.ts:22:13        
+Status                    type       src/lib/lineage.ts:54:13                             
+Field                     type       src/lib/lineage.ts:55:13                             
+Page                      type       src/lib/lineage.ts:56:13                             
+Migration                 type       src/lib/lineage.ts:57:13                             
+TraceabilityData          type       src/lib/lineage.ts:58:13                             
+ResourceMap               type       src/lib/pilotImport.ts:101:13                        
+TimelineConversionResult  interface  src/lib/presales-to-timeline-bridge.ts:53:18         
+ExportOptions             interface  src/lib/presentation/pdf-exporter.ts:13:18           
+ExportProgress            interface  src/lib/presentation/pdf-exporter.ts:20:18           
+Slide                     interface  src/lib/presentation/slide-generator.ts:21:18        
+RicefwItem                interface  src/lib/presentation/slide-generator.ts:28:18        
+WrapperType               type       src/lib/resourcing/model.ts:45:13                    
+RicefwSummary             interface  src/lib/ricefw/model.ts:56:18                        
+Outputs                   interface  src/lib/scenario-generator.ts:107:18                 
+Localization              interface  src/lib/scenario-generator.ts:115:18                 
+Volumes                   interface  src/lib/scenario-generator.ts:123:18                 
+NFRSecurity               interface  src/lib/scenario-generator.ts:130:18                 
+EnvCutover                interface  src/lib/scenario-generator.ts:140:18                 
+TrainingOCM               interface  src/lib/scenario-generator.ts:149:18                 
+Run                       interface  src/lib/scenario-generator.ts:156:18                 
+RisksAssumptions          interface  src/lib/scenario-generator.ts:164:18                 
+Timeline                  interface  src/lib/scenario-generator.ts:170:18                 
+Extension                 interface  src/lib/scenario-generator.ts:177:18                 
+ClientProfile             type       src/lib/timeline/phase-generation.ts:461:14          
+EstimatorState            interface  src/stores/estimator-store.ts:25:18                  
+PresalesMode              type       src/stores/presales-store.ts:9:13                    
+ProjectMode               type       src/stores/project-store.ts:10:13                    
+ResourceAssignmentDetail  interface  src/stores/resource-analytics-selectors.ts:13:18     
+TimelineAllocation        interface  src/stores/resource-analytics-selectors.ts:40:18     
+ResourceWithTimeline      interface  src/stores/resource-analytics-selectors.ts:52:18     
+ResourceProfile           interface  src/stores/resource-planning-store.ts:6:18           
+Bottleneck                interface  src/stores/resource-planning-store.ts:23:18          
+Opportunity               interface  src/stores/resource-planning-store.ts:33:18          
+OptimizationResult        interface  src/stores/resource-planning-store.ts:42:18          
+Phase                     type       src/stores/timeline-store.ts:22:14                   
+Resource                  type       src/stores/timeline-store.ts:22:21                   
+Override                  interface  src/types/core.ts:124:18                             
+Guardrail                 interface  src/types/core.ts:134:18                             
+Holiday                   interface  src/types/core.ts:168:18                             
+ChipKind                  type       src/types/core.ts:174:13                             
+ChipParsed                interface  src/types/core.ts:184:18                             
+ExtendedChip              interface  src/types/core.ts:190:18                             
+SAPPackageExtended        interface  src/types/core.ts:196:18                             
+RateCard                  interface  src/types/core.ts:201:18                             
+DragState                 interface  src/types/gantt-tool.ts:82:18                        
+ExportFormat              type       src/types/gantt-tool.ts:143:13                       
+ExportOptions             interface  src/types/gantt-tool.ts:145:18                       
+DateString                type       src/types/gantt-tool.ts:233:13                       
+ColorHex                  type       src/types/gantt-tool.ts:234:13                       
+WorkingDaysCalculation    interface  src/types/gantt-tool.ts:237:18                       
+Duplicate exports (2)
+DEFAULT_TEAM_COMPOSITION|STANDARD_TEAM_COMPOSITION  src/data/resource-catalog.ts
+parseRFPText|parseChips                             src/lib/chip-parser.ts      
+Configuration hints (1)
+.      Create knip.json configuration file with workspaces["."] object (210 unused files)

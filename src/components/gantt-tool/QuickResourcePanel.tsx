@@ -15,7 +15,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import {
   Users,
   ChevronRight,
@@ -37,7 +37,7 @@ interface QuickResourcePanelProps {
 }
 
 export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps) {
-  const { currentProject, assignResourceToTask } = useGanttToolStore();
+  const { currentProject, assignResourceToTask } = useGanttToolStoreV2();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);

@@ -6,7 +6,8 @@ export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const email = String(body.email ?? '').trim().toLowerCase();
     if (!email) {
       // Return a 400 Bad Request if email is missing
       return NextResponse.json({ ok: false, message: 'Email is required.' }, { status: 400 });
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
       if (!approval) {
         return NextResponse.json({
           ok: false,
-          message: 'No access code found. Please contact your administrator.',
+          message: 'Invalid. Contact Admin.',
           notApproved: true
         }, { status: 404 });
       }

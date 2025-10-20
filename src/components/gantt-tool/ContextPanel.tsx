@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import {
   Users,
   DollarSign,
@@ -32,7 +32,7 @@ interface ContextPanelProps {
 }
 
 export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
-  const { currentProject, selection, getResourceById } = useGanttToolStore();
+  const { currentProject, selection, getResourceById } = useGanttToolStoreV2();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('resources');
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, DatePicker, Switch, Button, message, Popconfirm } from 'antd';
+import { Modal, Form, Input, Select, DatePicker, Switch, Button, App, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
@@ -24,6 +24,7 @@ interface UserFormValues {
 }
 
 export default function UserManagementClient({ initialUsers }: { initialUsers: User[] }) {
+  const { message } = App.useApp();
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);

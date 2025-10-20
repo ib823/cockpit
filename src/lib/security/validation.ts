@@ -5,7 +5,6 @@
  * for all user inputs and data operations.
  */
 
-import DOMPurify from 'dompurify';
 import { z } from 'zod';
 import {
   RicefwItemSchema,
@@ -32,6 +31,20 @@ const DANGEROUS_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'file:', 'abou
 // ============================================================================
 
 /**
+ * Basic HTML sanitization without DOMPurify
+ */
+function basicHtmlSanitize(input: string): string {
+  return input
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
+    .replace(/<[^>]*>/g, ''); // Remove all HTML tags
+}
+
+/**
  * Sanitize string input to prevent XSS attacks
  */
 export function sanitizeString(input: unknown): string {
@@ -42,11 +55,8 @@ export function sanitizeString(input: unknown): string {
   // Truncate to max length
   const truncated = input.slice(0, MAX_STRING_LENGTH);
 
-  // Use DOMPurify for HTML sanitization
-  const cleaned = DOMPurify.sanitize(truncated, {
-    ALLOWED_TAGS: [], // Strip all HTML tags
-    ALLOWED_ATTR: [],
-  });
+  // Use basic sanitization
+  const cleaned = basicHtmlSanitize(truncated);
 
   // Check for dangerous protocols
   for (const protocol of DANGEROUS_PROTOCOLS) {

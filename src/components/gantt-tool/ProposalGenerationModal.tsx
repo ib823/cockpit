@@ -13,7 +13,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Modal, Tabs, Button, Progress, Tag, Divider, message } from 'antd';
+import { Modal, Tabs, Button, Progress, Tag, Divider, App } from 'antd';
 import {
   FileText,
   Download,
@@ -31,7 +31,7 @@ import {
   Award,
   Zap,
 } from 'lucide-react';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { differenceInDays, format } from 'date-fns';
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
 import { exportToPDF } from '@/lib/gantt-tool/export-utils';
@@ -42,7 +42,8 @@ interface ProposalGenerationModalProps {
 }
 
 export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationModalProps) {
-  const { currentProject, getProjectDuration } = useGanttToolStore();
+  const { message } = App.useApp();
+  const { currentProject, getProjectDuration } = useGanttToolStoreV2();
   const [activeTab, setActiveTab] = useState('summary');
   const [isExporting, setIsExporting] = useState(false);
 
@@ -153,6 +154,13 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
     <Modal
       open={isOpen}
       onCancel={onClose}
+      afterClose={() => {
+        // PERMANENT FIX: Force cleanup of modal side effects
+        if (document.body.style.overflow === 'hidden') document.body.style.overflow = '';
+        if (document.body.style.paddingRight) document.body.style.paddingRight = '';
+        document.body.style.pointerEvents = '';
+      }}
+      destroyOnHidden={true}
       width={900}
       footer={null}
       title={

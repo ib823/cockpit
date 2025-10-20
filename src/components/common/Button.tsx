@@ -164,7 +164,7 @@ export function Button({
         buttonSizes[size],
 
         // Disabled state
-        isDisabled && "opacity-50 cursor-not-allowed pointer-events-none",
+        isDisabled && "opacity-50 cursor-not-allowed ",
 
         // Custom classes
         className

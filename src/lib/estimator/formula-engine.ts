@@ -231,3 +231,10 @@ export function calculateEstimate(inputs: EstimatorInputs): {
 
   return { results, warnings };
 }
+
+// Re-export types and constants for convenience
+export type { EstimatorInputs, EstimatorResults, L3ScopeItem, Profile } from './types';
+export { AVAILABLE_PROFILES, DEFAULT_PROFILE } from './types';
+
+// Alias for backward compatibility with tests
+export { AVAILABLE_PROFILES as PROFILE_PRESETS } from './types';

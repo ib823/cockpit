@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 as useGanttToolStore } from '@/stores/gantt-tool-store-v2';
 import { useMemo, useRef, useState, useCallback } from 'react';
 import { differenceInDays, format, addDays, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, eachQuarterOfInterval, eachYearOfInterval, startOfWeek, startOfMonth, startOfQuarter, startOfYear, getDay, getMonth, getQuarter } from 'date-fns';
 import { ChevronDown, ChevronRight, Flag, Users, ChevronUp, MoveUp, MoveDown, ArrowRightToLine, Maximize2 } from 'lucide-react';
@@ -18,6 +18,7 @@ import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
 import { calculateWorkingDaysInclusive } from '@/lib/gantt-tool/working-days';
 import { PhaseTaskResourceAllocationModal } from './PhaseTaskResourceAllocationModal';
 import { GanttMinimap } from './GanttMinimap';
+import { Tooltip } from 'antd';
 
 // Jobs/Ive: Consistent, beautiful color palette for tasks
 // 16 carefully chosen colors for maximum distinction and visual harmony
@@ -54,7 +55,6 @@ export function GanttCanvas() {
     openSidePanel,
     selection,
     movePhase,
-    resizePhase,
     moveTask,
     reorderPhase,
     reorderTask,
@@ -670,30 +670,27 @@ export function GanttCanvas() {
                       >
                         {/* Vertical Milestone Line - positioned first, exactly at position% */}
                         <div
-                          className="absolute top-full left-0 w-px h-[calc(100vh-130px)] opacity-20 group-hover:opacity-40 transition-opacity z-10"
+                          className="absolute top-full left-0 w-px h-[calc(100vh-130px)] opacity-20  transition-opacity z-10"
                           style={{ backgroundColor: milestone.color }}
                         />
 
-                        {/* Milestone marker with flag and info - flag pole aligned at exact position%, label extends to the right */}
-                        <div className="absolute left-0 top-0 flex items-center gap-1.5 z-20">
-                          <div className="-translate-x-[2px]">
+                        {/* Milestone marker with flag and tooltip */}
+                        <div className="absolute left-0 top-0 -translate-x-[2px] z-20">
+                          <Tooltip
+                            title={
+                              <div>
+                                <div className="font-semibold">{milestone.name}</div>
+                                <div className="text-[10px] opacity-90 mt-0.5">
+                                  {format(milestoneDate, 'dd MMM yy')} ({format(milestoneDate, 'EEE')})
+                                </div>
+                              </div>
+                            }
+                          >
                             <Flag
-                              className="w-4 h-4 fill-current drop-shadow-sm transition-transform group-hover:scale-125"
+                              className="w-4 h-4 fill-current drop-shadow-sm transition-transform hover:scale-125"
                               style={{ color: milestone.color }}
                             />
-                          </div>
-                          <div
-                            className="text-xs font-bold whitespace-nowrap px-2 py-1 rounded shadow-sm transition-all group-hover:shadow-md"
-                            style={{
-                              backgroundColor: milestone.color,
-                              color: 'white'
-                            }}
-                          >
-                            <div>{milestone.name}</div>
-                            <div className="text-[10px] font-normal opacity-90 mt-0.5">
-                              {format(milestoneDate, 'dd-MMM-yy')} ({format(milestoneDate, 'EEE')})
-                            </div>
-                          </div>
+                          </Tooltip>
                         </div>
                       </div>
                     );
@@ -723,7 +720,7 @@ export function GanttCanvas() {
                     </div>
 
                     {/* Tooltip with full name - Jobs: "Always visible when needed, never obscured" */}
-                    <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[9999] pointer-events-none">
+                    <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[9999]">
                       <div className="bg-red-600 text-white text-xs px-2.5 py-1.5 rounded-md shadow-xl border-2 border-white/20">
                         <div className="font-semibold">{holiday.name}</div>
                         <div className="text-[10px] opacity-90 mt-0.5">
@@ -794,7 +791,7 @@ export function GanttCanvas() {
                     </button>
 
                     {/* Reorder Buttons - Show on hover */}
-                    <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 1000 }}>
+                    <div className="flex flex-col   transition-opacity" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 1000 }}>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -831,7 +828,7 @@ export function GanttCanvas() {
                     {/* Jobs/Ive: Phase Title Above Bar - Clean, centered, full text */}
                     {(viewSettings?.showTitles ?? true) && (
                       <div
-                        className="absolute top-0 z-20 pointer-events-none flex justify-center"
+                        className="absolute top-0 z-20  flex justify-center"
                         style={{
                           left: `${metrics.left}%`,
                           width: `${metrics.width}%`,
@@ -853,7 +850,7 @@ export function GanttCanvas() {
                               )}
                               <div className="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-2">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <span>{format(new Date(phase.startDate), 'dd MMM yyyy')} → {format(new Date(phase.endDate), 'dd MMM yyyy')}</span>
+                                  <span>{format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-[11px]">
                                   <span className="text-blue-400 font-semibold">{formatWorkingDays(metrics.workingDays)}</span>
@@ -893,14 +890,14 @@ export function GanttCanvas() {
                     >
                       {/* Resize Handles */}
                       <div
-                        className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30 opacity-0 group-hover:opacity-100"
+                        className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  "
                         onMouseDown={(e) => {
                           e.stopPropagation();
                           handleMouseDown(e, phase.id, 'resize-start');
                         }}
                       />
                       <div
-                        className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30 opacity-0 group-hover:opacity-100"
+                        className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  "
                         onMouseDown={(e) => {
                           e.stopPropagation();
                           handleMouseDown(e, phase.id, 'resize-end');
@@ -917,7 +914,7 @@ export function GanttCanvas() {
                               e.stopPropagation();
                               handlePhaseDoubleClick(phase.id);
                             }}
-                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-1 rounded shadow-lg z-20"
+                            className="absolute top-1 right-1   transition-opacity bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-1 rounded shadow-lg z-20"
                             title="Focus on this phase (RTS zoom)"
                           >
                             <Maximize2 className="w-3.5 h-3.5" />
@@ -987,7 +984,7 @@ export function GanttCanvas() {
                                         <div className="bg-gray-900 text-white text-xs px-2.5 py-1.5 rounded shadow-2xl border-2" style={{ borderColor: taskColor }}>
                                           <div className="font-semibold text-[11px]">{task.name}</div>
                                           <div className="text-[10px] text-gray-300 mt-0.5">
-                                            {formatWorkingDays(taskWorkingDays)} · {format(taskStart, 'dd MMM')} → {format(taskEnd, 'dd MMM')}
+                                            {formatWorkingDays(taskWorkingDays)} · {format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}
                                           </div>
                                         </div>
                                       </div>
@@ -1000,7 +997,7 @@ export function GanttCanvas() {
                         )}
 
                         {/* TOP LAYER: Dates and Working Days - Respects barDurationDisplay setting */}
-                        <div className="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none z-10">
+                        <div className="absolute inset-0 flex flex-col justify-between p-2  z-10">
                           {/* TOP: Start & End Dates + PM Badge - Controlled by settings */}
                           {metrics.width > 10 && (viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
                             <div className="flex justify-between items-start text-xs font-bold text-white drop-shadow-lg">
@@ -1009,7 +1006,7 @@ export function GanttCanvas() {
                                 {/* Start date - Show in dates/all modes */}
                                 {((viewSettings?.barDurationDisplay ?? 'all') === 'dates' || (viewSettings?.barDurationDisplay ?? 'all') === 'all') && (
                                   <span className="bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
-                                    {format(new Date(phase.startDate), 'dd MMM')}
+                                    {format(new Date(phase.startDate), 'dd MMM yy')}
                                   </span>
                                 )}
                               </div>
@@ -1019,7 +1016,7 @@ export function GanttCanvas() {
                                 {/* End date - Show in dates/all modes */}
                                 {((viewSettings?.barDurationDisplay ?? 'all') === 'dates' || (viewSettings?.barDurationDisplay ?? 'all') === 'all') && (
                                   <span className="bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
-                                    {format(new Date(phase.endDate), 'dd MMM')}
+                                    {format(new Date(phase.endDate), 'dd MMM yy')}
                                   </span>
                                 )}
 
@@ -1033,7 +1030,7 @@ export function GanttCanvas() {
                                     </div>
 
                                     {/* PM Tooltip */}
-                                    <div className="absolute top-full mt-1 right-0 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity whitespace-nowrap z-50">
+                                    <div className="absolute top-full mt-1 right-0 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                                       <div className="bg-orange-600 text-white text-xs px-2.5 py-2 rounded-md shadow-2xl border-2 border-white/20 min-w-[200px]">
                                         <div className="font-semibold mb-1 text-[10px] text-orange-100">Phase Management:</div>
                                         <div className="space-y-1">
@@ -1083,7 +1080,7 @@ export function GanttCanvas() {
                                 )}
                                 {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
                                   <span className="text-sm">
-                                    {format(new Date(phase.startDate), 'dd MMM')} - {format(new Date(phase.endDate), 'dd MMM')}
+                                    {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
                                   </span>
                                 )}
                                 {(viewSettings?.barDurationDisplay ?? 'all') === 'all' && (
@@ -1239,7 +1236,7 @@ export function GanttCanvas() {
 
                                 {/* Floating Badges - Always appear horizontally above bars */}
                                 {(viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
-                                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 flex items-center justify-center text-white z-20 pointer-events-none whitespace-nowrap">
+                                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 flex items-center justify-center text-white z-20  whitespace-nowrap">
                                     {/* All badges in a clean horizontal row */}
                                     <div className="flex items-center gap-2">
                                       {/* WD Mode */}
@@ -1303,7 +1300,7 @@ export function GanttCanvas() {
                                       {/* Dates Mode */}
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
                                         <span className="text-xs font-bold bg-black/40 px-2 py-1 rounded-sm shadow-md border border-white/20">
-                                          {format(taskStart, 'dd MMM')} → {format(taskEnd, 'dd MMM')}
+                                          {format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}
                                         </span>
                                       )}
 
@@ -1312,7 +1309,7 @@ export function GanttCanvas() {
                                         <>
                                           {/* Dates badge */}
                                           <span className="text-xs font-semibold bg-blue-600/90 px-2 py-1 rounded-sm shadow-md border border-white/20">
-                                            {format(taskStart, 'dd MMM')} → {format(taskEnd, 'dd MMM')}
+                                            {format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}
                                           </span>
 
                                           {/* Duration badge */}
@@ -1382,7 +1379,7 @@ export function GanttCanvas() {
                             {/* Jobs/Ive: Task Title Below Bar - Clean, centered, full text */}
                             {(viewSettings?.showTitles ?? true) && (
                               <div
-                                className="absolute top-10 z-20 pointer-events-none flex justify-center"
+                                className="absolute top-10 z-20  flex justify-center"
                                 style={{
                                   left: `${taskLeft}%`,
                                   width: `${taskWidth}%`,
@@ -1403,7 +1400,7 @@ export function GanttCanvas() {
                                         </div>
                                       )}
                                       <div className="text-gray-400 text-[10px] mt-2 border-t border-gray-700 pt-1.5">
-                                        <div className="mb-1">{format(taskStart, 'dd MMM yyyy')} → {format(taskEnd, 'dd MMM yyyy')}</div>
+                                        <div className="mb-1">{format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}</div>
                                         <div className="flex items-center gap-2">
                                           <span className="text-purple-400 font-semibold">{formatWorkingDays(taskWorkingDays)}</span>
                                           <span>·</span>

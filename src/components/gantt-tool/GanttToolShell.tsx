@@ -14,11 +14,15 @@ import { GanttCanvas } from './GanttCanvas';
 import { GanttSidePanel } from './GanttSidePanel';
 import { QuickResourcePanel } from './QuickResourcePanel';
 import { MissionControlModal } from './MissionControlModal';
-import { ImportModal } from './ImportModal';
+import { ImportModalV2 } from './ImportModalV2';
 import { format } from 'date-fns';
 import { Calendar, Plus, Upload, AlertTriangle, Loader2 } from 'lucide-react';
+import { GhostLoader } from '@/components/common';
+import { Modal, Form, Input, DatePicker, App } from 'antd';
+import dayjs from 'dayjs';
 
 export function GanttToolShell() {
+  const { modal } = App.useApp();
   const {
     currentProject,
     projects,
@@ -37,6 +41,83 @@ export function GanttToolShell() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showContextPanel, setShowContextPanel] = useState(false);
   const [showQuickResourcePanel, setShowQuickResourcePanel] = useState(false);
+  const [showWelcomeCreateModal, setShowWelcomeCreateModal] = useState(false);
+  const [welcomeCreateForm] = Form.useForm();
+
+  // PERMANENT FIX: Force cleanup of modal side effects (overflow, focus traps, masks)
+  const forceModalCleanup = () => {
+    // Remove overflow hidden from body (Ant Design modal side effect)
+    if (document.body.style.overflow === 'hidden') {
+      document.body.style.overflow = '';
+    }
+    if (document.body.style.paddingRight) {
+      document.body.style.paddingRight = '';
+    }
+
+    // Remove any lingering modal masks/backdrops
+    const masks = document.querySelectorAll('.ant-modal-mask, .ant-modal-wrap');
+    masks.forEach(mask => {
+      if (mask.parentNode) {
+        mask.parentNode.removeChild(mask);
+      }
+    });
+
+    // Restore pointer events
+    document.body.style.pointerEvents = '';
+
+    // Force focus to be released from any modal elements
+    const activeElement = document.activeElement as HTMLElement;
+    if (activeElement && activeElement.blur) {
+      activeElement.blur();
+    }
+  };
+
+  // Cleanup on unmount and whenever modals close
+  useEffect(() => {
+    return () => {
+      forceModalCleanup();
+    };
+  }, []);
+
+  // Cleanup whenever modal states change to false
+  useEffect(() => {
+    if (!showWelcomeCreateModal && !showImportModal) {
+      // Small delay to let modal animation complete, then force cleanup
+      const timer = setTimeout(forceModalCleanup, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcomeCreateModal, showImportModal]);
+
+  // Handler for creating project from welcome screen
+  const handleWelcomeCreateProject = async (values: { projectName: string; startDate: any }) => {
+    // Check for duplicate name
+    const isDuplicate = projects.some(p => p.name.toLowerCase() === values.projectName.toLowerCase());
+    if (isDuplicate) {
+      modal.error({
+        title: 'Duplicate Project Name',
+        content: `A project named "${values.projectName}" already exists. Please choose a different name.`,
+      });
+      return;
+    }
+
+    try {
+      const startDate = values.startDate.format('YYYY-MM-DD');
+      await createProject(values.projectName, startDate);
+
+      // Close modal and cleanup
+      setShowWelcomeCreateModal(false);
+      welcomeCreateForm.resetFields();
+
+      // Force cleanup to prevent modal side effects
+      setTimeout(() => forceModalCleanup(), 100);
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      modal.error({
+        title: 'Failed to Create Project',
+        content: error instanceof Error ? error.message : 'An unknown error occurred',
+      });
+    }
+  };
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -50,51 +131,47 @@ export function GanttToolShell() {
       // Ctrl+Z or Cmd+Z for undo
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
+        const { undo } = useGanttToolStoreV2.getState();
         undo();
       }
       // Ctrl+Shift+Z or Cmd+Shift+Z for redo
       else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
         e.preventDefault();
+        const { redo } = useGanttToolStoreV2.getState();
         redo();
       }
       // Ctrl+Y or Cmd+Y for redo (alternative)
       else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
         e.preventDefault();
+        const { redo } = useGanttToolStoreV2.getState();
         redo();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // No dependencies - get functions from store directly
 
   // Fetch projects from database on mount
   useEffect(() => {
     fetchProjects();
-  }, [fetchProjects]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
-  // Load the most recent project if no current project (but only on first load)
-  useEffect(() => {
-    if (projects.length === 0 || !currentProject || manuallyUnloaded) {
-      return;
-    }
-
-    if (!currentProject && projects.length > 0 && !manuallyUnloaded) {
-      // Create a copy before sorting (projects array is read-only from Zustand)
-      const mostRecent = [...projects].sort((a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      )[0];
-      loadProject(mostRecent.id);
-    }
-  }, [projects, currentProject, loadProject, manuallyUnloaded]);
+  // DISABLED: Auto-load removed to let users see the project list
+  // Users can now:
+  // 1. See all their projects on the welcome screen
+  // 2. Choose which project to load
+  // 3. Switch between projects using the toolbar dropdown
 
   // Loading State - Show while fetching projects
   if (isLoading && projects.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 font-medium">Loading your projects...</p>
+          <GhostLoader />
+          <p className="mt-4 text-gray-600 text-lg">Loading your projects...</p>
         </div>
       </div>
     );
@@ -186,10 +263,7 @@ export function GanttToolShell() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-4 mb-6">
               <button
-                onClick={() => {
-                  const today = format(new Date(), 'yyyy-MM-dd');
-                  createProject('My First Project', today, '');
-                }}
+                onClick={() => setShowWelcomeCreateModal(true)}
                 className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 <Plus className="w-5 h-5" />
@@ -240,8 +314,43 @@ export function GanttToolShell() {
           </div>
         </div>
 
-        {/* Import Modal */}
-        {showImportModal && <ImportModal onClose={() => setShowImportModal(false)} />}
+        {/* Import Modal V2 */}
+        {showImportModal && <ImportModalV2 onClose={() => setShowImportModal(false)} />}
+
+        {/* Create Project Modal */}
+        <Modal
+          title="Create New Project"
+          open={showWelcomeCreateModal}
+          onOk={() => welcomeCreateForm.submit()}
+          onCancel={() => {
+            setShowWelcomeCreateModal(false);
+            welcomeCreateForm.resetFields();
+          }}
+          afterClose={() => {
+            // Force cleanup after modal animation completes
+            forceModalCleanup();
+          }}
+          destroyOnHidden={true}
+          okText="Create"
+        >
+          <Form form={welcomeCreateForm} layout="vertical" onFinish={handleWelcomeCreateProject}>
+            <Form.Item
+              name="projectName"
+              label="Project Name"
+              rules={[{ required: true, message: 'Please enter project name' }]}
+            >
+              <Input placeholder="Enterprise CRM Implementation" size="large" />
+            </Form.Item>
+            <Form.Item
+              name="startDate"
+              label="Start Date"
+              rules={[{ required: true, message: 'Please select start date' }]}
+              initialValue={dayjs()}
+            >
+              <DatePicker style={{ width: '100%' }} size="large" />
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
     );
   }
@@ -294,7 +403,7 @@ export function GanttToolShell() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Gantt Canvas (Main Timeline) */}
+        {/* Content: Gantt Canvas */}
         <div className="flex-1 overflow-auto">
           {currentProject ? (
             <GanttCanvas />

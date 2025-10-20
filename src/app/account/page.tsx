@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
 
 interface UserProfile {
   id: string;
@@ -35,7 +35,7 @@ interface Session {
 }
 
 export default function AccountPage() {
-  const { data: session, status } = useSession();
+  const { session, status } = useSessionGuard(); // SECURITY: Validates session on page visibility
   const router = useRouter();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);

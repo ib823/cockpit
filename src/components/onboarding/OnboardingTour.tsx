@@ -106,7 +106,7 @@ export function OnboardingTour() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="fixed z-[9999] pointer-events-none"
+          className="fixed z-[9999] "
           style={{
             left: targetRect.left - 8,
             top: targetRect.top - 8,

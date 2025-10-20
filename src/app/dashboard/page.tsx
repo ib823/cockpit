@@ -1,17 +1,24 @@
 'use client';
-import { Card, Row, Col, Button, Statistic } from 'antd';
-import { 
-  FileTextOutlined, 
-  CalculatorOutlined, 
-  CheckCircleOutlined, 
+import { Card, Row, Col, Button, Statistic, Dropdown } from 'antd';
+import {
+  FileTextOutlined,
+  CalculatorOutlined,
+  CheckCircleOutlined,
   ClockCircleOutlined,
-  RightOutlined 
+  RightOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+  CrownOutlined
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { signOut } from 'next-auth/react';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { session } = useSessionGuard(); // SECURITY: Validates session on page visibility
   const [stats, setStats] = useState({
     projects: 0,
     estimates: 0,
@@ -23,13 +30,65 @@ export default function DashboardPage() {
     fetch('/api/dashboard/stats')
       .then(r => r.json())
       .then(data => setStats(data))
-      .catch(() => {}); 
+      .catch(() => {});
   }, []);
 
+  const isAdmin = session?.user?.role === 'ADMIN';
+
+  const menuItems = [
+    {
+      key: 'account',
+      icon: <UserOutlined />,
+      label: 'Account Settings',
+      onClick: () => router.push('/account'),
+    },
+    ...(isAdmin ? [{
+      key: 'admin',
+      icon: <CrownOutlined />,
+      label: 'Admin Dashboard',
+      onClick: () => router.push('/admin'),
+    }] : []),
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Logout',
+      onClick: () => signOut({ callbackUrl: '/login' }),
+      danger: true,
+    },
+  ];
+
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-2">Welcome back, admin</h1>
-      <p className="text-gray-600 mb-6">Here&apos;s what&apos;s happening with your projects today.</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">SAP Cockpit</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            {isAdmin && (
+              <Button
+                type="default"
+                icon={<CrownOutlined />}
+                onClick={() => router.push('/admin')}
+              >
+                Admin Dashboard
+              </Button>
+            )}
+            <Dropdown menu={{ items: menuItems }} placement="bottomRight">
+              <Button type="text" className="flex items-center gap-2">
+                <UserOutlined />
+                <span>{session?.user?.email || session?.user?.name || 'User'}</span>
+              </Button>
+            </Dropdown>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-2">Welcome back, {session?.user?.name || session?.user?.email || 'User'}</h1>
+        <p className="text-gray-600 mb-6">Here&apos;s what&apos;s happening with your projects today.</p>
       
       <Row gutter={[16, 16]} className="mb-6">
         <Col xs={24} sm={12} lg={6}>
@@ -99,6 +158,7 @@ export default function DashboardPage() {
           </Card>
         </Col>
       </Row>
+      </div>
     </div>
   );
 }

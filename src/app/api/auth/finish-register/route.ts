@@ -3,13 +3,15 @@ import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { prisma } from '../../../../lib/db';
 import { createAuthSession } from '@/lib/nextauth-helpers';
-import { challenges, origin, rpID, verifyRegistrationResponse } from '../../../../lib/webauthn';
-
+import { challenges, verifyRegistrationResponse, rpID } from '../../../../lib/webauthn';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
+  const expectedOrigin = process.env.WEBAUTHN_ORIGIN ?? new URL(process.env.NEXTAUTH_URL ?? req.url).origin;
   try {
-    const { email, response } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const email = String(body.email ?? '').trim().toLowerCase();
+    const response = body.response;
 
     // Validate email format
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
     const verification = await verifyRegistrationResponse({
       response,
       expectedChallenge,
-      expectedOrigin: origin,
+      expectedOrigin: expectedOrigin,
       expectedRPID: rpID,
       requireUserVerification: true,
     });
@@ -87,7 +89,7 @@ export async function POST(req: Request) {
     const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
     await createAuthSession(user.id, user.email, sessionRole);
 
-    return NextResponse.json({ ok: true, user: { name: user.name } });
+    return NextResponse.json({ ok: true, user: { name: user.name, role: user.role } });
 
   } catch (e) {
     console.error('Finish registration failed:', e);

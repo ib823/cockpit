@@ -63,7 +63,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                 <svg
-                  className="w-6 h-6 text-red-600"
+                  className="w-6 h-6 text-red-600 align-middle"
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"

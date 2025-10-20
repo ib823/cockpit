@@ -1,10 +1,11 @@
 'use client';
-import { ConfigProvider, App } from 'antd';
+import { App } from 'antd';
 import { SessionProvider } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { antdTheme } from '@/config/theme';
 import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { AntDThemeBridge } from '@/ui/compat/AntDThemeBridge';
+import { ToastProvider } from '@/ui/toast/ToastProvider';
 import { useEffect, useState } from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -23,7 +24,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     console.error = (...args) => {
       if (typeof args[0] === 'string' && (
         args[0].includes('antd: compatible') ||
-        args[0].includes('[next-auth][error][CLIENT_FETCH_ERROR]')
+        args[0].includes('[next-auth][error][CLIENT_FETCH_ERROR]') ||
+        // Suppress AntD hydration warnings - expected with dynamic theming
+        (args[0].includes('Hydration') && args[0].includes('css-dev-only-do-not-override'))
       )) {
         return;
       }
@@ -38,13 +41,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
     >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <ConfigProvider theme={antdTheme}>
-            <App>
-              <OnboardingProvider>
-                {children}
-              </OnboardingProvider>
-            </App>
-          </ConfigProvider>
+          <AntDThemeBridge>
+            <ToastProvider>
+              <App>
+                <OnboardingProvider>
+                  {children}
+                </OnboardingProvider>
+              </App>
+            </ToastProvider>
+          </AntDThemeBridge>
         </ThemeProvider>
       </QueryClientProvider>
     </SessionProvider>

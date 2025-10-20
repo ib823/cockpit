@@ -47,6 +47,7 @@
     "@types/dagre": "0.7.53",
     "@types/dompurify": "3.2.0",
     "@types/lodash": "4.17.20",
+    "@upstash/ratelimit": "2.0.6",
     "@upstash/redis": "1.35.4",
     "antd": "5.27.4",
     "bcryptjs": "3.0.2",

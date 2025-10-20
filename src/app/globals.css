@@ -5,6 +5,7 @@
 
 @import '../styles/tokens.css';
 @import '../styles/motion.css';
+@import '../ui/datagrid/ant-table.css';
 
 @tailwind base;
 @tailwind components;
@@ -240,7 +241,7 @@ a:hover {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Loading States
+   Loading States & Animations
    ═══════════════════════════════════════════════════════ */
 
 @keyframes skeleton-pulse {
@@ -257,6 +258,27 @@ a:hover {
   animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   background: var(--surface-sub);
   border-radius: var(--r-sm);
+}
+
+/* Fade up animation for toasts, selects, dropdowns */
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Utility class for hiding scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -355,3 +377,17 @@ a:hover {
   border-color: #722ed1 !important;
   color: #22075e !important;
 }
+
+/* Hide stray header/nav links to /gantt or /estimator (keeps dashboard cards intact) */
+header a[href="/gantt"], nav a[href="/gantt"],
+header a[href="/estimator"], nav a[href="/estimator"] { display: none !important; }
+
+/* Overlay safety: visually hidden overlays cannot capture clicks */
+.fixed.inset-0[hidden],
+.fixed.inset-0.opacity-0,
+.fixed.inset-0[aria-hidden="true"],
+[role="dialog"][aria-hidden="true"] { pointer-events: none !important; }
+
+/* Common portal containers */
+[data-headlessui-portal] .fixed.inset-0.opacity-0,
+[data-radix-portal] .fixed.inset-0.opacity-0 { pointer-events: none !important; }

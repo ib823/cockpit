@@ -1,0 +1,81 @@
+/* Base */
+:root {
+  /* optional fine-tuning */
+  --dg-row-h-compact: 36px;
+  --dg-row-h-default: 48px;
+  --dg-row-h-cozy: 56px;
+  --dg-header-h: 44px;
+}
+
+/* Scope to our class so default AntD tables remain untouched */
+.cockpit-ant-table :where(.ant-table) {
+  color: var(--ink);
+}
+
+/* Header */
+.cockpit-ant-table :where(.ant-table .ant-table-thead > tr > th) {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+  height: var(--dg-header-h);
+  font-weight: 600;
+}
+
+/* Body cells */
+.cockpit-ant-table :where(.ant-table .ant-table-tbody > tr > td) {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+/* Density */
+.cockpit-ant-table.dg-density-compact :where(.ant-table .ant-table-tbody > tr > td) {
+  height: var(--dg-row-h-compact);
+}
+.cockpit-ant-table.dg-density-default :where(.ant-table .ant-table-tbody > tr > td) {
+  height: var(--dg-row-h-default);
+}
+.cockpit-ant-table.dg-density-cozy :where(.ant-table .ant-table-tbody > tr > td) {
+  height: var(--dg-row-h-cozy);
+}
+
+/* Zebra */
+.cockpit-ant-table.dg-zebra :where(.ant-table .ant-table-tbody > tr:nth-child(even) > td) {
+  background: color-mix(in srgb, var(--canvas) 60%, var(--surface));
+}
+
+/* Hover accent */
+.cockpit-ant-table.dg-hover :where(.ant-table .ant-table-tbody > tr:hover > td) {
+  background: var(--accent-soft);
+}
+
+/* Selected row (if you use rowSelection) */
+.cockpit-ant-table :where(.ant-table .ant-table-tbody > tr.ant-table-row-selected > td) {
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  border-left: 3px solid var(--accent);
+}
+
+/* Sticky header */
+.cockpit-ant-table.dg-sticky :where(.ant-table .ant-table-container .ant-table-header) {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  box-shadow: 0 1px 0 var(--line);
+}
+
+/* Pagination (AntD) align with tokens */
+.cockpit-ant-table :where(.ant-pagination .ant-pagination-item) {
+  border-color: var(--line);
+  background: var(--surface);
+}
+.cockpit-ant-table :where(.ant-pagination .ant-pagination-item-active) {
+  background: var(--accent);
+  border-color: transparent;
+}
+.cockpit-ant-table :where(.ant-pagination .ant-pagination-item-active a) {
+  color: #fff;
+}
+.cockpit-ant-table :where(.ant-pagination .ant-pagination-prev .ant-pagination-item-link,
+                          .ant-pagination .ant-pagination-next .ant-pagination-item-link) {
+  border-color: var(--line);
+  background: var(--surface);
+}

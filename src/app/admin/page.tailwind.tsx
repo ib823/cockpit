@@ -246,7 +246,7 @@ export default function AdminPage() {
       `}</style>
 
       {/* Subtle ambient background - matches login theme */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <div className="fixed inset-0  overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full blur-3xl subtle-pulse" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100 rounded-full blur-3xl subtle-pulse" style={{ animationDelay: '1s' }} />
       </div>
@@ -277,7 +277,7 @@ export default function AdminPage() {
                 onClick={() => router.push('/')}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-all"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
                 Go to App
@@ -335,7 +335,7 @@ export default function AdminPage() {
             <button
               onClick={createAccess}
               disabled={sending || !email}
-              className="w-full px-6 py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-full px-6 py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-2 rounded-md px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               {sending ? 'Approving...' : 'Approve User'}
             </button>

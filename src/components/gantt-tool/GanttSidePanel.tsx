@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { X, AlertTriangle, Calendar as CalendarIcon, Flag as FlagIcon, Users, Plus, Trash2, AlertCircle, Sliders } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { PHASE_COLOR_PRESETS, MILESTONE_COLOR_PRESETS, RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
@@ -35,7 +35,7 @@ export function GanttSidePanel() {
     getMilestoneById,
     addHoliday,
     deleteHoliday,
-  } = useGanttToolStore();
+  } = useGanttToolStoreV2();
 
   // Track if we should enable real-time updates
   const [enableRealTimeUpdate] = useState(true);
@@ -53,21 +53,29 @@ export function GanttSidePanel() {
             mode={mode}
             itemId={itemId}
             enableRealTimeUpdate={enableRealTimeUpdate && mode === 'edit'}
-            onSubmit={(data) => {
-              if (mode === 'add') {
-                addPhase(data);
-              } else if (mode === 'edit' && itemId) {
-                updatePhase(itemId, data);
+            onSubmit={async (data) => {
+              try {
+                if (mode === 'add') {
+                  await addPhase(data);
+                } else if (mode === 'edit' && itemId) {
+                  await updatePhase(itemId, data);
+                }
+                closeSidePanel();
+              } catch (error) {
+                alert((error as Error).message || 'Failed to save phase. Please refresh the page.');
               }
-              closeSidePanel();
             }}
             updatePhase={updatePhase}
             onDelete={
               mode === 'edit' && itemId
-                ? () => {
+                ? async () => {
                     if (confirm('Delete this phase?')) {
-                      deletePhase(itemId);
-                      closeSidePanel();
+                      try {
+                        await deletePhase(itemId);
+                        closeSidePanel();
+                      } catch (error) {
+                        alert((error as Error).message || 'Failed to delete phase. Please refresh the page.');
+                      }
                     }
                   }
                 : undefined
@@ -83,28 +91,37 @@ export function GanttSidePanel() {
             itemId={itemId}
             phases={currentProject.phases}
             enableRealTimeUpdate={enableRealTimeUpdate && mode === 'edit'}
-            onSubmit={(data) => {
-              if (mode === 'add') {
-                addTask(data);
-              } else if (mode === 'edit' && itemId) {
-                const result = getTaskById(itemId);
-                if (result) {
-                  updateTask(itemId, result.phase.id, data);
+            onSubmit={async (data) => {
+              try {
+                if (mode === 'add') {
+                  await addTask(data);
+                } else if (mode === 'edit' && itemId) {
+                  const result = getTaskById(itemId);
+                  if (result) {
+                    await updateTask(itemId, result.phase.id, data);
+                  }
                 }
+                closeSidePanel();
+              } catch (error) {
+                // Handle race condition where phase may have been deleted
+                alert((error as Error).message || 'Failed to save task. Please refresh the page.');
               }
-              closeSidePanel();
             }}
             updateTask={updateTask}
             getTaskById={getTaskById}
             onDelete={
               mode === 'edit' && itemId
-                ? () => {
+                ? async () => {
                     if (confirm('Delete this task?')) {
-                      const result = getTaskById(itemId);
-                      if (result) {
-                        deleteTask(itemId, result.phase.id);
+                      try {
+                        const result = getTaskById(itemId);
+                        if (result) {
+                          await deleteTask(itemId, result.phase.id);
+                        }
+                        closeSidePanel();
+                      } catch (error) {
+                        alert((error as Error).message || 'Failed to delete task. Please refresh the page.');
                       }
-                      closeSidePanel();
                     }
                   }
                 : undefined
@@ -117,20 +134,28 @@ export function GanttSidePanel() {
           <MilestoneForm
             mode={mode}
             itemId={itemId}
-            onSubmit={(data) => {
-              if (mode === 'add') {
-                addMilestone(data);
-              } else if (mode === 'edit' && itemId) {
-                updateMilestone(itemId, data);
+            onSubmit={async (data) => {
+              try {
+                if (mode === 'add') {
+                  await addMilestone(data);
+                } else if (mode === 'edit' && itemId) {
+                  await updateMilestone(itemId, data);
+                }
+                closeSidePanel();
+              } catch (error) {
+                alert((error as Error).message || 'Failed to save milestone. Please refresh the page.');
               }
-              closeSidePanel();
             }}
             onDelete={
               mode === 'edit' && itemId
-                ? () => {
+                ? async () => {
                     if (confirm('Delete this milestone?')) {
-                      deleteMilestone(itemId);
-                      closeSidePanel();
+                      try {
+                        await deleteMilestone(itemId);
+                        closeSidePanel();
+                      } catch (error) {
+                        alert((error as Error).message || 'Failed to delete milestone. Please refresh the page.');
+                      }
                     }
                   }
                 : undefined
@@ -143,9 +168,13 @@ export function GanttSidePanel() {
         return (
           <HolidayForm
             mode={mode}
-            onSubmit={(data) => {
-              addHoliday(data);
-              closeSidePanel();
+            onSubmit={async (data) => {
+              try {
+                await addHoliday(data);
+                closeSidePanel();
+              } catch (error) {
+                alert((error as Error).message || 'Failed to add holiday. Please refresh the page.');
+              }
             }}
           />
         );
@@ -203,7 +232,7 @@ function PhaseForm({
   enableRealTimeUpdate?: boolean;
   updatePhase?: (id: string, data: Partial<PhaseFormData>) => void;
 }) {
-  const { currentProject } = useGanttToolStore();
+  const { currentProject } = useGanttToolStoreV2();
   const existingPhase = itemId ? getPhaseById(itemId) : null;
 
   const [formData, setFormData] = useState<PhaseFormData>({
@@ -487,7 +516,7 @@ function PhaseForm({
             <button
               type="button"
               onClick={() => {
-                const { openSidePanel, addMilestone } = useGanttToolStore.getState();
+                const { openSidePanel, addMilestone } = useGanttToolStoreV2.getState();
                 // Quick add milestone at end date
                 const milestoneName = `${formData.name || 'Phase'} Complete`;
                 addMilestone({
@@ -614,7 +643,7 @@ function TaskForm({
 
   const {
     currentProject,
-  } = useGanttToolStore();
+  } = useGanttToolStoreV2();
 
   // Get selected phase for validation
   const selectedPhase = phases.find(p => p.id === formData.phaseId);
@@ -897,7 +926,7 @@ function TaskForm({
             <button
               type="button"
               onClick={() => {
-                const { addMilestone } = useGanttToolStore.getState();
+                const { addMilestone } = useGanttToolStoreV2.getState();
                 // Quick add milestone at task end date
                 const milestoneName = `${formData.name || 'Task'} Complete`;
                 addMilestone({

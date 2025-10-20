@@ -72,7 +72,7 @@ export default function AddPasskeyPage() {
         <div className="text-center mb-6">
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
             <svg
-              className="w-8 h-8 text-blue-600"
+              className="w-8 h-8 text-blue-600 align-middle"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

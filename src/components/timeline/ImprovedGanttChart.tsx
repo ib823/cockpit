@@ -624,7 +624,7 @@ export function ImprovedGanttChart({
             >
               {/* Triangle marker */}
               <div className="relative">
-                <svg width="12" height="12" viewBox="0 0 12 12" className="drop-shadow-md">
+                <svg width="12" height="12" viewBox="0 0 12 12" className="drop-shadow-md align-middle">
                   <polygon
                     points="6,0 12,12 0,12"
                     className="fill-red-500 group-hover:fill-red-600 transition-colors"
@@ -632,7 +632,7 @@ export function ImprovedGanttChart({
                 </svg>
 
                 {/* Tooltip on hover */}
-                <div className="absolute top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                <div className="absolute top-14 left-1/2 -translate-x-1/2   transition-opacity  z-50 whitespace-nowrap">
                   <div className="bg-red-600 text-white text-xs px-3 py-2 rounded-lg shadow-xl">
                     <div className="font-semibold">{holiday.name}</div>
                     <div className="text-red-100 text-[10px] mt-0.5">{format(holidayDate, 'EEEE, MMM dd, yyyy')}</div>
@@ -661,7 +661,7 @@ export function ImprovedGanttChart({
                 <Flag className="w-4 h-4 text-purple-600 fill-purple-600 drop-shadow-md group-hover:text-purple-700 group-hover:fill-purple-700 transition-colors" />
 
                 {/* Tooltip on hover */}
-                <div className="absolute top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                <div className="absolute top-14 left-1/2 -translate-x-1/2   transition-opacity  z-50 whitespace-nowrap">
                   <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-lg shadow-xl">
                     <div className="font-semibold">{milestone.name}</div>
                     <div className="text-purple-100 text-[10px] mt-0.5">{format(milestone.date, 'MMM dd, yyyy')}</div>
@@ -831,14 +831,14 @@ export function ImprovedGanttChart({
                       >
                         {/* Resize Handles */}
                         <div
-                          className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30 opacity-0 group-hover/phase:opacity-100 transition-opacity"
+                          className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  group-hover/phase:opacity-100 transition-opacity"
                           onMouseDown={(e) => {
                             e.stopPropagation();
                             handleMouseDown(e, phase.id, 'resize-start');
                           }}
                         />
                         <div
-                          className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30 opacity-0 group-hover/phase:opacity-100 transition-opacity"
+                          className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  group-hover/phase:opacity-100 transition-opacity"
                           onMouseDown={(e) => {
                             e.stopPropagation();
                             handleMouseDown(e, phase.id, 'resize-end');

@@ -4,6 +4,9 @@ import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
+  if (process.env.ENABLE_MAGIC_LINKS !== 'true') {
+    return NextResponse.json({ ok: false, message: 'Disabled' }, { status: 404 });
+  }
   try {
     const { token, deviceInfo } = await req.json();
 

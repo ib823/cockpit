@@ -53,19 +53,20 @@ export async function POST(req: Request) {
 
   const code = six();
   const tokenHash = await hash(code, 10);
+  const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
   await prisma.emailApproval.upsert({
     where: { email },
     update: {
       tokenHash,
-      tokenExpiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      tokenExpiresAt: new Date(Date.now() + EXPIRY_MS),
       usedAt: null,
       approvedByUserId: admin.user.id as string,
     },
     create: {
       email,
       tokenHash,
-      tokenExpiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      tokenExpiresAt: new Date(Date.now() + EXPIRY_MS),
       approvedByUserId: admin.user.id as string,
     },
   });
@@ -101,11 +102,12 @@ export async function PATCH(req: Request) {
   if (action === 'reapprove') {
     const code = six();
     const tokenHash = await hash(code, 10);
+    const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
     await prisma.emailApproval.upsert({
       where: { email },
-      update: { tokenHash, tokenExpiresAt: new Date(Date.now() + 5 * 60 * 1000), usedAt: null },
+      update: { tokenHash, tokenExpiresAt: new Date(Date.now() + EXPIRY_MS), usedAt: null },
       create: {
-      email, tokenHash, tokenExpiresAt: new Date(Date.now() + 5 * 60 * 1000), approvedByUserId: 'system' },
+      email, tokenHash, tokenExpiresAt: new Date(Date.now() + EXPIRY_MS), approvedByUserId: 'system' },
     });
     return NextResponse.json({ ok: true, code });
   }

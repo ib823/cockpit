@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { calculateProjectCost, checkBudgetAlerts } from '@/lib/gantt-tool/cost-calculator';
-import { RESOURCE_CATEGORIES } from '@/types/gantt-tool';
+import { RESOURCE_CATEGORIES, type ResourceCategory } from '@/types/gantt-tool';
 import { differenceInBusinessDays } from 'date-fns';
 import { OrgChart } from './OrgChart';
 
@@ -207,6 +207,17 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
     <Modal
       open={isOpen}
       onCancel={onClose}
+      afterClose={() => {
+        // PERMANENT FIX: Force cleanup of modal side effects
+        if (document.body.style.overflow === 'hidden') {
+          document.body.style.overflow = '';
+        }
+        if (document.body.style.paddingRight) {
+          document.body.style.paddingRight = '';
+        }
+        document.body.style.pointerEvents = '';
+      }}
+      destroyOnHidden={true}
       width="90vw"
       style={{ top: 20, maxWidth: 1600, maxHeight: '90vh' }}
       styles={{ body: { maxHeight: 'calc(90vh - 120px)', overflowY: 'auto' } }}
@@ -596,7 +607,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                             key: 'name',
                             render: (text: string, record: any) => (
                               <div className="flex items-center gap-2">
-                                <span className="text-lg">{RESOURCE_CATEGORIES[record.category].icon}</span>
+                                <span className="text-lg">{RESOURCE_CATEGORIES[record.category as ResourceCategory]?.icon || ''}</span>
                                 <span className="font-medium">{text}</span>
                               </div>
                             ),
@@ -606,8 +617,8 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                             dataIndex: 'category',
                             key: 'category',
                             render: (category: string) => (
-                              <Tag color={RESOURCE_CATEGORIES[category].color}>
-                                {RESOURCE_CATEGORIES[category].label}
+                              <Tag color={RESOURCE_CATEGORIES[category as ResourceCategory]?.color}>
+                                {RESOURCE_CATEGORIES[category as ResourceCategory]?.label}
                               </Tag>
                             ),
                           },

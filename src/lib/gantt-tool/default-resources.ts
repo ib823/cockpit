@@ -18,11 +18,11 @@ export function createDefaultResources(): Resource[] {
     designation: designation as any,
     description,
     createdAt: now,
-    managerResourceId: null,
-    email: null,
-    department: null,
-    location: null,
-    projectRole: null,
+    managerResourceId: undefined,
+    email: undefined,
+    department: undefined,
+    location: undefined,
+    projectRole: undefined,
   });
 
   return [

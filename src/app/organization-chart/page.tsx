@@ -6,17 +6,18 @@
  * "Design is not just what it looks like and feels like. Design is how it works."
  *
  * Features:
- * - Fixed hierarchy with editable levels
+ * - 4-level hierarchy mapped to resource categories (Executive → Governance → Delivery → Support)
  * - Assign existing project resources to org positions
  * - See task/phase assignments for each person
  * - View by: Overall Project, Phase, Task
+ * - Export to PNG/PDF
  */
 
 'use client';
 
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { Button, Input, Select, Tooltip, App, Modal, Dropdown, Tag, Badge } from 'antd';
 import {
   LeftOutlined,
@@ -25,6 +26,7 @@ import {
   DeleteOutlined,
   EyeOutlined,
   DownloadOutlined,
+  SaveOutlined,
   TeamOutlined,
   FileImageOutlined,
   FilePdfOutlined,
@@ -63,19 +65,45 @@ type ViewMode = 'overall' | 'by-phase' | 'by-task';
 export default function OrganizationChartPage() {
   const router = useRouter();
   const { message, modal } = App.useApp();
-  const currentProject = useGanttToolStore((state) => state.currentProject);
+  const { currentProject } = useGanttToolStoreV2();
 
   // State
   const [viewMode, setViewMode] = useState<ViewMode>('overall');
   const [selectedPhaseId, setSelectedPhaseId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+  const isInitialLoad = useRef(true); // Track initial load to prevent saving default state
+
+  /**
+   * Default Organization Chart Structure
+   *
+   * Mapping Resource Categories to Org Chart Levels:
+   *
+   * Level 1 - Executive Oversight
+   *   └── Leadership 🎯 (Strategic sponsors, C-suite, steering committee)
+   *
+   * Level 2 - Project Leadership & Governance
+   *   ├── Project Management 📊 (Project Directors, Program Managers, PMO)
+   *   └── Change Management 🔄 (Change Leads, Organizational change oversight)
+   *
+   * Level 3 - Core Delivery Teams
+   *   ├── Functional 📘 (Business Process Experts, Functional Consultants)
+   *   ├── Technical 🔧 (Solution Architects, Developers, Technical Leads)
+   *   └── Quality Assurance ✅ (QA Managers, Test Leads, Testing Teams)
+   *
+   * Level 4 - Specialized Support & Infrastructure
+   *   ├── Basis/Infrastructure 🏗️ (Basis Consultants, Infrastructure Team)
+   *   ├── Security & Authorization 🔒 (Security Specialists, Authorization Consultants)
+   *   └── Other/General 👤 (Support staff, Subcontractors, Administrative roles)
+   */
   const [orgChart, setOrgChart] = useState<SimpleOrgChart>({
     levels: [
       {
         id: '1',
-        name: 'Executive Level',
+        name: 'Level 1 - Executive Oversight',
         groups: [
           {
             id: '1-1',
@@ -86,22 +114,58 @@ export default function OrganizationChartPage() {
       },
       {
         id: '2',
-        name: 'Management Level',
+        name: 'Level 2 - Project Leadership & Governance',
         groups: [
           {
             id: '2-1',
             name: 'Project Management',
             positions: [],
           },
+          {
+            id: '2-2',
+            name: 'Change Management',
+            positions: [],
+          },
         ],
       },
       {
         id: '3',
-        name: 'Team Level',
+        name: 'Level 3 - Core Delivery Teams',
         groups: [
           {
             id: '3-1',
-            name: 'Development',
+            name: 'Functional',
+            positions: [],
+          },
+          {
+            id: '3-2',
+            name: 'Technical',
+            positions: [],
+          },
+          {
+            id: '3-3',
+            name: 'Quality Assurance',
+            positions: [],
+          },
+        ],
+      },
+      {
+        id: '4',
+        name: 'Level 4 - Specialized Support & Infrastructure',
+        groups: [
+          {
+            id: '4-1',
+            name: 'Basis/Infrastructure',
+            positions: [],
+          },
+          {
+            id: '4-2',
+            name: 'Security & Authorization',
+            positions: [],
+          },
+          {
+            id: '4-3',
+            name: 'Other/General',
             positions: [],
           },
         ],
@@ -109,10 +173,93 @@ export default function OrganizationChartPage() {
     ],
   });
 
+  // Load org chart from project on mount
+  useEffect(() => {
+    if (currentProject?.orgChart) {
+      try {
+        const savedOrgChart = JSON.parse(JSON.stringify(currentProject.orgChart));
+        setOrgChart(savedOrgChart);
+        console.log('[OrgChart] Loaded saved org chart from database');
+      } catch (error) {
+        console.error('[OrgChart] Failed to load org chart:', error);
+      }
+    }
+    // Mark initial load as complete after a short delay
+    setTimeout(() => {
+      isInitialLoad.current = false;
+    }, 500);
+  }, [currentProject?.id]); // Only reload when project changes
+
+  // Manual save function
+  const saveOrgChart = useCallback(async () => {
+    if (!currentProject) {
+      message.error('No project loaded');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      console.log('[OrgChart] Saving org chart to database...');
+      const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orgChart: orgChart,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save org chart');
+      }
+
+      const data = await response.json();
+      console.log('[OrgChart] ✅ Org chart saved successfully');
+      setLastSaved(new Date());
+      message.success('Organization chart saved');
+    } catch (error) {
+      console.error('[OrgChart] ❌ Failed to save org chart:', error);
+      message.error(error instanceof Error ? error.message : 'Failed to save organization chart');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [currentProject, orgChart, message]);
+
+  // Auto-save org chart to database when it changes (debounced)
+  useEffect(() => {
+    if (!currentProject) return;
+
+    // Skip auto-save during initial load
+    if (isInitialLoad.current) {
+      console.log('[OrgChart] Skipping auto-save (initial load)');
+      return;
+    }
+
+    const saveTimer = setTimeout(() => {
+      console.log('[OrgChart] Auto-save triggered...');
+      saveOrgChart();
+    }, 2000); // Debounce 2 seconds
+
+    return () => clearTimeout(saveTimer);
+  }, [orgChart, currentProject?.id, saveOrgChart]);
+
   // Modals
   const [editingLevel, setEditingLevel] = useState<OrgLevel | null>(null);
   const [editingGroup, setEditingGroup] = useState<{ level: OrgLevel; group: OrgGroup } | null>(null);
   const [selectingResource, setSelectingResource] = useState<{ levelId: string; groupId: string; positionId?: string } | null>(null);
+
+  // Mapping from groupId to resource category
+  const groupToCategoryMap: Record<string, string> = {
+    '1-1': 'leadership',      // Leadership
+    '2-1': 'pm',              // Project Management
+    '2-2': 'change',          // Change Management
+    '3-1': 'functional',      // Functional
+    '3-2': 'technical',       // Technical
+    '3-3': 'qa',              // Quality Assurance
+    '4-1': 'basis',           // Basis/Infrastructure
+    '4-2': 'security',        // Security & Authorization
+    '4-3': 'other',           // Other/General
+  };
 
   // Get available resources not yet assigned in org chart
   const assignedResourceIds = useMemo(() => {
@@ -131,6 +278,16 @@ export default function OrganizationChartPage() {
     if (!currentProject) return [];
     return currentProject.resources.filter(r => !assignedResourceIds.has(r.id));
   }, [currentProject, assignedResourceIds]);
+
+  // Get filtered resources for a specific group (by category)
+  const getFilteredResourcesForGroup = useCallback((groupId: string) => {
+    const expectedCategory = groupToCategoryMap[groupId];
+    if (!expectedCategory) {
+      // If no mapping found, show all available resources (fallback)
+      return availableResources;
+    }
+    return availableResources.filter(r => r.category === expectedCategory);
+  }, [availableResources]);
 
   // Get resource assignments info
   const getResourceInfo = useCallback((resourceId: string) => {
@@ -440,6 +597,98 @@ export default function OrganizationChartPage() {
     }
   }, [currentProject, message]);
 
+  // Auto-populate resources based on their categories
+  const autoPopulateResources = useCallback(() => {
+    if (!currentProject || !currentProject.resources || currentProject.resources.length === 0) {
+      message.warning('No resources available to assign');
+      return;
+    }
+
+    // Category to group mapping based on our organizational structure
+    const categoryToGroupMap: Record<string, { levelId: string; groupId: string; groupName: string }> = {
+      leadership: { levelId: '1', groupId: '1-1', groupName: 'Leadership' },
+      pm: { levelId: '2', groupId: '2-1', groupName: 'Project Management' },
+      change: { levelId: '2', groupId: '2-2', groupName: 'Change Management' },
+      functional: { levelId: '3', groupId: '3-1', groupName: 'Functional' },
+      technical: { levelId: '3', groupId: '3-2', groupName: 'Technical' },
+      qa: { levelId: '3', groupId: '3-3', groupName: 'Quality Assurance' },
+      basis: { levelId: '4', groupId: '4-1', groupName: 'Basis/Infrastructure' },
+      security: { levelId: '4', groupId: '4-2', groupName: 'Security & Authorization' },
+      other: { levelId: '4', groupId: '4-3', groupName: 'Other/General' },
+    };
+
+    modal.confirm({
+      title: 'Auto-Populate Organization Chart?',
+      content: 'This will automatically assign all project resources to appropriate levels based on their categories. Existing assignments will be preserved.',
+      okText: 'Auto-Populate',
+      onOk: () => {
+        let assignedCount = 0;
+
+        setOrgChart(prev => {
+          // Deep clone the entire structure to avoid mutations
+          const newLevels = prev.levels.map(level => ({
+            ...level,
+            groups: level.groups.map(group => ({
+              ...group,
+              positions: [...group.positions], // Clone positions array
+            })),
+          }));
+
+          // Assign each resource to the appropriate group
+          currentProject.resources.forEach(resource => {
+            // Skip if already assigned
+            const isAssigned = newLevels.some(level =>
+              level.groups.some(group =>
+                group.positions.some(pos => pos.resourceId === resource.id)
+              )
+            );
+
+            if (isAssigned) return;
+
+            // Find the target group based on resource category
+            const mapping = categoryToGroupMap[resource.category];
+            if (!mapping) {
+              console.warn(`No mapping found for category: ${resource.category}, resource: ${resource.name}`);
+              return;
+            }
+
+            // Find the level and group
+            const levelIndex = newLevels.findIndex(l => l.id === mapping.levelId);
+            if (levelIndex === -1) {
+              console.warn(`Level not found: ${mapping.levelId}`);
+              return;
+            }
+
+            const groupIndex = newLevels[levelIndex].groups.findIndex(g => g.id === mapping.groupId);
+            if (groupIndex === -1) {
+              console.warn(`Group not found: ${mapping.groupId}`);
+              return;
+            }
+
+            // Add position to the group
+            newLevels[levelIndex].groups[groupIndex].positions.push({
+              id: `auto-${Date.now()}-${assignedCount}-${resource.id}`,
+              resourceId: resource.id,
+            });
+
+            assignedCount++;
+          });
+
+          return { levels: newLevels };
+        });
+
+        // Show message AFTER state update (outside of setState)
+        setTimeout(() => {
+          if (assignedCount > 0) {
+            message.success(`Successfully assigned ${assignedCount} resource(s) to the organization chart`);
+          } else {
+            message.info('All resources are already assigned');
+          }
+        }, 100);
+      },
+    });
+  }, [currentProject, message, modal]);
+
   if (!currentProject) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
@@ -474,12 +723,41 @@ export default function OrganizationChartPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Save Status */}
+            {lastSaved && (
+              <span className="text-xs text-gray-500">
+                Saved {new Date(lastSaved).toLocaleTimeString()}
+              </span>
+            )}
+
+            {/* Manual Save Button */}
+            <Button
+              type="primary"
+              icon={isSaving ? null : <SaveOutlined />}
+              onClick={saveOrgChart}
+              loading={isSaving}
+              size="large"
+            >
+              {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+
             {/* Available Resources Badge */}
             <Badge count={availableResources.length} showZero style={{ backgroundColor: '#52c41a' }}>
               <Button type="dashed" icon={<UserOutlined />} size="large">
                 Available Resources
               </Button>
             </Badge>
+
+            {/* Auto-Populate Button */}
+            <Button
+              type="default"
+              icon={<TeamOutlined />}
+              onClick={autoPopulateResources}
+              size="large"
+              disabled={!currentProject.resources || currentProject.resources.length === 0}
+            >
+              Auto-Populate
+            </Button>
 
             {/* View Mode Selector */}
             <Select
@@ -593,12 +871,23 @@ export default function OrganizationChartPage() {
 
       {/* Organization Chart - Jobs/Ive: "Clarity over cleverness" */}
       <div className="flex-1 overflow-auto p-8" ref={chartRef}>
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="max-w-[1600px] mx-auto space-y-12">
           {orgChart.levels.map((level, levelIndex) => (
-            <div key={level.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div key={level.id} className="relative">
+              {/* Enhanced Connecting Line to Previous Level */}
+              {levelIndex > 0 && (
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                  <div className="w-1 h-6 bg-gradient-to-b from-blue-400 to-blue-200 rounded-full" />
+                </div>
+              )}
+
+              <div className="bg-white rounded-xl shadow-md border-2 border-gray-200 p-6 hover:shadow-lg transition-shadow">
               {/* Level Header */}
-              <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-300">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm shadow-lg">
+                    L{levelIndex + 1}
+                  </div>
                   {editingLevel?.id === level.id ? (
                     <Input
                       autoFocus
@@ -606,10 +895,13 @@ export default function OrganizationChartPage() {
                       onBlur={(e) => updateLevelName(level.id, e.target.value)}
                       onPressEnter={(e) => updateLevelName(level.id, e.currentTarget.value)}
                       className="font-semibold text-lg"
-                      style={{ width: 250 }}
+                      style={{ width: 350 }}
                     />
                   ) : (
-                    <h2 className="text-lg font-semibold text-gray-900">{level.name}</h2>
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-xl font-bold text-gray-900">{level.name}</h2>
+                      <Tag color="blue" className="text-sm">{level.groups.length} group{level.groups.length !== 1 ? 's' : ''}</Tag>
+                    </div>
                   )}
                   <Button
                     type="default"
@@ -668,17 +960,17 @@ export default function OrganizationChartPage() {
               </div>
 
               {/* Groups Grid - Jobs/Ive: "Generous spacing, clear separation" */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="flex flex-wrap justify-center gap-6 mt-4">
                 {level.groups.map((group) => {
                   const visiblePositions = group.positions.filter(shouldShowPosition);
 
                   return (
                     <div
                       key={group.id}
-                      className="bg-gray-50 rounded-lg border border-gray-200 p-4 hover:border-blue-300 transition-colors"
+                      className="bg-gradient-to-br from-blue-50/30 via-white to-gray-50/50 rounded-xl border-2 border-gray-300 p-5 hover:border-blue-400 hover:shadow-lg transition-all duration-200 w-96 flex-shrink-0 min-h-[220px] flex flex-col"
                     >
                       {/* Group Header */}
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-300">
                         {editingGroup?.group.id === group.id ? (
                           <Input
                             autoFocus
@@ -687,11 +979,21 @@ export default function OrganizationChartPage() {
                             onPressEnter={(e) =>
                               updateGroup(level.id, group.id, e.currentTarget.value)
                             }
-                            className="font-medium"
+                            className="font-semibold"
                             size="small"
                           />
                         ) : (
-                          <h3 className="font-medium text-gray-900 text-sm">{group.name}</h3>
+                          <div className="flex items-center gap-2 flex-1">
+                            <h3 className="font-semibold text-gray-900 text-base">{group.name}</h3>
+                            <Badge
+                              count={visiblePositions.length}
+                              showZero
+                              style={{
+                                backgroundColor: visiblePositions.length > 0 ? '#52c41a' : '#d9d9d9',
+                                fontWeight: 'bold'
+                              }}
+                            />
+                          </div>
                         )}
                         <div className="flex items-center gap-1">
                           <Button
@@ -710,14 +1012,14 @@ export default function OrganizationChartPage() {
                       </div>
 
                       {/* Resource Cards - Jobs/Ive: "Every detail matters" */}
-                      <div className="space-y-2">
+                      <div className="space-y-3 flex-1">
                         {visiblePositions.map((position) => {
                           const info = position.resourceId ? getResourceInfo(position.resourceId) : null;
 
                           return (
                             <div
                               key={position.id}
-                              className="bg-white rounded border border-gray-200 p-3 hover:shadow-md transition-shadow"
+                              className="bg-white rounded-lg border-2 border-gray-200 p-4 hover:shadow-md hover:border-blue-300 transition-all duration-150"
                             >
                               <div className="flex items-start justify-between">
                                 <div className="flex-1 min-w-0">
@@ -777,7 +1079,8 @@ export default function OrganizationChartPage() {
                           type="dashed"
                           icon={<PlusOutlined />}
                           onClick={(e) => addPosition(e, level.id, group.id)}
-                          className="!border-2 always-visible"
+                          className="!border-2 !border-blue-300 !text-blue-600 hover:!bg-blue-50 hover:!border-blue-400 always-visible mt-auto font-medium"
+                          size="large"
                         >
                           Assign Resource
                         </Button>
@@ -785,6 +1088,7 @@ export default function OrganizationChartPage() {
                     </div>
                   );
                 })}
+              </div>
               </div>
             </div>
           ))}
@@ -796,25 +1100,55 @@ export default function OrganizationChartPage() {
         title="Assign Resource"
         open={!!selectingResource}
         onCancel={() => setSelectingResource(null)}
+        afterClose={() => {
+          // PERMANENT FIX: Force cleanup of modal side effects
+          if (document.body.style.overflow === 'hidden') document.body.style.overflow = '';
+          if (document.body.style.paddingRight) document.body.style.paddingRight = '';
+          document.body.style.pointerEvents = '';
+          setSelectingResource(null);
+        }}
+        destroyOnHidden={true}
         footer={null}
         width={600}
-        afterClose={() => setSelectingResource(null)}
       >
-        {selectingResource && (
-          <div className="space-y-3">
-            {availableResources.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <UserOutlined style={{ fontSize: 48, marginBottom: 16 }} />
-                <p>All resources are already assigned.</p>
-                <p className="text-sm mt-2">Create more resources in the Gantt Tool first.</p>
-              </div>
-            ) : (
-              <>
-                <p className="text-sm text-gray-600 mb-4">
-                  Select a resource from your project to assign to this position:
-                </p>
-                <div className="max-h-96 overflow-y-auto space-y-2">
-                  {availableResources.map((resource) => {
+        {selectingResource && (() => {
+          const filteredResources = getFilteredResourcesForGroup(selectingResource.groupId);
+          const selectedGroup = orgChart.levels
+            .flatMap(l => l.groups)
+            .find(g => g.id === selectingResource.groupId);
+          const expectedCategory = groupToCategoryMap[selectingResource.groupId];
+
+          return (
+            <div className="space-y-3">
+              {/* Show category filter info */}
+              {expectedCategory && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-blue-900">
+                    <strong>Filtering by category:</strong> {expectedCategory.replace(/_/g, ' ')}
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    Only showing resources that match "{selectedGroup?.name}" group
+                  </p>
+                </div>
+              )}
+
+              {filteredResources.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <UserOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+                  <p>No {expectedCategory} resources available.</p>
+                  <p className="text-sm mt-2">
+                    {availableResources.length > 0
+                      ? `There are ${availableResources.length} resources in other categories, but none match "${selectedGroup?.name}".`
+                      : 'All resources are already assigned.'}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Select a resource from your project to assign to this position:
+                  </p>
+                  <div className="max-h-96 overflow-y-auto space-y-2">
+                    {filteredResources.map((resource) => {
                     const info = getResourceInfo(resource.id);
 
                     return (
@@ -851,13 +1185,14 @@ export default function OrganizationChartPage() {
                           </div>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-          </div>
-        )}
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })()}
       </Modal>
     </div>
   );
