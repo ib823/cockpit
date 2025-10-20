@@ -29,7 +29,7 @@ import type {
 import { PHASE_COLOR_PRESETS } from '@/types/gantt-tool';
 import { differenceInDays, addDays, format } from 'date-fns';
 import { adjustDatesToWorkingDays, calculateWorkingDaysInclusive, addWorkingDays } from '@/lib/gantt-tool/working-days';
-import { createDefaultResources } from '@/lib/gantt-tool/default-resources';
+// import { createDefaultResources } from '@/lib/gantt-tool/default-resources'; // No longer used - users add resources manually or via import
 
 interface GanttToolStateV2 {
   // Core Data (loaded from API)
@@ -73,36 +73,36 @@ interface GanttToolStateV2 {
   canRedo: () => boolean;
 
   // Phase Management (with auto-save)
-  addPhase: (data: PhaseFormData) => void;
-  updatePhase: (phaseId: string, updates: Partial<GanttPhase>) => void;
-  deletePhase: (phaseId: string) => void;
+  addPhase: (data: PhaseFormData) => Promise<void>;
+  updatePhase: (phaseId: string, updates: Partial<GanttPhase>) => Promise<void>;
+  deletePhase: (phaseId: string) => Promise<void>;
   togglePhaseCollapse: (phaseId: string) => void;
   movePhase: (phaseId: string, newStartDate: string, newEndDate: string) => void;
   reorderPhase: (phaseId: string, direction: 'up' | 'down') => void;
   autoAlignPhase: (phaseId: string) => void;
 
   // Task Management (with auto-save)
-  addTask: (data: TaskFormData) => void;
-  updateTask: (taskId: string, phaseId: string, updates: Partial<GanttTask>) => void;
-  deleteTask: (taskId: string, phaseId: string) => void;
+  addTask: (data: TaskFormData) => Promise<void>;
+  updateTask: (taskId: string, phaseId: string, updates: Partial<GanttTask>) => Promise<void>;
+  deleteTask: (taskId: string, phaseId: string) => Promise<void>;
   moveTask: (taskId: string, phaseId: string, newStartDate: string, newEndDate: string) => void;
   updateTaskProgress: (taskId: string, phaseId: string, progress: number) => void;
   reorderTask: (taskId: string, phaseId: string, direction: 'up' | 'down') => void;
   autoAlignTask: (taskId: string, phaseId: string) => void;
 
   // Milestone Management (with auto-save)
-  addMilestone: (data: MilestoneFormData) => void;
-  updateMilestone: (milestoneId: string, updates: Partial<GanttMilestone>) => void;
-  deleteMilestone: (milestoneId: string) => void;
+  addMilestone: (data: MilestoneFormData) => Promise<void>;
+  updateMilestone: (milestoneId: string, updates: Partial<GanttMilestone>) => Promise<void>;
+  deleteMilestone: (milestoneId: string) => Promise<void>;
 
   // Holiday Management (with auto-save)
-  addHoliday: (data: HolidayFormData) => void;
-  deleteHoliday: (holidayId: string) => void;
+  addHoliday: (data: HolidayFormData) => Promise<void>;
+  deleteHoliday: (holidayId: string) => Promise<void>;
 
   // Resource Management (with auto-save)
-  addResource: (data: ResourceFormData) => void;
-  updateResource: (resourceId: string, updates: Partial<Resource>) => void;
-  deleteResource: (resourceId: string) => void;
+  addResource: (data: ResourceFormData) => Promise<void>;
+  updateResource: (resourceId: string, updates: Partial<Resource>) => Promise<void>;
+  deleteResource: (resourceId: string) => Promise<void>;
   getResourceById: (resourceId: string) => Resource | undefined;
 
   // Resource Assignment (with auto-save)
@@ -162,12 +162,27 @@ function cloneProject(project: GanttProject | null): GanttProject | null {
 
 // Helper to ensure date is formatted as YYYY-MM-DD string
 function formatDateField(date: string | Date): string {
-  if (typeof date === 'string') {
-    // Already a string, just ensure it's in the right format
-    return date.includes('T') ? date.split('T')[0] : date;
+  try {
+    if (typeof date === 'string') {
+      // Already a string, just ensure it's in the right format
+      const cleaned = date.includes('T') ? date.split('T')[0] : date;
+      // Validate format
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
+        console.error('Invalid date format:', date, 'cleaned:', cleaned);
+        throw new Error(`Invalid date format: ${cleaned}`);
+      }
+      return cleaned;
+    }
+    // It's a Date object, format it
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      console.error('Invalid date object:', date);
+      throw new Error(`Invalid date object: ${date}`);
+    }
+    return format(date, 'yyyy-MM-dd');
+  } catch (error) {
+    console.error('Error formatting date:', date, error);
+    throw error;
   }
-  // It's a Date object, format it
-  return format(date, 'yyyy-MM-dd');
 }
 
 export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
@@ -283,27 +298,26 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
         const data = await response.json();
 
-        // Initialize resources with defaults
-        const resourceData = createDefaultResources();
-
-        // Update project with resources
-        const updateResponse = await fetch(`/api/gantt-tool/projects/${data.project.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            resources: resourceData,
-          }),
-        });
-
-        if (!updateResponse.ok) {
-          throw new Error('Failed to add default resources');
-        }
-
-        const updatedData = await updateResponse.json();
+        // FIX: Do NOT initialize resources with defaults
+        // Users should manually add resources or import them from Excel
+        // Previously this added 90+ default SAP resources which cluttered the project
+        //
+        // const resourceData = createDefaultResources();
+        // const updateResponse = await fetch(`/api/gantt-tool/projects/${data.project.id}`, {
+        //   method: 'PATCH',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({
+        //     resources: resourceData,
+        //   }),
+        // });
+        // if (!updateResponse.ok) {
+        //   throw new Error('Failed to add default resources');
+        // }
+        // const updatedData = await updateResponse.json();
 
         set((state) => {
-          state.currentProject = updatedData.project;
-          state.projects.push(updatedData.project);
+          state.currentProject = data.project; // Use original project data, not updatedData
+          state.projects.push(data.project);
           state.isSyncing = false;
           state.lastSyncAt = new Date();
           state.manuallyUnloaded = false;
@@ -313,6 +327,8 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           state.syncError = error instanceof Error ? error.message : 'Unknown error';
           state.isSyncing = false;
         });
+        // Re-throw so calling code knows creation failed
+        throw error;
       }
     },
 
@@ -361,6 +377,8 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           state.syncError = error instanceof Error ? error.message : 'Unknown error';
           state.isSyncing = false;
         });
+        // Re-throw so calling code knows import failed
+        throw error;
       }
     },
 
@@ -383,29 +401,89 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       });
 
       try {
-        // Transform dates to ISO strings
+        // Clean up data - only send fields expected by the API, not database-managed fields
         const projectData = {
-          ...currentProject,
+          name: currentProject.name,
+          description: currentProject.description || undefined,
           startDate: formatDateField(currentProject.startDate),
+          viewSettings: currentProject.viewSettings || undefined,
+          budget: currentProject.budget || undefined,
           phases: currentProject.phases.map(phase => ({
-            ...phase,
+            id: phase.id,
+            name: phase.name,
+            description: phase.description || '',
+            color: phase.color,
             startDate: formatDateField(phase.startDate),
             endDate: formatDateField(phase.endDate),
+            collapsed: phase.collapsed,
+            order: (phase as any).order || 0,
+            dependencies: phase.dependencies || [],
             tasks: phase.tasks.map(task => ({
-              ...task,
+              id: task.id,
+              name: task.name,
+              description: task.description || '',
               startDate: formatDateField(task.startDate),
               endDate: formatDateField(task.endDate),
+              progress: task.progress || 0,
+              assignee: task.assignee || '',
+              order: (task as any).order || 0,
+              dependencies: task.dependencies || [],
+              resourceAssignments: (task.resourceAssignments || []).map(ra => ({
+                id: ra.id,
+                resourceId: ra.resourceId,
+                assignmentNotes: ra.assignmentNotes || '',
+                allocationPercentage: ra.allocationPercentage || 0,
+                assignedAt: ra.assignedAt || new Date().toISOString(),
+              })),
+            })),
+            phaseResourceAssignments: (phase.phaseResourceAssignments || []).map(pra => ({
+              id: pra.id,
+              resourceId: pra.resourceId,
+              assignmentNotes: pra.assignmentNotes || '',
+              allocationPercentage: pra.allocationPercentage || 0,
+              assignedAt: pra.assignedAt || new Date().toISOString(),
             })),
           })),
           milestones: currentProject.milestones.map(m => ({
-            ...m,
+            id: m.id,
+            name: m.name,
+            description: m.description || '',
             date: formatDateField(m.date),
+            icon: m.icon,
+            color: m.color,
           })),
           holidays: currentProject.holidays.map(h => ({
-            ...h,
+            id: h.id,
+            name: h.name,
             date: formatDateField(h.date),
+            region: h.region,
+            type: h.type,
+          })),
+          resources: currentProject.resources.map(r => ({
+            id: r.id,
+            name: r.name,
+            category: r.category,
+            description: r.description || '',
+            designation: r.designation,
+            managerResourceId: r.managerResourceId || null,
+            email: r.email || null,
+            department: r.department || null,
+            location: r.location || null,
+            projectRole: r.projectRole || null,
+            createdAt: r.createdAt || new Date().toISOString(),
           })),
         };
+
+        // Pre-flight validation logging
+        console.log('[Store] Saving project data:', {
+          projectId: currentProject.id,
+          name: projectData.name,
+          startDate: projectData.startDate,
+          phasesCount: projectData.phases.length,
+          milestonesCount: projectData.milestones.length,
+          holidaysCount: projectData.holidays.length,
+          resourcesCount: projectData.resources.length,
+        });
 
         const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
           method: 'PATCH',
@@ -414,7 +492,26 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         });
 
         if (!response.ok) {
-          throw new Error('Failed to save project');
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.error || `Failed to save project (${response.status})`;
+
+          // Enhanced error logging to debug validation issues
+          console.error('Save project failed:', {
+            status: response.status,
+            errorMessage,
+            errorData,
+            validationDetails: errorData.details,
+          });
+
+          // If validation failed, show detailed error
+          if (errorData.details && Array.isArray(errorData.details)) {
+            const detailedErrors = errorData.details.map((issue: any) =>
+              `${issue.path.join('.')}: ${issue.message}`
+            ).join(', ');
+            throw new Error(`Validation failed: ${detailedErrors}`);
+          }
+
+          throw new Error(errorMessage);
         }
 
         set((state) => {
@@ -432,6 +529,8 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           state.syncError = error instanceof Error ? error.message : 'Unknown error';
           state.isSyncing = false;
         });
+        // Re-throw the error so calling code can handle it
+        throw error;
       }
     },
 
@@ -551,7 +650,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
     // --- Phase Management ---
 
-    addPhase: (data) => {
+    addPhase: async (data) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -591,11 +690,11 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         state.currentProject.updatedAt = new Date().toISOString();
       });
 
-      // Save to API
-      get().saveProject();
+      // Save to API and wait for completion
+      await get().saveProject();
     },
 
-    updatePhase: (phaseId, updates) => {
+    updatePhase: async (phaseId, updates) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -624,10 +723,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         }
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
-    deletePhase: (phaseId) => {
+    deletePhase: async (phaseId) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -647,7 +746,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         }
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
     togglePhaseCollapse: (phaseId) => {
@@ -739,7 +838,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     // follows the same pattern as Phase management above.
 
     // --- Task Management (stub - implement following phase pattern) ---
-    addTask: (data) => {
+    addTask: async (data) => {
       set((state) => {
         if (!state.currentProject) return;
         const phase = state.currentProject.phases.find((p) => p.id === data.phaseId);
@@ -784,10 +883,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         state.currentProject.updatedAt = new Date().toISOString();
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
-    updateTask: (taskId, phaseId, updates) => {
+    updateTask: async (taskId, phaseId, updates) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -818,10 +917,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         }
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
-    deleteTask: (taskId, phaseId) => {
+    deleteTask: async (taskId, phaseId) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -837,7 +936,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         }
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
     moveTask: (taskId, phaseId, newStartDate, newEndDate) => {
@@ -934,7 +1033,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     },
 
     // --- Milestone Management (implement following phase pattern) ---
-    addMilestone: (data) => {
+    addMilestone: async (data) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -953,10 +1052,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         state.currentProject.updatedAt = new Date().toISOString();
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
-    updateMilestone: (milestoneId, updates) => {
+    updateMilestone: async (milestoneId, updates) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -967,10 +1066,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         }
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
-    deleteMilestone: (milestoneId) => {
+    deleteMilestone: async (milestoneId) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -983,11 +1082,11 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         }
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
     // --- Holiday Management ---
-    addHoliday: (data) => {
+    addHoliday: async (data) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -1005,10 +1104,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         state.currentProject.updatedAt = new Date().toISOString();
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
-    deleteHoliday: (holidayId) => {
+    deleteHoliday: async (holidayId) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -1016,11 +1115,11 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         state.currentProject.updatedAt = new Date().toISOString();
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
     // --- Resource Management ---
-    addResource: (data) => {
+    addResource: async (data) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -1044,10 +1143,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         state.currentProject.updatedAt = new Date().toISOString();
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
-    updateResource: (resourceId, updates) => {
+    updateResource: async (resourceId, updates) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -1058,10 +1157,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         }
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
-    deleteResource: (resourceId) => {
+    deleteResource: async (resourceId) => {
       set((state) => {
         if (!state.currentProject) return;
 
@@ -1081,7 +1180,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         state.currentProject.updatedAt = new Date().toISOString();
       });
 
-      get().saveProject();
+      await get().saveProject();
     },
 
     getResourceById: (resourceId) => {

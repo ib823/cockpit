@@ -156,7 +156,7 @@ export function GanttToolbar({
     setShowCreateProjectModal(true);
   };
 
-  const handleCreateProjectSubmit = (values: { projectName: string; startDate: any }) => {
+  const handleCreateProjectSubmit = async (values: { projectName: string; startDate: any }) => {
     // Check for duplicate name
     const isDuplicate = projects.some(p => p.name.toLowerCase() === values.projectName.toLowerCase());
     if (isDuplicate) {
@@ -168,7 +168,7 @@ export function GanttToolbar({
     }
 
     const startDate = values.startDate.format('YYYY-MM-DD');
-    createProject(values.projectName, startDate);
+    await createProject(values.projectName, startDate);
     setShowCreateProjectModal(false);
     createProjectForm.resetFields();
   };
@@ -532,13 +532,69 @@ export function GanttToolbar({
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={handleStartEditingProjectName}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group"
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'current',
+                        label: (
+                          <div className="font-semibold text-blue-600 flex items-center gap-2">
+                            <Check className="w-4 h-4" />
+                            {currentProject.name}
+                          </div>
+                        ),
+                        disabled: true,
+                      },
+                      {
+                        type: 'divider',
+                      },
+                      {
+                        key: 'rename',
+                        label: 'Rename Project',
+                        onClick: handleStartEditingProjectName,
+                      },
+                      projects.length > 1 ? {
+                        type: 'divider',
+                      } : null,
+                      projects.length > 1 ? {
+                        key: 'switch-header',
+                        label: <div className="font-semibold text-gray-500">Switch to:</div>,
+                        disabled: true,
+                      } : null,
+                      ...projects
+                        .filter(p => p.id !== currentProject.id)
+                        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+                        .map(project => ({
+                          key: project.id,
+                          label: (
+                            <div>
+                              <div className="font-medium">{project.name}</div>
+                              <div className="text-xs text-gray-500">
+                                {project.phases.length} phases · Updated {new Date(project.updatedAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                          ),
+                          onClick: () => loadProject(project.id),
+                        })),
+                      {
+                        type: 'divider',
+                      },
+                      {
+                        key: 'view-all',
+                        label: 'View All Projects',
+                        onClick: unloadCurrentProject,
+                      },
+                    ].filter(Boolean) as MenuProps['items'],
+                  }}
+                  trigger={['click']}
                 >
-                  <h1 className="text-lg font-bold text-gray-900">{currentProject.name}</h1>
-                  <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                </button>
+                  <button
+                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group"
+                  >
+                    <h1 className="text-lg font-bold text-gray-900">{currentProject.name}</h1>
+                    <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                  </button>
+                </Dropdown>
               )}
             </div>
 

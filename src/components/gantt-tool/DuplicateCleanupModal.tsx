@@ -156,6 +156,13 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
       }
       open={isOpen}
       onCancel={onClose}
+      afterClose={() => {
+        // PERMANENT FIX: Force cleanup of modal side effects
+        if (document.body.style.overflow === 'hidden') document.body.style.overflow = '';
+        if (document.body.style.paddingRight) document.body.style.paddingRight = '';
+        document.body.style.pointerEvents = '';
+      }}
+      destroyOnHidden={true}
       footer={[
         <Button key="cancel" onClick={onClose}>
           Cancel

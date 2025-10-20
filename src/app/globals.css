@@ -5,6 +5,7 @@
 
 @import '../styles/tokens.css';
 @import '../styles/motion.css';
+@import '../ui/datagrid/ant-table.css';
 
 @tailwind base;
 @tailwind components;
@@ -240,7 +241,7 @@ a:hover {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Loading States
+   Loading States & Animations
    ═══════════════════════════════════════════════════════ */
 
 @keyframes skeleton-pulse {
@@ -257,6 +258,27 @@ a:hover {
   animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   background: var(--surface-sub);
   border-radius: var(--r-sm);
+}
+
+/* Fade up animation for toasts, selects, dropdowns */
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Utility class for hiding scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* ═══════════════════════════════════════════════════════

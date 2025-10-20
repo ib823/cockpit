@@ -148,7 +148,7 @@ export function parseExcelTemplate(tsvData: string): ParsedExcelData {
     resources.push({
       name: role, // Use role as name since we don't track individual names
       role: designation, // Store designation in role field for backward compatibility
-      category: inferCategory(designation),
+      category: inferCategory(designation, role), // Pass both designation and role name for better inference
       weeklyEffort,
     });
   }
@@ -222,16 +222,32 @@ function parseExcelDate(dateStr: string): { date: string; error?: string } {
 }
 
 /**
- * Infer resource category from designation
+ * Infer resource category from role name and designation
+ * Maps to: leadership, functional, technical, basis, security, pm, change, qa, other
  */
-function inferCategory(designation: string): string {
+function inferCategory(designation: string, roleName?: string): string {
   const designationLower = designation.toLowerCase();
+  const roleNameLower = (roleName || '').toLowerCase();
 
-  if (designationLower.includes('manager')) return 'management';
+  // Check role name first for more specific matching
+  if (roleNameLower.includes('project manager') || roleNameLower.includes('pmo')) return 'pm';
+  if (roleNameLower.includes('change')) return 'change';
+  if (roleNameLower.includes('qa') || roleNameLower.includes('test') || roleNameLower.includes('quality')) return 'qa';
+  if (roleNameLower.includes('basis')) return 'basis';
+  if (roleNameLower.includes('security') || roleNameLower.includes('s&a')) return 'security';
+  if (roleNameLower.includes('lead') && (designationLower.includes('principal') || designationLower.includes('director'))) return 'leadership';
+  if (roleNameLower.includes('abap') || roleNameLower.includes('developer') || roleNameLower.includes('technical')) return 'technical';
+  if (roleNameLower.includes('fico') || roleNameLower.includes('mm') || roleNameLower.includes('sd') ||
+      roleNameLower.includes('functional') || roleNameLower.includes('mdi') || roleNameLower.includes('ariba')) return 'functional';
+
+  // Fallback to designation-based inference
+  if (designationLower.includes('principal') || designationLower.includes('director')) return 'leadership';
+  if (designationLower.includes('senior manager')) return 'pm';
+  if (designationLower.includes('manager')) return 'pm';
   if (designationLower.includes('consultant')) return 'functional';
-  if (designationLower.includes('developer') || designationLower.includes('abap')) return 'technical';
-  if (designationLower.includes('architect')) return 'functional';
+  if (designationLower.includes('developer')) return 'technical';
   if (designationLower.includes('analyst')) return 'functional';
+  if (designationLower.includes('subcon')) return 'other';
 
   return 'other';
 }
@@ -340,21 +356,35 @@ export function transformToGanttProject(
 
     for (const phase of phases) {
       for (const task of phase.tasks) {
-        // Check if resource has effort during task period
-        const hasEffort = resource.weeklyEffort.some(we => {
+        // Calculate effort during task period
+        const taskStart = new Date(task.startDate);
+        const taskEnd = new Date(task.endDate);
+
+        // Find all weeks that overlap with this task
+        const taskWeeklyEffort = resource.weeklyEffort.filter(we => {
           const weekDate = addDays(new Date(projectStartDate), we.week * 7);
-          const taskStart = new Date(task.startDate);
-          const taskEnd = new Date(task.endDate);
           return weekDate >= taskStart && weekDate <= taskEnd;
         });
 
-        if (hasEffort) {
+        if (taskWeeklyEffort.length > 0) {
+          // Calculate total mandays and average allocation
+          const totalMandays = taskWeeklyEffort.reduce((sum, we) => sum + we.days, 0);
+          const averageDaysPerWeek = totalMandays / taskWeeklyEffort.length;
+
+          // Convert to percentage (assuming 5-day work week)
+          // 5 days/week = 100%, 2.5 days/week = 50%, etc.
+          const allocationPercentage = Math.round((averageDaysPerWeek / 5) * 100);
+
+          // Create detailed notes with weekly breakdown
+          const weeklyBreakdown = taskWeeklyEffort
+            .map(we => `Week ${we.week + 1}: ${we.days} days`)
+            .join(', ');
+
           task.resourceAssignments.push({
             id: nanoid(),
-            taskId: task.id,
             resourceId: ganttResource.id,
-            allocationPercentage: 100, // Default to 100%
-            assignmentNotes: '',
+            allocationPercentage: Math.min(100, Math.max(0, allocationPercentage)), // Clamp 0-100%
+            assignmentNotes: `Auto-allocated: ${allocationPercentage}% avg (${totalMandays} mandays across ${taskWeeklyEffort.length} weeks). ${weeklyBreakdown}`,
             assignedAt: new Date().toISOString(),
           });
         }
@@ -384,13 +414,15 @@ function inferDesignation(designation: string): string {
   const designationLower = designation.toLowerCase();
 
   // Map standard designation strings to system enum values
+  // Valid values: principal, director, senior_manager, manager, senior_consultant, consultant, analyst, subcontractor
+  if (designationLower.includes('principal')) return 'principal';
+  if (designationLower.includes('director')) return 'director';
   if (designationLower.includes('senior manager')) return 'senior_manager';
   if (designationLower === 'manager') return 'manager';
   if (designationLower.includes('senior consultant')) return 'senior_consultant';
   if (designationLower === 'consultant') return 'consultant';
   if (designationLower === 'analyst') return 'analyst';
-  if (designationLower.includes('lead')) return 'lead';
-  if (designationLower.includes('principal')) return 'principal';
+  if (designationLower.includes('subcon') || designationLower.includes('subcontractor')) return 'subcontractor';
 
   return 'consultant';
 }

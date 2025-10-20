@@ -143,11 +143,10 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
         for (const resource of ganttData.resources) {
           if (!existingResourceNames.has(resource.name)) {
             addResource({
-              name: resource.name,
-              role: resource.role || 'Consultant',
-              category: resource.category,
-              designation: resource.designation,
-              costPerDay: resource.costPerDay,
+              name: resource.name as string,
+              category: resource.category as any,
+              designation: resource.designation as any,
+              description: '',
             });
           }
         }
@@ -169,21 +168,41 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
         // Update the project with new phases and tasks via API
         // This is more reliable than trying to add them one by one through the store
-        const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phases: [
-              ...currentProject.phases,
-              ...newPhases,
-            ],
-          }),
-        });
+        const payload = {
+          phases: [
+            ...currentProject.phases,
+            ...newPhases,
+          ],
+        };
+
+        console.log('[ExcelImport] Payload size:', JSON.stringify(payload).length, 'bytes');
+        console.log('[ExcelImport] Total phases:', payload.phases.length);
+
+        let response;
+        try {
+          response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+        } catch (fetchError) {
+          console.error('[ExcelImport] Fetch failed:', fetchError);
+          throw new Error(`Network error: ${fetchError instanceof Error ? fetchError.message : 'Failed to connect to server'}`);
+        }
 
         if (!response.ok) {
-          const errorText = await response.text();
+          let errorText;
+          try {
+            errorText = await response.text();
+          } catch (e) {
+            errorText = 'Unable to read error response';
+          }
           console.error('[ExcelImport] Failed to append phases:', errorText);
-          throw new Error(`Failed to append data: ${errorText}`);
+          console.error('[ExcelImport] Response status:', response.status);
+          console.error('[ExcelImport] Response headers:', Object.fromEntries(response.headers.entries()));
+          throw new Error(`Failed to append data (${response.status}): ${errorText}`);
         }
 
         console.log('[ExcelImport] Phases appended successfully');

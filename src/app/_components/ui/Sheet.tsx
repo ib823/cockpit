@@ -23,7 +23,7 @@ export default function Sheet({
       onClose={() => onOpenChange(false)}
       title={title}
       width={width}
-      destroyOnClose
+      destroyOnHidden
     >
       {children}
     </Drawer>

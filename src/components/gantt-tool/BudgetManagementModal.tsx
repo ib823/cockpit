@@ -110,6 +110,13 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
     <Modal
       open={isOpen}
       onCancel={onClose}
+      afterClose={() => {
+        // PERMANENT FIX: Force cleanup of modal side effects
+        if (document.body.style.overflow === 'hidden') document.body.style.overflow = '';
+        if (document.body.style.paddingRight) document.body.style.paddingRight = '';
+        document.body.style.pointerEvents = '';
+      }}
+      destroyOnHidden={true}
       width={600}
       title={
         <div className="flex items-center gap-2">

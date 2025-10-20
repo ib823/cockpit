@@ -15,6 +15,7 @@ import { Search, Star, Calendar, CheckCircle, BookOpen, Rocket, TrendingUp, Buil
 import { PROJECT_TEMPLATES, getTemplatesByCategory, type ProjectTemplate } from '@/lib/gantt-tool/project-templates';
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { format } from 'date-fns';
+import type { GanttProject } from '@/types/gantt-tool';
 
 interface Props {
   isOpen: boolean;
@@ -48,11 +49,15 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
     return templates;
   }, [selectedCategory, searchQuery]);
 
-  const handleImportTemplate = (template: ProjectTemplate) => {
-    const projectName = `${template.name} - ${format(new Date(), 'MMM dd, yyyy')}`;
-    const startDate = new Date().toISOString().split('T')[0];
+  const handleImportTemplate = async (template: ProjectTemplate) => {
+    // Create a copy of the template with updated name and dates
+    const projectCopy = {
+      ...template,
+      name: `${template.name} - ${format(new Date(), 'MMM dd, yyyy')}`,
+      startDate: new Date().toISOString().split('T')[0],
+    } as unknown as GanttProject;
 
-    createProjectFromTemplate(template, projectName, startDate);
+    await createProjectFromTemplate(projectCopy);
     onClose();
   };
 
@@ -70,6 +75,17 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
     <Modal
       open={isOpen}
       onCancel={onClose}
+      afterClose={() => {
+        // PERMANENT FIX: Force cleanup of modal side effects
+        if (document.body.style.overflow === 'hidden') {
+          document.body.style.overflow = '';
+        }
+        if (document.body.style.paddingRight) {
+          document.body.style.paddingRight = '';
+        }
+        document.body.style.pointerEvents = '';
+      }}
+      destroyOnHidden={true}
       width={1200}
       footer={null}
       title={

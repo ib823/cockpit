@@ -84,6 +84,36 @@
   --z-modal: 1050;
   --z-toast: 1060;
   --z-tooltip: 1070;
+
+  /* ═══ Compatibility Aliases (for toolkit components) ═══ */
+  --brand-primary: var(--accent);
+  --brand-secondary: #a855f7; /* purple-500 */
+  --canvas: var(--surface-sub);
+  --warning: var(--warn);
+  --error: var(--danger);
+  --info: var(--accent);
+
+  /* Additional radii for toolkit */
+  --r-xl: 16px;
+  --r-2xl: 20px;
+
+  /* Gray scale (for toolkit components) */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* Derived tokens for hover states */
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+
+  /* Additional motion tokens */
+  --dur-fast: 150ms;
 }
 
 /* ═══════════════════════════════════════════════════════

@@ -14,7 +14,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   X,
   Download,
@@ -29,18 +29,29 @@ import {
   Calendar,
 } from 'lucide-react';
 import { parseScheduleData, type ParsedSchedule, type ScheduleParseResult } from '@/lib/gantt-tool/schedule-parser';
-import { parseResourceData, type ParsedResources, type ResourceParseResult } from '@/lib/gantt-tool/resource-parser';
+import { parseResourceData, type ParsedResources, type ResourceParseResult, type ParsedResource } from '@/lib/gantt-tool/resource-parser';
 import { generateScheduleTemplate, generateResourceTemplate } from '@/lib/gantt-tool/template-generator-v2';
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
+import { allocateResourcesToTasks } from '@/lib/gantt-tool/resource-allocator';
+import type { ResourceDesignation, ResourceCategory } from '@/types/gantt-tool';
+
+// Helper to ensure date is in YYYY-MM-DD format
+function formatDateField(date: string | Date): string {
+  if (typeof date === 'string') {
+    return date.includes('T') ? date.split('T')[0] : date;
+  }
+  // It's a Date object, format it
+  return new Date(date).toISOString().split('T')[0];
+}
 
 interface ImportModalV2Props {
   onClose: () => void;
 }
 
-type Stage = 'schedule' | 'resources' | 'review';
+type Stage = 'schedule' | 'resources' | 'mapping' | 'review';
 
 export function ImportModalV2({ onClose }: ImportModalV2Props) {
-  const { createProject, addPhase, addTask, addResource } = useGanttToolStoreV2();
+  const { currentProject, projects } = useGanttToolStoreV2();
 
   // Stage management
   const [currentStage, setCurrentStage] = useState<Stage>('schedule');
@@ -56,9 +67,31 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
   const [parsedResources, setParsedResources] = useState<ParsedResources | null>(null);
   const [skipResources, setSkipResources] = useState(false);
 
+  // Stage 3: Resource Mapping (if needed)
+  const [resourceMappings, setResourceMappings] = useState<Map<number, { designation: string; category: string }>>(new Map());
+
   // Review stage
-  const [projectName, setProjectName] = useState(`Imported Project - ${new Date().toLocaleDateString()}`);
   const [isImporting, setIsImporting] = useState(false);
+
+  // Project creation options
+  const [importMode, setImportMode] = useState<'new' | 'append'>('new');
+  const [newProjectName, setNewProjectName] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+
+  // PERMANENT FIX: Prevent body scroll when modal is open and cleanup on unmount
+  useEffect(() => {
+    // Prevent body scroll while modal is open
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    document.body.style.overflow = 'hidden';
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+      document.body.style.pointerEvents = '';
+    };
+  }, []);
 
   // Handle schedule parse
   const handleParseSchedule = () => {
@@ -79,69 +112,403 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
 
     if (result.success && result.data) {
       setParsedResources(result.data);
+
+      // If there are unmapped resources, we'll need to go to mapping stage
+      if (result.requiresMapping && result.data.unmappedResources.length > 0) {
+        // Initialize mappings with empty values
+        const initialMappings = new Map<number, { designation: string; category: string }>();
+        result.data.unmappedResources.forEach(unmapped => {
+          initialMappings.set(unmapped.rowNumber, {
+            designation: '',
+            category: unmapped.suggestedCategory || 'other'
+          });
+        });
+        setResourceMappings(initialMappings);
+      }
     }
   };
 
-  // Handle final import
+  // Handle final import - Create new project or add to existing
   const handleImport = async () => {
     if (!parsedSchedule) return;
 
+    // Validate import mode
+    if (importMode === 'new') {
+      if (!newProjectName.trim()) {
+        alert('Please enter a project name.');
+        return;
+      }
+      // Check for duplicate names
+      const isDuplicate = projects.some(
+        p => p.name.toLowerCase() === newProjectName.trim().toLowerCase()
+      );
+      if (isDuplicate) {
+        alert(`A project named "${newProjectName}" already exists. Please choose a different name.`);
+        return;
+      }
+    } else {
+      // Append mode
+      if (!selectedProjectId) {
+        alert('Please select a project to append data to.');
+        return;
+      }
+    }
+
+    const currentState = useGanttToolStoreV2.getState();
+
     setIsImporting(true);
     try {
-      // Step 1: Create new project
-      createProject(projectName, parsedSchedule.projectStartDate);
+      // Determine target project
+      let targetProject;
+      let isNewProject = false;
 
-      // Step 2: Add all phases
-      const phaseIdMap = new Map<string, string>();
-      for (const phase of parsedSchedule.phases) {
-        const phaseId = `phase-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        phaseIdMap.set(phase.name, phaseId);
+      if (importMode === 'new') {
+        // Create new project structure
+        const projectStartDate = parsedSchedule.phases.length > 0
+          ? parsedSchedule.phases[0].startDate
+          : new Date().toISOString().split('T')[0];
 
-        addPhase({
+        targetProject = {
+          id: `temp-${Date.now()}`, // Will be replaced by server
+          name: newProjectName.trim(),
+          description: `Imported from Excel on ${new Date().toLocaleDateString()}`,
+          startDate: projectStartDate,
+          phases: [],
+          milestones: [],
+          holidays: [],
+          resources: [],
+          viewSettings: {
+            zoomLevel: 'week' as const,
+            showWeekends: true,
+            showHolidays: true,
+            showMilestones: true,
+            showTaskDependencies: false,
+            showCriticalPath: false,
+            showTitles: true,
+            barDurationDisplay: 'all' as const,
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        isNewProject = true;
+      } else {
+        // Append to existing project
+        const existingProject = projects.find(p => p.id === selectedProjectId);
+        if (!existingProject) {
+          throw new Error('Selected project not found');
+        }
+        targetProject = { ...existingProject };
+      }
+
+      // Step 1: Apply mappings to unmapped resources and combine all resources
+      const allParsedResources: ParsedResource[] = [];
+
+      if (parsedResources && !skipResources) {
+        console.log('📥 Collecting resources...');
+        console.log('  - Mapped resources:', parsedResources.resources.length);
+        console.log('  - Unmapped resources:', parsedResources.unmappedResources?.length || 0);
+
+        // Add already-mapped resources
+        allParsedResources.push(...parsedResources.resources);
+
+        // Add mapped unmapped resources
+        if (parsedResources.unmappedResources && parsedResources.unmappedResources.length > 0) {
+          for (const unmapped of parsedResources.unmappedResources) {
+            const mapping = resourceMappings.get(unmapped.rowNumber);
+            if (!mapping || !mapping.designation || !mapping.category) {
+              throw new Error(`Resource at row ${unmapped.rowNumber} ("${unmapped.name}") is not properly mapped`);
+            }
+
+            console.log(`  ✏️ Applying mapping for row ${unmapped.rowNumber}: ${unmapped.originalDesignation} → ${mapping.designation}, ${mapping.category}`);
+
+            allParsedResources.push({
+              name: unmapped.name,
+              designation: mapping.designation as ResourceDesignation,
+              category: mapping.category as ResourceCategory,
+              weeklyEffort: unmapped.weeklyEffort,
+              totalDays: unmapped.totalDays,
+              originalDesignation: unmapped.originalDesignation,
+              rowNumber: unmapped.rowNumber,
+            });
+          }
+        }
+
+        console.log(`✅ Total resources to process: ${allParsedResources.length}`);
+      } else {
+        console.log('⏭️ Skipping resources (skipResources:', skipResources, ', parsedResources:', !!parsedResources, ')');
+      }
+
+      // Step 2: Create resource entities and build ID map
+      const resourceIdMap = new Map<string, string>();
+      const newResources = allParsedResources.map((resource, idx) => {
+        const resourceId = `resource-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 9)}`;
+        resourceIdMap.set(resource.name, resourceId);
+
+        return {
+          id: resourceId,
+          name: resource.name,
+          category: resource.category,
+          designation: resource.designation,
+          description: `Imported resource with ${resource.totalDays} total mandays`,
+          createdAt: new Date().toISOString(),
+          managerResourceId: null,
+          email: null,  // FIX: Use null instead of undefined for consistency
+          department: null,  // FIX: Use null instead of undefined for consistency
+          location: null,  // FIX: Use null instead of undefined for consistency
+          projectRole: null,  // FIX: Use null instead of undefined for consistency
+        };
+      });
+
+      targetProject.resources = [...(targetProject.resources || []), ...newResources];
+
+      // Step 3: Allocate resources to tasks based on weekly effort
+      console.log('🔍 Starting resource allocation...');
+      console.log('Parsed resources:', allParsedResources);
+      console.log('Resource ID map:', Array.from(resourceIdMap.entries()));
+
+      const allocationResult = allocateResourcesToTasks(allParsedResources, parsedSchedule, resourceIdMap);
+
+      console.log('🎯 Allocation result:', allocationResult);
+
+      if (!allocationResult.success) {
+        console.error('Resource allocation errors:', allocationResult.errors);
+        alert(`Resource allocation failed:\n${allocationResult.errors.join('\n')}`);
+        return;
+      }
+
+      // Show allocation warnings if any
+      if (allocationResult.warnings.length > 0) {
+        console.warn('Resource allocation warnings:', allocationResult.warnings);
+      }
+
+      console.log('✅ Resource allocations created:', allocationResult.allocations.length);
+
+      // Step 4: Create phases with tasks that have resource assignments
+      const newPhases = parsedSchedule.phases.map((phase, phaseIndex) => {
+        const phaseId = `phase-${Date.now()}-${phaseIndex}-${Math.random().toString(36).substr(2, 9)}`;
+
+        const tasks = phase.tasks.map((task, taskIndex) => {
+          const taskId = `task-${Date.now()}-${phaseIndex}-${taskIndex}-${Math.random().toString(36).substr(2, 9)}`;
+
+          // Find resource allocations for this task
+          const taskResourceAssignments: any[] = [];
+
+          for (const allocatedResource of allocationResult.allocations) {
+            const taskAlloc = allocatedResource.taskAllocations.find(
+              a => a.taskName === task.name && a.phaseName === phase.name
+            );
+
+            if (taskAlloc) {
+              const assignmentId = `assignment-${Date.now()}-${phaseIndex}-${taskIndex}-${allocatedResource.resourceId.slice(-6)}-${Math.random().toString(36).substr(2, 6)}`;
+              taskResourceAssignments.push({
+                id: assignmentId,
+                resourceId: allocatedResource.resourceId,
+                assignmentNotes: `Auto-allocated: ${Math.round(taskAlloc.allocation)}% based on weekly effort`,
+                allocationPercentage: Math.round(taskAlloc.allocation), // Round to integer percentage
+                assignedAt: taskAlloc.assignedAt,
+              });
+            }
+          }
+
+          console.log(`📋 Task "${task.name}" in phase "${phase.name}": ${taskResourceAssignments.length} resource assignments`, taskResourceAssignments);
+
+          return {
+            id: taskId,
+            phaseId: phaseId,
+            name: task.name,
+            description: '',
+            startDate: task.startDate,
+            endDate: task.endDate,
+            dependencies: [],
+            assignee: '',
+            progress: 0,
+            resourceAssignments: taskResourceAssignments,
+          };
+        });
+
+        return {
+          id: phaseId,
           name: phase.name,
+          description: '',
+          color: '#3B82F6',
           startDate: phase.startDate,
           endDate: phase.endDate,
-          description: '',
-          color: '#3B82F6', // Default blue
+          tasks,
+          collapsed: false,
+          dependencies: [],
+          phaseResourceAssignments: [],
+        };
+      });
+
+      // Append new phases to existing ones
+      targetProject.phases = [...targetProject.phases, ...newPhases];
+      targetProject.updatedAt = new Date().toISOString();
+
+      // Log what we're about to save
+      console.log('\n💾 About to save to database...');
+      console.log('Total phases:', targetProject.phases.length);
+      const totalTasksWithResources = targetProject.phases.reduce((sum, phase) =>
+        sum + phase.tasks.filter(t => t.resourceAssignments && t.resourceAssignments.length > 0).length, 0
+      );
+      console.log('Tasks with resource assignments:', totalTasksWithResources);
+      console.log('Sample task with resources:',
+        targetProject.phases
+          .flatMap(p => p.tasks)
+          .find(t => t.resourceAssignments && t.resourceAssignments.length > 0)
+      );
+
+      // Prepare payload for API call
+      // Only send the fields that the API expects, clean up database-only fields
+      const projectPayload = {
+        name: targetProject.name,
+        description: targetProject.description ?? '',  // FIX: Convert null/undefined to empty string
+        startDate: targetProject.startDate,
+        viewSettings: targetProject.viewSettings,
+        budget: targetProject.budget,
+        phases: targetProject.phases.map((phase: any) => ({
+          id: phase.id,
+          name: phase.name,
+          description: phase.description ?? '',  // FIX: Use nullish coalescing
+          color: phase.color,
+          startDate: formatDateField(phase.startDate),
+          endDate: formatDateField(phase.endDate),
+          collapsed: phase.collapsed,
+          order: phase.order || 0,
+          dependencies: phase.dependencies || [],
+          tasks: (phase.tasks || []).map((task: any) => ({
+            id: task.id,
+            name: task.name,
+            description: task.description ?? '',  // FIX: Use nullish coalescing
+            startDate: formatDateField(task.startDate),
+            endDate: formatDateField(task.endDate),
+            progress: task.progress ?? 0,  // FIX: Use nullish coalescing
+            assignee: task.assignee ?? '',  // FIX: Use nullish coalescing
+            order: task.order || 0,
+            dependencies: task.dependencies || [],
+            resourceAssignments: (task.resourceAssignments || []).map((ra: any) => ({
+              id: ra.id,
+              resourceId: ra.resourceId,
+              assignmentNotes: ra.assignmentNotes ?? '',  // FIX: Use nullish coalescing
+              allocationPercentage: ra.allocationPercentage ?? 0,  // FIX: Use nullish coalescing
+              assignedAt: ra.assignedAt ?? new Date().toISOString(),
+            })),
+          })),
+          phaseResourceAssignments: (phase.phaseResourceAssignments || []).map((pra: any) => ({
+            id: pra.id,
+            resourceId: pra.resourceId,
+            assignmentNotes: pra.assignmentNotes ?? '',  // FIX: Use nullish coalescing
+            allocationPercentage: pra.allocationPercentage ?? 0,  // FIX: Use nullish coalescing
+            assignedAt: pra.assignedAt ?? new Date().toISOString(),
+          })),
+        })),
+        resources: targetProject.resources.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          category: r.category,
+          description: r.description ?? '',  // FIX: Use nullish coalescing
+          designation: r.designation,
+          managerResourceId: r.managerResourceId ?? null,  // FIX: Explicit null is OK here
+          email: r.email ?? null,  // FIX: Explicit null is OK here
+          department: r.department ?? null,  // FIX: Explicit null is OK here
+          location: r.location ?? null,  // FIX: Explicit null is OK here
+          projectRole: r.projectRole ?? null,  // FIX: Explicit null is OK here
+          createdAt: r.createdAt ?? new Date().toISOString(),
+        })),
+        milestones: targetProject.milestones || [],
+        holidays: targetProject.holidays || [],
+      };
+
+      console.log('📤 Sending project payload with', {
+        mode: importMode,
+        phases: projectPayload.phases.length,
+        resources: projectPayload.resources.length,
+        totalTasks: projectPayload.phases.reduce((sum: number, p: any) => sum + p.tasks.length, 0),
+        tasksWithResources: projectPayload.phases.reduce((sum: number, p: any) =>
+          sum + p.tasks.filter((t: any) => t.resourceAssignments && t.resourceAssignments.length > 0).length, 0
+        ),
+      });
+
+      let response;
+      if (isNewProject) {
+        // Create new project via importProject
+        response = await fetch('/api/gantt-tool/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(projectPayload),
+        });
+      } else {
+        // Update existing project
+        response = await fetch(`/api/gantt-tool/projects/${selectedProjectId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(projectPayload),
         });
       }
 
-      // Step 3: Add all tasks to their phases
-      // Wait a tiny bit for phases to be created
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('API Response status:', response.status);
 
-      for (const phase of parsedSchedule.phases) {
-        const phaseId = phaseIdMap.get(phase.name);
-        if (!phaseId) continue;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ API Error Response:', errorData);
 
-        for (const task of phase.tasks) {
-          addTask({
-            phaseId,
-            name: task.name,
-            startDate: task.startDate,
-            endDate: task.endDate,
-            description: '',
-          });
+        // Log the payload that caused the error for debugging
+        if (errorData.error?.includes('Validation failed')) {
+          console.error('📤 Payload that failed validation:', JSON.stringify(projectPayload, null, 2));
+        }
+
+        // Show detailed validation errors if available
+        if (errorData.details) {
+          console.error('Validation errors:', errorData.details);
+          const validationErrors = errorData.details.map((d: any) =>
+            `${d.path.join('.')}: ${d.message}`
+          ).join('\n');
+          throw new Error(`Validation failed:\n${validationErrors}`);
+        }
+
+        const errorMessage = errorData.error || `Failed to import data (${response.status})`;
+        throw new Error(errorMessage);
+      }
+
+      // Get the project ID from response
+      const data = await response.json();
+      const projectId = data.project?.id || (isNewProject ? data.project?.id : selectedProjectId);
+
+      if (!projectId) {
+        throw new Error('Failed to get project ID from response');
+      }
+
+      // Update local state - fetch all projects and load the created/updated one
+      const store = useGanttToolStoreV2.getState();
+      await store.fetchProjects(); // Refresh project list
+      await store.fetchProject(projectId); // Load the project
+
+      // Verify resources were persisted
+      const updatedState = useGanttToolStoreV2.getState();
+      const fetchedProject = updatedState.currentProject;
+      if (fetchedProject) {
+        console.log('\n🔍 Verifying persisted data...');
+        const tasksWithResources = fetchedProject.phases
+          .flatMap(p => p.tasks)
+          .filter(t => t.resourceAssignments && t.resourceAssignments.length > 0);
+        console.log('Tasks with resources after fetch:', tasksWithResources.length);
+        if (tasksWithResources.length > 0) {
+          console.log('Sample persisted task:', tasksWithResources[0]);
+        } else {
+          console.error('❌ NO RESOURCE ASSIGNMENTS FOUND AFTER FETCH!');
         }
       }
 
-      // Step 4: Add resources if available
-      if (parsedResources && !skipResources) {
-        for (const resource of parsedResources.resources) {
-          addResource({
-            name: resource.name,
-            category: resource.category,
-            designation: resource.designation,
-            description: `Imported resource with ${resource.totalDays} total mandays`,
-          });
-        }
-      }
+      alert(isNewProject ?
+        `Project "${newProjectName}" created successfully!` :
+        'Project updated successfully!'
+      );
 
       // Close modal
       onClose();
     } catch (error) {
       console.error('Import failed:', error);
-      alert('Import failed. Please try again.');
+      const errorMessage = (error as Error).message || 'Import failed. Please try again.';
+      alert(`Import failed: ${errorMessage}`);
     } finally {
       setIsImporting(false);
     }
@@ -149,11 +516,44 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
 
   // Navigation helpers
   const canProceedToResources = scheduleResult?.success && parsedSchedule;
-  const canProceedToReview = canProceedToResources && (skipResources || (resourceResult?.success && parsedResources));
+  const needsMapping = resourceResult?.requiresMapping && parsedResources?.unmappedResources && parsedResources.unmappedResources.length > 0;
+  const canProceedToMapping = resourceResult?.success && parsedResources && needsMapping;
+  const canProceedToReview = canProceedToResources && (
+    skipResources ||
+    (resourceResult?.success && parsedResources && !needsMapping) ||
+    (needsMapping && allResourcesMapped())
+  );
+
+  // Check if all unmapped resources have been mapped
+  function allResourcesMapped(): boolean {
+    if (!parsedResources?.unmappedResources) return true;
+
+    for (const unmapped of parsedResources.unmappedResources) {
+      const mapping = resourceMappings.get(unmapped.rowNumber);
+      if (!mapping || !mapping.designation || !mapping.category) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[95vh] flex flex-col">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50"
+      onClick={(e) => {
+        // Close modal if clicking the backdrop (not the modal content)
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div
+        className="bg-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[95vh] flex flex-col"
+        onClick={(e) => {
+          // Prevent backdrop click from closing modal when clicking inside
+          e.stopPropagation();
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200">
           <div>
@@ -161,7 +561,8 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             <p className="text-sm text-gray-500 mt-1">
               {currentStage === 'schedule' && 'Step 1: Import Schedule'}
               {currentStage === 'resources' && 'Step 2: Import Resources (Optional)'}
-              {currentStage === 'review' && 'Step 3: Review & Import'}
+              {currentStage === 'mapping' && 'Step 3: Map Resource Designations'}
+              {currentStage === 'review' && 'Step 4: Review & Import'}
             </p>
           </div>
           <button
@@ -235,13 +636,26 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             />
           )}
 
+          {currentStage === 'mapping' && parsedResources && (
+            <ResourceMappingStage
+              unmappedResources={parsedResources.unmappedResources}
+              mappings={resourceMappings}
+              onMappingsChange={setResourceMappings}
+            />
+          )}
+
           {currentStage === 'review' && parsedSchedule && (
             <ReviewStage
-              projectName={projectName}
-              onProjectNameChange={setProjectName}
               schedule={parsedSchedule}
               resources={parsedResources}
               skippedResources={skipResources}
+              importMode={importMode}
+              onImportModeChange={setImportMode}
+              newProjectName={newProjectName}
+              onNewProjectNameChange={setNewProjectName}
+              selectedProjectId={selectedProjectId}
+              onSelectedProjectIdChange={setSelectedProjectId}
+              existingProjects={projects}
             />
           )}
         </div>
@@ -252,7 +666,11 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             <button
               onClick={() => {
                 if (currentStage === 'resources') setCurrentStage('schedule');
-                if (currentStage === 'review') setCurrentStage('resources');
+                if (currentStage === 'mapping') setCurrentStage('resources');
+                if (currentStage === 'review') {
+                  // Go back to mapping if needed, otherwise resources
+                  setCurrentStage(needsMapping ? 'mapping' : 'resources');
+                }
               }}
               disabled={currentStage === 'schedule'}
               className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -274,6 +692,17 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
               )}
 
               {currentStage === 'resources' && (
+                <button
+                  onClick={() => setCurrentStage(needsMapping ? 'mapping' : 'review')}
+                  disabled={!canProceedToReview && !canProceedToMapping}
+                  className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  <span>{needsMapping ? 'Next: Mapping' : 'Next: Review'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+
+              {currentStage === 'mapping' && (
                 <button
                   onClick={() => setCurrentStage('review')}
                   disabled={!canProceedToReview}
@@ -609,38 +1038,232 @@ function ResourceStage({
   );
 }
 
+// Resource Mapping Stage Component
+function ResourceMappingStage({
+  unmappedResources,
+  mappings,
+  onMappingsChange,
+}: {
+  unmappedResources: import('@/lib/gantt-tool/resource-parser').UnmappedResource[];
+  mappings: Map<number, { designation: string; category: string }>;
+  onMappingsChange: (mappings: Map<number, { designation: string; category: string }>) => void;
+}) {
+  const { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } = require('@/types/gantt-tool');
+
+  const handleDesignationChange = (rowNumber: number, designation: string) => {
+    const newMappings = new Map(mappings);
+    const current = mappings.get(rowNumber) || { designation: '', category: 'other' };
+    newMappings.set(rowNumber, { ...current, designation });
+    onMappingsChange(newMappings);
+  };
+
+  const handleCategoryChange = (rowNumber: number, category: string) => {
+    const newMappings = new Map(mappings);
+    const current = mappings.get(rowNumber) || { designation: '', category: 'other' };
+    newMappings.set(rowNumber, { ...current, category });
+    onMappingsChange(newMappings);
+  };
+
+  const allMapped = unmappedResources.every(unmapped => {
+    const mapping = mappings.get(unmapped.rowNumber);
+    return mapping && mapping.designation && mapping.category;
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Instructions */}
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-red-900 mb-2">Resource Mapping Required</h3>
+            <p className="text-sm text-red-800 mb-3">
+              The following resources have invalid designations that don't match the Gantt Tool's fixed parameters.
+              Please map each resource to a valid designation and category to proceed.
+            </p>
+            <p className="text-sm text-red-700 font-medium">
+              {unmappedResources.length} resource{unmappedResources.length > 1 ? 's' : ''} need{unmappedResources.length === 1 ? 's' : ''} mapping
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Mapping Table */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Row</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Resource Name</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Invalid Designation</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Map to Designation</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Map to Category</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Effort</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {unmappedResources.map((unmapped) => {
+                const mapping = mappings.get(unmapped.rowNumber) || { designation: '', category: '' };
+                const isRowMapped = mapping.designation && mapping.category;
+
+                return (
+                  <tr key={unmapped.rowNumber} className={isRowMapped ? 'bg-green-50' : 'bg-white'}>
+                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">{unmapped.rowNumber}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{unmapped.name}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className="inline-flex items-center px-2 py-1 rounded bg-red-100 text-red-800 text-xs font-medium">
+                        {unmapped.originalDesignation}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={mapping.designation}
+                        onChange={(e) => handleDesignationChange(unmapped.rowNumber, e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      >
+                        <option value="">-- Select Designation --</option>
+                        {Object.entries(RESOURCE_DESIGNATIONS).map(([key, label]) => (
+                          <option key={key} value={key}>{String(label)}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={mapping.category}
+                        onChange={(e) => handleCategoryChange(unmapped.rowNumber, e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      >
+                        {Object.entries(RESOURCE_CATEGORIES).map(([key, config]: [string, any]) => (
+                          <option key={key} value={key}>
+                            {config.icon} {config.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {unmapped.totalDays} days
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Status */}
+      {allMapped ? (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <p className="text-sm text-green-800 font-medium">
+              All resources have been mapped successfully. You can proceed to review.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600" />
+            <p className="text-sm text-yellow-800">
+              Please complete all mappings to proceed to the review stage.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Review Stage Component
 function ReviewStage({
-  projectName,
-  onProjectNameChange,
   schedule,
   resources,
   skippedResources,
+  importMode,
+  onImportModeChange,
+  newProjectName,
+  onNewProjectNameChange,
+  selectedProjectId,
+  onSelectedProjectIdChange,
+  existingProjects,
 }: {
-  projectName: string;
-  onProjectNameChange: (name: string) => void;
   schedule: ParsedSchedule;
   resources: ParsedResources | null;
   skippedResources: boolean;
+  importMode: 'new' | 'append';
+  onImportModeChange: (mode: 'new' | 'append') => void;
+  newProjectName: string;
+  onNewProjectNameChange: (name: string) => void;
+  selectedProjectId: string | null;
+  onSelectedProjectIdChange: (id: string | null) => void;
+  existingProjects: any[];
 }) {
   return (
     <div className="space-y-6">
+      {/* Import Mode Selector */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-semibold text-blue-900 mb-2">Review Your Import</h3>
-        <p className="text-sm text-blue-800">
-          Please review the details below before importing.
-        </p>
-      </div>
+        <h3 className="font-semibold text-blue-900 mb-3">Choose Import Mode</h3>
+        <div className="space-y-3">
+          {/* New Project Option */}
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="radio"
+              name="importMode"
+              value="new"
+              checked={importMode === 'new'}
+              onChange={() => onImportModeChange('new')}
+              className="mt-1"
+            />
+            <div className="flex-1">
+              <div className="font-medium text-blue-900">Create New Project</div>
+              <p className="text-sm text-blue-800">Import data into a brand new project</p>
+              {importMode === 'new' && (
+                <input
+                  type="text"
+                  value={newProjectName}
+                  onChange={(e) => onNewProjectNameChange(e.target.value)}
+                  placeholder="Enter project name..."
+                  className="mt-2 w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              )}
+            </div>
+          </label>
 
-      {/* Project Name */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
-        <input
-          type="text"
-          value={projectName}
-          onChange={(e) => onProjectNameChange(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+          {/* Append to Existing Option */}
+          {existingProjects.length > 0 && (
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="radio"
+                name="importMode"
+                value="append"
+                checked={importMode === 'append'}
+                onChange={() => onImportModeChange('append')}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-blue-900">Append to Existing Project</div>
+                <p className="text-sm text-blue-800">Add data to an existing project</p>
+                {importMode === 'append' && (
+                  <select
+                    value={selectedProjectId || ''}
+                    onChange={(e) => onSelectedProjectIdChange(e.target.value || null)}
+                    className="mt-2 w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select a project...</option>
+                    {existingProjects.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name} ({project.phases.length} phases)
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </label>
+          )}
+        </div>
       </div>
 
       {/* Schedule Summary */}

@@ -28,10 +28,10 @@ async function main() {
 
     if (approval) {
       console.log('\n✓ EmailApproval found:');
-      console.log('  Code:', approval.code);
+      console.log('  Token Hash:', approval.tokenHash);
       console.log('  Created:', approval.createdAt);
-      console.log('\n💡 Solution: Use the registration URL with this code:');
-      console.log(`   http://localhost:3000/register?code=${approval.code}`);
+      console.log('\n💡 Note: The plain text code is not stored (only tokenHash).');
+      console.log('   To register, request a new approval code via the admin panel.');
     } else {
       console.log('\n❌ No EmailApproval found');
       console.log('💡 Solution: Create an approval record for this user');

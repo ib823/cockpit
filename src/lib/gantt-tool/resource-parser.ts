@@ -21,12 +21,29 @@ export interface ParsedResource {
     days: number;
   }>;
   totalDays: number;
+  originalDesignation?: string; // Original input for tracking
+  originalCategory?: string; // Original inferred category
+  requiresMapping?: boolean; // True if failed to auto-map
+  rowNumber?: number; // For error reporting
 }
 
 export interface ParsedResources {
   resources: ParsedResource[];
   weeklyHeaders: string[];
   totalMandays: number;
+  unmappedResources: UnmappedResource[]; // Resources that need manual mapping
+}
+
+export interface UnmappedResource {
+  rowNumber: number;
+  name: string;
+  originalDesignation: string;
+  suggestedCategory?: ResourceCategory;
+  weeklyEffort: Array<{
+    weekStartDate: string;
+    days: number;
+  }>;
+  totalDays: number;
 }
 
 export interface ResourceParseError {
@@ -41,6 +58,7 @@ export interface ResourceParseResult {
   data?: ParsedResources;
   errors: ResourceParseError[];
   warnings: string[];
+  requiresMapping?: boolean; // True if any resources need manual mapping
 }
 
 // Constants
@@ -103,6 +121,56 @@ function mapDesignation(designationStr: string): ResourceDesignation | null {
   };
 
   return mapping[normalized] || null;
+}
+
+/**
+ * Infer resource category from role name only (for suggestions)
+ */
+function inferCategoryFromRole(roleName: string): ResourceCategory {
+  const lower = roleName.toLowerCase();
+
+  // PM - check first as it's very specific
+  if (lower.includes('pm') || lower.includes('project manager') || lower.includes('program manager')) {
+    return 'pm';
+  }
+
+  // QA - check before "lead" since we have "QA Lead"
+  if (lower.includes('qa') || lower.includes('quality') || lower.includes('test')) {
+    return 'qa';
+  }
+
+  // Change Management - check before "lead" since we have "Training Lead"
+  if (lower.includes('change') || lower.includes('training') || lower.includes('ocm')) {
+    return 'change';
+  }
+
+  // Security - check before general categories
+  if (lower.includes('security') || lower.includes('auth')) {
+    return 'security';
+  }
+
+  // Basis - check before general categories
+  if (lower.includes('basis') || lower.includes('infra') || lower.includes('cloud')) {
+    return 'basis';
+  }
+
+  // Technical - check before leadership
+  if (lower.includes('dev') || lower.includes('abap') || lower.includes('code') || lower.includes('technical')) {
+    return 'technical';
+  }
+
+  // Leadership - architects, leads
+  if (lower.includes('lead') || lower.includes('architect')) {
+    return 'leadership';
+  }
+
+  // Functional - SAP modules and generic consultants
+  if (lower.includes('fico') || lower.includes('mm') || lower.includes('sd') || lower.includes('pp') ||
+      lower.includes('consultant') || lower.includes('functional')) {
+    return 'functional';
+  }
+
+  return 'other';
 }
 
 /**
@@ -219,6 +287,7 @@ export function parseResourceData(
 
   // Parse resource rows
   const resources: ParsedResource[] = [];
+  const unmappedResources: UnmappedResource[] = [];
   let totalMandays = 0;
 
   for (let i = 1; i < lines.length; i++) {
@@ -259,22 +328,7 @@ export function parseResourceData(
       continue;
     }
 
-    // Map designation to enum
-    const designation = mapDesignation(sanitizedDesignation);
-    if (!designation) {
-      errors.push({
-        row: i + 1,
-        column: 'designation',
-        message: `Invalid designation "${sanitizedDesignation}". Use: Principal, Director, Senior Manager, Manager, Senior Consultant, Consultant, Analyst, SubContractor`,
-        severity: 'error',
-      });
-      continue;
-    }
-
-    // Infer category from designation/role
-    const category = inferCategory(sanitizedRole, designation);
-
-    // Parse weekly effort
+    // Parse weekly effort (needed for both mapped and unmapped resources)
     const weeklyEffort: Array<{ weekStartDate: string; days: number }> = [];
     let resourceTotalDays = 0;
 
@@ -320,12 +374,36 @@ export function parseResourceData(
       continue;
     }
 
+    // Map designation to enum
+    const designation = mapDesignation(sanitizedDesignation);
+    if (!designation) {
+      // Store as unmapped resource for manual mapping
+      const suggestedCategory = inferCategoryFromRole(sanitizedRole);
+
+      unmappedResources.push({
+        rowNumber: i + 1,
+        name: sanitizedRole,
+        originalDesignation: sanitizedDesignation,
+        suggestedCategory,
+        weeklyEffort,
+        totalDays: resourceTotalDays,
+      });
+
+      warnings.push(`Row ${i + 1}: Designation "${sanitizedDesignation}" not recognized. Needs manual mapping.`);
+      continue;
+    }
+
+    // Infer category from designation/role
+    const category = inferCategory(sanitizedRole, designation);
+
     resources.push({
       name: sanitizedRole,
       designation,
       category,
       weeklyEffort,
       totalDays: resourceTotalDays,
+      originalDesignation: sanitizedDesignation,
+      rowNumber: i + 1,
     });
 
     totalMandays += resourceTotalDays;
@@ -336,8 +414,8 @@ export function parseResourceData(
     return { success: false, errors, warnings };
   }
 
-  // Validate we have data
-  if (resources.length === 0) {
+  // Validate we have some data (either mapped or unmapped resources)
+  if (resources.length === 0 && unmappedResources.length === 0) {
     return {
       success: false,
       errors: [{ row: 0, column: 'general', message: 'No valid resources found', severity: 'error' }],
@@ -346,25 +424,31 @@ export function parseResourceData(
   }
 
   // Validate resource count
-  if (resources.length > MAX_RESOURCES) {
+  const totalResourceCount = resources.length + unmappedResources.length;
+  if (totalResourceCount > MAX_RESOURCES) {
     return {
       success: false,
       errors: [{
         row: 0,
         column: 'general',
-        message: `Too many resources (${resources.length}). Maximum: ${MAX_RESOURCES}`,
+        message: `Too many resources (${totalResourceCount}). Maximum: ${MAX_RESOURCES}`,
         severity: 'error'
       }],
       warnings: [],
     };
   }
 
+  // If we have unmapped resources, we need manual mapping
+  const requiresMapping = unmappedResources.length > 0;
+
   return {
     success: true,
+    requiresMapping,
     data: {
       resources,
       weeklyHeaders,
       totalMandays,
+      unmappedResources,
     },
     errors: [],
     warnings,

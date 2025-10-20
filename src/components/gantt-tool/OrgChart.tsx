@@ -1,11 +1,12 @@
 /**
  * Organization Chart Component
- * Automatically allocates resources from the project into a hierarchical structure
+ * Shows the saved organization chart if available, otherwise automatically allocates resources
  */
 
 'use client';
 
 import React, { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import type { Resource, ResourceCategory, ResourceDesignation } from '@/types/gantt-tool';
 import { RESOURCE_CATEGORIES } from '@/types/gantt-tool';
@@ -15,7 +16,11 @@ interface OrgChartProps {
 }
 
 export function OrgChart({ className = '' }: OrgChartProps) {
+  const router = useRouter();
   const currentProject = useGanttToolStoreV2((state) => state.currentProject);
+
+  // Check if saved org chart exists
+  const hasSavedOrgChart = Boolean(currentProject?.orgChart);
 
   // Filter resources by level and category
   const organizedResources = useMemo(() => {
@@ -87,15 +92,50 @@ export function OrgChart({ className = '' }: OrgChartProps) {
     );
   }
 
+  // If saved org chart exists, show message and link to full editor
+  if (hasSavedOrgChart) {
+    return (
+      <div className={`w-full h-full overflow-auto bg-gray-50 p-8 ${className}`}>
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-8 text-center">
+            <div className="text-5xl mb-4">📊</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Custom Organization Chart Available
+            </h2>
+            <p className="text-gray-600 mb-6">
+              You have a customized organization chart for this project.
+            </p>
+            <button
+              onClick={() => router.push('/organization-chart')}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+            >
+              View Full Organization Chart →
+            </button>
+            <p className="text-xs text-gray-500 mt-4">
+              The full editor allows you to view, edit, and export your organization chart
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Otherwise show auto-generated chart
   return (
     <div className={`w-full h-full overflow-auto bg-gray-50 p-8 ${className}`}>
       <div className="max-w-7xl mx-auto">
         {/* Organization Chart Title */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-            Project Organization Chart
+            Auto-Generated Organization Chart
           </h2>
-          <p className="text-sm text-gray-500">{currentProject.name}</p>
+          <p className="text-sm text-gray-500 mb-4">{currentProject.name}</p>
+          <button
+            onClick={() => router.push('/organization-chart')}
+            className="text-sm px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Customize Organization Chart →
+          </button>
         </div>
 
         {/* Hierarchical Structure */}

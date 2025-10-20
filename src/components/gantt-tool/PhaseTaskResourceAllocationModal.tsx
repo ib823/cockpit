@@ -143,6 +143,19 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
     updateTaskResourceAssignment,
   } = useGanttToolStoreV2();
 
+  // PERMANENT FIX: Cleanup body styles on unmount
+  useEffect(() => {
+    // Prevent body scroll while modal is open
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      // Restore original styles on unmount
+      document.body.style.overflow = originalOverflow;
+      document.body.style.pointerEvents = '';
+    };
+  }, []);
+
   // Find the item (phase or task)
   const item = useMemo(() => {
     if (!currentProject) return null;
@@ -192,6 +205,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
     if (!currentProject) return {};
 
     const grouped: Record<ResourceCategory, Resource[]> = {
+      leadership: [],
       functional: [],
       technical: [],
       basis: [],
@@ -203,7 +217,14 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
     };
 
     (currentProject.resources || []).forEach(resource => {
-      grouped[resource.category].push(resource);
+      // Safeguard: only push if category exists in grouped object
+      if (resource.category && grouped[resource.category]) {
+        grouped[resource.category].push(resource);
+      } else {
+        // Fallback to 'other' if category is invalid or missing
+        console.warn(`Resource "${resource.name}" has invalid category: ${resource.category}`);
+        grouped.other.push(resource);
+      }
     });
 
     return grouped;

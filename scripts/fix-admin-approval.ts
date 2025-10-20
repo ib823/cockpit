@@ -1,7 +1,24 @@
+/**
+ * DEPRECATED: This script needs to be rewritten to match current EmailApproval schema
+ *
+ * The EmailApproval model no longer has a 'code' field. It uses:
+ * - tokenHash (hashed token)
+ * - tokenExpiresAt
+ * - approvedByUserId
+ *
+ * TODO: Rewrite to use proper token hashing or remove if no longer needed
+ */
+
 import { prisma } from '../src/lib/db';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 
 async function main() {
+  console.log('⚠️  This script is deprecated and needs to be rewritten.');
+  console.log('The EmailApproval schema has changed.');
+  console.log('\n💡 To create an admin user, use the admin panel or API instead.');
+
+  // Temporarily disabled - needs schema update
+  /*
   // Check current approval
   const approval = await prisma.emailApproval.findUnique({
     where: { email: 'admin@admin.com' }
@@ -10,40 +27,26 @@ async function main() {
   if (!approval) {
     console.log('❌ No EmailApproval found for admin@admin.com');
 
-    // Create a new one
-    const code = randomBytes(16).toString('hex');
+    // Create a new one with proper schema
+    const token = randomBytes(16).toString('hex');
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+
     await prisma.emailApproval.create({
       data: {
         email: 'admin@admin.com',
-        code: code,
+        tokenHash: tokenHash,
+        tokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        approvedByUserId: 'system', // Need actual user ID
       }
     });
 
     console.log('✓ Created new EmailApproval');
-    console.log('  Code:', code);
-    console.log('\n💡 Register at:');
-    console.log(`   http://localhost:3000/register?code=${code}`);
+    console.log('  Token:', token);
   } else {
     console.log('✓ EmailApproval exists');
-    console.log('  Code:', approval.code);
-    console.log('  Code is null/undefined:', approval.code === null || approval.code === undefined);
-
-    // If code is null/undefined, update it
-    if (!approval.code) {
-      const newCode = randomBytes(16).toString('hex');
-      await prisma.emailApproval.update({
-        where: { email: 'admin@admin.com' },
-        data: { code: newCode }
-      });
-
-      console.log('\n✓ Updated code to:', newCode);
-      console.log('\n💡 Register at:');
-      console.log(`   http://localhost:3000/register?code=${newCode}`);
-    } else {
-      console.log('\n💡 Register at:');
-      console.log(`   http://localhost:3000/register?code=${approval.code}`);
-    }
+    console.log('  Token Hash:', approval.tokenHash);
   }
+  */
 }
 
 main()

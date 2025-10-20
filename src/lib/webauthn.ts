@@ -8,8 +8,28 @@ import { Redis } from '@upstash/redis';
 
 export const rpName = 'Cockpit';
 const dev = process.env.NODE_ENV !== 'production';
-export const rpID = process.env.WEBAUTHN_RP_ID ?? (dev ? 'localhost' : '');
-export const origin = process.env.WEBAUTHN_ORIGIN ?? (dev ? 'http://localhost:3001' : '');
+
+function getWebAuthnConfig() {
+  const rpID = process.env.WEBAUTHN_RP_ID;
+  const origin = process.env.WEBAUTHN_ORIGIN;
+
+  if (!dev) {
+    if (!rpID || !origin) {
+      throw new Error(
+        'WEBAUTHN_RP_ID and WEBAUTHN_ORIGIN environment variables are required in production'
+      );
+    }
+  }
+
+  return {
+    rpID: rpID ?? 'localhost',
+    origin: origin ?? 'http://localhost:3001',
+  };
+}
+
+const config = getWebAuthnConfig();
+export const rpID = config.rpID;
+export const origin = config.origin;
 
 // Challenge store with automatic fallback to in-memory (dev-safe)
 const url = process.env.UPSTASH_REDIS_REST_URL;

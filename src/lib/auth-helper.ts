@@ -97,11 +97,26 @@ export function validateEmail(email: string): boolean {
 /**
  * Session configuration constants
  */
+function getSessionSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    throw new Error(
+      "SESSION_SECRET environment variable is required. Please set it to a secure random string of at least 32 characters."
+    );
+  }
+  if (secret.length < 32) {
+    throw new Error(
+      "SESSION_SECRET must be at least 32 characters long for security."
+    );
+  }
+  return secret;
+}
+
 export const SESSION_CONFIG = {
   cookieName: "app_session",
-  password: process.env.SESSION_SECRET || "complex_password_at_least_32_characters_long",
+  password: getSessionSecret(),
   cookieOptions: {
-    secure: process.env.NODE_ENV === "production",
+    secure: true, // Always use secure cookies
     httpOnly: true,
     sameSite: "lax" as const,
     maxAge: 60 * 60 * 24 * 7, // 7 days

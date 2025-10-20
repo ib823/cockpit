@@ -19,6 +19,7 @@ const UpdateProjectSchema = z.object({
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   viewSettings: z.any().optional(), // JSON field
   budget: z.any().optional(), // JSON field
+  orgChart: z.any().optional(), // JSON field - organization chart structure
   phases: z.array(z.any()).optional(), // Full phases array
   milestones: z.array(z.any()).optional(), // Full milestones array
   holidays: z.array(z.any()).optional(), // Full holidays array
@@ -141,22 +142,49 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
+  const startTime = Date.now();
+  console.log('[API] ===== PATCH Request Started =====');
+
   try {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.id) {
+      console.log('[API] Unauthorized - no session');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { projectId } = await params;
+    console.log('[API] Project ID:', projectId);
 
     // Check ownership
     const hasAccess = await checkProjectOwnership(projectId, session.user.id);
     if (!hasAccess) {
+      console.log('[API] Forbidden - user does not own project');
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const body = await request.json();
+    console.log('[API] Reading request body...');
+    let body;
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      console.error('[API] Failed to parse JSON:', jsonError);
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    // Log incoming data for debugging
+    console.log('[API] Updating project:', projectId);
+    console.log('[API] Request body keys:', Object.keys(body));
+    console.log('[API] Body size (approx):', JSON.stringify(body).length, 'bytes');
+    if (body.phases) {
+      console.log('[API] Phases count:', body.phases.length);
+      console.log('[API] Total tasks:', body.phases.reduce((sum: number, p: any) => sum + (p.tasks?.length || 0), 0));
+    }
+
+    console.log('[API] Validating data...');
     const validatedData = UpdateProjectSchema.parse(body);
 
     // Check for duplicate project name if name is being updated
@@ -194,10 +222,40 @@ export async function PATCH(
           startDate: validatedData.startDate ? new Date(validatedData.startDate) : undefined,
           viewSettings: validatedData.viewSettings,
           budget: validatedData.budget,
+          orgChart: validatedData.orgChart, // Organization chart structure
         },
       });
 
-      // If phases provided, replace all phases
+      // IMPORTANT: Create resources FIRST before phases/tasks that reference them
+      if (validatedData.resources) {
+        await tx.ganttResource.deleteMany({
+          where: { projectId: projectId },
+        });
+
+        await tx.ganttResource.createMany({
+          data: validatedData.resources.map((r: any) => ({
+            id: r.id,
+            projectId: projectId,
+            name: r.name,
+            category: r.category,
+            description: r.description || '',
+            designation: r.designation,
+            managerResourceId: r.managerResourceId || null,
+            email: r.email || null,
+            department: r.department || null,
+            location: r.location || null,
+            projectRole: r.projectRole || null,
+            rateType: r.rateType || null,
+            hourlyRate: r.hourlyRate ? parseFloat(r.hourlyRate.toString()) : null,
+            dailyRate: r.dailyRate ? parseFloat(r.dailyRate.toString()) : null,
+            currency: r.currency || null,
+            utilizationTarget: r.utilizationTarget || null,
+            createdAt: r.createdAt ? new Date(r.createdAt) : new Date(),
+          })),
+        });
+      }
+
+      // Now create phases (which may reference the resources created above)
       if (validatedData.phases) {
         // Delete existing phases (cascade will delete tasks)
         await tx.ganttPhase.deleteMany({
@@ -291,33 +349,7 @@ export async function PATCH(
         });
       }
 
-      // If resources provided, replace all
-      if (validatedData.resources) {
-        await tx.ganttResource.deleteMany({
-          where: { projectId: projectId },
-        });
-
-        await tx.ganttResource.createMany({
-          data: validatedData.resources.map((r: any) => ({
-            id: r.id,
-            projectId: projectId,
-            name: r.name,
-            category: r.category,
-            description: r.description || '',
-            designation: r.designation,
-            managerResourceId: r.managerResourceId || null,
-            email: r.email || null,
-            department: r.department || null,
-            location: r.location || null,
-            projectRole: r.projectRole || null,
-            rateType: r.rateType || null,
-            hourlyRate: r.hourlyRate ? parseFloat(r.hourlyRate.toString()) : null,
-            dailyRate: r.dailyRate ? parseFloat(r.dailyRate.toString()) : null,
-            currency: r.currency || null,
-            utilizationTarget: r.utilizationTarget || null,
-          })),
-        });
-      }
+      // Resources are already handled at the beginning of the transaction
 
       return project;
     });
@@ -397,18 +429,39 @@ export async function PATCH(
       })),
     };
 
+    const duration = Date.now() - startTime;
+    console.log(`[API] ===== PATCH Request Completed in ${duration}ms =====`);
+
     return NextResponse.json({ project: serializedProject }, { status: 200 });
   } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`[API] ===== PATCH Request Failed after ${duration}ms =====`);
+
     if (error instanceof z.ZodError) {
+      console.error('[API] Zod validation failed:', error.issues);
       return NextResponse.json(
         { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
 
-    console.error('[API] Failed to update gantt project:', error);
+    // Log detailed error information
+    console.error('[API] Failed to update gantt project:');
+    console.error('Error name:', error instanceof Error ? error.name : 'Unknown');
+    console.error('Error message:', error instanceof Error ? error.message : error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+
+    // Check for Prisma-specific errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      console.error('Prisma error code:', (error as any).code);
+      console.error('Prisma error meta:', (error as any).meta);
+    }
+
     return NextResponse.json(
-      { error: 'Failed to update project' },
+      {
+        error: 'Failed to update project',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

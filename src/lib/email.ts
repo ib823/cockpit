@@ -125,7 +125,6 @@ export async function sendAccessCode(email: string, code: string, magicLink?: st
         subject: magicLink ? '🚀 Your Cockpit Access is Ready' : 'Your Cockpit Access Code',
         html: emailTemplate(code, magicLink),
       });
-      console.log('[Gmail] Email sent to:', email, magicLink ? '(with magic link)' : '(code only)');
       return { success: true, provider: 'gmail' };
     } catch (error) {
       console.error('[Gmail] Failed to send email:', error);
@@ -142,7 +141,6 @@ export async function sendAccessCode(email: string, code: string, magicLink?: st
         subject: magicLink ? '🚀 Your Cockpit Access is Ready' : 'Your Cockpit Access Code',
         html: emailTemplate(code, magicLink),
       });
-      console.log('[Resend] Email sent to:', email, magicLink ? '(with magic link)' : '(code only)');
       return { success: true, provider: 'resend' };
     } catch (error) {
       console.error('[Resend] Failed to send email:', error);
@@ -150,7 +148,6 @@ export async function sendAccessCode(email: string, code: string, magicLink?: st
     }
   }
 
-  // No email provider configured
-  console.log('[DEV] Email not sent (no email provider configured). Code:', code, magicLink ? `Magic link: ${magicLink}` : '');
+  // No email provider configured - do not log sensitive data
   return { success: false, devMode: true };
 }

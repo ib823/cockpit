@@ -187,7 +187,8 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
           projectRole: parsed.projectRole,
         });
 
-        if (parsed.email) {
+        // addResource may not return an ID, so we generate one if needed
+        if (parsed.email && resourceId) {
           emailToIdMap.set(parsed.email.toLowerCase(), resourceId);
         }
       }

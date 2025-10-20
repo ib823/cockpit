@@ -34,9 +34,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Log all requests for debugging
-  console.log(`[Middleware] ${request.method} ${pathname}`);
-
   // Stricter root redirect at edge
   if (pathname === '/') {
     const token = await getToken({ req: request });
@@ -45,7 +42,9 @@ export async function middleware(request: NextRequest) {
   }
   
   // Rate limiting (100 req/min per IP)
-  const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ??
+             request.headers.get('x-real-ip') ??
+             '127.0.0.1';
   if (!checkRateLimit(ip, 100, 60000)) {
     return new Response('Too many requests', {
       status: 429,

@@ -600,6 +600,9 @@ model GanttProject {
   // Budget (stored as JSON for flexibility)
   budget      Json?   // ProjectBudget type
 
+  // Organization Chart (stored as JSON for flexibility)
+  orgChart    Json?   // Organization chart structure with levels and groups
+
   // Metadata
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -295,7 +295,7 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.hcaptcha.com https://www.google.com/recaptcha/ https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://hcaptcha.com https://www.google.com/recaptcha/; frame-src https://hcaptcha.com https://www.google.com/recaptcha/ https://challenges.cloudflare.com;"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://www.google.com/recaptcha/ https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://hcaptcha.com https://www.google.com/recaptcha/; frame-src https://hcaptcha.com https://www.google.com/recaptcha/ https://challenges.cloudflare.com;"
   );
 
   return response;

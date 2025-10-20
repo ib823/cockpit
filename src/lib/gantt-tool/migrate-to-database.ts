@@ -63,15 +63,10 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
       return result; // No projects to migrate
     }
 
-    console.log(`[Migration] Starting migration of ${localProjects.length} projects`);
-    console.log('[Migration] Sample project:', localProjects[0]);
-
     // Migrate each project
     for (const project of localProjects) {
       try {
         // Step 1: Create the project with basic info
-        console.log(`[Migration] Creating project "${project.name}"...`);
-
         const projectPayload = {
           name: project.name,
           description: project.description || '',
@@ -79,8 +74,6 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
           viewSettings: project.viewSettings,
           budget: project.budget,
         };
-
-        console.log(`[Migration] Project payload:`, projectPayload);
 
         const response = await fetch('/api/gantt-tool/projects', {
           method: 'POST',
@@ -101,8 +94,6 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
         const { project: createdProject } = await response.json();
 
         // Step 2: Add phases, tasks, milestones, etc. via PATCH
-        console.log(`[Migration] Adding full data to project "${project.name}"...`);
-
         const fullProjectData = {
           phases: (project.phases || []).map(phase => ({
             ...phase,
@@ -159,7 +150,6 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
         }
 
         result.migratedCount++;
-        console.log(`[Migration] ✓ Successfully migrated project "${project.name}"`);
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         console.error(`[Migration] ✗ Failed to migrate project "${project.name}":`, error);
@@ -168,7 +158,6 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
       }
     }
 
-    console.log(`[Migration] Completed: ${result.migratedCount}/${localProjects.length} projects migrated`);
     if (result.errors.length > 0) {
       console.error('[Migration] Errors:', result.errors);
     }
