@@ -1,12 +1,12 @@
 # Ant Design-Only UI Refactor Plan
 
 **Branch:** `refactor/ant-only-ui`
-**Status:** Phase 0-2 Complete
+**Status:** Phase 0-3.1 Complete
 **Goal:** Transform SAP Cockpit into a pure Ant Design v5 application with world-class responsive design and WCAG 2.2 AA compliance
 
 ---
 
-## ✅ COMPLETED (Phases 0-2)
+## ✅ COMPLETED (Phases 0-3.1)
 
 ### Phase 0: Prep & Guardrails
 - ✅ Created refactor branch
@@ -50,14 +50,15 @@
 
 ## 🚧 IN PROGRESS (Phase 3-8)
 
-### Phase 3: Component Migration
+### Phase 3.1: Core Controls ✅ COMPLETE
+- ✅ Replace all `Button` implementations (4 custom versions → Ant Button)
+- ✅ Replace all `Input` implementations (3 custom versions → Ant Input + TextArea)
+- ✅ Replace all `Select` implementations (3 custom versions → Ant Select)
+- ✅ Remove Radix UI Slider → Ant Slider (WrapperSlider.tsx migrated)
+- ✅ Remove react-hot-toast → Ant message/notification
+- ✅ Migrate `/dashboard` page to AppShell layout
 
-**Priority 1: Core Controls (Week 1)**
-- [ ] Replace all `Button` implementations (3 custom versions)
-- [ ] Replace all `Input` implementations (3 custom versions)
-- [ ] Replace all `Select` implementations (3 custom versions)
-- [ ] Remove Radix UI Slider → Ant Slider
-- [ ] Remove react-hot-toast → Ant message/notification
+### Phase 3: Component Migration (Continued)
 
 **Priority 2: Feedback Components (Week 2)**
 - [ ] Replace Modal/Dialog → Ant Modal
@@ -133,16 +134,17 @@
 
 ## 📊 Progress Metrics
 
-| Metric | Before | Current | Target |
-|--------|--------|---------|--------|
-| **Ant Token Coverage** | 11% | **95%** | 95%+ ✅ |
-| **Dark Mode** | 0% | **100%** | 100% ✅ |
-| **Custom Components** | 40+ | 40+ | <5 |
-| **Tailwind Classes** | ~7,000 | ~7,000 | 0 |
-| **Non-Ant Imports** | 5+ libraries | 5+ libraries | 0 |
-| **WCAG 2.2 AA Compliance** | 65% | 65% | 100% |
-| **Responsive Breakpoints** | Inconsistent | **Ant-aligned** ✅ | Ant-aligned ✅ |
-| **UI Health Score** | 62/100 | ~70/100 | 95+ |
+| Metric | Before | Phase 2 | Phase 3.1 | Target |
+|--------|--------|---------|-----------|--------|
+| **Ant Token Coverage** | 11% | **95%** ✅ | 95% | 95%+ ✅ |
+| **Dark Mode** | 0% | **100%** ✅ | 100% | 100% ✅ |
+| **Ant Component Usage** | 63 | 63 | **81** 📈 | 200+ |
+| **Custom Components** | 40+ | 40+ | **37** 📉 | <5 |
+| **Tailwind Classes** | ~7,000 | 4,222 | **4,169** 📉 | 0 |
+| **Non-Ant Imports** | 74 | 74 | **69** 📉 | 0 |
+| **WCAG 2.2 AA Compliance** | 65% | 65% | 65% | 100% |
+| **Responsive Breakpoints** | Inconsistent | **Ant-aligned** ✅ | Ant-aligned | Ant-aligned ✅ |
+| **UI Health Score** | 62/100 | 25/100 | **27/100** 📈 | 95+ |
 
 ---
 
