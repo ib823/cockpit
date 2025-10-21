@@ -1,4 +1,10 @@
+/**
+ * Toggle Component - Ant Design Switch wrapper
+ * Maintains API compatibility with previous custom implementation
+ */
+
 import React from 'react';
+import { Switch } from 'antd';
 
 export interface ToggleProps {
   checked: boolean;
@@ -13,27 +19,31 @@ export const Toggle: React.FC<ToggleProps> = ({
   onChange,
   label,
   disabled,
-  className
-}) => (
-  <label className={`inline-flex items-center gap-3 select-none ${className || ''}`}>
-    {label && <span className="text-[14px] text-[var(--ink)]">{label}</span>}
-    <span
-      role="switch"
-      aria-checked={checked}
-      tabIndex={0}
-      onClick={() => !disabled && onChange(!checked)}
-      onKeyDown={(e) => !disabled && ((e.key === ' ' || e.key === 'Enter') && onChange(!checked))}
-      className={`relative w-11 h-6 rounded-full border transition ${
-        checked
-          ? 'bg-[var(--accent)] border-transparent'
-          : 'bg-[var(--canvas)] border-[var(--line)]'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-    >
-      <span
-        className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white shadow-[var(--shadow-sm)] transition ${
-          checked ? 'left-[calc(100%-1.375rem)]' : 'left-0.5'
-        }`}
+  className,
+}) => {
+  if (!label) {
+    return (
+      <Switch
+        checked={checked}
+        onChange={onChange}
+        disabled={disabled}
+        className={className}
       />
-    </span>
-  </label>
-);
+    );
+  }
+
+  return (
+    <label
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 12,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+      }}
+      className={className}
+    >
+      <span style={{ fontSize: 14 }}>{label}</span>
+      <Switch checked={checked} onChange={onChange} disabled={disabled} />
+    </label>
+  );
+};

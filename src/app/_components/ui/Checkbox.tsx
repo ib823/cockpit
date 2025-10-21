@@ -1,22 +1,36 @@
+/**
+ * Checkbox Component - Ant Design wrapper with label support
+ */
+
 'use client';
-import React from "react";
 
-function cx(...a:any[]){return a.filter(Boolean).join(' ');}
+import React from 'react';
+import { Checkbox as AntCheckbox, Space } from 'antd';
 
-type Props = Omit<React.ComponentProps<'input'>,'type'> & {
+type Props = Omit<React.ComponentProps<typeof AntCheckbox>, 'type'> & {
   label?: React.ReactNode;
   containerClassName?: string;
 };
 
-export default function Checkbox({ id: providedId, label, className, containerClassName, ...rest }: Props){
+export default function Checkbox({
+  id: providedId,
+  label,
+  className,
+  containerClassName,
+  ...rest
+}: Props) {
   const generatedId = React.useId();
   const checkboxId = providedId || generatedId;
+
+  if (!label) {
+    return <AntCheckbox id={checkboxId} className={className} {...rest} />;
+  }
+
   return (
-    <div className={cx('flex flex-col gap-1', containerClassName)}>
-      <label htmlFor={checkboxId} className="inline-flex items-center gap-2 text-sm">
-        <input id={checkboxId} type="checkbox" className={cx('h-4 w-4', className)} {...rest} />
+    <div className={containerClassName}>
+      <AntCheckbox id={checkboxId} className={className} {...rest}>
         {label}
-      </label>
+      </AntCheckbox>
     </div>
   );
 }
