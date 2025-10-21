@@ -1,0 +1,403 @@
+{
+  "audit_timestamp": "2025-10-21T14:30:00Z",
+  "summary": {
+    "total_custom_components": 40,
+    "replaceable_with_antd": 38,
+    "complexity": "HIGH",
+    "impact": "CRITICAL - Multiple parallel UI systems causing inconsistency"
+  },
+  "custom_component_locations": [
+    "/src/components/ui/",
+    "/src/app/_components/ui/",
+    "/src/ui/components/",
+    "/src/components/common/"
+  ],
+  "replacements": [
+    {
+      "customComponent": "Button (3 implementations)",
+      "locations": [
+        "src/components/common/Button.tsx",
+        "src/app/_components/ui/Button.tsx",
+        "src/ui/components/Button.tsx",
+        "src/components/ui/button.tsx"
+      ],
+      "linesOfCode": 246,
+      "recommendedAnt": ["Button"],
+      "antdProps": "type, size, loading, disabled, icon, block, danger, ghost",
+      "migrationNotes": [
+        "Custom implementation uses Tailwind classes",
+        "Custom variants: primary, secondary, ghost, danger → map to Ant type: primary, default, text, danger",
+        "Custom sizes: xs, sm, md, lg → map to Ant size: small, middle, large",
+        "Loading state already supported by Ant",
+        "Icon support already in Ant (leftIcon/rightIcon → icon prop)"
+      ],
+      "migrationComplexity": "MEDIUM",
+      "blockers": [
+        "Tailwind utility classes must be replaced with Ant Design tokens",
+        "Size scale differs (xs not in Ant by default)",
+        "Custom 'leftIcon' and 'rightIcon' props need refactoring"
+      ]
+    },
+    {
+      "customComponent": "Input (3 implementations)",
+      "locations": [
+        "src/app/_components/ui/Input.tsx",
+        "src/ui/components/Input.tsx",
+        "src/components/ui/input.tsx"
+      ],
+      "recommendedAnt": ["Input", "Input.TextArea", "Input.Password"],
+      "antdProps": "size, placeholder, disabled, prefix, suffix, status (error/warning)",
+      "migrationNotes": [
+        "Ant Input has built-in status states",
+        "Supports prefix/suffix icons natively",
+        "TextArea and Password variants available"
+      ],
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Select (3 implementations)",
+      "locations": [
+        "src/app/_components/ui/Select.tsx",
+        "src/ui/components/Select.tsx",
+        "src/components/ui/select.tsx"
+      ],
+      "recommendedAnt": ["Select"],
+      "antdProps": "options, mode (multiple/tags), showSearch, filterOption, size",
+      "migrationNotes": [
+        "Ant Select is more feature-rich",
+        "Built-in search, multi-select, tags mode",
+        "Better keyboard navigation"
+      ],
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Modal/Dialog (2 implementations)",
+      "locations": [
+        "src/app/_components/ui/Dialog.tsx",
+        "src/ui/components/Modal.tsx"
+      ],
+      "recommendedAnt": ["Modal"],
+      "antdProps": "open, onCancel, onOk, title, footer, width, centered",
+      "migrationNotes": [
+        "Ant Modal has built-in OK/Cancel buttons",
+        "Supports footer customization",
+        "Better accessibility (focus trap, ESC key)"
+      ],
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Tooltip (2 implementations)",
+      "locations": [
+        "src/app/_components/ui/Tooltip.tsx",
+        "src/ui/components/Tooltip.tsx",
+        "src/components/ui/tooltip.tsx"
+      ],
+      "recommendedAnt": ["Tooltip"],
+      "antdProps": "title, placement, trigger (hover/click/focus)",
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Checkbox",
+      "locations": [
+        "src/app/_components/ui/Checkbox.tsx",
+        "src/ui/components/Checkbox.tsx"
+      ],
+      "recommendedAnt": ["Checkbox", "Checkbox.Group"],
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Alert",
+      "locations": [
+        "src/ui/components/Alert.tsx"
+      ],
+      "recommendedAnt": ["Alert"],
+      "antdProps": "type (success/info/warning/error), message, description, closable",
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Progress",
+      "locations": [
+        "src/ui/components/Progress.tsx"
+      ],
+      "recommendedAnt": ["Progress"],
+      "antdProps": "percent, status, type (line/circle/dashboard)",
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Skeleton",
+      "locations": [
+        "src/ui/components/Skeleton.tsx"
+      ],
+      "recommendedAnt": ["Skeleton", "Skeleton.Button", "Skeleton.Input", "Skeleton.Avatar"],
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Tabs",
+      "locations": [
+        "src/ui/components/Tabs.tsx"
+      ],
+      "recommendedAnt": ["Tabs"],
+      "antdProps": "items, activeKey, onChange, type (line/card)",
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Breadcrumb",
+      "locations": [
+        "src/ui/components/Breadcrumb.tsx"
+      ],
+      "recommendedAnt": ["Breadcrumb"],
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Pagination",
+      "locations": [
+        "src/ui/components/Pagination.tsx"
+      ],
+      "recommendedAnt": ["Pagination"],
+      "antdProps": "current, total, pageSize, onChange, showSizeChanger",
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Badge",
+      "locations": [
+        "src/components/ui/badge.tsx"
+      ],
+      "recommendedAnt": ["Badge"],
+      "antdProps": "count, dot, status (success/processing/error/warning/default)",
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Empty",
+      "locations": [
+        "src/app/_components/ui/Empty.tsx"
+      ],
+      "recommendedAnt": ["Empty"],
+      "antdProps": "description, image (predefined or custom)",
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Sheet (Drawer)",
+      "locations": [
+        "src/app/_components/ui/Sheet.tsx"
+      ],
+      "recommendedAnt": ["Drawer"],
+      "antdProps": "open, onClose, placement (right/left/top/bottom), width",
+      "migrationNotes": [
+        "Sheet is essentially a Drawer component",
+        "Ant Drawer has better accessibility"
+      ],
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Toggle/Switch",
+      "locations": [
+        "src/ui/components/Toggle.tsx"
+      ],
+      "recommendedAnt": ["Switch"],
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Label",
+      "locations": [
+        "src/components/ui/label.tsx"
+      ],
+      "recommendedAnt": ["Form.Item (label prop)"],
+      "migrationNotes": [
+        "Ant Design Forms handle labels via Form.Item",
+        "No standalone Label component needed"
+      ],
+      "migrationComplexity": "MEDIUM"
+    },
+    {
+      "customComponent": "TextArea",
+      "locations": [
+        "src/components/ui/textarea.tsx"
+      ],
+      "recommendedAnt": ["Input.TextArea"],
+      "antdProps": "autoSize, maxLength, showCount",
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "LoadingScreen",
+      "locations": [
+        "src/components/ui/LoadingScreen.tsx"
+      ],
+      "recommendedAnt": ["Spin", "Spin with fullscreen"],
+      "antdProps": "size, tip (loading text)",
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Toast/Notification",
+      "locations": [
+        "src/app/_components/ui/Toast.tsx",
+        "src/ui/toast/ToastProvider.tsx"
+      ],
+      "recommendedAnt": ["message", "notification"],
+      "antdProps": "message.success(), message.error(), notification.open()",
+      "migrationNotes": [
+        "Ant has both message (simple) and notification (rich)",
+        "No provider needed - just import and call"
+      ],
+      "migrationComplexity": "MEDIUM",
+      "blockers": [
+        "react-hot-toast is used (external dependency)",
+        "Need to replace toast() calls with message.* or notification.*"
+      ]
+    },
+    {
+      "customComponent": "AppShell/Layout",
+      "locations": [
+        "src/ui/layout/AppShell.tsx"
+      ],
+      "recommendedAnt": ["Layout", "Layout.Header", "Layout.Sider", "Layout.Content", "Layout.Footer"],
+      "migrationComplexity": "MEDIUM",
+      "migrationNotes": [
+        "Ant Layout is highly flexible",
+        "Built-in responsive sider collapse"
+      ]
+    },
+    {
+      "customComponent": "PageHeader",
+      "locations": [
+        "src/ui/layout/PageHeader.tsx"
+      ],
+      "recommendedAnt": ["PageHeader (deprecated in v5, use custom or Breadcrumb + Title)"],
+      "migrationNotes": [
+        "Ant v5 deprecated PageHeader",
+        "Recommended: Breadcrumb + Typography.Title + Button actions",
+        "Or use @ant-design/pro-components PageHeader"
+      ],
+      "migrationComplexity": "MEDIUM"
+    },
+    {
+      "customComponent": "AntDataGrid (wrapper)",
+      "locations": [
+        "src/ui/datagrid/AntDataGrid.tsx"
+      ],
+      "recommendedAnt": ["Table"],
+      "migrationNotes": [
+        "This IS an Ant Table wrapper - check if wrapper adds value",
+        "Consider using Table directly if wrapper is thin"
+      ],
+      "migrationComplexity": "LOW",
+      "action": "AUDIT - May not need replacement, just simplification"
+    },
+    {
+      "customComponent": "Typography (custom)",
+      "locations": [
+        "src/components/ui/Typography.tsx"
+      ],
+      "recommendedAnt": ["Typography", "Typography.Title", "Typography.Text", "Typography.Paragraph"],
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Segmented",
+      "locations": [
+        "src/app/_components/ui/Segmented.tsx"
+      ],
+      "recommendedAnt": ["Segmented"],
+      "antdProps": "options, value, onChange, block",
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Container",
+      "locations": [
+        "src/components/ui/Container.tsx"
+      ],
+      "recommendedAnt": ["Space", "Flex", "or custom div with theme tokens"],
+      "migrationNotes": [
+        "Depends on usage - may be simple spacing/layout component",
+        "Ant Space handles most layout needs"
+      ],
+      "migrationComplexity": "LOW"
+    },
+    {
+      "customComponent": "Kbd (keyboard shortcut display)",
+      "locations": [
+        "src/app/_components/ui/Kbd.tsx"
+      ],
+      "recommendedAnt": ["Tag with custom styling"],
+      "migrationNotes": [
+        "No direct equivalent",
+        "Can style Tag component to look like keyboard key",
+        "Or use Typography.Text with custom styling"
+      ],
+      "migrationComplexity": "LOW",
+      "keepCustom": true
+    }
+  ],
+  "non_replaceable_custom_components": [
+    {
+      "component": "DecisionPill",
+      "location": "src/components/ui/DecisionPill.tsx",
+      "reason": "Domain-specific component",
+      "recommendation": "Keep but ensure uses Ant Design tokens for styling"
+    },
+    {
+      "component": "ResponsiveShell",
+      "location": "src/components/ui/ResponsiveShell.tsx",
+      "reason": "Custom responsive layout logic",
+      "recommendation": "Keep but migrate to Ant Grid system where possible"
+    }
+  ],
+  "migration_strategy": {
+    "phase1_critical": [
+      "Replace all Button implementations with Ant Button",
+      "Replace all Input implementations with Ant Input",
+      "Replace all Select implementations with Ant Select",
+      "Replace Toast with Ant message/notification"
+    ],
+    "phase2_layout": [
+      "Migrate AppShell to Ant Layout",
+      "Migrate PageHeader to Breadcrumb + Typography",
+      "Consolidate Container usage to Ant Space/Flex"
+    ],
+    "phase3_feedback": [
+      "Replace Modal/Dialog with Ant Modal",
+      "Replace LoadingScreen with Ant Spin",
+      "Replace Alert with Ant Alert",
+      "Replace Empty with Ant Empty"
+    ],
+    "phase4_form_controls": [
+      "Replace Checkbox with Ant Checkbox",
+      "Replace Toggle with Ant Switch",
+      "Replace TextArea with Ant Input.TextArea",
+      "Consolidate Label usage with Ant Form.Item"
+    ],
+    "phase5_data_display": [
+      "Replace Badge with Ant Badge",
+      "Replace Progress with Ant Progress",
+      "Replace Skeleton with Ant Skeleton",
+      "Replace Tooltip with Ant Tooltip"
+    ],
+    "phase6_navigation": [
+      "Replace Tabs with Ant Tabs",
+      "Replace Breadcrumb with Ant Breadcrumb",
+      "Replace Pagination with Ant Pagination",
+      "Replace Segmented with Ant Segmented"
+    ]
+  },
+  "estimated_effort": {
+    "total_files_to_modify": "100-150 files",
+    "estimated_hours": "40-60 hours",
+    "risk_level": "MEDIUM-HIGH",
+    "testing_required": "EXTENSIVE - All UI flows must be regression tested"
+  },
+  "risks": [
+    "Breaking changes in component APIs",
+    "Visual inconsistencies during migration",
+    "Behavioral differences (e.g., focus management, keyboard navigation)",
+    "Custom styling may not translate directly to Ant tokens",
+    "TypeScript prop mismatches",
+    "Test suite updates required"
+  ],
+  "benefits": [
+    "Reduced bundle size (remove duplicate component code)",
+    "Better accessibility (Ant components are WCAG compliant)",
+    "Consistent design system",
+    "Better documentation (Ant Design docs are excellent)",
+    "Active maintenance and updates",
+    "Better internationalization support",
+    "Improved keyboard navigation and focus management"
+  ]
+}

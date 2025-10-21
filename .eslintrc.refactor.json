@@ -1,0 +1,70 @@
+{
+  "extends": ["./.eslintrc.json"],
+  "plugins": ["no-inline-styles"],
+  "rules": {
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "JSXAttribute[name.name='className'] Literal[value=/\\b(px|py|pt|pr|pb|pl|m[xytrbl]?|gap|text|leading|shadow|rounded|bg|border)-/]",
+        "message": "Tailwind utility classes are banned. Use Ant Design tokens via theme or component props."
+      }
+    ],
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "react-hot-toast",
+            "message": "Use Ant Design message or notification instead"
+          },
+          {
+            "name": "react-hook-form",
+            "message": "Use Ant Design Form component instead"
+          }
+        ],
+        "patterns": [
+          {
+            "group": ["@radix-ui/*"],
+            "message": "Use Ant Design components instead of Radix UI"
+          },
+          {
+            "group": ["@mui/*"],
+            "message": "Use Ant Design components instead of MUI"
+          },
+          {
+            "group": ["@chakra-ui/*"],
+            "message": "Use Ant Design components instead of Chakra"
+          },
+          {
+            "group": ["@mantine/*"],
+            "message": "Use Ant Design components instead of Mantine"
+          }
+        ]
+      }
+    ],
+    "react/forbid-elements": [
+      "error",
+      {
+        "forbid": [
+          {
+            "element": "button",
+            "message": "Use Ant Design <Button> component instead of native <button>"
+          },
+          {
+            "element": "input",
+            "message": "Use Ant Design <Input> component instead of native <input>"
+          },
+          {
+            "element": "select",
+            "message": "Use Ant Design <Select> component instead of native <select>"
+          },
+          {
+            "element": "textarea",
+            "message": "Use Ant Design <Input.TextArea> instead of native <textarea>"
+          }
+        ]
+      }
+    ],
+    "no-inline-styles/no-inline-styles": "error"
+  }
+}

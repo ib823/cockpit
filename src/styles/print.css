@@ -1,0 +1,74 @@
+/* src/styles/print.css
+   Minimal high-quality print defaults for A4/Letter using Ant Design components.
+*/
+@media print {
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+  /* Alternate: US Letter
+  @page {
+    size: letter;
+    margin: 0.75in;
+  } */
+
+  /* Remove non-essential chrome */
+  .ant-layout-header,
+  .ant-layout-sider,
+  .ant-menu,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Content uses full width with readable line-length */
+  .ant-layout-content {
+    max-width: 100% !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* Typography and colors */
+  body,
+  .ant-typography {
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Tables: repeat header rows and avoid row splits */
+  table {
+    page-break-inside: avoid;
+    border-collapse: collapse !important;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  /* Simplify shadows and backgrounds for crisp printing */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background-image: none !important;
+  }
+
+  /* Borders for structure */
+  .ant-card,
+  .ant-table,
+  .ant-descriptions {
+    border: 1px solid #c9c9c9 !important;
+  }
+
+  /* Page footer with page counter */
+  @page {
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages) " — " attr(data-print-timestamp);
+      font-size: 10pt;
+      color: #444;
+    }
+  }
+}

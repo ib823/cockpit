@@ -1,0 +1,279 @@
+{
+  "audit_timestamp": "2025-10-21T14:30:00Z",
+  "framework": "Next.js 15 App Router",
+  "authentication_required": true,
+  "authentication_mechanism": "NextAuth.js with Passkeys (WebAuthn)",
+  "base_url": "http://localhost:3000",
+  "routes": [
+    {
+      "path": "/",
+      "title": "Root",
+      "type": "redirect",
+      "auth_required": false,
+      "redirect_logic": "Authenticated ADMIN → /admin, Authenticated USER → /dashboard, Unauthenticated → /login",
+      "file": "src/app/page.tsx"
+    },
+    {
+      "path": "/login",
+      "title": "Login",
+      "type": "public",
+      "auth_required": false,
+      "description": "Passkey-based authentication",
+      "file": "src/app/login/page.tsx"
+    },
+    {
+      "path": "/register",
+      "title": "Register",
+      "type": "public",
+      "auth_required": false,
+      "description": "User registration with invitation code",
+      "file": "src/app/register/page.tsx"
+    },
+    {
+      "path": "/dashboard",
+      "title": "Dashboard",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "Main user dashboard with project overview and quick actions",
+      "components": ["Statistics cards", "Quick action cards", "Recent activity"],
+      "file": "src/app/dashboard/page.tsx",
+      "primary_route": true
+    },
+    {
+      "path": "/account",
+      "title": "Account Settings",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "User profile and security settings",
+      "file": "src/app/account/page.tsx"
+    },
+    {
+      "path": "/account/add-passkey",
+      "title": "Add Passkey",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "Add additional passkey for authentication",
+      "file": "src/app/account/add-passkey/page.tsx"
+    },
+    {
+      "path": "/admin",
+      "title": "Admin Dashboard",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["ADMIN"],
+      "description": "Administrative dashboard",
+      "file": "src/app/admin/page.tsx",
+      "primary_route": true
+    },
+    {
+      "path": "/admin/users",
+      "title": "User Management",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["ADMIN"],
+      "description": "Manage users, roles, and permissions",
+      "file": "src/app/admin/users/page.tsx"
+    },
+    {
+      "path": "/admin/approvals",
+      "title": "Approval Management",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["ADMIN"],
+      "description": "Manage user registration approvals",
+      "file": "src/app/admin/approvals/page.tsx"
+    },
+    {
+      "path": "/estimator",
+      "title": "SAP Estimator",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "SAP implementation cost and timeline estimation tool",
+      "components": ["Input forms", "Results panel", "Charts", "L3 Catalog modal"],
+      "file": "src/app/estimator/page.tsx",
+      "primary_route": true
+    },
+    {
+      "path": "/project",
+      "title": "Project Workflow",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "redirect_to": "/project/capture",
+      "description": "Redirects to project capture phase",
+      "file": "src/app/project/page.tsx"
+    },
+    {
+      "path": "/project/capture",
+      "title": "Project - Capture Phase",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "workflow_step": 1,
+      "workflow_progress": "0%",
+      "description": "Initial requirements capture",
+      "file": "src/app/project/capture/page.tsx",
+      "primary_route": true
+    },
+    {
+      "path": "/project/decide",
+      "title": "Project - Decide Phase",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "workflow_step": 2,
+      "workflow_progress": "50%",
+      "description": "Decision-making phase",
+      "file": "src/app/project/decide/page.tsx"
+    },
+    {
+      "path": "/project/plan",
+      "title": "Project - Plan Phase",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "workflow_step": 3,
+      "workflow_progress": "75%",
+      "description": "Timeline visualization and resource allocation",
+      "file": "src/app/project/plan/page.tsx"
+    },
+    {
+      "path": "/project/present",
+      "title": "Project - Present Phase",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "workflow_step": 4,
+      "workflow_progress": "100%",
+      "description": "Final presentation and export",
+      "file": "src/app/project/present/page.tsx"
+    },
+    {
+      "path": "/gantt-tool",
+      "title": "Gantt Tool",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "Project timeline and resource management",
+      "components": ["Gantt canvas", "Resource panel", "Toolbar", "Context panel"],
+      "file": "src/app/gantt-tool/page.tsx",
+      "primary_route": true
+    },
+    {
+      "path": "/gantt-tool/projects",
+      "title": "Gantt Projects",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "Project selection and management",
+      "file": "src/app/gantt-tool/projects/page.tsx"
+    },
+    {
+      "path": "/gantt-tool/lppsa",
+      "title": "LPPSA View",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "LPPSA-specific Gantt view",
+      "file": "src/app/gantt-tool/lppsa/page.tsx"
+    },
+    {
+      "path": "/gantt-tool/import-kpj",
+      "title": "Import KPJ",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "Import project data from KPJ format",
+      "file": "src/app/gantt-tool/import-kpj/page.tsx"
+    },
+    {
+      "path": "/timeline",
+      "title": "Timeline",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "Project timeline visualization",
+      "file": "src/app/timeline/page.tsx",
+      "primary_route": true
+    },
+    {
+      "path": "/timeline/lppsa-setup",
+      "title": "LPPSA Setup",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "LPPSA timeline configuration",
+      "file": "src/app/timeline/lppsa-setup/page.tsx"
+    },
+    {
+      "path": "/organization-chart",
+      "title": "Organization Chart",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "Organizational structure visualization with drag-and-drop",
+      "file": "src/app/organization-chart/page.tsx",
+      "primary_route": true
+    },
+    {
+      "path": "/organization-chart/overview",
+      "title": "Organization Overview",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "Organization chart overview and presentation mode",
+      "file": "src/app/organization-chart/overview/page.tsx"
+    },
+    {
+      "path": "/resource-planning",
+      "title": "Resource Planning",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "Resource allocation and planning",
+      "file": "src/app/resource-planning/page.tsx"
+    },
+    {
+      "path": "/resources-dashboard",
+      "title": "Resources Dashboard",
+      "type": "protected",
+      "auth_required": true,
+      "role": ["USER", "ADMIN"],
+      "description": "Resource utilization dashboard",
+      "file": "src/app/resources-dashboard/page.tsx"
+    }
+  ],
+  "primary_user_flows": [
+    {
+      "flow": "Authentication",
+      "steps": ["/login", "/dashboard"]
+    },
+    {
+      "flow": "Estimation",
+      "steps": ["/estimator"]
+    },
+    {
+      "flow": "Project Workflow",
+      "steps": ["/project/capture", "/project/decide", "/project/plan", "/project/present"]
+    },
+    {
+      "flow": "Timeline Management",
+      "steps": ["/timeline", "/gantt-tool"]
+    },
+    {
+      "flow": "Admin",
+      "steps": ["/admin", "/admin/users", "/admin/approvals"]
+    }
+  ],
+  "breakpoints_to_test": [1440, 1280, 1024, 768, 480, 375],
+  "notes": [
+    "All protected routes redirect to /login if unauthenticated",
+    "Admin routes return 403 if user doesn't have ADMIN role",
+    "Root path intelligently redirects based on authentication and role",
+    "Custom 404 page with authentication-aware redirects"
+  ]
+}

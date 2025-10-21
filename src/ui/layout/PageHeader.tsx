@@ -1,19 +1,63 @@
-import React from 'react';
+/**
+ * PageHeader - Page title, description, and actions
+ * Responsive typography and spacing
+ */
 
-export interface PageHeaderProps {
+'use client';
+
+import { Space, Typography, theme as antTheme } from 'antd';
+import type { ReactNode } from 'react';
+import { useScreen } from '@/config/responsive';
+
+const { Title, Paragraph } = Typography;
+const { useToken } = antTheme;
+
+interface PageHeaderProps {
   title: string;
-  subtitle?: string;
-  actions?: React.ReactNode;
-  breadcrumb?: React.ReactNode;
+  description?: string;
+  actions?: ReactNode;
+  extra?: ReactNode;
 }
 
-export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, actions, breadcrumb }) => (
-  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-    <div className="min-w-0">
-      {breadcrumb}
-      <h1 className="text-2xl font-semibold tracking-tight text-[var(--ink)]">{title}</h1>
-      {subtitle && <p className="text-[14px] text-[var(--ink)]/70 mt-1">{subtitle}</p>}
+export function PageHeader({ title, description, actions, extra }: PageHeaderProps) {
+  const { token } = useToken();
+  const { widthKey } = useScreen();
+
+  const titleLevel = widthKey === 'xs' || widthKey === 'sm' ? 3 : 2;
+
+  const descriptionStyle = widthKey === 'xs' || widthKey === 'sm'
+    ? {
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical' as const,
+        overflow: 'hidden',
+      }
+    : {};
+
+  return (
+    <div style={{ marginBottom: token.marginLG }}>
+      <Space direction="vertical" size={token.marginSM} style={{ width: '100%' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: token.margin,
+            flexWrap: widthKey === 'xs' ? 'wrap' : 'nowrap',
+          }}
+        >
+          <Title level={titleLevel} style={{ margin: 0, flex: 1, minWidth: 0 }}>
+            {title}
+          </Title>
+          {actions && <div style={{ flexShrink: 0 }}>{actions}</div>}
+        </div>
+        {description && (
+          <Paragraph type="secondary" style={{ margin: 0, fontSize: token.fontSize, ...descriptionStyle }}>
+            {description}
+          </Paragraph>
+        )}
+        {extra}
+      </Space>
     </div>
-    {actions && <div className="flex items-center gap-2">{actions}</div>}
-  </div>
-);
+  );
+}

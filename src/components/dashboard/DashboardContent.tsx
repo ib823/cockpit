@@ -5,7 +5,6 @@ import {
   Calculator,
   Calendar,
   FileText,
-  TrendingUp,
   Users,
   Zap,
   Clock,
@@ -43,14 +42,6 @@ export function DashboardContent({ session }: DashboardContentProps) {
       href: '/timeline',
       color: 'from-purple-500 to-purple-600',
       hoverColor: 'hover:from-purple-600 hover:to-purple-700',
-    },
-    {
-      title: 'Decision Support',
-      description: 'Analyze implementation decisions',
-      icon: TrendingUp,
-      href: '/decision-support',
-      color: 'from-green-500 to-green-600',
-      hoverColor: 'hover:from-green-600 hover:to-green-700',
     },
     {
       title: 'Project Manager',

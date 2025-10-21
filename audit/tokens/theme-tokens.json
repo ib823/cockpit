@@ -1,0 +1,227 @@
+{
+  "audit_timestamp": "2025-10-21T14:30:00Z",
+  "source": "ConfigProvider theme via src/config/theme.ts",
+  "antd_version": "5.27.4",
+  "uses_v5_tokens": true,
+  "uses_v4_less": false,
+  "theme_config": {
+    "token": {
+      "colorPrimary": "#3b82f6",
+      "colorSuccess": "#10b981",
+      "colorWarning": "#f59e0b",
+      "colorError": "#ef4444",
+      "colorInfo": "#8b5cf6",
+      "colorTextBase": "#1f2937",
+      "colorBgBase": "#ffffff",
+      "borderRadius": 12,
+      "borderRadiusLG": 16,
+      "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+      "fontSize": 14,
+      "controlHeight": 40
+    },
+    "components": {
+      "Button": {
+        "controlHeight": 44,
+        "fontSize": 15,
+        "borderRadius": 10,
+        "fontWeight": 500
+      },
+      "Input": {
+        "controlHeight": 44,
+        "fontSize": 15,
+        "borderRadius": 10
+      },
+      "Card": {
+        "borderRadiusLG": 16,
+        "paddingLG": 24
+      }
+    }
+  },
+  "token_coverage": {
+    "global_tokens_defined": 11,
+    "component_tokens_defined": 3,
+    "total_available_tokens": 100,
+    "coverage_percentage": 11
+  },
+  "findings": {
+    "positive": [
+      "Using Ant Design v5 design tokens (modern approach)",
+      "ConfigProvider correctly imports ThemeConfig",
+      "Primary color customized to blue (#3b82f6)",
+      "Semantic colors defined (success, warning, error, info)",
+      "Border radius customized for modern look (12px/16px)",
+      "Component-specific overrides for Button, Input, Card"
+    ],
+    "issues": [
+      "CRITICAL: Tailwind CSS colors used throughout codebase conflict with Ant tokens",
+      "Limited token coverage - only 11% of available tokens defined",
+      "Missing spacing scale tokens (marginXS, marginSM, padding*, etc.)",
+      "Missing motion tokens (motionDurationFast, motionEaseInOut, etc.)",
+      "Missing shadow tokens (boxShadow, boxShadowSecondary)",
+      "Missing line-height tokens",
+      "No dark mode configuration (algorithm not set)",
+      "Font size scale not fully defined (only base fontSize)",
+      "No compact/large theme variants defined"
+    ],
+    "tailwind_conflicts": [
+      "Tailwind uses different color palette (blue-600, green-500, etc.)",
+      "Tailwind spacing scale (4px based) vs Ant spacing (varies)",
+      "Tailwind border radius scale conflicts with Ant tokens",
+      "Tailwind font sizes may not align with Ant typography scale"
+    ]
+  },
+  "missing_critical_tokens": {
+    "spacing": [
+      "marginXXS",
+      "marginXS",
+      "marginSM",
+      "margin",
+      "marginMD",
+      "marginLG",
+      "marginXL",
+      "marginXXL",
+      "paddingXXS",
+      "paddingXS",
+      "paddingSM",
+      "padding",
+      "paddingMD",
+      "paddingLG",
+      "paddingXL",
+      "paddingXXL"
+    ],
+    "typography": [
+      "fontSizeSM",
+      "fontSizeLG",
+      "fontSizeXL",
+      "fontSizeHeading1",
+      "fontSizeHeading2",
+      "fontSizeHeading3",
+      "fontSizeHeading4",
+      "fontSizeHeading5",
+      "lineHeight",
+      "lineHeightSM",
+      "lineHeightLG",
+      "lineHeightHeading1",
+      "lineHeightHeading2",
+      "fontWeightStrong"
+    ],
+    "colors": [
+      "colorLink",
+      "colorLinkHover",
+      "colorLinkActive",
+      "colorTextSecondary",
+      "colorTextTertiary",
+      "colorTextQuaternary",
+      "colorBorder",
+      "colorBorderSecondary",
+      "colorFill",
+      "colorFillSecondary",
+      "colorFillTertiary",
+      "colorFillQuaternary",
+      "colorBgLayout",
+      "colorBgContainer",
+      "colorBgElevated",
+      "colorBgSpotlight"
+    ],
+    "motion": [
+      "motionDurationFast",
+      "motionDurationMid",
+      "motionDurationSlow",
+      "motionEaseInOut",
+      "motionEaseOut",
+      "motionEaseIn",
+      "motionEaseOutBack",
+      "motionEaseInBack"
+    ],
+    "shadows": [
+      "boxShadow",
+      "boxShadowSecondary",
+      "boxShadowTertiary"
+    ],
+    "borders": [
+      "borderRadiusSM",
+      "borderRadiusXS",
+      "lineWidth",
+      "lineWidthBold"
+    ]
+  },
+  "component_overrides_analysis": {
+    "Button": {
+      "defined": ["controlHeight", "fontSize", "borderRadius", "fontWeight"],
+      "missing": [
+        "primaryColor",
+        "defaultColor",
+        "defaultBg",
+        "defaultBorderColor",
+        "dangerColor",
+        "colorTextDisabled",
+        "borderColorDisabled",
+        "paddingContentHorizontal"
+      ],
+      "notes": "Increased height from 40 to 44px for better touch targets"
+    },
+    "Input": {
+      "defined": ["controlHeight", "fontSize", "borderRadius"],
+      "missing": [
+        "paddingBlock",
+        "paddingInline",
+        "colorBorder",
+        "colorBorderHover",
+        "colorBgContainer",
+        "colorTextPlaceholder"
+      ],
+      "notes": "Matches Button height for consistency"
+    },
+    "Card": {
+      "defined": ["borderRadiusLG", "paddingLG"],
+      "missing": [
+        "boxShadow",
+        "colorBorderSecondary",
+        "fontWeightStrong (for card titles)"
+      ]
+    },
+    "not_customized": [
+      "Table",
+      "Modal",
+      "Select",
+      "Form",
+      "Tabs",
+      "Alert",
+      "Badge",
+      "Tag",
+      "Progress",
+      "Spin",
+      "Typography",
+      "Layout",
+      "Menu",
+      "Dropdown",
+      "Tooltip",
+      "Popover"
+    ]
+  },
+  "recommendations": {
+    "high_priority": [
+      "Define full spacing scale to eliminate Tailwind usage",
+      "Define complete typography scale (sizes, weights, line-heights)",
+      "Add dark mode configuration with darkAlgorithm",
+      "Define motion tokens for consistent animations",
+      "Add shadow tokens for depth/elevation",
+      "Standardize border radius scale"
+    ],
+    "medium_priority": [
+      "Customize Table component tokens (borders, row hover, selection)",
+      "Customize Modal tokens (backdrop, shadow, padding)",
+      "Customize Form tokens (label spacing, error colors)",
+      "Add compact theme variant for dense UIs"
+    ],
+    "low_priority": [
+      "Fine-tune semantic colors for better contrast",
+      "Add brand-specific tokens (if needed)",
+      "Configure internationalization tokens"
+    ]
+  },
+  "v4_to_v5_migration": {
+    "applicable": false,
+    "notes": "Already using v5 tokens, no LESS migration needed"
+  }
+}

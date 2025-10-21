@@ -1,0 +1,246 @@
+{
+  "audit_timestamp": "2025-10-21T14:30:00Z",
+  "total_forms_estimated": 15,
+  "form_libraries_detected": {
+    "antd_form": {
+      "detected": true,
+      "usage": "MODERATE",
+      "components": ["Form", "Form.Item", "Input", "Select", "DatePicker", "InputNumber"]
+    },
+    "react_hook_form": {
+      "detected": true,
+      "usage": "LOW",
+      "package": "react-hook-form@7.63.0",
+      "issue": "CONFLICT - Duplicates Ant Form functionality"
+    }
+  },
+  "form_patterns_analysis": {
+    "login_form": {
+      "location": "src/app/login/page.tsx",
+      "type": "Passkey authentication",
+      "library": "Custom (WebAuthn)",
+      "layout": "vertical",
+      "validation": "Client-side",
+      "fields": ["Email/Username (for passkey lookup)"],
+      "issues": [
+        "No visible form validation UI (passkey flow)",
+        "Error handling could be more explicit"
+      ]
+    },
+    "register_form": {
+      "location": "src/app/register/page.tsx",
+      "type": "User registration",
+      "library": "Custom (WebAuthn)",
+      "layout": "vertical",
+      "validation": "Client-side",
+      "fields": ["Name", "Email", "Invitation Code", "Passkey creation"],
+      "issues": [
+        "Complex multi-step flow (form → passkey → verification)",
+        "Could benefit from Ant Form.Item for consistent validation display"
+      ]
+    },
+    "estimator_inputs": {
+      "location": "src/app/estimator/page.tsx",
+      "type": "Estimation parameters",
+      "library": "Mixed (Ant + custom)",
+      "layout": "Mixed (forms + sliders + inputs)",
+      "components": ["Slider (Radix UI)", "InputNumber (Ant)", "Select (Ant)"],
+      "issues": [
+        "CRITICAL: Using Radix UI Slider instead of Ant Slider",
+        "No Form wrapper - individual controlled inputs",
+        "Validation not standardized",
+        "Mix of Ant and custom components"
+      ]
+    },
+    "project_forms": {
+      "location": "src/app/project/*/page.tsx",
+      "type": "Multi-step workflow forms",
+      "library": "Custom with Ant components",
+      "layout": "Varies by step",
+      "issues": [
+        "Each step has different form patterns",
+        "No unified form state management",
+        "Validation inconsistent across steps"
+      ]
+    },
+    "admin_forms": {
+      "location": "src/app/admin/*/page.tsx",
+      "type": "User management, approvals",
+      "library": "Ant Design (heavy Table usage)",
+      "patterns": ["Search", "Filters", "Inline editing"],
+      "issues": [
+        "Forms embedded in tables",
+        "Could use Form.List for dynamic rows"
+      ]
+    }
+  },
+  "form_field_patterns": {
+    "label_alignment": {
+      "vertical": 12,
+      "horizontal": 3,
+      "inconsistency": "HIGH - No standard across app"
+    },
+    "label_styles": {
+      "ant_form_item_label": true,
+      "custom_label_element": true,
+      "inline_text": true,
+      "finding": "Mixed approaches - sometimes Form.Item label, sometimes custom <label>, sometimes plain text"
+    },
+    "help_text": {
+      "usage": "LOW",
+      "ant_form_item_extra": "Rarely used",
+      "custom_help_text": "Occasionally used",
+      "finding": "Help text mostly absent - users lack guidance"
+    },
+    "validation_display": {
+      "ant_form_item_validation": "Used in some forms",
+      "custom_error_text": "Used in other forms",
+      "inline_validation": "Inconsistent",
+      "error_placement": "Below field (standard) but sometimes missing",
+      "finding": "Validation UI inconsistent - some forms show errors, others don't"
+    },
+    "input_sizes": {
+      "ant_size_large": 8,
+      "ant_size_middle": 15,
+      "ant_size_small": 2,
+      "custom_heights": 5,
+      "finding": "Mostly using middle size, but custom Button/Input heights (44px from theme) create inconsistency"
+    }
+  },
+  "ant_form_usage": {
+    "form_wrapper": {
+      "used": "Sometimes",
+      "layout_vertical": true,
+      "layout_horizontal": true,
+      "layout_inline": false,
+      "finding": "Not consistently wrapped in <Form> component"
+    },
+    "form_item": {
+      "used": "Frequently",
+      "with_label": true,
+      "with_rules": "Sometimes",
+      "with_extra": "Rarely",
+      "with_tooltip": "Never",
+      "finding": "Form.Item used but not leveraging all features (rules, extra, tooltip)"
+    },
+    "form_list": {
+      "used": false,
+      "finding": "Dynamic form fields not using Form.List - could benefit"
+    },
+    "form_instance": {
+      "used": true,
+      "via_useform": true,
+      "finding": "Form.useForm() hook used for programmatic control"
+    }
+  },
+  "validation_patterns": {
+    "client_side": {
+      "ant_rules": "Used in some forms",
+      "custom_validation": "Used in other forms",
+      "zod_schema": "Detected in some places",
+      "finding": "Multiple validation approaches - inconsistent"
+    },
+    "server_side": {
+      "api_validation": true,
+      "error_handling": "Varies by endpoint",
+      "finding": "Backend validates but frontend display inconsistent"
+    },
+    "validation_triggers": {
+      "on_blur": "Sometimes",
+      "on_change": "Sometimes",
+      "on_submit": "Always",
+      "finding": "No standard - some validate on blur, some on submit only"
+    }
+  },
+  "control_heights": {
+    "ant_default": "32px (middle size)",
+    "ant_large": "40px",
+    "theme_override_button": "44px",
+    "theme_override_input": "44px",
+    "finding": "Theme sets 44px for Button/Input but other controls are 32px - visual inconsistency"
+  },
+  "issues_found": [
+    {
+      "severity": "CRITICAL",
+      "issue": "Radix UI Slider used instead of Ant Design Slider",
+      "location": "Estimator page",
+      "impact": "Styling inconsistency, extra dependency",
+      "recommendation": "Replace with Ant Slider"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "react-hook-form dependency but limited usage",
+      "impact": "Unnecessary bundle weight, confusion about form library",
+      "recommendation": "Remove react-hook-form, use Ant Form throughout"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "Inconsistent label alignment across forms",
+      "impact": "Poor UX, unprofessional appearance",
+      "recommendation": "Standardize on vertical labels (mobile-first)"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "Missing help text and field descriptions",
+      "impact": "Users lack guidance, increased support burden",
+      "recommendation": "Add Form.Item extra prop with help text"
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "Validation errors not consistently displayed",
+      "impact": "Users don't know why form submission failed",
+      "recommendation": "Always use Form.Item rules for validation display"
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "Control height mismatch (44px Button/Input vs 32px Select)",
+      "impact": "Visual inconsistency, alignment issues",
+      "recommendation": "Set size='large' on all form controls or adjust theme"
+    },
+    {
+      "severity": "LOW",
+      "issue": "Form.List not used for dynamic fields",
+      "impact": "More complex code, harder to maintain",
+      "recommendation": "Use Form.List for resource allocation, task lists, etc."
+    }
+  ],
+  "positive_findings": [
+    "Ant Form used in multiple places (shows awareness)",
+    "Form.useForm() hook used for programmatic control",
+    "Clean form submission patterns with async/await",
+    "Error boundaries in place for form errors"
+  ],
+  "recommendations": {
+    "immediate": [
+      "Replace Radix Slider with Ant Slider",
+      "Remove react-hook-form dependency",
+      "Add size='large' to all form controls for consistency",
+      "Wrap all forms in <Form> component with proper layout"
+    ],
+    "short_term": [
+      "Standardize on vertical label alignment",
+      "Add Form.Item rules for all validations",
+      "Add help text (extra prop) to complex fields",
+      "Use Form.List for dynamic field arrays"
+    ],
+    "long_term": [
+      "Create form component library (FormField, FormSection wrappers)",
+      "Implement form validation schema (Zod + Ant integration)",
+      "Add form accessibility labels and ARIA",
+      "Create form design guidelines documentation"
+    ]
+  },
+  "ant_form_best_practices_checklist": {
+    "use_form_wrapper": false,
+    "use_form_item_for_all_fields": false,
+    "use_validation_rules": false,
+    "use_help_text": false,
+    "use_consistent_sizing": false,
+    "use_form_list_for_dynamic": false,
+    "use_form_useform_hook": true,
+    "use_proper_labels": true,
+    "use_field_tooltips": false,
+    "score": "2/9 (22%)",
+    "grade": "D"
+  }
+}
