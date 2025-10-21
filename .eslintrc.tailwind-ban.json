@@ -1,0 +1,52 @@
+{
+  "rules": {
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "JSXAttribute[name.name='className'] Literal[value=/\\b(flex|grid|p-|m-|px-|py-|mx-|my-|mt-|mb-|ml-|mr|pt-|pb-|pl-|pr-|w-|h-|min-w-|min-h-|max-w-|max-h-|text-|font-|bg-|border|rounded|shadow|gap-|space-|items-|justify-|col-|row-|hidden|block|inline|absolute|relative|fixed|sticky|top-|bottom-|left-|right-|z-|opacity-|hover:|focus:|active:|dark:)/]",
+        "message": "Tailwind classes are not allowed. Use Ant Design components and tokens instead. See docs/TAILWIND_TO_ANT_MIGRATION.md"
+      },
+      {
+        "selector": "CallExpression[callee.name='cn']",
+        "message": "The cn() utility (clsx) is not allowed. Use Ant Design components instead."
+      },
+      {
+        "selector": "CallExpression[callee.name='clsx']",
+        "message": "The clsx() utility is not allowed. Use Ant Design components instead."
+      }
+    ],
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "clsx",
+            "message": "Don't use clsx. Use Ant Design components instead."
+          },
+          {
+            "name": "lucide-react",
+            "message": "Don't use Lucide icons. Use @ant-design/icons instead, or use no icons (text labels preferred)."
+          },
+          {
+            "name": "@radix-ui/react-slider",
+            "message": "Don't use Radix UI. Use Ant Design Slider component."
+          },
+          {
+            "name": "react-hot-toast",
+            "message": "Don't use react-hot-toast. Use Ant Design message/notification API."
+          }
+        ],
+        "patterns": [
+          {
+            "group": ["@radix-ui/*"],
+            "message": "Don't use Radix UI. Use Ant Design components instead."
+          },
+          {
+            "group": ["@headlessui/*"],
+            "message": "Don't use HeadlessUI. Use Ant Design components instead."
+          }
+        ]
+      }
+    ]
+  }
+}

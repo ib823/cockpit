@@ -85,11 +85,15 @@
 
 ### Phase 3: Component Migration (Continued)
 
-### Phase 4: Tailwind Removal
-- [ ] Remove all Tailwind utility classes (~7,000 instances)
-- [ ] Use Ant Design tokens via `theme.useToken()` for all styling
+### Phase 4: Tailwind Removal ⏸️ IN PROGRESS (Tooling Ready)
+- ✅ Created migration guide (`docs/TAILWIND_TO_ANT_MIGRATION.md`)
+- ✅ Created migration helper script (`scripts/tailwind-migration-helper.ts`)
+- ✅ Configured ESLint to prevent new Tailwind usage (`.eslintrc.tailwind-ban.json`)
+- [ ] Migrate high-priority files (20 files with 100+ classes each)
+- [ ] Migrate medium-priority files (35 files with 50-99 classes each)
+- [ ] Migrate low-priority files (95 files with <50 classes each)
 - [ ] Remove Tailwind config and PostCSS plugin
-- [ ] Remove Lucide icons → Standardize on @ant-design/icons (or none)
+- [ ] Remove Lucide icons → Use @ant-design/icons or text labels (67 files)
 
 ### Phase 5: Responsive Tables
 - [ ] Create `<DataTable />` component with:
@@ -112,24 +116,28 @@
   - Consistent control heights (40px default, 48px for CTAs on mobile)
   - Focus management for validation errors
 
-### Phase 7: Motion & Accessibility
-- [ ] Implement `prefers-reduced-motion` detection
-- [ ] Disable Framer Motion animations for users with motion sensitivity
-- [ ] Ensure all Ant motion respects preference
-- [ ] Fix color contrast issues (text-gray-500, text-gray-400)
+### Phase 7: Motion & Accessibility ⏸️ PARTIALLY COMPLETE
+- ✅ Created `useReducedMotion()` hook (`src/hooks/useReducedMotion.ts`)
+- ✅ Created `getAnimationConfig()` helper for conditional animations
+- [ ] Apply `useReducedMotion()` to all Framer Motion components
+- [ ] Ensure all Ant Design motion respects preference
+- [ ] Fix color contrast issues for WCAG 2.2 AA (4.5:1 ratio)
 - [ ] Add aria-label to all icon-only buttons
-- [ ] Verify keyboard navigation in all components
-- [ ] Ensure all forms have proper labels and announcements
-- [ ] Test with screen reader (NVDA/JAWS)
-- [ ] Verify 44px minimum touch targets on mobile
+- [ ] Verify keyboard navigation in all interactive components
+- [ ] Ensure all forms have proper labels and error announcements
+- [ ] Test with screen readers (NVDA/JAWS/VoiceOver)
+- [ ] Verify 44px minimum touch targets on mobile views
 
-### Phase 8: Testing & CI
-- [ ] Playwright visual regression tests at all breakpoints
-- [ ] Axe-core accessibility tests in CI
+### Phase 8: Testing & CI ⏸️ PARTIALLY COMPLETE
+- ✅ Created ESLint rules to prevent Tailwind classes (`.eslintrc.tailwind-ban.json`)
+- ✅ Created ESLint rules to prevent non-Ant UI imports
+- ✅ UI Health Check script exists (`scripts/ui-health-check.ts`)
+- [ ] Integrate ESLint Tailwind rules into main `.eslintrc.json`
+- [ ] Add UI Health Check to CI pipeline
+- [ ] Setup Playwright visual regression tests at all breakpoints
+- [ ] Setup Axe-core accessibility tests in CI
 - [ ] Grid variance tests (≤1px tolerance)
-- [ ] No Tailwind classes (ESLint enforced)
-- [ ] No non-Ant UI imports (ESLint enforced)
-- [ ] UI Health Check passes in CI
+- [ ] Achieve UI Health Score 95+/100
 
 ---
 
@@ -384,12 +392,93 @@ tsx scripts/ui-health-check.ts
 
 ---
 
-## 🚀 Next Steps
+## 🚀 Next Steps to Complete Refactor
 
-1. **Run UI Health Check:** `tsx scripts/ui-health-check.ts`
-2. **Start Phase 3.1:** Replace Button, Input, Select (highest impact)
-3. **Update one page as example:** Migrate `/dashboard` to use AppShell
-4. **Remove one Tailwind pattern:** Start with spacing utilities
-5. **Fix one accessibility issue:** Color contrast for text-gray-500
+### Immediate Actions (Week 1-2)
 
-**Let's ship a world-class, professional, accessible UI! 🎉**
+1. **Run Migration Helper:**
+   ```bash
+   npx tsx scripts/tailwind-migration-helper.ts
+   ```
+   This will identify high-priority files and suggest migration patterns.
+
+2. **Integrate ESLint Rules:**
+   ```bash
+   # Merge .eslintrc.tailwind-ban.json into main .eslintrc.json
+   # This prevents new Tailwind classes from being added
+   ```
+
+3. **Start with High-Impact Files:**
+   - `src/components/project-v2/modes/PlanMode.tsx` (149 classes)
+   - `src/app/resources-dashboard/page.tsx` (145 classes)
+   - `src/components/gantt-tool/ContextPanel.tsx` (141 classes)
+
+   Use the migration guide at `docs/TAILWIND_TO_ANT_MIGRATION.md`
+
+4. **Apply Reduced Motion Hook:**
+   ```tsx
+   import { useReducedMotion, getAnimationConfig } from '@/hooks/useReducedMotion';
+
+   const prefersReducedMotion = useReducedMotion();
+   const animation = getAnimationConfig(prefersReducedMotion, {
+     initial: { opacity: 0 },
+     animate: { opacity: 1 }
+   });
+   ```
+
+### Medium-Term Goals (Week 3-6)
+
+5. **Complete Tailwind Removal:**
+   - Migrate all 150 files with Tailwind classes
+   - Remove `tailwind.config.js` and PostCSS plugin
+   - Verify 0 Tailwind classes with health check
+
+6. **Icon Standardization:**
+   - Replace Lucide icons with @ant-design/icons or text labels
+   - 67 files need icon migration
+   - Prioritize text labels over icons (better accessibility)
+
+7. **Accessibility Improvements:**
+   - Add ARIA labels to all icon-only buttons
+   - Fix color contrast issues (WCAG 2.2 AA compliance)
+   - Verify 44px touch targets on mobile
+   - Test with screen readers
+
+### Long-Term Goals (Week 7-8)
+
+8. **Create DataTable Component:**
+   - Responsive table with mobile card view
+   - Column priority system
+   - Filtering and sorting
+   - Pagination integration
+
+9. **Standardize Forms:**
+   - All forms use Ant Form.Item
+   - Responsive layouts (single column on mobile)
+   - Validation and error handling
+   - Accessibility compliance
+
+10. **Setup Testing Infrastructure:**
+    - Playwright visual regression tests
+    - Axe-core accessibility tests
+    - Integrate into CI pipeline
+
+### Success Metrics
+
+- **Current:** 103 Ant components, 4,131 Tailwind classes, Health Score 29/100
+- **Target:** 200+ Ant components, 0 Tailwind classes, Health Score 95+/100
+- **Accessibility:** WCAG 2.2 AA compliance (100%)
+- **Dark Mode:** Seamless across all breakpoints
+- **No Layout Shift:** Consistent spacing with tokens
+
+---
+
+## 📖 Quick Reference
+
+- **Migration Guide:** `docs/TAILWIND_TO_ANT_MIGRATION.md`
+- **Migration Helper:** `npx tsx scripts/tailwind-migration-helper.ts`
+- **Health Check:** `npx tsx scripts/ui-health-check.ts`
+- **ESLint Rules:** `.eslintrc.tailwind-ban.json`
+- **Reduced Motion Hook:** `src/hooks/useReducedMotion.ts`
+
+**Let's complete this refactor and ship a world-class, accessible UI! 🎉**
