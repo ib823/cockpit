@@ -1,142 +1,192 @@
-import { authConfig } from '@/lib/auth';
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { LogoutButton } from '@/components/common/LogoutButton';
+'use client';
 
-export default async function AdminDashboard() {
-  const session = await getServerSession(authConfig);
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, Row, Col, Statistic, Button, Spin } from 'antd';
+import {
+  UserOutlined,
+  ProjectOutlined,
+  FileTextOutlined,
+  TeamOutlined,
+  BarChartOutlined,
+  CalculatorOutlined,
+  IssuesCloseOutlined,
+} from '@ant-design/icons';
+import { signOut } from 'next-auth/react';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { AppShell } from '@/ui/layout/AppShell';
+import { PageHeader } from '@/ui/layout/PageHeader';
+import { getMenuItems, getBreadcrumbItems } from '@/config/menu';
 
-  if (!session || session.user.role !== 'ADMIN') {
-    redirect('/dashboard');
+interface AdminStats {
+  totalUsers: number;
+  activeProjects: number;
+  proposals: number;
+}
+
+export default function AdminDashboard() {
+  const router = useRouter();
+  const { session } = useSessionGuard();
+  const [stats, setStats] = useState<AdminStats>({
+    totalUsers: 0,
+    activeProjects: 0,
+    proposals: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch admin statistics
+    fetch('/api/admin/stats')
+      .then((r) => {
+        if (r.status === 403) {
+          router.push('/dashboard');
+          return null;
+        }
+        return r.json();
+      })
+      .then((data) => {
+        if (data) {
+          setStats(data);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch admin stats:', err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [router]);
+
+  // Redirect non-admins
+  if (session?.user?.role !== 'ADMIN') {
+    router.push('/dashboard');
+    return null;
   }
 
+  const menuItems = getMenuItems('ADMIN');
+  const breadcrumbItems = getBreadcrumbItems('/admin');
+
+  const user = session?.user
+    ? {
+        name: session.user.name || session.user.email || 'Admin',
+        email: session.user.email || '',
+        role: 'ADMIN' as const,
+      }
+    : undefined;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation Bar */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-8">
-              <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-              <div className="flex gap-4">
+    <AppShell
+      user={user}
+      menuItems={menuItems}
+      breadcrumbItems={breadcrumbItems}
+      onLogout={() => signOut({ callbackUrl: '/login' })}
+    >
+      <PageHeader
+        title="Welcome, Admin"
+        description="Manage users, projects, and system settings"
+      />
 
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{session.user.email}</span>
-              <LogoutButton />
-            </div>
-          </div>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '48px 0' }}>
+          <Spin size="large" />
         </div>
-      </nav>
+      ) : (
+        <>
+          {/* Statistics Cards */}
+          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+            <Col xs={24} sm={12} lg={8}>
+              <Card>
+                <Statistic
+                  title="Total Users"
+                  value={stats.totalUsers}
+                  prefix={<UserOutlined />}
+                  valueStyle={{ color: '#3b82f6' }}
+                />
+              </Card>
+            </Col>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome, Admin</h2>
-          <p className="text-gray-600">Manage users, projects, and system settings</p>
-        </div>
+            <Col xs={24} sm={12} lg={8}>
+              <Card>
+                <Statistic
+                  title="Active Projects"
+                  value={stats.activeProjects}
+                  prefix={<ProjectOutlined />}
+                  valueStyle={{ color: '#10b981' }}
+                />
+              </Card>
+            </Col>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Users</p>
-                <p className="text-3xl font-bold text-gray-900">12</p>
-              </div>
-              <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            </div>
-          </div>
+            <Col xs={24} sm={12} lg={8}>
+              <Card>
+                <Statistic
+                  title="Proposals"
+                  value={stats.proposals}
+                  prefix={<FileTextOutlined />}
+                  valueStyle={{ color: '#8b5cf6' }}
+                />
+              </Card>
+            </Col>
+          </Row>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Active Projects</p>
-                <p className="text-3xl font-bold text-gray-900">5</p>
-              </div>
-              <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-          </div>
+          <PageHeader title="Quick Actions" />
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Proposals</p>
-                <p className="text-3xl font-bold text-gray-900">8</p>
-              </div>
-              <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-          </div>
-        </div>
+          {/* Quick Actions */}
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} lg={6}>
+              <Card hoverable onClick={() => router.push('/admin/users')}>
+                <div style={{ textAlign: 'center' }}>
+                  <TeamOutlined style={{ fontSize: 32, color: '#3b82f6' }} />
+                  <h3 style={{ fontWeight: 'bold', marginTop: 8 }}>Manage Users</h3>
+                  <p style={{ fontSize: 14, color: '#666', margin: '8px 0' }}>
+                    Add, edit, or remove users
+                  </p>
+                </div>
+              </Card>
+            </Col>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link
-              href="/admin/users"
-              className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all"
-            >
-              <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              <div>
-                <p className="font-medium text-gray-900">Manage Users</p>
-                <p className="text-sm text-gray-500">Add, edit, or remove users</p>
-              </div>
-            </Link>
+            <Col xs={24} sm={12} lg={6}>
+              <Card hoverable onClick={() => router.push('/gantt-tool')}>
+                <div style={{ textAlign: 'center' }}>
+                  <BarChartOutlined style={{ fontSize: 32, color: '#10b981' }} />
+                  <h3 style={{ fontWeight: 'bold', marginTop: 8 }}>Gantt Tool</h3>
+                  <p style={{ fontSize: 14, color: '#666', margin: '8px 0' }}>
+                    Manage project timelines
+                  </p>
+                </div>
+              </Card>
+            </Col>
 
-            <Link
-              href="/gantt-tool"
-              className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:shadow-md transition-all"
-            >
-              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <div>
-                <p className="font-medium text-gray-900">Gantt Tool</p>
-                <p className="text-sm text-gray-500">Manage project timelines</p>
-              </div>
-            </Link>
+            <Col xs={24} sm={12} lg={6}>
+              <Card hoverable onClick={() => router.push('/estimator')}>
+                <div style={{ textAlign: 'center' }}>
+                  <CalculatorOutlined style={{ fontSize: 32, color: '#8b5cf6' }} />
+                  <h3 style={{ fontWeight: 'bold', marginTop: 8 }}>Estimator</h3>
+                  <p style={{ fontSize: 14, color: '#666', margin: '8px 0' }}>
+                    Project cost estimation
+                  </p>
+                </div>
+              </Card>
+            </Col>
 
-            <Link
-              href="/estimator"
-              className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:shadow-md transition-all"
-            >
-              <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              <div>
-                <p className="font-medium text-gray-900">Estimator</p>
-                <p className="text-sm text-gray-500">Project cost estimation</p>
-              </div>
-            </Link>
-
-            <a
-              href="https://github.com/anthropics/claude-code/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:shadow-md transition-all"
-            >
-              <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <div>
-                <p className="font-medium text-gray-900">Report Issue</p>
-                <p className="text-sm text-gray-500">GitHub issues</p>
-              </div>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
+            <Col xs={24} sm={12} lg={6}>
+              <Card
+                hoverable
+                onClick={() =>
+                  window.open('https://github.com/anthropics/claude-code/issues', '_blank')
+                }
+              >
+                <div style={{ textAlign: 'center' }}>
+                  <IssuesCloseOutlined style={{ fontSize: 32, color: '#f59e0b' }} />
+                  <h3 style={{ fontWeight: 'bold', marginTop: 8 }}>Report Issue</h3>
+                  <p style={{ fontSize: 14, color: '#666', margin: '8px 0' }}>
+                    GitHub issues
+                  </p>
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        </>
+      )}
+    </AppShell>
   );
 }
