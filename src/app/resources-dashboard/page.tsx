@@ -9,6 +9,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { signOut, useSession } from 'next-auth/react';
+import { AppShell } from '@/ui/layout/AppShell';
+import { getMenuItems, getBreadcrumbItems } from '@/config/menu';
 import {
   ArrowLeft,
   Users,
@@ -34,9 +37,22 @@ import { exportResourcesToExcel } from '@/lib/resources/export-excel';
 type ViewMode = 'skills' | 'timeline';
 
 export default function ResourcesDashboardPage() {
+  const { data: session } = useSession();
   const currentProject = useGanttToolStore(state => state.currentProject);
   const [viewMode, setViewMode] = useState<ViewMode>('skills');
   const [expandedResources, setExpandedResources] = useState<Set<string>>(new Set());
+
+  const userRole = session?.user?.role === 'ADMIN' ? 'ADMIN' : 'USER';
+  const menuItems = getMenuItems(userRole);
+  const breadcrumbItems = getBreadcrumbItems('/resources-dashboard');
+
+  const user = session?.user
+    ? {
+        name: session.user.name || session.user.email || 'User',
+        email: session.user.email || '',
+        role: session.user.role || 'USER',
+      }
+    : undefined;
 
   const summary = useResourceAnalyticsSummary();
   const metrics = useResourceMetrics();
@@ -69,43 +85,40 @@ export default function ResourcesDashboardPage() {
 
   if (!currentProject) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Project Selected</h2>
-          <p className="text-gray-600 mb-4">Open a Gantt project to view resource analytics</p>
-          <Link
-            href="/gantt-tool"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Go to Gantt Tool
-          </Link>
+      <AppShell
+        user={user}
+        menuItems={menuItems}
+        breadcrumbItems={breadcrumbItems}
+        onLogout={() => signOut({ callbackUrl: '/login' })}
+      >
+        <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
+          <div className="text-center">
+            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Project Selected</h2>
+            <p className="text-gray-600 mb-4">Open a Gantt project to view resource analytics</p>
+            <Link
+              href="/gantt-tool"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Go to Gantt Tool
+            </Link>
+          </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
   if (summary.activeResources === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center gap-3">
-              <Link href="/gantt-tool" className="text-gray-400 hover:text-gray-600">
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Resource Analytics</h1>
-                <p className="text-sm text-gray-600 mt-0.5">{currentProject.name}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
+      <AppShell
+        user={user}
+        menuItems={menuItems}
+        breadcrumbItems={breadcrumbItems}
+        onLogout={() => signOut({ callbackUrl: '/login' })}
+      >
         {/* Empty State */}
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
           <div className="text-center py-16">
             <Users className="w-20 h-20 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">No Resource Assignments Yet</h2>
@@ -121,38 +134,35 @@ export default function ResourcesDashboardPage() {
             </Link>
           </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link href="/gantt-tool" className="text-gray-400 hover:text-gray-600 transition-colors">
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Resource Analytics</h1>
-                <p className="text-sm text-gray-600 mt-0.5">{currentProject.name}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleExport}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm font-medium"
-            >
-              <Download className="w-4 h-4" />
-              Export to Excel
-            </button>
+    <AppShell
+      user={user}
+      menuItems={menuItems}
+      breadcrumbItems={breadcrumbItems}
+      onLogout={() => signOut({ callbackUrl: '/login' })}
+    >
+      <div>
+        {/* Page Header with Export Button */}
+        <div className="flex items-center justify-between mb-6" style={{ marginLeft: '-24px', marginRight: '-24px', marginTop: '-24px', padding: '16px 24px', background: '#fff', borderBottom: '1px solid #e5e7eb' }}>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Resource Analytics</h1>
+            <p className="text-sm text-gray-600 mt-0.5">{currentProject.name}</p>
           </div>
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm font-medium"
+          >
+            <Download className="w-4 h-4" />
+            Export to Excel
+          </button>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+        {/* Main Content */}
+        <div className="space-y-6">
         {/* KPI Metrics Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Total Effort */}
@@ -615,6 +625,8 @@ function ResourceDetailRow({
           </div>
         </div>
       )}
-    </div>
+      </div>
+      </div>
+    </AppShell>
   );
 }

@@ -168,7 +168,7 @@ export function GanttToolShell() {
   // Loading State - Show while fetching projects
   if (isLoading && projects.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
         <div className="text-center">
           <GhostLoader />
           <p className="mt-4 text-gray-600 text-lg">Loading your projects...</p>
@@ -180,7 +180,7 @@ export function GanttToolShell() {
   // Welcome Screen - Show when no current project
   if (!currentProject) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-8">
+      <div className="flex items-center justify-center" style={{ minHeight: '70vh', padding: '2rem' }}>
         <div className="max-w-4xl w-full">
           {/* Hero Section */}
           <div className="text-center mb-12">
@@ -357,7 +357,7 @@ export function GanttToolShell() {
 
   // Main Gantt Tool Interface
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="flex flex-col" style={{ minHeight: '70vh' }}>
       {/* Toolbar */}
       <GanttToolbar
         showContextPanel={showContextPanel}

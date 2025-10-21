@@ -12,6 +12,11 @@
 import { useEffect } from 'react';
 import { Row, Col, Typography, Card, Select, Space, Alert } from 'antd';
 import { RocketOutlined, LoadingOutlined } from '@ant-design/icons';
+import { signOut } from 'next-auth/react';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { AppShell } from '@/ui/layout/AppShell';
+import { PageHeader } from '@/ui/layout/PageHeader';
+import { getMenuItems, getBreadcrumbItems } from '@/config/menu';
 import { useEstimatorStore } from '@/stores/estimator-store';
 import { useFormulaWorker } from '@/lib/estimator/use-formula-worker';
 import { AVAILABLE_PROFILES } from '@/lib/estimator/types';
@@ -24,6 +29,7 @@ import { ResultsPanel } from '@/components/estimator/ResultsPanel';
 const { Title, Text } = Typography;
 
 export default function EstimatorPage() {
+  const { session } = useSessionGuard();
   const {
     inputs,
     setProfile,
@@ -59,23 +65,37 @@ export default function EstimatorPage() {
     return () => clearTimeout(timer);
   }, [inputs, calculate, setResults, workerReady]);
 
+  const userRole = session?.user?.role === 'ADMIN' ? 'ADMIN' : 'USER';
+  const menuItems = getMenuItems(userRole);
+  const breadcrumbItems = getBreadcrumbItems('/estimator');
+
+  const user = session?.user
+    ? {
+        name: session.user.name || session.user.email || 'User',
+        email: session.user.email || '',
+        role: session.user.role || 'USER',
+      }
+    : undefined;
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Page Header */}
-      <div className="mb-6">
-        <Space align="center" className="mb-2">
-          <RocketOutlined style={{ fontSize: '28px', color: '#1890ff' }} />
-          <Title level={2} style={{ margin: 0 }}>
-            SAP S/4HANA Estimator
-          </Title>
-          {isCalculating && (
-            <LoadingOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
-          )}
-        </Space>
-        <Text type="secondary">
-          Configure project parameters to generate effort and timeline estimates
-        </Text>
-      </div>
+    <AppShell
+      user={user}
+      menuItems={menuItems}
+      breadcrumbItems={breadcrumbItems}
+      onLogout={() => signOut({ callbackUrl: '/login' })}
+    >
+      <PageHeader
+        title={
+          <Space align="center">
+            <RocketOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+            <span>SAP S/4HANA Estimator</span>
+            {isCalculating && (
+              <LoadingOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+            )}
+          </Space>
+        }
+        description="Configure project parameters to generate effort and timeline estimates"
+      />
 
       {/* Worker Status */}
       {!workerReady && (
@@ -84,7 +104,7 @@ export default function EstimatorPage() {
           type="info"
           showIcon
           icon={<LoadingOutlined />}
-          className="mb-4"
+          style={{ marginBottom: 16 }}
         />
       )}
 
@@ -94,7 +114,7 @@ export default function EstimatorPage() {
           description={workerError.message}
           type="error"
           showIcon
-          className="mb-4"
+          style={{ marginBottom: 16 }}
         />
       )}
 
@@ -113,7 +133,7 @@ export default function EstimatorPage() {
               size="small"
             >
               <div>
-                <Text strong className="block mb-2">
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>
                   Select Implementation Profile
                 </Text>
                 <Select
@@ -144,7 +164,7 @@ export default function EstimatorPage() {
                     ),
                   }))}
                 />
-                <Text type="secondary" style={{ fontSize: '12px' }} className="block mt-2">
+                <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: 8 }}>
                   Foundation effort for {inputs.profile.name} implementation
                 </Text>
               </div>
@@ -169,6 +189,6 @@ export default function EstimatorPage() {
           <ResultsPanel />
         </Col>
       </Row>
-    </div>
+    </AppShell>
   );
 }

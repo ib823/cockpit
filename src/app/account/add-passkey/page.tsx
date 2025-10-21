@@ -2,13 +2,31 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { startRegistration } from '@simplewebauthn/browser';
+import { AppShell } from '@/ui/layout/AppShell';
+import { PageHeader } from '@/ui/layout/PageHeader';
+import { getMenuItems, getBreadcrumbItems } from '@/config/menu';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
 
 export default function AddPasskeyPage() {
   const router = useRouter();
+  const { session } = useSessionGuard();
   const [nickname, setNickname] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const userRole = session?.user?.role === 'ADMIN' ? 'ADMIN' : 'USER';
+  const menuItems = getMenuItems(userRole);
+  const breadcrumbItems = getBreadcrumbItems('/account/add-passkey');
+
+  const user = session?.user
+    ? {
+        name: session.user.name || session.user.email || 'User',
+        email: session.user.email || '',
+        role: session.user.role || 'USER',
+      }
+    : undefined;
 
   const handleCreatePasskey = async () => {
     if (!nickname.trim()) {
@@ -66,8 +84,14 @@ export default function AddPasskeyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
+    <AppShell
+      user={user}
+      menuItems={menuItems}
+      breadcrumbItems={breadcrumbItems}
+      onLogout={() => signOut({ callbackUrl: '/login' })}
+    >
+      <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
+        <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
@@ -151,7 +175,8 @@ export default function AddPasskeyPage() {
             your device&apos;s biometric authentication (fingerprint, face recognition) or device PIN.
           </p>
         </div>
+        </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

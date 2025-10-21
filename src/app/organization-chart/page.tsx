@@ -17,6 +17,9 @@
 
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { signOut, useSession } from 'next-auth/react';
+import { AppShell } from '@/ui/layout/AppShell';
+import { getMenuItems, getBreadcrumbItems } from '@/config/menu';
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { Button, Input, Select, Tooltip, App, Modal, Dropdown, Tag, Badge, ColorPicker } from 'antd';
 import {
@@ -83,8 +86,21 @@ type ViewMode = 'overall' | 'by-phase' | 'by-task';
 
 export default function OrganizationChartPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { message, modal } = App.useApp();
   const { currentProject } = useGanttToolStoreV2();
+
+  const userRole = session?.user?.role === 'ADMIN' ? 'ADMIN' : 'USER';
+  const menuItems = getMenuItems(userRole);
+  const breadcrumbItems = getBreadcrumbItems('/organization-chart');
+
+  const user = session?.user
+    ? {
+        name: session.user.name || session.user.email || 'User',
+        email: session.user.email || '',
+        role: session.user.role || 'USER',
+      }
+    : undefined;
 
   // State
   const [viewMode, setViewMode] = useState<ViewMode>('overall');
@@ -1130,29 +1146,42 @@ export default function OrganizationChartPage() {
 
   if (!currentProject) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <TeamOutlined style={{ fontSize: 64, color: '#d1d5db', marginBottom: 16 }} />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Project Selected</h2>
-          <p className="text-gray-600 mb-4">Please select or create a project first.</p>
-          <Button type="primary" size="large" onClick={() => router.push('/gantt-tool')}>
-            Go to Gantt Tool
-          </Button>
+      <AppShell
+        user={user}
+        menuItems={menuItems}
+        breadcrumbItems={breadcrumbItems}
+        onLogout={() => signOut({ callbackUrl: '/login' })}
+      >
+        <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
+          <div className="text-center">
+            <TeamOutlined style={{ fontSize: 64, color: '#d1d5db', marginBottom: 16 }} />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Project Selected</h2>
+            <p className="text-gray-600 mb-4">Please select or create a project first.</p>
+            <Button type="primary" size="large" onClick={() => router.push('/gantt-tool')}>
+              Go to Gantt Tool
+            </Button>
+          </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={rectIntersection}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+    <AppShell
+      user={user}
+      menuItems={menuItems}
+      breadcrumbItems={breadcrumbItems}
+      onLogout={() => signOut({ callbackUrl: '/login' })}
     >
-      <div className="h-screen flex flex-col bg-gray-50">
-        {/* Header - Jobs/Ive: "Beautiful simplicity" */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={rectIntersection}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex flex-col">
+          {/* Header - Jobs/Ive: "Beautiful simplicity" */}
+          <div className="bg-white border-b border-gray-200 px-6 py-4" style={{ marginLeft: '-24px', marginRight: '-24px', marginTop: '-24px' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
@@ -1682,7 +1711,8 @@ export default function OrganizationChartPage() {
           );
         })()}
       </Modal>
-      </div>
-    </DndContext>
+        </div>
+      </DndContext>
+    </AppShell>
   );
 }

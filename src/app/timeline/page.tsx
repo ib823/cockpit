@@ -13,8 +13,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, DatePicker, Button, Space, Typography, Alert } from 'antd';
+import { Card, DatePicker, Button, Space, Typography, Alert, Flex } from 'antd';
 import { SaveOutlined, ExportOutlined, CalendarOutlined } from '@ant-design/icons';
+import { signOut } from 'next-auth/react';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { AppShell } from '@/ui/layout/AppShell';
+import { PageHeader } from '@/ui/layout/PageHeader';
+import { getMenuItems, getBreadcrumbItems } from '@/config/menu';
 import { VisGanttChart } from '@/components/timeline/VisGanttChart';
 import { ResourceTable, DEFAULT_RESOURCES, type ResourceAllocation } from '@/components/timeline/ResourceTable';
 import { SyncControls } from '@/components/timeline/SyncControls';
@@ -25,6 +30,7 @@ import dayjs, { Dayjs } from 'dayjs';
 const { Title, Text } = Typography;
 
 export default function TimelinePage() {
+  const { session } = useSessionGuard();
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [phases, setPhases] = useState<PhaseBreakdown[]>([]);
   const [resources, setResources] = useState<ResourceAllocation[]>(DEFAULT_RESOURCES);
@@ -112,15 +118,29 @@ export default function TimelinePage() {
     });
   };
 
+  const userRole = session?.user?.role === 'ADMIN' ? 'ADMIN' : 'USER';
+  const menuItems = getMenuItems(userRole);
+  const breadcrumbItems = getBreadcrumbItems('/timeline');
+
+  const user = session?.user
+    ? {
+        name: session.user.name || session.user.email || 'User',
+        email: session.user.email || '',
+        role: session.user.role || 'USER',
+      }
+    : undefined;
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Page Header */}
-      <div className="mb-6">
-        <Title level={2}>Project Timeline</Title>
-        <Text type="secondary">
-          Interactive Gantt chart and resource allocation for SAP S/4HANA implementation
-        </Text>
-      </div>
+    <AppShell
+      user={user}
+      menuItems={menuItems}
+      breadcrumbItems={breadcrumbItems}
+      onLogout={() => signOut({ callbackUrl: '/login' })}
+    >
+      <PageHeader
+        title="Project Timeline"
+        description="Interactive Gantt chart and resource allocation for SAP S/4HANA implementation"
+      />
 
       {/* Alert if no estimator results */}
       {!hasEstimatorResults && (
@@ -129,7 +149,7 @@ export default function TimelinePage() {
           description="Please configure and run the estimator first to generate timeline phases."
           type="warning"
           showIcon
-          className="mb-4"
+          style={{ marginBottom: 16 }}
           action={
             <Button size="small" type="link" href="/estimator">
               Go to Estimator
@@ -146,7 +166,7 @@ export default function TimelinePage() {
             <span>Project Schedule</span>
           </Space>
         }
-        className="mb-4"
+        style={{ marginBottom: 16 }}
         extra={
           <Text type="secondary">
             End Date: {getProjectEndDate()}
@@ -155,7 +175,7 @@ export default function TimelinePage() {
       >
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           {/* Controls Row */}
-          <div className="flex items-center justify-between">
+          <Flex justify="space-between" align="center">
             <DatePicker
               value={dayjs(startDate)}
               onChange={handleStartDateChange}
@@ -168,7 +188,7 @@ export default function TimelinePage() {
               onForceSync={handleForceSync}
               syncInProgress={syncInProgress}
             />
-          </div>
+          </Flex>
 
           {/* Gantt Chart */}
           {phases.length > 0 ? (
@@ -179,7 +199,7 @@ export default function TimelinePage() {
               editable={!isLocked}
             />
           ) : (
-            <div className="text-center py-12 border rounded bg-white">
+            <div style={{ textAlign: 'center', padding: '48px 0', border: '1px solid #d9d9d9', borderRadius: 8, background: '#fff' }}>
               <Text type="secondary">
                 {hasEstimatorResults
                   ? 'No phases available. Please run the estimator calculation.'
@@ -193,7 +213,7 @@ export default function TimelinePage() {
       {/* Resource Allocation Card */}
       <Card
         title="Resource Allocation"
-        className="mb-4"
+        style={{ marginBottom: 16 }}
       >
         <ResourceTable
           resources={resources}
@@ -203,7 +223,7 @@ export default function TimelinePage() {
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex gap-2">
+      <Space>
         <Button
           type="primary"
           size="large"
@@ -219,7 +239,7 @@ export default function TimelinePage() {
         >
           Export Schedule
         </Button>
-      </div>
-    </div>
+      </Space>
+    </AppShell>
   );
 }

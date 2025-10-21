@@ -3,6 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
+import { signOut } from 'next-auth/react';
+import { Spin } from 'antd';
+import { AppShell } from '@/ui/layout/AppShell';
+import { PageHeader } from '@/ui/layout/PageHeader';
+import { getMenuItems, getBreadcrumbItems } from '@/config/menu';
 import { useSessionGuard } from '@/hooks/useSessionGuard';
 
 interface UserProfile {
@@ -37,6 +42,18 @@ interface Session {
 export default function AccountPage() {
   const { session, status } = useSessionGuard(); // SECURITY: Validates session on page visibility
   const router = useRouter();
+
+  const userRole = session?.user?.role === 'ADMIN' ? 'ADMIN' : 'USER';
+  const menuItems = getMenuItems(userRole);
+  const breadcrumbItems = getBreadcrumbItems('/account');
+
+  const user = session?.user
+    ? {
+        name: session.user.name || session.user.email || 'User',
+        email: session.user.email || '',
+        role: session.user.role || 'USER',
+      }
+    : undefined;
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [passkeys, setPasskeys] = useState<Passkey[]>([]);
@@ -164,29 +181,31 @@ export default function AccountPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <AppShell
+        user={user}
+        menuItems={menuItems}
+        breadcrumbItems={breadcrumbItems}
+        onLogout={() => signOut({ callbackUrl: '/login' })}
+      >
+        <div style={{ textAlign: 'center', padding: '48px 0' }}>
+          <Spin size="large" />
           <p className="mt-4 text-gray-600">Loading account settings...</p>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => router.push('/')}
-            className="mb-4 text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-          >
-            ← Back to Home
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
-          <p className="mt-2 text-gray-600">Manage your profile, passkeys, and active sessions</p>
-        </div>
+    <AppShell
+      user={user}
+      menuItems={menuItems}
+      breadcrumbItems={breadcrumbItems}
+      onLogout={() => signOut({ callbackUrl: '/login' })}
+    >
+      <PageHeader
+        title="Account Settings"
+        description="Manage your profile, passkeys, and active sessions"
+      />
 
         {/* Error Message */}
         {error && (
@@ -364,7 +383,6 @@ export default function AccountPage() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </AppShell>
   );
 }
