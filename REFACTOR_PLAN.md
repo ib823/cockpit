@@ -1,12 +1,12 @@
 # Ant Design-Only UI Refactor Plan
 
 **Branch:** `refactor/ant-only-ui`
-**Status:** Phase 0-3.4 Complete
+**Status:** Phase 0-3.5 Complete
 **Goal:** Transform SAP Cockpit into a pure Ant Design v5 application with world-class responsive design and WCAG 2.2 AA compliance
 
 ---
 
-## ✅ COMPLETED (Phases 0-3.4)
+## ✅ COMPLETED (Phases 0-3.5)
 
 ### Phase 0: Prep & Guardrails
 - ✅ Created refactor branch
@@ -77,13 +77,13 @@
 - ✅ Replace Pagination → Ant Pagination (105→45 lines, compact mode support)
 - [ ] Migrate all pages to use AppShell (only /dashboard uses it currently)
 
-### Phase 3: Component Migration (Continued)
+### Phase 3.5: Data Display ✅ COMPLETE
+- ✅ Replace Badge → Ant Tag (50→44 lines, variant/size mapping)
+- ✅ Replace Progress → Ant Progress (47→40 lines, indeterminate support)
+- ✅ Replace Skeleton → Ant Skeleton (70→40 lines, Text/Rect/Circle variants)
+- ✅ Replace Tooltip → Ant Tooltip (36→21 lines, content mapping)
 
-**Priority 5: Data Display (Week 5)**
-- [ ] Replace Badge → Ant Badge
-- [ ] Replace Progress → Ant Progress
-- [ ] Replace Skeleton → Ant Skeleton
-- [ ] Replace Tooltip → Ant Tooltip
+### Phase 3: Component Migration (Continued)
 
 ### Phase 4: Tailwind Removal
 - [ ] Remove all Tailwind utility classes (~7,000 instances)
@@ -135,17 +135,17 @@
 
 ## 📊 Progress Metrics
 
-| Metric | Before | Phase 2 | Phase 3.1 | Phase 3.2 | Phase 3.3 | Phase 3.4 | Target |
-|--------|--------|---------|-----------|-----------|-----------|-----------|--------|
-| **Ant Token Coverage** | 11% | **95%** ✅ | 95% | 95% | 95% | 95% | 95%+ ✅ |
-| **Dark Mode** | 0% | **100%** ✅ | 100% | 100% | 100% | 100% | 100% ✅ |
-| **Ant Component Usage** | 63 | 63 | **81** 📈 | 85+ 📈 | **94** 📈 | **99** 📈 | 200+ |
-| **Custom Components** | 40+ | 40+ | **37** 📉 | **31** 📉 | **27** 📉 | **24** 📉 | <5 |
-| **Tailwind Classes** | ~7,000 | 4,222 | **4,169** 📉 | **4,144** 📉 | **4,140** 📉 | **4,136** 📉 | 0 |
-| **Non-Ant Imports** | 74 | 74 | **69** 📉 | **68** 📉 | **67** 📉 | 67 | 0 |
-| **WCAG 2.2 AA Compliance** | 65% | 65% | 65% | 65% | 65% | 65% | 100% |
-| **Responsive Breakpoints** | Inconsistent | **Ant-aligned** ✅ | Ant-aligned | Ant-aligned | Ant-aligned | Ant-aligned | Ant-aligned ✅ |
-| **UI Health Score** | 62/100 | 25/100 | **27/100** 📈 | **28/100** 📈 | **29/100** 📈 | 29/100 | 95+ |
+| Metric | Before | Phase 2 | Phase 3.1 | Phase 3.2 | Phase 3.3 | Phase 3.4 | Phase 3.5 | Target |
+|--------|--------|---------|-----------|-----------|-----------|-----------|-----------|--------|
+| **Ant Token Coverage** | 11% | **95%** ✅ | 95% | 95% | 95% | 95% | 95% | 95%+ ✅ |
+| **Dark Mode** | 0% | **100%** ✅ | 100% | 100% | 100% | 100% | 100% | 100% ✅ |
+| **Ant Component Usage** | 63 | 63 | **81** 📈 | 85+ 📈 | **94** 📈 | **99** 📈 | **103** 📈 | 200+ |
+| **Custom Components** | 40+ | 40+ | **37** 📉 | **31** 📉 | **27** 📉 | **24** 📉 | **20** 📉 | <5 |
+| **Tailwind Classes** | ~7,000 | 4,222 | **4,169** 📉 | **4,144** 📉 | **4,140** 📉 | **4,136** 📉 | **4,131** 📉 | 0 |
+| **Non-Ant Imports** | 74 | 74 | **69** 📉 | **68** 📉 | **67** 📉 | 67 | 67 | 0 |
+| **WCAG 2.2 AA Compliance** | 65% | 65% | 65% | 65% | 65% | 65% | 65% | 100% |
+| **Responsive Breakpoints** | Inconsistent | **Ant-aligned** ✅ | Ant-aligned | Ant-aligned | Ant-aligned | Ant-aligned | Ant-aligned | Ant-aligned ✅ |
+| **UI Health Score** | 62/100 | 25/100 | **27/100** 📈 | **28/100** 📈 | **29/100** 📈 | 29/100 | 29/100 | 95+ |
 
 ---
 
