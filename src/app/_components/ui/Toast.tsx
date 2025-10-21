@@ -1,51 +1,69 @@
 /**
- * Toast Component - Minimal notification toast
- * Used with react-hot-toast library
+ * Toast Component - Ant Design wrapper
+ * No provider needed - Ant Design handles this internally via App component
  */
 
 'use client';
 
 import React from 'react';
-import { Toaster, toast as hotToast } from 'react-hot-toast';
-import { clsx } from 'clsx';
+import { message } from 'antd';
 
+/**
+ * ToastProvider - No-op component for backwards compatibility
+ * Ant Design's message/notification don't need a provider
+ */
 export const ToastProvider: React.FC = () => {
-  return (
-    <Toaster
-      position="top-right"
-      toastOptions={{
-        duration: 4000,
-        style: {
-          background: 'var(--surface)',
-          color: 'var(--ink)',
-          border: '1px solid var(--line)',
-          borderRadius: 'var(--r-md)',
-          boxShadow: 'var(--shadow-md)',
-          padding: 'var(--s-12) var(--s-16)',
-          fontSize: '0.875rem',
-        },
-        success: {
-          iconTheme: {
-            primary: 'var(--success)',
-            secondary: 'var(--surface)',
-          },
-        },
-        error: {
-          iconTheme: {
-            primary: 'var(--danger)',
-            secondary: 'var(--surface)',
-          },
-        },
-      }}
-    />
-  );
+  return null;
 };
 
-// Custom toast helpers
+/**
+ * Toast helpers using Ant Design message API
+ */
 export const toast = {
-  success: (message: string) => hotToast.success(message),
-  error: (message: string) => hotToast.error(message),
-  loading: (message: string) => hotToast.loading(message),
-  promise: hotToast.promise,
-  dismiss: hotToast.dismiss,
+  success: (msg: string, duration = 3) => message.success(msg, duration),
+  error: (msg: string, duration = 4) => message.error(msg, duration),
+  loading: (msg: string) => message.loading(msg, 0),
+  info: (msg: string, duration = 3) => message.info(msg, duration),
+  warning: (msg: string, duration = 4) => message.warning(msg, duration),
+
+  /**
+   * Promise helper
+   */
+  promise: async <T,>(
+    promise: Promise<T>,
+    messages: {
+      loading: string;
+      success: string | ((data: T) => string);
+      error: string | ((error: any) => string);
+    }
+  ): Promise<T> => {
+    const hide = message.loading(messages.loading, 0);
+
+    try {
+      const data = await promise;
+      hide();
+      const successMsg =
+        typeof messages.success === 'function'
+          ? messages.success(data)
+          : messages.success;
+      message.success(successMsg);
+      return data;
+    } catch (error) {
+      hide();
+      const errorMsg =
+        typeof messages.error === 'function'
+          ? messages.error(error)
+          : messages.error;
+      message.error(errorMsg);
+      throw error;
+    }
+  },
+
+  dismiss: (key?: string) => {
+    if (key) {
+      message.destroy(key);
+    } else {
+      message.destroy();
+    }
+  },
 };

@@ -3,9 +3,11 @@
 import { Wrapper, WrapperCalculation } from '@/types/wrappers';
 import { useWrappersStore } from '@/stores/wrappers-store';
 import { motion } from 'framer-motion';
-import { RotateCcw } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
-import * as Slider from '@radix-ui/react-slider';
+import { Slider, Button, Card, Space, Typography } from 'antd';
+import { RedoOutlined } from '@ant-design/icons';
+
+const { Text, Title } = Typography;
 
 interface WrapperSliderProps {
   wrapper: Wrapper;
@@ -18,111 +20,106 @@ export function WrapperSlider({ wrapper, calculation }: WrapperSliderProps) {
   const hasChanged = wrapper.currentPercentage !== wrapper.defaultPercentage;
 
   return (
-    <div className="p-4 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <div
-            className="w-4 h-4 rounded-full"
-            style={{ backgroundColor: wrapper.color }}
-          />
-          <div>
-            <h4 className="text-sm font-semibold text-gray-900">{wrapper.name}</h4>
-            <p className="text-xs text-gray-500">{wrapper.description}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Percentage display */}
-          <div className="text-right">
-            <div className="text-lg font-bold text-gray-900">
-              {wrapper.currentPercentage.toFixed(0)}%
+    <Card hoverable>
+      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Space>
+            <div
+              style={{
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                backgroundColor: wrapper.color,
+              }}
+            />
+            <div>
+              <Title level={5} style={{ margin: 0 }}>{wrapper.name}</Title>
+              <Text type="secondary" style={{ fontSize: 12 }}>{wrapper.description}</Text>
             </div>
-            {calculation && (
-              <div className="text-xs text-gray-600">
-                {calculation.wrapperEffort.toFixed(0)} PD
-              </div>
+          </Space>
+
+          <Space>
+            <div style={{ textAlign: 'right' }}>
+              <Title level={4} style={{ margin: 0 }}>
+                {wrapper.currentPercentage.toFixed(0)}%
+              </Title>
+              {calculation && (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  {calculation.wrapperEffort.toFixed(0)} PD
+                </Text>
+              )}
+            </div>
+
+            {hasChanged && (
+              <Button
+                type="text"
+                icon={<RedoOutlined />}
+                size="small"
+                onClick={() => resetWrapper(wrapper.id)}
+                title="Reset to default"
+              />
             )}
-          </div>
-
-          {/* Reset button */}
-          {hasChanged && (
-            <button
-              onClick={() => resetWrapper(wrapper.id)}
-              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-              title="Reset to default"
-            >
-              <RotateCcw className="w-4 h-4 text-gray-400" />
-            </button>
-          )}
+          </Space>
         </div>
-      </div>
 
-      {/* Slider */}
-      <div className="mb-4">
-        <Slider.Root
-          className="relative flex items-center select-none touch-none w-full h-5"
-          value={[wrapper.currentPercentage]}
-          onValueChange={(value) => setWrapperPercentage(wrapper.id, value[0])}
+        {/* Slider */}
+        <Slider
+          value={wrapper.currentPercentage}
+          onChange={(value) => setWrapperPercentage(wrapper.id, value as number)}
           max={50}
           min={0}
           step={1}
-        >
-          <Slider.Track className="bg-gray-200 relative grow rounded-full h-2">
-            <Slider.Range
-              className="absolute h-full rounded-full"
-              style={{ backgroundColor: wrapper.color }}
-            />
-          </Slider.Track>
-          <Slider.Thumb
-            className="block w-5 h-5 bg-white border-2 rounded-full shadow-md hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-2"
-            style={{ borderColor: wrapper.color, '--tw-ring-color': wrapper.color } as any}
-            aria-label={`${wrapper.name} percentage`}
-          />
-        </Slider.Root>
-      </div>
+          trackStyle={{ backgroundColor: wrapper.color }}
+          handleStyle={{ borderColor: wrapper.color }}
+          aria-label={`${wrapper.name} percentage`}
+        />
 
-      {/* Footer: Effort and Cost */}
-      {calculation && (
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-4">
-            <div>
-              <span className="text-gray-500">Effort: </span>
-              <span className="font-semibold text-gray-900">
-                {calculation.wrapperEffort.toFixed(1)} PD
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">Cost: </span>
-              <span className="font-semibold text-gray-900">
-                {formatCurrency(calculation.wrapperCost, 'MYR')}
-              </span>
-            </div>
-          </div>
+        {/* Footer: Effort and Cost */}
+        {calculation && (
+          <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+            <Space size="large">
+              <div>
+                <Text type="secondary" style={{ fontSize: 12 }}>Effort: </Text>
+                <Text strong style={{ fontSize: 12 }}>
+                  {calculation.wrapperEffort.toFixed(1)} PD
+                </Text>
+              </div>
+              <div>
+                <Text type="secondary" style={{ fontSize: 12 }}>Cost: </Text>
+                <Text strong style={{ fontSize: 12 }}>
+                  {formatCurrency(calculation.wrapperCost, 'MYR')}
+                </Text>
+              </div>
+            </Space>
 
-          {/* SAP Activate phase badge */}
-          <div
-            className="px-2 py-0.5 rounded text-xs font-medium"
-            style={{
-              backgroundColor: `${wrapper.color}20`,
-              color: wrapper.color,
-            }}
+            <div
+              style={{
+                padding: '2px 8px',
+                borderRadius: 4,
+                fontSize: 12,
+                fontWeight: 500,
+                backgroundColor: `${wrapper.color}20`,
+                color: wrapper.color,
+              }}
+            >
+              {wrapper.sapActivatePhase}
+            </div>
+          </Space>
+        )}
+
+        {/* Change indicator */}
+        {hasChanged && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            {wrapper.sapActivatePhase}
-          </div>
-        </div>
-      )}
-
-      {/* Change indicator */}
-      {hasChanged && (
-        <motion.div
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-2 text-xs text-blue-600 font-medium"
-        >
-          Modified from {wrapper.defaultPercentage}% default
-        </motion.div>
-      )}
-    </div>
+            <Text type="warning" style={{ fontSize: 12 }}>
+              Modified from {wrapper.defaultPercentage}% default
+            </Text>
+          </motion.div>
+        )}
+      </Space>
+    </Card>
   );
 }

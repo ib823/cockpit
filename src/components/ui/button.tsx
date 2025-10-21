@@ -1,47 +1,43 @@
 /**
- * Button Component
- *
- * Reusable button component with variants
+ * Button Component - Ant Design wrapper
  */
 
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { Button as AntButton } from 'antd';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   variant?: 'default' | 'outline' | 'ghost' | 'destructive';
   size?: 'sm' | 'md' | 'lg' | 'icon';
   className?: string;
+  htmlType?: 'button' | 'submit' | 'reset';
 }
 
+const variantMap = {
+  default: 'primary' as const,
+  outline: 'default' as const,
+  ghost: 'text' as const,
+  destructive: 'primary' as const,
+};
+
+const sizeMap = {
+  sm: 'small' as const,
+  md: 'middle' as const,
+  lg: 'large' as const,
+  icon: 'middle' as const,
+};
+
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'default', size = 'md', className, ...props }, ref) => {
-    const variantClasses = {
-      default: 'bg-primary-600 text-white hover:bg-primary-700',
-      outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-      ghost: 'hover:bg-accent hover:text-accent-foreground',
-      destructive: 'bg-red-600 text-white hover:bg-red-700',
-    };
-
-    const sizeClasses = {
-      sm: 'h-8 px-3 text-sm',
-      md: 'h-10 px-4 py-2',
-      lg: 'h-11 px-8',
-      icon: 'h-10 w-10',
-    };
-
+  ({ variant = 'default', size = 'md', className, htmlType = 'button', ...props }, ref) => {
     return (
-      <button
-        ref={ref}
-        className={cn(
-          'inline-flex items-center justify-center rounded-md font-medium',
-          'ring-offset-background transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          'disabled: disabled:opacity-50',
-          variantClasses[variant],
-          sizeClasses[size],
-          className
-        )}
-        {...props}
+      <AntButton
+        ref={ref as any}
+        type={variantMap[variant]}
+        size={sizeMap[size]}
+        danger={variant === 'destructive'}
+        className={className}
+        htmlType={htmlType}
+        shape={size === 'icon' ? 'circle' : undefined}
+        {...(props as any)}
       />
     );
   }

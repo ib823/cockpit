@@ -1,20 +1,20 @@
 'use client';
-import { Card, Row, Col, Button, Statistic, Dropdown } from 'antd';
+
+import { Card, Row, Col, Button, Statistic } from 'antd';
 import {
   FileTextOutlined,
   CalculatorOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   RightOutlined,
-  UserOutlined,
-  LogoutOutlined,
-  SettingOutlined,
-  CrownOutlined
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
 import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { AppShell } from '@/ui/layout/AppShell';
+import { PageHeader } from '@/ui/layout/PageHeader';
+import { getMenuItems, getBreadcrumbItems } from '@/config/menu';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -28,69 +28,36 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetch('/api/dashboard/stats')
-      .then(r => r.json())
-      .then(data => setStats(data))
+      .then((r) => r.json())
+      .then((data) => setStats(data))
       .catch(() => {});
   }, []);
 
-  const isAdmin = session?.user?.role === 'ADMIN';
+  const userRole = session?.user?.role === 'ADMIN' ? 'ADMIN' : 'USER';
+  const menuItems = getMenuItems(userRole);
+  const breadcrumbItems = getBreadcrumbItems('/dashboard');
 
-  const menuItems = [
-    {
-      key: 'account',
-      icon: <UserOutlined />,
-      label: 'Account Settings',
-      onClick: () => router.push('/account'),
-    },
-    ...(isAdmin ? [{
-      key: 'admin',
-      icon: <CrownOutlined />,
-      label: 'Admin Dashboard',
-      onClick: () => router.push('/admin'),
-    }] : []),
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: 'Logout',
-      onClick: () => signOut({ callbackUrl: '/login' }),
-      danger: true,
-    },
-  ];
+  const user = session?.user
+    ? {
+        name: session.user.name || session.user.email || 'User',
+        email: session.user.email || '',
+        role: session.user.role || 'USER',
+      }
+    : undefined;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">SAP Cockpit</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            {isAdmin && (
-              <Button
-                type="default"
-                icon={<CrownOutlined />}
-                onClick={() => router.push('/admin')}
-              >
-                Admin Dashboard
-              </Button>
-            )}
-            <Dropdown menu={{ items: menuItems }} placement="bottomRight">
-              <Button type="text" className="flex items-center gap-2">
-                <UserOutlined />
-                <span>{session?.user?.email || session?.user?.name || 'User'}</span>
-              </Button>
-            </Dropdown>
-          </div>
-        </div>
-      </div>
+    <AppShell
+      user={user}
+      menuItems={menuItems}
+      breadcrumbItems={breadcrumbItems}
+      onLogout={() => signOut({ callbackUrl: '/login' })}
+    >
+      <PageHeader
+        title={`Welcome back, ${user?.name || 'User'}`}
+        description="Here's what's happening with your projects today."
+      />
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-2">Welcome back, {session?.user?.name || session?.user?.email || 'User'}</h1>
-        <p className="text-gray-600 mb-6">Here&apos;s what&apos;s happening with your projects today.</p>
-      
-      <Row gutter={[16, 16]} className="mb-6">
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
@@ -135,30 +102,38 @@ export default function DashboardPage() {
         </Col>
       </Row>
 
-      <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
+      <PageHeader title="Quick Actions" />
+
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable onClick={() => router.push('/estimator')}>
-            <div className="text-center">
+            <div style={{ textAlign: 'center' }}>
               <CalculatorOutlined style={{ fontSize: 32, color: '#3b82f6' }} />
-              <h3 className="font-bold mt-2">Quick Estimate</h3>
-              <p className="text-sm text-gray-600">Start a new SAP implementation estimate</p>
-              <Button type="link">Start now <RightOutlined /></Button>
+              <h3 style={{ fontWeight: 'bold', marginTop: 8 }}>Quick Estimate</h3>
+              <p style={{ fontSize: 14, color: '#666', margin: '8px 0' }}>
+                Start a new SAP implementation estimate
+              </p>
+              <Button type="link">
+                Start now <RightOutlined />
+              </Button>
             </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable onClick={() => router.push('/gantt-tool')}>
-            <div className="text-center">
+            <div style={{ textAlign: 'center' }}>
               <FileTextOutlined style={{ fontSize: 32, color: '#8b5cf6' }} />
-              <h3 className="font-bold mt-2">Gantt Tool</h3>
-              <p className="text-sm text-gray-600">Create and manage project timelines</p>
-              <Button type="link">Start now <RightOutlined /></Button>
+              <h3 style={{ fontWeight: 'bold', marginTop: 8 }}>Gantt Tool</h3>
+              <p style={{ fontSize: 14, color: '#666', margin: '8px 0' }}>
+                Create and manage project timelines
+              </p>
+              <Button type="link">
+                Start now <RightOutlined />
+              </Button>
             </div>
           </Card>
         </Col>
       </Row>
-      </div>
-    </div>
+    </AppShell>
   );
 }

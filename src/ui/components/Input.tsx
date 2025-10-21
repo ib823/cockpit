@@ -1,60 +1,70 @@
-import React from 'react';
-import clsx from 'clsx';
+/**
+ * Input Component - Ant Design wrapper
+ * Maintains API compatibility with previous custom implementation
+ */
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+import React from 'react';
+import { Input as AntInput } from 'antd';
+import type { InputProps as AntInputProps } from 'antd';
+
+const { TextArea: AntTextArea } = AntInput;
+
+export interface InputProps extends Omit<AntInputProps, 'size' | 'status'> {
   size?: 'sm' | 'md' | 'lg';
   state?: 'default' | 'error' | 'success';
 }
 
-const base = 'w-full rounded-[var(--r-md)] border bg-[var(--surface)] text-[var(--ink)] placeholder:text-[var(--gray-500)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] transition-colors';
+const sizeMap = {
+  sm: 'small' as const,
+  md: 'middle' as const,
+  lg: 'large' as const,
+};
 
-const sizes = {
-  sm: 'h-8 px-3 text-[14px]',
-  md: 'h-10 px-3 text-[14px]',
-  lg: 'h-12 px-4 text-[16px]'
-} as const;
-
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input({
-  size = 'md',
-  state = 'default',
-  className,
-  ...props
-}, ref) {
-  const border = state === 'error'
-    ? 'border-[var(--error)]'
-    : state === 'success'
-    ? 'border-[var(--success)]'
-    : 'border-[var(--line)]';
+export const Input = React.forwardRef<any, InputProps>(function Input(
+  {
+    size = 'md',
+    state = 'default',
+    className,
+    ...props
+  },
+  ref
+) {
+  const status = state === 'error' ? 'error' : state === 'success' ? 'warning' : undefined;
 
   return (
-    <input
+    <AntInput
       ref={ref}
-      className={clsx(base, sizes[size], border, className)}
+      size={sizeMap[size]}
+      status={status}
+      className={className}
       {...props}
     />
   );
 });
 
-export interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextAreaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
   state?: 'default' | 'error' | 'success';
+  rows?: number;
 }
 
-export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea({
-  state = 'default',
-  className,
-  ...props
-}, ref) {
-  const border = state === 'error'
-    ? 'border-[var(--error)]'
-    : state === 'success'
-    ? 'border-[var(--success)]'
-    : 'border-[var(--line)]';
+export const TextArea = React.forwardRef<any, TextAreaProps>(function TextArea(
+  {
+    state = 'default',
+    className,
+    rows = 4,
+    ...props
+  },
+  ref
+) {
+  const status = state === 'error' ? 'error' : state === 'success' ? 'warning' : undefined;
 
   return (
-    <textarea
+    <AntTextArea
       ref={ref}
-      className={clsx(base, 'min-h-[96px] p-3', border, className)}
-      {...props}
+      status={status}
+      rows={rows}
+      className={className}
+      {...(props as any)}
     />
   );
 });
