@@ -216,6 +216,11 @@ export default function LoginEmailFirst() {
                   className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !status && !busy) {
+                      onCheck();
+                    }
+                  }}
                   placeholder="you@company.com"
                 />
               </div>
@@ -283,6 +288,11 @@ export default function LoginEmailFirst() {
                       placeholder="000000"
                       value={code}
                       onChange={e => setCode(e.target.value.replace(/[^0-9]/g,''))}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !busy && code.length === 6) {
+                          onRegisterWithCode();
+                        }
+                      }}
                     />
                     <p className="text-xs text-slate-500 mt-2 text-center">
                       Enter the code provided by your administrator

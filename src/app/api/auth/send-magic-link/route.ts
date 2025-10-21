@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     // Get base URL from request
     const protocol = req.headers.get('x-forwarded-proto') || 'http';
-    const host = req.headers.get('host') || 'localhost:3000';
+    const host = req.headers.get('host') || 'localhost:3002';
     const baseUrl = `${protocol}://${host}`;
     const magicLink = `${baseUrl}/login?token=${token}`;
 

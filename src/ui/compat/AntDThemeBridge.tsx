@@ -3,30 +3,32 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ConfigProvider, theme as antdTheme } from 'antd';
 
+// Server-side fallback tokens
+const SERVER_FALLBACK = {
+  themeAttr: 'light' as const,
+  token: {
+    colorPrimary: '#2563eb',
+    colorInfo: '#2563eb',
+    colorSuccess: '#16a34a',
+    colorWarning: '#f59e0b',
+    colorError: '#ef4444',
+    colorBgBase: '#ffffff',
+    colorTextBase: '#0f172a',
+    colorBorder: '#e5e7eb',
+    borderRadius: 10,
+    fontFamily: `-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Helvetica Neue,sans-serif`,
+  },
+};
+
 function readVar(name: string, fallback: string) {
   if (typeof window === 'undefined') return fallback;
   const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   return v || fallback;
 }
 
-function snapshotTokens() {
-  if (typeof window === 'undefined') {
-    // Server-side fallback
-    return {
-      themeAttr: 'light',
-      token: {
-        colorPrimary: '#2563eb',
-        colorInfo: '#2563eb',
-        colorSuccess: '#16a34a',
-        colorWarning: '#f59e0b',
-        colorError: '#ef4444',
-        colorBgBase: '#ffffff',
-        colorTextBase: '#0f172a',
-        colorBorder: '#e5e7eb',
-        borderRadius: 10,
-        fontFamily: `-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Helvetica Neue,sans-serif`,
-      },
-    } as const;
+function snapshotTokens(useServerFallback = false) {
+  if (typeof window === 'undefined' || useServerFallback) {
+    return SERVER_FALLBACK;
   }
 
   const themeAttr = document.documentElement.getAttribute('data-theme') ??
@@ -56,10 +58,19 @@ function snapshotTokens() {
 }
 
 export const AntDThemeBridge: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isClient, setIsClient] = useState(false);
   const [ver, setVer] = useState(0);
-  const last = useRef(JSON.stringify(snapshotTokens()));
+  const last = useRef<string | null>(null);
+
+  // Detect when client-side hydration is complete
+  useEffect(() => {
+    setIsClient(true);
+    last.current = JSON.stringify(snapshotTokens(false));
+  }, []);
 
   useEffect(() => {
+    if (!isClient) return;
+
     let rafId = 0;
     const obs = new MutationObserver((mutations) => {
       const relevant = mutations.some((m) =>
@@ -73,7 +84,7 @@ export const AntDThemeBridge: React.FC<{ children: React.ReactNode }> = ({ child
 
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        const snap = JSON.stringify(snapshotTokens());
+        const snap = JSON.stringify(snapshotTokens(false));
         if (snap !== last.current) {
           last.current = snap;
           setVer((v) => v + 1);
@@ -90,9 +101,11 @@ export const AntDThemeBridge: React.FC<{ children: React.ReactNode }> = ({ child
       obs.disconnect();
       cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [isClient]);
 
-  const snap = useMemo(() => snapshotTokens(), [ver]);
+  // Use server fallback during SSR and initial client render (before hydration)
+  // This ensures server and client render the same HTML
+  const snap = useMemo(() => snapshotTokens(!isClient), [ver, isClient]);
   const algorithm = snap.themeAttr === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
 
   return (

@@ -24,9 +24,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     console.error = (...args) => {
       if (typeof args[0] === 'string' && (
         args[0].includes('antd: compatible') ||
-        args[0].includes('[next-auth][error][CLIENT_FETCH_ERROR]') ||
-        // Suppress AntD hydration warnings - expected with dynamic theming
-        (args[0].includes('Hydration') && args[0].includes('css-dev-only-do-not-override'))
+        args[0].includes('[next-auth][error][CLIENT_FETCH_ERROR]')
       )) {
         return;
       }

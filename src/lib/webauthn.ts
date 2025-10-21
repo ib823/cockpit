@@ -23,7 +23,7 @@ function getWebAuthnConfig() {
 
   return {
     rpID: rpID ?? 'localhost',
-    origin: origin ?? 'http://localhost:3001',
+    origin: origin ?? 'http://localhost:3002',
   };
 }
 

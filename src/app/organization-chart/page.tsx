@@ -18,7 +18,7 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { Button, Input, Select, Tooltip, App, Modal, Dropdown, Tag, Badge } from 'antd';
+import { Button, Input, Select, Tooltip, App, Modal, Dropdown, Tag, Badge, ColorPicker } from 'antd';
 import {
   LeftOutlined,
   PlusOutlined,
@@ -32,11 +32,26 @@ import {
   FilePdfOutlined,
   UserOutlined,
   CloseOutlined,
+  FundViewOutlined,
+  CrownOutlined,
 } from '@ant-design/icons';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import type { Resource } from '@/types/gantt-tool';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  closestCorners,
+  rectIntersection,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 
 // Types
 interface OrgPosition {
@@ -48,6 +63,10 @@ interface OrgGroup {
   id: string;
   name: string;
   positions: OrgPosition[];
+  leadPositionId?: string; // ID of the position that leads this group
+  isCounterpart?: boolean; // Flag to mark client/counterpart teams
+  counterpartCount?: number; // Manual count for counterpart teams (no actual resource assignment)
+  counterpartColor?: string; // Brand color for counterpart teams (hex color)
 }
 
 interface OrgLevel {
@@ -76,6 +95,19 @@ export default function OrganizationChartPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
   const isInitialLoad = useRef(true); // Track initial load to prevent saving default state
+
+  // Drag and Drop State
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeDragItem, setActiveDragItem] = useState<{ levelId: string; groupId: string; positionId: string; resourceId: string } | null>(null);
+
+  // Sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px of movement required before drag starts
+      },
+    })
+  );
 
   /**
    * Default Organization Chart Structure
@@ -110,6 +142,13 @@ export default function OrganizationChartPage() {
             name: 'Leadership',
             positions: [],
           },
+          {
+            id: '1-counterpart',
+            name: 'Client Executive Sponsor',
+            positions: [],
+            isCounterpart: true,
+            counterpartCount: 0,
+          },
         ],
       },
       {
@@ -125,6 +164,13 @@ export default function OrganizationChartPage() {
             id: '2-2',
             name: 'Change Management',
             positions: [],
+          },
+          {
+            id: '2-counterpart',
+            name: 'Client Project Management',
+            positions: [],
+            isCounterpart: true,
+            counterpartCount: 0,
           },
         ],
       },
@@ -147,6 +193,13 @@ export default function OrganizationChartPage() {
             name: 'Quality Assurance',
             positions: [],
           },
+          {
+            id: '3-counterpart',
+            name: 'Client Business Team',
+            positions: [],
+            isCounterpart: true,
+            counterpartCount: 0,
+          },
         ],
       },
       {
@@ -168,18 +221,70 @@ export default function OrganizationChartPage() {
             name: 'Other/General',
             positions: [],
           },
+          {
+            id: '4-counterpart',
+            name: 'Client IT Support',
+            positions: [],
+            isCounterpart: true,
+            counterpartCount: 0,
+          },
         ],
       },
     ],
   });
 
+  // Migration: Add default counterpart groups if they don't exist
+  const migrateOrgChart = useCallback((chart: SimpleOrgChart): SimpleOrgChart => {
+    const counterpartDefaults: Record<string, { name: string; id: string }> = {
+      '1': { id: '1-counterpart', name: 'Client Executive Sponsor' },
+      '2': { id: '2-counterpart', name: 'Client Project Management' },
+      '3': { id: '3-counterpart', name: 'Client Business Team' },
+      '4': { id: '4-counterpart', name: 'Client IT Support' },
+    };
+
+    return {
+      ...chart,
+      levels: chart.levels.map(level => {
+        const counterpartDef = counterpartDefaults[level.id];
+        if (!counterpartDef) return level;
+
+        // Check if counterpart group already exists
+        const hasCounterpart = level.groups.some(g => g.id === counterpartDef.id);
+        if (hasCounterpart) return level;
+
+        // Add default counterpart group
+        return {
+          ...level,
+          groups: [
+            ...level.groups,
+            {
+              id: counterpartDef.id,
+              name: counterpartDef.name,
+              positions: [],
+              isCounterpart: true,
+              counterpartCount: 0,
+            },
+          ],
+        };
+      }),
+    };
+  }, []);
+
   // Load org chart from project on mount
   useEffect(() => {
     if (currentProject?.orgChart) {
       try {
-        const savedOrgChart = JSON.parse(JSON.stringify(currentProject.orgChart));
-        setOrgChart(savedOrgChart);
+        const originalOrgChart = JSON.parse(JSON.stringify(currentProject.orgChart));
+        // Migrate to add counterpart groups if missing
+        const migratedOrgChart = migrateOrgChart(originalOrgChart);
+        setOrgChart(migratedOrgChart);
         console.log('[OrgChart] Loaded saved org chart from database');
+
+        // If migration added new groups, trigger a save after initial load completes
+        if (JSON.stringify(originalOrgChart) !== JSON.stringify(migratedOrgChart)) {
+          console.log('[OrgChart] Migration added counterpart groups, will auto-save...');
+          // Save will happen via auto-save effect after initial load delay
+        }
       } catch (error) {
         console.error('[OrgChart] Failed to load org chart:', error);
       }
@@ -188,7 +293,7 @@ export default function OrganizationChartPage() {
     setTimeout(() => {
       isInitialLoad.current = false;
     }, 500);
-  }, [currentProject?.id]); // Only reload when project changes
+  }, [currentProject?.id, migrateOrgChart]); // Only reload when project changes
 
   // Manual save function
   const saveOrgChart = useCallback(async () => {
@@ -419,6 +524,77 @@ export default function OrganizationChartPage() {
     message.success('Group updated');
   }, [message]);
 
+  const toggleCounterpart = useCallback((levelId: string, groupId: string) => {
+    setOrgChart(prev => ({
+      levels: prev.levels.map(level =>
+        level.id === levelId
+          ? {
+              ...level,
+              groups: level.groups.map(group =>
+                group.id === groupId
+                  ? { ...group, isCounterpart: !group.isCounterpart }
+                  : group
+              ),
+            }
+          : level
+      ),
+    }));
+    message.success('Group updated');
+  }, [message]);
+
+  const setGroupLead = useCallback((levelId: string, groupId: string, positionId: string | null) => {
+    setOrgChart(prev => ({
+      levels: prev.levels.map(level =>
+        level.id === levelId
+          ? {
+              ...level,
+              groups: level.groups.map(group =>
+                group.id === groupId
+                  ? { ...group, leadPositionId: positionId || undefined }
+                  : group
+              ),
+            }
+          : level
+      ),
+    }));
+    message.success(positionId ? 'Group lead set' : 'Group lead removed');
+  }, [message]);
+
+  const updateCounterpartCount = useCallback((levelId: string, groupId: string, count: number) => {
+    setOrgChart(prev => ({
+      levels: prev.levels.map(level =>
+        level.id === levelId
+          ? {
+              ...level,
+              groups: level.groups.map(group =>
+                group.id === groupId
+                  ? { ...group, counterpartCount: Math.max(0, count) }
+                  : group
+              ),
+            }
+          : level
+      ),
+    }));
+  }, []);
+
+  const updateCounterpartColor = useCallback((levelId: string, groupId: string, color: string) => {
+    setOrgChart(prev => ({
+      levels: prev.levels.map(level =>
+        level.id === levelId
+          ? {
+              ...level,
+              groups: level.groups.map(group =>
+                group.id === groupId
+                  ? { ...group, counterpartColor: color }
+                  : group
+              ),
+            }
+          : level
+      ),
+    }));
+    message.success('Brand color updated');
+  }, [message]);
+
   const deleteGroup = useCallback((levelId: string, groupId: string) => {
     modal.confirm({
       title: 'Delete Group?',
@@ -494,6 +670,94 @@ export default function OrganizationChartPage() {
     }));
     message.success('Position removed');
   }, [message]);
+
+  // Drag and Drop Handlers
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const { active } = event;
+    const dragData = active.data.current as { levelId: string; groupId: string; positionId: string; resourceId: string };
+    setActiveId(active.id as string);
+    setActiveDragItem(dragData);
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) {
+      setActiveId(null);
+      setActiveDragItem(null);
+      return;
+    }
+
+    // Get drag data - use the state we stored on drag start as fallback
+    const dragData = (active.data.current || activeDragItem) as { levelId: string; groupId: string; positionId: string; resourceId: string } | null;
+    const dropData = over.data.current as { levelId: string; groupId: string } | undefined;
+
+    // Clear drag state
+    setActiveId(null);
+    setActiveDragItem(null);
+
+    if (!dragData || !dropData) {
+      console.warn('Missing drag or drop data', { dragData, dropData });
+      return;
+    }
+
+    console.log('🔍 Drag end debug:', {
+      dragLevelId: dragData.levelId,
+      dragLevelIdType: typeof dragData.levelId,
+      dropLevelId: dropData.levelId,
+      dropLevelIdType: typeof dropData.levelId,
+      dragGroupId: dragData.groupId,
+      dropGroupId: dropData.groupId,
+      stringMatch: String(dragData.levelId) === String(dropData.levelId),
+      directMatch: dragData.levelId === dropData.levelId,
+      dragDataFull: dragData,
+      dropDataFull: dropData,
+    });
+
+    // Validate: can only drop within the same level
+    if (String(dragData.levelId) !== String(dropData.levelId)) {
+      message.warning('Resources can only be moved within the same level');
+      return;
+    }
+
+    // If dropped on the same group, do nothing
+    if (dragData.groupId === dropData.groupId) {
+      return;
+    }
+
+    // Move the resource from one group to another within the same level
+    setOrgChart(prev => ({
+      levels: prev.levels.map(level => {
+        if (level.id !== dragData.levelId) return level;
+
+        return {
+          ...level,
+          groups: level.groups.map(group => {
+            // Remove from source group
+            if (group.id === dragData.groupId) {
+              return {
+                ...group,
+                positions: group.positions.filter(p => p.id !== dragData.positionId),
+              };
+            }
+            // Add to target group
+            if (group.id === dropData.groupId) {
+              return {
+                ...group,
+                positions: [...group.positions, {
+                  id: Date.now().toString(),
+                  resourceId: dragData.resourceId,
+                }],
+              };
+            }
+            return group;
+          }),
+        };
+      }),
+    }));
+
+    message.success('Resource moved successfully');
+  }, [message, activeDragItem]);
 
   // Filter positions based on view mode
   const shouldShowPosition = useCallback((position: OrgPosition) => {
@@ -689,6 +953,181 @@ export default function OrganizationChartPage() {
     });
   }, [currentProject, message, modal]);
 
+  // Draggable Resource Card Component
+  const DraggableResourceCard = ({ position, level, group }: { position: OrgPosition; level: OrgLevel; group: OrgGroup }) => {
+    const info = position.resourceId ? getResourceInfo(position.resourceId) : null;
+    const dragId = `drag-${level.id}-${group.id}-${position.id}`;
+    const isLead = group.leadPositionId === position.id;
+
+    const dragData = {
+      levelId: level.id,
+      groupId: group.id,
+      positionId: position.id,
+      resourceId: position.resourceId,
+    };
+
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+      id: dragId,
+      data: dragData,
+    });
+
+    // Debug: Log what data this draggable has
+    if (isDragging) {
+      console.log('Dragging from:', dragData);
+    }
+
+    const style = transform ? {
+      transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      opacity: isDragging ? 0.5 : 1,
+      cursor: 'grab',
+    } : { cursor: 'grab' };
+
+    const handleToggleLead = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setGroupLead(level.id, group.id, isLead ? null : position.id);
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...listeners}
+        {...attributes}
+        className={`bg-white rounded-lg border-2 p-4 hover:shadow-md transition-all duration-150 relative ${
+          isLead ? 'border-amber-400 bg-gradient-to-br from-amber-50 to-white' : 'border-gray-200 hover:border-blue-300'
+        }`}
+      >
+        {isLead && (
+          <div className="absolute -top-2 -right-2 bg-amber-500 text-white rounded-full p-1">
+            <CrownOutlined style={{ fontSize: 12 }} />
+          </div>
+        )}
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="font-medium text-gray-900 text-sm truncate">
+                {info?.resource.name || 'Unknown'}
+              </div>
+              {isLead && (
+                <Tag color="gold" className="text-xs !text-[9px] !py-0 !leading-tight">
+                  LEAD
+                </Tag>
+              )}
+            </div>
+            <div className="text-xs text-gray-600 mt-0.5">
+              {info?.resource.category || 'No category'}
+            </div>
+
+            {info && info.phases.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {info.phases.slice(0, 2).map((phase, idx) => (
+                  <Tag key={idx} color="blue" className="text-xs !text-[10px] !py-0">
+                    {phase}
+                  </Tag>
+                ))}
+                {info.phases.length > 2 && (
+                  <Tag className="text-xs !text-[10px] !py-0">
+                    +{info.phases.length - 2}
+                  </Tag>
+                )}
+              </div>
+            )}
+
+            {info && info.tasks.length > 0 && (
+              <div className="text-xs text-gray-500 mt-1">
+                {info.tasks.length} task{info.tasks.length !== 1 ? 's' : ''}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-1 ml-2">
+            <Tooltip title={isLead ? 'Remove as lead' : 'Set as lead'}>
+              <Button
+                type={isLead ? 'primary' : 'default'}
+                icon={<CrownOutlined />}
+                size="small"
+                onClick={handleToggleLead}
+                style={isLead ? { backgroundColor: '#f59e0b', borderColor: '#f59e0b' } : {}}
+              />
+            </Tooltip>
+            <Button
+              danger
+              icon={<CloseOutlined />}
+              size="small"
+              onClick={(e) => removePosition(e, level.id, group.id, position.id)}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Droppable Group Component
+  const DroppableGroupContainer = ({ level, group, children }: { level: OrgLevel; group: OrgGroup; children: React.ReactNode }) => {
+    const dropId = `drop-${level.id}-${group.id}`;
+
+    const dropData = {
+      levelId: level.id,
+      groupId: group.id,
+    };
+
+    const { setNodeRef, isOver } = useDroppable({
+      id: dropId,
+      data: dropData,
+    });
+
+    // Check if this is a valid drop target
+    const isValidDropTarget = activeDragItem && activeDragItem.levelId === level.id;
+    const isInvalidDropTarget = activeDragItem && activeDragItem.levelId !== level.id;
+
+    // Debug: Log when hovering over this droppable
+    if (isOver) {
+      console.log(`🎯 Hovering over "${group.name}" - Level: ${level.id} | Group: ${group.id} | Valid: ${isValidDropTarget} | isOver: ${isOver}`);
+    }
+
+    // Debug: Log when this component renders during drag
+    if (activeId && group.name === 'Finance') {
+      console.log(`💰 Finance group state: isOver=${isOver}, isValidDropTarget=${isValidDropTarget}, activeDragItem=`, activeDragItem);
+    }
+
+    // Determine background style based on counterpart color
+    const bgStyle = group.isCounterpart && group.counterpartColor
+      ? {
+          background: `linear-gradient(to bottom right, ${group.counterpartColor}10, ${group.counterpartColor}05, #f9fafb80)`,
+        }
+      : {};
+
+    return (
+      <div className={`transition-all duration-200 w-96 flex-shrink-0`}>
+        <div
+          ref={setNodeRef}
+          style={bgStyle}
+          className={`${!group.isCounterpart ? 'bg-gradient-to-br from-blue-50/30 via-white to-gray-50/50' : ''} rounded-xl border-2 p-5 min-h-[220px] flex flex-col relative ${
+            isOver && isValidDropTarget
+              ? 'border-green-500 bg-green-50 shadow-xl ring-4 ring-green-200'
+              : isOver && isInvalidDropTarget
+              ? 'border-red-500 bg-red-50 shadow-xl ring-4 ring-red-200'
+              : isValidDropTarget && activeId
+              ? 'border-blue-500 hover:border-blue-600 shadow-md'
+              : 'border-gray-300 hover:border-blue-400 hover:shadow-lg'
+          }`}
+        >
+          {/* Hover Indicator */}
+          {isOver && (
+            <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold shadow-lg z-50 whitespace-nowrap ${
+              isValidDropTarget
+                ? 'bg-green-500 text-white'
+                : 'bg-red-500 text-white'
+            }`}>
+              {isValidDropTarget ? '✓ DROP HERE' : '✗ WRONG LEVEL'}
+            </div>
+          )}
+          {children}
+        </div>
+      </div>
+    );
+  };
+
   if (!currentProject) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
@@ -705,24 +1144,39 @@ export default function OrganizationChartPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* Header - Jobs/Ive: "Beautiful simplicity" */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              type="text"
-              icon={<LeftOutlined />}
-              onClick={() => router.push('/gantt-tool')}
-              size="large"
-            />
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Organization Chart</h1>
-              <p className="text-sm text-gray-600">{currentProject.name}</p>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={rectIntersection}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="h-screen flex flex-col bg-gray-50">
+        {/* Header - Jobs/Ive: "Beautiful simplicity" */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                type="text"
+                icon={<LeftOutlined />}
+                onClick={() => router.push('/gantt-tool')}
+                size="large"
+              />
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">Organization Chart</h1>
+                <p className="text-sm text-gray-600">{currentProject.name}</p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
+              {/* Overview/Presentation Button */}
+              <Button
+                type="default"
+                icon={<FundViewOutlined />}
+                onClick={() => router.push('/organization-chart/overview')}
+                size="large"
+              >
+                Presentation View
+              </Button>
             {/* Save Status */}
             {lastSaved && (
               <span className="text-xs text-gray-500">
@@ -865,6 +1319,11 @@ export default function OrganizationChartPage() {
                 • Filtered to show only team assigned to selected task
               </span>
             )}
+            {activeId && (
+              <span className="ml-2 text-purple-700 font-bold">
+                • 🎯 Drag in progress: Blue borders = valid drop zones | Red borders = invalid
+              </span>
+            )}
           </p>
         </div>
       </div>
@@ -965,10 +1424,7 @@ export default function OrganizationChartPage() {
                   const visiblePositions = group.positions.filter(shouldShowPosition);
 
                   return (
-                    <div
-                      key={group.id}
-                      className="bg-gradient-to-br from-blue-50/30 via-white to-gray-50/50 rounded-xl border-2 border-gray-300 p-5 hover:border-blue-400 hover:shadow-lg transition-all duration-200 w-96 flex-shrink-0 min-h-[220px] flex flex-col"
-                    >
+                    <DroppableGroupContainer key={group.id} level={level} group={group}>
                       {/* Group Header */}
                       <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-300">
                         {editingGroup?.group.id === group.id ? (
@@ -983,88 +1439,77 @@ export default function OrganizationChartPage() {
                             size="small"
                           />
                         ) : (
-                          <div className="flex items-center gap-2 flex-1">
-                            <h3 className="font-semibold text-gray-900 text-base">{group.name}</h3>
-                            <Badge
-                              count={visiblePositions.length}
-                              showZero
-                              style={{
-                                backgroundColor: visiblePositions.length > 0 ? '#52c41a' : '#d9d9d9',
-                                fontWeight: 'bold'
-                              }}
-                            />
+                          <div className="flex flex-col gap-1 flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-gray-900 text-base">{group.name}</h3>
+                              <Badge
+                                count={group.isCounterpart ? (group.counterpartCount || 0) : visiblePositions.length}
+                                showZero
+                                style={{
+                                  backgroundColor: group.isCounterpart
+                                    ? (group.counterpartCount || 0) > 0 ? '#9333ea' : '#d9d9d9'
+                                    : visiblePositions.length > 0 ? '#52c41a' : '#d9d9d9',
+                                  fontWeight: 'bold'
+                                }}
+                              />
+                              {group.isCounterpart && (
+                                <Tag color="purple" className="text-xs">Counterpart</Tag>
+                              )}
+                            </div>
+                            {/* DEBUG: Show level and group IDs */}
+                            <div className="text-xs text-gray-400 font-mono">
+                              Level: {level.id} | Group: {group.id}
+                            </div>
                           </div>
                         )}
                         <div className="flex items-center gap-1">
-                          <Button
-                            type="default"
-                            icon={<EditOutlined />}
-                            onClick={() => setEditingGroup({ level, group })}
-                            size="small"
-                          />
-                          <Button
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => deleteGroup(level.id, group.id)}
-                            size="small"
-                          />
+                          <Dropdown
+                            menu={{
+                              items: [
+                                {
+                                  key: 'counterpart',
+                                  label: group.isCounterpart ? 'Mark as Internal Team' : 'Mark as Counterpart',
+                                  icon: <TeamOutlined />,
+                                  onClick: () => toggleCounterpart(level.id, group.id),
+                                },
+                                {
+                                  type: 'divider',
+                                },
+                                {
+                                  key: 'edit',
+                                  label: 'Rename',
+                                  icon: <EditOutlined />,
+                                  onClick: () => setEditingGroup({ level, group }),
+                                },
+                                {
+                                  key: 'delete',
+                                  label: 'Delete',
+                                  icon: <DeleteOutlined />,
+                                  danger: true,
+                                  onClick: () => deleteGroup(level.id, group.id),
+                                },
+                              ],
+                            }}
+                          >
+                            <Button
+                              type="default"
+                              size="small"
+                              icon={<EditOutlined />}
+                            />
+                          </Dropdown>
                         </div>
                       </div>
 
                       {/* Resource Cards - Jobs/Ive: "Every detail matters" */}
                       <div className="space-y-3 flex-1">
-                        {visiblePositions.map((position) => {
-                          const info = position.resourceId ? getResourceInfo(position.resourceId) : null;
-
-                          return (
-                            <div
-                              key={position.id}
-                              className="bg-white rounded-lg border-2 border-gray-200 p-4 hover:shadow-md hover:border-blue-300 transition-all duration-150"
-                            >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-gray-900 text-sm truncate">
-                                    {info?.resource.name || 'Unknown'}
-                                  </div>
-                                  <div className="text-xs text-gray-600 mt-0.5">
-                                    {info?.resource.category || 'No category'}
-                                  </div>
-
-                                  {/* Phase assignments */}
-                                  {info && info.phases.length > 0 && (
-                                    <div className="mt-2 flex flex-wrap gap-1">
-                                      {info.phases.slice(0, 2).map((phase, idx) => (
-                                        <Tag key={idx} color="blue" className="text-xs !text-[10px] !py-0">
-                                          {phase}
-                                        </Tag>
-                                      ))}
-                                      {info.phases.length > 2 && (
-                                        <Tag className="text-xs !text-[10px] !py-0">
-                                          +{info.phases.length - 2}
-                                        </Tag>
-                                      )}
-                                    </div>
-                                  )}
-
-                                  {/* Task count */}
-                                  {info && info.tasks.length > 0 && (
-                                    <div className="text-xs text-gray-500 mt-1">
-                                      {info.tasks.length} task{info.tasks.length !== 1 ? 's' : ''}
-                                    </div>
-                                  )}
-                                </div>
-
-                                <Button
-                                  danger
-                                  icon={<CloseOutlined />}
-                                  size="small"
-                                  className="ml-2"
-                                  onClick={(e) => removePosition(e, level.id, group.id, position.id)}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
+                        {visiblePositions.map((position) => (
+                          <DraggableResourceCard
+                            key={position.id}
+                            position={position}
+                            level={level}
+                            group={group}
+                          />
+                        ))}
 
                         {/* Show count when filtered */}
                         {viewMode !== 'overall' && visiblePositions.length < group.positions.length && (
@@ -1073,19 +1518,62 @@ export default function OrganizationChartPage() {
                           </div>
                         )}
 
-                        {/* Assign Resource Button */}
-                        <Button
-                          block
-                          type="dashed"
-                          icon={<PlusOutlined />}
-                          onClick={(e) => addPosition(e, level.id, group.id)}
-                          className="!border-2 !border-blue-300 !text-blue-600 hover:!bg-blue-50 hover:!border-blue-400 always-visible mt-auto font-medium"
-                          size="large"
-                        >
-                          Assign Resource
-                        </Button>
+                        {/* Counterpart: Number Input / Internal: Assign Resource Button */}
+                        {group.isCounterpart ? (
+                          <div className="mt-auto pt-3 border-t-2 border-purple-200">
+                            <div className="text-xs text-purple-700 font-semibold mb-2 text-center uppercase">
+                              Client/Counterpart Team Size
+                            </div>
+                            <Input
+                              type="number"
+                              min={0}
+                              value={group.counterpartCount || 0}
+                              onChange={(e) => updateCounterpartCount(level.id, group.id, parseInt(e.target.value) || 0)}
+                              size="large"
+                              className="text-center font-bold text-lg"
+                              style={{ borderColor: '#a855f7', borderWidth: '2px' }}
+                              suffix={
+                                <span className="text-xs text-gray-500">
+                                  {(group.counterpartCount || 0) === 1 ? 'person' : 'people'}
+                                </span>
+                              }
+                            />
+                            <div className="text-xs text-gray-500 text-center mt-2">
+                              Enter estimated team size
+                            </div>
+
+                            {/* Brand Color Picker */}
+                            <div className="mt-4 pt-3 border-t border-gray-200">
+                              <div className="text-xs text-purple-700 font-semibold mb-2 text-center uppercase">
+                                Brand Color
+                              </div>
+                              <div className="flex items-center justify-center gap-2">
+                                <ColorPicker
+                                  value={group.counterpartColor || '#9333ea'}
+                                  onChange={(color) => updateCounterpartColor(level.id, group.id, color.toHexString())}
+                                  showText
+                                  size="large"
+                                />
+                              </div>
+                              <div className="text-xs text-gray-500 text-center mt-2">
+                                Choose client brand color
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button
+                            block
+                            type="dashed"
+                            icon={<PlusOutlined />}
+                            onClick={(e) => addPosition(e, level.id, group.id)}
+                            className="!border-2 !border-blue-300 !text-blue-600 hover:!bg-blue-50 hover:!border-blue-400 always-visible mt-auto font-medium"
+                            size="large"
+                          >
+                            Assign Resource
+                          </Button>
+                        )}
                       </div>
-                    </div>
+                    </DroppableGroupContainer>
                   );
                 })}
               </div>
@@ -1194,6 +1682,7 @@ export default function OrganizationChartPage() {
           );
         })()}
       </Modal>
-    </div>
+      </div>
+    </DndContext>
   );
 }

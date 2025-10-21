@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     });
 
     // Try to send email immediately with magic link (optional - won't block on failure)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
     const magicUrl = `${baseUrl}/login?token=${magicToken}`;
 
     sendAccessCode(email, code, magicUrl).catch(err => {
