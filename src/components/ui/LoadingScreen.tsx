@@ -1,12 +1,26 @@
+/**
+ * LoadingScreen - Ant Design Spin wrapper
+ * Full-screen loading state
+ */
+
 'use client';
-import { GhostLoader } from '@/components/common';
+
+import { Spin } from 'antd';
 
 export function LoadingScreen({ message = 'Loading...' }: { message?: string }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
-      <div className="text-center">
-        <GhostLoader />
-        <p className="mt-4 text-gray-600 text-lg">{message}</p>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #f7f8fa 0%, #e6f0ff 50%, #f3e8ff 100%)',
+      }}
+    >
+      <div style={{ textAlign: 'center' }}>
+        <Spin size="large" />
+        <p style={{ marginTop: 16, color: '#666', fontSize: 18 }}>{message}</p>
       </div>
     </div>
   );

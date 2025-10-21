@@ -1,7 +1,10 @@
-import React from "react";
-import { LucideIcon } from "lucide-react";
-import { Heading3, BodyLG, BodyMD } from "./Typography";
-import { Button } from "./Button";
+/**
+ * EmptyState Component - Ant Design wrapper
+ */
+
+import React from 'react';
+import { Empty, Button, Card } from 'antd';
+import type { LucideIcon } from 'lucide-react';
 
 interface EmptyStateProps {
   icon?: LucideIcon;
@@ -10,45 +13,50 @@ interface EmptyStateProps {
   action?: {
     label: string;
     onClick: () => void;
-    variant?: "primary" | "secondary" | "ghost";
+    variant?: 'primary' | 'secondary' | 'ghost';
   };
   children?: React.ReactNode;
 }
 
-export function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  action,
-  children,
-}: EmptyStateProps) {
+const variantMap = {
+  primary: 'primary' as const,
+  secondary: 'default' as const,
+  ghost: 'text' as const,
+};
+
+export function EmptyState({ icon: Icon, title, description, action, children }: EmptyStateProps) {
   return (
-    <div className="bg-gray-50 rounded-lg p-12 text-center shadow-sm">
-      {Icon && (
-        <div className="flex justify-center mb-4">
-          <Icon className="w-16 h-16 text-gray-400" />
-        </div>
-      )}
-
-      <Heading3 className="text-gray-900 mb-2">{title}</Heading3>
-
-      {description && (
-        <BodyMD className="text-gray-600 mb-6 max-w-md mx-auto">
-          {description}
-        </BodyMD>
-      )}
-
-      {action && (
-        <Button
-          variant={action.variant || "primary"}
-          size="md"
-          onClick={action.onClick}
+    <Card style={{ background: '#fafafa' }}>
+      <div style={{ padding: '48px 0', textAlign: 'center' }}>
+        <Empty
+          image={
+            Icon ? (
+              <Icon style={{ width: 64, height: 64, color: '#bbb', margin: '0 auto' }} />
+            ) : (
+              Empty.PRESENTED_IMAGE_SIMPLE
+            )
+          }
+          description={
+            <>
+              <div style={{ fontSize: 18, fontWeight: 600, color: '#262626', marginBottom: 8 }}>
+                {title}
+              </div>
+              {description && (
+                <div style={{ fontSize: 14, color: '#8c8c8c', maxWidth: 448, margin: '0 auto 24px' }}>
+                  {description}
+                </div>
+              )}
+            </>
+          }
         >
-          {action.label}
-        </Button>
-      )}
-
-      {children}
-    </div>
+          {action && (
+            <Button type={variantMap[action.variant || 'primary']} size="middle" onClick={action.onClick}>
+              {action.label}
+            </Button>
+          )}
+          {children}
+        </Empty>
+      </div>
+    </Card>
   );
 }

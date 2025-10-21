@@ -1,9 +1,9 @@
 /**
- * Empty State Component - Clean empty state display
+ * Empty State Component - Ant Design wrapper
  */
 
 import React from 'react';
-import { clsx } from 'clsx';
+import { Empty as AntEmpty, Button } from 'antd';
 
 export interface EmptyProps {
   icon?: React.ReactNode;
@@ -13,32 +13,20 @@ export interface EmptyProps {
   className?: string;
 }
 
-export const Empty: React.FC<EmptyProps> = ({
-  icon,
-  title,
-  description,
-  action,
-  className,
-}) => {
+export const Empty: React.FC<EmptyProps> = ({ icon, title, description, action, className }) => {
   return (
-    <div
-      className={clsx(
-        'flex flex-col items-center justify-center py-12 px-6 text-center',
-        className
-      )}
-    >
-      {icon && (
-        <div className="mb-4 text-[var(--ink-muted)] opacity-50">
-          {icon}
-        </div>
-      )}
-      <h3 className="text-lg font-semibold text-[var(--ink)] mb-2">{title}</h3>
-      {description && (
-        <p className="text-sm text-[var(--ink-dim)] max-w-md mb-6">
-          {description}
-        </p>
-      )}
-      {action && <div>{action}</div>}
+    <div className={className}>
+      <AntEmpty
+        image={icon || AntEmpty.PRESENTED_IMAGE_SIMPLE}
+        description={
+          <>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{title}</div>
+            {description && <div style={{ fontSize: 14, color: '#666' }}>{description}</div>}
+          </>
+        }
+      >
+        {action}
+      </AntEmpty>
     </div>
   );
 };
