@@ -279,7 +279,8 @@ export default function ResourcesDashboardPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </AppShell>
   );
 }
 
@@ -625,8 +626,6 @@ function ResourceDetailRow({
           </div>
         </div>
       )}
-      </div>
-      </div>
-    </AppShell>
+    </div>
   );
 }
