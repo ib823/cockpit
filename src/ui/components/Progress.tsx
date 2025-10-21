@@ -1,5 +1,10 @@
+/**
+ * Progress Component - Ant Design wrapper
+ * Maintains API compatibility with previous custom implementation
+ */
+
 import React from 'react';
-import clsx from 'clsx';
+import { Progress as AntProgress } from 'antd';
 
 export interface ProgressProps {
   value?: number;
@@ -17,30 +22,18 @@ export const Progress: React.FC<ProgressProps> = ({
   const pct = Math.max(0, Math.min(100, value));
 
   return (
-    <div className={clsx('w-full', className)}>
-      {label && <div className="mb-1 text-[13px] text-[var(--ink)]/80">{label}</div>}
-      <div className="h-2 rounded-full bg-[var(--canvas)] border border-[var(--line)] overflow-hidden">
-        <div
-          className={clsx(
-            'h-full bg-[var(--accent)] transition-[width] duration-300',
-            indeterminate && 'animate-[indet_1.2s_ease_infinite]'
-          )}
-          style={!indeterminate ? { width: `${pct}%` } : { width: '40%' }}
-        />
-      </div>
-      <style jsx>{`
-        @keyframes indet {
-          0% {
-            margin-left: -40%;
-          }
-          50% {
-            margin-left: 40%;
-          }
-          100% {
-            margin-left: 100%;
-          }
-        }
-      `}</style>
+    <div className={className}>
+      {label && (
+        <div style={{ marginBottom: 8, fontSize: 13, opacity: 0.8 }}>
+          {label}
+        </div>
+      )}
+      <AntProgress
+        percent={indeterminate ? undefined : pct}
+        status={indeterminate ? 'active' : undefined}
+        showInfo={false}
+        strokeWidth={8}
+      />
     </div>
   );
 };

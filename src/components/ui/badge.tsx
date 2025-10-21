@@ -1,11 +1,10 @@
 /**
- * Badge Component
- *
- * Simple badge/tag component for status indicators
+ * Badge Component - Ant Design wrapper
+ * Maintains API compatibility with previous custom implementation
  */
 
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { Badge as AntBadge, Tag } from 'antd';
 
 export interface BadgeProps {
   children: React.ReactNode;
@@ -14,36 +13,31 @@ export interface BadgeProps {
   className?: string;
 }
 
+const variantColorMap = {
+  default: 'default',
+  info: 'blue',
+  success: 'green',
+  warning: 'gold',
+  error: 'red',
+} as const;
+
 export function Badge({
   children,
   variant = 'default',
   size = 'md',
   className,
 }: BadgeProps) {
-  const variantClasses = {
-    default: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100',
-    info: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100',
-    success: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
-    warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100',
-    error: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
-  };
-
-  const sizeClasses = {
-    sm: 'px-2 py-0.5 text-xs',
-    md: 'px-2.5 py-0.5 text-sm',
-    lg: 'px-3 py-1 text-base',
-  };
-
+  // Use Ant Design Tag for badge-like display
   return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full font-medium',
-        variantClasses[variant],
-        sizeClasses[size],
-        className
-      )}
+    <Tag
+      color={variantColorMap[variant]}
+      className={className}
+      style={{
+        fontSize: size === 'sm' ? 12 : size === 'lg' ? 16 : 14,
+        padding: size === 'sm' ? '0 8px' : size === 'lg' ? '4px 12px' : '2px 10px',
+      }}
     >
       {children}
-    </span>
+    </Tag>
   );
 }
