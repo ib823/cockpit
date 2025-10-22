@@ -1,6 +1,7 @@
 import OverlaySafety from '@/components/OverlaySafety';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { Suspense } from 'react';
 import './globals.css';
 import { Providers } from './providers';
 
@@ -15,7 +16,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning>
-        <OverlaySafety />
+        <Suspense fallback={null}>
+          <OverlaySafety />
+        </Suspense>
         <Providers>
           {children}
         </Providers>
