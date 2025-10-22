@@ -85,9 +85,8 @@ export async function POST(req: Request) {
 
     await challenges.del(`reg:${email}`);
 
-    // Map MANAGER to USER for session purposes
-    const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
-    await createAuthSession(user.id, user.email, sessionRole);
+    // Fixed: V-014 - Preserve all roles (USER, MANAGER, ADMIN) in sessions
+    await createAuthSession(user.id, user.email, user.role);
 
     return NextResponse.json({ ok: true, user: { name: user.name, role: user.role } });
 

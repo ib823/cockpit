@@ -1,13 +1,17 @@
 import { prisma } from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { randomBytes } from 'crypto';
+import { randomBytes, randomInt } from 'crypto';
 import { sendAccessCode } from '@/lib/email';
+import { otpSendLimiter } from '@/lib/server-rate-limiter';
+import { hashOTP } from '@/lib/crypto-utils';
 
 export const runtime = 'nodejs';
 
-// Generate 6-digit OTP
+// Generate 6-digit OTP using cryptographically secure random number generator
+// Fixed: V-001 - Replaced Math.random() with crypto.randomInt()
 function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // Generate random integer between 100000 and 999999 (inclusive)
+  return randomInt(100000, 1000000).toString();
 }
 
 export async function POST(req: Request) {
@@ -21,6 +25,28 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { ok: false, message: 'Valid email is required' },
         { status: 400 }
+      );
+    }
+
+    // Fixed: V-002 - Rate limiting to prevent email flooding
+    const rateLimitResult = await otpSendLimiter.check(email.toLowerCase());
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: `Too many OTP requests. Please try again in ${Math.ceil((rateLimitResult.retryAfter || 0) / 60)} minutes.`,
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimitResult.retryAfter),
+            'X-RateLimit-Limit': String(rateLimitResult.limit),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': String(rateLimitResult.reset),
+          },
+        }
       );
     }
 
@@ -47,6 +73,9 @@ export async function POST(req: Request) {
     // Generate OTP
     const otp = generateOTP();
 
+    // Fixed: V-003 - Hash OTP before storage (never store plaintext OTPs)
+    const hashedOTP = hashOTP(otp);
+
     // Store OTP in database using magic_tokens table (expires in 10 minutes)
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     const tokenId = randomBytes(16).toString('hex');
@@ -56,12 +85,12 @@ export async function POST(req: Request) {
       where: { email: user.email },
     });
 
-    // Create new OTP record
+    // Create new OTP record with hashed OTP
     await prisma.magic_tokens.create({
       data: {
         id: tokenId,
         email: user.email,
-        token: otp, // Store OTP as token
+        token: hashedOTP, // Store HASHED OTP (SHA-256)
         expiresAt,
       },
     });

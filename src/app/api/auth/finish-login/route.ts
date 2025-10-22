@@ -37,6 +37,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: 'Invalid credentials.' }, { status: 401 });
     }
 
+    // Fixed: V-006 - Check access expiry BEFORE passkey verification
+    // This check happens early to avoid wasting resources on expired accounts
+    const now = new Date();
+    if (!user.exception && user.accessExpiresAt && user.accessExpiresAt <= now) {
+      return NextResponse.json({
+        ok: false,
+        message: 'Your access has expired. Please contact your administrator.',
+      }, { status: 403 });
+    }
+
     const authenticator = user.Authenticator.find(auth => auth.id === response.id);
     if (!authenticator) {
       return NextResponse.json({ ok: false, message: 'This passkey is not registered for this account.' }, { status: 404 });
@@ -62,20 +72,39 @@ export async function POST(req: Request) {
 
     const { newCounter } = verification.authenticationInfo;
 
-    const now = new Date();
-    await prisma.$transaction([
-      prisma.authenticator.update({
+    // Fixed: V-006 - TOCTOU: Check access expiry atomically in transaction
+    // Re-fetch user within transaction to ensure access hasn't expired between check and session creation
+    const transactionResult = await prisma.$transaction(async (tx) => {
+      // Re-check access expiry within transaction for atomicity
+      const freshUser = await tx.users.findUnique({
+        where: { id: user.id },
+        select: { accessExpiresAt: true, exception: true, role: true },
+      });
+
+      if (!freshUser) {
+        throw new Error('User not found');
+      }
+
+      const txNow = new Date();
+      if (!freshUser.exception && freshUser.accessExpiresAt && freshUser.accessExpiresAt <= txNow) {
+        throw new Error('ACCESS_EXPIRED');
+      }
+
+      // Update authenticator and user
+      await tx.authenticator.update({
         where: { id: authenticator.id },
-        data: { counter: newCounter, lastUsedAt: now },
-      }),
-      prisma.users.update({
+        data: { counter: newCounter, lastUsedAt: txNow },
+      });
+
+      await tx.users.update({
         where: { id: user.id },
         data: {
-          lastLoginAt: now,
-          firstLoginAt: user.firstLoginAt ?? now, // Set firstLoginAt if null
+          lastLoginAt: txNow,
+          firstLoginAt: user.firstLoginAt ?? txNow,
         },
-      }),
-      prisma.auditEvent.create({
+      });
+
+      await tx.auditEvent.create({
         data: {
           id: randomUUID(),
           userId: user.id,
@@ -84,13 +113,19 @@ export async function POST(req: Request) {
             ipAddress: req.headers.get('x-forwarded-for') ?? 'unknown',
           },
         },
-      }),
-    ]);
+      });
+
+      return { role: freshUser.role };
+    }).catch((e) => {
+      if (e.message === 'ACCESS_EXPIRED') {
+        throw e;
+      }
+      throw e;
+    });
 
     // Challenge already deleted earlier to prevent duplicate processing
-    // Map MANAGER to USER for session purposes
-    const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
-    await createAuthSession(user.id, user.email, sessionRole);
+    // Fixed: V-014 - Preserve MANAGER role in sessions (don't downgrade to USER)
+    await createAuthSession(user.id, user.email, transactionResult.role);
 
     return NextResponse.json({ ok: true, user: { name: user.name, role: user.role } });
 

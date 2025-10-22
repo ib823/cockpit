@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
+import { otpVerifyLimiter } from '@/lib/server-rate-limiter';
+import { hashOTP, timingSafeCompare } from '@/lib/crypto-utils';
 
 export const runtime = 'nodejs';
 
@@ -22,15 +24,44 @@ export async function POST(req: Request) {
       );
     }
 
-    // Find the OTP record in magic_tokens table
+    // Fixed: V-002 - Server-side rate limiting to prevent brute force attacks
+    // Check rate limit BEFORE querying database to prevent timing attacks
+    const rateLimitResult = await otpVerifyLimiter.check(email.toLowerCase());
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: `Too many verification attempts. Please try again in ${rateLimitResult.retryAfter} seconds.`,
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimitResult.retryAfter),
+            'X-RateLimit-Limit': String(rateLimitResult.limit),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': String(rateLimitResult.reset),
+          },
+        }
+      );
+    }
+
+    // Fixed: V-003 - Hash submitted OTP for comparison
+    const hashedOTP = hashOTP(otp);
+
+    // Find the OTP record by email only (can't query by hash directly)
     const otpRecord = await prisma.magic_tokens.findFirst({
       where: {
         email: email.toLowerCase(),
-        token: otp,
+      },
+      orderBy: {
+        expiresAt: 'desc', // Get the most recent OTP
       },
     });
 
-    if (!otpRecord) {
+    // Fixed: V-004, V-007 - Timing-safe comparison to prevent timing attacks
+    if (!otpRecord || !timingSafeCompare(otpRecord.token, hashedOTP)) {
       return NextResponse.json(
         { ok: false, message: 'Invalid verification code. Please try again.' },
         { status: 401 }
