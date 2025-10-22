@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/nextauth-helpers';
 import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
+import { withCsrfProtection } from '@/lib/api-route-wrapper';
 
 export const runtime = 'nodejs';
 
@@ -75,7 +76,8 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+// Fixed: V-009 - CSRF protection on user creation
+export const POST = withCsrfProtection(async (req: Request) => {
   try {
     await requireAdmin();
 
@@ -147,4 +149,4 @@ export async function POST(req: Request) {
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
-}
+});

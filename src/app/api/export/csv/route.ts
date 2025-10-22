@@ -1,8 +1,12 @@
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
+import { withCsrfProtection } from '@/lib/api-route-wrapper';
+import { prisma } from '@/lib/db';
 
-export async function POST(req: NextRequest) {
+// Fixed: V-009 - CSRF protection on export endpoint
+// Fixed: V-008 - Data ownership verification before export
+export const POST = withCsrfProtection(async (req: NextRequest) => {
   try {
     const session = await getServerSession(authConfig);
     if (!session || !session.user) {
@@ -10,6 +14,30 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await req.json();
+
+    // Fixed: V-008 - Verify user owns this project before allowing export
+    if (data.projectId) {
+      const project = await prisma.projects.findUnique({
+        where: { id: data.projectId },
+        select: { userId: true },
+      });
+
+      if (!project) {
+        return Response.json({ error: 'Project not found' }, { status: 404 });
+      }
+
+      if (project.userId !== session.user.id) {
+        console.warn('[SECURITY] Attempted unauthorized export', {
+          userId: session.user.id,
+          projectId: data.projectId,
+          projectOwner: project.userId,
+        });
+        return Response.json(
+          { error: 'Forbidden: You do not have access to this project' },
+          { status: 403 }
+        );
+      }
+    }
 
     // Validate required fields
     if (!data.name || !data.phases) {
@@ -127,4 +155,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
