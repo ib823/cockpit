@@ -54,15 +54,19 @@ const ToastViewport: React.FC = () => {
     setIsMounted(true);
   }, []);
 
-  if (!ctx || !isMounted) return null;
-
-  const { toasts, remove } = ctx;
+  // IMPORTANT: Call all hooks BEFORE any early returns (Rules of Hooks)
+  const toasts = ctx?.toasts ?? [];
+  const remove = ctx?.remove ?? (() => {});
 
   useEffect(() => {
+    if (!ctx || !isMounted) return;
     const timers = toasts.map((t) => setTimeout(() => remove(t.id), t.duration ?? 3500));
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toasts]);
+  }, [toasts, isMounted]);
+
+  // Early return AFTER all hooks
+  if (!ctx || !isMounted) return null;
 
   const node = (
     <div className="fixed bottom-4 right-4 z-[1060] space-y-2">

@@ -57,9 +57,23 @@ function snapshotTokens() {
 
 export const AntDThemeBridge: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [ver, setVer] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
   const last = useRef(JSON.stringify(snapshotTokens()));
 
+  // Prevent hydration mismatch by using server-side values until mounted
   useEffect(() => {
+    setIsMounted(true);
+    // Trigger initial update after mount to sync with actual DOM
+    const snap = JSON.stringify(snapshotTokens());
+    if (snap !== last.current) {
+      last.current = snap;
+      setVer((v) => v + 1);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     let rafId = 0;
     const obs = new MutationObserver((mutations) => {
       const relevant = mutations.some((m) =>
@@ -90,9 +104,31 @@ export const AntDThemeBridge: React.FC<{ children: React.ReactNode }> = ({ child
       obs.disconnect();
       cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [isMounted]);
 
-  const snap = useMemo(() => snapshotTokens(), [ver]);
+  // Always use server-side fallback until mounted to prevent hydration mismatch
+  const snap = useMemo(() => {
+    if (!isMounted) {
+      // Return server-side fallback
+      return {
+        themeAttr: 'light' as const,
+        token: {
+          colorPrimary: '#2563eb',
+          colorInfo: '#2563eb',
+          colorSuccess: '#16a34a',
+          colorWarning: '#f59e0b',
+          colorError: '#ef4444',
+          colorBgBase: '#ffffff',
+          colorTextBase: '#0f172a',
+          colorBorder: '#e5e7eb',
+          borderRadius: 10,
+          fontFamily: `-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Helvetica Neue,sans-serif`,
+        },
+      };
+    }
+    return snapshotTokens();
+  }, [ver, isMounted]);
+
   const algorithm = snap.themeAttr === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
 
   return (
