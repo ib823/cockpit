@@ -73,7 +73,7 @@ export const Segmented: React.FC<SegmentedProps> = ({
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                !isDisabled && onChange(option.value);
+                if (!isDisabled) onChange(option.value);
               } else if (e.key === 'ArrowRight') {
                 e.preventDefault();
                 const currentIndex = options.findIndex((o) => o.value === value);

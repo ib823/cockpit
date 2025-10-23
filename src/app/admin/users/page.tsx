@@ -74,7 +74,7 @@ export default async function UsersPage() {
               <h3 className="text-sm font-medium text-blue-800">User Management Info</h3>
               <div className="mt-2 text-sm text-blue-700">
                 <p>
-                  Create new users with email, name, role, and access settings. Users with "Permanent Access" never expire.
+                  Create new users with email, name, role, and access settings. Users with &quot;Permanent Access&quot; never expire.
                   Use the Edit button to modify user details, or Delete to remove users.
                 </p>
               </div>

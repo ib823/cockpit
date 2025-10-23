@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PrismaAdapter } from '@/data/prisma-adapter';
+import { Decimal } from '@prisma/client/runtime/library';
 
 describe('M2 - Prisma Adapter', () => {
   describe('DAL Interface Implementation', () => {
@@ -390,7 +391,7 @@ describe('M2 - Prisma Adapter', () => {
         name: 'Original Phase',
         category: 'prepare',
         workingDays: 20,
-        effort: new (require('@prisma/client/runtime/library').Decimal)(50),
+        effort: new Decimal(50),
         startBusinessDay: 0,
         color: 'blue',
         order: 1,
@@ -406,7 +407,7 @@ describe('M2 - Prisma Adapter', () => {
             ...mockPhase,
             name: 'Updated Phase',
             workingDays: 30,
-            effort: new (require('@prisma/client/runtime/library').Decimal)(75),
+            effort: new Decimal(75),
           }),
         },
         auditLog: { create: vi.fn() },
