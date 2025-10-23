@@ -47,6 +47,24 @@ const envSchema = z.object({
 type Env = z.infer<typeof envSchema>;
 
 function validateEnv(): Env {
+  // Skip validation during Vercel build time - env vars are injected at runtime
+  const isVercelBuild = process.env.VERCEL === '1' && process.env.CI === '1';
+
+  // During Vercel build, return minimal config to allow build to complete
+  if (isVercelBuild && !process.env.DATABASE_URL) {
+    console.warn('⚠️  Building on Vercel without runtime env vars - using build-time placeholders');
+    console.warn('   Environment variables will be validated at runtime');
+    return {
+      NODE_ENV: 'production',
+      DATABASE_URL: 'postgresql://placeholder:placeholder@localhost:5432/placeholder',
+      DATABASE_URL_UNPOOLED: 'postgresql://placeholder:placeholder@localhost:5432/placeholder',
+      NEXTAUTH_SECRET: 'placeholder-secret-for-build-only-min-32-chars',
+      NEXTAUTH_URL: 'https://placeholder.vercel.app',
+      ENABLE_PASSKEYS: true,
+      ENABLE_MAGIC_LINKS: true,
+    } as Env;
+  }
+
   try {
     const env = envSchema.parse(process.env);
 
