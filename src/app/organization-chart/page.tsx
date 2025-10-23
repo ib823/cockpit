@@ -1220,7 +1220,7 @@ export default function OrganizationChartPage() {
         <div className="flex items-center gap-2 text-sm text-blue-900">
           <EyeOutlined />
           <p>
-            <strong>Assign resources from your project:</strong> Click "+ Assign Resource" to add team members from available resources.
+            <strong>Assign resources from your project:</strong> Click &quot;+ Assign Resource&quot; to add team members from available resources.
             {viewMode === 'by-phase' && selectedPhaseId && (
               <span className="ml-2 text-blue-700">
                 • Filtered to show only team assigned to selected phase
@@ -1446,7 +1446,7 @@ export default function OrganizationChartPage() {
                     <strong>Filtering by category:</strong> {expectedCategory.replace(/_/g, ' ')}
                   </p>
                   <p className="text-xs text-blue-700 mt-1">
-                    Only showing resources that match "{selectedGroup?.name}" group
+                    Only showing resources that match &quot;{selectedGroup?.name}&quot; group
                   </p>
                 </div>
               )}

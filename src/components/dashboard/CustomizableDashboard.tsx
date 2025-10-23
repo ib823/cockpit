@@ -284,7 +284,7 @@ export function CustomizableDashboard({ cards, customizable = true }: Customizab
       {visibleCards.length === 0 && (
         <Card style={{ textAlign: 'center', padding: '40px 20px' }}>
           <Text type="secondary">
-            All cards are hidden. Click "Show Hidden" to display cards again.
+            All cards are hidden. Click &quot;Show Hidden&quot; to display cards again.
           </Text>
         </Card>
       )}

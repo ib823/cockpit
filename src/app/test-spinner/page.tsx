@@ -125,19 +125,19 @@ export default function TestSpinnerPage() {
 
           <div className="space-y-4">
             <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <div className="text-gray-500">// Import</div>
+              <div className="text-gray-500">{/* Import */}</div>
               <div>
-                import {'{'} AnimatedSpinner {'}'} from '@/components/common/AnimatedSpinner';
+                import {'{'}  AnimatedSpinner  {'}'} from &apos;@/components/common/AnimatedSpinner&apos;;
               </div>
               <br />
-              <div className="text-gray-500">// Basic usage</div>
+              <div className="text-gray-500">{/* Basic usage */}</div>
               <div>&lt;AnimatedSpinner /&gt;</div>
               <br />
-              <div className="text-gray-500">// With size and color</div>
-              <div>&lt;AnimatedSpinner size="lg" color="blue" /&gt;</div>
+              <div className="text-gray-500">{/* With size and color */}</div>
+              <div>&lt;AnimatedSpinner size=&quot;lg&quot; color=&quot;blue&quot; /&gt;</div>
               <br />
-              <div className="text-gray-500">// With label</div>
-              <div>&lt;AnimatedSpinner size="md" label="Loading..." color="purple" /&gt;</div>
+              <div className="text-gray-500">{/* With label */}</div>
+              <div>&lt;AnimatedSpinner size=&quot;md&quot; label=&quot;Loading...&quot; color=&quot;purple&quot; /&gt;</div>
             </div>
           </div>
         </section>

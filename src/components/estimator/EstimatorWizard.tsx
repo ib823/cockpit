@@ -185,7 +185,7 @@ export function EstimatorWizard() {
         <div>
           <Title level={4}>Your Estimate</Title>
           <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
-            Based on your inputs, here's the calculated project estimate
+            Based on your inputs, here&apos;s the calculated project estimate
           </Text>
 
           <ResultsPanel />
