@@ -68,6 +68,8 @@ jobs:
           DATABASE_URL_UNPOOLED: postgresql://postgres:postgres@localhost:5432/cockpit_test?connection_limit=1
           NEXTAUTH_SECRET: test-secret-min-32-chars-for-ci-pipeline-12345
           NEXTAUTH_URL: http://localhost:3000
+          WEBAUTHN_RP_ID: localhost
+          WEBAUTHN_ORIGIN: http://localhost:3000
           NODE_ENV: production
 
       - name: Security audit
