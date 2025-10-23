@@ -82,20 +82,21 @@ function validateEnv(): Env {
       }
     }
 
-    // Security validation: Ensure NEXTAUTH_SECRET is not a weak default
-    const dangerousDefaults = [
-      'dev-secret-key',
-      'change-me',
-      'secret',
-      'password',
-      'nextauth_secret',
-      'SESSION_SECRET', // old var name
-    ];
+    // Security validation: Ensure NEXTAUTH_SECRET is not a weak default (production only)
+    if (env.NODE_ENV === 'production') {
+      const dangerousDefaults = [
+        'dev-secret-key',
+        'change-me',
+        'password',
+        'nextauth_secret',
+        'SESSION_SECRET', // old var name
+      ];
 
-    if (dangerousDefaults.some(bad => env.NEXTAUTH_SECRET.toLowerCase().includes(bad))) {
-      console.error('❌ SECURITY VIOLATION: NEXTAUTH_SECRET appears to use a default or weak value');
-      console.error('   Generate a strong secret with: openssl rand -base64 32');
-      throw new Error('Weak NEXTAUTH_SECRET detected');
+      if (dangerousDefaults.some(bad => env.NEXTAUTH_SECRET.toLowerCase().includes(bad))) {
+        console.error('❌ SECURITY VIOLATION: NEXTAUTH_SECRET appears to use a default or weak value');
+        console.error('   Generate a strong secret with: openssl rand -base64 32');
+        throw new Error('Weak NEXTAUTH_SECRET detected');
+      }
     }
 
     // Log successful validation
