@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750" height="1334" viewBox="0 0 750 1334" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="750" height="1334" fill="#f8fafc"/>
+
+  <!-- Header -->
+  <rect width="750" height="120" fill="#2563eb"/>
+  <text x="40" y="75" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="white">SAP Estimator</text>
+
+  <!-- Content -->
+  <g transform="translate(40, 160)">
+    <!-- Profile selector -->
+    <text y="30" font-family="Arial, sans-serif" font-size="24" font-weight="600" fill="#0f172a">Project Profile</text>
+    <rect y="50" width="670" height="80" fill="white" rx="12" stroke="#e5e7eb" stroke-width="2"/>
+    <text y="100" x="30" font-family="Arial, sans-serif" font-size="20" fill="#64748b">Malaysia Mid-Market</text>
+
+    <!-- Team size -->
+    <text y="180" font-family="Arial, sans-serif" font-size="24" font-weight="600" fill="#0f172a">Team Size</text>
+    <rect y="200" width="670" height="80" fill="white" rx="12" stroke="#e5e7eb" stroke-width="2"/>
+    <text y="250" x="30" font-family="Arial, sans-serif" font-size="20" fill="#64748b">5.0 FTE</text>
+
+    <!-- Results panel -->
+    <text y="330" font-family="Arial, sans-serif" font-size="24" font-weight="600" fill="#0f172a">Estimate Results</text>
+    <rect y="360" width="670" height="400" fill="white" rx="16" stroke="#e5e7eb" stroke-width="2"/>
+
+    <!-- Total effort -->
+    <g transform="translate(30, 400)">
+      <text y="30" font-family="Arial, sans-serif" font-size="18" fill="#64748b">Total Effort</text>
+      <text y="80" font-family="Arial, sans-serif" font-size="56" font-weight="700" fill="#2563eb">840</text>
+      <text x="200" y="80" font-family="Arial, sans-serif" font-size="24" fill="#64748b">man-days</text>
+
+      <!-- Duration -->
+      <text y="150" font-family="Arial, sans-serif" font-size="18" fill="#64748b">Duration</text>
+      <text y="200" font-family="Arial, sans-serif" font-size="56" font-weight="700" fill="#8b5cf6">8.4</text>
+      <text x="160" y="200" font-family="Arial, sans-serif" font-size="24" fill="#64748b">months</text>
+
+      <!-- Team size -->
+      <text y="270" font-family="Arial, sans-serif" font-size="18" fill="#64748b">Team Members</text>
+      <text y="320" font-family="Arial, sans-serif" font-size="56" font-weight="700" fill="#10b981">5</text>
+      <text x="120" y="320" font-family="Arial, sans-serif" font-size="24" fill="#64748b">people</text>
+    </g>
+  </g>
+
+  <!-- Footer indicator -->
+  <text x="375" y="1294" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#94a3b8">SAP Cockpit Estimator • Mobile View</text>
+</svg>

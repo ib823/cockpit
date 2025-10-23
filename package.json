@@ -30,7 +30,10 @@
     "test:coverage": "vitest --coverage",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "analyze": "ANALYZE=true next build"
+    "analyze": "ANALYZE=true next build",
+    "secrets:check": "tsx scripts/rotate-secrets.ts --check",
+    "secrets:rotate": "tsx scripts/rotate-secrets.ts --rotate",
+    "security:verify-rate-limiting": "tsx scripts/verify-rate-limiting.ts"
   },
   "dependencies": {
     "@ant-design/icons": "5.6.1",
@@ -54,6 +57,7 @@
     "clsx": "2.1.1",
     "cmdk": "1.1.1",
     "comlink": "4.4.2",
+    "d3": "3.5.17",
     "dagre": "0.8.5",
     "date-fns": "4.1.0",
     "date-fns-tz": "3.2.0",

@@ -3,14 +3,40 @@ import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { otpVerifyLimiter } from '@/lib/server-rate-limiter';
 import { hashOTP, timingSafeCompare } from '@/lib/crypto-utils';
+import { logAuthEvent } from '@/lib/monitoring/auth-metrics';
+import { isIPBlocked, checkAndBlockIP } from '@/lib/security/ip-blocker';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
+  const ipAddress = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
+  const userAgent = req.headers.get('user-agent') ?? 'unknown';
+
   try {
+    // Check if IP is blocked
+    const blockCheck = await isIPBlocked(ipAddress);
+    if (blockCheck.blocked) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: 'Access denied. Your IP has been blocked due to suspicious activity.',
+          blocked: true,
+        },
+        { status: 403 }
+      );
+    }
+
     const { email, otp } = await req.json();
 
     if (!email || !otp) {
+      await logAuthEvent('otp_failure', {
+        email,
+        ipAddress,
+        userAgent,
+        failureReason: 'Missing email or OTP',
+        method: 'otp',
+      });
+      await checkAndBlockIP(ipAddress);
       return NextResponse.json(
         { ok: false, message: 'Email and OTP are required' },
         { status: 400 }
@@ -18,6 +44,14 @@ export async function POST(req: Request) {
     }
 
     if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+      await logAuthEvent('otp_failure', {
+        email,
+        ipAddress,
+        userAgent,
+        failureReason: 'Invalid OTP format',
+        method: 'otp',
+      });
+      await checkAndBlockIP(ipAddress);
       return NextResponse.json(
         { ok: false, message: 'Invalid OTP format' },
         { status: 400 }
@@ -29,6 +63,13 @@ export async function POST(req: Request) {
     const rateLimitResult = await otpVerifyLimiter.check(email.toLowerCase());
 
     if (!rateLimitResult.success) {
+      await logAuthEvent('rate_limit_exceeded', {
+        email,
+        ipAddress,
+        userAgent,
+        failureReason: 'OTP verification rate limit exceeded',
+        method: 'otp',
+      });
       return NextResponse.json(
         {
           ok: false,
@@ -62,6 +103,14 @@ export async function POST(req: Request) {
 
     // Fixed: V-004, V-007 - Timing-safe comparison to prevent timing attacks
     if (!otpRecord || !timingSafeCompare(otpRecord.token, hashedOTP)) {
+      await logAuthEvent('otp_failure', {
+        email,
+        ipAddress,
+        userAgent,
+        failureReason: 'Invalid OTP code',
+        method: 'otp',
+      });
+      await checkAndBlockIP(ipAddress);
       return NextResponse.json(
         { ok: false, message: 'Invalid verification code. Please try again.' },
         { status: 401 }
@@ -75,6 +124,14 @@ export async function POST(req: Request) {
         where: { id: otpRecord.id },
       });
 
+      await logAuthEvent('otp_failure', {
+        email,
+        ipAddress,
+        userAgent,
+        failureReason: 'OTP expired',
+        method: 'otp',
+      });
+      await checkAndBlockIP(ipAddress);
       return NextResponse.json(
         { ok: false, message: 'Verification code has expired. Please request a new one.' },
         { status: 401 }
@@ -83,6 +140,14 @@ export async function POST(req: Request) {
 
     // Check if OTP was already used
     if (otpRecord.usedAt) {
+      await logAuthEvent('otp_failure', {
+        email,
+        ipAddress,
+        userAgent,
+        failureReason: 'OTP already used',
+        method: 'otp',
+      });
+      await checkAndBlockIP(ipAddress);
       return NextResponse.json(
         { ok: false, message: 'This verification code has already been used.' },
         { status: 401 }
@@ -95,6 +160,14 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
+      await logAuthEvent('otp_failure', {
+        email,
+        ipAddress,
+        userAgent,
+        failureReason: 'User not found',
+        method: 'otp',
+      });
+      await checkAndBlockIP(ipAddress);
       return NextResponse.json(
         { ok: false, message: 'User not found' },
         { status: 404 }
@@ -103,6 +176,14 @@ export async function POST(req: Request) {
 
     // Check if user access has expired
     if (user.accessExpiresAt && new Date() > user.accessExpiresAt && !user.exception) {
+      await logAuthEvent('otp_failure', {
+        email,
+        ipAddress,
+        userAgent,
+        failureReason: 'Access expired',
+        method: 'otp',
+      }, user.id);
+      await checkAndBlockIP(ipAddress);
       return NextResponse.json(
         { ok: false, message: 'Your access has expired. Please contact your administrator.' },
         { status: 403 }
@@ -131,6 +212,14 @@ export async function POST(req: Request) {
         expires: sessionExpiry,
       },
     });
+
+    // Log successful OTP authentication
+    await logAuthEvent('otp_success', {
+      email,
+      ipAddress,
+      userAgent,
+      method: 'otp',
+    }, user.id);
 
     // Set the session cookie
     const response = NextResponse.json({

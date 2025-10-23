@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="72" height="72" fill="#2563eb" rx="7.2"/>
+
+  <!-- Grid pattern (subtle) -->
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="72" height="72" fill="url(#grid)"/>
+
+  <!-- SAP Cockpit Logo - Stylized "S" -->
+  <g transform="translate(36, 36)">
+    <!-- Letter S -->
+    <path d="
+      M -10.799999999999999 -18
+      Q -18 -25.2 -10.799999999999999 -25.2
+      L 10.799999999999999 -25.2
+      Q 18 -25.2 18 -18
+      L 18 -10.799999999999999
+      Q 18 -3.6 10.799999999999999 -3.6
+      L -10.799999999999999 -3.6
+      Q -18 -3.6 -18 3.6
+      L -18 10.799999999999999
+      Q -18 18 -10.799999999999999 18
+      L 10.799999999999999 18
+      Q 18 18 10.799999999999999 25.2
+      L -10.799999999999999 25.2
+      Q -18 25.2 -18 18
+      Z
+    " fill="white" fill-opacity="0.95"/>
+
+    <!-- Accent dot -->
+    <circle cx="20.160000000000004" cy="-20.160000000000004" r="3.6" fill="#fbbf24"/>
+  </g>
+
+  <!-- Text label for smaller sizes -->
+  
+</svg>

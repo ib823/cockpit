@@ -17,6 +17,7 @@
 
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { Button, Input, Select, Tooltip, App, Modal, Dropdown, Tag, Badge } from 'antd';
 import {
@@ -32,28 +33,50 @@ import {
   FilePdfOutlined,
   UserOutlined,
   CloseOutlined,
+  DragOutlined,
 } from '@ant-design/icons';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import type { Resource } from '@/types/gantt-tool';
+
+// Dynamically import the org chart wrapper to avoid SSR issues with D3
+const ReactOrgChartWrapper = dynamic(
+  () => import('@/components/organization/ReactOrgChartWrapper').then((mod) => mod.ReactOrgChartWrapper),
+  { ssr: false, loading: () => <div className="flex items-center justify-center h-64">Loading org chart...</div> }
+);
 
 // Types
 interface OrgPosition {
   id: string;
   resourceId?: string; // Reference to project resource
+  isLead?: boolean; // Indicates if this resource is the lead for their group/sub-group
+}
+
+interface OrgSubGroup {
+  id: string;
+  name: string;
+  positions: OrgPosition[];
+  collapsed?: boolean; // Expand/collapse state
 }
 
 interface OrgGroup {
   id: string;
   name: string;
-  positions: OrgPosition[];
+  positions: OrgPosition[]; // Positions at group level (no sub-group)
+  subGroups?: OrgSubGroup[]; // Optional sub-groups (e.g., Finance, Sales, SCM under Functional)
+  isClient?: boolean; // Indicates if this is a client team (vs internal)
+  collapsed?: boolean; // Expand/collapse state
 }
 
 interface OrgLevel {
   id: string;
   name: string;
   groups: OrgGroup[];
+  isClient?: boolean; // Indicates if this level contains client teams
+  collapsed?: boolean; // Expand/collapse state
 }
 
 interface SimpleOrgChart {
@@ -61,6 +84,132 @@ interface SimpleOrgChart {
 }
 
 type ViewMode = 'overall' | 'by-phase' | 'by-task';
+
+// Drag and Drop Types
+const ItemTypes = {
+  RESOURCE: 'resource',
+};
+
+interface DragItem {
+  type: string;
+  positionId: string;
+  resourceId: string;
+  sourceLevelId: string;
+  sourceGroupId: string;
+  sourceSubGroupId?: string;
+}
+
+interface DropTarget {
+  levelId: string;
+  groupId: string;
+  subGroupId?: string;
+}
+
+// Draggable Resource Component
+function DraggableResource({
+  position,
+  resource,
+  levelId,
+  groupId,
+  subGroupId,
+  onRemove,
+}: {
+  position: OrgPosition;
+  resource: Resource | undefined;
+  levelId: string;
+  groupId: string;
+  subGroupId?: string;
+  onRemove: (e: React.MouseEvent) => void;
+}) {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: ItemTypes.RESOURCE,
+    item: {
+      type: ItemTypes.RESOURCE,
+      positionId: position.id,
+      resourceId: position.resourceId,
+      sourceLevelId: levelId,
+      sourceGroupId: groupId,
+      sourceSubGroupId: subGroupId,
+    } as DragItem,
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  }), [position.id, position.resourceId, levelId, groupId, subGroupId]);
+
+  return (
+    <div
+      ref={drag}
+      className={`flex items-center justify-between text-xs px-2 py-1 rounded cursor-move ${
+        isDragging ? 'opacity-50 bg-blue-100' : 'bg-gray-50 hover:bg-gray-100'
+      }`}
+      style={{ cursor: 'move' }}
+    >
+      <div className="flex items-center gap-1">
+        <DragOutlined style={{ fontSize: 10, color: '#9ca3af' }} />
+        <span className="text-gray-700">{resource?.name || 'Unknown'}</span>
+      </div>
+      <Button
+        size="small"
+        type="text"
+        danger
+        icon={<CloseOutlined style={{ fontSize: 10 }} />}
+        onClick={onRemove}
+      />
+    </div>
+  );
+}
+
+// Drop Zone Component
+function DropZone({
+  levelId,
+  groupId,
+  subGroupId,
+  onDrop,
+  children,
+  className = '',
+}: {
+  levelId: string;
+  groupId: string;
+  subGroupId?: string;
+  onDrop: (item: DragItem, target: DropTarget) => void;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const [{ isOver, canDrop }, drop] = useDrop(() => ({
+    accept: ItemTypes.RESOURCE,
+    drop: (item: DragItem) => {
+      // Don't drop if source and target are the same
+      if (
+        item.sourceLevelId === levelId &&
+        item.sourceGroupId === groupId &&
+        item.sourceSubGroupId === subGroupId
+      ) {
+        return;
+      }
+      onDrop(item, { levelId, groupId, subGroupId });
+    },
+    canDrop: (item: DragItem) => {
+      // Can only drop within the same level
+      return item.sourceLevelId === levelId;
+    },
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+      canDrop: !!monitor.canDrop(),
+    }),
+  }), [levelId, groupId, subGroupId, onDrop]);
+
+  const dropZoneStyle = canDrop
+    ? isOver
+      ? 'border-2 border-green-400 bg-green-50'
+      : 'border-2 border-blue-300 border-dashed'
+    : '';
+
+  return (
+    <div ref={drop} className={`${className} ${dropZoneStyle}`}>
+      {children}
+    </div>
+  );
+}
 
 export default function OrganizationChartPage() {
   const router = useRouter();
@@ -74,6 +223,7 @@ export default function OrganizationChartPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showManagementPanel, setShowManagementPanel] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const isInitialLoad = useRef(true); // Track initial load to prevent saving default state
 
@@ -136,6 +286,23 @@ export default function OrganizationChartPage() {
             id: '3-1',
             name: 'Functional',
             positions: [],
+            subGroups: [
+              {
+                id: '3-1-sg-1',
+                name: 'Finance',
+                positions: [],
+              },
+              {
+                id: '3-1-sg-2',
+                name: 'Sales',
+                positions: [],
+              },
+              {
+                id: '3-1-sg-3',
+                name: 'SCM',
+                positions: [],
+              },
+            ],
           },
           {
             id: '3-2',
@@ -246,7 +413,8 @@ export default function OrganizationChartPage() {
   // Modals
   const [editingLevel, setEditingLevel] = useState<OrgLevel | null>(null);
   const [editingGroup, setEditingGroup] = useState<{ level: OrgLevel; group: OrgGroup } | null>(null);
-  const [selectingResource, setSelectingResource] = useState<{ levelId: string; groupId: string; positionId?: string } | null>(null);
+  const [editingSubGroup, setEditingSubGroup] = useState<{ levelId: string; groupId: string; subGroup: OrgSubGroup } | null>(null);
+  const [selectingResource, setSelectingResource] = useState<{ levelId: string; groupId: string; subGroupId?: string; positionId?: string } | null>(null);
 
   // Mapping from groupId to resource category
   const groupToCategoryMap: Record<string, string> = {
@@ -266,8 +434,15 @@ export default function OrganizationChartPage() {
     const ids = new Set<string>();
     orgChart.levels.forEach(level => {
       level.groups.forEach(group => {
+        // Group-level positions
         group.positions.forEach(pos => {
           if (pos.resourceId) ids.add(pos.resourceId);
+        });
+        // Sub-group positions
+        group.subGroups?.forEach(subGroup => {
+          subGroup.positions.forEach(pos => {
+            if (pos.resourceId) ids.add(pos.resourceId);
+          });
         });
       });
     });
@@ -441,14 +616,8 @@ export default function OrganizationChartPage() {
     });
   }, [message, modal]);
 
-  // Position/Resource operations
-  const addPosition = useCallback((e: React.MouseEvent, levelId: string, groupId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setSelectingResource({ levelId, groupId });
-  }, []);
-
-  const assignResourceToPosition = useCallback((levelId: string, groupId: string, resourceId: string, positionId?: string) => {
+  // Sub-Group operations
+  const addSubGroup = useCallback((levelId: string, groupId: string) => {
     setOrgChart(prev => ({
       levels: prev.levels.map(level =>
         level.id === levelId
@@ -458,10 +627,114 @@ export default function OrganizationChartPage() {
                 group.id === groupId
                   ? {
                       ...group,
-                      positions: positionId
-                        ? group.positions.map(p => (p.id === positionId ? { ...p, resourceId } : p))
-                        : [...group.positions, { id: Date.now().toString(), resourceId }],
+                      subGroups: [
+                        ...(group.subGroups || []),
+                        {
+                          id: `${Date.now()}`,
+                          name: 'New Sub-Group',
+                          positions: [],
+                        },
+                      ],
                     }
+                  : group
+              ),
+            }
+          : level
+      ),
+    }));
+    message.success('Sub-group added');
+  }, [message]);
+
+  const updateSubGroup = useCallback((levelId: string, groupId: string, subGroupId: string, newName: string) => {
+    setOrgChart(prev => ({
+      levels: prev.levels.map(level =>
+        level.id === levelId
+          ? {
+              ...level,
+              groups: level.groups.map(group =>
+                group.id === groupId
+                  ? {
+                      ...group,
+                      subGroups: group.subGroups?.map(subGroup =>
+                        subGroup.id === subGroupId ? { ...subGroup, name: newName } : subGroup
+                      ),
+                    }
+                  : group
+              ),
+            }
+          : level
+      ),
+    }));
+    setEditingSubGroup(null);
+    message.success('Sub-group updated');
+  }, [message]);
+
+  const deleteSubGroup = useCallback((levelId: string, groupId: string, subGroupId: string) => {
+    modal.confirm({
+      title: 'Delete Sub-Group?',
+      content: 'This will remove all positions in this sub-group.',
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: () => {
+        setOrgChart(prev => ({
+          levels: prev.levels.map(level =>
+            level.id === levelId
+              ? {
+                  ...level,
+                  groups: level.groups.map(group =>
+                    group.id === groupId
+                      ? {
+                          ...group,
+                          subGroups: group.subGroups?.filter(subGroup => subGroup.id !== subGroupId),
+                        }
+                      : group
+                  ),
+                }
+              : level
+          ),
+        }));
+        message.success('Sub-group deleted');
+      },
+    });
+  }, [message, modal]);
+
+  // Position/Resource operations
+  const addPosition = useCallback((e: React.MouseEvent, levelId: string, groupId: string, subGroupId?: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectingResource({ levelId, groupId, subGroupId });
+  }, []);
+
+  const assignResourceToPosition = useCallback((levelId: string, groupId: string, resourceId: string, subGroupId?: string, positionId?: string) => {
+    setOrgChart(prev => ({
+      levels: prev.levels.map(level =>
+        level.id === levelId
+          ? {
+              ...level,
+              groups: level.groups.map(group =>
+                group.id === groupId
+                  ? subGroupId
+                    ? {
+                        // Assign to sub-group
+                        ...group,
+                        subGroups: group.subGroups?.map(subGroup =>
+                          subGroup.id === subGroupId
+                            ? {
+                                ...subGroup,
+                                positions: positionId
+                                  ? subGroup.positions.map(p => (p.id === positionId ? { ...p, resourceId } : p))
+                                  : [...subGroup.positions, { id: Date.now().toString(), resourceId }],
+                              }
+                            : subGroup
+                        ),
+                      }
+                    : {
+                        // Assign to group (no sub-group)
+                        ...group,
+                        positions: positionId
+                          ? group.positions.map(p => (p.id === positionId ? { ...p, resourceId } : p))
+                          : [...group.positions, { id: Date.now().toString(), resourceId }],
+                      }
                   : group
               ),
             }
@@ -472,7 +745,7 @@ export default function OrganizationChartPage() {
     message.success('Resource assigned');
   }, [message]);
 
-  const removePosition = useCallback((e: React.MouseEvent, levelId: string, groupId: string, positionId: string) => {
+  const removePosition = useCallback((e: React.MouseEvent, levelId: string, groupId: string, positionId: string, subGroupId?: string) => {
     e.preventDefault();
     e.stopPropagation();
     setOrgChart(prev => ({
@@ -482,10 +755,24 @@ export default function OrganizationChartPage() {
               ...level,
               groups: level.groups.map(group =>
                 group.id === groupId
-                  ? {
-                      ...group,
-                      positions: group.positions.filter(p => p.id !== positionId),
-                    }
+                  ? subGroupId
+                    ? {
+                        // Remove from sub-group
+                        ...group,
+                        subGroups: group.subGroups?.map(subGroup =>
+                          subGroup.id === subGroupId
+                            ? {
+                                ...subGroup,
+                                positions: subGroup.positions.filter(p => p.id !== positionId),
+                              }
+                            : subGroup
+                        ),
+                      }
+                    : {
+                        // Remove from group
+                        ...group,
+                        positions: group.positions.filter(p => p.id !== positionId),
+                      }
                   : group
               ),
             }
@@ -493,6 +780,70 @@ export default function OrganizationChartPage() {
       ),
     }));
     message.success('Position removed');
+  }, [message]);
+
+  // Move resource between groups/sub-groups (drag and drop)
+  const moveResource = useCallback((dragItem: DragItem, dropTarget: DropTarget) => {
+    setOrgChart(prev => {
+      const newLevels = JSON.parse(JSON.stringify(prev.levels)); // Deep clone
+
+      // Find the resource to move
+      let resourceToMove: OrgPosition | null = null;
+
+      // Remove from source
+      newLevels.forEach((level: OrgLevel) => {
+        if (level.id === dragItem.sourceLevelId) {
+          level.groups.forEach((group: OrgGroup) => {
+            if (group.id === dragItem.sourceGroupId) {
+              if (dragItem.sourceSubGroupId) {
+                // Remove from sub-group
+                const subGroup = group.subGroups?.find((sg: OrgSubGroup) => sg.id === dragItem.sourceSubGroupId);
+                if (subGroup) {
+                  const posIndex = subGroup.positions.findIndex((p: OrgPosition) => p.id === dragItem.positionId);
+                  if (posIndex > -1) {
+                    resourceToMove = subGroup.positions[posIndex];
+                    subGroup.positions.splice(posIndex, 1);
+                  }
+                }
+              } else {
+                // Remove from group
+                const posIndex = group.positions.findIndex((p: OrgPosition) => p.id === dragItem.positionId);
+                if (posIndex > -1) {
+                  resourceToMove = group.positions[posIndex];
+                  group.positions.splice(posIndex, 1);
+                }
+              }
+            }
+          });
+        }
+      });
+
+      // Add to target
+      if (resourceToMove) {
+        newLevels.forEach((level: OrgLevel) => {
+          if (level.id === dropTarget.levelId) {
+            level.groups.forEach((group: OrgGroup) => {
+              if (group.id === dropTarget.groupId) {
+                if (dropTarget.subGroupId) {
+                  // Add to sub-group
+                  const subGroup = group.subGroups?.find((sg: OrgSubGroup) => sg.id === dropTarget.subGroupId);
+                  if (subGroup) {
+                    subGroup.positions.push(resourceToMove!);
+                  }
+                } else {
+                  // Add to group
+                  group.positions.push(resourceToMove!);
+                }
+              }
+            });
+          }
+        });
+      }
+
+      return { levels: newLevels };
+    });
+
+    message.success('Resource moved successfully');
   }, [message]);
 
   // Filter positions based on view mode
@@ -636,10 +987,13 @@ export default function OrganizationChartPage() {
 
           // Assign each resource to the appropriate group
           currentProject.resources.forEach(resource => {
-            // Skip if already assigned
+            // Skip if already assigned (check both group and sub-group positions)
             const isAssigned = newLevels.some(level =>
               level.groups.some(group =>
-                group.positions.some(pos => pos.resourceId === resource.id)
+                group.positions.some(pos => pos.resourceId === resource.id) ||
+                group.subGroups?.some(subGroup =>
+                  subGroup.positions.some(pos => pos.resourceId === resource.id)
+                )
               )
             );
 
@@ -705,8 +1059,9 @@ export default function OrganizationChartPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* Header - Jobs/Ive: "Beautiful simplicity" */}
+    <DndProvider backend={HTML5Backend}>
+      <div className="h-screen flex flex-col bg-gray-50">
+        {/* Header - Jobs/Ive: "Beautiful simplicity" */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -805,6 +1160,17 @@ export default function OrganizationChartPage() {
               />
             )}
 
+            {/* Manage Structure */}
+            <Button
+              type="default"
+              icon={<Settings size={16} />}
+              onClick={() => setShowManagementPanel(!showManagementPanel)}
+              size="large"
+              className="always-visible"
+            >
+              {showManagementPanel ? 'Hide' : 'Manage'} Structure
+            </Button>
+
             {/* Add Level */}
             <Button
               type="primary"
@@ -870,228 +1236,181 @@ export default function OrganizationChartPage() {
       </div>
 
       {/* Organization Chart - Jobs/Ive: "Clarity over cleverness" */}
-      <div className="flex-1 overflow-auto p-8" ref={chartRef}>
-        <div className="max-w-[1600px] mx-auto space-y-12">
-          {orgChart.levels.map((level, levelIndex) => (
-            <div key={level.id} className="relative">
-              {/* Enhanced Connecting Line to Previous Level */}
-              {levelIndex > 0 && (
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                  <div className="w-1 h-6 bg-gradient-to-b from-blue-400 to-blue-200 rounded-full" />
-                </div>
-              )}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Management Panel */}
+        {showManagementPanel && (
+          <div className="w-96 border-r border-gray-200 bg-white overflow-y-auto p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Organization Structure</h3>
 
-              <div className="bg-white rounded-xl shadow-md border-2 border-gray-200 p-6 hover:shadow-lg transition-shadow">
-              {/* Level Header */}
-              <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-300">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm shadow-lg">
-                    L{levelIndex + 1}
-                  </div>
-                  {editingLevel?.id === level.id ? (
-                    <Input
-                      autoFocus
-                      defaultValue={level.name}
-                      onBlur={(e) => updateLevelName(level.id, e.target.value)}
-                      onPressEnter={(e) => updateLevelName(level.id, e.currentTarget.value)}
-                      className="font-semibold text-lg"
-                      style={{ width: 350 }}
-                    />
-                  ) : (
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-xl font-bold text-gray-900">{level.name}</h2>
-                      <Tag color="blue" className="text-sm">{level.groups.length} group{level.groups.length !== 1 ? 's' : ''}</Tag>
-                    </div>
-                  )}
-                  <Button
-                    type="default"
-                    icon={<EditOutlined />}
-                    onClick={() => setEditingLevel(level)}
-                    size="small"
-                    className="always-visible"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {/* Move Up/Down */}
-                  {levelIndex > 0 && (
-                    <Tooltip title="Move level up">
-                      <Button
-                        type="default"
-                        icon={<ChevronUp className="w-4 h-4" />}
-                        onClick={() => moveLevelUp(level.id)}
-                        size="small"
-                      />
-                    </Tooltip>
-                  )}
-                  {levelIndex < orgChart.levels.length - 1 && (
-                    <Tooltip title="Move level down">
-                      <Button
-                        type="default"
-                        icon={<ChevronDown className="w-4 h-4" />}
-                        onClick={() => moveLevelDown(level.id)}
-                        size="small"
-                      />
-                    </Tooltip>
-                  )}
-
-                  {/* Add Group */}
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => addGroup(level.id)}
-                    size="small"
-                    className="always-visible"
-                  >
-                    Add Group
-                  </Button>
-
-                  {/* Delete Level */}
-                  <Button
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => deleteLevel(level.id)}
-                    size="small"
-                    className="always-visible"
-                  >
-                    Delete
-                  </Button>
-                </div>
+            {/* Drag & Drop Help Banner */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-4 text-xs">
+              <div className="flex items-center gap-2 text-blue-900">
+                <DragOutlined />
+                <span className="font-medium">Drag & Drop Enabled</span>
               </div>
+              <p className="text-blue-700 mt-1">
+                Drag resources to move them between groups and sub-groups within the same level.
+              </p>
+            </div>
 
-              {/* Groups Grid - Jobs/Ive: "Generous spacing, clear separation" */}
-              <div className="flex flex-wrap justify-center gap-6 mt-4">
-                {level.groups.map((group) => {
-                  const visiblePositions = group.positions.filter(shouldShowPosition);
+            <div className="space-y-4">
+              {orgChart.levels.map((level, levelIndex) => (
+                <div key={level.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                  {/* Level Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-gray-800">{level.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button size="small" icon={<EditOutlined />} onClick={() => setEditingLevel(level)} />
+                      {levelIndex > 0 && <Button size="small" icon={<ChevronUp size={14} />} onClick={() => moveLevelUp(level.id)} />}
+                      {levelIndex < orgChart.levels.length - 1 && <Button size="small" icon={<ChevronDown size={14} />} onClick={() => moveLevelDown(level.id)} />}
+                      <Button size="small" danger icon={<DeleteOutlined />} onClick={() => deleteLevel(level.id)} />
+                    </div>
+                  </div>
 
-                  return (
-                    <div
-                      key={group.id}
-                      className="bg-gradient-to-br from-blue-50/30 via-white to-gray-50/50 rounded-xl border-2 border-gray-300 p-5 hover:border-blue-400 hover:shadow-lg transition-all duration-200 w-96 flex-shrink-0 min-h-[220px] flex flex-col"
-                    >
-                      {/* Group Header */}
-                      <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-300">
-                        {editingGroup?.group.id === group.id ? (
-                          <Input
-                            autoFocus
-                            defaultValue={group.name}
-                            onBlur={(e) => updateGroup(level.id, group.id, e.target.value)}
-                            onPressEnter={(e) =>
-                              updateGroup(level.id, group.id, e.currentTarget.value)
-                            }
-                            className="font-semibold"
-                            size="small"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 flex-1">
-                            <h3 className="font-semibold text-gray-900 text-base">{group.name}</h3>
-                            <Badge
-                              count={visiblePositions.length}
-                              showZero
-                              style={{
-                                backgroundColor: visiblePositions.length > 0 ? '#52c41a' : '#d9d9d9',
-                                fontWeight: 'bold'
-                              }}
-                            />
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <Button
-                            type="default"
-                            icon={<EditOutlined />}
-                            onClick={() => setEditingGroup({ level, group })}
-                            size="small"
-                          />
-                          <Button
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => deleteGroup(level.id, group.id)}
-                            size="small"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Resource Cards - Jobs/Ive: "Every detail matters" */}
-                      <div className="space-y-3 flex-1">
-                        {visiblePositions.map((position) => {
-                          const info = position.resourceId ? getResourceInfo(position.resourceId) : null;
-
-                          return (
-                            <div
-                              key={position.id}
-                              className="bg-white rounded-lg border-2 border-gray-200 p-4 hover:shadow-md hover:border-blue-300 transition-all duration-150"
+                  {/* Groups */}
+                  <div className="space-y-3 ml-4">
+                    {level.groups.map((group) => (
+                      <div key={group.id} className="border border-blue-200 rounded-lg p-2 bg-white">
+                        {/* Group Header */}
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-blue-900">{group.name}</span>
+                          <div className="flex items-center gap-1">
+                            <Button size="small" icon={<EditOutlined />} onClick={() => setEditingGroup({ level, group })} />
+                            <Button
+                              size="small"
+                              type="primary"
+                              icon={<PlusOutlined />}
+                              onClick={() => addSubGroup(level.id, group.id)}
+                              title="Add Sub-Group"
                             >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-gray-900 text-sm truncate">
-                                    {info?.resource.name || 'Unknown'}
-                                  </div>
-                                  <div className="text-xs text-gray-600 mt-0.5">
-                                    {info?.resource.category || 'No category'}
-                                  </div>
+                              Sub-Group
+                            </Button>
+                            <Button
+                              size="small"
+                              icon={<PlusOutlined />}
+                              onClick={(e) => addPosition(e, level.id, group.id)}
+                              title="Add Resource"
+                            />
+                            <Button size="small" danger icon={<DeleteOutlined />} onClick={() => deleteGroup(level.id, group.id)} />
+                          </div>
+                        </div>
 
-                                  {/* Phase assignments */}
-                                  {info && info.phases.length > 0 && (
-                                    <div className="mt-2 flex flex-wrap gap-1">
-                                      {info.phases.slice(0, 2).map((phase, idx) => (
-                                        <Tag key={idx} color="blue" className="text-xs !text-[10px] !py-0">
-                                          {phase}
-                                        </Tag>
-                                      ))}
-                                      {info.phases.length > 2 && (
-                                        <Tag className="text-xs !text-[10px] !py-0">
-                                          +{info.phases.length - 2}
-                                        </Tag>
-                                      )}
-                                    </div>
-                                  )}
+                        {/* Group-level Resources - with Drag & Drop */}
+                        <DropZone
+                          levelId={level.id}
+                          groupId={group.id}
+                          onDrop={moveResource}
+                          className="ml-2 mb-2 space-y-1 min-h-[20px] p-1 rounded transition-all"
+                        >
+                          {group.positions.length > 0 ? (
+                            group.positions.map((position) => {
+                              const resource = currentProject?.resources.find(r => r.id === position.resourceId);
+                              return (
+                                <DraggableResource
+                                  key={position.id}
+                                  position={position}
+                                  resource={resource}
+                                  levelId={level.id}
+                                  groupId={group.id}
+                                  onRemove={(e) => removePosition(e, level.id, group.id, position.id)}
+                                />
+                              );
+                            })
+                          ) : (
+                            <div className="text-xs text-gray-400 italic p-2">Drop resources here</div>
+                          )}
+                        </DropZone>
 
-                                  {/* Task count */}
-                                  {info && info.tasks.length > 0 && (
-                                    <div className="text-xs text-gray-500 mt-1">
-                                      {info.tasks.length} task{info.tasks.length !== 1 ? 's' : ''}
-                                    </div>
-                                  )}
+                        {/* Sub-Groups */}
+                        {group.subGroups && group.subGroups.length > 0 && (
+                          <div className="ml-4 space-y-2 mt-2">
+                            {group.subGroups.map((subGroup) => (
+                              <div key={subGroup.id} className="border border-indigo-200 rounded p-2 bg-indigo-50">
+                                {/* Sub-Group Header */}
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-medium text-indigo-900">{subGroup.name}</span>
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      size="small"
+                                      icon={<EditOutlined />}
+                                      onClick={() => setEditingSubGroup({ levelId: level.id, groupId: group.id, subGroup })}
+                                    />
+                                    <Button
+                                      size="small"
+                                      icon={<PlusOutlined />}
+                                      onClick={(e) => addPosition(e, level.id, group.id, subGroup.id)}
+                                      title="Add Resource"
+                                    />
+                                    <Button
+                                      size="small"
+                                      danger
+                                      icon={<DeleteOutlined />}
+                                      onClick={() => deleteSubGroup(level.id, group.id, subGroup.id)}
+                                    />
+                                  </div>
                                 </div>
 
-                                <Button
-                                  danger
-                                  icon={<CloseOutlined />}
-                                  size="small"
-                                  className="ml-2"
-                                  onClick={(e) => removePosition(e, level.id, group.id, position.id)}
-                                />
+                                {/* Sub-Group Resources - with Drag & Drop */}
+                                <DropZone
+                                  levelId={level.id}
+                                  groupId={group.id}
+                                  subGroupId={subGroup.id}
+                                  onDrop={moveResource}
+                                  className="ml-2 space-y-1 min-h-[20px] p-1 rounded transition-all"
+                                >
+                                  {subGroup.positions.length > 0 ? (
+                                    subGroup.positions.map((position) => {
+                                      const resource = currentProject?.resources.find(r => r.id === position.resourceId);
+                                      return (
+                                        <DraggableResource
+                                          key={position.id}
+                                          position={position}
+                                          resource={resource}
+                                          levelId={level.id}
+                                          groupId={group.id}
+                                          subGroupId={subGroup.id}
+                                          onRemove={(e) => removePosition(e, level.id, group.id, position.id, subGroup.id)}
+                                        />
+                                      );
+                                    })
+                                  ) : (
+                                    <div className="text-xs text-gray-400 italic p-2">Drop resources here</div>
+                                  )}
+                                </DropZone>
                               </div>
-                            </div>
-                          );
-                        })}
-
-                        {/* Show count when filtered */}
-                        {viewMode !== 'overall' && visiblePositions.length < group.positions.length && (
-                          <div className="text-xs text-gray-500 text-center py-2">
-                            Showing {visiblePositions.length} of {group.positions.length}
+                            ))}
                           </div>
                         )}
-
-                        {/* Assign Resource Button */}
-                        <Button
-                          block
-                          type="dashed"
-                          icon={<PlusOutlined />}
-                          onClick={(e) => addPosition(e, level.id, group.id)}
-                          className="!border-2 !border-blue-300 !text-blue-600 hover:!bg-blue-50 hover:!border-blue-400 always-visible mt-auto font-medium"
-                          size="large"
-                        >
-                          Assign Resource
-                        </Button>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-              </div>
+                    ))}
+
+                    {/* Add Group Button */}
+                    <Button
+                      size="small"
+                      type="dashed"
+                      icon={<PlusOutlined />}
+                      onClick={() => addGroup(level.id)}
+                      className="w-full"
+                    >
+                      Add Group to {level.name}
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+        )}
+
+        {/* Chart Visualization */}
+        <div className="flex-1 overflow-auto p-8 bg-gray-50" ref={chartRef}>
+          <ReactOrgChartWrapper
+            orgChart={orgChart}
+            viewMode={viewMode}
+            selectedPhaseId={selectedPhaseId}
+            selectedTaskId={selectedTaskId}
+          />
         </div>
       </div>
 
@@ -1161,6 +1480,7 @@ export default function OrganizationChartPage() {
                             selectingResource.levelId,
                             selectingResource.groupId,
                             resource.id,
+                            selectingResource.subGroupId,
                             selectingResource.positionId
                           );
                         }}
@@ -1194,6 +1514,40 @@ export default function OrganizationChartPage() {
           );
         })()}
       </Modal>
-    </div>
+
+      {/* Edit Sub-Group Modal */}
+      <Modal
+        title="Edit Sub-Group"
+        open={!!editingSubGroup}
+        onOk={() => {
+          const newName = (document.getElementById('subgroup-name-input') as HTMLInputElement)?.value;
+          if (newName && editingSubGroup) {
+            updateSubGroup(editingSubGroup.levelId, editingSubGroup.groupId, editingSubGroup.subGroup.id, newName);
+          }
+        }}
+        onCancel={() => setEditingSubGroup(null)}
+        okText="Update"
+      >
+        {editingSubGroup && (
+          <div>
+            <label htmlFor="subgroup-name-input" className="block text-sm font-medium text-gray-700 mb-2">
+              Sub-Group Name
+            </label>
+            <Input
+              id="subgroup-name-input"
+              defaultValue={editingSubGroup.subGroup.name}
+              placeholder="Enter sub-group name"
+              onPressEnter={() => {
+                const newName = (document.getElementById('subgroup-name-input') as HTMLInputElement)?.value;
+                if (newName) {
+                  updateSubGroup(editingSubGroup.levelId, editingSubGroup.groupId, editingSubGroup.subGroup.id, newName);
+                }
+              }}
+            />
+          </div>
+        )}
+      </Modal>
+      </div>
+    </DndProvider>
   );
 }

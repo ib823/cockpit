@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#2563eb" rx="51.2"/>
+
+  <!-- Grid pattern (subtle) -->
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="512" height="512" fill="url(#grid)"/>
+
+  <!-- SAP Cockpit Logo - Stylized "S" -->
+  <g transform="translate(256, 256)">
+    <!-- Letter S -->
+    <path d="
+      M -76.8 -128
+      Q -128 -179.2 -76.8 -179.2
+      L 76.8 -179.2
+      Q 128 -179.2 128 -128
+      L 128 -76.8
+      Q 128 -25.6 76.8 -25.6
+      L -76.8 -25.6
+      Q -128 -25.6 -128 25.6
+      L -128 76.8
+      Q -128 128 -76.8 128
+      L 76.8 128
+      Q 128 128 76.8 179.2
+      L -76.8 179.2
+      Q -128 179.2 -128 128
+      Z
+    " fill="white" fill-opacity="0.95"/>
+
+    <!-- Accent dot -->
+    <circle cx="143.36" cy="-143.36" r="25.6" fill="#fbbf24"/>
+  </g>
+
+  <!-- Text label for smaller sizes -->
+  
+  <text
+    x="256"
+    y="435.2"
+    font-family="Arial, sans-serif"
+    font-size="61.44"
+    font-weight="700"
+    fill="white"
+    text-anchor="middle"
+    fill-opacity="0.9"
+  >SAP COCKPIT</text>
+  
+</svg>

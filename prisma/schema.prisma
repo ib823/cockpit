@@ -19,6 +19,18 @@ model AuditEvent {
   @@index([userId, type, createdAt])
 }
 
+model SecurityEvent {
+  id        String   @id
+  type      String
+  ipAddress String?
+  userId    String?
+  createdAt DateTime @default(now())
+  meta      Json?
+
+  @@index([type, createdAt])
+  @@index([ipAddress])
+}
+
 model Authenticator {
   id         String   @id
   userId     String

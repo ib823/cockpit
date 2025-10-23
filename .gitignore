@@ -34,6 +34,10 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# secret rotation tracking (contains sensitive timestamp data)
+.secret-rotation.json
+.secret-rotation.backup.*.json
+
 # vercel
 .vercel
 
