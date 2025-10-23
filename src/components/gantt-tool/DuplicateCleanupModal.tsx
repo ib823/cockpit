@@ -211,7 +211,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
               >
                 <div className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <span className="text-orange-600">⚠️</span>
-                  Duplicate: "{group.phaseName}"
+                  Duplicate: &quot;{group.phaseName}&quot;
                   <span className="text-xs text-gray-500 font-normal">
                     ({group.phases.length} occurrences)
                   </span>
