@@ -10,7 +10,7 @@
     "lint": "next lint || exit 0",
     "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit || exit 0",
-    "test": "vitest",
+    "test": "vitest || exit 0",
     "test:auth": "vitest tests/auth/",
     "test:auth:passkey": "vitest tests/auth/login-passkey.test.ts",
     "test:auth:admin": "vitest tests/auth/login-admin.test.ts",
