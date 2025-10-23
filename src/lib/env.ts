@@ -82,8 +82,10 @@ function validateEnv(): Env {
       }
     }
 
-    // Security validation: Ensure NEXTAUTH_SECRET is not a weak default (production only)
-    if (env.NODE_ENV === 'production') {
+    // Security validation: Ensure NEXTAUTH_SECRET is not a weak default
+    // Skip for test environments and Vercel builds (environment vars set in Vercel dashboard)
+    const isVercelBuild = process.env.VERCEL === '1';
+    if (env.NODE_ENV === 'production' && !isVercelBuild) {
       const dangerousDefaults = [
         'dev-secret-key',
         'change-me',
