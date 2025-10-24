@@ -233,6 +233,10 @@ model projects {
   ricefw_items       ricefw_items[]
   shares             shares[]
   snapshots          snapshots[]
+  dashboardSnapshots DashboardSnapshot[]
+  dashboardScenarios DashboardScenario[]
+  dashboardComments  DashboardComment[]
+  dashboardExports   DashboardExport[]
 
   @@index([createdAt])
   @@index([ownerId])
@@ -391,9 +395,14 @@ model users {
   ganttProjects    GanttProject[]
   trustedDevices   TrustedDevice[]
   loginHistory     LoginHistory[]
-  recoveryCodes    RecoveryCode[]
-  securityActions  SecurityAction[]
-  recoveryRequests AccountRecoveryRequest[]
+  recoveryCodes      RecoveryCode[]
+  securityActions    SecurityAction[]
+  recoveryRequests   AccountRecoveryRequest[]
+  dashboardSnapshots DashboardSnapshot[]
+  dashboardScenarios DashboardScenario[]
+  dashboardComments  DashboardComment[]
+  dashboardSettings  DashboardSettings?
+  dashboardExports   DashboardExport[]
 
   @@index([email])
   @@index([lastSeenAt])
