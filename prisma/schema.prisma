@@ -973,3 +973,179 @@ model EmailLog {
   @@index([template])
   @@index([createdAt])
 }
+
+// ============================================================================
+// Dashboard Persistence Models
+// ============================================================================
+
+/// Dashboard Snapshot - Stores saved dashboard states for later recall
+model DashboardSnapshot {
+  id          String   @id @default(cuid())
+  projectId   String
+  userId      String
+  name        String
+  description String?
+
+  // Dashboard data
+  costBreakdown Json    // CostBreakdown interface
+  margins       Json    // MarginAnalysis interface
+  revenue       Decimal @db.Decimal(12, 2)
+  metrics       Json?   // Additional metrics
+
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDefault   Boolean  @default(false)
+
+  // Relations
+  project     projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, userId])
+  @@index([userId, createdAt])
+}
+
+/// Dashboard Scenario - For what-if analysis and scenario planning
+model DashboardScenario {
+  id          String   @id @default(cuid())
+  projectId   String
+  userId      String
+  name        String
+  description String?
+
+  // Scenario data
+  projectData   Json     // Modified GanttProject data
+  revenue       Decimal  @db.Decimal(12, 2)
+  assumptions   Json?    // Scenario assumptions/changes
+
+  // Comparison metrics
+  costDelta     Decimal? @db.Decimal(12, 2)
+  marginDelta   Decimal? @db.Decimal(6, 3)
+  timeDelta     Int?     // Days
+
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isBaseline  Boolean  @default(false)
+
+  // Relations
+  project     projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId, projectId])
+}
+
+/// Dashboard Comment - Collaborative comments on dashboard elements
+model DashboardComment {
+  id          String   @id @default(cuid())
+  projectId   String
+  userId      String
+  elementId   String?  // Target element (e.g., "phase-123", "resource-456")
+  elementType String?  // Type of element (phase, resource, metric, etc.)
+
+  // Comment data
+  content     String
+  resolved    Boolean  @default(false)
+
+  // Threading
+  parentId    String?
+  parent      DashboardComment?  @relation("CommentThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     DashboardComment[] @relation("CommentThread")
+
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  project     projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, elementId])
+  @@index([userId, projectId])
+  @@index([parentId])
+}
+
+/// Dashboard Settings - User-specific dashboard preferences
+model DashboardSettings {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+
+  // Preferences
+  defaultView       String @default("all") // "all", "operational", "financial", "strategic"
+  showChartTables   Boolean @default(false) // Show accessibility tables
+  autoRefresh       Boolean @default(false)
+  refreshInterval   Int @default(300000) // milliseconds
+
+  // Rate card customization
+  customRateCard    Json?   // Custom rate card by designation
+
+  // Notification preferences
+  notifyOnChange    Boolean @default(true)
+  notifyOnComment   Boolean @default(true)
+
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Dashboard Share - Share dashboard snapshots with others
+model DashboardShare {
+  id          String   @id @default(cuid())
+  snapshotId  String
+  sharedBy    String
+  sharedWith  String?  // Null for public shares
+  accessLevel String   @default("view") // "view", "comment", "edit"
+
+  // Share settings
+  expiresAt   DateTime?
+  password    String?  // Hashed password for protected shares
+  allowDownload Boolean @default(true)
+
+  // Analytics
+  viewCount   Int      @default(0)
+  lastViewed  DateTime?
+
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([snapshotId])
+  @@index([sharedBy])
+  @@index([sharedWith])
+}
+
+/// Dashboard Export History - Track dashboard exports for audit purposes
+model DashboardExport {
+  id          String   @id @default(cuid())
+  projectId   String
+  userId      String
+  format      String   // "pdf", "excel", "csv"
+
+  // Export metadata
+  filename    String
+  fileSize    Int?     // bytes
+  status      String   @default("pending") // "pending", "completed", "failed"
+  errorMessage String?
+
+  // S3/storage URL (if applicable)
+  storageUrl  String?
+  expiresAt   DateTime?
+
+  // Metadata
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+
+  // Relations
+  project     projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId, createdAt])
+  @@index([status])
+}
