@@ -5,16 +5,21 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import { Card, Typography, Alert, Modal, Radio, Space } from 'antd';
+import { FileText, FileSpreadsheet, Download } from 'lucide-react';
 import { ComprehensiveDashboard } from '@/components/dashboard-v2';
 import { GanttProject } from '@/types/gantt-tool';
-import { Card, Typography, Alert } from 'antd';
+import { calculateTotalCost, calculateMargins } from '@/lib/dashboard/calculation-engine';
+import { exportDashboard, ExportData } from '@/lib/dashboard/export-engine';
 
 const { Title, Text } = Typography;
 
 export default function DashboardV2DemoPage() {
   const [project, setProject] = useState<GanttProject | null>(null);
   const [proposedRevenue, setProposedRevenue] = useState(0);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('pdf');
 
   useEffect(() => {
     // Try to load project from localStorage (from gantt-tool)
@@ -28,6 +33,23 @@ export default function DashboardV2DemoPage() {
       }
     }
   }, []);
+
+  // Calculate export data
+  const exportData = useMemo<ExportData | null>(() => {
+    if (!project) return null;
+
+    const costBreakdown = calculateTotalCost(project);
+    const revenue = proposedRevenue > 0 ? proposedRevenue : costBreakdown.totalCost / 0.7;
+    const margins = calculateMargins(revenue, costBreakdown);
+
+    return {
+      project,
+      costBreakdown,
+      margins,
+      revenue,
+      timestamp: new Date(),
+    };
+  }, [project, proposedRevenue]);
 
   if (!project) {
     return (
@@ -64,24 +86,91 @@ export default function DashboardV2DemoPage() {
     );
   }
 
+  const handleExport = () => {
+    setExportModalVisible(true);
+  };
+
+  const handleConfirmExport = () => {
+    if (exportData) {
+      exportDashboard(exportData, exportFormat);
+      setExportModalVisible(false);
+    }
+  };
+
   return (
-    <ComprehensiveDashboard
-      project={project}
-      proposedRevenue={proposedRevenue}
-      onRevenueChange={setProposedRevenue}
-      onSave={() => {
-        console.log('Saving project...');
-        localStorage.setItem('gantt-project', JSON.stringify(project));
-        localStorage.setItem('proposed-revenue', proposedRevenue.toString());
-      }}
-      onExport={() => {
-        console.log('Exporting dashboard...');
-        // TODO: Implement export functionality
-      }}
-      onShare={() => {
-        console.log('Sharing dashboard...');
-        // TODO: Implement share functionality
-      }}
-    />
+    <>
+      <ComprehensiveDashboard
+        project={project}
+        proposedRevenue={proposedRevenue}
+        onRevenueChange={setProposedRevenue}
+        onSave={() => {
+          localStorage.setItem('gantt-project', JSON.stringify(project));
+          localStorage.setItem('proposed-revenue', proposedRevenue.toString());
+        }}
+        onExport={handleExport}
+        onShare={() => {
+          // TODO: Implement share functionality
+          console.log('Share dashboard');
+        }}
+      />
+
+      {/* Export Modal */}
+      <Modal
+        title="Export Dashboard"
+        open={exportModalVisible}
+        onOk={handleConfirmExport}
+        onCancel={() => setExportModalVisible(false)}
+        okText="Export"
+        width={500}
+      >
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <Text>Choose export format:</Text>
+
+          <Radio.Group
+            value={exportFormat}
+            onChange={(e) => setExportFormat(e.target.value)}
+            style={{ width: '100%' }}
+          >
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <Radio value="pdf">
+                <Space>
+                  <FileText size={20} />
+                  <div>
+                    <div style={{ fontWeight: 600 }}>PDF Report</div>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      Professional print-ready report with charts and tables
+                    </Text>
+                  </div>
+                </Space>
+              </Radio>
+
+              <Radio value="excel">
+                <Space>
+                  <FileSpreadsheet size={20} />
+                  <div>
+                    <div style={{ fontWeight: 600 }}>Excel Workbook (.xls)</div>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      Formatted HTML table that opens in Excel
+                    </Text>
+                  </div>
+                </Space>
+              </Radio>
+
+              <Radio value="csv">
+                <Space>
+                  <Download size={20} />
+                  <div>
+                    <div style={{ fontWeight: 600 }}>CSV Spreadsheet (.csv)</div>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      Plain text data for import into any tool
+                    </Text>
+                  </div>
+                </Space>
+              </Radio>
+            </Space>
+          </Radio.Group>
+        </Space>
+      </Modal>
+    </>
   );
 }
