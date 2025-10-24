@@ -1,3 +1,12 @@
 {
-  "crons": [{ "path": "/api/cron/revoke", "schedule": "0 5 * * *" }]
+  "crons": [
+    {
+      "path": "/api/cron/revoke",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/password-expiry-warnings",
+      "schedule": "0 9 * * *"
+    }
+  ]
 }

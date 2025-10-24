@@ -151,3 +151,48 @@ export async function sendAccessCode(email: string, code: string, magicLink?: st
   // No email provider configured - do not log sensitive data
   return { success: false, devMode: true };
 }
+
+/**
+ * Send security-related emails (welcome, alerts, warnings, etc.)
+ */
+export async function sendSecurityEmail(
+  email: string,
+  subject: string,
+  html: string
+): Promise<{ success: boolean; provider?: string; error?: any; devMode?: boolean }> {
+  // Priority 1: Try Gmail SMTP (free, built-in)
+  if (gmailTransporter) {
+    try {
+      await gmailTransporter.sendMail({
+        from: `"Cockpit Security" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject,
+        html,
+      });
+      return { success: true, provider: 'gmail' };
+    } catch (error) {
+      console.error('[Gmail] Failed to send security email:', error);
+      // Fall through to Resend
+    }
+  }
+
+  // Priority 2: Try Resend API
+  if (resend) {
+    try {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        subject,
+        html,
+      });
+      return { success: true, provider: 'resend' };
+    } catch (error) {
+      console.error('[Resend] Failed to send security email:', error);
+      return { success: false, error };
+    }
+  }
+
+  // No email provider configured
+  console.log('[Email] Dev mode - Would send:', subject, 'to', email);
+  return { success: false, devMode: true };
+}
