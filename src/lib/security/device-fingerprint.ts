@@ -10,7 +10,7 @@
 
 import crypto from 'crypto';
 import { headers } from 'next/headers';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 
 export interface DeviceFingerprint {
   fingerprint: string;      // Hashed fingerprint
