@@ -10,4 +10,5 @@ export { FinancialView } from './FinancialView';
 export { StrategicView } from './StrategicView';
 export { ResourceHeatmap } from './ResourceHeatmap';
 export { RateCardManager } from './RateCardManager';
-export { CustomizableDashboard } from './CustomizableDashboard';
+// Note: CustomizableDashboard requires @dnd-kit packages - export when needed
+// export { CustomizableDashboard } from './CustomizableDashboard';
