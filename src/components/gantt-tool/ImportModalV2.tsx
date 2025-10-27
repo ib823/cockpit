@@ -429,20 +429,27 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       });
 
       let response;
-      if (isNewProject) {
-        // Create new project via importProject
-        response = await fetch('/api/gantt-tool/projects', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(projectPayload),
-        });
-      } else {
-        // Update existing project
-        response = await fetch(`/api/gantt-tool/projects/${selectedProjectId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(projectPayload),
-        });
+      try {
+        if (isNewProject) {
+          // Create new project via importProject
+          console.log('🌐 Fetching: POST /api/gantt-tool/projects');
+          response = await fetch('/api/gantt-tool/projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(projectPayload),
+          });
+        } else {
+          // Update existing project
+          console.log(`🌐 Fetching: PATCH /api/gantt-tool/projects/${selectedProjectId}`);
+          response = await fetch(`/api/gantt-tool/projects/${selectedProjectId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(projectPayload),
+          });
+        }
+      } catch (fetchError) {
+        console.error('❌ Network error during fetch:', fetchError);
+        throw new Error('Network error: Cannot connect to the server. Make sure the development server is running.');
       }
 
       console.log('API Response status:', response.status);
@@ -482,20 +489,24 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       await store.fetchProjects(); // Refresh project list
       await store.fetchProject(projectId); // Load the project
 
-      // Verify resources were persisted
-      const updatedState = useGanttToolStoreV2.getState();
-      const fetchedProject = updatedState.currentProject;
-      if (fetchedProject) {
-        console.log('\n🔍 Verifying persisted data...');
-        const tasksWithResources = fetchedProject.phases
-          .flatMap(p => p.tasks)
-          .filter(t => t.resourceAssignments && t.resourceAssignments.length > 0);
-        console.log('Tasks with resources after fetch:', tasksWithResources.length);
-        if (tasksWithResources.length > 0) {
-          console.log('Sample persisted task:', tasksWithResources[0]);
-        } else {
-          console.error('❌ NO RESOURCE ASSIGNMENTS FOUND AFTER FETCH!');
+      // Verify resources were persisted (only if resources were not skipped)
+      if (!skipResources) {
+        const updatedState = useGanttToolStoreV2.getState();
+        const fetchedProject = updatedState.currentProject;
+        if (fetchedProject) {
+          console.log('\n🔍 Verifying persisted data...');
+          const tasksWithResources = fetchedProject.phases
+            .flatMap(p => p.tasks)
+            .filter(t => t.resourceAssignments && t.resourceAssignments.length > 0);
+          console.log('Tasks with resources after fetch:', tasksWithResources.length);
+          if (tasksWithResources.length > 0) {
+            console.log('✅ Sample persisted task:', tasksWithResources[0]);
+          } else {
+            console.warn('⚠️ No resource assignments found after fetch (resources were imported but not assigned)');
+          }
         }
+      } else {
+        console.log('⏭️ Resources were skipped - no resource verification needed');
       }
 
       alert(isNewProject ?

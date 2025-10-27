@@ -14,15 +14,11 @@ import { GanttCanvas } from './GanttCanvas';
 import { GanttSidePanel } from './GanttSidePanel';
 import { QuickResourcePanel } from './QuickResourcePanel';
 import { MissionControlModal } from './MissionControlModal';
-import { ImportModalV2 } from './ImportModalV2';
 import { format } from 'date-fns';
-import { Calendar, Plus, Upload, AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { GhostLoader } from '@/components/common';
-import { Modal, Form, Input, DatePicker, App } from 'antd';
-import dayjs from 'dayjs';
 
 export function GanttToolShell() {
-  const { modal } = App.useApp();
   const {
     currentProject,
     projects,
@@ -38,86 +34,9 @@ export function GanttToolShell() {
     isLoading,
   } = useGanttToolStoreV2();
 
-  const [showImportModal, setShowImportModal] = useState(false);
   const [showContextPanel, setShowContextPanel] = useState(false);
   const [showQuickResourcePanel, setShowQuickResourcePanel] = useState(false);
-  const [showWelcomeCreateModal, setShowWelcomeCreateModal] = useState(false);
-  const [welcomeCreateForm] = Form.useForm();
-
-  // PERMANENT FIX: Force cleanup of modal side effects (overflow, focus traps, masks)
-  const forceModalCleanup = () => {
-    // Remove overflow hidden from body (Ant Design modal side effect)
-    if (document.body.style.overflow === 'hidden') {
-      document.body.style.overflow = '';
-    }
-    if (document.body.style.paddingRight) {
-      document.body.style.paddingRight = '';
-    }
-
-    // Remove any lingering modal masks/backdrops
-    const masks = document.querySelectorAll('.ant-modal-mask, .ant-modal-wrap');
-    masks.forEach(mask => {
-      if (mask.parentNode) {
-        mask.parentNode.removeChild(mask);
-      }
-    });
-
-    // Restore pointer events
-    document.body.style.pointerEvents = '';
-
-    // Force focus to be released from any modal elements
-    const activeElement = document.activeElement as HTMLElement;
-    if (activeElement && activeElement.blur) {
-      activeElement.blur();
-    }
-  };
-
-  // Cleanup on unmount and whenever modals close
-  useEffect(() => {
-    return () => {
-      forceModalCleanup();
-    };
-  }, []);
-
-  // Cleanup whenever modal states change to false
-  useEffect(() => {
-    if (!showWelcomeCreateModal && !showImportModal) {
-      // Small delay to let modal animation complete, then force cleanup
-      const timer = setTimeout(forceModalCleanup, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [showWelcomeCreateModal, showImportModal]);
-
-  // Handler for creating project from welcome screen
-  const handleWelcomeCreateProject = async (values: { projectName: string; startDate: any }) => {
-    // Check for duplicate name
-    const isDuplicate = projects.some(p => p.name.toLowerCase() === values.projectName.toLowerCase());
-    if (isDuplicate) {
-      modal.error({
-        title: 'Duplicate Project Name',
-        content: `A project named "${values.projectName}" already exists. Please choose a different name.`,
-      });
-      return;
-    }
-
-    try {
-      const startDate = values.startDate.format('YYYY-MM-DD');
-      await createProject(values.projectName, startDate);
-
-      // Close modal and cleanup
-      setShowWelcomeCreateModal(false);
-      welcomeCreateForm.resetFields();
-
-      // Force cleanup to prevent modal side effects
-      setTimeout(() => forceModalCleanup(), 100);
-    } catch (error) {
-      console.error('Failed to create project:', error);
-      modal.error({
-        title: 'Failed to Create Project',
-        content: error instanceof Error ? error.message : 'An unknown error occurred',
-      });
-    }
-  };
+  const [autoLoadError, setAutoLoadError] = useState<string | null>(null);
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -159,198 +78,83 @@ export function GanttToolShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
-  // DISABLED: Auto-load removed to let users see the project list
-  // Users can now:
-  // 1. See all their projects on the welcome screen
-  // 2. Choose which project to load
-  // 3. Switch between projects using the toolbar dropdown
+  // Auto-load the most recent project or create a default one
+  useEffect(() => {
+    // Only run if we've finished loading and there's no current project
+    if (!isLoading && !currentProject && !manuallyUnloaded && !autoLoadError) {
+      const autoLoad = async () => {
+        try {
+          if (projects.length > 0) {
+            // Load the most recently updated project
+            const sortedProjects = [...projects].sort(
+              (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+            );
+            await loadProject(sortedProjects[0].id);
+          } else {
+            // Create a default project with unique name if none exist
+            const today = format(new Date(), 'yyyy-MM-dd');
+            const timestamp = Date.now();
+            const projectName = `Project ${format(new Date(), 'yyyy-MM-dd HH:mm')}`;
+            await createProject(projectName, today);
+          }
+        } catch (error) {
+          console.error('[GanttToolShell] Auto-load failed:', error);
+          setAutoLoadError(error instanceof Error ? error.message : 'Failed to load project');
+        }
+      };
 
-  // Loading State - Show while fetching projects
-  if (isLoading && projects.length === 0) {
+      autoLoad();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, projects.length, currentProject, manuallyUnloaded, autoLoadError])
+
+  // Error State - Show when auto-load fails
+  if (autoLoadError && !currentProject) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <GhostLoader />
-          <p className="mt-4 text-gray-600 text-lg">Loading your projects...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Unable to Load Project</h2>
+          <p className="text-gray-600 mb-6">{autoLoadError}</p>
+          <div className="space-y-3">
+            <button
+              onClick={() => {
+                setAutoLoadError(null);
+                fetchProjects();
+              }}
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => {
+                setAutoLoadError(null);
+                const today = format(new Date(), 'yyyy-MM-dd');
+                const projectName = `New Project ${format(new Date(), 'MMM dd, HH:mm')}`;
+                createProject(projectName, today).catch((err) => {
+                  setAutoLoadError(err instanceof Error ? err.message : 'Failed to create project');
+                });
+              }}
+              className="w-full px-6 py-3 bg-white text-gray-700 border-2 border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            >
+              Create New Project
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Welcome Screen - Show when no current project
-  if (!currentProject) {
+  // Loading State - Show while loading or when project is being auto-created
+  if (isLoading || !currentProject) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-8">
-        <div className="max-w-4xl w-full">
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
-              <Calendar className="w-8 h-8 text-blue-600" />
-            </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-3">
-              Gantt Chart Tool
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Create professional project timelines with phases, tasks, milestones, and holidays.
-              Export to PNG, PDF, or Excel. All your projects are securely saved to the cloud.
-            </p>
-          </div>
-
-          {/* Feature Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-            <FeatureCard
-              icon="📊"
-              title="Visual Timeline"
-              description="Drag-and-drop phases and tasks to create stunning timelines"
-            />
-            <FeatureCard
-              icon="📤"
-              title="Import Projects"
-              description="Import existing plans from Excel templates"
-            />
-            <FeatureCard
-              icon="🎯"
-              title="Milestones & Holidays"
-              description="Mark important dates and account for holidays"
-            />
-            <FeatureCard
-              icon="📥"
-              title="Export Anywhere"
-              description="Export to PNG, PDF, Excel, or JSON format"
-            />
-          </div>
-
-          {/* Existing Projects (if any) */}
-          {projects.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 text-center">Your Projects</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-                {[...projects]
-                  .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-                  .slice(0, 6)
-                  .map((project) => (
-                    <button
-                      key={project.id}
-                      onClick={() => {
-                        loadProject(project.id);
-                      }}
-                      className="text-left p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:shadow-md transition-all"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 truncate">{project.name}</h3>
-                          <p className="text-sm text-gray-500 mt-1">
-                            {project.phases.length} phases • {project.phases.reduce((sum, p) => sum + p.tasks.length, 0)} tasks
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            Updated {new Date(project.updatedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0 ml-2" />
-                      </div>
-                    </button>
-                  ))}
-              </div>
-              {projects.length > 6 && (
-                <p className="text-center text-sm text-gray-500 mt-4">
-                  And {projects.length - 6} more projects...
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* CTA Buttons */}
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <button
-                onClick={() => setShowWelcomeCreateModal(true)}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                <Plus className="w-5 h-5" />
-                Create New Project
-              </button>
-              <button
-                onClick={() => setShowImportModal(true)}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 border-2 border-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                <Upload className="w-5 h-5" />
-                Import from Excel
-              </button>
-            </div>
-
-            {/* Quick Start Guide */}
-            <div className="max-w-2xl mx-auto bg-blue-50 border border-blue-200 rounded-lg p-6 text-left">
-              <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">?</span>
-                Getting Started
-              </h3>
-              <ol className="space-y-2 text-sm text-blue-800">
-                <li className="flex items-start gap-2">
-                  <span className="font-semibold min-w-[20px]">1.</span>
-                  <span>Click <strong>"Create New Project"</strong> to start a blank timeline</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-semibold min-w-[20px]">2.</span>
-                  <span>Add phases to define major project sections (e.g., "Planning", "Execution")</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-semibold min-w-[20px]">3.</span>
-                  <span>Add tasks within each phase to break down the work</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-semibold min-w-[20px]">4.</span>
-                  <span>Drag bars to adjust dates, assign resources, and track progress</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-semibold min-w-[20px]">5.</span>
-                  <span>Export to PNG, PDF, or Excel when ready to share</span>
-                </li>
-              </ol>
-            </div>
-
-            <p className="text-sm text-gray-500 mt-6">
-              All changes are automatically saved • Secure cloud storage
-            </p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <GhostLoader />
+          <p className="mt-4 text-gray-600 text-lg">Loading your timeline...</p>
         </div>
-
-        {/* Import Modal V2 */}
-        {showImportModal && <ImportModalV2 onClose={() => setShowImportModal(false)} />}
-
-        {/* Create Project Modal */}
-        <Modal
-          title="Create New Project"
-          open={showWelcomeCreateModal}
-          onOk={() => welcomeCreateForm.submit()}
-          onCancel={() => {
-            setShowWelcomeCreateModal(false);
-            welcomeCreateForm.resetFields();
-          }}
-          afterClose={() => {
-            // Force cleanup after modal animation completes
-            forceModalCleanup();
-          }}
-          destroyOnHidden={true}
-          okText="Create"
-        >
-          <Form form={welcomeCreateForm} layout="vertical" onFinish={handleWelcomeCreateProject}>
-            <Form.Item
-              name="projectName"
-              label="Project Name"
-              rules={[{ required: true, message: 'Please enter project name' }]}
-            >
-              <Input placeholder="Enterprise CRM Implementation" size="large" />
-            </Form.Item>
-            <Form.Item
-              name="startDate"
-              label="Start Date"
-              rules={[{ required: true, message: 'Please select start date' }]}
-              initialValue={dayjs()}
-            >
-              <DatePicker style={{ width: '100%' }} size="large" />
-            </Form.Item>
-          </Form>
-        </Modal>
       </div>
     );
   }
@@ -405,16 +209,7 @@ export function GanttToolShell() {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Content: Gantt Canvas */}
         <div className="flex-1 overflow-auto">
-          {currentProject ? (
-            <GanttCanvas />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Select or create a project to get started</p>
-              </div>
-            </div>
-          )}
+          <GanttCanvas />
         </div>
 
         {/* Quick Resource Panel - Jobs/Ive: Only visible when summoned */}
@@ -432,17 +227,6 @@ export function GanttToolShell() {
         isOpen={showContextPanel}
         onClose={() => setShowContextPanel(false)}
       />
-    </div>
-  );
-}
-
-// Feature Card Component
-function FeatureCard({ icon, title, description }: { icon: string; title: string; description: string }) {
-  return (
-    <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-      <div className="text-3xl mb-3">{icon}</div>
-      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-sm text-gray-600">{description}</p>
     </div>
   );
 }

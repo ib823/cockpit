@@ -1,6 +1,6 @@
 'use client';
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 
 type EmailStatus = {
@@ -11,8 +11,9 @@ type EmailStatus = {
   needsAction: 'login' | 'enter_invite' | 'not_found';
 };
 
-export default function LoginEmailFirst() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<EmailStatus | null>(null);
   const [code, setCode] = useState('');
@@ -20,6 +21,102 @@ export default function LoginEmailFirst() {
   const [err, setErr] = useState<string | null>(null);
   const [stage, setStage] = useState<'input' | 'creating' | 'verifying' | 'success'>('input');
   const [successMessage, setSuccessMessage] = useState<string>('');
+
+  // Handle magic link token on page load
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      verifyMagicLink(token);
+    }
+  }, [searchParams]);
+
+  const verifyMagicLink = async (token: string) => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch('/api/auth/verify-magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+
+      const json = await res.json();
+
+      if (!json.ok) {
+        setErr(json.message || 'Invalid or expired magic link');
+        return;
+      }
+
+      // Auto-populate email and check status
+      setEmail(json.email);
+      const statusRes = await fetch(`/api/auth/email-status?email=${encodeURIComponent(json.email)}`);
+      const statusJson = await statusRes.json();
+      setStatus(statusJson);
+
+      if (statusJson.needsAction === 'enter_invite') {
+        // Automatically trigger passkey registration since magic link was verified
+        setSuccessMessage('Magic link verified! Creating your passkey...');
+        setTimeout(() => onRegisterWithMagicLink(json.email), 500);
+      } else if (statusJson.needsAction === 'login') {
+        setSuccessMessage('Magic link verified! Please use your passkey to login.');
+      }
+    } catch (error) {
+      setErr('Failed to verify magic link. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onRegisterWithMagicLink = async (emailAddress: string) => {
+    setBusy(true);
+    setErr(null);
+    setStage('creating');
+    try {
+      const begin = await fetch('/api/auth/begin-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailAddress, magicLink: true }),
+      }).then(r => r.json());
+
+      if (!begin.ok) {
+        setErr(begin.message || 'Registration failed. Please try again.');
+        setStage('input');
+        return;
+      }
+
+      // Use SimpleWebAuthn for registration
+      const credential = await startRegistration({ optionsJSON: begin.options });
+
+      setStage('verifying');
+      const finish = await fetch('/api/auth/finish-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailAddress, response: credential }),
+      }).then(r => r.json());
+
+      if (!finish.ok) {
+        setErr(finish.message || 'Registration failed. Please try again.');
+        setStage('input');
+        return;
+      }
+
+      setStage('success');
+      setSuccessMessage('Passkey registered successfully!');
+      const role = finish?.user?.role;
+      setTimeout(() => {
+        router.replace(role === 'ADMIN' ? '/admin' : '/dashboard');
+      }, 1500);
+    } catch (e: any) {
+      if (e.name === 'NotAllowedError') {
+        setErr('Passkey creation was cancelled.');
+      } else {
+        setErr('Invalid. Contact Admin.');
+      }
+      setStage('input');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const onCheck = async () => {
     setErr(null);
@@ -143,6 +240,38 @@ export default function LoginEmailFirst() {
     }
   };
 
+  const onSendMagicLink = async () => {
+    const e = email.trim().toLowerCase();
+    if (!e) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch('/api/auth/send-magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: e }),
+      }).then(r => r.json());
+
+      if (!res.ok) {
+        setErr(res.message || 'Failed to send magic link');
+        return;
+      }
+
+      if (res.devMode) {
+        // In dev mode, show the magic link
+        setSuccessMessage(`Magic link: ${res.magicLink}`);
+        console.log('🔗 Magic Link:', res.magicLink);
+      } else {
+        setSuccessMessage('Magic link sent! Check your email.');
+      }
+      setStage('success');
+    } catch (error) {
+      setErr('Failed to send magic link. Try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="w-full max-w-md px-6">
@@ -191,19 +320,8 @@ export default function LoginEmailFirst() {
             <div className="space-y-6">
               {/* Error Message */}
               {err && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm space-y-3">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                   <p>{err}</p>
-                  <button
-                    onClick={() => {
-                      setStatus(null);
-                      setEmail('');
-                      setCode('');
-                      setErr(null);
-                    }}
-                    className="w-full py-2 bg-white border border-red-300 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
-                  >
-                    Start Over
-                  </button>
                 </div>
               )}
 
@@ -270,7 +388,32 @@ export default function LoginEmailFirst() {
                 </div>
               )}
 
-              {status?.needsAction === 'enter_invite' && (
+              {status?.needsAction === 'enter_invite' && status.inviteMethod === 'link' && (
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-600 text-center">
+                    Click the button below to receive a magic link via email.
+                  </p>
+                  <button
+                    onClick={onSendMagicLink}
+                    disabled={busy}
+                    className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Send Magic Link
+                  </button>
+                  <button
+                    onClick={() => { setStatus(null); setErr(null); }}
+                    disabled={busy}
+                    className="w-full py-2 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Change Email
+                  </button>
+                </div>
+              )}
+
+              {status?.needsAction === 'enter_invite' && status.inviteMethod === 'code' && (
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -314,5 +457,17 @@ export default function LoginEmailFirst() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginEmailFirst() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
