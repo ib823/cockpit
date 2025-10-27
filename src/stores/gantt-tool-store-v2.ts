@@ -557,11 +557,15 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           state.isSyncing = false;
           state.lastSyncAt = new Date();
         });
+
+        // Refetch projects to ensure we have the latest list from the database
+        await get().fetchProjects();
       } catch (error) {
         set((state) => {
           state.syncError = error instanceof Error ? error.message : 'Unknown error';
           state.isSyncing = false;
         });
+        throw error; // Re-throw to let caller handle
       }
     },
 
