@@ -32,7 +32,7 @@ export async function generatePowerPoint(data: ProjectData): Promise<Buffer> {
   const pptx = new PptxGenJS();
 
   // Configure presentation
-  pptx.author = 'SAP Cockpit';
+  pptx.author = 'Keystone';
   pptx.company = 'SAP Implementation Estimate';
   pptx.subject = data.name;
   pptx.title = `SAP S/4HANA Implementation Estimate: ${data.name}`;
@@ -123,7 +123,7 @@ export async function generatePowerPoint(data: ProjectData): Promise<Buffer> {
     valign: 'middle',
   });
 
-  slide2.addText('🤖 Generated with SAP Cockpit', {
+  slide2.addText('🤖 Generated with Keystone', {
     x: 0.5, y: 5.2, w: 9, h: 0.3,
     fontSize: 10, color: colors.textLight, align: 'right', italic: true
   });

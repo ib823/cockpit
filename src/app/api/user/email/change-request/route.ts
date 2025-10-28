@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
+import { randomUUID, randomInt } from 'crypto';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/db';
 import { sendSecurityEmail } from '@/lib/email';
@@ -83,7 +83,8 @@ export async function POST(req: Request) {
     // ============================================
     // 4. Generate Verification Code
     // ============================================
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // SECURITY FIX: Use crypto.randomInt() for cryptographically secure random code generation
+    const verificationCode = randomInt(100000, 1000000).toString();
     const codeHash = await hash(verificationCode, 12);
 
     // Generate revoke token (JWT)

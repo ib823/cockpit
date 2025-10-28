@@ -1,6 +1,6 @@
-# Cockpit UI Toolkit
+# Keystone UI Toolkit
 
-A comprehensive, token-based UI component library for the SAP Cockpit application. Built with React, TypeScript, and Tailwind CSS, featuring seamless AntD integration.
+A comprehensive, token-based UI component library for the SAP Keystone application. Built with React, TypeScript, and Tailwind CSS, featuring seamless AntD integration.
 
 ## 🎯 Features
 

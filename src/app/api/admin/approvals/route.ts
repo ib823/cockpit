@@ -3,9 +3,11 @@ import { requireAdmin } from '@/lib/nextauth-helpers';
 import { hash } from 'bcryptjs';
 import { Role } from '@prisma/client';
 import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
+import { randomUUID, randomInt } from 'crypto';
 export const runtime = 'nodejs';
-function six() { return Math.floor(100000 + Math.random() * 900000).toString(); }
+// SECURITY FIX: DEFECT-20251027-006 & REGRESSION-001
+// Replaced Math.random() with crypto.randomInt() for cryptographically secure random code generation
+function six() { return randomInt(100000, 1000000).toString(); }
 
 export async function GET() {
   await requireAdmin();
@@ -52,7 +54,9 @@ export async function POST(req: Request) {
   const { email } = await req.json();
 
   const code = six();
-  const tokenHash = await hash(code, 10);
+  // SECURITY FIX: DEFECT-20251027-012
+  // Increased bcrypt cost factor from 10 to 12 for industry-standard security (2024)
+  const tokenHash = await hash(code, 12);
   const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
   await prisma.emailApproval.upsert({
@@ -101,7 +105,9 @@ export async function PATCH(req: Request) {
 
   if (action === 'reapprove') {
     const code = six();
-    const tokenHash = await hash(code, 10);
+    // SECURITY FIX: DEFECT-20251027-012
+    // Increased bcrypt cost factor from 10 to 12 for industry-standard security (2024)
+    const tokenHash = await hash(code, 12);
     const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
     await prisma.emailApproval.upsert({
       where: { email },

@@ -1,5 +1,5 @@
 /**
- * SAP Cockpit - Estimator Store
+ * Keystone - Estimator Store
  *
  * Zustand store for managing estimator state with persistence.
  * Stores inputs, results, and warnings with localStorage persistence.

@@ -243,8 +243,8 @@ import QRCode from 'qrcode';
 
 export async function generateTOTP(userId: string, email: string) {
   const secret = speakeasy.generateSecret({
-    name: `Cockpit (${email})`,
-    issuer: 'Cockpit',
+    name: `Keystone (${email})`,
+    issuer: 'Keystone',
     length: 32,
   });
 

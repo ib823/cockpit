@@ -2,16 +2,21 @@ import { compare } from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
 import { challenges, generateRegistrationOptions, rpID } from '../../../../lib/webauthn';
+import { sanitizeHtml } from '@/lib/input-sanitizer';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const email = String(body.email ?? '').trim().toLowerCase();
-    const code = body.code;
 
-    // Validate email format
+    // SECURITY FIX: DEFECT-20251027-002
+    // Sanitize email input to prevent XSS attacks
+    const email = sanitizeHtml(String(body.email ?? '')).trim().toLowerCase();
+    const code = body.code;
+    const magicLink = body.magicLink === true;
+
+    // Validate email format and length
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!email || !emailRegex.test(email) || email.length > 255) {
       return NextResponse.json(
@@ -20,40 +25,52 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!code || code.length !== 6) {
-      return NextResponse.json(
-        { ok: false, message: 'Invalid code format.' },
-        { status: 400 }
-      );
-    }
+    // Skip code validation if coming from magic link (already verified)
+    if (!magicLink) {
+      if (!code || code.length !== 6) {
+        return NextResponse.json(
+          { ok: false, message: 'Invalid code format.' },
+          { status: 400 }
+        );
+      }
 
-    const approval = await prisma.emailApproval.findUnique({ where: { email } });
+      const approval = await prisma.emailApproval.findUnique({ where: { email } });
 
-    if (!approval) {
-      return NextResponse.json(
-        { ok: false, message: 'This email has not been approved for access.' },
-        { status: 403 }
-      );
-    }
+      if (!approval) {
+        return NextResponse.json(
+          { ok: false, message: 'This email has not been approved for access.' },
+          { status: 403 }
+        );
+      }
 
-    if (approval.usedAt) {
-      return NextResponse.json(
-        { ok: false, message: 'This access code has already been used.' },
-        { status: 403 }
-      );
-    }
+      if (approval.usedAt) {
+        return NextResponse.json(
+          { ok: false, message: 'This access code has already been used.' },
+          { status: 403 }
+        );
+      }
 
-    if (approval.tokenExpiresAt < new Date()) {
-      return NextResponse.json(
-        { ok: false, message: 'This access code has expired.' },
-        { status: 403 }
-      );
-    }
+      if (approval.tokenExpiresAt < new Date()) {
+        return NextResponse.json(
+          { ok: false, message: 'This access code has expired.' },
+          { status: 403 }
+        );
+      }
 
-    const codeIsValid = await compare(code, approval.tokenHash);
-    if (!codeIsValid) {
-      // Note: To prevent timing attacks, you might consider adding a small random delay here
-      return NextResponse.json({ ok: false, message: 'The provided code is incorrect.' }, { status: 401 });
+      const codeIsValid = await compare(code, approval.tokenHash);
+      if (!codeIsValid) {
+        // Note: To prevent timing attacks, you might consider adding a small random delay here
+        return NextResponse.json({ ok: false, message: 'The provided code is incorrect.' }, { status: 401 });
+      }
+    } else {
+      // Magic link flow - still need to verify user has approval
+      const approval = await prisma.emailApproval.findUnique({ where: { email } });
+      if (!approval) {
+        return NextResponse.json(
+          { ok: false, message: 'This email has not been approved for access.' },
+          { status: 403 }
+        );
+      }
     }
 
     const options = await generateRegistrationOptions({

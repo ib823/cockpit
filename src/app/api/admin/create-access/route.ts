@@ -1,13 +1,16 @@
 import { prisma } from '@/lib/db';
-import { randomUUID } from 'crypto';
+import { randomUUID, randomInt } from 'crypto';
 import { requireAdmin } from '@/lib/nextauth-helpers';
 import { sendAccessCode } from '@/lib/email';
 import { hash } from 'bcryptjs';
 import { NextResponse } from 'next/server';
+import { sanitizeHtml } from '@/lib/input-sanitizer';
 export const runtime = 'nodejs';
 
+// SECURITY FIX: DEFECT-20251027-006
+// Replaced Math.random() with crypto.randomInt() for cryptographically secure random code generation
 function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 1000000).toString();
 }
 
 export async function POST(req: Request) {
@@ -15,8 +18,14 @@ export async function POST(req: Request) {
     // Require admin authentication
     const session = await requireAdmin();
 
-    const { email } = await req.json().catch(() => ({}));
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const { email: rawEmail } = await req.json().catch(() => ({}));
+
+    // SECURITY FIX: DEFECT-20251027-002
+    // Sanitize email input to prevent XSS attacks
+    const email = sanitizeHtml(rawEmail || '').trim().toLowerCase();
+
+    // Validate email format and length
+    if (!email || email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
         { ok: false, error: 'Valid email required' },
         { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -25,7 +34,9 @@ export async function POST(req: Request) {
 
     // Generate 6-digit code
     const code = generateCode();
-    const tokenHash = await hash(code, 10);
+    // SECURITY FIX: DEFECT-20251027-012
+    // Increased bcrypt cost factor from 10 to 12 for industry-standard security (2024)
+    const tokenHash = await hash(code, 12);
     const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
     // Create or update user

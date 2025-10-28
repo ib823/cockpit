@@ -2,7 +2,7 @@
 
 ## Overview
 
-The SAP Implementation Cockpit dashboards are designed to meet WCAG 2.1 Level AA accessibility standards, ensuring that all users, including those with disabilities, can effectively use the application.
+The Keystone dashboards are designed to meet WCAG 2.1 Level AA accessibility standards, ensuring that all users, including those with disabilities, can effectively use the application.
 
 ## Key Accessibility Features
 

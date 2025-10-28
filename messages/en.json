@@ -22,7 +22,7 @@
     "logout": "Logout"
   },
   "estimator": {
-    "title": "SAP Cockpit Estimator",
+    "title": "Keystone Estimator",
     "subtitle": "Project Estimation Tool",
     "scopeBreadth": "Scope Breadth (Sb)",
     "processComplexity": "Process Complexity (Pc)",

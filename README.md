@@ -1,4 +1,4 @@
-# SAP Implementation Cockpit
+# Keystone
 
 Enterprise-grade project management platform for SAP implementations with WebAuthn authentication, role-based access control, and advanced timeline visualization.
 
@@ -27,6 +27,20 @@ Enterprise-grade project management platform for SAP implementations with WebAut
 - **Security Hardening**: CSRF protection, rate limiting, security headers (CSP, HSTS)
 - **Real-time Updates**: React Query with optimistic updates
 - **Responsive Design**: Mobile-first UI with desktop optimization
+- **Performance Optimizations**: Redis caching (40x speedup), virtual scrolling, code splitting
+
+## Performance
+
+The application includes comprehensive performance optimizations:
+
+- **Redis Caching Layer**: Stale-while-revalidate pattern for 90%+ query reduction
+- **React Query**: Client-side caching with 5-minute stale time
+- **Database Connection Pooling**: Optimized Prisma client with query monitoring
+- **Virtual Scrolling**: Efficient rendering of 10,000+ items
+- **Code Splitting**: Automatic lazy loading of large components
+- **Edge Caching**: Service worker with cache-first strategies
+
+See `docs/performance/PERFORMANCE_OPTIMIZATION_SUMMARY.md` for detailed documentation.
 
 ## Getting Started
 
@@ -54,6 +68,20 @@ pnpm dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application.
+
+### Quick Testing
+
+For local development testing:
+
+```bash
+# Create test users (admin@test.com / Admin123!, user@test.com / User123!)
+pnpm tsx scripts/create-test-admin.ts
+
+# Generate magic link tokens for passkey registration
+pnpm tsx scripts/create-email-approvals.ts
+```
+
+See `docs/testing/TEST_CREDENTIALS.md` for complete testing guide.
 
 ### Environment Variables
 
@@ -90,15 +118,28 @@ src/
 ├── components/            # Shared React components
 ├── lib/                   # Core utilities and configuration
 │   ├── auth.ts           # NextAuth configuration
-│   ├── nextauth-helpers.ts # Session management helpers
-│   ├── db.ts             # Prisma client singleton
-│   └── env.ts            # Environment validation (Zod)
+│   ├── cache/            # Redis & memory caching layer
+│   ├── db.ts             # Prisma client singleton with query monitoring
+│   └── react-query.ts    # Client-side caching configuration
 ├── middleware.ts          # Edge middleware (auth, rate limiting, security headers)
 ├── stores/               # Zustand stores
 └── types/                # TypeScript type definitions
 
+docs/                      # Organized documentation
+├── developer/            # Developer guides and codebase overview
+├── authentication/       # Auth setup and security guides
+├── deployment/           # Deployment checklists and configurations
+├── testing/             # Testing guides and credentials
+├── features/            # Feature-specific documentation
+├── performance/         # Performance optimization guides
+└── architecture/        # System architecture documentation
+
 prisma/
 └── schema.prisma         # Database schema
+
+scripts/                  # Utility scripts
+├── create-test-admin.ts # Create test users
+└── rotate-secrets.ts    # Secret rotation utility
 ```
 
 ## Authentication Flow
@@ -151,12 +192,21 @@ docker run -p 3000:3000 --env-file .env.local cockpit
 - **Redis**: Upstash Redis for rate limiting (production only)
 - **Email**: Resend API key for transactional emails
 
+## Documentation
+
+All documentation is organized in the `/docs` directory:
+
+- **Getting Started**: `docs/developer/QUICK_START_GUIDE.md`
+- **Authentication Setup**: `docs/authentication/PASSKEY_AUTH_SETUP.md`
+- **Deployment Guide**: `docs/deployment/VERCEL_DEPLOY_CHECKLIST.md`
+- **Testing Guide**: `docs/testing/TEST_CREDENTIALS.md`
+- **Performance Guide**: `docs/performance/PERFORMANCE_OPTIMIZATION_SUMMARY.md`
+- **Architecture**: `docs/architecture/COMPREHENSIVE_SOLUTION_OVERVIEW.md`
+
 ## Contributing
 
 See `SECURITY.md` for vulnerability disclosure policy and security guidelines.
 
 ## License
 
-Proprietary - Internal SAP implementation tool
-
-<!-- Auto-deployment test 2025-10-24-00-00-18 -->
+Proprietary - Internal tool for SAP implementations

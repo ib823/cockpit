@@ -29,7 +29,7 @@ export function ProjectLayout({ children, progress = 0, userEmail }: ProjectLayo
     <Layout className="min-h-screen">
       <Header className="bg-white border-b px-6 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <h1 className="text-xl font-semibold m-0">SAP Cockpit</h1>
+          <h1 className="text-xl font-semibold m-0">Keystone</h1>
           <Tabs
             activeKey={currentTab}
             items={tabs}

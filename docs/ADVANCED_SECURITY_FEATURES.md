@@ -666,7 +666,7 @@ await fetch('https://events.pagerduty.com/v2/enqueue', {
     payload: {
       summary: alert.message,
       severity: alert.severity,
-      source: 'SAP Cockpit Security Monitor'
+      source: 'Keystone Security Monitor'
     }
   })
 });

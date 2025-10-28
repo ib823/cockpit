@@ -19,7 +19,7 @@ export const TopBar: React.FC = () => {
           {/* Brand */}
           <div className="flex items-center gap-4">
             <div className="text-lg font-semibold text-[var(--ink)]">
-              SAP Cockpit
+              Keystone
             </div>
           </div>
 

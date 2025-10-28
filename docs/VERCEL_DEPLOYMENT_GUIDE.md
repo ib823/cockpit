@@ -1,6 +1,6 @@
 # Vercel Deployment Guide
 
-Complete guide for deploying the Cockpit application to Vercel with all required and optional environment variables.
+Complete guide for deploying the Keystone application to Vercel with all required and optional environment variables.
 
 ## 🚀 Quick Start
 

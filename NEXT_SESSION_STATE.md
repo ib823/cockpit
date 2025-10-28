@@ -1,4 +1,4 @@
-# SAP Implementation Cockpit - Session Handover
+# Keystone - Session Handover
 
 ## Date: September 25, 2025
 

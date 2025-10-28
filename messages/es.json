@@ -22,7 +22,7 @@
     "logout": "Cerrar sesión"
   },
   "estimator": {
-    "title": "Estimador SAP Cockpit",
+    "title": "Estimador Keystone",
     "subtitle": "Herramienta de Estimación de Proyectos",
     "scopeBreadth": "Amplitud del Alcance (Sb)",
     "processComplexity": "Complejidad del Proceso (Pc)",

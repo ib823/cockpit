@@ -1,4 +1,4 @@
-# SAP Implementation Cockpit - Development Documentation
+# Keystone - Development Documentation
 
 ## Project Overview
 

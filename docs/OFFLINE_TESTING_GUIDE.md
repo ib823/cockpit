@@ -207,7 +207,7 @@ Make sure the service worker is registered. Check browser console for:
 **Steps:**
 1. Open app in Chrome (desktop or mobile)
 2. Look for install prompt or menu option
-3. Click "Install SAP Cockpit"
+3. Click "Install Keystone"
 4. Launch installed app
 
 **Expected:**

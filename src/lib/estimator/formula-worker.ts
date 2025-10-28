@@ -1,5 +1,5 @@
 /**
- * SAP Cockpit - Formula Engine Web Worker
+ * Keystone - Formula Engine Web Worker
  *
  * Off-main-thread calculation worker using Comlink for seamless communication.
  * Ensures UI remains responsive during complex calculations.

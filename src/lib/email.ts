@@ -1,19 +1,16 @@
-import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+const FROM_EMAIL = process.env.EMAIL_FROM || 'noreply@keystone-app.com';
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
-
-// Gmail SMTP transporter (free option)
-const gmailTransporter = process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD
+// Brevo (Sendinblue) SMTP transporter
+const emailTransporter = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS
   ? nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false, // true for 465, false for other ports
       auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     })
   : null;
@@ -30,14 +27,14 @@ function emailTemplate(code: string, magicLink?: string): string {
             <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
               <!-- Header -->
               <div style="background: linear-gradient(135deg, #0f172a 0%, #334155 100%); padding: 32px; text-align: center;">
-                <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 300; letter-spacing: -0.5px;">Cockpit</h1>
+                <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 300; letter-spacing: -0.5px;">Keystone</h1>
               </div>
 
               <!-- Content -->
               <div style="padding: 40px 32px;">
                 <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 20px; font-weight: 600;">Your Access is Ready</h2>
                 <p style="margin: 0 0 24px 0; color: #64748b; font-size: 15px; line-height: 1.6;">
-                  Welcome to Cockpit! Choose your preferred way to get started:
+                  Welcome to Keystone! Choose your preferred way to get started:
                 </p>
 
                 ${magicLink ? `
@@ -91,7 +88,7 @@ function emailTemplate(code: string, magicLink?: string): string {
                     <li style="margin-bottom: 8px;">Enter the 6-digit code above</li>
                     `}
                     <li style="margin-bottom: 8px;">Set up your passkey (fingerprint/Face ID)</li>
-                    <li>Start using Cockpit!</li>
+                    <li>Start using Keystone!</li>
                   </ol>
                 </div>
 
@@ -116,40 +113,30 @@ function emailTemplate(code: string, magicLink?: string): string {
 }
 
 export async function sendAccessCode(email: string, code: string, magicLink?: string) {
-  // Priority 1: Try Gmail SMTP (free, built-in)
-  if (gmailTransporter) {
-    try {
-      await gmailTransporter.sendMail({
-        from: `"Cockpit" <${process.env.GMAIL_USER}>`,
-        to: email,
-        subject: magicLink ? '🚀 Your Cockpit Access is Ready' : 'Your Cockpit Access Code',
-        html: emailTemplate(code, magicLink),
-      });
-      return { success: true, provider: 'gmail' };
-    } catch (error) {
-      console.error('[Gmail] Failed to send email:', error);
-      // Fall through to Resend
+  // Check if email transporter is configured
+  if (!emailTransporter) {
+    console.log('[Email] SMTP not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in .env');
+    console.log('[Email] Dev mode - Would send to:', email);
+    if (magicLink) {
+      console.log('[Email] Magic link:', magicLink);
     }
+    return { success: false, devMode: true };
   }
 
-  // Priority 2: Try Resend API
-  if (resend) {
-    try {
-      await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        subject: magicLink ? '🚀 Your Cockpit Access is Ready' : 'Your Cockpit Access Code',
-        html: emailTemplate(code, magicLink),
-      });
-      return { success: true, provider: 'resend' };
-    } catch (error) {
-      console.error('[Resend] Failed to send email:', error);
-      return { success: false, error };
-    }
-  }
+  try {
+    await emailTransporter.sendMail({
+      from: `"Keystone" <${FROM_EMAIL}>`,
+      to: email,
+      subject: magicLink ? '🚀 Your Keystone Access is Ready' : 'Your Keystone Access Code',
+      html: emailTemplate(code, magicLink),
+    });
 
-  // No email provider configured - do not log sensitive data
-  return { success: false, devMode: true };
+    console.log(`[Email] Successfully sent to ${email} via SMTP`);
+    return { success: true, provider: 'smtp' };
+  } catch (error) {
+    console.error('[SMTP] Failed to send email:', error);
+    return { success: false, error };
+  }
 }
 
 /**
@@ -160,39 +147,25 @@ export async function sendSecurityEmail(
   subject: string,
   html: string
 ): Promise<{ success: boolean; provider?: string; error?: any; devMode?: boolean }> {
-  // Priority 1: Try Gmail SMTP (free, built-in)
-  if (gmailTransporter) {
-    try {
-      await gmailTransporter.sendMail({
-        from: `"Cockpit Security" <${process.env.GMAIL_USER}>`,
-        to: email,
-        subject,
-        html,
-      });
-      return { success: true, provider: 'gmail' };
-    } catch (error) {
-      console.error('[Gmail] Failed to send security email:', error);
-      // Fall through to Resend
-    }
+  // Check if email transporter is configured
+  if (!emailTransporter) {
+    console.log('[Email] SMTP not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in .env');
+    console.log('[Email] Dev mode - Would send:', subject, 'to', email);
+    return { success: false, devMode: true };
   }
 
-  // Priority 2: Try Resend API
-  if (resend) {
-    try {
-      await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        subject,
-        html,
-      });
-      return { success: true, provider: 'resend' };
-    } catch (error) {
-      console.error('[Resend] Failed to send security email:', error);
-      return { success: false, error };
-    }
-  }
+  try {
+    await emailTransporter.sendMail({
+      from: `"Keystone Security" <${FROM_EMAIL}>`,
+      to: email,
+      subject,
+      html,
+    });
 
-  // No email provider configured
-  console.log('[Email] Dev mode - Would send:', subject, 'to', email);
-  return { success: false, devMode: true };
+    console.log(`[Email] Security email sent to ${email} via SMTP`);
+    return { success: true, provider: 'smtp' };
+  } catch (error) {
+    console.error('[SMTP] Failed to send security email:', error);
+    return { success: false, error };
+  }
 }

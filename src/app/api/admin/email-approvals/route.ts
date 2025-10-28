@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/db';
+import { randomInt } from 'crypto';
 
 export const runtime = 'nodejs';
 
@@ -103,7 +104,9 @@ export async function POST(req: Request) {
     // ============================================
     // 5. Generate 6-Digit Code
     // ============================================
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    // SECURITY FIX: DEFECT-20251027-006 & REGRESSION-001
+    // Replaced Math.random() with crypto.randomInt() for cryptographically secure random code generation
+    const code = randomInt(100000, 1000000).toString();
     const tokenHash = await hash(code, 12);
 
     // ============================================

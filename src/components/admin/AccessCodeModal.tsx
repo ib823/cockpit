@@ -83,7 +83,7 @@ Best regards,
 The Cockpit Team
 
 ========================================
-This is an automated message from SAP Implementation Cockpit.`;
+This is an automated message from Keystone.`;
 
     // Create mailto link
     const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;

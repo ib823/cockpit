@@ -40,7 +40,7 @@ const ONBOARDING_STORAGE_KEY = "cockpit_onboarding_completed";
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: "welcome",
-    title: "Welcome to SAP Implementation Cockpit! 👋",
+    title: "Welcome to Keystone! 👋",
     description: "Transform your SAP presales workflow from weeks to minutes. Let's take a quick tour of the 4-mode workflow.",
     position: "center",
   },

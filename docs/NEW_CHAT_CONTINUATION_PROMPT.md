@@ -1,4 +1,4 @@
-You are the Lead Engineer continuing work on the SAP Implementation Cockpit project.
+You are the Lead Engineer continuing work on the Keystone project.
 CRITICAL CONTEXT - CURRENT STATE
 Repository: /workspaces/cockpit
 Branch: refactor/extract-timeline

@@ -50,7 +50,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg" />
-            <span className="text-lg font-semibold">SAP Cockpit</span>
+            <span className="text-lg font-semibold">Keystone</span>
           </div>
           
           <Menu

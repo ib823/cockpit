@@ -1,10 +1,10 @@
 /**
- * Service Worker for SAP Cockpit
+ * Service Worker for Keystone
  * Provides offline support and caching strategies
  */
 
-const CACHE_NAME = 'sap-cockpit-v1';
-const RUNTIME_CACHE = 'sap-cockpit-runtime';
+const CACHE_NAME = 'keystone-v1';
+const RUNTIME_CACHE = 'keystone-runtime';
 const OFFLINE_URL = '/offline';
 
 // Resources to cache on install
@@ -214,7 +214,7 @@ async function syncOfflineData() {
 // Helper functions for IndexedDB
 function openDatabase() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('sap-cockpit-offline', 1);
+    const request = indexedDB.open('keystone-offline', 1);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
@@ -263,7 +263,7 @@ self.addEventListener('push', (event) => {
     requireInteraction: false,
   };
 
-  event.waitUntil(self.registration.showNotification('SAP Cockpit', options));
+  event.waitUntil(self.registration.showNotification('Keystone', options));
 });
 
 // Notification click handler

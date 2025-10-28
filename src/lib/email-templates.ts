@@ -4,7 +4,7 @@
  * All templates are responsive, accessible, and follow email best practices
  */
 
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Cockpit';
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Keystone';
 const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
 // ============================================

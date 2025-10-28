@@ -5,6 +5,7 @@
 
 @import '../styles/tokens.css';
 @import '../styles/motion.css';
+@import '../styles/button-normalize.css';
 @import '../ui/datagrid/ant-table.css';
 
 @tailwind base;

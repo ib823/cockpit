@@ -298,7 +298,7 @@ All new settings integrated into the account page:
    - Test offline page fallback
 
 3. **PWA Installation**
-   - Install app (Chrome: Install SAP Cockpit)
+   - Install app (Chrome: Install Keystone)
    - Test app shortcuts
    - Verify offline functionality in standalone mode
 

@@ -1,7 +1,7 @@
 /**
  * PostHog Analytics Integration
  *
- * Product analytics and feature flags for the SAP Cockpit application
+ * Product analytics and feature flags for the Keystone application
  */
 
 import posthog from 'posthog-js';

@@ -10,18 +10,18 @@
 // ============================================================================
 
 export const company = {
-  name: "SAP Cockpit",
+  name: "Keystone",
   tagline: "SAP Implementation Excellence",
 
   // Website and contact
-  website: "https://sapcockpit.com",
-  email: "hello@sapcockpit.com",
+  website: "https://keystone.com",
+  email: "hello@keystone.com",
 
   // Social links (optional)
   social: {
-    linkedin: "https://linkedin.com/company/sap-cockpit",
-    twitter: "https://twitter.com/sapcockpit",
-    github: "https://github.com/sapcockpit",
+    linkedin: "https://linkedin.com/company/keystone",
+    twitter: "https://twitter.com/keystone",
+    github: "https://github.com/keystone",
   },
 } as const;
 
@@ -32,9 +32,9 @@ export const company = {
 export const logo = {
   // Path to your logo files (place in /public folder)
   // Recommended formats: SVG (preferred), PNG (with transparency)
-  light: "/logo-light.svg",  // Logo for light backgrounds
-  dark: "/logo-dark.svg",    // Logo for dark backgrounds
-  icon: "/icon.svg",         // Small icon/favicon
+  light: "/logo-keystone.png",  // Logo for light backgrounds
+  dark: "/logo-keystone.png",    // Logo for dark backgrounds (same logo works on both)
+  icon: "/keystone-icon.png",    // Small icon/favicon
 
   // Logo dimensions (adjust to your logo's aspect ratio)
   width: {
@@ -50,7 +50,7 @@ export const logo = {
   },
 
   // Alt text for accessibility
-  alt: "Your Company Logo",
+  alt: "Keystone Logo",
 } as const;
 
 // ============================================================================
@@ -58,34 +58,34 @@ export const logo = {
 // ============================================================================
 
 export const brandColors = {
-  // PRIMARY BRAND COLOR
+  // PRIMARY BRAND COLOR - Keystone Navy Blue
   // This will replace the default blue throughout the app
   primary: {
-    50: "#eff6ff",   // Lightest tint
-    100: "#dbeafe",
-    200: "#bfdbfe",
-    300: "#93c5fd",
-    400: "#60a5fa",
-    500: "#3b82f6",  // Main brand color
-    600: "#2563eb",  // Darker for hover states
+    50: "#e0f2fe",   // Lightest tint
+    100: "#bae6fd",
+    200: "#7dd3fc",
+    300: "#38bdf8",
+    400: "#0ea5e9",
+    500: "#1e3a8a",  // Main brand color - Navy Blue
+    600: "#1e40af",  // Darker for hover states
     700: "#1d4ed8",
-    800: "#1e40af",
-    900: "#1e3a8a",  // Darkest shade
+    800: "#1e3a8a",
+    900: "#172554",  // Darkest shade
   },
 
-  // SECONDARY/ACCENT COLOR
+  // SECONDARY/ACCENT COLOR - Keystone Cyan
   // Complementary color for CTAs and highlights
   accent: {
-    50: "#faf5ff",
-    100: "#f3e8ff",
-    200: "#e9d5ff",
-    300: "#d8b4fe",
-    400: "#c084fc",
-    500: "#a855f7",  // Main accent
-    600: "#9333ea",
-    700: "#7e22ce",
-    800: "#6b21a8",
-    900: "#581c87",
+    50: "#ecfeff",
+    100: "#cffafe",
+    200: "#a5f3fc",
+    300: "#67e8f9",
+    400: "#22d3ee",
+    500: "#06b6d4",  // Main accent - Cyan
+    600: "#0891b2",
+    700: "#0e7490",
+    800: "#155e75",
+    900: "#164e63",
   },
 
   // SUCCESS COLOR (keep green for positive actions)

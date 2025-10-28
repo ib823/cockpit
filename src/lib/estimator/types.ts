@@ -1,5 +1,5 @@
 /**
- * SAP Cockpit - Estimator Type Definitions
+ * Keystone - Estimator Type Definitions
  *
  * Core types for the L3-based estimation engine based on SAP Activate methodology
  */

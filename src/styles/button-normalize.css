@@ -1,0 +1,226 @@
+/**
+ * BUTTON VISIBILITY NORMALIZATION
+ *
+ * Purpose: Ensure all buttons remain visible at all times
+ * Created: 2025-10-27
+ *
+ * This CSS file provides safety overrides to prevent invisible or
+ * semi-transparent buttons across the application.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ANT DESIGN BUTTON OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Ensure Ant Design primary buttons are always visible
+ * Override any potential ghost or opacity issues
+ */
+.ant-btn-primary {
+  background-color: #1677ff !important;
+  border-color: #1677ff !important;
+  color: #fff !important;
+  opacity: 1 !important;
+}
+
+.ant-btn-primary:hover {
+  background-color: #4096ff !important;
+  border-color: #4096ff !important;
+}
+
+.ant-btn-primary:active {
+  background-color: #0958d9 !important;
+  border-color: #0958d9 !important;
+}
+
+/**
+ * Ant Design ghost buttons - ensure they have visible text
+ * Note: Ghost buttons intentionally have transparent backgrounds
+ * but MUST have visible text/borders
+ */
+.ant-btn-background-ghost {
+  background: transparent !important;
+  border-color: currentColor !important;
+  /* Ensure text is always visible */
+  opacity: 1 !important;
+}
+
+.ant-btn-background-ghost.ant-btn-primary {
+  color: #1677ff !important;
+  border-color: #1677ff !important;
+}
+
+.ant-btn-background-ghost.ant-btn-primary:hover {
+  color: #4096ff !important;
+  border-color: #4096ff !important;
+  background-color: rgba(22, 119, 255, 0.06) !important;
+}
+
+/**
+ * Remove any dev-only CSS overrides that might hide buttons
+ */
+[class*="css-dev-only-do-not-override"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/**
+ * Disabled buttons should be semi-transparent (standard UX)
+ * but still visible enough to be perceived
+ */
+.ant-btn[disabled],
+.ant-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CUSTOM BUTTON COMPONENT OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Ensure all button elements are visible by default
+ * This is a safety net for any custom implementations
+ */
+button:not([data-allow-hidden]) {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/**
+ * Ghost variant buttons - ensure visible text
+ * These buttons intentionally have transparent backgrounds
+ * but must have sufficient text contrast
+ */
+button[class*="ghost"],
+.btn-ghost,
+[data-variant="ghost"] {
+  /* Ensure text is visible */
+  opacity: 1 !important;
+  /* Minimum contrast for text */
+  color: var(--ink, #1f2937) !important;
+}
+
+/**
+ * Hover states should not make buttons invisible
+ * Block any hover-based opacity transitions that hide buttons
+ */
+button:not(:disabled):not([data-allow-hover-hide]) {
+  opacity: 1 !important;
+}
+
+/**
+ * Disabled state - standard 50% opacity for accessibility
+ * This is INTENTIONAL and should not be overridden
+ */
+button:disabled,
+button[disabled],
+button[aria-disabled="true"] {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   EXCEPTION: INTENTIONAL HOVER-BASED VISIBILITY
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Allow specific elements to use hover-based visibility
+ * when explicitly marked with data attribute
+ *
+ * Examples: tooltips, hover menus, version displays
+ */
+[data-allow-hover-hide="true"],
+[data-allow-hidden="true"],
+[role="tooltip"],
+.tooltip,
+.hover-tooltip {
+  /* Allow these to control their own opacity */
+  opacity: inherit !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PRIMARY BUTTON CONSISTENCY
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Ensure all primary buttons follow the same visibility pattern
+ * regardless of framework (Ant Design, custom, etc.)
+ */
+.btn-primary,
+button[data-variant="primary"],
+button[class*="primary"]:not(.ant-btn-background-ghost) {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FOCUS STATES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Ensure focused buttons are always visible and have proper outline
+ */
+button:focus-visible {
+  opacity: 1 !important;
+  outline: 2px solid var(--focus, #1677ff) !important;
+  outline-offset: 2px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LOADING STATES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Buttons in loading state should remain visible
+ * (may have reduced opacity for UX but not invisible)
+ */
+button[aria-busy="true"],
+button[data-loading="true"] {
+  opacity: 0.7 !important;
+  cursor: wait !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PRINT STYLES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Ensure buttons are visible in print if not explicitly hidden
+ */
+@media print {
+  button:not(.no-print) {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Ensure high contrast mode compatibility
+ * Buttons must always have visible borders in high contrast
+ */
+@media (prefers-contrast: high) {
+  button {
+    border: 2px solid currentColor !important;
+    opacity: 1 !important;
+  }
+
+  .ant-btn-background-ghost {
+    border-width: 2px !important;
+  }
+}
+
+/**
+ * Reduced motion - ensure button visibility is not affected
+ */
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none !important;
+    opacity: 1 !important;
+  }
+}

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import VersionDisplay from '@/components/shared/VersionDisplay';
 
 type EmailStatus = {
   registered: boolean;
@@ -468,6 +469,7 @@ export default function LoginEmailFirst() {
       </div>
     }>
       <LoginContent />
+      <VersionDisplay position="bottom-right" />
     </Suspense>
   );
 }

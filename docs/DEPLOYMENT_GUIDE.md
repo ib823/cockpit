@@ -4,7 +4,7 @@
 
 ```bash
 #!/bin/bash
-# SAP Cockpit V2 - Complete Deployment Script
+# Keystone V2 - Complete Deployment Script
 # Run this from /workspaces/cockpit directory
 
 set -e  # Exit on error

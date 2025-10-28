@@ -63,7 +63,7 @@ export default function DashboardPage() {
       <div className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">SAP Cockpit</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Keystone</h1>
           </div>
           <div className="flex items-center gap-4">
             {isAdmin && (

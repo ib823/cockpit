@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the security monitoring and maintenance systems implemented for the SAP Cockpit application.
+This document summarizes the security monitoring and maintenance systems implemented for the Keystone application.
 
 ## Implemented Features
 

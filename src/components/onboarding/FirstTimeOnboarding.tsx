@@ -25,7 +25,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   // Dashboard steps
   {
     pathname: '/dashboard',
-    title: 'Welcome to SAP Cockpit!',
+    title: 'Welcome to Keystone!',
     description: 'Let\'s take a quick tour to help you get started. This will only take a minute.',
     target: null,
   },

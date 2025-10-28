@@ -244,7 +244,7 @@ export default function ComparisonDemo() {
             <div className="bg-white/10 rounded-lg p-4">
               <div className="font-bold mb-2">🎯 Perfect Fit</div>
               <div className="text-purple-100">
-                Built for project management tools - exactly your SAP Cockpit domain.
+                Built for project management tools - exactly your Keystone domain.
               </div>
             </div>
           </div>

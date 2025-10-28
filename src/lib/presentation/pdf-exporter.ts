@@ -78,9 +78,9 @@ export async function exportToPDF(
       pdf.setProperties({
         title: 'SAP Implementation Timeline',
         subject: 'Project Timeline Presentation',
-        author: 'SAP Implementation Cockpit',
+        author: 'Keystone',
         keywords: 'SAP, Timeline, Implementation',
-        creator: 'SAP Implementation Cockpit'
+        creator: 'Keystone'
       });
     }
 

@@ -1,13 +1,15 @@
 import { prisma } from '@/lib/db';
-import { randomUUID, randomBytes } from 'crypto';
+import { randomUUID, randomBytes, randomInt } from 'crypto';
 import { requireAdmin } from '@/lib/nextauth-helpers';
 import { hash } from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { sendAccessCode } from '@/lib/email';
 export const runtime = 'nodejs';
 
+// SECURITY FIX: DEFECT-20251027-006 & REGRESSION-001
+// Replaced Math.random() with crypto.randomInt() for cryptographically secure random code generation
 function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 1000000).toString();
 }
 
 function generateMagicToken(): string {

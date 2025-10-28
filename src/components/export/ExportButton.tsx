@@ -42,7 +42,7 @@ export function ExportButton({ variant = "secondary", size = "sm", className, fu
         totalDuration,
         metadata: {
           generatedAt: new Date(),
-          generatedBy: 'SAP Implementation Cockpit',
+          generatedBy: 'Keystone',
           version: '1.0.0',
         },
       };
@@ -101,7 +101,7 @@ export function ExportIconButton({ className }: { className?: string }) {
         totalDuration,
         metadata: {
           generatedAt: new Date(),
-          generatedBy: 'SAP Implementation Cockpit',
+          generatedBy: 'Keystone',
           version: '1.0.0',
         },
       };

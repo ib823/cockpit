@@ -1,4 +1,4 @@
-# Security Controls - SAP Implementation Cockpit
+# Security Controls - Keystone
 
 **Last Updated:** 2025-01-04
 **Status:** ✅ Production-Ready

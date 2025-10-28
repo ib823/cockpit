@@ -1,5 +1,5 @@
 /**
- * SAP Cockpit - Formula Engine
+ * Keystone - Formula Engine
  *
  * Core calculation logic for L3-based estimation following SAP Activate methodology
  *

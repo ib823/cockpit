@@ -2,7 +2,7 @@
 
 ## For Abidbn: Use This Toolkit
 
-When building pages for SAP Cockpit, ALWAYS reference this UI toolkit.
+When building pages for Keystone, ALWAYS reference this UI toolkit.
 
 ## Import Pattern
 ```tsx

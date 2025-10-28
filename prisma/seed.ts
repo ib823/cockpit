@@ -1,5 +1,5 @@
 /**
- * SAP Cockpit - Database Seed Script
+ * Keystone - Database Seed Script
  *
  * Seeds:
  * 1. L3 Catalog: 12 LOBs + 158 L3 items from structured catalog

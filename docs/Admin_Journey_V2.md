@@ -146,7 +146,7 @@ Desired state: Admin feels **empowered**, **informed**, and **in control** of sy
   icon={Trophy}
   label="Win Rate"
   value="92%"
-  subtext="Baseline: 72% (pre-Cockpit)"
+  subtext="Baseline: 72% (pre-Keystone)"
   trend={{ value: +20, period: 'percentage points' }}
   color="orange"
   badge="🎉 All-time high"

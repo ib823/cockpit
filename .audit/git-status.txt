@@ -1,9 +1,0 @@
- M src/app/gantt-tool/page.tsx
- M src/components/gantt-tool/ExcelTemplateImport.tsx
- M src/components/gantt-tool/GanttToolShell.tsx
- M src/components/gantt-tool/GanttToolbar.tsx
- M src/lib/gantt-tool/copy-paste-template-generator.ts
- M src/lib/gantt-tool/excel-template-parser.ts
-?? .audit/
-?? src/components/gantt-tool/DuplicateCleanupModal.tsx
-?? src/components/gantt-tool/TableView.tsx

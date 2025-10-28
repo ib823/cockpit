@@ -1,6 +1,6 @@
-# SAP Cockpit UI Toolkit
+# Keystone UI Toolkit
 
-Complete design system and component library for the SAP Implementation Cockpit.
+Complete design system and component library for the Keystone.
 
 ## Quick Start
 ```tsx

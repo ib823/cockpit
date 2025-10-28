@@ -2,7 +2,7 @@
  * Sentry Error Monitoring Integration
  *
  * Captures and reports application errors, performance issues,
- * and user feedback for the SAP Cockpit application.
+ * and user feedback for the Keystone application.
  *
  * Note: Actual @sentry/nextjs package installation deferred to avoid
  * complex SDK setup. This provides the structure for when it's installed.

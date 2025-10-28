@@ -1,5 +1,5 @@
 /**
- * SAP Cockpit - Formula Engine Tests
+ * Keystone - Formula Engine Tests
  *
  * Comprehensive unit tests for the L3-based formula engine.
  * Target: >90% coverage

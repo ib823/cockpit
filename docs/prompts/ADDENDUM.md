@@ -1,4 +1,4 @@
-# SAP Cockpit - Addendum: Expert Review Integration
+# Keystone - Addendum: Expert Review Integration
 ## Critical Improvements & Implementation Refinements
 
 **Document Version:** 1.1 Addendum  
@@ -1508,7 +1508,7 @@ export default withNextIntl({
 // messages/en.json
 {
   "estimator": {
-    "title": "SAP Cockpit Estimator",
+    "title": "Keystone Estimator",
     "scopeBreadth": "Scope Breadth (Sb)",
     "l3Selection": "Select L3 Items",
     "totalEffort": "Total Effort",

@@ -1,6 +1,6 @@
-# 🚀 Deployment Guide - SAP Cockpit
+# 🚀 Deployment Guide - Keystone
 
-Complete guide for deploying SAP Cockpit to production.
+Complete guide for deploying Keystone to production.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -422,4 +422,4 @@ vercel --prod
 
 ---
 
-**Congratulations! Your SAP Cockpit is now live! 🎉**
+**Congratulations! Your Keystone is now live! 🎉**

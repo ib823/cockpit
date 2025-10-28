@@ -1,4 +1,4 @@
-# SAP Cockpit Development - Phase 1: Foundation & Formula Engine
+# Keystone Development - Phase 1: Foundation & Formula Engine
 
 ## Context
 You are building an SAP S/4HANA estimation and project planning web app. Tech stack:
@@ -739,7 +739,7 @@ Begin implementation for Phase 1: Foundation & Formula Engine.
 # **PHASE 2: ESTIMATOR UI**
 
 ```markdown
-# SAP Cockpit Development - Phase 2: Estimator UI
+# Keystone Development - Phase 2: Estimator UI
 
 ## Context
 Tech stack: Next.js 15 + React 19 + TypeScript + Ant Design 5.27.4 + Zustand + TanStack Query
@@ -1135,7 +1135,7 @@ npm run storybook
 # **PHASE 3: TIMELINE & GANTT**
 
 ```markdown
-# SAP Cockpit Development - Phase 3: Timeline & Gantt
+# Keystone Development - Phase 3: Timeline & Gantt
 
 ## Context
 Tech stack: Next.js 15 + TypeScript + vis-timeline 7.7.x + Zustand
@@ -1620,7 +1620,7 @@ curl http://localhost:3000/api/holidays?country=MY&year=2025
 # **PHASE 4: DECISION SUPPORT**
 
 ```markdown
-# SAP Cockpit Development - Phase 4: Decision Support Features
+# Keystone Development - Phase 4: Decision Support Features
 
 ## Context
 Tech stack: Next.js 15 + TypeScript + Recharts + Zustand
@@ -2213,7 +2213,7 @@ npm run test:unit -- pert-engine.test.ts
 # **PHASE 5: EXPORTS & SECURITY**
 
 ```markdown
-# SAP Cockpit Development - Phase 5: Exports & Security
+# Keystone Development - Phase 5: Exports & Security
 
 ## Context
 Tech stack: Next.js 15 + Puppeteer + PptxGenJS + Prisma
@@ -2738,7 +2738,7 @@ curl http://localhost:3000/api/audit-logs?scenarioId=abc123
 # **PHASE 6: TESTING & ACCESSIBILITY**
 
 ```markdown
-# SAP Cockpit Development - Phase 6: Testing & Accessibility
+# Keystone Development - Phase 6: Testing & Accessibility
 
 ## Context
 Tech stack: Vitest + Playwright + @axe-core/playwright + Storybook
@@ -3209,7 +3209,7 @@ npm run test -- performance
 # **PHASE 7: POLISH & DEPLOY**
 
 ```markdown
-# SAP Cockpit Development - Phase 7: Polish & Deployment
+# Keystone Development - Phase 7: Polish & Deployment
 
 ## Context
 Final phase: i18n, progressive disclosure, command palette, production deployment
@@ -3241,7 +3241,7 @@ export default getRequestConfig(async ({ locale }) => ({
 ```json
 {
   "estimator": {
-    "title": "SAP Cockpit Estimator",
+    "title": "Keystone Estimator",
     "scopeBreadth": "Scope Breadth (Sb)",
     "l3Selection": "Select L3 Items",
     "totalEffort": "Total Effort",

@@ -1,5 +1,5 @@
 /**
- * SAP Cockpit - Formula Worker React Hook
+ * Keystone - Formula Worker React Hook
  *
  * React hook for using the formula engine Web Worker.
  * Provides loading states, error handling, and automatic cleanup.

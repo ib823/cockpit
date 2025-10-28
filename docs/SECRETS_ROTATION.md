@@ -1,7 +1,7 @@
 # Secrets Rotation Policy
 
 ## Overview
-This document defines the policy and procedures for rotating sensitive credentials and secrets used in the SAP Implementation Cockpit application.
+This document defines the policy and procedures for rotating sensitive credentials and secrets used in the Keystone application.
 
 ## Rotation Schedule
 

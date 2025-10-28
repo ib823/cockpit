@@ -69,6 +69,7 @@ setup-ui-toolkit.sh
 
 # Build artifacts
 tsconfig.tsbuildinfo
+/public/version.json
 
 # Claude.ai knowledge archives
 claude-project-knowledge/
@@ -117,4 +118,19 @@ RECONNECT_STATE.md
 /public/cleanup-*.html
 /public/kpj-*.json
 /public/lppsa-*.json
+
+# Additional clutter prevention
+*.log
+build*.log
+test-output.log
+temp.json
+buffer_test.txt
+latestEnd
+*_STATE.md
+
+# Archive (keep local only)
+.archive/
+
+# Cleanup scripts (auto-generated)
+cleanup-repo.sh
 

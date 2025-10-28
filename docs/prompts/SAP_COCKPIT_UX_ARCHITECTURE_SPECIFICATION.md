@@ -1,4 +1,4 @@
-# SAP Cockpit - UX & Architecture Specification
+# Keystone - UX & Architecture Specification
 ## Comprehensive Estimation and Project Planning Platform
 
 **Document Version:** 1.0  
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-SAP Cockpit is a web-based application for SAP S/4HANA Cloud implementation planning. It provides:
+Keystone is a web-based application for SAP S/4HANA Cloud implementation planning. It provides:
 
 1. **Formula-driven estimation** based on 293 L3 scope items with transparent mathematical calculations
 2. **Interactive project timeline** with resource allocation and Gantt visualization
@@ -103,7 +103,7 @@ The existing application has:
 **Layout Structure:**
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ HEADER: [SAP Cockpit Logo] [Estimator] [Timeline] [Compare] │
+│ HEADER: [Keystone Logo] [Estimator] [Timeline] [Compare] │
 ├──────────────────┬──────────────────────────────────────────┤
 │ LEFT PANEL       │ RIGHT PANEL                              │
 │ (Controls)       │ (Live Results)                           │

@@ -18,7 +18,7 @@ export async function generatePowerPointReport(
   const pptx = new pptxgen();
 
   // Set presentation properties
-  pptx.author = 'SAP Implementation Cockpit';
+  pptx.author = 'Keystone';
   pptx.company = 'SAP Partner';
   pptx.subject = 'Project Estimate';
   pptx.title = 'SAP S/4HANA Implementation Estimate';

@@ -22,7 +22,7 @@
     "logout": "Abmelden"
   },
   "estimator": {
-    "title": "SAP Cockpit Schätzungstool",
+    "title": "Keystone Schätzungstool",
     "subtitle": "Projektschätzungstool",
     "scopeBreadth": "Umfangsbreite (Sb)",
     "processComplexity": "Prozesskomplexität (Pc)",
