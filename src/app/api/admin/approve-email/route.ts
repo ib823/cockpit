@@ -82,22 +82,35 @@ export async function POST(req: Request) {
       },
     });
 
-    // Try to send email immediately with magic link (optional - won't block on failure)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Generate magic link URL (manual distribution - no auto-send)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const magicUrl = `${baseUrl}/login?token=${magicToken}`;
 
-    sendAccessCode(email, code, magicUrl).catch(err => {
-      console.error('Failed to send access code email:', err);
-    });
+    // OPTIONAL: Send email if explicitly requested (sendEmail=true in request)
+    const { sendEmail } = await req.clone().json().catch(() => ({ sendEmail: false }));
+    let emailSent = false;
+    if (sendEmail && process.env.SMTP_HOST && process.env.SMTP_USER) {
+      try {
+        await sendAccessCode(email, code, magicUrl);
+        emailSent = true;
+      } catch (err) {
+        console.error('Failed to send access code email:', err);
+      }
+    }
 
     return NextResponse.json(
       {
         ok: true,
-        message: 'Email approved. Code will be sent when user tries to login.',
-        code, // Return code for clipboard
+        message: emailSent
+          ? 'Email approved and access code sent via email.'
+          : 'Email approved. Share the code and magic link manually with the user.',
+        code, // Return code for manual distribution
         email,
-        magicUrl, // Magic link URL
-        magicLinkExpiry: '2 minutes'
+        magicUrl, // Magic link URL for manual distribution
+        magicLinkExpiry: '2 minutes',
+        codeExpiry: '7 days',
+        emailSent,
+        instructions: `1. Send this to the user: "${code}" (6-digit code) OR "${magicUrl}" (magic link)\n2. Code expires in 7 days, magic link expires in 2 minutes\n3. User can register at ${baseUrl}/login`
       },
       { headers: { 'Content-Type': 'application/json' } }
     );

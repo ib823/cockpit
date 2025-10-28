@@ -120,8 +120,11 @@ This is an automated message from Keystone.`;
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Access Approved!</h2>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 mb-2">
             Access code ready for <span className="font-medium text-slate-900">{email}</span>
+          </p>
+          <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 inline-block">
+            📋 No email sent - Share manually with user
           </p>
         </div>
 
@@ -195,7 +198,7 @@ This is an automated message from Keystone.`;
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
-          Open Email Client
+          Compose Email (Manual Send)
         </button>
 
         {/* Done Button */}

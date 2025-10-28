@@ -34,7 +34,8 @@
     "analyze": "ANALYZE=true next build",
     "secrets:check": "tsx scripts/rotate-secrets.ts --check",
     "secrets:rotate": "tsx scripts/rotate-secrets.ts --rotate",
-    "security:verify-rate-limiting": "tsx scripts/verify-rate-limiting.ts"
+    "security:verify-rate-limiting": "tsx scripts/verify-rate-limiting.ts",
+    "admin:generate-code": "tsx scripts/generate-admin-code.ts"
   },
   "dependencies": {
     "@ant-design/icons": "5.6.1",
