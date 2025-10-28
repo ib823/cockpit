@@ -1514,3 +1514,4 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     },
   }))
 );
+export { useGanttToolStoreV2 as useGanttToolStore };
