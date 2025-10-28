@@ -9,7 +9,7 @@
  */
 
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/db';
 
 const BACKUP_CODE_COUNT = 10;

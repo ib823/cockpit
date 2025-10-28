@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Button, Alert, Space, Statistic, Row, Col } from 'antd';
 import { RocketOutlined, CheckCircleOutlined, LoadingOutlined } from '@ant-design/icons';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStore } from '@/stores/gantt-tool-store-v2';
 
 // LPPSA Project Data - Using EXACT dates from user
 const lppsaProjectData = {

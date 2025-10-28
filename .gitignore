@@ -111,6 +111,18 @@ RECONNECT_STATE.md
 # Old/backup files
 *.old.tsx
 *.backup
+.env.backup
+package.json.backup
+.secret-rotation-completed.txt
+
+# Legacy directories
+.gpt-backup/
+.gpt-installer/
+.logs/
+
+# Assessment and report archives
+*.zip
+env_report*.zip
 
 # Public temporary import files
 /public/*-import*.html

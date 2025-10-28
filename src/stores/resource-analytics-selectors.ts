@@ -6,7 +6,7 @@
  */
 
 import { useMemo } from 'react';
-import { useGanttToolStore } from './gantt-tool-store';
+import { useGanttToolStore } from './gantt-tool-store-v2';
 import { differenceInDays, eachWeekOfInterval, startOfWeek, endOfWeek, format } from 'date-fns';
 import type { Resource, ResourceCategory, ResourceDesignation } from '@/types/gantt-tool';
 

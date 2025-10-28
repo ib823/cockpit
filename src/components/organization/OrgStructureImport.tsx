@@ -17,7 +17,7 @@ import {
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd';
 import * as XLSX from 'xlsx';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStore } from '@/stores/gantt-tool-store-v2';
 import type { ResourceCategory, ResourceDesignation } from '@/types/gantt-tool';
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
 

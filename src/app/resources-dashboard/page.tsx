@@ -27,7 +27,7 @@ import {
   useDesignationMetrics,
   useResourceAnalyticsSummary,
 } from '@/stores/resource-analytics-selectors';
-import { useGanttToolStore } from '@/stores/gantt-tool-store';
+import { useGanttToolStore } from '@/stores/gantt-tool-store-v2';
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
 import { exportResourcesToExcel } from '@/lib/resources/export-excel';
 

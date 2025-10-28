@@ -9,7 +9,7 @@
  * - 90-day password rotation enforcement
  */
 
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 const BCRYPT_COST = 12;
