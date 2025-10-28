@@ -5,6 +5,66 @@ const globalForPrisma = global as unknown as {
   prismaConnecting?: Promise<void>;
 };
 
+/**
+ * Query performance monitoring
+ */
+interface QueryStats {
+  totalQueries: number;
+  slowQueries: number;
+  avgQueryTime: number;
+  maxQueryTime: number;
+}
+
+class QueryMonitor {
+  private stats: QueryStats = {
+    totalQueries: 0,
+    slowQueries: 0,
+    avgQueryTime: 0,
+    maxQueryTime: 0,
+  };
+
+  private queryTimes: number[] = [];
+  private readonly slowQueryThreshold = 100; // ms
+
+  recordQuery(duration: number) {
+    this.stats.totalQueries++;
+    this.queryTimes.push(duration);
+
+    if (duration > this.slowQueryThreshold) {
+      this.stats.slowQueries++;
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[DB] ⚠️  Slow query: ${duration.toFixed(2)}ms`);
+      }
+    }
+
+    // Keep only last 100 query times
+    if (this.queryTimes.length > 100) {
+      this.queryTimes.shift();
+    }
+
+    // Update stats
+    this.stats.avgQueryTime =
+      this.queryTimes.reduce((a, b) => a + b, 0) / this.queryTimes.length;
+    this.stats.maxQueryTime = Math.max(...this.queryTimes);
+  }
+
+  getStats(): QueryStats {
+    return { ...this.stats };
+  }
+
+  reset() {
+    this.stats = {
+      totalQueries: 0,
+      slowQueries: 0,
+      avgQueryTime: 0,
+      maxQueryTime: 0,
+    };
+    this.queryTimes = [];
+  }
+}
+
+const queryMonitor = new QueryMonitor();
+
 // Connection pool configuration optimized for serverless/edge
 const prismaClientSingleton = () => {
   // Build connection URL with pooling parameters
@@ -19,7 +79,7 @@ const prismaClientSingleton = () => {
     databaseUrl += `${separator}connection_limit=${connectionLimit}&pool_timeout=20`;
   }
 
-  return new PrismaClient({
+  const client = new PrismaClient({
     log: process.env.NODE_ENV === 'development'
       ? ['warn', 'error']
       : ['error'],
@@ -31,6 +91,23 @@ const prismaClientSingleton = () => {
       },
     },
   });
+
+  // Add query performance monitoring middleware
+  client.$use(async (params, next) => {
+    const startTime = performance.now();
+    const result = await next(params);
+    const duration = performance.now() - startTime;
+
+    queryMonitor.recordQuery(duration);
+
+    if (process.env.NODE_ENV === 'development' && duration > 50) {
+      console.log(`[DB] ${params.model}.${params.action} - ${duration.toFixed(2)}ms`);
+    }
+
+    return result;
+  });
+
+  return client;
 };
 
 export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
@@ -100,12 +177,43 @@ export async function withRetry<T>(
 /**
  * Check database connection health
  */
-export async function checkDatabaseHealth(): Promise<boolean> {
+export async function checkDatabaseHealth(): Promise<{
+  healthy: boolean;
+  latency: number;
+  error?: string;
+}> {
+  const startTime = performance.now();
+
   try {
     await prisma.$queryRaw`SELECT 1`;
-    return true;
+    const latency = performance.now() - startTime;
+
+    return {
+      healthy: true,
+      latency,
+    };
   } catch (error) {
+    const latency = performance.now() - startTime;
     console.error('[DB] Health check failed:', error);
-    return false;
+
+    return {
+      healthy: false,
+      latency,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
   }
+}
+
+/**
+ * Get query statistics
+ */
+export function getQueryStats(): QueryStats {
+  return queryMonitor.getStats();
+}
+
+/**
+ * Reset query statistics
+ */
+export function resetQueryStats(): void {
+  queryMonitor.reset();
 }
