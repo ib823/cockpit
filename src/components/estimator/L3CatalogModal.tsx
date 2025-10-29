@@ -170,6 +170,7 @@ export function L3CatalogModal({ open, onClose, selectedItems, onApply }: L3Cata
       open={open}
       onCancel={handleCancel}
       width={900}
+      destroyOnClose={true}
       footer={[
         <Button key="cancel" onClick={handleCancel}>
           Cancel

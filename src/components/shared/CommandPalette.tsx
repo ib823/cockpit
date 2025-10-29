@@ -107,16 +107,6 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
         url: '/dashboard',
       },
       {
-        id: 'page-estimator',
-        title: 'Estimator',
-        subtitle: 'Create SAP implementation estimates',
-        icon: <CalculatorOutlined />,
-        action: () => navigateTo('/estimator', 'page-estimator'),
-        category: 'page',
-        keywords: ['estimator', 'estimate', 'calculate', 'sap', 'implementation'],
-        url: '/estimator',
-      },
-      {
         id: 'page-gantt',
         title: 'Gantt Tool',
         subtitle: 'Visual project timeline and resource allocation',
@@ -196,16 +186,6 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
 
     // Quick actions
     commands.push(
-      {
-        id: 'action-new-estimate',
-        title: 'New Estimate',
-        subtitle: 'Start a new SAP implementation estimate',
-        icon: <RocketOutlined />,
-        action: () => navigateTo('/estimator', 'action-new-estimate'),
-        category: 'action',
-        keywords: ['new', 'create', 'estimate', 'start'],
-        url: '/estimator',
-      },
       {
         id: 'action-new-project',
         title: 'New Project',

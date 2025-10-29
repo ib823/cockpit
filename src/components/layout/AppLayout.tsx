@@ -18,15 +18,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  const currentPath = pathname?.split('/')[1] || 'estimator';
+  const currentPath = pathname?.split('/')[1] || 'project';
 
   const menuItems = [
-    {
-      key: 'estimator',
-      icon: <CalculatorOutlined />,
-      label: 'Quick Estimate',
-      onClick: () => router.push('/estimator'),
-    },
     {
       key: 'project',
       icon: <ProjectOutlined />,

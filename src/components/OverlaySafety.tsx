@@ -6,7 +6,12 @@ function releaseScrollLock() {
   document.documentElement.classList.remove('overflow-hidden');
   document.body.classList.remove('overflow-hidden');
   document.body.style.overflow = '';
-  (document.body.style as any).pointerEvents = ''; // ensure body clickable
+  document.body.style.pointerEvents = '';
+
+  // Clear any residual inline styles that modals might leave
+  if (document.body.style.paddingRight) {
+    document.body.style.paddingRight = '';
+  }
 }
 
 export default function OverlaySafety() {
@@ -28,10 +33,10 @@ export default function OverlaySafety() {
         // Remove residual inert from focus-trap libs
         document.querySelectorAll('[inert]').forEach((n) => n.removeAttribute('inert'));
 
-        // Disable pointer-events on hidden overlays
+        // Disable pointer-events on hidden overlays and clean up orphaned modals
         const overlays = Array.from(
           document.querySelectorAll<HTMLElement>(
-            '.fixed.inset-0, [role="dialog"], [data-headlessui-portal] .fixed, [data-radix-portal] .fixed'
+            '.fixed.inset-0, [role="dialog"], [data-headlessui-portal] .fixed, [data-radix-portal] .fixed, .ant-modal-wrap'
           )
         );
         overlays.forEach((el) => {
@@ -47,6 +52,15 @@ export default function OverlaySafety() {
           const currentPointerEvents = el.style.pointerEvents;
           if (hidden && currentPointerEvents !== 'none') {
             el.style.pointerEvents = 'none';
+          }
+        });
+
+        // Clean up orphaned Ant Design modal masks
+        const masks = document.querySelectorAll<HTMLElement>('.ant-modal-mask');
+        masks.forEach((mask) => {
+          const cs = getComputedStyle(mask);
+          if (cs.display === 'none' || parseFloat(cs.opacity || '1') < 0.01) {
+            mask.style.pointerEvents = 'none';
           }
         });
       } finally {

@@ -138,16 +138,6 @@ export default function DashboardPage() {
       <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card hoverable onClick={() => router.push('/estimator')}>
-            <div className="text-center">
-              <CalculatorOutlined style={{ fontSize: 32, color: '#3b82f6' }} />
-              <h3 className="font-bold mt-2">Quick Estimate</h3>
-              <p className="text-sm text-gray-600">Start a new SAP implementation estimate</p>
-              <Button type="link">Start now <RightOutlined /></Button>
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
           <Card hoverable onClick={() => router.push('/gantt-tool')}>
             <div className="text-center">
               <FileTextOutlined style={{ fontSize: 32, color: '#8b5cf6' }} />

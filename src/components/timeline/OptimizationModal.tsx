@@ -77,6 +77,7 @@ export function OptimizationModal({ targetDate, open, onClose, onApply }: Optimi
       onCancel={onClose}
       footer={null}
       width={900}
+      destroyOnClose={true}
     >
       <div className="space-y-4">
         {/* Current vs Target Summary */}

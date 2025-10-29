@@ -217,7 +217,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
         }
         document.body.style.pointerEvents = '';
       }}
-      destroyOnHidden={true}
+      destroyOnClose={true}
       width="90vw"
       style={{ top: 20, maxWidth: 1600, maxHeight: '90vh' }}
       styles={{ body: { maxHeight: 'calc(90vh - 120px)', overflowY: 'auto' } }}
