@@ -116,7 +116,7 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
         if (document.body.style.paddingRight) document.body.style.paddingRight = '';
         document.body.style.pointerEvents = '';
       }}
-      destroyOnClose={true}
+      destroyOnHidden={true}
       width={600}
       title={
         <div className="flex items-center gap-2">

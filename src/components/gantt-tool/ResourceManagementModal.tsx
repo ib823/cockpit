@@ -7,7 +7,7 @@
 'use client';
 
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Plus,
   Search,
@@ -24,7 +24,21 @@ import {
   ResourceDesignation,
   RESOURCE_CATEGORIES,
   RESOURCE_DESIGNATIONS,
+  ASSIGNMENT_LEVELS,
+  AssignmentLevel,
 } from '@/types/gantt-tool';
+
+// Fixed rate ratios based on designation
+const DESIGNATION_RATE_RATIOS: Record<ResourceDesignation, number> = {
+  principal: 2.16718,
+  director: 1.73375,
+  senior_manager: 1.30031,
+  manager: 0.81269,
+  senior_consultant: 0.44427,
+  consultant: 0.28173,
+  analyst: 0.26006,
+  subcontractor: 0.5, // Default rate for subcontractors
+};
 
 export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   const {
@@ -314,12 +328,26 @@ function ResourceFormInline({
   onClose: () => void;
   onSubmit: (data: ResourceFormData) => void;
 }) {
+  const initialDesignation = resource?.designation || 'consultant';
   const [formData, setFormData] = useState<ResourceFormData>({
     name: resource?.name || '',
     category: resource?.category || 'functional',
     description: resource?.description || '',
-    designation: resource?.designation || 'consultant',
+    designation: initialDesignation,
+    assignmentLevel: resource?.assignmentLevel || 'both',
+    isBillable: resource?.isBillable !== undefined ? resource.isBillable : true,
+    chargeRatePerHour: resource?.chargeRatePerHour || DESIGNATION_RATE_RATIOS[initialDesignation],
   });
+
+  // Automatically update the rate when designation changes
+  useEffect(() => {
+    if (formData.isBillable) {
+      setFormData(prev => ({
+        ...prev,
+        chargeRatePerHour: DESIGNATION_RATE_RATIOS[prev.designation],
+      }));
+    }
+  }, [formData.designation, formData.isBillable]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -415,6 +443,73 @@ function ResourceFormInline({
           <p className="text-xs text-gray-500 mt-1">
             Be specific about skills and experience needed
           </p>
+        </div>
+
+        {/* Assignment Level */}
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Assignment Level <span className="text-red-500">*</span>
+          </label>
+          <div className="space-y-2">
+            {Object.entries(ASSIGNMENT_LEVELS).map(([key, { label, description }]) => (
+              <label key={key} className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                <input
+                  type="radio"
+                  name="assignmentLevel"
+                  value={key}
+                  checked={formData.assignmentLevel === key}
+                  onChange={(e) => setFormData({ ...formData, assignmentLevel: e.target.value as AssignmentLevel })}
+                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">{label}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{description}</div>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Billing Configuration */}
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Billing Configuration
+          </label>
+
+          {/* Billable Toggle */}
+          <label className="flex items-center gap-3 cursor-pointer mb-4 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+            <input
+              type="checkbox"
+              checked={formData.isBillable}
+              onChange={(e) => setFormData({ ...formData, isBillable: e.target.checked })}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <div className="flex-1">
+              <div className="text-sm font-medium text-gray-900">Billable resource</div>
+              <div className="text-xs text-gray-500 mt-0.5">Include in cost calculations and budget tracking</div>
+            </div>
+          </label>
+
+          {/* Charge Rate */}
+          {formData.isBillable && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Rates Ratio <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={formData.chargeRatePerHour}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+                  placeholder="Auto-calculated based on designation"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Rate ratio is automatically set based on the selected designation
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Actions */}

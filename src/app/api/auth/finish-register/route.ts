@@ -86,7 +86,7 @@ export async function POST(req: Request) {
     await challenges.del(`reg:${email}`);
 
     // Fixed: V-014 - Preserve all roles (USER, MANAGER, ADMIN) in sessions
-    await createAuthSession(user.id, user.email, user.role);
+    await createAuthSession(user.id, user.email, user.role, user.name);
 
     return NextResponse.json({ ok: true, user: { name: user.name, role: user.role } });
 

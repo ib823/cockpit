@@ -15,18 +15,22 @@ export function useSessionGuard() {
   useEffect(() => {
     // Check session immediately
     const checkSession = () => {
+      // Only redirect if status is 'unauthenticated' and not 'loading'
+      // This prevents redirect during initial session load
       if (status === 'unauthenticated') {
         console.warn('[SessionGuard] No valid session detected, redirecting to login');
         router.replace('/login');
       }
     };
 
-    // Initial check
-    checkSession();
+    // Only check if not loading to prevent premature redirects
+    if (status !== 'loading') {
+      checkSession();
+    }
 
     // CRITICAL: Re-check when page becomes visible (handles back button)
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && status !== 'loading') {
         console.log('[SessionGuard] Page became visible, validating session');
         checkSession();
       }
@@ -34,13 +38,15 @@ export function useSessionGuard() {
 
     // CRITICAL: Re-check when window gets focus (handles back button)
     const handleFocus = () => {
-      console.log('[SessionGuard] Window focused, validating session');
-      checkSession();
+      if (status !== 'loading') {
+        console.log('[SessionGuard] Window focused, validating session');
+        checkSession();
+      }
     };
 
     // CRITICAL: Prevent bfcache (Back-Forward Cache) from serving stale pages
     const handlePageShow = (event: PageTransitionEvent) => {
-      if (event.persisted) {
+      if (event.persisted && status !== 'loading') {
         console.warn('[SessionGuard] Page restored from bfcache, validating session');
         checkSession();
       }

@@ -85,7 +85,7 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
         }
         document.body.style.pointerEvents = '';
       }}
-      destroyOnClose={true}
+      destroyOnHidden={true}
       width={1200}
       footer={null}
       title={

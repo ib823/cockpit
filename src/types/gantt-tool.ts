@@ -151,6 +151,104 @@ export interface ExportOptions {
   orientation?: 'portrait' | 'landscape';
 }
 
+// Enhanced Export Configuration for Optimized Snapshots
+export type ExportSizePreset = 'presentation' | 'document' | 'print' | 'custom';
+export type ExportQuality = 'standard' | 'high' | 'print';
+
+export interface EnhancedExportConfig {
+  // Format and quality
+  format: 'png' | 'pdf' | 'svg';
+  quality: ExportQuality; // standard=150dpi, high=225dpi, print=300dpi
+
+  // Size presets for consistency
+  sizePreset: ExportSizePreset;
+  customWidth?: number; // in pixels (only for custom preset)
+  customHeight?: number; // in pixels (only for custom preset)
+
+  // Phase filtering
+  exportScope: 'all' | 'selected-phases';
+  selectedPhaseIds?: string[]; // Required when exportScope is 'selected-phases'
+
+  // Content optimization
+  contentOptions: {
+    hideUIControls: boolean; // Hide buttons, handles, etc.
+    hidePhaseNames: boolean; // Hide phase titles above bars
+    hideTaskNames: boolean; // Hide task names on bars
+    showOnlyBars: boolean; // Minimal view - just bars and timeline
+    includeLegend: boolean; // Add phase/task legend
+    includeHeader: boolean; // Project name and date range
+    includeFooter: boolean; // Export metadata (date, page numbers)
+  };
+
+  // Spacing and margins
+  padding: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+
+  // Background and styling
+  backgroundColor: string;
+  transparentBackground: boolean;
+}
+
+// Export Size Presets (in pixels at 72 DPI baseline)
+export const EXPORT_SIZE_PRESETS: Record<ExportSizePreset, { width: number; height: number; description: string }> = {
+  presentation: {
+    width: 1920,
+    height: 1080,
+    description: 'PowerPoint/Google Slides (16:9)',
+  },
+  document: {
+    width: 2100,
+    height: 1400,
+    description: 'Word/PDF Documents (3:2)',
+  },
+  print: {
+    width: 3300,
+    height: 2550,
+    description: 'Print A4 Landscape (300 DPI)',
+  },
+  custom: {
+    width: 1920,
+    height: 1080,
+    description: 'Custom dimensions',
+  },
+};
+
+// Export Quality Settings (DPI scale multipliers)
+export const EXPORT_QUALITY_SETTINGS: Record<ExportQuality, { scale: number; description: string }> = {
+  standard: { scale: 2, description: '150 DPI - Good for screen viewing' },
+  high: { scale: 3, description: '225 DPI - High quality for presentations' },
+  print: { scale: 4, description: '300 DPI - Print quality' },
+};
+
+// Default Export Configuration
+export const DEFAULT_EXPORT_CONFIG: EnhancedExportConfig = {
+  format: 'png',
+  quality: 'high',
+  sizePreset: 'presentation',
+  exportScope: 'all',
+  contentOptions: {
+    hideUIControls: true,
+    hidePhaseNames: false,
+    hideTaskNames: false,
+    showOnlyBars: false,
+    includeLegend: false,
+    includeHeader: true,
+    includeFooter: false,
+  },
+  padding: {
+    top: 40,
+    right: 40,
+    bottom: 40,
+    left: 40,
+  },
+  backgroundColor: '#ffffff',
+  transparentBackground: false,
+};
+
 // Color Presets
 export const PHASE_COLOR_PRESETS = [
   '#3B82F6', // Blue
@@ -183,12 +281,19 @@ export interface Resource {
   location?: string; // Physical or virtual location
   projectRole?: string; // Specific role on this project (optional override)
 
+  // Assignment level control
+  assignmentLevel: 'phase' | 'task' | 'both'; // Where this resource can be assigned
+
   // Cost tracking fields
-  rateType?: 'hourly' | 'daily' | 'fixed'; // Billing model
-  hourlyRate?: number; // Hourly rate in project currency
-  dailyRate?: number; // Daily rate in project currency
+  isBillable: boolean; // Whether this resource is billable to client
+  chargeRatePerHour: number; // Hourly billing rate in project currency
   currency?: string; // Currency code (USD, EUR, GBP, etc.)
   utilizationTarget?: number; // Target utilization percentage (0-100)
+
+  // Deprecated fields (kept for backward compatibility during migration)
+  rateType?: 'hourly' | 'daily' | 'fixed'; // DEPRECATED: Use chargeRatePerHour instead
+  hourlyRate?: number; // DEPRECATED: Use chargeRatePerHour instead
+  dailyRate?: number; // DEPRECATED: Use chargeRatePerHour instead
 }
 
 export interface TaskResourceAssignment {
@@ -227,6 +332,13 @@ export interface ResourceFormData {
   department?: string;
   location?: string;
   projectRole?: string;
+
+  // Assignment and billing configuration
+  assignmentLevel: 'phase' | 'task' | 'both';
+  isBillable: boolean;
+  chargeRatePerHour: number;
+  currency?: string;
+  utilizationTarget?: number;
 }
 
 // Utility Types
@@ -264,6 +376,15 @@ export const RESOURCE_DESIGNATIONS: Record<ResourceDesignation, string> = {
   analyst: 'Analyst',
   subcontractor: 'SubContractor',
 };
+
+// Assignment Level Configuration
+export const ASSIGNMENT_LEVELS = {
+  phase: { label: 'Phase Level Only', description: 'Can only be assigned to phases for oversight/coordination' },
+  task: { label: 'Task Level Only', description: 'Can only be assigned to tasks for execution' },
+  both: { label: 'Phase & Task Levels', description: 'Can be assigned to both phases and tasks' },
+} as const;
+
+export type AssignmentLevel = keyof typeof ASSIGNMENT_LEVELS;
 
 // Budget and Cost Tracking Types
 export interface ProjectBudget {
@@ -311,4 +432,61 @@ export interface WhatIfScenario {
   projectedCost?: number;
   costDifference?: number; // vs baseline
   budgetUtilization?: number;
+}
+
+// ============================================================================
+// MIGRATION UTILITIES
+// ============================================================================
+
+/**
+ * Migrates a legacy resource to the new schema with assignmentLevel, isBillable, and chargeRatePerHour
+ * This ensures backward compatibility when loading old project data
+ */
+export function migrateResourceToNewSchema(resource: any): Resource {
+  // Determine assignment level based on category (PM can assign to both, others only tasks)
+  const assignmentLevel: AssignmentLevel =
+    resource.category === 'pm' ? 'both' : 'task';
+
+  // Calculate chargeRatePerHour from legacy fields
+  let chargeRatePerHour = 0;
+  if (resource.hourlyRate !== undefined && resource.hourlyRate !== null) {
+    chargeRatePerHour = resource.hourlyRate;
+  } else if (resource.dailyRate !== undefined && resource.dailyRate !== null) {
+    // Convert daily rate to hourly (assuming 8-hour workday)
+    chargeRatePerHour = resource.dailyRate / 8;
+  }
+
+  // Default to billable unless explicitly set
+  const isBillable = resource.isBillable !== undefined ? resource.isBillable : true;
+
+  return {
+    ...resource,
+    assignmentLevel: resource.assignmentLevel || assignmentLevel,
+    isBillable: resource.isBillable !== undefined ? resource.isBillable : isBillable,
+    chargeRatePerHour: resource.chargeRatePerHour || chargeRatePerHour,
+  };
+}
+
+/**
+ * Helper function to check if a resource can be assigned to a phase
+ */
+export function canAssignToPhase(resource: Resource): boolean {
+  return resource.assignmentLevel === 'phase' || resource.assignmentLevel === 'both';
+}
+
+/**
+ * Helper function to check if a resource can be assigned to a task
+ */
+export function canAssignToTask(resource: Resource): boolean {
+  return resource.assignmentLevel === 'task' || resource.assignmentLevel === 'both';
+}
+
+/**
+ * Helper function to get formatted rate display
+ */
+export function getFormattedRate(resource: Resource): string {
+  if (!resource.isBillable) {
+    return 'Non-billable';
+  }
+  return `${resource.chargeRatePerHour.toFixed(4)}x`;
 }

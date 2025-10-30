@@ -22,6 +22,10 @@ export function isWeekend(date: Date): boolean {
  * Check if a date is a holiday
  */
 export function isHoliday(date: Date, holidays: GanttHoliday[]): boolean {
+  // Guard against invalid dates
+  if (!date || isNaN(date.getTime())) {
+    return false;
+  }
   const dateStr = format(date, 'yyyy-MM-dd');
   return holidays.some(holiday => holiday.date === dateStr);
 }
@@ -118,6 +122,12 @@ export function addWorkingDays(
   holidays: GanttHoliday[]
 ): Date {
   const start = typeof startDate === 'string' ? parseISO(startDate) : startDate;
+
+  // Guard against invalid dates
+  if (!start || isNaN(start.getTime())) {
+    throw new Error('Invalid start date provided to addWorkingDays');
+  }
+
   let current = new Date(start);
   let addedDays = 0;
 
@@ -144,6 +154,11 @@ export function adjustDatesToWorkingDays(
 ): { startDate: string; endDate: string } {
   const start = parseISO(startDate);
   const end = parseISO(endDate);
+
+  // Guard against invalid dates
+  if (!start || isNaN(start.getTime()) || !end || isNaN(end.getTime())) {
+    throw new Error('Invalid date provided to adjustDatesToWorkingDays');
+  }
 
   const adjustedStart = getNextWorkingDay(start, holidays);
   const adjustedEnd = getPreviousWorkingDay(end, holidays);

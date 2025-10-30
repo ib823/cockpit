@@ -162,7 +162,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
         if (document.body.style.paddingRight) document.body.style.paddingRight = '';
         document.body.style.pointerEvents = '';
       }}
-      destroyOnClose={true}
+      destroyOnHidden={true}
       footer={[
         <Button key="cancel" onClick={onClose}>
           Cancel

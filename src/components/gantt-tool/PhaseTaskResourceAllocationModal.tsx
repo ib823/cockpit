@@ -28,6 +28,8 @@ import {
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_DESIGNATIONS,
+  canAssignToPhase,
+  canAssignToTask,
   type Resource,
   type ResourceCategory,
 } from '@/types/gantt-tool';
@@ -420,11 +422,11 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
                 const category = RESOURCE_CATEGORIES[categoryKey as ResourceCategory];
                 const isCollapsed = collapsedCategories.has(categoryKey as ResourceCategory);
                 const availableResources = (resources as Resource[]).filter(r => {
-                  // PM-only filter for phases
+                  // Filter by assignment level
                   if (itemType === 'phase') {
-                    return r.category === 'pm' && !isAssigned(r.id);
+                    return canAssignToPhase(r) && !isAssigned(r.id);
                   }
-                  return !isAssigned(r.id);
+                  return canAssignToTask(r) && !isAssigned(r.id);
                 });
 
                 if (availableResources.length === 0) return null;

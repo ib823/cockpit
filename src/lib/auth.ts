@@ -49,3 +49,6 @@ export const authConfig = {
 
   debug: process.env.NODE_ENV === 'development',
 } satisfies AuthOptions;
+
+// Export as authOptions for backward compatibility
+export const authOptions = authConfig;

@@ -312,13 +312,24 @@ function PhaseForm({
     setFormData({ ...formData, startDate: newStartDate });
     // If we have a working days duration, update end date to maintain it
     if (workingDaysInput && !isNaN(parseInt(workingDaysInput)) && parseInt(workingDaysInput) > 0 && currentProject) {
-      const days = parseInt(workingDaysInput);
-      const newEnd = addWorkingDaysUtil(
-        newStartDate,
-        days,
-        currentProject.holidays
-      );
-      setFormData({ ...formData, startDate: newStartDate, endDate: newEnd.toISOString().split('T')[0] });
+      // Validate the date before processing
+      const testDate = new Date(newStartDate);
+      if (!newStartDate || isNaN(testDate.getTime())) {
+        return; // Skip calculation if date is invalid
+      }
+
+      try {
+        const days = parseInt(workingDaysInput);
+        const newEnd = addWorkingDaysUtil(
+          newStartDate,
+          days,
+          currentProject.holidays
+        );
+        setFormData({ ...formData, startDate: newStartDate, endDate: newEnd.toISOString().split('T')[0] });
+      } catch (error) {
+        // Ignore errors from invalid dates during input
+        console.warn('Date calculation skipped:', error);
+      }
     }
   };
 
@@ -713,13 +724,24 @@ function TaskForm({
     setFormData({ ...formData, startDate: newStartDate });
     // If we have a working days duration, update end date to maintain it
     if (workingDaysInput && !isNaN(parseInt(workingDaysInput)) && parseInt(workingDaysInput) > 0 && currentProject) {
-      const days = parseInt(workingDaysInput);
-      const newEnd = addWorkingDaysUtil(
-        newStartDate,
-        days,
-        currentProject.holidays
-      );
-      setFormData({ ...formData, startDate: newStartDate, endDate: newEnd.toISOString().split('T')[0] });
+      // Validate the date before processing
+      const testDate = new Date(newStartDate);
+      if (!newStartDate || isNaN(testDate.getTime())) {
+        return; // Skip calculation if date is invalid
+      }
+
+      try {
+        const days = parseInt(workingDaysInput);
+        const newEnd = addWorkingDaysUtil(
+          newStartDate,
+          days,
+          currentProject.holidays
+        );
+        setFormData({ ...formData, startDate: newStartDate, endDate: newEnd.toISOString().split('T')[0] });
+      } catch (error) {
+        // Ignore errors from invalid dates during input
+        console.warn('Date calculation skipped:', error);
+      }
     }
   };
 

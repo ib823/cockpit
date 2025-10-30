@@ -41,6 +41,11 @@ import {
   ZoomOutOutlined,
   FlagOutlined,
   CalendarOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+  DashboardOutlined,
+  CrownOutlined,
 } from '@ant-design/icons';
 import {
   Button,
@@ -55,12 +60,14 @@ import {
 } from 'antd';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { exportToPNG, exportToPDF, exportToExcel } from '@/lib/gantt-tool/export-utils';
 import { ResourceManagementModal } from './ResourceManagementModal';
 import { ImportModalV2 } from './ImportModalV2';
 import { ProposalGenerationModal } from './ProposalGenerationModal';
 import { TemplateLibraryModal } from './TemplateLibraryModal';
 import { DuplicateCleanupModal } from './DuplicateCleanupModal';
+import ExportConfigModal from './ExportConfigModal';
 import type { MenuProps } from 'antd';
 import dayjs from 'dayjs';
 
@@ -79,6 +86,7 @@ export function GanttToolbar({
 }: GanttToolbarProps = {}) {
   const router = useRouter();
   const { modal } = App.useApp();
+  const { data: session } = useSession();
   const {
     currentProject,
     projects,
@@ -146,6 +154,7 @@ export function GanttToolbar({
   const [showProposalModal, setShowProposalModal] = useState(false);
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
   const [showDuplicateCleanup, setShowDuplicateCleanup] = useState(false);
+  const [showExportConfigModal, setShowExportConfigModal] = useState(false);
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
   const [editedProjectName, setEditedProjectName] = useState('');
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
@@ -249,9 +258,24 @@ export function GanttToolbar({
     },
     { type: 'divider' },
     {
+      key: 'export-optimized',
+      label: (
+        <div className="py-1">
+          <div className="font-semibold text-blue-600 flex items-center gap-2">
+            <FileImage className="w-4 h-4" />
+            Optimized Export
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5">Professional snapshots for presentations</div>
+        </div>
+      ),
+      onClick: () => setShowExportConfigModal(true),
+      style: { backgroundColor: '#f0f7ff' },
+    },
+    { type: 'divider' },
+    {
       key: 'export-group',
       type: 'group',
-      label: 'Export Timeline',
+      label: 'Quick Export',
     },
     {
       key: 'png',
@@ -418,6 +442,37 @@ export function GanttToolbar({
       label: 'Add Holiday',
       icon: <CalendarOutlined />,
       onClick: () => openSidePanel('add', 'holiday'),
+    },
+  ];
+
+  // User Menu - Account, Dashboard, Logout
+  const isAdmin = session?.user?.role === 'ADMIN';
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'dashboard',
+      label: 'Dashboard',
+      icon: <DashboardOutlined />,
+      onClick: () => router.push('/dashboard'),
+    },
+    {
+      key: 'account',
+      label: 'Account Settings',
+      icon: <SettingOutlined />,
+      onClick: () => router.push('/account'),
+    },
+    ...(isAdmin ? [{
+      key: 'admin',
+      label: 'Admin Dashboard',
+      icon: <CrownOutlined />,
+      onClick: () => router.push('/admin'),
+    }] : []),
+    { type: 'divider' as const },
+    {
+      key: 'logout',
+      label: 'Logout',
+      icon: <LogoutOutlined />,
+      onClick: () => signOut({ callbackUrl: '/login' }),
+      danger: true,
     },
   ];
 
@@ -734,6 +789,18 @@ export function GanttToolbar({
                 <ChevronDown className="w-3 h-3" />
               </Button>
             </Dropdown>
+
+            {/* 6. User Menu - Account & Logout */}
+            <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
+              <Button
+                icon={<UserOutlined />}
+                size="large"
+                className="flex items-center gap-2"
+              >
+                <span className="hidden xl:inline">{session?.user?.name || session?.user?.email || 'User'}</span>
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+            </Dropdown>
           </div>
         </div>
 
@@ -915,6 +982,14 @@ export function GanttToolbar({
         <DuplicateCleanupModal
           isOpen={showDuplicateCleanup}
           onClose={() => setShowDuplicateCleanup(false)}
+        />
+      )}
+
+      {showExportConfigModal && currentProject && (
+        <ExportConfigModal
+          visible={showExportConfigModal}
+          onClose={() => setShowExportConfigModal(false)}
+          project={currentProject}
         />
       )}
 

@@ -409,3 +409,507 @@ function hideLoadingIndicator(loadingDiv: HTMLDivElement): void {
     loadingDiv.parentNode.removeChild(loadingDiv);
   }
 }
+
+// ============================================================================
+// ENHANCED EXPORT FUNCTIONS - Optimized Snapshots
+// ============================================================================
+
+import type {
+  EnhancedExportConfig,
+  EXPORT_SIZE_PRESETS,
+  EXPORT_QUALITY_SETTINGS,
+} from '@/types/gantt-tool';
+
+/**
+ * Export Gantt chart with enhanced configuration for professional, consistent output
+ */
+export async function exportGanttEnhanced(
+  project: GanttProject,
+  config: EnhancedExportConfig
+): Promise<void> {
+  const loadingDiv = showLoadingIndicator(`Exporting ${config.format.toUpperCase()}...`);
+
+  try {
+    // Get the gantt canvas element
+    const originalCanvas = document.getElementById('gantt-canvas');
+    if (!originalCanvas) {
+      throw new Error('Gantt canvas not found');
+    }
+
+    // Create a clean clone for export
+    const exportCanvas = await prepareExportCanvas(originalCanvas, project, config);
+
+    // Capture the canvas as image
+    const imageBlob = await captureCanvasAsImage(exportCanvas, config);
+
+    // Export based on format
+    if (config.format === 'png') {
+      await downloadImage(imageBlob, project.name, 'png');
+    } else if (config.format === 'pdf') {
+      await exportImageAsPDF(imageBlob, project, config);
+    } else if (config.format === 'svg') {
+      // SVG export would require different implementation
+      throw new Error('SVG export not yet implemented');
+    }
+
+    // Cleanup
+    document.body.removeChild(exportCanvas);
+    hideLoadingIndicator(loadingDiv);
+  } catch (error) {
+    hideLoadingIndicator(loadingDiv);
+    console.error('Failed to export:', error);
+    alert(`Failed to export: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Prepare a clean clone of the canvas for export
+ */
+async function prepareExportCanvas(
+  originalCanvas: HTMLElement,
+  project: GanttProject,
+  config: EnhancedExportConfig
+): Promise<HTMLElement> {
+  // Clone the canvas
+  const clone = originalCanvas.cloneNode(true) as HTMLElement;
+  clone.id = 'gantt-export-canvas';
+
+  // Apply styling to make it suitable for export
+  clone.style.position = 'absolute';
+  clone.style.left = '-9999px';
+  clone.style.top = '0';
+  clone.style.overflow = 'visible';
+  clone.style.width = 'auto';
+  clone.style.height = 'auto';
+
+  // Get size preset dimensions
+  const { EXPORT_SIZE_PRESETS } = await import('@/types/gantt-tool');
+  const sizePreset = EXPORT_SIZE_PRESETS[config.sizePreset];
+  const targetWidth = config.sizePreset === 'custom' && config.customWidth
+    ? config.customWidth
+    : sizePreset.width;
+  const targetHeight = config.sizePreset === 'custom' && config.customHeight
+    ? config.customHeight
+    : sizePreset.height;
+
+  clone.style.width = `${targetWidth}px`;
+  clone.style.height = `${targetHeight}px`;
+
+  // Apply background
+  if (config.transparentBackground) {
+    clone.style.backgroundColor = 'transparent';
+  } else {
+    clone.style.backgroundColor = config.backgroundColor;
+  }
+
+  // Apply padding
+  clone.style.padding = `${config.padding.top}px ${config.padding.right}px ${config.padding.bottom}px ${config.padding.left}px`;
+
+  // Append to body temporarily for rendering
+  document.body.appendChild(clone);
+
+  // Hide UI controls if requested
+  if (config.contentOptions.hideUIControls) {
+    hideUIControls(clone);
+  }
+
+  // Hide phase names if requested
+  if (config.contentOptions.hidePhaseNames) {
+    const phaseTitles = clone.querySelectorAll('[data-element="phase-title"]');
+    phaseTitles.forEach((el) => ((el as HTMLElement).style.display = 'none'));
+  }
+
+  // Hide task names if requested
+  if (config.contentOptions.hideTaskNames) {
+    const taskNames = clone.querySelectorAll('[data-element="task-name"]');
+    taskNames.forEach((el) => ((el as HTMLElement).style.display = 'none'));
+  }
+
+  // Filter phases if specific phases are selected
+  if (config.exportScope === 'selected-phases' && config.selectedPhaseIds) {
+    filterPhases(clone, config.selectedPhaseIds);
+  }
+
+  // Add header if requested
+  if (config.contentOptions.includeHeader) {
+    addExportHeader(clone, project, config);
+  }
+
+  // Add footer if requested
+  if (config.contentOptions.includeFooter) {
+    addExportFooter(clone, project, config);
+  }
+
+  // Add legend if requested
+  if (config.contentOptions.includeLegend) {
+    addExportLegend(clone, project, config);
+  }
+
+  // Wait for rendering
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  // Calculate actual content bounds to remove empty space
+  const contentBounds = calculateContentBounds(clone);
+
+  // Adjust canvas height to fit actual content (removing empty bottom space)
+  if (contentBounds.height > 0) {
+    const totalHeight = contentBounds.height + config.padding.top + config.padding.bottom;
+    clone.style.height = `${totalHeight}px`;
+
+    // If there's a header or footer, make sure they're positioned correctly
+    if (config.contentOptions.includeHeader) {
+      const header = clone.querySelector('[data-export-element="header"]') as HTMLElement;
+      if (header) {
+        header.style.top = `${config.padding.top / 2}px`;
+      }
+    }
+
+    if (config.contentOptions.includeFooter) {
+      const footer = clone.querySelector('[data-export-element="footer"]') as HTMLElement;
+      if (footer) {
+        footer.style.bottom = `${config.padding.bottom / 2}px`;
+      }
+    }
+  }
+
+  return clone;
+}
+
+/**
+ * Calculate the actual bounding box of visible content
+ */
+function calculateContentBounds(canvas: HTMLElement): { height: number; width: number } {
+  // Strategy: Find all visible child elements and calculate their bounds
+  const canvasRect = canvas.getBoundingClientRect();
+  const visibleElements: HTMLElement[] = [];
+
+  // Recursively find all visible elements with meaningful content
+  function findVisibleElements(element: HTMLElement) {
+    // Skip if element is hidden
+    if (element.style.display === 'none' || element.offsetHeight === 0) {
+      return;
+    }
+
+    // Check if element has visual content (background, border, text, etc.)
+    const computedStyle = window.getComputedStyle(element);
+    const hasVisualContent =
+      computedStyle.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
+      computedStyle.borderWidth !== '0px' ||
+      element.textContent?.trim() !== '' ||
+      element.tagName === 'svg' ||
+      element.tagName === 'IMG';
+
+    if (hasVisualContent && element.offsetHeight > 5) {
+      visibleElements.push(element);
+    }
+
+    // Recurse through children
+    Array.from(element.children).forEach((child) => {
+      findVisibleElements(child as HTMLElement);
+    });
+  }
+
+  // Start from the canvas
+  Array.from(canvas.children).forEach((child) => {
+    findVisibleElements(child as HTMLElement);
+  });
+
+  // If no visible elements found, return a reasonable default
+  if (visibleElements.length === 0) {
+    return { height: 600, width: canvas.offsetWidth };
+  }
+
+  // Calculate the bounding box
+  let minTop = Infinity;
+  let maxBottom = 0;
+
+  visibleElements.forEach((el) => {
+    const rect = el.getBoundingClientRect();
+    const relativeTop = rect.top - canvasRect.top;
+    const relativeBottom = relativeTop + rect.height;
+
+    if (relativeTop < minTop) minTop = relativeTop;
+    if (relativeBottom > maxBottom) maxBottom = relativeBottom;
+  });
+
+  // Add breathing room and ensure minimum height
+  const contentHeight = Math.max(maxBottom - Math.max(minTop, 0) + 60, 200);
+
+  return {
+    height: contentHeight,
+    width: canvas.offsetWidth,
+  };
+}
+
+/**
+ * Hide UI controls like buttons, drag handles, hover effects
+ */
+function hideUIControls(canvas: HTMLElement): void {
+  // Hide common UI control selectors
+  const selectors = [
+    'button',
+    '[data-element="drag-handle"]',
+    '[data-element="resize-handle"]',
+    '[data-element="action-button"]',
+    '.gantt-controls',
+    '.hover-indicator',
+    '.selection-indicator',
+    '[data-interactive="true"]',
+  ];
+
+  selectors.forEach((selector) => {
+    const elements = canvas.querySelectorAll(selector);
+    elements.forEach((el) => ((el as HTMLElement).style.display = 'none'));
+  });
+}
+
+/**
+ * Filter to show only selected phases
+ */
+function filterPhases(canvas: HTMLElement, selectedPhaseIds: string[]): void {
+  const phaseElements = canvas.querySelectorAll('[data-phase-id]');
+
+  phaseElements.forEach((el) => {
+    const phaseId = (el as HTMLElement).getAttribute('data-phase-id');
+    if (phaseId && !selectedPhaseIds.includes(phaseId)) {
+      (el as HTMLElement).style.display = 'none';
+    }
+  });
+}
+
+/**
+ * Add header with project name and date range
+ */
+function addExportHeader(
+  canvas: HTMLElement,
+  project: GanttProject,
+  config: EnhancedExportConfig
+): void {
+  const header = document.createElement('div');
+  header.setAttribute('data-export-element', 'header');
+  header.style.cssText = `
+    position: absolute;
+    top: ${config.padding.top / 2}px;
+    left: ${config.padding.left}px;
+    right: ${config.padding.right}px;
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  `;
+
+  const title = document.createElement('h1');
+  title.style.cssText = `
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #111827;
+  `;
+  title.textContent = project.name;
+
+  const dateRange = document.createElement('p');
+  dateRange.style.cssText = `
+    margin: 8px 0 0 0;
+    font-size: 14px;
+    color: #6B7280;
+  `;
+
+  // Calculate date range
+  const startDate = new Date(project.startDate);
+  let endDate = startDate;
+  project.phases.forEach((phase) => {
+    const phaseEnd = new Date(phase.endDate);
+    if (phaseEnd > endDate) {
+      endDate = phaseEnd;
+    }
+  });
+
+  dateRange.textContent = `${format(startDate, 'MMM dd, yyyy')} - ${format(endDate, 'MMM dd, yyyy')}`;
+
+  header.appendChild(title);
+  header.appendChild(dateRange);
+  canvas.insertBefore(header, canvas.firstChild);
+}
+
+/**
+ * Add footer with export metadata
+ */
+function addExportFooter(
+  canvas: HTMLElement,
+  project: GanttProject,
+  config: EnhancedExportConfig
+): void {
+  const footer = document.createElement('div');
+  footer.setAttribute('data-export-element', 'footer');
+  footer.style.cssText = `
+    position: absolute;
+    bottom: ${config.padding.bottom / 2}px;
+    left: ${config.padding.left}px;
+    right: ${config.padding.right}px;
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12px;
+    color: #9CA3AF;
+  `;
+
+  const exportDate = format(new Date(), 'MMM dd, yyyy HH:mm');
+  footer.textContent = `Exported on ${exportDate}`;
+
+  canvas.appendChild(footer);
+}
+
+/**
+ * Add legend for phases and tasks
+ */
+function addExportLegend(
+  canvas: HTMLElement,
+  project: GanttProject,
+  config: EnhancedExportConfig
+): void {
+  const legend = document.createElement('div');
+  legend.style.cssText = `
+    position: absolute;
+    bottom: ${config.padding.bottom + 40}px;
+    left: ${config.padding.left}px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12px;
+  `;
+
+  // Add phase colors to legend
+  project.phases.forEach((phase) => {
+    const item = document.createElement('div');
+    item.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `;
+
+    const colorBox = document.createElement('div');
+    colorBox.style.cssText = `
+      width: 16px;
+      height: 16px;
+      background-color: ${phase.color};
+      border-radius: 2px;
+    `;
+
+    const label = document.createElement('span');
+    label.style.color = '#374151';
+    label.textContent = phase.name;
+
+    item.appendChild(colorBox);
+    item.appendChild(label);
+    legend.appendChild(item);
+  });
+
+  canvas.appendChild(legend);
+}
+
+/**
+ * Capture canvas element as high-quality image blob
+ */
+async function captureCanvasAsImage(
+  canvas: HTMLElement,
+  config: EnhancedExportConfig
+): Promise<Blob> {
+  // Get quality settings
+  const { EXPORT_QUALITY_SETTINGS } = await import('@/types/gantt-tool');
+  const qualitySetting = EXPORT_QUALITY_SETTINGS[config.quality];
+  const scale = qualitySetting.scale;
+
+  // Use html2canvas to capture
+  const canvasElement = await html2canvas(canvas, {
+    backgroundColor: config.transparentBackground ? null : config.backgroundColor,
+    scale: scale,
+    logging: false,
+    useCORS: true,
+    allowTaint: true,
+    width: canvas.offsetWidth,
+    height: canvas.offsetHeight,
+    windowWidth: canvas.offsetWidth,
+    windowHeight: canvas.offsetHeight,
+  });
+
+  return new Promise((resolve, reject) => {
+    canvasElement.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error('Failed to create image blob'));
+        }
+      },
+      'image/png',
+      1.0
+    );
+  });
+}
+
+/**
+ * Download image blob as file
+ */
+async function downloadImage(blob: Blob, projectName: string, format: string): Promise<void> {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.download = `${sanitizeFilename(projectName)}-gantt-export.${format}`;
+  link.href = url;
+  link.click();
+
+  // Cleanup
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+/**
+ * Export image blob as PDF with proper sizing
+ */
+async function exportImageAsPDF(
+  imageBlob: Blob,
+  project: GanttProject,
+  config: EnhancedExportConfig
+): Promise<void> {
+  // Get size preset
+  const { EXPORT_SIZE_PRESETS } = await import('@/types/gantt-tool');
+  const sizePreset = EXPORT_SIZE_PRESETS[config.sizePreset];
+  const targetWidth = config.sizePreset === 'custom' && config.customWidth
+    ? config.customWidth
+    : sizePreset.width;
+  const targetHeight = config.sizePreset === 'custom' && config.customHeight
+    ? config.customHeight
+    : sizePreset.height;
+
+  // Convert blob to data URL
+  const imageDataUrl = await blobToDataURL(imageBlob);
+
+  // Create PDF with custom dimensions
+  const pdf = new jsPDF({
+    orientation: targetWidth > targetHeight ? 'landscape' : 'portrait',
+    unit: 'px',
+    format: [targetWidth, targetHeight],
+  });
+
+  // Add image to fit the page exactly
+  pdf.addImage(imageDataUrl, 'PNG', 0, 0, targetWidth, targetHeight);
+
+  // Add metadata
+  pdf.setProperties({
+    title: `${project.name} - Gantt Chart`,
+    author: 'Gantt Chart Tool',
+    subject: 'Project Timeline',
+    creator: 'Gantt Chart Tool',
+  });
+
+  // Download
+  pdf.save(`${sanitizeFilename(project.name)}-gantt-export.pdf`);
+}
+
+/**
+ * Convert blob to data URL
+ */
+function blobToDataURL(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}

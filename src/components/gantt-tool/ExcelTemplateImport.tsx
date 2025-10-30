@@ -6,11 +6,22 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { parseExcelTemplate, transformToGanttProject, ParsedExcelData } from '@/lib/gantt-tool/excel-template-parser';
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { FileSpreadsheet, Copy, Download, AlertCircle, CheckCircle, Upload } from 'lucide-react';
 import { generateCopyPasteTemplate } from '@/lib/gantt-tool/copy-paste-template-generator';
+import {
+  detectImportConflicts,
+  generatePhaseSuggestions,
+  generateResourceSuggestions,
+  type ConflictDetectionResult,
+} from '@/lib/gantt-tool/conflict-detector';
+import {
+  ConflictResolutionModal,
+  type ConflictResolution,
+} from '@/components/gantt-tool/ConflictResolutionModal';
+import type { GanttProject, GanttPhase, Resource } from '@/types/gantt-tool';
 
 // FIX ISSUE #16: Add file size limits
 const MAX_ROWS = 500; // Maximum total rows (tasks + resources)
@@ -22,6 +33,9 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importMode, setImportMode] = useState<'new' | 'append'>('new');
+  const [conflictResult, setConflictResult] = useState<ConflictDetectionResult | null>(null);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [ganttData, setGanttData] = useState<any>(null);
 
   const { currentProject, addPhase, addResource, saveProject } = useGanttToolStoreV2();
 
@@ -110,7 +124,35 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
     }
   };
 
-  // Handle import
+  // Handle conflict resolution
+  const handleConflictResolution = async (resolution: ConflictResolution) => {
+    setShowConflictModal(false);
+    setIsImporting(true);
+    setError(null);
+
+    try {
+      if (!ganttData) {
+        throw new Error('No data to import');
+      }
+
+      console.log('[ExcelImport] Applying conflict resolution:', resolution.strategy);
+      await performImport(ganttData, resolution);
+    } catch (err) {
+      console.error('[ExcelImport] Import failed after conflict resolution:', err);
+      setError(err instanceof Error ? err.message : 'Failed to import project');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Handle conflict cancellation
+  const handleConflictCancel = () => {
+    setShowConflictModal(false);
+    setConflictResult(null);
+    setIsImporting(false);
+  };
+
+  // Handle import - check for conflicts first
   const handleImport = async () => {
     if (!parsed) return;
 
@@ -125,54 +167,129 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       });
 
       const projectName = `Imported Project - ${new Date().toLocaleDateString()}`;
-      const ganttData = transformToGanttProject(parsed, projectName);
+      const transformedGanttData = transformToGanttProject(parsed, projectName);
+      setGanttData(transformedGanttData);
 
       console.log('[ExcelImport] Transformed data:', {
-        name: ganttData.name,
-        phasesCount: ganttData.phases.length,
-        resourcesCount: ganttData.resources.length,
-        tasksCount: ganttData.phases.reduce((sum, p) => sum + p.tasks.length, 0),
+        name: transformedGanttData.name,
+        phasesCount: transformedGanttData.phases.length,
+        resourcesCount: transformedGanttData.resources.length,
+        tasksCount: transformedGanttData.phases.reduce((sum, p) => sum + p.tasks.length, 0),
       });
 
+      // Check for conflicts in append mode
+      if (importMode === 'append' && currentProject) {
+        const conflicts = detectImportConflicts(
+          currentProject,
+          transformedGanttData.phases,
+          transformedGanttData.resources
+        );
+
+        if (conflicts.hasConflicts) {
+          console.log('[ExcelImport] Conflicts detected:', conflicts.summary);
+          setConflictResult(conflicts);
+          setShowConflictModal(true);
+          setIsImporting(false);
+          return; // Block import until user resolves
+        }
+      }
+
+      // No conflicts or creating new project - proceed with import
+      await performImport(transformedGanttData);
+    } catch (err) {
+      console.error('[ExcelImport] Import failed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to import project');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Actually perform the import (called after conflict resolution or directly if no conflicts)
+  const performImport = async (dataToImport: any, resolution?: ConflictResolution) => {
+    try {
       if (importMode === 'append' && currentProject) {
         // Append to existing project
         console.log('[ExcelImport] Appending to current project:', currentProject.id);
 
-        // Add all resources first (if they don't already exist)
-        const existingResourceNames = new Set(currentProject.resources.map(r => r.name));
-        for (const resource of ganttData.resources) {
-          if (!existingResourceNames.has(resource.name)) {
-            addResource({
-              name: resource.name as string,
-              category: resource.category as any,
-              designation: resource.designation as any,
-              description: '',
+        let finalPhases = dataToImport.phases;
+        let finalResources = dataToImport.resources;
+
+        // Apply resolution strategy if provided
+        if (resolution) {
+          if (resolution.strategy === 'refresh') {
+            // Total Refresh: Replace all data
+            console.log('[ExcelImport] Applying Total Refresh strategy');
+            finalPhases = dataToImport.phases;
+            finalResources = dataToImport.resources;
+
+            // Update project with fresh data (replace everything)
+            const payload = {
+              phases: finalPhases,
+              resources: finalResources,
+            };
+
+            const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`Failed to refresh project data (${response.status}): ${errorText}`);
+            }
+
+            console.log('[ExcelImport] Total refresh complete');
+            const store = useGanttToolStoreV2.getState();
+            await store.fetchProject(currentProject.id);
+            onClose();
+            return;
+
+          } else if (resolution.strategy === 'merge') {
+            // Smart Merge: Apply suggested renames
+            console.log('[ExcelImport] Applying Smart Merge strategy');
+
+            // Generate suggested names for conflicts
+            const phaseSuggestions = generatePhaseSuggestions(dataToImport.phases, currentProject.phases);
+            const resourceSuggestions = generateResourceSuggestions(dataToImport.resources, currentProject.resources);
+
+            // Apply custom names from user input or use suggestions
+            finalPhases = dataToImport.phases.map((phase: GanttPhase) => {
+              const conflictId = conflictResult?.conflicts.find(
+                c => c.type === 'phase' && (c.detail as any).phaseName === phase.name
+              )?.id;
+
+              if (conflictId && resolution.customNames?.has(conflictId)) {
+                // Use custom name from user
+                return { ...phase, name: resolution.customNames.get(conflictId)! };
+              } else if (phaseSuggestions.has(phase.id)) {
+                // Use suggested name
+                return { ...phase, name: phaseSuggestions.get(phase.id)! };
+              }
+              return phase;
+            });
+
+            finalResources = dataToImport.resources.map((resource: Resource) => {
+              const conflictId = conflictResult?.conflicts.find(
+                c => c.type === 'resource' && (c.detail as any).resourceName === resource.name
+              )?.id;
+
+              if (conflictId && resolution.customNames?.has(conflictId)) {
+                // Use custom name from user
+                return { ...resource, name: resolution.customNames.get(conflictId)! };
+              } else if (resourceSuggestions.has(resource.id)) {
+                // Use suggested name
+                return { ...resource, name: resourceSuggestions.get(resource.id)! };
+              }
+              return resource;
             });
           }
         }
 
-        // Deduplicate phases by name - only add phases that don't already exist
-        const existingPhaseNames = new Set(currentProject.phases.map(p => p.name.toLowerCase().trim()));
-        const newPhases = ganttData.phases.filter(
-          (phase: any) => !existingPhaseNames.has(phase.name.toLowerCase().trim())
-        );
-
-        if (newPhases.length === 0) {
-          console.warn('[ExcelImport] All phases already exist in the project. Nothing to append.');
-          setError('All phases from the import already exist in the current project. No new data was added.');
-          setIsImporting(false);
-          return;
-        }
-
-        console.log('[ExcelImport] Appending', newPhases.length, 'new phases (', ganttData.phases.length - newPhases.length, 'duplicates skipped)');
-
-        // Update the project with new phases and tasks via API
-        // This is more reliable than trying to add them one by one through the store
+        // Merge phases and resources
         const payload = {
-          phases: [
-            ...currentProject.phases,
-            ...newPhases,
-          ],
+          phases: [...currentProject.phases, ...finalPhases],
+          resources: [...currentProject.resources, ...finalResources],
         };
 
         console.log('[ExcelImport] Payload size:', JSON.stringify(payload).length, 'bytes');
@@ -220,10 +337,10 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: ganttData.name,
+            name: dataToImport.name,
             description: 'Imported from Excel template',
-            startDate: ganttData.startDate,
-            viewSettings: ganttData.viewSettings,
+            startDate: dataToImport.startDate,
+            viewSettings: dataToImport.viewSettings,
           }),
         });
 
@@ -242,8 +359,8 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            phases: ganttData.phases,
-            resources: ganttData.resources,
+            phases: dataToImport.phases,
+            resources: dataToImport.resources,
           }),
         });
 
@@ -499,6 +616,19 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
             : importMode === 'append' ? 'Add to Project' : 'Import Project'}
         </button>
       </div>
+
+      {/* Conflict Resolution Modal */}
+      {showConflictModal && conflictResult && currentProject && ganttData && (
+        <ConflictResolutionModal
+          conflictResult={conflictResult}
+          existingProject={currentProject}
+          importedPhaseCount={ganttData.phases.length}
+          importedTaskCount={ganttData.phases.reduce((sum: number, p: any) => sum + p.tasks.length, 0)}
+          importedResourceCount={ganttData.resources.length}
+          onResolve={handleConflictResolution}
+          onCancel={handleConflictCancel}
+        />
+      )}
     </div>
   );
 }

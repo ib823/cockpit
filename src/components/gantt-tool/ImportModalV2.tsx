@@ -34,6 +34,16 @@ import { generateScheduleTemplate, generateResourceTemplate } from '@/lib/gantt-
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import { allocateResourcesToTasks } from '@/lib/gantt-tool/resource-allocator';
 import type { ResourceDesignation, ResourceCategory } from '@/types/gantt-tool';
+import {
+  detectImportConflicts,
+  generatePhaseSuggestions,
+  generateResourceSuggestions,
+  type ConflictDetectionResult,
+} from '@/lib/gantt-tool/conflict-detector';
+import {
+  ConflictResolutionModal,
+  type ConflictResolution,
+} from '@/components/gantt-tool/ConflictResolutionModal';
 
 // Helper to ensure date is in YYYY-MM-DD format
 function formatDateField(date: string | Date): string {
@@ -77,6 +87,11 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
   const [importMode, setImportMode] = useState<'new' | 'append'>('new');
   const [newProjectName, setNewProjectName] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+
+  // Conflict detection
+  const [conflictResult, setConflictResult] = useState<ConflictDetectionResult | null>(null);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [preparedProjectData, setPreparedProjectData] = useState<any>(null);
 
   // PERMANENT FIX: Prevent body scroll when modal is open and cleanup on unmount
   useEffect(() => {
@@ -126,6 +141,34 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
         setResourceMappings(initialMappings);
       }
     }
+  };
+
+  // Handle conflict resolution
+  const handleConflictResolution = async (resolution: ConflictResolution) => {
+    setShowConflictModal(false);
+
+    if (!preparedProjectData) {
+      alert('No prepared data found. Please try again.');
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      await performImportWithResolution(preparedProjectData, resolution);
+    } catch (err) {
+      console.error('[ImportModalV2] Import failed after conflict resolution:', err);
+      alert(err instanceof Error ? err.message : 'Failed to import project');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Handle conflict cancellation
+  const handleConflictCancel = () => {
+    setShowConflictModal(false);
+    setConflictResult(null);
+    setPreparedProjectData(null);
+    setIsImporting(false);
   };
 
   // Handle final import - Create new project or add to existing
@@ -340,6 +383,33 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
         };
       });
 
+      // Check for conflicts if appending to existing project
+      if (!isNewProject && targetProject.phases.length > 0) {
+        const conflicts = detectImportConflicts(
+          targetProject,
+          newPhases,
+          newResources
+        );
+
+        if (conflicts.hasConflicts) {
+          console.log('[ImportModalV2] Conflicts detected:', conflicts.summary);
+
+          // Store prepared data for later use after conflict resolution
+          setPreparedProjectData({
+            targetProject,
+            newPhases,
+            newResources,
+            isNewProject,
+          });
+
+          setConflictResult(conflicts);
+          setShowConflictModal(true);
+          setIsImporting(false);
+          return; // Block import until user resolves
+        }
+      }
+
+      // No conflicts or new project - proceed with import
       // Append new phases to existing ones
       targetProject.phases = [...targetProject.phases, ...newPhases];
       targetProject.updatedAt = new Date().toISOString();
@@ -523,6 +593,157 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     } finally {
       setIsImporting(false);
     }
+  };
+
+  // Perform import with conflict resolution
+  const performImportWithResolution = async (preparedData: any, resolution: ConflictResolution) => {
+    const { targetProject, newPhases, newResources, isNewProject } = preparedData;
+
+    // Apply resolution strategy
+    let finalPhases = newPhases;
+    let finalResources = newResources;
+
+    if (resolution.strategy === 'refresh') {
+      // Total Refresh: Replace all existing data
+      console.log('[ImportModalV2] Applying Total Refresh strategy');
+      targetProject.phases = newPhases;
+      targetProject.resources = newResources;
+    } else if (resolution.strategy === 'merge') {
+      // Smart Merge: Apply suggested renames
+      console.log('[ImportModalV2] Applying Smart Merge strategy');
+
+      // Generate suggested names for conflicts
+      const phaseSuggestions = generatePhaseSuggestions(newPhases, targetProject.phases);
+      const resourceSuggestions = generateResourceSuggestions(newResources, targetProject.resources);
+
+      // Apply custom names from user input or use suggestions
+      finalPhases = newPhases.map((phase: any) => {
+        const conflictId = conflictResult?.conflicts.find(
+          c => c.type === 'phase' && (c.detail as any).phaseName === phase.name
+        )?.id;
+
+        if (conflictId && resolution.customNames?.has(conflictId)) {
+          return { ...phase, name: resolution.customNames.get(conflictId)! };
+        } else if (phaseSuggestions.has(phase.id)) {
+          return { ...phase, name: phaseSuggestions.get(phase.id)! };
+        }
+        return phase;
+      });
+
+      finalResources = newResources.map((resource: any) => {
+        const conflictId = conflictResult?.conflicts.find(
+          c => c.type === 'resource' && (c.detail as any).resourceName === resource.name
+        )?.id;
+
+        if (conflictId && resolution.customNames?.has(conflictId)) {
+          return { ...resource, name: resolution.customNames.get(conflictId)! };
+        } else if (resourceSuggestions.has(resource.id)) {
+          return { ...resource, name: resourceSuggestions.get(resource.id)! };
+        }
+        return resource;
+      });
+
+      // Merge with existing
+      targetProject.phases = [...targetProject.phases, ...finalPhases];
+      targetProject.resources = [...targetProject.resources, ...finalResources];
+    }
+
+    targetProject.updatedAt = new Date().toISOString();
+
+    // Prepare payload for API call
+    const projectPayload = {
+      name: targetProject.name,
+      description: targetProject.description ?? '',
+      startDate: targetProject.startDate,
+      viewSettings: targetProject.viewSettings,
+      budget: targetProject.budget,
+      phases: targetProject.phases.map((phase: any) => ({
+        id: phase.id,
+        name: phase.name,
+        description: phase.description ?? '',
+        color: phase.color,
+        startDate: formatDateField(phase.startDate),
+        endDate: formatDateField(phase.endDate),
+        collapsed: phase.collapsed,
+        order: phase.order || 0,
+        dependencies: phase.dependencies || [],
+        tasks: (phase.tasks || []).map((task: any) => ({
+          id: task.id,
+          phaseId: task.phaseId,
+          name: task.name,
+          description: task.description ?? '',
+          startDate: formatDateField(task.startDate),
+          endDate: formatDateField(task.endDate),
+          dependencies: task.dependencies || [],
+          assignee: task.assignee || '',
+          progress: task.progress || 0,
+          resourceAssignments: task.resourceAssignments || [],
+        })),
+        phaseResourceAssignments: phase.phaseResourceAssignments || [],
+      })),
+      resources: targetProject.resources.map((resource: any) => ({
+        id: resource.id,
+        name: resource.name,
+        category: resource.category,
+        designation: resource.designation,
+        description: resource.description ?? '',
+        createdAt: resource.createdAt,
+        managerResourceId: resource.managerResourceId,
+        email: resource.email,
+        department: resource.department,
+        location: resource.location,
+        projectRole: resource.projectRole,
+      })),
+      milestones: targetProject.milestones || [],
+      holidays: targetProject.holidays || [],
+    };
+
+    // Make API call
+    let response;
+    try {
+      if (isNewProject) {
+        response = await fetch('/api/gantt-tool/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(projectPayload),
+        });
+      } else {
+        response = await fetch(`/api/gantt-tool/projects/${selectedProjectId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(projectPayload),
+        });
+      }
+    } catch (fetchError) {
+      throw new Error('Network error: Cannot connect to the server.');
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.error || `Failed to import data (${response.status})`;
+      throw new Error(errorMessage);
+    }
+
+    // Get the project ID from response
+    const data = await response.json();
+    const projectId = data.project?.id || (isNewProject ? data.project?.id : selectedProjectId);
+
+    if (!projectId) {
+      throw new Error('Failed to get project ID from response');
+    }
+
+    // Update local state
+    const store = useGanttToolStoreV2.getState();
+    await store.fetchProjects();
+    await store.fetchProject(projectId);
+
+    alert(isNewProject ?
+      `Project "${newProjectName}" created successfully!` :
+      'Project updated successfully with conflict resolution!'
+    );
+
+    // Close modal
+    onClose();
   };
 
   // Navigation helpers
@@ -747,6 +968,19 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           </div>
         </div>
       </div>
+
+      {/* Conflict Resolution Modal */}
+      {showConflictModal && conflictResult && preparedProjectData && (
+        <ConflictResolutionModal
+          conflictResult={conflictResult}
+          existingProject={preparedProjectData.targetProject}
+          importedPhaseCount={preparedProjectData.newPhases.length}
+          importedTaskCount={preparedProjectData.newPhases.reduce((sum: number, p: any) => sum + p.tasks.length, 0)}
+          importedResourceCount={preparedProjectData.newResources.length}
+          onResolve={handleConflictResolution}
+          onCancel={handleConflictCancel}
+        />
+      )}
     </div>
   );
 }

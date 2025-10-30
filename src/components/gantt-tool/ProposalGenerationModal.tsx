@@ -160,7 +160,7 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
         if (document.body.style.paddingRight) document.body.style.paddingRight = '';
         document.body.style.pointerEvents = '';
       }}
-      destroyOnClose={true}
+      destroyOnHidden={true}
       width={900}
       footer={null}
       title={

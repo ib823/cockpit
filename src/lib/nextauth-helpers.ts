@@ -7,7 +7,8 @@ import { NextResponse } from 'next/server';
 export async function createSessionToken(
   userId: string,
   email: string,
-  role: 'USER' | 'MANAGER' | 'ADMIN'
+  role: 'USER' | 'MANAGER' | 'ADMIN',
+  name?: string | null
 ): Promise<string> {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) throw new Error('NEXTAUTH_SECRET is required');
@@ -18,7 +19,7 @@ export async function createSessionToken(
       email,
       role,
       sub: userId,
-      name: email.split('@')[0],
+      name: name || email.split('@')[0],
     },
     secret,
     maxAge: 30 * 24 * 60 * 60, // 30 days to match NextAuth config
@@ -30,16 +31,17 @@ export async function createSessionToken(
 export async function createAuthSession(
   userId: string,
   email: string,
-  role: 'USER' | 'MANAGER' | 'ADMIN' | string
+  role: 'USER' | 'MANAGER' | 'ADMIN' | string,
+  name?: string | null
 ) {
-  const token = await createSessionToken(userId, email, role as any);
+  const token = await createSessionToken(userId, email, role as any, name);
   const cookieStore = await cookies();
   cookieStore.set('next-auth.session-token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 86400,
+    maxAge: 30 * 24 * 60 * 60, // 30 days to match JWT token expiry
   });
 }
 

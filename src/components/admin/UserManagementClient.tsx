@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Switch, Button, App, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, CopyOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 interface User {
@@ -23,6 +23,16 @@ interface UserFormValues {
   exception: boolean;
 }
 
+interface CodeResponse {
+  code: string;
+  email: string;
+  userName: string | null;
+  magicUrl: string;
+  registrationUrl: string;
+  codeExpiry: string;
+  magicLinkExpiry: string;
+}
+
 export default function UserManagementClient({ initialUsers }: { initialUsers: User[] }) {
   const { message } = App.useApp();
   const [users, setUsers] = useState<User[]>(initialUsers);
@@ -30,6 +40,8 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<CodeResponse | null>(null);
 
   // Reload users from API
   const reloadUsers = async () => {
@@ -137,6 +149,36 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
     }
   };
 
+  // Handle generating access code for user
+  const handleGenerateCode = async (userId: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/users/${userId}/generate-code`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate code');
+      }
+
+      const data = await response.json();
+      setGeneratedCode(data);
+      setIsCodeModalOpen(true);
+      message.success('Access code generated successfully');
+    } catch (error: any) {
+      message.error(error.message || 'Failed to generate access code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Copy text to clipboard
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    message.success(`${label} copied to clipboard`);
+  };
+
   return (
     <div>
       {/* Header with Add User button */}
@@ -241,10 +283,10 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" suppressHydrationWarning>
                         {dayjs(user.createdAt).format('MMM D, YYYY')}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" suppressHydrationWarning>
                         {user.exception ? (
                           <span className="text-green-600 font-medium">Never</span>
                         ) : user.accessExpiresAt ? (
@@ -255,6 +297,14 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
+                          <Button
+                            type="text"
+                            icon={<KeyOutlined />}
+                            onClick={() => handleGenerateCode(user.id)}
+                            title="Generate access code"
+                          >
+                            Code
+                          </Button>
                           <Button
                             type="text"
                             icon={<EditOutlined />}
@@ -362,6 +412,114 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
             }
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Access Code Modal */}
+      <Modal
+        title="User Access Code"
+        open={isCodeModalOpen}
+        onCancel={() => {
+          setIsCodeModalOpen(false);
+          setGeneratedCode(null);
+        }}
+        footer={[
+          <Button
+            key="close"
+            onClick={() => {
+              setIsCodeModalOpen(false);
+              setGeneratedCode(null);
+            }}
+          >
+            Close
+          </Button>,
+        ]}
+        width={700}
+      >
+        {generatedCode && (
+          <div className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-2">
+                Share the following access code with <strong>{generatedCode.email}</strong>:
+              </p>
+            </div>
+
+            {/* 6-Digit Code */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-700">6-Digit Access Code</label>
+                <span className="text-xs text-gray-500">Valid for {generatedCode.codeExpiry}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={generatedCode.code}
+                  readOnly
+                  className="font-mono text-2xl font-bold text-center tracking-wider"
+                  style={{ fontSize: '24px', letterSpacing: '0.5em' }}
+                />
+                <Button
+                  icon={<CopyOutlined />}
+                  onClick={() => copyToClipboard(generatedCode.code, 'Access code')}
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+
+            {/* Magic Link */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-700">Magic Link (Direct Login)</label>
+                <span className="text-xs text-gray-500">Valid for {generatedCode.magicLinkExpiry}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input.TextArea
+                  value={generatedCode.magicUrl}
+                  readOnly
+                  rows={2}
+                  className="font-mono text-sm"
+                />
+                <Button
+                  icon={<CopyOutlined />}
+                  onClick={() => copyToClipboard(generatedCode.magicUrl, 'Magic link')}
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+
+            {/* Registration URL */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-700">Registration Page</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input.TextArea
+                  value={generatedCode.registrationUrl}
+                  readOnly
+                  rows={2}
+                  className="font-mono text-sm"
+                />
+                <Button
+                  icon={<CopyOutlined />}
+                  onClick={() => copyToClipboard(generatedCode.registrationUrl, 'Registration URL')}
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+
+            {/* Instructions */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-gray-800 mb-2">📋 Instructions for User</h4>
+              <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
+                <li>Send the user either the <strong>6-digit code</strong> OR the <strong>magic link</strong></li>
+                <li>If using the code: User visits the registration page and enters their email and the 6-digit code</li>
+                <li>If using magic link: User clicks the link for instant access (expires in {generatedCode.magicLinkExpiry})</li>
+                <li>User will be prompted to set up passkey authentication for future logins</li>
+              </ol>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

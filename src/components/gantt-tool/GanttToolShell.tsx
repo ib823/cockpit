@@ -37,6 +37,7 @@ export function GanttToolShell() {
   const [showContextPanel, setShowContextPanel] = useState(false);
   const [showQuickResourcePanel, setShowQuickResourcePanel] = useState(false);
   const [autoLoadError, setAutoLoadError] = useState<string | null>(null);
+  const [initialFetchDone, setInitialFetchDone] = useState(false);
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -74,14 +75,24 @@ export function GanttToolShell() {
 
   // Fetch projects from database on mount
   useEffect(() => {
-    fetchProjects();
+    const loadInitialProjects = async () => {
+      try {
+        await fetchProjects();
+      } catch (error) {
+        console.error('[GanttToolShell] Initial fetch failed:', error);
+      } finally {
+        setInitialFetchDone(true);
+      }
+    };
+    loadInitialProjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
   // Auto-load the most recent project or create a default one
   useEffect(() => {
-    // Only run if we've finished loading and there's no current project
-    if (!isLoading && !currentProject && !manuallyUnloaded && !autoLoadError) {
+    // CRITICAL: Only run after initial fetch is complete
+    // This prevents race conditions where we try to create a project while still loading the projects list
+    if (initialFetchDone && !isLoading && !currentProject && !manuallyUnloaded && !autoLoadError) {
       const autoLoad = async () => {
         try {
           if (projects.length > 0) {
@@ -106,7 +117,7 @@ export function GanttToolShell() {
       autoLoad();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, projects.length, currentProject, manuallyUnloaded, autoLoadError])
+  }, [initialFetchDone, isLoading, projects.length, currentProject, manuallyUnloaded, autoLoadError])
 
   // Error State - Show when auto-load fails
   if (autoLoadError && !currentProject) {
@@ -122,7 +133,8 @@ export function GanttToolShell() {
             <button
               onClick={() => {
                 setAutoLoadError(null);
-                fetchProjects();
+                setInitialFetchDone(false);
+                fetchProjects().finally(() => setInitialFetchDone(true));
               }}
               className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >

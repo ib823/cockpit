@@ -68,10 +68,8 @@ export function CostDashboard() {
   const { budget } = currentProject;
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: budget.currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -136,9 +134,7 @@ export function CostDashboard() {
             <Statistic
               title="Total Budget"
               value={budget.totalBudget}
-              precision={0}
-              prefix={<DollarSign className="w-4 h-4" />}
-              suffix={budget.currency}
+              precision={2}
               valueStyle={{ color: '#1890ff' }}
             />
             <div className="text-xs text-gray-500 mt-2">
@@ -152,9 +148,7 @@ export function CostDashboard() {
             <Statistic
               title="Total Cost"
               value={costData.totalCost}
-              precision={0}
-              prefix={<DollarSign className="w-4 h-4" />}
-              suffix={budget.currency}
+              precision={2}
               valueStyle={{ color: costData.isOverBudget ? '#cf1322' : '#3f8600' }}
             />
             <div className="text-xs text-gray-500 mt-2">Labor: {formatCurrency(costData.laborCost)}</div>
@@ -166,9 +160,8 @@ export function CostDashboard() {
             <Statistic
               title="Remaining Budget"
               value={costData.remainingBudget}
-              precision={0}
+              precision={2}
               prefix={costData.variance >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-              suffix={budget.currency}
               valueStyle={{ color: costData.isOverBudget ? '#cf1322' : '#3f8600' }}
             />
             <div className="text-xs text-gray-500 mt-2">

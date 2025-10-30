@@ -998,28 +998,11 @@ export function GanttCanvas() {
 
                         {/* TOP LAYER: Dates and Working Days - Respects barDurationDisplay setting */}
                         <div className="absolute inset-0 flex flex-col justify-between p-2  z-10">
-                          {/* TOP: Start & End Dates + PM Badge - Controlled by settings */}
+                          {/* TOP: PM Badge Only - Dates removed as they're shown in middle */}
                           {metrics.width > 10 && (viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
-                            <div className="flex justify-between items-start text-xs font-bold text-white drop-shadow-lg">
-                              {/* LEFT: Start date */}
+                            <div className="flex justify-end items-start text-xs font-bold text-white drop-shadow-lg">
+                              {/* RIGHT: PM Badge only (dates removed - already shown in middle) */}
                               <div className="flex items-center gap-1.5">
-                                {/* Start date - Show in dates/all modes */}
-                                {((viewSettings?.barDurationDisplay ?? 'all') === 'dates' || (viewSettings?.barDurationDisplay ?? 'all') === 'all') && (
-                                  <span className="bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
-                                    {format(new Date(phase.startDate), 'dd MMM yy')}
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* RIGHT: End date + PM Badge (consistent with task bars - resources on right) */}
-                              <div className="flex items-center gap-1.5">
-                                {/* End date - Show in dates/all modes */}
-                                {((viewSettings?.barDurationDisplay ?? 'all') === 'dates' || (viewSettings?.barDurationDisplay ?? 'all') === 'all') && (
-                                  <span className="bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
-                                    {format(new Date(phase.endDate), 'dd MMM yy')}
-                                  </span>
-                                )}
-
                                 {/* PM Resource Badge - Only show in resource/all modes */}
                                 {phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0 &&
                                  ((viewSettings?.barDurationDisplay ?? 'all') === 'resource' || (viewSettings?.barDurationDisplay ?? 'all') === 'all') && (

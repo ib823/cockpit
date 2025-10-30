@@ -101,10 +101,8 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currentProject.budget?.currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -217,7 +215,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
         }
         document.body.style.pointerEvents = '';
       }}
-      destroyOnClose={true}
+      destroyOnHidden={true}
       width="90vw"
       style={{ top: 20, maxWidth: 1600, maxHeight: '90vh' }}
       styles={{ body: { maxHeight: 'calc(90vh - 120px)', overflowY: 'auto' } }}

@@ -48,20 +48,15 @@ export function calculateTaskCost(
     const resource = resources.find((r) => r.id === assignment.resourceId);
     if (!resource) return;
 
+    // Only include billable resources in cost calculations
+    if (!resource.isBillable) return;
+
     // Calculate allocation (percentage of time working on this task)
     const allocationDecimal = assignment.allocationPercentage / 100;
 
-    // Calculate cost based on rate type
-    if (resource.rateType === 'hourly' && resource.hourlyRate) {
-      const hours = taskDays * HOURS_PER_DAY * allocationDecimal;
-      totalCost += hours * resource.hourlyRate;
-    } else if (resource.rateType === 'daily' && resource.dailyRate) {
-      const days = taskDays * allocationDecimal;
-      totalCost += days * resource.dailyRate;
-    } else if (resource.rateType === 'fixed' && resource.dailyRate) {
-      // For fixed rate, use dailyRate as the total fixed cost for this resource
-      totalCost += resource.dailyRate * allocationDecimal;
-    }
+    // Calculate cost using standardized hourly rate
+    const hours = taskDays * HOURS_PER_DAY * allocationDecimal;
+    totalCost += hours * resource.chargeRatePerHour;
   });
 
   return totalCost;
@@ -82,7 +77,7 @@ export function calculatePhaseCost(
     phaseCost += calculateTaskCost(task, resources, holidays);
   });
 
-  // Add phase-level PM resource costs
+  // Add phase-level resource costs
   if (phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0) {
     const phaseDays = calculateWorkingDays(phase.startDate, phase.endDate, holidays);
 
@@ -90,17 +85,14 @@ export function calculatePhaseCost(
       const resource = resources.find((r) => r.id === assignment.resourceId);
       if (!resource) return;
 
+      // Only include billable resources in cost calculations
+      if (!resource.isBillable) return;
+
       const allocationDecimal = assignment.allocationPercentage / 100;
 
-      if (resource.rateType === 'hourly' && resource.hourlyRate) {
-        const hours = phaseDays * HOURS_PER_DAY * allocationDecimal;
-        phaseCost += hours * resource.hourlyRate;
-      } else if (resource.rateType === 'daily' && resource.dailyRate) {
-        const days = phaseDays * allocationDecimal;
-        phaseCost += days * resource.dailyRate;
-      } else if (resource.rateType === 'fixed' && resource.dailyRate) {
-        phaseCost += resource.dailyRate * allocationDecimal;
-      }
+      // Calculate cost using standardized hourly rate
+      const hours = phaseDays * HOURS_PER_DAY * allocationDecimal;
+      phaseCost += hours * resource.chargeRatePerHour;
     });
   }
 
@@ -140,22 +132,19 @@ export function calculateProjectCost(project: GanttProject): CostCalculation {
       });
     });
 
-    // Track phase-level PM costs
+    // Track phase-level costs
     phase.phaseResourceAssignments?.forEach((assignment) => {
       const resource = project.resources.find((r) => r.id === assignment.resourceId);
       if (!resource) return;
 
+      // Only include billable resources in cost calculations
+      if (!resource.isBillable) return;
+
       const phaseDays = calculateWorkingDays(phase.startDate, phase.endDate, project.holidays);
       const allocationDecimal = assignment.allocationPercentage / 100;
 
-      let assignmentCost = 0;
-      if (resource.rateType === 'hourly' && resource.hourlyRate) {
-        assignmentCost = phaseDays * HOURS_PER_DAY * allocationDecimal * resource.hourlyRate;
-      } else if (resource.rateType === 'daily' && resource.dailyRate) {
-        assignmentCost = phaseDays * allocationDecimal * resource.dailyRate;
-      } else if (resource.rateType === 'fixed' && resource.dailyRate) {
-        assignmentCost = resource.dailyRate * allocationDecimal;
-      }
+      // Calculate cost using standardized hourly rate
+      const assignmentCost = phaseDays * HOURS_PER_DAY * allocationDecimal * resource.chargeRatePerHour;
 
       const currentResourceCost = costByResource.get(resource.id) || 0;
       costByResource.set(resource.id, currentResourceCost + assignmentCost);
@@ -198,18 +187,14 @@ function calculateTaskCostForResource(
   assignment: { allocationPercentage: number },
   holidays: { date: string }[] = []
 ): number {
+  // Only include billable resources in cost calculations
+  if (!resource.isBillable) return 0;
+
   const taskDays = calculateWorkingDays(task.startDate, task.endDate, holidays);
   const allocationDecimal = assignment.allocationPercentage / 100;
 
-  if (resource.rateType === 'hourly' && resource.hourlyRate) {
-    return taskDays * HOURS_PER_DAY * allocationDecimal * resource.hourlyRate;
-  } else if (resource.rateType === 'daily' && resource.dailyRate) {
-    return taskDays * allocationDecimal * resource.dailyRate;
-  } else if (resource.rateType === 'fixed' && resource.dailyRate) {
-    return resource.dailyRate * allocationDecimal;
-  }
-
-  return 0;
+  // Calculate cost using standardized hourly rate
+  return taskDays * HOURS_PER_DAY * allocationDecimal * resource.chargeRatePerHour;
 }
 
 /**
@@ -299,11 +284,13 @@ export function calculateWhatIfScenario(
     scenario.resourceRateOverrides.forEach((override, resourceId) => {
       const resource = scenarioProject.resources.find((r) => r.id === resourceId);
       if (resource) {
+        // Support legacy hourlyRate/dailyRate for backward compatibility
         if (override.hourlyRate !== undefined) {
-          resource.hourlyRate = override.hourlyRate;
+          resource.chargeRatePerHour = override.hourlyRate;
         }
         if (override.dailyRate !== undefined) {
-          resource.dailyRate = override.dailyRate;
+          // Convert daily rate to hourly
+          resource.chargeRatePerHour = override.dailyRate / 8;
         }
       }
     });
@@ -333,31 +320,31 @@ export function calculateWhatIfScenario(
 }
 
 /**
- * Get default resource rates by designation
+ * Get default resource ratios by designation
+ * (Ratios instead of currency-based rates)
  */
-export const DEFAULT_RESOURCE_RATES: Record<string, { hourlyRate: number; dailyRate: number }> = {
-  principal: { hourlyRate: 300, dailyRate: 2400 },
-  senior_manager: { hourlyRate: 250, dailyRate: 2000 },
-  manager: { hourlyRate: 200, dailyRate: 1600 },
-  senior_consultant: { hourlyRate: 175, dailyRate: 1400 },
-  consultant: { hourlyRate: 150, dailyRate: 1200 },
-  analyst: { hourlyRate: 125, dailyRate: 1000 },
-  subcontractor: { hourlyRate: 100, dailyRate: 800 },
+export const DEFAULT_RESOURCE_RATES: Record<string, number> = {
+  principal: 2.1672,
+  director: 1.7337,
+  senior_manager: 1.3003,
+  manager: 0.8127,
+  senior_consultant: 0.4443,
+  consultant: 0.2817,
+  analyst: 0.2601,
+  subcontractor: 0.2000,
 };
 
 /**
- * Apply default rates to resources that don't have rates set
+ * Apply default ratios to resources that don't have rates set
  */
 export function applyDefaultRates(resources: Resource[]): Resource[] {
   return resources.map((resource) => {
-    if (!resource.rateType || (!resource.hourlyRate && !resource.dailyRate)) {
-      const defaultRates = DEFAULT_RESOURCE_RATES[resource.designation];
+    if (!resource.chargeRatePerHour || resource.chargeRatePerHour === 0) {
+      const defaultRate = DEFAULT_RESOURCE_RATES[resource.designation] || 0.4443;
       return {
         ...resource,
-        rateType: resource.rateType || 'daily',
-        hourlyRate: resource.hourlyRate || defaultRates.hourlyRate,
-        dailyRate: resource.dailyRate || defaultRates.dailyRate,
-        currency: resource.currency || 'USD',
+        chargeRatePerHour: defaultRate,
+        isBillable: resource.isBillable !== undefined ? resource.isBillable : true,
       };
     }
     return resource;

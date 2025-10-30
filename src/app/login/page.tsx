@@ -105,7 +105,8 @@ function LoginContent() {
       setSuccessMessage('Passkey registered successfully!');
       const role = finish?.user?.role;
       setTimeout(() => {
-        router.replace(role === 'ADMIN' ? '/admin' : '/dashboard');
+        // Use window.location to force full page reload and update SessionProvider
+        window.location.href = role === 'ADMIN' ? '/admin' : '/dashboard';
       }, 1500);
     } catch (e: any) {
       if (e.name === 'NotAllowedError') {
@@ -177,7 +178,8 @@ function LoginContent() {
       setSuccessMessage('Login successful!');
       const role = finish?.user?.role;
       setTimeout(() => {
-        router.replace(role === 'ADMIN' ? '/admin' : '/dashboard');
+        // Use window.location to force full page reload and update SessionProvider
+        window.location.href = role === 'ADMIN' ? '/admin' : '/dashboard';
       }, 1500);
     } catch (e: any) {
       setErr('Invalid passkey. Try again or Contact Admin.');
@@ -227,7 +229,8 @@ function LoginContent() {
       setSuccessMessage('Passkey registered successfully!');
       const role = finish?.user?.role;
       setTimeout(() => {
-        router.replace(role === 'ADMIN' ? '/admin' : '/dashboard');
+        // Use window.location to force full page reload and update SessionProvider
+        window.location.href = role === 'ADMIN' ? '/admin' : '/dashboard';
       }, 1500);
     } catch (e: any) {
       if (e.name === 'NotAllowedError') {

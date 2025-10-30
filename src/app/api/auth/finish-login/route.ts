@@ -204,7 +204,7 @@ export async function POST(req: Request) {
 
     // Challenge already deleted earlier to prevent duplicate processing
     // Fixed: V-014 - Preserve MANAGER role in sessions (don't downgrade to USER)
-    await createAuthSession(user.id, user.email, transactionResult.role);
+    await createAuthSession(user.id, user.email, transactionResult.role, user.name);
 
     return NextResponse.json({ ok: true, user: { name: user.name, role: user.role } });
 

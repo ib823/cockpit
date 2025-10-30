@@ -94,43 +94,47 @@ export default function DashboardPage() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Projects"
+              title="Gantt Projects"
               value={stats.projects}
               prefix={<FileTextOutlined />}
               valueStyle={{ color: '#3b82f6' }}
             />
+            <p className="text-xs text-gray-500 mt-1">Total timeline projects created</p>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Estimates"
+              title="Saved Scenarios"
               value={stats.estimates}
               prefix={<CalculatorOutlined />}
               valueStyle={{ color: '#8b5cf6' }}
             />
+            <p className="text-xs text-gray-500 mt-1">Estimator scenarios saved</p>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Avg. Accuracy"
+              title="Est. Accuracy"
               value={stats.accuracy}
               suffix="%"
               prefix={<CheckCircleOutlined />}
               valueStyle={{ color: '#10b981' }}
             />
+            <p className="text-xs text-gray-500 mt-1">Projected estimation accuracy</p>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Time Saved"
+              title="Est. Time Saved"
               value={stats.timeSaved}
               suffix="h"
               prefix={<ClockCircleOutlined />}
               valueStyle={{ color: '#f59e0b' }}
             />
+            <p className="text-xs text-gray-500 mt-1">Estimated hours saved vs. manual</p>
           </Card>
         </Col>
       </Row>

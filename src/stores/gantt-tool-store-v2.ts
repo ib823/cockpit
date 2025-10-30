@@ -31,6 +31,9 @@ import { differenceInDays, addDays, format } from 'date-fns';
 import { adjustDatesToWorkingDays, calculateWorkingDaysInclusive, addWorkingDays } from '@/lib/gantt-tool/working-days';
 // import { createDefaultResources } from '@/lib/gantt-tool/default-resources'; // No longer used - users add resources manually or via import
 
+// Debounce timer for save operations (500ms)
+let saveDebounceTimer: NodeJS.Timeout | null = null;
+
 interface GanttToolStateV2 {
   // Core Data (loaded from API)
   currentProject: GanttProject | null;
@@ -391,147 +394,164 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     },
 
     saveProject: async () => {
-      const { currentProject } = get();
+      const { currentProject, isSyncing } = get();
 
       if (!currentProject) return;
 
-      set((state) => {
-        state.isSyncing = true;
-        state.syncError = null;
-      });
+      // Skip if already syncing
+      if (isSyncing) {
+        console.log('[Store] Save already in progress, skipping...');
+        return;
+      }
 
-      try {
-        // Clean up data - only send fields expected by the API, not database-managed fields
-        const projectData = {
-          name: currentProject.name,
-          description: currentProject.description || undefined,
-          startDate: formatDateField(currentProject.startDate),
-          viewSettings: currentProject.viewSettings || undefined,
-          budget: currentProject.budget || undefined,
-          phases: currentProject.phases.map(phase => ({
-            id: phase.id,
-            name: phase.name,
-            description: phase.description || '',
-            color: phase.color,
-            startDate: formatDateField(phase.startDate),
-            endDate: formatDateField(phase.endDate),
-            collapsed: phase.collapsed,
-            order: (phase as any).order || 0,
-            dependencies: phase.dependencies || [],
-            tasks: phase.tasks.map(task => ({
-              id: task.id,
-              name: task.name,
-              description: task.description || '',
-              startDate: formatDateField(task.startDate),
-              endDate: formatDateField(task.endDate),
-              progress: task.progress || 0,
-              assignee: task.assignee || '',
-              order: (task as any).order || 0,
-              dependencies: task.dependencies || [],
-              resourceAssignments: (task.resourceAssignments || []).map(ra => ({
-                id: ra.id,
-                resourceId: ra.resourceId,
-                assignmentNotes: ra.assignmentNotes || '',
-                allocationPercentage: ra.allocationPercentage || 0,
-                assignedAt: ra.assignedAt || new Date().toISOString(),
-              })),
-            })),
-            phaseResourceAssignments: (phase.phaseResourceAssignments || []).map(pra => ({
-              id: pra.id,
-              resourceId: pra.resourceId,
-              assignmentNotes: pra.assignmentNotes || '',
-              allocationPercentage: pra.allocationPercentage || 0,
-              assignedAt: pra.assignedAt || new Date().toISOString(),
-            })),
-          })),
-          milestones: currentProject.milestones.map(m => ({
-            id: m.id,
-            name: m.name,
-            description: m.description || '',
-            date: formatDateField(m.date),
-            icon: m.icon,
-            color: m.color,
-          })),
-          holidays: currentProject.holidays.map(h => ({
-            id: h.id,
-            name: h.name,
-            date: formatDateField(h.date),
-            region: h.region,
-            type: h.type,
-          })),
-          resources: currentProject.resources.map(r => ({
-            id: r.id,
-            name: r.name,
-            category: r.category,
-            description: r.description || '',
-            designation: r.designation,
-            managerResourceId: r.managerResourceId || null,
-            email: r.email || null,
-            department: r.department || null,
-            location: r.location || null,
-            projectRole: r.projectRole || null,
-            createdAt: r.createdAt || new Date().toISOString(),
-          })),
-        };
+      // Clear existing debounce timer
+      if (saveDebounceTimer) {
+        clearTimeout(saveDebounceTimer);
+      }
 
-        // Pre-flight validation logging
-        console.log('[Store] Saving project data:', {
-          projectId: currentProject.id,
-          name: projectData.name,
-          startDate: projectData.startDate,
-          phasesCount: projectData.phases.length,
-          milestonesCount: projectData.milestones.length,
-          holidaysCount: projectData.holidays.length,
-          resourcesCount: projectData.resources.length,
-        });
-
-        const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(projectData),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage = errorData.error || `Failed to save project (${response.status})`;
-
-          // Enhanced error logging to debug validation issues
-          console.error('Save project failed:', {
-            status: response.status,
-            errorMessage,
-            errorData,
-            validationDetails: errorData.details,
+      // Debounce the save operation (500ms)
+      return new Promise<void>((resolve, reject) => {
+        saveDebounceTimer = setTimeout(async () => {
+          set((state) => {
+            state.isSyncing = true;
+            state.syncError = null;
           });
 
-          // If validation failed, show detailed error
-          if (errorData.details && Array.isArray(errorData.details)) {
-            const detailedErrors = errorData.details.map((issue: any) =>
-              `${issue.path.join('.')}: ${issue.message}`
-            ).join(', ');
-            throw new Error(`Validation failed: ${detailedErrors}`);
+          try {
+            // Clean up data - only send fields expected by the API, not database-managed fields
+            const projectData = {
+              name: currentProject.name,
+              description: currentProject.description || undefined,
+              startDate: formatDateField(currentProject.startDate),
+              viewSettings: currentProject.viewSettings || undefined,
+              budget: currentProject.budget || undefined,
+              phases: currentProject.phases.map(phase => ({
+                id: phase.id,
+                name: phase.name,
+                description: phase.description || '',
+                color: phase.color,
+                startDate: formatDateField(phase.startDate),
+                endDate: formatDateField(phase.endDate),
+                collapsed: phase.collapsed,
+                order: (phase as any).order || 0,
+                dependencies: phase.dependencies || [],
+                tasks: phase.tasks.map(task => ({
+                  id: task.id,
+                  name: task.name,
+                  description: task.description || '',
+                  startDate: formatDateField(task.startDate),
+                  endDate: formatDateField(task.endDate),
+                  progress: task.progress || 0,
+                  assignee: task.assignee || '',
+                  order: (task as any).order || 0,
+                  dependencies: task.dependencies || [],
+                  resourceAssignments: (task.resourceAssignments || []).map(ra => ({
+                    id: ra.id,
+                    resourceId: ra.resourceId,
+                    assignmentNotes: ra.assignmentNotes || '',
+                    allocationPercentage: ra.allocationPercentage || 0,
+                    assignedAt: ra.assignedAt || new Date().toISOString(),
+                  })),
+                })),
+                phaseResourceAssignments: (phase.phaseResourceAssignments || []).map(pra => ({
+                  id: pra.id,
+                  resourceId: pra.resourceId,
+                  assignmentNotes: pra.assignmentNotes || '',
+                  allocationPercentage: pra.allocationPercentage || 0,
+                  assignedAt: pra.assignedAt || new Date().toISOString(),
+                })),
+              })),
+              milestones: currentProject.milestones.map(m => ({
+                id: m.id,
+                name: m.name,
+                description: m.description || '',
+                date: formatDateField(m.date),
+                icon: m.icon,
+                color: m.color,
+              })),
+              holidays: currentProject.holidays.map(h => ({
+                id: h.id,
+                name: h.name,
+                date: formatDateField(h.date),
+                region: h.region,
+                type: h.type,
+              })),
+              resources: currentProject.resources.map(r => ({
+                id: r.id,
+                name: r.name,
+                category: r.category,
+                description: r.description || '',
+                designation: r.designation,
+                managerResourceId: r.managerResourceId || null,
+                email: r.email || null,
+                department: r.department || null,
+                location: r.location || null,
+                projectRole: r.projectRole || null,
+                createdAt: r.createdAt || new Date().toISOString(),
+              })),
+            };
+
+            // Pre-flight validation logging
+            console.log('[Store] Saving project data:', {
+              projectId: currentProject.id,
+              name: projectData.name,
+              startDate: projectData.startDate,
+              phasesCount: projectData.phases.length,
+              milestonesCount: projectData.milestones.length,
+              holidaysCount: projectData.holidays.length,
+              resourcesCount: projectData.resources.length,
+            });
+
+            const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(projectData),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              const errorMessage = errorData.error || `Failed to save project (${response.status})`;
+
+              // Enhanced error logging to debug validation issues
+              console.error('Save project failed:', {
+                status: response.status,
+                errorMessage,
+                errorData,
+                validationDetails: errorData.details,
+              });
+
+              // If validation failed, show detailed error
+              if (errorData.details && Array.isArray(errorData.details)) {
+                const detailedErrors = errorData.details.map((issue: any) =>
+                  `${issue.path.join('.')}: ${issue.message}`
+                ).join(', ');
+                throw new Error(`Validation failed: ${detailedErrors}`);
+              }
+
+              throw new Error(errorMessage);
+            }
+
+            set((state) => {
+              state.isSyncing = false;
+              state.lastSyncAt = new Date();
+
+              // Update in projects array
+              const index = state.projects.findIndex(p => p.id === currentProject.id);
+              if (index !== -1) {
+                state.projects[index] = currentProject;
+              }
+            });
+
+            resolve();
+          } catch (error) {
+            set((state) => {
+              state.syncError = error instanceof Error ? error.message : 'Unknown error';
+              state.isSyncing = false;
+            });
+            reject(error);
           }
-
-          throw new Error(errorMessage);
-        }
-
-        set((state) => {
-          state.isSyncing = false;
-          state.lastSyncAt = new Date();
-
-          // Update in projects array
-          const index = state.projects.findIndex(p => p.id === currentProject.id);
-          if (index !== -1) {
-            state.projects[index] = currentProject;
-          }
-        });
-      } catch (error) {
-        set((state) => {
-          state.syncError = error instanceof Error ? error.message : 'Unknown error';
-          state.isSyncing = false;
-        });
-        // Re-throw the error so calling code can handle it
-        throw error;
-      }
+        }, 500);
+      });
     },
 
     deleteProject: async (projectId: string) => {
