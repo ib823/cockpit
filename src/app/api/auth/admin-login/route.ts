@@ -2,7 +2,6 @@ import { prisma } from '@/lib/db';
 import { createSessionToken } from '@/lib/nextauth-helpers';
 import { compare } from 'bcryptjs';
 import { randomUUID } from 'crypto';
-import { env } from '@/lib/env';
 import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 
@@ -81,11 +80,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       { ok: true },
-      { 
-        headers: { 
+      {
+        headers: {
           'Content-Type': 'application/json',
-          'Set-Cookie': `next-auth.session-token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${env.NODE_ENV === 'production' ? '; Secure' : ''}`
-        } 
+          'Set-Cookie': `next-auth.session-token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`
+        }
       }
     );
 
