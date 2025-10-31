@@ -5,7 +5,10 @@
  * All rates are in MYR (Malaysian Ringgit).
  */
 
-import { ResourceDesignation } from '@/types/gantt-tool';
+import { ResourceDesignation, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
+
+// Re-export for convenience
+export { RESOURCE_DESIGNATIONS };
 
 export interface RateCardEntry {
   designation: ResourceDesignation;
