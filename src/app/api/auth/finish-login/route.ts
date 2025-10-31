@@ -210,9 +210,13 @@ export async function POST(req: Request) {
     const jsonResponse = NextResponse.json({ ok: true, user: { name: user.name, role: user.role } });
 
     // Set session cookie in response headers
-    jsonResponse.cookies.set('next-auth.session-token', sessionToken, {
+    // Use __Secure prefix in production (HTTPS) as required by NextAuth
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieName = isProduction ? '__Secure-next-auth.session-token' : 'next-auth.session-token';
+
+    jsonResponse.cookies.set(cookieName, sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'lax',
       path: '/',
       maxAge: 30 * 24 * 60 * 60, // 30 days
