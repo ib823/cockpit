@@ -528,7 +528,17 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
                 throw new Error(`Validation failed: ${detailedErrors}`);
               }
 
-              throw new Error(errorMessage);
+              // Provide more context for common errors
+              let userFriendlyMessage = errorMessage;
+              if (response.status === 409) {
+                userFriendlyMessage = 'This data conflicts with existing records. ' + errorMessage;
+              } else if (response.status === 400) {
+                userFriendlyMessage = 'Invalid data: ' + (errorData.message || errorMessage);
+              } else if (response.status === 500) {
+                userFriendlyMessage = 'Server error while saving. Changes may have been partially saved. Please refresh the page to see the latest data.';
+              }
+
+              throw new Error(userFriendlyMessage);
             }
 
             set((state) => {

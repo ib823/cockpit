@@ -354,19 +354,25 @@ export async function PATCH(
       return project;
     });
 
-    // Audit log
-    await prisma.audit_logs.create({
-      data: {
-        id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: session.user.id,
-        action: 'UPDATE',
-        entity: 'gantt_project',
-        entityId: projectId,
-        changes: validatedData,
-      },
-    });
+    // Audit log (non-critical - don't fail the request if it errors)
+    try {
+      await prisma.audit_logs.create({
+        data: {
+          id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          userId: session.user.id,
+          action: 'UPDATE',
+          entity: 'gantt_project',
+          entityId: projectId,
+          changes: validatedData,
+        },
+      });
+    } catch (auditError) {
+      // Log the error but don't fail the request
+      console.error('[API] Failed to create audit log (non-critical):', auditError);
+    }
 
     // Fetch updated project with relations for serialization
+    console.log('[API] Fetching updated project for response...');
     const fullProject = await prisma.ganttProject.findFirst({
       where: { id: projectId },
       include: {
@@ -387,8 +393,10 @@ export async function PATCH(
     });
 
     if (!fullProject) {
+      console.error('[API] Project not found after successful update - this should not happen');
       return NextResponse.json({ error: 'Project not found after update' }, { status: 404 });
     }
+    console.log('[API] Project retrieved successfully, serializing...');
 
     // Serialize dates to strings for frontend
     const serializedProject = {
@@ -450,17 +458,50 @@ export async function PATCH(
     console.error('Error name:', error instanceof Error ? error.name : 'Unknown');
     console.error('Error message:', error instanceof Error ? error.message : error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('Error details:', JSON.stringify(error, null, 2));
 
     // Check for Prisma-specific errors
     if (error && typeof error === 'object' && 'code' in error) {
       console.error('Prisma error code:', (error as any).code);
       console.error('Prisma error meta:', (error as any).meta);
+
+      // Provide more user-friendly error messages for common Prisma errors
+      const prismaCode = (error as any).code;
+      if (prismaCode === 'P2002') {
+        return NextResponse.json(
+          {
+            error: 'Unique constraint violation',
+            message: 'A record with this data already exists',
+            details: (error as any).meta,
+          },
+          { status: 409 }
+        );
+      } else if (prismaCode === 'P2003') {
+        return NextResponse.json(
+          {
+            error: 'Foreign key constraint violation',
+            message: 'Referenced record does not exist',
+            details: (error as any).meta,
+          },
+          { status: 400 }
+        );
+      } else if (prismaCode === 'P2025') {
+        return NextResponse.json(
+          {
+            error: 'Record not found',
+            message: 'The requested record was not found',
+            details: (error as any).meta,
+          },
+          { status: 404 }
+        );
+      }
     }
 
     return NextResponse.json(
       {
         error: 'Failed to update project',
         message: error instanceof Error ? error.message : 'Unknown error',
+        details: error instanceof Error ? { name: error.name, stack: error.stack?.split('\n').slice(0, 3) } : undefined,
       },
       { status: 500 }
     );
