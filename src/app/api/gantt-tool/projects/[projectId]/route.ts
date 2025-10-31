@@ -12,6 +12,9 @@ import { authConfig } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 
+// Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
+export const maxDuration = 10; // seconds
+
 // Validation schema for updating a project
 const UpdateProjectSchema = z.object({
   name: z.string().min(1).max(200).optional(),

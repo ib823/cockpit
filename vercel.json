@@ -8,5 +8,10 @@
       "path": "/api/cron/password-expiry-warnings",
       "schedule": "0 9 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "src/app/api/gantt-tool/projects/[projectId]/route.ts": {
+      "maxDuration": 10
+    }
+  }
 }
