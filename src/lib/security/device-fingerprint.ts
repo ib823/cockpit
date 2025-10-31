@@ -101,6 +101,31 @@ export async function generateServerFingerprint(): Promise<DeviceFingerprint> {
 }
 
 /**
+ * Generate server-side fingerprint from provided headers
+ * Synchronous version for use with already-obtained headers
+ */
+export function getServerSideFingerprint(headersList: Awaited<ReturnType<typeof headers>>): DeviceFingerprint {
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const acceptLanguage = headersList.get('accept-language') || '';
+
+  const components = [
+    userAgent,
+    acceptLanguage
+  ].join('|');
+
+  const fingerprint = crypto
+    .createHash('sha256')
+    .update(components)
+    .digest('hex');
+
+  return {
+    fingerprint,
+    userAgent,
+    language: acceptLanguage.split(',')[0]
+  };
+}
+
+/**
  * Check if device is trusted for a user
  */
 export async function isDeviceTrusted(
