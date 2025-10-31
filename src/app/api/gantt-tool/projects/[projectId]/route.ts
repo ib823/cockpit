@@ -212,8 +212,12 @@ export async function PATCH(
     }
 
     // Update project in transaction
+    console.log('[API] Starting database transaction...');
+    const txStartTime = Date.now();
+
     const updatedProject = await prisma.$transaction(async (tx) => {
       // Update main project fields
+      console.log('[API] Updating main project fields...');
       const project = await tx.ganttProject.update({
         where: { id: projectId },
         data: {
@@ -228,10 +232,14 @@ export async function PATCH(
 
       // IMPORTANT: Create resources FIRST before phases/tasks that reference them
       if (validatedData.resources) {
+        console.log(`[API] Deleting existing resources...`);
         await tx.ganttResource.deleteMany({
           where: { projectId: projectId },
         });
 
+        if (validatedData.resources.length > 0) {
+          console.log(`[API] Creating ${validatedData.resources.length} resources...`);
+        }
         await tx.ganttResource.createMany({
           data: validatedData.resources.map((r: any) => ({
             id: r.id,
@@ -258,11 +266,13 @@ export async function PATCH(
       // Now create phases (which may reference the resources created above)
       if (validatedData.phases) {
         // Delete existing phases (cascade will delete tasks)
+        console.log(`[API] Deleting existing phases...`);
         await tx.ganttPhase.deleteMany({
           where: { projectId: projectId },
         });
 
         // Create new phases with tasks
+        console.log(`[API] Creating ${validatedData.phases.length} phases with tasks...`);
         for (const phase of validatedData.phases) {
           await tx.ganttPhase.create({
             data: {
@@ -314,45 +324,55 @@ export async function PATCH(
 
       // If milestones provided, replace all
       if (validatedData.milestones) {
+        console.log(`[API] Updating ${validatedData.milestones.length} milestones...`);
         await tx.ganttMilestone.deleteMany({
           where: { projectId: projectId },
         });
 
-        await tx.ganttMilestone.createMany({
-          data: validatedData.milestones.map((m: any) => ({
-            id: m.id,
-            projectId: projectId,
-            name: m.name,
-            description: m.description,
-            date: new Date(m.date),
-            icon: m.icon,
-            color: m.color,
-          })),
-        });
+        if (validatedData.milestones.length > 0) {
+          await tx.ganttMilestone.createMany({
+            data: validatedData.milestones.map((m: any) => ({
+              id: m.id,
+              projectId: projectId,
+              name: m.name,
+              description: m.description,
+              date: new Date(m.date),
+              icon: m.icon,
+              color: m.color,
+            })),
+          });
+        }
       }
 
       // If holidays provided, replace all
       if (validatedData.holidays) {
+        console.log(`[API] Updating ${validatedData.holidays.length} holidays...`);
         await tx.ganttHoliday.deleteMany({
           where: { projectId: projectId },
         });
 
-        await tx.ganttHoliday.createMany({
-          data: validatedData.holidays.map((h: any) => ({
-            id: h.id,
-            projectId: projectId,
-            name: h.name,
-            date: new Date(h.date),
-            region: h.region,
-            type: h.type,
-          })),
-        });
+        if (validatedData.holidays.length > 0) {
+          await tx.ganttHoliday.createMany({
+            data: validatedData.holidays.map((h: any) => ({
+              id: h.id,
+              projectId: projectId,
+              name: h.name,
+              date: new Date(h.date),
+              region: h.region,
+              type: h.type,
+            })),
+          });
+        }
       }
 
       // Resources are already handled at the beginning of the transaction
 
+      console.log('[API] Transaction operations complete, committing...');
       return project;
     });
+
+    const txDuration = Date.now() - txStartTime;
+    console.log(`[API] Transaction committed successfully in ${txDuration}ms`);
 
     // Audit log (non-critical - don't fail the request if it errors)
     try {
