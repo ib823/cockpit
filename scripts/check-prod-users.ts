@@ -5,6 +5,12 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🔍 Checking production database users...\n');
 
+  // Show production URL
+  const prodUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || 'Not set';
+  console.log('🌐 Production URL:', prodUrl);
+  console.log('🗄️  Database:', process.env.DATABASE_URL ? '✅ Connected' : '❌ Not connected');
+  console.log('\n');
+
   // Get all users
   const users = await prisma.users.findMany({
     select: {
