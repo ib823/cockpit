@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
-import { createAuthSession } from '@/lib/nextauth-helpers';
+import { createSessionToken } from '@/lib/nextauth-helpers';
 import { randomUUID } from 'crypto';
 import { challenges, verifyAuthenticationResponse, rpID } from '../../../../lib/webauthn';
 import { logAuthEvent } from '@/lib/monitoring/auth-metrics';
@@ -204,9 +204,21 @@ export async function POST(req: Request) {
 
     // Challenge already deleted earlier to prevent duplicate processing
     // Fixed: V-014 - Preserve MANAGER role in sessions (don't downgrade to USER)
-    await createAuthSession(user.id, user.email, transactionResult.role, user.name);
+    // Create session token and set it in response cookie
+    const sessionToken = await createSessionToken(user.id, user.email, transactionResult.role, user.name);
 
-    return NextResponse.json({ ok: true, user: { name: user.name, role: user.role } });
+    const jsonResponse = NextResponse.json({ ok: true, user: { name: user.name, role: user.role } });
+
+    // Set session cookie in response headers
+    jsonResponse.cookies.set('next-auth.session-token', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    });
+
+    return jsonResponse;
 
   } catch (e) {
     console.error('Finish login failed:', e);
