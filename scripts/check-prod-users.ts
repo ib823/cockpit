@@ -6,7 +6,10 @@ async function main() {
   console.log('🔍 Checking production database users...\n');
 
   // Show production URL
-  const prodUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || 'Not set';
+  const prodUrl = process.env.NEXT_PUBLIC_APP_URL ||
+                  process.env.VERCEL_URL ||
+                  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null) ||
+                  'https://cockpit-r7xjukyir-ikmals-projects-4ec38ef0.vercel.app';
   console.log('🌐 Production URL:', prodUrl);
   console.log('🗄️  Database:', process.env.DATABASE_URL ? '✅ Connected' : '❌ Not connected');
   console.log('\n');
