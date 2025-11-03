@@ -30,7 +30,7 @@ import type {
 import { PHASE_COLOR_PRESETS } from '@/types/gantt-tool';
 import { differenceInDays, addDays, format } from 'date-fns';
 import { adjustDatesToWorkingDays, calculateWorkingDaysInclusive, addWorkingDays } from '@/lib/gantt-tool/working-days';
-import { calculateProjectDelta, isDeltaEmpty, getDeltaSummary } from '@/lib/gantt-tool/delta-calculator';
+import { calculateProjectDelta, isDeltaEmpty, getDeltaSummary, sanitizeDelta } from '@/lib/gantt-tool/delta-calculator';
 // import { createDefaultResources } from '@/lib/gantt-tool/default-resources'; // No longer used - users add resources manually or via import
 
 // Debounce timer for save operations (500ms)
@@ -431,7 +431,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
           try {
             // Calculate delta (only what changed)
-            const delta = calculateProjectDelta(currentProject, lastSavedProject);
+            let delta = calculateProjectDelta(currentProject, lastSavedProject);
+
+            // Sanitize delta to prevent duplicate resource assignments
+            delta = sanitizeDelta(delta);
 
             // Skip save if nothing changed
             if (isDeltaEmpty(delta)) {

@@ -447,11 +447,25 @@ export async function PATCH(
       // Provide more user-friendly error messages for common Prisma errors
       const prismaCode = (error as any).code;
       if (prismaCode === 'P2002') {
+        const meta = (error as any).meta;
+        const target = meta?.target || [];
+        let detailedMessage = 'A record with this data already exists.';
+
+        // Provide specific guidance based on constraint
+        if (target.includes('taskId') && target.includes('resourceId')) {
+          detailedMessage = 'Duplicate resource assignment detected: The same resource is already assigned to this task. Please refresh the page to sync with the latest data.';
+        } else if (target.includes('phaseId') && target.includes('resourceId')) {
+          detailedMessage = 'Duplicate PM resource assignment detected: The same PM resource is already assigned to this phase. Please refresh the page to sync with the latest data.';
+        } else if (target.includes('name')) {
+          detailedMessage = 'A project with this name already exists. Please use a different name.';
+        }
+
         return NextResponse.json(
           {
             error: 'Unique constraint violation',
-            message: 'A record with this data already exists',
-            details: (error as any).meta,
+            message: detailedMessage,
+            conflictField: target,
+            details: meta,
           },
           { status: 409 }
         );

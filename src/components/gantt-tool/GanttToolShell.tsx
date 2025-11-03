@@ -193,16 +193,33 @@ export function GanttToolShell() {
                 <p className="text-sm text-red-700">{syncError}</p>
               </div>
             </div>
-            <button
-              onClick={() => {
-                // Clear sync error in store
-                const store = useGanttToolStoreV2.getState();
-                store.saveProject(); // Retry save
-              }}
-              className="text-sm font-medium text-red-700 hover:text-red-900 underline"
-            >
-              Retry
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Show "Refresh" button for conflict/duplicate errors, "Retry" for others */}
+              {syncError.includes('conflicts') || syncError.includes('duplicate') || syncError.includes('Duplicate') ? (
+                <button
+                  onClick={() => {
+                    const store = useGanttToolStoreV2.getState();
+                    if (currentProject) {
+                      store.fetchProject(currentProject.id); // Force refresh from database
+                    }
+                  }}
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
+                >
+                  Refresh from Database
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    // Clear sync error in store
+                    const store = useGanttToolStoreV2.getState();
+                    store.saveProject(); // Retry save
+                  }}
+                  className="text-sm font-medium text-red-700 hover:text-red-900 underline"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

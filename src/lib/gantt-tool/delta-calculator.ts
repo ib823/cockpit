@@ -253,3 +253,105 @@ export function getDeltaSummary(delta: ProjectDelta): string {
 
   return parts.length > 0 ? parts.join('; ') : 'no changes';
 }
+
+/**
+ * Sanitize delta to prevent duplicate resource assignments
+ * Removes duplicate task/phase resource assignments that would violate unique constraints
+ */
+export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
+  const sanitized = { ...delta };
+
+  // Deduplicate phase resource assignments
+  if (sanitized.phases?.created) {
+    sanitized.phases.created = sanitized.phases.created.map(phase => {
+      if (!phase.phaseResourceAssignments || phase.phaseResourceAssignments.length === 0) {
+        return phase;
+      }
+
+      // Deduplicate by resourceId
+      const seen = new Set<string>();
+      const deduplicated = phase.phaseResourceAssignments.filter(assignment => {
+        if (seen.has(assignment.resourceId)) {
+          console.warn(`[Delta Sanitizer] Removing duplicate PM resource assignment: phaseId=${phase.id}, resourceId=${assignment.resourceId}`);
+          return false;
+        }
+        seen.add(assignment.resourceId);
+        return true;
+      });
+
+      return { ...phase, phaseResourceAssignments: deduplicated };
+    });
+  }
+
+  if (sanitized.phases?.updated) {
+    sanitized.phases.updated = sanitized.phases.updated.map(phase => {
+      if (!phase.phaseResourceAssignments || phase.phaseResourceAssignments.length === 0) {
+        return phase;
+      }
+
+      // Deduplicate by resourceId
+      const seen = new Set<string>();
+      const deduplicated = phase.phaseResourceAssignments.filter(assignment => {
+        if (seen.has(assignment.resourceId)) {
+          console.warn(`[Delta Sanitizer] Removing duplicate PM resource assignment: phaseId=${phase.id}, resourceId=${assignment.resourceId}`);
+          return false;
+        }
+        seen.add(assignment.resourceId);
+        return true;
+      });
+
+      return { ...phase, phaseResourceAssignments: deduplicated };
+    });
+  }
+
+  // Deduplicate task resource assignments in phases
+  if (sanitized.phases?.created) {
+    sanitized.phases.created = sanitized.phases.created.map(phase => ({
+      ...phase,
+      tasks: phase.tasks.map(task => {
+        if (!task.taskResourceAssignments || task.taskResourceAssignments.length === 0) {
+          return task;
+        }
+
+        // Deduplicate by resourceId
+        const seen = new Set<string>();
+        const deduplicated = task.taskResourceAssignments.filter(assignment => {
+          if (seen.has(assignment.resourceId)) {
+            console.warn(`[Delta Sanitizer] Removing duplicate task resource assignment: taskId=${task.id}, resourceId=${assignment.resourceId}`);
+            return false;
+          }
+          seen.add(assignment.resourceId);
+          return true;
+        });
+
+        return { ...task, taskResourceAssignments: deduplicated };
+      }),
+    }));
+  }
+
+  if (sanitized.phases?.updated) {
+    sanitized.phases.updated = sanitized.phases.updated.map(phase => ({
+      ...phase,
+      tasks: phase.tasks.map(task => {
+        if (!task.taskResourceAssignments || task.taskResourceAssignments.length === 0) {
+          return task;
+        }
+
+        // Deduplicate by resourceId
+        const seen = new Set<string>();
+        const deduplicated = task.taskResourceAssignments.filter(assignment => {
+          if (seen.has(assignment.resourceId)) {
+            console.warn(`[Delta Sanitizer] Removing duplicate task resource assignment: taskId=${task.id}, resourceId=${assignment.resourceId}`);
+            return false;
+          }
+          seen.add(assignment.resourceId);
+          return true;
+        });
+
+        return { ...task, taskResourceAssignments: deduplicated };
+      }),
+    }));
+  }
+
+  return sanitized;
+}
