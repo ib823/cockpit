@@ -9,11 +9,11 @@ const nextConfig = {
 
   // SECURITY: Enable type checking for safety
   typescript: {
-    ignoreBuildErrors: true,  // Temporarily disabled to unblock deployment
+    ignoreBuildErrors: false,  // Type checking enabled for code quality
   },
   // SECURITY: Enable linting for security patterns
   eslint: {
-    ignoreDuringBuilds: true,  // Temporarily disabled to unblock deployment
+    ignoreDuringBuilds: false,  // Linting enabled for code quality
   },
 
   // SECURITY: Add security headers
