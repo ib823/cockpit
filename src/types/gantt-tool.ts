@@ -490,3 +490,67 @@ export function getFormattedRate(resource: Resource): string {
   }
   return `${resource.chargeRatePerHour.toFixed(4)}x`;
 }
+
+// ============================================
+// Delta Save Types - Phase 2 Optimization
+// ============================================
+
+/**
+ * Delta changes for incremental saves
+ * Only contains entities that were created, updated, or deleted
+ */
+export interface ProjectDelta {
+  // Project-level updates (only changed fields)
+  projectUpdates?: {
+    name?: string;
+    description?: string;
+    startDate?: string;
+    viewSettings?: GanttViewSettings;
+    budget?: ProjectBudget;
+    orgChart?: any;
+  };
+
+  // Phase changes
+  phases?: {
+    created?: GanttPhase[];
+    updated?: GanttPhase[];
+    deleted?: string[]; // Phase IDs
+  };
+
+  // Task changes (can be from any phase)
+  tasks?: {
+    created?: GanttTask[];
+    updated?: GanttTask[];
+    deleted?: string[]; // Task IDs
+  };
+
+  // Resource changes
+  resources?: {
+    created?: Resource[];
+    updated?: Resource[];
+    deleted?: string[]; // Resource IDs
+  };
+
+  // Milestone changes
+  milestones?: {
+    created?: GanttMilestone[];
+    updated?: GanttMilestone[];
+    deleted?: string[]; // Milestone IDs
+  };
+
+  // Holiday changes
+  holidays?: {
+    created?: GanttHoliday[];
+    updated?: GanttHoliday[];
+    deleted?: string[]; // Holiday IDs
+  };
+}
+
+/**
+ * Track entity state for delta computation
+ */
+export interface EntityTracker {
+  created: Set<string>; // IDs of newly created entities
+  updated: Set<string>; // IDs of modified entities
+  deleted: Set<string>; // IDs of deleted entities
+}

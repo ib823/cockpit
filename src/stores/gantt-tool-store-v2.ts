@@ -25,10 +25,12 @@ import type {
   TaskResourceAssignment,
   PhaseResourceAssignment,
   ProjectBudget,
+  ProjectDelta,
 } from '@/types/gantt-tool';
 import { PHASE_COLOR_PRESETS } from '@/types/gantt-tool';
 import { differenceInDays, addDays, format } from 'date-fns';
 import { adjustDatesToWorkingDays, calculateWorkingDaysInclusive, addWorkingDays } from '@/lib/gantt-tool/working-days';
+import { calculateProjectDelta, isDeltaEmpty, getDeltaSummary } from '@/lib/gantt-tool/delta-calculator';
 // import { createDefaultResources } from '@/lib/gantt-tool/default-resources'; // No longer used - users add resources manually or via import
 
 // Debounce timer for save operations (500ms)
@@ -38,6 +40,9 @@ interface GanttToolStateV2 {
   // Core Data (loaded from API)
   currentProject: GanttProject | null;
   projects: GanttProject[];
+
+  // Delta Save - Track last saved state for incremental updates
+  lastSavedProject: GanttProject | null;
 
   // Sync state
   isSyncing: boolean;
@@ -193,6 +198,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     // Initial State
     currentProject: null,
     projects: [],
+    lastSavedProject: null,
     isSyncing: false,
     lastSyncAt: null,
     syncError: null,
@@ -261,6 +267,8 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
         set((state) => {
           state.currentProject = data.project;
+          // Deep clone to set as baseline for delta tracking
+          state.lastSavedProject = JSON.parse(JSON.stringify(data.project));
           state.isLoading = false;
           state.manuallyUnloaded = false;
           state.lastSyncAt = new Date();
@@ -320,6 +328,8 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
         set((state) => {
           state.currentProject = data.project; // Use original project data, not updatedData
+          // Deep clone to set as baseline for delta tracking
+          state.lastSavedProject = JSON.parse(JSON.stringify(data.project));
           state.projects.push(data.project);
           state.isSyncing = false;
           state.lastSyncAt = new Date();
@@ -367,6 +377,8 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
         set((state) => {
           state.currentProject = responseData.project;
+          // Deep clone to set as baseline for delta tracking
+          state.lastSavedProject = JSON.parse(JSON.stringify(responseData.project));
           state.projects.push(responseData.project);
           state.isSyncing = false;
           state.lastSyncAt = new Date();
@@ -394,7 +406,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     },
 
     saveProject: async () => {
-      const { currentProject, isSyncing } = get();
+      const { currentProject, isSyncing, lastSavedProject } = get();
 
       if (!currentProject) return;
 
@@ -418,94 +430,112 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           });
 
           try {
-            // Clean up data - only send fields expected by the API, not database-managed fields
-            const projectData = {
-              name: currentProject.name,
-              description: currentProject.description || undefined,
-              startDate: formatDateField(currentProject.startDate),
-              viewSettings: currentProject.viewSettings || undefined,
-              budget: currentProject.budget || undefined,
-              phases: currentProject.phases.map(phase => ({
-                id: phase.id,
-                name: phase.name,
-                description: phase.description || '',
-                color: phase.color,
-                startDate: formatDateField(phase.startDate),
-                endDate: formatDateField(phase.endDate),
-                collapsed: phase.collapsed,
-                order: (phase as any).order || 0,
-                dependencies: phase.dependencies || [],
-                tasks: phase.tasks.map(task => ({
-                  id: task.id,
-                  name: task.name,
-                  description: task.description || '',
-                  startDate: formatDateField(task.startDate),
-                  endDate: formatDateField(task.endDate),
-                  progress: task.progress || 0,
-                  assignee: task.assignee || '',
-                  order: (task as any).order || 0,
-                  dependencies: task.dependencies || [],
-                  resourceAssignments: (task.resourceAssignments || []).map(ra => ({
-                    id: ra.id,
-                    resourceId: ra.resourceId,
-                    assignmentNotes: ra.assignmentNotes || '',
-                    allocationPercentage: ra.allocationPercentage || 0,
-                    assignedAt: ra.assignedAt || new Date().toISOString(),
+            // Calculate delta (only what changed)
+            const delta = calculateProjectDelta(currentProject, lastSavedProject);
+
+            // Skip save if nothing changed
+            if (isDeltaEmpty(delta)) {
+              console.log('[Store] No changes detected, skipping save');
+              set((state) => {
+                state.isSyncing = false;
+              });
+              resolve();
+              return;
+            }
+
+            // Log delta summary
+            console.log('[Store] Saving delta:', getDeltaSummary(delta));
+
+            // Serialize delta for API (format dates properly)
+            const serializedDelta: ProjectDelta = {};
+
+            if (delta.projectUpdates) {
+              serializedDelta.projectUpdates = {};
+              if (delta.projectUpdates.name !== undefined) serializedDelta.projectUpdates.name = delta.projectUpdates.name;
+              if (delta.projectUpdates.description !== undefined) serializedDelta.projectUpdates.description = delta.projectUpdates.description;
+              if (delta.projectUpdates.startDate !== undefined) serializedDelta.projectUpdates.startDate = formatDateField(delta.projectUpdates.startDate);
+              if (delta.projectUpdates.viewSettings !== undefined) serializedDelta.projectUpdates.viewSettings = delta.projectUpdates.viewSettings;
+              if (delta.projectUpdates.budget !== undefined) serializedDelta.projectUpdates.budget = delta.projectUpdates.budget;
+              if (delta.projectUpdates.orgChart !== undefined) serializedDelta.projectUpdates.orgChart = delta.projectUpdates.orgChart;
+            }
+
+            if (delta.phases) {
+              serializedDelta.phases = {};
+              if (delta.phases.created) {
+                serializedDelta.phases.created = delta.phases.created.map(phase => ({
+                  ...phase,
+                  startDate: formatDateField(phase.startDate),
+                  endDate: formatDateField(phase.endDate),
+                  tasks: phase.tasks.map((task: any) => ({
+                    ...task,
+                    startDate: formatDateField(task.startDate),
+                    endDate: formatDateField(task.endDate),
                   })),
-                })),
-                phaseResourceAssignments: (phase.phaseResourceAssignments || []).map(pra => ({
-                  id: pra.id,
-                  resourceId: pra.resourceId,
-                  assignmentNotes: pra.assignmentNotes || '',
-                  allocationPercentage: pra.allocationPercentage || 0,
-                  assignedAt: pra.assignedAt || new Date().toISOString(),
-                })),
-              })),
-              milestones: currentProject.milestones.map(m => ({
-                id: m.id,
-                name: m.name,
-                description: m.description || '',
-                date: formatDateField(m.date),
-                icon: m.icon,
-                color: m.color,
-              })),
-              holidays: currentProject.holidays.map(h => ({
-                id: h.id,
-                name: h.name,
-                date: formatDateField(h.date),
-                region: h.region,
-                type: h.type,
-              })),
-              resources: currentProject.resources.map(r => ({
-                id: r.id,
-                name: r.name,
-                category: r.category,
-                description: r.description || '',
-                designation: r.designation,
-                managerResourceId: r.managerResourceId || null,
-                email: r.email || null,
-                department: r.department || null,
-                location: r.location || null,
-                projectRole: r.projectRole || null,
-                createdAt: r.createdAt || new Date().toISOString(),
-              })),
-            };
+                }));
+              }
+              if (delta.phases.updated) {
+                serializedDelta.phases.updated = delta.phases.updated.map(phase => ({
+                  ...phase,
+                  startDate: formatDateField(phase.startDate),
+                  endDate: formatDateField(phase.endDate),
+                  tasks: phase.tasks.map((task: any) => ({
+                    ...task,
+                    startDate: formatDateField(task.startDate),
+                    endDate: formatDateField(task.endDate),
+                  })),
+                }));
+              }
+              if (delta.phases.deleted) {
+                serializedDelta.phases.deleted = delta.phases.deleted;
+              }
+            }
 
-            // Pre-flight validation logging
-            console.log('[Store] Saving project data:', {
-              projectId: currentProject.id,
-              name: projectData.name,
-              startDate: projectData.startDate,
-              phasesCount: projectData.phases.length,
-              milestonesCount: projectData.milestones.length,
-              holidaysCount: projectData.holidays.length,
-              resourcesCount: projectData.resources.length,
-            });
+            if (delta.resources) {
+              serializedDelta.resources = delta.resources;
+            }
 
-            const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
+            if (delta.milestones) {
+              serializedDelta.milestones = {};
+              if (delta.milestones.created) {
+                serializedDelta.milestones.created = delta.milestones.created.map(m => ({
+                  ...m,
+                  date: formatDateField(m.date),
+                }));
+              }
+              if (delta.milestones.updated) {
+                serializedDelta.milestones.updated = delta.milestones.updated.map(m => ({
+                  ...m,
+                  date: formatDateField(m.date),
+                }));
+              }
+              if (delta.milestones.deleted) {
+                serializedDelta.milestones.deleted = delta.milestones.deleted;
+              }
+            }
+
+            if (delta.holidays) {
+              serializedDelta.holidays = {};
+              if (delta.holidays.created) {
+                serializedDelta.holidays.created = delta.holidays.created.map(h => ({
+                  ...h,
+                  date: formatDateField(h.date),
+                }));
+              }
+              if (delta.holidays.updated) {
+                serializedDelta.holidays.updated = delta.holidays.updated.map(h => ({
+                  ...h,
+                  date: formatDateField(h.date),
+                }));
+              }
+              if (delta.holidays.deleted) {
+                serializedDelta.holidays.deleted = delta.holidays.deleted;
+              }
+            }
+
+            const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}/delta`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(projectData),
+              body: JSON.stringify(serializedDelta),
             });
 
             if (!response.ok) {
@@ -544,6 +574,9 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
             set((state) => {
               state.isSyncing = false;
               state.lastSyncAt = new Date();
+
+              // Deep clone currentProject to track as last saved state
+              state.lastSavedProject = JSON.parse(JSON.stringify(currentProject));
 
               // Update in projects array
               const index = state.projects.findIndex(p => p.id === currentProject.id);
