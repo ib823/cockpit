@@ -16,5 +16,10 @@
     "src/app/api/gantt-tool/projects/[projectId]/delta/route.ts": {
       "maxDuration": 10
     }
+  },
+  "build": {
+    "env": {
+      "SKIP_ENV_VALIDATION": "1"
+    }
   }
 }
