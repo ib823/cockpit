@@ -121,37 +121,37 @@ export async function preloadComponent(
 
 // Gantt Chart (1,453 lines)
 export const GanttCanvas = lazyLoadWithRetry<any>(
-  () => import('@/components/gantt-tool/GanttCanvas')
+  () => import('@/components/gantt-tool/GanttCanvas').then(m => ({ default: m.GanttCanvas }))
 );
 
 // Gantt Side Panel (1,193 lines)
 export const GanttSidePanel = lazyLoadWithRetry<any>(
-  () => import('@/components/gantt-tool/GanttSidePanel')
+  () => import('@/components/gantt-tool/GanttSidePanel').then(m => ({ default: m.GanttSidePanel }))
 );
 
 // Import Modal (1,319 lines)
 export const ImportModalV2 = lazyLoadWithRetry<any>(
-  () => import('@/components/gantt-tool/ImportModalV2')
+  () => import('@/components/gantt-tool/ImportModalV2').then(m => ({ default: m.ImportModalV2 }))
 );
 
 // Plan Mode (1,137 lines)
 export const PlanMode = lazyLoadWithRetry<any>(
-  () => import('@/components/project-v2/modes/PlanMode')
+  () => import('@/components/project-v2/modes/PlanMode').then(m => ({ default: m.PlanMode }))
 );
 
 // Organization Chart (1,553 lines)
 export const OrganizationChart = lazyLoad<any>(
-  () => import('@/app/organization-chart/page') as any
+  () => import('@/app/organization-chart/page').then(m => ({ default: m.default || m })) as any
 );
 
 // Dashboard Content
 export const DashboardContent = lazyLoad<any>(
-  () => import('@/components/dashboard/DashboardContent')
+  () => import('@/components/dashboard/DashboardContent').then(m => ({ default: m.DashboardContent }))
 );
 
 // Export components
 export const ExportButton = lazyLoad<any>(
-  () => import('@/components/export/ExportButton')
+  () => import('@/components/export/ExportButton').then(m => ({ default: m.ExportButton }))
 );
 
 /**

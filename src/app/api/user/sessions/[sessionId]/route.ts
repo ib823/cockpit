@@ -11,10 +11,10 @@ export const runtime = 'nodejs';
  */
 export async function DELETE(
   req: Request,
-  { params }: { params: { sessionId: string } }
+  { params }: { params: Promise<{ sessionId: string }> }
 ) {
   try {
-    const { sessionId } = params;
+    const { sessionId } = await params;
 
     // TODO: Get userId from session/auth
     const url = new URL(req.url);

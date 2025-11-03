@@ -23,6 +23,9 @@ export function createDefaultResources(): Resource[] {
     department: undefined,
     location: undefined,
     projectRole: undefined,
+    assignmentLevel: 'both',
+    isBillable: true,
+    chargeRatePerHour: 150, // Default rate
   });
 
   return [

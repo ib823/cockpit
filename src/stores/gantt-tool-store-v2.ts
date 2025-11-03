@@ -1171,6 +1171,9 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           department: data.department,
           location: data.location,
           projectRole: data.projectRole,
+          assignmentLevel: 'both',
+          isBillable: true,
+          chargeRatePerHour: 150,
         };
 
         state.currentProject.resources.push(newResource);

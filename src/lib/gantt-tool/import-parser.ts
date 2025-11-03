@@ -294,6 +294,9 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
           department: department || undefined,
           location: location || undefined,
           projectRole: projectRole || undefined,
+          assignmentLevel: 'both',
+          isBillable: true,
+          chargeRatePerHour: 150, // Default rate
         });
 
         rowNum++;

@@ -612,6 +612,9 @@ export function applyOrgChartTemplate(template: OrgChartTemplate): Resource[] {
       dailyRate: tr.dailyRate,
       currency: tr.currency || 'USD',
       utilizationTarget: 80,
+      assignmentLevel: 'both',
+      isBillable: true,
+      chargeRatePerHour: tr.dailyRate ? tr.dailyRate / 8 : 150,
     };
   });
 

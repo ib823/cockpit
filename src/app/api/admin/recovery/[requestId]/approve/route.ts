@@ -15,10 +15,10 @@ export const runtime = 'nodejs';
  */
 export async function POST(
   req: Request,
-  { params }: { params: { requestId: string } }
+  { params }: { params: Promise<{ requestId: string }> }
 ) {
   try {
-    const { requestId } = params;
+    const { requestId } = await params;
     const body = await req.json().catch(() => ({}));
     const { adminId, notes } = body;
 
