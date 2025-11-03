@@ -77,7 +77,7 @@
     "pdf-lib": "1.17.1",
     "posthog-js": "1.272.0",
     "pptxgenjs": "4.0.1",
-    "prisma": "5.22.0",
+    "prisma": "^6.18.0",
     "qrcode": "1.5.4",
     "react": "19.1.1",
     "react-dom": "19.1.1",

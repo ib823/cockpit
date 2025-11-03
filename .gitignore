@@ -146,3 +146,4 @@ latestEnd
 # Cleanup scripts (auto-generated)
 cleanup-repo.sh
 
+.env.prisma
