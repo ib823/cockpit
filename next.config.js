@@ -8,6 +8,8 @@ const nextConfig = {
   },
 
   // SECURITY: Enable type checking for safety
+  // Note: Requires @types/react@^19 to match react@19.1.1 (updated in package.json)
+  // Type checking will work once dependencies are installed: pnpm install
   typescript: {
     ignoreBuildErrors: false,  // Type checking enabled for code quality
   },
