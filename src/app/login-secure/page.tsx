@@ -30,7 +30,6 @@ export default function SecureLoginPage() {
   useEffect(() => {
     const loadFingerprint = async () => {
       try {
-        // @ts-expect-error - FingerprintJS is loaded via CDN or npm
         const FingerprintJS = await import('@fingerprintjs/fingerprintjs');
         const fp = await FingerprintJS.load();
         const result = await fp.get();

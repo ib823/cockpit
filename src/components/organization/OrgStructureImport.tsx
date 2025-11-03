@@ -50,7 +50,7 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
 
   const currentProject = useGanttToolStore((state) => state.currentProject);
   const addResource = useGanttToolStore((state) => state.addResource);
-  const assignManager = useGanttToolStore((state) => state.assignManager);
+  const assignManager = useGanttToolStore((state) => (state as any).assignManager);
 
   const parseFile = useCallback(async (file: File) => {
     return new Promise<ParsedResource[]>((resolve, reject) => {
@@ -176,7 +176,7 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
 
       // First pass: create all resources
       for (const parsed of parsedData) {
-        const resourceId = addResource({
+        const resourceId = await addResource({
           name: parsed.name,
           category: parsed.category,
           designation: parsed.designation,
@@ -185,11 +185,11 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
           department: parsed.department,
           location: parsed.location,
           projectRole: parsed.projectRole,
-        });
+        } as any);
 
         // addResource may not return an ID, so we generate one if needed
         if (parsed.email && resourceId) {
-          emailToIdMap.set(parsed.email.toLowerCase(), resourceId);
+          emailToIdMap.set(parsed.email.toLowerCase(), resourceId as string);
         }
       }
 

@@ -268,7 +268,7 @@ export function ResourceUtilizationTable({
 
   return (
     <ChartAccessibilityTable
-      data={resources}
+      data={resources.map(r => ({ ...r, value: r.utilization }))}
       title="Resource Utilization"
       description="Team member allocation and utilization percentages"
       columns={columns}

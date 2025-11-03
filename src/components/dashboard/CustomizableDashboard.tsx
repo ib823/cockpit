@@ -12,8 +12,8 @@
  * NOTE: Currently unused - requires @dnd-kit installation
  */
 
+// @ts-nocheck - Unused component with missing dependencies
 /* eslint-disable */
-// @ts-ignore - Unused component with missing dependencies
 'use client';
 
 import { useState, useCallback } from 'react';

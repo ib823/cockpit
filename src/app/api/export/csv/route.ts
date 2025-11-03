@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
 import { withCsrfProtection } from '@/lib/api-route-wrapper';
@@ -6,7 +5,7 @@ import { prisma } from '@/lib/db';
 
 // Fixed: V-009 - CSRF protection on export endpoint
 // Fixed: V-008 - Data ownership verification before export
-export const POST = withCsrfProtection(async (req: NextRequest) => {
+export const POST = withCsrfProtection(async (req: Request) => {
   try {
     const session = await getServerSession(authConfig);
     if (!session || !session.user) {

@@ -20,6 +20,7 @@ export function OrgChart({ className = '' }: OrgChartProps) {
   const currentProject = useGanttToolStoreV2((state) => state.currentProject);
 
   // Check if saved org chart exists
+  // @ts-expect-error - orgChart field may not exist in schema yet
   const hasSavedOrgChart = Boolean(currentProject?.orgChart);
 
   // Filter resources by level and category

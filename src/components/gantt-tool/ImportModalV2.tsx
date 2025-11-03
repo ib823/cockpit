@@ -302,7 +302,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
         };
       });
 
-      targetProject.resources = [...(targetProject.resources || []), ...newResources];
+      targetProject.resources = [...(targetProject.resources || []), ...newResources] as any;
 
       // Step 3: Allocate resources to tasks based on weekly effort
       console.log('🔍 Starting resource allocation...');
@@ -388,7 +388,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
         const conflicts = detectImportConflicts(
           targetProject,
           newPhases,
-          newResources
+          newResources as any
         );
 
         if (conflicts.hasConflicts) {

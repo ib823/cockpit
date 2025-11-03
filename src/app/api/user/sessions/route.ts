@@ -47,7 +47,7 @@ export async function GET(req: Request) {
     const formattedSessions = sessions.map(session => {
       const deviceInfo = parseUserAgent(session.userAgent || 'Unknown');
       const location = session.country && session.city
-        ? formatLocation({ country: session.country, city: session.city })
+        ? `${session.city}, ${session.country}`
         : 'Unknown Location';
 
       return {

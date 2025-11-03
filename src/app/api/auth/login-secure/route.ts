@@ -304,11 +304,12 @@ export async function POST(req: Request) {
             longitude: 0
           };
 
-          isNewLocation = hasLocationChanged(prevLocation, geoData);
+          const locationChange = hasLocationChanged(prevLocation, geoData);
+          isNewLocation = locationChange.significant;
 
           // Note: Suspicious travel detection requires coordinates from last login
           // For now, we'll just flag new countries
-          if (lastLogin.country !== geoData.country) {
+          if (locationChange.countryChanged) {
             isSuspiciousLogin = true;
           }
         }
@@ -480,7 +481,7 @@ export async function POST(req: Request) {
         const deviceInfo = parseUserAgent(userAgent);
         const emailContent = newDeviceLoginTemplate({
           email: user.email,
-          deviceInfo: `${deviceInfo.browser} on ${deviceInfo.os} (${deviceInfo.deviceType})`,
+          deviceInfo: `${deviceInfo.browser} on ${deviceInfo.os} (${deviceInfo.device})`,
           location: geoData ? formatLocation(geoData) : 'Unknown Location',
           ipAddress,
           timestamp: new Date(),

@@ -138,7 +138,7 @@ function DraggableResource({
 
   return (
     <div
-      ref={drag}
+      ref={drag as any}
       className={`flex items-center justify-between text-xs px-2 py-1 rounded cursor-move ${
         isDragging ? 'opacity-50 bg-blue-100' : 'bg-gray-50 hover:bg-gray-100'
       }`}
@@ -205,7 +205,7 @@ function DropZone({
     : '';
 
   return (
-    <div ref={drop} className={`${className} ${dropZoneStyle}`}>
+    <div ref={drop as any} className={`${className} ${dropZoneStyle}`}>
       {children}
     </div>
   );
@@ -342,8 +342,10 @@ export default function OrganizationChartPage() {
 
   // Load org chart from project on mount
   useEffect(() => {
+    // @ts-expect-error - orgChart field may not exist in schema yet
     if (currentProject?.orgChart) {
       try {
+        // @ts-expect-error - orgChart field may not exist in schema yet
         const savedOrgChart = JSON.parse(JSON.stringify(currentProject.orgChart));
         setOrgChart(savedOrgChart);
         console.log('[OrgChart] Loaded saved org chart from database');

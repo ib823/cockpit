@@ -125,7 +125,7 @@ function ResourceNode({ data }: { data: any }) {
 
   if (!resource) return null;
 
-  const categoryInfo = RESOURCE_CATEGORIES[resource.category];
+  const categoryInfo = RESOURCE_CATEGORIES[resource.category as keyof typeof RESOURCE_CATEGORIES];
   const isActivelyWorking = assignments && (assignments.phases.length > 0 || assignments.tasks.length > 0);
   const totalWorkload = assignments ? assignments.phases.length + assignments.tasks.length : 0;
 
@@ -202,7 +202,7 @@ function ResourceNode({ data }: { data: any }) {
                 title={
                   <div>
                     <div className="font-semibold mb-1">Managing {assignments.phases.length} Phase{assignments.phases.length > 1 ? 's' : ''}:</div>
-                    {assignments.phases.map((p) => (
+                    {assignments.phases.map((p: any) => (
                       <div key={p.phaseId} className="text-xs">• {p.phaseName}</div>
                     ))}
                   </div>
@@ -221,7 +221,7 @@ function ResourceNode({ data }: { data: any }) {
                   <div>
                     <div className="font-semibold mb-1">{assignments.tasks.length} Assigned Task{assignments.tasks.length > 1 ? 's' : ''}:</div>
                     <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                      {assignments.tasks.slice(0, 10).map((t) => (
+                      {assignments.tasks.slice(0, 10).map((t: any) => (
                         <div key={t.taskId} className="text-xs">• {t.taskName}</div>
                       ))}
                       {assignments.tasks.length > 10 && (

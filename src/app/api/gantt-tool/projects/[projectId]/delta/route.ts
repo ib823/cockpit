@@ -466,7 +466,7 @@ export async function PATCH(
         data: {
           id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           userId: session.user.id,
-          action: 'UPDATE_DELTA',
+          action: 'UPDATE',
           entity: 'gantt_project',
           entityId: projectId,
           changes: delta,

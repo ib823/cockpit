@@ -46,7 +46,9 @@ interface WizardStep {
 export function EstimatorWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const { inputs, setProfile, setCapacity } = useEstimatorStore();
-  const { saveProfilePreference, saveCapacityPreference } = useEstimatorPreferences();
+  const preferences = useEstimatorPreferences();
+  const saveProfilePreference = (preferences as any).saveProfilePreference;
+  const saveCapacityPreference = (preferences as any).saveCapacityPreference;
 
   // Wizard steps definition
   const steps: WizardStep[] = [

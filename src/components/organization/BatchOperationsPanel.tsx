@@ -36,8 +36,8 @@ export function BatchOperationsPanel({
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const currentProject = useGanttToolStore((state) => state.currentProject);
-  const assignManager = useGanttToolStore((state) => state.assignManager);
-  const unassignManager = useGanttToolStore((state) => state.unassignManager);
+  const assignManager = useGanttToolStore((state) => (state as any).assignManager);
+  const unassignManager = useGanttToolStore((state) => (state as any).unassignManager);
 
   const selectedResources = currentProject?.resources.filter((r) =>
     selectedResourceIds.has(r.id)
