@@ -412,7 +412,9 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
       // Skip if already syncing
       if (isSyncing) {
-        console.log('[Store] Save already in progress, skipping...');
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[Store] Save already in progress, skipping...');
+        }
         return;
       }
 
@@ -435,7 +437,9 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
             // Skip save if nothing changed
             if (isDeltaEmpty(delta)) {
-              console.log('[Store] No changes detected, skipping save');
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('[Store] No changes detected, skipping save');
+              }
               set((state) => {
                 state.isSyncing = false;
               });
@@ -443,8 +447,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
               return;
             }
 
-            // Log delta summary
-            console.log('[Store] Saving delta:', getDeltaSummary(delta));
+            // Log delta summary (only in development)
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[Store] Saving delta:', getDeltaSummary(delta));
+            }
 
             // Serialize delta for API (format dates properly)
             const serializedDelta: ProjectDelta = {};
