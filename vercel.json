@@ -12,6 +12,9 @@
   "functions": {
     "src/app/api/gantt-tool/projects/[projectId]/route.ts": {
       "maxDuration": 10
+    },
+    "src/app/api/gantt-tool/projects/[projectId]/delta/route.ts": {
+      "maxDuration": 10
     }
   }
 }
