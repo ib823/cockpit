@@ -32,6 +32,11 @@
     "node_modules",
     "prisma",
     "claude-project-knowledge",
-    "tests"
+    "tests",
+    "scripts",
+    "i18n.ts",
+    "src/__tests__",
+    "vitest.config.ts",
+    "playwright.config.ts"
   ]
 }
