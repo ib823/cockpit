@@ -39,9 +39,9 @@ const integrationTypeLabels: Record<string, string> = {
 };
 
 const complexityColors: Record<Complexity, string> = {
-  simple: 'green',
-  medium: 'blue',
-  complex: 'orange',
+  S: 'green',
+  M: 'blue',
+  L: 'orange',
 };
 
 const volumeColors: Record<string, string> = {
@@ -66,7 +66,7 @@ export function IntegrationPanel({
     setEditingIntegration(null);
     setIntegrationData({
       type: 'api',
-      complexity: 'medium',
+      complexity: 'M',
       volume: 'medium',
       effort: 8,
       source: '',
@@ -95,7 +95,7 @@ export function IntegrationPanel({
       type: integrationData.type as any,
       source: integrationData.source,
       target: integrationData.target,
-      complexity: integrationData.complexity || 'medium',
+      complexity: integrationData.complexity || 'M',
       volume: integrationData.volume || 'medium',
       effort: integrationData.effort || 8,
       createdAt: editingIntegration?.createdAt || new Date(),

@@ -19,18 +19,18 @@ export const POST = withCsrfProtection(async (req: NextRequest) => {
     if (data.projectId) {
       const project = await prisma.projects.findUnique({
         where: { id: data.projectId },
-        select: { userId: true },
+        select: { ownerId: true },
       });
 
       if (!project) {
         return Response.json({ error: 'Project not found' }, { status: 404 });
       }
 
-      if (project.userId !== session.user.id) {
+      if (project.ownerId !== session.user.id) {
         console.warn('[SECURITY] Attempted unauthorized export', {
           userId: session.user.id,
           projectId: data.projectId,
-          projectOwner: project.userId,
+          projectOwner: project.ownerId,
         });
         return Response.json(
           { error: 'Forbidden: You do not have access to this project' },

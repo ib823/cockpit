@@ -502,7 +502,7 @@ export default function SecureRegisterPage() {
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <h3 className="text-sm font-bold text-yellow-900 mb-2">⚠️ Important: Save These Codes</h3>
                 <p className="text-sm text-yellow-800">
-                  Each code can only be used once. You'll need these if you lose access to your authenticator app.
+                  Each code can only be used once. You&apos;ll need these if you lose access to your authenticator app.
                 </p>
               </div>
 

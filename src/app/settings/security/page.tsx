@@ -512,7 +512,7 @@ export default function SecuritySettingsPage() {
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Trusted Devices</h2>
                   <p className="text-slate-600">
-                    Manage devices you've marked as trusted for faster sign-in.
+                    Manage devices you&apos;ve marked as trusted for faster sign-in.
                   </p>
                 </div>
 

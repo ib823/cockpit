@@ -25,7 +25,7 @@ function LoginContent() {
 
   // Handle magic link token on page load
   useEffect(() => {
-    const token = searchParams.get('token');
+    const token = searchParams?.get('token');
     if (token) {
       verifyMagicLink(token);
     }

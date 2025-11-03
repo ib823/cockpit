@@ -30,7 +30,7 @@ export default function SecureLoginPage() {
   useEffect(() => {
     const loadFingerprint = async () => {
       try {
-        // @ts-ignore - FingerprintJS is loaded via CDN or npm
+        // @ts-expect-error - FingerprintJS is loaded via CDN or npm
         const FingerprintJS = await import('@fingerprintjs/fingerprintjs');
         const fp = await FingerprintJS.load();
         const result = await fp.get();
@@ -313,7 +313,7 @@ export default function SecureLoginPage() {
               onClick={() => router.push('/register-secure')}
               className="text-sm text-slate-500 hover:text-slate-900 transition-colors block w-full"
             >
-              Don't have an account? Register
+              Don&apos;t have an account? Register
             </button>
           </div>
 
@@ -325,7 +325,7 @@ export default function SecureLoginPage() {
               </svg>
               <div className="text-xs text-slate-600">
                 <strong className="block mb-1">Secure Login</strong>
-                <p>Your connection is encrypted. We'll never ask for your password via email.</p>
+                <p>Your connection is encrypted. We&apos;ll never ask for your password via email.</p>
               </div>
             </div>
           </div>

@@ -37,9 +37,9 @@ const formTypeLabels: Record<string, string> = {
 };
 
 const complexityColors: Record<Complexity, string> = {
-  simple: 'green',
-  medium: 'blue',
-  complex: 'orange',
+  S: 'green',
+  M: 'blue',
+  L: 'orange',
 };
 
 export function FormPanel({ projectId, forms, onChange, readonly = false }: FormPanelProps) {
@@ -54,7 +54,7 @@ export function FormPanel({ projectId, forms, onChange, readonly = false }: Form
     setFormData({
       type: 'custom',
       languages: ['en'],
-      complexity: 'medium',
+      complexity: 'M',
       effort: 5,
     });
     setIsModalVisible(true);
@@ -79,7 +79,7 @@ export function FormPanel({ projectId, forms, onChange, readonly = false }: Form
       name: formData.name,
       type: formData.type as any,
       languages: formData.languages || ['en'],
-      complexity: formData.complexity || 'medium',
+      complexity: formData.complexity || 'M',
       effort: formData.effort || 5,
       createdAt: editingForm?.createdAt || new Date(),
     };

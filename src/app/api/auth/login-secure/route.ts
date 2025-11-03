@@ -53,10 +53,10 @@ export async function POST(req: Request) {
     // ============================================
     // 1. Get Client Information
     // ============================================
-    const headersList = headers();
-    const ipAddress = getClientIP();
+    const headersList = await headers();
+    const ipAddress = await getClientIP();
     const userAgent = headersList.get('user-agent') || 'Unknown';
-    const serverFingerprint = getServerSideFingerprint(headersList);
+    const serverFingerprint = await getServerSideFingerprint(headersList);
     const deviceFingerprint = clientFingerprint || serverFingerprint;
 
     // ============================================

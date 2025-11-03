@@ -32,7 +32,7 @@ export async function GET(req: Request) {
     }
 
     // Get current session token from headers
-    const headersList = headers();
+    const headersList = await headers();
     const currentSessionToken = headersList.get('x-session-token') || '';
 
     const sessions = await prisma.sessions.findMany({
@@ -93,7 +93,7 @@ export async function DELETE(req: Request) {
     }
 
     // Get current session token
-    const headersList = headers();
+    const headersList = await headers();
     const currentSessionToken = headersList.get('x-session-token') || '';
 
     // Revoke all sessions except the current one
