@@ -1,25 +1,18 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { ServerRateLimiter } from './lib/server-rate-limiter';
 
-// In-memory rate limiting for development (replace with Upstash in production)
-const requests = new Map<string, { count: number; resetTime: number }>();
+// Redis-based rate limiting with in-memory fallback
+// Global rate limiter: 100 requests per minute per IP
+const globalRateLimiter = new ServerRateLimiter('global', 100, 60 * 1000);
 
-function checkRateLimit(ip: string, limit: number, windowMs: number): boolean {
-  const now = Date.now();
-  const record = requests.get(ip);
-  
-  if (!record || now > record.resetTime) {
-    requests.set(ip, { count: 1, resetTime: now + windowMs });
-    return true;
-  }
-  
-  if (record.count >= limit) {
-    return false;
-  }
-  
-  record.count++;
-  return true;
+async function checkRateLimit(ip: string): Promise<{ allowed: boolean; retryAfter?: number }> {
+  const result = await globalRateLimiter.check(ip);
+  return {
+    allowed: result.success,
+    retryAfter: result.retryAfter,
+  };
 }
 
 const publicPaths = ['/', '/login', '/api/auth'];
@@ -41,15 +34,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
   
-  // Rate limiting (100 req/min per IP)
+  // Rate limiting (100 req/min per IP) - Redis-backed with in-memory fallback
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ??
              request.headers.get('x-real-ip') ??
              '127.0.0.1';
-  if (!checkRateLimit(ip, 100, 60000)) {
+
+  const rateLimitResult = await checkRateLimit(ip);
+  if (!rateLimitResult.allowed) {
     return new Response('Too many requests', {
       status: 429,
       headers: {
-        'Retry-After': '60',
+        'Retry-After': String(rateLimitResult.retryAfter || 60),
         'X-RateLimit-Limit': '100',
         'X-RateLimit-Remaining': '0',
       },
