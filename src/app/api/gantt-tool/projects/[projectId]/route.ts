@@ -326,12 +326,18 @@ export async function PATCH(
 
           // Batch create all task resource assignments
           if (allTaskResourceAssignments.length > 0) {
-            await tx.ganttTaskResourceAssignment.createMany({ data: allTaskResourceAssignments });
+            await tx.ganttTaskResourceAssignment.createMany({
+              data: allTaskResourceAssignments,
+              skipDuplicates: true, // Skip if assignment already exists
+            });
           }
 
           // Batch create all phase resource assignments
           if (allPhaseResourceAssignments.length > 0) {
-            await tx.ganttPhaseResourceAssignment.createMany({ data: allPhaseResourceAssignments });
+            await tx.ganttPhaseResourceAssignment.createMany({
+              data: allPhaseResourceAssignments,
+              skipDuplicates: true, // Skip if assignment already exists
+            });
           }
         }
       }

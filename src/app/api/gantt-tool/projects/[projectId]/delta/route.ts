@@ -270,6 +270,7 @@ export async function PATCH(
                       allocationPercentage: ra.allocationPercentage,
                       assignedAt: new Date(ra.assignedAt || Date.now()),
                     })),
+                    skipDuplicates: true, // Skip if assignment already exists
                   });
                 }
               }
@@ -286,6 +287,7 @@ export async function PATCH(
                   allocationPercentage: pra.allocationPercentage,
                   assignedAt: new Date(pra.assignedAt || Date.now()),
                 })),
+                skipDuplicates: true, // Skip if assignment already exists
               });
             }
           }
@@ -344,6 +346,7 @@ export async function PATCH(
                         allocationPercentage: ra.allocationPercentage,
                         assignedAt: new Date(ra.assignedAt || Date.now()),
                       })),
+                      skipDuplicates: true, // Skip if assignment already exists
                     });
                   }
                 }
@@ -368,6 +371,7 @@ export async function PATCH(
                     allocationPercentage: pra.allocationPercentage,
                     assignedAt: new Date(pra.assignedAt || Date.now()),
                   })),
+                  skipDuplicates: true, // Skip if assignment already exists
                 });
               }
             }
