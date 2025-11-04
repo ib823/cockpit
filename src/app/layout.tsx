@@ -9,7 +9,7 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Keystone - Smart Implementation Planning',
+  title: 'Keystone',
   description: 'From RFP to Proposal in 10 Minutes',
   icons: {
     icon: [

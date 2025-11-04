@@ -32,9 +32,9 @@ export const company = {
 export const logo = {
   // Path to your logo files (place in /public folder)
   // Recommended formats: SVG (preferred), PNG (with transparency)
-  light: "/logo-keystone.png",  // Logo for light backgrounds
-  dark: "/logo-keystone.png",    // Logo for dark backgrounds (same logo works on both)
-  icon: "/keystone-icon.png",    // Small icon/favicon
+  light: "/logo-keystone.svg",  // Logo for light backgrounds
+  dark: "/logo-keystone.svg",    // Logo for dark backgrounds (same logo works on both)
+  icon: "/logo-keystone.svg",    // Small icon/favicon
 
   // Logo dimensions (adjust to your logo's aspect ratio)
   width: {

@@ -2,7 +2,7 @@ import sharp from 'sharp';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 
-const SOURCE_LOGO = '/workspaces/cockpit/logo_card_ultra_8000.png';
+const SOURCE_LOGO = '/workspaces/cockpit/public/logo-keystone.svg';
 const PUBLIC_DIR = '/workspaces/cockpit/public';
 
 interface LogoSize {
