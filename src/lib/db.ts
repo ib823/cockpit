@@ -92,22 +92,28 @@ const prismaClientSingleton = () => {
     },
   });
 
-  // Add query performance monitoring middleware
-  client.$use(async (params, next) => {
-    const startTime = performance.now();
-    const result = await next(params);
-    const duration = performance.now() - startTime;
+  // Add query performance monitoring using Prisma Extensions (Prisma 5+)
+  const extendedClient = client.$extends({
+    query: {
+      $allModels: {
+        async $allOperations({ operation, model, args, query }) {
+          const startTime = performance.now();
+          const result = await query(args);
+          const duration = performance.now() - startTime;
 
-    queryMonitor.recordQuery(duration);
+          queryMonitor.recordQuery(duration);
 
-    if (process.env.NODE_ENV === 'development' && duration > 50) {
-      console.log(`[DB] ${params.model}.${params.action} - ${duration.toFixed(2)}ms`);
-    }
+          if (process.env.NODE_ENV === 'development' && duration > 50) {
+            console.log(`[DB] ${model}.${operation} - ${duration.toFixed(2)}ms`);
+          }
 
-    return result;
+          return result;
+        },
+      },
+    },
   });
 
-  return client;
+  return extendedClient;
 };
 
 export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
