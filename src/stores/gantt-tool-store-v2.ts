@@ -754,6 +754,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           collapsed: false,
           dependencies: [],
           phaseResourceAssignments: [],
+          order: state.currentProject.phases.length, // Set order to current array length
         };
 
         state.currentProject.phases.push(newPhase);
@@ -849,6 +850,11 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         if (newIndex < 0 || newIndex >= phases.length) return;
 
         [phases[currentIndex], phases[newIndex]] = [phases[newIndex], phases[currentIndex]];
+
+        // Update the order field for all phases to match their new array positions
+        phases.forEach((phase, index) => {
+          phase.order = index;
+        });
 
         state.currentProject.updatedAt = new Date().toISOString();
       });
@@ -947,6 +953,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           assignee: data.assignee,
           progress: 0,
           resourceAssignments: [],
+          order: phase.tasks.length, // Set order to current array length
         };
 
         phase.tasks.push(newTask);
@@ -1034,6 +1041,11 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         if (newIndex < 0 || newIndex >= tasks.length) return;
 
         [tasks[currentIndex], tasks[newIndex]] = [tasks[newIndex], tasks[currentIndex]];
+
+        // Update the order field for all tasks to match their new array positions
+        tasks.forEach((task, index) => {
+          task.order = index;
+        });
 
         state.currentProject.updatedAt = new Date().toISOString();
       });

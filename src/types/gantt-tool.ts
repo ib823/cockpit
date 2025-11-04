@@ -33,6 +33,7 @@ export interface GanttPhase {
   collapsed: boolean;
   dependencies: string[]; // Phase IDs that this phase depends on
   phaseResourceAssignments?: PhaseResourceAssignment[]; // PM resources assigned at phase level
+  order: number; // Display order of phases
 }
 
 export interface GanttTask {
@@ -46,6 +47,7 @@ export interface GanttTask {
   assignee?: string;
   progress: number; // 0-100
   resourceAssignments?: TaskResourceAssignment[]; // Assigned resources
+  order: number; // Display order of tasks within phase
 }
 
 export interface GanttMilestone {
