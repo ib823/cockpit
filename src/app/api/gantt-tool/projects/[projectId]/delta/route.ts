@@ -182,6 +182,7 @@ export async function PATCH(
               utilizationTarget: r.utilizationTarget || null,
               createdAt: r.createdAt ? new Date(r.createdAt) : new Date(),
             })),
+            skipDuplicates: true, // Skip if resource already exists
           });
         }
 
@@ -238,6 +239,7 @@ export async function PATCH(
               order: phase.order || 0,
               dependencies: phase.dependencies || [],
             })),
+            skipDuplicates: true, // Skip if phase already exists
           });
 
           // Create tasks for new phases
@@ -256,6 +258,7 @@ export async function PATCH(
                   order: task.order !== undefined ? task.order : index,
                   dependencies: task.dependencies || [],
                 })),
+                skipDuplicates: true, // Skip if task already exists
               });
 
               // Create task resource assignments
@@ -332,6 +335,7 @@ export async function PATCH(
                     order: task.order !== undefined ? task.order : index,
                     dependencies: task.dependencies || [],
                   })),
+                  skipDuplicates: true, // Skip if task already exists
                 });
 
                 // Recreate task resource assignments
@@ -401,6 +405,7 @@ export async function PATCH(
               icon: m.icon,
               color: m.color,
             })),
+            skipDuplicates: true, // Skip if milestone already exists
           });
         }
 
@@ -441,6 +446,7 @@ export async function PATCH(
               region: h.region,
               type: h.type,
             })),
+            skipDuplicates: true, // Skip if holiday already exists
           });
         }
 
