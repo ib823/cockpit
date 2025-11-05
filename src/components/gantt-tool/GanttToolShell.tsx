@@ -33,6 +33,9 @@ export function GanttToolShell() {
     syncError,
     isLoading,
     saveProgress,
+    syncStatus,
+    lastLocalSaveAt,
+    cloudSyncPending,
   } = useGanttToolStoreV2();
 
   const [showContextPanel, setShowContextPanel] = useState(false);
@@ -225,17 +228,58 @@ export function GanttToolShell() {
         </div>
       )}
 
-      {/* Syncing Indicator */}
-      {isSyncing && (
-        <div className="bg-blue-50 border-b border-blue-200 px-6 py-2">
-          <div className="flex items-center justify-center gap-2 text-sm text-blue-700">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            {saveProgress ? (
-              <span>
-                {saveProgress.description} ({saveProgress.currentBatch}/{saveProgress.totalBatches})
-              </span>
-            ) : (
-              <span>Saving changes...</span>
+      {/* Local-First Sync Status Indicator */}
+      {syncStatus !== 'idle' && (
+        <div className={`border-b px-6 py-2 ${
+          syncStatus === 'error' ? 'bg-red-50 border-red-200' :
+          syncStatus === 'synced-cloud' && !cloudSyncPending ? 'bg-green-50 border-green-200' :
+          'bg-blue-50 border-blue-200'
+        }`}>
+          <div className={`flex items-center justify-center gap-2 text-sm ${
+            syncStatus === 'error' ? 'text-red-700' :
+            syncStatus === 'synced-cloud' && !cloudSyncPending ? 'text-green-700' :
+            'text-blue-700'
+          }`}>
+            {syncStatus === 'saving-local' && (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>💾 Saving locally...</span>
+              </>
+            )}
+            {syncStatus === 'saved-local' && (
+              <>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>✓ Saved locally{!navigator.onLine && ' (will sync when online)'}</span>
+              </>
+            )}
+            {syncStatus === 'syncing-cloud' && (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {saveProgress ? (
+                  <span>☁️ {saveProgress.description}</span>
+                ) : (
+                  <span>☁️ Syncing to cloud...</span>
+                )}
+              </>
+            )}
+            {syncStatus === 'synced-cloud' && !cloudSyncPending && (
+              <>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>✓ Synced to cloud</span>
+              </>
+            )}
+            {syncStatus === 'error' && (
+              <>
+                <AlertTriangle className="w-4 h-4" />
+                <span>⚠️ Sync error - changes saved locally</span>
+              </>
+            )}
+            {!navigator.onLine && syncStatus !== 'error' && (
+              <span className="ml-2 text-xs opacity-75">📡 Offline mode</span>
             )}
           </div>
         </div>

@@ -32,6 +32,8 @@ import { differenceInDays, addDays, format } from 'date-fns';
 import { adjustDatesToWorkingDays, calculateWorkingDaysInclusive, addWorkingDays } from '@/lib/gantt-tool/working-days';
 import { calculateProjectDelta, isDeltaEmpty, getDeltaSummary, sanitizeDelta } from '@/lib/gantt-tool/delta-calculator';
 import { shouldBatchDelta, batchDelta, type DeltaBatch } from '@/lib/gantt-tool/delta-batcher';
+import { saveProjectLocal, addToSyncQueue } from '@/lib/gantt-tool/local-storage';
+import { startBackgroundSync, stopBackgroundSync } from '@/lib/gantt-tool/background-sync';
 // import { createDefaultResources } from '@/lib/gantt-tool/default-resources'; // No longer used - users add resources manually or via import
 
 // Debounce timer for save operations (500ms)
@@ -54,6 +56,11 @@ interface GanttToolStateV2 {
     totalBatches: number;
     description: string;
   } | null;
+
+  // Local-first sync status
+  syncStatus: 'idle' | 'saving-local' | 'saved-local' | 'syncing-cloud' | 'synced-cloud' | 'error';
+  lastLocalSaveAt: Date | null;
+  cloudSyncPending: boolean;
 
   // History (Undo/Redo) - Client-side only
   history: {
@@ -209,6 +216,9 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     lastSyncAt: null,
     syncError: null,
     saveProgress: null,
+    syncStatus: 'idle',
+    lastLocalSaveAt: null,
+    cloudSyncPending: false,
     history: {
       past: [],
       future: [],
@@ -413,6 +423,57 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     },
 
     saveProject: async () => {
+      const { currentProject, syncStatus } = get();
+
+      if (!currentProject) return;
+
+      // Skip if already saving locally
+      if (syncStatus === 'saving-local') {
+        console.log('[Store] Save already in progress, skipping...');
+        return;
+      }
+
+      // Clear existing debounce timer
+      if (saveDebounceTimer) {
+        clearTimeout(saveDebounceTimer);
+      }
+
+      // Debounce saves to avoid too many writes
+      return new Promise<void>((resolve, reject) => {
+        saveDebounceTimer = setTimeout(async () => {
+          try {
+            // CLIENT-SIDE FIRST: Save to IndexedDB immediately (instant!)
+            set({ syncStatus: 'saving-local' });
+
+            await saveProjectLocal(currentProject);
+
+            // Update state - saved locally!
+            set((state) => {
+              state.syncStatus = 'saved-local';
+              state.lastLocalSaveAt = new Date();
+              state.cloudSyncPending = true;
+              state.lastSavedProject = JSON.parse(JSON.stringify(currentProject));
+            });
+
+            // Queue for background cloud sync (non-blocking)
+            await addToSyncQueue(currentProject.id);
+
+            console.log('[Store] ✓ Saved locally, queued for cloud sync');
+            resolve();
+          } catch (error) {
+            set((state) => {
+              state.syncStatus = 'error';
+              state.syncError = error instanceof Error ? error.message : 'Unknown error';
+            });
+            console.error('[Store] Local save failed:', error);
+            reject(error);
+          }
+        }, 300); // Reduced debounce for faster feedback
+      });
+    },
+
+    // Legacy server-first save (kept for fallback/migration)
+    saveProjectServerFirst: async () => {
       const { currentProject, isSyncing, lastSavedProject } = get();
 
       if (!currentProject) return;
@@ -1640,3 +1701,57 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
   }))
 );
 export { useGanttToolStoreV2 as useGanttToolStore };
+
+// Initialize background sync (client-side only)
+if (typeof window !== 'undefined') {
+  console.log('[Store] Initializing background sync...');
+
+  startBackgroundSync({
+    onSyncStart: (projectId) => {
+      const store = useGanttToolStoreV2.getState();
+      if (store.currentProject?.id === projectId) {
+        useGanttToolStoreV2.setState({ syncStatus: 'syncing-cloud' });
+      }
+      console.log('[BackgroundSync] Started syncing project:', projectId);
+    },
+
+    onSyncProgress: (projectId, progress) => {
+      const store = useGanttToolStoreV2.getState();
+      if (store.currentProject?.id === projectId) {
+        useGanttToolStoreV2.setState({
+          saveProgress: {
+            currentBatch: progress.current,
+            totalBatches: progress.total,
+            description: `Syncing to cloud (${progress.current}/${progress.total})`,
+          },
+        });
+      }
+      console.log(`[BackgroundSync] Progress: ${progress.current}/${progress.total}`);
+    },
+
+    onSyncSuccess: (projectId) => {
+      const store = useGanttToolStoreV2.getState();
+      if (store.currentProject?.id === projectId) {
+        useGanttToolStoreV2.setState({
+          syncStatus: 'synced-cloud',
+          lastSyncAt: new Date(),
+          cloudSyncPending: false,
+          saveProgress: null,
+        });
+      }
+      console.log('[BackgroundSync] ✓ Successfully synced project:', projectId);
+    },
+
+    onSyncError: (projectId, error) => {
+      const store = useGanttToolStoreV2.getState();
+      if (store.currentProject?.id === projectId) {
+        useGanttToolStoreV2.setState({
+          syncStatus: 'error',
+          syncError: error,
+          saveProgress: null,
+        });
+      }
+      console.error('[BackgroundSync] ✗ Sync error for project:', projectId, error);
+    },
+  });
+}
