@@ -40,6 +40,9 @@ import {
   ArrowRight,
   Target,
   Calendar,
+  Maximize,
+  Maximize2,
+  Monitor,
 } from 'lucide-react';
 import {
   Resource,
@@ -68,6 +71,7 @@ const DESIGNATION_RATE_RATIOS: Record<ResourceDesignation, number> = {
 };
 
 type ViewMode = 'matrix' | 'timeline' | 'hybrid';
+type ModalSize = 'nearfull' | 'fullscreen' | 'adaptive';
 
 interface ResourceAssignment {
   id: string;
@@ -103,6 +107,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   } = useGanttToolStoreV2();
 
   const [viewMode, setViewMode] = useState<ViewMode>('matrix');
+  const [modalSize, setModalSize] = useState<ModalSize>('nearfull');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<ResourceCategory | 'all'>('all');
   const [showForm, setShowForm] = useState(false);
@@ -257,6 +262,38 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     setExpandedResources(newExpanded);
   };
 
+  const cycleModalSize = () => {
+    const sizes: ModalSize[] = ['nearfull', 'fullscreen', 'adaptive'];
+    const currentIndex = sizes.indexOf(modalSize);
+    const nextIndex = (currentIndex + 1) % sizes.length;
+    setModalSize(sizes[nextIndex]);
+  };
+
+  // Modal size configuration
+  const modalSizeConfig = {
+    nearfull: {
+      containerClass: 'max-w-[98vw] h-[calc(100vh-2rem)]',
+      padding: 'p-4',
+      icon: Maximize,
+      label: 'Near-Fullscreen',
+      description: '98% viewport - comfortable padding',
+    },
+    fullscreen: {
+      containerClass: 'w-screen h-screen',
+      padding: 'p-0',
+      icon: Maximize2,
+      label: 'Fullscreen',
+      description: '100% viewport - maximum space',
+    },
+    adaptive: {
+      containerClass: 'w-full max-w-7xl max-h-[90vh]',
+      padding: 'p-4',
+      icon: Monitor,
+      label: 'Adaptive',
+      description: 'Smart sizing - responsive',
+    },
+  };
+
   const handleRemoveAssignment = (assignment: ResourceAssignment) => {
     if (!currentProject) return;
 
@@ -304,6 +341,9 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
 
   if (!currentProject) return null;
 
+  const currentSizeConfig = modalSizeConfig[modalSize];
+  const SizeIcon = currentSizeConfig.icon;
+
   return (
     <>
       {/* Overlay */}
@@ -313,8 +353,8 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-7xl max-h-[95vh] flex flex-col">
+      <div className={`fixed inset-0 z-[70] flex items-center justify-center ${currentSizeConfig.padding}`}>
+        <div className={`bg-white rounded-xl shadow-2xl flex flex-col ${currentSizeConfig.containerClass}`}>
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
@@ -328,12 +368,25 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Size Toggle Button */}
+              <button
+                onClick={cycleModalSize}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                title={`Current: ${currentSizeConfig.label}\nClick to cycle: ${currentSizeConfig.description}`}
+              >
+                <SizeIcon className="w-4 h-4" />
+                <span className="hidden sm:inline">{currentSizeConfig.label}</span>
+              </button>
+
+              {/* Close Button */}
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Stats Dashboard */}
