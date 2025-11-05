@@ -1162,193 +1162,207 @@ export default function OrganizationChartPage() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="h-screen flex flex-col bg-gray-50">
-        {/* Header - Jobs/Ive: "Beautiful simplicity" */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              type="text"
-              icon={<LeftOutlined />}
-              onClick={() => router.push('/gantt-tool')}
-              size="large"
-            />
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Organization Chart</h1>
-              <p className="text-sm text-gray-600">{currentProject.name}</p>
+        {/* Clean Header with Grouped Toolbar */}
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          {/* Top Bar - Navigation, Search, Save */}
+          <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100">
+            {/* Left: Navigation */}
+            <div className="flex items-center gap-4 min-w-[300px]">
+              <Button
+                type="text"
+                icon={<LeftOutlined />}
+                onClick={() => router.push('/gantt-tool')}
+                size="large"
+                className="hover:bg-gray-100"
+              />
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Organization Chart</h1>
+                <p className="text-xs text-gray-500">{currentProject.name}</p>
+              </div>
             </div>
 
-            {/* Search Button - Command Palette Trigger */}
-            <button
-              onClick={() => setIsCommandPaletteOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 ml-8 text-sm text-gray-600 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
-            >
-              <Command className="w-4 h-4" />
-              <span className="hidden sm:inline">Search...</span>
-              <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-semibold text-gray-500 bg-white border border-gray-300 rounded">
-                ⌘K
-              </kbd>
-            </button>
+            {/* Center: Search (Prominent) */}
+            <div className="flex-1 max-w-xl mx-8">
+              <button
+                onClick={() => setIsCommandPaletteOpen(true)}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-500 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
+              >
+                <Command className="w-4 h-4 text-gray-400" />
+                <span className="flex-1 text-left">Search people, teams, or phases...</span>
+                <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs font-semibold text-gray-500 bg-white border border-gray-300 rounded">
+                  ⌘K
+                </kbd>
+              </button>
+            </div>
 
-            {/* Expand/Collapse All Buttons */}
-            <div className="flex items-center gap-1 ml-4">
-              <button
-                onClick={expandAll}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50 transition-colors"
-                title="Expand all levels"
+            {/* Right: Save Status & Button */}
+            <div className="flex items-center gap-3 min-w-[200px] justify-end">
+              {lastSaved && (
+                <span className="text-xs text-gray-500 hidden lg:block">
+                  Saved {new Date(lastSaved).toLocaleTimeString()}
+                </span>
+              )}
+              <Button
+                type="primary"
+                icon={isSaving ? null : <SaveOutlined />}
+                onClick={saveOrgChart}
+                loading={isSaving}
+                size="large"
               >
-                <ChevronDown className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Expand All</span>
-              </button>
-              <button
-                onClick={collapseAll}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 border-l-0 rounded-r-lg hover:bg-gray-50 transition-colors"
-                title="Collapse all levels"
-              >
-                <ChevronUp className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Collapse All</span>
-              </button>
+                {isSaving ? 'Saving...' : 'Save'}
+              </Button>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Save Status */}
-            {lastSaved && (
-              <span className="text-xs text-gray-500">
-                Saved {new Date(lastSaved).toLocaleTimeString()}
-              </span>
-            )}
-
-            {/* Manual Save Button */}
-            <Button
-              type="primary"
-              icon={isSaving ? null : <SaveOutlined />}
-              onClick={saveOrgChart}
-              loading={isSaving}
-              size="large"
-            >
-              {isSaving ? 'Saving...' : 'Save'}
-            </Button>
-
-            {/* Available Resources Badge */}
-            <Badge count={availableResources.length} showZero style={{ backgroundColor: '#52c41a' }}>
-              <Button type="dashed" icon={<UserOutlined />} size="large">
-                Available Resources
-              </Button>
-            </Badge>
-
-            {/* Auto-Populate Button */}
-            <Button
-              type="default"
-              icon={<TeamOutlined />}
-              onClick={autoPopulateResources}
-              size="large"
-              disabled={!currentProject.resources || currentProject.resources.length === 0}
-            >
-              Auto-Populate
-            </Button>
-
-            {/* View Mode Selector */}
-            <Select
-              value={viewMode}
-              onChange={setViewMode}
-              size="large"
-              style={{ width: 180 }}
-              options={[
-                { value: 'overall', label: '🏢 Overall Project' },
-                { value: 'by-phase', label: '📊 By Phase' },
-                { value: 'by-task', label: '✓ By Task' },
-              ]}
-            />
-
-            {/* Phase/Task Selector */}
-            {viewMode === 'by-phase' && (
-              <Select
-                placeholder="Select phase"
-                value={selectedPhaseId}
-                onChange={setSelectedPhaseId}
-                size="large"
-                style={{ width: 200 }}
-                options={currentProject.phases.map(phase => ({
-                  value: phase.id,
-                  label: phase.name,
-                }))}
-              />
-            )}
-
-            {viewMode === 'by-task' && selectedPhaseId && (
-              <Select
-                placeholder="Select task"
-                value={selectedTaskId}
-                onChange={setSelectedTaskId}
-                size="large"
-                style={{ width: 200 }}
-                options={
-                  currentProject.phases
-                    .find(p => p.id === selectedPhaseId)
-                    ?.tasks.map(task => ({
-                      value: task.id,
-                      label: task.name,
-                    })) || []
-                }
-              />
-            )}
-
-            {/* Manage Structure */}
-            <Button
-              type="default"
-              icon={<Settings size={16} />}
-              onClick={() => setShowManagementPanel(!showManagementPanel)}
-              size="large"
-              className="always-visible"
-            >
-              {showManagementPanel ? 'Hide' : 'Manage'} Structure
-            </Button>
-
-            {/* Add Level */}
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={addLevel}
-              size="large"
-              className="always-visible"
-            >
-              Add Level
-            </Button>
-
-            {/* Export */}
-            <Dropdown
-              menu={{
-                items: [
-                  {
-                    key: 'png',
-                    label: 'Export as PNG',
-                    icon: <FileImageOutlined />,
-                    onClick: exportToPNG,
-                  },
-                  {
-                    key: 'pdf',
-                    label: 'Export as PDF',
-                    icon: <FilePdfOutlined />,
-                    onClick: exportToPDF,
-                  },
-                ],
-              }}
-              trigger={['click']}
-            >
+          {/* Toolbar - Grouped Controls */}
+          <div className="flex items-center gap-4 px-6 py-2.5 overflow-x-auto">
+            {/* Layout Group */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mr-1">Layout</span>
               <Button
-                icon={<DownloadOutlined />}
-                size="large"
-                loading={isExporting}
-                className="always-visible"
+                size="small"
+                icon={<ChevronUp size={14} />}
+                onClick={expandAll}
+                className="text-xs"
               >
-                Export
+                Expand All
               </Button>
-            </Dropdown>
+              <Button
+                size="small"
+                icon={<ChevronDown size={14} />}
+                onClick={collapseAll}
+                className="text-xs"
+              >
+                Collapse All
+              </Button>
+            </div>
+
+            <div className="w-px h-6 bg-gray-300" />
+
+            {/* View Group */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mr-1">View</span>
+              <Select
+                value={viewMode}
+                onChange={setViewMode}
+                size="middle"
+                style={{ width: 160 }}
+                options={[
+                  { value: 'overall', label: '🏢 Overall' },
+                  { value: 'by-phase', label: '📊 By Phase' },
+                  { value: 'by-task', label: '✓ By Task' },
+                ]}
+              />
+              {viewMode === 'by-phase' && (
+                <Select
+                  placeholder="Select phase"
+                  value={selectedPhaseId}
+                  onChange={setSelectedPhaseId}
+                  size="middle"
+                  style={{ width: 180 }}
+                  options={currentProject.phases.map(phase => ({
+                    value: phase.id,
+                    label: phase.name,
+                  }))}
+                />
+              )}
+              {viewMode === 'by-task' && selectedPhaseId && (
+                <Select
+                  placeholder="Select task"
+                  value={selectedTaskId}
+                  onChange={setSelectedTaskId}
+                  size="middle"
+                  style={{ width: 180 }}
+                  options={
+                    currentProject.phases
+                      .find(p => p.id === selectedPhaseId)
+                      ?.tasks.map(task => ({
+                        value: task.id,
+                        label: task.name,
+                      })) || []
+                  }
+                />
+              )}
+            </div>
+
+            <div className="w-px h-6 bg-gray-300" />
+
+            {/* People Group */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mr-1">People</span>
+              <Badge count={availableResources.length} showZero style={{ backgroundColor: '#52c41a' }} size="small">
+                <Button type="dashed" icon={<UserOutlined />} size="middle">
+                  Available ({availableResources.length})
+                </Button>
+              </Badge>
+              <Button
+                icon={<TeamOutlined />}
+                onClick={autoPopulateResources}
+                size="middle"
+                disabled={!currentProject.resources || currentProject.resources.length === 0}
+              >
+                Auto-Populate
+              </Button>
+            </div>
+
+            <div className="w-px h-6 bg-gray-300" />
+
+            {/* Structure Group */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mr-1">Structure</span>
+              <Button
+                icon={<Settings size={16} />}
+                onClick={() => setShowManagementPanel(!showManagementPanel)}
+                size="middle"
+              >
+                {showManagementPanel ? 'Hide' : 'Manage'}
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={addLevel}
+                size="middle"
+              >
+                Add Level
+              </Button>
+            </div>
+
+            <div className="w-px h-6 bg-gray-300" />
+
+            {/* Export Group */}
+            <div className="flex items-center gap-2">
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      key: 'png',
+                      label: 'Export as PNG',
+                      icon: <FileImageOutlined />,
+                      onClick: exportToPNG,
+                    },
+                    {
+                      key: 'pdf',
+                      label: 'Export as PDF',
+                      icon: <FilePdfOutlined />,
+                      onClick: exportToPDF,
+                    },
+                  ],
+                }}
+                trigger={['click']}
+              >
+                <Button
+                  icon={<DownloadOutlined />}
+                  size="middle"
+                  loading={isExporting}
+                >
+                  Export
+                </Button>
+              </Dropdown>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Instruction Banner - Jobs/Ive: "Make it obvious" */}
+        {/* Instruction Banner - Jobs/Ive: "Make it obvious" */}
       <div className="bg-blue-50 border-b border-blue-100 px-6 py-3">
         <div className="flex items-center gap-2 text-sm text-blue-900">
           <EyeOutlined />
