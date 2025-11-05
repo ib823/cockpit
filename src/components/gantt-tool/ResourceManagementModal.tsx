@@ -131,13 +131,14 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
       currentProject.phases.forEach(phase => {
         phase.resourceAssignments?.forEach(assignment => {
           if (assignment.resourceId === resource.id) {
-            totalHours += assignment.hours;
+            const hours = Number(assignment.hours) || 0; // Safety: convert to number, default to 0
+            totalHours += hours;
             assignments.push({
               id: `phase-${phase.id}-${assignment.resourceId}`,
               resourceId: resource.id,
               phaseId: phase.id,
               phaseName: phase.name,
-              hours: assignment.hours,
+              hours,
               startDate: phase.startDate,
               endDate: phase.endDate,
               type: 'phase',
@@ -149,7 +150,8 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
         phase.tasks.forEach(task => {
           task.resourceAssignments?.forEach(assignment => {
             if (assignment.resourceId === resource.id) {
-              totalHours += assignment.hours;
+              const hours = Number(assignment.hours) || 0; // Safety: convert to number, default to 0
+              totalHours += hours;
               assignments.push({
                 id: `task-${task.id}-${assignment.resourceId}`,
                 resourceId: resource.id,
@@ -157,7 +159,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                 phaseName: phase.name,
                 taskId: task.id,
                 taskName: task.name,
-                hours: assignment.hours,
+                hours,
                 startDate: task.startDate,
                 endDate: task.endDate,
                 type: 'task',
@@ -238,9 +240,9 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     filteredResources.forEach(resource => {
       const resourceStat = resourceStats.get(resource.id);
       if (resourceStat) {
-        stats.totalAssignments += resourceStat.assignmentCount;
-        stats.totalHours += resourceStat.totalHours;
-        stats.totalCost += resourceStat.totalCost;
+        stats.totalAssignments += resourceStat.assignmentCount || 0;
+        stats.totalHours += Number(resourceStat.totalHours) || 0;
+        stats.totalCost += Number(resourceStat.totalCost) || 0;
         if (resourceStat.isOverallocated) stats.overallocatedCount++;
         if (resourceStat.hasConflicts) stats.conflictsCount++;
         if (resourceStat.assignmentCount === 0) stats.unassignedCount++;
@@ -402,7 +404,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
               </div>
               <div className="text-center">
                 <div className="text-xs text-gray-600 mb-1">Total Hours</div>
-                <div className="text-lg font-bold text-purple-600">{overallStats.totalHours.toFixed(0)}h</div>
+                <div className="text-lg font-bold text-purple-600">{(Number(overallStats.totalHours) || 0).toFixed(0)}h</div>
               </div>
               <div className="text-center">
                 <div className="text-xs text-gray-600 mb-1">Total Cost</div>
@@ -707,7 +709,7 @@ function MatrixView({
                       </div>
                       <div className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {stats.totalHours.toFixed(0)}h
+                        {(Number(stats.totalHours) || 0).toFixed(0)}h
                       </div>
                       {resource.isBillable && (
                         <div className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium flex items-center gap-1">
@@ -871,7 +873,7 @@ function TimelineView({
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm text-gray-900 truncate">{resource.name}</div>
                       <div className="text-xs text-gray-600">
-                        {stats ? `${stats.assignmentCount} · ${stats.totalHours.toFixed(0)}h` : 'Unassigned'}
+                        {stats ? `${stats.assignmentCount} · ${(Number(stats.totalHours) || 0).toFixed(0)}h` : 'Unassigned'}
                       </div>
                     </div>
                   </div>
@@ -996,7 +998,7 @@ function HybridView({
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm text-gray-900 truncate">{resource.name}</div>
                     <div className="text-xs text-gray-600">
-                      {stats ? `${stats.assignmentCount} · ${stats.totalHours.toFixed(0)}h` : 'Unassigned'}
+                      {stats ? `${stats.assignmentCount} · ${(Number(stats.totalHours) || 0).toFixed(0)}h` : 'Unassigned'}
                     </div>
                   </div>
                   {stats?.isOverallocated && (
