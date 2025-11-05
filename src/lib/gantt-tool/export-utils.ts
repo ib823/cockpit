@@ -551,10 +551,19 @@ async function prepareExportCanvas(
   // Calculate actual content bounds to remove empty space
   const contentBounds = calculateContentBounds(clone);
 
-  // Adjust canvas height to fit actual content (removing empty bottom space)
-  if (contentBounds.height > 0) {
+  // Adjust canvas dimensions to fit actual content (removing empty space)
+  if (contentBounds.height > 0 && contentBounds.width > 0) {
     const totalHeight = contentBounds.height + config.padding.top + config.padding.bottom;
+    const totalWidth = Math.min(
+      contentBounds.width + config.padding.left + config.padding.right,
+      targetWidth // Don't exceed preset width
+    );
+
     clone.style.height = `${totalHeight}px`;
+    clone.style.width = `${totalWidth}px`;
+
+    // Clip grid lines and vertical elements to content bounds
+    clipVerticalElementsToContentHeight(clone, contentBounds.height);
 
     // If there's a header or footer, make sure they're positioned correctly
     if (config.contentOptions.includeHeader) {
@@ -576,7 +585,7 @@ async function prepareExportCanvas(
 }
 
 /**
- * Calculate the actual bounding box of visible content
+ * Calculate the actual bounding box of visible content with smart trimming
  */
 function calculateContentBounds(canvas: HTMLElement): { height: number; width: number } {
   // Strategy: Find all visible child elements and calculate their bounds
@@ -586,20 +595,33 @@ function calculateContentBounds(canvas: HTMLElement): { height: number; width: n
   // Recursively find all visible elements with meaningful content
   function findVisibleElements(element: HTMLElement) {
     // Skip if element is hidden
-    if (element.style.display === 'none' || element.offsetHeight === 0) {
+    if (element.style.display === 'none' || element.offsetHeight === 0 || element.offsetWidth === 0) {
       return;
     }
 
-    // Check if element has visual content (background, border, text, etc.)
+    // Check if element has visual content (background, border, text, SVG, etc.)
     const computedStyle = window.getComputedStyle(element);
     const hasVisualContent =
       computedStyle.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
       computedStyle.borderWidth !== '0px' ||
-      element.textContent?.trim() !== '' ||
+      (element.textContent?.trim() !== '' && element.offsetHeight > 5) ||
       element.tagName === 'svg' ||
-      element.tagName === 'IMG';
+      element.tagName === 'SVG' ||
+      element.tagName === 'IMG' ||
+      element.tagName === 'CANVAS' ||
+      // SVG elements with strokes or fills
+      (element instanceof SVGElement && (
+        computedStyle.stroke !== 'none' ||
+        computedStyle.fill !== 'none' ||
+        element.hasAttribute('fill') ||
+        element.hasAttribute('stroke')
+      )) ||
+      // Elements with box shadows
+      computedStyle.boxShadow !== 'none' ||
+      // Elements with backgrounds or gradients
+      computedStyle.backgroundImage !== 'none';
 
-    if (hasVisualContent && element.offsetHeight > 5) {
+    if (hasVisualContent && (element.offsetHeight > 2 || element.offsetWidth > 2)) {
       visibleElements.push(element);
     }
 
@@ -619,26 +641,67 @@ function calculateContentBounds(canvas: HTMLElement): { height: number; width: n
     return { height: 600, width: canvas.offsetWidth };
   }
 
-  // Calculate the bounding box
+  // Calculate the bounding box (both vertical and horizontal)
   let minTop = Infinity;
   let maxBottom = 0;
+  let minLeft = Infinity;
+  let maxRight = 0;
 
   visibleElements.forEach((el) => {
     const rect = el.getBoundingClientRect();
     const relativeTop = rect.top - canvasRect.top;
     const relativeBottom = relativeTop + rect.height;
+    const relativeLeft = rect.left - canvasRect.left;
+    const relativeRight = relativeLeft + rect.width;
 
     if (relativeTop < minTop) minTop = relativeTop;
     if (relativeBottom > maxBottom) maxBottom = relativeBottom;
+    if (relativeLeft < minLeft) minLeft = relativeLeft;
+    if (relativeRight > maxRight) maxRight = relativeRight;
   });
 
-  // Add breathing room and ensure minimum height
-  const contentHeight = Math.max(maxBottom - Math.max(minTop, 0) + 60, 200);
+  // Calculate dynamic breathing room based on content size (2-4% of content, min 20px, max 60px)
+  const contentHeightRaw = maxBottom - Math.max(minTop, 0);
+  const contentWidthRaw = maxRight - Math.max(minLeft, 0);
+  const verticalBreathingRoom = Math.min(Math.max(contentHeightRaw * 0.03, 20), 60);
+  const horizontalBreathingRoom = Math.min(Math.max(contentWidthRaw * 0.02, 16), 40);
+
+  // Add breathing room and ensure minimum dimensions
+  const contentHeight = Math.max(contentHeightRaw + verticalBreathingRoom, 200);
+  const contentWidth = Math.max(contentWidthRaw + (horizontalBreathingRoom * 2), 400);
 
   return {
     height: contentHeight,
-    width: canvas.offsetWidth,
+    width: contentWidth,
   };
+}
+
+/**
+ * Clip vertical grid lines and other vertical elements to actual content height
+ */
+function clipVerticalElementsToContentHeight(canvas: HTMLElement, contentHeight: number): void {
+  // Find all elements that might extend beyond content (grid lines, milestone lines, etc.)
+  const verticalElements = canvas.querySelectorAll('div[class*="h-[calc(100vh"]');
+
+  verticalElements.forEach((el) => {
+    const element = el as HTMLElement;
+    // Remove viewport-based height classes and set explicit height
+    element.style.height = `${contentHeight}px`;
+    element.style.maxHeight = `${contentHeight}px`;
+  });
+
+  // Also find divs with very large heights that might be grid lines
+  const allDivs = canvas.querySelectorAll('div');
+  allDivs.forEach((div) => {
+    const element = div as HTMLElement;
+    const height = element.offsetHeight;
+
+    // If element is taller than content + 100px buffer, it's likely a grid line
+    if (height > contentHeight + 100) {
+      element.style.height = `${contentHeight}px`;
+      element.style.maxHeight = `${contentHeight}px`;
+    }
+  });
 }
 
 /**
@@ -912,4 +975,152 @@ function blobToDataURL(blob: Blob): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
+}
+
+// ============================================================================
+// ORG CHART EXPORT FUNCTIONS
+// ============================================================================
+
+/**
+ * Export organization chart to PNG with optimized content bounds
+ */
+export async function exportOrgChartToPNG(
+  projectName: string,
+  elementId: string = 'org-chart-container'
+): Promise<void> {
+  const loadingDiv = showLoadingIndicator('Exporting Organization Chart...');
+
+  try {
+    const orgChartElement = document.getElementById(elementId);
+    if (!orgChartElement) {
+      throw new Error('Organization chart not found');
+    }
+
+    // Clone the element for export
+    const clone = orgChartElement.cloneNode(true) as HTMLElement;
+    clone.id = 'org-chart-export-clone';
+
+    // Position off-screen and prepare for export
+    clone.style.position = 'absolute';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+    clone.style.backgroundColor = '#ffffff';
+    clone.style.padding = '40px';
+
+    // Remove any interactive elements (buttons, links, etc.)
+    document.body.appendChild(clone);
+
+    // Hide buttons and interactive elements
+    const buttons = clone.querySelectorAll('button');
+    buttons.forEach((btn) => (btn.style.display = 'none'));
+
+    // Wait for rendering
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Capture with html2canvas
+    const canvas = await html2canvas(clone, {
+      backgroundColor: '#ffffff',
+      scale: 3, // High quality for org chart
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+    });
+
+    // Cleanup clone
+    document.body.removeChild(clone);
+
+    // Download
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        throw new Error('Failed to create image blob');
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `${sanitizeFilename(projectName)}-org-chart.png`;
+      link.href = url;
+      link.click();
+
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+      hideLoadingIndicator(loadingDiv);
+    }, 'image/png');
+  } catch (error) {
+    hideLoadingIndicator(loadingDiv);
+    console.error('Failed to export org chart:', error);
+    alert(`Failed to export org chart: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Export organization chart to PDF
+ */
+export async function exportOrgChartToPDF(
+  projectName: string,
+  elementId: string = 'org-chart-container'
+): Promise<void> {
+  const loadingDiv = showLoadingIndicator('Exporting Organization Chart to PDF...');
+
+  try {
+    const orgChartElement = document.getElementById(elementId);
+    if (!orgChartElement) {
+      throw new Error('Organization chart not found');
+    }
+
+    // Clone the element for export
+    const clone = orgChartElement.cloneNode(true) as HTMLElement;
+    clone.id = 'org-chart-export-clone';
+
+    // Position off-screen and prepare for export
+    clone.style.position = 'absolute';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+    clone.style.backgroundColor = '#ffffff';
+    clone.style.padding = '40px';
+
+    // Remove any interactive elements
+    document.body.appendChild(clone);
+
+    // Hide buttons and interactive elements
+    const buttons = clone.querySelectorAll('button');
+    buttons.forEach((btn) => (btn.style.display = 'none'));
+
+    // Wait for rendering
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Capture with html2canvas
+    const canvas = await html2canvas(clone, {
+      backgroundColor: '#ffffff',
+      scale: 3,
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+    });
+
+    // Cleanup clone
+    document.body.removeChild(clone);
+
+    // Create PDF
+    const pdf = new jsPDF({
+      orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+      unit: 'px',
+      format: [canvas.width / 3, canvas.height / 3], // Adjust for scale
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 3, canvas.height / 3);
+
+    pdf.setProperties({
+      title: `${projectName} - Organization Chart`,
+      author: 'Gantt Chart Tool',
+      subject: 'Organization Structure',
+      creator: 'Gantt Chart Tool',
+    });
+
+    pdf.save(`${sanitizeFilename(projectName)}-org-chart.pdf`);
+    hideLoadingIndicator(loadingDiv);
+  } catch (error) {
+    hideLoadingIndicator(loadingDiv);
+    console.error('Failed to export org chart to PDF:', error);
+    alert(`Failed to export org chart to PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }

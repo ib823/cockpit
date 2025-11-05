@@ -7,9 +7,11 @@
 
 import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { Download, FileImage, FileText } from 'lucide-react';
 import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
 import type { Resource, ResourceCategory, ResourceDesignation } from '@/types/gantt-tool';
 import { RESOURCE_CATEGORIES } from '@/types/gantt-tool';
+import { exportOrgChartToPNG, exportOrgChartToPDF } from '@/lib/gantt-tool/export-utils';
 
 interface OrgChartProps {
   className?: string;
@@ -124,19 +126,49 @@ export function OrgChart({ className = '' }: OrgChartProps) {
   // Otherwise show auto-generated chart
   return (
     <div className={`w-full h-full overflow-auto bg-gray-50 p-8 ${className}`}>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto" id="org-chart-container">
         {/* Organization Chart Title */}
         <div className="text-center mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
             Auto-Generated Organization Chart
           </h2>
           <p className="text-sm text-gray-500 mb-4">{currentProject.name}</p>
-          <button
-            onClick={() => router.push('/organization-chart')}
-            className="text-sm px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Customize Organization Chart →
-          </button>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <button
+              onClick={() => router.push('/organization-chart')}
+              className="text-sm px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Customize Organization Chart →
+            </button>
+
+            {/* Export Dropdown */}
+            <div className="relative group">
+              <button className="text-sm px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+
+              {/* Dropdown Menu */}
+              <div className="absolute top-full mt-2 right-0 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 min-w-[160px]">
+                <button
+                  onClick={() => exportOrgChartToPNG(currentProject.name)}
+                  className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 text-sm text-gray-700 first:rounded-t-lg"
+                >
+                  <FileImage className="w-4 h-4" />
+                  Export as PNG
+                </button>
+                <button
+                  onClick={() => exportOrgChartToPDF(currentProject.name)}
+                  className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 text-sm text-gray-700 last:rounded-b-lg border-t border-gray-100"
+                >
+                  <FileText className="w-4 h-4" />
+                  Export as PDF
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Hierarchical Structure */}
