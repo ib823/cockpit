@@ -201,7 +201,17 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const errorMessage = errorData.error || `Sync failed with status ${response.status}`;
+    const errorMessage = errorData.error || errorData.message || `Sync failed with status ${response.status}`;
+
+    // Enhanced error logging
+    console.error('[BackgroundSync] Server error details:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorMessage,
+      details: errorData.details,
+      projectId,
+    });
+
     throw new Error(errorMessage);
   }
 }
@@ -236,9 +246,20 @@ async function processSyncQueue(): Promise<void> {
       try {
         syncCallbacks.onSyncStart?.(item.projectId);
 
-        // Get last known server state (we'll need to store this)
-        // For now, we'll sync the full local state
-        await syncProjectToServer(item.projectId, null);
+        // Fetch current server state to calculate proper delta
+        let serverState: GanttProject | null = null;
+        try {
+          const response = await fetch(`/api/gantt-tool/projects/${item.projectId}`);
+          if (response.ok) {
+            const data = await response.json();
+            serverState = data.project;
+            console.log('[BackgroundSync] Fetched server state for delta calculation');
+          }
+        } catch (fetchError) {
+          console.warn('[BackgroundSync] Could not fetch server state, syncing full state:', fetchError);
+        }
+
+        await syncProjectToServer(item.projectId, serverState);
 
         // Remove from queue on success
         await removeFromSyncQueue(item.id);
@@ -330,4 +351,32 @@ export async function triggerSync(projectId?: string): Promise<void> {
  */
 export function isSyncInProgress(): boolean {
   return isSyncing;
+}
+
+/**
+ * Clear sync queue (for debugging/recovery)
+ */
+export async function clearSyncQueue(): Promise<void> {
+  const { clearAllLocalData } = await import('./local-storage');
+  const items = await getPendingSyncItems();
+
+  for (const item of items) {
+    await removeFromSyncQueue(item.id);
+  }
+
+  console.log(`[BackgroundSync] Cleared ${items.length} items from sync queue`);
+}
+
+/**
+ * Force immediate sync (for debugging)
+ */
+export async function forceSyncNow(projectId?: string): Promise<void> {
+  console.log('[BackgroundSync] Force sync triggered');
+
+  if (projectId) {
+    await addToSyncQueue(projectId);
+  }
+
+  isSyncing = false; // Reset flag to allow immediate sync
+  await processSyncQueue();
 }
