@@ -35,12 +35,14 @@ import {
   CloseOutlined,
   DragOutlined,
 } from '@ant-design/icons';
-import { ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { ChevronDown, ChevronUp, Settings, Command } from 'lucide-react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { useHotkeys } from 'react-hotkeys-hook';
 import type { Resource } from '@/types/gantt-tool';
+import { CommandPalette } from '@/components/organization/CommandPalette';
 
 // Dynamically import the org chart wrapper to avoid SSR issues with D3
 const ReactOrgChartWrapper = dynamic(
@@ -224,8 +226,41 @@ export default function OrganizationChartPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showManagementPanel, setShowManagementPanel] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [spotlightResourceId, setSpotlightResourceId] = useState<string | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
   const isInitialLoad = useRef(true); // Track initial load to prevent saving default state
+
+  // Keyboard shortcuts - Command Palette
+  useHotkeys('mod+k', (e) => {
+    e.preventDefault();
+    setIsCommandPaletteOpen(true);
+  }, { enableOnFormTags: true });
+
+  useHotkeys('/', (e) => {
+    // Only trigger if not in an input field
+    const target = e.target as HTMLElement;
+    if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      setIsCommandPaletteOpen(true);
+    }
+  });
+
+  // Keyboard shortcuts - ESC to exit spotlight
+  useHotkeys('esc', () => {
+    if (spotlightResourceId) {
+      setSpotlightResourceId(null);
+    }
+  });
+
+  // Keyboard shortcuts - Quick level jumps
+  useHotkeys('1,2,3,4', (e) => {
+    const level = parseInt(e.key);
+    const levelElement = document.querySelector(`[data-level-id="${level}"]`);
+    if (levelElement) {
+      levelElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
 
   /**
    * Default Organization Chart Structure
@@ -885,6 +920,48 @@ export default function OrganizationChartPage() {
     return true;
   }, [currentProject, viewMode, selectedPhaseId, selectedTaskId]);
 
+  // Command Palette handlers
+  const handleSelectResource = useCallback((resourceId: string) => {
+    // Enter spotlight mode for this resource
+    setSpotlightResourceId(resourceId);
+
+    // Scroll to the resource in the chart
+    setTimeout(() => {
+      const resourceElement = document.querySelector(`[data-resource-id="${resourceId}"]`);
+      if (resourceElement) {
+        resourceElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  }, []);
+
+  const handleSelectPhase = useCallback((phaseId: string) => {
+    setViewMode('by-phase');
+    setSelectedPhaseId(phaseId);
+    setSelectedTaskId(null);
+    message.info(`Filtering by phase: ${currentProject?.phases.find(p => p.id === phaseId)?.name}`);
+  }, [currentProject, message]);
+
+  const handleSelectTask = useCallback((phaseId: string, taskId: string) => {
+    setViewMode('by-task');
+    setSelectedPhaseId(phaseId);
+    setSelectedTaskId(taskId);
+    const phase = currentProject?.phases.find(p => p.id === phaseId);
+    const task = phase?.tasks.find(t => t.id === taskId);
+    message.info(`Filtering by task: ${task?.name}`);
+  }, [currentProject, message]);
+
+  const handleJumpToLevel = useCallback((level: number) => {
+    const levelElement = document.querySelector(`[data-level-id="${level}"]`);
+    if (levelElement) {
+      levelElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      message.success(`Jumped to Level ${level}`);
+    }
+  }, [message]);
+
+  const handleToggleFilters = useCallback(() => {
+    setShowManagementPanel(prev => !prev);
+  }, []);
+
   // Export functions
   const exportToPNG = useCallback(async () => {
     if (!chartRef.current) return;
@@ -1077,6 +1154,18 @@ export default function OrganizationChartPage() {
               <h1 className="text-2xl font-semibold text-gray-900">Organization Chart</h1>
               <p className="text-sm text-gray-600">{currentProject.name}</p>
             </div>
+
+            {/* Search Button - Command Palette Trigger */}
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 ml-8 text-sm text-gray-600 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
+            >
+              <Command className="w-4 h-4" />
+              <span className="hidden sm:inline">Search...</span>
+              <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-semibold text-gray-500 bg-white border border-gray-300 rounded">
+                ⌘K
+              </kbd>
+            </button>
           </div>
 
           <div className="flex items-center gap-3">
@@ -1412,6 +1501,7 @@ export default function OrganizationChartPage() {
             viewMode={viewMode}
             selectedPhaseId={selectedPhaseId}
             selectedTaskId={selectedTaskId}
+            spotlightResourceId={spotlightResourceId}
           />
         </div>
       </div>
@@ -1549,6 +1639,19 @@ export default function OrganizationChartPage() {
           </div>
         )}
       </Modal>
+
+      {/* Command Palette - Revolutionary Search */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        resources={currentProject?.resources || []}
+        phases={currentProject?.phases || []}
+        onSelectResource={handleSelectResource}
+        onSelectPhase={handleSelectPhase}
+        onSelectTask={handleSelectTask}
+        onJumpToLevel={handleJumpToLevel}
+        onToggleFilters={handleToggleFilters}
+      />
       </div>
     </DndProvider>
   );

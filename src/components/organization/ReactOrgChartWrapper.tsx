@@ -53,6 +53,7 @@ interface ReactOrgChartWrapperProps {
   selectedPhaseId?: string | null;
   selectedTaskId?: string | null;
   onNodeClick?: (nodeId: string) => void;
+  spotlightResourceId?: string | null;
 }
 
 // Import types from page
@@ -119,7 +120,7 @@ function SubGroupNode({ data }: { data: any }) {
 }
 
 function ResourceNode({ data }: { data: any }) {
-  const { person } = data;
+  const { person, isSpotlighted, isDimmed } = data;
   const resource = person.resource;
   const assignments = person.assignments;
 
@@ -131,14 +132,18 @@ function ResourceNode({ data }: { data: any }) {
 
   return (
     <div
+      data-resource-id={resource.id}
       className={`
-        bg-white rounded-lg shadow-md border-2 transition-all duration-200
+        bg-white rounded-lg shadow-md border-2 transition-all duration-300
         ${isActivelyWorking ? 'border-green-400 hover:border-green-500' : 'border-gray-200 hover:border-gray-300'}
+        ${isSpotlighted ? 'ring-4 ring-blue-400 ring-offset-2 scale-105 shadow-2xl z-50' : ''}
+        ${isDimmed ? 'opacity-30' : 'opacity-100'}
         w-[280px] h-[160px] relative cursor-pointer hover:shadow-lg
       `}
       style={{
         borderLeftWidth: assignments?.primaryPhase ? '6px' : '2px',
         borderLeftColor: assignments?.primaryPhase?.phaseColor || undefined,
+        transform: isSpotlighted ? 'scale(1.05)' : undefined,
       }}
     >
       {/* Header */}
@@ -269,6 +274,7 @@ function OrgChartFlow({
   selectedPhaseId,
   selectedTaskId,
   onNodeClick,
+  spotlightResourceId,
 }: ReactOrgChartWrapperProps) {
   const currentProject = useGanttToolStoreV2((state) => state.currentProject);
 
@@ -523,6 +529,10 @@ function OrgChartFlow({
                 const resourceNodeId = resData.id;
                 const resourceX = subGroupXOffset + idx * (nodeWidth + nodeSpacing);
 
+                // Spotlight mode: highlight selected resource, dim others
+                const isSpotlighted = spotlightResourceId && resData.resource.id === spotlightResourceId;
+                const isDimmed = spotlightResourceId && resData.resource.id !== spotlightResourceId;
+
                 nodes.push({
                   id: resourceNodeId,
                   type: 'resourceNode',
@@ -538,6 +548,8 @@ function OrgChartFlow({
                       resource: resData.resource,
                       assignments: resData.assignments,
                     },
+                    isSpotlighted,
+                    isDimmed,
                   },
                 });
 
@@ -563,6 +575,10 @@ function OrgChartFlow({
               const resourceNodeId = resData.id;
               const resourceX = xOffset + idx * (nodeWidth + nodeSpacing);
 
+              // Spotlight mode: highlight selected resource, dim others
+              const isSpotlighted = spotlightResourceId && resData.resource.id === spotlightResourceId;
+              const isDimmed = spotlightResourceId && resData.resource.id !== spotlightResourceId;
+
               nodes.push({
                 id: resourceNodeId,
                 type: 'resourceNode',
@@ -578,6 +594,8 @@ function OrgChartFlow({
                     resource: resData.resource,
                     assignments: resData.assignments,
                   },
+                  isSpotlighted,
+                  isDimmed,
                 },
               });
 
