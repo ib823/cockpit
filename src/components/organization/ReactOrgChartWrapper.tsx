@@ -16,6 +16,7 @@ import ReactFlow, {
   useEdgesState,
   Controls,
   Background,
+  MiniMap,
   ConnectionLineType,
   MarkerType,
 } from 'reactflow';
@@ -54,6 +55,8 @@ interface ReactOrgChartWrapperProps {
   selectedTaskId?: string | null;
   onNodeClick?: (nodeId: string) => void;
   spotlightResourceId?: string | null;
+  collapsedLevels?: Set<string>;
+  onToggleLevelCollapse?: (levelId: string) => void;
 }
 
 // Import types from page
@@ -275,6 +278,8 @@ function OrgChartFlow({
   selectedTaskId,
   onNodeClick,
   spotlightResourceId,
+  collapsedLevels = new Set(),
+  onToggleLevelCollapse,
 }: ReactOrgChartWrapperProps) {
   const currentProject = useGanttToolStoreV2((state) => state.currentProject);
 
@@ -352,6 +357,15 @@ function OrgChartFlow({
     // Process levels
     orgChart.levels.forEach((level, levelIndex) => {
       const levelGroups: any[] = [];
+
+      // Check if this level is collapsed
+      const isCollapsed = collapsedLevels.has(level.id);
+
+      // If collapsed, skip processing groups and resources
+      if (isCollapsed) {
+        yOffset += levelSpacing / 2; // Add some spacing even when collapsed
+        return;
+      }
 
       level.groups.forEach((group) => {
         const groupResources: any[] = [];
@@ -659,6 +673,39 @@ function OrgChartFlow({
       >
         <Background color="#e5e7eb" gap={16} />
         <Controls showInteractive={false} />
+        <MiniMap
+          nodeStrokeColor={(node) => {
+            if (node.type === 'resourceNode') {
+              // Highlight spotlighted resource
+              if (node.data?.isSpotlighted) return '#3b82f6';
+              // Dim non-spotlighted when in spotlight mode
+              if (node.data?.isDimmed) return '#d1d5db';
+              return '#10b981'; // Active resource
+            }
+            if (node.type === 'groupNode') return '#6b7280';
+            if (node.type === 'subGroupNode') return '#818cf8';
+            return '#2563eb'; // Default (project node)
+          }}
+          nodeColor={(node) => {
+            if (node.type === 'resourceNode') {
+              if (node.data?.isSpotlighted) return '#dbeafe';
+              if (node.data?.isDimmed) return '#f3f4f6';
+              return '#d1fae5';
+            }
+            if (node.type === 'groupNode') return '#e5e7eb';
+            if (node.type === 'subGroupNode') return '#e0e7ff';
+            return '#dbeafe';
+          }}
+          zoomable
+          pannable
+          position="bottom-right"
+          style={{
+            backgroundColor: '#ffffff',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+          }}
+        />
       </ReactFlow>
     </div>
   );

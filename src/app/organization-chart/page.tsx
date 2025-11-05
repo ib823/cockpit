@@ -228,6 +228,7 @@ export default function OrganizationChartPage() {
   const [showManagementPanel, setShowManagementPanel] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [spotlightResourceId, setSpotlightResourceId] = useState<string | null>(null);
+  const [collapsedLevels, setCollapsedLevels] = useState<Set<string>>(new Set());
   const chartRef = useRef<HTMLDivElement>(null);
   const isInitialLoad = useRef(true); // Track initial load to prevent saving default state
 
@@ -962,6 +963,27 @@ export default function OrganizationChartPage() {
     setShowManagementPanel(prev => !prev);
   }, []);
 
+  // Smart Collapse handlers
+  const toggleLevelCollapse = useCallback((levelId: string) => {
+    setCollapsedLevels(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(levelId)) {
+        newSet.delete(levelId);
+      } else {
+        newSet.add(levelId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const expandAll = useCallback(() => {
+    setCollapsedLevels(new Set());
+  }, []);
+
+  const collapseAll = useCallback(() => {
+    setCollapsedLevels(new Set(['1', '2', '3', '4']));
+  }, []);
+
   // Export functions
   const exportToPNG = useCallback(async () => {
     if (!chartRef.current) return;
@@ -1166,6 +1188,26 @@ export default function OrganizationChartPage() {
                 ⌘K
               </kbd>
             </button>
+
+            {/* Expand/Collapse All Buttons */}
+            <div className="flex items-center gap-1 ml-4">
+              <button
+                onClick={expandAll}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50 transition-colors"
+                title="Expand all levels"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Expand All</span>
+              </button>
+              <button
+                onClick={collapseAll}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 border-l-0 rounded-r-lg hover:bg-gray-50 transition-colors"
+                title="Collapse all levels"
+              >
+                <ChevronUp className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Collapse All</span>
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -1502,6 +1544,8 @@ export default function OrganizationChartPage() {
             selectedPhaseId={selectedPhaseId}
             selectedTaskId={selectedTaskId}
             spotlightResourceId={spotlightResourceId}
+            collapsedLevels={collapsedLevels}
+            onToggleLevelCollapse={toggleLevelCollapse}
           />
         </div>
       </div>
