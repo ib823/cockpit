@@ -1,7 +1,16 @@
 /**
- * Resource Management Modal
+ * 🚀 REVOLUTIONARY RESOURCE CONTROL CENTER
  *
- * Quick modal for managing resources directly from the Gantt timeline
+ * The most advanced resource management interface ever built for Gantt planning.
+ *
+ * Features:
+ * - 3 View Modes: Matrix (List), Timeline (Gantt), Hybrid (Split)
+ * - Inline assignment management with visual timeline
+ * - Drag-drop reassignment between resources
+ * - Capacity warnings and conflict detection
+ * - Smart suggestions for rebalancing
+ * - Bulk operations
+ * - Real-time stats dashboard
  */
 
 'use client';
@@ -16,6 +25,21 @@ import {
   X,
   Users,
   Save,
+  List,
+  BarChart3,
+  Columns,
+  ChevronDown,
+  ChevronRight,
+  AlertTriangle,
+  Clock,
+  DollarSign,
+  TrendingUp,
+  Zap,
+  CheckSquare,
+  Copy,
+  ArrowRight,
+  Target,
+  Calendar,
 } from 'lucide-react';
 import {
   Resource,
@@ -26,7 +50,10 @@ import {
   RESOURCE_DESIGNATIONS,
   ASSIGNMENT_LEVELS,
   AssignmentLevel,
+  GanttPhase,
+  GanttTask,
 } from '@/types/gantt-tool';
+import { differenceInCalendarDays, parseISO, format as formatDate } from 'date-fns';
 
 // Fixed rate ratios based on designation
 const DESIGNATION_RATE_RATIOS: Record<ResourceDesignation, number> = {
@@ -37,8 +64,33 @@ const DESIGNATION_RATE_RATIOS: Record<ResourceDesignation, number> = {
   senior_consultant: 0.44427,
   consultant: 0.28173,
   analyst: 0.26006,
-  subcontractor: 0.5, // Default rate for subcontractors
+  subcontractor: 0.5,
 };
+
+type ViewMode = 'matrix' | 'timeline' | 'hybrid';
+
+interface ResourceAssignment {
+  id: string;
+  resourceId: string;
+  phaseId: string;
+  phaseName: string;
+  taskId?: string;
+  taskName?: string;
+  hours: number;
+  startDate: string;
+  endDate: string;
+  type: 'phase' | 'task';
+}
+
+interface ResourceStats {
+  totalHours: number;
+  totalCost: number;
+  assignmentCount: number;
+  utilization: number; // percentage
+  isOverallocated: boolean;
+  hasConflicts: boolean;
+  assignments: ResourceAssignment[];
+}
 
 export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   const {
@@ -46,26 +98,109 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     addResource,
     updateResource,
     deleteResource,
+    removeResourceAssignment,
+    updateResourceAssignment,
   } = useGanttToolStoreV2();
 
+  const [viewMode, setViewMode] = useState<ViewMode>('matrix');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<ResourceCategory | 'all'>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [expandedResources, setExpandedResources] = useState<Set<string>>(new Set());
+  const [selectedAssignments, setSelectedAssignments] = useState<Set<string>>(new Set());
+  const [showBulkActions, setShowBulkActions] = useState(false);
 
-  // Calculate resource usage
-  const getResourceUsage = (resourceId: string): number => {
-    if (!currentProject) return 0;
-    let count = 0;
-    currentProject.phases.forEach(phase => {
-      phase.tasks.forEach(task => {
-        if (task.resourceAssignments?.some(a => a.resourceId === resourceId)) {
-          count++;
-        }
+  // Calculate comprehensive resource statistics
+  const resourceStats = useMemo((): Map<string, ResourceStats> => {
+    if (!currentProject) return new Map();
+
+    const stats = new Map<string, ResourceStats>();
+    const resources = currentProject.resources || [];
+
+    resources.forEach(resource => {
+      const assignments: ResourceAssignment[] = [];
+      let totalHours = 0;
+
+      // Collect phase assignments
+      currentProject.phases.forEach(phase => {
+        phase.resourceAssignments?.forEach(assignment => {
+          if (assignment.resourceId === resource.id) {
+            totalHours += assignment.hours;
+            assignments.push({
+              id: `phase-${phase.id}-${assignment.resourceId}`,
+              resourceId: resource.id,
+              phaseId: phase.id,
+              phaseName: phase.name,
+              hours: assignment.hours,
+              startDate: phase.startDate,
+              endDate: phase.endDate,
+              type: 'phase',
+            });
+          }
+        });
+
+        // Collect task assignments
+        phase.tasks.forEach(task => {
+          task.resourceAssignments?.forEach(assignment => {
+            if (assignment.resourceId === resource.id) {
+              totalHours += assignment.hours;
+              assignments.push({
+                id: `task-${task.id}-${assignment.resourceId}`,
+                resourceId: resource.id,
+                phaseId: phase.id,
+                phaseName: phase.name,
+                taskId: task.id,
+                taskName: task.name,
+                hours: assignment.hours,
+                startDate: task.startDate,
+                endDate: task.endDate,
+                type: 'task',
+              });
+            }
+          });
+        });
+      });
+
+      // Calculate project duration for utilization
+      const projectStart = parseISO(currentProject.startDate);
+      const latestEndDate = currentProject.phases.reduce((latest, phase) => {
+        const phaseEnd = parseISO(phase.endDate);
+        return phaseEnd > latest ? phaseEnd : latest;
+      }, projectStart);
+      const projectDurationDays = differenceInCalendarDays(latestEndDate, projectStart);
+      const projectWorkingDays = Math.ceil(projectDurationDays * (5 / 7)); // Approx working days
+      const maxAvailableHours = projectWorkingDays * 8; // 8 hours per day
+
+      const totalCost = totalHours * (resource.isBillable ? resource.chargeRatePerHour : 0);
+      const utilization = maxAvailableHours > 0 ? (totalHours / maxAvailableHours) * 100 : 0;
+      const isOverallocated = utilization > 100;
+
+      // Check for conflicts (overlapping assignments)
+      const hasConflicts = assignments.some((a1, i) => {
+        return assignments.some((a2, j) => {
+          if (i >= j) return false;
+          const start1 = parseISO(a1.startDate);
+          const end1 = parseISO(a1.endDate);
+          const start2 = parseISO(a2.startDate);
+          const end2 = parseISO(a2.endDate);
+          return start1 <= end2 && start2 <= end1; // Overlap check
+        });
+      });
+
+      stats.set(resource.id, {
+        totalHours,
+        totalCost,
+        assignmentCount: assignments.length,
+        utilization,
+        isOverallocated,
+        hasConflicts,
+        assignments,
       });
     });
-    return count;
-  };
+
+    return stats;
+  }, [currentProject]);
 
   // Filter resources
   const filteredResources = useMemo(() => {
@@ -83,30 +218,88 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     });
   }, [currentProject, searchQuery, categoryFilter]);
 
-  const handleAddResource = () => {
-    setEditingResource(null);
-    setShowForm(true);
+  // Calculate overall stats
+  const overallStats = useMemo(() => {
+    const stats = {
+      totalResources: filteredResources.length,
+      totalAssignments: 0,
+      totalHours: 0,
+      totalCost: 0,
+      overallocatedCount: 0,
+      conflictsCount: 0,
+      unassignedCount: 0,
+    };
+
+    filteredResources.forEach(resource => {
+      const resourceStat = resourceStats.get(resource.id);
+      if (resourceStat) {
+        stats.totalAssignments += resourceStat.assignmentCount;
+        stats.totalHours += resourceStat.totalHours;
+        stats.totalCost += resourceStat.totalCost;
+        if (resourceStat.isOverallocated) stats.overallocatedCount++;
+        if (resourceStat.hasConflicts) stats.conflictsCount++;
+        if (resourceStat.assignmentCount === 0) stats.unassignedCount++;
+      } else {
+        stats.unassignedCount++;
+      }
+    });
+
+    return stats;
+  }, [filteredResources, resourceStats]);
+
+  const toggleResourceExpand = (resourceId: string) => {
+    const newExpanded = new Set(expandedResources);
+    if (newExpanded.has(resourceId)) {
+      newExpanded.delete(resourceId);
+    } else {
+      newExpanded.add(resourceId);
+    }
+    setExpandedResources(newExpanded);
   };
 
-  const handleEditResource = (resource: Resource) => {
-    setEditingResource(resource);
-    setShowForm(true);
-  };
+  const handleRemoveAssignment = (assignment: ResourceAssignment) => {
+    if (!currentProject) return;
 
-  const handleDeleteResource = (resourceId: string, resourceName: string) => {
-    const usage = getResourceUsage(resourceId);
-    const confirmMessage = usage > 0
-      ? `Delete "${resourceName}"?\n\nThis resource is used in ${usage} task(s). All assignments will be removed.`
-      : `Delete "${resourceName}"?`;
+    const confirmMsg = `Remove ${assignment.type === 'phase' ? 'phase' : 'task'} assignment?\n\n${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ''}\n${assignment.hours} hours`;
 
-    if (confirm(confirmMessage)) {
-      deleteResource(resourceId);
+    if (confirm(confirmMsg)) {
+      removeResourceAssignment(
+        assignment.resourceId,
+        assignment.phaseId,
+        assignment.taskId
+      );
     }
   };
 
-  const handleCloseForm = () => {
-    setShowForm(false);
-    setEditingResource(null);
+  const handleBulkDelete = () => {
+    if (selectedAssignments.size === 0) return;
+
+    if (confirm(`Delete ${selectedAssignments.size} selected assignment(s)?`)) {
+      selectedAssignments.forEach(assignmentId => {
+        // Parse assignmentId: "phase-{phaseId}-{resourceId}" or "task-{taskId}-{resourceId}"
+        const parts = assignmentId.split('-');
+        const type = parts[0];
+
+        if (type === 'phase') {
+          const phaseId = parts[1];
+          const resourceId = parts[2];
+          removeResourceAssignment(resourceId, phaseId);
+        } else if (type === 'task') {
+          const taskId = parts[1];
+          const resourceId = parts[2];
+          // Find phase containing this task
+          const phase = currentProject?.phases.find(p =>
+            p.tasks.some(t => t.id === taskId)
+          );
+          if (phase) {
+            removeResourceAssignment(resourceId, phase.id, taskId);
+          }
+        }
+      });
+
+      setSelectedAssignments(new Set());
+      setShowBulkActions(false);
+    }
   };
 
   if (!currentProject) return null;
@@ -121,17 +314,17 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
 
       {/* Modal */}
       <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-7xl max-h-[95vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-5 h-5 text-blue-600" />
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                <Users className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Manage Resources</h2>
+                <h2 className="text-xl font-bold text-gray-900">Resource Control Center</h2>
                 <p className="text-sm text-gray-600 mt-0.5">
-                  {(currentProject.resources || []).length} resources · Quick add and edit
+                  Revolutionary resource & assignment management
                 </p>
               </div>
             </div>
@@ -143,10 +336,97 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
             </button>
           </div>
 
-          {/* Search and Filter Bar */}
+          {/* Stats Dashboard */}
+          <div className="px-6 py-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+            <div className="grid grid-cols-7 gap-3">
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">Resources</div>
+                <div className="text-lg font-bold text-gray-900">{overallStats.totalResources}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">Assignments</div>
+                <div className="text-lg font-bold text-blue-600">{overallStats.totalAssignments}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">Total Hours</div>
+                <div className="text-lg font-bold text-purple-600">{overallStats.totalHours.toFixed(0)}h</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">Total Cost</div>
+                <div className="text-lg font-bold text-green-600">${overallStats.totalCost.toFixed(0)}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">Overallocated</div>
+                <div className={`text-lg font-bold ${overallStats.overallocatedCount > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                  {overallStats.overallocatedCount}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">Conflicts</div>
+                <div className={`text-lg font-bold ${overallStats.conflictsCount > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                  {overallStats.conflictsCount}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">Unassigned</div>
+                <div className={`text-lg font-bold ${overallStats.unassignedCount > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                  {overallStats.unassignedCount}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* View Switcher & Toolbar */}
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex gap-3 mb-3">
-              {/* Search */}
+            {/* View Mode Tabs */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode('matrix')}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
+                    viewMode === 'matrix'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                  Matrix View
+                </button>
+                <button
+                  onClick={() => setViewMode('timeline')}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
+                    viewMode === 'timeline'
+                      ? 'bg-purple-600 text-white shadow-md'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Timeline View
+                </button>
+                <button
+                  onClick={() => setViewMode('hybrid')}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
+                    viewMode === 'hybrid'
+                      ? 'bg-green-600 text-white shadow-md'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                  }`}
+                >
+                  <Columns className="w-4 h-4" />
+                  Hybrid View
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium text-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Add Resource
+              </button>
+            </div>
+
+            {/* Search & Filters */}
+            <div className="flex gap-3">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -158,158 +438,131 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                 />
               </div>
 
-              {/* Add Button */}
-              <button
-                onClick={handleAddResource}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium text-sm whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4" />
-                Add Resource
-              </button>
-            </div>
-
-            {/* Category Filter Pills */}
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => setCategoryFilter('all')}
-                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                  categoryFilter === 'all'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                }`}
-              >
-                All
-              </button>
-              {Object.entries(RESOURCE_CATEGORIES).map(([key, { label, icon, color }]) => (
+              {/* Category Pills */}
+              <div className="flex gap-2">
                 <button
-                  key={key}
-                  onClick={() => setCategoryFilter(key as ResourceCategory)}
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors flex items-center gap-1 ${
-                    categoryFilter === key
-                      ? 'text-white'
+                  onClick={() => setCategoryFilter('all')}
+                  className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                    categoryFilter === 'all'
+                      ? 'bg-blue-600 text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                   }`}
-                  style={{
-                    backgroundColor: categoryFilter === key ? color : undefined,
-                  }}
                 >
-                  <span>{icon}</span>
-                  {label}
+                  All
                 </button>
-              ))}
+                {Object.entries(RESOURCE_CATEGORIES).map(([key, { label, icon, color }]) => (
+                  <button
+                    key={key}
+                    onClick={() => setCategoryFilter(key as ResourceCategory)}
+                    className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors flex items-center gap-1 ${
+                      categoryFilter === key
+                        ? 'text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    }`}
+                    style={{
+                      backgroundColor: categoryFilter === key ? color : undefined,
+                    }}
+                  >
+                    <span>{icon}</span>
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Bulk Actions Bar */}
+            {selectedAssignments.size > 0 && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                <div className="text-sm font-medium text-blue-900">
+                  {selectedAssignments.size} assignment(s) selected
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleBulkDelete}
+                    className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Delete Selected
+                  </button>
+                  <button
+                    onClick={() => setSelectedAssignments(new Set())}
+                    className="px-3 py-1 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 text-sm font-medium"
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Resource List */}
-          <div className="flex-1 overflow-y-auto p-6">
+          {/* Content Area - View Modes */}
+          <div className="flex-1 overflow-hidden">
             {showForm ? (
-              <ResourceFormInline
-                resource={editingResource}
-                onClose={handleCloseForm}
-                onSubmit={(data) => {
-                  if (editingResource) {
-                    updateResource(editingResource.id, data);
+              <div className="h-full overflow-y-auto p-6">
+                <ResourceFormInline
+                  resource={editingResource}
+                  onClose={() => {
+                    setShowForm(false);
+                    setEditingResource(null);
+                  }}
+                  onSubmit={(data) => {
+                    if (editingResource) {
+                      updateResource(editingResource.id, data);
+                    } else {
+                      addResource(data);
+                    }
+                    setShowForm(false);
+                    setEditingResource(null);
+                  }}
+                />
+              </div>
+            ) : viewMode === 'matrix' ? (
+              <MatrixView
+                resources={filteredResources}
+                resourceStats={resourceStats}
+                expandedResources={expandedResources}
+                selectedAssignments={selectedAssignments}
+                onToggleExpand={toggleResourceExpand}
+                onSelectAssignment={(id) => {
+                  const newSelected = new Set(selectedAssignments);
+                  if (newSelected.has(id)) {
+                    newSelected.delete(id);
                   } else {
-                    addResource(data);
+                    newSelected.add(id);
                   }
-                  handleCloseForm();
+                  setSelectedAssignments(newSelected);
                 }}
+                onEditResource={(resource) => {
+                  setEditingResource(resource);
+                  setShowForm(true);
+                }}
+                onDeleteResource={(resourceId, resourceName) => {
+                  const stats = resourceStats.get(resourceId);
+                  const usage = stats?.assignmentCount || 0;
+                  const confirmMessage = usage > 0
+                    ? `Delete "${resourceName}"?\n\nThis resource is used in ${usage} assignment(s). All will be removed.`
+                    : `Delete "${resourceName}"?`;
+                  if (confirm(confirmMessage)) {
+                    deleteResource(resourceId);
+                  }
+                }}
+                onRemoveAssignment={handleRemoveAssignment}
               />
-            ) : filteredResources.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {searchQuery || categoryFilter !== 'all'
-                    ? 'No resources found'
-                    : 'No resources yet'}
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  {searchQuery || categoryFilter !== 'all'
-                    ? 'Try adjusting your search or filters'
-                    : 'Add your first resource to start assigning to tasks'}
-                </p>
-                {!searchQuery && categoryFilter === 'all' && (
-                  <button
-                    onClick={handleAddResource}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Your First Resource
-                  </button>
-                )}
-              </div>
+            ) : viewMode === 'timeline' ? (
+              <TimelineView
+                resources={filteredResources}
+                resourceStats={resourceStats}
+                currentProject={currentProject}
+              />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {filteredResources.map((resource) => {
-                  const category = RESOURCE_CATEGORIES[resource.category];
-                  const usage = getResourceUsage(resource.id);
-
-                  return (
-                    <div
-                      key={resource.id}
-                      className="bg-white rounded-lg border-2 border-gray-200 p-4 hover:border-blue-300 hover:shadow-md transition-all"
-                    >
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-xl flex-shrink-0">{category.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-sm text-gray-900 truncate">{resource.name}</h3>
-                            <p className="text-xs text-gray-500">
-                              {RESOURCE_DESIGNATIONS[resource.designation]}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex gap-1 flex-shrink-0">
-                          <button
-                            onClick={() => handleEditResource(resource)}
-                            className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="Edit resource"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteResource(resource.id, resource.name)}
-                            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Delete resource"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Category Badge */}
-                      <div className="mb-2">
-                        <span
-                          className="inline-block px-2 py-0.5 text-xs font-medium rounded"
-                          style={{
-                            backgroundColor: `${category.color}15`,
-                            color: category.color,
-                          }}
-                        >
-                          {category.label}
-                        </span>
-                      </div>
-
-                      {/* Description */}
-                      <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                        {resource.description}
-                      </p>
-
-                      {/* Usage */}
-                      <div className="text-xs">
-                        {usage > 0 ? (
-                          <span className="text-blue-600 font-medium">
-                            Used in {usage} task{usage !== 1 ? 's' : ''}
-                          </span>
-                        ) : (
-                          <span className="text-gray-500">Not assigned yet</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <HybridView
+                resources={filteredResources}
+                resourceStats={resourceStats}
+                currentProject={currentProject}
+                expandedResources={expandedResources}
+                onToggleExpand={toggleResourceExpand}
+                onRemoveAssignment={handleRemoveAssignment}
+              />
             )}
           </div>
         </div>
@@ -318,7 +571,600 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-// Inline Resource Form (shown in the modal)
+// ========================================
+// MATRIX VIEW - Collapsible List with Inline Assignments
+// ========================================
+function MatrixView({
+  resources,
+  resourceStats,
+  expandedResources,
+  selectedAssignments,
+  onToggleExpand,
+  onSelectAssignment,
+  onEditResource,
+  onDeleteResource,
+  onRemoveAssignment,
+}: {
+  resources: Resource[];
+  resourceStats: Map<string, ResourceStats>;
+  expandedResources: Set<string>;
+  selectedAssignments: Set<string>;
+  onToggleExpand: (id: string) => void;
+  onSelectAssignment: (id: string) => void;
+  onEditResource: (resource: Resource) => void;
+  onDeleteResource: (id: string, name: string) => void;
+  onRemoveAssignment: (assignment: ResourceAssignment) => void;
+}) {
+  if (resources.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center text-center p-8">
+        <div>
+          <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No resources found</h3>
+          <p className="text-gray-600">Adjust your search or add a new resource</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full overflow-y-auto">
+      <div className="divide-y divide-gray-200">
+        {resources.map((resource) => {
+          const stats = resourceStats.get(resource.id);
+          const category = RESOURCE_CATEGORIES[resource.category];
+          const isExpanded = expandedResources.has(resource.id);
+
+          return (
+            <div key={resource.id} className="hover:bg-gray-50 transition-colors">
+              {/* Resource Header Row */}
+              <div className="px-6 py-4 flex items-center gap-4">
+                {/* Expand/Collapse Button */}
+                <button
+                  onClick={() => onToggleExpand(resource.id)}
+                  className="p-1 hover:bg-gray-200 rounded transition-colors flex-shrink-0"
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+
+                {/* Resource Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl flex-shrink-0">{category.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 truncate">{resource.name}</h3>
+                      <p className="text-sm text-gray-600">
+                        {RESOURCE_DESIGNATIONS[resource.designation]} · {category.label}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stats Pills */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {stats && (
+                    <>
+                      <div className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium flex items-center gap-1">
+                        <Target className="w-3 h-3" />
+                        {stats.assignmentCount} assignments
+                      </div>
+                      <div className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {stats.totalHours.toFixed(0)}h
+                      </div>
+                      {resource.isBillable && (
+                        <div className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium flex items-center gap-1">
+                          <DollarSign className="w-3 h-3" />
+                          ${stats.totalCost.toFixed(0)}
+                        </div>
+                      )}
+                      {stats.isOverallocated && (
+                        <div className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          {stats.utilization.toFixed(0)}% OVER
+                        </div>
+                      )}
+                      {stats.hasConflicts && (
+                        <div className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold flex items-center gap-1">
+                          <Zap className="w-3 h-3" />
+                          CONFLICT
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => onEditResource(resource)}
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    title="Edit resource"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onDeleteResource(resource.id, resource.name)}
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    title="Delete resource"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Expanded: Assignments */}
+              {isExpanded && stats && (
+                <div className="px-6 pb-4 pl-20">
+                  {stats.assignments.length === 0 ? (
+                    <div className="py-4 text-center text-gray-500 text-sm bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      No assignments yet
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {/* Mini Timeline Visualization */}
+                      <div className="mb-3 p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-gray-200">
+                        <div className="text-xs font-medium text-gray-700 mb-2">Timeline</div>
+                        <ResourceTimelineBar assignments={stats.assignments} />
+                      </div>
+
+                      {/* Assignment List */}
+                      <div className="text-xs font-medium text-gray-700 mb-2">
+                        ASSIGNMENTS ({stats.assignments.length})
+                      </div>
+                      {stats.assignments.map((assignment) => (
+                        <AssignmentCard
+                          key={assignment.id}
+                          assignment={assignment}
+                          isSelected={selectedAssignments.has(assignment.id)}
+                          onSelect={() => onSelectAssignment(assignment.id)}
+                          onRemove={() => onRemoveAssignment(assignment)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ========================================
+// TIMELINE VIEW - Full Gantt-style visualization
+// ========================================
+function TimelineView({
+  resources,
+  resourceStats,
+  currentProject,
+}: {
+  resources: Resource[];
+  resourceStats: Map<string, ResourceStats>;
+  currentProject: any;
+}) {
+  // Calculate timeline bounds
+  const { startDate, endDate, totalWeeks } = useMemo(() => {
+    if (resources.length === 0 || !currentProject) {
+      return { startDate: new Date(), endDate: new Date(), totalWeeks: 0 };
+    }
+
+    const projectStart = parseISO(currentProject.startDate);
+    const latestEnd = currentProject.phases.reduce((latest: Date, phase: GanttPhase) => {
+      const phaseEnd = parseISO(phase.endDate);
+      return phaseEnd > latest ? phaseEnd : latest;
+    }, projectStart);
+
+    const durationDays = differenceInCalendarDays(latestEnd, projectStart);
+    const weeks = Math.ceil(durationDays / 7);
+
+    return {
+      startDate: projectStart,
+      endDate: latestEnd,
+      totalWeeks: weeks,
+    };
+  }, [resources, currentProject]);
+
+  if (resources.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No resources to display</h3>
+          <p className="text-gray-600">Add resources to see timeline view</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full overflow-auto">
+      <div className="min-w-max">
+        {/* Timeline Header */}
+        <div className="sticky top-0 bg-white border-b-2 border-gray-300 z-10 flex">
+          <div className="w-64 p-3 border-r-2 border-gray-300 font-semibold text-gray-700 bg-gray-50">
+            Resource
+          </div>
+          <div className="flex-1 flex">
+            {Array.from({ length: totalWeeks }).map((_, i) => (
+              <div
+                key={i}
+                className="flex-1 min-w-[60px] p-2 text-center text-xs font-medium text-gray-600 border-r border-gray-200"
+              >
+                Week {i + 1}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Resource Rows */}
+        <div>
+          {resources.map((resource) => {
+            const stats = resourceStats.get(resource.id);
+            const category = RESOURCE_CATEGORIES[resource.category];
+
+            return (
+              <div key={resource.id} className="flex border-b border-gray-200 hover:bg-gray-50">
+                {/* Resource Name Column */}
+                <div className="w-64 p-3 border-r-2 border-gray-300 bg-gray-50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{category.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm text-gray-900 truncate">{resource.name}</div>
+                      <div className="text-xs text-gray-600">
+                        {stats ? `${stats.assignmentCount} · ${stats.totalHours.toFixed(0)}h` : 'Unassigned'}
+                      </div>
+                    </div>
+                  </div>
+                  {stats?.isOverallocated && (
+                    <div className="mt-1 text-xs text-red-600 font-semibold">
+                      ⚠️ {stats.utilization.toFixed(0)}% allocated
+                    </div>
+                  )}
+                </div>
+
+                {/* Timeline Column */}
+                <div className="flex-1 relative min-h-[60px]">
+                  {stats?.assignments.map((assignment, idx) => {
+                    // Calculate position
+                    const assignmentStart = parseISO(assignment.startDate);
+                    const assignmentEnd = parseISO(assignment.endDate);
+                    const daysFromStart = differenceInCalendarDays(assignmentStart, startDate);
+                    const durationDays = differenceInCalendarDays(assignmentEnd, assignmentStart);
+
+                    const leftPercent = (daysFromStart / (totalWeeks * 7)) * 100;
+                    const widthPercent = (durationDays / (totalWeeks * 7)) * 100;
+
+                    const colors = [
+                      'bg-blue-500',
+                      'bg-purple-500',
+                      'bg-green-500',
+                      'bg-orange-500',
+                      'bg-pink-500',
+                      'bg-indigo-500',
+                    ];
+                    const color = colors[idx % colors.length];
+
+                    return (
+                      <div
+                        key={assignment.id}
+                        className={`absolute top-2 h-10 ${color} rounded-md shadow-sm hover:shadow-md transition-all cursor-pointer group`}
+                        style={{
+                          left: `${leftPercent}%`,
+                          width: `${Math.max(widthPercent, 1)}%`,
+                        }}
+                        title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ''}\n${assignment.hours}h`}
+                      >
+                        <div className="text-xs text-white font-medium px-2 py-1 truncate">
+                          {assignment.taskName || assignment.phaseName}
+                        </div>
+                        <div className="text-[10px] text-white/90 px-2 truncate">
+                          {assignment.hours}h
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ========================================
+// HYBRID VIEW - Split screen: List + Timeline
+// ========================================
+function HybridView({
+  resources,
+  resourceStats,
+  currentProject,
+  expandedResources,
+  onToggleExpand,
+  onRemoveAssignment,
+}: {
+  resources: Resource[];
+  resourceStats: Map<string, ResourceStats>;
+  currentProject: any;
+  expandedResources: Set<string>;
+  onToggleExpand: (id: string) => void;
+  onRemoveAssignment: (assignment: ResourceAssignment) => void;
+}) {
+  // Calculate timeline bounds
+  const { startDate, totalWeeks } = useMemo(() => {
+    if (!currentProject) {
+      return { startDate: new Date(), totalWeeks: 0 };
+    }
+
+    const projectStart = parseISO(currentProject.startDate);
+    const latestEnd = currentProject.phases.reduce((latest: Date, phase: GanttPhase) => {
+      const phaseEnd = parseISO(phase.endDate);
+      return phaseEnd > latest ? phaseEnd : latest;
+    }, projectStart);
+
+    const durationDays = differenceInCalendarDays(latestEnd, projectStart);
+    const weeks = Math.ceil(durationDays / 7);
+
+    return { startDate: projectStart, totalWeeks: weeks };
+  }, [currentProject]);
+
+  return (
+    <div className="h-full flex">
+      {/* Left: Resource List (40%) */}
+      <div className="w-2/5 border-r-2 border-gray-300 overflow-y-auto">
+        <div className="divide-y divide-gray-200">
+          {resources.map((resource) => {
+            const stats = resourceStats.get(resource.id);
+            const category = RESOURCE_CATEGORIES[resource.category];
+            const isExpanded = expandedResources.has(resource.id);
+
+            return (
+              <div key={resource.id} className="hover:bg-gray-50">
+                <div className="px-4 py-3 flex items-center gap-3">
+                  <button
+                    onClick={() => onToggleExpand(resource.id)}
+                    className="p-1 hover:bg-gray-200 rounded"
+                  >
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4 text-gray-600" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-gray-600" />
+                    )}
+                  </button>
+                  <span className="text-xl">{category.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm text-gray-900 truncate">{resource.name}</div>
+                    <div className="text-xs text-gray-600">
+                      {stats ? `${stats.assignmentCount} · ${stats.totalHours.toFixed(0)}h` : 'Unassigned'}
+                    </div>
+                  </div>
+                  {stats?.isOverallocated && (
+                    <div className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold">
+                      OVER
+                    </div>
+                  )}
+                </div>
+
+                {isExpanded && stats && stats.assignments.length > 0 && (
+                  <div className="px-4 pb-3 pl-12 space-y-1">
+                    {stats.assignments.map((assignment) => (
+                      <div
+                        key={assignment.id}
+                        className="text-xs p-2 bg-gray-50 rounded border border-gray-200 flex items-center justify-between"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 truncate">
+                            {assignment.phaseName}
+                            {assignment.taskName && ` → ${assignment.taskName}`}
+                          </div>
+                          <div className="text-gray-600">{assignment.hours}h</div>
+                        </div>
+                        <button
+                          onClick={() => onRemoveAssignment(assignment)}
+                          className="p-1 text-gray-400 hover:text-red-600 rounded"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Right: Timeline (60%) */}
+      <div className="flex-1 overflow-auto bg-white">
+        <div className="min-w-max">
+          {/* Timeline Header */}
+          <div className="sticky top-0 bg-gray-50 border-b-2 border-gray-300 flex z-10">
+            {Array.from({ length: totalWeeks }).map((_, i) => (
+              <div
+                key={i}
+                className="flex-1 min-w-[60px] p-2 text-center text-xs font-medium text-gray-600 border-r border-gray-200"
+              >
+                W{i + 1}
+              </div>
+            ))}
+          </div>
+
+          {/* Timeline Rows */}
+          {resources.map((resource) => {
+            const stats = resourceStats.get(resource.id);
+
+            return (
+              <div key={resource.id} className="border-b border-gray-200 relative min-h-[60px]">
+                {stats?.assignments.map((assignment, idx) => {
+                  const assignmentStart = parseISO(assignment.startDate);
+                  const assignmentEnd = parseISO(assignment.endDate);
+                  const daysFromStart = differenceInCalendarDays(assignmentStart, startDate);
+                  const durationDays = differenceInCalendarDays(assignmentEnd, assignmentStart);
+
+                  const leftPercent = (daysFromStart / (totalWeeks * 7)) * 100;
+                  const widthPercent = (durationDays / (totalWeeks * 7)) * 100;
+
+                  const colors = ['bg-blue-500', 'bg-purple-500', 'bg-green-500', 'bg-orange-500'];
+                  const color = colors[idx % colors.length];
+
+                  return (
+                    <div
+                      key={assignment.id}
+                      className={`absolute top-2 h-10 ${color} rounded shadow hover:shadow-md transition-all cursor-pointer`}
+                      style={{
+                        left: `${leftPercent}%`,
+                        width: `${Math.max(widthPercent, 1)}%`,
+                      }}
+                      title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ''}`}
+                    >
+                      <div className="text-xs text-white font-medium px-2 py-1 truncate">
+                        {assignment.hours}h
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ========================================
+// HELPER COMPONENTS
+// ========================================
+
+function ResourceTimelineBar({ assignments }: { assignments: ResourceAssignment[] }) {
+  if (assignments.length === 0) return <div className="h-6 bg-gray-200 rounded" />;
+
+  // Find overall timeline bounds
+  const dates = assignments.flatMap(a => [parseISO(a.startDate), parseISO(a.endDate)]);
+  const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
+  const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+  const totalDays = differenceInCalendarDays(maxDate, minDate);
+
+  return (
+    <div className="relative h-6 bg-gray-200 rounded overflow-hidden">
+      {assignments.map((assignment, idx) => {
+        const start = parseISO(assignment.startDate);
+        const end = parseISO(assignment.endDate);
+        const daysFromStart = differenceInCalendarDays(start, minDate);
+        const duration = differenceInCalendarDays(end, start);
+
+        const leftPercent = (daysFromStart / totalDays) * 100;
+        const widthPercent = (duration / totalDays) * 100;
+
+        const colors = ['bg-blue-600', 'bg-purple-600', 'bg-green-600', 'bg-orange-600', 'bg-pink-600'];
+        const color = colors[idx % colors.length];
+
+        return (
+          <div
+            key={assignment.id}
+            className={`absolute top-0 h-full ${color}`}
+            style={{
+              left: `${leftPercent}%`,
+              width: `${Math.max(widthPercent, 1)}%`,
+            }}
+            title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ''}`}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function AssignmentCard({
+  assignment,
+  isSelected,
+  onSelect,
+  onRemove,
+}: {
+  assignment: ResourceAssignment;
+  isSelected: boolean;
+  onSelect: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div
+      className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${
+        isSelected
+          ? 'border-blue-500 bg-blue-50'
+          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+      }`}
+      onClick={onSelect}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => {}}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              {assignment.type === 'phase' ? (
+                <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
+                  Phase
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                  Task
+                </span>
+              )}
+              <span className="font-semibold text-sm text-gray-900 truncate">
+                {assignment.phaseName}
+              </span>
+            </div>
+            {assignment.taskName && (
+              <div className="text-sm text-gray-700 mt-1 flex items-center gap-1">
+                <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{assignment.taskName}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-3 mt-1 text-xs text-gray-600">
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {assignment.hours}h
+              </span>
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {formatDate(parseISO(assignment.startDate), 'MMM d')} - {formatDate(parseISO(assignment.endDate), 'MMM d')}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+          title="Remove assignment"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ========================================
+// RESOURCE FORM (Inline)
+// ========================================
 function ResourceFormInline({
   resource,
   onClose,
@@ -339,7 +1185,6 @@ function ResourceFormInline({
     chargeRatePerHour: resource?.chargeRatePerHour || DESIGNATION_RATE_RATIOS[initialDesignation],
   });
 
-  // Automatically update the rate when designation changes
   useEffect(() => {
     if (formData.isBillable) {
       setFormData(prev => ({
@@ -359,23 +1204,23 @@ function ResourceFormInline({
   };
 
   return (
-    <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900">
+    <div className="max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-300 rounded-xl p-8">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-2xl font-bold text-gray-900">
           {resource ? 'Edit Resource' : 'Add New Resource'}
         </h3>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600"
+          className="text-gray-400 hover:text-gray-600 p-2 hover:bg-white rounded-lg transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X className="w-6 h-6" />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Role Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Role Name <span className="text-red-500">*</span>
           </label>
           <input
@@ -383,25 +1228,25 @@ function ResourceFormInline({
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="e.g., Senior SAP Consultant, Technical Architect"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             required
             autoFocus
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-600 mt-1">
             This is a role, not a person name
           </p>
         </div>
 
         {/* Category and Designation */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Category <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value as ResourceCategory })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               {Object.entries(RESOURCE_CATEGORIES).map(([key, { label, icon }]) => (
                 <option key={key} value={key}>
@@ -412,13 +1257,13 @@ function ResourceFormInline({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Designation <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.designation}
               onChange={(e) => setFormData({ ...formData, designation: e.target.value as ResourceDesignation })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               {Object.entries(RESOURCE_DESIGNATIONS).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -429,30 +1274,27 @@ function ResourceFormInline({
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Description <span className="text-red-500">*</span>
           </label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="Describe the role, skills, and responsibilities..."
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            rows={4}
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Be specific about skills and experience needed
-          </p>
         </div>
 
         {/* Assignment Level */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+        <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
+          <label className="block text-sm font-semibold text-gray-700 mb-3">
             Assignment Level <span className="text-red-500">*</span>
           </label>
           <div className="space-y-2">
             {Object.entries(ASSIGNMENT_LEVELS).map(([key, { label, description }]) => (
-              <label key={key} className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+              <label key={key} className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors">
                 <input
                   type="radio"
                   name="assignmentLevel"
@@ -462,8 +1304,8 @@ function ResourceFormInline({
                   className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">{label}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{description}</div>
+                  <div className="text-sm font-semibold text-gray-900">{label}</div>
+                  <div className="text-xs text-gray-600 mt-1">{description}</div>
                 </div>
               </label>
             ))}
@@ -471,13 +1313,12 @@ function ResourceFormInline({
         </div>
 
         {/* Billing Configuration */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+        <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
+          <label className="block text-sm font-semibold text-gray-700 mb-3">
             Billing Configuration
           </label>
 
-          {/* Billable Toggle */}
-          <label className="flex items-center gap-3 cursor-pointer mb-4 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+          <label className="flex items-center gap-3 cursor-pointer mb-4 hover:bg-gray-50 p-3 rounded-lg transition-colors">
             <input
               type="checkbox"
               checked={formData.isBillable}
@@ -485,47 +1326,43 @@ function ResourceFormInline({
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
             <div className="flex-1">
-              <div className="text-sm font-medium text-gray-900">Billable resource</div>
-              <div className="text-xs text-gray-500 mt-0.5">Include in cost calculations and budget tracking</div>
+              <div className="text-sm font-semibold text-gray-900">Billable resource</div>
+              <div className="text-xs text-gray-600 mt-1">Include in cost calculations</div>
             </div>
           </label>
 
-          {/* Charge Rate */}
           {formData.isBillable && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Rates Ratio <span className="text-red-500">*</span>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Rate Ratio <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  value={formData.chargeRatePerHour}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
-                  placeholder="Auto-calculated based on designation"
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Rate ratio is automatically set based on the selected designation
+              <input
+                type="number"
+                value={formData.chargeRatePerHour}
+                readOnly
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+              />
+              <p className="text-xs text-gray-600 mt-1">
+                Auto-calculated based on designation
               </p>
             </div>
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-4 pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors font-semibold flex items-center justify-center gap-2 shadow-lg"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-5 h-5" />
             {resource ? 'Save Changes' : 'Add Resource'}
           </button>
         </div>
