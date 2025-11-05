@@ -32,6 +32,7 @@ export function GanttToolShell() {
     isSyncing,
     syncError,
     isLoading,
+    saveProgress,
   } = useGanttToolStoreV2();
 
   const [showContextPanel, setShowContextPanel] = useState(false);
@@ -229,7 +230,13 @@ export function GanttToolShell() {
         <div className="bg-blue-50 border-b border-blue-200 px-6 py-2">
           <div className="flex items-center justify-center gap-2 text-sm text-blue-700">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Saving changes...</span>
+            {saveProgress ? (
+              <span>
+                {saveProgress.description} ({saveProgress.currentBatch}/{saveProgress.totalBatches})
+              </span>
+            ) : (
+              <span>Saving changes...</span>
+            )}
           </div>
         </div>
       )}

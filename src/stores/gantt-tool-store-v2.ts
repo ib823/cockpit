@@ -31,6 +31,7 @@ import { PHASE_COLOR_PRESETS } from '@/types/gantt-tool';
 import { differenceInDays, addDays, format } from 'date-fns';
 import { adjustDatesToWorkingDays, calculateWorkingDaysInclusive, addWorkingDays } from '@/lib/gantt-tool/working-days';
 import { calculateProjectDelta, isDeltaEmpty, getDeltaSummary, sanitizeDelta } from '@/lib/gantt-tool/delta-calculator';
+import { shouldBatchDelta, batchDelta, type DeltaBatch } from '@/lib/gantt-tool/delta-batcher';
 // import { createDefaultResources } from '@/lib/gantt-tool/default-resources'; // No longer used - users add resources manually or via import
 
 // Debounce timer for save operations (500ms)
@@ -48,6 +49,11 @@ interface GanttToolStateV2 {
   isSyncing: boolean;
   lastSyncAt: Date | null;
   syncError: string | null;
+  saveProgress: {
+    currentBatch: number;
+    totalBatches: number;
+    description: string;
+  } | null;
 
   // History (Undo/Redo) - Client-side only
   history: {
@@ -202,6 +208,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     isSyncing: false,
     lastSyncAt: null,
     syncError: null,
+    saveProgress: null,
     history: {
       past: [],
       future: [],
@@ -421,12 +428,145 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         clearTimeout(saveDebounceTimer);
       }
 
+      // Helper function to serialize a delta
+      const serializeDelta = (delta: ProjectDelta): ProjectDelta => {
+        const serialized: ProjectDelta = {};
+
+        if (delta.projectUpdates) {
+          serialized.projectUpdates = {};
+          if (delta.projectUpdates.name !== undefined) serialized.projectUpdates.name = delta.projectUpdates.name;
+          if (delta.projectUpdates.description !== undefined) serialized.projectUpdates.description = delta.projectUpdates.description;
+          if (delta.projectUpdates.startDate !== undefined) serialized.projectUpdates.startDate = formatDateField(delta.projectUpdates.startDate);
+          if (delta.projectUpdates.viewSettings !== undefined) serialized.projectUpdates.viewSettings = delta.projectUpdates.viewSettings;
+          if (delta.projectUpdates.budget !== undefined) serialized.projectUpdates.budget = delta.projectUpdates.budget;
+          if (delta.projectUpdates.orgChart !== undefined) serialized.projectUpdates.orgChart = delta.projectUpdates.orgChart;
+        }
+
+        if (delta.phases) {
+          serialized.phases = {};
+          if (delta.phases.created) {
+            serialized.phases.created = delta.phases.created.map(phase => ({
+              ...phase,
+              startDate: formatDateField(phase.startDate),
+              endDate: formatDateField(phase.endDate),
+              tasks: phase.tasks.map((task: any) => ({
+                ...task,
+                startDate: formatDateField(task.startDate),
+                endDate: formatDateField(task.endDate),
+              })),
+            }));
+          }
+          if (delta.phases.updated) {
+            serialized.phases.updated = delta.phases.updated.map(phase => ({
+              ...phase,
+              startDate: formatDateField(phase.startDate),
+              endDate: formatDateField(phase.endDate),
+              tasks: phase.tasks.map((task: any) => ({
+                ...task,
+                startDate: formatDateField(task.startDate),
+                endDate: formatDateField(task.endDate),
+              })),
+            }));
+          }
+          if (delta.phases.deleted) {
+            serialized.phases.deleted = delta.phases.deleted;
+          }
+        }
+
+        if (delta.resources) {
+          serialized.resources = delta.resources;
+        }
+
+        if (delta.milestones) {
+          serialized.milestones = {};
+          if (delta.milestones.created) {
+            serialized.milestones.created = delta.milestones.created.map(m => ({
+              ...m,
+              date: formatDateField(m.date),
+            }));
+          }
+          if (delta.milestones.updated) {
+            serialized.milestones.updated = delta.milestones.updated.map(m => ({
+              ...m,
+              date: formatDateField(m.date),
+            }));
+          }
+          if (delta.milestones.deleted) {
+            serialized.milestones.deleted = delta.milestones.deleted;
+          }
+        }
+
+        if (delta.holidays) {
+          serialized.holidays = {};
+          if (delta.holidays.created) {
+            serialized.holidays.created = delta.holidays.created.map(h => ({
+              ...h,
+              date: formatDateField(h.date),
+            }));
+          }
+          if (delta.holidays.updated) {
+            serialized.holidays.updated = delta.holidays.updated.map(h => ({
+              ...h,
+              date: formatDateField(h.date),
+            }));
+          }
+          if (delta.holidays.deleted) {
+            serialized.holidays.deleted = delta.holidays.deleted;
+          }
+        }
+
+        return serialized;
+      };
+
+      // Helper function to send a delta batch
+      const sendDeltaBatch = async (serializedDelta: ProjectDelta): Promise<void> => {
+        const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}/delta`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(serializedDelta),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.error || `Failed to save project (${response.status})`;
+
+          // Enhanced error logging to debug validation issues
+          console.error('Save project failed:', {
+            status: response.status,
+            errorMessage,
+            errorData,
+            validationDetails: errorData.details,
+          });
+
+          // If validation failed, show detailed error
+          if (errorData.details && Array.isArray(errorData.details)) {
+            const detailedErrors = errorData.details.map((issue: any) =>
+              `${issue.path.join('.')}: ${issue.message}`
+            ).join(', ');
+            throw new Error(`Validation failed: ${detailedErrors}`);
+          }
+
+          // Provide more context for common errors
+          let userFriendlyMessage = errorMessage;
+          if (response.status === 409) {
+            userFriendlyMessage = 'This data conflicts with existing records. ' + errorMessage;
+          } else if (response.status === 400) {
+            userFriendlyMessage = 'Invalid data: ' + (errorData.message || errorMessage);
+          } else if (response.status === 500) {
+            userFriendlyMessage = 'Server error while saving. Changes may have been partially saved. Please refresh the page to see the latest data.';
+          }
+
+          throw new Error(userFriendlyMessage);
+        }
+      };
+
       // Debounce the save operation (500ms)
       return new Promise<void>((resolve, reject) => {
         saveDebounceTimer = setTimeout(async () => {
           set((state) => {
             state.isSyncing = true;
             state.syncError = null;
+            state.saveProgress = null;
           });
 
           try {
@@ -441,6 +581,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
               console.log('[Store] No changes detected, skipping save');
               set((state) => {
                 state.isSyncing = false;
+                state.saveProgress = null;
               });
               resolve();
               return;
@@ -449,134 +590,36 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
             // Log delta summary
             console.log('[Store] Saving delta:', getDeltaSummary(delta));
 
-            // Serialize delta for API (format dates properly)
-            const serializedDelta: ProjectDelta = {};
+            // Check if we need to batch
+            if (shouldBatchDelta(delta)) {
+              console.log('[Store] Large delta detected, using batched save...');
+              const batches = batchDelta(delta);
+              console.log(`[Store] Split into ${batches.length} batches`);
 
-            if (delta.projectUpdates) {
-              serializedDelta.projectUpdates = {};
-              if (delta.projectUpdates.name !== undefined) serializedDelta.projectUpdates.name = delta.projectUpdates.name;
-              if (delta.projectUpdates.description !== undefined) serializedDelta.projectUpdates.description = delta.projectUpdates.description;
-              if (delta.projectUpdates.startDate !== undefined) serializedDelta.projectUpdates.startDate = formatDateField(delta.projectUpdates.startDate);
-              if (delta.projectUpdates.viewSettings !== undefined) serializedDelta.projectUpdates.viewSettings = delta.projectUpdates.viewSettings;
-              if (delta.projectUpdates.budget !== undefined) serializedDelta.projectUpdates.budget = delta.projectUpdates.budget;
-              if (delta.projectUpdates.orgChart !== undefined) serializedDelta.projectUpdates.orgChart = delta.projectUpdates.orgChart;
-            }
+              // Save each batch sequentially
+              for (const batchInfo of batches) {
+                set((state) => {
+                  state.saveProgress = {
+                    currentBatch: batchInfo.batchNumber,
+                    totalBatches: batchInfo.totalBatches,
+                    description: batchInfo.description,
+                  };
+                });
 
-            if (delta.phases) {
-              serializedDelta.phases = {};
-              if (delta.phases.created) {
-                serializedDelta.phases.created = delta.phases.created.map(phase => ({
-                  ...phase,
-                  startDate: formatDateField(phase.startDate),
-                  endDate: formatDateField(phase.endDate),
-                  tasks: phase.tasks.map((task: any) => ({
-                    ...task,
-                    startDate: formatDateField(task.startDate),
-                    endDate: formatDateField(task.endDate),
-                  })),
-                }));
+                console.log(`[Store] Batch ${batchInfo.batchNumber}/${batchInfo.totalBatches}: ${batchInfo.description}`);
+                const serializedBatch = serializeDelta(batchInfo.batch);
+                await sendDeltaBatch(serializedBatch);
               }
-              if (delta.phases.updated) {
-                serializedDelta.phases.updated = delta.phases.updated.map(phase => ({
-                  ...phase,
-                  startDate: formatDateField(phase.startDate),
-                  endDate: formatDateField(phase.endDate),
-                  tasks: phase.tasks.map((task: any) => ({
-                    ...task,
-                    startDate: formatDateField(task.startDate),
-                    endDate: formatDateField(task.endDate),
-                  })),
-                }));
-              }
-              if (delta.phases.deleted) {
-                serializedDelta.phases.deleted = delta.phases.deleted;
-              }
-            }
-
-            if (delta.resources) {
-              serializedDelta.resources = delta.resources;
-            }
-
-            if (delta.milestones) {
-              serializedDelta.milestones = {};
-              if (delta.milestones.created) {
-                serializedDelta.milestones.created = delta.milestones.created.map(m => ({
-                  ...m,
-                  date: formatDateField(m.date),
-                }));
-              }
-              if (delta.milestones.updated) {
-                serializedDelta.milestones.updated = delta.milestones.updated.map(m => ({
-                  ...m,
-                  date: formatDateField(m.date),
-                }));
-              }
-              if (delta.milestones.deleted) {
-                serializedDelta.milestones.deleted = delta.milestones.deleted;
-              }
-            }
-
-            if (delta.holidays) {
-              serializedDelta.holidays = {};
-              if (delta.holidays.created) {
-                serializedDelta.holidays.created = delta.holidays.created.map(h => ({
-                  ...h,
-                  date: formatDateField(h.date),
-                }));
-              }
-              if (delta.holidays.updated) {
-                serializedDelta.holidays.updated = delta.holidays.updated.map(h => ({
-                  ...h,
-                  date: formatDateField(h.date),
-                }));
-              }
-              if (delta.holidays.deleted) {
-                serializedDelta.holidays.deleted = delta.holidays.deleted;
-              }
-            }
-
-            const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}/delta`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(serializedDelta),
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              const errorMessage = errorData.error || `Failed to save project (${response.status})`;
-
-              // Enhanced error logging to debug validation issues
-              console.error('Save project failed:', {
-                status: response.status,
-                errorMessage,
-                errorData,
-                validationDetails: errorData.details,
-              });
-
-              // If validation failed, show detailed error
-              if (errorData.details && Array.isArray(errorData.details)) {
-                const detailedErrors = errorData.details.map((issue: any) =>
-                  `${issue.path.join('.')}: ${issue.message}`
-                ).join(', ');
-                throw new Error(`Validation failed: ${detailedErrors}`);
-              }
-
-              // Provide more context for common errors
-              let userFriendlyMessage = errorMessage;
-              if (response.status === 409) {
-                userFriendlyMessage = 'This data conflicts with existing records. ' + errorMessage;
-              } else if (response.status === 400) {
-                userFriendlyMessage = 'Invalid data: ' + (errorData.message || errorMessage);
-              } else if (response.status === 500) {
-                userFriendlyMessage = 'Server error while saving. Changes may have been partially saved. Please refresh the page to see the latest data.';
-              }
-
-              throw new Error(userFriendlyMessage);
+            } else {
+              // Small delta, save in one request
+              const serializedDelta = serializeDelta(delta);
+              await sendDeltaBatch(serializedDelta);
             }
 
             set((state) => {
               state.isSyncing = false;
               state.lastSyncAt = new Date();
+              state.saveProgress = null;
 
               // Deep clone currentProject to track as last saved state
               state.lastSavedProject = JSON.parse(JSON.stringify(currentProject));
@@ -593,6 +636,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
             set((state) => {
               state.syncError = error instanceof Error ? error.message : 'Unknown error';
               state.isSyncing = false;
+              state.saveProgress = null;
             });
             reject(error);
           }

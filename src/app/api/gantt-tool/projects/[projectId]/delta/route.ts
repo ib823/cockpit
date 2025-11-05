@@ -14,7 +14,7 @@ import { prisma } from '@/lib/db';
 import { z } from 'zod';
 
 // Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
-export const maxDuration = 10; // seconds
+export const maxDuration = 30; // seconds - increased for large projects with many resource assignments
 
 // Validation schema for delta updates
 const DeltaSaveSchema = z.object({
