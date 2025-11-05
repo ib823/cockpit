@@ -32,7 +32,7 @@ import { differenceInDays, addDays, format } from 'date-fns';
 import { adjustDatesToWorkingDays, calculateWorkingDaysInclusive, addWorkingDays } from '@/lib/gantt-tool/working-days';
 import { calculateProjectDelta, isDeltaEmpty, getDeltaSummary, sanitizeDelta } from '@/lib/gantt-tool/delta-calculator';
 import { shouldBatchDelta, batchDelta, type DeltaBatch } from '@/lib/gantt-tool/delta-batcher';
-import { saveProjectLocal, addToSyncQueue } from '@/lib/gantt-tool/local-storage';
+import { saveProjectLocal, addToSyncQueue, getProjectLocal, getAllProjectsLocal } from '@/lib/gantt-tool/local-storage';
 import { startBackgroundSync, stopBackgroundSync } from '@/lib/gantt-tool/background-sync';
 // import { createDefaultResources } from '@/lib/gantt-tool/default-resources'; // No longer used - users add resources manually or via import
 
@@ -84,7 +84,7 @@ interface GanttToolStateV2 {
   createProjectFromTemplate: (template: GanttProject) => Promise<void>;
   saveProject: () => Promise<void>; // Auto-save current project to API
   deleteProject: (projectId: string) => Promise<void>;
-  loadProject: (projectId: string) => void;
+  loadProject: (projectId: string) => Promise<void>;
   unloadCurrentProject: () => void;
 
   // History Actions
@@ -246,19 +246,48 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       });
 
       try {
-        const response = await fetch('/api/gantt-tool/projects');
+        // STEP 1: Load from IndexedDB first (instant, offline-capable)
+        const localProjects = await getAllProjectsLocal();
+        console.log(`[Store] Loaded ${localProjects.length} projects from IndexedDB`);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch projects');
+        // STEP 2: Fetch from server (for sync)
+        let serverProjects: GanttProject[] = [];
+        try {
+          const response = await fetch('/api/gantt-tool/projects');
+          if (response.ok) {
+            const data = await response.json();
+            serverProjects = data.projects;
+            console.log(`[Store] Loaded ${serverProjects.length} projects from server`);
+          }
+        } catch (fetchError) {
+          console.warn('[Store] Could not fetch from server, using local data only:', fetchError);
         }
 
-        const data = await response.json();
+        // STEP 3: Merge: Local projects with unsaved changes take priority
+        const projectMap = new Map<string, GanttProject>();
+
+        // Add server projects first
+        serverProjects.forEach(p => projectMap.set(p.id, p));
+
+        // Override with local projects (they're more recent if they exist)
+        localProjects.forEach(p => {
+          const localMeta = p as any;
+          // If local project is newer or has unsaved changes, use it
+          if (localMeta.needsSync || localMeta.localUpdatedAt) {
+            projectMap.set(p.id, p);
+            console.log(`[Store] Using local version of project: ${p.name} (has unsaved changes)`);
+          }
+        });
+
+        const mergedProjects = Array.from(projectMap.values());
 
         set((state) => {
-          state.projects = data.projects;
+          state.projects = mergedProjects;
           state.isLoading = false;
           state.lastSyncAt = new Date();
         });
+
+        console.log(`[Store] Total projects after merge: ${mergedProjects.length}`);
       } catch (error) {
         set((state) => {
           state.error = error instanceof Error ? error.message : 'Unknown error';
@@ -740,14 +769,62 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       }
     },
 
-    loadProject: (projectId: string) => {
-      const { projects } = get();
-      const project = projects.find(p => p.id === projectId);
-      if (project) {
-        set((state) => {
-          state.currentProject = project;
-          state.manuallyUnloaded = false;
-        });
+    loadProject: async (projectId: string) => {
+      try {
+        // STEP 1: Try to load from IndexedDB first (instant, has local changes)
+        const localProject = await getProjectLocal(projectId);
+
+        if (localProject) {
+          const localMeta = localProject as any;
+
+          // STEP 2: If local version has unsaved changes, use it!
+          if (localMeta.needsSync || localMeta.localUpdatedAt) {
+            console.log(`[Store] Loading from IndexedDB (has unsaved changes): ${localProject.name}`);
+            set((state) => {
+              state.currentProject = localProject;
+              state.manuallyUnloaded = false;
+            });
+            return;
+          }
+
+          // STEP 3: Otherwise use local but update from server if possible
+          console.log(`[Store] Loading from IndexedDB: ${localProject.name}`);
+          set((state) => {
+            state.currentProject = localProject;
+            state.manuallyUnloaded = false;
+          });
+
+          // Try to refresh from server in background (non-blocking)
+          get().fetchProject(projectId).catch(err => {
+            console.warn('[Store] Could not refresh from server:', err);
+          });
+          return;
+        }
+
+        // STEP 4: Fallback to in-memory projects array (from fetchProjects)
+        const { projects } = get();
+        const project = projects.find(p => p.id === projectId);
+        if (project) {
+          console.log(`[Store] Loading from memory: ${project.name}`);
+          set((state) => {
+            state.currentProject = project;
+            state.manuallyUnloaded = false;
+          });
+        } else {
+          console.warn(`[Store] Project ${projectId} not found in local storage or memory`);
+        }
+      } catch (error) {
+        console.error('[Store] Error loading project:', error);
+
+        // Final fallback to in-memory
+        const { projects } = get();
+        const project = projects.find(p => p.id === projectId);
+        if (project) {
+          set((state) => {
+            state.currentProject = project;
+            state.manuallyUnloaded = false;
+          });
+        }
       }
     },
 
