@@ -265,9 +265,15 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
     const resource = currentProject?.resources.find(r => r.id === resourceId);
     if (!resource) return;
 
-    // PM-only validation for phases
-    if (itemType === 'phase' && resource.category !== 'pm') {
-      alert(`Only Project Management resources can be assigned to phases.\n\n${resource.name} is a ${RESOURCE_CATEGORIES[resource.category].label} resource.`);
+    // Check if resource can be assigned to phase
+    if (itemType === 'phase' && !canAssignToPhase(resource)) {
+      alert(`This resource cannot be assigned at the phase level.\n\n${resource.name} is configured for ${resource.assignmentLevel === 'task' ? 'task-level assignments only' : 'assignments'}.\n\nTo enable phase-level assignment, edit the resource and change its "Assignment Level" setting to "Phase" or "Both".`);
+      return;
+    }
+
+    // Check if resource can be assigned to task
+    if (itemType === 'task' && !canAssignToTask(resource)) {
+      alert(`This resource cannot be assigned at the task level.\n\n${resource.name} is configured for ${resource.assignmentLevel === 'phase' ? 'phase-level assignments only' : 'assignments'}.\n\nTo enable task-level assignment, edit the resource and change its "Assignment Level" setting to "Task" or "Both".`);
       return;
     }
 
@@ -373,10 +379,10 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
 
           {/* Info Banner */}
           {itemType === 'phase' && (
-            <div className="px-6 py-3 bg-orange-50 border-b border-orange-100">
-              <p className="text-sm text-orange-900 flex items-center gap-2">
-                <span className="font-semibold">⚠️ Phase-Level Resources:</span>
-                Only Project Management (PM) resources can be assigned to phases.
+            <div className="px-6 py-3 bg-blue-50 border-b border-blue-100">
+              <p className="text-sm text-blue-900 flex items-center gap-2">
+                <span className="font-semibold">ℹ️ Phase-Level Assignment:</span>
+                Only resources configured for "Phase" or "Both" assignment levels can be assigned here.
               </p>
             </div>
           )}
@@ -485,7 +491,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
 
             {/* Empty State */}
             {Object.values(resourcesByCategory).every(resources =>
-              (resources as Resource[]).filter(r => itemType === 'phase' ? r.category === 'pm' && !isAssigned(r.id) : !isAssigned(r.id)).length === 0
+              (resources as Resource[]).filter(r => itemType === 'phase' ? canAssignToPhase(r) && !isAssigned(r.id) : canAssignToTask(r) && !isAssigned(r.id)).length === 0
             ) && (
               <div className="text-center py-12">
                 <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -494,7 +500,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
                 </h3>
                 <p className="text-gray-600 mb-4">
                   {itemType === 'phase'
-                    ? 'All PM resources are already assigned to this phase.'
+                    ? 'All resources configured for phase-level assignment are already assigned to this phase.'
                     : currentAssignments.length > 0
                     ? 'All project resources are assigned. Remove existing assignments or add more resources.'
                     : 'Add resources to your project first, then assign them here.'}

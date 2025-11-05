@@ -14,7 +14,7 @@ import { ChevronDown, ChevronRight, Flag, Users, ChevronUp, MoveUp, MoveDown, Ar
 import type { GanttPhase } from '@/types/gantt-tool';
 import { getHolidaysInRange } from '@/data/holidays';
 import { formatGanttDate, formatDuration, formatDurationCompact, formatWorkingDays, formatCalendarDuration } from '@/lib/gantt-tool/date-utils';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, canAssignToPhase } from '@/types/gantt-tool';
 import { calculateWorkingDaysInclusive } from '@/lib/gantt-tool/working-days';
 import { PhaseTaskResourceAllocationModal } from './PhaseTaskResourceAllocationModal';
 import { GanttMinimap } from './GanttMinimap';
@@ -521,8 +521,8 @@ export function GanttCanvas() {
       const data = JSON.parse(e.dataTransfer.getData('application/json'));
       if (data.type === 'resource' && data.resourceId) {
         const resource = getResourceById(data.resourceId);
-        // Only allow PM resources on phases
-        if (resource && resource.category === 'pm') {
+        // Only allow resources configured for phase-level assignment
+        if (resource && canAssignToPhase(resource)) {
           setPhaseDropTarget(phaseId);
         }
       }
@@ -549,9 +549,9 @@ export function GanttCanvas() {
         const resource = getResourceById(data.resourceId);
 
         if (phase && resource) {
-          // Validate PM category
-          if (resource.category !== 'pm') {
-            alert(`Only Project Management resources can be assigned to phases.\n\n${resource.name} is a ${RESOURCE_CATEGORIES[resource.category].label} resource and must be assigned to specific tasks instead.`);
+          // Validate assignment level
+          if (!canAssignToPhase(resource)) {
+            alert(`This resource cannot be assigned at the phase level.\n\n${resource.name} is configured for ${resource.assignmentLevel === 'task' ? 'task-level assignments only' : 'assignments'}.\n\nTo enable phase-level assignment, edit the resource and change its "Assignment Level" setting to "Phase" or "Both".`);
             return;
           }
 
