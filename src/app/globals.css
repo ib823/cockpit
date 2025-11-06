@@ -355,6 +355,46 @@ a:hover {
 /* Fix modal centering */
 
 /* ═══════════════════════════════════════════════════════
+   Modal & Dropdown Polish (Phase 1 - Task 9)
+   Professional backdrop and animations
+   ═══════════════════════════════════════════════════════ */
+
+/* Darker, more professional modal backdrop */
+.ant-modal-mask {
+  background-color: rgba(0, 0, 0, 0.55) !important;  /* Darker than default 0.45 */
+  backdrop-filter: blur(4px);  /* Subtle blur effect */
+  -webkit-backdrop-filter: blur(4px);  /* Safari support */
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Smooth modal enter animation */
+.ant-modal {
+  animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Ensure modal content has proper shadows from theme */
+.ant-modal-content {
+  overflow: hidden;  /* Ensures border-radius clips content properly */
+}
+
+/* Dropdown animations */
+.ant-dropdown,
+.ant-select-dropdown {
+  animation: fadeUp 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════════════════════
    vis-timeline Phase Styles (SAP Activate)
    ═══════════════════════════════════════════════════════ */
 

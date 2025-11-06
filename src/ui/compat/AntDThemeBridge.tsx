@@ -132,7 +132,35 @@ export const AntDThemeBridge: React.FC<{ children: React.ReactNode }> = ({ child
   const algorithm = snap.themeAttr === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
 
   return (
-    <ConfigProvider theme={{ token: snap.token, algorithm }}>
+    <ConfigProvider
+      theme={{
+        token: snap.token,
+        algorithm,
+        components: {
+          // Modal enhancements - professional polish
+          Modal: {
+            borderRadiusLG: 16,  // Larger border radius (design system: 16px)
+            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',  // Elevation 4
+            contentBg: snap.token.colorBgBase,
+            headerBg: snap.token.colorBgBase,
+            padding: 24,  // Consistent padding (design system spacing[6])
+            paddingLG: 24,
+            paddingMD: 20,
+          },
+          // Dropdown enhancements - better shadows
+          Dropdown: {
+            borderRadiusLG: 12,  // Rounded corners
+            boxShadowSecondary: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',  // Elevation 3
+            paddingBlock: 8,
+          },
+          // Select dropdown enhancements
+          Select: {
+            borderRadius: 12,
+            boxShadowSecondary: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+          },
+        }
+      }}
+    >
       {children}
     </ConfigProvider>
   );
