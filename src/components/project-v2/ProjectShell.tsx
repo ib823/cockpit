@@ -220,7 +220,6 @@ export function ProjectShell() {
               <div className="h-full flex items-center justify-center">
                 <div className="text-center text-gray-500">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-                  <p className="text-sm">Loading timeline...</p>
                 </div>
               </div>
             }>
@@ -232,7 +231,6 @@ export function ProjectShell() {
               <div className="h-full flex items-center justify-center bg-gray-900">
                 <div className="text-center text-gray-300">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                  <p className="text-sm">Loading presentation...</p>
                 </div>
               </div>
             }>

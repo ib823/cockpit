@@ -16,7 +16,7 @@ import { QuickResourcePanel } from './QuickResourcePanel';
 import { MissionControlModal } from './MissionControlModal';
 import { format } from 'date-fns';
 import { AlertTriangle, Loader2 } from 'lucide-react';
-import { GhostLoader } from '@/components/common';
+import { HexCubeLoader } from '@/components/common';
 
 export function GanttToolShell() {
   const {
@@ -167,10 +167,7 @@ export function GanttToolShell() {
   if (isLoading || !currentProject) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <GhostLoader />
-          <p className="mt-4 text-gray-600 text-lg">Loading your timeline...</p>
-        </div>
+        <HexCubeLoader size={220} />
       </div>
     );
   }

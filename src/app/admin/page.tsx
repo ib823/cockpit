@@ -4,6 +4,29 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { LogoutButton } from '@/components/common/LogoutButton';
 import { prisma } from '@/lib/db';
+import { unstable_cache } from 'next/cache';
+
+// Cache admin stats for 5 minutes to avoid slow queries on every page load
+const getCachedAdminStats = unstable_cache(
+  async () => {
+    const startTime = Date.now();
+    try {
+      const [totalUsers, activeProjects, proposals] = await Promise.all([
+        prisma.users.count(),
+        prisma.projects.count({ where: { status: 'APPROVED' } }),
+        prisma.projects.count({ where: { status: { in: ['DRAFT', 'IN_REVIEW'] } } }),
+      ]);
+      const duration = Date.now() - startTime;
+      console.log(`[DB] Admin stats fetched in ${duration}ms (cached for 5min)`);
+      return { totalUsers, activeProjects, proposals, dbError: false };
+    } catch (error) {
+      console.error('[Admin Dashboard] Failed to fetch statistics:', error);
+      return { totalUsers: 0, activeProjects: 0, proposals: 0, dbError: true };
+    }
+  },
+  ['admin-stats'],
+  { revalidate: 300, tags: ['admin-stats'] } // Cache for 5 minutes
+);
 
 export default async function AdminDashboard() {
   const session = await getServerSession(authConfig);
@@ -12,23 +35,8 @@ export default async function AdminDashboard() {
     redirect('/dashboard');
   }
 
-  // Fetch real statistics from database with error handling
-  let totalUsers = 0;
-  let activeProjects = 0;
-  let proposals = 0;
-  let dbError = false;
-
-  try {
-    [totalUsers, activeProjects, proposals] = await Promise.all([
-      prisma.users.count(),
-      prisma.projects.count({ where: { status: 'APPROVED' } }),
-      prisma.projects.count({ where: { status: { in: ['DRAFT', 'IN_REVIEW'] } } }),
-    ]);
-  } catch (error) {
-    console.error('[Admin Dashboard] Failed to fetch statistics:', error);
-    dbError = true;
-    // Fallback to zeros - will show database connection issue
-  }
+  // Fetch statistics with caching
+  const { totalUsers, activeProjects, proposals, dbError } = await getCachedAdminStats();
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -5,6 +5,7 @@
 // Spinners
 export { Spinner, SpinnerOverlay } from './Spinner';
 export { CubeSpinner } from './CubeSpinner';
+export { HexCubeLoader } from './HexCubeLoader';
 export { AnimatedSpinner, DotSpinner, PulseSpinner } from './AnimatedSpinner';
 export { GhostLoader } from './GhostLoader';
 
@@ -21,3 +22,6 @@ export { CustomTooltip } from './CustomTooltip';
 export { Button } from './Button';
 export { LogoutButton } from './LogoutButton';
 export { ResetButton } from "./ResetButton";
+
+// Modals
+export { SimpleModal } from './SimpleModal';

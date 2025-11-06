@@ -199,20 +199,29 @@ export async function markProjectSynced(projectId: string): Promise<void> {
   const tx = db.transaction([PROJECTS_STORE], 'readwrite');
   const store = tx.objectStore(PROJECTS_STORE);
 
-  const project = await getProjectLocal(projectId);
-  if (project) {
-    const updatedProject = {
-      ...project,
-      needsSync: false,
-      lastSyncedAt: new Date().toISOString(),
+  return new Promise((resolve, reject) => {
+    // Get project within the same transaction to avoid transaction auto-commit
+    const getRequest = store.get(projectId);
+
+    getRequest.onsuccess = () => {
+      const project = getRequest.result;
+      if (project) {
+        const updatedProject = {
+          ...project,
+          needsSync: false,
+          lastSyncedAt: new Date().toISOString(),
+        };
+
+        const putRequest = store.put(updatedProject);
+        putRequest.onsuccess = () => resolve();
+        putRequest.onerror = () => reject(putRequest.error);
+      } else {
+        resolve(); // Project not found, nothing to update
+      }
     };
 
-    return new Promise((resolve, reject) => {
-      const request = store.put(updatedProject);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-  }
+    getRequest.onerror = () => reject(getRequest.error);
+  });
 }
 
 /**

@@ -37,7 +37,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
         args[0].includes('antd: compatible') ||
         args[0].includes('[next-auth][error][CLIENT_FETCH_ERROR]') ||
         // Suppress AntD hydration warnings - expected with dynamic theming
-        (args[0].includes('Hydration') && args[0].includes('css-dev-only-do-not-override'))
+        (args[0].includes('Hydration') && args[0].includes('css-dev-only-do-not-override')) ||
+        // Suppress IndexedDB transaction errors (fixed in code, but may persist in old sessions)
+        (args[0].includes('[BackgroundSync]') && args[0].includes('transaction has finished')) ||
+        // Suppress background sync failures - handled gracefully by the app
+        (args[0].includes('[BackgroundSync]') && args[0].includes('Sync failed')) ||
+        // Suppress initial loader hydration warnings - loader is created client-side only
+        (args[0].includes('Hydration') && args[0].includes('initial-loader')) ||
+        // Suppress static message API warnings - we use standalone API for better performance
+        (args[0].includes('[antd: message]') && args[0].includes('Static function'))
       )) {
         return;
       }

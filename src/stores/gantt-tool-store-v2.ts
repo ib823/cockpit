@@ -1540,8 +1540,8 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         if (!phase) return;
 
         const resource = state.currentProject.resources.find((r) => r.id === resourceId);
-        if (!resource || resource.category !== 'pm') {
-          console.warn('Only PM resources can be assigned to phases');
+        if (!resource || (resource.category !== 'pm' && resource.category !== 'leadership')) {
+          console.warn('Only PM and Leadership resources can be assigned to phases');
           return;
         }
 

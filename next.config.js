@@ -47,7 +47,8 @@ const nextConfig = {
             value: [
               "default-src 'self'",
               // Only allow unsafe-eval in development (required by Next.js HMR)
-              `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+              // Allow cdnjs.cloudflare.com for Lottie animation library
+              `script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com${isDev ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self'",
