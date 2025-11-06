@@ -70,6 +70,7 @@ import { DuplicateCleanupModal } from './DuplicateCleanupModal';
 import ExportConfigModal from './ExportConfigModal';
 import type { MenuProps } from 'antd';
 import dayjs from 'dayjs';
+import { colorValues, getColoredShadow, spacing } from '@/lib/design-system';
 
 interface GanttToolbarProps {
   showContextPanel?: boolean;
@@ -708,11 +709,14 @@ export function GanttToolbar({
               size="large"
               icon={<Plus className="w-5 h-5" />}
               onClick={() => openSidePanel('add', 'phase')}
-              className="shadow-md hover:shadow-lg transition-all font-semibold px-6"
+              className="font-semibold"
               style={{
-                backgroundColor: '#1890ff',
-                borderColor: '#1890ff',
-                color: '#ffffff'
+                backgroundColor: colorValues.primary[600],
+                borderColor: colorValues.primary[600],
+                color: '#ffffff',
+                boxShadow: getColoredShadow(colorValues.primary[600], 'md'),
+                paddingLeft: spacing[6],
+                paddingRight: spacing[6],
               }}
             >
               Add Phase
@@ -743,8 +747,9 @@ export function GanttToolbar({
                   onClick={onToggleQuickResourcePanel}
                   className="flex items-center gap-2"
                   style={showQuickResourcePanel ? {
-                    backgroundColor: '#722ed1',
-                    borderColor: '#722ed1'
+                    backgroundColor: colorValues.accent[600],
+                    borderColor: colorValues.accent[600],
+                    boxShadow: getColoredShadow(colorValues.accent[600], 'sm'),
                   } : undefined}
                 >
                   <span className="hidden xl:inline">Quick Assign</span>

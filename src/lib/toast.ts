@@ -1,12 +1,14 @@
 /**
  * TOAST NOTIFICATIONS
  *
- * Centralized toast system replacing console.log and alert().
+ * Centralized toast system with design system integration
+ * Enhanced with professional colors, shadows, and micro-interactions
  *
  * Per spec: Roadmap_and_DoD.md P0-3
  */
 
 import toast from 'react-hot-toast';
+import { colorValues, getColoredShadow } from './design-system';
 
 /**
  * Success toast - green with checkmark icon
@@ -16,13 +18,16 @@ export function showSuccess(message: string, duration = 3000) {
     duration,
     position: 'top-right',
     style: {
-      background: '#10b981',
+      background: colorValues.success[600],
       color: '#fff',
-      fontWeight: 500,
+      fontWeight: 600,
+      boxShadow: getColoredShadow(colorValues.success[600], 'lg'),
+      borderRadius: '12px',
+      padding: '12px 16px',
     },
     iconTheme: {
       primary: '#fff',
-      secondary: '#10b981',
+      secondary: colorValues.success[600],
     },
   });
 }
@@ -35,13 +40,16 @@ export function showError(message: string, duration = 4000) {
     duration,
     position: 'top-right',
     style: {
-      background: '#ef4444',
+      background: colorValues.error[600],
       color: '#fff',
-      fontWeight: 500,
+      fontWeight: 600,
+      boxShadow: getColoredShadow(colorValues.error[600], 'lg'),
+      borderRadius: '12px',
+      padding: '12px 16px',
     },
     iconTheme: {
       primary: '#fff',
-      secondary: '#ef4444',
+      secondary: colorValues.error[600],
     },
   });
 }
@@ -53,9 +61,12 @@ export function showLoading(message: string) {
   return toast.loading(message, {
     position: 'top-right',
     style: {
-      background: '#3b82f6',
+      background: colorValues.primary[600],
       color: '#fff',
-      fontWeight: 500,
+      fontWeight: 600,
+      boxShadow: getColoredShadow(colorValues.primary[600], 'md'),
+      borderRadius: '12px',
+      padding: '12px 16px',
     },
   });
 }
@@ -69,9 +80,12 @@ export function showInfo(message: string, duration = 3000) {
     position: 'top-right',
     icon: 'ℹ️',
     style: {
-      background: '#6366f1',
+      background: colorValues.info[600],
       color: '#fff',
-      fontWeight: 500,
+      fontWeight: 600,
+      boxShadow: getColoredShadow(colorValues.info[600], 'md'),
+      borderRadius: '12px',
+      padding: '12px 16px',
     },
   });
 }
@@ -85,9 +99,12 @@ export function showWarning(message: string, duration = 4000) {
     position: 'top-right',
     icon: '⚠️',
     style: {
-      background: '#f59e0b',
+      background: colorValues.warning[600],
       color: '#fff',
-      fontWeight: 500,
+      fontWeight: 600,
+      boxShadow: getColoredShadow(colorValues.warning[600], 'md'),
+      borderRadius: '12px',
+      padding: '12px 16px',
     },
   });
 }
@@ -111,20 +128,32 @@ export function showPromise<T>(
       position: 'top-right',
       success: {
         style: {
-          background: '#10b981',
+          background: colorValues.success[600],
           color: '#fff',
+          fontWeight: 600,
+          boxShadow: getColoredShadow(colorValues.success[600], 'lg'),
+          borderRadius: '12px',
+          padding: '12px 16px',
         },
       },
       error: {
         style: {
-          background: '#ef4444',
+          background: colorValues.error[600],
           color: '#fff',
+          fontWeight: 600,
+          boxShadow: getColoredShadow(colorValues.error[600], 'lg'),
+          borderRadius: '12px',
+          padding: '12px 16px',
         },
       },
       loading: {
         style: {
-          background: '#3b82f6',
+          background: colorValues.primary[600],
           color: '#fff',
+          fontWeight: 600,
+          boxShadow: getColoredShadow(colorValues.primary[600], 'md'),
+          borderRadius: '12px',
+          padding: '12px 16px',
         },
       },
     }
