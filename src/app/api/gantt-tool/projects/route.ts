@@ -196,20 +196,20 @@ export async function POST(request: NextRequest) {
       createdAt: project.createdAt.toISOString(),
       updatedAt: project.updatedAt.toISOString(),
       deletedAt: project.deletedAt?.toISOString() || null,
-      phases: project.phases.map(phase => ({
+      phases: project.phases.map((phase: any) => ({
         ...phase,
         startDate: phase.startDate.toISOString().split('T')[0],
         endDate: phase.endDate.toISOString().split('T')[0],
       })),
-      milestones: project.milestones.map(m => ({
+      milestones: project.milestones.map((m: any) => ({
         ...m,
         date: m.date.toISOString().split('T')[0],
       })),
-      holidays: project.holidays.map(h => ({
+      holidays: project.holidays.map((h: any) => ({
         ...h,
         date: h.date.toISOString().split('T')[0],
       })),
-      resources: project.resources.map(r => ({
+      resources: project.resources.map((r: any) => ({
         ...r,
         createdAt: r.createdAt.toISOString(),
       })),
