@@ -157,6 +157,41 @@ export const AntDThemeBridge: React.FC<{ children: React.ReactNode }> = ({ child
           Select: {
             borderRadius: 12,
             boxShadowSecondary: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+            controlHeight: 40,  // Standard height (design system)
+            controlHeightLG: 48,  // Large height
+            controlHeightSM: 32,  // Small height
+          },
+          // Input enhancements - consistent heights and focus states
+          Input: {
+            controlHeight: 40,  // Standard input height (design system)
+            controlHeightLG: 48,
+            controlHeightSM: 32,
+            borderRadius: 8,  // Rounded corners
+            paddingBlock: 8,
+            paddingInline: 12,
+          },
+          // InputNumber enhancements
+          InputNumber: {
+            controlHeight: 40,
+            controlHeightLG: 48,
+            controlHeightSM: 32,
+            borderRadius: 8,
+            paddingBlock: 8,
+            paddingInline: 12,
+          },
+          // DatePicker enhancements
+          DatePicker: {
+            controlHeight: 40,
+            controlHeightLG: 48,
+            controlHeightSM: 32,
+            borderRadius: 8,
+          },
+          // Form enhancements
+          Form: {
+            labelFontSize: 14,
+            labelHeight: 22,
+            labelColor: '#374151',  // Gray-700
+            verticalLabelPadding: 8,
           },
         }
       }}
