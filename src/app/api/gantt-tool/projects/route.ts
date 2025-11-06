@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use transaction with retry for create + audit log
-    const project = await withRetry(() => (prisma.$transaction as any)(async (tx: any) => {
+    const project = (await withRetry(() => (prisma.$transaction as any)(async (tx: any) => {
       const newProject = await tx.ganttProject.create({
       data: {
         userId: session.user.id,
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
       });
 
       return newProject;
-    }));
+    }))) as any;
 
     // Serialize dates to strings for frontend
     const serializedProject = {
