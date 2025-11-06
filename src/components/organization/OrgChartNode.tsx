@@ -15,6 +15,7 @@ import { TeamOutlined, CalendarOutlined, CheckSquareOutlined } from '@ant-design
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
 import type { OrgChartNode } from '@/lib/organization/layout-calculator';
 import { useGanttToolStore } from '@/stores/gantt-tool-store-v2';
+import { withOpacity, getElevationShadow } from '@/lib/design-system';
 
 export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChartNode['data']>) => {
   const categoryInfo = RESOURCE_CATEGORIES[data.category];
@@ -82,13 +83,18 @@ export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChar
   return (
     <div
       className={`
-        bg-white rounded-lg shadow-md border-2 transition-all duration-200
-        ${selected ? 'border-blue-500 shadow-xl scale-105' : isActivelyWorking ? 'border-green-400 hover:border-green-500' : 'border-gray-200 hover:border-gray-300'}
-        w-[240px] relative
+        bg-white rounded-xl border-2 transition-all duration-200 hover:scale-102
+        ${selected ? 'border-blue-500 scale-105' : isActivelyWorking ? 'border-green-400 hover:border-green-500' : 'border-gray-200 hover:border-gray-300'}
+        w-[240px] relative overflow-hidden
       `}
       style={{
         borderLeftWidth: assignments.primaryPhase ? '6px' : '2px',
         borderLeftColor: assignments.primaryPhase?.phaseColor || undefined,
+        boxShadow: selected
+          ? `${getElevationShadow(4)}, 0 0 0 4px ${withOpacity('#3B82F6', 0.1)}`
+          : isActivelyWorking
+          ? `${getElevationShadow(3)}, 0 0 0 2px ${withOpacity('#10B981', 0.05)}`
+          : getElevationShadow(2),
       }}
     >
       {/* Manager Connection Handle (Top) - Hidden by default */}
@@ -217,7 +223,12 @@ export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChar
 
       {/* Active Work Indicator Badge */}
       {isActivelyWorking && (
-        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+        <div
+          className="absolute -top-2 -right-2 bg-gradient-to-br from-green-400 to-green-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse border-2 border-white"
+          style={{
+            boxShadow: `${getElevationShadow(3)}, 0 0 12px ${withOpacity('#10B981', 0.5)}`,
+          }}
+        >
           {totalWorkload}
         </div>
       )}

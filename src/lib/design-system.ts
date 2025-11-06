@@ -77,6 +77,92 @@ export const typography = {
 // COLOR PALETTE - Semantic & Consistent
 // ============================================================================
 
+// Actual hex values for use in JavaScript/inline styles
+export const colorValues = {
+  // Primary brand colors (Blue)
+  primary: {
+    50: '#EFF6FF',
+    100: '#DBEAFE',
+    200: '#BFDBFE',
+    300: '#93C5FD',
+    400: '#60A5FA',
+    500: '#3B82F6',   // Main brand color
+    600: '#2563EB',   // Primary action color
+    700: '#1D4ED8',
+    800: '#1E40AF',
+    900: '#1E3A8A',
+  },
+
+  // Secondary/accent (Purple)
+  accent: {
+    50: '#FAF5FF',
+    100: '#F3E8FF',
+    200: '#E9D5FF',
+    300: '#D8B4FE',
+    400: '#C084FC',
+    500: '#A855F7',
+    600: '#9333EA',   // Secondary actions
+    700: '#7E22CE',
+    800: '#6B21A8',
+    900: '#581C87',
+  },
+
+  // Success states (Green)
+  success: {
+    50: '#ECFDF5',
+    100: '#D1FAE5',
+    200: '#A7F3D0',
+    500: '#10B981',
+    600: '#059669',
+    700: '#047857',
+  },
+
+  // Warning states (Amber)
+  warning: {
+    50: '#FFFBEB',
+    100: '#FEF3C7',
+    200: '#FDE68A',
+    500: '#F59E0B',
+    600: '#D97706',
+    700: '#B45309',
+  },
+
+  // Error states (Red)
+  error: {
+    50: '#FEF2F2',
+    100: '#FEE2E2',
+    200: '#FECACA',
+    500: '#EF4444',
+    600: '#DC2626',
+    700: '#B91C1C',
+  },
+
+  // Info states (Cyan)
+  info: {
+    50: '#ECFEFF',
+    100: '#CFFAFE',
+    200: '#A5F3FC',
+    500: '#06B6D4',
+    600: '#0891B2',
+    700: '#0E7490',
+  },
+
+  // Neutral grays
+  gray: {
+    50: '#F9FAFB',     // Backgrounds
+    100: '#F3F4F6',    // Subtle backgrounds
+    200: '#E5E7EB',    // Borders
+    300: '#D1D5DB',    // Dividers
+    400: '#9CA3AF',    // Disabled text
+    500: '#6B7280',    // Secondary text
+    600: '#4B5563',    // Primary text (light bg)
+    700: '#374151',    // Headings
+    800: '#1F2937',    // Dark backgrounds
+    900: '#111827',    // Darkest
+  },
+} as const;
+
+// Tailwind class names for use in JSX className
 export const colors = {
   // Primary brand colors
   primary: {
@@ -144,6 +230,46 @@ export const colors = {
     inverse: "text-white",
     muted: "text-gray-400",
   },
+} as const;
+
+/**
+ * Professional Gantt Task Colors
+ * 16 carefully chosen colors for maximum distinction and visual harmony
+ * These replace the old harsh 16-color palette
+ */
+export const PROFESSIONAL_TASK_COLORS = [
+  '#3B82F6', // Blue - Primary
+  '#8B5CF6', // Purple - Secondary
+  '#EC4899', // Pink - Vibrant
+  '#10B981', // Green - Success
+  '#F59E0B', // Amber - Warning
+  '#EF4444', // Red - Error
+  '#06B6D4', // Cyan - Info
+  '#6366F1', // Indigo - Deep
+  '#84CC16', // Lime - Fresh
+  '#F97316', // Orange - Warm
+  '#14B8A6', // Teal - Cool
+  '#A855F7', // Violet - Rich
+  '#22C55E', // Emerald - Natural
+  '#FB923C', // Light Orange - Soft
+  '#0EA5E9', // Sky - Bright
+  '#D946EF', // Fuchsia - Bold
+] as const;
+
+/**
+ * Resource Category Colors
+ * Consistent colors for resource categories across the app
+ */
+export const RESOURCE_CATEGORY_COLORS = {
+  leadership: '#D97706',   // Amber
+  functional: '#3B82F6',   // Blue
+  technical: '#8B5CF6',    // Purple
+  basis: '#10B981',        // Green
+  security: '#EF4444',     // Red
+  pm: '#F59E0B',           // Orange
+  change: '#EC4899',       // Pink
+  qa: '#06B6D4',           // Cyan
+  other: '#6B7280',        // Gray
 } as const;
 
 // ============================================================================
@@ -367,3 +493,175 @@ export function prefersReducedMotion(): boolean {
 export function getAnimationDuration(speed: keyof typeof animation.duration = 'normal'): number {
   return prefersReducedMotion() ? animation.reducedMotion.duration : animation.duration[speed];
 }
+
+// ============================================================================
+// COLOR UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Get text color based on background color (contrast check)
+ * Ensures readable text on any background
+ */
+export function getContrastColor(hexColor: string): string {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+
+  // Convert to RGB
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  // Calculate luminance (relative brightness)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+  // Return white or black based on luminance
+  return luminance > 0.5 ? colorValues.gray[900] : '#ffffff';
+}
+
+/**
+ * Apply alpha/opacity to a hex color
+ * Returns rgba() string
+ */
+export function withOpacity(hexColor: string, opacity: number): string {
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
+/**
+ * Get task color by index (cyclic)
+ * Use this instead of the old TASK_COLOR_PALETTE
+ */
+export function getTaskColor(index: number): string {
+  return PROFESSIONAL_TASK_COLORS[index % PROFESSIONAL_TASK_COLORS.length];
+}
+
+/**
+ * Get resource category color
+ */
+export function getResourceCategoryColor(category: keyof typeof RESOURCE_CATEGORY_COLORS): string {
+  return RESOURCE_CATEGORY_COLORS[category] || RESOURCE_CATEGORY_COLORS.other;
+}
+
+/**
+ * Generate a gradient from a base color
+ */
+export function generateGradient(baseColor: string, direction: 'to-r' | 'to-b' | 'to-br' = 'to-r'): string {
+  const directionMap = {
+    'to-r': 'to right',
+    'to-b': 'to bottom',
+    'to-br': 'to bottom right',
+  };
+
+  // Add slight transparency to the end for a professional fade
+  const startColor = baseColor;
+  const endColor = withOpacity(baseColor, 0.85);
+
+  return `linear-gradient(${directionMap[direction]}, ${startColor}, ${endColor})`;
+}
+
+/**
+ * Lighten a hex color by a percentage
+ */
+export function lightenColor(hexColor: string, percent: number): string {
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  const newR = Math.min(255, Math.round(r + (255 - r) * (percent / 100)));
+  const newG = Math.min(255, Math.round(g + (255 - g) * (percent / 100)));
+  const newB = Math.min(255, Math.round(b + (255 - b) * (percent / 100)));
+
+  return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+}
+
+/**
+ * Darken a hex color by a percentage
+ */
+export function darkenColor(hexColor: string, percent: number): string {
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  const newR = Math.max(0, Math.round(r * (1 - percent / 100)));
+  const newG = Math.max(0, Math.round(g * (1 - percent / 100)));
+  const newB = Math.max(0, Math.round(b * (1 - percent / 100)));
+
+  return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+}
+
+// ============================================================================
+// SHADOW UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Get shadow with custom color (useful for colored shadows on buttons, cards)
+ */
+export function getColoredShadow(hexColor: string, intensity: 'sm' | 'md' | 'lg' = 'md'): string {
+  const shadowSizes = {
+    sm: '0 2px 8px',
+    md: '0 4px 16px',
+    lg: '0 8px 24px',
+  };
+
+  return `${shadowSizes[intensity]} ${withOpacity(hexColor, 0.25)}`;
+}
+
+/**
+ * Get elevation shadow (0-5 levels)
+ */
+export function getElevationShadow(level: 0 | 1 | 2 | 3 | 4 | 5): string {
+  const elevations = {
+    0: 'none',
+    1: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+    2: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+    3: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+    4: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+    5: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+  };
+
+  return elevations[level];
+}
+
+// ============================================================================
+// EXPORT DESIGN SYSTEM OBJECT
+// ============================================================================
+
+export const designSystem = {
+  colors: colorValues,
+  colorClasses: colors,
+  taskColors: PROFESSIONAL_TASK_COLORS,
+  resourceColors: RESOURCE_CATEGORY_COLORS,
+  typography,
+  spacing,
+  animation,
+  buttons: buttonStyles,
+  containers: containerStyles,
+  shadows,
+  radius,
+  focus: focusStyles,
+  layout,
+  utils: {
+    getContrastColor,
+    withOpacity,
+    getTaskColor,
+    getResourceCategoryColor,
+    generateGradient,
+    lightenColor,
+    darkenColor,
+    getColoredShadow,
+    getElevationShadow,
+    getButtonClass,
+    getCardClass,
+    getAnimationConfig,
+    prefersReducedMotion,
+    getAnimationDuration,
+  },
+} as const;
+
+export default designSystem;
