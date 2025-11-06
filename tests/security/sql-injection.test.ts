@@ -1,29 +1,29 @@
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import { prisma } from '@/lib/db';
 
-// Skip these tests if database is not available (CI environment without test DB)
+// Check if database is available synchronously at import time
 let skipTests = false;
+try {
+  // Check if database URL is configured
+  if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('postgresql://user:password@localhost:5432/dbname')) {
+    skipTests = true;
+    console.log('⚠️  Skipping SQL injection tests - DATABASE_URL not configured or using placeholder');
+  }
+} catch {
+  skipTests = true;
+}
 
-describe('SQL Injection Prevention', () => {
+describe.skipIf(skipTests)('SQL Injection Prevention', () => {
   beforeAll(async () => {
-    try {
-      // Check if database is available
-      await prisma.$connect();
-      // Try a simple query to verify tables exist
-      await prisma.projects.findFirst({ take: 0 });
-    } catch (error) {
-      console.log('⚠️  Skipping SQL injection tests - database not available:', (error as Error).message);
-      skipTests = true;
-    }
+    // Ensure test database connection
+    await prisma.$connect();
   });
 
   afterAll(async () => {
-    if (!skipTests) {
-      await prisma.$disconnect();
-    }
+    await prisma.$disconnect();
   });
 
-  test.skipIf(skipTests)('Prisma WHERE clause prevents SQL injection with string literal', async () => {
+  test('Prisma WHERE clause prevents SQL injection with string literal', async () => {
     const maliciousId = "1' OR '1'='1";
 
     // This should NOT return all records or throw an error
@@ -35,7 +35,7 @@ describe('SQL Injection Prevention', () => {
     expect(result).toBeNull();
   });
 
-  test.skipIf(skipTests)('Prisma prevents UNION-based SQL injection', async () => {
+  test('Prisma prevents UNION-based SQL injection', async () => {
     const maliciousId = "1 UNION SELECT * FROM users";
 
     await expect(
@@ -49,7 +49,7 @@ describe('SQL Injection Prevention', () => {
     expect(result).toBeNull();
   });
 
-  test.skipIf(skipTests)('Prisma prevents comment-based SQL injection', async () => {
+  test('Prisma prevents comment-based SQL injection', async () => {
     const maliciousInputs = [
       "admin'--",
       "'; DROP TABLE users; --",
@@ -69,7 +69,7 @@ describe('SQL Injection Prevention', () => {
     }
   });
 
-  test.skipIf(skipTests)('Prisma raw queries use parameterization', async () => {
+  test('Prisma raw queries use parameterization', async () => {
     const maliciousName = "test'; DROP TABLE projects; --";
 
     // $queryRaw uses parameterization automatically
@@ -82,7 +82,7 @@ describe('SQL Injection Prevention', () => {
     expect(Array.isArray(result)).toBe(true);
   });
 
-  test.skipIf(skipTests)('Email input sanitization prevents injection in users table', async () => {
+  test('Email input sanitization prevents injection in users table', async () => {
     const maliciousEmails = [
       "admin@test.com'; DROP TABLE users; --",
       "test@example.com' OR '1'='1",
@@ -103,7 +103,7 @@ describe('SQL Injection Prevention', () => {
     }
   });
 
-  test.skipIf(skipTests)('Integer fields reject non-numeric injection attempts', async () => {
+  test('Integer fields reject non-numeric injection attempts', async () => {
     const maliciousValue = "1 OR 1=1";
 
     // This should fail type validation
@@ -116,7 +116,7 @@ describe('SQL Injection Prevention', () => {
     ).rejects.toThrow();
   });
 
-  test.skipIf(skipTests)('LIKE clause prevents wildcard injection', async () => {
+  test('LIKE clause prevents wildcard injection', async () => {
     const maliciousPattern = "%'; DROP TABLE projects; --";
 
     await expect(
@@ -141,7 +141,7 @@ describe('SQL Injection Prevention', () => {
     expect(Array.isArray(results)).toBe(true);
   });
 
-  test.skipIf(skipTests)('Prisma batch operations prevent injection', async () => {
+  test('Prisma batch operations prevent injection', async () => {
     const maliciousIds = [
       "1' OR '1'='1",
       "'; DROP TABLE projects; --",
