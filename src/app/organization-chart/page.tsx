@@ -186,9 +186,10 @@ export default function OrganizationChartProfessional() {
 
     // Subscribe to currentProject changes only
     const unsubscribe = useGanttToolStoreV2.subscribe(
-      (state) => state.currentProject,
-      (newProject) => {
-        setCurrentProject(newProject);
+      (state) => {
+        if (state.currentProject !== currentProject) {
+          setCurrentProject(state.currentProject);
+        }
       }
     );
 
@@ -360,12 +361,12 @@ export default function OrganizationChartProfessional() {
   // Get available resources (not yet assigned)
   const availableResources = useMemo(() => {
     if (!currentProject) return [];
-    return currentProject.resources.filter(r => !assignedResourceIds.has(r.id));
+    return currentProject.resources.filter((r: any) => !assignedResourceIds.has(r.id));
   }, [currentProject, assignedResourceIds]);
 
   // Get resource by ID
   const getResource = useCallback((resourceId: string): Resource | undefined => {
-    return currentProject?.resources.find(r => r.id === resourceId);
+    return currentProject?.resources.find((r: any) => r.id === resourceId);
   }, [currentProject]);
 
   // Auto-populate all resources (internal only)
@@ -384,7 +385,7 @@ export default function OrganizationChartProfessional() {
         resources: [...level.resources]
       }));
 
-      availableResources.forEach(resource => {
+      availableResources.forEach((resource: any) => {
         const targetLevelId = CATEGORY_TO_LEVEL_MAP[resource.category] || 'support';
         const levelIndex = newLevels.findIndex(l => l.id === targetLevelId);
         if (levelIndex !== -1) {
