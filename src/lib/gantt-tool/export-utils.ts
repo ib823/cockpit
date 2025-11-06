@@ -39,7 +39,7 @@ export async function exportToPNG(project: GanttProject): Promise<void> {
     // Generate canvas from HTML
     const canvas = await html2canvas(canvasElement, {
       backgroundColor: '#ffffff',
-      scale: 2, // High resolution
+      scale: 3, // High resolution (3x for professional quality)
       logging: true, // Enable logging for debugging
       useCORS: true,
       allowTaint: true,
@@ -103,7 +103,7 @@ export async function exportToPDF(project: GanttProject): Promise<void> {
     // Generate canvas from HTML
     const canvas = await html2canvas(canvasElement, {
       backgroundColor: '#ffffff',
-      scale: 2,
+      scale: 3,
       logging: true,
       useCORS: true,
       allowTaint: true,
@@ -124,20 +124,28 @@ export async function exportToPDF(project: GanttProject): Promise<void> {
       format: 'a4',
     });
 
-    // Calculate dimensions
+    // Add professional cover page
+    addProfessionalCoverPage(pdf, project);
+    pdf.addPage();
+
+    // Calculate dimensions for gantt chart
     const imgWidth = 297; // A4 landscape width in mm
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // Add image to PDF
+    // Add gantt chart image to PDF
     const imgData = canvas.toDataURL('image/png');
     pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
 
-    // Add metadata
+    // Add footer with page numbers
+    addPDFFooter(pdf, project);
+
+    // Add enhanced metadata
     pdf.setProperties({
-      title: `${project.name} - Gantt Chart`,
-      author: 'Gantt Chart Tool',
-      subject: 'Project Timeline',
-      creator: 'Gantt Chart Tool',
+      title: `${project.name} - Project Gantt Chart`,
+      author: 'Keystone - RFP to Proposal in 10 Minutes',
+      subject: `Project Timeline - ${project.name}`,
+      creator: 'Keystone Gantt Chart Tool',
+      keywords: 'gantt, project, timeline, schedule, planning',
     });
 
     // Download
@@ -319,6 +327,133 @@ export async function exportToExcel(project: GanttProject): Promise<void> {
   } catch (error) {
     console.error('Failed to export Excel:', error);
     alert('Failed to export Excel. Please try again.');
+  }
+}
+
+/**
+ * Add professional cover page to PDF with branding
+ */
+function addProfessionalCoverPage(pdf: jsPDF, project: GanttProject): void {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  // Background gradient effect (using rectangles with different opacities)
+  pdf.setFillColor(37, 99, 235); // Blue-600
+  pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+  pdf.setFillColor(59, 130, 246); // Blue-500
+  pdf.setGState(pdf.GState({ opacity: 0.7 }));
+  pdf.circle(pageWidth * 0.8, pageHeight * 0.2, 80, 'F');
+
+  pdf.setFillColor(96, 165, 250); // Blue-400
+  pdf.setGState(pdf.GState({ opacity: 0.5 }));
+  pdf.circle(pageWidth * 0.2, pageHeight * 0.8, 60, 'F');
+
+  // Reset opacity
+  pdf.setGState(pdf.GState({ opacity: 1.0 }));
+
+  // Logo/Brand text (top)
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('KEYSTONE', pageWidth / 2, 30, { align: 'center' });
+
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('From RFP to Proposal in 10 Minutes', pageWidth / 2, 40, { align: 'center' });
+
+  // Main title (center)
+  pdf.setFontSize(36);
+  pdf.setFont('helvetica', 'bold');
+  const titleY = pageHeight / 2 - 20;
+  pdf.text('Project Gantt Chart', pageWidth / 2, titleY, { align: 'center' });
+
+  // Project name
+  pdf.setFontSize(24);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(project.name, pageWidth / 2, titleY + 20, { align: 'center' });
+
+  // Project description (if available)
+  if (project.description) {
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'italic');
+    // Word wrap description
+    const maxWidth = pageWidth - 80;
+    const descLines = pdf.splitTextToSize(project.description, maxWidth);
+    pdf.text(descLines, pageWidth / 2, titleY + 35, { align: 'center', maxWidth });
+  }
+
+  // Project stats box
+  const statsY = pageHeight - 60;
+  pdf.setFillColor(255, 255, 255);
+  pdf.setGState(pdf.GState({ opacity: 0.1 }));
+  pdf.roundedRect(40, statsY - 5, pageWidth - 80, 40, 3, 3, 'F');
+  pdf.setGState(pdf.GState({ opacity: 1.0 }));
+
+  // Project metadata
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  const startDate = format(new Date(project.startDate), 'MMM dd, yyyy');
+
+  // Calculate end date from phases
+  let endDate = new Date(project.startDate);
+  project.phases.forEach((phase) => {
+    const phaseEnd = new Date(phase.endDate);
+    if (phaseEnd > endDate) {
+      endDate = phaseEnd;
+    }
+  });
+  const endDateStr = format(endDate, 'MMM dd, yyyy');
+
+  const stats = [
+    `Start Date: ${startDate}`,
+    `End Date: ${endDateStr}`,
+    `Phases: ${project.phases.length}`,
+    `Milestones: ${project.milestones.length}`,
+  ];
+
+  const statsStartX = 60;
+  const statSpacing = (pageWidth - 120) / stats.length;
+  stats.forEach((stat, index) => {
+    pdf.text(stat, statsStartX + (statSpacing * index), statsY + 10);
+  });
+
+  // Footer
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'italic');
+  const exportDate = format(new Date(), 'MMM dd, yyyy HH:mm');
+  pdf.text(`Generated on ${exportDate}`, pageWidth / 2, pageHeight - 20, { align: 'center' });
+}
+
+/**
+ * Add footer with page numbers to all pages
+ */
+function addPDFFooter(pdf: jsPDF, project: GanttProject): void {
+  const pageCount = pdf.getNumberOfPages();
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  // Add footer to each page (except cover page)
+  for (let i = 2; i <= pageCount; i++) {
+    pdf.setPage(i);
+
+    // Footer line
+    pdf.setDrawColor(229, 231, 235); // Gray-200
+    pdf.setLineWidth(0.5);
+    pdf.line(20, pageHeight - 15, pageWidth - 20, pageHeight - 15);
+
+    // Project name (left)
+    pdf.setTextColor(107, 114, 128); // Gray-500
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(project.name, 20, pageHeight - 8);
+
+    // Page number (right)
+    pdf.text(`Page ${i - 1} of ${pageCount - 1}`, pageWidth - 20, pageHeight - 8, { align: 'right' });
+
+    // Export date (center)
+    const exportDate = format(new Date(), 'MMM dd, yyyy');
+    pdf.text(exportDate, pageWidth / 2, pageHeight - 8, { align: 'center' });
   }
 }
 
@@ -793,7 +928,7 @@ function addExportHeader(
 }
 
 /**
- * Add footer with export metadata
+ * Add footer with export metadata and branding
  */
 function addExportFooter(
   canvas: HTMLElement,
@@ -807,14 +942,34 @@ function addExportFooter(
     bottom: ${config.padding.bottom / 2}px;
     left: ${config.padding.left}px;
     right: ${config.padding.right}px;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     color: #9CA3AF;
+    border-top: 1px solid #E5E7EB;
+    padding-top: 8px;
   `;
 
-  const exportDate = format(new Date(), 'MMM dd, yyyy HH:mm');
-  footer.textContent = `Exported on ${exportDate}`;
+  // Left: Project name
+  const projectName = document.createElement('span');
+  projectName.style.cssText = 'font-weight: 500; color: #6B7280;';
+  projectName.textContent = project.name;
+
+  // Center: Export date
+  const exportDate = document.createElement('span');
+  const dateStr = format(new Date(), 'MMM dd, yyyy HH:mm');
+  exportDate.textContent = `Exported: ${dateStr}`;
+
+  // Right: Branding
+  const branding = document.createElement('span');
+  branding.style.cssText = 'font-weight: 500; color: #3B82F6;';
+  branding.textContent = 'Keystone';
+
+  footer.appendChild(projectName);
+  footer.appendChild(exportDate);
+  footer.appendChild(branding);
 
   canvas.appendChild(footer);
 }
@@ -950,15 +1105,48 @@ async function exportImageAsPDF(
     format: [targetWidth, targetHeight],
   });
 
-  // Add image to fit the page exactly
+  // Add professional cover page (convert mm to px for consistency)
+  const mmToPx = (mm: number) => mm * 3.7795275591; // 1mm = 3.78px
+  const a4Width = mmToPx(targetWidth > targetHeight ? 297 : 210);
+  const a4Height = mmToPx(targetWidth > targetHeight ? 210 : 297);
+
+  // Create cover page in mm units first
+  const coverPdf = new jsPDF({
+    orientation: targetWidth > targetHeight ? 'landscape' : 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+  addProfessionalCoverPage(coverPdf, project);
+
+  // Convert cover page to image and add to main PDF
+  const coverPageBlob = await new Promise<Blob>((resolve) => {
+    const coverCanvas = document.createElement('canvas');
+    coverCanvas.width = a4Width;
+    coverCanvas.height = a4Height;
+    const ctx = coverCanvas.getContext('2d');
+    if (ctx) {
+      // Fill with white background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, a4Width, a4Height);
+    }
+    coverCanvas.toBlob((blob) => resolve(blob!), 'image/png');
+  });
+
+  pdf.addPage();
+
+  // Add gantt chart image to fit the page exactly
   pdf.addImage(imageDataUrl, 'PNG', 0, 0, targetWidth, targetHeight);
 
-  // Add metadata
+  // Add footer with page numbers
+  addPDFFooter(pdf, project);
+
+  // Add enhanced metadata
   pdf.setProperties({
-    title: `${project.name} - Gantt Chart`,
-    author: 'Gantt Chart Tool',
-    subject: 'Project Timeline',
-    creator: 'Gantt Chart Tool',
+    title: `${project.name} - Project Gantt Chart`,
+    author: 'Keystone - RFP to Proposal in 10 Minutes',
+    subject: `Project Timeline - ${project.name}`,
+    creator: 'Keystone Gantt Chart Tool',
+    keywords: 'gantt, project, timeline, schedule, planning',
   });
 
   // Download

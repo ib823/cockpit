@@ -19,31 +19,12 @@ import { calculateWorkingDaysInclusive } from '@/lib/gantt-tool/working-days';
 import { PhaseTaskResourceAllocationModal } from './PhaseTaskResourceAllocationModal';
 import { GanttMinimap } from './GanttMinimap';
 import { Tooltip } from 'antd';
-
-// Jobs/Ive: Consistent, beautiful color palette for tasks
-// 16 carefully chosen colors for maximum distinction and visual harmony
-const TASK_COLOR_PALETTE = [
-  '#FF6B6B', // Coral Red
-  '#4ECDC4', // Teal
-  '#45B7D1', // Sky Blue
-  '#FFA07A', // Light Salmon
-  '#98D8C8', // Mint
-  '#F7DC6F', // Sunflower
-  '#BB8FCE', // Lavender
-  '#85C1E2', // Powder Blue
-  '#F8B88B', // Peach
-  '#A8E6CF', // Seafoam
-  '#FFD93D', // Bright Yellow
-  '#C39BD3', // Orchid
-  '#7FB3D5', // Steel Blue
-  '#FAD7A0', // Apricot
-  '#A9DFBF', // Sage
-  '#F5B7B1', // Rose
-];
+import { getTaskColor as getTaskColorFromDesignSystem, withOpacity, getElevationShadow } from '@/lib/design-system';
 
 // Get consistent color for a task based on its index within the phase
+// Now using professional colors from the centralized design system
 const getTaskColor = (taskIndex: number): string => {
-  return TASK_COLOR_PALETTE[taskIndex % TASK_COLOR_PALETTE.length];
+  return getTaskColorFromDesignSystem(taskIndex);
 };
 
 export function GanttCanvas() {
@@ -869,13 +850,17 @@ export function GanttCanvas() {
                     {/* Phase Bar */}
                     <div
                       className={`absolute top-8 h-14 rounded-lg transition-all cursor-move ${
-                        isDragging ? 'opacity-70 scale-105 shadow-2xl' : 'hover:shadow-lg'
+                        isDragging ? 'opacity-70 scale-105' : ''
                       } ${isSelected ? 'ring-4 ring-blue-400' : ''}
-                      ${phaseDropTarget === phase.id ? 'ring-4 ring-purple-500 ring-offset-2 scale-105 shadow-2xl' : ''}`}
+                      ${phaseDropTarget === phase.id ? 'ring-4 ring-purple-500 ring-offset-2 scale-105' : ''}`}
                       style={{
                         left: `${metrics.left}%`,
                         width: `${metrics.width}%`,
-                        backgroundColor: phase.color,
+                        background: `linear-gradient(180deg, ${phase.color} 0%, ${withOpacity(phase.color, 0.85)} 100%)`,
+                        boxShadow: isDragging
+                          ? `0 12px 32px ${withOpacity(phase.color, 0.4)}`
+                          : `0 4px 12px ${withOpacity(phase.color, 0.25)}, inset 0 1px 0 ${withOpacity('#ffffff', 0.2)}`,
+                        border: `1px solid ${withOpacity('#ffffff', 0.15)}`,
                       }}
                       onClick={() => handlePhaseClick(phase.id)}
                       onDoubleClick={(e) => {
@@ -971,11 +956,12 @@ export function GanttCanvas() {
                                   return (
                                     <div
                                       key={task.id}
-                                      className="absolute top-0 h-full border-r border-white/40 group/minitask cursor-help transition-all hover:z-10"
+                                      className="absolute top-0 h-full border-r border-white/40 group/minitask cursor-help transition-all hover:z-10 hover:scale-105"
                                       style={{
                                         left: `${taskLeft}%`,
                                         width: `${taskWidth}%`,
-                                        backgroundColor: taskColor,
+                                        background: `linear-gradient(180deg, ${taskColor} 0%, ${withOpacity(taskColor, 0.85)} 100%)`,
+                                        boxShadow: `inset 0 1px 0 ${withOpacity('#ffffff', 0.2)}`,
                                       }}
                                       title={task.name}
                                     >
@@ -1168,16 +1154,18 @@ export function GanttCanvas() {
                             {/* Task Bar */}
                             <div
                               className={`absolute top-1 h-8 rounded-md transition-all cursor-move
-                                ${isTaskDragging ? 'opacity-60 scale-105 shadow-xl z-10' : 'hover:shadow-md'}
+                                ${isTaskDragging ? 'opacity-60 scale-105 z-10' : ''}
                                 ${isTaskSelected ? 'ring-2 ring-offset-1 ring-blue-400' : ''}
-                                ${dropTarget?.taskId === task.id ? 'ring-4 ring-purple-500 ring-offset-2 scale-110 shadow-2xl' : ''}
-                                group-hover/task:shadow-md
+                                ${dropTarget?.taskId === task.id ? 'ring-4 ring-purple-500 ring-offset-2 scale-110' : ''}
                               `}
                               style={{
                                 left: `${taskLeft}%`,
                                 width: `${taskWidth}%`,
-                                backgroundColor: taskColor,
-                                border: `2px solid ${taskColor}`,
+                                background: `linear-gradient(180deg, ${taskColor} 0%, ${withOpacity(taskColor, 0.88)} 100%)`,
+                                border: `2px solid ${withOpacity(taskColor, 0.3)}`,
+                                boxShadow: isTaskDragging
+                                  ? `0 8px 24px ${withOpacity(taskColor, 0.4)}`
+                                  : `0 2px 8px ${withOpacity(taskColor, 0.2)}, inset 0 1px 0 ${withOpacity('#ffffff', 0.25)}`,
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
