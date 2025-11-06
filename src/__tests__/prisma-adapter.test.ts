@@ -347,7 +347,7 @@ describe('M2 - Prisma Adapter', () => {
 
       expect(phases).toHaveLength(1);
       expect(phases[0].name).toBe('Prepare');
-      expect(mockPrisma.phase.findMany).toHaveBeenCalledWith({
+      expect(mockPrisma.phases.findMany).toHaveBeenCalledWith({
         where: { projectId: 'cm4proj123' },
         include: { resources: true },
         orderBy: { order: 'asc' },
@@ -379,7 +379,7 @@ describe('M2 - Prisma Adapter', () => {
 
       expect(chips).toHaveLength(1);
       expect(chips[0].type).toBe('COUNTRY');
-      expect(mockPrisma.chip.findMany).toHaveBeenCalledWith({
+      expect(mockPrisma.chips.findMany).toHaveBeenCalledWith({
         where: { projectId: 'cm4proj123' },
       });
     });
