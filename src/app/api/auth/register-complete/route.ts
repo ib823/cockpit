@@ -143,7 +143,7 @@ export async function POST(req: Request) {
     const passwordHash = await hashPassword(password);
     const passwordExpiresAt = calculatePasswordExpiry();
 
-    const user = await prisma.$transaction(async (tx) => {
+    const user = await (prisma.$transaction as any)(async (tx: any) => {
       // Create user
       const newUser = await tx.users.create({
         data: {

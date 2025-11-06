@@ -203,7 +203,7 @@ export async function PATCH(
     // Update project in transaction
     const txStartTime = Date.now();
 
-    const updatedProject = await prisma.$transaction(async (tx) => {
+    const updatedProject = await (prisma.$transaction as any)(async (tx: any) => {
       // Update main project fields
       const project = await tx.ganttProject.update({
         where: { id: projectId },

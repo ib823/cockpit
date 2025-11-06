@@ -129,7 +129,7 @@ export async function PATCH(
     // Update project in transaction using delta operations
     const txStartTime = Date.now();
 
-    const updatedProject = await prisma.$transaction(async (tx: any) => {
+    const updatedProject = await (prisma.$transaction as any)(async (tx: any) => {
       // 1. Update project-level fields if any changed
       let project;
       if (delta.projectUpdates && Object.keys(delta.projectUpdates).length > 0) {
