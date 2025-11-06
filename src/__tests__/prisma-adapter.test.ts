@@ -6,16 +6,16 @@ describe('M2 - Prisma Adapter', () => {
   describe('DAL Interface Implementation', () => {
     it('should implement all required IDAL methods', () => {
       const mockPrisma = {
-        project: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn(), delete: vi.fn() },
-        phase: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn(), delete: vi.fn() },
-        resource: { create: vi.fn(), findMany: vi.fn(), update: vi.fn(), delete: vi.fn() },
-        chip: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn(), delete: vi.fn() },
-        ricefwItem: { create: vi.fn(), findMany: vi.fn(), update: vi.fn(), delete: vi.fn() },
-        formSpec: { create: vi.fn(), findMany: vi.fn() },
-        integrationSpec: { create: vi.fn(), findMany: vi.fn() },
-        wrapper: { create: vi.fn(), findMany: vi.fn() },
-        estimateSnapshot: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn() },
-        auditLog: { create: vi.fn(), findMany: vi.fn() },
+        projects: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn(), delete: vi.fn() },
+        phases: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn(), delete: vi.fn() },
+        resources: { create: vi.fn(), findMany: vi.fn(), update: vi.fn(), delete: vi.fn() },
+        chips: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn(), delete: vi.fn() },
+        riceFw_items: { create: vi.fn(), findMany: vi.fn(), update: vi.fn(), delete: vi.fn() },
+        form_specs: { create: vi.fn(), findMany: vi.fn() },
+        integration_specs: { create: vi.fn(), findMany: vi.fn() },
+        wrappers: { create: vi.fn(), findMany: vi.fn() },
+        snapshots: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn() },
+        audit_logs: { create: vi.fn(), findMany: vi.fn() },
         $transaction: vi.fn(),
       } as any;
 
@@ -64,7 +64,7 @@ describe('M2 - Prisma Adapter', () => {
     it('should create audit log on CREATE action', async () => {
       const auditLogCreate = vi.fn().mockResolvedValue({});
       const mockPrisma = {
-        project: {
+        projects: {
           create: vi.fn().mockResolvedValue({
             id: 'cm4test123',
             name: 'Test Project',
@@ -74,7 +74,7 @@ describe('M2 - Prisma Adapter', () => {
             updatedAt: new Date(),
           }),
         },
-        auditLog: { create: auditLogCreate },
+        audit_logs: { create: auditLogCreate },
       } as any;
 
       const adapter = new PrismaAdapter(mockPrisma);
@@ -114,7 +114,7 @@ describe('M2 - Prisma Adapter', () => {
       };
 
       const mockPrisma = {
-        project: {
+        projects: {
           findUnique: vi.fn().mockResolvedValue(mockProject),
           update: vi.fn().mockResolvedValue({
             ...mockProject,
@@ -122,7 +122,7 @@ describe('M2 - Prisma Adapter', () => {
             status: 'IN_REVIEW',
           }),
         },
-        auditLog: { create: auditLogCreate },
+        audit_logs: { create: auditLogCreate },
       } as any;
 
       const adapter = new PrismaAdapter(mockPrisma);
@@ -147,10 +147,10 @@ describe('M2 - Prisma Adapter', () => {
     it('should create audit log on DELETE action', async () => {
       const auditLogCreate = vi.fn().mockResolvedValue({});
       const mockPrisma = {
-        project: {
+        projects: {
           delete: vi.fn().mockResolvedValue({}),
         },
-        auditLog: { create: auditLogCreate },
+        audit_logs: { create: auditLogCreate },
       } as any;
 
       const adapter = new PrismaAdapter(mockPrisma);
@@ -170,7 +170,7 @@ describe('M2 - Prisma Adapter', () => {
     it('should not throw when audit log creation fails', async () => {
       const auditLogCreate = vi.fn().mockRejectedValue(new Error('Audit log DB error'));
       const mockPrisma = {
-        project: {
+        projects: {
           create: vi.fn().mockResolvedValue({
             id: 'cm4test123',
             name: 'Test Project',
@@ -180,7 +180,7 @@ describe('M2 - Prisma Adapter', () => {
             updatedAt: new Date(),
           }),
         },
-        auditLog: { create: auditLogCreate },
+        audit_logs: { create: auditLogCreate },
       } as any;
 
       const adapter = new PrismaAdapter(mockPrisma);
@@ -269,7 +269,7 @@ describe('M2 - Prisma Adapter', () => {
   describe('CRUD Operations', () => {
     it('should create Project with validation', async () => {
       const mockPrisma = {
-        project: {
+        projects: {
           create: vi.fn().mockResolvedValue({
             id: 'cm4test123',
             name: 'Valid Project',
@@ -279,7 +279,7 @@ describe('M2 - Prisma Adapter', () => {
             updatedAt: new Date(),
           }),
         },
-        auditLog: { create: vi.fn() },
+        audit_logs: { create: vi.fn() },
       } as any;
 
       const adapter = new PrismaAdapter(mockPrisma);
@@ -300,8 +300,8 @@ describe('M2 - Prisma Adapter', () => {
 
     it('should throw ValidationError for invalid Project', async () => {
       const mockPrisma = {
-        project: { create: vi.fn() },
-        auditLog: { create: vi.fn() },
+        projects: { create: vi.fn() },
+        audit_logs: { create: vi.fn() },
       } as any;
 
       const adapter = new PrismaAdapter(mockPrisma);
@@ -337,7 +337,7 @@ describe('M2 - Prisma Adapter', () => {
       ];
 
       const mockPrisma = {
-        phase: {
+        phases: {
           findMany: vi.fn().mockResolvedValue(mockPhases),
         },
       } as any;
@@ -369,7 +369,7 @@ describe('M2 - Prisma Adapter', () => {
       ];
 
       const mockPrisma = {
-        chip: {
+        chips: {
           findMany: vi.fn().mockResolvedValue(mockChips),
         },
       } as any;
@@ -401,7 +401,7 @@ describe('M2 - Prisma Adapter', () => {
       };
 
       const mockPrisma = {
-        phase: {
+        phases: {
           findUnique: vi.fn().mockResolvedValue(mockPhase),
           update: vi.fn().mockResolvedValue({
             ...mockPhase,
@@ -410,7 +410,7 @@ describe('M2 - Prisma Adapter', () => {
             effort: new Decimal(75),
           }),
         },
-        auditLog: { create: vi.fn() },
+        audit_logs: { create: vi.fn() },
       } as any;
 
       const adapter = new PrismaAdapter(mockPrisma);
@@ -430,7 +430,7 @@ describe('M2 - Prisma Adapter', () => {
   describe('Error Handling', () => {
     it('should throw NotFoundError when entity not found', async () => {
       const mockPrisma = {
-        project: {
+        projects: {
           findUnique: vi.fn().mockResolvedValue(null),
         },
       } as any;
@@ -443,7 +443,7 @@ describe('M2 - Prisma Adapter', () => {
 
     it('should handle database errors gracefully', async () => {
       const mockPrisma = {
-        project: {
+        projects: {
           findMany: vi.fn().mockRejectedValue(new Error('Database error')),
         },
       } as any;
