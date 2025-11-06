@@ -102,12 +102,15 @@ describe('Resource Parser', () => {
       expect(result.errors[0].column).toBe('designation');
     });
 
-    it('should reject invalid designation', () => {
+    it('should accept unknown designation and mark for manual mapping', () => {
       const input = 'Role\tDesignation\tW1\tW2\nProject Manager\tInvalidRole\t5\t5';
       const result = parseResourceData(input, mockSchedule);
 
-      expect(result.success).toBe(false);
-      expect(result.errors[0].message).toContain('Invalid designation');
+      // Parser is lenient - unknown designations are marked for manual mapping, not rejected
+      expect(result.success).toBe(true);
+      expect(result.data?.unmappedResources).toHaveLength(1);
+      expect(result.data?.unmappedResources[0].originalDesignation).toBe('InvalidRole');
+      expect(result.warnings[0]).toContain('not recognized');
     });
 
     it('should reject negative mandays', () => {

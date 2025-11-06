@@ -1,3 +1,4 @@
+import { Prisma, Role } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
 import { createSessionToken } from '@/lib/nextauth-helpers';
@@ -141,7 +142,7 @@ export async function POST(req: Request) {
 
     // Fixed: V-006 - TOCTOU: Check access expiry atomically in transaction
     // Re-fetch user within transaction to ensure access hasn't expired between check and session creation
-    const transactionResult = await prisma.$transaction(async (tx) => {
+    const transactionResult = (await (prisma.$transaction as any)(async (tx: any) => {
       // Re-check access expiry within transaction for atomicity
       const freshUser = await tx.users.findUnique({
         where: { id: user.id },
@@ -186,12 +187,12 @@ export async function POST(req: Request) {
       });
 
       return { role: freshUser.role };
-    }).catch((e) => {
+    }).catch((e: any) => {
       if (e.message === 'ACCESS_EXPIRED') {
         throw e;
       }
       throw e;
-    });
+    }));
 
     // Log successful authentication for analytics
     await logAuthEvent('webauthn_success', {

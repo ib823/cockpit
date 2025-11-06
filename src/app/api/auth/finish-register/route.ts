@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { Role, Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { prisma } from '../../../../lib/db';
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     const { credential, credentialBackedUp, credentialDeviceType } = verification.registrationInfo;
 
     // Use a transaction to ensure all or nothing
-    const user = await prisma.$transaction(async (tx) => {
+    const user = (await (prisma.$transaction as any)(async (tx: any) => {
       const newUser = await tx.users.upsert({
         where: { email },
         update: {
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
       });
 
       return newUser;
-    });
+    }));
 
     await challenges.del(`reg:${email}`);
 
