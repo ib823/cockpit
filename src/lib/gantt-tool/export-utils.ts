@@ -11,11 +11,22 @@ import type { GanttProject } from '@/types/gantt-tool';
 import { format, differenceInDays } from 'date-fns';
 import { formatGanttDateLong, formatWorkingDays, formatCalendarDuration } from './date-utils';
 import { calculateWorkingDaysInclusive } from './working-days';
+import {
+  chooseTimelineGranularity,
+  timelineLabels,
+  weekSpanToExcelColumns,
+  calculateTotalWeeks,
+} from '@/lib/export/timeline-granularity';
 
 /**
  * Export Gantt chart to PNG image
+ * @param project - The Gantt project to export
+ * @param backgroundColor - Background color ('transparent', 'white', or 'black'). Defaults to 'white'.
  */
-export async function exportToPNG(project: GanttProject): Promise<void> {
+export async function exportToPNG(
+  project: GanttProject,
+  backgroundColor: 'transparent' | 'white' | 'black' = 'white'
+): Promise<void> {
   // Show loading indicator
   const loadingDiv = showLoadingIndicator('Exporting PNG...');
 
@@ -36,9 +47,16 @@ export async function exportToPNG(project: GanttProject): Promise<void> {
     // Wait for scroll to complete
     await new Promise(resolve => setTimeout(resolve, 100));
 
+    // Map background color option to html2canvas backgroundColor
+    const bgColorMap = {
+      transparent: null,
+      white: '#ffffff',
+      black: '#000000',
+    };
+
     // Generate canvas from HTML
     const canvas = await html2canvas(canvasElement, {
-      backgroundColor: '#ffffff',
+      backgroundColor: bgColorMap[backgroundColor],
       scale: 3, // High resolution (3x for professional quality)
       logging: true, // Enable logging for debugging
       useCORS: true,
@@ -310,6 +328,9 @@ export async function exportToExcel(project: GanttProject): Promise<void> {
     };
     milestonesSheet.getRow(1).font = { color: { argb: 'FFFFFFFF' }, bold: true };
 
+    // --- Sheet 5: Visual Timeline (NEW) ---
+    createVisualTimelineSheet(workbook, project);
+
     // --- Generate file and download ---
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
@@ -328,6 +349,147 @@ export async function exportToExcel(project: GanttProject): Promise<void> {
     console.error('Failed to export Excel:', error);
     alert('Failed to export Excel. Please try again.');
   }
+}
+
+/**
+ * Create Visual Timeline sheet with colored task bars
+ * Uses smart granularity based on project duration
+ */
+function createVisualTimelineSheet(workbook: ExcelJS.Workbook, project: GanttProject): void {
+  const sheet = workbook.addWorksheet('Visual Timeline', {
+    views: [{ state: 'frozen', xSplit: 7, ySplit: 1 }], // Freeze at column H, row 2
+  });
+
+  // Calculate project duration and choose granularity
+  const projectStart = new Date(project.startDate);
+  let projectEnd = projectStart;
+  project.phases.forEach((phase) => {
+    const phaseEnd = new Date(phase.endDate);
+    if (phaseEnd > projectEnd) {
+      projectEnd = phaseEnd;
+    }
+  });
+
+  const totalWeeks = calculateTotalWeeks(projectStart, projectEnd);
+  const granularity = chooseTimelineGranularity(totalWeeks);
+  const labels = timelineLabels(granularity, totalWeeks);
+
+  // --- Columns A-G: Metadata ---
+  sheet.columns = [
+    { header: 'Phase', key: 'phase', width: 20 },
+    { header: 'Task', key: 'task', width: 30 },
+    { header: 'Start Date', key: 'startDate', width: 12 },
+    { header: 'End Date', key: 'endDate', width: 12 },
+    { header: 'Days', key: 'days', width: 8 },
+    { header: 'Assignee', key: 'assignee', width: 15 },
+    { header: 'Progress', key: 'progress', width: 10 },
+  ];
+
+  // --- Columns H onwards: Timeline buckets ---
+  labels.forEach((label, i) => {
+    const col = sheet.getColumn(8 + i);
+    col.header = label;
+    col.width = 4; // Narrow columns for timeline bars
+  });
+
+  // Style header row
+  const headerRow = sheet.getRow(1);
+  headerRow.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF3B82F6' }, // Blue
+  };
+  headerRow.height = 18;
+  headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+
+  // --- Add task rows with timeline bars ---
+  let rowIndex = 2;
+  project.phases.forEach((phase) => {
+    phase.tasks.forEach((task) => {
+      const row = sheet.getRow(rowIndex);
+
+      // Calculate task timing
+      const taskStart = new Date(task.startDate);
+      const taskEnd = new Date(task.endDate);
+      const startWeek = Math.ceil(calculateTotalWeeks(projectStart, taskStart)) + 1;
+      const durationWeeks = Math.max(1, calculateTotalWeeks(taskStart, taskEnd));
+      const workingDays = calculateWorkingDaysInclusive(task.startDate, task.endDate, project.holidays);
+
+      // Metadata columns
+      row.getCell(1).value = phase.name; // Phase
+      row.getCell(2).value = task.name; // Task
+      row.getCell(3).value = format(taskStart, 'MMM dd, yyyy'); // Start Date
+      row.getCell(4).value = format(taskEnd, 'MMM dd, yyyy'); // End Date
+      row.getCell(5).value = workingDays; // Days
+      row.getCell(6).value = task.assignee || 'Unassigned'; // Assignee
+      row.getCell(7).value = `${task.progress}%`; // Progress
+
+      // Timeline bar fill
+      const [colStart, colEnd] = weekSpanToExcelColumns(startWeek, durationWeeks, granularity);
+
+      // Convert phase color to ARGB (remove # and add FF for opacity)
+      const phaseColor = phase.color.replace('#', '');
+      const argbColor = `FF${phaseColor}`;
+
+      for (let col = colStart; col <= colEnd; col++) {
+        const cell = row.getCell(col);
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: argbColor },
+        };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FF999999' } },
+          bottom: { style: 'thin', color: { argb: 'FF999999' } },
+          left: col === colStart ? { style: 'thin', color: { argb: 'FF666666' } } : undefined,
+          right: col === colEnd ? { style: 'thin', color: { argb: 'FF666666' } } : undefined,
+        };
+      }
+
+      // Row styling
+      row.height = 18;
+      row.font = { name: 'Calibri', size: 10 };
+      row.alignment = { vertical: 'middle' };
+
+      rowIndex++;
+    });
+  });
+
+  // Add legend at the bottom
+  rowIndex += 2;
+  const legendRow = sheet.getRow(rowIndex);
+  legendRow.getCell(1).value = 'LEGEND:';
+  legendRow.getCell(1).font = { bold: true };
+
+  rowIndex++;
+  project.phases.forEach((phase) => {
+    const row = sheet.getRow(rowIndex);
+    row.getCell(1).value = phase.name;
+
+    // Color swatch in column B
+    const phaseColor = phase.color.replace('#', '');
+    const argbColor = `FF${phaseColor}`;
+    row.getCell(2).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: argbColor },
+    };
+    row.getCell(2).border = {
+      top: { style: 'thin', color: { argb: 'FF999999' } },
+      bottom: { style: 'thin', color: { argb: 'FF999999' } },
+      left: { style: 'thin', color: { argb: 'FF999999' } },
+      right: { style: 'thin', color: { argb: 'FF999999' } },
+    };
+
+    rowIndex++;
+  });
+
+  // Add granularity info
+  rowIndex += 2;
+  const infoRow = sheet.getRow(rowIndex);
+  infoRow.getCell(1).value = `Timeline Granularity: ${granularity} (${totalWeeks} weeks total)`;
+  infoRow.getCell(1).font = { italic: true, size: 9, color: { argb: 'FF666666' } };
 }
 
 /**
