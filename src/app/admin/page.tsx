@@ -11,21 +11,34 @@ const getCachedAdminStats = unstable_cache(
   async () => {
     const startTime = Date.now();
     try {
-      const [totalUsers, activeProjects, proposals] = await Promise.all([
+      // Add timeout to prevent hanging queries
+      const queryPromise = Promise.all([
         prisma.users.count(),
         prisma.projects.count({ where: { status: 'APPROVED' } }),
         prisma.projects.count({ where: { status: { in: ['DRAFT', 'IN_REVIEW'] } } }),
       ]);
+
+      // 10 second timeout
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Query timeout')), 10000)
+      );
+
+      const [totalUsers, activeProjects, proposals] = await Promise.race([
+        queryPromise,
+        timeoutPromise
+      ]);
+
       const duration = Date.now() - startTime;
       console.log(`[DB] Admin stats fetched in ${duration}ms (cached for 5min)`);
       return { totalUsers, activeProjects, proposals, dbError: false };
     } catch (error) {
-      console.error('[Admin Dashboard] Failed to fetch statistics:', error);
+      const duration = Date.now() - startTime;
+      console.error(`[Admin Dashboard] Failed to fetch statistics after ${duration}ms:`, error);
       return { totalUsers: 0, activeProjects: 0, proposals: 0, dbError: true };
     }
   },
   ['admin-stats'],
-  { revalidate: 300, tags: ['admin-stats'] } // Cache for 5 minutes
+  { revalidate: 60, tags: ['admin-stats'] } // Cache for 1 minute (reduced from 5)
 );
 
 export default async function AdminDashboard() {
