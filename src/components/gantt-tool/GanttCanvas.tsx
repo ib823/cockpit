@@ -804,58 +804,70 @@ export function GanttCanvas() {
                     </div>
                   </div>
 
-                  {/* Timeline Area with Title Above */}
-                  <div className="flex-1 relative" style={{ minHeight: '110px' }}>
-                    {/* Jobs/Ive: Phase Title Above Bar - Clean, centered, full text */}
+                  {/* Timeline Area with Adaptive Title Position */}
+                  <div className="flex-1 relative" style={{ minHeight: phase.collapsed ? '110px' : '95px' }}>
+                    {/* Animated Phase Title - Morphs between above bar (collapsed) and inside bar (expanded) */}
                     {(viewSettings?.showTitles ?? true) && (
                       <div
-                        className="absolute top-0 z-20  flex justify-center"
+                        className={`absolute z-20 flex justify-center transition-all duration-300 ease-in-out ${
+                          phase.collapsed ? 'pointer-events-auto' : 'pointer-events-none'
+                        }`}
                         style={{
                           left: `${metrics.left}%`,
                           width: `${metrics.width}%`,
+                          top: phase.collapsed ? '0px' : '36px', // Morph from top to inside bar
                         }}
                       >
                         <div className="relative group/phaselabel">
-                          <div className="text-sm font-bold text-gray-900 whitespace-nowrap px-2 cursor-help pointer-events-auto text-center">
+                          <div
+                            className={`text-sm font-bold whitespace-nowrap px-2 cursor-help text-center transition-all duration-300 ease-in-out ${
+                              phase.collapsed
+                                ? 'text-gray-900 drop-shadow-none'
+                                : 'text-white drop-shadow-lg pointer-events-none'
+                            }`}
+                          >
                             {phase.name}
                           </div>
 
-                          {/* Hover Tooltip for Full Phase Info */}
-                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/phaselabel:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                            <div className="bg-gray-900 text-white text-sm px-4 py-3 rounded-md shadow-2xl max-w-md whitespace-normal">
-                              <div className="font-semibold mb-1">{phase.name}</div>
-                              {phase.description && (
-                                <div className="text-gray-300 text-xs mt-1.5 leading-relaxed">
-                                  {phase.description}
-                                </div>
-                              )}
-                              <div className="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-2">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span>{format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}</span>
-                                </div>
-                                <div className="flex items-center gap-3 text-[11px]">
-                                  <span className="text-blue-400 font-semibold">{formatWorkingDays(metrics.workingDays)}</span>
-                                  <span>·</span>
-                                  <span>{formatCalendarDuration(metrics.duration)}</span>
-                                  <span>·</span>
-                                  <span>{phase.tasks.length} task{phase.tasks.length !== 1 ? 's' : ''}</span>
+                          {/* Hover Tooltip - Only active when collapsed */}
+                          {phase.collapsed && (
+                            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/phaselabel:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                              <div className="bg-gray-900 text-white text-sm px-4 py-3 rounded-md shadow-2xl max-w-md whitespace-normal">
+                                <div className="font-semibold mb-1">{phase.name}</div>
+                                {phase.description && (
+                                  <div className="text-gray-300 text-xs mt-1.5 leading-relaxed">
+                                    {phase.description}
+                                  </div>
+                                )}
+                                <div className="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-2">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span>{format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}</span>
+                                  </div>
+                                  <div className="flex items-center gap-3 text-[11px]">
+                                    <span className="text-blue-400 font-semibold">{formatWorkingDays(metrics.workingDays)}</span>
+                                    <span>·</span>
+                                    <span>{formatCalendarDuration(metrics.duration)}</span>
+                                    <span>·</span>
+                                    <span>{phase.tasks.length} task{phase.tasks.length !== 1 ? 's' : ''}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       </div>
                     )}
 
-                    {/* Phase Bar */}
+                    {/* Phase Bar - Position adjusts based on collapsed state */}
                     <div
-                      className={`absolute top-8 h-14 rounded-lg transition-all cursor-move ${
+                      className={`absolute h-14 rounded-lg transition-all duration-300 ease-in-out cursor-move ${
                         isDragging ? 'opacity-70 scale-105' : ''
                       } ${isSelected ? 'ring-4 ring-blue-400' : ''}
                       ${phaseDropTarget === phase.id ? 'ring-4 ring-purple-500 ring-offset-2 scale-105' : ''}`}
                       style={{
                         left: `${metrics.left}%`,
                         width: `${metrics.width}%`,
+                        top: phase.collapsed ? '54px' : '24px', // Higher when collapsed (title + badges above)
                         background: `linear-gradient(180deg, ${phase.color} 0%, ${withOpacity(phase.color, 0.85)} 100%)`,
                         boxShadow: isDragging
                           ? `0 12px 32px ${withOpacity(phase.color, 0.4)}`
@@ -982,9 +994,9 @@ export function GanttCanvas() {
                           </div>
                         )}
 
-                        {/* Floating Badges Above Phase Bar - Consistent with task badges */}
+                        {/* Floating Badges Above Phase Bar - Stays consistent during expand/collapse animation */}
                         {(viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 flex items-center justify-center text-white z-20 whitespace-nowrap">
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 flex items-center justify-center text-white z-20 whitespace-nowrap transition-all duration-300 ease-in-out">
                             {/* All badges in a clean horizontal row */}
                             <div className="flex items-center gap-2">
                               {/* WD Mode */}
