@@ -36,6 +36,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               (function() {
                 if (typeof window === 'undefined') return;
 
+                // Only show loader on initial page load, not client-side navigation
+                // Check if this is a navigation (performance.navigation.type === 1) or reload
+                var isInitialLoad = !window.performance ||
+                  window.performance.navigation.type !== 1;
+
+                if (!isInitialLoad) return;
+
                 // Create loader div on client side only (avoids hydration mismatch)
                 var loader = document.createElement('div');
                 loader.id = 'initial-loader';
