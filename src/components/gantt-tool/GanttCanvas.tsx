@@ -805,7 +805,7 @@ export function GanttCanvas() {
                   </div>
 
                   {/* Timeline Area with Title Above */}
-                  <div className="flex-1 relative" style={{ minHeight: '85px' }}>
+                  <div className="flex-1 relative" style={{ minHeight: '110px' }}>
                     {/* Jobs/Ive: Phase Title Above Bar - Clean, centered, full text */}
                     {(viewSettings?.showTitles ?? true) && (
                       <div
@@ -982,87 +982,135 @@ export function GanttCanvas() {
                           </div>
                         )}
 
-                        {/* TOP LAYER: Dates and Working Days - Respects barDurationDisplay setting */}
-                        <div className="absolute inset-0 flex flex-col justify-between p-2  z-10">
-                          {/* TOP: PM Badge Only - Dates removed as they're shown in middle */}
-                          {metrics.width > 10 && (viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
-                            <div className="flex justify-end items-start text-xs font-bold text-white drop-shadow-lg">
-                              {/* RIGHT: PM Badge only (dates removed - already shown in middle) */}
-                              <div className="flex items-center gap-1.5">
-                                {/* PM Resource Badge - Only show in resource/all modes */}
-                                {phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0 &&
-                                 ((viewSettings?.barDurationDisplay ?? 'all') === 'resource' || (viewSettings?.barDurationDisplay ?? 'all') === 'all') && (
-                                  <div className="group/pmbadge relative pointer-events-auto cursor-help">
-                                    <div className="flex items-center gap-1 bg-orange-500 px-2 py-1 rounded shadow-md">
-                                      <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                      <span className="text-xs font-bold">{phase.phaseResourceAssignments.length}</span>
-                                    </div>
+                        {/* Floating Badges Above Phase Bar - Consistent with task badges */}
+                        {(viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 flex items-center justify-center text-white z-20 whitespace-nowrap">
+                            {/* All badges in a clean horizontal row */}
+                            <div className="flex items-center gap-2">
+                              {/* WD Mode */}
+                              {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
+                                <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                  {formatWorkingDays(metrics.workingDays)}
+                                </span>
+                              )}
 
-                                    {/* PM Tooltip */}
-                                    <div className="absolute top-full mt-1 right-0 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                                      <div className="bg-orange-600 text-white text-xs px-2.5 py-2 rounded-md shadow-2xl border-2 border-white/20 min-w-[200px]">
-                                        <div className="font-semibold mb-1 text-[10px] text-orange-100">Phase Management:</div>
-                                        <div className="space-y-1">
-                                          {phase.phaseResourceAssignments.map((assignment) => {
-                                            const resource = currentProject.resources?.find(r => r.id === assignment.resourceId);
-                                            if (!resource) return null;
-                                            return (
-                                              <div key={assignment.id} className="flex items-center gap-1.5">
-                                                <div className="flex-1">
-                                                  <div className="flex items-center gap-1.5">
-                                                    <div className="font-medium text-[11px]">{resource.name}</div>
-                                                    <span className="px-1 py-0.5 text-[9px] font-semibold bg-white/20 rounded">
-                                                      {assignment.allocationPercentage}%
-                                                    </span>
-                                                  </div>
-                                                  <div className="text-[9px] text-orange-100">
-                                                    {RESOURCE_DESIGNATIONS[resource.designation]}
-                                                  </div>
-                                                  {assignment.assignmentNotes && (
-                                                    <div className="text-[9px] text-orange-100 mt-0.5 italic opacity-90">
-                                                      {assignment.assignmentNotes}
-                                                    </div>
-                                                  )}
+                              {/* CD Mode */}
+                              {(viewSettings?.barDurationDisplay ?? 'all') === 'cd' && (
+                                <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                  {formatCalendarDuration(metrics.duration)}
+                                </span>
+                              )}
+
+                              {/* Resource Mode */}
+                              {(viewSettings?.barDurationDisplay ?? 'all') === 'resource' && phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0 && (
+                                <div className="relative group/pmbadge">
+                                  <div className="flex items-center gap-1.5 bg-orange-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                    <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
+                                    <span className="text-sm font-bold">{phase.phaseResourceAssignments.length}</span>
+                                  </div>
+                                  {/* PM Tooltip */}
+                                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                    <div className="bg-orange-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
+                                      <div className="font-semibold mb-1.5 text-[10px] text-orange-100">Phase Management:</div>
+                                      <div className="space-y-1">
+                                        {phase.phaseResourceAssignments.map((assignment) => {
+                                          const resource = currentProject.resources?.find(r => r.id === assignment.resourceId);
+                                          if (!resource) return null;
+                                          return (
+                                            <div key={assignment.id} className="flex items-start gap-1.5">
+                                              <div className="flex-1">
+                                                <div className="flex items-center gap-1.5">
+                                                  <div className="font-medium text-[11px]">{resource.name}</div>
+                                                  <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-white/20 rounded">
+                                                    {assignment.allocationPercentage}%
+                                                  </span>
                                                 </div>
+                                                <div className="text-[9px] text-orange-100">
+                                                  {RESOURCE_DESIGNATIONS[resource.designation]}
+                                                </div>
+                                                {assignment.assignmentNotes && (
+                                                  <div className="text-[9px] text-orange-100 mt-0.5 italic opacity-90">
+                                                    {assignment.assignmentNotes}
+                                                  </div>
+                                                )}
                                               </div>
-                                            );
-                                          })}
-                                        </div>
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                     </div>
                                   </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
+                                </div>
+                              )}
 
-                          {/* MIDDLE: Duration Display - Respects barDurationDisplay setting */}
-                          {metrics.width > 4 && (viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
-                            <div className="flex items-center justify-center">
-                              <span className="text-base font-black bg-black/40 px-3 py-1 rounded shadow-lg text-white backdrop-blur-sm">
-                                {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && formatWorkingDays(metrics.workingDays)}
-                                {(viewSettings?.barDurationDisplay ?? 'all') === 'cd' && formatCalendarDuration(metrics.duration)}
-                                {(viewSettings?.barDurationDisplay ?? 'all') === 'resource' && phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0 && (
-                                  <span className="text-sm">
-                                    {phase.phaseResourceAssignments.length} PM resource{phase.phaseResourceAssignments.length > 1 ? 's' : ''}
-                                  </span>
-                                )}
-                                {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
-                                  <span className="text-sm">
+                              {/* Dates Mode */}
+                              {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
+                                <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                  {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
+                                </span>
+                              )}
+
+                              {/* All Mode - Show all info */}
+                              {(viewSettings?.barDurationDisplay ?? 'all') === 'all' && (
+                                <>
+                                  {/* Dates badge */}
+                                  <span className="text-sm font-semibold bg-blue-600/90 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
                                     {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
                                   </span>
-                                )}
-                                {(viewSettings?.barDurationDisplay ?? 'all') === 'all' && (
-                                  <>
+
+                                  {/* Duration badge (WD + CD) */}
+                                  <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
                                     {formatWorkingDays(metrics.workingDays)}
-                                    <span className="mx-1 opacity-50">•</span>
+                                    <span className="mx-1.5 opacity-50">•</span>
                                     {formatCalendarDuration(metrics.duration)}
-                                  </>
-                                )}
-                              </span>
+                                  </span>
+
+                                  {/* PM Resource badge */}
+                                  {phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0 && (
+                                    <div className="relative group/pmbadge">
+                                      <div className="flex items-center gap-1.5 bg-orange-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                        <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
+                                        <span className="text-sm font-bold">{phase.phaseResourceAssignments.length}</span>
+                                      </div>
+                                      {/* PM Tooltip */}
+                                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                        <div className="bg-orange-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
+                                          <div className="font-semibold mb-1.5 text-[10px] text-orange-100">Phase Management:</div>
+                                          <div className="space-y-1">
+                                            {phase.phaseResourceAssignments.map((assignment) => {
+                                              const resource = currentProject.resources?.find(r => r.id === assignment.resourceId);
+                                              if (!resource) return null;
+                                              return (
+                                                <div key={assignment.id} className="flex items-start gap-1.5">
+                                                  <div className="flex-1">
+                                                    <div className="flex items-center gap-1.5">
+                                                      <div className="font-medium text-[11px]">{resource.name}</div>
+                                                      <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-white/20 rounded">
+                                                        {assignment.allocationPercentage}%
+                                                      </span>
+                                                    </div>
+                                                    <div className="text-[9px] text-orange-100">
+                                                      {RESOURCE_DESIGNATIONS[resource.designation]}
+                                                    </div>
+                                                    {assignment.assignmentNotes && (
+                                                      <div className="text-[9px] text-orange-100 mt-0.5 italic opacity-90">
+                                                        {assignment.assignmentNotes}
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              )}
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
