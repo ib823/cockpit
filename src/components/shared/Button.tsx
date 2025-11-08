@@ -9,7 +9,7 @@
 
 import { ReactNode, ButtonHTMLAttributes, forwardRef } from 'react';
 import { colorValues, getColoredShadow, withOpacity, spacing } from '@/lib/design-system';
-import { Loader2 } from 'lucide-react';
+import { HexLoader } from '@/components/ui/HexLoader';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -146,7 +146,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         }}
         {...props}
       >
-        {loading && <Loader2 className={`${config.iconSize} animate-spin`} />}
+        {loading && <HexLoader size="sm" />}
         {!loading && icon && iconPosition === 'left' && (
           <span className={config.iconSize}>{icon}</span>
         )}
