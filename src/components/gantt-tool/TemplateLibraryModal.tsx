@@ -181,10 +181,10 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
               {/* Tags */}
               <div className="flex flex-wrap gap-1 mb-3">
                 {template.tags.slice(0, 3).map((tag, idx) => (
-                  <Tag key={idx} className="text-[10px] m-0">{tag}</Tag>
+                  <Tag key={idx} className="text-xs m-0">{tag}</Tag>
                 ))}
                 {template.tags.length > 3 && (
-                  <Tag className="text-[10px] m-0">+{template.tags.length - 3}</Tag>
+                  <Tag className="text-xs m-0">+{template.tags.length - 3}</Tag>
                 )}
               </div>
 
