@@ -731,6 +731,17 @@ export function GanttCanvas() {
             const isFirstPhase = phaseIndex === 0;
             const isLastPhase = phaseIndex === currentProject.phases.length - 1;
 
+            // Check if ANY task in this phase exceeds the phase boundary
+            const phaseEndDate = new Date(phase.endDate);
+            const hasTaskBoundaryIssue = phase.tasks.some(task => {
+              const taskEnd = new Date(task.endDate);
+              return taskEnd > phaseEndDate;
+            });
+            const tasksExceedingCount = phase.tasks.filter(task => {
+              const taskEnd = new Date(task.endDate);
+              return taskEnd > phaseEndDate;
+            }).length;
+
             return (
               <div key={phase.id} className="relative">
                 {/* Phase Row */}
@@ -999,6 +1010,34 @@ export function GanttCanvas() {
                           <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 flex items-center justify-center text-white z-20 whitespace-nowrap transition-all duration-300 ease-in-out">
                             {/* All badges in a clean horizontal row */}
                             <div className="flex items-center gap-2">
+                              {/* PHASE BOUNDARY WARNING - Always visible when tasks exceed phase */}
+                              {hasTaskBoundaryIssue && (
+                                <div className="relative group/phasewarning">
+                                  <div className="flex items-center gap-1.5 bg-red-500 px-2.5 py-1.5 rounded-sm shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
+                                    <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
+                                    <span className="text-sm font-bold">{tasksExceedingCount}</span>
+                                  </div>
+                                  {/* Warning Tooltip */}
+                                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/phasewarning:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                    <div className="bg-red-600 text-white text-xs px-3 py-2.5 rounded-md shadow-2xl border-2 border-red-400 max-w-xs">
+                                      <div className="font-bold mb-1.5 flex items-center gap-1.5">
+                                        <AlertTriangle className="w-4 h-4" />
+                                        <span>Phase Boundary Issue</span>
+                                      </div>
+                                      <div className="text-[11px] leading-relaxed">
+                                        {tasksExceedingCount} task{tasksExceedingCount > 1 ? 's' : ''} {tasksExceedingCount > 1 ? 'end' : 'ends'} after this phase ends
+                                      </div>
+                                      <div className="text-[11px] mt-1.5 pt-1.5 border-t border-red-400/30">
+                                        Phase ends: <span className="font-semibold">{format(phaseEndDate, 'dd MMM yy')}</span>
+                                      </div>
+                                      <div className="text-[10px] mt-1.5 pt-1.5 border-t border-red-400/30 text-red-100 italic">
+                                        {phase.collapsed ? '💡 Expand phase to see which tasks need adjustment' : '💡 Check tasks with red borders below'}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
                               {/* WD Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
                                 <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
