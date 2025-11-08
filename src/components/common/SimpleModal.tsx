@@ -122,6 +122,7 @@ export function SimpleModal({
             {closable && (
               <button
                 onClick={onCancel}
+                className="text-base"
                 style={{
                   border: 'none',
                   background: 'transparent',
@@ -131,7 +132,6 @@ export function SimpleModal({
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#00000073',
-                  className="text-base",
                 }}
               >
                 <CloseOutlined />

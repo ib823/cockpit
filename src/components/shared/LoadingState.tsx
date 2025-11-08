@@ -52,12 +52,7 @@ export function LoadingState({
       >
         <Spin indicator={loadingIcon} size="large" />
         {message && (
-          <p style={{
-            color: '#64748b',
-            className="text-sm",
-            marginTop: '8px',
-            fontWeight: 500
-          }}>
+          <p className="text-sm" style={color: '#64748b' marginTop: '8px', fontWeight: 500}>
             {message}
           </p>
         )}
@@ -87,11 +82,7 @@ export function LoadingState({
       >
         <Spin indicator={loadingIcon} size="large" />
         {message && (
-          <p style={{
-            color: '#64748b',
-            className="text-sm",
-            fontWeight: 500
-          }}>
+          <p className="text-sm" style={color: '#64748b' fontWeight: 500}>
             {message}
           </p>
         )}
@@ -104,7 +95,7 @@ export function LoadingState({
     <Space className={className} size="middle" style={{ display: 'flex', alignItems: 'center' }}>
       <Spin indicator={loadingIcon} />
       {message && (
-        <span style={{ color: '#64748b', className="text-sm", fontWeight: 500 }}>
+        <span className="text-sm" style={color: '#64748b' fontWeight: 500}>
           {message}
         </span>
       )}

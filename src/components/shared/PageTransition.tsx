@@ -133,7 +133,7 @@ export function NavigationLoader({ loading, message = 'Loading...' }: Navigation
     >
       <div style={{ textAlign: 'center' }}>
         <Spin size="large" />
-        <div style={{ marginTop: '16px', className="text-base", color: '#64748b' }}>
+        <div className="text-base" style={marginTop: '16px' color: '#64748b'}>
           {message}
         </div>
       </div>

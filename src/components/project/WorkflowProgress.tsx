@@ -94,25 +94,7 @@ export function WorkflowProgress() {
               >
                 {/* Circle/Check */}
                 <div
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: isActive
-                      ? '#2563eb'
-                      : isCompleted
-                        ? '#16a34a'
-                        : '#f3f4f6',
-                    color: isActive || isCompleted ? '#ffffff' : '#9ca3af',
-                    fontWeight: 600,
-                    className="text-sm",
-                    transition: 'all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                    border: isActive ? '2px solid #2563eb' : 'none',
-                    boxShadow: isActive ? '0 0 0 4px rgba(37, 99, 235, 0.1)' : 'none'
-                  }}
+                  className="text-sm" style={width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isActive ? '#2563eb' : isCompleted ? '#16a34a' : '#f3f4f6', color: isActive || isCompleted ? '#ffffff' : '#9ca3af', fontWeight: 600 transition: 'all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)', border: isActive ? '2px solid #2563eb' : 'none', boxShadow: isActive ? '0 0 0 4px rgba(37, 99, 235, 0.1)' : 'none'}
                   role="img"
                   aria-label={
                     isCompleted

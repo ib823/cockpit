@@ -147,26 +147,16 @@ export function FirstTimeOnboarding({ pathname: propPathname }: FirstTimeOnboard
           <div style={{ display: 'flex', gap: '12px' }}>
             <div style={{ flexShrink: 0, fontSize: '24px' }}>👋</div>
             <div style={{ flex: 1 }}>
-              <h4 style={{ margin: '0 0 4px 0', className="text-sm", fontWeight: 600, color: '#111827' }}>
+              <h4 className="text-sm" style={margin: '0 0 4px 0' fontWeight: 600, color: '#111827'}>
                 New here? Take a quick tour
               </h4>
-              <p style={{ margin: '0 0 12px 0', className="text-sm", color: '#6b7280', lineHeight: 1.5 }}>
+              <p className="text-sm" style={margin: '0 0 12px 0' color: '#6b7280', lineHeight: 1.5}>
                 Learn the key features in under a minute
               </p>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   onClick={handleStartTour}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#3b82f6',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    className="text-sm",
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s'
-                  }}
+                  className="text-sm" style={padding: '6px 12px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px' fontWeight: 500, cursor: 'pointer', transition: 'background-color 0.2s'}
                   onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
                   onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
                 >
@@ -174,17 +164,7 @@ export function FirstTimeOnboarding({ pathname: propPathname }: FirstTimeOnboard
                 </button>
                 <button
                   onClick={handleDismissBanner}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#f3f4f6',
-                    color: '#6b7280',
-                    border: 'none',
-                    borderRadius: '6px',
-                    className="text-sm",
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s'
-                  }}
+                  className="text-sm" style={padding: '6px 12px', backgroundColor: '#f3f4f6', color: '#6b7280', border: 'none', borderRadius: '6px' fontWeight: 500, cursor: 'pointer', transition: 'background-color 0.2s'}
                   onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e5e7eb')}
                   onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f3f4f6')}
                 >

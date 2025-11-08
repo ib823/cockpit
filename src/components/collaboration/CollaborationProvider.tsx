@@ -175,7 +175,7 @@ function ActiveUsersIndicator({ users, currentUser }: { users: User[]; currentUs
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
       }}
     >
-      <div style={{ marginBottom: '8px', className="text-xs", fontWeight: 600, color: '#666' }}>
+      <div className="text-xs" style={marginBottom: '8px' fontWeight: 600, color: '#666'}>
         Active Users ({users.length + 1})
       </div>
       <Avatar.Group maxCount={5}>

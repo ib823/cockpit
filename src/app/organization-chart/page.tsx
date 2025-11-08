@@ -1573,7 +1573,7 @@ export default function OrganizationChartProfessional() {
               Add Client Team Member
             </h3>
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', className="text-sm", fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              <label className="text-sm" style={{ display: 'block', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                 Name
               </label>
               <Input
@@ -1585,7 +1585,7 @@ export default function OrganizationChartProfessional() {
               />
             </div>
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', className="text-sm", fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              <label className="text-sm" style={{ display: 'block', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                 Role
               </label>
               <Input
@@ -1991,13 +1991,7 @@ export default function OrganizationChartProfessional() {
                   <select
                     value={groupLeadId}
                     onChange={(e) => setGroupLeadId(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      className="text-sm",
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                    }}
+                    className="text-sm" style={width: '100%', padding: '8px 12px' border: '1px solid #d1d5db', borderRadius: '6px',}
                   >
                     <option value="">Select Group Lead...</option>
                     {level.resources.map(res => {
@@ -2031,7 +2025,7 @@ export default function OrganizationChartProfessional() {
                   Existing Groups ({groups.length})
                 </h4>
                 {groups.length === 0 ? (
-                  <p style={{ color: '#9ca3af', className="text-sm", textAlign: 'center', padding: '20px' }}>
+                  <p className="text-sm" style={{ color: '#9ca3af', textAlign: 'center', padding: '20px' }}>
                     No groups yet. Create one above to organize resources.
                   </p>
                 ) : (
@@ -2054,7 +2048,7 @@ export default function OrganizationChartProfessional() {
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                             <div>
-                              <div style={{ fontWeight: '600', className="text-base", color: '#111827' }}>{group.name}</div>
+                              <div className="text-base" style={{ fontWeight: '600', color: '#111827' }}>{group.name}</div>
                               <div className="text-sm" style={{ color: '#6b7280' }}>
                                 Lead: {leadName} · {groupResources.length} member(s)
                               </div>
@@ -2107,15 +2101,7 @@ export default function OrganizationChartProfessional() {
                                   return (
                                     <div
                                       key={res.id}
-                                      style={{
-                                        padding: '6px 12px',
-                                        backgroundColor: isLead ? '#dbeafe' : '#f3f4f6',
-                                        borderRadius: '6px',
-                                        className="text-sm",
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                      }}
+                                      className="text-sm" style={padding: '6px 12px', backgroundColor: isLead ? '#dbeafe' : '#f3f4f6', borderRadius: '6px' display: 'flex', alignItems: 'center', gap: '6px',}
                                     >
                                       {name} {isLead && <span style={{ fontWeight: '600', color: '#1e40af' }}>(Lead)</span>}
                                       {!isLead && (

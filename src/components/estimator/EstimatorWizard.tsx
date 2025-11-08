@@ -303,20 +303,7 @@ export function EstimatorWizard() {
 
       {/* Help Text */}
       <div
-        style={{
-          position: 'fixed',
-          bottom: 70,
-          right: 16,
-          background: 'rgba(0,0,0,0.75)',
-          color: '#fff',
-          padding: '8px 12px',
-          borderRadius: '6px',
-          className="text-xs",
-          maxWidth: '200px',
-          opacity: isLastStep ? 0 : 0.8,
-          transition: 'opacity 0.3s',
-          pointerEvents: 'none',
-        }}
+        className="text-xs" style={position: 'fixed', bottom: 70, right: 16, background: 'rgba(0,0,0,0.75)', color: '#fff', padding: '8px 12px', borderRadius: '6px' maxWidth: '200px', opacity: isLastStep ? 0 : 0.8, transition: 'opacity 0.3s', pointerEvents: 'none',}
       >
         💡 Swipe left/right or use buttons to navigate
       </div>

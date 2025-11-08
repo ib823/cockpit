@@ -401,15 +401,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
 
         {/* Footer */}
         <div
-          style={{
-            padding: '8px 16px',
-            borderTop: '1px solid #f0f0f0',
-            backgroundColor: '#fafafa',
-            display: 'flex',
-            justifyContent: 'space-between',
-            className="text-xs",
-            color: '#8c8c8c',
-          }}
+          className="text-xs" style={padding: '8px 16px', borderTop: '1px solid #f0f0f0', backgroundColor: '#fafafa', display: 'flex', justifyContent: 'space-between' color: '#8c8c8c',}
         >
           <Space size={12}>
             <span><Tag style={{ fontSize: '10px' }}>↑↓</Tag> Navigate</span>
