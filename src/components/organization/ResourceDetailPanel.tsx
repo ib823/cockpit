@@ -241,7 +241,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
                       <span>{reportCategoryInfo.icon}</span>
                       <div>
                         <div style={{ fontWeight: 500 }}>{report.name}</div>
-                        <Text type="secondary" style={{ className="text-xs" }}>
+                        <Text type="secondary" className="text-xs">
                           {RESOURCE_DESIGNATIONS[report.designation]}
                         </Text>
                       </div>

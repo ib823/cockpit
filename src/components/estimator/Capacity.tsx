@@ -33,7 +33,7 @@ export function Capacity() {
       }
       size="small"
       extra={
-        <Text type="secondary" style={{ className="text-xs" }}>
+        <Text type="secondary" className="text-xs">
           <InfoCircleOutlined /> Resources + utilization
         </Text>
       }
@@ -59,7 +59,7 @@ export function Capacity() {
             }}
             tooltip={{ formatter: (val) => `${val} FTE` }}
           />
-          <Text type="secondary" style={{ className="text-xs" }}>
+          <Text type="secondary" className="text-xs">
             Team size allocated to this project
           </Text>
         </div>
@@ -84,7 +84,7 @@ export function Capacity() {
             }}
             tooltip={{ formatter: (val) => `${Math.round((val || 0) * 100)}%` }}
           />
-          <Text type="secondary" style={{ className="text-xs" }}>
+          <Text type="secondary" className="text-xs">
             Productive time after meetings/admin (70-85% typical)
           </Text>
         </div>
@@ -109,7 +109,7 @@ export function Capacity() {
             }}
             tooltip={{ formatter: (val) => `${Math.round((val || 0) * 100)}%` }}
           />
-          <Text type="secondary" style={{ className="text-xs" }}>
+          <Text type="secondary" className="text-xs">
             Concurrent phase execution (65-75% typical)
           </Text>
         </div>
@@ -123,24 +123,24 @@ export function Capacity() {
             precision={1}
             valueStyle={{ className="text-lg", color: '#1890ff' }}
           />
-          <Text type="secondary" style={{ className="text-xs" }}>
+          <Text type="secondary" className="text-xs">
             = {inputs.fte} FTE × {FORMULA_CONSTANTS.WORKING_DAYS_PER_MONTH} days × {Math.round(inputs.utilization * 100)}%
           </Text>
         </div>
 
         {/* Warnings */}
         {inputs.utilization < 0.7 && (
-          <Text type="warning" style={{ className="text-xs" }}>
+          <Text type="warning" className="text-xs">
             ⚠️ Low utilization may indicate resource availability issues.
           </Text>
         )}
         {inputs.overlapFactor < 0.65 && (
-          <Text type="warning" style={{ className="text-xs" }}>
+          <Text type="warning" className="text-xs">
             ⚠️ Aggressive overlap increases risk of quality issues.
           </Text>
         )}
         {inputs.fte > 15 && (
-          <Text type="warning" style={{ className="text-xs" }}>
+          <Text type="warning" className="text-xs">
             ⚠️ Large team size may increase coordination overhead.
           </Text>
         )}

@@ -135,7 +135,7 @@ export function IntegrationPanel({
       title: 'Source → Target',
       key: 'flow',
       render: (_: any, record: IntegrationItem) => (
-        <span style={{ className="text-xs" }}>
+        <span className="text-xs">
           <span style={{ fontWeight: 500 }}>{record.source}</span>
           {' → '}
           <span style={{ fontWeight: 500 }}>{record.target}</span>

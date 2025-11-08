@@ -136,7 +136,7 @@ export function BatchOperationsPanel({
                   <span>{categoryInfo.icon}</span>
                   <div>
                     <div style={{ fontWeight: 500 }}>{resource.name}</div>
-                    <Text type="secondary" style={{ className="text-xs" }}>
+                    <Text type="secondary" className="text-xs">
                       {designationLabel}
                     </Text>
                   </div>

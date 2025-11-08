@@ -110,7 +110,7 @@ export function ResultsPanel() {
         <Card size="small" style={{ borderColor: '#faad14' }}>
           <Space direction="vertical" style={{ width: '100%' }}>
             {warnings.map((warning, idx) => (
-              <Text key={idx} type="warning" style={{ className="text-sm" }}>
+              <Text key={idx} type="warning" className="text-sm">
                 {warning}
               </Text>
             ))}
