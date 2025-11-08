@@ -10,7 +10,7 @@
 import { useGanttToolStoreV2 as useGanttToolStore } from '@/stores/gantt-tool-store-v2';
 import { useMemo, useRef, useState, useCallback } from 'react';
 import { differenceInDays, format, addDays, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, eachQuarterOfInterval, eachYearOfInterval, startOfWeek, startOfMonth, startOfQuarter, startOfYear, getDay, getMonth, getQuarter } from 'date-fns';
-import { ChevronDown, ChevronRight, Flag, Users, ChevronUp, MoveUp, MoveDown, ArrowRightToLine, Maximize2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Flag, Users, ChevronUp, MoveUp, MoveDown, ArrowRightToLine, Maximize2, AlertTriangle } from 'lucide-react';
 import type { GanttPhase } from '@/types/gantt-tool';
 import { getHolidaysInRange } from '@/data/holidays';
 import { formatGanttDate, formatDuration, formatDurationCompact, formatWorkingDays, formatCalendarDuration } from '@/lib/gantt-tool/date-utils';
@@ -805,7 +805,7 @@ export function GanttCanvas() {
                   </div>
 
                   {/* Timeline Area with Adaptive Title Position */}
-                  <div className="flex-1 relative" style={{ minHeight: phase.collapsed ? '110px' : '95px' }}>
+                  <div className="flex-1 relative" style={{ minHeight: phase.collapsed ? '132px' : '95px' }}>
                     {/* Animated Phase Title - Morphs between above bar (collapsed) and inside bar (expanded) */}
                     {(viewSettings?.showTitles ?? true) && (
                       <div
@@ -867,7 +867,7 @@ export function GanttCanvas() {
                       style={{
                         left: `${metrics.left}%`,
                         width: `${metrics.width}%`,
-                        top: phase.collapsed ? '54px' : '24px', // Higher when collapsed (title + badges above)
+                        top: phase.collapsed ? '74px' : '24px', // Higher when collapsed (title + badges above with proper spacing)
                         background: `linear-gradient(180deg, ${phase.color} 0%, ${withOpacity(phase.color, 0.85)} 100%)`,
                         boxShadow: isDragging
                           ? `0 12px 32px ${withOpacity(phase.color, 0.4)}`
@@ -996,7 +996,7 @@ export function GanttCanvas() {
 
                         {/* Floating Badges Above Phase Bar - Stays consistent during expand/collapse animation */}
                         {(viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 flex items-center justify-center text-white z-20 whitespace-nowrap transition-all duration-300 ease-in-out">
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 flex items-center justify-center text-white z-20 whitespace-nowrap transition-all duration-300 ease-in-out">
                             {/* All badges in a clean horizontal row */}
                             <div className="flex items-center gap-2">
                               {/* WD Mode */}
@@ -1151,6 +1151,11 @@ export function GanttCanvas() {
                       const isTaskSelected = selection.selectedItemId === task.id && selection.selectedItemType === 'task';
                       const isTaskDragging = dragState?.itemId === task.id && dragState?.itemType === 'task';
 
+                      // Check if task exceeds phase boundary (data integrity warning)
+                      const phaseEndDate = new Date(phase.endDate);
+                      const taskExceedsPhase = taskEnd > phaseEndDate;
+                      const daysExceeded = taskExceedsPhase ? differenceInDays(taskEnd, phaseEndDate) : 0;
+
                       // Jobs/Ive: Use consistent color palette - matches collapsed mini-segments
                       const taskColor = getTaskColor(taskIdx);
 
@@ -1217,15 +1222,20 @@ export function GanttCanvas() {
                                 ${isTaskDragging ? 'opacity-60 scale-105 z-10' : ''}
                                 ${isTaskSelected ? 'ring-2 ring-offset-1 ring-blue-400' : ''}
                                 ${dropTarget?.taskId === task.id ? 'ring-4 ring-purple-500 ring-offset-2 scale-110' : ''}
+                                ${taskExceedsPhase ? 'ring-2 ring-red-500 ring-offset-1' : ''}
                               `}
                               style={{
                                 left: `${taskLeft}%`,
                                 width: `${taskWidth}%`,
                                 background: `linear-gradient(180deg, ${taskColor} 0%, ${withOpacity(taskColor, 0.88)} 100%)`,
-                                border: `2px solid ${withOpacity(taskColor, 0.3)}`,
+                                border: taskExceedsPhase
+                                  ? `2px solid #ef4444`
+                                  : `2px solid ${withOpacity(taskColor, 0.3)}`,
                                 boxShadow: isTaskDragging
                                   ? `0 8px 24px ${withOpacity(taskColor, 0.4)}`
-                                  : `0 2px 8px ${withOpacity(taskColor, 0.2)}, inset 0 1px 0 ${withOpacity('#ffffff', 0.25)}`,
+                                  : taskExceedsPhase
+                                    ? `0 0 0 2px rgba(239, 68, 68, 0.1), 0 4px 12px rgba(239, 68, 68, 0.3), inset 0 1px 0 ${withOpacity('#ffffff', 0.25)}`
+                                    : `0 2px 8px ${withOpacity(taskColor, 0.2)}, inset 0 1px 0 ${withOpacity('#ffffff', 0.25)}`,
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -1270,6 +1280,34 @@ export function GanttCanvas() {
                                   <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 flex items-center justify-center text-white z-20  whitespace-nowrap">
                                     {/* All badges in a clean horizontal row */}
                                     <div className="flex items-center gap-2">
+                                      {/* WARNING Badge - Task exceeds phase boundary */}
+                                      {taskExceedsPhase && (
+                                        <div className="relative group/warning">
+                                          <div className="flex items-center gap-1 bg-red-500 px-2 py-1 rounded-sm shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
+                                            <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
+                                            <span className="text-xs font-bold">!</span>
+                                          </div>
+                                          {/* Warning Tooltip */}
+                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/warning:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                            <div className="bg-red-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl border-2 border-red-400 max-w-xs">
+                                              <div className="font-bold mb-1 flex items-center gap-1.5">
+                                                <AlertTriangle className="w-4 h-4" />
+                                                <span>Task Exceeds Phase Boundary</span>
+                                              </div>
+                                              <div className="text-[11px] leading-relaxed">
+                                                This task ends <span className="font-semibold">{daysExceeded} day{daysExceeded > 1 ? 's' : ''}</span> after the phase ends.
+                                              </div>
+                                              <div className="text-[11px] mt-1.5 pt-1.5 border-t border-red-400/30">
+                                                <div>Task ends: <span className="font-semibold">{format(taskEnd, 'dd MMM yy')}</span></div>
+                                                <div>Phase ends: <span className="font-semibold">{format(phaseEndDate, 'dd MMM yy')}</span></div>
+                                              </div>
+                                              <div className="text-[10px] mt-1.5 pt-1.5 border-t border-red-400/30 text-red-100 italic">
+                                                💡 Adjust task or phase dates to fix this issue
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
                                       {/* WD Mode */}
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
                                         <span className="text-xs font-bold bg-black/40 px-2 py-1 rounded-sm shadow-md border border-white/20">
