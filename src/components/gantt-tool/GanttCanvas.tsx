@@ -754,6 +754,27 @@ export function GanttCanvas() {
               return taskEnd > phaseEndDate;
             }).length;
 
+            // Calculate total unique resources (phase-level + all task-level)
+            const allResourceIds = new Set<string>();
+
+            // Add phase-level resources
+            phase.phaseResourceAssignments?.forEach(assignment => {
+              allResourceIds.add(assignment.resourceId);
+            });
+
+            // Add task-level resources
+            phase.tasks.forEach(task => {
+              task.resourceAssignments?.forEach(assignment => {
+                allResourceIds.add(assignment.resourceId);
+              });
+            });
+
+            const totalPhaseResourceCount = allResourceIds.size;
+            const taskResourceCount = phase.tasks.reduce((sum, task) =>
+              sum + (task.resourceAssignments?.length || 0), 0
+            );
+            const phaseManagementCount = phase.phaseResourceAssignments?.length || 0;
+
             return (
               <div key={phase.id} className="relative">
                 {/* Phase Row */}
@@ -1061,54 +1082,102 @@ export function GanttCanvas() {
 
                               {/* WD Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
-                                <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
-                                  {formatWorkingDays(metrics.workingDays)}
-                                </span>
+                                <>
+                                  <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                    {formatWorkingDays(metrics.workingDays)}
+                                  </span>
+                                  {/* Resource badge in WD mode */}
+                                  {totalPhaseResourceCount > 0 && (
+                                    <div className="relative group/wdresbadge">
+                                      <div className="flex items-center gap-1.5 bg-purple-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                        <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
+                                        <span className="text-sm font-bold">{totalPhaseResourceCount}</span>
+                                      </div>
+                                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/wdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                        <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
+                                          <div className="font-semibold mb-1.5 text-[10px] text-purple-100">Total Resources (Phase + Tasks):</div>
+                                          <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                              <span className="text-purple-100">Phase Management:</span>
+                                              <span className="font-semibold">{phaseManagementCount}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                              <span className="text-purple-100">Task Assignments:</span>
+                                              <span className="font-semibold">{taskResourceCount}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-[11px]">
+                                              <span className="text-purple-100">Total Unique:</span>
+                                              <span className="font-bold">{totalPhaseResourceCount}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
                               )}
 
                               {/* CD Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'cd' && (
-                                <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
-                                  {formatCalendarDuration(metrics.duration)}
-                                </span>
+                                <>
+                                  <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                    {formatCalendarDuration(metrics.duration)}
+                                  </span>
+                                  {/* Resource badge in CD mode */}
+                                  {totalPhaseResourceCount > 0 && (
+                                    <div className="relative group/cdresbadge">
+                                      <div className="flex items-center gap-1.5 bg-purple-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                        <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
+                                        <span className="text-sm font-bold">{totalPhaseResourceCount}</span>
+                                      </div>
+                                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/cdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                        <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
+                                          <div className="font-semibold mb-1.5 text-[10px] text-purple-100">Total Resources (Phase + Tasks):</div>
+                                          <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                              <span className="text-purple-100">Phase Management:</span>
+                                              <span className="font-semibold">{phaseManagementCount}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                              <span className="text-purple-100">Task Assignments:</span>
+                                              <span className="font-semibold">{taskResourceCount}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-[11px]">
+                                              <span className="text-purple-100">Total Unique:</span>
+                                              <span className="font-bold">{totalPhaseResourceCount}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
                               )}
 
                               {/* Resource Mode */}
-                              {(viewSettings?.barDurationDisplay ?? 'all') === 'resource' && phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0 && (
+                              {(viewSettings?.barDurationDisplay ?? 'all') === 'resource' && totalPhaseResourceCount > 0 && (
                                 <div className="relative group/pmbadge">
-                                  <div className="flex items-center gap-1.5 bg-orange-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                  <div className="flex items-center gap-1.5 bg-purple-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
                                     <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                    <span className="text-sm font-bold">{phase.phaseResourceAssignments.length}</span>
+                                    <span className="text-sm font-bold">{totalPhaseResourceCount}</span>
                                   </div>
-                                  {/* PM Tooltip */}
+                                  {/* Total Resource Tooltip */}
                                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                    <div className="bg-orange-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
-                                      <div className="font-semibold mb-1.5 text-[10px] text-orange-100">Phase Management:</div>
-                                      <div className="space-y-1">
-                                        {phase.phaseResourceAssignments.map((assignment) => {
-                                          const resource = currentProject.resources?.find(r => r.id === assignment.resourceId);
-                                          if (!resource) return null;
-                                          return (
-                                            <div key={assignment.id} className="flex items-start gap-1.5">
-                                              <div className="flex-1">
-                                                <div className="flex items-center gap-1.5">
-                                                  <div className="font-medium text-[11px]">{resource.name}</div>
-                                                  <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-white/20 rounded">
-                                                    {assignment.allocationPercentage}%
-                                                  </span>
-                                                </div>
-                                                <div className="text-[9px] text-orange-100">
-                                                  {RESOURCE_DESIGNATIONS[resource.designation]}
-                                                </div>
-                                                {assignment.assignmentNotes && (
-                                                  <div className="text-[9px] text-orange-100 mt-0.5 italic opacity-90">
-                                                    {assignment.assignmentNotes}
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
+                                    <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
+                                      <div className="font-semibold mb-1.5 text-[10px] text-purple-100">Total Resources (Phase + Tasks):</div>
+                                      <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between gap-3 text-[11px]">
+                                          <span className="text-purple-100">Phase Management:</span>
+                                          <span className="font-semibold">{phaseManagementCount}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 text-[11px]">
+                                          <span className="text-purple-100">Task Assignments:</span>
+                                          <span className="font-semibold">{taskResourceCount}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-[11px]">
+                                          <span className="text-purple-100">Total Unique:</span>
+                                          <span className="font-bold">{totalPhaseResourceCount}</span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -1117,9 +1186,39 @@ export function GanttCanvas() {
 
                               {/* Dates Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
-                                <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
-                                  {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
-                                </span>
+                                <>
+                                  <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                    {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
+                                  </span>
+                                  {/* Resource badge in Dates mode */}
+                                  {totalPhaseResourceCount > 0 && (
+                                    <div className="relative group/datesresbadge">
+                                      <div className="flex items-center gap-1.5 bg-purple-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                        <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
+                                        <span className="text-sm font-bold">{totalPhaseResourceCount}</span>
+                                      </div>
+                                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/datesresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                        <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
+                                          <div className="font-semibold mb-1.5 text-[10px] text-purple-100">Total Resources (Phase + Tasks):</div>
+                                          <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                              <span className="text-purple-100">Phase Management:</span>
+                                              <span className="font-semibold">{phaseManagementCount}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                              <span className="text-purple-100">Task Assignments:</span>
+                                              <span className="font-semibold">{taskResourceCount}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-[11px]">
+                                              <span className="text-purple-100">Total Unique:</span>
+                                              <span className="font-bold">{totalPhaseResourceCount}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
                               )}
 
                               {/* All Mode - Show all info */}
@@ -1137,42 +1236,30 @@ export function GanttCanvas() {
                                     {formatCalendarDuration(metrics.duration)}
                                   </span>
 
-                                  {/* PM Resource badge */}
-                                  {phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0 && (
-                                    <div className="relative group/pmbadge">
-                                      <div className="flex items-center gap-1.5 bg-orange-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                  {/* Total Resource badge */}
+                                  {totalPhaseResourceCount > 0 && (
+                                    <div className="relative group/allresbadge">
+                                      <div className="flex items-center gap-1.5 bg-purple-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
                                         <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                        <span className="text-sm font-bold">{phase.phaseResourceAssignments.length}</span>
+                                        <span className="text-sm font-bold">{totalPhaseResourceCount}</span>
                                       </div>
-                                      {/* PM Tooltip */}
-                                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                        <div className="bg-orange-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
-                                          <div className="font-semibold mb-1.5 text-[10px] text-orange-100">Phase Management:</div>
-                                          <div className="space-y-1">
-                                            {phase.phaseResourceAssignments.map((assignment) => {
-                                              const resource = currentProject.resources?.find(r => r.id === assignment.resourceId);
-                                              if (!resource) return null;
-                                              return (
-                                                <div key={assignment.id} className="flex items-start gap-1.5">
-                                                  <div className="flex-1">
-                                                    <div className="flex items-center gap-1.5">
-                                                      <div className="font-medium text-[11px]">{resource.name}</div>
-                                                      <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-white/20 rounded">
-                                                        {assignment.allocationPercentage}%
-                                                      </span>
-                                                    </div>
-                                                    <div className="text-[9px] text-orange-100">
-                                                      {RESOURCE_DESIGNATIONS[resource.designation]}
-                                                    </div>
-                                                    {assignment.assignmentNotes && (
-                                                      <div className="text-[9px] text-orange-100 mt-0.5 italic opacity-90">
-                                                        {assignment.assignmentNotes}
-                                                      </div>
-                                                    )}
-                                                  </div>
-                                                </div>
-                                              );
-                                            })}
+                                      {/* Total Resource Tooltip */}
+                                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/allresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                        <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
+                                          <div className="font-semibold mb-1.5 text-[10px] text-purple-100">Total Resources (Phase + Tasks):</div>
+                                          <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                              <span className="text-purple-100">Phase Management:</span>
+                                              <span className="font-semibold">{phaseManagementCount}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                              <span className="text-purple-100">Task Assignments:</span>
+                                              <span className="font-semibold">{taskResourceCount}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-[11px]">
+                                              <span className="text-purple-100">Total Unique:</span>
+                                              <span className="font-bold">{totalPhaseResourceCount}</span>
+                                            </div>
                                           </div>
                                         </div>
                                       </div>

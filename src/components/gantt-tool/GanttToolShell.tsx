@@ -15,7 +15,7 @@ import { GanttSidePanel } from './GanttSidePanel';
 import { QuickResourcePanel } from './QuickResourcePanel';
 import { MissionControlModal } from './MissionControlModal';
 import { format } from 'date-fns';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { HexLoader } from '@/components/ui/HexLoader';
 
 export function GanttToolShell() {
@@ -239,7 +239,7 @@ export function GanttToolShell() {
           }`}>
             {syncStatus === 'saving-local' && (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <HexLoader size="sm" />
                 <span>💾 Saving locally...</span>
               </>
             )}
@@ -253,7 +253,7 @@ export function GanttToolShell() {
             )}
             {syncStatus === 'syncing-cloud' && (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <HexLoader size="sm" />
                 {saveProgress ? (
                   <span>☁️ {saveProgress.description}</span>
                 ) : (
