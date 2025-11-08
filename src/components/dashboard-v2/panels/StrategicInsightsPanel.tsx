@@ -125,7 +125,7 @@ export function StrategicInsightsPanel({
           </ResponsiveContainer>
           <Space direction="vertical" size="small" style={{ marginTop: '8px' }}>
             <Badge status={riskLevel.color as any} text={riskLevel.text} />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type="secondary" className="text-xs">
               {riskScore.confidenceScore.toFixed(1)}% delivery confidence
             </Text>
           </Space>
@@ -134,7 +134,7 @@ export function StrategicInsightsPanel({
 
       {/* Risk Factors Breakdown */}
       <Card size="small" style={{ background: '#FFFBEB' }}>
-        <Title level={5} style={{ marginBottom: '12px', fontSize: '14px' }}>
+        <Title level={5} style={{ marginBottom: '12px' }} className="text-sm">
           <AlertTriangle size={16} style={{ marginRight: '8px' }} />
           Risk Factors
         </Title>
@@ -142,10 +142,10 @@ export function StrategicInsightsPanel({
           {riskScore.riskFactors.map((factor) => (
             <div key={factor.category}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <Text style={{ fontSize: '12px' }}>
+                <Text className="text-xs">
                   {factor.category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </Text>
-                <Text strong style={{ fontSize: '12px' }}>{factor.score.toFixed(0)}%</Text>
+                <Text strong className="text-xs">{factor.score.toFixed(0)}%</Text>
               </div>
               <Progress
                 percent={factor.score}
@@ -163,7 +163,7 @@ export function StrategicInsightsPanel({
       {/* AI Recommendations */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <Title level={5} style={{ margin: 0, fontSize: '14px' }}>
+          <Title level={5} style={{ margin: 0 }} className="text-sm">
             <Zap size={16} style={{ marginRight: '8px', color: '#F59E0B' }} />
             AI Recommendations
           </Title>
@@ -195,7 +195,7 @@ export function StrategicInsightsPanel({
                 <Space direction="vertical" size="small" style={{ width: '100%' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                     <Space>
-                      <span style={{ fontSize: '16px' }}>{getTypeIcon(rec.type)}</span>
+                      <span className="text-base">{getTypeIcon(rec.type)}</span>
                       <Text strong style={{ fontSize: '13px' }}>{rec.title}</Text>
                     </Space>
                     <Tag color={getPriorityColor(getPriority(rec.confidence))} style={{ margin: 0 }}>
@@ -258,7 +258,7 @@ export function StrategicInsightsPanel({
 
       {/* Scenario Management */}
       <Card size="small" style={{ background: '#EFF6FF' }}>
-        <Title level={5} style={{ marginBottom: '12px', fontSize: '14px' }}>
+        <Title level={5} style={{ marginBottom: '12px' }} className="text-sm">
           <TrendingUp size={16} style={{ marginRight: '8px' }} />
           What-If Scenarios
         </Title>

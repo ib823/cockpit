@@ -235,7 +235,7 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
                       <div style={{ fontSize: 16 }}>
                         {roleInfo?.label || resource.role}
                       </div>
-                      <div style={{ fontSize: 12, color: '#666' }}>
+                      <div style={{ color: '#666', fontSize: 12 }}>
                         {resource.region} • ${resource.hourlyRate}/hr
                       </div>
                     </Col>

@@ -263,7 +263,7 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                               <div className="flex items-center gap-1 mt-1">
                                 <Tag
                                   color={category.color}
-                                  className="text-[10px] px-1.5 py-0 m-0"
+                                  className="text-xs px-1.5 py-0 m-0"
                                 >
                                   {category.label}
                                 </Tag>

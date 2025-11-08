@@ -35,7 +35,7 @@ export function ProcessComplexity() {
       }
       size="small"
       extra={
-        <Text type="secondary" style={{ fontSize: '12px' }}>
+        <Text type="secondary" style={{ className="text-xs" }}>
           <InfoCircleOutlined /> Forms + fit-to-standard
         </Text>
       }
@@ -56,7 +56,7 @@ export function ProcessComplexity() {
             style={{ width: '100%' }}
           />
           {inputs.customForms > 4 && (
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type="secondary" style={{ className="text-xs" }}>
               +{inputs.customForms - 4} extra forms
             </Text>
           )}
@@ -81,7 +81,7 @@ export function ProcessComplexity() {
             }}
             tooltip={{ formatter: (val) => `${Math.round((val || 0) * 100)}%` }}
           />
-          <Text type="secondary" style={{ fontSize: '12px' }}>
+          <Text type="secondary" style={{ className="text-xs" }}>
             Higher fit = less customization needed
           </Text>
         </div>
@@ -91,7 +91,7 @@ export function ProcessComplexity() {
           <Space direction="vertical" style={{ width: '100%' }}>
             <div className="flex justify-between">
               <Text type="secondary">Current Pc:</Text>
-              <Text strong style={{ fontSize: '16px', color: processComplexity > 0.1 ? '#ff4d4f' : '#1890ff' }}>
+              <Text strong style={{ className="text-base", color: processComplexity > 0.1 ? '#ff4d4f' : '#1890ff' }}>
                 {processComplexity.toFixed(3)}
               </Text>
             </div>
@@ -106,7 +106,7 @@ export function ProcessComplexity() {
 
         {/* Warning for low fit-to-standard */}
         {inputs.fitToStandard < 0.7 && (
-          <Text type="warning" style={{ fontSize: '12px' }}>
+          <Text type="warning" style={{ className="text-xs" }}>
             ⚠️ Low fit-to-standard increases effort significantly.
           </Text>
         )}

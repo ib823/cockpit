@@ -9,9 +9,9 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
 const base = 'w-full rounded-[var(--r-md)] border bg-[var(--surface)] text-[var(--ink)] placeholder:text-[var(--gray-500)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] transition-colors';
 
 const sizes = {
-  sm: 'h-8 px-3 text-[14px]',
-  md: 'h-10 px-3 text-[14px]',
-  lg: 'h-12 px-4 text-[16px]'
+  sm: 'h-8 px-3 text-sm',
+  md: 'h-10 px-3 text-sm',
+  lg: 'h-12 px-4 text-base'
 } as const;
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input({

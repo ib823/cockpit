@@ -75,7 +75,7 @@ export const Alert: React.FC<AlertProps> = ({ variant = 'info', title, children,
       <span aria-hidden>{tone.icon}</span>
       <div className="flex-1 min-w-0">
         {title && <div className="font-semibold mb-0.5">{title}</div>}
-        {children && <div className="text-[14px] opacity-90">{children}</div>}
+        {children && <div className="text-sm opacity-90">{children}</div>}
       </div>
       {onClose && (
         <button

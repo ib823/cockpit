@@ -667,7 +667,7 @@ export function GanttCanvas() {
                             title={
                               <div>
                                 <div className="font-semibold">{milestone.name}</div>
-                                <div className="text-[10px] opacity-90 mt-0.5">
+                                <div className="text-xs opacity-90 mt-0.5">
                                   {format(milestoneDate, 'dd MMM yy')} ({format(milestoneDate, 'EEE')})
                                 </div>
                               </div>
@@ -710,7 +710,7 @@ export function GanttCanvas() {
                     <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[9999]">
                       <div className="bg-red-600 text-white text-xs px-2.5 py-1.5 rounded-md shadow-xl border-2 border-white/20">
                         <div className="font-semibold">{holiday.name}</div>
-                        <div className="text-[10px] opacity-90 mt-0.5">
+                        <div className="text-xs opacity-90 mt-0.5">
                           {formatGanttDate(holiday.date)}
                           {holiday.isWeekend && <span className="ml-1.5 opacity-75">(Weekend)</span>}
                         </div>
@@ -903,7 +903,7 @@ export function GanttCanvas() {
                                   <div className="flex items-center gap-2 mb-1">
                                     <span>{format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}</span>
                                   </div>
-                                  <div className="flex items-center gap-3 text-[11px]">
+                                  <div className="flex items-center gap-3 text-xs lg:text-sm">
                                     <span className="text-blue-400 font-semibold">{formatWorkingDays(metrics.workingDays)}</span>
                                     <span>·</span>
                                     <span>{formatCalendarDuration(metrics.duration)}</span>
@@ -1043,8 +1043,8 @@ export function GanttCanvas() {
                                       {/* Hover tooltip */}
                                       <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/minitask:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
                                         <div className="bg-gray-900 text-white text-xs px-2.5 py-1.5 rounded shadow-2xl border-2" style={{ borderColor: taskColor }}>
-                                          <div className="font-semibold text-[11px]">{task.name}</div>
-                                          <div className="text-[10px] text-gray-300 mt-0.5">
+                                          <div className="font-semibold text-xs lg:text-sm">{task.name}</div>
+                                          <div className="text-xs text-gray-300 mt-0.5">
                                             {formatWorkingDays(taskWorkingDays)} · {format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}
                                           </div>
                                         </div>
@@ -1076,7 +1076,7 @@ export function GanttCanvas() {
                                         <AlertTriangle className="w-4 h-4" />
                                         <span>Phase Boundary Violations</span>
                                       </div>
-                                      <div className="text-[11px] leading-relaxed space-y-1">
+                                      <div className="text-xs lg:text-sm leading-relaxed space-y-1">
                                         {tasksStartingEarly > 0 && (
                                           <div>
                                             • {tasksStartingEarly} task{tasksStartingEarly > 1 ? 's start' : ' starts'} <span className="font-semibold">before</span> phase begins
@@ -1088,10 +1088,10 @@ export function GanttCanvas() {
                                           </div>
                                         )}
                                       </div>
-                                      <div className="text-[11px] mt-1.5 pt-1.5 border-t border-red-400/30">
+                                      <div className="text-xs lg:text-sm mt-1.5 pt-1.5 border-t border-red-400/30">
                                         <div>Phase: <span className="font-semibold">{format(phaseStartDate, 'dd MMM yy')} → {format(phaseEndDate, 'dd MMM yy')}</span></div>
                                       </div>
-                                      <div className="text-[10px] mt-1.5 pt-1.5 border-t border-red-400/30 text-red-100 italic">
+                                      <div className="text-xs mt-1.5 pt-1.5 border-t border-red-400/30 text-red-100 italic">
                                         {phase.collapsed ? '💡 Expand phase to see which tasks need adjustment' : '💡 Check tasks with red borders below'}
                                       </div>
                                     </div>
@@ -1114,17 +1114,17 @@ export function GanttCanvas() {
                                       </div>
                                       <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/wdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
                                         <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
-                                          <div className="font-semibold mb-1.5 text-[10px] text-purple-100">Total Resources (Phase + Tasks):</div>
+                                          <div className="font-semibold mb-1.5 text-xs text-purple-100">Total Resources (Phase + Tasks):</div>
                                           <div className="space-y-1.5">
-                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
                                               <span className="text-purple-100">Phase Management:</span>
                                               <span className="font-semibold">{phaseManagementCount}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
                                               <span className="text-purple-100">Task Assignments:</span>
                                               <span className="font-semibold">{taskResourceCount}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
                                               <span className="text-purple-100">Total Unique:</span>
                                               <span className="font-bold">{totalPhaseResourceCount}</span>
                                             </div>
@@ -1151,17 +1151,17 @@ export function GanttCanvas() {
                                       </div>
                                       <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/cdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
                                         <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
-                                          <div className="font-semibold mb-1.5 text-[10px] text-purple-100">Total Resources (Phase + Tasks):</div>
+                                          <div className="font-semibold mb-1.5 text-xs text-purple-100">Total Resources (Phase + Tasks):</div>
                                           <div className="space-y-1.5">
-                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
                                               <span className="text-purple-100">Phase Management:</span>
                                               <span className="font-semibold">{phaseManagementCount}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
                                               <span className="text-purple-100">Task Assignments:</span>
                                               <span className="font-semibold">{taskResourceCount}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
                                               <span className="text-purple-100">Total Unique:</span>
                                               <span className="font-bold">{totalPhaseResourceCount}</span>
                                             </div>
@@ -1183,17 +1183,17 @@ export function GanttCanvas() {
                                   {/* Total Resource Tooltip */}
                                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
                                     <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
-                                      <div className="font-semibold mb-1.5 text-[10px] text-purple-100">Total Resources (Phase + Tasks):</div>
+                                      <div className="font-semibold mb-1.5 text-xs text-purple-100">Total Resources (Phase + Tasks):</div>
                                       <div className="space-y-1.5">
-                                        <div className="flex items-center justify-between gap-3 text-[11px]">
+                                        <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
                                           <span className="text-purple-100">Phase Management:</span>
                                           <span className="font-semibold">{phaseManagementCount}</span>
                                         </div>
-                                        <div className="flex items-center justify-between gap-3 text-[11px]">
+                                        <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
                                           <span className="text-purple-100">Task Assignments:</span>
                                           <span className="font-semibold">{taskResourceCount}</span>
                                         </div>
-                                        <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-[11px]">
+                                        <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
                                           <span className="text-purple-100">Total Unique:</span>
                                           <span className="font-bold">{totalPhaseResourceCount}</span>
                                         </div>
@@ -1218,17 +1218,17 @@ export function GanttCanvas() {
                                       </div>
                                       <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/datesresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
                                         <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
-                                          <div className="font-semibold mb-1.5 text-[10px] text-purple-100">Total Resources (Phase + Tasks):</div>
+                                          <div className="font-semibold mb-1.5 text-xs text-purple-100">Total Resources (Phase + Tasks):</div>
                                           <div className="space-y-1.5">
-                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
                                               <span className="text-purple-100">Phase Management:</span>
                                               <span className="font-semibold">{phaseManagementCount}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
                                               <span className="text-purple-100">Task Assignments:</span>
                                               <span className="font-semibold">{taskResourceCount}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
                                               <span className="text-purple-100">Total Unique:</span>
                                               <span className="font-bold">{totalPhaseResourceCount}</span>
                                             </div>
@@ -1265,17 +1265,17 @@ export function GanttCanvas() {
                                       {/* Total Resource Tooltip */}
                                       <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/allresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
                                         <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
-                                          <div className="font-semibold mb-1.5 text-[10px] text-purple-100">Total Resources (Phase + Tasks):</div>
+                                          <div className="font-semibold mb-1.5 text-xs text-purple-100">Total Resources (Phase + Tasks):</div>
                                           <div className="space-y-1.5">
-                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
                                               <span className="text-purple-100">Phase Management:</span>
                                               <span className="font-semibold">{phaseManagementCount}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
                                               <span className="text-purple-100">Task Assignments:</span>
                                               <span className="font-semibold">{taskResourceCount}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-[11px]">
+                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
                                               <span className="text-purple-100">Total Unique:</span>
                                               <span className="font-bold">{totalPhaseResourceCount}</span>
                                             </div>
@@ -1438,7 +1438,7 @@ export function GanttCanvas() {
                                 {/* Drop Zone Indicator */}
                                 {dropTarget?.taskId === task.id && (
                                   <div className="absolute inset-0 bg-purple-500/30 backdrop-blur-[1px] rounded-md flex items-center justify-center border-2 border-purple-400 border-dashed animate-pulse z-50">
-                                    <div className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
+                                    <div className="bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
                                       <Users className="w-3 h-3" />
                                       <span>Drop to Assign</span>
                                     </div>
@@ -1455,7 +1455,7 @@ export function GanttCanvas() {
                                         <div className="relative group/warning">
                                           <div className="flex items-center gap-0.5 sm:gap-1 bg-red-500 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
                                             <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
-                                            <span className="text-[10px] sm:text-xs font-bold">!</span>
+                                            <span className="text-xs font-bold">!</span>
                                           </div>
                                           {/* Warning Tooltip */}
                                           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/warning:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
@@ -1464,7 +1464,7 @@ export function GanttCanvas() {
                                                 <AlertTriangle className="w-4 h-4" />
                                                 <span>Task Boundary Violation</span>
                                               </div>
-                                              <div className="text-[11px] leading-relaxed space-y-1">
+                                              <div className="text-xs lg:text-sm leading-relaxed space-y-1">
                                                 {taskStartsEarly && (
                                                   <div>
                                                     This task starts <span className="font-semibold">{daysStartedEarly} day{daysStartedEarly > 1 ? 's' : ''}</span> <span className="font-semibold">before</span> the phase begins.
@@ -1476,11 +1476,11 @@ export function GanttCanvas() {
                                                   </div>
                                                 )}
                                               </div>
-                                              <div className="text-[11px] mt-1.5 pt-1.5 border-t border-red-400/30 space-y-0.5">
+                                              <div className="text-xs lg:text-sm mt-1.5 pt-1.5 border-t border-red-400/30 space-y-0.5">
                                                 <div>Task: <span className="font-semibold">{format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}</span></div>
                                                 <div>Phase: <span className="font-semibold">{format(phaseStartDate, 'dd MMM yy')} → {format(phaseEndDate, 'dd MMM yy')}</span></div>
                                               </div>
-                                              <div className="text-[10px] mt-1.5 pt-1.5 border-t border-red-400/30 text-red-100 italic">
+                                              <div className="text-xs mt-1.5 pt-1.5 border-t border-red-400/30 text-red-100 italic">
                                                 💡 Adjust task or phase dates to fix this issue
                                               </div>
                                             </div>
@@ -1489,14 +1489,14 @@ export function GanttCanvas() {
                                       )}
                                       {/* WD Mode */}
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
-                                        <span className="text-[10px] sm:text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
+                                        <span className="text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
                                           {formatWorkingDays(taskWorkingDays)}
                                         </span>
                                       )}
 
                                       {/* CD Mode */}
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'cd' && (
-                                        <span className="text-[10px] sm:text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
+                                        <span className="text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
                                           {formatCalendarDuration(taskDuration)}
                                         </span>
                                       )}
@@ -1506,12 +1506,12 @@ export function GanttCanvas() {
                                         <div className="relative group/resourcebadge">
                                           <div className="flex items-center gap-0.5 sm:gap-1 bg-purple-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
                                             <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3" strokeWidth={2.5} />
-                                            <span className="text-[10px] sm:text-xs font-bold">{task.resourceAssignments.length}</span>
+                                            <span className="text-xs font-bold">{task.resourceAssignments.length}</span>
                                           </div>
                                           {/* Tooltip */}
                                           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/resourcebadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
                                             <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
-                                              <div className="font-semibold mb-1.5 text-[10px] text-gray-300">Assigned Resources:</div>
+                                              <div className="font-semibold mb-1.5 text-xs text-gray-300">Assigned Resources:</div>
                                               <div className="space-y-1">
                                                 {task.resourceAssignments.map((assignment) => {
                                                   const resource = (currentProject.resources || []).find(r => r.id === assignment.resourceId);
@@ -1522,16 +1522,16 @@ export function GanttCanvas() {
                                                       <span className="text-sm flex-shrink-0">{category.icon}</span>
                                                       <div className="flex-1">
                                                         <div className="flex items-center gap-1.5">
-                                                          <div className="font-medium text-[11px]">{resource.name}</div>
-                                                          <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-purple-500 text-white rounded">
+                                                          <div className="font-medium text-xs lg:text-sm">{resource.name}</div>
+                                                          <span className="px-1.5 py-0.5 text-xs font-semibold bg-purple-500 text-white rounded">
                                                             {assignment.allocationPercentage}%
                                                           </span>
                                                         </div>
-                                                        <div className="text-[9px] text-gray-400">
+                                                        <div className="text-xs text-gray-400">
                                                           {RESOURCE_DESIGNATIONS[resource.designation]}
                                                         </div>
                                                         {assignment.assignmentNotes && (
-                                                          <div className="text-[9px] text-gray-300 mt-0.5 italic">
+                                                          <div className="text-xs text-gray-300 mt-0.5 italic">
                                                             {assignment.assignmentNotes}
                                                           </div>
                                                         )}
@@ -1547,7 +1547,7 @@ export function GanttCanvas() {
 
                                       {/* Dates Mode */}
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
-                                        <span className="text-[10px] sm:text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
+                                        <span className="text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
                                           {format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}
                                         </span>
                                       )}
@@ -1556,12 +1556,12 @@ export function GanttCanvas() {
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'all' && (
                                         <>
                                           {/* Dates badge */}
-                                          <span className="text-[10px] sm:text-xs font-semibold bg-blue-600/90 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
+                                          <span className="text-xs font-semibold bg-blue-600/90 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
                                             {format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}
                                           </span>
 
                                           {/* Duration badge */}
-                                          <span className="text-[10px] sm:text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
+                                          <span className="text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
                                             {taskWidth >= 15 ? (
                                               <>
                                                 {formatWorkingDays(taskWorkingDays)}
@@ -1578,12 +1578,12 @@ export function GanttCanvas() {
                                             <div className="relative group/resourcebadge">
                                               <div className="flex items-center gap-0.5 sm:gap-1 bg-purple-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
                                                 <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3" strokeWidth={2.5} />
-                                                <span className="text-[10px] sm:text-xs font-bold">{task.resourceAssignments.length}</span>
+                                                <span className="text-xs font-bold">{task.resourceAssignments.length}</span>
                                               </div>
                                               {/* Tooltip */}
                                               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/resourcebadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
                                                 <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
-                                                  <div className="font-semibold mb-1.5 text-[10px] text-gray-300">Assigned Resources:</div>
+                                                  <div className="font-semibold mb-1.5 text-xs text-gray-300">Assigned Resources:</div>
                                                   <div className="space-y-1">
                                                     {task.resourceAssignments.map((assignment) => {
                                                       const resource = (currentProject.resources || []).find(r => r.id === assignment.resourceId);
@@ -1594,16 +1594,16 @@ export function GanttCanvas() {
                                                           <span className="text-sm flex-shrink-0">{category.icon}</span>
                                                           <div className="flex-1">
                                                             <div className="flex items-center gap-1.5">
-                                                              <div className="font-medium text-[11px]">{resource.name}</div>
-                                                              <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-purple-500 text-white rounded">
+                                                              <div className="font-medium text-xs lg:text-sm">{resource.name}</div>
+                                                              <span className="px-1.5 py-0.5 text-xs font-semibold bg-purple-500 text-white rounded">
                                                                 {assignment.allocationPercentage}%
                                                               </span>
                                                             </div>
-                                                            <div className="text-[9px] text-gray-400">
+                                                            <div className="text-xs text-gray-400">
                                                               {RESOURCE_DESIGNATIONS[resource.designation]}
                                                             </div>
                                                             {assignment.assignmentNotes && (
-                                                              <div className="text-[9px] text-gray-300 mt-0.5 italic">
+                                                              <div className="text-xs text-gray-300 mt-0.5 italic">
                                                                 {assignment.assignmentNotes}
                                                               </div>
                                                             )}
@@ -1643,11 +1643,11 @@ export function GanttCanvas() {
                                     <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-sm whitespace-normal">
                                       <div className="font-semibold mb-1">{task.name}</div>
                                       {task.description && (
-                                        <div className="text-gray-300 text-[11px] mt-1 leading-relaxed">
+                                        <div className="text-gray-300 text-xs lg:text-sm mt-1 leading-relaxed">
                                           {task.description}
                                         </div>
                                       )}
-                                      <div className="text-gray-400 text-[10px] mt-2 border-t border-gray-700 pt-1.5">
+                                      <div className="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-1.5">
                                         <div className="mb-1">{format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}</div>
                                         <div className="flex items-center gap-2">
                                           <span className="text-purple-400 font-semibold">{formatWorkingDays(taskWorkingDays)}</span>

@@ -322,7 +322,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
             onKeyDown={handleKeyDown}
             autoFocus
             style={{
-              fontSize: '16px',
+              className="text-base",
               border: 'none',
               boxShadow: 'none',
             }}
@@ -373,7 +373,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
                   <List.Item.Meta
                     avatar={
                       <div style={{
-                        fontSize: '20px',
+                        className="text-lg",
                         color: index === selectedIndex ? '#1890ff' : '#8c8c8c',
                         display: 'flex',
                         alignItems: 'center',
@@ -392,7 +392,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
                         )}
                       </Space>
                     }
-                    description={<Text type="secondary" style={{ fontSize: '13px' }}>{item.subtitle}</Text>}
+                    description={<Text type="secondary" style={{ className="text-sm" }}>{item.subtitle}</Text>}
                   />
                   {index === selectedIndex && (
                     <Tag style={{ fontSize: '11px' }}>↵</Tag>
@@ -411,7 +411,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
             backgroundColor: '#fafafa',
             display: 'flex',
             justifyContent: 'space-between',
-            fontSize: '12px',
+            className="text-xs",
             color: '#8c8c8c',
           }}
         >

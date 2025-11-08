@@ -21,7 +21,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
 
   const Item = (c: Crumb, i: number) => {
     const isButton = !!c.onClick && !c.href;
-    const common = 'text-[14px]';
+    const common = 'text-sm';
     if (c.href)
       return (
         <a className={clsx(common, 'text-[var(--ink)]/70 hover:text-[var(--ink)]')} href={c.href}>

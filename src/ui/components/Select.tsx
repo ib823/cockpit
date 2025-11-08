@@ -59,9 +59,9 @@ export const Select: React.FC<SelectProps> = ({
   }, [open]);
 
   const sizes = {
-    sm: 'h-8 px-3 text-[14px]',
-    md: 'h-10 px-3 text-[14px]',
-    lg: 'h-12 px-4 text-[16px]'
+    sm: 'h-8 px-3 text-sm',
+    md: 'h-10 px-3 text-sm',
+    lg: 'h-12 px-4 text-base'
   } as const;
 
   function commit(val: string | null) {
@@ -150,7 +150,7 @@ export const Select: React.FC<SelectProps> = ({
             className="max-h-64 overflow-auto py-1 focus:outline-none"
           >
             {filtered.length === 0 && (
-              <li className="px-3 py-2 text-[13px] text-[var(--gray-500)]">No results</li>
+              <li className="px-3 py-2 text-sm text-[var(--gray-500)]">No results</li>
             )}
             {filtered.map((opt, i) => {
               const selected = opt.value === value;
@@ -165,7 +165,7 @@ export const Select: React.FC<SelectProps> = ({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => !opt.disabled && commit(opt.value)}
                   className={clsx(
-                    'px-3 py-2 text-[14px] cursor-pointer flex items-center justify-between',
+                    'px-3 py-2 text-sm cursor-pointer flex items-center justify-between',
                     opt.disabled && 'opacity-50 cursor-not-allowed',
                     active ? 'bg-[var(--accent-soft)]' : 'hover:bg-[var(--accent-soft)]'
                   )}

@@ -130,9 +130,10 @@ export function OperationalView({ project }: OperationalViewProps) {
               value={metrics.durationMonths}
               suffix="months"
               prefix={<Calendar size={20} style={{ color: '#3B82F6' }} />}
-              valueStyle={{ color: '#3B82F6', fontSize: '28px' }}
+              valueStyle={{ color: '#3B82F6' }}
+              className="[&_.ant-statistic-content]:text-2xl"
             />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type="secondary" className="text-xs">
               {metrics.durationDays} working days
             </Text>
           </Card>
@@ -144,9 +145,10 @@ export function OperationalView({ project }: OperationalViewProps) {
               title="Total Resources"
               value={metrics.totalResources}
               prefix={<Users size={20} style={{ color: '#10B981' }} />}
-              valueStyle={{ color: '#10B981', fontSize: '28px' }}
+              valueStyle={{ color: '#10B981' }}
+              className="[&_.ant-statistic-content]:text-2xl"
             />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type="secondary" className="text-xs">
               {metrics.totalPhases} phases, {metrics.totalTasks} tasks
             </Text>
           </Card>
@@ -159,9 +161,10 @@ export function OperationalView({ project }: OperationalViewProps) {
               value={metrics.overallProgress}
               suffix="%"
               prefix={<CheckCircle size={20} style={{ color: '#10B981' }} />}
-              valueStyle={{ color: '#10B981', fontSize: '28px' }}
+              valueStyle={{ color: '#10B981' }}
+              className="[&_.ant-statistic-content]:text-2xl"
             />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type="secondary" className="text-xs">
               {metrics.completedTasks} of {metrics.totalTasks} tasks done
             </Text>
           </Card>
@@ -185,10 +188,9 @@ export function OperationalView({ project }: OperationalViewProps) {
               }
               valueStyle={{
                 color: metrics.overallocatedResources > 0 ? '#EF4444' : '#10B981',
-                fontSize: '28px'
               }}
             />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type="secondary" className="text-xs">
               {metrics.overallocatedResources > 0 ? 'Resources over-allocated' : 'No conflicts detected'}
             </Text>
           </Card>
@@ -205,12 +207,12 @@ export function OperationalView({ project }: OperationalViewProps) {
             <Col span={12}>
               <Text type="secondary">Start Date:</Text>
               <br />
-              <Text strong style={{ fontSize: '16px' }}>{metrics.projectStart}</Text>
+              <Text strong className="text-base">{metrics.projectStart}</Text>
             </Col>
             <Col span={12}>
               <Text type="secondary">End Date:</Text>
               <br />
-              <Text strong style={{ fontSize: '16px' }}>{metrics.projectEnd}</Text>
+              <Text strong className="text-base">{metrics.projectEnd}</Text>
             </Col>
           </Row>
         </Space>
@@ -223,7 +225,7 @@ export function OperationalView({ project }: OperationalViewProps) {
         <Space direction="vertical" size={12} style={{ width: '100%' }}>
           <div>
             <Title level={5} style={{ margin: 0 }}>🔥 Resource Allocation Heatmap</Title>
-            <Text type="secondary" style={{ fontSize: '13px' }}>
+            <Text type="secondary" className="text-sm">
               Weekly capacity planning - Identify bottlenecks and over-allocation
             </Text>
           </div>
@@ -250,7 +252,7 @@ export function OperationalView({ project }: OperationalViewProps) {
                 ⚠️ <strong>{metrics.overallocatedResources}</strong> resource(s) are over-allocated.
                 Consider redistributing work or adding team members.
               </Text>
-              <Text style={{ color: '#92400E', fontSize: '13px' }}>
+              <Text style={{ color: '#92400E' }} className="text-sm">
                 Tip: Look for red cells in the heatmap above to identify specific weeks with conflicts.
               </Text>
             </>
@@ -259,7 +261,7 @@ export function OperationalView({ project }: OperationalViewProps) {
               <Text style={{ color: '#065F46' }}>
                 ✅ Resource allocation looks healthy! All team members have manageable workloads.
               </Text>
-              <Text style={{ color: '#065F46', fontSize: '13px' }}>
+              <Text style={{ color: '#065F46' }} className="text-sm">
                 Tip: Monitor utilization to ensure resources remain productive throughout the project.
               </Text>
             </>

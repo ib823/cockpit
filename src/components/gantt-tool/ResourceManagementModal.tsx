@@ -919,7 +919,7 @@ function TimelineView({
                         <div className="text-xs text-white font-medium px-2 py-1 truncate">
                           {assignment.taskName || assignment.phaseName}
                         </div>
-                        <div className="text-[10px] text-white/90 px-2 truncate">
+                        <div className="text-xs text-white/90 px-2 truncate">
                           {assignment.hours}h
                         </div>
                       </div>

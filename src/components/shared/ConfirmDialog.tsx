@@ -112,7 +112,7 @@ export function confirmDelete(
           This action cannot be undone. All data associated with this {itemName.toLowerCase()} will be permanently removed.
         </p>
         {additionalInfo && (
-          <p style={{ fontSize: '13px', color: '#64748b', marginBottom: 0 }}>
+          <p style={{ className="text-sm", color: '#64748b', marginBottom: 0 }}>
             {additionalInfo}
           </p>
         )}
@@ -150,7 +150,7 @@ export function confirmNavigation(destination: string): Promise<boolean> {
         <p style={{ marginBottom: '8px' }}>
           You have unsaved changes. Do you want to save before leaving?
         </p>
-        <p style={{ fontSize: '13px', color: '#64748b', marginBottom: 0 }}>
+        <p style={{ className="text-sm", color: '#64748b', marginBottom: 0 }}>
           Destination: {destination}
         </p>
       </div>

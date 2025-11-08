@@ -23,8 +23,8 @@ function pages(page: number, pageCount: number): (number | '…')[] {
 }
 
 const sizes = {
-  sm: 'h-8 min-w-8 text-[13px] px-2',
-  md: 'h-9 min-w-9 text-[14px] px-3',
+  sm: 'h-8 min-w-8 text-sm px-2',
+  md: 'h-9 min-w-9 text-sm px-3',
 } as const;
 
 const btnBase =

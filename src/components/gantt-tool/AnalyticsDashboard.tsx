@@ -800,7 +800,8 @@ function EVMCard({ label, value, format, isSPI, isCPI, isVariance }: any) {
       <Statistic
         title={label}
         value={displayValue}
-        valueStyle={{ color, fontSize: '20px' }}
+        valueStyle={{ color }}
+        className="[&_.ant-statistic-content]:text-xl"
         prefix={
           format === 'currency'
             ? value < 0 && '-'

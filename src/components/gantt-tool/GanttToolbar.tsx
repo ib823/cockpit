@@ -961,7 +961,7 @@ export function GanttToolbar({
             </div>
           </div>
           <div className="text-gray-400">
-            Press <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px] font-mono">⌘Z</kbd> to undo
+            Press <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-xs font-mono">⌘Z</kbd> to undo
           </div>
         </div>
       </div>
