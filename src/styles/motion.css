@@ -141,6 +141,30 @@
   }
 }
 
+/* Apple-style notification slide in from top with spring easing */
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Smooth fade out for auto-dismiss */
+@keyframes fadeOutUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════
    Utility Classes
    ═══════════════════════════════════════════════════════ */

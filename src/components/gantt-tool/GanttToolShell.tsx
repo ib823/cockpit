@@ -43,9 +43,23 @@ export function GanttToolShell() {
   const [showQuickResourcePanel, setShowQuickResourcePanel] = useState(false);
   const [autoLoadError, setAutoLoadError] = useState<string | null>(null);
   const [initialFetchDone, setInitialFetchDone] = useState(false);
+  const [showSyncIndicator, setShowSyncIndicator] = useState(true);
 
   // Get morphing color for animated text
   const morphColor = useColorMorph();
+
+  // Auto-dismiss success messages after 3 seconds (Apple-style)
+  useEffect(() => {
+    if (syncStatus === 'synced-cloud' && !cloudSyncPending) {
+      setShowSyncIndicator(true);
+      const timer = setTimeout(() => {
+        setShowSyncIndicator(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    } else if (syncStatus !== 'idle') {
+      setShowSyncIndicator(true);
+    }
+  }, [syncStatus, cloudSyncPending]);
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -232,18 +246,39 @@ export function GanttToolShell() {
         </div>
       )}
 
-      {/* Local-First Sync Status Indicator */}
-      {syncStatus !== 'idle' && (
-        <div className={`border-b px-6 py-2 ${
-          syncStatus === 'error' ? 'bg-red-50 border-red-200' :
-          syncStatus === 'synced-cloud' && !cloudSyncPending ? 'bg-green-50 border-green-200' :
-          'bg-blue-50 border-blue-200'
-        }`}>
-          <div className={`flex items-center justify-center gap-2 text-sm ${
-            syncStatus === 'error' ? 'text-red-700' :
-            syncStatus === 'synced-cloud' && !cloudSyncPending ? 'text-green-700' :
-            'text-blue-700'
-          }`}>
+      {/* Apple-Style Floating Sync Status Indicator - Non-intrusive, doesn't affect layout */}
+      {syncStatus !== 'idle' && showSyncIndicator && (
+        <div
+          className="fixed top-4 right-4 z-50 pointer-events-none"
+          style={{
+            animation: showSyncIndicator
+              ? 'slideInFromTop 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+              : 'fadeOutUp 0.3s cubic-bezier(0.4, 0, 1, 1)',
+          }}
+        >
+          <div
+            className={`
+              pointer-events-auto
+              backdrop-blur-xl
+              rounded-xl
+              shadow-lg
+              px-4 py-3
+              flex items-center gap-3
+              text-sm font-medium
+              transition-all duration-300
+              ${
+                syncStatus === 'error'
+                  ? 'bg-red-50/90 text-red-900 border border-red-200/50'
+                  : syncStatus === 'synced-cloud' && !cloudSyncPending
+                  ? 'bg-green-50/90 text-green-900 border border-green-200/50'
+                  : 'bg-white/90 text-gray-900 border border-gray-200/50'
+              }
+            `}
+            style={{
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            }}
+          >
             {syncStatus === 'saving-local' && (
               <>
                 <HexLoader size="sm" />
@@ -252,8 +287,12 @@ export function GanttToolShell() {
             )}
             {syncStatus === 'saved-local' && (
               <>
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
                 </svg>
                 <span>✓ Saved locally{!navigator.onLine && ' (will sync when online)'}</span>
               </>
@@ -270,20 +309,24 @@ export function GanttToolShell() {
             )}
             {syncStatus === 'synced-cloud' && !cloudSyncPending && (
               <>
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <svg className="w-4 h-4 flex-shrink-0 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
                 </svg>
                 <span>✓ Synced to cloud</span>
               </>
             )}
             {syncStatus === 'error' && (
               <>
-                <AlertTriangle className="w-4 h-4" />
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                 <span>⚠️ Sync error - changes saved locally</span>
               </>
             )}
             {!navigator.onLine && syncStatus !== 'error' && (
-              <span className="ml-2 text-xs opacity-75">📡 Offline mode</span>
+              <span className="ml-1 text-xs opacity-75">📡 Offline</span>
             )}
           </div>
         </div>
