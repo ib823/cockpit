@@ -1495,7 +1495,7 @@ export default function OrganizationChartProfessional() {
               </div>
             ) : (
               <div style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {availableResources.map(resource => (
+                {availableResources.map((resource: Resource) => (
                   <button
                     key={resource.id}
                     onClick={() => addResourceToLevel(selectingResourceFor.levelId, resource.id)}

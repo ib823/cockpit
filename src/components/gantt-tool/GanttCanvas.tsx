@@ -567,7 +567,13 @@ export function GanttCanvas() {
   return (
     <div
       ref={canvasRef}
-      className="h-full w-full bg-white p-2 sm:p-4 overflow-auto"
+      className="bg-white p-2 sm:p-4"
+      style={{
+        height: '100%',
+        width: '100%',
+        overflow: 'auto',
+        position: 'relative'
+      }}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}

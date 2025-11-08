@@ -172,9 +172,12 @@ export function GanttToolShell() {
     );
   }
 
-  // Main Gantt Tool Interface - Apple: "Every pixel matters, every container has purpose"
+  // Main Gantt Tool Interface - Apple: "Explicit constraints at every level"
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col max-w-full overflow-x-hidden">
+    <div
+      className="min-h-screen bg-gray-50 flex flex-col"
+      style={{ width: '100vw', maxWidth: '100vw' }}
+    >
       {/* Toolbar */}
       <GanttToolbar
         showContextPanel={showContextPanel}
@@ -283,9 +286,15 @@ export function GanttToolShell() {
       )}
 
       {/* Main Content Area - Jobs: "Ruthless containment - nothing escapes its bounds" */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div
+        className="flex-1 flex relative"
+        style={{ width: '100%', overflow: 'hidden' }}
+      >
         {/* Content: Gantt Canvas - Constrained to viewport, scrolls internally */}
-        <div className="flex-1 overflow-hidden">
+        <div
+          className="flex-1"
+          style={{ overflow: 'hidden', width: '100%' }}
+        >
           <GanttCanvas />
         </div>
 

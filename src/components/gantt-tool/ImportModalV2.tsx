@@ -366,6 +366,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             assignee: '',
             progress: 0,
             resourceAssignments: taskResourceAssignments,
+            order: taskIndex,
           };
         });
 
@@ -380,6 +381,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           collapsed: false,
           dependencies: [],
           phaseResourceAssignments: [],
+          order: phaseIndex,
         };
       });
 

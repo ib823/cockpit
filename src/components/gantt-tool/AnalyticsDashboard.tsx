@@ -36,7 +36,7 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import { Line, Bar } from 'react-chartjs-2';
+import { Line, Bar, Chart } from 'react-chartjs-2';
 
 // Register ChartJS components
 ChartJS.register(
@@ -509,7 +509,7 @@ function VelocityTab({ analytics }: { analytics: ProjectAnalytics }) {
 
       {/* Chart */}
       <div style={{ height: '400px' }}>
-        <Bar data={chartData} options={options} />
+        <Chart type="bar" data={chartData} options={options} />
       </div>
 
       {/* Metrics */}
@@ -784,7 +784,7 @@ function MetricCard({ icon, label, value, subtitle, color, trend }: any) {
 
 function EVMCard({ label, value, format, isSPI, isCPI, isVariance }: any) {
   let displayValue = value.toFixed(2);
-  let color = colorValues.neutral[900];
+  let color: string = colorValues.neutral[900];
 
   if (format === 'currency') {
     displayValue = `$${Math.abs(value).toLocaleString()}`;

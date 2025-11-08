@@ -20,6 +20,9 @@ export interface GanttProject {
 
   // Budget and cost tracking
   budget?: ProjectBudget;
+
+  // Organization chart data
+  orgChartPro?: any;
 }
 
 export interface GanttPhase {

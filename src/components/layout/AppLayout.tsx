@@ -39,8 +39,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <Layout className="min-h-screen max-w-full overflow-x-hidden">
-      <Header className="bg-white border-b flex items-center justify-between px-6 sticky top-0 z-50 w-full">
+    <Layout className="min-h-screen" style={{ width: '100vw' }}>
+      <Header className="bg-white border-b flex items-center justify-between px-6 sticky top-0 z-50" style={{ width: '100%' }}>
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg" />
@@ -65,7 +65,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </Space>
       </Header>
 
-      <Content className="bg-gray-50 overflow-x-hidden w-full">
+      <Content className="bg-gray-50" style={{ width: '100%' }}>
         {children}
       </Content>
     </Layout>
