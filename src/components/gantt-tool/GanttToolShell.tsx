@@ -15,7 +15,7 @@ import { GanttSidePanel } from './GanttSidePanel';
 import { QuickResourcePanel } from './QuickResourcePanel';
 import { MissionControlModal } from './MissionControlModal';
 import { format } from 'date-fns';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { HexLoader } from '@/components/ui/HexLoader';
 import { useColorMorph } from '@/hooks/useColorMorph';
 
@@ -31,13 +31,11 @@ export function GanttToolShell() {
     undo,
     redo,
     isSyncing,
-    syncError,
     isLoading,
     saveProgress,
     syncStatus,
     lastLocalSaveAt,
     cloudSyncPending,
-    clearSyncError,
   } = useGanttToolStoreV2();
 
   const [showContextPanel, setShowContextPanel] = useState(false);
@@ -204,57 +202,6 @@ export function GanttToolShell() {
         showQuickResourcePanel={showQuickResourcePanel}
         onToggleQuickResourcePanel={() => setShowQuickResourcePanel(!showQuickResourcePanel)}
       />
-
-      {/* Sync Error Banner */}
-      {syncError && (
-        <div className="bg-red-50 border-b-2 border-red-200 px-6 py-3">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center gap-3 flex-1">
-              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-red-900">Sync Error</p>
-                <p className="text-sm text-red-700">{syncError}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Show "Refresh" button for conflict/duplicate errors, "Retry" for others */}
-              {syncError.includes('conflicts') || syncError.includes('duplicate') || syncError.includes('Duplicate') ? (
-                <button
-                  onClick={() => {
-                    const store = useGanttToolStoreV2.getState();
-                    if (currentProject) {
-                      store.clearSyncError(); // Clear the error first
-                      store.fetchProject(currentProject.id); // Force refresh from database
-                    }
-                  }}
-                  className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
-                >
-                  Refresh from Database
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    const store = useGanttToolStoreV2.getState();
-                    store.clearSyncError(); // Clear the error before retrying
-                    store.saveProject(); // Retry save
-                  }}
-                  className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
-                >
-                  Retry
-                </button>
-              )}
-              {/* Dismiss button */}
-              <button
-                onClick={clearSyncError}
-                className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-md transition-colors"
-                aria-label="Dismiss error"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Apple-Style Floating Sync Status Indicator - Non-intrusive, doesn't affect layout */}
       {syncStatus !== 'idle' && showSyncIndicator && (
