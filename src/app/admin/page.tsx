@@ -38,7 +38,7 @@ const getCachedAdminStats = unstable_cache(
     }
   },
   ['admin-stats'],
-  { revalidate: 60, tags: ['admin-stats'] } // Cache for 1 minute (reduced from 5)
+  { revalidate: 5, tags: ['admin-stats'] } // Cache for 5 seconds (temporarily reduced for debugging)
 );
 
 export default async function AdminDashboard() {
