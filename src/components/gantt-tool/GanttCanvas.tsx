@@ -567,7 +567,7 @@ export function GanttCanvas() {
   return (
     <div
       ref={canvasRef}
-      className="h-full bg-white p-4 overflow-auto"
+      className="h-full w-full bg-white p-2 sm:p-4 overflow-auto"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
@@ -595,8 +595,8 @@ export function GanttCanvas() {
         </div>
       </div>
 
-      {/* Timeline Grid */}
-      <div className="relative min-w-[800px]">
+      {/* Timeline Grid - Ensures minimum width for proper rendering */}
+      <div className="relative min-w-[1000px] lg:min-w-[1200px]">
         {/* Jobs/Ive: Three-Lane Timeline - Clear hierarchy, no overlap */}
         <div className="flex border-b-2 border-gray-300 mb-6">
           <div className="w-16 flex flex-col justify-center py-2 transition-all duration-300">
@@ -1053,15 +1053,15 @@ export function GanttCanvas() {
 
                         {/* Floating Badges Above Phase Bar - Stays consistent during expand/collapse animation */}
                         {(viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 flex items-center justify-center text-white z-20 whitespace-nowrap transition-all duration-300 ease-in-out">
-                            {/* All badges in a clean horizontal row */}
-                            <div className="flex items-center gap-2">
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 flex items-center justify-center text-white z-20 transition-all duration-300 ease-in-out max-w-full px-2">
+                            {/* All badges in a clean horizontal row - responsive with wrapping */}
+                            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
                               {/* PHASE BOUNDARY WARNING - Always visible when tasks exceed phase */}
                               {hasTaskBoundaryIssue && (
                                 <div className="relative group/phasewarning">
-                                  <div className="flex items-center gap-1.5 bg-red-500 px-2.5 py-1.5 rounded-sm shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
-                                    <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
-                                    <span className="text-sm font-bold">{tasksExceedingCount}</span>
+                                  <div className="flex items-center gap-1 sm:gap-1.5 bg-red-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
+                                    <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
+                                    <span className="text-xs sm:text-sm font-bold">{tasksExceedingCount}</span>
                                   </div>
                                   {/* Warning Tooltip */}
                                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/phasewarning:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
@@ -1096,15 +1096,15 @@ export function GanttCanvas() {
                               {/* WD Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
                                 <>
-                                  <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                  <span className="text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20">
                                     {formatWorkingDays(metrics.workingDays)}
                                   </span>
                                   {/* Resource badge in WD mode */}
                                   {totalPhaseResourceCount > 0 && (
                                     <div className="relative group/wdresbadge">
-                                      <div className="flex items-center gap-1.5 bg-purple-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                        <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                        <span className="text-sm font-bold">{totalPhaseResourceCount}</span>
+                                      <div className="flex items-center gap-1 sm:gap-1.5 bg-purple-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                        <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
+                                        <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
                                       </div>
                                       <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/wdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
                                         <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
@@ -1133,15 +1133,15 @@ export function GanttCanvas() {
                               {/* CD Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'cd' && (
                                 <>
-                                  <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                  <span className="text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20">
                                     {formatCalendarDuration(metrics.duration)}
                                   </span>
                                   {/* Resource badge in CD mode */}
                                   {totalPhaseResourceCount > 0 && (
                                     <div className="relative group/cdresbadge">
-                                      <div className="flex items-center gap-1.5 bg-purple-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                        <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                        <span className="text-sm font-bold">{totalPhaseResourceCount}</span>
+                                      <div className="flex items-center gap-1 sm:gap-1.5 bg-purple-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                        <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
+                                        <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
                                       </div>
                                       <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/cdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
                                         <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
@@ -1170,9 +1170,9 @@ export function GanttCanvas() {
                               {/* Resource Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'resource' && totalPhaseResourceCount > 0 && (
                                 <div className="relative group/pmbadge">
-                                  <div className="flex items-center gap-1.5 bg-purple-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                    <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                    <span className="text-sm font-bold">{totalPhaseResourceCount}</span>
+                                  <div className="flex items-center gap-1 sm:gap-1.5 bg-purple-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                    <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
+                                    <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
                                   </div>
                                   {/* Total Resource Tooltip */}
                                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
@@ -1200,15 +1200,15 @@ export function GanttCanvas() {
                               {/* Dates Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
                                 <>
-                                  <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                  <span className="text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20">
                                     {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
                                   </span>
                                   {/* Resource badge in Dates mode */}
                                   {totalPhaseResourceCount > 0 && (
                                     <div className="relative group/datesresbadge">
-                                      <div className="flex items-center gap-1.5 bg-purple-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                        <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                        <span className="text-sm font-bold">{totalPhaseResourceCount}</span>
+                                      <div className="flex items-center gap-1 sm:gap-1.5 bg-purple-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                        <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
+                                        <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
                                       </div>
                                       <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/datesresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
                                         <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl max-w-xs">
@@ -1238,23 +1238,23 @@ export function GanttCanvas() {
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'all' && (
                                 <>
                                   {/* Dates badge */}
-                                  <span className="text-sm font-semibold bg-blue-600/90 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                  <span className="text-xs sm:text-sm font-semibold bg-blue-600/90 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20">
                                     {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
                                   </span>
 
                                   {/* Duration badge (WD + CD) */}
-                                  <span className="text-sm font-bold bg-black/40 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20">
+                                  <span className="text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20">
                                     {formatWorkingDays(metrics.workingDays)}
-                                    <span className="mx-1.5 opacity-50">•</span>
+                                    <span className="mx-1 sm:mx-1.5 opacity-50">•</span>
                                     {formatCalendarDuration(metrics.duration)}
                                   </span>
 
                                   {/* Total Resource badge */}
                                   {totalPhaseResourceCount > 0 && (
                                     <div className="relative group/allresbadge">
-                                      <div className="flex items-center gap-1.5 bg-purple-500 px-2.5 py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                        <Users className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                        <span className="text-sm font-bold">{totalPhaseResourceCount}</span>
+                                      <div className="flex items-center gap-1 sm:gap-1.5 bg-purple-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                        <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
+                                        <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
                                       </div>
                                       {/* Total Resource Tooltip */}
                                       <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/allresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
@@ -1441,15 +1441,15 @@ export function GanttCanvas() {
 
                                 {/* Floating Badges - Always appear horizontally above bars */}
                                 {(viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
-                                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 flex items-center justify-center text-white z-20  whitespace-nowrap">
-                                    {/* All badges in a clean horizontal row */}
-                                    <div className="flex items-center gap-2">
+                                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 flex items-center justify-center text-white z-20 max-w-full px-1">
+                                    {/* All badges in a clean horizontal row - responsive with wrapping */}
+                                    <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
                                       {/* WARNING Badge - Task exceeds phase boundary */}
                                       {taskExceedsPhase && (
                                         <div className="relative group/warning">
-                                          <div className="flex items-center gap-1 bg-red-500 px-2 py-1 rounded-sm shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
-                                            <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                            <span className="text-xs font-bold">!</span>
+                                          <div className="flex items-center gap-0.5 sm:gap-1 bg-red-500 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
+                                            <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
+                                            <span className="text-[10px] sm:text-xs font-bold">!</span>
                                           </div>
                                           {/* Warning Tooltip */}
                                           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/warning:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
@@ -1483,14 +1483,14 @@ export function GanttCanvas() {
                                       )}
                                       {/* WD Mode */}
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
-                                        <span className="text-xs font-bold bg-black/40 px-2 py-1 rounded-sm shadow-md border border-white/20">
+                                        <span className="text-[10px] sm:text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
                                           {formatWorkingDays(taskWorkingDays)}
                                         </span>
                                       )}
 
                                       {/* CD Mode */}
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'cd' && (
-                                        <span className="text-xs font-bold bg-black/40 px-2 py-1 rounded-sm shadow-md border border-white/20">
+                                        <span className="text-[10px] sm:text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
                                           {formatCalendarDuration(taskDuration)}
                                         </span>
                                       )}
@@ -1498,9 +1498,9 @@ export function GanttCanvas() {
                                       {/* Resource Mode */}
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'resource' && task.resourceAssignments && task.resourceAssignments.length > 0 && (
                                         <div className="relative group/resourcebadge">
-                                          <div className="flex items-center gap-1 bg-purple-600 px-2 py-1 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                            <Users className="w-3 h-3" strokeWidth={2.5} />
-                                            <span className="text-xs font-bold">{task.resourceAssignments.length}</span>
+                                          <div className="flex items-center gap-0.5 sm:gap-1 bg-purple-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                            <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3" strokeWidth={2.5} />
+                                            <span className="text-[10px] sm:text-xs font-bold">{task.resourceAssignments.length}</span>
                                           </div>
                                           {/* Tooltip */}
                                           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/resourcebadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
@@ -1541,7 +1541,7 @@ export function GanttCanvas() {
 
                                       {/* Dates Mode */}
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
-                                        <span className="text-xs font-bold bg-black/40 px-2 py-1 rounded-sm shadow-md border border-white/20">
+                                        <span className="text-[10px] sm:text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
                                           {format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}
                                         </span>
                                       )}
@@ -1550,16 +1550,16 @@ export function GanttCanvas() {
                                       {(viewSettings?.barDurationDisplay ?? 'all') === 'all' && (
                                         <>
                                           {/* Dates badge */}
-                                          <span className="text-xs font-semibold bg-blue-600/90 px-2 py-1 rounded-sm shadow-md border border-white/20">
+                                          <span className="text-[10px] sm:text-xs font-semibold bg-blue-600/90 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
                                             {format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}
                                           </span>
 
                                           {/* Duration badge */}
-                                          <span className="text-xs font-bold bg-black/40 px-2 py-1 rounded-sm shadow-md border border-white/20">
+                                          <span className="text-[10px] sm:text-xs font-bold bg-black/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20">
                                             {taskWidth >= 15 ? (
                                               <>
                                                 {formatWorkingDays(taskWorkingDays)}
-                                                <span className="mx-1 opacity-50">•</span>
+                                                <span className="mx-0.5 sm:mx-1 opacity-50">•</span>
                                                 {formatCalendarDuration(taskDuration)}
                                               </>
                                             ) : (
@@ -1570,9 +1570,9 @@ export function GanttCanvas() {
                                           {/* Resource badge */}
                                           {task.resourceAssignments && task.resourceAssignments.length > 0 && (
                                             <div className="relative group/resourcebadge">
-                                              <div className="flex items-center gap-1 bg-purple-600 px-2 py-1 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                                <Users className="w-3 h-3" strokeWidth={2.5} />
-                                                <span className="text-xs font-bold">{task.resourceAssignments.length}</span>
+                                              <div className="flex items-center gap-0.5 sm:gap-1 bg-purple-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                                <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3" strokeWidth={2.5} />
+                                                <span className="text-[10px] sm:text-xs font-bold">{task.resourceAssignments.length}</span>
                                               </div>
                                               {/* Tooltip */}
                                               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/resourcebadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">

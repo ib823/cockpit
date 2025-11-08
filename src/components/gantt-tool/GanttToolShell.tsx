@@ -172,9 +172,9 @@ export function GanttToolShell() {
     );
   }
 
-  // Main Gantt Tool Interface
+  // Main Gantt Tool Interface - Apple: "Every pixel matters, every container has purpose"
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col max-w-full overflow-x-hidden">
       {/* Toolbar */}
       <GanttToolbar
         showContextPanel={showContextPanel}
@@ -282,10 +282,10 @@ export function GanttToolShell() {
         </div>
       )}
 
-      {/* Main Content Area */}
+      {/* Main Content Area - Jobs: "Ruthless containment - nothing escapes its bounds" */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Content: Gantt Canvas */}
-        <div className="flex-1 overflow-auto">
+        {/* Content: Gantt Canvas - Constrained to viewport, scrolls internally */}
+        <div className="flex-1 overflow-hidden">
           <GanttCanvas />
         </div>
 
