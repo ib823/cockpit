@@ -6,39 +6,73 @@ import { LogoutButton } from '@/components/common/LogoutButton';
 import { prisma } from '@/lib/db';
 import { unstable_cache } from 'next/cache';
 
-// Cache admin stats for 5 minutes to avoid slow queries on every page load
+// Cache admin stats with smart error handling and retry logic
 const getCachedAdminStats = unstable_cache(
   async () => {
     const startTime = Date.now();
-    try {
-      // Add timeout to prevent hanging queries
-      const queryPromise = Promise.all([
-        prisma.users.count(),
-        prisma.projects.count({ where: { status: 'APPROVED' } }),
-        prisma.projects.count({ where: { status: { in: ['DRAFT', 'IN_REVIEW'] } } }),
-      ]);
+    let lastError: Error | null = null;
 
-      // 10 second timeout
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Query timeout')), 10000)
-      );
+    // Retry logic for transient connection errors
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        // First, verify database connectivity with a simple query
+        if (attempt > 0) {
+          console.log(`[Admin Stats] Retry attempt ${attempt + 1}/3`);
+          await prisma.$queryRaw`SELECT 1`;
+        }
 
-      const [totalUsers, activeProjects, proposals] = await Promise.race([
-        queryPromise,
-        timeoutPromise
-      ]);
+        // Add timeout to prevent hanging queries
+        const queryPromise = Promise.all([
+          prisma.users.count(),
+          prisma.projects.count({ where: { status: 'APPROVED' } }),
+          prisma.projects.count({ where: { status: { in: ['DRAFT', 'IN_REVIEW'] } } }),
+        ]);
 
-      const duration = Date.now() - startTime;
-      console.log(`[DB] Admin stats fetched in ${duration}ms (cached for 5min)`);
-      return { totalUsers, activeProjects, proposals, dbError: false };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      console.error(`[Admin Dashboard] Failed to fetch statistics after ${duration}ms:`, error);
-      return { totalUsers: 0, activeProjects: 0, proposals: 0, dbError: true };
+        // 15 second timeout (increased from 10s to handle cold starts)
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Query timeout')), 15000)
+        );
+
+        const [totalUsers, activeProjects, proposals] = await Promise.race([
+          queryPromise,
+          timeoutPromise
+        ]);
+
+        const duration = Date.now() - startTime;
+        console.log(`[DB] Admin stats fetched successfully in ${duration}ms (attempt ${attempt + 1})`);
+        return { totalUsers, activeProjects, proposals, dbError: false };
+      } catch (error: any) {
+        lastError = error;
+        const duration = Date.now() - startTime;
+
+        // Check if it's a connection error worth retrying
+        const isConnectionError =
+          error?.message?.includes('connection') ||
+          error?.message?.includes('Connection') ||
+          error?.message?.includes('timeout') ||
+          error?.code === 'P1001' || // Can't reach database
+          error?.code === 'P1002' || // Database timeout
+          error?.code === 'P1008' || // Operations timed out
+          error?.code === 'P1017';   // Server closed connection
+
+        if (!isConnectionError || attempt === 2) {
+          // Not a connection error or final attempt - give up
+          console.error(`[Admin Dashboard] Failed to fetch statistics after ${duration}ms (attempt ${attempt + 1}/3):`, error);
+          break;
+        }
+
+        // Wait before retry with exponential backoff
+        const delay = Math.min(1000 * Math.pow(2, attempt), 3000);
+        console.warn(`[Admin Stats] Connection error, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
+
+    // All retries failed
+    return { totalUsers: 0, activeProjects: 0, proposals: 0, dbError: true };
   },
   ['admin-stats'],
-  { revalidate: 5, tags: ['admin-stats'] } // Cache for 5 seconds (temporarily reduced for debugging)
+  { revalidate: 10, tags: ['admin-stats'] } // Cache for 10 seconds (balanced for responsiveness)
 );
 
 export default async function AdminDashboard() {
