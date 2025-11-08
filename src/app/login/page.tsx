@@ -131,6 +131,10 @@ function LoginContent() {
       setStatus(json);
       if (json.needsAction === 'not_found') {
         setErr('Invalid. Contact Admin');
+      } else if (json.needsAction === 'login') {
+        // Auto-trigger passkey login for returning users
+        setSuccessMessage('Welcome back! Preparing your passkey...');
+        setTimeout(() => onPasskeyLogin(), 500);
       }
     } catch {
       setErr('Could not check email. Try again.');
@@ -155,6 +159,8 @@ function LoginContent() {
       if (!begin.ok) {
         setErr(begin.message || 'Invalid. Contact Admin.');
         setStage('input');
+        setStatus(null);
+        setSuccessMessage('');
         return;
       }
 
@@ -171,6 +177,8 @@ function LoginContent() {
       if (!finish.ok) {
         setErr(finish.message || 'Invalid passkey. Try again or Contact Admin.');
         setStage('input');
+        setStatus(null);
+        setSuccessMessage('');
         return;
       }
 
@@ -182,8 +190,10 @@ function LoginContent() {
         window.location.href = role === 'ADMIN' ? '/admin' : '/dashboard';
       }, 1500);
     } catch (e: any) {
-      setErr('Invalid passkey. Try again or Contact Admin.');
+      setErr('Passkey authentication was cancelled or failed. Please try again.');
       setStage('input');
+      setStatus(null);
+      setSuccessMessage('');
     } finally {
       setBusy(false);
     }
@@ -324,8 +334,17 @@ function LoginContent() {
             <div className="space-y-6">
               {/* Error Message */}
               {err && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm space-y-3">
                   <p>{err}</p>
+                  {err.includes('cancelled') && (
+                    <button
+                      onClick={() => { setErr(null); onCheck(); }}
+                      disabled={busy}
+                      className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    >
+                      Try Again
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -369,26 +388,17 @@ function LoginContent() {
 
               {status?.needsAction === 'login' && (
                 <div className="space-y-4">
-                  <p className="text-sm text-slate-600 text-center">Welcome back! Use your passkey to continue.</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={onPasskeyLogin}
-                      disabled={busy}
-                      className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                      </svg>
-                      Use Passkey
-                    </button>
-                    <button
-                      onClick={() => { setStatus(null); setErr(null); }}
-                      disabled={busy}
-                      className="px-4 py-3 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Change
-                    </button>
+                  <div className="text-center py-4">
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 mb-3"></div>
+                    <p className="text-sm text-slate-600">{successMessage || 'Preparing your passkey...'}</p>
                   </div>
+                  <button
+                    onClick={() => { setStatus(null); setErr(null); setSuccessMessage(''); }}
+                    disabled={busy}
+                    className="w-full py-2 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    Change Email
+                  </button>
                 </div>
               )}
 
