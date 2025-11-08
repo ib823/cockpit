@@ -75,6 +75,13 @@ interface GanttToolStateV2 {
   error: string | null;
   manuallyUnloaded: boolean;
   focusedPhaseId: string | null;
+  validationWarnings: Array<{
+    id: string;
+    type: 'task-outside-phase' | 'overlapping-tasks' | 'invalid-dates';
+    message: string;
+    phaseId?: string;
+    taskId?: string;
+  }>;
 
   // API Actions
   fetchProjects: () => Promise<void>;
@@ -151,6 +158,7 @@ interface GanttToolStateV2 {
   closeSidePanel: () => void;
   selectItem: (itemId: string, itemType: SelectionState['selectedItemType']) => void;
   clearSelection: () => void;
+  clearSyncError: () => void;
 
   // Focus Mode
   focusPhase: (phaseId: string) => void;
@@ -162,6 +170,10 @@ interface GanttToolStateV2 {
   getMilestoneById: (milestoneId: string) => GanttMilestone | undefined;
   getProjectDuration: () => { startDate: Date; endDate: Date; durationDays: number } | null;
   getWorkingDays: (startDate: Date, endDate: Date) => number;
+
+  // Validation
+  validateProject: () => void;
+  clearValidationWarnings: () => void;
 }
 
 const DEFAULT_VIEW_SETTINGS: GanttViewSettings = {
@@ -236,6 +248,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     error: null,
     manuallyUnloaded: false,
     focusedPhaseId: null,
+    validationWarnings: [],
 
     // --- API Actions ---
 
@@ -1015,7 +1028,45 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     },
 
     movePhase: (phaseId, newStartDate, newEndDate) => {
-      get().updatePhase(phaseId, { startDate: newStartDate, endDate: newEndDate });
+      set((state) => {
+        if (!state.currentProject) return;
+
+        // Save to history
+        const snapshot = cloneProject(state.currentProject);
+        if (snapshot) {
+          state.history.past.push(snapshot);
+          state.history.future = [];
+          if (state.history.past.length > 50) state.history.past = state.history.past.slice(-50);
+        }
+
+        const phase = state.currentProject.phases.find((p) => p.id === phaseId);
+        if (!phase) return;
+
+        // Calculate the date shift (in days)
+        const oldStartDate = new Date(phase.startDate);
+        const newStart = new Date(newStartDate);
+        const daysDiff = differenceInDays(newStart, oldStartDate);
+
+        // Update phase dates
+        phase.startDate = newStartDate;
+        phase.endDate = newEndDate;
+
+        // Shift all tasks by the same amount to maintain relative positions
+        phase.tasks.forEach(task => {
+          const taskStart = new Date(task.startDate);
+          const taskEnd = new Date(task.endDate);
+
+          const newTaskStart = addDays(taskStart, daysDiff);
+          const newTaskEnd = addDays(taskEnd, daysDiff);
+
+          task.startDate = newTaskStart.toISOString();
+          task.endDate = newTaskEnd.toISOString();
+        });
+
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      get().saveProject();
     },
 
     reorderPhase: (phaseId, direction) => {
@@ -1710,6 +1761,13 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       });
     },
 
+    clearSyncError: () => {
+      set((state) => {
+        state.syncError = null;
+        state.syncStatus = 'idle';
+      });
+    },
+
     // --- Focus Mode ---
     focusPhase: (phaseId) => {
       set((state) => {
@@ -1774,6 +1832,80 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         endDate,
         currentProject.holidays
       );
+    },
+
+    // --- Validation ---
+
+    validateProject: () => {
+      const { currentProject } = get();
+      if (!currentProject) {
+        set((state) => {
+          state.validationWarnings = [];
+        });
+        return;
+      }
+
+      const warnings: Array<{
+        id: string;
+        type: 'task-outside-phase' | 'overlapping-tasks' | 'invalid-dates';
+        message: string;
+        phaseId?: string;
+        taskId?: string;
+      }> = [];
+
+      // Check each phase for validation issues
+      currentProject.phases.forEach((phase) => {
+        const phaseStart = new Date(phase.startDate);
+        const phaseEnd = new Date(phase.endDate);
+
+        // Check each task in the phase
+        phase.tasks.forEach((task) => {
+          const taskStart = new Date(task.startDate);
+          const taskEnd = new Date(task.endDate);
+
+          // Check if task is outside phase bounds
+          if (taskStart < phaseStart || taskEnd > phaseEnd) {
+            warnings.push({
+              id: `task-outside-${phase.id}-${task.id}`,
+              type: 'task-outside-phase',
+              message: `Task "${task.name}" in phase "${phase.name}" has dates outside the phase boundaries`,
+              phaseId: phase.id,
+              taskId: task.id,
+            });
+          }
+
+          // Check for invalid dates (end before start)
+          if (taskEnd < taskStart) {
+            warnings.push({
+              id: `invalid-dates-${phase.id}-${task.id}`,
+              type: 'invalid-dates',
+              message: `Task "${task.name}" has an end date before its start date`,
+              phaseId: phase.id,
+              taskId: task.id,
+            });
+          }
+        });
+
+        // Check for invalid phase dates
+        if (phaseEnd < phaseStart) {
+          warnings.push({
+            id: `invalid-dates-${phase.id}`,
+            type: 'invalid-dates',
+            message: `Phase "${phase.name}" has an end date before its start date`,
+            phaseId: phase.id,
+          });
+        }
+      });
+
+      set((state) => {
+        state.validationWarnings = warnings;
+      });
+    },
+
+    clearValidationWarnings: () => {
+      set((state) => {
+        state.validationWarnings = [];
+      });
     },
   }))
 );

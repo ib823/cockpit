@@ -15,7 +15,7 @@ import { GanttSidePanel } from './GanttSidePanel';
 import { QuickResourcePanel } from './QuickResourcePanel';
 import { MissionControlModal } from './MissionControlModal';
 import { format } from 'date-fns';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import { HexLoader } from '@/components/ui/HexLoader';
 import { useColorMorph } from '@/hooks/useColorMorph';
 
@@ -37,6 +37,10 @@ export function GanttToolShell() {
     syncStatus,
     lastLocalSaveAt,
     cloudSyncPending,
+    clearSyncError,
+    validationWarnings,
+    validateProject,
+    clearValidationWarnings,
   } = useGanttToolStoreV2();
 
   const [showContextPanel, setShowContextPanel] = useState(false);
@@ -60,6 +64,13 @@ export function GanttToolShell() {
       setShowSyncIndicator(true);
     }
   }, [syncStatus, cloudSyncPending]);
+
+  // Validate project whenever it changes
+  useEffect(() => {
+    if (currentProject) {
+      validateProject();
+    }
+  }, [currentProject, validateProject]);
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -208,9 +219,9 @@ export function GanttToolShell() {
       {syncError && (
         <div className="bg-red-50 border-b-2 border-red-200 px-6 py-3">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1">
               <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-semibold text-red-900">Sync Error</p>
                 <p className="text-sm text-red-700">{syncError}</p>
               </div>
@@ -222,26 +233,68 @@ export function GanttToolShell() {
                   onClick={() => {
                     const store = useGanttToolStoreV2.getState();
                     if (currentProject) {
+                      store.clearSyncError(); // Clear the error first
                       store.fetchProject(currentProject.id); // Force refresh from database
                     }
                   }}
-                  className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
                 >
                   Refresh from Database
                 </button>
               ) : (
                 <button
                   onClick={() => {
-                    // Clear sync error in store
                     const store = useGanttToolStoreV2.getState();
+                    store.clearSyncError(); // Clear the error before retrying
                     store.saveProject(); // Retry save
                   }}
-                  className="text-sm font-medium text-red-700 hover:text-red-900 underline"
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
                 >
                   Retry
                 </button>
               )}
+              {/* Dismiss button */}
+              <button
+                onClick={clearSyncError}
+                className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-md transition-colors"
+                aria-label="Dismiss error"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Validation Warning Banner */}
+      {validationWarnings.length > 0 && (
+        <div className="bg-yellow-50 border-b-2 border-yellow-200 px-6 py-3">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center gap-3 flex-1">
+              <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-yellow-900">
+                  Validation Warning{validationWarnings.length > 1 ? 's' : ''}
+                </p>
+                <div className="text-sm text-yellow-700 space-y-1">
+                  {validationWarnings.slice(0, 3).map((warning) => (
+                    <p key={warning.id}>• {warning.message}</p>
+                  ))}
+                  {validationWarnings.length > 3 && (
+                    <p className="text-xs italic">
+                      ...and {validationWarnings.length - 3} more issue{validationWarnings.length - 3 > 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={clearValidationWarnings}
+              className="p-1.5 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 rounded-md transition-colors"
+              aria-label="Dismiss warnings"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
       )}
@@ -249,7 +302,7 @@ export function GanttToolShell() {
       {/* Apple-Style Floating Sync Status Indicator - Non-intrusive, doesn't affect layout */}
       {syncStatus !== 'idle' && showSyncIndicator && (
         <div
-          className="fixed top-4 right-4 z-50 pointer-events-none"
+          className="fixed top-20 right-4 z-40 pointer-events-none"
           style={{
             animation: showSyncIndicator
               ? 'slideInFromTop 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
