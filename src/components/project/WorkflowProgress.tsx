@@ -94,6 +94,7 @@ export function WorkflowProgress() {
               >
                 {/* Circle/Check */}
                 <div
+                  className="text-sm"
                   style={{
                     width: '32px',
                     height: '32px',
@@ -108,7 +109,6 @@ export function WorkflowProgress() {
                         : '#f3f4f6',
                     color: isActive || isCompleted ? '#ffffff' : '#9ca3af',
                     fontWeight: 600,
-                    className="text-sm",
                     transition: 'all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)',
                     border: isActive ? '2px solid #2563eb' : 'none',
                     boxShadow: isActive ? '0 0 0 4px rgba(37, 99, 235, 0.1)' : 'none'
@@ -123,7 +123,7 @@ export function WorkflowProgress() {
                   }
                 >
                   {isCompleted ? (
-                    <CheckCircleFilled style={{ className="text-base" }} />
+                    <CheckCircleFilled className="text-base" />
                   ) : (
                     index + 1
                   )}
@@ -132,8 +132,8 @@ export function WorkflowProgress() {
                 {/* Label */}
                 <div style={{ textAlign: 'center' }}>
                   <div
+                    className="text-sm"
                     style={{
-                      className="text-sm",
                       fontWeight: isActive ? 600 : 500,
                       color: isActive
                         ? '#0f172a'
@@ -146,8 +146,8 @@ export function WorkflowProgress() {
                     {step.label}
                   </div>
                   <div
+                    className="text-xs"
                     style={{
-                      fontSize: '11px',
                       color: '#9ca3af',
                       display: isActive ? 'block' : 'none'
                     }}
@@ -160,8 +160,8 @@ export function WorkflowProgress() {
               {/* Connector Arrow (except for last step) */}
               {index < WORKFLOW_STEPS.length - 1 && (
                 <RightOutlined
+                  className="text-xs"
                   style={{
-                    className="text-xs",
                     color: isCompleted ? '#16a34a' : '#d1d5db',
                     marginTop: '-32px',
                     transition: 'color 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)'
