@@ -95,7 +95,7 @@ export function BatchOperationsPanel({
     <Drawer
       title={
         <Space direction="vertical" size={0}>
-          <Title level={4} style={{ margin: 0 }}>
+          <Title level={4} style={{ margin: 0>
             Batch Operations
           </Title>
           <Text type="secondary">{selectedResourceIds.size} resources selected</Text>
@@ -106,7 +106,7 @@ export function BatchOperationsPanel({
       onClose={onClose}
       open={true}
       footer={
-        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+        <Space style={{ width: '100%', justifyContent: 'space-between'>
           <Button
             onClick={onClearSelection}
             icon={<ClearOutlined />}
@@ -136,7 +136,7 @@ export function BatchOperationsPanel({
                   <span>{categoryInfo.icon}</span>
                   <div>
                     <div style={{ fontWeight: 500 }}>{resource.name}</div>
-                    <Text type="secondary" style={{ className="text-xs" }}>
+                    <Text type="secondary" className="text-xs">
                       {designationLabel}
                     </Text>
                   </div>
@@ -181,7 +181,7 @@ export function BatchOperationsPanel({
           </Form.Item>
         </Form>
 
-        <Space style={{ width: '100%', marginTop: '12px' }}>
+        <Space style={{ width: '100%', marginTop: '12px'>
           <Button
             type="primary"
             onClick={handleBatchAssignManager}
@@ -196,7 +196,7 @@ export function BatchOperationsPanel({
       {/* Batch Remove Manager */}
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
         <Title level={5}>Remove Manager from All</Title>
-        <Text type="secondary" style={{ display: 'block', marginBottom: '12px' }}>
+        <Text type="secondary" style={{ display: 'block', marginBottom: '12px'>
           This will make all selected resources top-level (no manager)
         </Text>
         <Button

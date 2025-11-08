@@ -188,7 +188,7 @@ export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChar
                 title={
                   <div>
                     <div className="font-semibold mb-1">{assignments.tasks.length} Assigned Task{assignments.tasks.length > 1 ? 's' : ''}:</div>
-                    <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                    <div style={{ maxHeight: '150px', overflowY: 'auto'>
                       {assignments.tasks.slice(0, 10).map((t) => (
                         <div key={t.taskId} className="text-xs">• {t.taskName}</div>
                       ))}

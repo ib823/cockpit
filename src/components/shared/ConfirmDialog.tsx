@@ -107,12 +107,12 @@ export function confirmDelete(
   return confirm({
     title: `Delete ${itemName}?`,
     description: (
-      <div style={{ marginTop: '8px' }}>
-        <p style={{ marginBottom: '8px' }}>
+      <div style={{ marginTop: '8px'>
+        <p style={{ marginBottom: '8px'>
           This action cannot be undone. All data associated with this {itemName.toLowerCase()} will be permanently removed.
         </p>
         {additionalInfo && (
-          <p style={{ className="text-sm", color: '#64748b', marginBottom: 0 }}>
+          <p className="text-sm", color: '#64748b', marginBottom: 0>
             {additionalInfo}
           </p>
         )}
@@ -147,10 +147,10 @@ export function confirmNavigation(destination: string): Promise<boolean> {
     title: 'Leave without saving?',
     description: (
       <div>
-        <p style={{ marginBottom: '8px' }}>
+        <p style={{ marginBottom: '8px'>
           You have unsaved changes. Do you want to save before leaving?
         </p>
-        <p style={{ className="text-sm", color: '#64748b', marginBottom: 0 }}>
+        <p className="text-sm", color: '#64748b', marginBottom: 0>
           Destination: {destination}
         </p>
       </div>

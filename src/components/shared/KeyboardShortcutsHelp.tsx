@@ -144,7 +144,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
       <Modal
         title={
           <Space>
-            <span style={{ className="text-lg" }}>⌨️ Keyboard Shortcuts</span>
+            <span className="text-lg" }}>⌨️ Keyboard Shortcuts</span>
             <Tag color="blue">Press Cmd+/ to toggle</Tag>
           </Space>
         }
@@ -200,7 +200,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
             borderRadius: '6px',
           }}
         >
-          <Text type="secondary" style={{ className="text-sm" }}>
+          <Text type="secondary" className="text-sm">
             💡 <strong>Tip:</strong> Most shortcuts work globally. Some are context-specific
             and only active on certain pages.
           </Text>

@@ -312,7 +312,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
     >
       <div>
         {/* Search Input */}
-        <div style={{ padding: '16px', borderBottom: '1px solid #f0f0f0' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid #f0f0f0'>
           <Input
             size="large"
             placeholder="Search pages and actions..."
@@ -328,7 +328,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
             }}
             suffix={
               <Space size={4}>
-                <Tag style={{ fontSize: '11px', padding: '0 6px' }}>
+                <Tag style={{ fontSize: '11px', padding: '0 6px'>
                   {typeof navigator !== 'undefined' && navigator.platform.includes('Mac') ? '⌘K' : 'Ctrl+K'}
                 </Tag>
               </Space>
@@ -337,7 +337,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
         </div>
 
         {/* Results List */}
-        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+        <div style={{ maxHeight: '400px', overflowY: 'auto'>
           {filteredCommands.length === 0 && searchText.trim() ? (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -345,7 +345,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
               style={{ padding: '32px' }}
             />
           ) : filteredCommands.length === 0 && !searchText.trim() ? (
-            <div style={{ padding: '32px', textAlign: 'center' }}>
+            <div style={{ padding: '32px', textAlign: 'center'>
               <Text type="secondary">
                 Type to search pages and actions
               </Text>
@@ -377,7 +377,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
                         color: index === selectedIndex ? '#1890ff' : '#8c8c8c',
                         display: 'flex',
                         alignItems: 'center',
-                      }}>
+                     >
                         {item.icon}
                       </div>
                     }
@@ -392,7 +392,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
                         )}
                       </Space>
                     }
-                    description={<Text type="secondary" style={{ className="text-sm" }}>{item.subtitle}</Text>}
+                    description={<Text type="secondary" className="text-sm" }}>{item.subtitle}</Text>}
                   />
                   {index === selectedIndex && (
                     <Tag style={{ fontSize: '11px' }}>↵</Tag>

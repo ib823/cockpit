@@ -42,7 +42,7 @@ export function ScopeBreadth() {
         }
         size="small"
         extra={
-          <Text type="secondary" style={{ className="text-xs" }}>
+          <Text type="secondary" className="text-xs">
             <InfoCircleOutlined /> L3 items + integrations
           </Text>
         }
@@ -87,10 +87,10 @@ export function ScopeBreadth() {
 
           {/* Current Coefficient Display */}
           <div className="p-3 bg-gray-50 rounded">
-            <Space direction="vertical" style={{ width: '100%' }}>
+            <Space direction="vertical" style={{ width: '100%'>
               <div className="flex justify-between">
                 <Text type="secondary">Current Sb:</Text>
-                <Text strong style={{ className="text-base", color: scopeBreadth > 0.2 ? '#ff4d4f' : '#1890ff' }}>
+                <Text strong className="text-base" style={{ color: scopeBreadth > 0.2 ? '#ff4d4f' : '#1890ff'>
                   {scopeBreadth.toFixed(3)}
                 </Text>
               </div>
@@ -105,7 +105,7 @@ export function ScopeBreadth() {
 
           {/* Warning for high complexity */}
           {scopeBreadth > 0.3 && (
-            <Text type="warning" style={{ className="text-xs" }}>
+            <Text type="warning" className="text-xs">
               ⚠️ High scope breadth. Consider phased rollout.
             </Text>
           )}

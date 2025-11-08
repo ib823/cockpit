@@ -101,7 +101,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
               {categoryInfo.icon} {categoryInfo.label}
             </Tag>
           </Space>
-          <Title level={4} style={{ margin: 0 }}>
+          <Title level={4} style={{ margin: 0>
             {resource.name}
           </Title>
           <Text type="secondary">{designationLabel}</Text>
@@ -112,7 +112,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
       onClose={handleCancel}
       open={true}
       footer={
-        <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+        <Space style={{ width: '100%', justifyContent: 'flex-end'>
           <Button onClick={handleCancel} icon={<CloseOutlined />}>
             Cancel
           </Button>
@@ -224,7 +224,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
         {/* Direct Reports */}
         {directReports.length > 0 && (
           <Form.Item label={`Direct Reports (${directReports.length})`}>
-            <Space direction="vertical" style={{ width: '100%' }}>
+            <Space direction="vertical" style={{ width: '100%'>
               {directReports.map((report) => {
                 const reportCategoryInfo = RESOURCE_CATEGORIES[report.category];
                 return (
@@ -241,7 +241,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
                       <span>{reportCategoryInfo.icon}</span>
                       <div>
                         <div style={{ fontWeight: 500 }}>{report.name}</div>
-                        <Text type="secondary" style={{ className="text-xs" }}>
+                        <Text type="secondary" className="text-xs">
                           {RESOURCE_DESIGNATIONS[report.designation]}
                         </Text>
                       </div>

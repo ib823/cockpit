@@ -74,14 +74,14 @@ export function WorkflowProgress() {
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: '8px'
-      }}>
+     >
         {WORKFLOW_STEPS.map((step, index) => {
           const isActive = index === currentStepIndex;
           const isCompleted = index < currentStepIndex;
           const isUpcoming = index > currentStepIndex;
 
           return (
-            <div key={step.key} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            <div key={step.key} style={{ display: 'flex', alignItems: 'center', flex: 1>
               {/* Step */}
               <div
                 style={{
@@ -123,14 +123,14 @@ export function WorkflowProgress() {
                   }
                 >
                   {isCompleted ? (
-                    <CheckCircleFilled style={{ className="text-base" }} />
+                    <CheckCircleFilled className="text-base" }} />
                   ) : (
                     index + 1
                   )}
                 </div>
 
                 {/* Label */}
-                <div style={{ textAlign: 'center' }}>
+                <div style={{ textAlign: 'center'>
                   <div
                     style={{
                       className="text-sm",

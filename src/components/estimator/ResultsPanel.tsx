@@ -107,10 +107,10 @@ export function ResultsPanel() {
 
       {/* Warnings */}
       {warnings.length > 0 && (
-        <Card size="small" style={{ borderColor: '#faad14' }}>
-          <Space direction="vertical" style={{ width: '100%' }}>
+        <Card size="small" style={{ borderColor: '#faad14'>
+          <Space direction="vertical" style={{ width: '100%'>
             {warnings.map((warning, idx) => (
-              <Text key={idx} type="warning" style={{ className="text-sm" }}>
+              <Text key={idx} type="warning" className="text-sm">
                 {warning}
               </Text>
             ))}
@@ -131,7 +131,7 @@ export function ResultsPanel() {
             const totalDuration = pageData.reduce((sum, row) => sum + row.durationMonths, 0);
             return (
               <Table.Summary>
-                <Table.Summary.Row style={{ backgroundColor: '#fafafa' }}>
+                <Table.Summary.Row style={{ backgroundColor: '#fafafa'>
                   <Table.Summary.Cell index={0}>
                     <Text strong>Total</Text>
                   </Table.Summary.Cell>

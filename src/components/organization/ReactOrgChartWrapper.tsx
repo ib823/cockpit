@@ -227,7 +227,7 @@ function ResourceNode({ data }: { data: any }) {
                 title={
                   <div>
                     <div className="font-semibold mb-1">{assignments.tasks.length} Assigned Task{assignments.tasks.length > 1 ? 's' : ''}:</div>
-                    <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                    <div style={{ maxHeight: '150px', overflowY: 'auto'>
                       {assignments.tasks.slice(0, 10).map((t: any) => (
                         <div key={t.taskId} className="text-xs">• {t.taskName}</div>
                       ))}
@@ -653,7 +653,7 @@ function OrgChartFlow({
   }
 
   return (
-    <div className="w-full h-full" style={{ minHeight: '600px' }}>
+    <div className="w-full h-full" style={{ minHeight: '600px'>
       <ReactFlow
         nodes={nodes}
         edges={edges}
