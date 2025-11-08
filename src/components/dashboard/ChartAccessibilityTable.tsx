@@ -77,7 +77,7 @@ export function ChartAccessibilityTable({
           {title} - Data Table
         </Text>
         {description && (
-          <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>
+          <Text type="secondary" style={{ display: 'block' }} className="text-xs">
             {description}
           </Text>
         )}

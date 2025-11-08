@@ -45,19 +45,19 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       sm: {
         height: '32px',
         padding: `0 ${spacing[3]}`,
-        fontSize: '14px',
+        className="text-sm",
         iconSize: 'w-3.5 h-3.5',
       },
       md: {
         height: '40px',
         padding: `0 ${spacing[4]}`,
-        fontSize: '14px',
+        className="text-sm",
         iconSize: 'w-4 h-4',
       },
       lg: {
         height: '48px',
         padding: `0 ${spacing[6]}`,
-        fontSize: '16px',
+        className="text-base",
         iconSize: 'w-5 h-5',
       },
     };

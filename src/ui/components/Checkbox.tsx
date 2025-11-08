@@ -42,6 +42,6 @@ export const Checkbox: React.FC<CheckboxProps> = ({
         />
       </svg>
     </span>
-    {label && <span className="text-[14px] text-[var(--ink)]">{label}</span>}
+    {label && <span className="text-sm text-[var(--ink)]">{label}</span>}
   </label>
 );

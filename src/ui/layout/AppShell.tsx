@@ -49,7 +49,7 @@ export const AppShell: React.FC<AppShellProps> = ({ nav, children, pageHeader })
               key={item.key}
               href={item.href || '#'}
               className={clsx(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-[14px] hover:bg-[var(--canvas)]',
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-[var(--canvas)]',
                 item.active && 'bg-[var(--accent-soft)]'
               )}
               aria-current={item.active ? 'page' : undefined}

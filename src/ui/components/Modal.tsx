@@ -77,7 +77,7 @@ export const Modal: React.FC<ModalProps> = ({
       >
         <div className="p-6">
           {title && <h3 className="text-lg font-semibold mb-2 text-[var(--ink)]">{title}</h3>}
-          <div className="text-[14px] text-[var(--ink)]">{children}</div>
+          <div className="text-sm text-[var(--ink)]">{children}</div>
         </div>
         {footer && <div className="px-6 pb-6 flex justify-end gap-2">{footer}</div>}
       </div>

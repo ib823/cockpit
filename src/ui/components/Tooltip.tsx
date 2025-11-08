@@ -25,7 +25,7 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children }) => {
       {open && (
         <span
           role="tooltip"
-          className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-[12px] text-[var(--ink)] shadow-[var(--shadow-lg)] z-[var(--z-tooltip)]"
+          className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--ink)] shadow-[var(--shadow-lg)] z-[var(--z-tooltip)]"
         >
           {content}
         </span>

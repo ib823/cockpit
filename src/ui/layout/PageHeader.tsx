@@ -12,7 +12,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, actions
     <div className="min-w-0">
       {breadcrumb}
       <h1 className="text-2xl font-semibold tracking-tight text-[var(--ink)]">{title}</h1>
-      {subtitle && <p className="text-[14px] text-[var(--ink)]/70 mt-1">{subtitle}</p>}
+      {subtitle && <p className="text-sm text-[var(--ink)]/70 mt-1">{subtitle}</p>}
     </div>
     {actions && <div className="flex items-center gap-2">{actions}</div>}
   </div>

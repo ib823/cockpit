@@ -18,7 +18,7 @@ export const Progress: React.FC<ProgressProps> = ({
 
   return (
     <div className={clsx('w-full', className)}>
-      {label && <div className="mb-1 text-[13px] text-[var(--ink)]/80">{label}</div>}
+      {label && <div className="mb-1 text-sm text-[var(--ink)]/80">{label}</div>}
       <div className="h-2 rounded-full bg-[var(--canvas)] border border-[var(--line)] overflow-hidden">
         <div
           className={clsx(

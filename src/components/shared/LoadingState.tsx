@@ -54,7 +54,7 @@ export function LoadingState({
         {message && (
           <p style={{
             color: '#64748b',
-            fontSize: '14px',
+            className="text-sm",
             marginTop: '8px',
             fontWeight: 500
           }}>
@@ -89,7 +89,7 @@ export function LoadingState({
         {message && (
           <p style={{
             color: '#64748b',
-            fontSize: '14px',
+            className="text-sm",
             fontWeight: 500
           }}>
             {message}
@@ -104,7 +104,7 @@ export function LoadingState({
     <Space className={className} size="middle" style={{ display: 'flex', alignItems: 'center' }}>
       <Spin indicator={loadingIcon} />
       {message && (
-        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>
+        <span style={{ color: '#64748b', className="text-sm", fontWeight: 500 }}>
           {message}
         </span>
       )}

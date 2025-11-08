@@ -115,7 +115,7 @@ export function SimpleModal({
             }}
           >
             {title && (
-              <div style={{ fontSize: '16px', fontWeight: '600', color: '#1f2937', flex: 1 }}>
+              <div style={{ className="text-base", fontWeight: '600', color: '#1f2937', flex: 1 }}>
                 {title}
               </div>
             )}
@@ -131,7 +131,7 @@ export function SimpleModal({
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#00000073',
-                  fontSize: '16px',
+                  className="text-base",
                 }}
               >
                 <CloseOutlined />
