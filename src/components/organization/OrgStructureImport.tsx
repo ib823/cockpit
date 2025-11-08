@@ -234,9 +234,9 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
       key: 'status',
       width: 80,
       render: (status: string) => {
-        if (status === 'valid') return <CheckCircleOutlined style={{ color: '#52c41a', className="text-lg" }} />;
-        if (status === 'warning') return <InfoCircleOutlined style={{ color: '#faad14', className="text-lg" }} />;
-        return <CloseCircleOutlined style={{ color: '#ff4d4f', className="text-lg" }} />;
+        if (status === 'valid') return <CheckCircleOutlined className="text-lg" style={{ color: '#52c41a'}} />;
+        if (status === 'warning') return <InfoCircleOutlined className="text-lg" style={{ color: '#faad14'}} />;
+        return <CloseCircleOutlined className="text-lg" style={{ color: '#ff4d4f'}} />;
       },
     },
     {

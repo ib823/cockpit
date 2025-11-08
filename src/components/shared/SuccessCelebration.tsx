@@ -259,9 +259,7 @@ export function SuccessCelebration({
               }}
             />
             <div
-              style={{
-                className="text-lg",
-                fontWeight: 600,
+              className="text-lg" style={{ fontWeight: 600,
                 color: '#111827',
               }}
             >

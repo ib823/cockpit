@@ -216,7 +216,7 @@ function ResourceNode({ data }: { data: any }) {
                 }
               >
                 <div className="flex items-center gap-1 text-xs">
-                  <CalendarOutlined style={{ color: '#1890ff', className="text-xs" }} />
+                  <CalendarOutlined className="text-xs" style={{ color: '#1890ff'}} />
                   <span className="font-semibold text-blue-600">{assignments.phases.length}</span>
                 </div>
               </Tooltip>
@@ -239,7 +239,7 @@ function ResourceNode({ data }: { data: any }) {
                 }
               >
                 <div className="flex items-center gap-1 text-xs">
-                  <CheckSquareOutlined style={{ color: '#722ed1', className="text-xs" }} />
+                  <CheckSquareOutlined className="text-xs" style={{ color: '#722ed1'}} />
                   <span className="font-semibold text-purple-600">{assignments.tasks.length}</span>
                 </div>
               </Tooltip>

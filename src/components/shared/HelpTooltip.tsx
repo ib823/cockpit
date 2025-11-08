@@ -54,7 +54,7 @@ export function HelpTooltip({
         style={{
           cursor: 'help',
           color: 'var(--ant-color-text-secondary)',
-          fontSize: 14 // Keep for charts,
+          fontSize: 14,
           marginLeft: 4,
           ...iconStyle
         }}
@@ -87,14 +87,14 @@ export function FormFieldTooltip({ label, helpText, required, example }: FormFie
       </Text>
       {example && (
         <>
-          <Text strong style={{ color: 'rgba(255, 255, 255, 0.65)', fontSize: 12 // Keep for charts, display: 'block', marginBottom: 2 }}>
+          <Text strong style={{ color: 'rgba(255, 255, 255, 0.65)', fontSize: 12, display: 'block', marginBottom: 2 }}>
             Example:
           </Text>
           <Text
             code
             style={{
               color: 'rgba(255, 255, 255, 0.85)',
-              fontSize: 12 // Keep for charts,
+              fontSize: 12,
               background: 'rgba(0, 0, 0, 0.2)',
               padding: '2px 4px',
               borderRadius: 2
@@ -113,7 +113,7 @@ export function FormFieldTooltip({ label, helpText, required, example }: FormFie
         style={{
           cursor: 'help',
           color: 'var(--ant-color-text-secondary)',
-          fontSize: 14 // Keep for charts,
+          fontSize: 14,
           marginLeft: 4
         }}
       />
@@ -140,7 +140,7 @@ export function FeatureTooltip({ feature, description, benefits, children }: Fea
         {description}
       </Text>
       {benefits && benefits.length > 0 && (
-        <ul style={{ margin: '8px 0 0 0', paddingLeft: 16, color: 'rgba(255, 255, 255, 0.75)', fontSize: 12 // Keep for charts }}>
+        <ul style={{ margin: '8px 0 0 0', paddingLeft: 16, color: 'rgba(255, 255, 255, 0.75)', fontSize: 12 }}>
           {benefits.map((benefit, idx) => (
             <li key={idx} style={{ marginBottom: 2 }}>{benefit}</li>
           ))}

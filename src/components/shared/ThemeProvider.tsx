@@ -38,7 +38,7 @@ const DENSITY_SIZES: Record<DensityMode, {
   },
   comfortable: {
     controlHeight: 32,
-    fontSize: 14 // Keep for charts,
+    fontSize: 14,
     borderRadius: 6,
     padding: 12,
     margin: 12,

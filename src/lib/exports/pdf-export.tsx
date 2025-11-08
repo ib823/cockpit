@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   subtitle: {
-    fontSize: 12 // Keep for charts,
+    fontSize: 12,
     color: '#666',
   },
   section: {
@@ -72,11 +72,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   summaryLabel: {
-    fontSize: 12 // Keep for charts,
+    fontSize: 12,
     color: '#666',
   },
   summaryValue: {
-    fontSize: 14 // Keep for charts,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#1890ff',
   },

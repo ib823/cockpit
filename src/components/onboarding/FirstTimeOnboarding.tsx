@@ -203,9 +203,7 @@ export function FirstTimeOnboarding({ pathname: propPathname }: FirstTimeOnboard
         current={currentStep}
         steps={pageSteps}
         indicatorsRender={(current, total) => (
-          <span style={{
-            className="text-xs",
-            color: '#64748b'
+          <span className="text-xs" style={{ color: '#64748b'
           }}>
             {current + 1} / {total}
           </span>

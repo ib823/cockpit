@@ -154,7 +154,7 @@ export function ResourceTable({
               <Table.Summary.Cell index={2} />
               <Table.Summary.Cell index={3} />
               <Table.Summary.Cell index={4} align="right">
-                <Text strong style={{ color: '#1890ff', className="text-sm" }}>
+                <Text strong className="text-sm" style={{ color: '#1890ff'}}>
                   ${totalCost.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                 </Text>
               </Table.Summary.Cell>

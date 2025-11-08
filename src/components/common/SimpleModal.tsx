@@ -115,7 +115,7 @@ export function SimpleModal({
             }}
           >
             {title && (
-              <div style={{ className="text-base", fontWeight: '600', color: '#1f2937', flex: 1 }}>
+              <div className="text-base" style={{ fontWeight: '600', color: '#1f2937', flex: 1 }}>
                 {title}
               </div>
             )}

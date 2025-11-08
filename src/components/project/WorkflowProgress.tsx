@@ -123,7 +123,7 @@ export function WorkflowProgress() {
                   }
                 >
                   {isCompleted ? (
-                    <CheckCircleFilled style={{ className="text-base" }} />
+                    <CheckCircleFilled className="text-base" />
                   ) : (
                     index + 1
                   )}
@@ -132,9 +132,7 @@ export function WorkflowProgress() {
                 {/* Label */}
                 <div style={{ textAlign: 'center' }}>
                   <div
-                    style={{
-                      className="text-sm",
-                      fontWeight: isActive ? 600 : 500,
+                    className="text-sm" style={{ fontWeight: isActive ? 600 : 500,
                       color: isActive
                         ? '#0f172a'
                         : isCompleted
@@ -160,9 +158,7 @@ export function WorkflowProgress() {
               {/* Connector Arrow (except for last step) */}
               {index < WORKFLOW_STEPS.length - 1 && (
                 <RightOutlined
-                  style={{
-                    className="text-xs",
-                    color: isCompleted ? '#16a34a' : '#d1d5db',
+                  className="text-xs" style={{ color: isCompleted ? '#16a34a' : '#d1d5db',
                     marginTop: '-32px',
                     transition: 'color 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)'
                   }}

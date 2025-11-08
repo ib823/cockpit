@@ -75,7 +75,7 @@ export default function GanttImportPage() {
             placeholder="Task Name	Start	End	Duration	W1	W2	W3..."
           />
           <div style={{ marginTop: 16 }}>
-            <button onClick={parseA} style={{ padding: '10px 20px', fontSize: 14 // Keep for charts, cursor: 'pointer', background: '#0070f3', color: '#fff', border: 'none', borderRadius: 4 }}>
+            <button onClick={parseA} style={{ padding: '10px 20px', fontSize: 14, cursor: 'pointer', background: '#0070f3', color: '#fff', border: 'none', borderRadius: 4 }}>
               Parse Section A
             </button>
           </div>
@@ -96,10 +96,10 @@ export default function GanttImportPage() {
             placeholder="Role	Rank	Company	Resource Name	Start Date	End Date	Total	W1	W2	W3..."
           />
           <div style={{ marginTop: 16, display: 'flex', gap: 12 }}>
-            <button onClick={() => setStep('A')} style={{ padding: '10px 20px', fontSize: 14 // Keep for charts, cursor: 'pointer', background: '#666', color: '#fff', border: 'none', borderRadius: 4 }}>
+            <button onClick={() => setStep('A')} style={{ padding: '10px 20px', fontSize: 14, cursor: 'pointer', background: '#666', color: '#fff', border: 'none', borderRadius: 4 }}>
               Back
             </button>
-            <button onClick={parseB} style={{ padding: '10px 20px', fontSize: 14 // Keep for charts, cursor: 'pointer', background: '#0070f3', color: '#fff', border: 'none', borderRadius: 4 }}>
+            <button onClick={parseB} style={{ padding: '10px 20px', fontSize: 14, cursor: 'pointer', background: '#0070f3', color: '#fff', border: 'none', borderRadius: 4 }}>
               Import & Validate
             </button>
           </div>

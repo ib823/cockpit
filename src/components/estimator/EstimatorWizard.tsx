@@ -79,7 +79,7 @@ export function EstimatorWizard() {
               label: (
                 <div>
                   <div style={{ fontWeight: 500 }}>{profile.name}</div>
-                  <div style={{ className="text-xs", color: '#666' }}>
+                  <div className="text-xs" style={{ color: '#666' }}>
                     Base: {profile.baseFT} MD | Security: {profile.securityAuth} MD
                   </div>
                 </div>
@@ -88,7 +88,7 @@ export function EstimatorWizard() {
           />
 
           <Card size="small" style={{ marginTop: 16, background: '#f5f5f5' }}>
-            <Text type="secondary" style={{ className="text-sm" }}>
+            <Text type="secondary" className="text-sm">
               <strong>Current Selection:</strong> {inputs.profile.name}
               <br />
               Foundation effort: {inputs.profile.baseFT} man-days
@@ -109,7 +109,7 @@ export function EstimatorWizard() {
           </Text>
 
           <div className="flex justify-between mb-4">
-            <Text strong style={{ className="text-base" }}>Full-Time Equivalents</Text>
+            <Text strong className="text-base">Full-Time Equivalents</Text>
             <Text strong style={{ fontSize: '24px', color: '#1890ff' }}>
               {inputs.fte}
             </Text>
@@ -135,7 +135,7 @@ export function EstimatorWizard() {
           />
 
           <Card size="small" style={{ marginTop: 24, background: '#f5f5f5' }}>
-            <Text type="secondary" style={{ className="text-sm" }}>
+            <Text type="secondary" className="text-sm">
               <strong>What is FTE?</strong> Full-Time Equivalent represents the number of
               team members working full-time on this project. For example, 5 FTE could be
               5 people working 100% of their time, or 10 people working 50% of their time.
@@ -171,7 +171,7 @@ export function EstimatorWizard() {
           </Space>
 
           <Card size="small" style={{ marginTop: 16, background: '#e6f7ff', borderColor: '#1890ff' }}>
-            <Text style={{ className="text-sm" }}>
+            <Text className="text-sm">
               💡 <strong>Tip:</strong> You can skip this step and use default values.
               Advanced options can always be adjusted later.
             </Text>
@@ -277,7 +277,7 @@ export function EstimatorWizard() {
         </Button>
 
         {/* Step Counter */}
-        <Text type="secondary" style={{ className="text-sm" }}>
+        <Text type="secondary" className="text-sm">
           Step {currentStep + 1} of {steps.length}
         </Text>
 

@@ -321,9 +321,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
             onChange={(e) => setSearchText(e.target.value)}
             onKeyDown={handleKeyDown}
             autoFocus
-            style={{
-              className="text-base",
-              border: 'none',
+            className="text-base" style={{ border: 'none',
               boxShadow: 'none',
             }}
             suffix={
@@ -372,9 +370,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
                 >
                   <List.Item.Meta
                     avatar={
-                      <div style={{
-                        className="text-lg",
-                        color: index === selectedIndex ? '#1890ff' : '#8c8c8c',
+                      <div className="text-lg" style={{ color: index === selectedIndex ? '#1890ff' : '#8c8c8c',
                         display: 'flex',
                         alignItems: 'center',
                       }}>
@@ -392,7 +388,7 @@ export function CommandPalette({ userRole = 'USER' }: CommandPaletteProps) {
                         )}
                       </Space>
                     }
-                    description={<Text type="secondary" style={{ className="text-sm" }}>{item.subtitle}</Text>}
+                    description={<Text type="secondary" className="text-sm">{item.subtitle}</Text>}
                   />
                   {index === selectedIndex && (
                     <Tag style={{ fontSize: '11px' }}>↵</Tag>

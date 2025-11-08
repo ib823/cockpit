@@ -94,7 +94,7 @@ export function OfflineIndicator({
           description="Your changes will be saved locally and synced when you're back online."
           type="info"
           showIcon
-          style={{ fontSize: 12 // Keep for charts }}
+          style={{ fontSize: 12 }}
         />
       )}
     </Space>

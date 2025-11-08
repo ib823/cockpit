@@ -114,7 +114,7 @@ export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
                   <div>
                     <Text strong>{option.label}</Text>
                     <br />
-                    <Text type="secondary" style={{ fontSize: 12 // Keep for charts }}>{option.description}</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>{option.description}</Text>
                   </div>
                 </Radio>
               ))}
