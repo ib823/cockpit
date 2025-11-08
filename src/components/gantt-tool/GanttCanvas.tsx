@@ -853,7 +853,7 @@ export function GanttCanvas() {
                     className="flex-1 relative transition-all duration-300 ease-in-out"
                     style={{
                       minHeight: phase.collapsed
-                        ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '110px' : '132px')
+                        ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '126px' : '132px')
                         : '95px'
                     }}
                   >
@@ -866,9 +866,9 @@ export function GanttCanvas() {
                         style={{
                           left: `${metrics.left}%`,
                           width: `${metrics.width}%`,
-                          // Clean mode: title moves down closer to bar when badges are hidden
+                          // Clean mode: title positioned with 12px gap above bar (professional spacing)
                           top: phase.collapsed
-                            ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '48px' : '0px')
+                            ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '36px' : '0px')
                             : '36px',
                         }}
                       >
@@ -921,9 +921,9 @@ export function GanttCanvas() {
                       style={{
                         left: `${metrics.left}%`,
                         width: `${metrics.width}%`,
-                        // Clean mode: bar moves up closer to title when badges are hidden
+                        // Clean mode: bar positioned with 12px gap below title (professional spacing)
                         top: phase.collapsed
-                          ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '62px' : '74px')
+                          ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '68px' : '74px')
                           : '24px',
                         background: `linear-gradient(180deg, ${phase.color} 0%, ${withOpacity(phase.color, 0.85)} 100%)`,
                         boxShadow: isDragging
