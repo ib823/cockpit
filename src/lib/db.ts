@@ -123,6 +123,38 @@ if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
 
+/**
+ * Warm up database connection on serverless cold start
+ * This helps prevent timeouts on the first request after deployment
+ */
+async function warmupConnection() {
+  if (globalForPrisma.prismaConnecting) {
+    return globalForPrisma.prismaConnecting;
+  }
+
+  globalForPrisma.prismaConnecting = (async () => {
+    try {
+      const startTime = performance.now();
+      await prisma.$queryRaw`SELECT 1`;
+      const duration = performance.now() - startTime;
+      console.log(`[DB] Connection warmed up in ${duration.toFixed(2)}ms`);
+    } catch (error) {
+      console.error('[DB] Failed to warm up connection:', error);
+    } finally {
+      globalForPrisma.prismaConnecting = undefined;
+    }
+  })();
+
+  return globalForPrisma.prismaConnecting;
+}
+
+// Warm up connection in production on module load (for serverless cold starts)
+if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
+  warmupConnection().catch(err => {
+    console.error('[DB] Connection warmup failed:', err);
+  });
+}
+
 // Graceful shutdown handler
 if (typeof process !== 'undefined') {
   const cleanup = async () => {

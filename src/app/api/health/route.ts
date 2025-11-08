@@ -11,12 +11,11 @@ export async function GET() {
   const startTime = Date.now();
 
   try {
-    // Check database connectivity
-    const dbHealthy = await checkDatabaseHealth();
-
+    // Check database connectivity with detailed health info
+    const dbHealth = await checkDatabaseHealth();
     const responseTime = Date.now() - startTime;
 
-    if (!dbHealthy) {
+    if (!dbHealth.healthy) {
       return NextResponse.json(
         {
           status: 'unhealthy',
@@ -25,7 +24,15 @@ export async function GET() {
             database: 'down',
             api: 'up',
           },
+          database: {
+            latency: dbHealth.latency,
+            error: dbHealth.error,
+          },
           responseTimeMs: responseTime,
+          environment: {
+            nodeEnv: process.env.NODE_ENV,
+            hasDatabaseUrl: !!process.env.DATABASE_URL,
+          },
         },
         { status: 503 }
       );
@@ -39,7 +46,13 @@ export async function GET() {
           database: 'up',
           api: 'up',
         },
+        database: {
+          latency: dbHealth.latency,
+        },
         responseTimeMs: responseTime,
+        environment: {
+          nodeEnv: process.env.NODE_ENV,
+        },
       },
       { status: 200 }
     );
@@ -58,6 +71,10 @@ export async function GET() {
         },
         error: error instanceof Error ? error.message : 'Unknown error',
         responseTimeMs: responseTime,
+        environment: {
+          nodeEnv: process.env.NODE_ENV,
+          hasDatabaseUrl: !!process.env.DATABASE_URL,
+        },
       },
       { status: 500 }
     );
