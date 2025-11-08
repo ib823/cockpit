@@ -555,11 +555,14 @@ export function GanttToolbar({
   const totalResources = currentProject.resources?.length || 0;
 
   return (
-    <div className="bg-white border-b border-gray-200 shadow-sm">
-      <div className="px-6 py-3">
-        <div className="flex items-center justify-between">
+    <div
+      className="bg-white border-b border-gray-200 shadow-sm"
+      style={{ width: '100%', maxWidth: '100vw', overflow: 'hidden' }}
+    >
+      <div className="px-6 py-3" style={{ maxWidth: '100%' }}>
+        <div className="flex items-center justify-between" style={{ width: '100%' }}>
           {/* Left: Project Name (Editable) + Quick Stats */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
             {/* Project Name - Revolutionary inline editing */}
             <div className="flex items-center gap-2">
               {isEditingProjectName ? (
@@ -702,7 +705,7 @@ export function GanttToolbar({
           </div>
 
           {/* Right: The Revolutionary 5 Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             {/* 1. Add Phase - Hero Action */}
             <Button
               type="primary"
