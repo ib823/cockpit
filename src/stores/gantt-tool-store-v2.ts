@@ -1815,6 +1815,14 @@ if (typeof window !== 'undefined') {
           cloudSyncPending: false,
           saveProgress: null,
         });
+
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => {
+          const currentStore = useGanttToolStoreV2.getState();
+          if (currentStore.syncStatus === 'synced-cloud' && currentStore.currentProject?.id === projectId) {
+            useGanttToolStoreV2.setState({ syncStatus: 'idle' });
+          }
+        }, 3000);
       }
       console.log('[BackgroundSync] ✓ Successfully synced project:', projectId);
     },
