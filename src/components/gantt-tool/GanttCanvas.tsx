@@ -1057,17 +1057,17 @@ export function GanttCanvas() {
                           </div>
                         )}
 
-                        {/* Floating Badges Above Phase Bar - Always shows warnings, other badges conditional */}
+                        {/* Floating Badges Above Phase Bar - Apple-style: Restraint, Focus, Progressive Disclosure */}
                         {(hasTaskBoundaryIssue || (viewSettings?.barDurationDisplay ?? 'all') !== 'clean') && (
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 flex items-center justify-center text-white z-20 transition-all duration-300 ease-in-out max-w-full px-2">
-                            {/* All badges in a clean horizontal row - responsive with wrapping */}
-                            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
-                              {/* PHASE BOUNDARY WARNING - Always visible when tasks exceed phase, regardless of bar mode */}
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 flex items-center justify-center text-white z-20 transition-all duration-300 ease-in-out w-full max-w-full px-1">
+                            {/* Single-line badge container - NO WRAPPING (Apple principle: Restraint) */}
+                            <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 justify-center overflow-hidden max-w-full">
+                              {/* PHASE BOUNDARY WARNING - Always visible (Apple principle: Focus on critical info) */}
                               {hasTaskBoundaryIssue && (
-                                <div className="relative group/phasewarning">
-                                  <div className="flex items-center gap-1 sm:gap-1.5 bg-red-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
+                                <div className="relative group/phasewarning flex-shrink-0">
+                                  <div className="flex items-center gap-0.5 sm:gap-1 bg-red-500 px-1 sm:px-2 py-0.5 sm:py-1 rounded-sm shadow-lg border border-red-300 sm:border-2 animate-pulse pointer-events-auto cursor-help">
                                     <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
-                                    <span className="text-xs sm:text-sm font-bold">{tasksExceedingCount}</span>
+                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold">{tasksExceedingCount}</span>
                                   </div>
                                   {/* Warning Tooltip */}
                                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/phasewarning:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
@@ -1105,12 +1105,16 @@ export function GanttCanvas() {
                               {/* WD Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
                                 <>
-                                  <span className="text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20">
+                                  <span className="hidden sm:inline-flex text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
                                     {formatWorkingDays(metrics.workingDays)}
+                                  </span>
+                                  {/* Mobile: Condensed badge */}
+                                  <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-1 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
+                                    {metrics.workingDays}WD
                                   </span>
                                   {/* Resource badge in WD mode */}
                                   {totalPhaseResourceCount > 0 && (
-                                    <div className="relative group/wdresbadge">
+                                    <div className="relative group/wdresbadge hidden md:block">
                                       <div className="flex items-center gap-1 sm:gap-1.5 bg-purple-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
                                         <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
                                         <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
@@ -1142,12 +1146,16 @@ export function GanttCanvas() {
                               {/* CD Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'cd' && (
                                 <>
-                                  <span className="text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20">
+                                  <span className="hidden sm:inline-flex text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
                                     {formatCalendarDuration(metrics.duration)}
+                                  </span>
+                                  {/* Mobile: Condensed badge */}
+                                  <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-1 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
+                                    {metrics.duration}CD
                                   </span>
                                   {/* Resource badge in CD mode */}
                                   {totalPhaseResourceCount > 0 && (
-                                    <div className="relative group/cdresbadge">
+                                    <div className="relative group/cdresbadge hidden md:block">
                                       <div className="flex items-center gap-1 sm:gap-1.5 bg-purple-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
                                         <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
                                         <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
@@ -1209,12 +1217,20 @@ export function GanttCanvas() {
                               {/* Dates Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
                                 <>
-                                  <span className="text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20">
+                                  <span className="hidden lg:inline-flex text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
                                     {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
+                                  </span>
+                                  {/* Tablet: Shorter dates */}
+                                  <span className="hidden sm:inline-flex lg:hidden text-[11px] font-bold bg-black/40 px-1.5 py-1 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
+                                    {format(new Date(phase.startDate), 'dd/MM')} → {format(new Date(phase.endDate), 'dd/MM')}
+                                  </span>
+                                  {/* Mobile: Minimal dates */}
+                                  <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-0.5 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
+                                    {format(new Date(phase.startDate), 'dd/MM')}
                                   </span>
                                   {/* Resource badge in Dates mode */}
                                   {totalPhaseResourceCount > 0 && (
-                                    <div className="relative group/datesresbadge">
+                                    <div className="relative group/datesresbadge hidden md:block">
                                       <div className="flex items-center gap-1 sm:gap-1.5 bg-purple-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
                                         <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
                                         <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
@@ -1243,24 +1259,32 @@ export function GanttCanvas() {
                                 </>
                               )}
 
-                              {/* All Mode - Show all info */}
+                              {/* All Mode - Show all info (Apple principle: Progressive Disclosure) */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'all' && (
                                 <>
-                                  {/* Dates badge */}
-                                  <span className="text-xs sm:text-sm font-semibold bg-blue-600/90 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20">
+                                  {/* Desktop: Full dates badge */}
+                                  <span className="hidden xl:inline-flex text-xs sm:text-sm font-semibold bg-blue-600/90 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
                                     {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
                                   </span>
+                                  {/* Tablet: Condensed dates */}
+                                  <span className="hidden md:inline-flex xl:hidden text-[11px] font-semibold bg-blue-600/90 px-1.5 py-1 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
+                                    {format(new Date(phase.startDate), 'dd/MM')} → {format(new Date(phase.endDate), 'dd/MM')}
+                                  </span>
 
-                                  {/* Duration badge (WD + CD) */}
-                                  <span className="text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20">
+                                  {/* Desktop/Tablet: Duration badge (WD + CD) */}
+                                  <span className="hidden md:inline-flex text-xs sm:text-sm font-bold bg-black/40 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
                                     {formatWorkingDays(metrics.workingDays)}
                                     <span className="mx-1 sm:mx-1.5 opacity-50">•</span>
                                     {formatCalendarDuration(metrics.duration)}
                                   </span>
+                                  {/* Mobile: Ultra-condensed - combined badge */}
+                                  <span className="inline-flex md:hidden text-[10px] font-bold bg-black/40 px-1.5 py-0.5 rounded-sm shadow-md border border-white/20 whitespace-nowrap">
+                                    {metrics.workingDays}WD•{metrics.duration}CD
+                                  </span>
 
-                                  {/* Total Resource badge */}
+                                  {/* Total Resource badge - Only on large screens */}
                                   {totalPhaseResourceCount > 0 && (
-                                    <div className="relative group/allresbadge">
+                                    <div className="relative group/allresbadge hidden lg:block">
                                       <div className="flex items-center gap-1 sm:gap-1.5 bg-purple-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-md border border-white/20 pointer-events-auto cursor-help">
                                         <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
                                         <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
