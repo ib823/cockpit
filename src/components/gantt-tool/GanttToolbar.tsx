@@ -599,7 +599,7 @@ export function GanttToolbar({
                         label: (
                           <div className="font-semibold text-blue-600 flex items-center gap-2">
                             <Check className="w-4 h-4" />
-                            {currentProject.name}
+                            <span className="max-w-[300px] truncate">{currentProject.name}</span>
                           </div>
                         ),
                         disabled: true,
@@ -648,17 +648,17 @@ export function GanttToolbar({
                   trigger={['click']}
                 >
                   <button
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group"
+                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group max-w-[300px]"
                   >
-                    <h1 className="text-lg font-bold text-gray-900">{currentProject.name}</h1>
-                    <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                    <h1 className="text-base lg:text-lg font-bold text-gray-900 truncate">{currentProject.name}</h1>
+                    <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors flex-shrink-0" />
                   </button>
                 </Dropdown>
               )}
             </div>
 
-            {/* Quick Stats */}
-            <div className="hidden lg:flex items-center gap-3 text-xs text-gray-500 border-l border-gray-200 pl-4">
+            {/* Quick Stats - Hide on smaller screens to prevent overlap */}
+            <div className="hidden 2xl:flex items-center gap-3 text-xs text-gray-500 border-l border-gray-200 pl-4">
               <span className="flex items-center gap-1">
                 <span className="font-semibold text-blue-600">{totalPhases}</span> phases
               </span>
@@ -672,8 +672,8 @@ export function GanttToolbar({
               </span>
             </div>
 
-            {/* Undo/Redo - Minimal, always accessible */}
-            <div className="flex items-center gap-1 border-l border-gray-200 pl-4">
+            {/* Undo/Redo - Hide on medium screens, show on large */}
+            <div className="hidden xl:flex items-center gap-1 border-l border-gray-200 pl-4">
               <Tooltip title="Undo (⌘Z)">
                 <button
                   onClick={undo}
@@ -705,12 +705,12 @@ export function GanttToolbar({
           </div>
 
           {/* Right: The Revolutionary 5 Actions */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
             {/* 1. Add Phase - Hero Action */}
             <Button
               type="primary"
               size="large"
-              icon={<Plus className="w-5 h-5" />}
+              icon={<Plus className="w-4 h-4 lg:w-5 lg:h-5" />}
               onClick={() => openSidePanel('add', 'phase')}
               className="font-semibold"
               style={{
@@ -718,14 +718,15 @@ export function GanttToolbar({
                 borderColor: colorValues.primary[600],
                 color: '#ffffff',
                 boxShadow: getColoredShadow(colorValues.primary[600], 'md'),
-                paddingLeft: spacing[6],
-                paddingRight: spacing[6],
+                paddingLeft: spacing[4],
+                paddingRight: spacing[4],
               }}
             >
-              Add Phase
+              <span className="hidden sm:inline">Add Phase</span>
+              <span className="sm:hidden">Add</span>
             </Button>
 
-            {/* 2. Context Panel Toggle - NEW! */}
+            {/* 2. Context Panel Toggle - Hide on small screens */}
             {onToggleContextPanel && (
               <Tooltip title={showContextPanel ? "Hide Context Panel" : "Show Context Panel"}>
                 <Button
@@ -733,14 +734,14 @@ export function GanttToolbar({
                   size="large"
                   icon={<BarChart3 className="w-4 h-4" />}
                   onClick={onToggleContextPanel}
-                  className="flex items-center gap-2"
+                  className="hidden md:flex items-center gap-2"
                 >
                   <span className="hidden xl:inline">Context</span>
                 </Button>
               </Tooltip>
             )}
 
-            {/* 3A. Quick Assign Panel Toggle - Jobs/Ive: On-demand resource assignment */}
+            {/* 3A. Quick Assign Panel Toggle - Hide on small screens */}
             {onToggleQuickResourcePanel && (
               <Tooltip title={showQuickResourcePanel ? "Hide Quick Assign Panel" : "Show Quick Assign Panel"}>
                 <Button
@@ -748,7 +749,7 @@ export function GanttToolbar({
                   size="large"
                   icon={<Users className="w-4 h-4" />}
                   onClick={onToggleQuickResourcePanel}
-                  className="flex items-center gap-2"
+                  className="hidden lg:flex items-center gap-2"
                   style={showQuickResourcePanel ? {
                     backgroundColor: colorValues.accent[600],
                     borderColor: colorValues.accent[600],
@@ -760,53 +761,53 @@ export function GanttToolbar({
               </Tooltip>
             )}
 
-            {/* 3B. Team Management - Opens Resource Modal */}
+            {/* 3B. Team Management - Hide text on small screens */}
             <Tooltip title="Manage Team & Resources">
               <Badge count={totalResources} showZero={false} size="small">
                 <Button
-                  icon={<Settings className="w-4 h-4" />}
+                  icon={<Users className="w-4 h-4" />}
                   onClick={() => setShowResourceModal(true)}
                   size="large"
                   className="flex items-center gap-2"
                 >
-                  <span className="hidden xl:inline">Team</span>
+                  <span className="hidden lg:inline">Team</span>
                 </Button>
               </Badge>
             </Tooltip>
 
-            {/* 4. Share - Export & Collaboration */}
+            {/* 4. Share - Export & Collaboration - Hide text on small */}
             <Dropdown menu={{ items: shareMenuItems }} trigger={['click']} placement="bottomRight">
               <Button
                 icon={<Share2 className="w-4 h-4" />}
                 size="large"
                 className="flex items-center gap-2"
               >
-                <span className="hidden xl:inline">Share</span>
-                <ChevronDown className="w-3 h-3" />
+                <span className="hidden lg:inline">Share</span>
+                <ChevronDown className="w-3 h-3 hidden lg:inline" />
               </Button>
             </Dropdown>
 
-            {/* 5. Settings - Everything Else */}
+            {/* 5. Settings - Everything Else - Icon only on small */}
             <Dropdown menu={{ items: settingsMenuItems }} trigger={['click']} placement="bottomRight">
               <Button
                 icon={<Settings className="w-4 h-4" />}
                 size="large"
                 className="flex items-center gap-2"
               >
-                <span className="hidden xl:inline">Settings</span>
-                <ChevronDown className="w-3 h-3" />
+                <span className="hidden lg:inline">Settings</span>
+                <ChevronDown className="w-3 h-3 hidden lg:inline" />
               </Button>
             </Dropdown>
 
-            {/* 6. User Menu - Account & Logout */}
+            {/* 6. User Menu - Account & Logout - Icon only on small */}
             <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
               <Button
                 icon={<UserOutlined />}
                 size="large"
                 className="flex items-center gap-2"
               >
-                <span className="hidden xl:inline">{session?.user?.name || session?.user?.email || 'User'}</span>
-                <ChevronDown className="w-3 h-3" />
+                <span className="hidden lg:inline">{session?.user?.name || session?.user?.email || 'User'}</span>
+                <ChevronDown className="w-3 h-3 hidden lg:inline" />
               </Button>
             </Dropdown>
           </div>
