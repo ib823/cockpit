@@ -167,11 +167,10 @@ export function HexLoader({ size = 'xl', className = '' }: HexLoaderProps) {
             width: '100%',
             height: '100%',
             display: 'block',
-            background: '#fff',
+            background: 'transparent',
             shapeRendering: 'geometricPrecision',
           }}
         >
-          <rect x="0" y="0" width="1024" height="1024" fill="#ffffff" />
           <g>
             {FACETS.map((facet, i) => (
               <polygon
@@ -182,7 +181,7 @@ export function HexLoader({ size = 'xl', className = '' }: HexLoaderProps) {
                 points={facet.map((p) => p.join(',')).join(' ')}
                 fill={PALETTES_HEX.green[i]}
                 stroke={PALETTES_HEX.green[i]}
-                strokeWidth="0.6"
+                strokeWidth="0.4"
                 vectorEffect="non-scaling-stroke"
                 shapeRendering="geometricPrecision"
                 pointerEvents="none"
