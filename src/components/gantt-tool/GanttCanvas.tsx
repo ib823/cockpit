@@ -1057,12 +1057,12 @@ export function GanttCanvas() {
                           </div>
                         )}
 
-                        {/* Floating Badges Above Phase Bar - Stays consistent during expand/collapse animation */}
-                        {(viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
+                        {/* Floating Badges Above Phase Bar - Always shows warnings, other badges conditional */}
+                        {(hasTaskBoundaryIssue || (viewSettings?.barDurationDisplay ?? 'all') !== 'clean') && (
                           <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 flex items-center justify-center text-white z-20 transition-all duration-300 ease-in-out max-w-full px-2">
                             {/* All badges in a clean horizontal row - responsive with wrapping */}
                             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
-                              {/* PHASE BOUNDARY WARNING - Always visible when tasks exceed phase */}
+                              {/* PHASE BOUNDARY WARNING - Always visible when tasks exceed phase, regardless of bar mode */}
                               {hasTaskBoundaryIssue && (
                                 <div className="relative group/phasewarning">
                                   <div className="flex items-center gap-1 sm:gap-1.5 bg-red-500 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-sm shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
@@ -1099,6 +1099,9 @@ export function GanttCanvas() {
                                 </div>
                               )}
 
+                              {/* Other badges - Only shown when barDurationDisplay is not 'clean' */}
+                              {(viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
+                                <>
                               {/* WD Mode */}
                               {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
                                 <>
@@ -1284,6 +1287,8 @@ export function GanttCanvas() {
                                       </div>
                                     </div>
                                   )}
+                                </>
+                              )}
                                 </>
                               )}
                             </div>

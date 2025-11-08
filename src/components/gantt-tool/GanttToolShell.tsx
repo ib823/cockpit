@@ -38,9 +38,6 @@ export function GanttToolShell() {
     lastLocalSaveAt,
     cloudSyncPending,
     clearSyncError,
-    validationWarnings,
-    validateProject,
-    clearValidationWarnings,
   } = useGanttToolStoreV2();
 
   const [showContextPanel, setShowContextPanel] = useState(false);
@@ -64,13 +61,6 @@ export function GanttToolShell() {
       setShowSyncIndicator(true);
     }
   }, [syncStatus, cloudSyncPending]);
-
-  // Validate project whenever it changes
-  useEffect(() => {
-    if (currentProject) {
-      validateProject();
-    }
-  }, [currentProject, validateProject]);
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -262,39 +252,6 @@ export function GanttToolShell() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Validation Warning Banner */}
-      {validationWarnings.length > 0 && (
-        <div className="bg-yellow-50 border-b-2 border-yellow-200 px-6 py-3">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center gap-3 flex-1">
-              <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-yellow-900">
-                  Validation Warning{validationWarnings.length > 1 ? 's' : ''}
-                </p>
-                <div className="text-sm text-yellow-700 space-y-1">
-                  {validationWarnings.slice(0, 3).map((warning) => (
-                    <p key={warning.id}>• {warning.message}</p>
-                  ))}
-                  {validationWarnings.length > 3 && (
-                    <p className="text-xs italic">
-                      ...and {validationWarnings.length - 3} more issue{validationWarnings.length - 3 > 1 ? 's' : ''}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={clearValidationWarnings}
-              className="p-1.5 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 rounded-md transition-colors"
-              aria-label="Dismiss warnings"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
         </div>
       )}
