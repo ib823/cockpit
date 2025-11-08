@@ -159,19 +159,19 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
       <div style={{ marginBottom: '16px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: 20, height: 20, background: '#D1FAE5', border: '2px solid #10B981', borderRadius: 4 }} />
-          <Text style={{ fontSize: '13px' }}>0-5 days: Optimal</Text>
+          <Text className="text-sm">0-5 days: Optimal</Text>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: 20, height: 20, background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: 4 }} />
-          <Text style={{ fontSize: '13px' }}>6 days: Full</Text>
+          <Text className="text-sm">6 days: Full</Text>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: 20, height: 20, background: '#FEE2E2', border: '2px solid #EF4444', borderRadius: 4 }} />
-          <Text style={{ fontSize: '13px' }}>7+ days: Over-allocated</Text>
+          <Text className="text-sm">7+ days: Over-allocated</Text>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: 20, height: 20, background: '#F3F4F6', border: '2px solid #E5E7EB', borderRadius: 4 }} />
-          <Text style={{ fontSize: '13px' }}>0 days: Bench</Text>
+          <Text className="text-sm">0 days: Bench</Text>
         </div>
       </div>
 
@@ -184,7 +184,6 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
               padding: '8px',
               background: '#F9FAFB',
               borderRadius: '4px',
-              fontSize: '13px',
               fontWeight: 600,
               minWidth: '200px',
             }}>
@@ -195,7 +194,6 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
                 padding: '8px',
                 background: '#F9FAFB',
                 borderRadius: '4px',
-                fontSize: '11px',
                 fontWeight: 500,
                 textAlign: 'center',
                 minWidth: '60px',
@@ -207,7 +205,6 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
               padding: '8px',
               background: '#F9FAFB',
               borderRadius: '4px',
-              fontSize: '13px',
               fontWeight: 600,
               textAlign: 'center',
               minWidth: '80px',
@@ -223,8 +220,7 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
                 padding: '8px',
                 background: '#FFFFFF',
                 borderRadius: '4px',
-                fontSize: '13px',
-                fontWeight: 500,
+                  fontWeight: 500,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>{row.resource.name}</span>
@@ -234,7 +230,7 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
                     </Tooltip>
                   )}
                 </div>
-                <div style={{ fontSize: '11px', color: '#6B7280' }}>
+                <div style={{ color: '#6B7280' }} className="text-xs">
                   {row.resource.designation}
                 </div>
               </td>
@@ -247,7 +243,6 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
                       border: `2px solid ${getCellBorderColor(week.allocatedDays)}`,
                       borderRadius: '4px',
                       textAlign: 'center',
-                      fontSize: '12px',
                       fontWeight: 600,
                       cursor: 'pointer',
                       transition: 'transform 0.1s',
@@ -270,8 +265,7 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
                 background: '#FFFFFF',
                 borderRadius: '4px',
                 textAlign: 'center',
-                fontSize: '13px',
-                fontWeight: 600,
+                  fontWeight: 600,
               }}>
                 {row.totalDays.toFixed(1)}
               </td>

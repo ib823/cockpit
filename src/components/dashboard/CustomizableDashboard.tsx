@@ -98,7 +98,7 @@ function SortableCard({ id, title, content, customizable, onToggleVisibility }: 
                   marginLeft: '-4px',
                 }}
               >
-                <MenuOutlined style={{ fontSize: '14px', color: '#8c8c8c' }} />
+                <MenuOutlined style={{ color: '#8c8c8c' }} className="text-sm" />
               </div>
             )}
             <span>{title}</span>
@@ -252,9 +252,9 @@ export function CustomizableDashboard({ cards, customizable = true }: Customizab
 
           {customizeMode && (
             <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f0f0f0' }}>
-              <Text type="secondary" style={{ fontSize: '13px' }}>
-                💡 <strong>Tip:</strong> Drag cards by the <MenuOutlined style={{ fontSize: '12px' }} /> handle to reorder.
-                Click <EyeInvisibleOutlined style={{ fontSize: '12px' }} /> to hide cards.
+              <Text type="secondary" className="text-sm">
+                💡 <strong>Tip:</strong> Drag cards by the <MenuOutlined className="text-xs" /> handle to reorder.
+                Click <EyeInvisibleOutlined className="text-xs" /> to hide cards.
               </Text>
             </div>
           )}

@@ -34,7 +34,7 @@ export function OrgScale() {
       }
       size="small"
       extra={
-        <Text type="secondary" style={{ fontSize: '12px' }}>
+        <Text type="secondary" style={{ className="text-xs" }}>
           <InfoCircleOutlined /> Entities + countries + languages
         </Text>
       }
@@ -84,7 +84,7 @@ export function OrgScale() {
           <Space direction="vertical" style={{ width: '100%' }}>
             <div className="flex justify-between">
               <Text type="secondary">Current Os:</Text>
-              <Text strong style={{ fontSize: '16px', color: orgScale > 0.15 ? '#ff4d4f' : '#1890ff' }}>
+              <Text strong style={{ className="text-base", color: orgScale > 0.15 ? '#ff4d4f' : '#1890ff' }}>
                 {orgScale.toFixed(3)}
               </Text>
             </div>
@@ -98,13 +98,13 @@ export function OrgScale() {
         </div>
 
         {/* Info text */}
-        <Text type="secondary" style={{ fontSize: '12px' }}>
+        <Text type="secondary" style={{ className="text-xs" }}>
           Each additional entity/country/language adds complexity
         </Text>
 
         {/* Warning for high org scale */}
         {orgScale > 0.2 && (
-          <Text type="warning" style={{ fontSize: '12px' }}>
+          <Text type="warning" style={{ className="text-xs" }}>
             ⚠️ High organizational complexity. Consider phased deployment by region.
           </Text>
         )}

@@ -215,7 +215,7 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
           <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
             <TeamOutlined style={{ fontSize: 48, marginBottom: 16 }} />
             <div>No team members assigned</div>
-            <div style={{ fontSize: 12 }}>Use quick templates or add manually</div>
+            <div style={{ fontSize: 12 // Keep for charts }}>Use quick templates or add manually</div>
           </div>
         ) : (
           <Space direction="vertical" style={{ width: '100%' }} size="small">
@@ -235,12 +235,12 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
                       <div style={{ fontSize: 16 }}>
                         {roleInfo?.label || resource.role}
                       </div>
-                      <div style={{ fontSize: 12, color: '#666' }}>
+                      <div style={{ fontSize: 12 // Keep for charts, color: '#666' }}>
                         {resource.region} • ${resource.hourlyRate}/hr
                       </div>
                     </Col>
                     <Col span={12}>
-                      <div style={{ marginBottom: 4, fontSize: 12 }}>
+                      <div style={{ marginBottom: 4, fontSize: 12 // Keep for charts }}>
                         Allocation: <strong>{resource.allocation}%</strong> • Cost: <strong>${cost.toFixed(0)}</strong>
                       </div>
                       <Slider

@@ -233,10 +233,11 @@ export function FinancialView({ project }: FinancialViewProps) {
                   }
                   value={financialData.revenue}
                   prefix="RM"
-                  valueStyle={{ color: '#3B82F6', fontSize: '24px' }}
+                  valueStyle={{ color: '#3B82F6' }}
+                  className="[&_.ant-statistic-content]:text-xl"
                   formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                 />
-                <Text type="secondary" style={{ fontSize: '12px' }}>
+                <Text type="secondary" className="text-xs">
                   {proposedRevenue === 0 && `Suggested: ${formatMYR(financialData.suggestedRevenue)}`}
                 </Text>
               </>
@@ -250,7 +251,8 @@ export function FinancialView({ project }: FinancialViewProps) {
               title="Total Cost"
               value={financialData.totalCost}
               prefix="RM"
-              valueStyle={{ color: '#EF4444', fontSize: '24px' }}
+              valueStyle={{ color: '#EF4444' }}
+              className="[&_.ant-statistic-content]:text-xl"
               formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
             />
             <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -284,9 +286,10 @@ export function FinancialView({ project }: FinancialViewProps) {
                   <TrendingDown size={20} style={{ color: getMarginColor(financialData.marginPercent) }} />
                 )
               }
-              valueStyle={{ color: getMarginColor(financialData.marginPercent), fontSize: '32px', fontWeight: 'bold' }}
+              valueStyle={{ color: getMarginColor(financialData.marginPercent), fontWeight: 'bold' }}
+              className="[&_.ant-statistic-content]:text-3xl"
             />
-            <Text style={{ fontSize: '12px', color: getMarginColor(financialData.marginPercent) }}>
+            <Text style={{ color: getMarginColor(financialData.marginPercent) }} className="text-xs">
               {formatMYR(financialData.margin)} profit
             </Text>
           </Card>
@@ -298,15 +301,15 @@ export function FinancialView({ project }: FinancialViewProps) {
       {/* Margin Waterfall Chart */}
       <Card bordered={false} style={{ borderRadius: '8px' }}>
         <Title level={5}>💧 Margin Waterfall Analysis</Title>
-        <Text type="secondary" style={{ fontSize: '13px' }}>
+        <Text type="secondary" className="text-sm">
           How revenue flows to margin after subtracting costs
         </Text>
         <ResponsiveContainer width="100%" height={400} style={{ marginTop: '20px' }}>
           <ComposedChart data={waterfallData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+            <XAxis dataKey="name" tick={{ fontSize: 12 }} className="text-xs" />
             <YAxis
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12 }} className="text-xs"
               tickFormatter={(value) => formatMYRShort(Math.abs(value))}
             />
             <Tooltip
@@ -328,15 +331,15 @@ export function FinancialView({ project }: FinancialViewProps) {
       {/* Cost by Phase */}
       <Card bordered={false} style={{ borderRadius: '8px' }}>
         <Title level={5}>📊 Cost Breakdown by Phase</Title>
-        <Text type="secondary" style={{ fontSize: '13px' }}>
+        <Text type="secondary" className="text-sm">
           Which phases consume the most resources?
         </Text>
         <ResponsiveContainer width="100%" height={300} style={{ marginTop: '20px' }}>
           <BarChart data={phaseChartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+            <XAxis dataKey="name" tick={{ fontSize: 11 }} className="text-xs" />
             <YAxis
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12 }} className="text-xs"
               tickFormatter={(value) => formatMYRShort(value)}
             />
             <Tooltip
@@ -405,7 +408,6 @@ export function FinancialView({ project }: FinancialViewProps) {
           <Text
             type="secondary"
             style={{
-              fontSize: '13px',
               color:
                 financialData.marginPercent >= 20
                   ? '#065F46'

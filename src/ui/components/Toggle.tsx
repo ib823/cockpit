@@ -16,7 +16,7 @@ export const Toggle: React.FC<ToggleProps> = ({
   className
 }) => (
   <label className={`inline-flex items-center gap-3 select-none ${className || ''}`}>
-    {label && <span className="text-[14px] text-[var(--ink)]">{label}</span>}
+    {label && <span className="text-sm text-[var(--ink)]">{label}</span>}
     <span
       role="switch"
       aria-checked={checked}

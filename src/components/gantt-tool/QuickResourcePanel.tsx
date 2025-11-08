@@ -114,7 +114,7 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
           <ChevronLeft className="w-4 h-4" />
           <div className="flex flex-col items-center">
             <Users className="w-5 h-5 text-purple-600" />
-            <span className="text-[10px] mt-1">Resources</span>
+            <span className="text-xs mt-1">Resources</span>
           </div>
         </button>
       </div>
@@ -185,7 +185,7 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
           <Users className="w-5 h-5 text-purple-600" />
           <div>
             <h3 className="text-sm font-bold text-gray-900">Quick Assign</h3>
-            <p className="text-[10px] text-gray-600">Drag onto tasks</p>
+            <p className="text-xs text-gray-600">Drag onto tasks</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -217,7 +217,7 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
           />
           <div className="flex-1">
             <span className="text-xs font-semibold text-purple-900">Quick Assign Mode</span>
-            <p className="text-[10px] text-purple-700">Click tasks to assign selected resource</p>
+            <p className="text-xs text-purple-700">Click tasks to assign selected resource</p>
           </div>
         </label>
       </div>
@@ -294,12 +294,12 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <div className="text-[10px] text-gray-600">
+                      <div className="text-xs text-gray-600">
                         {RESOURCE_DESIGNATIONS[resource.designation]}
                       </div>
                       {resource.category === 'pm' && (
-                        <div className="px-1.5 py-0.5 bg-orange-100 text-orange-700 text-[9px] font-semibold rounded flex items-center gap-0.5 border border-orange-200">
-                          <span className="text-[8px]">📊</span>
+                        <div className="px-1.5 py-0.5 bg-orange-100 text-orange-700 text-xs font-semibold rounded flex items-center gap-0.5 border border-orange-200">
+                          <span className="text-[0.625rem]">📊</span>
                           <span>Phase-level</span>
                         </div>
                       )}
@@ -308,7 +308,7 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
                 </div>
 
                 {/* Utilization Badge */}
-                <div className="flex items-center gap-2 text-[10px]">
+                <div className="flex items-center gap-2 text-xs">
                   {utilization === 0 ? (
                     <div className="flex items-center gap-1 text-gray-500">
                       <AlertCircle className="w-3 h-3" />
@@ -329,7 +329,7 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
 
                 {/* Quick Info */}
                 {resource.description && (
-                  <p className="text-[10px] text-gray-500 mt-2 line-clamp-1">
+                  <p className="text-xs text-gray-500 mt-2 line-clamp-1">
                     {resource.description}
                   </p>
                 )}
@@ -341,7 +341,7 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
 
       {/* Footer Help */}
       <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
-        <div className="flex items-start gap-2 text-[10px] text-gray-600">
+        <div className="flex items-start gap-2 text-xs text-gray-600">
           <Target className="w-3 h-3 mt-0.5 flex-shrink-0 text-purple-600" />
           <div>
             <p className="font-semibold text-gray-900 mb-1">How to use:</p>

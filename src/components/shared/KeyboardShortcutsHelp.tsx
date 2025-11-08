@@ -90,7 +90,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
       <Tag
         style={{
           fontFamily: 'monospace',
-          fontSize: '13px',
+          className="text-sm",
           padding: '4px 8px',
           background: '#f5f5f5',
           border: '1px solid #d9d9d9',
@@ -121,7 +121,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '20px',
+          className="text-lg",
           fontWeight: 'bold',
           transition: 'transform 0.2s, box-shadow 0.2s',
           zIndex: 999,
@@ -144,7 +144,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
       <Modal
         title={
           <Space>
-            <span style={{ fontSize: '18px' }}>⌨️ Keyboard Shortcuts</span>
+            <span style={{ className="text-lg" }}>⌨️ Keyboard Shortcuts</span>
             <Tag color="blue">Press Cmd+/ to toggle</Tag>
           </Space>
         }
@@ -200,7 +200,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
             borderRadius: '6px',
           }}
         >
-          <Text type="secondary" style={{ fontSize: '13px' }}>
+          <Text type="secondary" style={{ className="text-sm" }}>
             💡 <strong>Tip:</strong> Most shortcuts work globally. Some are context-specific
             and only active on certain pages.
           </Text>

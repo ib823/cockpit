@@ -108,7 +108,7 @@ export function WorkflowProgress() {
                         : '#f3f4f6',
                     color: isActive || isCompleted ? '#ffffff' : '#9ca3af',
                     fontWeight: 600,
-                    fontSize: '14px',
+                    className="text-sm",
                     transition: 'all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)',
                     border: isActive ? '2px solid #2563eb' : 'none',
                     boxShadow: isActive ? '0 0 0 4px rgba(37, 99, 235, 0.1)' : 'none'
@@ -123,7 +123,7 @@ export function WorkflowProgress() {
                   }
                 >
                   {isCompleted ? (
-                    <CheckCircleFilled style={{ fontSize: '16px' }} />
+                    <CheckCircleFilled style={{ className="text-base" }} />
                   ) : (
                     index + 1
                   )}
@@ -133,7 +133,7 @@ export function WorkflowProgress() {
                 <div style={{ textAlign: 'center' }}>
                   <div
                     style={{
-                      fontSize: '13px',
+                      className="text-sm",
                       fontWeight: isActive ? 600 : 500,
                       color: isActive
                         ? '#0f172a'
@@ -161,7 +161,7 @@ export function WorkflowProgress() {
               {index < WORKFLOW_STEPS.length - 1 && (
                 <RightOutlined
                   style={{
-                    fontSize: '12px',
+                    className="text-xs",
                     color: isCompleted ? '#16a34a' : '#d1d5db',
                     marginTop: '-32px',
                     transition: 'color 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)'

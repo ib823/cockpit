@@ -68,7 +68,7 @@ export function RateCardManager({ isOpen, onClose, onSave }: RateCardManagerProp
       render: (designation: ResourceDesignation) => (
         <Space direction="vertical" size={0}>
           <Text strong>{RESOURCE_DESIGNATIONS[designation]}</Text>
-          <Text type="secondary" style={{ fontSize: '12px' }}>
+          <Text type="secondary" className="text-xs">
             {DEFAULT_RATE_CARD[designation].description}
           </Text>
         </Space>
@@ -186,7 +186,7 @@ export function RateCardManager({ isOpen, onClose, onSave }: RateCardManagerProp
             <Text strong style={{ color: '#0050B3' }}>
               💡 Rate Card Information
             </Text>
-            <Text style={{ fontSize: '13px', color: '#0050B3' }}>
+            <Text style={{ color: '#0050B3' }} className="text-sm">
               These daily rates are used to calculate project costs. All rates are in Malaysian Ringgit (MYR).
               Rates are based on typical SAP consulting market rates in Malaysia.
             </Text>
@@ -230,12 +230,12 @@ export function RateCardManager({ isOpen, onClose, onSave }: RateCardManagerProp
             ))}
             <Divider style={{ margin: '8px 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Text strong style={{ fontSize: '16px' }}>Total Monthly Cost:</Text>
-              <Text strong style={{ fontSize: '16px', color: '#389E0D' }}>
+              <Text strong className="text-base">Total Monthly Cost:</Text>
+              <Text strong style={{ color: '#389E0D' }} className="text-base">
                 {formatMYR(hypotheticalMonthlyCost)}
               </Text>
             </div>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type="secondary" className="text-xs">
               Based on 20 working days per month
             </Text>
           </Space>

@@ -176,7 +176,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                 {/* Size Preset */}
                 <div>
                   <Text strong>Size Preset</Text>
-                  <Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 8 }}>
+                  <Paragraph type="secondary" style={{ marginBottom: 8 }} className="text-xs">
                     Choose a preset for consistent sizing across exports
                   </Paragraph>
                   <Select
@@ -281,7 +281,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                       checkedChildren="Hide UI"
                       unCheckedChildren="Show UI"
                     />
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className="text-xs">
                       Hide buttons, drag handles, and other UI controls
                     </Text>
 
@@ -305,7 +305,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                       checkedChildren="Minimal (Bars Only)"
                       unCheckedChildren="Full View"
                     />
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className="text-xs">
                       Minimal view shows only timeline and bars
                     </Text>
                   </Space>
@@ -320,7 +320,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                       checkedChildren="Include Header"
                       unCheckedChildren="No Header"
                     />
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className="text-xs">
                       Add project name and date range at the top
                     </Text>
 
@@ -330,7 +330,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                       checkedChildren="Include Footer"
                       unCheckedChildren="No Footer"
                     />
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className="text-xs">
                       Add export date and metadata at the bottom
                     </Text>
 
@@ -340,7 +340,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                       checkedChildren="Include Legend"
                       unCheckedChildren="No Legend"
                     />
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className="text-xs">
                       Add phase color legend
                     </Text>
                   </Space>

@@ -147,10 +147,10 @@ export function FirstTimeOnboarding({ pathname: propPathname }: FirstTimeOnboard
           <div style={{ display: 'flex', gap: '12px' }}>
             <div style={{ flexShrink: 0, fontSize: '24px' }}>👋</div>
             <div style={{ flex: 1 }}>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 600, color: '#111827' }}>
+              <h4 style={{ margin: '0 0 4px 0', className="text-sm", fontWeight: 600, color: '#111827' }}>
                 New here? Take a quick tour
               </h4>
-              <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#6b7280', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 12px 0', className="text-sm", color: '#6b7280', lineHeight: 1.5 }}>
                 Learn the key features in under a minute
               </p>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -162,7 +162,7 @@ export function FirstTimeOnboarding({ pathname: propPathname }: FirstTimeOnboard
                     color: '#fff',
                     border: 'none',
                     borderRadius: '6px',
-                    fontSize: '13px',
+                    className="text-sm",
                     fontWeight: 500,
                     cursor: 'pointer',
                     transition: 'background-color 0.2s'
@@ -180,7 +180,7 @@ export function FirstTimeOnboarding({ pathname: propPathname }: FirstTimeOnboard
                     color: '#6b7280',
                     border: 'none',
                     borderRadius: '6px',
-                    fontSize: '13px',
+                    className="text-sm",
                     fontWeight: 500,
                     cursor: 'pointer',
                     transition: 'background-color 0.2s'
@@ -204,7 +204,7 @@ export function FirstTimeOnboarding({ pathname: propPathname }: FirstTimeOnboard
         steps={pageSteps}
         indicatorsRender={(current, total) => (
           <span style={{
-            fontSize: '12px',
+            className="text-xs",
             color: '#64748b'
           }}>
             {current + 1} / {total}

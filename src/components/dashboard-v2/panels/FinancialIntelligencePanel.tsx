@@ -91,7 +91,8 @@ export function FinancialIntelligencePanel({
               value={revenue}
               precision={0}
               prefix={<DollarSign size={18} />}
-              valueStyle={{ color: '#10B981', fontSize: '20px' }}
+              valueStyle={{ color: '#10B981' }}
+              className="[&_.ant-statistic-content]:text-lg"
               formatter={(value) => formatMYR(Number(value))}
             />
             {editingRevenue ? (
@@ -131,10 +132,11 @@ export function FinancialIntelligencePanel({
               value={costBreakdown.totalCost}
               precision={0}
               prefix={<TrendingDown size={18} />}
-              valueStyle={{ color: '#F59E0B', fontSize: '20px' }}
+              valueStyle={{ color: '#F59E0B' }}
+              className="[&_.ant-statistic-content]:text-lg"
               formatter={(value) => formatMYR(Number(value))}
             />
-            <Text type="secondary" style={{ fontSize: '11px' }}>
+            <Text type="secondary" className="text-xs">
               From {costBreakdown.costByResource.size} resource assignments
             </Text>
           </Card>
@@ -153,9 +155,10 @@ export function FinancialIntelligencePanel({
               precision={1}
               suffix="%"
               prefix={margins.grossMarginPercent >= 20 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-              valueStyle={{ color: marginColor, fontSize: '20px' }}
+              valueStyle={{ color: marginColor }}
+              className="[&_.ant-statistic-content]:text-lg"
             />
-            <Text type="secondary" style={{ fontSize: '11px' }}>
+            <Text type="secondary" className="text-xs">
               {formatMYR(margins.grossMargin)} profit
             </Text>
           </Card>
@@ -228,21 +231,21 @@ export function FinancialIntelligencePanel({
       {/* Financial Insights */}
       <Card size="small" style={{ background: '#F3F4F6', marginTop: '16px' }}>
         <Space direction="vertical" size="small" style={{ width: '100%' }}>
-          <Text strong style={{ fontSize: '13px' }}>
+          <Text strong className="text-sm">
             <Target size={14} style={{ marginRight: '8px' }} />
             Financial Insights
           </Text>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Text type="secondary" style={{ fontSize: '12px' }}>Break-even Revenue:</Text>
-            <Text style={{ fontSize: '12px' }}>{formatMYR(margins.breakEvenRevenue)}</Text>
+            <Text type="secondary" className="text-xs">Break-even Revenue:</Text>
+            <Text className="text-xs">{formatMYR(margins.breakEvenRevenue)}</Text>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Text type="secondary" style={{ fontSize: '12px' }}>Contribution Margin:</Text>
-            <Text style={{ fontSize: '12px' }}>{formatMYR(margins.contributionMargin)}</Text>
+            <Text type="secondary" className="text-xs">Contribution Margin:</Text>
+            <Text className="text-xs">{formatMYR(margins.contributionMargin)}</Text>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Text type="secondary" style={{ fontSize: '12px' }}>Suggested 30% Margin Price:</Text>
-            <Text strong style={{ fontSize: '12px', color: '#3B82F6' }}>
+            <Text type="secondary" className="text-xs">Suggested 30% Margin Price:</Text>
+            <Text strong style={{ color: '#3B82F6' }} className="text-xs">
               {formatMYR(costBreakdown.totalCost / 0.7)}
             </Text>
           </div>

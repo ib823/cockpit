@@ -140,16 +140,16 @@ export function ComprehensiveDashboard({
                 📊 {activeScenario.project.name}
               </Title>
               <Space size="large" style={{ marginTop: '8px' }}>
-                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.9)' }} className="text-sm">
                   <strong>{activeScenario.project.phases.length}</strong> Phases
                 </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.9)' }} className="text-sm">
                   <strong>{activeScenario.project.resources?.length || 0}</strong> Resources
                 </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.9)' }} className="text-sm">
                   Revenue: <strong>{formatMYR(metrics.revenue)}</strong>
                 </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.9)' }} className="text-sm">
                   Margin: <strong style={{ color: metrics.margins.grossMarginPercent >= 20 ? '#A7F3D0' : '#FCA5A5' }}>
                     {metrics.margins.grossMarginPercent.toFixed(1)}%
                   </strong>
@@ -246,7 +246,7 @@ export function ComprehensiveDashboard({
           <Card
             title={
               <Space>
-                <span style={{ fontSize: '16px', fontWeight: 600 }}>🎯 Operational Reality</span>
+                <span style={{ fontWeight: 600 }} className="text-base">🎯 Operational Reality</span>
                 <Badge count={validation.violations.filter(v => v.rule === 'resource_allocation').length} />
               </Space>
             }
@@ -267,7 +267,7 @@ export function ComprehensiveDashboard({
           <Card
             title={
               <Space>
-                <span style={{ fontSize: '16px', fontWeight: 600 }}>💰 Financial Intelligence</span>
+                <span style={{ fontWeight: 600 }} className="text-base">💰 Financial Intelligence</span>
                 {isCalculating && <Spin size="small" />}
               </Space>
             }
@@ -294,7 +294,7 @@ export function ComprehensiveDashboard({
           <Card
             title={
               <Space>
-                <span style={{ fontSize: '16px', fontWeight: 600 }}>🚀 Strategic Insights</span>
+                <span style={{ fontWeight: 600 }} className="text-base">🚀 Strategic Insights</span>
                 <Badge count={recommendations.length} style={{ background: '#52c41a' }} />
               </Space>
             }
@@ -373,7 +373,7 @@ export function ComprehensiveDashboard({
                     background: validation.isValid ? '#52c41a' : '#ff4d4f',
                   }}
                 />
-                <Text type="secondary" style={{ fontSize: '13px' }}>
+                <Text type="secondary" className="text-sm">
                   Data Quality: {validation.isValid ? 'Excellent' : 'Needs Review'}
                 </Text>
               </Space>
@@ -391,7 +391,7 @@ export function ComprehensiveDashboard({
                   >
                     <Space>
                       <CheckCircle2 size={16} color="#52c41a" />
-                      <Text type="secondary" style={{ fontSize: '13px' }}>Saved</Text>
+                      <Text type="secondary" className="text-sm">Saved</Text>
                     </Space>
                   </motion.div>
                 )}
@@ -404,7 +404,7 @@ export function ComprehensiveDashboard({
                   >
                     <Space>
                       <Spin size="small" />
-                      <Text type="secondary" style={{ fontSize: '13px' }}>Saving...</Text>
+                      <Text type="secondary" className="text-sm">Saving...</Text>
                     </Space>
                   </motion.div>
                 )}
@@ -430,7 +430,7 @@ export function ComprehensiveDashboard({
                     type="error"
                     showIcon
                     closable
-                    style={{ fontSize: '12px' }}
+                    className="text-xs"
                   />
                 ))}
               </Space>

@@ -137,7 +137,7 @@ export default function DashboardV2DemoPage() {
                   <FileText size={20} />
                   <div>
                     <div style={{ fontWeight: 600 }}>PDF Report</div>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                    <Text type="secondary" style={{ className="text-xs" }}>
                       Professional print-ready report with charts and tables
                     </Text>
                   </div>
@@ -149,7 +149,7 @@ export default function DashboardV2DemoPage() {
                   <FileSpreadsheet size={20} />
                   <div>
                     <div style={{ fontWeight: 600 }}>Excel Workbook (.xls)</div>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                    <Text type="secondary" style={{ className="text-xs" }}>
                       Formatted HTML table that opens in Excel
                     </Text>
                   </div>
@@ -161,7 +161,7 @@ export default function DashboardV2DemoPage() {
                   <Download size={20} />
                   <div>
                     <div style={{ fontWeight: 600 }}>CSV Spreadsheet (.csv)</div>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                    <Text type="secondary" style={{ className="text-xs" }}>
                       Plain text data for import into any tool
                     </Text>
                   </div>

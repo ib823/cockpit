@@ -238,7 +238,7 @@ export function StrategicView({ project }: StrategicViewProps) {
       {/* Scenario Comparison */}
       <Card bordered={false} style={{ borderRadius: '8px' }}>
         <Title level={5}>🔄 Scenario Comparison</Title>
-        <Text type="secondary" style={{ fontSize: '13px' }}>
+        <Text type="secondary" className="text-sm">
           Compare different approaches side-by-side
         </Text>
 
@@ -262,7 +262,7 @@ export function StrategicView({ project }: StrategicViewProps) {
                     title="Revenue"
                     value={scenario1.revenue}
                     prefix="RM"
-                    valueStyle={{ fontSize: '20px' }}
+                    className="[&_.ant-statistic-content]:text-lg"
                     formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                   />
                   <Statistic
@@ -308,7 +308,7 @@ export function StrategicView({ project }: StrategicViewProps) {
                     title="Revenue"
                     value={scenario2.revenue}
                     prefix="RM"
-                    valueStyle={{ fontSize: '20px' }}
+                    className="[&_.ant-statistic-content]:text-lg"
                     formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                   />
                   <Statistic
@@ -433,7 +433,7 @@ export function StrategicView({ project }: StrategicViewProps) {
       {/* Risk & Feasibility Gauges */}
       <Card bordered={false} style={{ borderRadius: '8px' }}>
         <Title level={5}>⚠️ Risk & Feasibility Assessment</Title>
-        <Text type="secondary" style={{ fontSize: '13px' }}>
+        <Text type="secondary" className="text-sm">
           Qualitative health check beyond the numbers
         </Text>
 
@@ -472,7 +472,7 @@ export function StrategicView({ project }: StrategicViewProps) {
                   <div>
                     <Text strong style={{ color: '#065F46' }}>Healthy Margin</Text>
                     <br />
-                    <Text type="secondary" style={{ fontSize: '13px' }}>
+                    <Text type="secondary" className="text-sm">
                       Project meets profitability targets
                     </Text>
                   </div>
@@ -485,7 +485,7 @@ export function StrategicView({ project }: StrategicViewProps) {
                   <div>
                     <Text strong style={{ color: '#92400E' }}>Margin Risk</Text>
                     <br />
-                    <Text type="secondary" style={{ fontSize: '13px' }}>
+                    <Text type="secondary" className="text-sm">
                       Consider optimizing resource mix
                     </Text>
                   </div>
@@ -497,7 +497,7 @@ export function StrategicView({ project }: StrategicViewProps) {
                 <div>
                   <Text strong style={{ color: '#1E3A8A' }}>Resource Contention</Text>
                   <br />
-                  <Text type="secondary" style={{ fontSize: '13px' }}>
+                  <Text type="secondary" className="text-sm">
                     {project.resources && project.resources.length > 5
                       ? 'Multiple resources increase coordination complexity'
                       : 'Resource count is manageable'}
@@ -510,7 +510,7 @@ export function StrategicView({ project }: StrategicViewProps) {
                 <div>
                   <Text strong style={{ color: '#065F46' }}>Project Feasibility</Text>
                   <br />
-                  <Text type="secondary" style={{ fontSize: '13px' }}>
+                  <Text type="secondary" className="text-sm">
                     Timeline and resource allocation appear realistic
                   </Text>
                 </div>

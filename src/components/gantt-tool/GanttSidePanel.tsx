@@ -497,7 +497,7 @@ function PhaseForm({
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">WD</span>
             </div>
-            <p className="text-[10px] text-blue-600 mt-1">Business days only</p>
+            <p className="text-xs text-blue-600 mt-1">Business days only</p>
           </div>
 
           <div>
@@ -515,7 +515,7 @@ function PhaseForm({
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">CD</span>
             </div>
-            <p className="text-[10px] text-gray-500 mt-1">All days (incl. weekends)</p>
+            <p className="text-xs text-gray-500 mt-1">All days (incl. weekends)</p>
           </div>
         </div>
 
@@ -552,7 +552,7 @@ function PhaseForm({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           />
-          <p className="text-[10px] text-gray-500 mt-1">💡 Click "+ Milestone" to mark phase completion</p>
+          <p className="text-xs text-gray-500 mt-1">💡 Click "+ Milestone" to mark phase completion</p>
         </div>
       </div>
 
@@ -881,7 +881,7 @@ function TaskForm({
         {selectedPhase && (
           <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
             <strong>Phase dates:</strong> {formatGanttDate(selectedPhase.startDate)} - {formatGanttDate(selectedPhase.endDate)}
-            <div className="text-[10px] mt-0.5 text-blue-600">Task must be within these dates</div>
+            <div className="text-xs mt-0.5 text-blue-600">Task must be within these dates</div>
           </div>
         )}
       </div>
@@ -918,7 +918,7 @@ function TaskForm({
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-purple-600">WD</span>
             </div>
-            <p className="text-[10px] text-purple-600 mt-1">Business days only</p>
+            <p className="text-xs text-purple-600 mt-1">Business days only</p>
           </div>
 
           <div>
@@ -936,7 +936,7 @@ function TaskForm({
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">CD</span>
             </div>
-            <p className="text-[10px] text-gray-500 mt-1">All days (incl. weekends)</p>
+            <p className="text-xs text-gray-500 mt-1">All days (incl. weekends)</p>
           </div>
         </div>
 
@@ -973,7 +973,7 @@ function TaskForm({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             required
           />
-          <p className="text-[10px] text-gray-500 mt-1">💡 Click "+ Milestone" to mark task completion</p>
+          <p className="text-xs text-gray-500 mt-1">💡 Click "+ Milestone" to mark task completion</p>
         </div>
       </div>
 

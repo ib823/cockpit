@@ -171,7 +171,7 @@ export function GanttMinimap() {
 
                   {/* Phase name - only show for wider bars */}
                   {position.width > 15 && (
-                    <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white drop-shadow truncate px-1">
+                    <span className="absolute inset-0 flex items-center justify-center text-[0.625rem] font-bold text-white drop-shadow truncate px-1">
                       {phase.name}
                     </span>
                   )}
@@ -183,14 +183,14 @@ export function GanttMinimap() {
 
         {/* Instructions overlay */}
         <div className="absolute bottom-2 left-0 right-0 text-center">
-          <div className="inline-block bg-black/70 text-white text-[9px] px-2 py-1 rounded-full">
+          <div className="inline-block bg-black/70 text-white text-xs px-2 py-1 rounded-full">
             Click background to exit zoom
           </div>
         </div>
       </div>
 
       {/* Footer info */}
-      <div className="px-3 py-1.5 bg-gray-800 text-white text-[10px] flex items-center justify-between border-t border-gray-700">
+      <div className="px-3 py-1.5 bg-gray-800 text-white text-xs flex items-center justify-between border-t border-gray-700">
         <span className="font-semibold">{currentProject.phases.length} phases</span>
         <span className="text-gray-400">
           {Math.ceil(durationDays / 7)} weeks

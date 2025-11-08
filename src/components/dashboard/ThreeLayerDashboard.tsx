@@ -60,7 +60,7 @@ export function ThreeLayerDashboard({
             <Title level={2} style={{ margin: 0, color: 'white' }}>
               📊 Proposal Dashboard
             </Title>
-            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: '16px' }}>
+            <Text style={{ color: 'rgba(255,255,255,0.85)' }} className="text-base">
               {project.name}
             </Text>
           </Space>

@@ -260,7 +260,7 @@ export function SuccessCelebration({
             />
             <div
               style={{
-                fontSize: '20px',
+                className="text-lg",
                 fontWeight: 600,
                 color: '#111827',
               }}

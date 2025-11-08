@@ -14,9 +14,9 @@ export interface TabsProps {
 }
 
 const sizes = {
-  sm: { btn: 'h-8 px-3 text-[13px]', bar: 'h-[2px]' },
-  md: { btn: 'h-10 px-4 text-[14px]', bar: 'h-[2px]' },
-  lg: { btn: 'h-12 px-5 text-[15px]', bar: 'h-[3px]' },
+  sm: { btn: 'h-8 px-3 text-sm', bar: 'h-[2px]' },
+  md: { btn: 'h-10 px-4 text-sm', bar: 'h-[2px]' },
+  lg: { btn: 'h-12 px-5 text-base', bar: 'h-[3px]' },
 } as const;
 
 const TabsCtx = createContext<{ active: string; setActive: (v: string) => void } | null>(null);
