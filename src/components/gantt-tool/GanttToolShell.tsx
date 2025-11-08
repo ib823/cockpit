@@ -17,6 +17,7 @@ import { MissionControlModal } from './MissionControlModal';
 import { format } from 'date-fns';
 import { AlertTriangle } from 'lucide-react';
 import { HexLoader } from '@/components/ui/HexLoader';
+import { useColorMorph } from '@/hooks/useColorMorph';
 
 export function GanttToolShell() {
   const {
@@ -42,6 +43,9 @@ export function GanttToolShell() {
   const [showQuickResourcePanel, setShowQuickResourcePanel] = useState(false);
   const [autoLoadError, setAutoLoadError] = useState<string | null>(null);
   const [initialFetchDone, setInitialFetchDone] = useState(false);
+
+  // Get morphing color for animated text
+  const morphColor = useColorMorph();
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -258,9 +262,9 @@ export function GanttToolShell() {
               <>
                 <HexLoader size="sm" />
                 {saveProgress ? (
-                  <span>☁️ {saveProgress.description}</span>
+                  <span style={{ color: morphColor }}>☁️ {saveProgress.description}</span>
                 ) : (
-                  <span>☁️ Syncing to cloud...</span>
+                  <span style={{ color: morphColor }}>☁️ Syncing to cloud...</span>
                 )}
               </>
             )}
