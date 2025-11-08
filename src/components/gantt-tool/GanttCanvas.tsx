@@ -731,13 +731,25 @@ export function GanttCanvas() {
             const isFirstPhase = phaseIndex === 0;
             const isLastPhase = phaseIndex === currentProject.phases.length - 1;
 
-            // Check if ANY task in this phase exceeds the phase boundary
+            // Check if ANY task in this phase violates phase boundaries (starts before OR ends after)
+            const phaseStartDate = new Date(phase.startDate);
             const phaseEndDate = new Date(phase.endDate);
-            const hasTaskBoundaryIssue = phase.tasks.some(task => {
+
+            const tasksWithBoundaryIssues = phase.tasks.filter(task => {
+              const taskStart = new Date(task.startDate);
               const taskEnd = new Date(task.endDate);
-              return taskEnd > phaseEndDate;
+              return taskStart < phaseStartDate || taskEnd > phaseEndDate;
             });
-            const tasksExceedingCount = phase.tasks.filter(task => {
+
+            const hasTaskBoundaryIssue = tasksWithBoundaryIssues.length > 0;
+            const tasksExceedingCount = tasksWithBoundaryIssues.length;
+
+            const tasksStartingEarly = phase.tasks.filter(task => {
+              const taskStart = new Date(task.startDate);
+              return taskStart < phaseStartDate;
+            }).length;
+
+            const tasksEndingLate = phase.tasks.filter(task => {
               const taskEnd = new Date(task.endDate);
               return taskEnd > phaseEndDate;
             }).length;
@@ -1022,13 +1034,22 @@ export function GanttCanvas() {
                                     <div className="bg-red-600 text-white text-xs px-3 py-2.5 rounded-md shadow-2xl border-2 border-red-400 max-w-xs">
                                       <div className="font-bold mb-1.5 flex items-center gap-1.5">
                                         <AlertTriangle className="w-4 h-4" />
-                                        <span>Phase Boundary Issue</span>
+                                        <span>Phase Boundary Violations</span>
                                       </div>
-                                      <div className="text-[11px] leading-relaxed">
-                                        {tasksExceedingCount} task{tasksExceedingCount > 1 ? 's' : ''} {tasksExceedingCount > 1 ? 'end' : 'ends'} after this phase ends
+                                      <div className="text-[11px] leading-relaxed space-y-1">
+                                        {tasksStartingEarly > 0 && (
+                                          <div>
+                                            • {tasksStartingEarly} task{tasksStartingEarly > 1 ? 's start' : ' starts'} <span className="font-semibold">before</span> phase begins
+                                          </div>
+                                        )}
+                                        {tasksEndingLate > 0 && (
+                                          <div>
+                                            • {tasksEndingLate} task{tasksEndingLate > 1 ? 's end' : ' ends'} <span className="font-semibold">after</span> phase ends
+                                          </div>
+                                        )}
                                       </div>
                                       <div className="text-[11px] mt-1.5 pt-1.5 border-t border-red-400/30">
-                                        Phase ends: <span className="font-semibold">{format(phaseEndDate, 'dd MMM yy')}</span>
+                                        <div>Phase: <span className="font-semibold">{format(phaseStartDate, 'dd MMM yy')} → {format(phaseEndDate, 'dd MMM yy')}</span></div>
                                       </div>
                                       <div className="text-[10px] mt-1.5 pt-1.5 border-t border-red-400/30 text-red-100 italic">
                                         {phase.collapsed ? '💡 Expand phase to see which tasks need adjustment' : '💡 Check tasks with red borders below'}
@@ -1190,10 +1211,14 @@ export function GanttCanvas() {
                       const isTaskSelected = selection.selectedItemId === task.id && selection.selectedItemType === 'task';
                       const isTaskDragging = dragState?.itemId === task.id && dragState?.itemType === 'task';
 
-                      // Check if task exceeds phase boundary (data integrity warning)
+                      // Check if task violates phase boundaries (starts before OR ends after)
+                      const phaseStartDate = new Date(phase.startDate);
                       const phaseEndDate = new Date(phase.endDate);
-                      const taskExceedsPhase = taskEnd > phaseEndDate;
-                      const daysExceeded = taskExceedsPhase ? differenceInDays(taskEnd, phaseEndDate) : 0;
+                      const taskStartsEarly = taskStart < phaseStartDate;
+                      const taskEndsLate = taskEnd > phaseEndDate;
+                      const taskExceedsPhase = taskStartsEarly || taskEndsLate;
+                      const daysStartedEarly = taskStartsEarly ? differenceInDays(phaseStartDate, taskStart) : 0;
+                      const daysEndedLate = taskEndsLate ? differenceInDays(taskEnd, phaseEndDate) : 0;
 
                       // Jobs/Ive: Use consistent color palette - matches collapsed mini-segments
                       const taskColor = getTaskColor(taskIdx);
@@ -1331,14 +1356,23 @@ export function GanttCanvas() {
                                             <div className="bg-red-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl border-2 border-red-400 max-w-xs">
                                               <div className="font-bold mb-1 flex items-center gap-1.5">
                                                 <AlertTriangle className="w-4 h-4" />
-                                                <span>Task Exceeds Phase Boundary</span>
+                                                <span>Task Boundary Violation</span>
                                               </div>
-                                              <div className="text-[11px] leading-relaxed">
-                                                This task ends <span className="font-semibold">{daysExceeded} day{daysExceeded > 1 ? 's' : ''}</span> after the phase ends.
+                                              <div className="text-[11px] leading-relaxed space-y-1">
+                                                {taskStartsEarly && (
+                                                  <div>
+                                                    This task starts <span className="font-semibold">{daysStartedEarly} day{daysStartedEarly > 1 ? 's' : ''}</span> <span className="font-semibold">before</span> the phase begins.
+                                                  </div>
+                                                )}
+                                                {taskEndsLate && (
+                                                  <div>
+                                                    This task ends <span className="font-semibold">{daysEndedLate} day{daysEndedLate > 1 ? 's' : ''}</span> <span className="font-semibold">after</span> the phase ends.
+                                                  </div>
+                                                )}
                                               </div>
-                                              <div className="text-[11px] mt-1.5 pt-1.5 border-t border-red-400/30">
-                                                <div>Task ends: <span className="font-semibold">{format(taskEnd, 'dd MMM yy')}</span></div>
-                                                <div>Phase ends: <span className="font-semibold">{format(phaseEndDate, 'dd MMM yy')}</span></div>
+                                              <div className="text-[11px] mt-1.5 pt-1.5 border-t border-red-400/30 space-y-0.5">
+                                                <div>Task: <span className="font-semibold">{format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}</span></div>
+                                                <div>Phase: <span className="font-semibold">{format(phaseStartDate, 'dd MMM yy')} → {format(phaseEndDate, 'dd MMM yy')}</span></div>
                                               </div>
                                               <div className="text-[10px] mt-1.5 pt-1.5 border-t border-red-400/30 text-red-100 italic">
                                                 💡 Adjust task or phase dates to fix this issue
