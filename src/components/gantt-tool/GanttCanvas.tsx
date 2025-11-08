@@ -849,7 +849,14 @@ export function GanttCanvas() {
                   </div>
 
                   {/* Timeline Area with Adaptive Title Position */}
-                  <div className="flex-1 relative" style={{ minHeight: phase.collapsed ? '132px' : '95px' }}>
+                  <div
+                    className="flex-1 relative transition-all duration-300 ease-in-out"
+                    style={{
+                      minHeight: phase.collapsed
+                        ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '110px' : '132px')
+                        : '95px'
+                    }}
+                  >
                     {/* Animated Phase Title - Morphs between above bar (collapsed) and inside bar (expanded) */}
                     {(viewSettings?.showTitles ?? true) && (
                       <div
@@ -859,7 +866,10 @@ export function GanttCanvas() {
                         style={{
                           left: `${metrics.left}%`,
                           width: `${metrics.width}%`,
-                          top: phase.collapsed ? '0px' : '36px', // Morph from top to inside bar
+                          // Clean mode: title moves down closer to bar when badges are hidden
+                          top: phase.collapsed
+                            ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '48px' : '0px')
+                            : '36px',
                         }}
                       >
                         <div className="relative group/phaselabel">
@@ -911,7 +921,10 @@ export function GanttCanvas() {
                       style={{
                         left: `${metrics.left}%`,
                         width: `${metrics.width}%`,
-                        top: phase.collapsed ? '74px' : '24px', // Higher when collapsed (title + badges above with proper spacing)
+                        // Clean mode: bar moves up closer to title when badges are hidden
+                        top: phase.collapsed
+                          ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '62px' : '74px')
+                          : '24px',
                         background: `linear-gradient(180deg, ${phase.color} 0%, ${withOpacity(phase.color, 0.85)} 100%)`,
                         boxShadow: isDragging
                           ? `0 12px 32px ${withOpacity(phase.color, 0.4)}`
