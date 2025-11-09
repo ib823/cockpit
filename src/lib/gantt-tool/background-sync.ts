@@ -21,9 +21,10 @@ import { calculateProjectDelta, isDeltaEmpty, sanitizeDelta } from './delta-calc
 import { shouldBatchDelta, batchDelta } from './delta-batcher';
 import type { GanttProject, ProjectDelta } from '@/types/gantt-tool';
 
-const MAX_RETRY_COUNT = 5;
-const RETRY_DELAYS = [1000, 2000, 5000, 10000, 30000]; // Exponential backoff
+const MAX_RETRY_COUNT = 10; // Increased from 5 to give more chances
+const RETRY_DELAYS = [1000, 2000, 5000, 10000, 30000, 60000]; // Exponential backoff up to 1 minute
 const SYNC_INTERVAL = 5000; // Check every 5 seconds
+const RETRY_RESET_TIME = 5 * 60 * 1000; // Reset retry count for items older than 5 minutes
 
 let syncInterval: NodeJS.Timeout | null = null;
 let isSyncing = false;
@@ -243,6 +244,14 @@ async function processSyncQueue(): Promise<void> {
     console.log(`[BackgroundSync] Processing ${pendingItems.length} pending sync items`);
 
     for (const item of pendingItems) {
+      // Reset retry count for old items (gives them another chance after app reload or long delay)
+      const itemAge = Date.now() - item.timestamp;
+      if (item.retryCount > 0 && itemAge > RETRY_RESET_TIME) {
+        console.log(`[BackgroundSync] Resetting retry count for old item (age: ${Math.round(itemAge / 1000)}s)`, item.projectId);
+        item.retryCount = 0;
+        item.lastError = undefined;
+        await updateSyncQueueItem(item);
+      }
       try {
         syncCallbacks.onSyncStart?.(item.projectId);
 
@@ -273,9 +282,24 @@ async function processSyncQueue(): Promise<void> {
         item.lastError = errorMessage;
 
         if (item.retryCount >= MAX_RETRY_COUNT) {
-          console.error('[BackgroundSync] Max retries exceeded, removing from queue', item.projectId);
-          await removeFromSyncQueue(item.id);
-          syncCallbacks.onSyncError?.(item.projectId, 'Max retries exceeded: ' + errorMessage);
+          // Don't remove from queue - keep it for potential recovery
+          console.error('[BackgroundSync] Max retries exceeded for', item.projectId);
+          console.error('[BackgroundSync] Error details:', {
+            projectId: item.projectId,
+            retryCount: item.retryCount,
+            lastError: errorMessage,
+            timestamp: new Date(item.timestamp).toISOString(),
+            itemAge: `${Math.round((Date.now() - item.timestamp) / 1000)}s`,
+          });
+
+          await updateSyncQueueItem(item);
+          syncCallbacks.onSyncError?.(
+            item.projectId,
+            `Sync failed after ${MAX_RETRY_COUNT} attempts: ${errorMessage}. Changes are saved locally and will retry automatically.`
+          );
+
+          // Skip this item for now but don't remove it - will retry after RETRY_RESET_TIME
+          console.log(`[BackgroundSync] Will retry again after ${RETRY_RESET_TIME / 1000}s or on app reload`);
         } else {
           // Schedule retry
           const delay = RETRY_DELAYS[Math.min(item.retryCount - 1, RETRY_DELAYS.length - 1)];

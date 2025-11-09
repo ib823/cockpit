@@ -80,7 +80,7 @@ export function CostDashboard() {
       phaseId,
       phaseName: phase?.name || 'Unknown',
       cost,
-      percentage: (cost / costData.laborCost) * 100,
+      percentage: costData.laborCost > 0 ? (cost / costData.laborCost) * 100 : 0,
       color: phase?.color || '#gray-400',
     };
   });
@@ -89,7 +89,7 @@ export function CostDashboard() {
     category,
     categoryLabel: RESOURCE_CATEGORIES[category].label,
     cost,
-    percentage: (cost / costData.laborCost) * 100,
+    percentage: costData.laborCost > 0 ? (cost / costData.laborCost) * 100 : 0,
     color: RESOURCE_CATEGORIES[category].color,
     icon: RESOURCE_CATEGORIES[category].icon,
   }));
@@ -102,7 +102,7 @@ export function CostDashboard() {
         resourceName: resource?.name || 'Unknown',
         category: resource?.category,
         cost,
-        percentage: (cost / costData.laborCost) * 100,
+        percentage: costData.laborCost > 0 ? (cost / costData.laborCost) * 100 : 0,
       };
     })
     .sort((a, b) => b.cost - a.cost)

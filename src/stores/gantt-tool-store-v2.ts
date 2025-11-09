@@ -118,6 +118,12 @@ interface GanttToolStateV2 {
   reorderTask: (taskId: string, phaseId: string, direction: 'up' | 'down') => void;
   autoAlignTask: (taskId: string, phaseId: string) => void;
 
+  // Task Hierarchy (with auto-save)
+  toggleTaskCollapse: (taskId: string, phaseId: string) => void;
+  makeTaskChild: (taskId: string, parentTaskId: string, phaseId: string) => void;
+  promoteTask: (taskId: string, phaseId: string) => void;
+  getTaskWithChildren: (taskId: string, phaseId: string) => GanttTask | null;
+
   // Milestone Management (with auto-save)
   addMilestone: (data: MilestoneFormData) => Promise<void>;
   updateMilestone: (milestoneId: string, updates: Partial<GanttMilestone>) => Promise<void>;
@@ -1187,9 +1193,25 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           progress: 0,
           resourceAssignments: [],
           order: phase.tasks.length, // Set order to current array length
+
+          // Task Hierarchy fields
+          parentTaskId: (data as any).parentTaskId || null,
+          level: (data as any).parentTaskId ?
+            (phase.tasks.find(t => t.id === (data as any).parentTaskId)?.level ?? 0) + 1 : 0,
+          collapsed: false,
+          isParent: false,
         };
 
         phase.tasks.push(newTask);
+
+        // Update parent task's isParent flag if this is a child task
+        if (newTask.parentTaskId) {
+          const parentTask = phase.tasks.find(t => t.id === newTask.parentTaskId);
+          if (parentTask) {
+            parentTask.isParent = true;
+          }
+        }
+
         state.currentProject.updatedAt = new Date().toISOString();
       });
 
@@ -1345,6 +1367,108 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       });
 
       get().saveProject();
+    },
+
+    // --- Task Hierarchy Management ---
+    toggleTaskCollapse: (taskId, phaseId) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const phase = state.currentProject.phases.find((p) => p.id === phaseId);
+        if (!phase) return;
+
+        const task = phase.tasks.find((t) => t.id === taskId);
+        if (!task || !task.isParent) return;
+
+        task.collapsed = !task.collapsed;
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      get().saveProject();
+    },
+
+    makeTaskChild: (taskId, parentTaskId, phaseId) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const phase = state.currentProject.phases.find((p) => p.id === phaseId);
+        if (!phase) return;
+
+        const task = phase.tasks.find((t) => t.id === taskId);
+        const parentTask = phase.tasks.find((t) => t.id === parentTaskId);
+
+        if (!task || !parentTask) return;
+
+        // Prevent circular hierarchy
+        if (parentTaskId === taskId) return;
+
+        // Update task hierarchy
+        task.parentTaskId = parentTaskId;
+        task.level = parentTask.level + 1;
+
+        // Update parent's isParent flag
+        parentTask.isParent = true;
+
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      get().saveProject();
+    },
+
+    promoteTask: (taskId, phaseId) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const phase = state.currentProject.phases.find((p) => p.id === phaseId);
+        if (!phase) return;
+
+        const task = phase.tasks.find((t) => t.id === taskId);
+        if (!task || !task.parentTaskId) return;
+
+        const oldParent = phase.tasks.find((t) => t.id === task.parentTaskId);
+
+        // Remove parent relationship
+        task.parentTaskId = null;
+        task.level = 0;
+
+        // Check if old parent still has children
+        if (oldParent) {
+          const hasOtherChildren = phase.tasks.some(
+            (t) => t.parentTaskId === oldParent.id && t.id !== taskId
+          );
+          oldParent.isParent = hasOtherChildren;
+        }
+
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      get().saveProject();
+    },
+
+    getTaskWithChildren: (taskId, phaseId) => {
+      const state = get();
+      if (!state.currentProject) return null;
+
+      const phase = state.currentProject.phases.find((p) => p.id === phaseId);
+      if (!phase) return null;
+
+      const task = phase.tasks.find((t) => t.id === taskId);
+      if (!task) return null;
+
+      // Recursively build child tree
+      const buildTaskTree = (parentId: string): GanttTask[] => {
+        return phase.tasks
+          .filter((t) => t.parentTaskId === parentId)
+          .map((child) => ({
+            ...child,
+            childTasks: buildTaskTree(child.id),
+          }));
+      };
+
+      return {
+        ...task,
+        childTasks: buildTaskTree(task.id),
+      };
     },
 
     // --- Milestone Management (implement following phase pattern) ---

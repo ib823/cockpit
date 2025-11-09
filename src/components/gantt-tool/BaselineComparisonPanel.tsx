@@ -739,7 +739,7 @@ function MetricCard({
 }
 
 function StatusBar({ label, count, total, color }: any) {
-  const percentage = (count / total) * 100;
+  const percentage = total > 0 ? (count / total) * 100 : 0;
 
   return (
     <div>

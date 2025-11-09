@@ -51,6 +51,13 @@ export interface GanttTask {
   progress: number; // 0-100
   resourceAssignments?: TaskResourceAssignment[]; // Assigned resources
   order: number; // Display order of tasks within phase
+
+  // Task Hierarchy (Work Breakdown Structure)
+  parentTaskId?: string | null; // ID of parent task (null for top-level tasks)
+  level: number; // Nesting level (0 = top-level, 1 = first level subtask, etc.)
+  collapsed: boolean; // UI state: if true, children are hidden
+  isParent: boolean; // True if this task has child tasks
+  childTasks?: GanttTask[]; // Child tasks (populated when needed)
 }
 
 export interface GanttMilestone {
@@ -127,6 +134,7 @@ export interface TaskFormData {
   endDate: string;
   assignee?: string;
   dependencies?: string[];
+  parentTaskId?: string | null;
 }
 
 export interface MilestoneFormData {
@@ -359,16 +367,27 @@ export interface WorkingDaysCalculation {
 }
 
 // Resource Category Labels and Colors
+/**
+ * Resource Categories - Simplified Color System (Jobs/Ive Principle)
+ *
+ * Icons provide visual distinction, colors are semantic by skill level:
+ * - Leadership/Management: Purple (#7E22CE) - Strategic roles
+ * - Technical/Delivery: Blue (#2563EB) - Execution roles
+ * - Support/Other: Gray (#6B7280) - General roles
+ *
+ * This eliminates arbitrary colors (orange, pink, cyan) and ensures
+ * colors have meaning rather than decoration.
+ */
 export const RESOURCE_CATEGORIES: Record<ResourceCategory, { label: string; color: string; icon: string }> = {
-  leadership: { label: 'Leadership', color: '#D97706', icon: '🎯' },
-  functional: { label: 'Functional', color: '#3B82F6', icon: '📘' },
-  technical: { label: 'Technical', color: '#8B5CF6', icon: '🔧' },
-  basis: { label: 'Basis/Infrastructure', color: '#10B981', icon: '🏗️' },
-  security: { label: 'Security & Authorization', color: '#EF4444', icon: '🔒' },
-  pm: { label: 'Project Management', color: '#F59E0B', icon: '📊' },
-  change: { label: 'Change Management', color: '#EC4899', icon: '🔄' },
-  qa: { label: 'Quality Assurance', color: '#06B6D4', icon: '✅' },
-  other: { label: 'Other/General', color: '#64748B', icon: '👤' },
+  leadership: { label: 'Leadership', color: '#7E22CE', icon: '🎯' },        // Purple - Strategic
+  pm: { label: 'Project Management', color: '#7E22CE', icon: '📊' },      // Purple - Strategic
+  change: { label: 'Change Management', color: '#7E22CE', icon: '🔄' },   // Purple - Strategic
+  functional: { label: 'Functional', color: '#2563EB', icon: '📘' },      // Blue - Technical
+  technical: { label: 'Technical', color: '#2563EB', icon: '🔧' },        // Blue - Technical
+  basis: { label: 'Basis/Infrastructure', color: '#2563EB', icon: '🏗️' }, // Blue - Technical
+  security: { label: 'Security & Authorization', color: '#2563EB', icon: '🔒' }, // Blue - Technical
+  qa: { label: 'Quality Assurance', color: '#2563EB', icon: '✅' },        // Blue - Technical
+  other: { label: 'Other/General', color: '#6B7280', icon: '👤' },        // Gray - Support
 };
 
 export const RESOURCE_DESIGNATIONS: Record<ResourceDesignation, string> = {

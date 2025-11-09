@@ -48,7 +48,7 @@ export function PresentMode() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-7xl font-thin mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-thin mb-4 sm:mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               Your SAP Implementation Plan
             </h1>
             <p className="text-3xl text-gray-400 font-light">
@@ -67,7 +67,7 @@ export function PresentMode() {
           <motion.h2
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            className="text-5xl font-light mb-12"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-6 sm:mb-8 md:mb-12"
           >
             Project Requirements
           </motion.h2>
@@ -98,7 +98,7 @@ export function PresentMode() {
           <motion.h2
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            className="text-5xl font-light mb-12"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-6 sm:mb-8 md:mb-12"
           >
             Implementation Timeline
           </motion.h2>
@@ -147,7 +147,7 @@ export function PresentMode() {
           <motion.h2
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            className="text-5xl font-light mb-12"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-6 sm:mb-8 md:mb-12"
           >
             Team Structure
           </motion.h2>
@@ -184,7 +184,7 @@ export function PresentMode() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-5xl font-light mb-12">Project Summary</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-6 sm:mb-8 md:mb-12">Project Summary</h2>
 
             <div className="grid grid-cols-3 gap-12 max-w-4xl mx-auto">
               <div>
@@ -303,71 +303,77 @@ export function PresentMode() {
         </div>
       </div>
 
-      {/* Navigation dots */}
-      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-4">
+      {/* Navigation dots - Mobile responsive */}
+      <div className="fixed bottom-12 sm:bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-4 pb-safe">
         {slidesWithNotes.map((slide, i) => (
           <button
             key={slide.id}
             onClick={() => setCurrentSlide(i)}
             className={cn(
-              "transition-all rounded-full",
-              i === currentSlide ? "w-8 h-2 bg-white" : "w-2 h-2 bg-white/30 hover:bg-white/50"
+              "transition-all rounded-full touch-manipulation",
+              i === currentSlide
+                ? "w-6 sm:w-8 h-2 bg-white"
+                : "w-2 h-2 bg-white/30 hover:bg-white/50 active:bg-white/60"
             )}
             aria-label={`Go to slide ${i + 1}`}
           />
         ))}
       </div>
 
-      {/* Navigation arrows */}
-      <div className="fixed bottom-12 left-12">
+      {/* Navigation arrows - Mobile responsive with safe areas */}
+      <div className="fixed bottom-12 sm:bottom-16 md:bottom-20 left-3 sm:left-8 md:left-12 pb-safe">
         <button
           onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
           disabled={currentSlide === 0}
-          className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center
-                     hover:bg-white/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center
+                     hover:bg-white/20 active:bg-white/25 transition-colors disabled:opacity-30 disabled:cursor-not-allowed
+                     touch-manipulation"
         >
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
       </div>
 
-      <div className="fixed bottom-12 right-12">
+      <div className="fixed bottom-12 sm:bottom-16 md:bottom-20 right-3 sm:right-8 md:right-12 pb-safe">
         <button
           onClick={() => setCurrentSlide(Math.min(slidesWithNotes.length - 1, currentSlide + 1))}
           disabled={currentSlide === slidesWithNotes.length - 1}
-          className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center
-                     hover:bg-white/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center
+                     hover:bg-white/20 active:bg-white/25 transition-colors disabled:opacity-30 disabled:cursor-not-allowed
+                     touch-manipulation"
         >
-          <ChevronRight className="w-6 h-6" />
+          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
       </div>
 
-      {/* Top Controls */}
-      <div className="fixed top-8 right-8 flex items-center gap-4">
-        {/* Export PDF button */}
+      {/* Top Controls - Mobile responsive */}
+      <div className="fixed top-3 sm:top-6 md:top-8 right-3 sm:right-6 md:right-8 flex items-center gap-2 sm:gap-4 pt-safe pr-safe">
+        {/* Export PDF button - Hidden on mobile, icon only on tablet */}
         <button
           onClick={handleExportPDF}
           disabled={isExporting}
-          className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm flex items-center gap-2
-                     hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="hidden sm:flex px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/10 backdrop-blur-sm items-center gap-2
+                     hover:bg-white/20 active:bg-white/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                     touch-manipulation"
           aria-label="Export to PDF"
         >
-          <FileDown className="w-5 h-5" />
-          <span className="text-sm">{isExporting ? "Exporting..." : "Export PDF"}</span>
+          <FileDown className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="text-xs sm:text-sm hidden md:inline">{isExporting ? "Exporting..." : "Export PDF"}</span>
         </button>
 
         {/* Exit button */}
         <button
           onClick={() => router.push("/project/plan")}
-          className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm
-                     flex items-center justify-center hover:bg-white/20 transition-colors group"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 backdrop-blur-sm
+                     flex items-center justify-center hover:bg-white/20 active:bg-white/25 transition-colors group
+                     touch-manipulation"
           aria-label="Exit presentation"
         >
-          <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+          <X className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-300" />
         </button>
       </div>
 
-      {/* Slide counter */}
-      <div className="fixed top-8 left-8 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm">
+      {/* Slide counter - Mobile responsive */}
+      <div className="fixed top-3 sm:top-6 md:top-8 left-3 sm:left-6 md:left-8 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-sm rounded-full text-xs sm:text-sm pt-safe pl-safe">
         {currentSlide + 1} / {slidesWithNotes.length}
       </div>
 

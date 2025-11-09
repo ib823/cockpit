@@ -302,6 +302,34 @@ export const RESOURCE_CATEGORY_COLORS = {
   other: '#6B7280',        // Gray
 } as const;
 
+/**
+ * Gantt Semantic Status Colors
+ * Color meanings for phases and tasks in the Gantt chart
+ */
+export const GANTT_STATUS_COLORS = {
+  // Status-based colors
+  notStarted: colorValues.gray[500],      // #6B7280 - Gray: Not yet begun
+  inProgress: colorValues.primary[500],   // #3B82F6 - Blue: Currently active, on schedule
+  atRisk: colorValues.warning[500],       // #F59E0B - Amber: Approaching deadline or blocked
+  blocked: colorValues.error[500],        // #EF4444 - Red: Cannot proceed, overdue
+  completed: colorValues.success[600],    // #059669 - Green: Successfully finished
+  onHold: colorValues.accent[400],        // #C084FC - Purple: Paused/waiting
+} as const;
+
+/**
+ * Status Labels for Legend
+ */
+export const GANTT_STATUS_LABELS = {
+  notStarted: 'Not Started',
+  inProgress: 'In Progress / On Schedule',
+  atRisk: 'At Risk / Approaching Deadline',
+  blocked: 'Blocked / Overdue',
+  completed: 'Completed',
+  onHold: 'On Hold / Paused',
+} as const;
+
+export type GanttStatus = keyof typeof GANTT_STATUS_COLORS;
+
 // ============================================================================
 // ANIMATION SYSTEM - Consistent Timing
 // ============================================================================
@@ -577,6 +605,13 @@ export function getResourceCategoryColor(category: keyof typeof RESOURCE_CATEGOR
 }
 
 /**
+ * Get Gantt status color
+ */
+export function getGanttStatusColor(status: GanttStatus): string {
+  return GANTT_STATUS_COLORS[status] || GANTT_STATUS_COLORS.notStarted;
+}
+
+/**
  * Generate a gradient from a base color
  */
 export function generateGradient(baseColor: string, direction: 'to-r' | 'to-b' | 'to-br' = 'to-r'): string {
@@ -667,6 +702,8 @@ export const designSystem = {
   colorClasses: colors,
   taskColors: PROFESSIONAL_TASK_COLORS,
   resourceColors: RESOURCE_CATEGORY_COLORS,
+  ganttStatusColors: GANTT_STATUS_COLORS,
+  ganttStatusLabels: GANTT_STATUS_LABELS,
   typography,
   spacing,
   animation,
@@ -681,6 +718,7 @@ export const designSystem = {
     withOpacity,
     getTaskColor,
     getResourceCategoryColor,
+    getGanttStatusColor,
     generateGradient,
     lightenColor,
     darkenColor,

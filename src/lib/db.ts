@@ -24,7 +24,7 @@ class QueryMonitor {
   };
 
   private queryTimes: number[] = [];
-  private readonly slowQueryThreshold = 100; // ms
+  private readonly slowQueryThreshold = 300; // ms (adjusted for cloud database latency)
 
   recordQuery(duration: number) {
     this.stats.totalQueries++;

@@ -646,6 +646,7 @@ function TaskForm({
     startDate: existingTask?.task.startDate?.split('T')[0] || new Date().toISOString().split('T')[0],
     endDate: existingTask?.task.endDate?.split('T')[0] || new Date().toISOString().split('T')[0],
     assignee: existingTask?.task.assignee || '',
+    parentTaskId: existingTask?.task.parentTaskId || null,
   });
 
   const [workingDaysInput, setWorkingDaysInput] = useState<string>('');
@@ -884,6 +885,34 @@ function TaskForm({
             <div className="text-xs mt-0.5 text-blue-600">Task must be within these dates</div>
           </div>
         )}
+      </div>
+
+      {/* Parent Task Selector (for creating subtasks) */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Parent Task (Optional)
+        </label>
+        <select
+          value={formData.parentTaskId || ''}
+          onChange={(e) =>
+            setFormData({ ...formData, parentTaskId: e.target.value || null })
+          }
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+        >
+          <option value="">None (Top-level task)</option>
+          {selectedPhase?.tasks
+            .filter((t) => t.id !== itemId) // Don't allow selecting self
+            .sort((a, b) => a.order - b.order)
+            .map((t) => (
+              <option key={t.id} value={t.id}>
+                {'  '.repeat(t.level)}
+                {t.name}
+              </option>
+            ))}
+        </select>
+        <p className="mt-1 text-xs text-gray-500">
+          Select a parent task to create a subtask
+        </p>
       </div>
 
       <div className="space-y-4">

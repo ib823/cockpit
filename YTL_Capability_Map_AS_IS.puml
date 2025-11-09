@@ -1,0 +1,78 @@
+@startuml YTL_Capability_Map_AS_IS
+title YTL Cement - Business Capability Map (Current State - ECC6)
+skinparam backgroundColor #F5F5F5
+skinparam roundCorners 15
+
+package "YTL CEMENT GROUP" {
+
+  rectangle "STRATEGIC LEVEL" as strategic_level #f0f0f0 {
+    rectangle "Procure-to-Pay" as p2p #FFF4E6
+    rectangle "Order-to-Cash" as o2c #FFF4E6
+    rectangle "Make-to-Stock" as mts #FFF4E6
+    rectangle "Finance & Reporting" as fin_rep #FFF4E6
+  }
+
+  rectangle "BUSINESS CAPABILITY LEVEL" as capability_level #f0f0f0 {
+    rectangle "Invoice\nProcessing" as invoice_cap #FF6B6B
+    rectangle "GL\nReconciliation" as gl_cap #FF6B6B
+    rectangle "Vendor\nManagement" as vendor_cap #FF6B6B
+    rectangle "SoD\nCompliance" as sod_cap #FF6B6B
+    rectangle "e-Invoice\nCompliance" as einvoice_cap #B0B0B0
+  }
+
+  rectangle "FUNCTIONAL LEVEL" as func_level #f0f0f0 {
+    rectangle "Create PO\nCreate PR" as po_func #FFB3B3
+    rectangle "Match Invoice\nto PO/GR" as match_func #FFB3B3
+    rectangle "Post GL\nEntries" as gl_func #FFB3B3
+    rectangle "Detect SoD\nViolations" as sod_func #FFB3B3
+    rectangle "Manual XML\nGeneration" as xml_func #D0D0D0
+  }
+}
+
+strategic_level --|> capability_level
+capability_level --|> func_level
+
+note right of invoice_cap
+  <color:red>RED</color> = Manual, Error-Prone
+  Current: 28K invoices/month
+  Issues: 1-2% undetected mismatches
+  Cost: $280K-560K annually
+end note
+
+note right of gl_cap
+  <color:red>RED</color> = Manual Process
+  Current: 8-day close cycle
+  Issues: Manual variance investigation
+  Cost: $192K annually (labor)
+end note
+
+note right of vendor_cap
+  <color:red>RED</color> = Excel-Based
+  Current: 8,000 vendors
+  Issues: 23% duplicates
+  Cost: $200K-400K loss annually
+end note
+
+note right of sod_cap
+  <color:red>RED</color> = Quarterly Audit
+  Current: Manual review only
+  Issues: 6-month detection lag
+  Risk: Compliance violations
+end note
+
+note right of einvoice_cap
+  <color:gold>YELLOW</color> = Partial
+  Current: Manual submission
+  Issues: Error-prone, not scalable
+  Deadline: Q2 2026 (LHDN MyInvois)
+end note
+
+legend right
+  | Color | Meaning |
+  | <color:red>RED</color> | Manual, Error-Prone, High Risk |
+  | <color:gold>YELLOW</color> | Partially Automated |
+  | <color:green>GREEN</color> | Fully Automated, Optimized |
+  | <color:gray>GRAY</color> | Not Yet Implemented |
+end legend
+
+@enduml

@@ -14,6 +14,7 @@ import { GanttCanvas } from './GanttCanvas';
 import { GanttSidePanel } from './GanttSidePanel';
 import { QuickResourcePanel } from './QuickResourcePanel';
 import { MissionControlModal } from './MissionControlModal';
+import { ResponsiveGanttWrapper } from './ResponsiveGanttWrapper';
 import { format } from 'date-fns';
 import { AlertTriangle } from 'lucide-react';
 import { HexLoader } from '@/components/ui/HexLoader';
@@ -34,6 +35,7 @@ export function GanttToolShell() {
     isLoading,
     saveProgress,
     syncStatus,
+    syncError,
     lastLocalSaveAt,
     cloudSyncPending,
   } = useGanttToolStoreV2();
@@ -277,10 +279,26 @@ export function GanttToolShell() {
               </>
             )}
             {syncStatus === 'error' && (
-              <>
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                <span>⚠️ Sync error - changes saved locally</span>
-              </>
+              <div className="relative group">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>⚠️ Sync error - changes saved locally</span>
+                </div>
+                {/* Error detail tooltip */}
+                {syncError && (
+                  <div className="absolute left-0 top-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                    <div className="bg-red-600 text-white text-xs px-3 py-2 rounded-md shadow-2xl border-2 border-red-400 max-w-sm">
+                      <div className="font-bold mb-1">Error Details:</div>
+                      <div className="text-xs leading-relaxed break-words whitespace-normal max-w-xs">
+                        {syncError}
+                      </div>
+                      <div className="text-xs mt-2 pt-2 border-t border-red-400/30 text-red-100 italic">
+                        💡 Your changes are saved locally and will sync when the issue is resolved
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
             {!navigator.onLine && syncStatus !== 'error' && (
               <span className="ml-1 text-xs opacity-75">📡 Offline</span>
@@ -299,7 +317,9 @@ export function GanttToolShell() {
           className="flex-1"
           style={{ overflow: 'hidden', width: '100%' }}
         >
-          <GanttCanvas />
+          <ResponsiveGanttWrapper>
+            <GanttCanvas />
+          </ResponsiveGanttWrapper>
         </div>
 
         {/* Quick Resource Panel - Jobs/Ive: Only visible when summoned */}

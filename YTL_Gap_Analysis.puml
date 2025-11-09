@@ -1,0 +1,153 @@
+@startuml YTL_Gap_Analysis
+title YTL Cement - Gap Analysis: Current vs Target State
+skinparam backgroundColor #F5F5F5
+
+' Gap 1: Invoice Processing
+rectangle "GAP 1: Invoice Processing" as gap1 {
+  rectangle "AS-IS" #FF9999 {
+    component [Manual 3-Way Match] as g1_current
+    component [28K invoices/month] as g1_vol
+    component [1-2% undetected errors] as g1_error
+    component [Cost: $280K-560K/year] as g1_cost
+  }
+
+  rectangle "SOLUTION" #FFFF99 {
+    component [Invoice Matching MVP] as g1_sol
+    component [Continuous monitoring] as g1_benefit
+    component [99.7% accuracy] as g1_target
+    component [Pattern detection] as g1_feature
+  }
+
+  rectangle "TO-BE" #99FF99 {
+    component [Automated 3-Way Match\n+ Fraud Detection] as g1_tobe
+    component [ROI: <1 month] as g1_roi
+    component [Effort: 4-5 weeks] as g1_effort
+    component [Value: $280K-560K] as g1_value
+  }
+
+  g1_current --> g1_sol: Closes Gap
+  g1_sol --> g1_tobe: Achieves Target
+}
+
+' Gap 2: GL Reconciliation
+rectangle "GAP 2: GL Reconciliation" as gap2 {
+  rectangle "AS-IS" #FF9999 {
+    component [8-day close cycle] as g2_current
+    component [Manual variance investigation] as g2_manual
+    component [2-3 FTE per close] as g2_fte
+    component [Cost: $192K/year] as g2_cost
+  }
+
+  rectangle "SOLUTION" #FFFF99 {
+    component [GL Anomaly Detector MVP] as g2_sol
+    component [Real-time monitoring] as g2_benefit
+    component [4-day close target] as g2_target
+    component [Auto-detection] as g2_feature
+  }
+
+  rectangle "TO-BE" #99FF99 {
+    component [Real-Time GL Reconciliation\n+ Auto Anomaly Detection] as g2_tobe
+    component [ROI: 1-2 months] as g2_roi
+    component [Effort: 5-6 weeks] as g2_effort
+    component [Value: $192K/year] as g2_value
+  }
+
+  g2_current --> g2_sol: Closes Gap
+  g2_sol --> g2_tobe: Achieves Target
+}
+
+' Gap 3: Vendor Management
+rectangle "GAP 3: Vendor Data Quality" as gap3 {
+  rectangle "AS-IS" #FF9999 {
+    component [8,000 vendors] as g3_current
+    component [23% duplicates] as g3_dup
+    component [Manual management] as g3_manual
+    component [Cost: $200K-400K/year] as g3_cost
+  }
+
+  rectangle "SOLUTION" #FFFF99 {
+    component [Vendor Data Quality MVP] as g3_sol
+    component [Auto de-duplication] as g3_benefit
+    component [Quality scoring] as g3_target
+    component [Compliance checks] as g3_feature
+  }
+
+  rectangle "TO-BE" #99FF99 {
+    component [Automated Vendor Master\n+ Quality Scoring] as g3_tobe
+    component [ROI: 1-2 months] as g3_roi
+    component [Effort: 6-8 weeks] as g3_effort
+    component [Value: $200K-400K] as g3_value
+  }
+
+  g3_current --> g3_sol: Closes Gap
+  g3_sol --> g3_tobe: Achieves Target
+}
+
+' Gap 4: SoD Compliance
+rectangle "GAP 4: SoD Compliance" as gap4 {
+  rectangle "AS-IS" #FF9999 {
+    component [Quarterly manual audits] as g4_current
+    component [6-month detection lag] as g4_lag
+    component [Audit findings in reports] as g4_findings
+    component [Compliance risk: HIGH] as g4_risk
+  }
+
+  rectangle "SOLUTION" #FFFF99 {
+    component [SoD Analyzer MVP] as g4_sol
+    component [Real-time monitoring] as g4_benefit
+    component [25 key SoD rules] as g4_target
+    component [Auto-escalation] as g4_feature
+  }
+
+  rectangle "TO-BE" #99FF99 {
+    component [Real-Time SoD Violation\nDetection & Escalation] as g4_tobe
+    component [ROI: 2-3 months] as g4_roi
+    component [Effort: 5-6 weeks] as g4_effort
+    component [Value: Risk mitigation] as g4_value
+  }
+
+  g4_current --> g4_sol: Closes Gap
+  g4_sol --> g4_tobe: Achieves Target
+}
+
+' Gap 5: e-Invoice Compliance
+rectangle "GAP 5: e-Invoice Compliance (LHDN)" as gap5 {
+  rectangle "AS-IS" #FF9999 {
+    component [Manual XML generation] as g5_current
+    component [Error-prone process] as g5_error
+    component [Deadline: Q2 2026] as g5_deadline
+    component [Compliance risk: CRITICAL] as g5_risk
+  }
+
+  rectangle "SOLUTION" #FFFF99 {
+    component [e-Invoice Module MVP] as g5_sol
+    component [Auto MyInvois generation] as g5_benefit
+    component [LHDN API integration] as g5_target
+    component [100% compliant] as g5_feature
+  }
+
+  rectangle "TO-BE" #99FF99 {
+    component [Automated MyInvois\nSubmission to LHDN] as g5_tobe
+    component [ROI: Compliance] as g5_roi
+    component [Effort: 4-6 weeks] as g5_effort
+    component [Value: Deadline met] as g5_value
+  }
+
+  g5_current --> g5_sol: Closes Gap
+  g5_sol --> g5_tobe: Achieves Target
+}
+
+note bottom
+  **Total Gap Closure:**
+
+  5 Major Gaps Identified & Mapped to SAP MVP Modules
+
+  Total Investment: ~$160K-240K (MVP modules)
+  Total Year 1 Benefit: $722K-1.2M
+  Payback Period: 10-16 months
+  Effort: 18-week Phase 1 implementation
+
+  **All gaps addressed by end of Phase 1 (Week 18)**
+end note
+
+@enduml
