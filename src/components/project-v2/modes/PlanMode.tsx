@@ -308,7 +308,7 @@ export function PlanMode() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 400, opacity: 0 }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 bottom-0 w-[480px] bg-white shadow-2xl z-50 flex flex-col"
+              className="fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480px] bg-white shadow-2xl z-50 flex flex-col"
             >
               {/* Panel Header */}
               <div className="shrink-0 p-6 border-b border-gray-200">
