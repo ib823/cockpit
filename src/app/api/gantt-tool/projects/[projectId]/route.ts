@@ -56,81 +56,126 @@ export async function GET(
 
     const { projectId } = await params;
 
-    const project = await prisma.ganttProject.findFirst({
-      where: {
-        id: projectId,
-        userId: session.user.id,
-        deletedAt: null,
-      },
-      include: {
-        phases: {
+    // Check if we should load minimal data (for list previews)
+    const { searchParams } = new URL(request.url);
+    const minimal = searchParams.get('minimal') === 'true';
+
+    const project = minimal
+      ? // Minimal query - only basic info + counts (< 50ms)
+        await prisma.ganttProject.findFirst({
+          where: {
+            id: projectId,
+            userId: session.user.id,
+            deletedAt: null,
+          },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            startDate: true,
+            viewSettings: true,
+            budget: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: {
+              select: {
+                phases: true,
+                milestones: true,
+                holidays: true,
+                resources: true,
+              },
+            },
+          },
+        })
+      : // Full query - all nested relations (150-600ms depending on data size)
+        await prisma.ganttProject.findFirst({
+          where: {
+            id: projectId,
+            userId: session.user.id,
+            deletedAt: null,
+          },
           include: {
-            tasks: {
+            phases: {
               include: {
-                resourceAssignments: true,
+                tasks: {
+                  include: {
+                    resourceAssignments: true,
+                  },
+                  orderBy: { order: 'asc' },
+                },
+                phaseResourceAssignments: true,
               },
               orderBy: { order: 'asc' },
             },
-            phaseResourceAssignments: true,
+            milestones: {
+              orderBy: { date: 'asc' },
+            },
+            holidays: {
+              orderBy: { date: 'asc' },
+            },
+            resources: {
+              orderBy: { createdAt: 'asc' },
+            },
           },
-          orderBy: { order: 'asc' },
-        },
-        milestones: {
-          orderBy: { date: 'asc' },
-        },
-        holidays: {
-          orderBy: { date: 'asc' },
-        },
-        resources: {
-          orderBy: { createdAt: 'asc' },
-        },
-      },
-    });
+        });
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     // Serialize dates to strings for frontend
-    const serializedProject = {
-      ...project,
-      startDate: project.startDate.toISOString().split('T')[0],
-      createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString(),
-      deletedAt: project.deletedAt?.toISOString() || null,
-      phases: project.phases.map(phase => ({
-        ...phase,
-        startDate: phase.startDate.toISOString().split('T')[0],
-        endDate: phase.endDate.toISOString().split('T')[0],
-        tasks: phase.tasks.map(task => ({
-          ...task,
-          startDate: task.startDate.toISOString().split('T')[0],
-          endDate: task.endDate.toISOString().split('T')[0],
-          resourceAssignments: task.resourceAssignments.map(ra => ({
-            ...ra,
-            assignedAt: ra.assignedAt.toISOString(),
+    const serializedProject = minimal
+      ? {
+          ...project,
+          startDate: (project as any).startDate.toISOString().split('T')[0],
+          createdAt: (project as any).createdAt.toISOString(),
+          updatedAt: (project as any).updatedAt.toISOString(),
+        }
+      : {
+          ...project,
+          startDate: (project as any).startDate.toISOString().split('T')[0],
+          createdAt: (project as any).createdAt.toISOString(),
+          updatedAt: (project as any).updatedAt.toISOString(),
+          deletedAt: (project as any).deletedAt?.toISOString() || null,
+          phases: (project as any).phases.map((phase: any) => ({
+            ...phase,
+            startDate: phase.startDate.toISOString().split('T')[0],
+            endDate: phase.endDate.toISOString().split('T')[0],
+            tasks: phase.tasks.map((task: any) => ({
+              ...task,
+              startDate: task.startDate.toISOString().split('T')[0],
+              endDate: task.endDate.toISOString().split('T')[0],
+              resourceAssignments: task.resourceAssignments.map((ra: any) => ({
+                ...ra,
+                assignedAt: ra.assignedAt.toISOString(),
+              })),
+            })),
+            phaseResourceAssignments: phase.phaseResourceAssignments.map((pra: any) => ({
+              ...pra,
+              assignedAt: pra.assignedAt.toISOString(),
+            })),
           })),
-        })),
-        phaseResourceAssignments: phase.phaseResourceAssignments.map(pra => ({
-          ...pra,
-          assignedAt: pra.assignedAt.toISOString(),
-        })),
-      })),
-      milestones: project.milestones.map(m => ({
-        ...m,
-        date: m.date.toISOString().split('T')[0],
-      })),
-      holidays: project.holidays.map(h => ({
-        ...h,
-        date: h.date.toISOString().split('T')[0],
-      })),
-      resources: project.resources.map(r => ({
-        ...r,
-        createdAt: r.createdAt.toISOString(),
-      })),
-    };
+          milestones: (project as any).milestones.map((m: any) => ({
+            ...m,
+            date: m.date.toISOString().split('T')[0],
+          })),
+          holidays: (project as any).holidays.map((h: any) => ({
+            ...h,
+            date: h.date.toISOString().split('T')[0],
+          })),
+          resources: (project as any).resources.map((r: any) => ({
+            ...r,
+            createdAt: r.createdAt.toISOString(),
+          })),
+        };
 
-    return NextResponse.json({ project: serializedProject }, { status: 200 });
+    // Add caching headers to reduce repeated requests
+    // Cache for 10 seconds with revalidation (stale-while-revalidate for 60s)
+    const response = NextResponse.json({ project: serializedProject }, { status: 200 });
+    response.headers.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=60');
+    response.headers.set('ETag', `"${project.updatedAt.getTime()}"`);
+
+    return response;
   } catch (error) {
     console.error('[API] Failed to fetch gantt project:', error);
     return NextResponse.json(

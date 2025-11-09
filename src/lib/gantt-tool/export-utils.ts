@@ -9,8 +9,9 @@ import { jsPDF } from 'jspdf';
 import ExcelJS from 'exceljs';
 import type { GanttProject } from '@/types/gantt-tool';
 import { format, differenceInDays } from 'date-fns';
-import { formatGanttDateLong, formatWorkingDays, formatCalendarDuration } from './date-utils';
+import { formatGanttDateLong, formatWorkingDays } from './date-utils';
 import { calculateWorkingDaysInclusive } from './working-days';
+import { formatDuration } from './formatters';
 import {
   chooseTimelineGranularity,
   timelineLabels,
@@ -240,7 +241,7 @@ export async function exportToExcel(project: GanttProject): Promise<void> {
         startDate: formatGanttDateLong(startDate),
         endDate: formatGanttDateLong(endDate),
         workingDays: formatWorkingDays(workingDays),
-        calendarDuration: formatCalendarDuration(calendarDays),
+        duration: formatDuration(workingDays),
         tasksCount: phase.tasks.length,
         color: phase.color,
       });
@@ -284,7 +285,7 @@ export async function exportToExcel(project: GanttProject): Promise<void> {
           startDate: formatGanttDateLong(startDate),
           endDate: formatGanttDateLong(endDate),
           workingDays: formatWorkingDays(workingDays),
-          calendarDuration: formatCalendarDuration(calendarDays),
+          duration: formatDuration(workingDays),
           assignee: task.assignee || 'Unassigned',
           progress: task.progress,
         });

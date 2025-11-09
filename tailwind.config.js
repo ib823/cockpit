@@ -50,6 +50,16 @@ module.exports = {
         'fluid-lg': 'clamp(1.5rem, 1.2rem + 1.5vw, 2rem)',
         'fluid-xl': 'clamp(2rem, 1.6rem + 2vw, 3rem)',
         'fluid-2xl': 'clamp(3rem, 2.4rem + 3vw, 4rem)',
+        'safe': 'env(safe-area-inset-top, 0px)',
+        'safe-bottom': 'env(safe-area-inset-bottom, 0px)',
+        'safe-left': 'env(safe-area-inset-left, 0px)',
+        'safe-right': 'env(safe-area-inset-right, 0px)',
+      },
+      padding: {
+        'safe': 'env(safe-area-inset-top, 0px)',
+        'safe-bottom': 'env(safe-area-inset-bottom, 0px)',
+        'safe-left': 'env(safe-area-inset-left, 0px)',
+        'safe-right': 'env(safe-area-inset-right, 0px)',
       },
       maxWidth: {
         'container-sm': '640px',

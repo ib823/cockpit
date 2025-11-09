@@ -598,8 +598,8 @@ export function GanttToolbar({
                         key: 'current',
                         label: (
                           <div className="font-semibold text-blue-600 flex items-center gap-2">
-                            <Check className="w-4 h-4" />
-                            <span className="max-w-[300px] truncate">{currentProject.name}</span>
+                            <Check className="w-4 h-4 flex-shrink-0" />
+                            <span>{currentProject.name}</span>
                           </div>
                         ),
                         disabled: true,
@@ -647,12 +647,14 @@ export function GanttToolbar({
                   }}
                   trigger={['click']}
                 >
-                  <button
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group max-w-[300px]"
-                  >
-                    <h1 className="text-base lg:text-lg font-bold text-gray-900 truncate">{currentProject.name}</h1>
-                    <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors flex-shrink-0" />
-                  </button>
+                  <Tooltip title={currentProject.name.length > 50 ? currentProject.name : null} placement="bottom">
+                    <button
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group"
+                    >
+                      <h1 className="text-base lg:text-lg font-bold text-gray-900">{currentProject.name}</h1>
+                      <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors flex-shrink-0" />
+                    </button>
+                  </Tooltip>
                 </Dropdown>
               )}
             </div>

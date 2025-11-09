@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Use withRetry wrapper for database queries
+    // NOTE: This query loads full nested data for offline-first sync architecture
     const projects = await withRetry(() => prisma.ganttProject.findMany({
       where: {
         userId: session.user.id,

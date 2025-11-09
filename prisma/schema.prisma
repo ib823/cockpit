@@ -724,12 +724,24 @@ model GanttTask {
   // Dependencies stored as array of task IDs
   dependencies String[] // Array of GanttTask IDs
 
+  // Task Hierarchy - Parent-child relationships (Work Breakdown Structure)
+  parentTaskId String?  // ID of parent task (null for top-level tasks)
+  level        Int      @default(0) // Nesting level (0 = top-level, 1 = first level subtask, etc.)
+  collapsed    Boolean  @default(false) // UI state: if true, children are hidden
+  isParent     Boolean  @default(false) // True if this task has child tasks
+
   // Relationships
   phase               GanttPhase                    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
   resourceAssignments GanttTaskResourceAssignment[]
 
+  // Self-referential relationship for hierarchy
+  parentTask GanttTask?  @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  childTasks GanttTask[] @relation("TaskHierarchy")
+
   @@index([phaseId])
   @@index([order])
+  @@index([parentTaskId])
+  @@index([level])
 }
 
 /// Gantt Milestone - Key project milestones

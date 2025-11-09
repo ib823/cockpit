@@ -5,84 +5,87 @@
 import { format } from 'date-fns';
 
 /**
- * Format date as DD-MMM-YY (Ddd)
- * Example: 14-Oct-25 (Mon)
+ * Format date in consistent format: "MMM d, yyyy"
+ * Example: Oct 14, 2025
  */
 export function formatGanttDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return format(d, 'dd-MMM-yy (EEE)');
+  return format(d, 'MMM d, yyyy');
 }
 
 /**
- * Format date as DD-MMM-YYYY (Ddd) for exports
- * Example: 14-Oct-2025 (Mon)
+ * Format date in compact format for UI: "MMM d '26"
+ * Example: Oct 14 '25
+ */
+export function formatGanttDateCompact(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return format(d, "MMM d ''yy");
+}
+
+/**
+ * Format date with day of week for headers: "MMM d, yyyy (Mon)"
+ * Example: Oct 14, 2025 (Mon)
  */
 export function formatGanttDateLong(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return format(d, 'dd-MMM-yyyy (EEE)');
+  return format(d, 'MMM d, yyyy (EEE)');
 }
 
 /**
- * Format duration as "X years Y months Z weeks and W days"
- * Example: 784 days → "2 years 2 months 0 weeks and 4 days"
+ * Format duration in human-readable format using single most appropriate unit
+ * - < 14 days: Show days only ("12 days")
+ * - 14 days - 12 weeks: Show weeks ("8 weeks")
+ * - > 12 weeks: Show months ("4 months")
+ * Example: 784 days → "26 months" or "112 weeks"
  */
 export function formatDuration(totalDays: number): string {
+  // Handle null/undefined/NaN
+  if (totalDays === null || totalDays === undefined || isNaN(totalDays)) {
+    return '0 days';
+  }
+
   if (totalDays === 0) return '0 days';
+  if (totalDays === 1) return '1 day';
 
-  // Calculate years (365 days per year)
-  const years = Math.floor(totalDays / 365);
-  let remainingDays = totalDays % 365;
-
-  // Calculate months (30 days per month)
-  const months = Math.floor(remainingDays / 30);
-  remainingDays = remainingDays % 30;
-
-  // Calculate weeks from remaining days
-  const weeks = Math.floor(remainingDays / 7);
-  remainingDays = remainingDays % 7;
-
-  // Build the output string with abbreviations
-  const parts: string[] = [];
-
-  if (years > 0) {
-    parts.push(`${years}y`);
+  // Less than 2 weeks: show days
+  if (totalDays < 14) {
+    return `${totalDays} days`;
   }
 
-  if (months > 0) {
-    parts.push(`${months}m`);
+  // 2 weeks to 12 weeks: show weeks
+  const weeks = Math.round(totalDays / 7);
+  if (weeks <= 12) {
+    return weeks === 1 ? '1 week' : `${weeks} weeks`;
   }
 
-  if (weeks > 0) {
-    parts.push(`${weeks}w`);
-  }
-
-  if (remainingDays > 0 || parts.length === 0) {
-    parts.push(`${remainingDays}d`);
-  }
-
-  // Join all parts with spaces
-  return parts.join(' ');
+  // More than 12 weeks: show months
+  const months = Math.round(totalDays / 30);
+  return months === 1 ? '1 month' : `${months} months`;
 }
 
 /**
  * Format duration in compact form for phase/task bars
- * Example: 784 days → "2y 2m 4d"
+ * Uses single most appropriate unit with abbreviation
+ * Example: 784 days → "26mo" or "112wk"
  */
 export function formatDurationCompact(totalDays: number): string {
   if (totalDays === 0) return '0d';
+  if (totalDays === 1) return '1d';
 
-  const years = Math.floor(totalDays / 365);
-  let remainingDays = totalDays % 365;
-  const months = Math.floor(remainingDays / 30);
-  remainingDays = remainingDays % 30;
+  // Less than 2 weeks: show days
+  if (totalDays < 14) {
+    return `${totalDays}d`;
+  }
 
-  const parts: string[] = [];
+  // 2 weeks to 12 weeks: show weeks
+  const weeks = Math.round(totalDays / 7);
+  if (weeks <= 12) {
+    return `${weeks}wk`;
+  }
 
-  if (years > 0) parts.push(`${years}y`);
-  if (months > 0) parts.push(`${months}m`);
-  if (remainingDays > 0 || parts.length === 0) parts.push(`${remainingDays}d`);
-
-  return parts.join(' ');
+  // More than 12 weeks: show months
+  const months = Math.round(totalDays / 30);
+  return `${months}mo`;
 }
 
 /**
@@ -94,27 +97,16 @@ export function formatWorkingDays(days: number): string {
 }
 
 /**
- * Format calendar duration - Steve Jobs standard: breakdown with total
- * Example: 180 calendar days → "6m 2w 3d (180d)"
+ * Format calendar duration with total days in parentheses for clarity
+ * Example: 180 calendar days → "26 weeks (180 days)"
  */
 export function formatCalendarDuration(totalDays: number): string {
-  if (totalDays === 0) return '0d (0d)';
+  if (totalDays === 0) return '0 days';
+  if (totalDays === 1) return '1 day';
 
-  // Calculate breakdown
-  const years = Math.floor(totalDays / 365);
-  let remainingDays = totalDays % 365;
-  const months = Math.floor(remainingDays / 30);
-  remainingDays = remainingDays % 30;
-  const weeks = Math.floor(remainingDays / 7);
-  remainingDays = remainingDays % 7;
+  // Get primary format using formatDuration
+  const primary = formatDuration(totalDays);
 
-  const parts: string[] = [];
-
-  if (years > 0) parts.push(`${years}y`);
-  if (months > 0) parts.push(`${months}m`);
-  if (weeks > 0) parts.push(`${weeks}w`);
-  if (remainingDays > 0 || parts.length === 0) parts.push(`${remainingDays}d`);
-
-  // Return format: "Xm Yw Zd (totalDays)"
-  return `${parts.join(' ')} (${totalDays}d)`;
+  // Return with total days in parentheses
+  return `${primary} (${totalDays} days)`;
 }

@@ -54,7 +54,12 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
     const projectStart = new Date(Math.min(...allDates.map((d) => d.getTime())));
     const projectEnd = new Date(Math.max(...allDates.map((d) => d.getTime())));
     const totalDays = differenceInBusinessDays(projectEnd, projectStart);
-    const elapsedDays = differenceInBusinessDays(now, projectStart);
+
+    // Handle not-yet-started projects - prevent negative elapsed days
+    const elapsedDays = now < projectStart
+      ? 0
+      : Math.min(differenceInBusinessDays(now, projectStart), totalDays);
+
     const timeProgress = Math.max(0, Math.min(100, (elapsedDays / totalDays) * 100));
 
     // Task completion analytics
@@ -393,7 +398,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                       <div className="space-y-3">
                         {Array.from(costData.costByPhase.entries()).map(([phaseId, cost]) => {
                           const phase = currentProject.phases.find((p) => p.id === phaseId);
-                          const percentage = (cost / costData.laborCost) * 100;
+                          const percentage = costData.laborCost > 0 ? (cost / costData.laborCost) * 100 : 0;
                           return (
                             <div key={phaseId}>
                               <div className="flex items-center justify-between mb-1">
@@ -415,7 +420,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                     <Card title="Cost by Category" className="shadow-sm">
                       <div className="space-y-3">
                         {Array.from(costData.costByCategory.entries()).map(([category, cost]) => {
-                          const percentage = (cost / costData.laborCost) * 100;
+                          const percentage = costData.laborCost > 0 ? (cost / costData.laborCost) * 100 : 0;
                           const categoryInfo = RESOURCE_CATEGORIES[category];
                           return (
                             <div key={category}>
