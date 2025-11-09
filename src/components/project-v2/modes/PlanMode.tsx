@@ -323,9 +323,9 @@ export function PlanMode() {
                   </div>
                   <button
                     onClick={() => setSelectedPhase(null)}
-                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center"
+                    className="w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center"
                   >
-                    <X className="w-4 h-4 text-gray-600" />
+                    <X className="w-5 h-5 text-gray-600" />
                   </button>
                 </div>
 
@@ -454,7 +454,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
                   if (e.key === 'Escape') setEditMode(null);
                 }}
                 autoFocus
-                className="w-full px-2 py-1 border border-blue-500 rounded text-sm"
+                className="w-full px-3 py-2.5 border border-blue-500 rounded text-sm"
               />
             ) : (
               <div className="font-semibold text-gray-900">{format(startDate, 'MMM dd, yyyy')}</div>
@@ -465,7 +465,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
               setEditMode('start');
               setTempValue(format(startDate, 'yyyy-MM-dd'));
             }}
-            className="ml-4 p-2 hover:bg-white rounded-lg transition-colors"
+            className="ml-4 p-2.5 hover:bg-white rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <Edit2 className="w-4 h-4 text-gray-400" />
           </button>
@@ -486,7 +486,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
                   if (e.key === 'Escape') setEditMode(null);
                 }}
                 autoFocus
-                className="w-full px-2 py-1 border border-blue-500 rounded text-sm"
+                className="w-full px-3 py-2.5 border border-blue-500 rounded text-sm"
               />
             ) : (
               <div className="font-semibold text-gray-900">{format(endDate, 'MMM dd, yyyy')}</div>
@@ -497,7 +497,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
               setEditMode('end');
               setTempValue(format(endDate, 'yyyy-MM-dd'));
             }}
-            className="ml-4 p-2 hover:bg-white rounded-lg transition-colors"
+            className="ml-4 p-2.5 hover:bg-white rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <Edit2 className="w-4 h-4 text-gray-400" />
           </button>
@@ -518,7 +518,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
                   if (e.key === 'Escape') setEditMode(null);
                 }}
                 autoFocus
-                className="w-24 px-2 py-1 border border-blue-500 rounded text-sm"
+                className="w-24 px-3 py-2.5 border border-blue-500 rounded text-sm"
               />
             ) : (
               <div className="font-semibold text-gray-900">{phase.workingDays} days</div>
@@ -529,7 +529,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
               setEditMode('duration');
               setTempValue(String(phase.workingDays || 0));
             }}
-            className="ml-4 p-2 hover:bg-white rounded-lg transition-colors"
+            className="ml-4 p-2.5 hover:bg-white rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <Edit2 className="w-4 h-4 text-gray-400" />
           </button>
@@ -637,7 +637,7 @@ function ResourceSection({
             Team ({resources.length})
           </h3>
           {totalCost > 0 && (
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-sm text-gray-500 mt-0.5">
               Cost: {formatCurrency(totalCost, "MYR")}
             </p>
           )}
@@ -666,10 +666,10 @@ function ResourceSection({
                 <div className="text-sm font-semibold text-gray-900 group-hover:text-blue-700">
                   {template.name}
                 </div>
-                <div className="text-[10px] text-gray-500 mt-1">
+                <div className="text-xs text-gray-500 mt-1">
                   {template.description}
                 </div>
-                <div className="text-[10px] text-gray-400 mt-2">
+                <div className="text-xs text-gray-400 mt-2">
                   {template.members.reduce((sum, m) => sum + m.count, 0)} people
                 </div>
               </button>
@@ -693,20 +693,20 @@ function ResourceSection({
                     <span className="text-lg">{roleConfig.icon}</span>
                     <div>
                       <div className="text-sm font-medium text-gray-900">{roleConfig.name}</div>
-                      <div className="text-[10px] text-gray-500">{formatCurrency(cost, "MYR")}</div>
+                      <div className="text-xs text-gray-500">{formatCurrency(cost, "MYR")}</div>
                     </div>
                   </div>
                   <button
                     onClick={() => deleteResource(idx)}
-                    className="p-1   hover:bg-red-50 rounded transition-all"
+                    className="p-2.5 hover:bg-red-50 rounded transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
                   >
-                    <X className="w-3 h-3 text-red-400" />
+                    <X className="w-4 h-4 text-red-400" />
                   </button>
                 </div>
 
                 {/* Quick allocation slider */}
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[10px] text-gray-500">
+                  <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>Allocation</span>
                     <span className="font-semibold text-gray-900">{resource.allocation}%</span>
                   </div>
@@ -717,9 +717,9 @@ function ResourceSection({
                     step="25"
                     value={resource.allocation}
                     onChange={(e) => updateResourceAllocation(idx, parseInt(e.target.value))}
-                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
-                  <div className="flex justify-between text-[9px] text-gray-400">
+                  <div className="flex justify-between text-xs text-gray-400">
                     <span>0%</span>
                     <span>25%</span>
                     <span>50%</span>
@@ -735,7 +735,7 @@ function ResourceSection({
         <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-300">
           <UsersIcon className="w-6 h-6 text-gray-400 mx-auto mb-2" />
           <p className="text-xs text-gray-500">No team assigned</p>
-          <p className="text-[10px] text-gray-400 mt-1">Use Quick Team to get started</p>
+          <p className="text-xs text-gray-400 mt-1">Use Quick Team to get started</p>
         </div>
       )}
     </div>
@@ -850,7 +850,7 @@ function TaskSection({
             placeholder="Task name"
             value={newTask.name || ""}
             onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
-            className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2.5 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
             autoFocus
           />
 
@@ -868,7 +868,7 @@ function TaskSection({
                     setNewTask({ ...newTask, startDate: date });
                   }
                 }}
-                className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm"
+                className="w-full px-3 py-2.5 border border-blue-300 rounded-lg text-sm"
               />
             </div>
 
@@ -884,7 +884,7 @@ function TaskSection({
                   const endDate = addWorkingDays(startDate, days, 'ABMY');
                   setNewTask({ ...newTask, workingDays: days, endDate });
                 }}
-                className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm"
+                className="w-full px-3 py-2.5 border border-blue-300 rounded-lg text-sm"
               />
             </div>
           </div>
@@ -895,7 +895,7 @@ function TaskSection({
               placeholder="What needs to be done in this task..."
               value={newTask.description || ""}
               onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm resize-none"
+              className="w-full px-3 py-2.5 border border-blue-300 rounded-lg text-sm resize-none"
               rows={3}
             />
           </div>
@@ -1006,17 +1006,17 @@ function TaskRow({
         <div className="flex items-center gap-1 ml-2">
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="p-1.5 hover:bg-white rounded transition-colors"
+            className="p-2.5 hover:bg-white rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             title="Edit task"
           >
-            <Edit2 className="w-3.5 h-3.5 text-gray-400" />
+            <Edit2 className="w-4 h-4 text-gray-400" />
           </button>
           <button
             onClick={onDelete}
-            className="p-1.5 hover:bg-red-50 rounded transition-colors"
+            className="p-2.5 hover:bg-red-50 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             title="Delete task"
           >
-            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+            <Trash2 className="w-4 h-4 text-red-400" />
           </button>
         </div>
       </div>
@@ -1024,7 +1024,7 @@ function TaskRow({
       {/* Granular timeline visualization - mini Gantt within phase */}
       <div className="space-y-1">
         {/* Timeline ruler */}
-        <div className="flex items-center justify-between text-[10px] text-gray-400 px-1">
+        <div className="flex items-center justify-between text-xs text-gray-400 px-1">
           <span>{format(phaseStartDate, 'MMM dd')}</span>
           <span className="text-gray-300">Phase Duration: {phase.workingDays}d</span>
           <span>{format(phaseEndDate, 'MMM dd')}</span>
@@ -1044,7 +1044,7 @@ function TaskRow({
               width: `${Math.min(100 - Math.max(0, taskPositionPercent), taskWidthPercent)}%`,
             }}
           >
-            <div className="text-[10px] font-semibold text-white px-2 truncate">
+            <div className="text-xs font-semibold text-white px-2 truncate">
               {task.workingDays || 1} day{(task.workingDays || 1) > 1 ? 's' : ''}
             </div>
           </div>
@@ -1069,7 +1069,7 @@ function TaskRow({
                     onUpdate({ startDate: date, endDate: newEndDate });
                   }
                 }}
-                className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded text-xs"
               />
             </div>
 
@@ -1085,7 +1085,7 @@ function TaskRow({
                   const endDate = addWorkingDays(startDate, days, 'ABMY');
                   onUpdate({ workingDays: days, endDate });
                 }}
-                className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded text-xs"
               />
             </div>
           </div>
