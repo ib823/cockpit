@@ -2,19 +2,18 @@
 const nextConfig = {
   allowedDevOrigins: ["http://127.0.0.1", "http://localhost"],
 
-  // React 19 compatibility
-  experimental: {
-    reactCompiler: false,
-  },
+  // React 19 compatibility (moved from experimental)
+  reactCompiler: false,
+
+  // Turbopack configuration (empty to silence Next.js 16 warning)
+  turbopack: {},
 
   // SECURITY: Type checking runs separately in CI, ignore during builds to prevent warnings from blocking deployment
   typescript: {
     ignoreBuildErrors: true, // Type checking checked separately in CI pipeline
   },
-  // SECURITY: Linting runs separately in CI, ignore during builds to prevent warnings from blocking deployment
-  eslint: {
-    ignoreDuringBuilds: true, // Linting checked separately in CI pipeline
-  },
+
+  // NOTE: ESLint config moved to .eslintrc (deprecated in next.config.js)
 
   // SECURITY: Add security headers
   async headers() {
