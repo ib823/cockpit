@@ -391,8 +391,55 @@
   }
 
 /* ═══════════════════════════════════════════════════════
-   FOCUS STATES - Apple HIG Section 8 (Interaction Patterns)
+   INTERACTION STATES - Apple HIG Section 8
    ═══════════════════════════════════════════════════════ */
+
+/* HOVER STATES - All interactive elements need hover feedback */
+
+/* Buttons: Background darkens by 10% */
+button:not(:disabled):hover,
+.ant-btn:not(.ant-btn-disabled):hover {
+  filter: brightness(0.9);
+  transition: filter var(--duration-default) var(--easing-default);
+}
+
+/* Links: Opacity increases to 100% */
+a:hover {
+  opacity: 1 !important;
+  transition: opacity var(--duration-default) var(--easing-default);
+}
+
+/* Table rows: 4% gray background fill */
+tr:hover,
+[role="row"]:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  transition: background-color var(--duration-default) var(--easing-default);
+}
+
+/* Icons: Opacity increases from 40% to 100% */
+svg:hover,
+.icon:hover {
+  opacity: 1 !important;
+  transition: opacity var(--duration-default) var(--easing-default);
+}
+
+/* Cards: Subtle shadow appears */
+.ant-card:hover,
+.card:hover {
+  box-shadow: var(--shadow-md) !important;
+  transition: box-shadow var(--duration-default) var(--easing-default);
+}
+
+/* ACTIVE/PRESSED STATES - Buttons scale to 98% */
+
+button:not(:disabled):active,
+.ant-btn:not(.ant-btn-disabled):active,
+[role="button"]:active {
+  transform: scale(0.98);
+  transition: transform var(--duration-quick) var(--easing-default);
+}
+
+/* FOCUS STATES - Accessibility requirement */
 
 /* Global focus styles for all interactive elements */
 button:focus-visible,
@@ -630,6 +677,21 @@ tr:focus-visible,
 .button-press:active {
   transform: scale(0.98);
   transition: transform var(--duration-quick) var(--easing-default);
+}
+
+/* Tab underline slide animation - 150ms per UI_suggestion.md Section 8 */
+.ant-tabs-ink-bar {
+  transition: left 150ms cubic-bezier(0.4, 0.0, 0.2, 1),
+              width 150ms cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+}
+
+/* Progress bar fill animation */
+.ant-progress-bg {
+  transition: width 300ms cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+}
+
+.ant-progress-inner {
+  overflow: hidden;
 }
 
 /* ═══════════════════════════════════════════════════════
