@@ -29,6 +29,7 @@ import { calculateProjectCost, checkBudgetAlerts } from "@/lib/gantt-tool/cost-c
 import { RESOURCE_CATEGORIES, type ResourceCategory } from "@/types/gantt-tool";
 import { differenceInBusinessDays } from "date-fns";
 import { OrgChart } from "./OrgChart";
+import { SFSymbol, getCategoryIcon } from "@/components/common/SFSymbol";
 
 interface Props {
   isOpen: boolean;
@@ -176,9 +177,8 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
       dataIndex: "name",
       key: "name",
       render: (text: string, record: any) => (
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded" style={{ backgroundColor: record.color }} />
-          <span className="font-semibold">{text}</span>
+        <div className="flex items-center" style={{ paddingLeft: "16px" }}>
+          <span className="text-[var(--text-body)] font-medium text-[var(--ink)]">{text}</span>
         </div>
       ),
     },
@@ -241,26 +241,22 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
       styles={{ body: { maxHeight: "calc(90vh - 120px)", overflowY: "auto" } }}
       footer={null}
       title={
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between" style={{ height: "80px" }}>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-[var(--color-blue)] flex items-center justify-center shadow-sm" style={{ marginLeft: "12px" }}>
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 m-0">Mission Control</h2>
-              <p className="text-sm text-gray-600 m-0">{currentProject.name}</p>
+              <h2 className="text-[var(--text-display-small)] font-semibold text-[var(--ink)] m-0">{currentProject.name}</h2>
+              <p className="text-[var(--text-body)] text-[var(--ink)] m-0" style={{ opacity: 0.4 }}>Mission Control</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="text-xs text-gray-500">Project Health</div>
-              <div className="text-2xl font-bold" style={{ color: healthColor }} data-testid="health-score">
-                {healthScore}
-                <span className="text-sm font-normal text-gray-500 ml-1">/ 100</span>
-              </div>
-              <Tag color={healthScore >= 80 ? "success" : healthScore >= 60 ? "warning" : "error"}>
-                {healthStatus}
-              </Tag>
+          <div className="flex flex-col items-end">
+            <div className="text-[1.75rem] font-semibold leading-none" style={{ color: healthColor }} data-testid="health-score">
+              {healthScore}<span className="text-[var(--text-detail)] text-[var(--color-gray-1)] ml-1">/ 100</span>
+            </div>
+            <div className="text-[var(--text-caption)] font-medium mt-1" style={{ color: healthColor }}>
+              {healthStatus}
             </div>
           </div>
         </div>
@@ -284,20 +280,14 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                 {/* Key Metrics */}
                 <Row gutter={[16, 16]}>
                   <Col span={6}>
-                    <Card className="shadow-sm">
+                    <Card className="shadow-sm" style={{ height: "96px", background: "rgb(242, 242, 247)", borderRadius: "12px", padding: "16px" }}>
                       <Statistic
                         title="Budget Utilization"
                         value={costData.budgetUtilization}
                         precision={1}
                         suffix="%"
-                        prefix={<DollarSign className="w-5 h-5" />}
-                        valueStyle={{
-                          color: costData.isOverBudget
-                            ? "#cf1322"
-                            : costData.budgetUtilization > 90
-                              ? "#faad14"
-                              : "#3f8600",
-                        }}
+                        prefix={<DollarSign className="w-5 h-5" style={{ opacity: 0.4 }} />}
+                        valueStyle={{ color: "var(--ink)", fontSize: "var(--text-display-large)", fontWeight: 600 }}
                       />
                       <Progress
                         percent={Math.min(costData.budgetUtilization, 100)}
@@ -305,8 +295,10 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                         size="small"
                         showInfo={false}
                         className="mt-2"
+                        strokeColor={costData.isOverBudget ? "var(--color-red)" : costData.budgetUtilization > 90 ? "var(--color-orange)" : "var(--color-blue)"}
+                        style={{ height: "4px" }}
                       />
-                      <div className="text-xs text-gray-500 mt-2">
+                      <div className="text-[var(--text-caption)] text-[var(--ink)] mt-2" style={{ opacity: 0.4 }}>
                         {formatCurrency(costData.totalCost)} of{" "}
                         {formatCurrency(currentProject.budget?.totalBudget || 0)}
                       </div>
@@ -314,68 +306,72 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                   </Col>
 
                   <Col span={6}>
-                    <Card className="shadow-sm">
+                    <Card className="shadow-sm" style={{ height: "96px", background: "rgb(242, 242, 247)", borderRadius: "12px", padding: "16px" }}>
                       <Statistic
                         title="Schedule Progress"
                         value={timeProgress}
                         precision={1}
                         suffix="%"
-                        prefix={<Clock className="w-5 h-5" />}
-                        valueStyle={{ color: "#1890ff" }}
+                        prefix={<Clock className="w-5 h-5" style={{ opacity: 0.4 }} />}
+                        valueStyle={{ color: "var(--ink)", fontSize: "var(--text-display-large)", fontWeight: 600 }}
                       />
                       <Progress
                         percent={timeProgress}
                         size="small"
                         showInfo={false}
                         className="mt-2"
+                        strokeColor="var(--color-blue)"
+                        style={{ height: "4px" }}
                       />
-                      <div className="text-xs text-gray-500 mt-2">
+                      <div className="text-[var(--text-caption)] text-[var(--ink)] mt-2" style={{ opacity: 0.4 }}>
                         {projectAnalytics.elapsedDays} of {projectAnalytics.totalDays} business days
                       </div>
                     </Card>
                   </Col>
 
                   <Col span={6}>
-                    <Card className="shadow-sm">
+                    <Card className="shadow-sm" style={{ height: "96px", background: "rgb(242, 242, 247)", borderRadius: "12px", padding: "16px" }}>
                       <Statistic
                         title="Task Completion"
                         value={taskProgress}
                         precision={1}
                         suffix="%"
-                        prefix={<CheckCircle className="w-5 h-5" />}
-                        valueStyle={{ color: "#52c41a" }}
+                        prefix={<CheckCircle className="w-5 h-5" style={{ opacity: 0.4 }} />}
+                        valueStyle={{ color: "var(--ink)", fontSize: "var(--text-display-large)", fontWeight: 600 }}
                       />
                       <Progress
                         percent={taskProgress}
                         size="small"
                         showInfo={false}
                         className="mt-2"
-                        status="success"
+                        strokeColor="var(--color-green)"
+                        style={{ height: "4px" }}
                       />
-                      <div className="text-xs text-gray-500 mt-2">
+                      <div className="text-[var(--text-caption)] text-[var(--ink)] mt-2" style={{ opacity: 0.4 }}>
                         {projectAnalytics.completedTasks} of {projectAnalytics.totalTasks} tasks
                       </div>
                     </Card>
                   </Col>
 
                   <Col span={6}>
-                    <Card className="shadow-sm">
+                    <Card className="shadow-sm" style={{ height: "96px", background: "rgb(242, 242, 247)", borderRadius: "12px", padding: "16px" }}>
                       <Statistic
                         title="Resource Utilization"
                         value={resourceUtilization}
                         precision={1}
                         suffix="%"
-                        prefix={<Users className="w-5 h-5" />}
-                        valueStyle={{ color: "#722ed1" }}
+                        prefix={<Users className="w-5 h-5" style={{ opacity: 0.4 }} />}
+                        valueStyle={{ color: "var(--ink)", fontSize: "var(--text-display-large)", fontWeight: 600 }}
                       />
                       <Progress
                         percent={resourceUtilization}
                         size="small"
                         showInfo={false}
                         className="mt-2"
-                        strokeColor="#722ed1"
+                        strokeColor="var(--color-blue)"
+                        style={{ height: "4px" }}
                       />
-                      <div className="text-xs text-gray-500 mt-2">
+                      <div className="text-[var(--text-caption)] text-[var(--ink)] mt-2" style={{ opacity: 0.4 }}>
                         {projectAnalytics.assignedResources} of {projectAnalytics.totalResources}{" "}
                         resources assigned
                       </div>
@@ -427,6 +423,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                     columns={phaseColumns}
                     pagination={false}
                     size="middle"
+                    className="[&_.ant-table-tbody>tr]:h-[52px] [&_.ant-table-tbody>tr]:bg-white [&_.ant-table-tbody>tr:hover]:bg-[rgba(0,0,0,0.04)] [&_.ant-table-tbody>tr>td]:border-b [&_.ant-table-tbody>tr>td]:border-[rgba(0,0,0,0.08)]"
                   />
                 </Card>
               </div>
@@ -453,14 +450,8 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                           return (
                             <div key={phaseId}>
                               <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-2">
-                                  <div
-                                    className="w-3 h-3 rounded"
-                                    style={{ backgroundColor: phase?.color }}
-                                  />
-                                  <span className="text-sm font-medium">{phase?.name}</span>
-                                </div>
-                                <span className="text-sm font-semibold">
+                                <span className="text-[var(--text-body)] font-medium text-[var(--ink)]">{phase?.name}</span>
+                                <span className="text-[var(--text-body)] font-semibold text-[var(--ink)]">
                                   {formatCurrency(cost)}
                                 </span>
                               </div>
@@ -468,7 +459,8 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                                 percent={percentage}
                                 size="small"
                                 showInfo={false}
-                                strokeColor={phase?.color}
+                                strokeColor="var(--color-blue)"
+                                style={{ height: "4px", borderRadius: "2px" }}
                               />
                             </div>
                           );
@@ -488,10 +480,10 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                             <div key={category || "unknown"}>
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span>{categoryInfo.icon}</span>
-                                  <span className="text-sm font-medium">{categoryInfo.label}</span>
+                                  <SFSymbol name={getCategoryIcon(categoryInfo.label)} size={16} opacity={0.4} />
+                                  <span className="text-[var(--text-body)] font-medium text-[var(--ink)]">{categoryInfo.label}</span>
                                 </div>
-                                <span className="text-sm font-semibold">
+                                <span className="text-[var(--text-body)] font-semibold text-[var(--ink)]">
                                   {formatCurrency(cost)}
                                 </span>
                               </div>
@@ -499,7 +491,8 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                                 percent={percentage}
                                 size="small"
                                 showInfo={false}
-                                strokeColor={categoryInfo.color}
+                                strokeColor="var(--color-blue)"
+                                style={{ height: "4px", borderRadius: "2px" }}
                               />
                             </div>
                           );
@@ -565,7 +558,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                 <Row gutter={[16, 16]}>
                   {/* Resource breakdown by category */}
                   <Col span={12}>
-                    <Card title="Resources by Category" className="shadow-sm">
+                    <Card title="Resource Allocation by Category" className="shadow-sm">
                       <div className="space-y-3">
                         {Object.entries(RESOURCE_CATEGORIES).map(([categoryKey, categoryInfo]) => {
                           const categoryResources = currentProject.resources.filter(
@@ -599,22 +592,32 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                               ? (assignedInCategory.size / categoryResources.length) * 100
                               : 0;
 
+                          // Semantic coloring based on allocation level
+                          const getSemanticColor = (util: number) => {
+                            if (util > 120) return "var(--color-red)"; // Critical overallocation
+                            if (util > 100) return "var(--color-orange)"; // Overallocated
+                            if (util >= 90) return "var(--color-blue)"; // Full allocation
+                            if (util >= 60) return "var(--color-green)"; // Healthy
+                            return "var(--color-gray-1)"; // Under-utilized
+                          };
+
                           return (
                             <div key={categoryKey}>
                               <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-lg">{categoryInfo.icon}</span>
-                                  <span className="text-sm font-medium">{categoryInfo.label}</span>
+                                <div className="flex items-center gap-2" style={{ paddingLeft: "16px" }}>
+                                  <SFSymbol name={getCategoryIcon(categoryInfo.label)} size={20} opacity={0.4} />
+                                  <span className="text-[var(--text-body)] text-[var(--ink)]">{categoryInfo.label}</span>
                                 </div>
-                                <span className="text-sm font-semibold">
+                                <span className="text-[var(--text-body)] text-[var(--ink)]" style={{ opacity: 0.6 }}>
                                   {assignedInCategory.size} / {categoryResources.length}
                                 </span>
                               </div>
                               <Progress
-                                percent={utilization}
+                                percent={Math.min(utilization, 100)}
                                 size="small"
-                                strokeColor={categoryInfo.color}
-                                format={(percent) => `${percent?.toFixed(0)}%`}
+                                strokeColor={getSemanticColor(utilization)}
+                                format={(percent) => `${utilization.toFixed(0)}%`}
+                                style={{ height: "8px" }}
                               />
                             </div>
                           );
@@ -664,8 +667,9 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                           }
                         />
                         {resourceUtilization < 50 && (
-                          <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded border border-orange-200">
-                            ⚠️ Low resource utilization - consider assigning more resources to tasks
+                          <div className="flex items-center gap-2 text-[var(--text-detail)] text-[var(--color-orange)] bg-[rgba(255,149,0,0.1)] p-2 rounded border border-[var(--color-orange)] border-opacity-20">
+                            <AlertTriangle size={14} />
+                            <span>Low resource utilization - consider assigning more resources to tasks</span>
                           </div>
                         )}
                       </div>
@@ -714,10 +718,11 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                             key: "name",
                             render: (text: string, record: any) => (
                               <div className="flex items-center gap-2">
-                                <span className="text-lg">
-                                  {RESOURCE_CATEGORIES[record.category as ResourceCategory]?.icon ||
-                                    ""}
-                                </span>
+                                <SFSymbol
+                                  name={getCategoryIcon(RESOURCE_CATEGORIES[record.category as ResourceCategory]?.label || "Other/General")}
+                                  size={16}
+                                  opacity={0.4}
+                                />
                                 <span className="font-medium">{text}</span>
                               </div>
                             ),
