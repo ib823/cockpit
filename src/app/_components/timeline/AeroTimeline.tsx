@@ -38,7 +38,7 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { rows, links, config, totalWidth, totalHeight } = useTimelineEngine({
+  const { rows, links, config, totalWidth, totalHeight, maxEndBD } = useTimelineEngine({
     startDateISO,
     phases,
     holidays,
