@@ -12,6 +12,8 @@ import { useTimelineEngine } from "./useTimelineEngine";
 import { TimelinePhase, ViewMode, TimelineInteraction as _TimelineInteraction } from "./types";
 import { Segmented } from "../ui";
 import { formatISODate } from "./utils/date";
+import { TaskBarContent } from "./TaskBarContent";
+import { TimelineHeader } from "./TimelineHeader";
 
 interface AeroTimelineProps {
   startDateISO: string;
@@ -36,7 +38,7 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { rows, links, config, totalWidth, totalHeight } = useTimelineEngine({
+  const { rows, links, config, totalWidth, totalHeight, maxEndBD } = useTimelineEngine({
     startDateISO,
     phases,
     holidays,
@@ -147,8 +149,20 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
           ))}
         </div>
 
+        {/* Timeline Header */}
+        <div className="absolute top-0" style={{ left: `${config.leftRailWidth}px`, right: 0 }}>
+          <TimelineHeader
+            startDateISO={startDateISO}
+            maxEndBD={maxEndBD}
+            pixelsPerDay={config.pixelsPerDay}
+            paddingLeft={config.paddingLeft}
+            viewMode={viewMode}
+            width={totalWidth - config.leftRailWidth}
+          />
+        </div>
+
         {/* Canvas timeline */}
-        <div className="absolute top-0 bottom-0" style={{ left: `${config.leftRailWidth}px` }}>
+        <div className="absolute bottom-0" style={{ left: `${config.leftRailWidth}px`, top: "48px" }}>
           <canvas ref={canvasRef} className="block" />
 
           {/* DOM overlays (bars, tooltips) */}
@@ -181,22 +195,14 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
                   role="button"
                   aria-label={`Phase: ${row.name}, ${row.phase.durationBD} business days, starts ${row.startDate}`}
                 >
-                  {/* Bar */}
-                  <div
-                    className={clsx(
-                      "relative h-full rounded-[var(--r-sm)] transition-all duration-[var(--dur)]",
-                      row.critical ? "bg-[var(--g-bar-critical)]" : "bg-[var(--g-bar)]",
-                      isSelected && "ring-2 ring-[var(--focus)]"
-                    )}
-                  >
-                    {/* Progress inner bar */}
-                    {row.progress > 0 && (
-                      <div
-                        className="absolute inset-y-0 left-0 bg-[var(--g-progress)] rounded-[var(--r-sm)] opacity-30"
-                        style={{ width: `${row.progress}%` }}
-                      />
-                    )}
-                  </div>
+                  <TaskBarContent
+                    name={row.name}
+                    durationDays={row.phase.durationBD}
+                    status={row.status}
+                    assignees={row.phase.assignees}
+                    width={row.width}
+                    isSelected={isSelected}
+                  />
                 </div>
               );
             })}

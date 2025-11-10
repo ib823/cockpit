@@ -57,6 +57,7 @@ import {
   GanttTask,
 } from "@/types/gantt-tool";
 import { differenceInCalendarDays, parseISO, format as formatDate } from "date-fns";
+import { SFSymbol, getCategoryIcon } from "@/components/common/SFSymbol";
 
 // Fixed rate ratios based on designation
 const DESIGNATION_RATE_RATIOS: Record<ResourceDesignation, number> = {
@@ -113,6 +114,17 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   const [expandedResources, setExpandedResources] = useState<Set<string>>(new Set());
   const [selectedAssignments, setSelectedAssignments] = useState<Set<string>>(new Set());
   const [showBulkActions, setShowBulkActions] = useState(false);
+
+  // Keyboard navigation - ESC to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   // Calculate comprehensive resource statistics
   const resourceStats = useMemo((): Map<string, ResourceStats> => {
@@ -237,7 +249,11 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
       overallocatedCount: 0,
       conflictsCount: 0,
       unassignedCount: 0,
+      avgUtilization: 0,
     };
+
+    let totalUtilization = 0;
+    let countWithStats = 0;
 
     filteredResources.forEach((resource) => {
       const resourceStat = resourceStats.get(resource.id);
@@ -245,6 +261,8 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
         stats.totalAssignments += resourceStat.assignmentCount || 0;
         stats.totalHours += Number(resourceStat.totalHours) || 0;
         stats.totalCost += Number(resourceStat.totalCost) || 0;
+        totalUtilization += resourceStat.utilization;
+        countWithStats++;
         if (resourceStat.isOverallocated) stats.overallocatedCount++;
         if (resourceStat.hasConflicts) stats.conflictsCount++;
         if (resourceStat.assignmentCount === 0) stats.unassignedCount++;
@@ -252,6 +270,8 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
         stats.unassignedCount++;
       }
     });
+
+    stats.avgUtilization = countWithStats > 0 ? totalUtilization / countWithStats : 0;
 
     return stats;
   }, [filteredResources, resourceStats]);
@@ -391,101 +411,120 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          {/* Stats Dashboard */}
-          <div className="px-6 py-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
-            <div className="grid grid-cols-7 gap-3">
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Resources</div>
-                <div className="text-lg font-bold text-gray-900">{overallStats.totalResources}</div>
+          {/* Stats Dashboard - 5 Key Metrics */}
+          <div
+            className="px-6 border-b border-gray-200 bg-white"
+            style={{ height: "56px", display: "flex", alignItems: "center" }}
+            role="region"
+            aria-label="Resource statistics"
+          >
+            <div className="flex items-center justify-between w-full" style={{ gap: "32px" }}>
+              {/* 1. Resources */}
+              <div className="flex-1 text-center" role="status" aria-label={`${overallStats.totalResources} total resources`}>
+                <div className="text-[var(--text-caption)] text-[var(--ink)] mb-1" style={{ opacity: 0.6 }}>Resources</div>
+                <div className="text-[var(--text-display-medium)] font-semibold text-[var(--ink)]">{overallStats.totalResources}</div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Assignments</div>
-                <div className="text-lg font-bold text-blue-600">
-                  {overallStats.totalAssignments}
-                </div>
+
+              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} aria-hidden="true" />
+
+              {/* 2. Active Assignments */}
+              <div className="flex-1 text-center" role="status" aria-label={`${overallStats.totalAssignments} active assignments`}>
+                <div className="text-[var(--text-caption)] text-[var(--ink)] mb-1" style={{ opacity: 0.6 }}>Active Assignments</div>
+                <div className="text-[var(--text-display-medium)] font-semibold text-[var(--ink)]">{overallStats.totalAssignments}</div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Total Hours</div>
-                <div className="text-lg font-bold text-purple-600">
-                  {(Number(overallStats.totalHours) || 0).toFixed(0)}h
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Total Cost</div>
-                <div className="text-lg font-bold text-green-600">
-                  ${overallStats.totalCost.toFixed(0)}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Overallocated</div>
+
+              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} aria-hidden="true" />
+
+              {/* 3. Conflicts */}
+              <div className="flex-1 text-center" role="status" aria-label={`${overallStats.conflictsCount} conflicts${overallStats.conflictsCount > 0 ? ' - attention needed' : ''}`}>
+                <div className="text-[var(--text-caption)] text-[var(--ink)] mb-1" style={{ opacity: 0.6 }}>Conflicts</div>
                 <div
-                  className={`text-lg font-bold ${overallStats.overallocatedCount > 0 ? "text-red-600" : "text-gray-400"}`}
-                >
-                  {overallStats.overallocatedCount}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Conflicts</div>
-                <div
-                  className={`text-lg font-bold ${overallStats.conflictsCount > 0 ? "text-orange-600" : "text-gray-400"}`}
+                  className="text-[var(--text-display-medium)] font-semibold"
+                  style={{ color: overallStats.conflictsCount > 0 ? "var(--color-orange)" : "var(--ink)" }}
                 >
                   {overallStats.conflictsCount}
                 </div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Unassigned</div>
+
+              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} aria-hidden="true" />
+
+              {/* 4. Unassigned */}
+              <div className="flex-1 text-center" role="status" aria-label={`${overallStats.unassignedCount} unassigned resources${overallStats.unassignedCount > 0 ? ' - attention needed' : ''}`}>
+                <div className="text-[var(--text-caption)] text-[var(--ink)] mb-1" style={{ opacity: 0.6 }}>Unassigned</div>
                 <div
-                  className={`text-lg font-bold ${overallStats.unassignedCount > 0 ? "text-yellow-600" : "text-gray-400"}`}
+                  className="text-[var(--text-display-medium)] font-semibold"
+                  style={{ color: overallStats.unassignedCount > 0 ? "var(--color-orange)" : "var(--ink)" }}
                 >
                   {overallStats.unassignedCount}
                 </div>
+              </div>
+
+              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} aria-hidden="true" />
+
+              {/* 5. Utilization */}
+              <div className="flex-1 text-center" role="status" aria-label={`${overallStats.avgUtilization.toFixed(0)}% average utilization`}>
+                <div className="text-[var(--text-caption)] text-[var(--ink)] mb-1" style={{ opacity: 0.6 }}>Utilization</div>
+                <div className="text-[var(--text-display-medium)] font-semibold text-[var(--ink)]">{overallStats.avgUtilization.toFixed(0)}%</div>
               </div>
             </div>
           </div>
 
           {/* View Switcher & Toolbar */}
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            {/* View Mode Tabs */}
+            {/* View Mode Tabs - SF Segmented Control */}
             <div className="flex items-center justify-between mb-3">
-              <div className="flex gap-2">
+              <div className="flex gap-1 p-1 bg-[var(--color-gray-1)] bg-opacity-20 rounded-lg" role="tablist" aria-label="View mode">
                 <button
                   onClick={() => setViewMode("matrix")}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
+                  className={`px-4 py-2 rounded-lg font-medium text-[var(--text-body)] flex items-center gap-2 transition-all ${
                     viewMode === "matrix"
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                      ? "bg-white text-[var(--ink)] shadow-sm"
+                      : "text-[var(--ink)] hover:bg-white hover:bg-opacity-50"
                   }`}
+                  style={viewMode !== "matrix" ? { opacity: 0.6 } : {}}
+                  role="tab"
+                  aria-selected={viewMode === "matrix"}
+                  aria-label="Matrix view"
                 >
-                  <List className="w-4 h-4" />
-                  Matrix View
+                  <SFSymbol name="square.grid.2x2" size={16} aria-hidden="true" />
+                  Matrix
                 </button>
                 <button
                   onClick={() => setViewMode("timeline")}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
+                  className={`px-4 py-2 rounded-lg font-medium text-[var(--text-body)] flex items-center gap-2 transition-all ${
                     viewMode === "timeline"
-                      ? "bg-purple-600 text-white shadow-md"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                      ? "bg-white text-[var(--ink)] shadow-sm"
+                      : "text-[var(--ink)] hover:bg-white hover:bg-opacity-50"
                   }`}
+                  style={viewMode !== "timeline" ? { opacity: 0.6 } : {}}
+                  role="tab"
+                  aria-selected={viewMode === "timeline"}
+                  aria-label="Timeline view"
                 >
-                  <BarChart3 className="w-4 h-4" />
-                  Timeline View
+                  <SFSymbol name="calendar" size={16} aria-hidden="true" />
+                  Timeline
                 </button>
                 <button
                   onClick={() => setViewMode("hybrid")}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
+                  className={`px-4 py-2 rounded-lg font-medium text-[var(--text-body)] flex items-center gap-2 transition-all ${
                     viewMode === "hybrid"
-                      ? "bg-green-600 text-white shadow-md"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                      ? "bg-white text-[var(--ink)] shadow-sm"
+                      : "text-[var(--ink)] hover:bg-white hover:bg-opacity-50"
                   }`}
+                  style={viewMode !== "hybrid" ? { opacity: 0.6 } : {}}
+                  role="tab"
+                  aria-selected={viewMode === "hybrid"}
+                  aria-label="Hybrid view"
                 >
-                  <Columns className="w-4 h-4" />
-                  Hybrid View
+                  <SFSymbol name="rectangle.split.3x1" size={16} aria-hidden="true" />
+                  Hybrid
                 </button>
               </div>
 
               <button
                 onClick={() => setShowForm(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium text-sm"
+                className="px-4 py-2 bg-[var(--color-blue)] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 font-medium text-[var(--text-body)] shadow-sm"
+                style={{ height: "36px" }}
               >
                 <Plus className="w-4 h-4" />
                 Add Resource
@@ -494,43 +533,48 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
 
             {/* Search & Filters */}
             <div className="flex gap-3">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <div className="relative" style={{ width: "280px" }}>
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink)]" style={{ opacity: 0.4 }} />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search resources..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full pl-10 pr-4 py-2 bg-[rgb(242,242,247)] rounded-lg text-[var(--text-body)] text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)] transition-shadow"
+                  style={{ height: "36px", border: "none" }}
                 />
               </div>
 
-              {/* Category Pills */}
-              <div className="flex gap-2">
+              {/* Category Pills - SF Symbol Icons */}
+              <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setCategoryFilter("all")}
-                  className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                  className={`px-3 py-1 text-[var(--text-caption)] font-medium rounded-full transition-all flex items-center gap-1 ${
                     categoryFilter === "all"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                      ? "bg-[var(--color-blue)] text-white border-none"
+                      : "bg-white text-[var(--ink)] border border-[var(--color-gray-1)] border-opacity-40"
                   }`}
+                  style={{ height: "32px", opacity: categoryFilter === "all" ? 1 : 0.6 }}
                 >
                   All
                 </button>
-                {Object.entries(RESOURCE_CATEGORIES).map(([key, { label, icon, color }]) => (
+                {Object.entries(RESOURCE_CATEGORIES).map(([key, { label }]) => (
                   <button
                     key={key}
                     onClick={() => setCategoryFilter(key as ResourceCategory)}
-                    className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors flex items-center gap-1 ${
+                    className={`px-3 py-1 text-[var(--text-caption)] font-medium rounded-full transition-all flex items-center gap-1 ${
                       categoryFilter === key
-                        ? "text-white"
-                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                        ? "bg-[var(--color-blue)] text-white border-none"
+                        : "bg-white text-[var(--ink)] border border-[var(--color-gray-1)] border-opacity-40"
                     }`}
-                    style={{
-                      backgroundColor: categoryFilter === key ? color : undefined,
-                    }}
+                    style={{ height: "32px", opacity: categoryFilter === key ? 1 : 0.6 }}
                   >
-                    <span>{icon}</span>
+                    <SFSymbol
+                      name={getCategoryIcon(label)}
+                      size={14}
+                      color={categoryFilter === key ? "white" : "currentColor"}
+                      opacity={categoryFilter === key ? 1 : 0.4}
+                    />
                     {label}
                   </button>
                 ))}
@@ -684,82 +728,93 @@ function MatrixView({
           const isExpanded = expandedResources.has(resource.id);
 
           return (
-            <div key={resource.id} className="hover:bg-gray-50 transition-colors">
-              {/* Resource Header Row */}
-              <div className="px-6 py-4 flex items-center gap-4">
-                {/* Expand/Collapse Button */}
+            <div key={resource.id} className="hover:bg-[rgba(0,0,0,0.04)] transition-colors duration-200">
+              {/* Resource Header Row - 64px height */}
+              <div className="px-6 flex items-center gap-4" style={{ height: "64px" }} role="row">
+                {/* Expand/Collapse Button - 44x44px touch target */}
                 <button
                   onClick={() => onToggleExpand(resource.id)}
-                  className="p-1 hover:bg-gray-200 rounded transition-colors flex-shrink-0"
+                  className="icon-button"
+                  aria-label={isExpanded ? `Collapse ${resource.name} details` : `Expand ${resource.name} details`}
+                  aria-expanded={isExpanded}
                 >
                   {isExpanded ? (
-                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                    <ChevronDown className="w-4 h-4 text-[var(--ink)] chevron-rotate expanded" aria-hidden="true" />
                   ) : (
-                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                    <ChevronRight className="w-4 h-4 text-[var(--ink)] chevron-rotate" aria-hidden="true" />
                   )}
                 </button>
 
-                {/* Resource Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl flex-shrink-0">{category.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">{resource.name}</h3>
-                      <p className="text-sm text-gray-600">
-                        {RESOURCE_DESIGNATIONS[resource.designation]} · {category.label}
-                      </p>
-                    </div>
+                {/* Avatar - 40x40px circle with initials */}
+                <div
+                  className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--color-blue)] bg-opacity-10 flex items-center justify-center"
+                  aria-label={`${resource.name} avatar`}
+                  role="img"
+                >
+                  <span className="text-[var(--text-body)] font-semibold text-[var(--color-blue)]">
+                    {resource.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                  </span>
+                </div>
+
+                {/* Name/Title - 240px width - Always visible */}
+                <div style={{ width: "240px", minWidth: "240px" }}>
+                  <h3 className="text-[var(--text-body)] font-medium text-[var(--ink)] truncate">{resource.name}</h3>
+                  <p className="text-[var(--text-caption)] text-[var(--ink)] truncate" style={{ opacity: 0.6 }}>
+                    {RESOURCE_DESIGNATIONS[resource.designation]}
+                  </p>
+                </div>
+
+                {/* Category - 120px width - Hide on tablet and mobile */}
+                <div className="hide-on-tablet" style={{ width: "120px", minWidth: "120px" }}>
+                  <span className="text-[var(--text-caption)] text-[var(--ink)]" style={{ opacity: 0.6 }}>
+                    {category.label}
+                  </span>
+                </div>
+
+                {/* Assignments - Number only with small icon - Always visible */}
+                <div className="flex items-center gap-1" style={{ width: "80px" }}>
+                  <Target className="w-3 h-3 text-[var(--ink)]" style={{ opacity: 0.4 }} />
+                  <span className="text-[var(--text-body)] text-[var(--ink)]">{stats?.assignmentCount || 0}</span>
+                </div>
+
+                {/* Hours - Hide on tablet and mobile */}
+                <div className="hide-on-tablet" style={{ width: "60px" }}>
+                  <span className="text-[var(--text-body)] text-[var(--ink)]" style={{ opacity: 0.6 }}>
+                    {(Number(stats?.totalHours) || 0).toFixed(0)}h
+                  </span>
+                </div>
+
+                {/* Cost - Hide on mobile */}
+                {resource.isBillable && (
+                  <div className="hide-on-mobile" style={{ width: "80px" }}>
+                    <span className="text-[var(--text-body)] font-medium text-[var(--ink)]">
+                      ${stats?.totalCost.toFixed(0) || 0}
+                    </span>
                   </div>
-                </div>
+                )}
 
-                {/* Stats Pills */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {stats && (
-                    <>
-                      <div className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium flex items-center gap-1">
-                        <Target className="w-3 h-3" />
-                        {stats.assignmentCount} assignments
-                      </div>
-                      <div className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {(Number(stats.totalHours) || 0).toFixed(0)}h
-                      </div>
-                      {resource.isBillable && (
-                        <div className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium flex items-center gap-1">
-                          <DollarSign className="w-3 h-3" />${stats.totalCost.toFixed(0)}
-                        </div>
-                      )}
-                      {stats.isOverallocated && (
-                        <div className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" />
-                          {stats.utilization.toFixed(0)}% OVER
-                        </div>
-                      )}
-                      {stats.hasConflicts && (
-                        <div className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold flex items-center gap-1">
-                          <Zap className="w-3 h-3" />
-                          CONFLICT
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
+                {/* Status - Show only if conflict */}
+                {stats?.hasConflicts && (
+                  <div className="px-3 bg-[var(--color-orange)] text-white rounded text-[10px] font-medium uppercase tracking-wide" style={{ height: "20px", display: "flex", alignItems: "center", justifyContent: "center", minWidth: "60px" }}>
+                    CONFLICT
+                  </div>
+                )}
 
-                {/* Actions */}
-                <div className="flex gap-1 flex-shrink-0">
+                {/* Actions - Right side */}
+                <div className="flex gap-2 flex-shrink-0 ml-auto" style={{ marginRight: "16px" }}>
                   <button
                     onClick={() => onEditResource(resource)}
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    title="Edit resource"
+                    className="icon-button"
+                    aria-label={`Edit ${resource.name}`}
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <SFSymbol name="pencil" size={16} aria-hidden="true" />
                   </button>
                   <button
                     onClick={() => onDeleteResource(resource.id, resource.name)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                    title="Delete resource"
+                    className="icon-button"
+                    aria-label={`Delete ${resource.name}`}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <SFSymbol name="trash" size={16} aria-hidden="true" />
                   </button>
                 </div>
               </div>

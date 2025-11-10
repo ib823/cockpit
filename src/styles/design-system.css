@@ -1,0 +1,936 @@
+/**
+ * Design System - Apple Human Interface Guidelines Compliant
+ * Strict implementation per UI_suggestion.md specification
+ *
+ * Principles:
+ * 1. SF Pro font family (with web-safe fallbacks)
+ * 2. iOS System Colors (exact RGB values)
+ * 3. 8px base grid system (no exceptions)
+ * 4. Purposeful, subtle motion
+ * 5. WCAG 2.1 AA accessibility
+ */
+
+:root {
+  /* ═══════════════════════════════════════════════════════
+     TYPOGRAPHY SYSTEM
+     ═══════════════════════════════════════════════════════ */
+
+  /* Font Families */
+  --font-display: 'SF Pro Display', -apple-system, BlinkMacSystemFont,
+                  'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  --font-text: 'SF Pro Text', -apple-system, BlinkMacSystemFont,
+               'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, 'Monaco', 'Cascadia Code',
+               'Courier New', monospace;
+
+  /* Display Sizes - Large numbers, project titles */
+  --text-display-large: 1.75rem;    /* 28px */
+  --text-display-medium: 1.5rem;    /* 24px */
+  --text-display-small: 1.25rem;    /* 20px */
+
+  /* Body Sizes - Main content */
+  --text-body-large: 0.9375rem;     /* 15px - Section headings */
+  --text-body: 0.8125rem;           /* 13px - Default body text */
+
+  /* Detail Sizes - Secondary info */
+  --text-detail: 0.6875rem;         /* 11px - Metadata, labels */
+  --text-detail-small: 0.625rem;    /* 10px - Fine print */
+
+  /* Font Weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* Opacity Scale - Applied to black text */
+  --opacity-primary: 1;              /* Main content */
+  --opacity-secondary: 0.6;          /* Supporting content */
+  --opacity-tertiary: 0.4;           /* Metadata, placeholders */
+  --opacity-disabled: 0.25;          /* Inactive elements */
+
+  /* ═══════════════════════════════════════════════════════
+     COLOR SYSTEM - iOS System Colors
+     ═══════════════════════════════════════════════════════ */
+
+  /* Primary System Colors */
+  --color-blue: rgb(0, 122, 255);
+  --color-green: rgb(52, 199, 89);
+  --color-orange: rgb(255, 149, 0);
+  --color-red: rgb(255, 59, 48);
+  --color-purple: rgb(175, 82, 222);  /* Only for decorative avatars */
+  --color-pink: rgb(255, 45, 85);     /* Only for decorative avatars */
+
+  /* Gray Scale */
+  --color-gray-1: rgb(142, 142, 147);  /* Tertiary text */
+  --color-gray-2: rgb(174, 174, 178);  /* Tertiary fill */
+  --color-gray-3: rgb(199, 199, 204);  /* Secondary fill */
+  --color-gray-4: rgb(209, 209, 214);  /* Borders, separators */
+  --color-gray-5: rgb(229, 229, 234);  /* Secondary background */
+  --color-gray-6: rgb(242, 242, 247);  /* Primary background */
+
+  /* Background Colors */
+  --color-bg-primary: rgb(255, 255, 255);
+  --color-bg-secondary: rgb(242, 242, 247);
+  --color-bg-tertiary: rgb(255, 255, 255);
+
+  /* Semantic Usage */
+  --color-in-progress: var(--color-blue);
+  --color-at-risk: var(--color-orange);
+  --color-complete: var(--color-green);
+  --color-critical: var(--color-red);
+  --color-not-started: var(--color-gray-1);
+
+  /* ═══════════════════════════════════════════════════════
+     SPACING SYSTEM - 8px Base Grid
+     ═══════════════════════════════════════════════════════ */
+
+  --space-xs: 0.25rem;      /* 4px - Minimal spacing (icon-to-text) */
+  --space-sm: 0.5rem;       /* 8px - Tight spacing (within components) */
+  --space-md: 0.75rem;      /* 12px - Default spacing (between related elements) */
+  --space-base: 1rem;       /* 16px - Standard spacing (padding, margins) */
+  --space-lg: 1.5rem;       /* 24px - Loose spacing (between sections) */
+  --space-xl: 2rem;         /* 32px - Section spacing (major separations) */
+  --space-2xl: 3rem;        /* 48px - Large spacing (modal padding) */
+  --space-3xl: 4rem;        /* 64px - Extra large (page margins) */
+
+  /* ═══════════════════════════════════════════════════════
+     SHADOWS
+     ═══════════════════════════════════════════════════════ */
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  /* ═══════════════════════════════════════════════════════
+     BORDER RADIUS
+     ═══════════════════════════════════════════════════════ */
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* ═══════════════════════════════════════════════════════
+     ANIMATION & MOTION
+     ═══════════════════════════════════════════════════════ */
+
+  --duration-quick: 100ms;     /* Toggle states, button presses */
+  --duration-default: 200ms;   /* Hover effects, expand/collapse */
+  --duration-slow: 300ms;      /* Modal entry/exit, page transitions */
+  --easing-default: cubic-bezier(0.4, 0.0, 0.2, 1);
+
+  /* ═══════════════════════════════════════════════════════
+     Z-INDEX LAYERS
+     ═══════════════════════════════════════════════════════ */
+
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-toast: 1060;
+  --z-tooltip: 1070;
+
+  /* ═══════════════════════════════════════════════════════
+     GANTT CHART SPECIFIC
+     ═══════════════════════════════════════════════════════ */
+
+  /* Task Bar Heights */
+  --gantt-task-bar-height: 32px;
+  --gantt-phase-header-height: 40px;
+  --gantt-swim-lane-bar-height: 28px;
+
+  /* Grid & Background */
+  --gantt-grid-line: rgba(0, 0, 0, 0.06);      /* 1px, 6% opacity */
+  --gantt-grid-major: rgba(0, 0, 0, 0.12);     /* 1px, 12% opacity */
+  --gantt-non-working-day: rgba(0, 0, 0, 0.05); /* 5% gray tint */
+  --gantt-today-line: var(--color-blue);
+  --gantt-today-fill: rgba(0, 122, 255, 0.2);  /* 20% opacity blue */
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT DIMENSIONS
+     ═══════════════════════════════════════════════════════ */
+
+  /* Modal */
+  --modal-header-height: 80px;
+  --modal-padding: 48px;
+
+  /* Touch Targets (minimum 44x44px per iOS HIG) */
+  --touch-target-min: 44px;
+
+  /* Avatars */
+  --avatar-xs: 24px;
+  --avatar-sm: 32px;
+  --avatar-md: 40px;
+  --avatar-lg: 56px;
+
+  /* Buttons */
+  --button-height-sm: 32px;
+  --button-height-md: 36px;
+  --button-height-lg: 44px;
+
+  /* ═══════════════════════════════════════════════════════
+     BACKWARD COMPATIBILITY ALIASES
+     ═══════════════════════════════════════════════════════ */
+
+  /* Map old token names to new system */
+  --accent: var(--color-blue);
+  --accent-strong: rgb(0, 112, 235);  /* Slightly darker blue for hover */
+  --accent-subtle: rgba(0, 122, 255, 0.1);
+
+  --ink: rgba(0, 0, 0, var(--opacity-primary));
+  --ink-dim: rgba(0, 0, 0, var(--opacity-secondary));
+  --ink-muted: rgba(0, 0, 0, var(--opacity-tertiary));
+
+  --surface: var(--color-bg-primary);
+  --surface-sub: var(--color-bg-secondary);
+  --surface-raised: var(--color-bg-primary);
+  --line: var(--color-gray-4);
+
+  --success: var(--color-green);
+  --success-bg: rgba(52, 199, 89, 0.1);
+  --warn: var(--color-orange);
+  --warn-bg: rgba(255, 149, 0, 0.1);
+  --danger: var(--color-red);
+  --danger-bg: rgba(255, 59, 48, 0.1);
+
+  --focus: var(--color-blue);
+  --focus-ring: 0 0 0 2px var(--color-blue);
+
+  /* Radii aliases */
+  --r-sm: var(--radius-sm);
+  --r-md: var(--radius-md);
+  --r-lg: var(--radius-lg);
+  --r-full: var(--radius-full);
+  --r-xl: 16px;
+  --r-2xl: 20px;
+
+  /* Spacing aliases */
+  --s-4: var(--space-xs);
+  --s-8: var(--space-sm);
+  --s-12: var(--space-md);
+  --s-16: var(--space-base);
+  --s-20: 20px;
+  --s-24: var(--space-lg);
+  --s-32: var(--space-xl);
+  --s-40: 40px;
+  --s-48: var(--space-2xl);
+  --s-64: var(--space-3xl);
+
+  /* Motion aliases */
+  --dur: var(--duration-default);
+  --dur-slow: var(--duration-slow);
+  --ease: var(--easing-default);
+
+  /* Shadow aliases */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  /* Toolkit compatibility */
+  --brand-primary: var(--color-blue);
+  --brand-secondary: var(--color-purple);
+  --canvas: var(--color-bg-secondary);
+  --warning: var(--color-orange);
+  --error: var(--color-red);
+  --info: var(--color-blue);
+}
+
+/* ═══════════════════════════════════════════════════════
+   REDUCE MOTION SUPPORT
+   ═══════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   TYPOGRAPHY UTILITY CLASSES
+   ═══════════════════════════════════════════════════════ */
+
+/* Display Text */
+  .text-display-large {
+    font-family: var(--font-display);
+    font-size: var(--text-display-large);
+    font-weight: var(--weight-semibold);
+    line-height: 1.2;
+  }
+
+  .text-display-medium {
+    font-family: var(--font-display);
+    font-size: var(--text-display-medium);
+    font-weight: var(--weight-semibold);
+    line-height: 1.2;
+  }
+
+  .text-display-small {
+    font-family: var(--font-display);
+    font-size: var(--text-display-small);
+    font-weight: var(--weight-semibold);
+    line-height: 1.2;
+  }
+
+  /* Body Text */
+  .text-body-large {
+    font-family: var(--font-text);
+    font-size: var(--text-body-large);
+    font-weight: var(--weight-semibold);
+    line-height: 1.4;
+  }
+
+  .text-body {
+    font-family: var(--font-text);
+    font-size: var(--text-body);
+    font-weight: var(--weight-regular);
+    line-height: 1.5;
+  }
+
+  .text-body-medium {
+    font-family: var(--font-text);
+    font-size: var(--text-body);
+    font-weight: var(--weight-medium);
+    line-height: 1.5;
+  }
+
+  .text-body-semibold {
+    font-family: var(--font-text);
+    font-size: var(--text-body);
+    font-weight: var(--weight-semibold);
+    line-height: 1.5;
+  }
+
+  /* Detail Text */
+  .text-detail {
+    font-family: var(--font-text);
+    font-size: var(--text-detail);
+    font-weight: var(--weight-regular);
+    line-height: 1.4;
+  }
+
+  .text-detail-medium {
+    font-family: var(--font-text);
+    font-size: var(--text-detail);
+    font-weight: var(--weight-medium);
+    line-height: 1.4;
+  }
+
+  .text-detail-small {
+    font-family: var(--font-text);
+    font-size: var(--text-detail-small);
+    font-weight: var(--weight-regular);
+    line-height: 1.4;
+  }
+
+  /* Opacity Classes */
+  .text-primary {
+    opacity: var(--opacity-primary);
+  }
+
+  .text-secondary {
+    opacity: var(--opacity-secondary);
+  }
+
+  .text-tertiary {
+    opacity: var(--opacity-tertiary);
+  }
+
+  .text-disabled {
+    opacity: var(--opacity-disabled);
+  }
+
+  /* Semantic Color Classes */
+  .text-blue {
+    color: var(--color-blue);
+  }
+
+  .text-green {
+    color: var(--color-green);
+  }
+
+  .text-orange {
+    color: var(--color-orange);
+  }
+
+  .text-red {
+    color: var(--color-red);
+  }
+
+  .text-gray {
+    color: var(--color-gray-1);
+  }
+
+  /* Background Color Classes */
+  .bg-blue {
+    background-color: var(--color-blue);
+  }
+
+  .bg-green {
+    background-color: var(--color-green);
+  }
+
+  .bg-orange {
+    background-color: var(--color-orange);
+  }
+
+  .bg-red {
+    background-color: var(--color-red);
+  }
+
+  .bg-gray-5 {
+    background-color: var(--color-gray-5);
+  }
+
+  .bg-gray-6 {
+    background-color: var(--color-gray-6);
+  }
+
+/* ═══════════════════════════════════════════════════════
+   INTERACTION STATES - Apple HIG Section 8
+   ═══════════════════════════════════════════════════════ */
+
+/* HOVER STATES - All interactive elements need hover feedback */
+
+/* Buttons: Background darkens by 10% */
+button:not(:disabled):hover,
+.ant-btn:not(.ant-btn-disabled):hover {
+  filter: brightness(0.9);
+  transition: filter var(--duration-default) var(--easing-default);
+}
+
+/* Links: Opacity increases to 100% */
+a:hover {
+  opacity: 1 !important;
+  transition: opacity var(--duration-default) var(--easing-default);
+}
+
+/* Table rows: 4% gray background fill */
+tr:hover,
+[role="row"]:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  transition: background-color var(--duration-default) var(--easing-default);
+}
+
+/* Icons: Opacity increases from 40% to 100% */
+svg:hover,
+.icon:hover {
+  opacity: 1 !important;
+  transition: opacity var(--duration-default) var(--easing-default);
+}
+
+/* Cards: Subtle shadow appears */
+.ant-card:hover,
+.card:hover {
+  box-shadow: var(--shadow-md) !important;
+  transition: box-shadow var(--duration-default) var(--easing-default);
+}
+
+/* ACTIVE/PRESSED STATES - Buttons scale to 98% */
+
+button:not(:disabled):active,
+.ant-btn:not(.ant-btn-disabled):active,
+[role="button"]:active {
+  transform: scale(0.98);
+  transition: transform var(--duration-quick) var(--easing-default);
+}
+
+/* FOCUS STATES - Accessibility requirement */
+
+/* Global focus styles for all interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Remove default focus outline (replaced with focus-visible) */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Focus utility classes */
+.focus-ring {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+.focus-ring-inset {
+  outline: 2px solid var(--color-blue);
+  outline-offset: -2px;
+}
+
+/* For elements that need visible focus on click (not just keyboard) */
+.focus-always:focus {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+/* Table row focus states */
+tr:focus-visible,
+[role="row"]:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: -2px; /* Inset for table rows */
+  position: relative;
+  z-index: 1;
+}
+
+/* Card/panel focus states */
+.card:focus-visible,
+[role="article"]:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════
+   LOADING STATES - SF Spinner Animation
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes sf-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ENHANCED ANIMATIONS - Section 8: Interaction Patterns
+   ═══════════════════════════════════════════════════════ */
+
+/* Chevron rotation for expand/collapse */
+.chevron-rotate {
+  transition: transform var(--duration-default) var(--easing-default);
+}
+
+.chevron-rotate.expanded {
+  transform: rotate(180deg);
+}
+
+/* Modal entrance/exit animations */
+@keyframes modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-backdrop-fade-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+.modal-enter {
+  animation: modal-slide-up var(--duration-slow) var(--easing-default),
+             modal-fade-in var(--duration-slow) var(--easing-default);
+}
+
+.modal-backdrop-enter {
+  animation: modal-backdrop-fade-in var(--duration-default) var(--easing-default);
+}
+
+/* Smooth hover transitions */
+.transition-all {
+  transition: all var(--duration-default) var(--easing-default);
+}
+
+.transition-colors {
+  transition: color var(--duration-default) var(--easing-default),
+              background-color var(--duration-default) var(--easing-default),
+              border-color var(--duration-default) var(--easing-default);
+}
+
+.transition-opacity {
+  transition: opacity var(--duration-default) var(--easing-default);
+}
+
+.transition-transform {
+  transition: transform var(--duration-default) var(--easing-default);
+}
+
+/* Pulse animation for loading states */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fade in animation for content */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in var(--duration-default) var(--easing-default);
+}
+
+/* Slide in animations */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-right {
+  animation: slide-in-right var(--duration-default) var(--easing-default);
+}
+
+.slide-in-left {
+  animation: slide-in-left var(--duration-default) var(--easing-default);
+}
+
+/* Scale animations for buttons and interactive elements */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scale-in {
+  animation: scale-in var(--duration-quick) var(--easing-default);
+}
+
+/* Button press animation */
+.button-press:active {
+  transform: scale(0.98);
+  transition: transform var(--duration-quick) var(--easing-default);
+}
+
+/* Tab underline slide animation - 150ms per UI_suggestion.md Section 8 */
+.ant-tabs-ink-bar {
+  transition: left 150ms cubic-bezier(0.4, 0.0, 0.2, 1),
+              width 150ms cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+}
+
+/* Progress bar fill animation */
+.ant-progress-bg {
+  transition: width 300ms cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+}
+
+.ant-progress-inner {
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOUCH TARGET UTILITIES - WCAG 2.1 AA Compliance
+   Minimum 44x44px touch targets per Apple HIG
+   ═══════════════════════════════════════════════════════ */
+
+/* Touch target utility class - ensures minimum 44x44px */
+.touch-target {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Touch target with padding expansion - for smaller visible elements */
+.touch-target-expand {
+  position: relative;
+}
+
+.touch-target-expand::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  z-index: -1;
+}
+
+/* Icon button touch targets - 44x44px minimum */
+.icon-button {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-default) var(--easing-default);
+}
+
+.icon-button:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.icon-button:active {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Small button override - ensure 44px height */
+button[size="small"],
+.ant-btn-sm {
+  min-height: var(--touch-target-min) !important;
+  padding: 0 var(--space-base) !important;
+}
+
+/* Checkbox and radio button touch targets */
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  cursor: pointer;
+}
+
+/* Link touch targets - ensure adequate spacing */
+a {
+  min-height: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Table action buttons - ensure 44x44px */
+table button,
+[role="table"] button {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+}
+
+/* Pill/chip touch targets */
+.pill,
+.chip,
+.tag {
+  min-height: var(--button-height-lg);
+  padding: 0 var(--space-base);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS - Section 9: Responsive Behavior
+   Desktop-first approach per Apple HIG
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  /* Breakpoint values */
+  --breakpoint-mobile: 768px;
+  --breakpoint-tablet: 1200px;
+}
+
+/* Desktop: >1200px (default styles) */
+/* Tablet: 768-1199px */
+@media (max-width: 1199px) {
+  /* Tablet-specific overrides */
+  :root {
+    --modal-padding: 32px;
+  }
+
+  .hide-on-tablet {
+    display: none !important;
+  }
+
+  .show-on-tablet {
+    display: block !important;
+  }
+}
+
+/* Mobile: <768px */
+@media (max-width: 767px) {
+  /* Mobile-specific overrides */
+  :root {
+    --modal-padding: 24px;
+    --space-3xl: 2rem; /* Reduce large spacing on mobile */
+  }
+
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .show-on-mobile {
+    display: block !important;
+  }
+
+  /* Stack flex layouts on mobile */
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+
+  /* Full width on mobile */
+  .mobile-full-width {
+    width: 100% !important;
+  }
+}
+
+/* Responsive grid utilities */
+.responsive-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Desktop: 4 columns */
+.responsive-grid-4 {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Tablet: 2 columns */
+@media (max-width: 1199px) {
+  .responsive-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile: 1 column */
+@media (max-width: 767px) {
+  .responsive-grid-4,
+  .responsive-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   GANTT CHART RESPONSIVE - Section 9: Per UI_suggestion.md
+   Targets actual GanttCanvas.tsx DOM structure (id="gantt-canvas")
+
+   Note: Mobile (<768px) is handled by ResponsiveGanttWrapper.tsx
+   which automatically switches to GanttMobileListView
+   ═══════════════════════════════════════════════════════ */
+
+/* Desktop: >1200px (default - full view as shown in GanttCanvas) */
+
+/* Tablet: 768-1199px - Optimize for touch and smaller screens */
+@media (max-width: 1199px) and (min-width: 768px) {
+  /* Reduce minimum width of timeline grid for better tablet fit */
+  #gantt-canvas .relative.min-w-\[1000px\] {
+    min-width: 800px !important;
+  }
+
+  /* Reduce padding on main container */
+  #gantt-canvas {
+    padding: 0.5rem !important;
+  }
+
+  /* Make phase/task titles more compact */
+  #gantt-canvas h2 {
+    font-size: 1.25rem !important; /* Reduce project title */
+  }
+
+  #gantt-canvas .text-sm {
+    font-size: 0.75rem !important; /* Reduce metadata text */
+  }
+
+  /* Increase touch targets for tablet */
+  #gantt-canvas [role="button"] {
+    min-height: 44px;
+  }
+
+  /* Compact status legend */
+  #gantt-canvas .text-xs {
+    font-size: 0.6875rem !important;
+  }
+}
+
+/* Small Tablet/Large Phone: 640-767px - ResponsiveGanttWrapper still shows full canvas */
+@media (max-width: 767px) and (min-width: 640px) {
+  /* Further reduce timeline minimum width */
+  #gantt-canvas .relative.min-w-\[1000px\] {
+    min-width: 600px !important;
+  }
+
+  #gantt-canvas {
+    padding: 0.25rem !important;
+  }
+
+  /* Stack project header info vertically */
+  #gantt-canvas .flex.items-center.gap-4 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* Mobile: <640px - ResponsiveGanttWrapper shows GanttMobileListView instead of canvas */
+/* No CSS needed here - completely different component is rendered */

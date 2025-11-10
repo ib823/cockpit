@@ -1,8 +1,10 @@
 /**
  * Global Styles - SAP Implementation Cockpit
  * Minimalist, Steve Jobs-inspired design system
+ * Apple Human Interface Guidelines Compliant
  */
 
+@import "../styles/design-system.css";
 @import "../styles/tokens.css";
 @import "../styles/motion.css";
 @import "../styles/button-normalize.css";
