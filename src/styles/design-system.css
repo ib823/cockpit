@@ -873,76 +873,64 @@ table button,
 
 /* ═══════════════════════════════════════════════════════
    GANTT CHART RESPONSIVE - Section 9: Per UI_suggestion.md
+   Targets actual GanttCanvas.tsx DOM structure (id="gantt-canvas")
+
+   Note: Mobile (<768px) is handled by ResponsiveGanttWrapper.tsx
+   which automatically switches to GanttMobileListView
    ═══════════════════════════════════════════════════════ */
 
-/* Desktop: >1200px (default - full view as shown) */
+/* Desktop: >1200px (default - full view as shown in GanttCanvas) */
 
-/* Tablet: 768-1199px */
-@media (max-width: 1199px) {
-  /* Reduce left task list width to 200px */
-  .gantt-task-list {
-    width: 200px !important;
-    min-width: 200px !important;
+/* Tablet: 768-1199px - Optimize for touch and smaller screens */
+@media (max-width: 1199px) and (min-width: 768px) {
+  /* Reduce minimum width of timeline grid for better tablet fit */
+  #gantt-canvas .relative.min-w-\[1000px\] {
+    min-width: 800px !important;
   }
 
-  /* Smaller font sizes */
-  .gantt-task-name {
-    font-size: 0.75rem !important; /* 12px */
+  /* Reduce padding on main container */
+  #gantt-canvas {
+    padding: 0.5rem !important;
   }
 
-  .gantt-phase-name {
-    font-size: 0.8125rem !important; /* 13px */
+  /* Make phase/task titles more compact */
+  #gantt-canvas h2 {
+    font-size: 1.25rem !important; /* Reduce project title */
   }
 
-  /* Reduce spacing */
-  .gantt-header {
-    padding: var(--space-sm) !important;
+  #gantt-canvas .text-sm {
+    font-size: 0.75rem !important; /* Reduce metadata text */
+  }
+
+  /* Increase touch targets for tablet */
+  #gantt-canvas [role="button"] {
+    min-height: 44px;
+  }
+
+  /* Compact status legend */
+  #gantt-canvas .text-xs {
+    font-size: 0.6875rem !important;
+  }
+}
+
+/* Small Tablet/Large Phone: 640-767px - ResponsiveGanttWrapper still shows full canvas */
+@media (max-width: 767px) and (min-width: 640px) {
+  /* Further reduce timeline minimum width */
+  #gantt-canvas .relative.min-w-\[1000px\] {
+    min-width: 600px !important;
+  }
+
+  #gantt-canvas {
+    padding: 0.25rem !important;
+  }
+
+  /* Stack project header info vertically */
+  #gantt-canvas .flex.items-center.gap-4 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }
 
-/* Mobile: <768px */
-@media (max-width: 767px) {
-  /* Stack timeline below task list */
-  .gantt-container {
-    flex-direction: column !important;
-  }
-
-  .gantt-task-list {
-    width: 100% !important;
-    max-width: none !important;
-  }
-
-  .gantt-timeline {
-    width: 100% !important;
-    overflow-x: auto !important;
-  }
-
-  /* Remove week view, show only month/quarter */
-  .gantt-week-view {
-    display: none !important;
-  }
-
-  /* Show only active phase expanded */
-  .gantt-phase:not(.active) .gantt-tasks {
-    display: none !important;
-  }
-
-  /* Smaller font sizes */
-  .gantt-task-name {
-    font-size: 0.6875rem !important; /* 11px */
-  }
-
-  .gantt-phase-name {
-    font-size: 0.75rem !important; /* 12px */
-  }
-
-  /* Reduce task bar height on mobile */
-  .gantt-task-bar {
-    height: 24px !important;
-  }
-
-  /* Compact header */
-  .gantt-header {
-    padding: var(--space-xs) !important;
-  }
-}
+/* Mobile: <640px - ResponsiveGanttWrapper shows GanttMobileListView instead of canvas */
+/* No CSS needed here - completely different component is rendered */

@@ -1091,6 +1091,11 @@ export function GanttCanvas() {
                     <div
                       data-item-id={phase.id}
                       data-item-type="phase"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Phase: ${phase.name}, ${formatWorkingDays(calculateWorkingDaysInclusive(new Date(phase.startDate), new Date(phase.endDate), currentProject.holidays || []))} working days, ${phase.tasks.length} tasks, from ${formatGanttDateCompact(new Date(phase.startDate))} to ${formatGanttDateCompact(new Date(phase.endDate))}`}
+                      aria-selected={isSelected}
+                      aria-expanded={!phase.collapsed}
                       className={`absolute h-14 rounded transition-all duration-300 ease-in-out cursor-move hover:-translate-y-0.5 hover:shadow-2xl ${
                         isDragging ? "opacity-70 scale-105" : ""
                       } ${isSelected ? "ring-4 ring-blue-400" : ""}
@@ -1120,6 +1125,12 @@ export function GanttCanvas() {
                       onDragOver={(e) => handlePhaseResourceDragOver(e, phase.id)}
                       onDragLeave={handlePhaseResourceDragLeave}
                       onDrop={(e) => handlePhaseResourceDrop(e, phase.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handlePhaseClick(phase.id);
+                        }
+                      }}
                     >
                       {/* Resize Handles */}
                       <div
@@ -1899,6 +1910,11 @@ export function GanttCanvas() {
                             <div
                               data-item-id={task.id}
                               data-item-type="task"
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`Task: ${task.name}, ${formatWorkingDays(calculateWorkingDaysInclusive(new Date(task.startDate), new Date(task.endDate), currentProject.holidays || []))} working days, ${task.progress || 0}% complete, from ${formatGanttDateCompact(new Date(task.startDate))} to ${formatGanttDateCompact(new Date(task.endDate))}`}
+                              aria-selected={isTaskSelected}
+                              aria-expanded={task.isParent ? !task.collapsed : undefined}
                               className={`absolute top-1 h-8 rounded transition-all cursor-move hover:-translate-y-0.5 hover:shadow-2xl
                                 ${isTaskDragging ? "opacity-60 scale-105 z-10" : ""}
                                 ${isTaskSelected ? "ring-2 ring-offset-1 ring-blue-400" : ""}
@@ -1927,6 +1943,13 @@ export function GanttCanvas() {
                               onDragOver={(e) => handleResourceDragOver(e, task.id, phase.id)}
                               onDragLeave={handleResourceDragLeave}
                               onDrop={(e) => handleResourceDrop(e, task.id, phase.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleTaskClick(task.id);
+                                }
+                              }}
                             >
                               {/* Resize Handles */}
                               <div
