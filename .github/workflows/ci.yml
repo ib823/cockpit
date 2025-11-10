@@ -50,6 +50,7 @@ jobs:
         run: pnpm prisma db push --skip-generate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cockpit_test
+          DATABASE_URL_UNPOOLED: postgresql://postgres:postgres@localhost:5432/cockpit_test?connection_limit=1
 
       - name: Lint code
         run: pnpm lint
