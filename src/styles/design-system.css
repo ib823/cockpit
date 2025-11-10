@@ -870,3 +870,79 @@ table button,
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   GANTT CHART RESPONSIVE - Section 9: Per UI_suggestion.md
+   ═══════════════════════════════════════════════════════ */
+
+/* Desktop: >1200px (default - full view as shown) */
+
+/* Tablet: 768-1199px */
+@media (max-width: 1199px) {
+  /* Reduce left task list width to 200px */
+  .gantt-task-list {
+    width: 200px !important;
+    min-width: 200px !important;
+  }
+
+  /* Smaller font sizes */
+  .gantt-task-name {
+    font-size: 0.75rem !important; /* 12px */
+  }
+
+  .gantt-phase-name {
+    font-size: 0.8125rem !important; /* 13px */
+  }
+
+  /* Reduce spacing */
+  .gantt-header {
+    padding: var(--space-sm) !important;
+  }
+}
+
+/* Mobile: <768px */
+@media (max-width: 767px) {
+  /* Stack timeline below task list */
+  .gantt-container {
+    flex-direction: column !important;
+  }
+
+  .gantt-task-list {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .gantt-timeline {
+    width: 100% !important;
+    overflow-x: auto !important;
+  }
+
+  /* Remove week view, show only month/quarter */
+  .gantt-week-view {
+    display: none !important;
+  }
+
+  /* Show only active phase expanded */
+  .gantt-phase:not(.active) .gantt-tasks {
+    display: none !important;
+  }
+
+  /* Smaller font sizes */
+  .gantt-task-name {
+    font-size: 0.6875rem !important; /* 11px */
+  }
+
+  .gantt-phase-name {
+    font-size: 0.75rem !important; /* 12px */
+  }
+
+  /* Reduce task bar height on mobile */
+  .gantt-task-bar {
+    height: 24px !important;
+  }
+
+  /* Compact header */
+  .gantt-header {
+    padding: var(--space-xs) !important;
+  }
+}

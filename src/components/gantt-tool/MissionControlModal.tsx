@@ -251,9 +251,6 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
       style={{ top: 20, maxWidth: 1600, maxHeight: "90vh" }}
       styles={{ body: { maxHeight: "calc(90vh - 120px)", overflowY: "auto" } }}
       footer={null}
-      aria-label={`Mission Control for ${currentProject.name}`}
-      aria-modal="true"
-      role="dialog"
       title={
         <div className="flex items-center justify-between" style={{ height: "80px" }}>
           <div className="flex items-center gap-3">

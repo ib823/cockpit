@@ -115,6 +115,17 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   const [selectedAssignments, setSelectedAssignments] = useState<Set<string>>(new Set());
   const [showBulkActions, setShowBulkActions] = useState(false);
 
+  // Keyboard navigation - ESC to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   // Calculate comprehensive resource statistics
   const resourceStats = useMemo((): Map<string, ResourceStats> => {
     if (!currentProject) return new Map();
@@ -401,26 +412,31 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Stats Dashboard - 5 Key Metrics */}
-          <div className="px-6 border-b border-gray-200 bg-white" style={{ height: "56px", display: "flex", alignItems: "center" }}>
+          <div
+            className="px-6 border-b border-gray-200 bg-white"
+            style={{ height: "56px", display: "flex", alignItems: "center" }}
+            role="region"
+            aria-label="Resource statistics"
+          >
             <div className="flex items-center justify-between w-full" style={{ gap: "32px" }}>
               {/* 1. Resources */}
-              <div className="flex-1 text-center">
+              <div className="flex-1 text-center" role="status" aria-label={`${overallStats.totalResources} total resources`}>
                 <div className="text-[var(--text-caption)] text-[var(--ink)] mb-1" style={{ opacity: 0.6 }}>Resources</div>
                 <div className="text-[var(--text-display-medium)] font-semibold text-[var(--ink)]">{overallStats.totalResources}</div>
               </div>
 
-              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} />
+              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} aria-hidden="true" />
 
               {/* 2. Active Assignments */}
-              <div className="flex-1 text-center">
+              <div className="flex-1 text-center" role="status" aria-label={`${overallStats.totalAssignments} active assignments`}>
                 <div className="text-[var(--text-caption)] text-[var(--ink)] mb-1" style={{ opacity: 0.6 }}>Active Assignments</div>
                 <div className="text-[var(--text-display-medium)] font-semibold text-[var(--ink)]">{overallStats.totalAssignments}</div>
               </div>
 
-              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} />
+              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} aria-hidden="true" />
 
               {/* 3. Conflicts */}
-              <div className="flex-1 text-center">
+              <div className="flex-1 text-center" role="status" aria-label={`${overallStats.conflictsCount} conflicts${overallStats.conflictsCount > 0 ? ' - attention needed' : ''}`}>
                 <div className="text-[var(--text-caption)] text-[var(--ink)] mb-1" style={{ opacity: 0.6 }}>Conflicts</div>
                 <div
                   className="text-[var(--text-display-medium)] font-semibold"
@@ -430,10 +446,10 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
 
-              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} />
+              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} aria-hidden="true" />
 
               {/* 4. Unassigned */}
-              <div className="flex-1 text-center">
+              <div className="flex-1 text-center" role="status" aria-label={`${overallStats.unassignedCount} unassigned resources${overallStats.unassignedCount > 0 ? ' - attention needed' : ''}`}>
                 <div className="text-[var(--text-caption)] text-[var(--ink)] mb-1" style={{ opacity: 0.6 }}>Unassigned</div>
                 <div
                   className="text-[var(--text-display-medium)] font-semibold"
@@ -443,10 +459,10 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
 
-              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} />
+              <div className="h-8 w-px bg-[var(--ink)]" style={{ opacity: 0.1 }} aria-hidden="true" />
 
               {/* 5. Utilization */}
-              <div className="flex-1 text-center">
+              <div className="flex-1 text-center" role="status" aria-label={`${overallStats.avgUtilization.toFixed(0)}% average utilization`}>
                 <div className="text-[var(--text-caption)] text-[var(--ink)] mb-1" style={{ opacity: 0.6 }}>Utilization</div>
                 <div className="text-[var(--text-display-medium)] font-semibold text-[var(--ink)]">{overallStats.avgUtilization.toFixed(0)}%</div>
               </div>
@@ -457,7 +473,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             {/* View Mode Tabs - SF Segmented Control */}
             <div className="flex items-center justify-between mb-3">
-              <div className="flex gap-1 p-1 bg-[var(--color-gray-1)] bg-opacity-20 rounded-lg">
+              <div className="flex gap-1 p-1 bg-[var(--color-gray-1)] bg-opacity-20 rounded-lg" role="tablist" aria-label="View mode">
                 <button
                   onClick={() => setViewMode("matrix")}
                   className={`px-4 py-2 rounded-lg font-medium text-[var(--text-body)] flex items-center gap-2 transition-all ${
@@ -466,8 +482,11 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                       : "text-[var(--ink)] hover:bg-white hover:bg-opacity-50"
                   }`}
                   style={viewMode !== "matrix" ? { opacity: 0.6 } : {}}
+                  role="tab"
+                  aria-selected={viewMode === "matrix"}
+                  aria-label="Matrix view"
                 >
-                  <SFSymbol name="square.grid.2x2" size={16} />
+                  <SFSymbol name="square.grid.2x2" size={16} aria-hidden="true" />
                   Matrix
                 </button>
                 <button
@@ -478,8 +497,11 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                       : "text-[var(--ink)] hover:bg-white hover:bg-opacity-50"
                   }`}
                   style={viewMode !== "timeline" ? { opacity: 0.6 } : {}}
+                  role="tab"
+                  aria-selected={viewMode === "timeline"}
+                  aria-label="Timeline view"
                 >
-                  <SFSymbol name="calendar" size={16} />
+                  <SFSymbol name="calendar" size={16} aria-hidden="true" />
                   Timeline
                 </button>
                 <button
@@ -490,8 +512,11 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                       : "text-[var(--ink)] hover:bg-white hover:bg-opacity-50"
                   }`}
                   style={viewMode !== "hybrid" ? { opacity: 0.6 } : {}}
+                  role="tab"
+                  aria-selected={viewMode === "hybrid"}
+                  aria-label="Hybrid view"
                 >
-                  <SFSymbol name="rectangle.split.3x1" size={16} />
+                  <SFSymbol name="rectangle.split.3x1" size={16} aria-hidden="true" />
                   Hybrid
                 </button>
               </div>
@@ -705,22 +730,27 @@ function MatrixView({
           return (
             <div key={resource.id} className="hover:bg-[rgba(0,0,0,0.04)] transition-colors duration-200">
               {/* Resource Header Row - 64px height */}
-              <div className="px-6 flex items-center gap-4" style={{ height: "64px" }}>
-                {/* Expand/Collapse Button - 20x20px tap target */}
+              <div className="px-6 flex items-center gap-4" style={{ height: "64px" }} role="row">
+                {/* Expand/Collapse Button - 44x44px touch target */}
                 <button
                   onClick={() => onToggleExpand(resource.id)}
-                  className="p-1 hover:bg-[rgba(0,0,0,0.06)] rounded transition-colors flex-shrink-0"
-                  style={{ marginLeft: "16px", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  className="icon-button"
+                  aria-label={isExpanded ? `Collapse ${resource.name} details` : `Expand ${resource.name} details`}
+                  aria-expanded={isExpanded}
                 >
                   {isExpanded ? (
-                    <ChevronDown className="w-4 h-4 text-[var(--ink)]" style={{ opacity: 0.6 }} />
+                    <ChevronDown className="w-4 h-4 text-[var(--ink)] chevron-rotate expanded" aria-hidden="true" />
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-[var(--ink)]" style={{ opacity: 0.6 }} />
+                    <ChevronRight className="w-4 h-4 text-[var(--ink)] chevron-rotate" aria-hidden="true" />
                   )}
                 </button>
 
                 {/* Avatar - 40x40px circle with initials */}
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--color-blue)] bg-opacity-10 flex items-center justify-center" style={{ marginLeft: "12px" }}>
+                <div
+                  className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--color-blue)] bg-opacity-10 flex items-center justify-center"
+                  aria-label={`${resource.name} avatar`}
+                  role="img"
+                >
                   <span className="text-[var(--text-body)] font-semibold text-[var(--color-blue)]">
                     {resource.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                   </span>
@@ -774,19 +804,17 @@ function MatrixView({
                 <div className="flex gap-2 flex-shrink-0 ml-auto" style={{ marginRight: "16px" }}>
                   <button
                     onClick={() => onEditResource(resource)}
-                    className="text-[var(--ink)] hover:opacity-100 transition-opacity"
-                    style={{ opacity: 0.4 }}
-                    title="Edit resource"
+                    className="icon-button"
+                    aria-label={`Edit ${resource.name}`}
                   >
-                    <SFSymbol name="pencil" size={16} />
+                    <SFSymbol name="pencil" size={16} aria-hidden="true" />
                   </button>
                   <button
                     onClick={() => onDeleteResource(resource.id, resource.name)}
-                    className="text-[var(--ink)] hover:opacity-100 transition-opacity"
-                    style={{ opacity: 0.4 }}
-                    title="Delete resource"
+                    className="icon-button"
+                    aria-label={`Delete ${resource.name}`}
                   >
-                    <SFSymbol name="trash" size={16} />
+                    <SFSymbol name="trash" size={16} aria-hidden="true" />
                   </button>
                 </div>
               </div>
