@@ -2,9 +2,6 @@
 const nextConfig = {
   allowedDevOrigins: ["http://127.0.0.1", "http://localhost"],
 
-  // React 19 compatibility (moved from experimental)
-  reactCompiler: false,
-
   // Turbopack configuration (empty to silence Next.js 16 warning)
   turbopack: {},
 

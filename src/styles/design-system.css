@@ -254,8 +254,7 @@
    TYPOGRAPHY UTILITY CLASSES
    ═══════════════════════════════════════════════════════ */
 
-@layer utilities {
-  /* Display Text */
+/* Display Text */
   .text-display-large {
     font-family: var(--font-display);
     font-size: var(--text-display-large);
@@ -390,4 +389,3 @@
   .bg-gray-6 {
     background-color: var(--color-gray-6);
   }
-}
