@@ -41,8 +41,8 @@ export function useTimelineEngine({
     // Configuration
     const config: TimelineConfig = {
       leftRailWidth: 240,
-      rowHeight: 36,
-      barHeight: 14,
+      rowHeight: 48, // Increased from 36 to accommodate 32px bars
+      barHeight: 32, // Increased from 14 to 32px per Apple HIG
       pixelsPerDay: VIEW_MODE_CONFIG[viewMode].pixelsPerDay,
       paddingLeft: 40,
       paddingRight: 40,
@@ -62,6 +62,12 @@ export function useTimelineEngine({
       const startX = config.paddingLeft + phase.startBD * config.pixelsPerDay;
       const width = phase.durationBD * config.pixelsPerDay;
 
+      // Determine status from phase data
+      const status = phase.status ??
+        (phase.progress === 100 ? 'complete' :
+         phase.progress && phase.progress > 0 ? 'in_progress' :
+         'not_started');
+
       const row: TimelineRow = {
         id: phase.id,
         name: phase.name,
@@ -70,6 +76,7 @@ export function useTimelineEngine({
         startDate,
         endDate,
         progress: phase.progress ?? 0,
+        status,
         critical: phase.critical ?? false,
         phase,
       };

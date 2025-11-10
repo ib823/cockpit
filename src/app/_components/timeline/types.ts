@@ -3,12 +3,15 @@
  * Type definitions for the AeroTimeline component
  */
 
+export type PhaseStatus = "not_started" | "in_progress" | "at_risk" | "complete";
+
 export interface TimelinePhase {
   id: string;
   name: string;
   startBD: number; // Business days from project start
   durationBD: number; // Duration in business days
   progress?: number; // 0-100
+  status?: PhaseStatus; // Task status for semantic colors
   critical?: boolean;
   baseline?: {
     startBD: number;
@@ -16,7 +19,7 @@ export interface TimelinePhase {
   };
   dependsOn?: string[]; // Phase IDs (finish-to-start dependencies)
   color?: string;
-  assignees?: string[];
+  assignees?: string[]; // Resource initials or IDs
   notes?: string;
 }
 
@@ -28,6 +31,7 @@ export interface TimelineRow {
   startDate: string; // ISO date
   endDate: string; // ISO date
   progress: number;
+  status: PhaseStatus; // Derived from phase
   critical: boolean;
   baseline?: {
     startX: number;
