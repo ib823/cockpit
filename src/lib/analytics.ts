@@ -9,19 +9,19 @@
  *   track('estimate_shown', { duration: 1500, totalMD: 180 });
  */
 
-import posthog from 'posthog-js';
+import posthog from "posthog-js";
 
 // Initialize PostHog (only in browser)
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com';
+  const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com";
 
   if (POSTHOG_KEY) {
     posthog.init(POSTHOG_KEY, {
       api_host: POSTHOG_HOST,
       loaded: (posthog) => {
         // Opt-out in development
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
           posthog.opt_out_capturing();
         }
       },
@@ -29,7 +29,7 @@ if (typeof window !== 'undefined') {
       autocapture: false, // Disable automatic clicks
     });
   } else {
-    console.warn('[Analytics] PostHog key not found. Telemetry disabled.');
+    console.warn("[Analytics] PostHog key not found. Telemetry disabled.");
   }
 }
 
@@ -41,7 +41,7 @@ if (typeof window !== 'undefined') {
 export type AnalyticsEvent =
   // Estimator events
   | {
-      name: 'estimate_shown';
+      name: "estimate_shown";
       props: {
         duration: number; // ms from page load
         totalMD: number;
@@ -49,7 +49,7 @@ export type AnalyticsEvent =
       };
     }
   | {
-      name: 'tier_transition';
+      name: "tier_transition";
       props: {
         from: 1 | 2 | 3;
         to: 1 | 2 | 3;
@@ -57,14 +57,14 @@ export type AnalyticsEvent =
     }
   // Project events
   | {
-      name: 'mode_transition';
+      name: "mode_transition";
       props: {
-        from: 'capture' | 'decide' | 'plan' | 'present';
-        to: 'capture' | 'decide' | 'plan' | 'present';
+        from: "capture" | "decide" | "plan" | "present";
+        to: "capture" | "decide" | "plan" | "present";
       };
     }
   | {
-      name: 'timeline_generated';
+      name: "timeline_generated";
       props: {
         phaseCount: number;
         chipCount: number;
@@ -72,84 +72,84 @@ export type AnalyticsEvent =
       };
     }
   | {
-      name: 'plan_entered';
+      name: "plan_entered";
       props: {
         completeness: number;
         chipCount: number;
       };
     }
   | {
-      name: 'phase_edited';
+      name: "phase_edited";
       props: {
         phaseId: string;
-        field: 'duration' | 'effort' | 'resources';
+        field: "duration" | "effort" | "resources";
       };
     }
   | {
-      name: 'regenerate_preview_shown';
+      name: "regenerate_preview_shown";
       props: {
         manualEditCount: number;
       };
     }
   // Presentation events
   | {
-      name: 'presentation_export_started';
+      name: "presentation_export_started";
       props: {
         slideCount: number;
       };
     }
   | {
-      name: 'presentation_export_complete';
+      name: "presentation_export_complete";
       props: {
         slideCount: number;
       };
     }
   | {
-      name: 'presentation_export_failed';
+      name: "presentation_export_failed";
       props: {
         error: string;
       };
     }
   | {
-      name: 'export_complete';
+      name: "export_complete";
       props: {
-        format: 'pdf' | 'pptx';
+        format: "pdf" | "pptx";
         slideCount: number;
         duration?: number;
       };
     }
   | {
-      name: 'export_failed';
+      name: "export_failed";
       props: {
-        format: 'pdf' | 'pptx';
+        format: "pdf" | "pptx";
         error: string;
       };
     }
   | {
-      name: 'slide_edited';
+      name: "slide_edited";
       props: {
         slideId: string;
-        action: 'reorder' | 'hide' | 'show';
+        action: "reorder" | "hide" | "show";
       };
     }
   | {
-      name: 'notes_used';
+      name: "notes_used";
       props: Record<string, never>; // No properties
     }
   // Onboarding events
   | {
-      name: 'gratitude_animation_complete';
+      name: "gratitude_animation_complete";
       props: Record<string, never>;
     }
   | {
-      name: 'signup';
+      name: "signup";
       props: {
-        source: 'estimator' | 'landing' | 'direct';
+        source: "estimator" | "landing" | "direct";
       };
     }
   // Error events
   | {
-      name: 'error_occurred';
+      name: "error_occurred";
       props: {
         context: string;
         message: string;
@@ -160,34 +160,34 @@ export type AnalyticsEvent =
 /**
  * Track an event with type safety
  */
-export function track<E extends AnalyticsEvent>(
-  name: E['name'],
-  props: E['props']
-): void {
-  if (typeof window === 'undefined') return;
+export function track<E extends AnalyticsEvent>(name: E["name"], props: E["props"]): void {
+  if (typeof window === "undefined") return;
 
   try {
     posthog.capture(name, props);
   } catch (error) {
-    console.error('[Analytics] Failed to track event:', error);
+    console.error("[Analytics] Failed to track event:", error);
   }
 }
 
 /**
  * Identify a user (call after login)
  */
-export function identifyUser(userId: string, traits: {
-  email?: string;
-  name?: string;
-  company?: string;
-  role?: string;
-}): void {
-  if (typeof window === 'undefined') return;
+export function identifyUser(
+  userId: string,
+  traits: {
+    email?: string;
+    name?: string;
+    company?: string;
+    role?: string;
+  }
+): void {
+  if (typeof window === "undefined") return;
 
   try {
     posthog.identify(userId, traits);
   } catch (error) {
-    console.error('[Analytics] Failed to identify user:', error);
+    console.error("[Analytics] Failed to identify user:", error);
   }
 }
 
@@ -195,12 +195,12 @@ export function identifyUser(userId: string, traits: {
  * Track page view manually
  */
 export function trackPageView(path: string): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   try {
-    posthog.capture('$pageview', { $current_url: path });
+    posthog.capture("$pageview", { $current_url: path });
   } catch (error) {
-    console.error('[Analytics] Failed to track pageview:', error);
+    console.error("[Analytics] Failed to track pageview:", error);
   }
 }
 
@@ -208,12 +208,12 @@ export function trackPageView(path: string): void {
  * Reset user identity (call on logout)
  */
 export function resetUser(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   try {
     posthog.reset();
   } catch (error) {
-    console.error('[Analytics] Failed to reset user:', error);
+    console.error("[Analytics] Failed to reset user:", error);
   }
 }
 
@@ -221,7 +221,7 @@ export function resetUser(): void {
  * Check if analytics is enabled
  */
 export function isAnalyticsEnabled(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === "undefined") return false;
   return posthog.has_opted_in_capturing();
 }
 

@@ -4,10 +4,10 @@
  * Zero-tolerance validation with constraint satisfaction checking
  */
 
-import { GanttProject, Resource } from '@/types/gantt-tool';
-import { calculateWeeklyAllocations, calculateUtilization } from './calculation-engine';
+import { GanttProject, Resource } from "@/types/gantt-tool";
+import { calculateWeeklyAllocations, calculateUtilization } from "./calculation-engine";
 
-export type ValidationSeverity = 'blocking' | 'critical' | 'warning' | 'info';
+export type ValidationSeverity = "blocking" | "critical" | "warning" | "info";
 
 export interface ValidationResult {
   isValid: boolean;
@@ -30,41 +30,41 @@ export interface ValidationViolation {
 
 export const VALIDATION_RULES = {
   resource_allocation: {
-    rule: 'total_weekly_hours <= 40',
-    message: 'Resource {resourceName} overallocated in {week} ({hours} hours)',
-    severity: 'blocking' as ValidationSeverity,
+    rule: "total_weekly_hours <= 40",
+    message: "Resource {resourceName} overallocated in {week} ({hours} hours)",
+    severity: "blocking" as ValidationSeverity,
     check: (hours: number) => hours <= 40,
   },
   skill_match: {
-    rule: 'required_skills ⊆ assigned_skills',
-    message: 'Skill gap detected for {activity}: missing {missingSkills}',
-    severity: 'warning' as ValidationSeverity,
+    rule: "required_skills ⊆ assigned_skills",
+    message: "Skill gap detected for {activity}: missing {missingSkills}",
+    severity: "warning" as ValidationSeverity,
   },
   financial_viability: {
-    rule: 'gross_margin >= minimum_acceptable_margin',
-    message: 'Margin {currentMargin}% below threshold of {threshold}%',
-    severity: 'critical' as ValidationSeverity,
+    rule: "gross_margin >= minimum_acceptable_margin",
+    message: "Margin {currentMargin}% below threshold of {threshold}%",
+    severity: "critical" as ValidationSeverity,
     check: (margin: number, threshold: number) => margin >= threshold,
   },
   phase_continuity: {
-    rule: 'phase_end_date >= phase_start_date',
-    message: 'Phase {phaseName} has invalid date range',
-    severity: 'blocking' as ValidationSeverity,
+    rule: "phase_end_date >= phase_start_date",
+    message: "Phase {phaseName} has invalid date range",
+    severity: "blocking" as ValidationSeverity,
   },
   task_within_phase: {
-    rule: 'task_dates ⊆ phase_dates',
-    message: 'Task {taskName} extends beyond phase {phaseName} boundaries',
-    severity: 'blocking' as ValidationSeverity,
+    rule: "task_dates ⊆ phase_dates",
+    message: "Task {taskName} extends beyond phase {phaseName} boundaries",
+    severity: "blocking" as ValidationSeverity,
   },
   resource_availability: {
-    rule: 'assigned_resources ∈ available_resources',
-    message: 'Resource {resourceId} assigned but not in resource pool',
-    severity: 'blocking' as ValidationSeverity,
+    rule: "assigned_resources ∈ available_resources",
+    message: "Resource {resourceId} assigned but not in resource pool",
+    severity: "blocking" as ValidationSeverity,
   },
   budget_adherence: {
-    rule: 'total_cost <= budget',
-    message: 'Project cost {cost} exceeds budget {budget}',
-    severity: 'warning' as ValidationSeverity,
+    rule: "total_cost <= budget",
+    message: "Project cost {cost} exceeds budget {budget}",
+    severity: "warning" as ValidationSeverity,
     check: (cost: number, budget: number) => cost <= budget,
   },
 };
@@ -89,49 +89,49 @@ export function validateProject(
   const weeklyAllocations = calculateWeeklyAllocations(project);
   const resources = project.resources || [];
 
-  weeklyAllocations.forEach(week => {
+  weeklyAllocations.forEach((week) => {
     week.resourceAllocations.forEach((hours, resourceId) => {
-      const resource = resources.find(r => r.id === resourceId);
+      const resource = resources.find((r) => r.id === resourceId);
       if (hours > 40) {
         violations.push({
-          rule: 'resource_allocation',
+          rule: "resource_allocation",
           message: `Resource ${resource?.name || resourceId} overallocated in ${week.weekLabel} (${hours} hours)`,
-          severity: 'blocking',
+          severity: "blocking",
           context: {
             resourceId,
             resourceName: resource?.name,
             week: week.weekLabel,
             hours,
           },
-          suggestion: 'Reduce allocation or extend timeline to distribute workload',
+          suggestion: "Reduce allocation or extend timeline to distribute workload",
         });
       } else if (hours > 35) {
         warnings.push({
-          rule: 'resource_allocation',
+          rule: "resource_allocation",
           message: `Resource ${resource?.name || resourceId} near capacity in ${week.weekLabel} (${hours} hours)`,
-          severity: 'warning',
+          severity: "warning",
           context: {
             resourceId,
             resourceName: resource?.name,
             week: week.weekLabel,
             hours,
           },
-          suggestion: 'Consider adding buffer to prevent overload',
+          suggestion: "Consider adding buffer to prevent overload",
         });
       }
     });
   });
 
   // 2. Phase Continuity Validation
-  project.phases.forEach(phase => {
+  project.phases.forEach((phase) => {
     const startDate = new Date(phase.startDate);
     const endDate = new Date(phase.endDate);
 
     if (endDate < startDate) {
       violations.push({
-        rule: 'phase_continuity',
+        rule: "phase_continuity",
         message: `Phase "${phase.name}" has invalid date range`,
-        severity: 'blocking',
+        severity: "blocking",
         context: {
           phaseId: phase.id,
           phaseName: phase.name,
@@ -142,52 +142,52 @@ export function validateProject(
     }
 
     // 3. Task Within Phase Validation
-    phase.tasks.forEach(task => {
+    phase.tasks.forEach((task) => {
       const taskStart = new Date(task.startDate);
       const taskEnd = new Date(task.endDate);
 
       if (taskStart < startDate || taskEnd > endDate) {
         violations.push({
-          rule: 'task_within_phase',
+          rule: "task_within_phase",
           message: `Task "${task.name}" extends beyond phase "${phase.name}" boundaries`,
-          severity: 'blocking',
+          severity: "blocking",
           context: {
             taskId: task.id,
             taskName: task.name,
             phaseId: phase.id,
             phaseName: phase.name,
           },
-          suggestion: 'Adjust task dates to fit within phase or extend phase duration',
+          suggestion: "Adjust task dates to fit within phase or extend phase duration",
         });
       }
 
       // 4. Resource Availability Validation
-      task.resourceAssignments?.forEach(assignment => {
-        const resourceExists = resources.some(r => r.id === assignment.resourceId);
+      task.resourceAssignments?.forEach((assignment) => {
+        const resourceExists = resources.some((r) => r.id === assignment.resourceId);
         if (!resourceExists) {
           violations.push({
-            rule: 'resource_availability',
+            rule: "resource_availability",
             message: `Resource ${assignment.resourceId} assigned to task "${task.name}" but not in resource pool`,
-            severity: 'blocking',
+            severity: "blocking",
             context: {
               taskId: task.id,
               taskName: task.name,
               resourceId: assignment.resourceId,
             },
-            suggestion: 'Add resource to project or reassign task',
+            suggestion: "Add resource to project or reassign task",
           });
         }
       });
     });
 
     // Validate phase resource assignments
-    phase.phaseResourceAssignments?.forEach(assignment => {
-      const resourceExists = resources.some(r => r.id === assignment.resourceId);
+    phase.phaseResourceAssignments?.forEach((assignment) => {
+      const resourceExists = resources.some((r) => r.id === assignment.resourceId);
       if (!resourceExists) {
         violations.push({
-          rule: 'resource_availability',
+          rule: "resource_availability",
           message: `Resource ${assignment.resourceId} assigned to phase "${phase.name}" but not in resource pool`,
-          severity: 'blocking',
+          severity: "blocking",
           context: {
             phaseId: phase.id,
             phaseName: phase.name,
@@ -203,9 +203,9 @@ export function validateProject(
     // Would need cost calculation here - importing would cause circular dependency
     // This is handled at component level where both are available
     info.push({
-      rule: 'financial_viability',
-      message: 'Financial validation requires cost calculation',
-      severity: 'info',
+      rule: "financial_viability",
+      message: "Financial validation requires cost calculation",
+      severity: "info",
       context: {
         minimumMargin: options.minimumMargin,
       },
@@ -215,9 +215,9 @@ export function validateProject(
   // 6. Budget Adherence (if budget provided)
   if (options.budget) {
     info.push({
-      rule: 'budget_adherence',
-      message: 'Budget validation requires cost calculation',
-      severity: 'info',
+      rule: "budget_adherence",
+      message: "Budget validation requires cost calculation",
+      severity: "info",
       context: {
         budget: options.budget,
       },
@@ -249,35 +249,35 @@ function performDataQualityChecks(project: GanttProject): {
   const info: ValidationViolation[] = [];
 
   // Check for phases without tasks
-  project.phases.forEach(phase => {
+  project.phases.forEach((phase) => {
     if (phase.tasks.length === 0) {
       warnings.push({
-        rule: 'data_quality',
+        rule: "data_quality",
         message: `Phase "${phase.name}" has no tasks`,
-        severity: 'warning',
+        severity: "warning",
         context: {
           phaseId: phase.id,
           phaseName: phase.name,
         },
-        suggestion: 'Add tasks to phase or remove if unnecessary',
+        suggestion: "Add tasks to phase or remove if unnecessary",
       });
     }
   });
 
   // Check for tasks without resource assignments
-  project.phases.forEach(phase => {
-    phase.tasks.forEach(task => {
+  project.phases.forEach((phase) => {
+    phase.tasks.forEach((task) => {
       if (!task.resourceAssignments || task.resourceAssignments.length === 0) {
         info.push({
-          rule: 'data_quality',
+          rule: "data_quality",
           message: `Task "${task.name}" has no resource assignments`,
-          severity: 'info',
+          severity: "info",
           context: {
             taskId: task.id,
             taskName: task.name,
             phaseId: phase.id,
           },
-          suggestion: 'Assign resources to enable cost calculation',
+          suggestion: "Assign resources to enable cost calculation",
         });
       }
     });
@@ -285,24 +285,24 @@ function performDataQualityChecks(project: GanttProject): {
 
   // Check for resources never assigned
   const assignedResourceIds = new Set<string>();
-  project.phases.forEach(phase => {
-    phase.phaseResourceAssignments?.forEach(a => assignedResourceIds.add(a.resourceId));
-    phase.tasks.forEach(task => {
-      task.resourceAssignments?.forEach(a => assignedResourceIds.add(a.resourceId));
+  project.phases.forEach((phase) => {
+    phase.phaseResourceAssignments?.forEach((a) => assignedResourceIds.add(a.resourceId));
+    phase.tasks.forEach((task) => {
+      task.resourceAssignments?.forEach((a) => assignedResourceIds.add(a.resourceId));
     });
   });
 
-  project.resources?.forEach(resource => {
+  project.resources?.forEach((resource) => {
     if (!assignedResourceIds.has(resource.id)) {
       info.push({
-        rule: 'data_quality',
+        rule: "data_quality",
         message: `Resource "${resource.name}" is never assigned to any task or phase`,
-        severity: 'info',
+        severity: "info",
         context: {
           resourceId: resource.id,
           resourceName: resource.name,
         },
-        suggestion: 'Assign to tasks or remove from project',
+        suggestion: "Assign to tasks or remove from project",
       });
     }
   });
@@ -324,29 +324,29 @@ export function validateAllocationChange(
 
   if (totalHours > 40) {
     return {
-      rule: 'resource_allocation',
+      rule: "resource_allocation",
       message: `This change would overallocate resource (${totalHours} hours)`,
-      severity: 'blocking',
+      severity: "blocking",
       context: {
         resourceId,
         weekIndex,
         newHours,
         totalHours,
       },
-      suggestion: 'Reduce allocation percentage or extend task duration',
+      suggestion: "Reduce allocation percentage or extend task duration",
     };
   } else if (totalHours > 35) {
     return {
-      rule: 'resource_allocation',
+      rule: "resource_allocation",
       message: `Resource will be near capacity (${totalHours} hours)`,
-      severity: 'warning',
+      severity: "warning",
       context: {
         resourceId,
         weekIndex,
         newHours,
         totalHours,
       },
-      suggestion: 'Consider adding buffer',
+      suggestion: "Consider adding buffer",
     };
   }
 
@@ -367,12 +367,13 @@ export function performCrossValidation(project: GanttProject): ValidationResult 
 
   // Check consistency
   const resources = project.resources || [];
-  resources.forEach(resource => {
+  resources.forEach((resource) => {
     const weeklyTotal = weeklyAllocations.reduce((sum, week) => {
       return sum + (week.resourceAllocations.get(resource.id) || 0);
     }, 0);
 
-    const utilizationHours = ((utilization.resourceUtilization.get(resource.id) || 0) / 100) *
+    const utilizationHours =
+      ((utilization.resourceUtilization.get(resource.id) || 0) / 100) *
       (weeklyAllocations.length * 40); // weeks * 40 hours
 
     const difference = Math.abs(weeklyTotal - utilizationHours);
@@ -380,9 +381,9 @@ export function performCrossValidation(project: GanttProject): ValidationResult 
 
     if (difference > threshold) {
       warnings.push({
-        rule: 'cross_validation',
+        rule: "cross_validation",
         message: `Inconsistent allocation for ${resource.name}: weekly (${weeklyTotal}h) vs calculated (${utilizationHours.toFixed(1)}h)`,
-        severity: 'warning',
+        severity: "warning",
         context: {
           resourceId: resource.id,
           resourceName: resource.name,
@@ -390,7 +391,7 @@ export function performCrossValidation(project: GanttProject): ValidationResult 
           utilizationHours,
           difference,
         },
-        suggestion: 'Review resource assignments for data integrity',
+        suggestion: "Review resource assignments for data integrity",
       });
     }
   });

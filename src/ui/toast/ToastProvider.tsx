@@ -1,12 +1,18 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import clsx from 'clsx';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import clsx from "clsx";
 
-export type ToastKind = 'info' | 'success' | 'warning' | 'error';
-export type Toast = { id: string; kind: ToastKind; title?: string; desc?: string; duration?: number };
+export type ToastKind = "info" | "success" | "warning" | "error";
+export type Toast = {
+  id: string;
+  kind: ToastKind;
+  title?: string;
+  desc?: string;
+  duration?: number;
+};
 
 interface ToastContextValue {
-  push: (t: Omit<Toast, 'id'>) => string;
+  push: (t: Omit<Toast, "id">) => string;
   remove: (id: string) => void;
   toasts: Toast[];
 }
@@ -16,7 +22,7 @@ const Ctx = createContext<ToastContextValue | null>(null);
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const push: (t: Omit<Toast, 'id'>) => string = (t) => {
+  const push: (t: Omit<Toast, "id">) => string = (t) => {
     const id = Math.random().toString(36).slice(2);
     setToasts((arr) => [...arr, { id, duration: 3500, ...t }]);
     return id;
@@ -34,15 +40,15 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export function useToast() {
   const ctx = useContext(Ctx);
-  if (!ctx) throw new Error('useToast must be used inside ToastProvider');
+  if (!ctx) throw new Error("useToast must be used inside ToastProvider");
   return ctx;
 }
 
 const tone = {
-  info: { bar: 'bg-[var(--accent)]', title: 'text-[var(--ink)]' },
-  success: { bar: 'bg-[var(--success)]', title: 'text-[var(--ink)]' },
-  warning: { bar: 'bg-[var(--warning)]', title: 'text-[var(--ink)]' },
-  error: { bar: 'bg-[var(--error)]', title: 'text-[var(--ink)]' },
+  info: { bar: "bg-[var(--accent)]", title: "text-[var(--ink)]" },
+  success: { bar: "bg-[var(--success)]", title: "text-[var(--ink)]" },
+  warning: { bar: "bg-[var(--warning)]", title: "text-[var(--ink)]" },
+  error: { bar: "bg-[var(--error)]", title: "text-[var(--ink)]" },
 } as const;
 
 const ToastViewport: React.FC = () => {
@@ -76,9 +82,9 @@ const ToastViewport: React.FC = () => {
           role="status"
           className="w-[min(360px,90vw)] rounded-[var(--r-lg)] border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow-lg)] overflow-hidden animate-[fadeUp_.18s_ease]"
         >
-          <div className={clsx('h-1 w-full', tone[t.kind].bar)} />
+          <div className={clsx("h-1 w-full", tone[t.kind].bar)} />
           <div className="p-3">
-            {t.title && <div className={clsx('font-medium', tone[t.kind].title)}>{t.title}</div>}
+            {t.title && <div className={clsx("font-medium", tone[t.kind].title)}>{t.title}</div>}
             {t.desc && <div className="text-[13px] text-[var(--ink)]/80 mt-0.5">{t.desc}</div>}
           </div>
         </div>

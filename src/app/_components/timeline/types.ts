@@ -40,11 +40,11 @@ export interface TimelineLink {
   id: string;
   fromPhaseId: string;
   toPhaseId: string;
-  type: 'FS' | 'SS' | 'FF' | 'SF'; // Finish-to-Start (only FS for now)
+  type: "FS" | "SS" | "FF" | "SF"; // Finish-to-Start (only FS for now)
   path: string; // SVG path data
 }
 
-export type ViewMode = 'week' | 'month' | 'quarter';
+export type ViewMode = "week" | "month" | "quarter";
 
 export interface TimelineConfig {
   leftRailWidth: number; // px
@@ -65,7 +65,7 @@ export interface TimelineViewport {
 }
 
 export interface TimelineInteraction {
-  type: 'drag' | 'resize-left' | 'resize-right' | 'none';
+  type: "drag" | "resize-left" | "resize-right" | "none";
   phaseId: string | null;
   startX: number;
   startBD: number;

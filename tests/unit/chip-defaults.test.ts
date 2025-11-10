@@ -1,6 +1,6 @@
 /**
  * Unit Tests for Chip Defaults Library
- * 
+ *
  * Tests: Sanitization, Validation, Default Generation, Rate Limiting
  */
 
@@ -91,7 +91,7 @@ describe("validateChipValue", () => {
 describe("createDefaultChip", () => {
   it("should create valid chip with defaults", () => {
     const chip = createDefaultChip("COUNTRY");
-    
+
     expect(chip.id).toBeDefined();
     expect(chip.type).toBe("COUNTRY");
     expect(chip.value).toBe("Malaysia");
@@ -104,7 +104,7 @@ describe("createDefaultChip", () => {
   it("should create different chips for different types", () => {
     const countryChip = createDefaultChip("COUNTRY"); // confidence: 0.3
     const legalEntitiesChip = createDefaultChip("LEGAL_ENTITIES"); // confidence: 0.4
-    
+
     expect(countryChip.value).toBe("Malaysia");
     expect(legalEntitiesChip.value).toBe("1");
     expect(countryChip.confidence).not.toBe(legalEntitiesChip.confidence);
@@ -113,13 +113,13 @@ describe("createDefaultChip", () => {
   it("should have unique IDs", () => {
     const chip1 = createDefaultChip("COUNTRY");
     const chip2 = createDefaultChip("COUNTRY");
-    
+
     expect(chip1.id).not.toBe(chip2.id);
   });
 
   it("should include descriptive notes", () => {
     const chip = createDefaultChip("LEGAL_ENTITIES");
-    
+
     expect(chip.metadata?.note).toBeDefined();
     expect(chip.metadata?.note).toContain("single entity");
   });
@@ -141,7 +141,7 @@ describe("fillMissingChips", () => {
     const newChips = fillMissingChips(existingChips, gaps);
 
     expect(newChips).toHaveLength(3);
-    expect(newChips.map(c => c.type)).toEqual(gaps);
+    expect(newChips.map((c) => c.type)).toEqual(gaps);
   });
 
   it("should not create duplicates", () => {
@@ -224,7 +224,7 @@ describe("Rate Limiting", () => {
     for (let i = 0; i < 20; i++) {
       checkRateLimit();
     }
-    
+
     // Next request should be blocked
     expect(checkRateLimit()).toBe(false);
   });
@@ -234,10 +234,10 @@ describe("Rate Limiting", () => {
     for (let i = 0; i < 20; i++) {
       checkRateLimit();
     }
-    
+
     // Wait for window to expire (mocked via resetRateLimit)
     resetRateLimit();
-    
+
     expect(checkRateLimit()).toBe(true);
   });
 });
@@ -273,7 +273,7 @@ describe("CHIP_DEFAULTS coverage", () => {
 describe("CHIP_VALIDATION coverage", () => {
   it("should have validation for all chip types", () => {
     const allTypes = Object.keys(CHIP_DEFAULTS) as ChipType[];
-    
+
     allTypes.forEach((type) => {
       expect(CHIP_VALIDATION[type]).toBeDefined();
       expect(CHIP_VALIDATION[type].errorMessage).toBeDefined();

@@ -81,12 +81,15 @@ Beat 3: EXCITEMENT (20-30s)
 #### Headline Options (A/B Test)
 
 **Option A: Direct value**
+
 > "From RFP to Proposal in 10 Minutes"
 
 **Option B: Pain-point focus**
+
 > "Stop Spending Weekends on Spreadsheets"
 
 **Option C: Aspiration**
+
 > "Win More Deals with Less Stress"
 
 **Recommendation:** Test A vs B (C is too generic).
@@ -96,6 +99,7 @@ Beat 3: EXCITEMENT (20-30s)
 > "Not 10 hours. Not 10 spreadsheets. Just 10 minutes of your time."
 
 **Why this works:**
+
 - "Not X, not Y" = acknowledges current pain
 - Concrete numbers create believability
 - "Your time" = respect for user
@@ -103,15 +107,19 @@ Beat 3: EXCITEMENT (20-30s)
 #### Primary CTA
 
 ```html
-<button class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-lg font-semibold shadow-xl hover:shadow-2xl transition-all">
+<button
+  class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-lg font-semibold shadow-xl hover:shadow-2xl transition-all"
+>
   Try Quick Estimate (No login required)
 </button>
 ```
 
 **Microcopy below button:**
+
 > "Get a ballpark number in 30 seconds. No credit card. No commitment."
 
 **Why "No login required" matters:**
+
 - Reduces friction (30% higher conversion vs login-first)
 - Builds trust (we give before we ask)
 - Enables viral sharing (send estimate link to colleague)
@@ -119,7 +127,9 @@ Beat 3: EXCITEMENT (20-30s)
 #### Secondary CTA
 
 ```html
-<button class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:border-gray-400 hover:bg-gray-50">
+<button
+  class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:border-gray-400 hover:bg-gray-50"
+>
   Watch Full Demo (2 min) →
 </button>
 ```
@@ -194,6 +204,7 @@ Step 2: Results (with gratitude moment)
 ```
 
 **Why this works:**
+
 - Acknowledges user's action (not transactional)
 - Creates positive emotion (dopamine hit)
 - Sets up reciprocity ("you gave me estimate, I'll sign up")
@@ -217,6 +228,7 @@ Total: 100s (well under 2 min promise)
 ```
 
 **CTA at end:**
+
 ```
 "Ready to try with your own RFP?"
 [Start Free Trial →]
@@ -259,6 +271,7 @@ Total: 100s (well under 2 min promise)
 ```
 
 **Why this works:**
+
 - Personalizes value prop (not generic)
 - Creates "aha moment" (emotional realization)
 - Anchors pricing (free tier looks amazing)
@@ -270,23 +283,29 @@ Total: 100s (well under 2 min promise)
 ### Empty States
 
 **Before login (landing page):**
+
 > "No projects yet? Start with a quick estimate — no signup needed."
 
 **After login, no projects:**
+
 > "Welcome! Create your first proposal in under 10 minutes."
 
 ### Loading States
 
 **Generating estimate:**
+
 > "Crunching numbers... (This usually takes 2-3 seconds)"
 
 **Loading project:**
+
 > "Opening your project... Almost there!"
 
 **Exporting PDF:**
+
 > "Creating your proposal... (Making it look professional)"
 
 **Why add time estimates:**
+
 - Manages expectations (reduces perceived wait)
 - Creates trust (we're transparent)
 - Humanizes the tool (not a black box)
@@ -294,18 +313,22 @@ Total: 100s (well under 2 min promise)
 ### Error States
 
 **Network error:**
+
 > "Oops, lost connection. We saved your work — try again?"
 > [Retry] [Continue Offline]
 
 **Invalid input:**
+
 > "Hmm, employee count seems off. Usually between 10-100,000?"
 > (Helpful, not judgmental)
 
 **Export failed:**
+
 > "PDF generation hiccuped. Want to try again or download as CSV?"
 > [Retry PDF] [Download CSV]
 
 **Why friendly errors matter:**
+
 - Reduces user frustration (it's not their fault)
 - Offers alternatives (not dead end)
 - Maintains brand voice (helpful friend, not robot)
@@ -361,6 +384,7 @@ Button padding: 16px/32px (2*8px / 4*8px)
 ### Micro-Animations
 
 **Hero headline (on load):**
+
 ```typescript
 <motion.h1
   initial={{ opacity: 0, y: 20 }}
@@ -372,6 +396,7 @@ Button padding: 16px/32px (2*8px / 4*8px)
 ```
 
 **CTA button (hover):**
+
 ```css
 .cta-button {
   transition: all 0.15s ease-in-out;
@@ -379,8 +404,9 @@ Button padding: 16px/32px (2*8px / 4*8px)
 
 .cta-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .cta-button:active {
@@ -389,6 +415,7 @@ Button padding: 16px/32px (2*8px / 4*8px)
 ```
 
 **Testimonial carousel (auto-play):**
+
 ```typescript
 // 5-second intervals, pause on hover
 <motion.div
@@ -423,12 +450,14 @@ const animationDuration = prefersReducedMotion ? 0.01 : 0.6;
 ### Color Contrast
 
 **Checked against WCAG AA:**
+
 - Headline on gradient background: 7.2:1 ✅
 - Subhead (gray-500 on white): 4.6:1 ✅
 - CTA button text (white on blue-600): 8.1:1 ✅
 - Error text (red-600 on white): 4.5:1 ✅
 
 **Fix needed:**
+
 - Muted text (gray-400 on white): 3.1:1 ❌ → Change to gray-500 (4.6:1)
 
 ### Keyboard Navigation
@@ -468,27 +497,30 @@ const animationDuration = prefersReducedMotion ? 0.01 : 0.6;
 
 ### Success Metrics
 
-| Metric | Target | How to Measure |
-|--------|--------|----------------|
-| **Bounce rate** | < 40% | GA4: % who leave without interaction |
-| **Quick estimate completion** | > 60% | Started form → saw results |
-| **Demo video watch rate** | > 30% | Clicked play → watched 80%+ |
-| **Signup from estimate** | > 25% | Saw estimate → created account |
-| **Time to first CTA click** | < 15s | Page load → any CTA click |
+| Metric                        | Target | How to Measure                       |
+| ----------------------------- | ------ | ------------------------------------ |
+| **Bounce rate**               | < 40%  | GA4: % who leave without interaction |
+| **Quick estimate completion** | > 60%  | Started form → saw results           |
+| **Demo video watch rate**     | > 30%  | Clicked play → watched 80%+          |
+| **Signup from estimate**      | > 25%  | Saw estimate → created account       |
+| **Time to first CTA click**   | < 15s  | Page load → any CTA click            |
 
 ### A/B Tests
 
 **Test 1: Headline**
+
 - Variant A: "From RFP to Proposal in 10 Minutes"
 - Variant B: "Stop Spending Weekends on Spreadsheets"
 - Measure: Signup rate, time on page
 
 **Test 2: CTA wording**
+
 - Variant A: "Try Quick Estimate (No login)"
 - Variant B: "Get Free Estimate Now"
 - Measure: Click-through rate, form completion
 
 **Test 3: Social proof placement**
+
 - Variant A: Testimonials below hero
 - Variant B: Testimonials in hero section
 - Measure: Scroll depth, signup rate
@@ -562,12 +594,14 @@ Pre-login experience is complete when:
 ## 🎯 EMOTIONAL OUTCOMES (Qualitative)
 
 **User should feel:**
+
 - **Valued:** "They respect my time" (no login required, quick estimate)
 - **Understood:** "They get my pain" (weekend RFP empathy)
 - **Excited:** "I want to try this" (10-minute promise, social proof)
 - **Confident:** "This will work" (benchmarks, testimonials)
 
 **User should NOT feel:**
+
 - Confused (what do I click?)
 - Pressured (signup walls, aggressive CTAs)
 - Skeptical (vague promises, no proof)
@@ -580,6 +614,7 @@ Pre-login experience is complete when:
 **End of First Impression & Onboarding**
 
 **Cross-references:**
+
 - Holistic_Redesign_V2.md (Tier 1 entry point)
 - Measurement_and_Experiments.md (A/B test specs)
 - Design_Tokens_ChangeList.md (Color/typography tokens)

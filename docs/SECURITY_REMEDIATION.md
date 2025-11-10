@@ -1,4 +1,5 @@
 # SECURITY REMEDIATION GUIDE
+
 ## Keystone Application - Phase C Implementation
 
 **Date:** October 22, 2025
@@ -12,6 +13,7 @@
 ### Background
 
 During Phase B security audit, **6 critical secrets** were found exposed in the `.env` file:
+
 1. `DATABASE_URL` - Full PostgreSQL credentials
 2. `DATABASE_URL_UNPOOLED` - Same credentials, unpooled
 3. `NEXTAUTH_SECRET` - Session signing key
@@ -39,6 +41,7 @@ During Phase B security audit, **6 critical secrets** were found exposed in the 
 ```
 
 **New value format:**
+
 ```
 DATABASE_URL=postgresql://new_user:NEW_PASSWORD@ep-xxxxx.aws.neon.tech/new_db?sslmode=require
 ```
@@ -51,6 +54,7 @@ openssl rand -base64 32
 ```
 
 **Example output:**
+
 ```
 NEXTAUTH_SECRET=X9fJ2kL8mN4pQ6rS8tU0vW2xY4zA6bC8dE0fG2hI4jK=
 ```
@@ -64,6 +68,7 @@ node -e "console.log(require('bcryptjs').hashSync('NEW_SECURE_PASSWORD_HERE', 12
 ```
 
 **Example output:**
+
 ```
 ADMIN_PASSWORD_HASH=$2b$12$NEW_HASH_VALUE_HERE
 ```
@@ -76,6 +81,7 @@ npx web-push generate-vapid-keys
 ```
 
 **Example output:**
+
 ```
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=BNEWPublicKeyHere...
 VAPID_PRIVATE_KEY=NEWPrivateKeyHere...
@@ -184,31 +190,33 @@ git log --all --full-history -- .env
 
 ## VULNERABILITIES FIXED IN PHASE C
 
-| ID | Vulnerability | CVSS | Status |
-|----|---------------|------|--------|
-| **V-001** | Weak OTP Generation | 8.1 | ✅ FIXED |
-| **V-002** | OTP Brute Force | 9.0 | ✅ FIXED |
-| **V-003** | OTP Plaintext Storage | 7.5 | ✅ FIXED |
-| **V-004** | User Enumeration (Timing) | 5.3 | ✅ FIXED |
-| **V-006** | Access Expiry TOCTOU | 5.5 | ✅ FIXED |
-| **V-007** | Email Enumeration (Timing) | 5.3 | ✅ FIXED |
-| **V-008** | Export Data Exfiltration | 7.2 | ✅ FIXED |
-| **V-009** | Missing CSRF Protection | 6.5 | ✅ FIXED (partial) |
-| **V-010** | Database Credentials Exposed | 9.8 | 🔄 REQUIRES ROTATION |
-| **V-011** | NEXTAUTH_SECRET Exposed | 9.1 | 🔄 REQUIRES ROTATION |
-| **V-014** | Session Role Mapping Flaw | 4.8 | ✅ FIXED |
+| ID        | Vulnerability                | CVSS | Status               |
+| --------- | ---------------------------- | ---- | -------------------- |
+| **V-001** | Weak OTP Generation          | 8.1  | ✅ FIXED             |
+| **V-002** | OTP Brute Force              | 9.0  | ✅ FIXED             |
+| **V-003** | OTP Plaintext Storage        | 7.5  | ✅ FIXED             |
+| **V-004** | User Enumeration (Timing)    | 5.3  | ✅ FIXED             |
+| **V-006** | Access Expiry TOCTOU         | 5.5  | ✅ FIXED             |
+| **V-007** | Email Enumeration (Timing)   | 5.3  | ✅ FIXED             |
+| **V-008** | Export Data Exfiltration     | 7.2  | ✅ FIXED             |
+| **V-009** | Missing CSRF Protection      | 6.5  | ✅ FIXED (partial)   |
+| **V-010** | Database Credentials Exposed | 9.8  | 🔄 REQUIRES ROTATION |
+| **V-011** | NEXTAUTH_SECRET Exposed      | 9.1  | 🔄 REQUIRES ROTATION |
+| **V-014** | Session Role Mapping Flaw    | 4.8  | ✅ FIXED             |
 
 ---
 
 ## CODE CHANGES SUMMARY
 
 ### New Files Created
+
 1. `/src/lib/server-rate-limiter.ts` - Server-side rate limiting with Redis
 2. `/src/lib/crypto-utils.ts` - OTP hashing and timing-safe comparison
 3. `/src/lib/api-route-wrapper.ts` - CSRF protection wrapper
 4. `/docs/SECURITY_REMEDIATION.md` - This file
 
 ### Files Modified
+
 1. `/src/app/api/auth/send-otp/route.ts`
    - Cryptographically secure OTP generation
    - OTP hashing before storage
@@ -247,6 +255,7 @@ git log --all --full-history -- .env
 ## TESTING RECOMMENDATIONS
 
 ### 1. OTP Authentication
+
 ```bash
 # Test OTP generation is cryptographically random
 # Test rate limiting blocks brute force (6th attempt fails)
@@ -254,6 +263,7 @@ git log --all --full-history -- .env
 ```
 
 ### 2. CSRF Protection
+
 ```bash
 # Test admin user creation requires CSRF token
 # Test export endpoints require CSRF token
@@ -261,12 +271,14 @@ git log --all --full-history -- .env
 ```
 
 ### 3. Access Expiry
+
 ```bash
 # Test expired users cannot login (atomic check)
 # Test exception users can login regardless of expiry
 ```
 
 ### 4. Role Preservation
+
 ```bash
 # Test MANAGER role creates MANAGER session (not USER)
 # Test ADMIN role creates ADMIN session
@@ -277,33 +289,36 @@ git log --all --full-history -- .env
 
 ## REMAINING VULNERABILITIES (Not Fixed in Phase C)
 
-| ID | Vulnerability | CVSS | Priority | Recommendation |
-|----|---------------|------|----------|----------------|
-| V-005 | OTP Leak in Dev Logs | 3.7 | P3 | Disable OTP logging in production |
-| V-012 | Resource-Level Authorization | 7.1 | P2 | Add ownership checks to all project routes |
-| V-013 | Shared Token Expiry | 5.1 | P2 | Enforce expiresAt checks |
-| V-015 | Insufficient Audit Logging | 5.5 | P1 | Add logging to all admin operations |
-| V-016 | Public Endpoints | 4.3 | P3 | Review `/api/import/gantt` access control |
-| V-022 | No Account Lockout | 5.3 | P2 | Implement account lockout after N failed attempts |
-| V-024 | No Content Security Policy | 4.1 | P3 | Add CSP headers |
-| V-025 | Error Stack Traces | 3.7 | P3 | Sanitize errors in production |
+| ID    | Vulnerability                | CVSS | Priority | Recommendation                                    |
+| ----- | ---------------------------- | ---- | -------- | ------------------------------------------------- |
+| V-005 | OTP Leak in Dev Logs         | 3.7  | P3       | Disable OTP logging in production                 |
+| V-012 | Resource-Level Authorization | 7.1  | P2       | Add ownership checks to all project routes        |
+| V-013 | Shared Token Expiry          | 5.1  | P2       | Enforce expiresAt checks                          |
+| V-015 | Insufficient Audit Logging   | 5.5  | P1       | Add logging to all admin operations               |
+| V-016 | Public Endpoints             | 4.3  | P3       | Review `/api/import/gantt` access control         |
+| V-022 | No Account Lockout           | 5.3  | P2       | Implement account lockout after N failed attempts |
+| V-024 | No Content Security Policy   | 4.1  | P3       | Add CSP headers                                   |
+| V-025 | Error Stack Traces           | 3.7  | P3       | Sanitize errors in production                     |
 
 ---
 
 ## COMPLIANCE STATUS AFTER PHASE C
 
 ### OWASP ASVS
+
 - ✅ **2.2.1** Anti-automation controls - NOW COMPLIANT (rate limiting)
 - ✅ **2.5.2** Cryptographic randomness - NOW COMPLIANT (crypto.randomInt)
 - 🔄 **3.2.1** Session management - REQUIRES SECRET ROTATION
 - ⚠️ **4.1.1** Access control enforcement - PARTIALLY FIXED (export endpoints)
 
 ### GDPR
+
 - ⚠️ **Data minimization** - User enumeration partially fixed
 - 🔄 **Accountability** - Requires audit logging expansion
 - 🔄 **Security of processing** - Requires secret rotation
 
 ### SOC 2
+
 - ✅ **CC6.6** Encryption controls - OTPs now hashed
 - 🔄 **CC6.1** Logical access controls - CSRF partially implemented
 - ⚠️ **CC7.2** System monitoring - Needs audit logging

@@ -9,8 +9,16 @@
  * - Risk indicators
  */
 
-import type { GanttProject, GanttTask, GanttPhase, Resource } from '@/types/gantt-tool';
-import { differenceInDays, parseISO, format, addDays, startOfWeek, endOfWeek, eachWeekOfInterval } from 'date-fns';
+import type { GanttProject, GanttTask, GanttPhase, Resource } from "@/types/gantt-tool";
+import {
+  differenceInDays,
+  parseISO,
+  format,
+  addDays,
+  startOfWeek,
+  endOfWeek,
+  eachWeekOfInterval,
+} from "date-fns";
 
 export interface ProjectAnalytics {
   overview: {
@@ -22,7 +30,7 @@ export interface ProjectAnalytics {
     daysElapsed: number;
     daysRemaining: number;
     totalDuration: number;
-    projectHealth: 'excellent' | 'good' | 'at-risk' | 'critical';
+    projectHealth: "excellent" | "good" | "at-risk" | "critical";
   };
   burndown: BurndownData;
   velocity: VelocityData;
@@ -47,7 +55,7 @@ export interface VelocityData {
   weeks: string[];
   velocity: number[]; // tasks completed per week
   averageVelocity: number;
-  trend: 'increasing' | 'stable' | 'decreasing';
+  trend: "increasing" | "stable" | "decreasing";
   forecast: {
     nextWeek: number;
     nextTwoWeeks: number;
@@ -62,7 +70,7 @@ export interface ResourceUtilization {
     tasksAssigned: number;
     tasksCompleted: number;
     efficiency: number; // completion rate
-    status: 'underutilized' | 'optimal' | 'overallocated';
+    status: "underutilized" | "optimal" | "overallocated";
   }[];
   overall: {
     averageAllocation: number;
@@ -85,8 +93,8 @@ export interface EarnedValueMetrics {
 }
 
 export interface RiskIndicator {
-  type: 'schedule' | 'resource' | 'dependency' | 'quality';
-  severity: 'high' | 'medium' | 'low';
+  type: "schedule" | "resource" | "dependency" | "quality";
+  severity: "high" | "medium" | "low";
   title: string;
   description: string;
   affectedTasks: string[];
@@ -96,11 +104,11 @@ export interface RiskIndicator {
 
 export interface TrendAnalysis {
   completionTrend: {
-    direction: 'up' | 'flat' | 'down';
+    direction: "up" | "flat" | "down";
     rate: number; // percentage points per week
   };
   velocityTrend: {
-    direction: 'up' | 'flat' | 'down';
+    direction: "up" | "flat" | "down";
     rate: number; // tasks per week change
   };
   predictions: {
@@ -137,7 +145,7 @@ export function analyzeProject(project: GanttProject): ProjectAnalytics {
 /**
  * Calculate project overview metrics
  */
-function calculateOverview(project: GanttProject): ProjectAnalytics['overview'] {
+function calculateOverview(project: GanttProject): ProjectAnalytics["overview"] {
   const allTasks = project.phases.flatMap((p) => p.tasks);
   const totalTasks = allTasks.length;
   const completedTasks = allTasks.filter((t) => t.progress === 100).length;
@@ -161,11 +169,11 @@ function calculateOverview(project: GanttProject): ProjectAnalytics['overview'] 
   const scheduleProgress = totalDuration > 0 ? (daysElapsed / totalDuration) * 100 : 0;
   const healthDelta = completionPercentage - scheduleProgress;
 
-  let projectHealth: ProjectAnalytics['overview']['projectHealth'];
-  if (healthDelta > 10) projectHealth = 'excellent';
-  else if (healthDelta > 0) projectHealth = 'good';
-  else if (healthDelta > -10) projectHealth = 'at-risk';
-  else projectHealth = 'critical';
+  let projectHealth: ProjectAnalytics["overview"]["projectHealth"];
+  if (healthDelta > 10) projectHealth = "excellent";
+  else if (healthDelta > 0) projectHealth = "good";
+  else if (healthDelta > -10) projectHealth = "at-risk";
+  else projectHealth = "critical";
 
   return {
     totalTasks,
@@ -204,7 +212,7 @@ function calculateBurndown(project: GanttProject): BurndownData {
   const totalDays = differenceInDays(endDate, projectStart);
 
   while (currentDate <= endDate) {
-    dates.push(format(currentDate, 'MMM dd'));
+    dates.push(format(currentDate, "MMM dd"));
 
     // Ideal burndown (linear)
     const daysPassed = differenceInDays(currentDate, projectStart);
@@ -215,9 +223,7 @@ function calculateBurndown(project: GanttProject): BurndownData {
     // In real implementation, this would come from historical data
     // For now, calculate based on current progress
     const currentRemaining =
-      currentDate <= today
-        ? totalWork - allTasks.filter((t) => t.progress === 100).length
-        : 0;
+      currentDate <= today ? totalWork - allTasks.filter((t) => t.progress === 100).length : 0;
     actualRemaining.push(currentRemaining);
 
     completed.push(totalWork - currentRemaining);
@@ -233,7 +239,7 @@ function calculateBurndown(project: GanttProject): BurndownData {
   // Project completion date
   const remainingTasks = totalWork - tasksCompleted;
   const daysToCompletion = currentBurnRate > 0 ? Math.ceil(remainingTasks / currentBurnRate) : 999;
-  const projectedCompletion = format(addDays(today, daysToCompletion), 'yyyy-MM-dd');
+  const projectedCompletion = format(addDays(today, daysToCompletion), "yyyy-MM-dd");
 
   const isAheadOfSchedule = parseISO(projectedCompletion) <= projectEnd;
 
@@ -270,7 +276,7 @@ function calculateVelocity(project: GanttProject): VelocityData {
     const tasksThisWeek = 0; // In real implementation, track completion dates
     // For now, distribute evenly as approximation
     return {
-      label: format(weekStart, 'MMM dd'),
+      label: format(weekStart, "MMM dd"),
       count: tasksThisWeek,
     };
   });
@@ -288,10 +294,10 @@ function calculateVelocity(project: GanttProject): VelocityData {
   const earlierAvg =
     earlierVelocity.reduce((a, b) => a + b, 0) / Math.max(earlierVelocity.length, 1);
 
-  let trend: VelocityData['trend'];
-  if (recentAvg > earlierAvg * 1.1) trend = 'increasing';
-  else if (recentAvg < earlierAvg * 0.9) trend = 'decreasing';
-  else trend = 'stable';
+  let trend: VelocityData["trend"];
+  if (recentAvg > earlierAvg * 1.1) trend = "increasing";
+  else if (recentAvg < earlierAvg * 0.9) trend = "decreasing";
+  else trend = "stable";
 
   return {
     weeks: weeklyData.map((w) => w.label),
@@ -299,11 +305,9 @@ function calculateVelocity(project: GanttProject): VelocityData {
     averageVelocity,
     trend,
     forecast: {
-      nextWeek: averageVelocity * (trend === 'increasing' ? 1.1 : trend === 'decreasing' ? 0.9 : 1),
+      nextWeek: averageVelocity * (trend === "increasing" ? 1.1 : trend === "decreasing" ? 0.9 : 1),
       nextTwoWeeks:
-        averageVelocity *
-        2 *
-        (trend === 'increasing' ? 1.15 : trend === 'decreasing' ? 0.85 : 1),
+        averageVelocity * 2 * (trend === "increasing" ? 1.15 : trend === "decreasing" ? 0.85 : 1),
     },
   };
 }
@@ -322,10 +326,10 @@ function calculateResourceUtilization(project: GanttProject): ResourceUtilizatio
     const allocation = (assignedTasks.length / Math.max(allTasks.length, 1)) * 100;
     const efficiency = (completedTasks.length / Math.max(assignedTasks.length, 1)) * 100;
 
-    let status: 'underutilized' | 'optimal' | 'overallocated';
-    if (allocation < 60) status = 'underutilized';
-    else if (allocation > 120) status = 'overallocated';
-    else status = 'optimal';
+    let status: "underutilized" | "optimal" | "overallocated";
+    if (allocation < 60) status = "underutilized";
+    else if (allocation > 120) status = "overallocated";
+    else status = "optimal";
 
     return {
       id: resource.id,
@@ -389,7 +393,8 @@ function calculateEarnedValue(project: GanttProject): EarnedValueMetrics {
   const schedulePerformanceIndex = plannedValue > 0 ? earnedValue / plannedValue : 1;
   const costPerformanceIndex = actualCost > 0 ? earnedValue / actualCost : 1;
 
-  const estimateAtCompletion = costPerformanceIndex > 0 ? totalBudget / costPerformanceIndex : totalBudget;
+  const estimateAtCompletion =
+    costPerformanceIndex > 0 ? totalBudget / costPerformanceIndex : totalBudget;
   const estimateToComplete = estimateAtCompletion - actualCost;
   const varianceAtCompletion = totalBudget - estimateAtCompletion;
 
@@ -423,13 +428,13 @@ function identifyRisks(project: GanttProject): RiskIndicator[] {
 
   if (behindScheduleTasks.length > 0) {
     risks.push({
-      type: 'schedule',
-      severity: behindScheduleTasks.length > allTasks.length * 0.2 ? 'high' : 'medium',
-      title: 'Tasks Behind Schedule',
+      type: "schedule",
+      severity: behindScheduleTasks.length > allTasks.length * 0.2 ? "high" : "medium",
+      title: "Tasks Behind Schedule",
       description: `${behindScheduleTasks.length} tasks are past their end date but not completed`,
       affectedTasks: behindScheduleTasks.map((t) => t.id),
-      impact: 'Project timeline may be delayed',
-      mitigation: 'Review resource allocation and adjust deadlines',
+      impact: "Project timeline may be delayed",
+      mitigation: "Review resource allocation and adjust deadlines",
     });
   }
 
@@ -437,13 +442,13 @@ function identifyRisks(project: GanttProject): RiskIndicator[] {
   const tasksWithManyDeps = allTasks.filter((t) => (t.dependencies?.length || 0) > 3);
   if (tasksWithManyDeps.length > 0) {
     risks.push({
-      type: 'dependency',
-      severity: 'medium',
-      title: 'Complex Dependencies',
+      type: "dependency",
+      severity: "medium",
+      title: "Complex Dependencies",
       description: `${tasksWithManyDeps.length} tasks have more than 3 dependencies`,
       affectedTasks: tasksWithManyDeps.map((t) => t.id),
-      impact: 'Changes may have cascading effects',
-      mitigation: 'Review and simplify dependencies where possible',
+      impact: "Changes may have cascading effects",
+      mitigation: "Review and simplify dependencies where possible",
     });
   }
 
@@ -451,13 +456,13 @@ function identifyRisks(project: GanttProject): RiskIndicator[] {
   const unassignedTasks = allTasks.filter((t) => !t.assignee);
   if (unassignedTasks.length > allTasks.length * 0.1) {
     risks.push({
-      type: 'resource',
-      severity: 'high',
-      title: 'Many Unassigned Tasks',
+      type: "resource",
+      severity: "high",
+      title: "Many Unassigned Tasks",
       description: `${unassignedTasks.length} tasks (${((unassignedTasks.length / allTasks.length) * 100).toFixed(0)}%) are not assigned`,
       affectedTasks: unassignedTasks.map((t) => t.id),
-      impact: 'Tasks may not be completed on time',
-      mitigation: 'Assign resources to all tasks',
+      impact: "Tasks may not be completed on time",
+      mitigation: "Assign resources to all tasks",
     });
   }
 
@@ -471,13 +476,13 @@ function identifyRisks(project: GanttProject): RiskIndicator[] {
 
   if (stalledTasks.length > 0) {
     risks.push({
-      type: 'quality',
-      severity: 'medium',
-      title: 'Stalled Tasks',
+      type: "quality",
+      severity: "medium",
+      title: "Stalled Tasks",
       description: `${stalledTasks.length} tasks started over a week ago but have minimal progress`,
       affectedTasks: stalledTasks.map((t) => t.id),
-      impact: 'May indicate blockers or quality issues',
-      mitigation: 'Review with team to identify blockers',
+      impact: "May indicate blockers or quality issues",
+      mitigation: "Review with team to identify blockers",
     });
   }
 
@@ -496,12 +501,13 @@ function analyzeTrends(
   burndown: BurndownData
 ): TrendAnalysis {
   // Completion trend
-  const completionDirection: 'up' | 'flat' | 'down' =
-    velocity.trend === 'increasing' ? 'up' : velocity.trend === 'decreasing' ? 'down' : 'flat';
+  const completionDirection: "up" | "flat" | "down" =
+    velocity.trend === "increasing" ? "up" : velocity.trend === "decreasing" ? "down" : "flat";
   const completionRate = velocity.averageVelocity;
 
   // Velocity trend
-  const velocityDirection = velocity.trend === 'increasing' ? 'up' : velocity.trend === 'decreasing' ? 'down' : 'flat';
+  const velocityDirection =
+    velocity.trend === "increasing" ? "up" : velocity.trend === "decreasing" ? "down" : "flat";
 
   // Predictions
   const remainingTasks = burndown.totalWork - burndown.completed[burndown.completed.length - 1];
@@ -512,9 +518,9 @@ function analyzeTrends(
   const worstCaseDays = avgVelocity > 0 ? Math.ceil((remainingTasks / avgVelocity) * 1.3) : 999;
 
   const today = new Date();
-  const likelyCompletionDate = format(addDays(today, likelyDays), 'yyyy-MM-dd');
-  const bestCaseDate = format(addDays(today, bestCaseDays), 'yyyy-MM-dd');
-  const worstCaseDate = format(addDays(today, worstCaseDays), 'yyyy-MM-dd');
+  const likelyCompletionDate = format(addDays(today, likelyDays), "yyyy-MM-dd");
+  const bestCaseDate = format(addDays(today, bestCaseDays), "yyyy-MM-dd");
+  const worstCaseDate = format(addDays(today, worstCaseDays), "yyyy-MM-dd");
 
   // Confidence based on data quality
   const daysOfData = velocity.velocity.length;

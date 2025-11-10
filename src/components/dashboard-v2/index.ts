@@ -1,2 +1,2 @@
-export { ComprehensiveDashboard } from './ComprehensiveDashboard';
-export * from './panels';
+export { ComprehensiveDashboard } from "./ComprehensiveDashboard";
+export * from "./panels";

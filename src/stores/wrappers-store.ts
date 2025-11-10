@@ -1,7 +1,7 @@
 // src/stores/wrappers-store.ts
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { DEFAULT_WRAPPERS, Wrapper, WrapperCalculation, WrapperType } from '@/types/wrappers';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { DEFAULT_WRAPPERS, Wrapper, WrapperCalculation, WrapperType } from "@/types/wrappers";
 
 interface WrappersState {
   // State
@@ -46,9 +46,7 @@ export const useWrappersStore = create<WrappersState>()(
       resetWrapper: (id) => {
         set((state) => ({
           wrappers: state.wrappers.map((w) =>
-            w.id === id
-              ? { ...w, currentPercentage: w.defaultPercentage }
-              : w
+            w.id === id ? { ...w, currentPercentage: w.defaultPercentage } : w
           ),
         }));
       },
@@ -111,7 +109,7 @@ export const useWrappersStore = create<WrappersState>()(
       },
     }),
     {
-      name: 'cockpit-wrappers-storage',
+      name: "cockpit-wrappers-storage",
     }
   )
 );

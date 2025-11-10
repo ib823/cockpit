@@ -7,50 +7,74 @@
  * This is 10-100x faster than full state replacement for typical edits.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
-import { prisma } from '@/lib/db';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { z } from "zod";
+import type {
+  Resource,
+  GanttPhase,
+  GanttTask,
+  TaskResourceAssignment,
+  PhaseResourceAssignment,
+  GanttMilestone,
+  GanttHoliday,
+} from "@/types/gantt-tool";
 
 // Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
 export const maxDuration = 30; // seconds - increased for large projects with many resource assignments
 
 // Validation schema for delta updates
 const DeltaSaveSchema = z.object({
-  projectUpdates: z.object({
-    name: z.string().min(1).max(200).optional(),
-    description: z.string().max(5000).optional(),
-    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    viewSettings: z.any().optional(),
-    budget: z.any().optional(),
-    orgChart: z.any().optional(),
-  }).optional(),
-  phases: z.object({
-    created: z.array(z.any()).optional(),
-    updated: z.array(z.any()).optional(),
-    deleted: z.array(z.string()).optional(),
-  }).optional(),
-  tasks: z.object({
-    created: z.array(z.any()).optional(),
-    updated: z.array(z.any()).optional(),
-    deleted: z.array(z.string()).optional(),
-  }).optional(),
-  resources: z.object({
-    created: z.array(z.any()).optional(),
-    updated: z.array(z.any()).optional(),
-    deleted: z.array(z.string()).optional(),
-  }).optional(),
-  milestones: z.object({
-    created: z.array(z.any()).optional(),
-    updated: z.array(z.any()).optional(),
-    deleted: z.array(z.string()).optional(),
-  }).optional(),
-  holidays: z.object({
-    created: z.array(z.any()).optional(),
-    updated: z.array(z.any()).optional(),
-    deleted: z.array(z.string()).optional(),
-  }).optional(),
+  projectUpdates: z
+    .object({
+      name: z.string().min(1).max(200).optional(),
+      description: z.string().max(5000).optional(),
+      startDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
+      viewSettings: z.any().optional(),
+      budget: z.any().optional(),
+      orgChart: z.any().optional(),
+    })
+    .optional(),
+  phases: z
+    .object({
+      created: z.array(z.any()).optional(),
+      updated: z.array(z.any()).optional(),
+      deleted: z.array(z.string()).optional(),
+    })
+    .optional(),
+  tasks: z
+    .object({
+      created: z.array(z.any()).optional(),
+      updated: z.array(z.any()).optional(),
+      deleted: z.array(z.string()).optional(),
+    })
+    .optional(),
+  resources: z
+    .object({
+      created: z.array(z.any()).optional(),
+      updated: z.array(z.any()).optional(),
+      deleted: z.array(z.string()).optional(),
+    })
+    .optional(),
+  milestones: z
+    .object({
+      created: z.array(z.any()).optional(),
+      updated: z.array(z.any()).optional(),
+      deleted: z.array(z.string()).optional(),
+    })
+    .optional(),
+  holidays: z
+    .object({
+      created: z.array(z.any()).optional(),
+      updated: z.array(z.any()).optional(),
+      deleted: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 // Helper to check project ownership
@@ -72,13 +96,13 @@ export async function PATCH(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const startTime = Date.now();
-  const isDev = process.env.NODE_ENV === 'development';
+  const isDev = process.env.NODE_ENV === "development";
 
   try {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { projectId } = await params;
@@ -86,18 +110,15 @@ export async function PATCH(
     // Check ownership
     const hasAccess = await checkProjectOwnership(projectId, session.user.id);
     if (!hasAccess) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     let body;
     try {
       body = await request.json();
     } catch (jsonError) {
-      if (isDev) console.error('[API Delta] Failed to parse JSON:', jsonError);
-      return NextResponse.json(
-        { error: 'Invalid JSON in request body' },
-        { status: 400 }
-      );
+      if (isDev) console.error("[API Delta] Failed to parse JSON:", jsonError);
+      return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 });
     }
 
     const delta = DeltaSaveSchema.parse(body);
@@ -109,7 +130,7 @@ export async function PATCH(
           userId: session.user.id,
           name: {
             equals: delta.projectUpdates.name,
-            mode: 'insensitive',
+            mode: "insensitive",
           },
           deletedAt: null,
           NOT: {
@@ -120,7 +141,9 @@ export async function PATCH(
 
       if (existingProject) {
         return NextResponse.json(
-          { error: `A project named "${delta.projectUpdates.name}" already exists. Please choose a different name.` },
+          {
+            error: `A project named "${delta.projectUpdates.name}" already exists. Please choose a different name.`,
+          },
           { status: 409 }
         );
       }
@@ -129,9 +152,9 @@ export async function PATCH(
     // Update project in transaction using delta operations
     const txStartTime = Date.now();
 
-    const updatedProject = await (prisma.$transaction as any)(async (tx: any) => {
+    const updatedProject: { id: string; updatedAt: Date } | null = await (prisma.$transaction as any)(async (tx: any) => {
       // 1. Update project-level fields if any changed
-      let project;
+      let project: { id: string; updatedAt: Date } | null;
       if (delta.projectUpdates && Object.keys(delta.projectUpdates).length > 0) {
         const updates: any = { ...delta.projectUpdates };
         if (updates.startDate) {
@@ -140,11 +163,13 @@ export async function PATCH(
         project = await tx.ganttProject.update({
           where: { id: projectId },
           data: updates,
+          select: { id: true, updatedAt: true },
         });
       } else {
         // Just fetch the project if no updates
         project = await tx.ganttProject.findUnique({
           where: { id: projectId },
+          select: { id: true, updatedAt: true },
         });
       }
 
@@ -163,12 +188,12 @@ export async function PATCH(
         // Create resources
         if (delta.resources.created && delta.resources.created.length > 0) {
           await tx.ganttResource.createMany({
-            data: delta.resources.created.map((r: any) => ({
+            data: delta.resources.created.map((r: Resource) => ({
               id: r.id,
               projectId: projectId,
               name: r.name,
               category: r.category,
-              description: r.description || '',
+              description: r.description || "",
               designation: r.designation,
               managerResourceId: r.managerResourceId || null,
               email: r.email || null,
@@ -194,7 +219,7 @@ export async function PATCH(
               data: {
                 name: r.name,
                 category: r.category,
-                description: r.description || '',
+                description: r.description || "",
                 designation: r.designation,
                 managerResourceId: r.managerResourceId || null,
                 email: r.email || null,
@@ -227,7 +252,7 @@ export async function PATCH(
         // Create phases
         if (delta.phases.created && delta.phases.created.length > 0) {
           await tx.ganttPhase.createMany({
-            data: delta.phases.created.map((phase: any) => ({
+            data: delta.phases.created.map((phase: GanttPhase) => ({
               id: phase.id,
               projectId: projectId,
               name: phase.name,
@@ -246,7 +271,7 @@ export async function PATCH(
           for (const phase of delta.phases.created) {
             if (phase.tasks && phase.tasks.length > 0) {
               await tx.ganttTask.createMany({
-                data: phase.tasks.map((task: any, index: number) => ({
+                data: phase.tasks.map((task: GanttTask, index: number) => ({
                   id: task.id,
                   phaseId: phase.id,
                   name: task.name,
@@ -265,7 +290,7 @@ export async function PATCH(
               for (const task of phase.tasks) {
                 if (task.resourceAssignments && task.resourceAssignments.length > 0) {
                   await tx.ganttTaskResourceAssignment.createMany({
-                    data: task.resourceAssignments.map((ra: any) => ({
+                    data: task.resourceAssignments.map((ra: TaskResourceAssignment) => ({
                       id: ra.id,
                       taskId: task.id,
                       resourceId: ra.resourceId,
@@ -282,7 +307,7 @@ export async function PATCH(
             // Create phase resource assignments
             if (phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0) {
               await tx.ganttPhaseResourceAssignment.createMany({
-                data: phase.phaseResourceAssignments.map((pra: any) => ({
+                data: phase.phaseResourceAssignments.map((pra: PhaseResourceAssignment) => ({
                   id: pra.id,
                   phaseId: phase.id,
                   resourceId: pra.resourceId,
@@ -323,7 +348,7 @@ export async function PATCH(
               // Recreate tasks
               if (phase.tasks.length > 0) {
                 await tx.ganttTask.createMany({
-                  data: phase.tasks.map((task: any, index: number) => ({
+                  data: phase.tasks.map((task: GanttTask, index: number) => ({
                     id: task.id,
                     phaseId: phase.id,
                     name: task.name,
@@ -342,7 +367,7 @@ export async function PATCH(
                 for (const task of phase.tasks) {
                   if (task.resourceAssignments && task.resourceAssignments.length > 0) {
                     await tx.ganttTaskResourceAssignment.createMany({
-                      data: task.resourceAssignments.map((ra: any) => ({
+                      data: task.resourceAssignments.map((ra: TaskResourceAssignment) => ({
                         id: ra.id,
                         taskId: task.id,
                         resourceId: ra.resourceId,
@@ -367,7 +392,7 @@ export async function PATCH(
               // Recreate
               if (phase.phaseResourceAssignments.length > 0) {
                 await tx.ganttPhaseResourceAssignment.createMany({
-                  data: phase.phaseResourceAssignments.map((pra: any) => ({
+                  data: phase.phaseResourceAssignments.map((pra: PhaseResourceAssignment) => ({
                     id: pra.id,
                     phaseId: phase.id,
                     resourceId: pra.resourceId,
@@ -396,7 +421,7 @@ export async function PATCH(
 
         if (delta.milestones.created && delta.milestones.created.length > 0) {
           await tx.ganttMilestone.createMany({
-            data: delta.milestones.created.map((m: any) => ({
+            data: delta.milestones.created.map((m: GanttMilestone) => ({
               id: m.id,
               projectId: projectId,
               name: m.name,
@@ -438,7 +463,7 @@ export async function PATCH(
 
         if (delta.holidays.created && delta.holidays.created.length > 0) {
           await tx.ganttHoliday.createMany({
-            data: delta.holidays.created.map((h: any) => ({
+            data: delta.holidays.created.map((h: GanttHoliday) => ({
               id: h.id,
               projectId: projectId,
               name: h.name,
@@ -466,9 +491,14 @@ export async function PATCH(
       }
 
       return project;
-    });
+    }) as { id: string; updatedAt: Date } | null;
 
     const txDuration = Date.now() - txStartTime;
+    const duration = Date.now() - startTime;
+
+    if (!updatedProject) {
+      return NextResponse.json({ error: "Project not found after update" }, { status: 404 });
+    }
 
     // Audit log (non-critical)
     try {
@@ -476,82 +506,89 @@ export async function PATCH(
         data: {
           id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           userId: session.user.id,
-          action: 'UPDATE',
-          entity: 'gantt_project',
+          action: "UPDATE",
+          entity: "gantt_project",
           entityId: projectId,
           changes: delta,
         },
       });
     } catch (auditError) {
-      if (isDev) console.error('[API Delta] Failed to create audit log:', auditError);
+      if (isDev) console.error("[API Delta] Failed to create audit log:", auditError);
     }
 
-    const duration = Date.now() - startTime;
-
     // Return minimal response
-    return NextResponse.json({
-      success: true,
-      project: {
-        id: projectId,
-        updatedAt: updatedProject?.updatedAt.toISOString() || new Date().toISOString(),
+    return NextResponse.json(
+      {
+        success: true,
+        project: {
+          id: projectId,
+          updatedAt: updatedProject.updatedAt.toISOString(),
+        },
+        meta: {
+          txDuration,
+          totalDuration: duration,
+        },
       },
-      meta: {
-        txDuration,
-        totalDuration: duration,
-      }
-    }, { status: 200 });
+      { status: 200 }
+    );
   } catch (error) {
-    const duration = Date.now() - startTime;
+    const _duration = Date.now() - startTime;
 
     if (error instanceof z.ZodError) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[API Delta] Zod validation failed:', error.issues);
+      if (process.env.NODE_ENV === "development") {
+        console.error("[API Delta] Zod validation failed:", error.issues);
       }
       return NextResponse.json(
-        { error: 'Validation failed', details: error.issues },
+        { error: "Validation failed", details: error.issues },
         { status: 400 }
       );
     }
 
     // Log detailed error information (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[API Delta] Failed to update project:');
-      console.error('Error:', error instanceof Error ? error.message : error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("[API Delta] Failed to update project:");
+      console.error("Error:", error instanceof Error ? error.message : error);
     }
 
     // Handle Prisma-specific errors
-    if (error && typeof error === 'object' && 'code' in error) {
-      const prismaCode = (error as any).code;
-      if (prismaCode === 'P2002') {
-        const meta = (error as any).meta;
-        const target = meta?.target || [];
-        let detailedMessage = 'A record with this data already exists.';
+    const prismaError = error as any;
+    if (prismaError?.code && typeof prismaError.code === 'string') {
+      const prismaCode = prismaError.code;
+      if (prismaCode === "P2002") {
+        const meta = prismaError.meta;
+        const target = (meta?.target || []) as string[];
+        let detailedMessage = "A record with this data already exists.";
 
         // Provide specific guidance based on constraint
-        if (target.includes('taskId') && target.includes('resourceId')) {
-          detailedMessage = 'Duplicate resource assignment detected: The same resource is already assigned to this task. Please refresh the page to sync with the latest data.';
-        } else if (target.includes('phaseId') && target.includes('resourceId')) {
-          detailedMessage = 'Duplicate PM resource assignment detected: The same PM resource is already assigned to this phase. Please refresh the page to sync with the latest data.';
-        } else if (target.includes('name')) {
-          detailedMessage = 'A project with this name already exists. Please use a different name.';
+        if (target.includes("taskId") && target.includes("resourceId")) {
+          detailedMessage =
+            "Duplicate resource assignment detected: The same resource is already assigned to this task. Please refresh the page to sync with the latest data.";
+        } else if (target.includes("phaseId") && target.includes("resourceId")) {
+          detailedMessage =
+            "Duplicate PM resource assignment detected: The same PM resource is already assigned to this phase. Please refresh the page to sync with the latest data.";
+        } else if (target.includes("name")) {
+          detailedMessage = "A project with this name already exists. Please use a different name.";
         }
 
         return NextResponse.json(
           {
-            error: 'Unique constraint violation',
+            error: "Unique constraint violation",
             message: detailedMessage,
-            conflictField: target
+            conflictField: target,
           },
           { status: 409 }
         );
-      } else if (prismaCode === 'P2003') {
+      } else if (prismaCode === "P2003") {
         return NextResponse.json(
-          { error: 'Foreign key constraint violation', message: 'Referenced record does not exist' },
+          {
+            error: "Foreign key constraint violation",
+            message: "Referenced record does not exist",
+          },
           { status: 400 }
         );
-      } else if (prismaCode === 'P2025') {
+      } else if (prismaCode === "P2025") {
         return NextResponse.json(
-          { error: 'Record not found', message: 'The requested record was not found' },
+          { error: "Record not found", message: "The requested record was not found" },
           { status: 404 }
         );
       }
@@ -559,8 +596,8 @@ export async function PATCH(
 
     return NextResponse.json(
       {
-        error: 'Failed to update project',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: "Failed to update project",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

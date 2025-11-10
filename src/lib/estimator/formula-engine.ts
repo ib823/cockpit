@@ -11,18 +11,9 @@
  * - Duration = (E_total / Capacity) × Overlap
  */
 
-import type {
-  EstimatorInputs,
-  EstimatorResults,
-  PhaseBreakdown,
-  L3ScopeItem,
-} from './types';
+import type { EstimatorInputs, EstimatorResults, PhaseBreakdown, L3ScopeItem } from "./types";
 
-import {
-  FORMULA_CONSTANTS,
-  PHASE_WEIGHTS,
-  validateInputs,
-} from './types';
+import { FORMULA_CONSTANTS, PHASE_WEIGHTS, validateInputs } from "./types";
 
 /**
  * Main Formula Engine class
@@ -35,7 +26,7 @@ export class FormulaEngine {
    */
   calculateScopeBreadth(selectedItems: L3ScopeItem[], integrations: number): number {
     const itemCoefficients = selectedItems
-      .filter(item => item.complexityMetrics?.defaultTier !== 'D')
+      .filter((item) => item.complexityMetrics?.defaultTier !== "D")
       .reduce((sum, item) => sum + (item.complexityMetrics?.coefficient ?? 0), 0);
 
     const integrationFactor = integrations * FORMULA_CONSTANTS.INTEGRATION_FACTOR;
@@ -80,7 +71,7 @@ export class FormulaEngine {
   calculateTotal(inputs: EstimatorInputs): EstimatorResults {
     const validationErrors = validateInputs(inputs);
     if (validationErrors.length > 0) {
-      throw new Error(`Invalid inputs: ${validationErrors.map(e => e.message).join(', ')}`);
+      throw new Error(`Invalid inputs: ${validationErrors.map((e) => e.message).join(", ")}`);
     }
 
     // Step 1: Calculate coefficients
@@ -98,7 +89,7 @@ export class FormulaEngine {
     const capacity = inputs.fte * FORMULA_CONSTANTS.WORKING_DAYS_PER_MONTH * inputs.utilization;
 
     if (capacity <= 0) {
-      throw new Error('Capacity must be positive (check FTE and utilization values)');
+      throw new Error("Capacity must be positive (check FTE and utilization values)");
     }
 
     // Step 5: Iterative PMO calculation
@@ -130,7 +121,7 @@ export class FormulaEngine {
       intermediateValues: {
         E_FT,
         E_fixed,
-        D_raw: ((E_FT + E_fixed) / capacity),
+        D_raw: (E_FT + E_fixed) / capacity,
       },
     };
   }
@@ -143,7 +134,7 @@ export class FormulaEngine {
 
     for (const [phaseName, weight] of Object.entries(PHASE_WEIGHTS)) {
       phases.push({
-        phaseName: phaseName as PhaseBreakdown['phaseName'],
+        phaseName: phaseName as PhaseBreakdown["phaseName"],
         effortMD: totalMD * weight,
         durationMonths: totalDuration * weight,
       });
@@ -158,7 +149,7 @@ export class FormulaEngine {
   calculatePhaseDates(phases: PhaseBreakdown[], startDate: Date): PhaseBreakdown[] {
     let currentDate = new Date(startDate);
 
-    return phases.map(phase => {
+    return phases.map((phase) => {
       const phaseStartDate = new Date(currentDate);
       const phaseEndDate = new Date(currentDate);
       phaseEndDate.setMonth(phaseEndDate.getMonth() + phase.durationMonths);
@@ -174,8 +165,8 @@ export class FormulaEngine {
    */
   detectTierDItems(selectedItems: L3ScopeItem[]): string[] {
     return selectedItems
-      .filter(item => item.complexityMetrics?.defaultTier === 'D')
-      .map(item => item.l3Code);
+      .filter((item) => item.complexityMetrics?.defaultTier === "D")
+      .map((item) => item.l3Code);
   }
 
   /**
@@ -186,20 +177,29 @@ export class FormulaEngine {
 
     const tierDItems = this.detectTierDItems(inputs.selectedL3Items);
     if (tierDItems.length > 0) {
-      warnings.push(`⚠️ ${tierDItems.length} Tier D items require custom pricing: ${tierDItems.join(', ')}`);
+      warnings.push(
+        `⚠️ ${tierDItems.length} Tier D items require custom pricing: ${tierDItems.join(", ")}`
+      );
     }
 
-    const totalComplexity = results.coefficients.Sb + results.coefficients.Pc + results.coefficients.Os;
+    const totalComplexity =
+      results.coefficients.Sb + results.coefficients.Pc + results.coefficients.Os;
     if (totalComplexity > 0.5) {
-      warnings.push(`⚠️ High complexity detected (${(totalComplexity * 100).toFixed(0)}%). Consider phased rollout.`);
+      warnings.push(
+        `⚠️ High complexity detected (${(totalComplexity * 100).toFixed(0)}%). Consider phased rollout.`
+      );
     }
 
     if (inputs.utilization < 0.7) {
-      warnings.push(`⚠️ Low utilization (${(inputs.utilization * 100).toFixed(0)}%). This may indicate resource availability issues.`);
+      warnings.push(
+        `⚠️ Low utilization (${(inputs.utilization * 100).toFixed(0)}%). This may indicate resource availability issues.`
+      );
     }
 
     if (inputs.overlapFactor < 0.65) {
-      warnings.push(`⚠️ Aggressive phase overlap (${(inputs.overlapFactor * 100).toFixed(0)}%). High risk of quality issues.`);
+      warnings.push(
+        `⚠️ Aggressive phase overlap (${(inputs.overlapFactor * 100).toFixed(0)}%). High risk of quality issues.`
+      );
     }
 
     if (results.durationMonths > 12) {
@@ -207,7 +207,9 @@ export class FormulaEngine {
     }
 
     if (inputs.fte > 20) {
-      warnings.push(`⚠️ Large team size (${inputs.fte} FTE). Coordination overhead may be underestimated.`);
+      warnings.push(
+        `⚠️ Large team size (${inputs.fte} FTE). Coordination overhead may be underestimated.`
+      );
     }
 
     return warnings;
@@ -233,8 +235,8 @@ export function calculateEstimate(inputs: EstimatorInputs): {
 }
 
 // Re-export types and constants for convenience
-export type { EstimatorInputs, EstimatorResults, L3ScopeItem, Profile } from './types';
-export { AVAILABLE_PROFILES, DEFAULT_PROFILE } from './types';
+export type { EstimatorInputs, EstimatorResults, L3ScopeItem, Profile } from "./types";
+export { AVAILABLE_PROFILES, DEFAULT_PROFILE } from "./types";
 
 // Alias for backward compatibility with tests
-export { AVAILABLE_PROFILES as PROFILE_PRESETS } from './types';
+export { AVAILABLE_PROFILES as PROFILE_PRESETS } from "./types";

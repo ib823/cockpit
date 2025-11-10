@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 import {
   Calculator,
   Calendar,
@@ -14,10 +14,10 @@ import {
   Settings,
   BarChart3,
   Sparkles,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { LogoutButton } from '@/components/common/LogoutButton';
-import type { Session } from 'next-auth';
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { LogoutButton } from "@/components/common/LogoutButton";
+import type { Session } from "next-auth";
 
 interface DashboardContentProps {
   session: Session;
@@ -25,91 +25,91 @@ interface DashboardContentProps {
 
 export function DashboardContent({ session }: DashboardContentProps) {
   const router = useRouter();
-  const isAdmin = session.user.role === 'ADMIN';
+  const isAdmin = session.user.role === "ADMIN";
 
   const quickActions = [
     {
-      title: 'Quick Estimate',
-      description: 'Start a new SAP implementation estimate',
+      title: "Quick Estimate",
+      description: "Start a new SAP implementation estimate",
       icon: Calculator,
-      href: '/estimator',
-      color: 'from-blue-500 to-blue-600',
-      hoverColor: 'hover:from-blue-600 hover:to-blue-700',
+      href: "/estimator",
+      color: "from-blue-500 to-blue-600",
+      hoverColor: "hover:from-blue-600 hover:to-blue-700",
     },
     {
-      title: 'Timeline Planner',
-      description: 'Create and manage project timelines',
+      title: "Timeline Planner",
+      description: "Create and manage project timelines",
       icon: Calendar,
-      href: '/timeline',
-      color: 'from-purple-500 to-purple-600',
-      hoverColor: 'hover:from-purple-600 hover:to-purple-700',
+      href: "/timeline",
+      color: "from-purple-500 to-purple-600",
+      hoverColor: "hover:from-purple-600 hover:to-purple-700",
     },
     {
-      title: 'Decision Support',
-      description: 'Analyze implementation decisions',
+      title: "Decision Support",
+      description: "Analyze implementation decisions",
       icon: TrendingUp,
-      href: '/decision-support',
-      color: 'from-green-500 to-green-600',
-      hoverColor: 'hover:from-green-600 hover:to-green-700',
+      href: "/decision-support",
+      color: "from-green-500 to-green-600",
+      hoverColor: "hover:from-green-600 hover:to-green-700",
     },
     {
-      title: 'Project Manager',
-      description: 'View and manage all projects',
+      title: "Project Manager",
+      description: "View and manage all projects",
       icon: FileText,
-      href: '/project',
-      color: 'from-orange-500 to-orange-600',
-      hoverColor: 'hover:from-orange-600 hover:to-orange-700',
+      href: "/project",
+      color: "from-orange-500 to-orange-600",
+      hoverColor: "hover:from-orange-600 hover:to-orange-700",
     },
   ];
 
   const stats = [
     {
-      label: 'Projects',
-      value: '12',
-      change: '+3 this month',
+      label: "Projects",
+      value: "12",
+      change: "+3 this month",
       icon: FileText,
-      color: 'bg-blue-100 text-blue-600',
+      color: "bg-blue-100 text-blue-600",
     },
     {
-      label: 'Estimates',
-      value: '45',
-      change: '+8 this week',
+      label: "Estimates",
+      value: "45",
+      change: "+8 this week",
       icon: Calculator,
-      color: 'bg-purple-100 text-purple-600',
+      color: "bg-purple-100 text-purple-600",
     },
     {
-      label: 'Avg. Accuracy',
-      value: '92%',
-      change: '+5% vs last quarter',
+      label: "Avg. Accuracy",
+      value: "92%",
+      change: "+5% vs last quarter",
       icon: CheckCircle,
-      color: 'bg-green-100 text-green-600',
+      color: "bg-green-100 text-green-600",
     },
     {
-      label: 'Time Saved',
-      value: '48h',
-      change: 'This month',
+      label: "Time Saved",
+      value: "48h",
+      change: "This month",
       icon: Clock,
-      color: 'bg-orange-100 text-orange-600',
+      color: "bg-orange-100 text-orange-600",
     },
   ];
 
   const recentActivity = [
     {
-      title: 'Manufacturing Implementation Estimate',
-      time: '2 hours ago',
-      status: 'completed',
+      title: "Manufacturing Implementation Estimate",
+      time: "2 hours ago",
+      status: "completed",
       icon: CheckCircle,
     },
     {
-      title: 'Q2 Timeline Planning',
-      time: '5 hours ago',
-      status: 'in-progress',
+      title: "Q2 Timeline Planning",
+      time: "5 hours ago",
+      status: "in-progress",
       icon: Clock,
     },
     {
-      title: 'Finance Module Scope Review',
-      time: 'Yesterday',
-      status: 'completed',
+      title: "Finance Module Scope Review",
+      time: "Yesterday",
+      status: "completed",
       icon: CheckCircle,
     },
   ];
@@ -136,7 +136,7 @@ export function DashboardContent({ session }: DashboardContentProps) {
               </div>
               {isAdmin && (
                 <button
-                  onClick={() => router.push('/admin')}
+                  onClick={() => router.push("/admin")}
                   className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <Settings className="w-4 h-4" />
@@ -151,13 +151,9 @@ export function DashboardContent({ session }: DashboardContentProps) {
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {session.user.email?.split('@')[0]}
+            Welcome back, {session.user.email?.split("@")[0]}
           </h2>
           <p className="text-gray-600">
             Here&apos;s what&apos;s happening with your projects today.
@@ -177,7 +173,9 @@ export function DashboardContent({ session }: DashboardContentProps) {
               className="bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-300 transition-all hover:shadow-lg"
             >
               <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center`}>
+                <div
+                  className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center`}
+                >
                   <stat.icon className="w-6 h-6" />
                 </div>
               </div>
@@ -244,9 +242,9 @@ export function DashboardContent({ session }: DashboardContentProps) {
                 >
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      activity.status === 'completed'
-                        ? 'bg-green-100 text-green-600'
-                        : 'bg-blue-100 text-blue-600'
+                      activity.status === "completed"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-blue-100 text-blue-600"
                     }`}
                   >
                     <activity.icon className="w-5 h-5" />
@@ -257,12 +255,12 @@ export function DashboardContent({ session }: DashboardContentProps) {
                   </div>
                   <span
                     className={`text-xs px-3 py-1 rounded-full font-medium ${
-                      activity.status === 'completed'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-blue-100 text-blue-700'
+                      activity.status === "completed"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-blue-100 text-blue-700"
                     }`}
                   >
-                    {activity.status === 'completed' ? 'Completed' : 'In Progress'}
+                    {activity.status === "completed" ? "Completed" : "In Progress"}
                   </span>
                 </div>
               ))}
@@ -319,8 +317,8 @@ export function DashboardContent({ session }: DashboardContentProps) {
                 <div>
                   <h4 className="font-semibold text-gray-900 text-sm mb-1">Pro Tip</h4>
                   <p className="text-xs text-gray-700 leading-relaxed">
-                    Use the Quick Estimate feature to generate proposals in under 10 minutes. Try
-                    it now!
+                    Use the Quick Estimate feature to generate proposals in under 10 minutes. Try it
+                    now!
                   </p>
                 </div>
               </div>

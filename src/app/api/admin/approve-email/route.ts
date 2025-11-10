@@ -1,10 +1,10 @@
-import { prisma } from '@/lib/db';
-import { randomUUID, randomBytes, randomInt } from 'crypto';
-import { requireAdmin } from '@/lib/nextauth-helpers';
-import { hash } from 'bcryptjs';
-import { NextResponse } from 'next/server';
-import { sendAccessCode } from '@/lib/email';
-export const runtime = 'nodejs';
+import { prisma } from "@/lib/db";
+import { randomUUID, randomBytes, randomInt } from "crypto";
+import { requireAdmin } from "@/lib/nextauth-helpers";
+import { hash } from "bcryptjs";
+import { NextResponse } from "next/server";
+import { sendAccessCode } from "@/lib/email";
+export const runtime = "nodejs";
 
 // SECURITY FIX: DEFECT-20251027-006 & REGRESSION-001
 // Replaced Math.random() with crypto.randomInt() for cryptographically secure random code generation
@@ -13,7 +13,7 @@ function generateCode(): string {
 }
 
 function generateMagicToken(): string {
-  return randomBytes(32).toString('hex'); // 64 character secure token
+  return randomBytes(32).toString("hex"); // 64 character secure token
 }
 
 export async function POST(req: Request) {
@@ -23,8 +23,8 @@ export async function POST(req: Request) {
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
-        { ok: false, error: 'Valid email required' },
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { ok: false, error: "Valid email required" },
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -42,10 +42,10 @@ export async function POST(req: Request) {
         accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
       create: {
-      id: randomUUID(),
+        id: randomUUID(),
         email,
         name: name || null,
-        role: 'USER',
+        role: "USER",
         exception: false,
         accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         updatedAt: new Date(),
@@ -83,18 +83,22 @@ export async function POST(req: Request) {
     });
 
     // Generate magic link URL (manual distribution - no auto-send)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
     const magicUrl = `${baseUrl}/login?token=${magicToken}`;
 
     // OPTIONAL: Send email if explicitly requested (sendEmail=true in request)
-    const { sendEmail } = await req.clone().json().catch(() => ({ sendEmail: false }));
+    const { sendEmail } = await req
+      .clone()
+      .json()
+      .catch(() => ({ sendEmail: false }));
     let emailSent = false;
     if (sendEmail && process.env.SMTP_HOST && process.env.SMTP_USER) {
       try {
         await sendAccessCode(email, code, magicUrl);
         emailSent = true;
       } catch (err) {
-        console.error('Failed to send access code email:', err);
+        console.error("Failed to send access code email:", err);
       }
     }
 
@@ -102,38 +106,41 @@ export async function POST(req: Request) {
       {
         ok: true,
         message: emailSent
-          ? 'Email approved and access code sent via email.'
-          : 'Email approved. Share the code and magic link manually with the user.',
+          ? "Email approved and access code sent via email."
+          : "Email approved. Share the code and magic link manually with the user.",
         code, // Return code for manual distribution
         email,
         magicUrl, // Magic link URL for manual distribution
-        magicLinkExpiry: '2 minutes',
-        codeExpiry: '7 days',
+        magicLinkExpiry: "2 minutes",
+        codeExpiry: "7 days",
         emailSent,
-        instructions: `1. Send this to the user: "${code}" (6-digit code) OR "${magicUrl}" (magic link)\n2. Code expires in 7 days, magic link expires in 2 minutes\n3. User can register at ${baseUrl}/login`
+        instructions: `1. Send this to the user: "${code}" (6-digit code) OR "${magicUrl}" (magic link)\n2. Code expires in 7 days, magic link expires in 2 minutes\n3. User can register at ${baseUrl}/login`,
       },
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { "Content-Type": "application/json" } }
     );
-  } catch (e: any) {
-    if (e.message === 'forbidden') {
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === "forbidden") {
       return NextResponse.json(
-        { ok: false, error: 'Admin access required' },
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
+        { ok: false, error: "Admin access required" },
+        { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error('approve-email error:', e);
+    console.error("approve-email error:", e);
 
     // Provide more specific error messages
-    let errorMessage = 'Internal error';
-    if (e.message?.includes('connect')) {
-      errorMessage = 'Database connection failed. Please check your database configuration.';
-    } else if (e.message?.includes('Unique constraint')) {
-      errorMessage = 'This email is already registered';
+    let errorMessage = "Internal error";
+    if (e instanceof Error) {
+      if (e.message?.includes("connect")) {
+        errorMessage =
+          "Database connection failed. Please check your database configuration.";
+      } else if (e.message?.includes("Unique constraint")) {
+        errorMessage = "This email is already registered";
+      }
     }
 
     return NextResponse.json(
       { ok: false, error: errorMessage },
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

@@ -19,31 +19,31 @@ Level 3 - Core Delivery Teams
 
 ```typescript
 interface OrgChart {
-  levels: OrgLevel[]
+  levels: OrgLevel[];
 }
 
 interface OrgLevel {
-  id: string
-  name: string
-  groups: OrgGroup[]
+  id: string;
+  name: string;
+  groups: OrgGroup[];
 }
 
 interface OrgGroup {
-  id: string
-  name: string
-  positions: OrgPosition[]        // Resources at group level (no sub-group)
-  subGroups?: OrgSubGroup[]       // Optional sub-groups
+  id: string;
+  name: string;
+  positions: OrgPosition[]; // Resources at group level (no sub-group)
+  subGroups?: OrgSubGroup[]; // Optional sub-groups
 }
 
 interface OrgSubGroup {
-  id: string
-  name: string
-  positions: OrgPosition[]        // Resources in this sub-group
+  id: string;
+  name: string;
+  positions: OrgPosition[]; // Resources in this sub-group
 }
 
 interface OrgPosition {
-  id: string
-  resourceId?: string             // Reference to project resource
+  id: string;
+  resourceId?: string; // Reference to project resource
 }
 ```
 
@@ -175,6 +175,7 @@ The ReactFlow visualization automatically detects sub-groups and renders them:
 2. **With Sub-Groups**: `Root → Group → Sub-Groups → Resources` (3 levels)
 
 **Visual Hierarchy:**
+
 - **Group Nodes**: Gray background with group name
 - **Sub-Group Nodes**: Indigo/purple background with sub-group name
 - **Resource Nodes**: White background with resource details
@@ -199,6 +200,7 @@ When assigning resources:
 ### Auto-Populate Behavior
 
 The `autoPopulateResources()` function:
+
 - Assigns resources to **groups** (not sub-groups) by default
 - Based on resource category mapping
 - **After auto-populate**, you can manually move resources to sub-groups
@@ -209,19 +211,19 @@ The `autoPopulateResources()` function:
 
 ```typescript
 // Add "ABAP", "BTP", "Integration" sub-groups to Technical group
-setOrgChart(prev => ({
-  levels: prev.levels.map(level =>
-    level.id === '3'
+setOrgChart((prev) => ({
+  levels: prev.levels.map((level) =>
+    level.id === "3"
       ? {
           ...level,
-          groups: level.groups.map(group =>
-            group.id === '3-2' // Technical group
+          groups: level.groups.map((group) =>
+            group.id === "3-2" // Technical group
               ? {
                   ...group,
                   subGroups: [
-                    { id: '3-2-sg-1', name: 'ABAP', positions: [] },
-                    { id: '3-2-sg-2', name: 'BTP', positions: [] },
-                    { id: '3-2-sg-3', name: 'Integration', positions: [] },
+                    { id: "3-2-sg-1", name: "ABAP", positions: [] },
+                    { id: "3-2-sg-2", name: "BTP", positions: [] },
+                    { id: "3-2-sg-3", name: "Integration", positions: [] },
                   ],
                 }
               : group
@@ -236,23 +238,23 @@ setOrgChart(prev => ({
 
 ```typescript
 const newLevel = {
-  id: '5',
-  name: 'Level 5 - Regional Teams',
+  id: "5",
+  name: "Level 5 - Regional Teams",
   groups: [
     {
-      id: '5-1',
-      name: 'Regional Operations',
+      id: "5-1",
+      name: "Regional Operations",
       positions: [],
       subGroups: [
-        { id: '5-1-sg-1', name: 'North America', positions: [] },
-        { id: '5-1-sg-2', name: 'Europe', positions: [] },
-        { id: '5-1-sg-3', name: 'Asia Pacific', positions: [] },
+        { id: "5-1-sg-1", name: "North America", positions: [] },
+        { id: "5-1-sg-2", name: "Europe", positions: [] },
+        { id: "5-1-sg-3", name: "Asia Pacific", positions: [] },
       ],
     },
   ],
 };
 
-setOrgChart(prev => ({
+setOrgChart((prev) => ({
   levels: [...prev.levels, newLevel],
 }));
 ```
@@ -262,11 +264,13 @@ setOrgChart(prev => ({
 ### Filtering by Category
 
 When assigning resources to sub-groups, the modal:
+
 1. Detects the parent group's category mapping
 2. Filters available resources by that category
 3. Shows only matching resources
 
 Example:
+
 - **Functional group** → Shows only `functional` category resources
 - **Technical group** → Shows only `technical` category resources
 
@@ -277,9 +281,9 @@ The `selectingResource` state includes `subGroupId`:
 ```typescript
 // When opening modal for sub-group assignment
 setSelectingResource({
-  levelId: '3',
-  groupId: '3-1',
-  subGroupId: '3-1-sg-1', // Specify sub-group
+  levelId: "3",
+  groupId: "3-1",
+  subGroupId: "3-1-sg-1", // Specify sub-group
 });
 
 // Resource assignment then uses this sub-group ID
@@ -294,15 +298,19 @@ assignResourceToPosition(
 ## Testing the Feature
 
 ### Step 1: Load the Org Chart Page
+
 Navigate to `/organization-chart` in your application.
 
 ### Step 2: Verify Pre-Configured Sub-Groups
+
 You should see the Functional group with 3 sub-groups:
+
 - Finance
 - Sales
 - SCM
 
 ### Step 3: Assign Resources
+
 1. Click "Auto-Populate" to assign all resources to groups
 2. Resources with category `functional` will be assigned to the Functional group
 3. Manually move them to specific sub-groups:
@@ -310,7 +318,9 @@ You should see the Functional group with 3 sub-groups:
    - Or use the assignment modal with sub-group selection
 
 ### Step 4: Visualize
+
 The ReactFlow chart should display:
+
 ```
 Root (Project)
   └── Functional (Group - Gray)
@@ -355,9 +365,7 @@ The `orgChart` field in the database stores the full JSON structure:
             {
               "id": "3-1-sg-1",
               "name": "Finance",
-              "positions": [
-                { "id": "pos-1", "resourceId": "res-123" }
-              ]
+              "positions": [{ "id": "pos-1", "resourceId": "res-123" }]
             }
           ]
         }
@@ -370,6 +378,7 @@ The `orgChart` field in the database stores the full JSON structure:
 ## API Endpoints
 
 ### Save Org Chart
+
 ```http
 PATCH /api/gantt-tool/projects/{projectId}
 Content-Type: application/json
@@ -407,6 +416,7 @@ The entire org chart structure (including sub-groups) is saved atomically.
 ### Sub-Groups Not Appearing
 
 **Check:**
+
 1. Is `subGroups` array defined and not empty?
 2. Do sub-groups have resources assigned?
 3. Are resources filtered out by view mode?
@@ -414,6 +424,7 @@ The entire org chart structure (including sub-groups) is saved atomically.
 ### Resources Not Saving to Sub-Groups
 
 **Check:**
+
 1. Is `subGroupId` being passed to `assignResourceToPosition()`?
 2. Is auto-save enabled? (Should trigger 2 seconds after change)
 3. Check browser console for errors
@@ -421,6 +432,7 @@ The entire org chart structure (including sub-groups) is saved atomically.
 ### Visualization Layout Issues
 
 **Check:**
+
 1. Are there too many resources causing overflow?
 2. Try zooming out (ReactFlow controls in bottom-left)
 3. Clear browser cache and reload
@@ -438,6 +450,7 @@ Potential improvements for the sub-group feature:
 ## Summary
 
 The sub-groups feature provides:
+
 - ✅ Hierarchical team structures
 - ✅ Flexible resource organization
 - ✅ Backward compatibility

@@ -7,15 +7,28 @@
  * Revolutionary one-click project creation.
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Modal, Tabs, Input, Badge, Tag } from 'antd';
-import { Search, Star, Calendar, CheckCircle, BookOpen, Rocket, TrendingUp, Building } from 'lucide-react';
-import { PROJECT_TEMPLATES, getTemplatesByCategory, type ProjectTemplate } from '@/lib/gantt-tool/project-templates';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { format } from 'date-fns';
-import type { GanttProject } from '@/types/gantt-tool';
+import { useState, useMemo } from "react";
+import { Modal, Tabs, Input, Badge, Tag } from "antd";
+import {
+  Search,
+  Star,
+  Calendar,
+  CheckCircle,
+  BookOpen,
+  Rocket,
+  TrendingUp,
+  Building,
+} from "lucide-react";
+import {
+  PROJECT_TEMPLATES,
+  getTemplatesByCategory,
+  type ProjectTemplate,
+} from "@/lib/gantt-tool/project-templates";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { format } from "date-fns";
+import type { GanttProject } from "@/types/gantt-tool";
 
 interface Props {
   isOpen: boolean;
@@ -24,8 +37,8 @@ interface Props {
 
 export function TemplateLibraryModal({ isOpen, onClose }: Props) {
   const { createProjectFromTemplate } = useGanttToolStoreV2();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null);
 
   // Filter templates
@@ -33,16 +46,17 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
     let templates = PROJECT_TEMPLATES;
 
     // Filter by category
-    if (selectedCategory !== 'all') {
-      templates = getTemplatesByCategory(selectedCategory as ProjectTemplate['category']);
+    if (selectedCategory !== "all") {
+      templates = getTemplatesByCategory(selectedCategory as ProjectTemplate["category"]);
     }
 
     // Filter by search query
     if (searchQuery) {
-      templates = templates.filter(t =>
-        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      templates = templates.filter(
+        (t) =>
+          t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -53,8 +67,8 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
     // Create a copy of the template with updated name and dates
     const projectCopy = {
       ...template,
-      name: `${template.name} - ${format(new Date(), 'MMM dd, yyyy')}`,
-      startDate: new Date().toISOString().split('T')[0],
+      name: `${template.name} - ${format(new Date(), "MMM dd, yyyy")}`,
+      startDate: new Date().toISOString().split("T")[0],
     } as unknown as GanttProject;
 
     await createProjectFromTemplate(projectCopy);
@@ -62,13 +76,13 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
   };
 
   const categoryTabs = [
-    { key: 'all', label: '🌟 All Templates', icon: <Rocket className="w-4 h-4" /> },
-    { key: 'sap-activate', label: '⚡ SAP Activate', icon: <TrendingUp className="w-4 h-4" /> },
-    { key: 'greenfield', label: '🌱 Greenfield', icon: <Rocket className="w-4 h-4" /> },
-    { key: 'brownfield', label: '🔄 Brownfield', icon: <Building className="w-4 h-4" /> },
-    { key: 'migration', label: '🎯 Migration', icon: <TrendingUp className="w-4 h-4" /> },
-    { key: 'rapid', label: '⚡ Rapid Deploy', icon: <Rocket className="w-4 h-4" /> },
-    { key: 'industry', label: '🏢 Industry', icon: <Building className="w-4 h-4" /> },
+    { key: "all", label: "🌟 All Templates", icon: <Rocket className="w-4 h-4" /> },
+    { key: "sap-activate", label: "⚡ SAP Activate", icon: <TrendingUp className="w-4 h-4" /> },
+    { key: "greenfield", label: "🌱 Greenfield", icon: <Rocket className="w-4 h-4" /> },
+    { key: "brownfield", label: "🔄 Brownfield", icon: <Building className="w-4 h-4" /> },
+    { key: "migration", label: "🎯 Migration", icon: <TrendingUp className="w-4 h-4" /> },
+    { key: "rapid", label: "⚡ Rapid Deploy", icon: <Rocket className="w-4 h-4" /> },
+    { key: "industry", label: "🏢 Industry", icon: <Building className="w-4 h-4" /> },
   ];
 
   return (
@@ -77,13 +91,13 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
       onCancel={onClose}
       afterClose={() => {
         // PERMANENT FIX: Force cleanup of modal side effects
-        if (document.body.style.overflow === 'hidden') {
-          document.body.style.overflow = '';
+        if (document.body.style.overflow === "hidden") {
+          document.body.style.overflow = "";
         }
         if (document.body.style.paddingRight) {
-          document.body.style.paddingRight = '';
+          document.body.style.paddingRight = "";
         }
-        document.body.style.pointerEvents = '';
+        document.body.style.pointerEvents = "";
       }}
       destroyOnHidden={true}
       width={1200}
@@ -95,7 +109,9 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
           </div>
           <div>
             <h2 className="text-xl font-bold text-gray-900 m-0">Template Library</h2>
-            <p className="text-sm text-gray-600 m-0">50+ pre-built project templates to get started instantly</p>
+            <p className="text-sm text-gray-600 m-0">
+              50+ pre-built project templates to get started instantly
+            </p>
           </div>
         </div>
       }
@@ -116,7 +132,7 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
       <Tabs
         activeKey={selectedCategory}
         onChange={setSelectedCategory}
-        items={categoryTabs.map(cat => ({
+        items={categoryTabs.map((cat) => ({
           key: cat.key,
           label: cat.label,
         }))}
@@ -136,8 +152,8 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
               key={template.id}
               className={`border-2 rounded-lg p-4 transition-all cursor-pointer ${
                 selectedTemplate?.id === template.id
-                  ? 'border-blue-500 bg-blue-50 shadow-md'
-                  : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                  ? "border-blue-500 bg-blue-50 shadow-md"
+                  : "border-gray-200 hover:border-blue-300 hover:shadow-sm"
               }`}
               onClick={() => setSelectedTemplate(template)}
             >
@@ -146,7 +162,9 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
                 <div className="flex items-center gap-2 flex-1">
                   <span className="text-2xl">{template.icon}</span>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-sm truncate">{template.name}</h3>
+                    <h3 className="font-semibold text-gray-900 text-sm truncate">
+                      {template.name}
+                    </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge
                         count={
@@ -181,7 +199,9 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
               {/* Tags */}
               <div className="flex flex-wrap gap-1 mb-3">
                 {template.tags.slice(0, 3).map((tag, idx) => (
-                  <Tag key={idx} className="text-xs m-0">{tag}</Tag>
+                  <Tag key={idx} className="text-xs m-0">
+                    {tag}
+                  </Tag>
                 ))}
                 {template.tags.length > 3 && (
                   <Tag className="text-xs m-0">+{template.tags.length - 3}</Tag>
@@ -219,13 +239,12 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
 
           {/* Phases Preview */}
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-gray-700">Phases ({selectedTemplate.phases.length}):</p>
+            <p className="text-sm font-semibold text-gray-700">
+              Phases ({selectedTemplate.phases.length}):
+            </p>
             {selectedTemplate.phases.map((phase, idx) => (
               <div key={idx} className="flex items-center gap-2 text-xs">
-                <div
-                  className="w-3 h-3 rounded"
-                  style={{ backgroundColor: phase.color }}
-                />
+                <div className="w-3 h-3 rounded" style={{ backgroundColor: phase.color }} />
                 <span className="font-medium">{phase.name}</span>
                 <span className="text-gray-500">({phase.tasks.length} tasks)</span>
               </div>
@@ -235,7 +254,9 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
           {/* Milestones Preview */}
           {selectedTemplate.milestones.length > 0 && (
             <div className="mt-4 space-y-2">
-              <p className="text-sm font-semibold text-gray-700">Milestones ({selectedTemplate.milestones.length}):</p>
+              <p className="text-sm font-semibold text-gray-700">
+                Milestones ({selectedTemplate.milestones.length}):
+              </p>
               <div className="flex flex-wrap gap-2">
                 {selectedTemplate.milestones.map((milestone, idx) => (
                   <Tag key={idx} className="text-xs">
@@ -250,7 +271,8 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
 
       {/* Footer Note */}
       <div className="mt-4 text-center text-xs text-gray-500">
-        💡 Tip: All templates are fully customizable after import. Dates will be adjusted to start from today.
+        💡 Tip: All templates are fully customizable after import. Dates will be adjusted to start
+        from today.
       </div>
     </Modal>
   );

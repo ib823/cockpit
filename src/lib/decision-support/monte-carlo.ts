@@ -5,7 +5,7 @@
  * probability distributions for project outcomes.
  */
 
-import type { EstimatorInputs, EstimatorResults } from '@/lib/estimator/types';
+import type { EstimatorInputs, EstimatorResults } from "@/lib/estimator/types";
 
 export interface MonteCarloConfig {
   iterations: number; // Number of simulations (e.g., 1000, 10000)
@@ -97,7 +97,7 @@ export class MonteCarloEngine {
    */
   private applyVariations(
     inputs: EstimatorInputs,
-    factors: MonteCarloConfig['variationFactors']
+    factors: MonteCarloConfig["variationFactors"]
   ): EstimatorInputs {
     return {
       ...inputs,
@@ -124,9 +124,7 @@ export class MonteCarloEngine {
   /**
    * Calculate distribution statistics
    */
-  private calculateDistribution(
-    values: number[]
-  ): MonteCarloResults['durationDistribution'] {
+  private calculateDistribution(values: number[]): MonteCarloResults["durationDistribution"] {
     const n = values.length;
     const min = values[0];
     const max = values[n - 1];
@@ -134,8 +132,7 @@ export class MonteCarloEngine {
     const median = values[Math.floor(n / 2)];
 
     // Standard deviation
-    const variance =
-      values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / n;
+    const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / n;
     const stdDev = Math.sqrt(variance);
 
     return {
@@ -172,11 +169,8 @@ export class MonteCarloEngine {
         count: 0,
       }));
 
-    values.forEach(v => {
-      const bucketIndex = Math.min(
-        Math.floor((v - min) / bucketSize),
-        bucketCount - 1
-      );
+    values.forEach((v) => {
+      const bucketIndex = Math.min(Math.floor((v - min) / bucketSize), bucketCount - 1);
       buckets[bucketIndex].count++;
     });
 

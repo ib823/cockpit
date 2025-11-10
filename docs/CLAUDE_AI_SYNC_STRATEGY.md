@@ -7,35 +7,43 @@ This document defines **exactly** which files/folders to include when adding to 
 ### ✅ INCLUDE
 
 #### 1. **/.github/**
+
 - `workflows/*.yml` - CI/CD pipelines
 - `dependabot.yml` - Dependency management
 
 #### 2. **/.project-knowledge/**
+
 - `PROJECT_DOCUMENTATION.md`
 - `PROJECT_STATE.md`
 
 #### 3. **/docs/**
+
 - All `.md` files (architecture, flows, design)
 - `/ui-toolkit/` - UI component documentation
 
 #### 4. **/lib/**
+
 - `session.ts` - Session management logic
 
 #### 5. **/prisma/**
+
 - `schema.prisma` - Database schema
 - `_passkey_models.prisma` - Passkey models
 - `seed.ts` - Seed data
 
 #### 6. **/public/**
+
 - All files - Assets, icons, logos (small files)
 
 #### 7. **/scripts/**
+
 - `bootstrap-admin.ts`
 - `generate-holidays.js`
 - `pack_for_gpt.sh`
 - `set-admin-code.ts`
 
 #### 8. **/src/** (MOST CRITICAL)
+
 - `/app/` - Next.js app router pages
 - `/components/` - All React components
 - `/config/` - Application configuration
@@ -50,6 +58,7 @@ This document defines **exactly** which files/folders to include when adding to 
 - `middleware.ts` - Next.js middleware
 
 #### 9. **/tests/**
+
 - `/components/` - Component tests
 - `/e2e/` - End-to-end tests
 - `/integration/` - Integration tests
@@ -60,6 +69,7 @@ This document defines **exactly** which files/folders to include when adding to 
 - `setup.ts` - Test configuration
 
 #### 10. **Root Configuration Files**
+
 - `.env.example` - Environment variable template (NOT .env or .env.local)
 - `.eslintrc.js`
 - `.eslintrc.json`
@@ -74,6 +84,7 @@ This document defines **exactly** which files/folders to include when adding to 
 - `vercel.json` - Deployment config
 
 #### 11. **Root Documentation Files (Selective)**
+
 - `README.md`
 - `COMPREHENSIVE_SOLUTION_OVERVIEW.md` ⭐ **CRITICAL** (complete solution context)
 - `CODEBASE_OVERVIEW.md`
@@ -91,6 +102,7 @@ This document defines **exactly** which files/folders to include when adding to 
 ### ❌ EXCLUDE
 
 #### Build Artifacts & Cache
+
 - `/.next/` - Build output
 - `/node_modules/` - Dependencies
 - `*.tsbuildinfo` - TypeScript build info
@@ -99,18 +111,21 @@ This document defines **exactly** which files/folders to include when adding to 
 - `/coverage/` - Test coverage reports
 
 #### Environment & Secrets
+
 - `.env` - **NEVER UPLOAD** (contains secrets)
 - `.env.local` - **NEVER UPLOAD** (contains secrets)
 - `.env.*.local` - Any local environment files
 - `*.pem` - SSL certificates
 
 #### IDE & Tooling
+
 - `/.claude/` - Claude Code settings
 - `/.vscode/` - VS Code settings
 - `/.vercel/` - Vercel deployment data
 - `.DS_Store` - macOS system files
 
 #### Debug & Development Artifacts
+
 - `/gptdebug/` - Debug exports
 - `/env_report_*/` - Environment reports
 - `*.zip` - Archive files
@@ -119,6 +134,7 @@ This document defines **exactly** which files/folders to include when adding to 
 - `test-output.log`
 
 #### Redundant Documentation (generated reports)
+
 - `*_COMPLETE.md`
 - `*_STATUS.md`
 - `*_DELIVERY.md`
@@ -131,6 +147,7 @@ This document defines **exactly** which files/folders to include when adding to 
 - `*_FIXES*.md`
 
 #### Temporary & Misc
+
 - `0` - Empty temp file
 - `buffer_test.txt`
 - `temp.json`
@@ -146,6 +163,7 @@ This document defines **exactly** which files/folders to include when adding to 
 This selection provides comprehensive coverage for:
 
 ### 🔒 **Security Assessment**
+
 - Authentication logic (`src/lib/`, `lib/session.ts`, `middleware.ts`)
 - Database schema (`prisma/`)
 - Environment config (`.env.example` only)
@@ -153,6 +171,7 @@ This selection provides comprehensive coverage for:
 - Test coverage
 
 ### 🎨 **UX Assessment**
+
 - All components (`src/components/`)
 - Pages and routing (`src/app/`, `src/pages/`)
 - Styles and theming (`src/styles/`, `tailwind.config.js`)
@@ -160,6 +179,7 @@ This selection provides comprehensive coverage for:
 - Accessibility compliance
 
 ### 🔄 **Flow Assessment**
+
 - Business logic (`src/lib/`, `src/utils/`)
 - State management (`src/stores/`)
 - API routes (`src/app/api/`)
@@ -167,6 +187,7 @@ This selection provides comprehensive coverage for:
 - Type definitions (`src/types/`)
 
 ### 🏗️ **Architecture Assessment**
+
 - Project structure (all folders)
 - Configuration files
 - Build/deployment setup

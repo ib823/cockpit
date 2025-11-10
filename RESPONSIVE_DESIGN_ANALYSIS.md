@@ -13,17 +13,20 @@ This codebase demonstrates **STRONG responsive design fundamentals** with good u
 **File**: `/workspaces/cockpit/src/components/layout/AppLayout.tsx`
 
 Good patterns:
+
 - Uses Ant Design's Layout component (built-in responsiveness)
 - Flex layout for header with `justify-between`
 - `sticky top-0 z-50` for header
 
 Issues:
+
 - Hardcoded `width: '100vw'` on Layout (line 42) - causes horizontal scroll on mobile
 - Menu uses `mode="horizontal"` which doesn't collapse on mobile
 - No hamburger menu for mobile nav
 - Navbar items not hidden on small screens
 
 **Issues to Fix**:
+
 ```tsx
 // PROBLEM (Line 42):
 <Layout className="min-h-screen" style={{ width: '100vw' }}>
@@ -43,6 +46,7 @@ Issues:
 **File**: `/workspaces/cockpit/src/components/project-v2/ProjectShell.tsx`
 
 Good patterns (Lines 244-302):
+
 - Excellent mobile bottom nav: `md:hidden fixed bottom-0` (only shows on mobile)
 - 5-button grid for mode switching
 - `min-h-[56px]` for touch-friendly tap targets (Apple HIG standard)
@@ -61,19 +65,22 @@ Rating: **9/10** - This is a model implementation
 **File**: `/workspaces/cockpit/src/components/project-v2/modes/PlanMode.tsx` (Line 311)
 
 Critical problem:
+
 ```tsx
-className="fixed right-0 top-0 bottom-0 w-[480px] bg-white shadow-2xl z-50"
+className = "fixed right-0 top-0 bottom-0 w-[480px] bg-white shadow-2xl z-50";
 ```
 
 On mobile (375px width), this 480px panel:
+
 - Overflows the screen entirely
 - No back button or close affordance
 - Traps user with no way to exit on some screen sizes
 
 **Fix needed**:
+
 ```tsx
 // Use responsive widths
-className="fixed right-0 top-0 bottom-0 w-full sm:w-96 lg:w-[480px] bg-white"
+className = "fixed right-0 top-0 bottom-0 w-full sm:w-96 lg:w-[480px] bg-white";
 // Add close button for mobile
 ```
 
@@ -86,17 +93,19 @@ className="fixed right-0 top-0 bottom-0 w-full sm:w-96 lg:w-[480px] bg-white"
 **File**: `/workspaces/cockpit/src/components/project-v2/modes/CaptureMode.tsx`
 
 Good patterns:
+
 - Responsive empty state with centered content (lines 138-220)
 - `max-w-3xl w-full` for text area (responsive max-width)
 - `p-8` padding that adapts with container
 - `grid grid-cols-2 gap-4` for chip display (will stack on small screens with custom breakpoint)
 
 Issues:
+
 - Grid doesn't explicitly handle xs/sm screens (might be too cramped at 320px)
 - Sticky button at bottom (line 412) might overlap mobile nav
   ```tsx
   // Line 214:
-  className="flex-1 overflow-y-auto pb-20 md:pb-0"
+  className = "flex-1 overflow-y-auto pb-20 md:pb-0";
   // Good! pb-20 accounts for mobile nav, md:pb-0 removes it on desktop
   ```
 
@@ -105,11 +114,13 @@ Issues:
 **File**: `/workspaces/cockpit/src/components/project-v2/modes/DecideMode.tsx`
 
 Good patterns:
+
 - `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4` (line 268) - Responsive cards
 - Proper progression: 1 column → 2 columns → 3 columns
 - Content centered with `max-w-5xl mx-auto p-8`
 
 Issues:
+
 - Back button might be hard to hit on mobile (small tap target)
 - Progress bar text might overflow on xs screens
 - Grid starts at 1 column but doesn't specify xs behavior explicitly
@@ -119,7 +130,9 @@ Issues:
 **File**: `/workspaces/cockpit/src/components/project-v2/modes/PlanMode.tsx`
 
 Problems:
+
 1. **Toolbar spacing** (Line 120):
+
    ```tsx
    <div className="flex items-center gap-4">
      // No responsive gap adjustment for mobile
@@ -131,6 +144,7 @@ Problems:
    - Should be `w-full sm:w-96 lg:w-[480px]`
 
 3. **Stats display** (Lines 158-170):
+
    ```tsx
    <div className="flex items-center gap-4">
      // Horizontal layout doesn't work at <640px
@@ -147,14 +161,16 @@ Problems:
 **File**: `/workspaces/cockpit/src/components/project-v2/modes/PresentMode.tsx`
 
 Critical issues:
+
 1. **Fixed controls don't adapt** (Lines 307-367):
+
    ```tsx
    <div className="fixed bottom-12 left-1/2 -translate-x-1/2">
      // Navigation dots: 5 dots × 8px + gaps = might overflow
-   
+
    <div className="fixed bottom-12 left-12">
      // Left arrow at 48px might collide with dots on mobile
-   
+
    <div className="fixed top-8 right-8">
      // Export button + exit button might wrap awkwardly
    ```
@@ -163,6 +179,7 @@ Critical issues:
    - All controls use desktop fixed positioning
    - No touch-friendly up/down swiping (uses left/right arrows)
    - Text too large for small screens (lines 50-57)
+
    ```tsx
    <h1 className="text-7xl font-thin">  // Way too large on mobile
    ```
@@ -243,6 +260,7 @@ Rating: **3/10** - Not mobile-ready
 **File**: `/workspaces/cockpit/src/components/timeline/JobsGanttChart.tsx`
 
 Issues:
+
 - Uses default Tailwind container (not explicitly responsive)
 - Heavy horizontal content not optimized for mobile
 - Timeline visualization needs significant horizontal space
@@ -256,6 +274,7 @@ Issues:
 ```
 
 Problems:
+
 - `min-w-[800px]` forces horizontal scrolling on all tablets/phones
 - No horizontal scroll indicator for users
 - Touch scrolling might feel unresponsive
@@ -273,6 +292,7 @@ Problems:
 - No sticky row headers while scrolling
 
 **What works for Gantt on mobile:**
+
 - Virtualization (render only visible rows)
 - Sticky left panel with task names
 - Horizontal scroll with visible scrollbar
@@ -287,11 +307,12 @@ Problems:
 **File**: `/workspaces/cockpit/src/components/admin/AccessCodeModal.tsx`
 
 ```tsx
-className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+className = "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50";
 ```
 
 Good: `p-4` accounts for mobile padding
-Issues: 
+Issues:
+
 - Modal likely doesn't have max-width constraint
 - Could be full-width on small screens (not ideal)
 
@@ -300,10 +321,11 @@ Issues:
 **File**: `/workspaces/cockpit/src/components/presales/ManualChipEntry.tsx`
 
 ```tsx
-className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+className = "fixed inset-0 z-50 flex items-center justify-center bg-black/50";
 ```
 
 Missing responsiveness:
+
 - No `max-w-*` constraint visible
 - Modal might take full viewport width
 - Should have `max-w-md` and `p-4` for mobile
@@ -313,6 +335,7 @@ Missing responsiveness:
 **File**: `/workspaces/cockpit/src/components/project-v2/shared/SlideOver.tsx`
 
 Issues:
+
 - No `w-full sm:w-96` pattern
 - Width probably hardcoded in component
 - Need to check component implementation
@@ -330,12 +353,14 @@ Issues:
 ```
 
 Problems:
+
 - `text-7xl` = 56px minimum (Apple HIG max is 34px for mobile headers)
 - Should use clamp: `text-[clamp(2rem, 10vw, 3.5rem)]`
 
 ### Missing Responsive Text Hiding
 
 Example from ModeIndicator (line 82):
+
 ```tsx
 <BodyMD className={`${current.color} mt-0.5 text-xs hidden sm:block`}>
   // Hides subtitle on mobile - good!
@@ -367,6 +392,7 @@ But inconsistently applied across components.
 ### No XS Breakpoint Usage
 
 Tailwind config has `xs: '475px'` defined but rarely used:
+
 - No `xs:w-*` classes found
 - No `xs:grid-cols-*` patterns
 - Missing optimization for 320-480px phones
@@ -427,7 +453,7 @@ Tailwind config has `xs: '475px'` defined but rarely used:
 
 ### MEDIUM (Inconsistent Experience)
 
-9. **Inconsistent Padding** (project-v2/* files)
+9. **Inconsistent Padding** (project-v2/\* files)
    - `px-6 py-3` hardcoded in many places
    - Doesn't scale with screen size
    - Could use fluid spacing tokens
@@ -454,22 +480,26 @@ Tailwind config has `xs: '475px'` defined but rarely used:
 ## 9. MISSING VIEWPORT-SPECIFIC PATTERNS
 
 ### Missing Mobile Keyboard Handling
+
 - No adjustments for mobile keyboard height
 - Inputs at bottom might be hidden by keyboard
 - No `focus-within` scroll logic
 
 ### Missing Touch Interactions
+
 - No swipe gestures for modals/panels
 - No haptic feedback for interactions
 - No long-press menus
 - Buttons not optimized for fat fingers
 
 ### Missing Orientation Changes
+
 - Portrait ↔ Landscape transitions not handled
 - Gantt charts don't rotate
 - Modals might show wrong size on rotate
 
 ### Missing Accessibility for Small Screens
+
 - Form labels might not have enough space
 - Error messages squeeze content
 - Help text disappears
@@ -479,22 +509,26 @@ Tailwind config has `xs: '475px'` defined but rarely used:
 ## 10. POSITIVE FINDINGS
 
 ### Design System Strength
+
 - Excellent use of CSS Custom Properties (tokens.css)
 - Consistent spacing scale (8px grid)
 - Well-defined color palette
 - Good Tailwind configuration
 
 ### Fluid Typography ✓
+
 - Clamp-based scaling works perfectly
 - Adapts from small phones to 4K
 - Better than fixed breakpoints
 
 ### Mobile Bottom Navigation ✓
+
 - ProjectShell has exemplary mobile nav
 - 56px min-height follows Apple HIG
 - Hidden on desktop with `md:hidden`
 
 ### Touch Target Sizing ✓
+
 - Buttons sized for touch (48×48px minimum)
 - Consistent with platform guidelines
 - Good for accessibility
@@ -505,29 +539,30 @@ Tailwind config has `xs: '475px'` defined but rarely used:
 
 ### Files Needing Responsive Audit
 
-| File | Issue | Fix Complexity |
-|------|-------|-----------------|
-| `PresentMode.tsx` | All controls fixed, no mobile | High |
-| `PlanMode.tsx` | 480px panel, toolbar overflow | High |
-| `GanttChart.tsx` | 800px+ minimum width | High |
-| `AppLayout.tsx` | No mobile menu collapse | Medium |
-| `DecideMode.tsx` | Grid might be tight at xs | Low |
-| `CaptureMode.tsx` | Grid should specify xs | Low |
+| File              | Issue                         | Fix Complexity |
+| ----------------- | ----------------------------- | -------------- |
+| `PresentMode.tsx` | All controls fixed, no mobile | High           |
+| `PlanMode.tsx`    | 480px panel, toolbar overflow | High           |
+| `GanttChart.tsx`  | 800px+ minimum width          | High           |
+| `AppLayout.tsx`   | No mobile menu collapse       | Medium         |
+| `DecideMode.tsx`  | Grid might be tight at xs     | Low            |
+| `CaptureMode.tsx` | Grid should specify xs        | Low            |
 
 ### Files Needing Minor Tweaks
 
-| File | Issue | Fix |
-|------|-------|-----|
-| `admin/page.tsx` | Likely unresponsive | Add responsive grid |
-| `AccessCodeModal.tsx` | No max-width | Add `max-w-md` |
-| `ManualChipEntry.tsx` | Full width on mobile | Add `max-w-lg` |
-| `JobsGanttChart.tsx` | Heavy horizontal content | Add scroll view |
+| File                  | Issue                    | Fix                 |
+| --------------------- | ------------------------ | ------------------- |
+| `admin/page.tsx`      | Likely unresponsive      | Add responsive grid |
+| `AccessCodeModal.tsx` | No max-width             | Add `max-w-md`      |
+| `ManualChipEntry.tsx` | Full width on mobile     | Add `max-w-lg`      |
+| `JobsGanttChart.tsx`  | Heavy horizontal content | Add scroll view     |
 
 ---
 
 ## 12. TAILWIND BREAKPOINTS STATUS
 
 Current breakpoints available:
+
 ```js
 xs: 475px
 sm: 640px
@@ -538,6 +573,7 @@ xl: 1280px
 ```
 
 **Usage Analysis**:
+
 - `md:` prefixes: ✓ Heavily used
 - `lg:` prefixes: ✓ Used but could be more
 - `sm:` prefixes: ✗ Rarely used
@@ -552,10 +588,11 @@ xl: 1280px
 ### P0 - Blocks Core Functionality (This Week)
 
 1. **PlanMode Panel - Make Responsive**
+
    ```tsx
    // BEFORE:
    w-[480px]
-   
+
    // AFTER:
    w-full sm:max-w-sm md:max-w-md lg:w-[480px]
    ```
@@ -588,6 +625,7 @@ xl: 1280px
 ### P2 - Polish & Consistency (Later)
 
 7. **Add Safe Area Insets**
+
    ```css
    padding-top: max(1rem, env(safe-area-inset-top));
    ```
@@ -639,12 +677,14 @@ xl: 1280px
 **Overall Responsive Design Score: 6/10**
 
 ### Strengths
+
 - Excellent fluid typography system
 - Good touch target sizing
 - Mobile bottom nav implementation
 - Solid design tokens
 
 ### Weaknesses
+
 - Multiple fixed-pixel widths without fallbacks
 - Desktop-first assumptions in core workflows
 - No mobile menu for navigation
@@ -652,6 +692,7 @@ xl: 1280px
 - Inconsistent responsive breakpoint usage
 
 ### Immediate Actions
+
 1. Make PlanMode panel responsive (P0)
 2. Fix PresentMode layout for mobile (P0)
 3. Redesign Gantt for mobile viewing (P0)
@@ -659,6 +700,7 @@ xl: 1280px
 5. Audit and standardize all modals (P1)
 
 ### Long-Term Strategy
+
 - Mobile-first design approach for new features
 - Regular responsive testing on actual devices
 - Use xs: and sm: breakpoints consistently
@@ -670,12 +712,14 @@ xl: 1280px
 ## APPENDIX: CODE SNIPPETS
 
 ### Safe Area Implementation Template
+
 ```tsx
-<div className="fixed top-0 left-0 right-0" 
+<div className="fixed top-0 left-0 right-0"
      style={{paddingTop: 'max(1rem, env(safe-area-inset-top))'}}>
 ```
 
 ### Responsive Modal Template
+
 ```tsx
 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
   <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-auto">
@@ -685,6 +729,7 @@ xl: 1280px
 ```
 
 ### Responsive Gantt Template
+
 ```tsx
 // Mobile: vertical list
 // Tablet+: horizontal Gantt

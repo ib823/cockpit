@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import clsx from 'clsx';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import clsx from "clsx";
 
 type Option = { value: string; label: string; disabled?: boolean };
 
@@ -8,27 +8,27 @@ export type SelectProps = {
   value?: string | null;
   onChange?: (value: string | null) => void;
   placeholder?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   disabled?: boolean;
   searchable?: boolean;
   className?: string;
-  'aria-label'?: string;
-  'aria-labelledby'?: string;
-} & Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'>;
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
+} & Omit<React.HTMLAttributes<HTMLDivElement>, "onChange">;
 
 export const Select: React.FC<SelectProps> = ({
   options,
   value,
   onChange,
-  placeholder = 'Select…',
-  size = 'md',
+  placeholder = "Select…",
+  size = "md",
   disabled,
   searchable = false,
   className,
   ...rest
 }) => {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [activeIdx, setActiveIdx] = useState<number>(-1);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -50,8 +50,8 @@ export const Select: React.FC<SelectProps> = ({
       const t = e.target as Node;
       if (!buttonRef.current?.contains(t) && !listRef.current?.contains(t)) setOpen(false);
     };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
   useEffect(() => {
@@ -59,9 +59,9 @@ export const Select: React.FC<SelectProps> = ({
   }, [open]);
 
   const sizes = {
-    sm: 'h-8 px-3 text-sm',
-    md: 'h-10 px-3 text-sm',
-    lg: 'h-12 px-4 text-base'
+    sm: "h-8 px-3 text-sm",
+    md: "h-10 px-3 text-sm",
+    lg: "h-12 px-4 text-base",
   } as const;
 
   function commit(val: string | null) {
@@ -80,33 +80,33 @@ export const Select: React.FC<SelectProps> = ({
       } while (filtered[i]?.disabled);
       setActiveIdx(i);
     };
-    if (e.key === 'ArrowDown') {
+    if (e.key === "ArrowDown") {
       next(1);
       e.preventDefault();
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key === "ArrowUp") {
       next(-1);
       e.preventDefault();
-    } else if (e.key === 'Enter') {
+    } else if (e.key === "Enter") {
       const opt = filtered[activeIdx];
       if (opt && !opt.disabled) commit(opt.value);
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       setOpen(false);
       buttonRef.current?.focus();
     }
   };
 
   return (
-    <div className={clsx('relative inline-block', className)} {...rest}>
+    <div className={clsx("relative inline-block", className)} {...rest}>
       <button
         ref={buttonRef}
         type="button"
         className={clsx(
-          'w-full min-w-[200px] rounded-[var(--r-md)] border bg-[var(--surface)] text-left text-[var(--ink)] flex items-center justify-between gap-2',
+          "w-full min-w-[200px] rounded-[var(--r-md)] border bg-[var(--surface)] text-left text-[var(--ink)] flex items-center justify-between gap-2",
           sizes[size],
           disabled
-            ? 'opacity-50 cursor-not-allowed'
-            : 'hover:bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))]',
-          'border-[var(--line)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]'
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))]",
+          "border-[var(--line)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]"
         )}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -114,16 +114,22 @@ export const Select: React.FC<SelectProps> = ({
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
       >
-        <span className={clsx('truncate', !selectedLabel && 'text-[var(--gray-500)]')}>
+        <span className={clsx("truncate", !selectedLabel && "text-[var(--gray-500)]")}>
           {selectedLabel || placeholder}
         </span>
         <svg
-          className={clsx('shrink-0 transition', open && 'rotate-180')}
+          className={clsx("shrink-0 transition", open && "rotate-180")}
           width="16"
           height="16"
           viewBox="0 0 24 24"
         >
-          <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path
+            d="M6 9l6 6 6-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
         </svg>
       </button>
 
@@ -165,12 +171,16 @@ export const Select: React.FC<SelectProps> = ({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => !opt.disabled && commit(opt.value)}
                   className={clsx(
-                    'px-3 py-2 text-sm cursor-pointer flex items-center justify-between',
-                    opt.disabled && 'opacity-50 cursor-not-allowed',
-                    active ? 'bg-[var(--accent-soft)]' : 'hover:bg-[var(--accent-soft)]'
+                    "px-3 py-2 text-sm cursor-pointer flex items-center justify-between",
+                    opt.disabled && "opacity-50 cursor-not-allowed",
+                    active ? "bg-[var(--accent-soft)]" : "hover:bg-[var(--accent-soft)]"
                   )}
                 >
-                  <span className={clsx(selected ? 'font-medium text-[var(--ink)]' : 'text-[var(--ink)]')}>
+                  <span
+                    className={clsx(
+                      selected ? "font-medium text-[var(--ink)]" : "text-[var(--ink)]"
+                    )}
+                  >
                     {opt.label}
                   </span>
                   {selected && (

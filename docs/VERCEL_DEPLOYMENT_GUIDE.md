@@ -21,6 +21,7 @@ NEXTAUTH_URL="https://your-app.vercel.app"        # Your production URL
 ### 2. Optional Environment Variables (Recommended)
 
 #### Rate Limiting & Challenge Storage (Upstash Redis)
+
 Without these, the app uses in-memory storage (not suitable for production with multiple instances).
 
 ```bash
@@ -29,6 +30,7 @@ UPSTASH_REDIS_REST_TOKEN="your-upstash-token"
 ```
 
 **Setup Steps:**
+
 1. Go to [Upstash Console](https://console.upstash.com/)
 2. Create a new Redis database
 3. Select region closest to your Vercel deployment
@@ -36,6 +38,7 @@ UPSTASH_REDIS_REST_TOKEN="your-upstash-token"
 5. Add to Vercel environment variables
 
 #### Email Features (Resend)
+
 Without these, magic links and email notifications are disabled.
 
 ```bash
@@ -44,6 +47,7 @@ EMAIL_FROM="noreply@yourdomain.com"
 ```
 
 **Setup Steps:**
+
 1. Go to [Resend](https://resend.com/)
 2. Create account and verify your domain
 3. Generate API key in Settings → API Keys
@@ -51,6 +55,7 @@ EMAIL_FROM="noreply@yourdomain.com"
 5. Add to Vercel environment variables
 
 #### Passkey Authentication (WebAuthn)
+
 Without this, passkey features may fail in production.
 
 ```bash
@@ -59,11 +64,13 @@ WEBAUTHN_ORIGIN="https://your-app.vercel.app" # Your production URL
 ```
 
 **Setup Steps:**
+
 1. Set `WEBAUTHN_RP_ID` to your root domain (e.g., "example.com")
 2. Set `WEBAUTHN_ORIGIN` to your full production URL
 3. Add to Vercel environment variables
 
 #### Error Tracking (Sentry)
+
 Without this, errors are only logged to console.
 
 ```bash
@@ -71,12 +78,14 @@ SENTRY_DSN="https://xxxxx@xxxxx.ingest.sentry.io/xxxxx"
 ```
 
 **Setup Steps:**
+
 1. Go to [Sentry](https://sentry.io/)
 2. Create a new project for Next.js
 3. Copy the DSN from project settings
 4. Add to Vercel environment variables
 
 #### Analytics (PostHog)
+
 Without these, user analytics are disabled.
 
 ```bash
@@ -85,6 +94,7 @@ NEXT_PUBLIC_POSTHOG_HOST="https://app.posthog.com"
 ```
 
 **Setup Steps:**
+
 1. Go to [PostHog](https://posthog.com/)
 2. Create account and project
 3. Copy Project API Key from Settings
@@ -175,6 +185,7 @@ pnpm prisma migrate deploy
 ## 🔐 Security Best Practices
 
 ### NEXTAUTH_SECRET
+
 ```bash
 # Generate a secure secret
 openssl rand -base64 32
@@ -184,12 +195,14 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
 ⚠️ **Important:**
+
 - Never commit secrets to version control
 - Use different secrets for different environments
 - Rotate secrets periodically
 - Use minimum 32 characters for HS256 security
 
 ### Database Connection Strings
+
 - Always use SSL/TLS connections (`?sslmode=require`)
 - Use strong passwords
 - Restrict database access by IP if possible
@@ -219,18 +232,22 @@ After deployment, check the build logs:
 ### 3. Test Optional Features
 
 With Upstash Redis:
+
 - [ ] Rate limiting works correctly
 - [ ] Passkey challenge storage works across requests
 
 With Resend:
+
 - [ ] Magic link emails send successfully
 - [ ] Email verification works
 
 With WebAuthn configured:
+
 - [ ] Passkey registration works
 - [ ] Passkey authentication works
 
 With Sentry:
+
 - [ ] Errors appear in Sentry dashboard
 - [ ] Source maps work correctly
 
@@ -241,6 +258,7 @@ With Sentry:
 **Issue:** Missing required environment variables
 
 **Solution:**
+
 1. Check Vercel deployment logs for specific missing variables
 2. Add all required variables (DATABASE_URL, NEXTAUTH_SECRET, etc.)
 3. Redeploy
@@ -250,6 +268,7 @@ With Sentry:
 **Issue:** Environment variables not available at runtime
 
 **Solution:**
+
 1. Ensure variables are set for "Production" environment
 2. Check variable names are exact (case-sensitive)
 3. Redeploy after adding/updating variables
@@ -259,6 +278,7 @@ With Sentry:
 **Issue:** Cannot connect to database
 
 **Solution:**
+
 1. Verify connection strings are correct
 2. Check database allows connections from Vercel IPs
 3. Ensure SSL is enabled (`?sslmode=require`)
@@ -269,6 +289,7 @@ With Sentry:
 **Issue:** WebAuthn errors in production
 
 **Solution:**
+
 1. Ensure `WEBAUTHN_RP_ID` matches your domain
 2. Ensure `WEBAUTHN_ORIGIN` matches your production URL
 3. Verify HTTPS is enabled (WebAuthn requires secure context)
@@ -278,6 +299,7 @@ With Sentry:
 **Issue:** In-memory storage doesn't persist
 
 **Solution:**
+
 1. Add Upstash Redis environment variables
 2. Redeploy application
 3. Verify Redis connection in logs
@@ -309,6 +331,7 @@ Before going live:
 ## 🔄 Continuous Deployment
 
 Vercel automatically deploys on:
+
 - **Pushes to `main` branch** → Production deployment
 - **Pull requests** → Preview deployments
 - **Other branches** → Preview deployments

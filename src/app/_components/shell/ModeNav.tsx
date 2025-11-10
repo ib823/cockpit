@@ -1,11 +1,11 @@
-'use client';
-import { useRouter, usePathname } from 'next/navigation';
+"use client";
+import { useRouter, usePathname } from "next/navigation";
 
 const modes = [
-  { id: 'capture', label: 'Capture', path: '/project/capture' },
-  { id: 'decide', label: 'Decide', path: '/project/decide' },
-  { id: 'plan', label: 'Plan', path: '/project/plan' },
-  { id: 'present', label: 'Present', path: '/project/present' },
+  { id: "capture", label: "Capture", path: "/project/capture" },
+  { id: "decide", label: "Decide", path: "/project/decide" },
+  { id: "plan", label: "Plan", path: "/project/plan" },
+  { id: "present", label: "Present", path: "/project/present" },
 ];
 
 export const ModeNav = () => {
@@ -22,7 +22,9 @@ export const ModeNav = () => {
               key={mode.id}
               onClick={() => router.push(mode.path)}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                isActive ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                isActive
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               {mode.label}

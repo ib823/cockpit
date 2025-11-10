@@ -3,11 +3,11 @@
  * Provides analytics tracking functionality in React components
  */
 
-'use client';
+"use client";
 
-import { useEffect, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
-import { analytics, EventProperties, UserProperties } from './analytics-service';
+import { useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
+import { analytics, EventProperties, UserProperties } from "./analytics-service";
 
 /**
  * Hook to track page views automatically
@@ -17,7 +17,7 @@ export function usePageTracking() {
 
   useEffect(() => {
     if (pathname) {
-      const pageName = pathname.replace('/', '') || 'home';
+      const pageName = pathname.replace("/", "") || "home";
       analytics.trackPageView(pageName, {
         path: pathname,
       });
@@ -49,13 +49,19 @@ export function useAnalytics() {
     analytics.setUserProperties(properties);
   }, []);
 
-  const trackConversion = useCallback((goalName: string, value?: number, properties?: EventProperties) => {
-    analytics.trackConversion(goalName, value, properties);
-  }, []);
+  const trackConversion = useCallback(
+    (goalName: string, value?: number, properties?: EventProperties) => {
+      analytics.trackConversion(goalName, value, properties);
+    },
+    []
+  );
 
-  const trackTiming = useCallback((category: string, variable: string, timeMs: number, properties?: EventProperties) => {
-    analytics.trackTiming(category, variable, timeMs, properties);
-  }, []);
+  const trackTiming = useCallback(
+    (category: string, variable: string, timeMs: number, properties?: EventProperties) => {
+      analytics.trackTiming(category, variable, timeMs, properties);
+    },
+    []
+  );
 
   return {
     trackEvent,
@@ -90,33 +96,45 @@ export function useComponentTracking(componentName: string, properties?: EventPr
 export function useInteractionTracking() {
   const { trackEvent } = useAnalytics();
 
-  const trackClick = useCallback((elementName: string, properties?: EventProperties) => {
-    trackEvent('click', {
-      element: elementName,
-      ...properties,
-    });
-  }, [trackEvent]);
+  const trackClick = useCallback(
+    (elementName: string, properties?: EventProperties) => {
+      trackEvent("click", {
+        element: elementName,
+        ...properties,
+      });
+    },
+    [trackEvent]
+  );
 
-  const trackFormSubmit = useCallback((formName: string, properties?: EventProperties) => {
-    trackEvent('form_submit', {
-      form: formName,
-      ...properties,
-    });
-  }, [trackEvent]);
+  const trackFormSubmit = useCallback(
+    (formName: string, properties?: EventProperties) => {
+      trackEvent("form_submit", {
+        form: formName,
+        ...properties,
+      });
+    },
+    [trackEvent]
+  );
 
-  const trackInputChange = useCallback((fieldName: string, properties?: EventProperties) => {
-    trackEvent('input_change', {
-      field: fieldName,
-      ...properties,
-    });
-  }, [trackEvent]);
+  const trackInputChange = useCallback(
+    (fieldName: string, properties?: EventProperties) => {
+      trackEvent("input_change", {
+        field: fieldName,
+        ...properties,
+      });
+    },
+    [trackEvent]
+  );
 
-  const trackSearch = useCallback((query: string, properties?: EventProperties) => {
-    trackEvent('search', {
-      query,
-      ...properties,
-    });
-  }, [trackEvent]);
+  const trackSearch = useCallback(
+    (query: string, properties?: EventProperties) => {
+      trackEvent("search", {
+        query,
+        ...properties,
+      });
+    },
+    [trackEvent]
+  );
 
   return {
     trackClick,

@@ -3,7 +3,7 @@
  * Unified interface for multiple analytics providers (Hotjar, Mixpanel, etc.)
  */
 
-export type AnalyticsProvider = 'hotjar' | 'mixpanel' | 'custom';
+export type AnalyticsProvider = "hotjar" | "mixpanel" | "custom";
 
 export interface AnalyticsConfig {
   hotjar?: {
@@ -47,12 +47,12 @@ class AnalyticsService {
 
     // Check Do Not Track
     if (this.config.respectDoNotTrack && this.isDoNotTrackEnabled()) {
-      console.log('[Analytics] Do Not Track enabled, skipping initialization');
+      console.log("[Analytics] Do Not Track enabled, skipping initialization");
       return;
     }
 
     if (!this.config.enabled) {
-      console.log('[Analytics] Analytics disabled in config');
+      console.log("[Analytics] Analytics disabled in config");
       return;
     }
 
@@ -66,28 +66,28 @@ class AnalyticsService {
     }
 
     this.initialized = true;
-    console.log('[Analytics] Service initialized');
+    console.log("[Analytics] Service initialized");
   }
 
   /**
    * Check if Do Not Track is enabled
    */
   private isDoNotTrackEnabled(): boolean {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === "undefined") return false;
 
     const dnt =
       window.navigator.doNotTrack ||
       (window.navigator as any).msDoNotTrack ||
       (window as any).doNotTrack;
 
-    return dnt === '1' || dnt === 'yes';
+    return dnt === "1" || dnt === "yes";
   }
 
   /**
    * Initialize Hotjar
    */
   private initHotjar(id: string, version: number) {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     try {
       // Hotjar initialization script
@@ -98,17 +98,17 @@ class AnalyticsService {
             (h.hj.q = h.hj.q || []).push(arguments);
           };
         h._hjSettings = { hjid: id, hjsv: version };
-        a = o.getElementsByTagName('head')[0];
-        r = o.createElement('script');
+        a = o.getElementsByTagName("head")[0];
+        r = o.createElement("script");
         r.async = 1;
         r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
         a.appendChild(r);
-      })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
+      })(window, document, "https://static.hotjar.com/c/hotjar-", ".js?sv=");
 
       this.hotjarLoaded = true;
-      console.log('[Analytics] Hotjar initialized');
+      console.log("[Analytics] Hotjar initialized");
     } catch (error) {
-      console.error('[Analytics] Failed to initialize Hotjar:', error);
+      console.error("[Analytics] Failed to initialize Hotjar:", error);
     }
   }
 
@@ -116,30 +116,30 @@ class AnalyticsService {
    * Initialize Mixpanel
    */
   private initMixpanel(token: string, debug = false) {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     try {
       // Mixpanel initialization script (simplified)
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
+      const script = document.createElement("script");
+      script.type = "text/javascript";
       script.async = true;
-      script.src = 'https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js';
+      script.src = "https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";
 
       script.onload = () => {
         if ((window as any).mixpanel) {
           (window as any).mixpanel.init(token, {
             debug,
             track_pageview: true,
-            persistence: 'localStorage',
+            persistence: "localStorage",
           });
           this.mixpanelLoaded = true;
-          console.log('[Analytics] Mixpanel initialized');
+          console.log("[Analytics] Mixpanel initialized");
         }
       };
 
       document.head.appendChild(script);
     } catch (error) {
-      console.error('[Analytics] Failed to initialize Mixpanel:', error);
+      console.error("[Analytics] Failed to initialize Mixpanel:", error);
     }
   }
 
@@ -151,18 +151,18 @@ class AnalyticsService {
 
     const props = {
       page: pageName,
-      url: typeof window !== 'undefined' ? window.location.href : '',
+      url: typeof window !== "undefined" ? window.location.href : "",
       timestamp: new Date().toISOString(),
       ...properties,
     };
 
     // Mixpanel
     if (this.mixpanelLoaded && (window as any).mixpanel) {
-      (window as any).mixpanel.track('Page View', props);
+      (window as any).mixpanel.track("Page View", props);
     }
 
     // Hotjar tracks page views automatically
-    console.log('[Analytics] Page view tracked:', pageName, props);
+    console.log("[Analytics] Page view tracked:", pageName, props);
   }
 
   /**
@@ -183,10 +183,10 @@ class AnalyticsService {
 
     // Hotjar (via custom events)
     if (this.hotjarLoaded && (window as any).hj) {
-      (window as any).hj('event', eventName);
+      (window as any).hj("event", eventName);
     }
 
-    console.log('[Analytics] Event tracked:', eventName, props);
+    console.log("[Analytics] Event tracked:", eventName, props);
   }
 
   /**
@@ -205,10 +205,10 @@ class AnalyticsService {
 
     // Hotjar (via user attributes)
     if (this.hotjarLoaded && (window as any).hj) {
-      (window as any).hj('identify', userId, properties);
+      (window as any).hj("identify", userId, properties);
     }
 
-    console.log('[Analytics] User identified:', userId, properties);
+    console.log("[Analytics] User identified:", userId, properties);
   }
 
   /**
@@ -222,7 +222,7 @@ class AnalyticsService {
       (window as any).mixpanel.reset();
     }
 
-    console.log('[Analytics] User identity reset');
+    console.log("[Analytics] User identity reset");
   }
 
   /**
@@ -236,7 +236,7 @@ class AnalyticsService {
       (window as any).mixpanel.people.set(properties);
     }
 
-    console.log('[Analytics] User properties set:', properties);
+    console.log("[Analytics] User properties set:", properties);
   }
 
   /**
@@ -268,7 +268,7 @@ class AnalyticsService {
       ...properties,
     };
 
-    this.trackEvent('timing', props);
+    this.trackEvent("timing", props);
   }
 
   /**
@@ -300,5 +300,9 @@ export const setUserProperties = (properties: UserProperties) =>
 export const trackConversion = (goalName: string, value?: number, properties?: EventProperties) =>
   analytics.trackConversion(goalName, value, properties);
 
-export const trackTiming = (category: string, variable: string, timeMs: number, properties?: EventProperties) =>
-  analytics.trackTiming(category, variable, timeMs, properties);
+export const trackTiming = (
+  category: string,
+  variable: string,
+  timeMs: number,
+  properties?: EventProperties
+) => analytics.trackTiming(category, variable, timeMs, properties);

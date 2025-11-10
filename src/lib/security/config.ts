@@ -9,10 +9,13 @@ export const SECURITY_CONFIG = {
    * CAPTCHA Settings
    */
   captcha: {
-    enabled: process.env.ENABLE_CAPTCHA === 'true',
-    provider: (process.env.CAPTCHA_PROVIDER || 'hcaptcha') as 'hcaptcha' | 'recaptcha' | 'turnstile',
-    siteKey: process.env.NEXT_PUBLIC_CAPTCHA_SITE_KEY || '',
-    secretKey: process.env.CAPTCHA_SECRET_KEY || '',
+    enabled: process.env.ENABLE_CAPTCHA === "true",
+    provider: (process.env.CAPTCHA_PROVIDER || "hcaptcha") as
+      | "hcaptcha"
+      | "recaptcha"
+      | "turnstile",
+    siteKey: process.env.NEXT_PUBLIC_CAPTCHA_SITE_KEY || "",
+    secretKey: process.env.CAPTCHA_SECRET_KEY || "",
 
     // When to require CAPTCHA
     requireFor: {
@@ -85,7 +88,7 @@ export const SECURITY_CONFIG = {
   upload: {
     maxFileSize: 1024 * 1024, // 1MB (for Excel paste)
     maxRows: 500, // Maximum rows in import
-    allowedFormats: ['text/plain', 'text/tab-separated-values'],
+    allowedFormats: ["text/plain", "text/tab-separated-values"],
   },
 
   /**
@@ -113,10 +116,10 @@ export const SECURITY_CONFIG = {
     enabled: false, // Disable by default
 
     // Allowlist (if set, only these IPs can access)
-    allowlist: process.env.IP_ALLOWLIST?.split(',') || [],
+    allowlist: process.env.IP_ALLOWLIST?.split(",") || [],
 
     // Blocklist (these IPs are always blocked)
-    blocklist: process.env.IP_BLOCKLIST?.split(',') || [],
+    blocklist: process.env.IP_BLOCKLIST?.split(",") || [],
   },
 
   /**
@@ -137,7 +140,7 @@ export const SECURITY_CONFIG = {
 
     // Send alerts for critical events
     alerts: {
-      enabled: process.env.ENABLE_SECURITY_ALERTS === 'true',
+      enabled: process.env.ENABLE_SECURITY_ALERTS === "true",
       webhookUrl: process.env.SECURITY_ALERT_WEBHOOK,
       criticalThreshold: 10, // Alert if 10+ security events in 1 minute
     },
@@ -148,13 +151,13 @@ export const SECURITY_CONFIG = {
  * Security event types for logging
  */
 export enum SecurityEventType {
-  RATE_LIMIT_EXCEEDED = 'rate_limit_exceeded',
-  BOT_DETECTED = 'bot_detected',
-  SUSPICIOUS_PATTERN = 'suspicious_pattern',
-  CAPTCHA_FAILED = 'captcha_failed',
-  IP_BLOCKED = 'ip_blocked',
-  ABUSE_DETECTED = 'abuse_detected',
-  CONCURRENT_EDIT_CONFLICT = 'concurrent_edit_conflict',
+  RATE_LIMIT_EXCEEDED = "rate_limit_exceeded",
+  BOT_DETECTED = "bot_detected",
+  SUSPICIOUS_PATTERN = "suspicious_pattern",
+  CAPTCHA_FAILED = "captcha_failed",
+  IP_BLOCKED = "ip_blocked",
+  ABUSE_DETECTED = "abuse_detected",
+  CONCURRENT_EDIT_CONFLICT = "concurrent_edit_conflict",
 }
 
 /**
@@ -182,7 +185,7 @@ export function logSecurityEvent(
   };
 
   // Log to console (replace with proper logging service in production)
-  console.warn('[SECURITY EVENT]', JSON.stringify(event));
+  console.warn("[SECURITY EVENT]", JSON.stringify(event));
 
   // Send alert if critical
   if (SECURITY_CONFIG.logging.alerts.enabled) {
@@ -203,7 +206,7 @@ function checkAndSendAlert(type: SecurityEventType, event: any): void {
   counts.push(now);
 
   // Keep only last 1 minute
-  const filtered = counts.filter(timestamp => timestamp > now - 60000);
+  const filtered = counts.filter((timestamp) => timestamp > now - 60000);
   eventCounts.set(type, filtered);
 
   // Send alert if threshold exceeded
@@ -218,7 +221,11 @@ function checkAndSendAlert(type: SecurityEventType, event: any): void {
 /**
  * Send security alert to webhook
  */
-async function sendSecurityAlert(type: SecurityEventType, count: number, lastEvent: any): Promise<void> {
+async function sendSecurityAlert(
+  type: SecurityEventType,
+  count: number,
+  lastEvent: any
+): Promise<void> {
   const webhookUrl = SECURITY_CONFIG.logging.alerts.webhookUrl;
   if (!webhookUrl) {
     return;
@@ -226,21 +233,21 @@ async function sendSecurityAlert(type: SecurityEventType, count: number, lastEve
 
   try {
     await fetch(webhookUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        alert: 'SECURITY_THRESHOLD_EXCEEDED',
+        alert: "SECURITY_THRESHOLD_EXCEEDED",
         type,
         count,
-        timeWindow: '1 minute',
+        timeWindow: "1 minute",
         lastEvent,
         timestamp: new Date().toISOString(),
       }),
     });
   } catch (error) {
-    console.error('[SECURITY ALERT] Failed to send alert:', error);
+    console.error("[SECURITY ALERT] Failed to send alert:", error);
   }
 }
 
@@ -249,22 +256,22 @@ async function sendSecurityAlert(type: SecurityEventType, count: number, lastEve
  */
 export function getClientIP(req: Request): string {
   // Check various headers for the real IP (behind proxies/load balancers)
-  const forwarded = req.headers.get('x-forwarded-for');
+  const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {
-    return forwarded.split(',')[0].trim();
+    return forwarded.split(",")[0].trim();
   }
 
-  const realIp = req.headers.get('x-real-ip');
+  const realIp = req.headers.get("x-real-ip");
   if (realIp) {
     return realIp;
   }
 
-  const cfConnectingIp = req.headers.get('cf-connecting-ip'); // Cloudflare
+  const cfConnectingIp = req.headers.get("cf-connecting-ip"); // Cloudflare
   if (cfConnectingIp) {
     return cfConnectingIp;
   }
 
-  return 'unknown';
+  return "unknown";
 }
 
 /**

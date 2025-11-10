@@ -5,9 +5,9 @@
  * and ID generation
  */
 
-import type { GanttProject, GanttPhase, GanttTask, Resource, Milestone } from '@/types/gantt-tool';
-import type { ProjectTemplate } from './template-types';
-import { addDays, format } from 'date-fns';
+import type { GanttProject, GanttPhase, GanttTask, Resource, GanttMilestone } from "@/types/gantt-tool";
+import type { ProjectTemplate } from "./template-types";
+import { addDays, format } from "date-fns";
 
 /**
  * Generate a unique ID
@@ -73,13 +73,16 @@ export function instantiateTemplate(
         id: taskId,
         phaseId: phaseId,
         name: templateTask.name,
-        description: templateTask.description || '',
-        startDate: format(taskStartDate, 'yyyy-MM-dd'),
-        endDate: format(taskEndDate, 'yyyy-MM-dd'),
+        description: templateTask.description || "",
+        startDate: format(taskStartDate, "yyyy-MM-dd"),
+        endDate: format(taskEndDate, "yyyy-MM-dd"),
         progress: templateTask.progress || 0,
-        assignee: templateTask.assignee || null,
+        assignee: templateTask.assignee,
         dependencies: templateTask.dependencies || [],
-        sortOrder: templateTask.sortOrder,
+        order: templateTask.sortOrder,
+        level: 0,
+        collapsed: false,
+        isParent: false,
       };
     });
 
@@ -92,41 +95,43 @@ export function instantiateTemplate(
 
     return {
       id: phaseId,
-      projectId: projectId,
       name: templatePhase.name,
-      description: templatePhase.description || '',
+      description: templatePhase.description || "",
       color: templatePhase.color,
-      startDate: format(phaseStartDate, 'yyyy-MM-dd'),
-      endDate: format(phaseEndDate, 'yyyy-MM-dd'),
+      startDate: format(phaseStartDate, "yyyy-MM-dd"),
+      endDate: format(phaseEndDate, "yyyy-MM-dd"),
       tasks: tasks,
-      sortOrder: templatePhase.sortOrder,
-      expanded: true,
+      collapsed: false,
+      dependencies: [],
+      order: templatePhase.sortOrder,
     };
   });
 
   // Convert template resources to actual resources
   const resources: Resource[] = (template.resources || []).map((templateResource) => ({
     id: generateId(),
-    projectId: projectId,
     name: templateResource.name,
-    email: templateResource.email || '',
-    role: templateResource.role,
     category: templateResource.category as any,
+    description: templateResource.role || "", // Use role as description
     designation: templateResource.designation as any,
-    rate: templateResource.rate,
-    workingHours: templateResource.workingHours,
-    color: templateResource.color,
+    createdAt: now.toISOString(),
+    email: templateResource.email || "",
+    projectRole: templateResource.role,
+    assignmentLevel: "both" as const,
+    isBillable: true,
+    chargeRatePerHour: templateResource.rate,
+    currency: "USD",
   }));
 
   // Convert template milestones to actual milestones with dates
-  const milestones: Milestone[] = (template.milestones || []).map((templateMilestone) => {
+  const milestones: GanttMilestone[] = (template.milestones || []).map((templateMilestone) => {
     const milestoneDate = addDays(projectStartDate, templateMilestone.dayOffset);
     return {
       id: generateId(),
-      projectId: projectId,
       name: templateMilestone.name,
-      description: templateMilestone.description || '',
-      date: format(milestoneDate, 'yyyy-MM-dd'),
+      description: templateMilestone.description || "",
+      date: format(milestoneDate, "yyyy-MM-dd"),
+      icon: "🎯",
       color: templateMilestone.color,
     };
   });
@@ -136,11 +141,21 @@ export function instantiateTemplate(
     id: projectId,
     name: projectName || template.name,
     description: `Created from template: ${template.name}. ${template.description}`,
-    startDate: format(projectStartDate, 'yyyy-MM-dd'),
+    startDate: format(projectStartDate, "yyyy-MM-dd"),
     phases: phases,
     resources: resources,
     milestones: milestones,
     holidays: template.holidays || [],
+    viewSettings: {
+      zoomLevel: "month",
+      showWeekends: false,
+      showHolidays: true,
+      showMilestones: true,
+      showTaskDependencies: true,
+      showCriticalPath: false,
+      showTitles: true,
+      barDurationDisplay: "all",
+    },
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
   };

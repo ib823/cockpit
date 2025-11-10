@@ -10,7 +10,7 @@
  * - Help modal with all shortcuts
  */
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef } from "react";
 
 export interface KeyboardShortcut {
   /** Unique identifier */
@@ -28,7 +28,7 @@ export interface KeyboardShortcut {
   /** Description for help modal */
   description: string;
   /** Category for grouping in help */
-  category: 'navigation' | 'actions' | 'editing' | 'view' | 'help';
+  category: "navigation" | "actions" | "editing" | "view" | "help";
   /** Handler function */
   handler: (event: KeyboardEvent) => void;
   /** Only active in specific contexts */
@@ -45,22 +45,22 @@ const globalShortcuts: Map<string, KeyboardShortcut> = new Map();
  */
 export function formatShortcut(shortcut: KeyboardShortcut): string {
   const parts: string[] = [];
-  const isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
+  const isMac = typeof navigator !== "undefined" && navigator.platform.includes("Mac");
 
-  if (shortcut.meta) parts.push(isMac ? '⌘' : 'Ctrl');
-  if (shortcut.ctrl) parts.push('Ctrl');
-  if (shortcut.shift) parts.push('⇧');
-  if (shortcut.alt) parts.push(isMac ? '⌥' : 'Alt');
+  if (shortcut.meta) parts.push(isMac ? "⌘" : "Ctrl");
+  if (shortcut.ctrl) parts.push("Ctrl");
+  if (shortcut.shift) parts.push("⇧");
+  if (shortcut.alt) parts.push(isMac ? "⌥" : "Alt");
 
   // Format key name
   let keyName = shortcut.key;
-  if (keyName === 'Escape') keyName = 'Esc';
-  else if (keyName === ' ') keyName = 'Space';
+  if (keyName === "Escape") keyName = "Esc";
+  else if (keyName === " ") keyName = "Space";
   else if (keyName.length === 1) keyName = keyName.toUpperCase();
 
   parts.push(keyName);
 
-  return parts.join('+');
+  return parts.join("+");
 }
 
 /**
@@ -79,7 +79,7 @@ function matchesShortcut(event: KeyboardEvent, shortcut: KeyboardShortcut): bool
   const altPressed = event.altKey;
 
   if (shortcut.meta && !metaPressed) return false;
-  if (!shortcut.meta && metaPressed && shortcut.key !== 'k') return false; // Allow Cmd+K for search
+  if (!shortcut.meta && metaPressed && shortcut.key !== "k") return false; // Allow Cmd+K for search
   if (shortcut.ctrl && !ctrlPressed) return false;
   if (!shortcut.ctrl && ctrlPressed && !shortcut.meta) return false;
   if (shortcut.shift && !shiftPressed) return false;
@@ -94,7 +94,7 @@ function matchesShortcut(event: KeyboardEvent, shortcut: KeyboardShortcut): bool
  * Register global keyboard shortcut
  */
 export function registerShortcut(shortcut: KeyboardShortcut) {
-  const key = `${shortcut.context || 'global'}-${shortcut.id}`;
+  const key = `${shortcut.context || "global"}-${shortcut.id}`;
   globalShortcuts.set(key, shortcut);
 }
 
@@ -102,7 +102,7 @@ export function registerShortcut(shortcut: KeyboardShortcut) {
  * Unregister keyboard shortcut
  */
 export function unregisterShortcut(id: string, context?: string) {
-  const key = `${context || 'global'}-${id}`;
+  const key = `${context || "global"}-${id}`;
   globalShortcuts.delete(key);
 }
 
@@ -145,12 +145,12 @@ export function useKeyboardShortcuts(
   useEffect(() => {
     if (!enabled) return;
 
-    shortcuts.forEach(shortcut => {
+    shortcuts.forEach((shortcut) => {
       registerShortcut({ ...shortcut, context });
     });
 
     return () => {
-      shortcuts.forEach(shortcut => {
+      shortcuts.forEach((shortcut) => {
         unregisterShortcut(shortcut.id, context);
       });
     };
@@ -163,12 +163,12 @@ export function useKeyboardShortcuts(
     const handleKeyDown = (event: KeyboardEvent) => {
       // Skip if user is typing in an input
       const target = event.target as HTMLElement;
-      const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+      const isInput = ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
       const isContentEditable = target.isContentEditable;
 
       if (isInput || isContentEditable) {
         // Allow Cmd+K even in inputs for search
-        if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+        if ((event.metaKey || event.ctrlKey) && event.key === "k") {
           // Let it through
         } else {
           return;
@@ -176,7 +176,7 @@ export function useKeyboardShortcuts(
       }
 
       // Check shortcuts
-      shortcutsRef.current.forEach(shortcut => {
+      shortcutsRef.current.forEach((shortcut) => {
         if (matchesShortcut(event, shortcut)) {
           if (shortcut.preventDefault !== false) {
             event.preventDefault();
@@ -186,9 +186,9 @@ export function useKeyboardShortcuts(
       });
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
 
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [enabled]);
 }
 
@@ -197,15 +197,15 @@ export function useKeyboardShortcuts(
  */
 export const GLOBAL_SHORTCUTS: KeyboardShortcut[] = [
   {
-    id: 'search',
-    key: 'k',
+    id: "search",
+    key: "k",
     meta: true,
-    description: 'Open command palette',
-    category: 'navigation',
+    description: "Open command palette",
+    category: "navigation",
     handler: () => {
       // Trigger command palette (handled by CommandPalette component)
-      const event = new KeyboardEvent('keydown', {
-        key: 'k',
+      const event = new KeyboardEvent("keydown", {
+        key: "k",
         metaKey: true,
         bubbles: true,
       });
@@ -213,21 +213,21 @@ export const GLOBAL_SHORTCUTS: KeyboardShortcut[] = [
     },
   },
   {
-    id: 'help',
-    key: '/',
+    id: "help",
+    key: "/",
     meta: true,
-    description: 'Show keyboard shortcuts',
-    category: 'help',
+    description: "Show keyboard shortcuts",
+    category: "help",
     handler: () => {
       // Dispatch custom event for help modal
-      window.dispatchEvent(new CustomEvent('show-keyboard-help'));
+      window.dispatchEvent(new CustomEvent("show-keyboard-help"));
     },
   },
   {
-    id: 'close',
-    key: 'Escape',
-    description: 'Close modal or panel',
-    category: 'navigation',
+    id: "close",
+    key: "Escape",
+    description: "Close modal or panel",
+    category: "navigation",
     handler: () => {
       // Handled by individual modals/panels
     },
@@ -240,34 +240,34 @@ export const GLOBAL_SHORTCUTS: KeyboardShortcut[] = [
  */
 export const ESTIMATOR_SHORTCUTS: KeyboardShortcut[] = [
   {
-    id: 'save',
-    key: 's',
+    id: "save",
+    key: "s",
     meta: true,
-    description: 'Save current estimate',
-    category: 'actions',
+    description: "Save current estimate",
+    category: "actions",
     handler: () => {
-      window.dispatchEvent(new CustomEvent('estimator-save'));
+      window.dispatchEvent(new CustomEvent("estimator-save"));
     },
   },
   {
-    id: 'generate-timeline',
-    key: 'g',
+    id: "generate-timeline",
+    key: "g",
     meta: true,
     shift: true,
-    description: 'Generate project timeline',
-    category: 'actions',
+    description: "Generate project timeline",
+    category: "actions",
     handler: () => {
-      window.dispatchEvent(new CustomEvent('estimator-generate-timeline'));
+      window.dispatchEvent(new CustomEvent("estimator-generate-timeline"));
     },
   },
   {
-    id: 'toggle-advanced',
-    key: 'a',
+    id: "toggle-advanced",
+    key: "a",
     meta: true,
-    description: 'Toggle advanced options',
-    category: 'view',
+    description: "Toggle advanced options",
+    category: "view",
     handler: () => {
-      window.dispatchEvent(new CustomEvent('estimator-toggle-advanced'));
+      window.dispatchEvent(new CustomEvent("estimator-toggle-advanced"));
     },
   },
 ];
@@ -277,43 +277,43 @@ export const ESTIMATOR_SHORTCUTS: KeyboardShortcut[] = [
  */
 export const GANTT_SHORTCUTS: KeyboardShortcut[] = [
   {
-    id: 'save',
-    key: 's',
+    id: "save",
+    key: "s",
     meta: true,
-    description: 'Save project',
-    category: 'actions',
+    description: "Save project",
+    category: "actions",
     handler: () => {
-      window.dispatchEvent(new CustomEvent('gantt-save'));
+      window.dispatchEvent(new CustomEvent("gantt-save"));
     },
   },
   {
-    id: 'zoom-in',
-    key: '=',
+    id: "zoom-in",
+    key: "=",
     meta: true,
-    description: 'Zoom in',
-    category: 'view',
+    description: "Zoom in",
+    category: "view",
     handler: () => {
-      window.dispatchEvent(new CustomEvent('gantt-zoom-in'));
+      window.dispatchEvent(new CustomEvent("gantt-zoom-in"));
     },
   },
   {
-    id: 'zoom-out',
-    key: '-',
+    id: "zoom-out",
+    key: "-",
     meta: true,
-    description: 'Zoom out',
-    category: 'view',
+    description: "Zoom out",
+    category: "view",
     handler: () => {
-      window.dispatchEvent(new CustomEvent('gantt-zoom-out'));
+      window.dispatchEvent(new CustomEvent("gantt-zoom-out"));
     },
   },
   {
-    id: 'toggle-weekends',
-    key: 'w',
+    id: "toggle-weekends",
+    key: "w",
     meta: true,
-    description: 'Toggle weekends',
-    category: 'view',
+    description: "Toggle weekends",
+    category: "view",
     handler: () => {
-      window.dispatchEvent(new CustomEvent('gantt-toggle-weekends'));
+      window.dispatchEvent(new CustomEvent("gantt-toggle-weekends"));
     },
   },
 ];
@@ -323,33 +323,33 @@ export const GANTT_SHORTCUTS: KeyboardShortcut[] = [
  */
 export const DASHBOARD_SHORTCUTS: KeyboardShortcut[] = [
   {
-    id: 'new-estimate',
-    key: 'n',
+    id: "new-estimate",
+    key: "n",
     meta: true,
-    description: 'New estimate',
-    category: 'actions',
+    description: "New estimate",
+    category: "actions",
     handler: () => {
-      window.dispatchEvent(new CustomEvent('dashboard-new-estimate'));
+      window.dispatchEvent(new CustomEvent("dashboard-new-estimate"));
     },
   },
   {
-    id: 'new-project',
-    key: 'p',
+    id: "new-project",
+    key: "p",
     meta: true,
-    description: 'New project',
-    category: 'actions',
+    description: "New project",
+    category: "actions",
     handler: () => {
-      window.dispatchEvent(new CustomEvent('dashboard-new-project'));
+      window.dispatchEvent(new CustomEvent("dashboard-new-project"));
     },
   },
   {
-    id: 'toggle-customize',
-    key: 'e',
+    id: "toggle-customize",
+    key: "e",
     meta: true,
-    description: 'Toggle customize mode',
-    category: 'editing',
+    description: "Toggle customize mode",
+    category: "editing",
     handler: () => {
-      window.dispatchEvent(new CustomEvent('dashboard-toggle-customize'));
+      window.dispatchEvent(new CustomEvent("dashboard-toggle-customize"));
     },
   },
 ];

@@ -27,39 +27,41 @@
 
 ### 🚀 Getting Started
 
-| Document | Use When... | Read Time |
-|----------|-------------|-----------|
-| **[SYNC_QUICK_REFERENCE.md](./SYNC_QUICK_REFERENCE.md)** | You want to sync NOW | 2 min |
-| **[SYNC_USAGE_GUIDE.md](./SYNC_USAGE_GUIDE.md)** | You want step-by-step instructions | 5 min |
+| Document                                                 | Use When...                        | Read Time |
+| -------------------------------------------------------- | ---------------------------------- | --------- |
+| **[SYNC_QUICK_REFERENCE.md](./SYNC_QUICK_REFERENCE.md)** | You want to sync NOW               | 2 min     |
+| **[SYNC_USAGE_GUIDE.md](./SYNC_USAGE_GUIDE.md)**         | You want step-by-step instructions | 5 min     |
 
 ### 🔍 Understanding the System
 
-| Document | Use When... | Read Time |
-|----------|-------------|-----------|
-| **[CLAUDE_AI_SYNC_STRATEGY.md](./CLAUDE_AI_SYNC_STRATEGY.md)** | You want to know WHAT gets synced and WHY | 10 min |
-| **[SYNC_FOLDER_STRUCTURE.md](./SYNC_FOLDER_STRUCTURE.md)** | You want to see the EXACT folder structure | 8 min |
+| Document                                                       | Use When...                                | Read Time |
+| -------------------------------------------------------------- | ------------------------------------------ | --------- |
+| **[CLAUDE_AI_SYNC_STRATEGY.md](./CLAUDE_AI_SYNC_STRATEGY.md)** | You want to know WHAT gets synced and WHY  | 10 min    |
+| **[SYNC_FOLDER_STRUCTURE.md](./SYNC_FOLDER_STRUCTURE.md)**     | You want to see the EXACT folder structure | 8 min     |
 
 ### 📤 Uploading & Assessing
 
-| Document | Use When... | Read Time |
-|----------|-------------|-----------|
-| **[CLAUDE_AI_UPLOAD_GUIDE.md](./CLAUDE_AI_UPLOAD_GUIDE.md)** | You want upload instructions & assessment prompts | 7 min |
+| Document                                                     | Use When...                                       | Read Time |
+| ------------------------------------------------------------ | ------------------------------------------------- | --------- |
+| **[CLAUDE_AI_UPLOAD_GUIDE.md](./CLAUDE_AI_UPLOAD_GUIDE.md)** | You want upload instructions & assessment prompts | 7 min     |
 
 ### 🏗️ Project Context
 
-| Document | Use When... | Read Time |
-|----------|-------------|-----------|
-| **[CODEBASE_OVERVIEW.md](./CODEBASE_OVERVIEW.md)** | You want to understand the project architecture | 15 min |
-| **[README.md](./README.md)** | You want general project information | 5 min |
+| Document                                           | Use When...                                     | Read Time |
+| -------------------------------------------------- | ----------------------------------------------- | --------- |
+| **[CODEBASE_OVERVIEW.md](./CODEBASE_OVERVIEW.md)** | You want to understand the project architecture | 15 min    |
+| **[README.md](./README.md)**                       | You want general project information            | 5 min     |
 
 ---
 
 ## 🛠️ Files in This System
 
 ### Executable
+
 - `sync-with-claude.sh` - **The main sync script** (run this!)
 
 ### Documentation
+
 - `CLAUDE_SYNC_INDEX.md` - This file (start here)
 - `SYNC_QUICK_REFERENCE.md` - Quick reference card
 - `SYNC_USAGE_GUIDE.md` - Complete usage instructions
@@ -68,6 +70,7 @@
 - `CLAUDE_AI_UPLOAD_GUIDE.md` - Upload & assessment guide
 
 ### Generated (after running script)
+
 - `claude-project-knowledge/` - Synced folder
 - `claude-assessment-YYYYMMDD_HHMMSS.zip` - Upload this to Claude.ai
 
@@ -76,12 +79,14 @@
 ## 🎓 Learning Path
 
 ### Path 1: "Just Sync It" (5 min)
+
 1. Read: `SYNC_QUICK_REFERENCE.md`
 2. Run: `./sync-with-claude.sh`
 3. Upload: `claude-assessment-*.zip` to Claude.ai
 4. Done!
 
 ### Path 2: "I Want to Understand" (20 min)
+
 1. Read: `SYNC_QUICK_REFERENCE.md` (2 min)
 2. Read: `CLAUDE_AI_SYNC_STRATEGY.md` (10 min)
 3. Read: `SYNC_USAGE_GUIDE.md` (5 min)
@@ -90,6 +95,7 @@
 6. Upload: `claude-assessment-*.zip` to Claude.ai
 
 ### Path 3: "I Want Full Mastery" (45 min)
+
 1. Read: `SYNC_QUICK_REFERENCE.md`
 2. Read: `CLAUDE_AI_SYNC_STRATEGY.md`
 3. Read: `SYNC_FOLDER_STRUCTURE.md`
@@ -149,17 +155,20 @@
 ## ✅ What Gets Synced (Summary)
 
 ### Critical Folders
+
 - `src/` - **All source code** (most important!)
 - `tests/` - All test suites
 - `prisma/` - Database schema
 - `docs/` - All documentation
 
 ### Configuration
+
 - All `.json`, `.js`, `.ts` config files
 - `.env.example` only (NO .env or .env.local!)
 - Package dependencies
 
 ### Supporting Files
+
 - Scripts, public assets, lib files
 - GitHub workflows
 - Key documentation files
@@ -171,18 +180,21 @@
 ## ❌ What Gets Excluded (Summary)
 
 ### Security Risks
+
 - `.env`, `.env.local` (secrets!)
 - Any credential files
 
 ### Build Artifacts
+
 - `.next/` (build output)
 - `node_modules/` (dependencies)
 - `*.tsbuildinfo` (cache)
 
 ### Unnecessary
+
 - IDE settings (.vscode, .claude)
 - Debug folders (gptdebug)
-- Redundant reports (*_COMPLETE.md, etc.)
+- Redundant reports (\*\_COMPLETE.md, etc.)
 - Archives and logs
 
 **Total Reduction:** ~97% smaller, ~95% fewer files
@@ -194,6 +206,7 @@
 Once uploaded to Claude.ai, you can comprehensively assess:
 
 ### 🔒 Security
+
 - Authentication & authorization flows
 - Input validation & sanitization
 - Database security & schema design
@@ -202,6 +215,7 @@ Once uploaded to Claude.ai, you can comprehensively assess:
 - Environment variable handling
 
 ### 🎨 User Experience
+
 - Component consistency & patterns
 - Accessibility (WCAG compliance)
 - User flows & navigation
@@ -210,6 +224,7 @@ Once uploaded to Claude.ai, you can comprehensively assess:
 - Mobile responsiveness
 
 ### 🔄 Business Logic
+
 - State management patterns
 - Data flow & transformations
 - Business rule implementation
@@ -217,6 +232,7 @@ Once uploaded to Claude.ai, you can comprehensively assess:
 - Edge case coverage
 
 ### 🏗️ Architecture
+
 - Code organization & structure
 - Type safety & TypeScript usage
 - Testing coverage & quality
@@ -229,12 +245,14 @@ Once uploaded to Claude.ai, you can comprehensively assess:
 ## 🔄 Workflow
 
 ### Initial Sync
+
 ```bash
 ./sync-with-claude.sh
 # → Upload claude-assessment-*.zip to Claude.ai
 ```
 
 ### After Code Changes
+
 ```bash
 ./sync-with-claude.sh
 # → New timestamped archive created
@@ -242,6 +260,7 @@ Once uploaded to Claude.ai, you can comprehensively assess:
 ```
 
 ### Regular Assessment
+
 ```bash
 # 1. Make code changes
 # 2. Re-sync
@@ -258,12 +277,14 @@ Once uploaded to Claude.ai, you can comprehensively assess:
 ## 🛡️ Security Guarantees
 
 ### What's Protected
+
 ✅ No `.env` or `.env.local` files
 ✅ No credential files
 ✅ No API keys or tokens
 ✅ Only `.env.example` (template) included
 
 ### Verification
+
 ```bash
 # After running script, verify no secrets:
 find claude-project-knowledge -name ".env" -o -name ".env.local"
@@ -293,12 +314,14 @@ After running `./sync-with-claude.sh`, you should see:
 ## 🆘 Troubleshooting
 
 ### Script won't run
+
 ```bash
 chmod +x sync-with-claude.sh
 ./sync-with-claude.sh
 ```
 
 ### "zip: command not found"
+
 ```bash
 # Debian/Ubuntu
 sudo apt-get install zip
@@ -308,7 +331,9 @@ brew install zip
 ```
 
 ### Archive too large
+
 Check if excluded folders leaked:
+
 ```bash
 # Should be empty:
 ls claude-project-knowledge/.next/
@@ -316,6 +341,7 @@ ls claude-project-knowledge/node_modules/
 ```
 
 ### Want to customize
+
 Edit `sync-with-claude.sh` and add/remove files from the arrays.
 
 ---
@@ -334,7 +360,9 @@ Edit `sync-with-claude.sh` and add/remove files from the arrays.
 ## 🎓 Advanced Usage
 
 ### Custom File Selection
+
 Edit `sync-with-claude.sh`:
+
 ```bash
 # Add custom documentation
 doc_files=(
@@ -347,6 +375,7 @@ copy_with_structure "your-folder" "$OUTPUT_DIR/your-folder"
 ```
 
 ### Automated CI Integration
+
 ```yaml
 # .github/workflows/sync-claude.yml
 name: Sync to Claude.ai
@@ -366,6 +395,7 @@ jobs:
 ```
 
 ### Multiple Assessment Profiles
+
 ```bash
 # Create different sync profiles
 cp sync-with-claude.sh sync-security-only.sh
@@ -377,16 +407,19 @@ cp sync-with-claude.sh sync-security-only.sh
 ## 📞 Support & References
 
 ### Documentation
+
 - **This Index:** `CLAUDE_SYNC_INDEX.md`
 - **Quick Ref:** `SYNC_QUICK_REFERENCE.md`
 - **Full Guide:** `SYNC_USAGE_GUIDE.md`
 - **Strategy:** `CLAUDE_AI_SYNC_STRATEGY.md`
 
 ### Script
+
 - **Main Script:** `./sync-with-claude.sh`
 - **Source:** View script for customization
 
 ### Output
+
 - **Folder:** `claude-project-knowledge/`
 - **Archive:** `claude-assessment-YYYYMMDD_HHMMSS.zip`
 
@@ -394,16 +427,16 @@ cp sync-with-claude.sh sync-security-only.sh
 
 ## 🏆 Key Benefits
 
-| Benefit | Description |
-|---------|-------------|
-| 🎯 **Accurate** | Exact VS Code Explorer order, mirrors your workflow |
-| 🛡️ **Secure** | No secrets, no .env files, verified safe |
-| ⚡ **Fast** | 97% smaller, ~836 KB vs ~500 MB |
-| 🔍 **Comprehensive** | Complete source, tests, configs, docs |
+| Benefit                 | Description                                         |
+| ----------------------- | --------------------------------------------------- |
+| 🎯 **Accurate**         | Exact VS Code Explorer order, mirrors your workflow |
+| 🛡️ **Secure**           | No secrets, no .env files, verified safe            |
+| ⚡ **Fast**             | 97% smaller, ~836 KB vs ~500 MB                     |
+| 🔍 **Comprehensive**    | Complete source, tests, configs, docs               |
 | 📊 **Assessment-Ready** | Perfect for security, UX, flow, architecture review |
-| ⏱️ **Timestamped** | Track versions, reproducible |
-| 🔄 **Automated** | One command, everything included |
-| 📐 **Structured** | Organized, predictable, documented |
+| ⏱️ **Timestamped**      | Track versions, reproducible                        |
+| 🔄 **Automated**        | One command, everything included                    |
+| 📐 **Structured**       | Organized, predictable, documented                  |
 
 ---
 
@@ -412,10 +445,12 @@ cp sync-with-claude.sh sync-security-only.sh
 You now have a complete system for syncing your codebase to Claude.ai for comprehensive assessment.
 
 **Choose your path:**
+
 - **Quick Start:** `SYNC_QUICK_REFERENCE.md` → Run script → Upload
 - **Deep Dive:** Read all docs → Customize → Master the system
 
 **Your next command:**
+
 ```bash
 ./sync-with-claude.sh
 ```
@@ -424,6 +459,6 @@ Good luck with your assessment! 🚀
 
 ---
 
-*Last Updated: 2025-10-08*
-*Version: 1.0*
-*Maintains: VS Code Explorer Order*
+_Last Updated: 2025-10-08_
+_Version: 1.0_
+_Maintains: VS Code Explorer Order_

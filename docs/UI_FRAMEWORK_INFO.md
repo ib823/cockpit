@@ -3,7 +3,9 @@
 ## Current UI Stack
 
 ### **No Component Library** ❌
+
 The Gantt Tool currently does **NOT** use any UI component library like:
+
 - ❌ Ant Design (antd)
 - ❌ Material-UI (MUI)
 - ❌ Chakra UI
@@ -14,17 +16,20 @@ The Gantt Tool currently does **NOT** use any UI component library like:
 ### **What We Use** ✅
 
 **1. Tailwind CSS** (v3.x)
+
 - Utility-first CSS framework
 - All styling done with class names like `px-4 py-2 bg-blue-600`
 - Responsive breakpoints: `sm:`, `md:`, `lg:`, `xl:`, `2xl:`
 - Custom components built from scratch
 
 **2. Lucide React**
+
 - Icon library for SVG icons
 - Used for all UI icons (Plus, Calendar, Download, etc.)
 - Lightweight and tree-shakeable
 
 **3. Custom Components**
+
 - All buttons, modals, dropdowns built manually
 - Full control over styling and behavior
 - No external dependencies for UI components
@@ -50,25 +55,29 @@ xl:  (1280px)  /* ≥ 1280px  - Large desktop */
 #### **1. Toolbar (GanttToolbar.tsx)**
 
 **Mobile (< 640px):**
+
 - Icon-only buttons (text hidden)
 - Stacked layout (vertical)
 - Smaller padding (`px-2`)
 
 **Tablet (≥ 640px):**
+
 - Some button text visible
 - Still compact
 - Padding `px-3`
 
 **Desktop (≥ 1024px):**
+
 - Full button text visible
 - Horizontal layout
 - Full padding and spacing
 
 **Example:**
+
 ```tsx
 <button className="px-2 sm:px-3 py-2">
   <Plus className="w-4 h-4" />
-  <span className="hidden sm:inline">Phase</span>  {/* Text hidden on mobile */}
+  <span className="hidden sm:inline">Phase</span> {/* Text hidden on mobile */}
 </button>
 ```
 
@@ -114,9 +123,11 @@ xl:  (1280px)  /* ≥ 1280px  - Large desktop */
 ## Responsive Fixes Applied
 
 ### **Issue 1: Toolbar Overflow**
+
 **Problem:** Too many buttons causing horizontal overflow on mobile
 
 **Fix:**
+
 ```tsx
 // Before
 <div className="flex items-center gap-4">
@@ -126,20 +137,24 @@ xl:  (1280px)  /* ≥ 1280px  - Large desktop */
 ```
 
 ### **Issue 2: Hidden Text on Small Screens**
+
 **Problem:** Button labels taking too much space
 
 **Fix:**
+
 ```tsx
 <button className="px-2 sm:px-3">
   <Icon className="w-4 h-4" />
-  <span className="hidden sm:inline">Label</span>  {/* Hide on mobile */}
+  <span className="hidden sm:inline">Label</span> {/* Hide on mobile */}
 </button>
 ```
 
 ### **Issue 3: Vertical Stacking**
+
 **Problem:** Toolbar too wide horizontally
 
 **Fix:**
+
 ```tsx
 // Before
 <div className="flex justify-between">
@@ -155,6 +170,7 @@ xl:  (1280px)  /* ≥ 1280px  - Large desktop */
 ## Testing Responsive Design
 
 ### **Browser DevTools**
+
 1. Open Chrome/Firefox DevTools (F12)
 2. Click "Toggle Device Toolbar" (Ctrl+Shift+M)
 3. Test these sizes:
@@ -163,6 +179,7 @@ xl:  (1280px)  /* ≥ 1280px  - Large desktop */
    - **Desktop:** 1440px (Laptop)
 
 ### **Tailwind Play**
+
 Test classes at: https://play.tailwindcss.com/
 
 ---
@@ -172,6 +189,7 @@ Test classes at: https://play.tailwindcss.com/
 If you want to add a UI library in the future:
 
 ### **Option 1: shadcn/ui** (Recommended)
+
 ```bash
 npx shadcn-ui@latest init
 npx shadcn-ui@latest add button
@@ -179,38 +197,45 @@ npx shadcn-ui@latest add dropdown-menu
 ```
 
 **Pros:**
+
 - Uses Tailwind (matches current stack)
 - Copy-paste components (not a dependency)
 - Full customization
 - Excellent accessibility
 
 ### **Option 2: Ant Design**
+
 ```bash
 npm install antd
 ```
 
 **Pros:**
+
 - Complete component library
 - Professional design
 - Good documentation
 - Enterprise-ready
 
 **Cons:**
+
 - Larger bundle size
 - Different design system from Tailwind
 - Less customization
 
 ### **Option 3: Material-UI**
+
 ```bash
 npm install @mui/material @emotion/react @emotion/styled
 ```
 
 **Pros:**
+
 - Google Material Design
 - Comprehensive components
 - Good accessibility
 
 **Cons:**
+
 - Very heavy bundle
 - Opinionated design
 - CSS-in-JS (different from Tailwind)
@@ -220,19 +245,23 @@ npm install @mui/material @emotion/react @emotion/styled
 ## Recommended Next Steps
 
 ### **Short Term (Keep Current)**
+
 ✅ Continue with Tailwind + custom components
 ✅ Add more responsive classes as needed
 ✅ Use `hidden md:block` patterns for showing/hiding
 ✅ Test on real devices
 
 ### **Long Term (If Needed)**
+
 🔄 Consider **shadcn/ui** for complex components:
+
 - Data tables
 - Complex forms
 - Command palette
 - Dialog/Modal improvements
 
 **Why shadcn/ui:**
+
 - Works with existing Tailwind
 - No breaking changes
 - Add components incrementally

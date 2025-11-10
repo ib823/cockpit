@@ -22,7 +22,7 @@ const sizeMap = {
 };
 
 export function Spinner({ size = "md", className = "", label }: SpinnerProps) {
-  const pixelSize = typeof size === 'number' ? size : sizeMap[size];
+  const pixelSize = typeof size === "number" ? size : sizeMap[size];
 
   return (
     <div className={`flex flex-col items-center gap-2 ${className}`}>

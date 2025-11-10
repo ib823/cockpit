@@ -8,7 +8,7 @@
  * - Turnstile (Cloudflare)
  */
 
-export type CaptchaProvider = 'hcaptcha' | 'recaptcha' | 'turnstile';
+export type CaptchaProvider = "hcaptcha" | "recaptcha" | "turnstile";
 
 interface CaptchaConfig {
   provider: CaptchaProvider;
@@ -33,23 +33,23 @@ export async function verifyCaptcha(
 }> {
   try {
     switch (config.provider) {
-      case 'hcaptcha':
+      case "hcaptcha":
         return await verifyHCaptcha(token, config.secretKey, userIP);
 
-      case 'recaptcha':
+      case "recaptcha":
         return await verifyRecaptcha(token, config.secretKey, userIP);
 
-      case 'turnstile':
+      case "turnstile":
         return await verifyTurnstile(token, config.secretKey, userIP);
 
       default:
         throw new Error(`Unsupported CAPTCHA provider: ${config.provider}`);
     }
   } catch (error) {
-    console.error('[CAPTCHA] Verification failed:', error);
+    console.error("[CAPTCHA] Verification failed:", error);
     return {
       success: false,
-      errorCodes: ['verification-failed'],
+      errorCodes: ["verification-failed"],
     };
   }
 }
@@ -57,15 +57,11 @@ export async function verifyCaptcha(
 /**
  * Verify hCaptcha token
  */
-async function verifyHCaptcha(
-  token: string,
-  secretKey: string,
-  userIP?: string
-): Promise<any> {
-  const response = await fetch('https://hcaptcha.com/siteverify', {
-    method: 'POST',
+async function verifyHCaptcha(token: string, secretKey: string, userIP?: string): Promise<any> {
+  const response = await fetch("https://hcaptcha.com/siteverify", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
       secret: secretKey,
@@ -80,22 +76,18 @@ async function verifyHCaptcha(
     success: data.success,
     challengeTimestamp: data.challenge_ts,
     hostname: data.hostname,
-    errorCodes: data['error-codes'],
+    errorCodes: data["error-codes"],
   };
 }
 
 /**
  * Verify Google reCAPTCHA v3 token
  */
-async function verifyRecaptcha(
-  token: string,
-  secretKey: string,
-  userIP?: string
-): Promise<any> {
-  const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-    method: 'POST',
+async function verifyRecaptcha(token: string, secretKey: string, userIP?: string): Promise<any> {
+  const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
       secret: secretKey,
@@ -111,22 +103,18 @@ async function verifyRecaptcha(
     score: data.score, // 0.0 - 1.0 (1.0 = likely human)
     challengeTimestamp: data.challenge_ts,
     hostname: data.hostname,
-    errorCodes: data['error-codes'],
+    errorCodes: data["error-codes"],
   };
 }
 
 /**
  * Verify Cloudflare Turnstile token
  */
-async function verifyTurnstile(
-  token: string,
-  secretKey: string,
-  userIP?: string
-): Promise<any> {
-  const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
+async function verifyTurnstile(token: string, secretKey: string, userIP?: string): Promise<any> {
+  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       secret: secretKey,
@@ -141,7 +129,7 @@ async function verifyTurnstile(
     success: data.success,
     challengeTimestamp: data.challenge_ts,
     hostname: data.hostname,
-    errorCodes: data['error-codes'],
+    errorCodes: data["error-codes"],
   };
 }
 
@@ -150,8 +138,8 @@ async function verifyTurnstile(
  */
 export function loadCaptchaScript(provider: CaptchaProvider, siteKey: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined') {
-      reject(new Error('CAPTCHA can only be loaded in browser'));
+    if (typeof window === "undefined") {
+      reject(new Error("CAPTCHA can only be loaded in browser"));
       return;
     }
 
@@ -162,7 +150,7 @@ export function loadCaptchaScript(provider: CaptchaProvider, siteKey: string): P
       return;
     }
 
-    const script = document.createElement('script');
+    const script = document.createElement("script");
     script.id = scriptId;
     script.async = true;
     script.defer = true;
@@ -171,16 +159,16 @@ export function loadCaptchaScript(provider: CaptchaProvider, siteKey: string): P
     script.onerror = () => reject(new Error(`Failed to load ${provider} script`));
 
     switch (provider) {
-      case 'hcaptcha':
-        script.src = 'https://js.hcaptcha.com/1/api.js';
+      case "hcaptcha":
+        script.src = "https://js.hcaptcha.com/1/api.js";
         break;
 
-      case 'recaptcha':
+      case "recaptcha":
         script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
         break;
 
-      case 'turnstile':
-        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      case "turnstile":
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
         break;
 
       default:
@@ -201,49 +189,51 @@ export function executeCaptcha(
   action?: string
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined') {
-      reject(new Error('CAPTCHA can only be executed in browser'));
+    if (typeof window === "undefined") {
+      reject(new Error("CAPTCHA can only be executed in browser"));
       return;
     }
 
     switch (provider) {
-      case 'hcaptcha':
+      case "hcaptcha":
         // @ts-ignore
         if (window.hcaptcha) {
           // @ts-ignore
-          window.hcaptcha.execute(siteKey, { async: true })
+          window.hcaptcha
+            .execute(siteKey, { async: true })
             .then((token: string) => resolve(token))
             .catch((error: any) => reject(error));
         } else {
-          reject(new Error('hCaptcha not loaded'));
+          reject(new Error("hCaptcha not loaded"));
         }
         break;
 
-      case 'recaptcha':
+      case "recaptcha":
         // @ts-ignore
         if (window.grecaptcha) {
           // @ts-ignore
           window.grecaptcha.ready(() => {
             // @ts-ignore
-            window.grecaptcha.execute(siteKey, { action: action || 'submit' })
+            window.grecaptcha
+              .execute(siteKey, { action: action || "submit" })
               .then((token: string) => resolve(token))
               .catch((error: any) => reject(error));
           });
         } else {
-          reject(new Error('reCAPTCHA not loaded'));
+          reject(new Error("reCAPTCHA not loaded"));
         }
         break;
 
-      case 'turnstile':
+      case "turnstile":
         // @ts-ignore
         if (window.turnstile) {
           // @ts-ignore
           window.turnstile.execute(siteKey, {
             callback: (token: string) => resolve(token),
-            'error-callback': () => reject(new Error('Turnstile failed')),
+            "error-callback": () => reject(new Error("Turnstile failed")),
           });
         } else {
-          reject(new Error('Turnstile not loaded'));
+          reject(new Error("Turnstile not loaded"));
         }
         break;
 
@@ -258,7 +248,7 @@ export function executeCaptcha(
  */
 export function checkHoneypot(honeypotValue: string): boolean {
   // Honeypot should be empty (hidden from humans, filled by bots)
-  return honeypotValue === '' || honeypotValue === undefined;
+  return honeypotValue === "" || honeypotValue === undefined;
 }
 
 /**

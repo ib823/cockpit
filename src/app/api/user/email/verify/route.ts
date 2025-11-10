@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
-import { compare } from 'bcryptjs';
-import { prisma } from '@/lib/db';
+import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
+import { compare } from "bcryptjs";
+import { prisma } from "@/lib/db";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 /**
  * Email Change Verification
@@ -22,14 +22,14 @@ export async function POST(req: Request) {
     // ============================================
     if (!userId || !verificationCode) {
       return NextResponse.json(
-        { ok: false, message: 'User ID and verification code are required' },
+        { ok: false, message: "User ID and verification code are required" },
         { status: 400 }
       );
     }
 
     if (verificationCode.length !== 6) {
       return NextResponse.json(
-        { ok: false, message: 'Verification code must be 6 digits' },
+        { ok: false, message: "Verification code must be 6 digits" },
         { status: 400 }
       );
     }
@@ -38,14 +38,11 @@ export async function POST(req: Request) {
     // 2. Get User
     // ============================================
     const user = await prisma.users.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { ok: false, message: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
     }
 
     // ============================================
@@ -53,7 +50,7 @@ export async function POST(req: Request) {
     // ============================================
     if (!user.pendingEmail || !user.pendingEmailToken || !user.pendingEmailExpiresAt) {
       return NextResponse.json(
-        { ok: false, message: 'No pending email change found' },
+        { ok: false, message: "No pending email change found" },
         { status: 400 }
       );
     }
@@ -66,12 +63,12 @@ export async function POST(req: Request) {
         data: {
           pendingEmail: null,
           pendingEmailToken: null,
-          pendingEmailExpiresAt: null
-        }
+          pendingEmailExpiresAt: null,
+        },
       });
 
       return NextResponse.json(
-        { ok: false, message: 'Verification code has expired. Please request a new email change.' },
+        { ok: false, message: "Verification code has expired. Please request a new email change." },
         { status: 410 }
       );
     }
@@ -83,7 +80,7 @@ export async function POST(req: Request) {
 
     if (!codeValid) {
       return NextResponse.json(
-        { ok: false, message: 'Invalid verification code' },
+        { ok: false, message: "Invalid verification code" },
         { status: 401 }
       );
     }
@@ -92,12 +89,12 @@ export async function POST(req: Request) {
     // 5. Check if New Email Is Still Available
     // ============================================
     const existingUser = await prisma.users.findUnique({
-      where: { email: user.pendingEmail }
+      where: { email: user.pendingEmail },
     });
 
     if (existingUser && existingUser.id !== userId) {
       return NextResponse.json(
-        { ok: false, message: 'This email is now in use by another account' },
+        { ok: false, message: "This email is now in use by another account" },
         { status: 409 }
       );
     }
@@ -117,8 +114,8 @@ export async function POST(req: Request) {
           pendingEmail: null,
           pendingEmailToken: null,
           pendingEmailExpiresAt: null,
-          emailVerified: new Date() // Mark as verified
-        }
+          emailVerified: new Date(), // Mark as verified
+        },
       }),
 
       // Log audit event
@@ -126,27 +123,27 @@ export async function POST(req: Request) {
         data: {
           id: randomUUID(),
           userId,
-          type: 'EMAIL_CHANGED',
+          type: "EMAIL_CHANGED",
           createdAt: new Date(),
           meta: {
             oldEmail,
             newEmail,
-            method: 'verification_code'
-          }
-        }
-      })
+            method: "verification_code",
+          },
+        },
+      }),
     ]);
 
     // ============================================
     // 7. Send Confirmation Emails
     // ============================================
     try {
-      const { sendSecurityEmail } = await import('@/lib/email');
+      const { sendSecurityEmail } = await import("@/lib/email");
 
       // Confirmation to new email
       await sendSecurityEmail(
         newEmail,
-        'Email Changed Successfully',
+        "Email Changed Successfully",
         `
 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px;">
   <h1>Email Changed Successfully</h1>
@@ -159,7 +156,7 @@ export async function POST(req: Request) {
       // Notification to old email
       await sendSecurityEmail(
         oldEmail,
-        'Email Address Changed',
+        "Email Address Changed",
         `
 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px;">
   <h1>Email Address Changed</h1>
@@ -169,20 +166,19 @@ export async function POST(req: Request) {
         `
       );
     } catch (emailError) {
-      console.error('[EmailVerify] Failed to send confirmation emails:', emailError);
+      console.error("[EmailVerify] Failed to send confirmation emails:", emailError);
       // Don't fail the request if emails fail
     }
 
     return NextResponse.json({
       ok: true,
-      message: 'Email changed successfully',
-      newEmail
+      message: "Email changed successfully",
+      newEmail,
     });
-
   } catch (error: any) {
-    console.error('[EmailVerify] Error:', error);
+    console.error("[EmailVerify] Error:", error);
     return NextResponse.json(
-      { ok: false, message: 'Failed to verify email change' },
+      { ok: false, message: "Failed to verify email change" },
       { status: 500 }
     );
   }

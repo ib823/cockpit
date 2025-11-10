@@ -160,6 +160,7 @@ flowchart LR
 ## 5. OPTIMIZE MODE MERGE (BEFORE → AFTER)
 
 **BEFORE (5 Modes):**
+
 ```mermaid
 graph LR
     A[Capture] --> B[Decide]
@@ -171,6 +172,7 @@ graph LR
 ```
 
 **AFTER (4 Modes, Optimize merged into Plan):**
+
 ```mermaid
 graph LR
     A[Capture] --> B[Decide]

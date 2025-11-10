@@ -4,10 +4,10 @@
  * Comprehensive project insights with charts and metrics
  */
 
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { Modal, Tabs, Progress, Alert, Empty, Card, Statistic } from 'antd';
+import { useMemo, useState } from "react";
+import { Modal, Tabs, Progress, Alert, Empty, Card, Statistic } from "antd";
 import {
   BarChart3,
   TrendingUp,
@@ -20,10 +20,10 @@ import {
   Calendar,
   Zap,
   CheckCircle2,
-} from 'lucide-react';
-import type { GanttProject } from '@/types/gantt-tool';
-import { analyzeProject, type ProjectAnalytics } from '@/lib/project-analytics/analytics';
-import { colorValues, getElevationShadow, withOpacity, spacing } from '@/lib/design-system';
+} from "lucide-react";
+import type { GanttProject } from "@/types/gantt-tool";
+import { analyzeProject, type ProjectAnalytics } from "@/lib/project-analytics/analytics";
+import { colorValues, getElevationShadow, withOpacity, spacing } from "@/lib/design-system";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,8 +35,8 @@ import {
   Tooltip,
   Legend,
   Filler,
-} from 'chart.js';
-import { Line, Bar, Chart } from 'react-chartjs-2';
+} from "chart.js";
+import { Line, Bar, Chart } from "react-chartjs-2";
 
 // Register ChartJS components
 ChartJS.register(
@@ -58,7 +58,7 @@ interface AnalyticsDashboardProps {
 }
 
 export function AnalyticsDashboard({ open, onClose, project }: AnalyticsDashboardProps) {
-  const [selectedTab, setSelectedTab] = useState('overview');
+  const [selectedTab, setSelectedTab] = useState("overview");
 
   // Calculate analytics
   const analytics = useMemo(() => {
@@ -88,7 +88,7 @@ export function AnalyticsDashboard({ open, onClose, project }: AnalyticsDashboar
         </div>
       }
       styles={{
-        body: { maxHeight: '80vh', overflowY: 'auto' },
+        body: { maxHeight: "80vh", overflowY: "auto" },
       }}
     >
       <Tabs
@@ -96,7 +96,7 @@ export function AnalyticsDashboard({ open, onClose, project }: AnalyticsDashboar
         onChange={setSelectedTab}
         items={[
           {
-            key: 'overview',
+            key: "overview",
             label: (
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4" />
@@ -106,7 +106,7 @@ export function AnalyticsDashboard({ open, onClose, project }: AnalyticsDashboar
             children: <OverviewTab analytics={analytics} />,
           },
           {
-            key: 'burndown',
+            key: "burndown",
             label: (
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4" />
@@ -116,7 +116,7 @@ export function AnalyticsDashboard({ open, onClose, project }: AnalyticsDashboar
             children: <BurndownTab analytics={analytics} />,
           },
           {
-            key: 'velocity',
+            key: "velocity",
             label: (
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4" />
@@ -126,7 +126,7 @@ export function AnalyticsDashboard({ open, onClose, project }: AnalyticsDashboar
             children: <VelocityTab analytics={analytics} />,
           },
           {
-            key: 'resources',
+            key: "resources",
             label: (
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
@@ -136,7 +136,7 @@ export function AnalyticsDashboard({ open, onClose, project }: AnalyticsDashboar
             children: <ResourcesTab analytics={analytics} />,
           },
           {
-            key: 'risks',
+            key: "risks",
             label: (
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
@@ -166,8 +166,8 @@ function OverviewTab({ analytics }: { analytics: ProjectAnalytics }) {
           subtitle={`${overview.completedTasks} of ${overview.totalTasks} tasks`}
           color={colorValues.success[600]}
           trend={
-            trends.completionTrend.direction === 'up'
-              ? { direction: 'up' as const, value: trends.completionTrend.rate.toFixed(1) }
+            trends.completionTrend.direction === "up"
+              ? { direction: "up" as const, value: trends.completionTrend.rate.toFixed(1) }
               : undefined
           }
         />
@@ -192,11 +192,11 @@ function OverviewTab({ analytics }: { analytics: ProjectAnalytics }) {
           subtitle="tasks per week"
           color={colorValues.primary[600]}
           trend={
-            trends.velocityTrend.direction === 'up'
-              ? { direction: 'up' as const, value: trends.velocityTrend.rate.toFixed(1) }
-              : trends.velocityTrend.direction === 'down'
-              ? { direction: 'down' as const, value: trends.velocityTrend.rate.toFixed(1) }
-              : undefined
+            trends.velocityTrend.direction === "up"
+              ? { direction: "up" as const, value: trends.velocityTrend.rate.toFixed(1) }
+              : trends.velocityTrend.direction === "down"
+                ? { direction: "down" as const, value: trends.velocityTrend.rate.toFixed(1) }
+                : undefined
           }
         />
       </div>
@@ -214,8 +214,8 @@ function OverviewTab({ analytics }: { analytics: ProjectAnalytics }) {
         <Progress
           percent={overview.completionPercentage}
           strokeColor={{
-            '0%': colorValues.primary[500],
-            '100%': colorValues.success[600],
+            "0%": colorValues.primary[500],
+            "100%": colorValues.success[600],
           }}
           trailColor={colorValues.neutral[200]}
         />
@@ -327,16 +327,16 @@ function BurndownTab({ analytics }: { analytics: ProjectAnalytics }) {
     labels: burndown.dates,
     datasets: [
       {
-        label: 'Ideal Remaining',
+        label: "Ideal Remaining",
         data: burndown.idealRemaining,
         borderColor: colorValues.neutral[300],
-        backgroundColor: 'transparent',
+        backgroundColor: "transparent",
         borderDash: [5, 5],
         tension: 0.1,
         pointRadius: 0,
       },
       {
-        label: 'Actual Remaining',
+        label: "Actual Remaining",
         data: burndown.actualRemaining,
         borderColor: colorValues.primary[500],
         backgroundColor: withOpacity(colorValues.primary[500], 0.1),
@@ -353,10 +353,10 @@ function BurndownTab({ analytics }: { analytics: ProjectAnalytics }) {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: "top" as const,
       },
       tooltip: {
-        mode: 'index' as const,
+        mode: "index" as const,
         intersect: false,
       },
     },
@@ -365,13 +365,13 @@ function BurndownTab({ analytics }: { analytics: ProjectAnalytics }) {
         beginAtZero: true,
         title: {
           display: true,
-          text: 'Tasks Remaining',
+          text: "Tasks Remaining",
         },
       },
       x: {
         title: {
           display: true,
-          text: 'Date',
+          text: "Date",
         },
       },
     },
@@ -381,18 +381,16 @@ function BurndownTab({ analytics }: { analytics: ProjectAnalytics }) {
     <div className="space-y-6">
       {/* Status Banner */}
       <Alert
-        type={burndown.isAheadOfSchedule ? 'success' : 'warning'}
+        type={burndown.isAheadOfSchedule ? "success" : "warning"}
         message={
-          burndown.isAheadOfSchedule
-            ? 'Project is ahead of schedule'
-            : 'Project is behind schedule'
+          burndown.isAheadOfSchedule ? "Project is ahead of schedule" : "Project is behind schedule"
         }
         description={`Projected completion: ${burndown.projectedCompletion} (Burn rate: ${burndown.currentBurnRate.toFixed(2)} tasks/day)`}
         showIcon
       />
 
       {/* Chart */}
-      <div style={{ height: '400px' }}>
+      <div style={{ height: "400px" }}>
         <Line data={chartData} options={options} />
       </div>
 
@@ -436,19 +434,19 @@ function VelocityTab({ analytics }: { analytics: ProjectAnalytics }) {
     labels: velocity.weeks,
     datasets: [
       {
-        label: 'Tasks Completed',
+        label: "Tasks Completed",
         data: velocity.velocity,
         backgroundColor: colorValues.primary[500],
         borderColor: colorValues.primary[600],
         borderWidth: 2,
       },
       {
-        label: 'Average Velocity',
+        label: "Average Velocity",
         data: velocity.weeks.map(() => velocity.averageVelocity),
         borderColor: colorValues.success[600],
-        backgroundColor: 'transparent',
+        backgroundColor: "transparent",
         borderDash: [5, 5],
-        type: 'line' as const,
+        type: "line" as const,
         pointRadius: 0,
       },
     ],
@@ -459,7 +457,7 @@ function VelocityTab({ analytics }: { analytics: ProjectAnalytics }) {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: "top" as const,
       },
     },
     scales: {
@@ -467,13 +465,13 @@ function VelocityTab({ analytics }: { analytics: ProjectAnalytics }) {
         beginAtZero: true,
         title: {
           display: true,
-          text: 'Tasks Completed',
+          text: "Tasks Completed",
         },
       },
       x: {
         title: {
           display: true,
-          text: 'Week',
+          text: "Week",
         },
       },
     },
@@ -487,19 +485,19 @@ function VelocityTab({ analytics }: { analytics: ProjectAnalytics }) {
           <span className="text-sm font-medium" style={{ color: colorValues.neutral[700] }}>
             Velocity Trend:
           </span>
-          {velocity.trend === 'increasing' && (
+          {velocity.trend === "increasing" && (
             <div className="flex items-center gap-1" style={{ color: colorValues.success[600] }}>
               <TrendingUp className="w-4 h-4" />
               <span className="text-sm font-semibold">Increasing</span>
             </div>
           )}
-          {velocity.trend === 'decreasing' && (
+          {velocity.trend === "decreasing" && (
             <div className="flex items-center gap-1" style={{ color: colorValues.error[500] }}>
               <TrendingDown className="w-4 h-4" />
               <span className="text-sm font-semibold">Decreasing</span>
             </div>
           )}
-          {velocity.trend === 'stable' && (
+          {velocity.trend === "stable" && (
             <span className="text-sm font-semibold" style={{ color: colorValues.neutral[600] }}>
               Stable
             </span>
@@ -508,7 +506,7 @@ function VelocityTab({ analytics }: { analytics: ProjectAnalytics }) {
       </div>
 
       {/* Chart */}
-      <div style={{ height: '400px' }}>
+      <div style={{ height: "400px" }}>
         <Chart type="bar" data={chartData} options={options} />
       </div>
 
@@ -584,17 +582,17 @@ function ResourcesTab({ analytics }: { analytics: ProjectAnalytics }) {
             className="p-4 rounded-xl border"
             style={{
               backgroundColor:
-                resource.status === 'optimal'
+                resource.status === "optimal"
                   ? withOpacity(colorValues.success[600], 0.03)
-                  : resource.status === 'overallocated'
-                  ? withOpacity(colorValues.error[500], 0.05)
-                  : withOpacity(colorValues.warning[600], 0.03),
+                  : resource.status === "overallocated"
+                    ? withOpacity(colorValues.error[500], 0.05)
+                    : withOpacity(colorValues.warning[600], 0.03),
               borderColor:
-                resource.status === 'optimal'
+                resource.status === "optimal"
                   ? colorValues.success[200]
-                  : resource.status === 'overallocated'
-                  ? colorValues.error[200]
-                  : colorValues.warning[200],
+                  : resource.status === "overallocated"
+                    ? colorValues.error[200]
+                    : colorValues.warning[200],
             }}
           >
             <div className="flex items-center justify-between mb-3">
@@ -646,11 +644,11 @@ function ResourcesTab({ analytics }: { analytics: ProjectAnalytics }) {
               <Progress
                 percent={resource.allocation}
                 strokeColor={
-                  resource.status === 'optimal'
+                  resource.status === "optimal"
                     ? colorValues.success[600]
-                    : resource.status === 'overallocated'
-                    ? colorValues.error[500]
-                    : colorValues.warning[600]
+                    : resource.status === "overallocated"
+                      ? colorValues.error[500]
+                      : colorValues.warning[600]
                 }
                 showInfo={false}
               />
@@ -669,7 +667,7 @@ function RisksTab({ analytics }: { analytics: ProjectAnalytics }) {
       <Empty
         description="No risks identified"
         image={Empty.PRESENTED_IMAGE_SIMPLE}
-        style={{ padding: '60px 0' }}
+        style={{ padding: "60px 0" }}
       />
     );
   }
@@ -682,19 +680,19 @@ function RisksTab({ analytics }: { analytics: ProjectAnalytics }) {
           className="p-4 rounded-xl border"
           style={{
             backgroundColor: withOpacity(
-              risk.severity === 'high'
+              risk.severity === "high"
                 ? colorValues.error[500]
-                : risk.severity === 'medium'
-                ? colorValues.warning[600]
-                : colorValues.neutral[500],
+                : risk.severity === "medium"
+                  ? colorValues.warning[600]
+                  : colorValues.neutral[500],
               0.03
             ),
             borderColor:
-              risk.severity === 'high'
+              risk.severity === "high"
                 ? colorValues.error[200]
-                : risk.severity === 'medium'
-                ? colorValues.warning[200]
-                : colorValues.neutral[200],
+                : risk.severity === "medium"
+                  ? colorValues.warning[200]
+                  : colorValues.neutral[200],
           }}
         >
           <div className="flex items-start gap-3">
@@ -702,11 +700,11 @@ function RisksTab({ analytics }: { analytics: ProjectAnalytics }) {
               className="w-5 h-5 flex-shrink-0 mt-0.5"
               style={{
                 color:
-                  risk.severity === 'high'
+                  risk.severity === "high"
                     ? colorValues.error[500]
-                    : risk.severity === 'medium'
-                    ? colorValues.warning[600]
-                    : colorValues.neutral[500],
+                    : risk.severity === "medium"
+                      ? colorValues.warning[600]
+                      : colorValues.neutral[500],
               }}
             />
             <div className="flex-1">
@@ -764,7 +762,7 @@ function MetricCard({ icon, label, value, subtitle, color, trend }: any) {
         </div>
         {trend && (
           <div className="flex items-center gap-0.5" style={{ color }}>
-            {trend.direction === 'up' ? (
+            {trend.direction === "up" ? (
               <TrendingUp className="w-3 h-3" />
             ) : (
               <TrendingDown className="w-3 h-3" />
@@ -786,7 +784,7 @@ function EVMCard({ label, value, format, isSPI, isCPI, isVariance }: any) {
   let displayValue = value.toFixed(2);
   let color: string = colorValues.neutral[900];
 
-  if (format === 'currency') {
+  if (format === "currency") {
     displayValue = `$${Math.abs(value).toLocaleString()}`;
     color = value >= 0 ? colorValues.success[600] : colorValues.error[500];
   } else if (isSPI || isCPI) {
@@ -803,9 +801,14 @@ function EVMCard({ label, value, format, isSPI, isCPI, isVariance }: any) {
         valueStyle={{ color }}
         className="[&_.ant-statistic-content]:text-xl"
         prefix={
-          format === 'currency'
-            ? value < 0 && '-'
-            : (isSPI || isCPI) && (value >= 1 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />)
+          format === "currency"
+            ? value < 0 && "-"
+            : (isSPI || isCPI) &&
+              (value >= 1 ? (
+                <TrendingUp className="w-4 h-4" />
+              ) : (
+                <TrendingDown className="w-4 h-4" />
+              ))
         }
       />
     </Card>
@@ -814,10 +817,10 @@ function EVMCard({ label, value, format, isSPI, isCPI, isVariance }: any) {
 
 function ProjectHealthBadge({ health }: { health: string }) {
   const config = {
-    excellent: { label: 'Excellent', color: colorValues.success[600] },
-    good: { label: 'Good', color: colorValues.primary[500] },
-    'at-risk': { label: 'At Risk', color: colorValues.warning[600] },
-    critical: { label: 'Critical', color: colorValues.error[500] },
+    excellent: { label: "Excellent", color: colorValues.success[600] },
+    good: { label: "Good", color: colorValues.primary[500] },
+    "at-risk": { label: "At Risk", color: colorValues.warning[600] },
+    critical: { label: "Critical", color: colorValues.error[500] },
   };
 
   const { label, color } = config[health as keyof typeof config] || config.good;
@@ -837,9 +840,9 @@ function ProjectHealthBadge({ health }: { health: string }) {
 
 function ResourceStatusBadge({ status }: { status: string }) {
   const config = {
-    optimal: { label: 'Optimal', color: colorValues.success[600] },
-    underutilized: { label: 'Underutilized', color: colorValues.warning[600] },
-    overallocated: { label: 'Overallocated', color: colorValues.error[500] },
+    optimal: { label: "Optimal", color: colorValues.success[600] },
+    underutilized: { label: "Underutilized", color: colorValues.warning[600] },
+    overallocated: { label: "Overallocated", color: colorValues.error[500] },
   };
 
   const { label, color } = config[status as keyof typeof config] || config.optimal;
@@ -881,10 +884,10 @@ function RiskSeverityBadge({ severity }: { severity: string }) {
 
 function RiskTypeBadge({ type }: { type: string }) {
   const labels = {
-    schedule: 'Schedule',
-    resource: 'Resource',
-    dependency: 'Dependency',
-    quality: 'Quality',
+    schedule: "Schedule",
+    resource: "Resource",
+    dependency: "Dependency",
+    quality: "Quality",
   };
 
   return (

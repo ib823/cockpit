@@ -4,10 +4,10 @@
  * Visual comparison of project progress against saved baseline
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Modal, Tabs, Progress, Alert, Empty, Select, Button } from 'antd';
+import { useState, useMemo } from "react";
+import { Modal, Tabs, Progress, Alert, Empty, Select, Button } from "antd";
 import {
   TrendingUp,
   TrendingDown,
@@ -19,8 +19,8 @@ import {
   BarChart3,
   Save,
   Clock,
-} from 'lucide-react';
-import type { GanttProject } from '@/types/gantt-tool';
+} from "lucide-react";
+import type { GanttProject } from "@/types/gantt-tool";
 import {
   compareToBaseline,
   createBaseline,
@@ -29,9 +29,9 @@ import {
   type BaselineComparison,
   type TaskVariance,
   type PhaseVariance,
-} from '@/lib/project-analytics/baseline';
-import { colorValues, getElevationShadow, withOpacity, spacing } from '@/lib/design-system';
-import { format, parseISO } from 'date-fns';
+} from "@/lib/project-analytics/baseline";
+import { colorValues, getElevationShadow, withOpacity, spacing } from "@/lib/design-system";
+import { format, parseISO } from "date-fns";
 
 interface BaselineComparisonPanelProps {
   open: boolean;
@@ -53,7 +53,7 @@ export function BaselineComparisonPanel({
   const [selectedBaselineId, setSelectedBaselineId] = useState<string | null>(
     baselines[0]?.id || null
   );
-  const [selectedTab, setSelectedTab] = useState('overview');
+  const [selectedTab, setSelectedTab] = useState("overview");
 
   // Get selected baseline
   const selectedBaseline = useMemo(
@@ -78,8 +78,8 @@ export function BaselineComparisonPanel({
 
     const baseline = createBaseline(
       project,
-      `Baseline ${format(new Date(), 'MMM dd, yyyy')}`,
-      'Automatically created baseline'
+      `Baseline ${format(new Date(), "MMM dd, yyyy")}`,
+      "Automatically created baseline"
     );
 
     onSaveBaseline(baseline);
@@ -96,13 +96,7 @@ export function BaselineComparisonPanel({
 
   if (baselines.length === 0) {
     return (
-      <Modal
-        open={open}
-        onCancel={onClose}
-        footer={null}
-        width={600}
-        title="Baseline Comparison"
-      >
+      <Modal open={open} onCancel={onClose} footer={null} width={600} title="Baseline Comparison">
         <div className="text-center py-12">
           <Save className="w-16 h-16 mx-auto mb-4" style={{ color: colorValues.neutral[300] }} />
           <h3 className="text-lg font-semibold mb-2" style={{ color: colorValues.neutral[900] }}>
@@ -151,20 +145,17 @@ export function BaselineComparisonPanel({
               style={{ width: 250 }}
               options={baselines.map((b) => ({
                 value: b.id,
-                label: `${b.name} (${format(parseISO(b.createdAt), 'MMM dd, yyyy')})`,
+                label: `${b.name} (${format(parseISO(b.createdAt), "MMM dd, yyyy")})`,
               }))}
             />
-            <Button
-              icon={<Save className="w-4 h-4" />}
-              onClick={handleSaveBaseline}
-            >
+            <Button icon={<Save className="w-4 h-4" />} onClick={handleSaveBaseline}>
               Save New Baseline
             </Button>
           </div>
         </div>
       }
       styles={{
-        body: { maxHeight: '75vh', overflowY: 'auto' },
+        body: { maxHeight: "75vh", overflowY: "auto" },
       }}
     >
       <Tabs
@@ -172,7 +163,7 @@ export function BaselineComparisonPanel({
         onChange={setSelectedTab}
         items={[
           {
-            key: 'overview',
+            key: "overview",
             label: (
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4" />
@@ -182,7 +173,7 @@ export function BaselineComparisonPanel({
             children: <OverviewTab comparison={comparison} forecast={forecast} />,
           },
           {
-            key: 'phases',
+            key: "phases",
             label: (
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
@@ -192,7 +183,7 @@ export function BaselineComparisonPanel({
             children: <PhasesTab phases={comparison.phases} />,
           },
           {
-            key: 'tasks',
+            key: "tasks",
             label: (
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
@@ -202,11 +193,14 @@ export function BaselineComparisonPanel({
             children: <TasksTab tasks={comparison.tasks} onHighlightTask={onHighlightTask} />,
           },
           {
-            key: 'issues',
+            key: "issues",
             label: (
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
-                <span>Issues ({comparison.summary.criticalIssues.length + comparison.summary.warnings.length})</span>
+                <span>
+                  Issues (
+                  {comparison.summary.criticalIssues.length + comparison.summary.warnings.length})
+                </span>
               </div>
             ),
             children: <IssuesTab comparison={comparison} />,
@@ -232,21 +226,23 @@ function OverviewTab({
     <div className="space-y-6">
       {/* Schedule Status Banner */}
       <Alert
-        type={isAhead ? 'success' : isBehind ? 'error' : 'info'}
+        type={isAhead ? "success" : isBehind ? "error" : "info"}
         message={
           <div className="flex items-center gap-2">
             {isAhead && <TrendingUp className="w-5 h-5" />}
             {isBehind && <TrendingDown className="w-5 h-5" />}
             {!isAhead && !isBehind && <Minus className="w-5 h-5" />}
             <span className="font-semibold">
-              {isAhead && `Project is ${comparison.overall.scheduleVarianceDays} days ahead of baseline`}
-              {isBehind && `Project is ${Math.abs(comparison.overall.scheduleVarianceDays)} days behind baseline`}
-              {!isAhead && !isBehind && 'Project is on track with baseline'}
+              {isAhead &&
+                `Project is ${comparison.overall.scheduleVarianceDays} days ahead of baseline`}
+              {isBehind &&
+                `Project is ${Math.abs(comparison.overall.scheduleVarianceDays)} days behind baseline`}
+              {!isAhead && !isBehind && "Project is on track with baseline"}
             </span>
           </div>
         }
         description={`Schedule Performance Index: ${comparison.overall.schedulePerformanceIndex.toFixed(2)} (${
-          comparison.overall.schedulePerformanceIndex >= 1 ? 'Good' : 'Needs Attention'
+          comparison.overall.schedulePerformanceIndex >= 1 ? "Good" : "Needs Attention"
         })`}
         showIcon={false}
       />
@@ -331,17 +327,17 @@ function OverviewTab({
               className="text-xs px-2 py-0.5 rounded"
               style={{
                 backgroundColor:
-                  forecast.confidence === 'high'
+                  forecast.confidence === "high"
                     ? withOpacity(colorValues.success[600], 0.1)
-                    : forecast.confidence === 'medium'
-                    ? withOpacity(colorValues.warning[600], 0.1)
-                    : withOpacity(colorValues.error[500], 0.1),
+                    : forecast.confidence === "medium"
+                      ? withOpacity(colorValues.warning[600], 0.1)
+                      : withOpacity(colorValues.error[500], 0.1),
                 color:
-                  forecast.confidence === 'high'
+                  forecast.confidence === "high"
                     ? colorValues.success[700]
-                    : forecast.confidence === 'medium'
-                    ? colorValues.warning[700]
-                    : colorValues.error[600],
+                    : forecast.confidence === "medium"
+                      ? colorValues.warning[700]
+                      : colorValues.error[600],
               }}
             >
               {forecast.confidence} confidence
@@ -354,7 +350,7 @@ function OverviewTab({
                 Forecast End Date
               </div>
               <div className="text-lg font-bold" style={{ color: colorValues.neutral[900] }}>
-                {format(parseISO(forecast.forecastEndDate), 'MMM dd, yyyy')}
+                {format(parseISO(forecast.forecastEndDate), "MMM dd, yyyy")}
               </div>
             </div>
             <div>
@@ -368,14 +364,14 @@ function OverviewTab({
                     forecast.varianceFromBaseline < 0
                       ? colorValues.success[600]
                       : forecast.varianceFromBaseline > 0
-                      ? colorValues.error[500]
-                      : colorValues.neutral[900],
+                        ? colorValues.error[500]
+                        : colorValues.neutral[900],
                 }}
               >
                 {forecast.varianceFromBaseline === 0
-                  ? 'On time'
+                  ? "On time"
                   : `${Math.abs(forecast.varianceFromBaseline)} days ${
-                      forecast.varianceFromBaseline < 0 ? 'early' : 'late'
+                      forecast.varianceFromBaseline < 0 ? "early" : "late"
                     }`}
               </div>
             </div>
@@ -403,17 +399,17 @@ function PhasesTab({ phases }: { phases: PhaseVariance[] }) {
           className="p-4 rounded-xl border"
           style={{
             backgroundColor:
-              phase.status === 'ahead'
+              phase.status === "ahead"
                 ? withOpacity(colorValues.success[600], 0.03)
-                : phase.status === 'behind'
-                ? withOpacity(colorValues.error[500], 0.03)
-                : '#fff',
+                : phase.status === "behind"
+                  ? withOpacity(colorValues.error[500], 0.03)
+                  : "#fff",
             borderColor:
-              phase.status === 'ahead'
+              phase.status === "ahead"
                 ? colorValues.success[200]
-                : phase.status === 'behind'
-                ? colorValues.error[200]
-                : colorValues.neutral[200],
+                : phase.status === "behind"
+                  ? colorValues.error[200]
+                  : colorValues.neutral[200],
           }}
         >
           <div className="flex items-start justify-between gap-4 mb-3">
@@ -436,14 +432,14 @@ function PhasesTab({ phases }: { phases: PhaseVariance[] }) {
                     phase.variance.endDateDays < 0
                       ? colorValues.success[600]
                       : phase.variance.endDateDays > 0
-                      ? colorValues.error[500]
-                      : colorValues.neutral[900],
+                        ? colorValues.error[500]
+                        : colorValues.neutral[900],
                 }}
               >
                 {phase.variance.endDateDays === 0
-                  ? 'On time'
+                  ? "On time"
                   : `${Math.abs(phase.variance.endDateDays)} days ${
-                      phase.variance.endDateDays < 0 ? 'early' : 'late'
+                      phase.variance.endDateDays < 0 ? "early" : "late"
                     }`}
               </div>
             </div>
@@ -454,17 +450,13 @@ function PhasesTab({ phases }: { phases: PhaseVariance[] }) {
               <div className="text-xs mb-1" style={{ color: colorValues.neutral[500] }}>
                 Baseline Duration
               </div>
-              <div style={{ color: colorValues.neutral[900] }}>
-                {phase.baseline.duration} days
-              </div>
+              <div style={{ color: colorValues.neutral[900] }}>{phase.baseline.duration} days</div>
             </div>
             <div>
               <div className="text-xs mb-1" style={{ color: colorValues.neutral[500] }}>
                 Actual Duration
               </div>
-              <div style={{ color: colorValues.neutral[900] }}>
-                {phase.actual.duration} days
-              </div>
+              <div style={{ color: colorValues.neutral[900] }}>{phase.actual.duration} days</div>
             </div>
             <div>
               <div className="text-xs mb-1" style={{ color: colorValues.neutral[500] }}>
@@ -476,13 +468,13 @@ function PhasesTab({ phases }: { phases: PhaseVariance[] }) {
                     phase.variance.durationDays > 0
                       ? colorValues.error[500]
                       : phase.variance.durationDays < 0
-                      ? colorValues.success[600]
-                      : colorValues.neutral[900],
+                        ? colorValues.success[600]
+                        : colorValues.neutral[900],
                 }}
               >
                 {phase.variance.durationDays === 0
-                  ? 'No change'
-                  : `${phase.variance.durationDays > 0 ? '+' : ''}${phase.variance.durationDays} days`}
+                  ? "No change"
+                  : `${phase.variance.durationDays > 0 ? "+" : ""}${phase.variance.durationDays} days`}
               </div>
             </div>
           </div>
@@ -500,10 +492,10 @@ function TasksTab({
   tasks: TaskVariance[];
   onHighlightTask?: (taskId: string) => void;
 }) {
-  const [filter, setFilter] = useState<'all' | 'ahead' | 'behind' | 'at-risk'>('all');
+  const [filter, setFilter] = useState<"all" | "ahead" | "behind" | "at-risk">("all");
 
   const filteredTasks = tasks.filter((task) => {
-    if (filter === 'all') return true;
+    if (filter === "all") return true;
     return task.status === filter;
   });
 
@@ -515,18 +507,18 @@ function TasksTab({
           onChange={setFilter}
           style={{ width: 200 }}
           options={[
-            { value: 'all', label: `All Tasks (${tasks.length})` },
+            { value: "all", label: `All Tasks (${tasks.length})` },
             {
-              value: 'ahead',
-              label: `Ahead (${tasks.filter((t) => t.status === 'ahead').length})`,
+              value: "ahead",
+              label: `Ahead (${tasks.filter((t) => t.status === "ahead").length})`,
             },
             {
-              value: 'behind',
-              label: `Behind (${tasks.filter((t) => t.status === 'behind').length})`,
+              value: "behind",
+              label: `Behind (${tasks.filter((t) => t.status === "behind").length})`,
             },
             {
-              value: 'at-risk',
-              label: `At Risk (${tasks.filter((t) => t.status === 'at-risk').length})`,
+              value: "at-risk",
+              label: `At Risk (${tasks.filter((t) => t.status === "at-risk").length})`,
             },
           ]}
         />
@@ -539,24 +531,27 @@ function TasksTab({
             className="p-3 rounded-lg border cursor-pointer hover:shadow-sm transition-all duration-200"
             style={{
               backgroundColor:
-                task.status === 'ahead'
+                task.status === "ahead"
                   ? withOpacity(colorValues.success[600], 0.03)
-                  : task.status === 'at-risk'
-                  ? withOpacity(colorValues.error[500], 0.05)
-                  : '#fff',
+                  : task.status === "at-risk"
+                    ? withOpacity(colorValues.error[500], 0.05)
+                    : "#fff",
               borderColor:
-                task.status === 'ahead'
+                task.status === "ahead"
                   ? colorValues.success[200]
-                  : task.status === 'at-risk' || task.status === 'behind'
-                  ? colorValues.error[200]
-                  : colorValues.neutral[200],
+                  : task.status === "at-risk" || task.status === "behind"
+                    ? colorValues.error[200]
+                    : colorValues.neutral[200],
             }}
             onClick={() => onHighlightTask?.(task.taskId)}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium truncate" style={{ color: colorValues.neutral[900] }}>
+                  <span
+                    className="text-sm font-medium truncate"
+                    style={{ color: colorValues.neutral[900] }}
+                  >
                     {task.taskName}
                   </span>
                   <StatusBadge status={task.status} />
@@ -581,7 +576,10 @@ function TasksTab({
                   <div className="text-xs" style={{ color: colorValues.neutral[500] }}>
                     Progress
                   </div>
-                  <div className="text-sm font-semibold" style={{ color: colorValues.neutral[900] }}>
+                  <div
+                    className="text-sm font-semibold"
+                    style={{ color: colorValues.neutral[900] }}
+                  >
                     {task.actual.progress}%
                     {task.variance.progressPercentage !== 0 && (
                       <span
@@ -593,7 +591,7 @@ function TasksTab({
                               : colorValues.error[500],
                         }}
                       >
-                        ({task.variance.progressPercentage > 0 ? '+' : ''}
+                        ({task.variance.progressPercentage > 0 ? "+" : ""}
                         {task.variance.progressPercentage.toFixed(0)}%)
                       </span>
                     )}
@@ -711,7 +709,7 @@ function MetricCard({
       </div>
       <div className="flex items-baseline gap-2 mb-1">
         <div className="text-2xl font-bold" style={{ color: colorValues.neutral[900] }}>
-          {format === 'percentage' ? `${actual.toFixed(1)}%` : `${actual} ${format}`}
+          {format === "percentage" ? `${actual.toFixed(1)}%` : `${actual} ${format}`}
         </div>
         {variance !== 0 && (
           <div
@@ -720,19 +718,19 @@ function MetricCard({
               color: isPositive
                 ? colorValues.success[600]
                 : isNegative
-                ? colorValues.error[500]
-                : colorValues.neutral[600],
+                  ? colorValues.error[500]
+                  : colorValues.neutral[600],
             }}
           >
             {isPositive && <TrendingUp className="w-3 h-3" />}
             {isNegative && <TrendingDown className="w-3 h-3" />}
-            {variance > 0 ? '+' : ''}
-            {format === 'percentage' ? `${variance.toFixed(1)}%` : `${variance}`}
+            {variance > 0 ? "+" : ""}
+            {format === "percentage" ? `${variance.toFixed(1)}%` : `${variance}`}
           </div>
         )}
       </div>
       <div className="text-xs" style={{ color: colorValues.neutral[500] }}>
-        Baseline: {format === 'percentage' ? `${baseline.toFixed(1)}%` : `${baseline} ${format}`}
+        Baseline: {format === "percentage" ? `${baseline.toFixed(1)}%` : `${baseline} ${format}`}
       </div>
     </div>
   );
@@ -758,13 +756,17 @@ function StatusBar({ label, count, total, color }: any) {
 
 function StatusBadge({ status }: { status: string }) {
   const config = {
-    ahead: { label: 'Ahead', color: colorValues.success[600], bg: colorValues.success[100] },
-    'on-track': { label: 'On Track', color: colorValues.primary[600], bg: colorValues.primary[100] },
-    behind: { label: 'Behind', color: colorValues.warning[600], bg: colorValues.warning[100] },
-    'at-risk': { label: 'At Risk', color: colorValues.error[600], bg: colorValues.error[100] },
+    ahead: { label: "Ahead", color: colorValues.success[600], bg: colorValues.success[100] },
+    "on-track": {
+      label: "On Track",
+      color: colorValues.primary[600],
+      bg: colorValues.primary[100],
+    },
+    behind: { label: "Behind", color: colorValues.warning[600], bg: colorValues.warning[100] },
+    "at-risk": { label: "At Risk", color: colorValues.error[600], bg: colorValues.error[100] },
   };
 
-  const { label, color, bg } = config[status as keyof typeof config] || config['on-track'];
+  const { label, color, bg } = config[status as keyof typeof config] || config["on-track"];
 
   return (
     <span
@@ -780,7 +782,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function IssueCard({ issue }: { issue: any }) {
-  const isCritical = issue.type === 'critical';
+  const isCritical = issue.type === "critical";
 
   return (
     <div

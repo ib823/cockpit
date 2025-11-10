@@ -1,5 +1,6 @@
 Database Structure for SAP L3 Scope Items
 Core Tables
+
 1. LoB (Line of Business)
 
 lob_id (PK)
@@ -42,32 +43,28 @@ coefficient (0.006/0.008/0.010) - Direct multiplier
 default_tier (A/B/C/D) - Tier D has no coefficient (requires custom pricing)
 extension_risk (Low/Med/High) - Additional complexity factor
 
-Secondary factors:
-4. cross_module_touches - Count of integrations
-5. localization_flag - Binary complexity adder
-6. integration_package_available - Affects implementation effort
+Secondary factors: 4. cross_module_touches - Count of integrations 5. localization_flag - Binary complexity adder 6. integration_package_available - Affects implementation effort
 Recommended Calculation Schema
 sql-- Base complexity score
 base_score = coefficient
 
 -- Risk multiplier
 risk_multiplier = CASE extension_risk
-  WHEN 'Low' THEN 1.0
-  WHEN 'Med' THEN 1.2
-  WHEN 'High' THEN 1.5
+WHEN 'Low' THEN 1.0
+WHEN 'Med' THEN 1.2
+WHEN 'High' THEN 1.5
 END
 
 -- Integration complexity
 integration_count = COUNT(cross_module_touches split by '↔')
-integration_factor = 1 + (integration_count * 0.05)
+integration_factor = 1 + (integration_count \* 0.05)
 
 -- Localization adder
 localization_adder = localization_flag ? 0.002 : 0
 
 -- Final complexity
-complexity_score = (base_score * risk_multiplier * integration_factor) + localization_adder
-Additional Reference Tables
-5. Tier_Definition
+complexity*score = (base_score * risk*multiplier * integration_factor) + localization_adder
+Additional Reference Tables 5. Tier_Definition
 
 tier_code (A/B/C/D)
 description (Vanilla/Cross-module/Complex/Extension)
@@ -90,91 +87,97 @@ Batch 4: Sample indexes and relationships
 I'll use a clear SQL DDL format.Batch 1: Core Entity Tables
 sql-- Table 1: Line of Business
 CREATE TABLE lob (
-    lob_id INT PRIMARY KEY AUTO_INCREMENT,
-    lob_name VARCHAR(100) NOT NULL UNIQUE,
-    l3_count INT NOT NULL,
-    release_tag VARCHAR(10) NOT NULL,
-    navigator_section_url VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+lob_id INT PRIMARY KEY AUTO_INCREMENT,
+lob_name VARCHAR(100) NOT NULL UNIQUE,
+l3_count INT NOT NULL,
+release_tag VARCHAR(10) NOT NULL,
+navigator_section_url VARCHAR(255) NOT NULL,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
     INDEX idx_lob_name (lob_name),
     INDEX idx_release_tag (release_tag)
+
 );
 
 -- Table 2: L3 Scope Items (Main entity)
 CREATE TABLE l3_scope_item (
-    l3_id INT PRIMARY KEY AUTO_INCREMENT,
-    lob_id INT NOT NULL,
-    module VARCHAR(100),
-    l3_code VARCHAR(10) NOT NULL,
-    l3_name VARCHAR(255) NOT NULL,
-    process_navigator_url VARCHAR(255) NOT NULL,
-    former_code VARCHAR(10),
-    release_tag VARCHAR(10) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+l3_id INT PRIMARY KEY AUTO_INCREMENT,
+lob_id INT NOT NULL,
+module VARCHAR(100),
+l3_code VARCHAR(10) NOT NULL,
+l3_name VARCHAR(255) NOT NULL,
+process_navigator_url VARCHAR(255) NOT NULL,
+former_code VARCHAR(10),
+release_tag VARCHAR(10) NOT NULL,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
     FOREIGN KEY (lob_id) REFERENCES lob(lob_id) ON DELETE CASCADE,
     UNIQUE KEY unique_l3_code_release (l3_code, release_tag),
     INDEX idx_l3_code (l3_code),
     INDEX idx_module (module),
     INDEX idx_lob_module (lob_id, module)
+
 );
 Batch 2: Complexity & Integration Tables
 sql-- Table 3: Complexity Metrics
 CREATE TABLE complexity_metrics (
-    l3_id INT PRIMARY KEY,
-    default_tier ENUM('A', 'B', 'C', 'D') NOT NULL,
-    coefficient DECIMAL(5,3) NULL,
-    tier_rationale TEXT NOT NULL,
-    cross_module_touches VARCHAR(100),
-    localization_flag BOOLEAN DEFAULT FALSE,
-    extension_risk ENUM('Low', 'Med', 'High') NOT NULL,
-    
+l3_id INT PRIMARY KEY,
+default_tier ENUM('A', 'B', 'C', 'D') NOT NULL,
+coefficient DECIMAL(5,3) NULL,
+tier_rationale TEXT NOT NULL,
+cross_module_touches VARCHAR(100),
+localization_flag BOOLEAN DEFAULT FALSE,
+extension_risk ENUM('Low', 'Med', 'High') NOT NULL,
+
     FOREIGN KEY (l3_id) REFERENCES l3_scope_item(l3_id) ON DELETE CASCADE,
     INDEX idx_tier (default_tier),
     INDEX idx_coefficient (coefficient),
     INDEX idx_extension_risk (extension_risk),
-    
+
     CHECK (
         (default_tier = 'D' AND coefficient IS NULL) OR
         (default_tier != 'D' AND coefficient IS NOT NULL)
     )
+
 );
 
 -- Table 4: Integration Details
 CREATE TABLE integration_details (
-    l3_id INT PRIMARY KEY,
-    integration_package_available ENUM('Yes', 'No', 'NA') NOT NULL,
-    test_script_exists BOOLEAN DEFAULT TRUE,
-    
+l3_id INT PRIMARY KEY,
+integration_package_available ENUM('Yes', 'No', 'NA') NOT NULL,
+test_script_exists BOOLEAN DEFAULT TRUE,
+
     FOREIGN KEY (l3_id) REFERENCES l3_scope_item(l3_id) ON DELETE CASCADE
+
 );
 
 -- Table 5: Cross-Module Integrations (normalized)
 CREATE TABLE cross_module_integration (
-    integration_id INT PRIMARY KEY AUTO_INCREMENT,
-    l3_id INT NOT NULL,
-    source_module VARCHAR(50) NOT NULL,
-    target_module VARCHAR(50) NOT NULL,
-    
+integration_id INT PRIMARY KEY AUTO_INCREMENT,
+l3_id INT NOT NULL,
+source_module VARCHAR(50) NOT NULL,
+target_module VARCHAR(50) NOT NULL,
+
     FOREIGN KEY (l3_id) REFERENCES l3_scope_item(l3_id) ON DELETE CASCADE,
     INDEX idx_l3_integrations (l3_id),
     INDEX idx_modules (source_module, target_module),
     UNIQUE KEY unique_integration (l3_id, source_module, target_module)
+
 );
 Batch 3: Reference Tables
 sql-- Table 6: Tier Definitions
 CREATE TABLE tier_definition (
-    tier_code CHAR(1) PRIMARY KEY,
-    tier_name VARCHAR(50) NOT NULL,
-    description TEXT NOT NULL,
-    default_coefficient DECIMAL(5,3),
-    typical_percentage DECIMAL(5,2),
-    sort_order INT NOT NULL,
-    
+tier_code CHAR(1) PRIMARY KEY,
+tier_name VARCHAR(50) NOT NULL,
+description TEXT NOT NULL,
+default_coefficient DECIMAL(5,3),
+typical_percentage DECIMAL(5,2),
+sort_order INT NOT NULL,
+
     UNIQUE KEY unique_tier_name (tier_name)
+
 );
 
 -- Insert reference data
@@ -186,16 +189,17 @@ INSERT INTO tier_definition VALUES
 
 -- Table 7: Module Catalog
 CREATE TABLE module_catalog (
-    module_id INT PRIMARY KEY AUTO_INCREMENT,
-    module_code VARCHAR(10) NOT NULL UNIQUE,
-    module_name VARCHAR(100) NOT NULL,
-    module_description TEXT,
-    
+module_id INT PRIMARY KEY AUTO_INCREMENT,
+module_code VARCHAR(10) NOT NULL UNIQUE,
+module_name VARCHAR(100) NOT NULL,
+module_description TEXT,
+
     INDEX idx_module_code (module_code)
+
 );
 
 -- Insert common modules
-INSERT INTO module_catalog (module_code, module_name) VALUES
+INSERT INTO module*catalog (module_code, module_name) VALUES
 ('FI', 'Financial Accounting'),
 ('CO', 'Controlling'),
 ('SD', 'Sales & Distribution'),
@@ -216,56 +220,56 @@ INSERT INTO module_catalog (module_code, module_name) VALUES
 Batch 4: Calculation & Analytics Views
 sql-- View 1: Complexity Score Calculation
 CREATE VIEW v_complexity_scores AS
-SELECT 
-    l.l3_id,
-    l.l3_code,
-    l.l3_name,
-    lob.lob_name,
-    l.module,
-    cm.default_tier,
-    cm.coefficient,
-    cm.extension_risk,
-    cm.localization_flag,
-    -- Count integrations
-    COALESCE(int_count.integration_count, 0) as integration_count,
-    -- Risk multiplier
-    CASE cm.extension_risk
-        WHEN 'Low' THEN 1.0
-        WHEN 'Med' THEN 1.2
-        WHEN 'High' THEN 1.5
-    END as risk_multiplier,
-    -- Integration factor
-    (1 + (COALESCE(int_count.integration_count, 0) * 0.05)) as integration_factor,
-    -- Localization adder
-    CASE WHEN cm.localization_flag THEN 0.002 ELSE 0 END as localization_adder,
-    -- Final complexity score
-    CASE 
-        WHEN cm.coefficient IS NULL THEN NULL -- Tier D
-        ELSE (cm.coefficient * 
-              CASE cm.extension_risk WHEN 'Low' THEN 1.0 WHEN 'Med' THEN 1.2 WHEN 'High' THEN 1.5 END *
-              (1 + (COALESCE(int_count.integration_count, 0) * 0.05))) +
-             CASE WHEN cm.localization_flag THEN 0.002 ELSE 0 END
-    END as complexity_score
+SELECT
+l.l3_id,
+l.l3_code,
+l.l3_name,
+lob.lob_name,
+l.module,
+cm.default_tier,
+cm.coefficient,
+cm.extension_risk,
+cm.localization_flag,
+-- Count integrations
+COALESCE(int_count.integration_count, 0) as integration_count,
+-- Risk multiplier
+CASE cm.extension_risk
+WHEN 'Low' THEN 1.0
+WHEN 'Med' THEN 1.2
+WHEN 'High' THEN 1.5
+END as risk_multiplier,
+-- Integration factor
+(1 + (COALESCE(int_count.integration_count, 0) * 0.05)) as integration*factor,
+-- Localization adder
+CASE WHEN cm.localization_flag THEN 0.002 ELSE 0 END as localization_adder,
+-- Final complexity score
+CASE
+WHEN cm.coefficient IS NULL THEN NULL -- Tier D
+ELSE (cm.coefficient *
+CASE cm.extension*risk WHEN 'Low' THEN 1.0 WHEN 'Med' THEN 1.2 WHEN 'High' THEN 1.5 END *
+(1 + (COALESCE(int*count.integration_count, 0) * 0.05))) +
+CASE WHEN cm.localization_flag THEN 0.002 ELSE 0 END
+END as complexity_score
 FROM l3_scope_item l
 JOIN lob ON l.lob_id = lob.lob_id
 JOIN complexity_metrics cm ON l.l3_id = cm.l3_id
 LEFT JOIN (
-    SELECT l3_id, COUNT(*) as integration_count
-    FROM cross_module_integration
-    GROUP BY l3_id
+SELECT l3_id, COUNT(\*) as integration_count
+FROM cross_module_integration
+GROUP BY l3_id
 ) int_count ON l.l3_id = int_count.l3_id;
 
 -- View 2: LoB Summary Statistics
 CREATE VIEW v_lob_summary AS
-SELECT 
-    lob.lob_name,
-    COUNT(l.l3_id) as total_items,
-    SUM(CASE WHEN cm.default_tier = 'A' THEN 1 ELSE 0 END) as tier_a_count,
-    SUM(CASE WHEN cm.default_tier = 'B' THEN 1 ELSE 0 END) as tier_b_count,
-    SUM(CASE WHEN cm.default_tier = 'C' THEN 1 ELSE 0 END) as tier_c_count,
-    SUM(CASE WHEN cm.default_tier = 'D' THEN 1 ELSE 0 END) as tier_d_count,
-    AVG(CASE WHEN cm.coefficient IS NOT NULL THEN cm.coefficient END) as avg_coefficient,
-    SUM(CASE WHEN cm.localization_flag THEN 1 ELSE 0 END) as localized_items
+SELECT
+lob.lob_name,
+COUNT(l.l3_id) as total_items,
+SUM(CASE WHEN cm.default_tier = 'A' THEN 1 ELSE 0 END) as tier_a_count,
+SUM(CASE WHEN cm.default_tier = 'B' THEN 1 ELSE 0 END) as tier_b_count,
+SUM(CASE WHEN cm.default_tier = 'C' THEN 1 ELSE 0 END) as tier_c_count,
+SUM(CASE WHEN cm.default_tier = 'D' THEN 1 ELSE 0 END) as tier_d_count,
+AVG(CASE WHEN cm.coefficient IS NOT NULL THEN cm.coefficient END) as avg_coefficient,
+SUM(CASE WHEN cm.localization_flag THEN 1 ELSE 0 END) as localized_items
 FROM lob
 JOIN l3_scope_item l ON lob.lob_id = l.lob_id
 JOIN complexity_metrics cm ON l.l3_id = cm.l3_id

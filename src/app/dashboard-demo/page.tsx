@@ -4,22 +4,22 @@
  * Demonstrates the Three-Layer Cake Dashboard with sample data and export functionality
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { App, Modal, Radio, Space, Typography } from 'antd';
-import { FileText, FileSpreadsheet, Download } from 'lucide-react';
-import { ThreeLayerDashboard } from '@/components/dashboard';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { calculateTotalCost, calculateMargins } from '@/lib/dashboard/calculation-engine';
-import { exportDashboard, ExportData } from '@/lib/dashboard/export-engine';
+import { useState, useMemo } from "react";
+import { App, Modal, Radio, Space, Typography } from "antd";
+import { FileText, FileSpreadsheet, Download } from "lucide-react";
+import { ThreeLayerDashboard } from "@/components/dashboard";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { calculateTotalCost, calculateMargins } from "@/lib/dashboard/calculation-engine";
+import { exportDashboard, ExportData } from "@/lib/dashboard/export-engine";
 
 const { Text } = Typography;
 
 export default function DashboardDemoPage() {
   const { currentProject } = useGanttToolStoreV2();
   const [exportModalVisible, setExportModalVisible] = useState(false);
-  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('pdf');
+  const [exportFormat, setExportFormat] = useState<"csv" | "excel" | "pdf">("pdf");
 
   // Calculate metrics for export
   const exportData = useMemo<ExportData | null>(() => {
@@ -40,16 +40,20 @@ export default function DashboardDemoPage() {
 
   if (!currentProject) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        background: '#f5f5f5',
-      }}>
-        <div style={{ textAlign: 'center', padding: '40px' }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          background: "#f5f5f5",
+        }}
+      >
+        <div style={{ textAlign: "center", padding: "40px" }}>
           <h2>No Project Loaded</h2>
-          <p>Please create or load a Gantt project first at <a href="/gantt-tool">/gantt-tool</a></p>
+          <p>
+            Please create or load a Gantt project first at <a href="/gantt-tool">/gantt-tool</a>
+          </p>
         </div>
       </div>
     );
@@ -87,15 +91,15 @@ export default function DashboardDemoPage() {
         okText="Export"
         width={500}
       >
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
           <Text>Choose export format:</Text>
 
           <Radio.Group
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value)}
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
           >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
               <Radio value="pdf">
                 <Space>
                   <FileText size={20} />

@@ -23,6 +23,7 @@ git status
 ```
 
 **Branch Naming Convention**:
+
 - `fix/mobile-responsive-p0` - Priority 0 critical fixes
 - `fix/mobile-responsive-p1` - Priority 1 high-impact fixes
 - `feat/mobile-enhancements` - Priority 2 polish features
@@ -32,6 +33,7 @@ git status
 ### 1.2 Set Up Testing Infrastructure
 
 **Install Testing Dependencies**:
+
 ```bash
 # Visual regression testing
 npm install --save-dev @percy/cli @percy/playwright
@@ -47,77 +49,78 @@ npm install --save-dev @next/bundle-analyzer
 ```
 
 **Configure Playwright**:
+
 ```typescript
 // playwright.config.ts
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: "html",
 
   use: {
-    baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    baseURL: "http://localhost:3000",
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
   },
 
   projects: [
     // Desktop browsers
     {
-      name: 'chromium-desktop',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium-desktop",
+      use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: 'firefox-desktop',
-      use: { ...devices['Desktop Firefox'] },
+      name: "firefox-desktop",
+      use: { ...devices["Desktop Firefox"] },
     },
     {
-      name: 'webkit-desktop',
-      use: { ...devices['Desktop Safari'] },
+      name: "webkit-desktop",
+      use: { ...devices["Desktop Safari"] },
     },
 
     // Mobile devices - CRITICAL FOR OUR CHANGES
     {
-      name: 'iphone-se',
+      name: "iphone-se",
       use: {
-        ...devices['iPhone SE'],
+        ...devices["iPhone SE"],
         viewport: { width: 375, height: 667 },
       },
     },
     {
-      name: 'iphone-12',
+      name: "iphone-12",
       use: {
-        ...devices['iPhone 12'],
+        ...devices["iPhone 12"],
         viewport: { width: 390, height: 844 },
       },
     },
     {
-      name: 'iphone-14-pro-max',
+      name: "iphone-14-pro-max",
       use: {
-        ...devices['iPhone 14 Pro Max'],
+        ...devices["iPhone 14 Pro Max"],
         viewport: { width: 430, height: 932 },
       },
     },
     {
-      name: 'ipad-mini',
+      name: "ipad-mini",
       use: {
-        ...devices['iPad Mini'],
+        ...devices["iPad Mini"],
         viewport: { width: 768, height: 1024 },
       },
     },
     {
-      name: 'pixel-5',
-      use: { ...devices['Pixel 5'] },
+      name: "pixel-5",
+      use: { ...devices["Pixel 5"] },
     },
   ],
 
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+    command: "npm run dev",
+    url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
   },
 });
@@ -130,27 +133,28 @@ export default defineConfig({
 This is critical - we need to capture the current state before making ANY changes.
 
 **Create Screenshot Script**:
+
 ```typescript
 // tests/visual/baseline.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
 const viewports = [
-  { name: 'mobile-375', width: 375, height: 667 },
-  { name: 'mobile-390', width: 390, height: 844 },
-  { name: 'tablet-768', width: 768, height: 1024 },
-  { name: 'desktop-1280', width: 1280, height: 800 },
-  { name: 'desktop-1920', width: 1920, height: 1080 },
+  { name: "mobile-375", width: 375, height: 667 },
+  { name: "mobile-390", width: 390, height: 844 },
+  { name: "tablet-768", width: 768, height: 1024 },
+  { name: "desktop-1280", width: 1280, height: 800 },
+  { name: "desktop-1920", width: 1920, height: 1080 },
 ];
 
 const routes = [
-  '/',
-  '/login',
-  '/dashboard',
-  '/project/capture',
-  '/project/plan',
-  '/project/present',
-  '/project/decide',
-  '/admin',
+  "/",
+  "/login",
+  "/dashboard",
+  "/project/capture",
+  "/project/plan",
+  "/project/present",
+  "/project/decide",
+  "/admin",
 ];
 
 for (const viewport of viewports) {
@@ -158,19 +162,19 @@ for (const viewport of viewports) {
     test(`${route} - ${viewport.name}`, async ({ page }) => {
       await page.setViewportSize({
         width: viewport.width,
-        height: viewport.height
+        height: viewport.height,
       });
 
       // Navigate to route
       await page.goto(route);
 
       // Wait for page to be fully loaded
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState("networkidle");
 
       // Take full page screenshot
       await page.screenshot({
-        path: `tests/visual/baseline/${viewport.name}${route.replace(/\//g, '_')}.png`,
-        fullPage: true
+        path: `tests/visual/baseline/${viewport.name}${route.replace(/\//g, "_")}.png`,
+        fullPage: true,
       });
     });
   }
@@ -178,6 +182,7 @@ for (const viewport of viewports) {
 ```
 
 **Run Baseline Capture**:
+
 ```bash
 # Start dev server
 npm run dev
@@ -196,17 +201,21 @@ git commit -m "chore: add visual regression baseline screenshots"
 ### 1.4 Document Current Functionality (Smoke Test Checklist)
 
 **Create Manual Test Checklist**:
+
 ```markdown
 # tests/manual/smoke-test-checklist.md
 
 ## Authentication
+
 - [ ] Can log in with email/password
 - [ ] Can log in with passkey
 - [ ] Can log out
 - [ ] Session persists on page refresh
 
 ## Project Workflows
+
 ### Capture Mode
+
 - [ ] Can create new project
 - [ ] Can enter requirements manually
 - [ ] Can paste requirements
@@ -216,6 +225,7 @@ git commit -m "chore: add visual regression baseline screenshots"
 - [ ] Can navigate to Plan mode
 
 ### Plan Mode
+
 - [ ] Timeline displays correctly
 - [ ] Can add/edit/delete tasks
 - [ ] Can change dependencies
@@ -224,6 +234,7 @@ git commit -m "chore: add visual regression baseline screenshots"
 - [ ] Can navigate to Present mode
 
 ### Present Mode
+
 - [ ] Slides display correctly
 - [ ] Can navigate between slides (arrows/dots)
 - [ ] Can export presentation
@@ -231,6 +242,7 @@ git commit -m "chore: add visual regression baseline screenshots"
 - [ ] Can navigate to Decide mode
 
 ### Decide Mode
+
 - [ ] Decision cards display
 - [ ] Can view gaps
 - [ ] Can mark decisions complete
@@ -238,12 +250,14 @@ git commit -m "chore: add visual regression baseline screenshots"
 - [ ] Can navigate back to Capture
 
 ## Admin Functions
+
 - [ ] Can view user list
 - [ ] Can create access code
 - [ ] Can view security dashboard
 - [ ] Can access settings
 
 ## General
+
 - [ ] No console errors
 - [ ] No network errors (check Network tab)
 - [ ] Dark mode toggles correctly
@@ -253,6 +267,7 @@ git commit -m "chore: add visual regression baseline screenshots"
 ```
 
 **Run Manual Smoke Test BEFORE Changes**:
+
 ```bash
 # Document results
 cp tests/manual/smoke-test-checklist.md tests/manual/smoke-test-BASELINE-$(date +%Y%m%d).md
@@ -284,17 +299,20 @@ git commit -m "chore: baseline smoke test results"
 #### **Change 1: PlanMode Panel Width**
 
 **A. Make the change**:
+
 ```tsx
 // File: src/components/project-v2/modes/PlanMode.tsx
 
 // BEFORE (Line 311):
-className="fixed right-0 top-0 bottom-0 w-[480px] bg-white shadow-2xl z-50"
+className = "fixed right-0 top-0 bottom-0 w-[480px] bg-white shadow-2xl z-50";
 
 // AFTER:
-className="fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480px] bg-white shadow-2xl z-50"
+className =
+  "fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480px] bg-white shadow-2xl z-50";
 ```
 
 **B. Test immediately**:
+
 ```bash
 # 1. Visual inspection (Chrome DevTools)
 npm run dev
@@ -321,6 +339,7 @@ npx playwright test tests/e2e/plan-mode.spec.ts --project=desktop
 ```
 
 **C. Visual regression check**:
+
 ```bash
 # Take new screenshot
 npx playwright test tests/visual/baseline.spec.ts --grep "plan"
@@ -331,6 +350,7 @@ npm run visual-diff
 ```
 
 **D. Commit if tests pass**:
+
 ```bash
 # If all tests pass
 git add src/components/project-v2/modes/PlanMode.tsx
@@ -356,24 +376,24 @@ git restore src/components/project-v2/modes/PlanMode.tsx
 
 ```typescript
 // tests/e2e/plan-mode.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('PlanMode', () => {
+test.describe("PlanMode", () => {
   test.beforeEach(async ({ page }) => {
     // Login and navigate to plan mode
-    await page.goto('/login');
-    await page.fill('input[type="email"]', 'test@example.com');
-    await page.fill('input[type="password"]', 'password');
+    await page.goto("/login");
+    await page.fill('input[type="email"]', "test@example.com");
+    await page.fill('input[type="password"]', "password");
     await page.click('button[type="submit"]');
-    await page.waitForURL('/dashboard');
-    await page.goto('/project/plan');
+    await page.waitForURL("/dashboard");
+    await page.goto("/project/plan");
   });
 
-  test('should display plan mode layout', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Plan');
+  test("should display plan mode layout", async ({ page }) => {
+    await expect(page.locator("h1")).toContainText("Plan");
   });
 
-  test('should open side panel', async ({ page }) => {
+  test("should open side panel", async ({ page }) => {
     const panelButton = page.locator('button:has-text("Resources")');
     await panelButton.click();
 
@@ -381,7 +401,7 @@ test.describe('PlanMode', () => {
     await expect(panel).toBeVisible();
   });
 
-  test('should close side panel on mobile', async ({ page, viewport }) => {
+  test("should close side panel on mobile", async ({ page, viewport }) => {
     // Only run on mobile viewports
     if (viewport.width < 768) {
       const panelButton = page.locator('button:has-text("Resources")');
@@ -401,21 +421,21 @@ test.describe('PlanMode', () => {
     }
   });
 
-  test('should not cause horizontal scroll', async ({ page }) => {
-    const body = page.locator('body');
-    const scrollWidth = await body.evaluate(el => el.scrollWidth);
-    const clientWidth = await body.evaluate(el => el.clientWidth);
+  test("should not cause horizontal scroll", async ({ page }) => {
+    const body = page.locator("body");
+    const scrollWidth = await body.evaluate((el) => el.scrollWidth);
+    const clientWidth = await body.evaluate((el) => el.clientWidth);
 
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1); // Allow 1px tolerance
   });
 
-  test('should display tabs', async ({ page }) => {
+  test("should display tabs", async ({ page }) => {
     await expect(page.locator('button:has-text("Calendar")')).toBeVisible();
     await expect(page.locator('button:has-text("Benchmarks")')).toBeVisible();
     await expect(page.locator('button:has-text("Resources")')).toBeVisible();
   });
 
-  test('should switch between tabs', async ({ page }) => {
+  test("should switch between tabs", async ({ page }) => {
     await page.click('button:has-text("Calendar")');
     await expect(page.locator('[data-testid="calendar-view"]')).toBeVisible();
 
@@ -429,21 +449,20 @@ test.describe('PlanMode', () => {
 
 ```typescript
 // tests/e2e/responsive.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
 const criticalRoutes = [
-  '/',
-  '/dashboard',
-  '/project/capture',
-  '/project/plan',
-  '/project/present',
-  '/project/decide',
+  "/",
+  "/dashboard",
+  "/project/capture",
+  "/project/plan",
+  "/project/present",
+  "/project/decide",
 ];
 
 for (const route of criticalRoutes) {
   test.describe(`${route} - Responsive Tests`, () => {
-
-    test('should not have horizontal scroll on mobile', async ({ page }) => {
+    test("should not have horizontal scroll on mobile", async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await page.goto(route);
 
@@ -453,7 +472,7 @@ for (const route of criticalRoutes) {
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
     });
 
-    test('should not have horizontal scroll on tablet', async ({ page }) => {
+    test("should not have horizontal scroll on tablet", async ({ page }) => {
       await page.setViewportSize({ width: 768, height: 1024 });
       await page.goto(route);
 
@@ -463,7 +482,7 @@ for (const route of criticalRoutes) {
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
     });
 
-    test('should not have horizontal scroll on desktop', async ({ page }) => {
+    test("should not have horizontal scroll on desktop", async ({ page }) => {
       await page.setViewportSize({ width: 1920, height: 1080 });
       await page.goto(route);
 
@@ -473,11 +492,11 @@ for (const route of criticalRoutes) {
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
     });
 
-    test('all interactive elements should be tappable on mobile', async ({ page }) => {
+    test("all interactive elements should be tappable on mobile", async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await page.goto(route);
 
-      const buttons = await page.locator('button, a[href]').all();
+      const buttons = await page.locator("button, a[href]").all();
 
       for (const button of buttons) {
         const box = await button.boundingBox();
@@ -496,22 +515,22 @@ for (const route of criticalRoutes) {
 
 ```typescript
 // tests/e2e/accessibility.spec.ts
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
-test.describe('Accessibility Tests', () => {
-  test('should not have accessibility violations on dashboard', async ({ page }) => {
-    await page.goto('/dashboard');
+test.describe("Accessibility Tests", () => {
+  test("should not have accessibility violations on dashboard", async ({ page }) => {
+    await page.goto("/dashboard");
 
     const accessibilityScanResults = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();
 
     expect(accessibilityScanResults.violations).toEqual([]);
   });
 
-  test('should not have accessibility violations on plan mode', async ({ page }) => {
-    await page.goto('/project/plan');
+  test("should not have accessibility violations on plan mode", async ({ page }) => {
+    await page.goto("/project/plan");
 
     const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
 
@@ -530,6 +549,7 @@ test.describe('Accessibility Tests', () => {
 ## Testing Checklist - [Component Name] - [Date]
 
 ### 1. Visual Inspection
+
 - [ ] Mobile (375px) - Chrome DevTools
 - [ ] Mobile (390px) - Chrome DevTools
 - [ ] Tablet (768px) - Chrome DevTools
@@ -537,6 +557,7 @@ test.describe('Accessibility Tests', () => {
 - [ ] Desktop (1920px) - Chrome DevTools
 
 ### 2. Functional Testing
+
 - [ ] Component renders
 - [ ] Interactions work (clicks, hovers, focus)
 - [ ] Forms submit correctly
@@ -546,36 +567,42 @@ test.describe('Accessibility Tests', () => {
 - [ ] Error states show
 
 ### 3. Cross-Browser Testing
+
 - [ ] Chrome (latest)
 - [ ] Firefox (latest)
 - [ ] Safari (if on Mac)
 - [ ] Edge (latest)
 
 ### 4. Automated Tests
+
 - [ ] E2E tests pass: `npm run test:e2e`
 - [ ] Unit tests pass: `npm run test`
 - [ ] TypeScript compiles: `npm run typecheck`
 - [ ] Linting passes: `npm run lint`
 
 ### 5. Regression Testing
+
 - [ ] Adjacent components still work
 - [ ] Routes still navigate correctly
 - [ ] No new console errors
 - [ ] No new network errors
 
 ### 6. Performance
+
 - [ ] No significant bundle size increase
 - [ ] Page loads in < 3 seconds
 - [ ] No layout shift (CLS)
 - [ ] Lighthouse score unchanged or improved
 
 ### 7. Visual Regression
+
 - [ ] Screenshot comparison shows only intended changes
 - [ ] No unintended styling changes
 - [ ] Typography unchanged (unless intended)
 - [ ] Spacing unchanged (unless intended)
 
 ### 8. Accessibility
+
 - [ ] Keyboard navigation still works
 - [ ] Focus visible
 - [ ] Screen reader announces correctly
@@ -601,6 +628,7 @@ test.describe('Accessibility Tests', () => {
 #### **Day 1: Setup + Fix 1 (PlanMode Panel)**
 
 **Morning (2 hours)**:
+
 ```bash
 # 1. Setup testing infrastructure
 npm install --save-dev playwright @playwright/test @axe-core/playwright
@@ -613,6 +641,7 @@ npx playwright test tests/visual/baseline.spec.ts
 ```
 
 **Afternoon (2 hours)**:
+
 ```bash
 # 4. Implement Fix 1: PlanMode panel width
 # Edit: src/components/project-v2/modes/PlanMode.tsx:311
@@ -637,6 +666,7 @@ git restore src/components/project-v2/modes/PlanMode.tsx
 ```
 
 **End of Day Checkpoint**:
+
 - [ ] Fix applied
 - [ ] Tests passing
 - [ ] Committed to branch
@@ -647,6 +677,7 @@ git restore src/components/project-v2/modes/PlanMode.tsx
 #### **Day 2: Fix 2 (AppLayout Scroll) + Fix 3 (Hamburger Menu Part 1)**
 
 **Morning (1 hour)**:
+
 ```bash
 # Fix 2: AppLayout horizontal scroll
 # Edit: src/components/layout/AppLayout.tsx:42-43
@@ -662,6 +693,7 @@ git commit -m "fix(mobile): remove 100vw causing horizontal scroll"
 ```
 
 **Afternoon (3 hours)**:
+
 ```bash
 # Fix 3: Add hamburger menu (complex change)
 # Edit: src/components/layout/AppLayout.tsx (major changes)
@@ -683,6 +715,7 @@ git commit -m "feat(mobile): add hamburger menu navigation"
 ```
 
 **End of Day Checkpoint**:
+
 - [ ] 2 more fixes applied
 - [ ] All tests passing
 - [ ] No regressions
@@ -693,6 +726,7 @@ git commit -m "feat(mobile): add hamburger menu navigation"
 #### **Day 3: Testing & Refinement**
 
 **Full Day (6 hours)**:
+
 ```bash
 # 1. Run complete test suite
 npm run test          # Unit tests
@@ -729,11 +763,13 @@ git push origin fix/mobile-responsive-p0
 #### **Day 4-5: Code Review + Deploy to Staging**
 
 **Day 4 (PR Review)**:
+
 - Share PR with team
 - Address review comments
 - Re-test after changes
 
 **Day 5 (Staging Deployment)**:
+
 ```bash
 # Merge to main after approval
 git checkout main
@@ -763,6 +799,7 @@ git push origin main
 ### 4.1 Immediate Rollback (If Critical Issue Found)
 
 **Git Revert**:
+
 ```bash
 # If issue found after merge
 git log --oneline  # Find commit hash
@@ -804,6 +841,7 @@ export function AppLayout({ children }) {
 ```
 
 **Toggle Off**:
+
 ```bash
 # .env.production
 NEXT_PUBLIC_FEATURE_MOBILE_NAV=false
@@ -816,9 +854,10 @@ NEXT_PUBLIC_FEATURE_MOBILE_NAV=false
 ### 4.2 Monitoring After Deployment
 
 **Set Up Error Tracking**:
+
 ```typescript
 // If using Sentry or similar
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -830,9 +869,9 @@ Sentry.init({
 export function PlanMode() {
   useEffect(() => {
     Sentry.addBreadcrumb({
-      category: 'navigation',
-      message: 'Entered PlanMode',
-      level: 'info',
+      category: "navigation",
+      message: "Entered PlanMode",
+      level: "info",
     });
   }, []);
 
@@ -841,25 +880,30 @@ export function PlanMode() {
 ```
 
 **Monitor Key Metrics**:
+
 ```markdown
 ## Post-Deployment Monitoring (First 24 Hours)
 
 ### Error Rates
+
 - [ ] No increase in JavaScript errors
 - [ ] No increase in API errors
 - [ ] No increase in failed page loads
 
 ### Performance
+
 - [ ] Page load time unchanged or improved
 - [ ] Core Web Vitals stable
 - [ ] No layout shift issues
 
 ### User Behavior
+
 - [ ] Mobile conversion rate stable
 - [ ] Session duration stable
 - [ ] Bounce rate stable or improved
 
 ### Specific Checks
+
 - [ ] PlanMode panel usage working
 - [ ] Navigation clicks working
 - [ ] Form submissions working
@@ -872,6 +916,7 @@ export function PlanMode() {
 ### 5.1 Automated CI/CD Pipeline
 
 **GitHub Actions Workflow**:
+
 ```yaml
 # .github/workflows/test.yml
 name: Test Suite
@@ -892,8 +937,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -930,6 +975,7 @@ jobs:
 ```
 
 **Run on Every PR**:
+
 - Prevents breaking changes from merging
 - Visual regression catches unintended changes
 - Accessibility tests enforce standards
@@ -939,6 +985,7 @@ jobs:
 ### 5.2 Pre-Commit Hooks
 
 **Husky + Lint-Staged**:
+
 ```bash
 npm install --save-dev husky lint-staged
 
@@ -948,22 +995,19 @@ npx husky add .husky/pre-commit "npx lint-staged"
 ```
 
 **Configuration**:
+
 ```json
 // package.json
 {
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{ts,tsx}": [
-      "bash -c 'npm run typecheck'"
-    ]
+    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{ts,tsx}": ["bash -c 'npm run typecheck'"]
   }
 }
 ```
 
 **Prevents committing**:
+
 - TypeScript errors
 - Linting errors
 - Formatting issues
@@ -975,6 +1019,7 @@ npx husky add .husky/pre-commit "npx lint-staged"
 ### Daily Testing Routine (During Implementation)
 
 **Every Morning**:
+
 ```bash
 # 1. Pull latest changes
 git checkout main
@@ -992,6 +1037,7 @@ npm run dev
 ```
 
 **After Each Change**:
+
 ```bash
 # 1. Visual test (2 minutes)
 # 2. Functional test (3 minutes)
@@ -1001,6 +1047,7 @@ npm run dev
 ```
 
 **End of Day**:
+
 ```bash
 # 1. Run full test suite (5 minutes)
 npm run test
@@ -1095,6 +1142,7 @@ git push origin fix/mobile-responsive-p0
 ### If Critical Bug Found in Production
 
 **Immediate Actions** (5 minutes):
+
 ```bash
 # 1. Verify issue is real (not user error)
 # 2. Assess severity (blocks users?)
@@ -1111,6 +1159,7 @@ git push origin main
 ```
 
 **Follow-Up** (next hour):
+
 ```bash
 # 1. Create hotfix branch
 git checkout -b hotfix/critical-mobile-bug
@@ -1148,6 +1197,7 @@ git checkout -b hotfix/critical-mobile-bug
 **Per Week**: 3 hours (includes code review + staging test)
 
 **Total for P0 Fixes** (3 critical fixes):
+
 - Implementation: 6 hours
 - Testing: 8 hours
 - Code review: 2 hours
@@ -1158,6 +1208,7 @@ git checkout -b hotfix/critical-mobile-bug
 ## Next Steps
 
 **Day 1 Tasks**:
+
 ```bash
 # Morning
 1. Create branch: git checkout -b fix/mobile-responsive-p0
@@ -1177,6 +1228,7 @@ git checkout -b hotfix/critical-mobile-bug
 ```
 
 **Are you ready to start? I can help you with:**
+
 1. Setting up the testing infrastructure
 2. Creating the baseline screenshots
 3. Writing the automated tests

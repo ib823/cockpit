@@ -10,8 +10,8 @@
  * - Auto-save with debouncing
  */
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface UserPreferences {
   // Estimator Preferences
@@ -37,7 +37,7 @@ export interface UserPreferences {
 
   // Gantt Tool Preferences
   gantt: {
-    lastViewMode?: 'day' | 'week' | 'month';
+    lastViewMode?: "day" | "week" | "month";
     lastZoomLevel?: number;
     showWeekends?: boolean;
     showHolidays?: boolean;
@@ -51,7 +51,7 @@ export interface UserPreferences {
 
   // General Preferences
   general: {
-    theme?: 'light' | 'dark' | 'auto';
+    theme?: "light" | "dark" | "auto";
     compactMode?: boolean;
     showOnboarding?: boolean;
   };
@@ -66,7 +66,7 @@ interface UserPreferencesStore extends UserPreferences {
   setEstimatorOrgScale: (legalEntities: number, countries: number, languages: number) => void;
 
   // Gantt Actions
-  setGanttViewMode: (mode: 'day' | 'week' | 'month') => void;
+  setGanttViewMode: (mode: "day" | "week" | "month") => void;
   setGanttZoomLevel: (level: number) => void;
   toggleGanttWeekends: () => void;
   toggleGanttHolidays: () => void;
@@ -76,7 +76,7 @@ interface UserPreferencesStore extends UserPreferences {
   toggleDashboardCard: (cardId: string) => void;
 
   // General Actions
-  setTheme: (theme: 'light' | 'dark' | 'auto') => void;
+  setTheme: (theme: "light" | "dark" | "auto") => void;
   toggleCompactMode: () => void;
   setShowOnboarding: (show: boolean) => void;
 
@@ -87,7 +87,7 @@ interface UserPreferencesStore extends UserPreferences {
 const DEFAULT_PREFERENCES: UserPreferences = {
   estimator: {},
   gantt: {
-    lastViewMode: 'week',
+    lastViewMode: "week",
     lastZoomLevel: 100,
     showWeekends: false,
     showHolidays: true,
@@ -97,7 +97,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
     hiddenCards: [],
   },
   general: {
-    theme: 'auto',
+    theme: "auto",
     compactMode: false,
     showOnboarding: true,
   },
@@ -122,8 +122,10 @@ export const useUserPreferences = create<UserPreferencesStore>()(
           estimator: {
             ...state.estimator,
             lastFTE: fte !== undefined ? fte : state.estimator.lastFTE,
-            lastUtilization: utilization !== undefined ? utilization : state.estimator.lastUtilization,
-            lastOverlapFactor: overlapFactor !== undefined ? overlapFactor : state.estimator.lastOverlapFactor,
+            lastUtilization:
+              utilization !== undefined ? utilization : state.estimator.lastUtilization,
+            lastOverlapFactor:
+              overlapFactor !== undefined ? overlapFactor : state.estimator.lastOverlapFactor,
           },
         })),
 
@@ -198,7 +200,7 @@ export const useUserPreferences = create<UserPreferencesStore>()(
           dashboard: {
             ...state.dashboard,
             hiddenCards: state.dashboard.hiddenCards?.includes(cardId)
-              ? state.dashboard.hiddenCards.filter(id => id !== cardId)
+              ? state.dashboard.hiddenCards.filter((id) => id !== cardId)
               : [...(state.dashboard.hiddenCards || []), cardId],
           },
         })),
@@ -232,7 +234,7 @@ export const useUserPreferences = create<UserPreferencesStore>()(
       reset: () => set(DEFAULT_PREFERENCES),
     }),
     {
-      name: 'sap-cockpit-user-preferences',
+      name: "sap-cockpit-user-preferences",
       version: 1,
       // Migrate from old versions if needed
       migrate: (persistedState: any, version: number) => {

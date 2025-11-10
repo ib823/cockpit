@@ -16,6 +16,7 @@ Project → Settings (gear icon) → Environment Variables
 ```
 
 **Exact path:**
+
 1. Look at the top navigation bar
 2. Click **"Settings"** tab (it has a gear icon ⚙️)
 3. In the left sidebar, click **"Environment Variables"**
@@ -25,10 +26,12 @@ Project → Settings (gear icon) → Environment Variables
 You'll see a list of environment variables. For each secret below:
 
 ### A. Find the Variable
+
 - Scroll through the list or use the search box
 - Look for the variable name (e.g., `NEXTAUTH_SECRET`)
 
 ### B. Edit It
+
 - Click the **3-dot menu** (⋯) on the right side
 - Select **"Edit"**
 - Delete the old value
@@ -36,7 +39,9 @@ You'll see a list of environment variables. For each secret below:
 - Click **"Save"**
 
 ### C. Select Environments
+
 Make sure it's checked for:
+
 - ✅ **Production**
 - ✅ **Preview** (optional)
 - ✅ **Development** (optional)
@@ -46,16 +51,19 @@ Make sure it's checked for:
 ## 🔐 New Secret Values to Copy
 
 ### 1. NEXTAUTH_SECRET
+
 ```
 WqukjPDbeNi2fLO9gJlDFZxYAOAsAChL/rUup2iF9pU=
 ```
 
 ### 2. NEXT_PUBLIC_VAPID_PUBLIC_KEY
+
 ```
 BMZ2SNpLpGmAHfqJTEIzjTZScG5ZxsCOAdBlxeJ6yJ-ry6WAaR0IxB_uzVmKGrtItqaIgLBDatPGD3kcMxIkr60
 ```
 
 ### 3. VAPID_PRIVATE_KEY
+
 ```
 bYsWdXua81umWE6a9Ik5hT-ni89ZM7a7gkSlOVySaZs
 ```
@@ -78,6 +86,7 @@ After updating all secrets:
 ## Alternative: Direct Link
 
 Try this direct link (replace with your team/project name):
+
 ```
 https://vercel.com/[your-team-name]/cockpit/settings/environment-variables
 ```
@@ -85,6 +94,7 @@ https://vercel.com/[your-team-name]/cockpit/settings/environment-variables
 Based on your .env file, it looks like your team is: **ikmals-projects-4ec38ef0**
 
 So try:
+
 ```
 https://vercel.com/ikmals-projects-4ec38ef0/cockpit/settings/environment-variables
 ```
@@ -94,14 +104,17 @@ https://vercel.com/ikmals-projects-4ec38ef0/cockpit/settings/environment-variabl
 ## Troubleshooting
 
 ### "I don't see the Settings tab"
+
 - Make sure you're in the **project view**, not the team/dashboard view
 - Click on your project name first, then look for Settings
 
 ### "I can't edit the variables"
+
 - You need **admin/owner permissions** on the project
 - Ask the project owner to give you access
 
 ### "The variable doesn't exist"
+
 - Click **"Add New"** button at the top right
 - Enter the variable name
 - Paste the value

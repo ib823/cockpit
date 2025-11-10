@@ -1,6 +1,6 @@
 /**
  * ProjectShell - Main Orchestrator for Project Workflow
- * 
+ *
  * Handles mode switching with smooth animations
  * Modes: capture → decide → plan → present
  */
@@ -28,15 +28,27 @@ import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 // Lazy load heavy components for better performance
-const PlanMode = lazy(() => import("./modes/PlanMode").then(m => ({ default: m.PlanMode })));
-const PresentMode = lazy(() => import("./modes/PresentMode").then(m => ({ default: m.PresentMode })));
-
+const PlanMode = lazy(() => import("./modes/PlanMode").then((m) => ({ default: m.PlanMode })));
+const PresentMode = lazy(() =>
+  import("./modes/PresentMode").then((m) => ({ default: m.PresentMode }))
+);
 
 /**
  * Mode Indicator - Hero banner for each mode
  */
-function ModeIndicator({ mode, progress, onHelpClick }: { mode: string; progress?: number; onHelpClick?: () => void }) {
-  const config: Record<string, { title: string; subtitle: string; gradient: string; color: string }> = {
+function ModeIndicator({
+  mode,
+  progress,
+  onHelpClick,
+}: {
+  mode: string;
+  progress?: number;
+  onHelpClick?: () => void;
+}) {
+  const config: Record<
+    string,
+    { title: string; subtitle: string; gradient: string; color: string }
+  > = {
     capture: {
       title: "Capture Requirements",
       subtitle: "Extract project details from your RFP",
@@ -78,8 +90,12 @@ function ModeIndicator({ mode, progress, onHelpClick }: { mode: string; progress
         <div className="flex items-center gap-2 sm:gap-4">
           <Logo size="sm" theme="dark" showText={false} />
           <div>
-            <Heading1 className="text-white text-base sm:text-lg md:text-xl">{current.title}</Heading1>
-            <BodyMD className={`${current.color} mt-0.5 text-xs hidden sm:block`}>{current.subtitle}</BodyMD>
+            <Heading1 className="text-white text-base sm:text-lg md:text-xl">
+              {current.title}
+            </Heading1>
+            <BodyMD className={`${current.color} mt-0.5 text-xs hidden sm:block`}>
+              {current.subtitle}
+            </BodyMD>
           </div>
         </div>
 
@@ -178,8 +194,8 @@ export function ProjectShell() {
   const [showEstimatorBanner, setShowEstimatorBanner] = useState(false);
 
   useEffect(() => {
-    const source = searchParams?.get('source');
-    if (source === 'estimator') {
+    const source = searchParams?.get("source");
+    if (source === "estimator") {
       setShowEstimatorBanner(true);
 
       // Auto-dismiss after 10 seconds
@@ -189,7 +205,8 @@ export function ProjectShell() {
   }, [searchParams]);
 
   // Calculate progress for Capture mode
-  const captureProgress = mode === "capture" ? safePercentage(completeness?.score || 0, 100) : undefined;
+  const captureProgress =
+    mode === "capture" ? safePercentage(completeness?.score || 0, 100) : undefined;
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
@@ -198,9 +215,7 @@ export function ProjectShell() {
 
       {/* Estimator Banner (shows when source=estimator) */}
       <AnimatePresence>
-        {showEstimatorBanner && (
-          <EstimatorBanner onDismiss={() => setShowEstimatorBanner(false)} />
-        )}
+        {showEstimatorBanner && <EstimatorBanner onDismiss={() => setShowEstimatorBanner(false)} />}
       </AnimatePresence>
 
       {/* Mode-specific view (animated transitions) */}
@@ -216,24 +231,28 @@ export function ProjectShell() {
           {mode === "capture" && <CaptureMode />}
           {mode === "decide" && <DecideMode />}
           {mode === "plan" && (
-            <Suspense fallback={
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <Suspense
+              fallback={
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                  </div>
                 </div>
-              </div>
-            }>
+              }
+            >
               <PlanMode />
             </Suspense>
           )}
           {mode === "present" && (
-            <Suspense fallback={
-              <div className="h-full flex items-center justify-center bg-gray-900">
-                <div className="text-center text-gray-300">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <Suspense
+              fallback={
+                <div className="h-full flex items-center justify-center bg-gray-900">
+                  <div className="text-center text-gray-300">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                  </div>
                 </div>
-              </div>
-            }>
+              }
+            >
               <PresentMode />
             </Suspense>
           )}
@@ -251,8 +270,18 @@ export function ProjectShell() {
                 : "text-gray-600 hover:bg-gray-100 active:scale-95"
             }`}
           >
-            <svg className="w-5 h-5 mb-1 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="w-5 h-5 mb-1 align-middle"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             <span className="text-xs font-medium">Capture</span>
           </button>
@@ -266,7 +295,12 @@ export function ProjectShell() {
             }`}
           >
             <svg className="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              />
             </svg>
             <span className="text-xs font-medium">Decide</span>
           </button>
@@ -280,7 +314,12 @@ export function ProjectShell() {
             }`}
           >
             <svg className="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
             </svg>
             <span className="text-xs font-medium">Plan</span>
           </button>
@@ -294,7 +333,12 @@ export function ProjectShell() {
             }`}
           >
             <svg className="w-5 h-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+              />
             </svg>
             <span className="text-xs font-medium">Present</span>
           </button>

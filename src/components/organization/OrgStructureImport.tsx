@@ -5,21 +5,21 @@
  * Expected format: Name, Email, Category, Designation, Manager Email, Department, Location, Project Role
  */
 
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { Modal, Upload, Button, Typography, Alert, Table, App, Select } from 'antd';
+import { useState, useCallback } from "react";
+import { Modal, Upload, Button, Typography, Alert, Table, App, Select } from "antd";
 import {
   UploadOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   InfoCircleOutlined,
-} from '@ant-design/icons';
-import type { UploadFile } from 'antd';
-import * as XLSX from 'xlsx';
-import { useGanttToolStore } from '@/stores/gantt-tool-store-v2';
-import type { ResourceCategory, ResourceDesignation } from '@/types/gantt-tool';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
+} from "@ant-design/icons";
+import type { UploadFile } from "antd";
+import * as XLSX from "xlsx";
+import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import type { ResourceCategory, ResourceDesignation } from "@/types/gantt-tool";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -32,7 +32,7 @@ interface ParsedResource {
   department?: string;
   location?: string;
   projectRole?: string;
-  status: 'valid' | 'warning' | 'error';
+  status: "valid" | "warning" | "error";
   issues: string[];
 }
 
@@ -42,7 +42,11 @@ interface OrgStructureImportProps {
   onImportComplete: () => void;
 }
 
-export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgStructureImportProps) {
+export function OrgStructureImport({
+  visible,
+  onClose,
+  onImportComplete,
+}: OrgStructureImportProps) {
   const { message } = App.useApp();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [parsedData, setParsedData] = useState<ParsedResource[]>([]);
@@ -59,25 +63,31 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
       reader.onload = (e) => {
         try {
           const data = e.target?.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
+          const workbook = XLSX.read(data, { type: "binary" });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json<any>(worksheet, { header: 1 });
 
           if (jsonData.length < 2) {
-            reject(new Error('File must contain headers and at least one row of data'));
+            reject(new Error("File must contain headers and at least one row of data"));
             return;
           }
 
           const headers = jsonData[0] as string[];
-          const nameIndex = headers.findIndex((h) => h.toLowerCase().includes('name'));
-          const emailIndex = headers.findIndex((h) => h.toLowerCase().includes('email') && !h.toLowerCase().includes('manager'));
-          const categoryIndex = headers.findIndex((h) => h.toLowerCase().includes('category'));
-          const designationIndex = headers.findIndex((h) => h.toLowerCase().includes('designation') || h.toLowerCase().includes('level'));
-          const managerEmailIndex = headers.findIndex((h) => h.toLowerCase().includes('manager'));
-          const departmentIndex = headers.findIndex((h) => h.toLowerCase().includes('department'));
-          const locationIndex = headers.findIndex((h) => h.toLowerCase().includes('location'));
-          const projectRoleIndex = headers.findIndex((h) => h.toLowerCase().includes('project') && h.toLowerCase().includes('role'));
+          const nameIndex = headers.findIndex((h) => h.toLowerCase().includes("name"));
+          const emailIndex = headers.findIndex(
+            (h) => h.toLowerCase().includes("email") && !h.toLowerCase().includes("manager")
+          );
+          const categoryIndex = headers.findIndex((h) => h.toLowerCase().includes("category"));
+          const designationIndex = headers.findIndex(
+            (h) => h.toLowerCase().includes("designation") || h.toLowerCase().includes("level")
+          );
+          const managerEmailIndex = headers.findIndex((h) => h.toLowerCase().includes("manager"));
+          const departmentIndex = headers.findIndex((h) => h.toLowerCase().includes("department"));
+          const locationIndex = headers.findIndex((h) => h.toLowerCase().includes("location"));
+          const projectRoleIndex = headers.findIndex(
+            (h) => h.toLowerCase().includes("project") && h.toLowerCase().includes("role")
+          );
 
           const parsed: ParsedResource[] = [];
 
@@ -85,49 +95,68 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
             const row = jsonData[i] as any[];
             if (!row || row.length === 0 || !row[nameIndex]) continue;
 
-            const name = String(row[nameIndex] || '').trim();
+            const name = String(row[nameIndex] || "").trim();
             if (!name) continue;
 
             const email = row[emailIndex] ? String(row[emailIndex]).trim() : undefined;
-            const categoryStr = row[categoryIndex] ? String(row[categoryIndex]).trim().toLowerCase() : 'functional';
-            const designationStr = row[designationIndex] ? String(row[designationIndex]).trim().toLowerCase() : 'consultant';
-            const managerEmail = row[managerEmailIndex] ? String(row[managerEmailIndex]).trim() : undefined;
-            const department = row[departmentIndex] ? String(row[departmentIndex]).trim() : undefined;
+            const categoryStr = row[categoryIndex]
+              ? String(row[categoryIndex]).trim().toLowerCase()
+              : "functional";
+            const designationStr = row[designationIndex]
+              ? String(row[designationIndex]).trim().toLowerCase()
+              : "consultant";
+            const managerEmail = row[managerEmailIndex]
+              ? String(row[managerEmailIndex]).trim()
+              : undefined;
+            const department = row[departmentIndex]
+              ? String(row[departmentIndex]).trim()
+              : undefined;
             const location = row[locationIndex] ? String(row[locationIndex]).trim() : undefined;
-            const projectRole = row[projectRoleIndex] ? String(row[projectRoleIndex]).trim() : undefined;
+            const projectRole = row[projectRoleIndex]
+              ? String(row[projectRoleIndex]).trim()
+              : undefined;
 
             // Map category
-            let category: ResourceCategory = 'functional';
+            let category: ResourceCategory = "functional";
             const categoryLower = categoryStr.toLowerCase();
-            if (categoryLower.includes('tech')) category = 'technical';
-            else if (categoryLower.includes('basis')) category = 'basis';
-            else if (categoryLower.includes('security') || categoryLower.includes('grc')) category = 'security';
-            else if (categoryLower.includes('pm') || categoryLower.includes('project')) category = 'pm';
-            else if (categoryLower.includes('change') || categoryLower.includes('ocm')) category = 'change';
-            else if (categoryLower.includes('qa') || categoryLower.includes('test')) category = 'qa';
-            else if (categoryLower.includes('other')) category = 'other';
+            if (categoryLower.includes("tech")) category = "technical";
+            else if (categoryLower.includes("basis")) category = "basis";
+            else if (categoryLower.includes("security") || categoryLower.includes("grc"))
+              category = "security";
+            else if (categoryLower.includes("pm") || categoryLower.includes("project"))
+              category = "pm";
+            else if (categoryLower.includes("change") || categoryLower.includes("ocm"))
+              category = "change";
+            else if (categoryLower.includes("qa") || categoryLower.includes("test"))
+              category = "qa";
+            else if (categoryLower.includes("other")) category = "other";
 
             // Map designation
-            let designation: ResourceDesignation = 'consultant';
+            let designation: ResourceDesignation = "consultant";
             const designationLower = designationStr.toLowerCase();
-            if (designationLower.includes('principal')) designation = 'principal';
-            else if (designationLower.includes('senior') && designationLower.includes('manager')) designation = 'senior_manager';
-            else if (designationLower.includes('manager')) designation = 'manager';
-            else if (designationLower.includes('senior')) designation = 'senior_consultant';
-            else if (designationLower.includes('analyst')) designation = 'analyst';
-            else if (designationLower.includes('subcontractor') || designationLower.includes('contractor')) designation = 'subcontractor';
+            if (designationLower.includes("principal")) designation = "principal";
+            else if (designationLower.includes("senior") && designationLower.includes("manager"))
+              designation = "senior_manager";
+            else if (designationLower.includes("manager")) designation = "manager";
+            else if (designationLower.includes("senior")) designation = "senior_consultant";
+            else if (designationLower.includes("analyst")) designation = "analyst";
+            else if (
+              designationLower.includes("subcontractor") ||
+              designationLower.includes("contractor")
+            )
+              designation = "subcontractor";
 
             const issues: string[] = [];
-            let status: 'valid' | 'warning' | 'error' = 'valid';
+            let status: "valid" | "warning" | "error" = "valid";
 
             if (!email) {
-              issues.push('No email provided');
-              status = 'warning';
+              issues.push("No email provided");
+              status = "warning";
             }
 
             if (managerEmail && !email) {
-              issues.push('Manager email specified but resource has no email');
-              status = 'warning';
+              issues.push("Manager email specified but resource has no email");
+              status = "warning";
             }
 
             parsed.push({
@@ -150,21 +179,26 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
         }
       };
 
-      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onerror = () => reject(new Error("Failed to read file"));
       reader.readAsBinaryString(file);
     });
   }, []);
 
-  const handleUpload = useCallback(async ({ file }: any) => {
-    try {
-      const parsed = await parseFile(file as File);
-      setParsedData(parsed);
-      message.success(`Successfully parsed ${parsed.length} resources from file`);
-    } catch (error) {
-      message.error(`Failed to parse file: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-    return false; // Prevent auto-upload
-  }, [parseFile, message]);
+  const handleUpload = useCallback(
+    async ({ file }: any) => {
+      try {
+        const parsed = await parseFile(file as File);
+        setParsedData(parsed);
+        message.success(`Successfully parsed ${parsed.length} resources from file`);
+      } catch (error) {
+        message.error(
+          `Failed to parse file: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
+      return false; // Prevent auto-upload
+    },
+    [parseFile, message]
+  );
 
   const handleImport = useCallback(async () => {
     if (!currentProject) return;
@@ -205,7 +239,7 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
               assignManager(resourceId, managerId);
               managerAssignCount++;
             } catch (error) {
-              console.error('Failed to assign manager:', error);
+              console.error("Failed to assign manager:", error);
             }
           }
         }
@@ -221,7 +255,9 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
       onImportComplete();
       onClose();
     } catch (error) {
-      message.error(`Failed to import: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      message.error(
+        `Failed to import: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     } finally {
       setImporting(false);
     }
@@ -229,44 +265,47 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
 
   const columns = [
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
       width: 80,
       render: (status: string) => {
-        if (status === 'valid') return <CheckCircleOutlined style={{ color: '#52c41a', className="text-lg" }} />;
-        if (status === 'warning') return <InfoCircleOutlined style={{ color: '#faad14', className="text-lg" }} />;
-        return <CloseCircleOutlined style={{ color: '#ff4d4f', className="text-lg" }} />;
+        if (status === "valid")
+          return <CheckCircleOutlined className="text-lg" style={{ color: "#52c41a" }} />;
+        if (status === "warning")
+          return <InfoCircleOutlined className="text-lg" style={{ color: "#faad14" }} />;
+        return <CloseCircleOutlined className="text-lg" style={{ color: "#ff4d4f" }} />;
       },
     },
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
     },
     {
-      title: 'Category',
-      dataIndex: 'category',
-      key: 'category',
+      title: "Category",
+      dataIndex: "category",
+      key: "category",
       render: (cat: ResourceCategory) => RESOURCE_CATEGORIES[cat].label,
     },
     {
-      title: 'Designation',
-      dataIndex: 'designation',
-      key: 'designation',
+      title: "Designation",
+      dataIndex: "designation",
+      key: "designation",
       render: (des: ResourceDesignation) => RESOURCE_DESIGNATIONS[des],
     },
     {
-      title: 'Manager Email',
-      dataIndex: 'managerEmail',
-      key: 'managerEmail',
+      title: "Manager Email",
+      dataIndex: "managerEmail",
+      key: "managerEmail",
       render: (email?: string) => email || <Text type="secondary">None</Text>,
     },
     {
-      title: 'Issues',
-      dataIndex: 'issues',
-      key: 'issues',
-      render: (issues: string[]) => (issues.length > 0 ? issues.join(', ') : <Text type="secondary">None</Text>),
+      title: "Issues",
+      dataIndex: "issues",
+      key: "issues",
+      render: (issues: string[]) =>
+        issues.length > 0 ? issues.join(", ") : <Text type="secondary">None</Text>,
     },
   ];
 
@@ -298,17 +337,37 @@ export function OrgStructureImport({ visible, onClose, onImportComplete }: OrgSt
           description={
             <div>
               <Paragraph>
-                Upload a CSV or Excel file with the following columns (headers are case-insensitive):
+                Upload a CSV or Excel file with the following columns (headers are
+                case-insensitive):
               </Paragraph>
               <ul className="list-disc list-inside text-sm">
-                <li><strong>Name</strong> (required): Resource name</li>
-                <li><strong>Email</strong>: Resource email address</li>
-                <li><strong>Category</strong>: functional, technical, basis, security, pm, change, qa, other</li>
-                <li><strong>Designation</strong>: principal, senior_manager, manager, senior_consultant, consultant, analyst, subcontractor</li>
-                <li><strong>Manager Email</strong>: Email of the manager (must match another resource's email)</li>
-                <li><strong>Department</strong>: Department name</li>
-                <li><strong>Location</strong>: Location or site</li>
-                <li><strong>Project Role</strong>: Role in this project</li>
+                <li>
+                  <strong>Name</strong> (required): Resource name
+                </li>
+                <li>
+                  <strong>Email</strong>: Resource email address
+                </li>
+                <li>
+                  <strong>Category</strong>: functional, technical, basis, security, pm, change, qa,
+                  other
+                </li>
+                <li>
+                  <strong>Designation</strong>: principal, senior_manager, manager,
+                  senior_consultant, consultant, analyst, subcontractor
+                </li>
+                <li>
+                  <strong>Manager Email</strong>: Email of the manager (must match another
+                  resource's email)
+                </li>
+                <li>
+                  <strong>Department</strong>: Department name
+                </li>
+                <li>
+                  <strong>Location</strong>: Location or site
+                </li>
+                <li>
+                  <strong>Project Role</strong>: Role in this project
+                </li>
               </ul>
             </div>
           }

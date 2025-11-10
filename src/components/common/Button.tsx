@@ -62,10 +62,10 @@ const buttonVariants = {
 // ============================================================================
 
 const buttonSizes = {
-  xs: "px-3 py-1.5 text-xs rounded-lg",      // 24px height - Compact UI
-  sm: "px-4 py-2 text-sm rounded-lg",        // 36px height - Secondary actions
-  md: "px-6 py-3 text-base rounded-xl",      // 48px height - Primary actions
-  lg: "px-8 py-4 text-lg rounded-xl",        // 56px height - Hero CTAs
+  xs: "px-3 py-1.5 text-xs rounded-lg", // 24px height - Compact UI
+  sm: "px-4 py-2 text-sm rounded-lg", // 36px height - Secondary actions
+  md: "px-6 py-3 text-base rounded-xl", // 48px height - Primary actions
+  lg: "px-8 py-4 text-lg rounded-xl", // 56px height - Hero CTAs
 } as const;
 
 // ============================================================================

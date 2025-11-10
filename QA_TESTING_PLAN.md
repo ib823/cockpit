@@ -1,4 +1,5 @@
 # QA TESTING PLAN - OPTION 2: COMPLETE QA TESTING
+
 ## Target: 92-95% Production-Ready Quality
 
 **Created:** 2025-11-09
@@ -11,13 +12,16 @@
 ## PHASE 1: VISUAL VERIFICATION (4-8 hours)
 
 ### Objective
+
 Verify all UI components render correctly with realistic test data
 
 ### Test Environments
+
 - Development server: `npm run dev`
 - Browser: Chrome DevTools with responsive design mode
 
 ### Test Data Requirements
+
 1. **Project with Complete Data:**
    - Name: "Enterprise SAP Implementation"
    - 5-8 phases with varied durations
@@ -37,6 +41,7 @@ Verify all UI components render correctly with realistic test data
 ### Visual Checklist
 
 #### Desktop (≥ 1024px)
+
 - [ ] GanttCanvas: Timeline grid aligned correctly
 - [ ] GanttCanvas: Phase bars render with correct colors
 - [ ] GanttCanvas: Task bars show correct durations
@@ -53,6 +58,7 @@ Verify all UI components render correctly with realistic test data
 - [ ] BaselineComparisonPanel: Comparison data accurate
 
 #### Tablet (768-1024px)
+
 - [ ] Touch targets 44-48px minimum
 - [ ] Responsive spacing appropriate
 - [ ] Alert banner shows "Tablet View"
@@ -60,6 +66,7 @@ Verify all UI components render correctly with realistic test data
 - [ ] Pan gestures work
 
 #### Mobile (< 768px)
+
 - [ ] GanttMobileListView renders instead of canvas
 - [ ] Phase cards collapsible/expandable
 - [ ] Task indentation visible
@@ -72,6 +79,7 @@ Verify all UI components render correctly with realistic test data
 - [ ] PresentMode controls visible and sized correctly
 
 #### PresentMode Specific
+
 - [ ] Text scales smoothly across breakpoints
 - [ ] Navigation controls visible on all sizes
 - [ ] Safe-area-inset respected on iPhone X+
@@ -80,12 +88,14 @@ Verify all UI components render correctly with realistic test data
 - [ ] Fullscreen mode works
 
 ### Empty States
+
 - [ ] "No project loaded" message displays
 - [ ] "No phases added yet" message displays
 - [ ] "No milestones" section hidden when empty
 - [ ] Empty MissionControl shows appropriate message
 
 ### Color Verification
+
 - [ ] Status colors match GANTT_STATUS_COLORS:
   - Not Started: gray (#9CA3AF)
   - In Progress: blue (#3B82F6)
@@ -94,12 +104,14 @@ Verify all UI components render correctly with realistic test data
   - Completed: green (#10B981)
 
 ### Typography
+
 - [ ] Font sizes responsive (text-xs to text-7xl)
 - [ ] Line heights appropriate
 - [ ] Text truncation works (truncate, line-clamp-2)
 - [ ] No text overflow
 
 ### Performance
+
 - [ ] No layout shift on page load
 - [ ] Smooth scrolling on mobile
 - [ ] No janky animations
@@ -111,21 +123,23 @@ Verify all UI components render correctly with realistic test data
 
 ### Test Devices & Viewports
 
-| Device | Width | Height | Orientation | Priority |
-|--------|-------|--------|-------------|----------|
-| iPhone SE | 375px | 667px | Portrait | HIGH |
-| iPhone SE | 667px | 375px | Landscape | MEDIUM |
-| iPhone 12/13/14 | 390px | 844px | Portrait | HIGH |
-| iPhone Pro Max | 428px | 926px | Portrait | MEDIUM |
-| iPad | 768px | 1024px | Portrait | HIGH |
-| iPad | 1024px | 768px | Landscape | HIGH |
-| iPad Pro | 1024px | 1366px | Portrait | MEDIUM |
-| Desktop HD | 1280px | 720px | - | HIGH |
-| Desktop FHD | 1920px | 1080px | - | MEDIUM |
-| Desktop 4K | 3840px | 2160px | - | LOW |
+| Device          | Width  | Height | Orientation | Priority |
+| --------------- | ------ | ------ | ----------- | -------- |
+| iPhone SE       | 375px  | 667px  | Portrait    | HIGH     |
+| iPhone SE       | 667px  | 375px  | Landscape   | MEDIUM   |
+| iPhone 12/13/14 | 390px  | 844px  | Portrait    | HIGH     |
+| iPhone Pro Max  | 428px  | 926px  | Portrait    | MEDIUM   |
+| iPad            | 768px  | 1024px | Portrait    | HIGH     |
+| iPad            | 1024px | 768px  | Landscape   | HIGH     |
+| iPad Pro        | 1024px | 1366px | Portrait    | MEDIUM   |
+| Desktop HD      | 1280px | 720px  | -           | HIGH     |
+| Desktop FHD     | 1920px | 1080px | -           | MEDIUM   |
+| Desktop 4K      | 3840px | 2160px | -           | LOW      |
 
 ### Testing Method
+
 Use Chrome DevTools responsive design mode:
+
 ```
 1. Open DevTools (F12)
 2. Toggle device toolbar (Ctrl+Shift+M)
@@ -137,6 +151,7 @@ Use Chrome DevTools responsive design mode:
 ### Per-Device Checklist
 
 #### iPhone SE (375px) - Minimum Width
+
 - [ ] GanttMobileListView displays (not timeline)
 - [ ] All text readable (no overlap)
 - [ ] Touch targets 44px minimum
@@ -149,16 +164,19 @@ Use Chrome DevTools responsive design mode:
 - [ ] Task names truncate properly
 
 #### iPhone 12/13/14 (390px) - Standard Mobile
+
 - [ ] All iPhone SE tests pass
 - [ ] Slightly more breathing room
 - [ ] Typography comfortable
 
 #### iPhone Pro Max (428px) - Large Mobile
+
 - [ ] Still shows mobile list view
 - [ ] Better spacing utilization
 - [ ] Typography scales up appropriately
 
 #### iPad (768px) - Tablet Portrait
+
 - [ ] GanttCanvas displays (not list view)
 - [ ] Tablet alert banner visible
 - [ ] Touch-optimized controls
@@ -166,31 +184,38 @@ Use Chrome DevTools responsive design mode:
 - [ ] Side panel accessible
 
 #### iPad Landscape (1024px) - Tablet/Small Desktop
+
 - [ ] Full Gantt timeline visible
 - [ ] No tablet banner (desktop mode)
 - [ ] All features accessible
 - [ ] Comfortable viewing
 
 #### Desktop HD (1280px) - Standard Desktop
+
 - [ ] Full desktop experience
 - [ ] All panels visible
 - [ ] Optimal layout
 - [ ] No wasted space
 
 #### Desktop 4K (3840px) - Large Desktop
+
 - [ ] Layout doesn't break
 - [ ] Max-width constraints work
 - [ ] Content centered appropriately
 - [ ] No excessive stretching
 
 ### Breakpoint Transitions
+
 Test smooth transitions between breakpoints:
+
 - [ ] 767px → 768px: List view → Timeline (no flash)
 - [ ] 1023px → 1024px: Tablet → Desktop (smooth)
 - [ ] 639px → 640px: Mobile → Small (typography scales)
 
 ### Safe Area Insets (iPhone X+)
+
 Simulate notch with DevTools:
+
 - [ ] Top content not hidden by notch
 - [ ] Bottom controls not hidden by home indicator
 - [ ] Left/right content respects rounded corners
@@ -202,15 +227,16 @@ Simulate notch with DevTools:
 
 ### Target Browsers
 
-| Browser | Version | Platform | Priority | Market Share |
-|---------|---------|----------|----------|--------------|
-| Chrome | Latest | Windows/Mac/Linux | HIGH | 65% |
-| Safari | Latest | macOS | HIGH | 20% |
-| Safari | Latest | iOS | HIGH | 15% (mobile) |
-| Firefox | Latest | Windows/Mac/Linux | MEDIUM | 8% |
-| Edge | Latest | Windows | MEDIUM | 5% |
+| Browser | Version | Platform          | Priority | Market Share |
+| ------- | ------- | ----------------- | -------- | ------------ |
+| Chrome  | Latest  | Windows/Mac/Linux | HIGH     | 65%          |
+| Safari  | Latest  | macOS             | HIGH     | 20%          |
+| Safari  | Latest  | iOS               | HIGH     | 15% (mobile) |
+| Firefox | Latest  | Windows/Mac/Linux | MEDIUM   | 8%           |
+| Edge    | Latest  | Windows           | MEDIUM   | 5%           |
 
 ### Installation
+
 ```bash
 # macOS (using Homebrew)
 brew install --cask google-chrome
@@ -227,6 +253,7 @@ sudo apt install chromium-browser firefox
 ### Per-Browser Checklist
 
 #### Chrome (Chromium)
+
 - [ ] All visual tests pass
 - [ ] DevTools responsive mode works
 - [ ] Safe-area-inset polyfills work
@@ -234,6 +261,7 @@ sudo apt install chromium-browser firefox
 - [ ] Performance good
 
 #### Safari (macOS)
+
 - [ ] All visual tests pass
 - [ ] Native safe-area-inset support works
 - [ ] Flexbox layout correct
@@ -242,6 +270,7 @@ sudo apt install chromium-browser firefox
 - [ ] Touch-action CSS works
 
 #### Safari (iOS)
+
 - [ ] Test on physical iPhone if possible
 - [ ] Safe-area-inset respects notch
 - [ ] Touch events work (no 300ms delay)
@@ -251,6 +280,7 @@ sudo apt install chromium-browser firefox
 - [ ] Viewport meta tag correct
 
 #### Firefox
+
 - [ ] All visual tests pass
 - [ ] CSS Grid layout correct
 - [ ] Flexbox behavior matches Chrome
@@ -258,6 +288,7 @@ sudo apt install chromium-browser firefox
 - [ ] Responsive breakpoints work
 
 #### Edge (Chromium)
+
 - [ ] All visual tests pass
 - [ ] Behavior matches Chrome
 - [ ] No Edge-specific bugs
@@ -265,6 +296,7 @@ sudo apt install chromium-browser firefox
 ### CSS Feature Support
 
 Test modern CSS features across browsers:
+
 - [ ] `clamp()` for responsive typography
 - [ ] `env(safe-area-inset-*)` for notch support
 - [ ] CSS Grid
@@ -274,6 +306,7 @@ Test modern CSS features across browsers:
 - [ ] Backdrop-filter (if used)
 
 ### JavaScript Feature Support
+
 - [ ] ES6+ syntax (arrow functions, destructuring)
 - [ ] Optional chaining (`?.`)
 - [ ] Nullish coalescing (`??`)
@@ -281,6 +314,7 @@ Test modern CSS features across browsers:
 - [ ] `window.matchMedia` for responsive detection
 
 ### Known Browser Quirks to Test
+
 - [ ] Safari: `-webkit-overflow-scrolling: touch`
 - [ ] iOS Safari: 100vh bug (use `100dvh` if needed)
 - [ ] Firefox: Scrollbar width differences
@@ -291,9 +325,11 @@ Test modern CSS features across browsers:
 ## PHASE 4: INTEGRATION TESTING (8-12 hours)
 
 ### Objective
+
 Test component interactions and data flow across the application
 
 ### Test Framework Setup
+
 ```bash
 # Already have Vitest installed
 # Add testing-library for component integration tests
@@ -303,9 +339,11 @@ npm install --save-dev @testing-library/react @testing-library/jest-dom @testing
 ### Integration Test Suites
 
 #### 1. MissionControl Calculations (HIGH PRIORITY)
+
 **File:** `src/components/gantt-tool/__tests__/MissionControlModal.integration.test.tsx`
 
 **Tests:**
+
 - [ ] Health score calculation with realistic data
 - [ ] Budget utilization accuracy
 - [ ] Schedule progress calculation
@@ -316,24 +354,25 @@ npm install --save-dev @testing-library/react @testing-library/jest-dom @testing
 - [ ] Negative days prevention works
 
 **Test Scenarios:**
+
 ```typescript
-describe('MissionControl Integration', () => {
-  it('calculates health score correctly for on-track project', () => {
+describe("MissionControl Integration", () => {
+  it("calculates health score correctly for on-track project", () => {
     // Project: 50% complete, 45% time elapsed, 48% budget used
     // Expected: Health score 90-95 (green)
   });
 
-  it('calculates health score correctly for at-risk project', () => {
+  it("calculates health score correctly for at-risk project", () => {
     // Project: 30% complete, 60% time elapsed, 70% budget used
     // Expected: Health score 40-50 (yellow)
   });
 
-  it('prevents negative elapsed days for future projects', () => {
+  it("prevents negative elapsed days for future projects", () => {
     // Project starts in 2 months
     // Expected: Elapsed days = 0, not negative
   });
 
-  it('formats all percentages to 1 decimal place', () => {
+  it("formats all percentages to 1 decimal place", () => {
     // Check budget, schedule, resource percentages
     // Expected: "91.7%" not "91.66666666666666%"
   });
@@ -341,9 +380,11 @@ describe('MissionControl Integration', () => {
 ```
 
 #### 2. Gantt Canvas Rendering (MEDIUM PRIORITY)
+
 **File:** `src/components/gantt-tool/__tests__/GanttCanvas.integration.test.tsx`
 
 **Tests:**
+
 - [ ] Phases render in correct order
 - [ ] Tasks render within correct phases
 - [ ] Dependencies draw between correct tasks
@@ -354,9 +395,11 @@ describe('MissionControl Integration', () => {
 - [ ] Scroll position maintained on data update
 
 #### 3. Responsive View Switching (HIGH PRIORITY)
+
 **File:** `src/components/gantt-tool/__tests__/ResponsiveGanttWrapper.integration.test.tsx`
 
 **Tests:**
+
 - [ ] Shows list view when width < 768px
 - [ ] Shows timeline when width >= 768px
 - [ ] Transitions smoothly on resize
@@ -365,9 +408,11 @@ describe('MissionControl Integration', () => {
 - [ ] View mode toggle works (if enabled)
 
 #### 4. Data Flow: API → Store → UI (HIGH PRIORITY)
+
 **File:** `src/__tests__/data-flow.integration.test.tsx`
 
 **Tests:**
+
 - [ ] Fetch project from API
 - [ ] Update store with project data
 - [ ] UI updates with new data
@@ -376,9 +421,11 @@ describe('MissionControl Integration', () => {
 - [ ] Loading states display correctly
 
 #### 5. User Workflows (E2E-style integration)
+
 **File:** `src/__tests__/user-workflows.integration.test.tsx`
 
 **Tests:**
+
 - [ ] User creates new project
 - [ ] User adds phase to project
 - [ ] User adds task to phase
@@ -392,6 +439,7 @@ describe('MissionControl Integration', () => {
 ## PHASE 5: E2E TESTING (8-12 hours)
 
 ### Framework Setup
+
 ```bash
 # Install Playwright for E2E testing
 npm install --save-dev @playwright/test
@@ -403,8 +451,9 @@ npx playwright install
 #### Critical User Journeys
 
 **1. New Project Creation**
+
 ```typescript
-test('user creates and configures new project', async ({ page }) => {
+test("user creates and configures new project", async ({ page }) => {
   // 1. Navigate to app
   // 2. Click "New Project"
   // 3. Fill in project details
@@ -416,8 +465,9 @@ test('user creates and configures new project', async ({ page }) => {
 ```
 
 **2. Mobile Navigation**
+
 ```typescript
-test('mobile user navigates entire app', async ({ page }) => {
+test("mobile user navigates entire app", async ({ page }) => {
   // 1. Set viewport to iPhone SE (375px)
   // 2. Open hamburger menu
   // 3. Navigate to Projects
@@ -430,8 +480,9 @@ test('mobile user navigates entire app', async ({ page }) => {
 ```
 
 **3. Responsive Transitions**
+
 ```typescript
-test('app adapts to window resize', async ({ page }) => {
+test("app adapts to window resize", async ({ page }) => {
   // 1. Start at desktop size
   // 2. Verify timeline shows
   // 3. Resize to mobile
@@ -446,6 +497,7 @@ test('app adapts to window resize', async ({ page }) => {
 ## PHASE 6: ISSUE TRACKING & FIXES (8-16 hours)
 
 ### Issue Template
+
 ```markdown
 ## Issue #N: [Title]
 
@@ -455,23 +507,29 @@ test('app adapts to window resize', async ({ page }) => {
 **Reproducible:** Yes / Sometimes / No
 
 ### Steps to Reproduce
+
 1. [Step 1]
 2. [Step 2]
 3. [Step 3]
 
 ### Expected Behavior
+
 [What should happen]
 
 ### Actual Behavior
+
 [What actually happens]
 
 ### Screenshots
+
 [If applicable]
 
 ### Proposed Fix
+
 [Initial thoughts on solution]
 
 ### Status
+
 [ ] Investigating
 [ ] Fix in progress
 [ ] Fixed
@@ -482,29 +540,34 @@ test('app adapts to window resize', async ({ page }) => {
 ### Issue Categorization
 
 **Critical (Block release):**
+
 - App crashes or completely broken
 - Data loss or corruption
 - Major accessibility violations
 - Security vulnerabilities
 
 **High (Fix before release):**
+
 - Feature doesn't work as designed
 - Visual bugs on primary devices
 - Performance issues
 - UX significantly degraded
 
 **Medium (Should fix):**
+
 - Minor visual inconsistencies
 - Edge case bugs
 - Non-critical UX issues
 - Performance optimizations
 
 **Low (Nice to have):**
+
 - Visual polish
 - Minor optimizations
 - Documentation updates
 
 ### Fix Workflow
+
 1. Document issue
 2. Reproduce locally
 3. Write regression test (if applicable)
@@ -519,7 +582,9 @@ test('app adapts to window resize', async ({ page }) => {
 ## PHASE 7: FINAL VALIDATION (4-8 hours)
 
 ### Regression Testing
+
 Run all previous tests to ensure fixes didn't break anything:
+
 - [ ] All 181 unit tests pass
 - [ ] Visual verification tests pass
 - [ ] Device matrix tests pass
@@ -528,6 +593,7 @@ Run all previous tests to ensure fixes didn't break anything:
 - [ ] E2E tests pass
 
 ### Performance Benchmarks
+
 - [ ] Lighthouse score ≥ 90 (desktop)
 - [ ] Lighthouse score ≥ 80 (mobile)
 - [ ] First Contentful Paint < 1.5s
@@ -535,6 +601,7 @@ Run all previous tests to ensure fixes didn't break anything:
 - [ ] Bundle size < 500KB (gzipped)
 
 ### Accessibility Audit
+
 ```bash
 # Install axe-core
 npm install --save-dev @axe-core/react
@@ -552,6 +619,7 @@ npm run test:a11y
 ### Quality Gates
 
 **Before marking as "Production-Ready":**
+
 - [ ] 0 Critical issues
 - [ ] 0 High issues (or documented exceptions)
 - [ ] < 5 Medium issues
@@ -570,6 +638,7 @@ npm run test:a11y
 ## SUCCESS CRITERIA
 
 ### Quantitative Metrics
+
 - **Overall Completion:** 88% → 92-95%
 - **Test Coverage:** 45% → 65%
 - **P0 Blockers:** 5/5 resolved ✅
@@ -580,6 +649,7 @@ npm run test:a11y
 - **Lighthouse Score:** ≥ 85
 
 ### Qualitative Metrics
+
 - User can complete all workflows on mobile
 - No visual bugs on primary devices
 - Performance feels smooth
@@ -590,12 +660,14 @@ npm run test:a11y
 ### Timeline Checkpoints
 
 **End of Week 1:**
+
 - [ ] Visual verification complete
 - [ ] Device matrix testing complete
 - [ ] Cross-browser testing complete
 - [ ] Critical issues identified and prioritized
 
 **End of Week 2:**
+
 - [ ] Integration tests written and passing
 - [ ] E2E tests written and passing
 - [ ] All high/critical issues fixed
@@ -634,37 +706,45 @@ npm run test:a11y
 ## DAILY PROGRESS TRACKING
 
 ### Week 1
+
 **Day 1-2: Visual + Device Testing**
+
 - [ ] Set up test environments
 - [ ] Complete visual verification
 - [ ] Test iPhone SE to iPad
 - [ ] Document issues
 
 **Day 3-4: Cross-Browser Testing**
+
 - [ ] Test Chrome, Safari, Firefox
 - [ ] Test iOS Safari (physical device)
 - [ ] Document browser-specific issues
 - [ ] Begin fixes
 
 **Day 5: Issue Fixes**
+
 - [ ] Fix critical issues
 - [ ] Fix high-priority issues
 - [ ] Re-test affected areas
 
 ### Week 2
+
 **Day 6-7: Integration Testing**
+
 - [ ] Set up testing-library
 - [ ] Write MissionControl integration tests
 - [ ] Write ResponsiveWrapper integration tests
 - [ ] Write data flow tests
 
 **Day 8-9: E2E Testing**
+
 - [ ] Set up Playwright
 - [ ] Write critical user journey tests
 - [ ] Write mobile navigation tests
 - [ ] Write responsive transition tests
 
 **Day 10: Final Validation**
+
 - [ ] Run full regression suite
 - [ ] Performance audit
 - [ ] Accessibility audit

@@ -5,10 +5,10 @@
  * Tabs: Resources, Cost, Analytics, AI Insights
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
+import { useState, useMemo } from "react";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import {
   Users,
   DollarSign,
@@ -21,10 +21,10 @@ import {
   AlertTriangle,
   CheckCircle,
   ChevronRight,
-} from 'lucide-react';
-import { Tabs, Badge, Input, Button, Tooltip, Progress, Tag } from 'antd';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, type Resource } from '@/types/gantt-tool';
-import { differenceInDays } from 'date-fns';
+} from "lucide-react";
+import { Tabs, Badge, Input, Button, Tooltip, Progress, Tag } from "antd";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, type Resource } from "@/types/gantt-tool";
+import { differenceInDays } from "date-fns";
 
 interface ContextPanelProps {
   isOpen: boolean;
@@ -33,8 +33,8 @@ interface ContextPanelProps {
 
 export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
   const { currentProject, selection, getResourceById } = useGanttToolStoreV2();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('resources');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("resources");
 
   // Calculate project metrics - MUST be before any conditional returns
   const projectMetrics = useMemo(() => {
@@ -56,8 +56,8 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
     let maxDate = new Date();
 
     if (phases.length > 0) {
-      minDate = new Date(Math.min(...phases.map(p => new Date(p.startDate).getTime())));
-      maxDate = new Date(Math.max(...phases.map(p => new Date(p.endDate).getTime())));
+      minDate = new Date(Math.min(...phases.map((p) => new Date(p.startDate).getTime())));
+      maxDate = new Date(Math.max(...phases.map((p) => new Date(p.endDate).getTime())));
     }
 
     const durationDays = differenceInDays(maxDate, minDate);
@@ -66,19 +66,18 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
     const resources = currentProject.resources || [];
     const assignedResources = new Set<string>();
 
-    phases.forEach(phase => {
+    phases.forEach((phase) => {
       // Phase-level assignments
-      phase.phaseResourceAssignments?.forEach(a => assignedResources.add(a.resourceId));
+      phase.phaseResourceAssignments?.forEach((a) => assignedResources.add(a.resourceId));
 
       // Task-level assignments
-      phase.tasks.forEach(task => {
-        task.resourceAssignments?.forEach(a => assignedResources.add(a.resourceId));
+      phase.tasks.forEach((task) => {
+        task.resourceAssignments?.forEach((a) => assignedResources.add(a.resourceId));
       });
     });
 
-    const utilizationRate = resources.length > 0
-      ? (assignedResources.size / resources.length) * 100
-      : 0;
+    const utilizationRate =
+      resources.length > 0 ? (assignedResources.size / resources.length) * 100 : 0;
 
     return {
       totalPhases: phases.length,
@@ -97,10 +96,11 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
     if (!searchQuery) return resources;
 
     const query = searchQuery.toLowerCase();
-    return resources.filter(r =>
-      r.name.toLowerCase().includes(query) ||
-      r.description.toLowerCase().includes(query) ||
-      r.category.toLowerCase().includes(query)
+    return resources.filter(
+      (r) =>
+        r.name.toLowerCase().includes(query) ||
+        r.description.toLowerCase().includes(query) ||
+        r.category.toLowerCase().includes(query)
     );
   }, [currentProject, searchQuery]);
 
@@ -127,9 +127,9 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
       total: baselineCost,
       byCategory: {
         pm: baselineCost * 0.15,
-        technical: baselineCost * 0.40,
-        functional: baselineCost * 0.30,
-        security: baselineCost * 0.10,
+        technical: baselineCost * 0.4,
+        functional: baselineCost * 0.3,
+        security: baselineCost * 0.1,
         change: baselineCost * 0.05,
       },
     };
@@ -137,12 +137,15 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
 
   // Resource drag handler
   const handleResourceDragStart = (e: React.DragEvent, resource: Resource) => {
-    e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('application/json', JSON.stringify({
-      type: 'resource',
-      resourceId: resource.id,
-      resourceName: resource.name,
-    }));
+    e.dataTransfer.effectAllowed = "copy";
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({
+        type: "resource",
+        resourceId: resource.id,
+        resourceName: resource.name,
+      })
+    );
   };
 
   // Now safe to do early return after all hooks are called
@@ -159,10 +162,7 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
           <BarChart3 className="w-5 h-5 text-blue-600" />
           Project Context
         </h2>
-        <button
-          onClick={onClose}
-          className="p-1.5 hover:bg-white rounded-lg transition-colors"
-        >
+        <button onClick={onClose} className="p-1.5 hover:bg-white rounded-lg transition-colors">
           <X className="w-4 h-4 text-gray-500" />
         </button>
       </div>
@@ -174,7 +174,7 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
         className="flex-1 overflow-hidden"
         items={[
           {
-            key: 'resources',
+            key: "resources",
             label: (
               <span className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
@@ -204,15 +204,17 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                   <Progress
                     percent={projectMetrics.utilizationRate}
                     strokeColor={{
-                      '0%': '#3b82f6',
-                      '100%': '#8b5cf6',
+                      "0%": "#3b82f6",
+                      "100%": "#8b5cf6",
                     }}
                     showInfo={false}
                     size="small"
                   />
                   <div className="mt-2 flex items-center justify-between text-xs text-gray-600">
                     <span>{projectMetrics.assignedResources} assigned</span>
-                    <span>{projectMetrics.totalResources - projectMetrics.assignedResources} available</span>
+                    <span>
+                      {projectMetrics.totalResources - projectMetrics.assignedResources} available
+                    </span>
                   </div>
                 </div>
 
@@ -229,11 +231,14 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                       const designation = RESOURCE_DESIGNATIONS[resource.designation];
 
                       // Check if resource is assigned
-                      const isAssigned = safeProject.phases.some(phase =>
-                        phase.phaseResourceAssignments?.some(a => a.resourceId === resource.id) ||
-                        phase.tasks.some(task =>
-                          task.resourceAssignments?.some(a => a.resourceId === resource.id)
-                        )
+                      const isAssigned = safeProject.phases.some(
+                        (phase) =>
+                          phase.phaseResourceAssignments?.some(
+                            (a) => a.resourceId === resource.id
+                          ) ||
+                          phase.tasks.some((task) =>
+                            task.resourceAssignments?.some((a) => a.resourceId === resource.id)
+                          )
                       );
 
                       return (
@@ -261,10 +266,7 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                               </div>
                               <p className="text-xs text-gray-600 mt-0.5">{designation}</p>
                               <div className="flex items-center gap-1 mt-1">
-                                <Tag
-                                  color={category.color}
-                                  className="text-xs px-1.5 py-0 m-0"
-                                >
+                                <Tag color={category.color} className="text-xs px-1.5 py-0 m-0">
                                   {category.label}
                                 </Tag>
                               </div>
@@ -284,7 +286,8 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                   <p className="text-xs text-blue-800 flex items-start gap-2">
                     <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <span>
-                      <strong>Pro Tip:</strong> Drag resources directly onto phases or tasks in the timeline to assign them.
+                      <strong>Pro Tip:</strong> Drag resources directly onto phases or tasks in the
+                      timeline to assign them.
                     </span>
                   </p>
                 </div>
@@ -292,7 +295,7 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
             ),
           },
           {
-            key: 'cost',
+            key: "cost",
             label: (
               <span className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
@@ -308,7 +311,8 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                     ${Math.round(costEstimate.total / 1000)}K
                   </div>
                   <div className="text-xs text-gray-600 mt-1">
-                    Based on {projectMetrics.totalResources} resources over {projectMetrics.durationDays} days
+                    Based on {projectMetrics.totalResources} resources over{" "}
+                    {projectMetrics.durationDays} days
                   </div>
                 </div>
 
@@ -363,7 +367,9 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                     <div className="flex items-start gap-2">
                       <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-xs font-medium text-purple-900">Optimization Opportunity</p>
+                        <p className="text-xs font-medium text-purple-900">
+                          Optimization Opportunity
+                        </p>
                         <p className="text-xs text-purple-700 mt-1">
                           Consider adding 1 analyst role to reduce senior consultant utilization
                         </p>
@@ -389,7 +395,7 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
             ),
           },
           {
-            key: 'analytics',
+            key: "analytics",
             label: (
               <span className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
@@ -403,19 +409,27 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                   <h3 className="text-sm font-semibold text-gray-900 mb-3">Project Health</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="text-2xl font-bold text-green-700">{projectMetrics.totalPhases}</div>
+                      <div className="text-2xl font-bold text-green-700">
+                        {projectMetrics.totalPhases}
+                      </div>
                       <div className="text-xs text-gray-600 mt-1">Phases</div>
                     </div>
                     <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-700">{projectMetrics.totalTasks}</div>
+                      <div className="text-2xl font-bold text-purple-700">
+                        {projectMetrics.totalTasks}
+                      </div>
                       <div className="text-xs text-gray-600 mt-1">Tasks</div>
                     </div>
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-700">{projectMetrics.totalResources}</div>
+                      <div className="text-2xl font-bold text-blue-700">
+                        {projectMetrics.totalResources}
+                      </div>
                       <div className="text-xs text-gray-600 mt-1">Team Members</div>
                     </div>
                     <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-700">{projectMetrics.durationDays}</div>
+                      <div className="text-2xl font-bold text-orange-700">
+                        {projectMetrics.durationDays}
+                      </div>
                       <div className="text-xs text-gray-600 mt-1">Days Duration</div>
                     </div>
                   </div>
@@ -434,17 +448,23 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                     <Progress
                       percent={projectMetrics.utilizationRate}
                       strokeColor={{
-                        '0%': '#3b82f6',
-                        '100%': '#8b5cf6',
+                        "0%": "#3b82f6",
+                        "100%": "#8b5cf6",
                       }}
                       size="small"
                     />
                     <div className="mt-3 flex items-center justify-between text-xs">
                       <span className="text-gray-600">
-                        <strong className="text-green-600">{projectMetrics.assignedResources}</strong> assigned
+                        <strong className="text-green-600">
+                          {projectMetrics.assignedResources}
+                        </strong>{" "}
+                        assigned
                       </span>
                       <span className="text-gray-600">
-                        <strong className="text-orange-600">{projectMetrics.totalResources - projectMetrics.assignedResources}</strong> available
+                        <strong className="text-orange-600">
+                          {projectMetrics.totalResources - projectMetrics.assignedResources}
+                        </strong>{" "}
+                        available
                       </span>
                     </div>
                   </div>
@@ -461,7 +481,8 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                         <div>
                           <p className="text-xs font-medium text-yellow-900">Low Utilization</p>
                           <p className="text-xs text-yellow-700 mt-1">
-                            Only {Math.round(projectMetrics.utilizationRate)}% of resources are assigned. Consider reducing team size or expanding scope.
+                            Only {Math.round(projectMetrics.utilizationRate)}% of resources are
+                            assigned. Consider reducing team size or expanding scope.
                           </p>
                         </div>
                       </div>
@@ -475,7 +496,8 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                         <div>
                           <p className="text-xs font-medium text-blue-900">Task Breakdown</p>
                           <p className="text-xs text-blue-700 mt-1">
-                            Consider breaking phases into more granular tasks for better tracking and resource allocation.
+                            Consider breaking phases into more granular tasks for better tracking
+                            and resource allocation.
                           </p>
                         </div>
                       </div>
@@ -487,9 +509,12 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                       <div className="flex items-start gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-green-900">Excellent Utilization</p>
+                          <p className="text-xs font-medium text-green-900">
+                            Excellent Utilization
+                          </p>
                           <p className="text-xs text-green-700 mt-1">
-                            {Math.round(projectMetrics.utilizationRate)}% utilization - Great balance between capacity and assignments!
+                            {Math.round(projectMetrics.utilizationRate)}% utilization - Great
+                            balance between capacity and assignments!
                           </p>
                         </div>
                       </div>
@@ -500,7 +525,7 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
             ),
           },
           {
-            key: 'insights',
+            key: "insights",
             label: (
               <span className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
@@ -528,9 +553,13 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                         <TrendingUp className="w-4 h-4 text-blue-600" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-1">Timeline Optimization</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                          Timeline Optimization
+                        </h4>
                         <p className="text-xs text-gray-600 mb-2">
-                          Similar CRM implementation projects typically take 6-8 months. Your timeline of {Math.round(projectMetrics.durationDays / 30)} months is {projectMetrics.durationDays < 180 ? 'aggressive' : 'conservative'}.
+                          Similar CRM implementation projects typically take 6-8 months. Your
+                          timeline of {Math.round(projectMetrics.durationDays / 30)} months is{" "}
+                          {projectMetrics.durationDays < 180 ? "aggressive" : "conservative"}.
                         </p>
                         <Button size="small" type="link" className="px-0 h-auto text-xs">
                           View industry benchmarks →
@@ -545,9 +574,12 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                         <Users className="w-4 h-4 text-purple-600" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-1">Resource Suggestion</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                          Resource Suggestion
+                        </h4>
                         <p className="text-xs text-gray-600 mb-2">
-                          Based on your project scope, we recommend adding 1-2 Senior Consultants for phases 3-5 to maintain velocity.
+                          Based on your project scope, we recommend adding 1-2 Senior Consultants
+                          for phases 3-5 to maintain velocity.
                         </p>
                         <Button size="small" type="link" className="px-0 h-auto text-xs">
                           Auto-add suggested resources →
@@ -562,9 +594,12 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                         <CheckCircle className="w-4 h-4 text-green-600" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-1">Best Practice Detected</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                          Best Practice Detected
+                        </h4>
                         <p className="text-xs text-gray-600 mb-2">
-                          Great job! Your 2-week buffer between phases follows industry best practices for change management.
+                          Great job! Your 2-week buffer between phases follows industry best
+                          practices for change management.
                         </p>
                       </div>
                     </div>
@@ -578,7 +613,8 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                       <div className="flex-1">
                         <h4 className="text-sm font-semibold text-gray-900 mb-1">Risk Alert</h4>
                         <p className="text-xs text-gray-600 mb-2">
-                          Holiday season detected in Q4 phases. Consider adding 15-20% buffer or rescheduling critical tasks.
+                          Holiday season detected in Q4 phases. Consider adding 15-20% buffer or
+                          rescheduling critical tasks.
                         </p>
                         <Button size="small" type="link" className="px-0 h-auto text-xs">
                           Auto-adjust for holidays →

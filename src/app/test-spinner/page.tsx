@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { AnimatedSpinner, DotSpinner, PulseSpinner } from '@/components/common/AnimatedSpinner';
+import { AnimatedSpinner, DotSpinner, PulseSpinner } from "@/components/common/AnimatedSpinner";
 
 export default function TestSpinnerPage() {
   return (
@@ -8,7 +8,7 @@ export default function TestSpinnerPage() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Loading Spinner Gallery</h1>
         <p className="text-gray-600 mb-8">
-          Bouncing cube animation from{' '}
+          Bouncing cube animation from{" "}
           <a
             href="https://uiverse.io/alexruix/white-cat-50"
             target="_blank"
@@ -127,7 +127,8 @@ export default function TestSpinnerPage() {
             <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
               <div className="text-gray-500">{/* Import */}</div>
               <div>
-                import {'{'}  AnimatedSpinner  {'}'} from &apos;@/components/common/AnimatedSpinner&apos;;
+                import {"{"} AnimatedSpinner {"}"} from
+                &apos;@/components/common/AnimatedSpinner&apos;;
               </div>
               <br />
               <div className="text-gray-500">{/* Basic usage */}</div>
@@ -137,7 +138,10 @@ export default function TestSpinnerPage() {
               <div>&lt;AnimatedSpinner size=&quot;lg&quot; color=&quot;blue&quot; /&gt;</div>
               <br />
               <div className="text-gray-500">{/* With label */}</div>
-              <div>&lt;AnimatedSpinner size=&quot;md&quot; label=&quot;Loading...&quot; color=&quot;purple&quot; /&gt;</div>
+              <div>
+                &lt;AnimatedSpinner size=&quot;md&quot; label=&quot;Loading...&quot;
+                color=&quot;purple&quot; /&gt;
+              </div>
             </div>
           </div>
         </section>

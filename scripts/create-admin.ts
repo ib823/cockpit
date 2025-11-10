@@ -4,18 +4,20 @@
  * Run: npx tsx scripts/create-admin.ts
  */
 
-import { PrismaClient } from '@prisma/client';
-import { createId } from '@paralleldrive/cuid2';
+import { PrismaClient } from "@prisma/client";
+import { createId } from "@paralleldrive/cuid2";
 
 const prisma = new PrismaClient();
 
 async function createAdminUser() {
-  const adminEmail = process.env.ADMIN_EMAIL || 'ikmls@hotmail.com';
+  const adminEmail = process.env.ADMIN_EMAIL || "ikmls@hotmail.com";
   const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
   if (!adminPasswordHash) {
-    console.error('❌ ADMIN_PASSWORD_HASH not found in environment variables');
-    console.error('Run: node -e "console.log(require(\'bcryptjs\').hashSync(\'YourPassword123!\', 12))"');
+    console.error("❌ ADMIN_PASSWORD_HASH not found in environment variables");
+    console.error(
+      "Run: node -e \"console.log(require('bcryptjs').hashSync('YourPassword123!', 12))\""
+    );
     process.exit(1);
   }
 
@@ -30,10 +32,10 @@ async function createAdminUser() {
       console.log(`   Role: ${existingUser.role}`);
 
       // Update to ADMIN if not already
-      if (existingUser.role !== 'ADMIN') {
+      if (existingUser.role !== "ADMIN") {
         await prisma.users.update({
           where: { id: existingUser.id },
-          data: { role: 'ADMIN' },
+          data: { role: "ADMIN" },
         });
         console.log(`✅ Updated user role to ADMIN`);
       }
@@ -46,9 +48,9 @@ async function createAdminUser() {
         id: createId(),
         email: adminEmail,
         emailVerified: new Date(),
-        name: 'Admin',
-        role: 'ADMIN',
-        status: 'ACTIVE',
+        name: "Admin",
+        role: "ADMIN",
+        status: "ACTIVE",
         requiresPasswordChange: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -58,10 +60,9 @@ async function createAdminUser() {
     console.log(`✅ Created admin user: ${adminEmail}`);
     console.log(`   ID: ${adminUser.id}`);
     console.log(`   Role: ${adminUser.role}`);
-    console.log('\n🔐 You can now log in at /login using passkey or magic link');
-
+    console.log("\n🔐 You can now log in at /login using passkey or magic link");
   } catch (error) {
-    console.error('❌ Error creating admin user:', error);
+    console.error("❌ Error creating admin user:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();

@@ -62,12 +62,7 @@ describe("Estimation Smoke Tests", () => {
 
     const plan = generator.generate(chips, decisions);
 
-    console.log("✅ Baseline Test Results:");
-    console.log(`   Total Effort: ${plan.totalEffort} PD`);
-    console.log(`   Base Cost: MYR ${plan.totalCost.toLocaleString()}`);
-    console.log(`   Duration: ${plan.duration} business days`);
-    console.log(`   Phases: ${plan.phases.length}`);
-    console.log(`   Assumptions: ${plan.assumptions.length}`);
+
 
     // Assertions
     expect(plan).toBeDefined();
@@ -141,12 +136,9 @@ describe("Estimation Smoke Tests", () => {
     const planMBC = generator.generate(baseChips, mbcDecisions);
 
     // MBC should add ~120 PD
-    const delta = planMBC.totalEffort - planNoBank.totalEffort;
+    const _delta = planMBC.totalEffort - planNoBank.totalEffort;
 
-    console.log("✅ Banking Path Test Results:");
-    console.log(`   No Banking: ${planNoBank.totalEffort} PD`);
-    console.log(`   With MBC: ${planMBC.totalEffort} PD`);
-    console.log(`   Delta: +${delta} PD (expected ~120)`);
+
 
     // Temporarily relax this to see if decision impacts are working at all
     // expect(delta).toBeGreaterThan(100); // Should be around 120 PD
@@ -236,10 +228,7 @@ describe("Estimation Smoke Tests", () => {
     // 3 entities should add ~2 × 8 PD entity adder = 16 PD
     const delta = planMulti.totalEffort - planSingle.totalEffort;
 
-    console.log("✅ Multi-Entity Test Results:");
-    console.log(`   Single Entity: ${planSingle.totalEffort} PD`);
-    console.log(`   Three Entities: ${planMulti.totalEffort} PD`);
-    console.log(`   Delta: +${delta} PD (expected ~16)`);
+
 
     // Relax bounds - actual delta may be higher due to cascading effects
     expect(delta).toBeGreaterThan(10);

@@ -3,11 +3,11 @@
  * Used with react-hot-toast library
  */
 
-'use client';
+"use client";
 
-import React from 'react';
-import { Toaster, toast as hotToast } from 'react-hot-toast';
-import { clsx } from 'clsx';
+import React from "react";
+import { Toaster, toast as hotToast } from "react-hot-toast";
+
 
 export const ToastProvider: React.FC = () => {
   return (
@@ -16,24 +16,24 @@ export const ToastProvider: React.FC = () => {
       toastOptions={{
         duration: 4000,
         style: {
-          background: 'var(--surface)',
-          color: 'var(--ink)',
-          border: '1px solid var(--line)',
-          borderRadius: 'var(--r-md)',
-          boxShadow: 'var(--shadow-md)',
-          padding: 'var(--s-12) var(--s-16)',
-          fontSize: '0.875rem',
+          background: "var(--surface)",
+          color: "var(--ink)",
+          border: "1px solid var(--line)",
+          borderRadius: "var(--r-md)",
+          boxShadow: "var(--shadow-md)",
+          padding: "var(--s-12) var(--s-16)",
+          fontSize: "0.875rem",
         },
         success: {
           iconTheme: {
-            primary: 'var(--success)',
-            secondary: 'var(--surface)',
+            primary: "var(--success)",
+            secondary: "var(--surface)",
           },
         },
         error: {
           iconTheme: {
-            primary: 'var(--danger)',
-            secondary: 'var(--surface)',
+            primary: "var(--danger)",
+            secondary: "var(--surface)",
           },
         },
       }}

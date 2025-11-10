@@ -8,9 +8,9 @@
  *   - Stale-while-revalidate
  */
 
-import { NextResponse, NextRequest } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { withCache, CACHE_CONFIG, CacheKeys } from '@/lib/cache/redis-cache';
+import { NextResponse, NextRequest } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import { withCache, CACHE_CONFIG, CacheKeys } from "@/lib/cache/redis-cache";
 
 const prisma = new PrismaClient();
 
@@ -22,15 +22,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchParams = request.nextUrl.searchParams;
-    const forceRefresh = searchParams.get('forceRefresh') === 'true';
+    const forceRefresh = searchParams.get("forceRefresh") === "true";
 
     const result = await withCache(
       CacheKeys.lobsAll(),
       async () => {
-        console.log('[LOBs API] 🔄 Cache MISS - fetching from database');
+        console.warn("[LOBs API] 🔄 Cache MISS - fetching from database");
 
         const lobs = await prisma.lob.findMany({
-          orderBy: { lobName: 'asc' },
+          orderBy: { lobName: "asc" },
           include: {
             _count: {
               select: { l3ScopeItems: true },
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     const duration = performance.now() - startTime;
 
-    console.log(`[LOBs API] ✅ Returned ${result.count} LOBs in ${duration.toFixed(2)}ms`);
+    console.warn(`[LOBs API] ✅ Returned ${result.count} LOBs in ${duration.toFixed(2)}ms`);
 
     return NextResponse.json({
       ...result,
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
         lobs: [],
         cached: false,
       },

@@ -1,20 +1,17 @@
-import { prisma } from '@/lib/db';
-import { NextResponse } from 'next/server';
+import { prisma } from "@/lib/db";
+import { NextResponse } from "next/server";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  if (process.env.ENABLE_MAGIC_LINKS !== 'true') {
-    return NextResponse.json({ ok: false, message: 'Disabled' }, { status: 404 });
+  if (process.env.ENABLE_MAGIC_LINKS !== "true") {
+    return NextResponse.json({ ok: false, message: "Disabled" }, { status: 404 });
   }
   try {
     const { token, deviceInfo } = await req.json();
 
     if (!token) {
-      return NextResponse.json(
-        { ok: false, error: 'Token required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, error: "Token required" }, { status: 400 });
     }
 
     // Find magic token
@@ -23,16 +20,13 @@ export async function POST(req: Request) {
     });
 
     if (!magicToken) {
-      return NextResponse.json(
-        { ok: false, error: 'Invalid or expired link' },
-        { status: 401 }
-      );
+      return NextResponse.json({ ok: false, error: "Invalid or expired link" }, { status: 401 });
     }
 
     // Check if already used
     if (magicToken.usedAt) {
       return NextResponse.json(
-        { ok: false, error: 'This link has already been used' },
+        { ok: false, error: "This link has already been used" },
         { status: 401 }
       );
     }
@@ -40,7 +34,7 @@ export async function POST(req: Request) {
     // Check expiry
     if (new Date() > magicToken.expiresAt) {
       return NextResponse.json(
-        { ok: false, error: 'This link has expired (valid for 2 minutes)' },
+        { ok: false, error: "This link has expired (valid for 2 minutes)" },
         { status: 401 }
       );
     }
@@ -52,24 +46,21 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { ok: false, error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
     }
 
     // Check if user access has expired
     if (user.accessExpiresAt && new Date() > user.accessExpiresAt && !user.exception) {
       return NextResponse.json(
-        { ok: false, error: 'Your access has expired. Please contact your administrator.' },
+        { ok: false, error: "Your access has expired. Please contact your administrator." },
         { status: 403 }
       );
     }
 
     // Get IP address and enhanced fingerprinting for audit
-    const forwarded = req.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0] : req.headers.get('x-real-ip') || 'unknown';
-    const userAgent = req.headers.get('user-agent') || 'unknown';
+    const forwarded = req.headers.get("x-forwarded-for");
+    const ip = forwarded ? forwarded.split(",")[0] : req.headers.get("x-real-ip") || "unknown";
+    const userAgent = req.headers.get("user-agent") || "unknown";
 
     // Enhanced device fingerprint for security
     const enhancedDeviceInfo = {
@@ -95,7 +86,15 @@ export async function POST(req: Request) {
     });
 
     // Import webauthn utilities
-    const { generateRegistrationOptions, generateAuthenticationOptions, challenges, rpID, rpName, origin } = await import('../../../../lib/webauthn');
+    type AuthenticatorTransport = "ble" | "internal" | "nfc" | "usb" | "hybrid";
+
+    const {
+      generateRegistrationOptions,
+      generateAuthenticationOptions,
+      challenges,
+      rpID,
+      rpName,
+    } = await import("../../../../lib/webauthn");
 
     // If no passkey, generate registration options for passkey setup
     if (!hasPasskey) {
@@ -105,10 +104,10 @@ export async function POST(req: Request) {
         userName: user.email,
         userDisplayName: user.name || user.email,
         timeout: 60000,
-        attestationType: 'none',
+        attestationType: "none",
         authenticatorSelection: {
-          residentKey: 'preferred',
-          userVerification: 'preferred',
+          residentKey: "preferred",
+          userVerification: "preferred",
         },
       });
 
@@ -121,19 +120,19 @@ export async function POST(req: Request) {
         options: registrationOptions,
         email: user.email,
         name: user.name,
-        message: 'Please set up your passkey to complete login',
+        message: "Please set up your passkey to complete login",
       });
     }
 
     // User has passkey - generate authentication challenge
     const authOptions = await generateAuthenticationOptions({
       rpID,
-      allowCredentials: user.Authenticator.map((auth: any) => ({
+      allowCredentials: user.Authenticator.map((auth) => ({
         id: auth.id,
-        type: 'public-key' as const,
+        type: "public-key" as const,
         transports: auth.transports as AuthenticatorTransport[],
       })),
-      userVerification: 'preferred',
+      userVerification: "preferred",
       timeout: 60000,
     });
 
@@ -146,13 +145,10 @@ export async function POST(req: Request) {
       options: authOptions,
       email: user.email,
       name: user.name,
-      message: 'Please authenticate with your passkey',
+      message: "Please authenticate with your passkey",
     });
   } catch (error) {
-    console.error('Magic login error:', error);
-    return NextResponse.json(
-      { ok: false, error: 'Authentication failed' },
-      { status: 500 }
-    );
+    console.error("Magic login error:", error);
+    return NextResponse.json({ ok: false, error: "Authentication failed" }, { status: 500 });
   }
 }

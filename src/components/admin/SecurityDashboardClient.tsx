@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { BlockedIP } from '@/lib/security/ip-blocker';
+import { useState, useEffect } from "react";
+import { BlockedIP } from "@/lib/security/ip-blocker";
 
 interface AuthMetricsSummary {
   last24Hours: {
@@ -37,8 +37,8 @@ interface FailedAttempt {
 interface SuspiciousActivity {
   hasAlert: boolean;
   alerts: Array<{
-    type: 'high_failure_rate' | 'repeated_failures' | 'distributed_attack';
-    severity: 'low' | 'medium' | 'high';
+    type: "high_failure_rate" | "repeated_failures" | "distributed_attack";
+    severity: "low" | "medium" | "high";
     message: string;
     data: any;
   }>;
@@ -72,10 +72,10 @@ export function SecurityDashboardClient({
       try {
         // Fetch updated metrics
         const [metricsRes, failuresRes, alertsRes, blockedIPsRes] = await Promise.all([
-          fetch('/api/admin/auth-metrics?action=summary'),
-          fetch('/api/admin/auth-metrics?action=failures&minutes=60'),
-          fetch('/api/admin/auth-metrics?action=alerts'),
-          fetch('/api/admin/security/blocked-ips'),
+          fetch("/api/admin/auth-metrics?action=summary"),
+          fetch("/api/admin/auth-metrics?action=failures&minutes=60"),
+          fetch("/api/admin/auth-metrics?action=alerts"),
+          fetch("/api/admin/security/blocked-ips"),
         ]);
 
         if (metricsRes.ok) {
@@ -100,7 +100,7 @@ export function SecurityDashboardClient({
 
         setLastUpdate(new Date());
       } catch (error) {
-        console.error('Failed to refresh security data:', error);
+        console.error("Failed to refresh security data:", error);
       }
     }, 30000);
 
@@ -111,9 +111,9 @@ export function SecurityDashboardClient({
     if (!confirm(`Are you sure you want to unblock IP ${ip}?`)) return;
 
     try {
-      const res = await fetch('/api/admin/security/unblock-ip', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/security/unblock-ip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ip }),
       });
 
@@ -121,39 +121,37 @@ export function SecurityDashboardClient({
         setBlockedIPs((prev) => prev.filter((b) => b.ip !== ip));
         alert(`Successfully unblocked IP ${ip}`);
       } else {
-        alert('Failed to unblock IP');
+        alert("Failed to unblock IP");
       }
     } catch (error) {
-      alert('Error unblocking IP');
+      alert("Error unblocking IP");
     }
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'high':
-      case 'critical':
-        return 'text-red-600 bg-red-50';
-      case 'medium':
-      case 'warning':
-        return 'text-yellow-600 bg-yellow-50';
+      case "high":
+      case "critical":
+        return "text-red-600 bg-red-50";
+      case "medium":
+      case "warning":
+        return "text-yellow-600 bg-yellow-50";
       default:
-        return 'text-blue-600 bg-blue-50';
+        return "text-blue-600 bg-blue-50";
     }
   };
 
   const getSuccessRateColor = (rate: number) => {
-    if (rate >= 95) return 'text-green-600';
-    if (rate >= 85) return 'text-yellow-600';
-    return 'text-red-600';
+    if (rate >= 95) return "text-green-600";
+    if (rate >= 85) return "text-yellow-600";
+    return "text-red-600";
   };
 
   return (
     <div className="space-y-6">
       {/* Auto-refresh toggle and last update */}
       <div className="flex justify-between items-center bg-white rounded-lg shadow p-4">
-        <div className="text-sm text-gray-600">
-          Last updated: {lastUpdate.toLocaleTimeString()}
-        </div>
+        <div className="text-sm text-gray-600">Last updated: {lastUpdate.toLocaleTimeString()}</div>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -169,8 +167,18 @@ export function SecurityDashboardClient({
       {alerts.hasAlert && (
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="w-6 h-6 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
             Security Alerts ({alerts.alerts.length})
           </h3>
@@ -179,7 +187,7 @@ export function SecurityDashboardClient({
               <div
                 key={idx}
                 className={`p-4 rounded-lg border-2 ${
-                  alert.severity === 'high' ? 'border-red-300' : 'border-yellow-300'
+                  alert.severity === "high" ? "border-red-300" : "border-yellow-300"
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -192,7 +200,7 @@ export function SecurityDashboardClient({
                       >
                         {alert.severity}
                       </span>
-                      <span className="text-sm text-gray-600">{alert.type.replace(/_/g, ' ')}</span>
+                      <span className="text-sm text-gray-600">{alert.type.replace(/_/g, " ")}</span>
                     </div>
                     <p className="text-gray-900">{alert.message}</p>
                   </div>
@@ -207,7 +215,9 @@ export function SecurityDashboardClient({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <p className="text-sm text-gray-600 mb-1">24 Hour Success Rate</p>
-          <p className={`text-3xl font-bold ${getSuccessRateColor(metrics.last24Hours.successRate)}`}>
+          <p
+            className={`text-3xl font-bold ${getSuccessRateColor(metrics.last24Hours.successRate)}`}
+          >
             {metrics.last24Hours.successRate.toFixed(1)}%
           </p>
           <p className="text-sm text-gray-500 mt-2">
@@ -227,7 +237,9 @@ export function SecurityDashboardClient({
 
         <div className="bg-white rounded-lg shadow p-6">
           <p className="text-sm text-gray-600 mb-1">30 Day Success Rate</p>
-          <p className={`text-3xl font-bold ${getSuccessRateColor(metrics.last30Days.successRate)}`}>
+          <p
+            className={`text-3xl font-bold ${getSuccessRateColor(metrics.last30Days.successRate)}`}
+          >
             {metrics.last30Days.successRate.toFixed(1)}%
           </p>
           <p className="text-sm text-gray-500 mt-2">
@@ -248,8 +260,8 @@ export function SecurityDashboardClient({
               <div key={idx} className="border-l-4 border-red-400 pl-4 py-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-medium text-gray-900">{failure.email || 'Unknown'}</p>
-                    <p className="text-sm text-gray-600">{failure.ipAddress || 'Unknown IP'}</p>
+                    <p className="font-medium text-gray-900">{failure.email || "Unknown"}</p>
+                    <p className="text-sm text-gray-600">{failure.ipAddress || "Unknown IP"}</p>
                     <p className="text-xs text-gray-500">{failure.failureReason}</p>
                   </div>
                   <div className="text-right">

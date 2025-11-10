@@ -17,6 +17,7 @@ cp /tmp/claude-assessment.zip /workspaces/cockpit/
 ```
 
 Then download via VS Code:
+
 1. Right-click `claude-assessment.zip` in Explorer
 2. Select "Download..."
 
@@ -29,12 +30,14 @@ The file is already at `/tmp/claude-assessment.zip`
 ## 📤 Upload to Claude.ai
 
 ### Step 1: Create a New Project
+
 1. Go to https://claude.ai
 2. Click "Projects" in sidebar
 3. Click "+ New Project"
 4. Name it: **"Keystone Assessment"**
 
 ### Step 2: Upload Files
+
 1. Click "Add content" → "Upload files"
 2. **Drag and drop** `claude-assessment.zip`
 3. Wait for extraction (Claude.ai auto-extracts zips)
@@ -97,6 +100,7 @@ Provide specific file:line references where possible.
 ## 📊 What Claude Will See
 
 ### ✅ Included (2.6MB)
+
 - 250 TypeScript files
 - src/ directory (all business logic)
 - prisma/schema.prisma (database)
@@ -105,6 +109,7 @@ Provide specific file:line references where possible.
 - CODEBASE_OVERVIEW.md (context)
 
 ### ❌ Excluded (4.9GB → 500KB!)
+
 - node_modules/ (3.6GB)
 - .next/ (1.1GB build artifacts)
 - pnpm-lock.yaml (15,677 lines)

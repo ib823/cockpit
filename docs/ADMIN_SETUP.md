@@ -13,6 +13,7 @@ pnpm tsx scripts/set-admin-code.ts
 ```
 
 This interactive script will:
+
 1. Prompt for admin email address
 2. Prompt for secure password
 3. Generate bcrypt hash automatically
@@ -40,6 +41,7 @@ ADMIN_PASSWORD_HASH=$2a$10$[your-generated-hash-here]
 For production environments, set these variables directly in your hosting platform:
 
 **Vercel:**
+
 ```bash
 vercel env add ADMIN_EMAIL
 vercel env add ADMIN_PASSWORD_HASH
@@ -56,11 +58,12 @@ Admin passwords **MUST** meet these minimum requirements:
 - ✅ At least 1 uppercase letter (A-Z)
 - ✅ At least 1 lowercase letter (a-z)
 - ✅ At least 1 number (0-9)
-- ✅ At least 1 special character (!@#$%^&*()_+-=[]{}|;:,.<>?)
+- ✅ At least 1 special character (!@#$%^&\*()\_+-=[]{}|;:,.<>?)
 - ✅ No common dictionary words
 - ✅ Not previously breached (check at https://haveibeenpwned.com/Passwords)
 
 **Example strong passwords:**
+
 - `Tr0ub4dor&3!Xkcd`
 - `correct-horse-BATTERY-staple-2024!`
 - `MyC0mp@nyN@me-S3cur3-2024`
@@ -70,6 +73,7 @@ Admin passwords **MUST** meet these minimum requirements:
 ### Never Do This
 
 ❌ **DON'T** commit credentials to Git:
+
 ```env
 # .env file (DON'T COMMIT THIS)
 ADMIN_PASSWORD_HASH=actual-hash-here
@@ -100,6 +104,7 @@ Admin passwords should be rotated every **90 days**. See [SECRETS_ROTATION.md](.
 ### Quick Rotation Steps:
 
 1. Generate new password hash:
+
 ```bash
 node -e "console.log(require('bcryptjs').hashSync('NewPassword123!', 10))"
 ```
@@ -109,6 +114,7 @@ node -e "console.log(require('bcryptjs').hashSync('NewPassword123!', 10))"
 3. Test login with new credentials
 
 4. Document rotation in audit logs:
+
 ```bash
 echo "Admin password rotated on $(date)" >> logs/security-audit.log
 ```
@@ -120,6 +126,7 @@ echo "Admin password rotated on $(date)" >> logs/security-audit.log
 **Symptom**: Admin login fails with "Invalid credentials"
 
 **Checklist**:
+
 1. ✅ Verify `ADMIN_EMAIL` matches exactly (case-sensitive)
 2. ✅ Verify `ADMIN_PASSWORD_HASH` is set in environment
 3. ✅ Check application logs for authentication errors
@@ -127,6 +134,7 @@ echo "Admin password rotated on $(date)" >> logs/security-audit.log
 5. ✅ Confirm environment variables are loaded (restart app after changes)
 
 **Debug Command:**
+
 ```bash
 # Check if environment variables are set (don't print actual values!)
 node -e "console.log('ADMIN_EMAIL set:', !!process.env.ADMIN_EMAIL)"
@@ -185,6 +193,7 @@ ADMIN_PASSWORD_HASH=$2a$10$YourDevHashHere
 ### Production (Platform Environment Variables)
 
 Production credentials should:
+
 - Never exist in any file in the repository
 - Be set only via hosting platform's secure environment variable system
 - Be rotated regularly (every 90 days minimum)
@@ -206,7 +215,7 @@ If your organization requires compliance:
 To review admin authentication attempts:
 
 ```sql
-SELECT 
+SELECT
   createdAt,
   action,
   userId,

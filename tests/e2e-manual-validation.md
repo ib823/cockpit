@@ -3,9 +3,11 @@
 ## Test Checklist for Timeline Features
 
 ### ✅ Test 1: Login Page (Fixed)
+
 **URL:** http://localhost:3000/login
 
 **Expected:**
+
 - ✅ Page loads without errors
 - ✅ No console errors about `showSymbol` variable
 - ✅ Email input field visible
@@ -16,14 +18,17 @@
 ---
 
 ### ✅ Test 2: Timeline Page Loads
+
 **URL:** http://localhost:3000/timeline-magic
 
 **Expected:**
+
 - ✅ Page loads without errors
 - ✅ Timeline canvas visible
 - ✅ No TypeScript errors in console
 
 **How to Test:**
+
 1. Navigate to `/timeline-magic`
 2. Open browser console (F12)
 3. Verify no red errors
@@ -32,9 +37,11 @@
 ---
 
 ### 🔍 Test 3: Holiday Markers (Redesigned)
+
 **Location:** Timeline Gantt chart
 
 **Expected Visual:**
+
 - ✅ **Red triangles (▼)** at top of timeline
 - ✅ Positioned at exact holiday dates
 - ✅ Hover shows tooltip with:
@@ -44,6 +51,7 @@
 - ✅ Triangle has drop shadow for visibility
 
 **How to Test:**
+
 1. Go to timeline view with phases
 2. Click "Holidays" button to add/view holidays
 3. Look for red triangles at top of timeline
@@ -51,6 +59,7 @@
 5. Verify tooltip position (below triangle with arrow)
 
 **Default Holidays to Check:**
+
 - Check Malaysia region (default)
 - Should see holidays like:
   - New Year's Day
@@ -62,9 +71,11 @@
 ---
 
 ### 🔍 Test 4: Milestone Markers (Redesigned)
+
 **Location:** Timeline Gantt chart
 
 **Expected Visual:**
+
 - ✅ **Purple flag icons (🚩)** at top of timeline
 - ✅ Higher z-index than holidays (appears above)
 - ✅ Hover shows tooltip with:
@@ -74,6 +85,7 @@
 - ✅ Flag icon filled and has drop shadow
 
 **How to Test:**
+
 1. Click "Milestones" button to add/view milestones
 2. Default milestones should be:
    - "Project Kickoff" (start date)
@@ -86,9 +98,11 @@
 ---
 
 ### 🔍 Test 5: Phase Expansion with Tasks (NEW)
+
 **Location:** Each phase row in timeline
 
 **Expected:**
+
 - ✅ Chevron icon (▶) next to phase name
 - ✅ Click chevron to expand/collapse
 - ✅ When expanded shows 3 tasks per phase
@@ -103,31 +117,37 @@
 **Phase Types to Test:**
 
 **PREPARE Phase:**
+
 1. Team Mobilization (Project Manager) - 25% effort, 30% duration
 2. Project Governance & Planning (Project Manager) - 40% effort, 40% duration
 3. SAP Environment Setup (Basis Consultant) - 35% effort, 30% duration
 
 **EXPLORE Phase:**
+
 1. Design Workshop (Functional+Technical) - 45% effort, 40% duration
 2. Develop Blueprint Document - 35% effort, 35% duration
 3. User/System Validation Conditions - 20% effort, 25% duration
 
 **REALIZE Phase:**
+
 1. Configure/Build - 50% effort, 45% duration
 2. Unit Test + SIT - 30% effort, 30% duration
 3. Mock Run - 20% effort, 25% duration
 
 **DEPLOY Phase:**
+
 1. Training - 30% effort, 35% duration
 2. UAT - 35% effort, 40% duration
 3. Cutover - 35% effort, 25% duration
 
 **RUN Phase (Hypercare):**
+
 1. Hypercare Support - 60% effort, 100% duration
 2. Knowledge Transfer - 25% effort, 80% duration
 3. Stabilization & Optimization - 15% effort, 60% duration
 
 **How to Test:**
+
 1. Navigate to timeline with generated phases
 2. Find a phase (e.g., "FI - Prepare")
 3. Click the chevron (▶) icon
@@ -139,9 +159,11 @@
 ---
 
 ### 🔍 Test 6: Resource Button on Collapsed Phases (FIXED)
+
 **Location:** Stream rows when collapsed
 
 **Expected:**
+
 - ✅ When stream is collapsed, mini-reference bar shows
 - ✅ Hover over collapsed stream row
 - ✅ Users icon (👥) button appears on right
@@ -149,6 +171,7 @@
 - ✅ Resource allocation is per-phase, not per-task
 
 **How to Test:**
+
 1. Click "Collapse All" button
 2. Streams should show mini bars
 3. Hover over a collapsed stream row
@@ -159,9 +182,11 @@
 ---
 
 ### 🔍 Test 7: Task Template Matching (FIXED)
+
 **Location:** Phase generation logic
 
 **Expected:**
+
 - ✅ "FI - Prepare" shows Prepare tasks
 - ✅ "MM - Explore" shows Explore tasks
 - ✅ "SD - Realize" shows Realize tasks
@@ -169,6 +194,7 @@
 - ✅ "Hypercare" or "Support" shows Run tasks
 
 **How to Test:**
+
 1. Generate a timeline with multiple modules
 2. Expand phases from different stages
 3. Verify each shows correct task breakdown
@@ -181,15 +207,18 @@
 ---
 
 ### 🔍 Test 8: Legend Accuracy
+
 **Location:** Bottom of timeline
 
 **Expected:**
+
 - ✅ Red triangle icon next to "Public Holidays (X)"
 - ✅ Purple flag icon next to "Milestones (X)"
 - ✅ Icons match actual markers in timeline
 - ✅ Count numbers are accurate
 
 **How to Test:**
+
 1. Scroll to bottom of timeline
 2. Check legend icons match top markers
 3. Count holidays manually and verify count
@@ -200,25 +229,33 @@
 ## Common Issues & Solutions
 
 ### Issue: Holiday markers not visible
+
 **Check:**
+
 - Browser console for errors
 - z-index hierarchy (holidays: 20, milestones: 30)
 - Holiday date is within timeline range
 
 ### Issue: Tasks not appearing
+
 **Check:**
+
 - Phase category format (should be "MODULE - STAGE")
 - Console for task generation errors
 - Phase effort and workingDays values (should be > 0)
 
 ### Issue: Resource button not showing
+
 **Check:**
+
 - Hover over collapsed stream row
 - Opacity transition (should fade in)
 - Button uses group-hover Tailwind class
 
 ### Issue: Milestones overlap holidays
+
 **Check:**
+
 - Milestone z-index (30) > holiday z-index (20)
 - Both should be visible with milestone on top
 
@@ -236,6 +273,7 @@
 ## Browser Compatibility
 
 Test in:
+
 - [ ] Chrome/Edge (Chromium)
 - [ ] Firefox
 - [ ] Safari (if available)
@@ -254,6 +292,7 @@ Test in:
 ## Final Verification
 
 **All Features Working:**
+
 1. ✅ Login page loads without errors
 2. ✅ Holiday triangles render at top
 3. ✅ Milestone flags render at top
@@ -299,12 +338,14 @@ npm run dev
 ## Next Steps After Validation
 
 If all tests pass:
+
 - ✅ Commit changes
 - ✅ Create PR
 - ✅ Deploy to staging
 - ✅ User acceptance testing
 
 If issues found:
+
 - Document specific failures
 - Check browser console errors
 - Review component props/state

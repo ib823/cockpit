@@ -7,8 +7,8 @@
  * Per spec: Roadmap_and_DoD.md P0-3
  */
 
-import toast from 'react-hot-toast';
-import { colorValues, getColoredShadow } from './design-system';
+import toast from "react-hot-toast";
+import { colorValues, getColoredShadow } from "./design-system";
 
 /**
  * Success toast - green with checkmark icon
@@ -16,17 +16,17 @@ import { colorValues, getColoredShadow } from './design-system';
 export function showSuccess(message: string, duration = 3000) {
   return toast.success(message, {
     duration,
-    position: 'top-right',
+    position: "top-right",
     style: {
       background: colorValues.success[600],
-      color: '#fff',
+      color: "#fff",
       fontWeight: 600,
-      boxShadow: getColoredShadow(colorValues.success[600], 'lg'),
-      borderRadius: '12px',
-      padding: '12px 16px',
+      boxShadow: getColoredShadow(colorValues.success[600], "lg"),
+      borderRadius: "12px",
+      padding: "12px 16px",
     },
     iconTheme: {
-      primary: '#fff',
+      primary: "#fff",
       secondary: colorValues.success[600],
     },
   });
@@ -38,17 +38,17 @@ export function showSuccess(message: string, duration = 3000) {
 export function showError(message: string, duration = 4000) {
   return toast.error(message, {
     duration,
-    position: 'top-right',
+    position: "top-right",
     style: {
       background: colorValues.error[600],
-      color: '#fff',
+      color: "#fff",
       fontWeight: 600,
-      boxShadow: getColoredShadow(colorValues.error[600], 'lg'),
-      borderRadius: '12px',
-      padding: '12px 16px',
+      boxShadow: getColoredShadow(colorValues.error[600], "lg"),
+      borderRadius: "12px",
+      padding: "12px 16px",
     },
     iconTheme: {
-      primary: '#fff',
+      primary: "#fff",
       secondary: colorValues.error[600],
     },
   });
@@ -59,14 +59,14 @@ export function showError(message: string, duration = 4000) {
  */
 export function showLoading(message: string) {
   return toast.loading(message, {
-    position: 'top-right',
+    position: "top-right",
     style: {
       background: colorValues.primary[600],
-      color: '#fff',
+      color: "#fff",
       fontWeight: 600,
-      boxShadow: getColoredShadow(colorValues.primary[600], 'md'),
-      borderRadius: '12px',
-      padding: '12px 16px',
+      boxShadow: getColoredShadow(colorValues.primary[600], "md"),
+      borderRadius: "12px",
+      padding: "12px 16px",
     },
   });
 }
@@ -77,15 +77,15 @@ export function showLoading(message: string) {
 export function showInfo(message: string, duration = 3000) {
   return toast(message, {
     duration,
-    position: 'top-right',
-    icon: 'ℹ️',
+    position: "top-right",
+    icon: "ℹ️",
     style: {
       background: colorValues.info[600],
-      color: '#fff',
+      color: "#fff",
       fontWeight: 600,
-      boxShadow: getColoredShadow(colorValues.info[600], 'md'),
-      borderRadius: '12px',
-      padding: '12px 16px',
+      boxShadow: getColoredShadow(colorValues.info[600], "md"),
+      borderRadius: "12px",
+      padding: "12px 16px",
     },
   });
 }
@@ -96,15 +96,15 @@ export function showInfo(message: string, duration = 3000) {
 export function showWarning(message: string, duration = 4000) {
   return toast(message, {
     duration,
-    position: 'top-right',
-    icon: '⚠️',
+    position: "top-right",
+    icon: "⚠️",
     style: {
       background: colorValues.warning[600],
-      color: '#fff',
+      color: "#fff",
       fontWeight: 600,
-      boxShadow: getColoredShadow(colorValues.warning[600], 'md'),
-      borderRadius: '12px',
-      padding: '12px 16px',
+      boxShadow: getColoredShadow(colorValues.warning[600], "md"),
+      borderRadius: "12px",
+      padding: "12px 16px",
     },
   });
 }
@@ -121,43 +121,39 @@ export function showPromise<T>(
     error: string | ((error: any) => string);
   }
 ) {
-  return toast.promise(
-    promise,
-    messages,
-    {
-      position: 'top-right',
-      success: {
-        style: {
-          background: colorValues.success[600],
-          color: '#fff',
-          fontWeight: 600,
-          boxShadow: getColoredShadow(colorValues.success[600], 'lg'),
-          borderRadius: '12px',
-          padding: '12px 16px',
-        },
+  return toast.promise(promise, messages, {
+    position: "top-right",
+    success: {
+      style: {
+        background: colorValues.success[600],
+        color: "#fff",
+        fontWeight: 600,
+        boxShadow: getColoredShadow(colorValues.success[600], "lg"),
+        borderRadius: "12px",
+        padding: "12px 16px",
       },
-      error: {
-        style: {
-          background: colorValues.error[600],
-          color: '#fff',
-          fontWeight: 600,
-          boxShadow: getColoredShadow(colorValues.error[600], 'lg'),
-          borderRadius: '12px',
-          padding: '12px 16px',
-        },
+    },
+    error: {
+      style: {
+        background: colorValues.error[600],
+        color: "#fff",
+        fontWeight: 600,
+        boxShadow: getColoredShadow(colorValues.error[600], "lg"),
+        borderRadius: "12px",
+        padding: "12px 16px",
       },
-      loading: {
-        style: {
-          background: colorValues.primary[600],
-          color: '#fff',
-          fontWeight: 600,
-          boxShadow: getColoredShadow(colorValues.primary[600], 'md'),
-          borderRadius: '12px',
-          padding: '12px 16px',
-        },
+    },
+    loading: {
+      style: {
+        background: colorValues.primary[600],
+        color: "#fff",
+        fontWeight: 600,
+        boxShadow: getColoredShadow(colorValues.primary[600], "md"),
+        borderRadius: "12px",
+        padding: "12px 16px",
       },
-    }
-  );
+    },
+  });
 }
 
 /**

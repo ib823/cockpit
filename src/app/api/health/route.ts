@@ -4,8 +4,8 @@
  * GET /api/health - Check system health including database connection
  */
 
-import { NextResponse } from 'next/server';
-import { checkDatabaseHealth } from '@/lib/db';
+import { NextResponse } from "next/server";
+import { checkDatabaseHealth } from "@/lib/db";
 
 export async function GET() {
   const startTime = Date.now();
@@ -18,11 +18,11 @@ export async function GET() {
     if (!dbHealth.healthy) {
       return NextResponse.json(
         {
-          status: 'unhealthy',
+          status: "unhealthy",
           timestamp: new Date().toISOString(),
           checks: {
-            database: 'down',
-            api: 'up',
+            database: "down",
+            api: "up",
           },
           database: {
             latency: dbHealth.latency,
@@ -40,11 +40,11 @@ export async function GET() {
 
     return NextResponse.json(
       {
-        status: 'healthy',
+        status: "healthy",
         timestamp: new Date().toISOString(),
         checks: {
-          database: 'up',
-          api: 'up',
+          database: "up",
+          api: "up",
         },
         database: {
           latency: dbHealth.latency,
@@ -59,17 +59,17 @@ export async function GET() {
   } catch (error) {
     const responseTime = Date.now() - startTime;
 
-    console.error('[Health] Health check failed:', error);
+    console.error("[Health] Health check failed:", error);
 
     return NextResponse.json(
       {
-        status: 'error',
+        status: "error",
         timestamp: new Date().toISOString(),
         checks: {
-          database: 'error',
-          api: 'degraded',
+          database: "error",
+          api: "degraded",
         },
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
         responseTimeMs: responseTime,
         environment: {
           nodeEnv: process.env.NODE_ENV,

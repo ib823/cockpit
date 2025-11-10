@@ -5,9 +5,9 @@
  * Allows users to choose between Total Refresh or Smart Merge strategies.
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 import {
   AlertTriangle,
   FileText,
@@ -20,21 +20,21 @@ import {
   X,
   RefreshCw,
   GitMerge,
-} from 'lucide-react';
+} from "lucide-react";
 import type {
   ConflictDetectionResult,
   ImportConflict,
   ResourceConflictDetail,
   PhaseConflictDetail,
   TaskConflictDetail,
-} from '@/lib/gantt-tool/conflict-detector';
-import type { GanttProject } from '@/types/gantt-tool';
+} from "@/lib/gantt-tool/conflict-detector";
+import type { GanttProject } from "@/types/gantt-tool";
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type ResolutionStrategy = 'refresh' | 'merge';
+export type ResolutionStrategy = "refresh" | "merge";
 
 export interface ConflictResolution {
   strategy: ResolutionStrategy;
@@ -64,7 +64,7 @@ export function ConflictResolutionModal({
   onResolve,
   onCancel,
 }: ConflictResolutionModalProps) {
-  const [selectedStrategy, setSelectedStrategy] = useState<ResolutionStrategy>('merge');
+  const [selectedStrategy, setSelectedStrategy] = useState<ResolutionStrategy>("merge");
   const [expandedConflicts, setExpandedConflicts] = useState<Set<string>>(new Set());
   const [customNames, setCustomNames] = useState<Map<string, string>>(new Map());
   const [showNameEditor, setShowNameEditor] = useState(false);
@@ -74,9 +74,9 @@ export function ConflictResolutionModal({
   // Group conflicts by type
   const conflictsByType = useMemo(() => {
     const grouped = {
-      resource: conflicts.filter((c) => c.type === 'resource'),
-      phase: conflicts.filter((c) => c.type === 'phase'),
-      task: conflicts.filter((c) => c.type === 'task'),
+      resource: conflicts.filter((c) => c.type === "resource"),
+      phase: conflicts.filter((c) => c.type === "phase"),
+      task: conflicts.filter((c) => c.type === "task"),
     };
     return grouped;
   }, [conflicts]);
@@ -96,7 +96,7 @@ export function ConflictResolutionModal({
   const handleResolve = () => {
     const resolution: ConflictResolution = {
       strategy: selectedStrategy,
-      customNames: selectedStrategy === 'merge' ? customNames : undefined,
+      customNames: selectedStrategy === "merge" ? customNames : undefined,
     };
     onResolve(resolution);
   };
@@ -111,10 +111,7 @@ export function ConflictResolutionModal({
   return (
     <>
       {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/50 z-[60]"
-        onClick={onCancel}
-      />
+      <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onCancel} />
 
       {/* Modal */}
       <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
@@ -128,7 +125,8 @@ export function ConflictResolutionModal({
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Import Conflicts Detected</h2>
                 <p className="text-sm text-gray-600 mt-0.5">
-                  {summary.totalErrors} error{summary.totalErrors !== 1 ? 's' : ''} · {summary.totalWarnings} warning{summary.totalWarnings !== 1 ? 's' : ''}
+                  {summary.totalErrors} error{summary.totalErrors !== 1 ? "s" : ""} ·{" "}
+                  {summary.totalWarnings} warning{summary.totalWarnings !== 1 ? "s" : ""}
                 </p>
               </div>
             </div>
@@ -148,14 +146,16 @@ export function ConflictResolutionModal({
                 <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900 mb-2">
-                    {conflicts.length} conflict{conflicts.length !== 1 ? 's' : ''} found between imported and existing data
+                    {conflicts.length} conflict{conflicts.length !== 1 ? "s" : ""} found between
+                    imported and existing data
                   </h3>
                   <div className="flex gap-4 text-sm">
                     {summary.resourceConflicts > 0 && (
                       <div className="flex items-center gap-1.5">
                         <Users className="w-4 h-4 text-amber-600" />
                         <span className="text-gray-700">
-                          {summary.resourceConflicts} Resource{summary.resourceConflicts !== 1 ? 's' : ''}
+                          {summary.resourceConflicts} Resource
+                          {summary.resourceConflicts !== 1 ? "s" : ""}
                         </span>
                       </div>
                     )}
@@ -163,7 +163,7 @@ export function ConflictResolutionModal({
                       <div className="flex items-center gap-1.5">
                         <FileText className="w-4 h-4 text-amber-600" />
                         <span className="text-gray-700">
-                          {summary.phaseConflicts} Phase{summary.phaseConflicts !== 1 ? 's' : ''}
+                          {summary.phaseConflicts} Phase{summary.phaseConflicts !== 1 ? "s" : ""}
                         </span>
                       </div>
                     )}
@@ -171,7 +171,7 @@ export function ConflictResolutionModal({
                       <div className="flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4 text-amber-600" />
                         <span className="text-gray-700">
-                          {summary.taskConflicts} Task{summary.taskConflicts !== 1 ? 's' : ''}
+                          {summary.taskConflicts} Task{summary.taskConflicts !== 1 ? "s" : ""}
                         </span>
                       </div>
                     )}
@@ -205,9 +205,9 @@ export function ConflictResolutionModal({
                 {/* Total Refresh Option */}
                 <label
                   className={`block border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedStrategy === 'refresh'
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                    selectedStrategy === "refresh"
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -215,8 +215,8 @@ export function ConflictResolutionModal({
                       type="radio"
                       name="strategy"
                       value="refresh"
-                      checked={selectedStrategy === 'refresh'}
-                      onChange={() => setSelectedStrategy('refresh')}
+                      checked={selectedStrategy === "refresh"}
+                      onChange={() => setSelectedStrategy("refresh")}
                       className="mt-1"
                     />
                     <div className="flex-1">
@@ -225,7 +225,8 @@ export function ConflictResolutionModal({
                         <span className="font-semibold text-gray-900">Total Refresh</span>
                       </div>
                       <p className="text-sm text-gray-600 mb-3">
-                        Replace all existing data with imported data. This will completely refresh your project.
+                        Replace all existing data with imported data. This will completely refresh
+                        your project.
                       </p>
                       <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                         <div className="flex items-start gap-2">
@@ -233,9 +234,18 @@ export function ConflictResolutionModal({
                           <div className="text-sm">
                             <p className="font-medium text-red-900 mb-1">This will delete:</p>
                             <ul className="text-red-700 space-y-0.5">
-                              <li>• {existingCounts.phases} existing phase{existingCounts.phases !== 1 ? 's' : ''}</li>
-                              <li>• {existingCounts.tasks} existing task{existingCounts.tasks !== 1 ? 's' : ''}</li>
-                              <li>• {existingCounts.resources} existing resource{existingCounts.resources !== 1 ? 's' : ''}</li>
+                              <li>
+                                • {existingCounts.phases} existing phase
+                                {existingCounts.phases !== 1 ? "s" : ""}
+                              </li>
+                              <li>
+                                • {existingCounts.tasks} existing task
+                                {existingCounts.tasks !== 1 ? "s" : ""}
+                              </li>
+                              <li>
+                                • {existingCounts.resources} existing resource
+                                {existingCounts.resources !== 1 ? "s" : ""}
+                              </li>
                             </ul>
                           </div>
                         </div>
@@ -247,9 +257,9 @@ export function ConflictResolutionModal({
                 {/* Smart Merge Option */}
                 <label
                   className={`block border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedStrategy === 'merge'
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                    selectedStrategy === "merge"
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -257,8 +267,8 @@ export function ConflictResolutionModal({
                       type="radio"
                       name="strategy"
                       value="merge"
-                      checked={selectedStrategy === 'merge'}
-                      onChange={() => setSelectedStrategy('merge')}
+                      checked={selectedStrategy === "merge"}
+                      onChange={() => setSelectedStrategy("merge")}
                       className="mt-1"
                     />
                     <div className="flex-1">
@@ -270,7 +280,8 @@ export function ConflictResolutionModal({
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mb-3">
-                        Add imported data alongside existing data. Conflicting items will be renamed automatically.
+                        Add imported data alongside existing data. Conflicting items will be renamed
+                        automatically.
                       </p>
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                         <div className="flex items-start gap-2">
@@ -294,9 +305,14 @@ export function ConflictResolutionModal({
                                   </li>
                                 );
                               })}
-                              {(conflictsByType.phase.length + conflictsByType.resource.length > 6) && (
+                              {conflictsByType.phase.length + conflictsByType.resource.length >
+                                6 && (
                                 <li className="text-green-600 italic">
-                                  ...and {conflictsByType.phase.length + conflictsByType.resource.length - 6} more
+                                  ...and{" "}
+                                  {conflictsByType.phase.length +
+                                    conflictsByType.resource.length -
+                                    6}{" "}
+                                  more
                                 </li>
                               )}
                             </ul>
@@ -323,7 +339,7 @@ export function ConflictResolutionModal({
             </div>
 
             {/* Name Editor (shown when "Edit Names" is clicked) */}
-            {showNameEditor && selectedStrategy === 'merge' && (
+            {showNameEditor && selectedStrategy === "merge" && (
               <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <h4 className="font-semibold text-gray-900 mb-3 text-sm">
                   Customize Renamed Items
@@ -334,14 +350,14 @@ export function ConflictResolutionModal({
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {conflicts.map((conflict) => {
                     const detail = conflict.detail;
-                    let itemName = '';
-                    let suggestedName = '';
+                    let itemName = "";
+                    let suggestedName = "";
 
-                    if (conflict.type === 'resource') {
+                    if (conflict.type === "resource") {
                       const resourceDetail = detail as ResourceConflictDetail;
                       itemName = resourceDetail.resourceName;
                       suggestedName = `${resourceDetail.resourceName} (2)`;
-                    } else if (conflict.type === 'phase') {
+                    } else if (conflict.type === "phase") {
                       const phaseDetail = detail as PhaseConflictDetail;
                       itemName = phaseDetail.phaseName;
                       suggestedName = `${phaseDetail.phaseName} (2)`;
@@ -360,7 +376,7 @@ export function ConflictResolutionModal({
                         <input
                           type="text"
                           placeholder={suggestedName}
-                          value={customNames.get(conflict.id) || ''}
+                          value={customNames.get(conflict.id) || ""}
                           onChange={(e) => {
                             const newNames = new Map(customNames);
                             if (e.target.value) {
@@ -382,9 +398,7 @@ export function ConflictResolutionModal({
 
           {/* Footer */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <div className="text-sm text-gray-600">
-              You must choose a strategy to continue
-            </div>
+            <div className="text-sm text-gray-600">You must choose a strategy to continue</div>
             <div className="flex gap-3">
               <button
                 onClick={onCancel}
@@ -396,7 +410,7 @@ export function ConflictResolutionModal({
                 onClick={handleResolve}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
               >
-                {selectedStrategy === 'refresh' ? (
+                {selectedStrategy === "refresh" ? (
                   <>
                     <RefreshCw className="w-4 h-4" />
                     Continue with Refresh
@@ -432,11 +446,11 @@ function ConflictItem({ conflict, isExpanded, onToggle }: ConflictItemProps) {
   // Get icon based on type
   const getIcon = () => {
     switch (conflict.type) {
-      case 'resource':
+      case "resource":
         return <Users className="w-4 h-4" />;
-      case 'phase':
+      case "phase":
         return <FileText className="w-4 h-4" />;
-      case 'task':
+      case "task":
         return <CheckCircle2 className="w-4 h-4" />;
       default:
         return <AlertTriangle className="w-4 h-4" />;
@@ -445,19 +459,19 @@ function ConflictItem({ conflict, isExpanded, onToggle }: ConflictItemProps) {
 
   // Get color based on severity
   const getColorClasses = () => {
-    if (conflict.severity === 'error') {
+    if (conflict.severity === "error") {
       return {
-        border: 'border-red-200',
-        bg: 'bg-red-50',
-        icon: 'text-red-600',
-        badge: 'bg-red-100 text-red-700',
+        border: "border-red-200",
+        bg: "bg-red-50",
+        icon: "text-red-600",
+        badge: "bg-red-100 text-red-700",
       };
     } else {
       return {
-        border: 'border-amber-200',
-        bg: 'bg-amber-50',
-        icon: 'text-amber-600',
-        badge: 'bg-amber-100 text-amber-700',
+        border: "border-amber-200",
+        bg: "bg-amber-50",
+        icon: "text-amber-600",
+        badge: "bg-amber-100 text-amber-700",
       };
     }
   };
@@ -491,13 +505,13 @@ function ConflictItem({ conflict, isExpanded, onToggle }: ConflictItemProps) {
       {isExpanded && (
         <div className="px-4 pb-3 border-t border-gray-200">
           <div className="pt-3 space-y-2 text-sm">
-            {conflict.type === 'resource' && (
+            {conflict.type === "resource" && (
               <ResourceConflictDetails detail={detail as ResourceConflictDetail} />
             )}
-            {conflict.type === 'phase' && (
+            {conflict.type === "phase" && (
               <PhaseConflictDetails detail={detail as PhaseConflictDetail} />
             )}
-            {conflict.type === 'task' && (
+            {conflict.type === "task" && (
               <TaskConflictDetails detail={detail as TaskConflictDetail} />
             )}
             <div className="pt-2 border-t border-gray-200">
@@ -527,7 +541,8 @@ function ResourceConflictDetails({ detail }: { detail: ResourceConflictDetail })
       <div className="flex items-center gap-2">
         <span className="font-medium text-gray-700">Conflict Period:</span>
         <span className="text-gray-900">
-          {new Date(detail.dateRange.start).toLocaleDateString()} - {new Date(detail.dateRange.end).toLocaleDateString()}
+          {new Date(detail.dateRange.start).toLocaleDateString()} -{" "}
+          {new Date(detail.dateRange.end).toLocaleDateString()}
         </span>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -552,7 +567,9 @@ function ResourceConflictDetails({ detail }: { detail: ResourceConflictDetail })
           <span className="font-medium text-gray-700">Affected Tasks:</span>
           <ul className="ml-4 mt-1 space-y-0.5">
             {detail.tasks.map((task, idx) => (
-              <li key={idx} className="text-gray-600 text-xs">• {task}</li>
+              <li key={idx} className="text-gray-600 text-xs">
+                • {task}
+              </li>
             ))}
           </ul>
         </div>
@@ -572,14 +589,16 @@ function PhaseConflictDetails({ detail }: { detail: PhaseConflictDetail }) {
         <div>
           <div className="font-medium text-gray-700 mb-1">Existing Phase:</div>
           <div className="text-xs text-gray-600">
-            {new Date(detail.existingDateRange.start).toLocaleDateString()} - {new Date(detail.existingDateRange.end).toLocaleDateString()}
+            {new Date(detail.existingDateRange.start).toLocaleDateString()} -{" "}
+            {new Date(detail.existingDateRange.end).toLocaleDateString()}
           </div>
           <div className="text-xs text-gray-600">{detail.taskCount.existing} tasks</div>
         </div>
         <div>
           <div className="font-medium text-gray-700 mb-1">Imported Phase:</div>
           <div className="text-xs text-gray-600">
-            {new Date(detail.importedDateRange.start).toLocaleDateString()} - {new Date(detail.importedDateRange.end).toLocaleDateString()}
+            {new Date(detail.importedDateRange.start).toLocaleDateString()} -{" "}
+            {new Date(detail.importedDateRange.end).toLocaleDateString()}
           </div>
           <div className="text-xs text-gray-600">{detail.taskCount.imported} tasks</div>
         </div>
@@ -603,13 +622,15 @@ function TaskConflictDetails({ detail }: { detail: TaskConflictDetail }) {
         <div>
           <div className="font-medium text-gray-700 mb-1">Existing Task:</div>
           <div className="text-xs text-gray-600">
-            {new Date(detail.existingDateRange.start).toLocaleDateString()} - {new Date(detail.existingDateRange.end).toLocaleDateString()}
+            {new Date(detail.existingDateRange.start).toLocaleDateString()} -{" "}
+            {new Date(detail.existingDateRange.end).toLocaleDateString()}
           </div>
         </div>
         <div>
           <div className="font-medium text-gray-700 mb-1">Imported Task:</div>
           <div className="text-xs text-gray-600">
-            {new Date(detail.importedDateRange.start).toLocaleDateString()} - {new Date(detail.importedDateRange.end).toLocaleDateString()}
+            {new Date(detail.importedDateRange.start).toLocaleDateString()} -{" "}
+            {new Date(detail.importedDateRange.end).toLocaleDateString()}
           </div>
         </div>
       </div>

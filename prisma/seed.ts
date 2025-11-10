@@ -8,9 +8,9 @@
  * Run: npx prisma db seed
  */
 
-import { PrismaClient } from '@prisma/client';
-import { createId } from '@paralleldrive/cuid2';
-import { L3_SCOPE_ITEMS } from '../src/data/l3-catalog';
+import { PrismaClient } from "@prisma/client";
+import { createId } from "@paralleldrive/cuid2";
+import { L3_SCOPE_ITEMS } from "../src/data/l3-catalog";
 
 const prisma = new PrismaClient();
 
@@ -19,7 +19,7 @@ const prisma = new PrismaClient();
  * Data source: /src/data/l3-catalog.ts + database L3 scope items document
  */
 async function seedL3Catalog() {
-  console.log('📚 Seeding L3 Catalog...');
+  console.log("📚 Seeding L3 Catalog...");
 
   // Step 1: Seed LOBs
   await seedLOBs();
@@ -27,7 +27,7 @@ async function seedL3Catalog() {
   // Step 2: Seed all L3 Items from catalog data
   await seedAllL3Items();
 
-  console.log('✅ L3 Catalog seeded successfully');
+  console.log("✅ L3 Catalog seeded successfully");
 }
 
 /**
@@ -35,18 +35,78 @@ async function seedL3Catalog() {
  */
 async function seedLOBs() {
   const lobs = [
-    { lobName: 'Finance', l3Count: 52, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/Finance' },
-    { lobName: 'Sourcing & Procurement', l3Count: 37, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/SourcingAndProcurement' },
-    { lobName: 'Sales', l3Count: 35, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/Sales' },
-    { lobName: 'Manufacturing', l3Count: 32, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/Manufacturing' },
-    { lobName: 'Quality Management', l3Count: 10, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/QualityManagement' },
-    { lobName: 'Asset Management', l3Count: 12, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/AssetManagement' },
-    { lobName: 'Service', l3Count: 15, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/Service' },
-    { lobName: 'Supply Chain', l3Count: 36, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/SupplyChain' },
-    { lobName: 'Project Management/Professional Services', l3Count: 19, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/ProjectManagement' },
-    { lobName: 'R&D/Engineering', l3Count: 12, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/RDEngineering' },
-    { lobName: 'GRC/Compliance', l3Count: 8, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/GRC' },
-    { lobName: 'Cross-Topics/Analytics/Group Reporting', l3Count: 25, releaseTag: '2508', navigatorSectionUrl: 'https://me.sap.com/processnavigator/CrossTopics' },
+    {
+      lobName: "Finance",
+      l3Count: 52,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/Finance",
+    },
+    {
+      lobName: "Sourcing & Procurement",
+      l3Count: 37,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/SourcingAndProcurement",
+    },
+    {
+      lobName: "Sales",
+      l3Count: 35,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/Sales",
+    },
+    {
+      lobName: "Manufacturing",
+      l3Count: 32,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/Manufacturing",
+    },
+    {
+      lobName: "Quality Management",
+      l3Count: 10,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/QualityManagement",
+    },
+    {
+      lobName: "Asset Management",
+      l3Count: 12,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/AssetManagement",
+    },
+    {
+      lobName: "Service",
+      l3Count: 15,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/Service",
+    },
+    {
+      lobName: "Supply Chain",
+      l3Count: 36,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/SupplyChain",
+    },
+    {
+      lobName: "Project Management/Professional Services",
+      l3Count: 19,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/ProjectManagement",
+    },
+    {
+      lobName: "R&D/Engineering",
+      l3Count: 12,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/RDEngineering",
+    },
+    {
+      lobName: "GRC/Compliance",
+      l3Count: 8,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/GRC",
+    },
+    {
+      lobName: "Cross-Topics/Analytics/Group Reporting",
+      l3Count: 25,
+      releaseTag: "2508",
+      navigatorSectionUrl: "https://me.sap.com/processnavigator/CrossTopics",
+    },
   ];
 
   for (const lob of lobs) {
@@ -127,18 +187,18 @@ async function upsertL3Item(data: {
  */
 async function seedAllL3Items() {
   const moduleToLOB: Record<string, string> = {
-    'Asset Management': 'Asset Management',
-    'Cross-Topics/Analytics/Group Reporting': 'Cross-Topics/Analytics/Group Reporting',
-    'Finance': 'Finance',
-    'GRC/Compliance': 'GRC/Compliance',
-    'Manufacturing': 'Manufacturing',
-    'Project Management/Professional Services': 'Project Management/Professional Services',
-    'Quality Management': 'Quality Management',
-    'R&D/Engineering': 'R&D/Engineering',
-    'Sales': 'Sales',
-    'Service': 'Service',
-    'Sourcing & Procurement': 'Sourcing & Procurement',
-    'Supply Chain': 'Supply Chain',
+    "Asset Management": "Asset Management",
+    "Cross-Topics/Analytics/Group Reporting": "Cross-Topics/Analytics/Group Reporting",
+    Finance: "Finance",
+    "GRC/Compliance": "GRC/Compliance",
+    Manufacturing: "Manufacturing",
+    "Project Management/Professional Services": "Project Management/Professional Services",
+    "Quality Management": "Quality Management",
+    "R&D/Engineering": "R&D/Engineering",
+    Sales: "Sales",
+    Service: "Service",
+    "Sourcing & Procurement": "Sourcing & Procurement",
+    "Supply Chain": "Supply Chain",
   };
 
   let count = 0;
@@ -152,17 +212,17 @@ async function seedAllL3Items() {
       l3Name: item.name,
       processNavigatorUrl: `https://me.sap.com/processnavigator/SolmanItems/${item.code}`,
       formerCode: null,
-      releaseTag: '2508',
+      releaseTag: "2508",
       complexity: {
         defaultTier: item.tier,
-        coefficient: item.tier === 'D' ? null : item.coefficient,
+        coefficient: item.tier === "D" ? null : item.coefficient,
         tierRationale: item.description,
         crossModuleTouches: null,
         localizationFlag: false,
-        extensionRisk: item.tier === 'D' ? 'High' : (item.tier === 'C' ? 'Med' : 'Low'),
+        extensionRisk: item.tier === "D" ? "High" : item.tier === "C" ? "Med" : "Low",
       },
       integration: {
-        integrationPackageAvailable: item.tier === 'D' ? 'NA' : 'Yes',
+        integrationPackageAvailable: item.tier === "D" ? "NA" : "Yes",
         testScriptExists: true,
       },
     });
@@ -173,7 +233,7 @@ async function seedAllL3Items() {
 }
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log("🌱 Seeding database...");
 
   // ============================================
   // Phase 1: Seed L3 Catalog (158 items)
@@ -185,45 +245,45 @@ async function main() {
   // ============================================
   const holidays = [
     // Malaysia
-    { name: 'New Year', date: new Date('2025-01-01'), region: 'ABMY' },
-    { name: 'Chinese New Year', date: new Date('2025-01-29'), region: 'ABMY' },
-    { name: 'Chinese New Year', date: new Date('2025-01-30'), region: 'ABMY' },
-    { name: 'Hari Raya Aidilfitri', date: new Date('2025-03-31'), region: 'ABMY' },
-    { name: 'Hari Raya Aidilfitri', date: new Date('2025-04-01'), region: 'ABMY' },
-    { name: 'Labour Day', date: new Date('2025-05-01'), region: 'ABMY' },
-    { name: 'Wesak Day', date: new Date('2025-05-12'), region: 'ABMY' },
-    { name: 'Agong Birthday', date: new Date('2025-06-07'), region: 'ABMY' },
-    { name: 'Hari Raya Aidiladha', date: new Date('2025-06-07'), region: 'ABMY' },
-    { name: 'Awal Muharram', date: new Date('2025-06-27'), region: 'ABMY' },
-    { name: 'Merdeka Day', date: new Date('2025-08-31'), region: 'ABMY' },
-    { name: 'Malaysia Day', date: new Date('2025-09-16'), region: 'ABMY' },
-    { name: 'Prophet Muhammad Birthday', date: new Date('2025-09-05'), region: 'ABMY' },
-    { name: 'Deepavali', date: new Date('2025-10-20'), region: 'ABMY' },
-    { name: 'Christmas', date: new Date('2025-12-25'), region: 'ABMY' },
-    
+    { name: "New Year", date: new Date("2025-01-01"), region: "ABMY" },
+    { name: "Chinese New Year", date: new Date("2025-01-29"), region: "ABMY" },
+    { name: "Chinese New Year", date: new Date("2025-01-30"), region: "ABMY" },
+    { name: "Hari Raya Aidilfitri", date: new Date("2025-03-31"), region: "ABMY" },
+    { name: "Hari Raya Aidilfitri", date: new Date("2025-04-01"), region: "ABMY" },
+    { name: "Labour Day", date: new Date("2025-05-01"), region: "ABMY" },
+    { name: "Wesak Day", date: new Date("2025-05-12"), region: "ABMY" },
+    { name: "Agong Birthday", date: new Date("2025-06-07"), region: "ABMY" },
+    { name: "Hari Raya Aidiladha", date: new Date("2025-06-07"), region: "ABMY" },
+    { name: "Awal Muharram", date: new Date("2025-06-27"), region: "ABMY" },
+    { name: "Merdeka Day", date: new Date("2025-08-31"), region: "ABMY" },
+    { name: "Malaysia Day", date: new Date("2025-09-16"), region: "ABMY" },
+    { name: "Prophet Muhammad Birthday", date: new Date("2025-09-05"), region: "ABMY" },
+    { name: "Deepavali", date: new Date("2025-10-20"), region: "ABMY" },
+    { name: "Christmas", date: new Date("2025-12-25"), region: "ABMY" },
+
     // Singapore
-    { name: 'New Year', date: new Date('2025-01-01'), region: 'ABSG' },
-    { name: 'Chinese New Year', date: new Date('2025-01-29'), region: 'ABSG' },
-    { name: 'Chinese New Year', date: new Date('2025-01-30'), region: 'ABSG' },
-    { name: 'Good Friday', date: new Date('2025-04-18'), region: 'ABSG' },
-    { name: 'Hari Raya Puasa', date: new Date('2025-03-31'), region: 'ABSG' },
-    { name: 'Labour Day', date: new Date('2025-05-01'), region: 'ABSG' },
-    { name: 'Vesak Day', date: new Date('2025-05-12'), region: 'ABSG' },
-    { name: 'Hari Raya Haji', date: new Date('2025-06-07'), region: 'ABSG' },
-    { name: 'National Day', date: new Date('2025-08-09'), region: 'ABSG' },
-    { name: 'Deepavali', date: new Date('2025-10-20'), region: 'ABSG' },
-    { name: 'Christmas', date: new Date('2025-12-25'), region: 'ABSG' },
-    
+    { name: "New Year", date: new Date("2025-01-01"), region: "ABSG" },
+    { name: "Chinese New Year", date: new Date("2025-01-29"), region: "ABSG" },
+    { name: "Chinese New Year", date: new Date("2025-01-30"), region: "ABSG" },
+    { name: "Good Friday", date: new Date("2025-04-18"), region: "ABSG" },
+    { name: "Hari Raya Puasa", date: new Date("2025-03-31"), region: "ABSG" },
+    { name: "Labour Day", date: new Date("2025-05-01"), region: "ABSG" },
+    { name: "Vesak Day", date: new Date("2025-05-12"), region: "ABSG" },
+    { name: "Hari Raya Haji", date: new Date("2025-06-07"), region: "ABSG" },
+    { name: "National Day", date: new Date("2025-08-09"), region: "ABSG" },
+    { name: "Deepavali", date: new Date("2025-10-20"), region: "ABSG" },
+    { name: "Christmas", date: new Date("2025-12-25"), region: "ABSG" },
+
     // Vietnam
-    { name: 'New Year', date: new Date('2025-01-01'), region: 'ABVN' },
-    { name: 'Tet Holiday', date: new Date('2025-01-28'), region: 'ABVN' },
-    { name: 'Tet Holiday', date: new Date('2025-01-29'), region: 'ABVN' },
-    { name: 'Tet Holiday', date: new Date('2025-01-30'), region: 'ABVN' },
-    { name: 'Tet Holiday', date: new Date('2025-01-31'), region: 'ABVN' },
-    { name: 'Hung Kings Festival', date: new Date('2025-04-18'), region: 'ABVN' },
-    { name: 'Reunification Day', date: new Date('2025-04-30'), region: 'ABVN' },
-    { name: 'Labour Day', date: new Date('2025-05-01'), region: 'ABVN' },
-    { name: 'National Day', date: new Date('2025-09-02'), region: 'ABVN' },
+    { name: "New Year", date: new Date("2025-01-01"), region: "ABVN" },
+    { name: "Tet Holiday", date: new Date("2025-01-28"), region: "ABVN" },
+    { name: "Tet Holiday", date: new Date("2025-01-29"), region: "ABVN" },
+    { name: "Tet Holiday", date: new Date("2025-01-30"), region: "ABVN" },
+    { name: "Tet Holiday", date: new Date("2025-01-31"), region: "ABVN" },
+    { name: "Hung Kings Festival", date: new Date("2025-04-18"), region: "ABVN" },
+    { name: "Reunification Day", date: new Date("2025-04-30"), region: "ABVN" },
+    { name: "Labour Day", date: new Date("2025-05-01"), region: "ABVN" },
+    { name: "National Day", date: new Date("2025-09-02"), region: "ABVN" },
   ];
 
   for (const holiday of holidays) {
@@ -242,7 +302,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('❌ Seeding failed:', e);
+    console.error("❌ Seeding failed:", e);
     process.exit(1);
   })
   .finally(async () => {

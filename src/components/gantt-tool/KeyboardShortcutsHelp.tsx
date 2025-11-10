@@ -5,10 +5,10 @@
  * Triggered by Shift+? or Help button.
  */
 
-'use client';
+"use client";
 
-import { Modal } from 'antd';
-import { Keyboard } from 'lucide-react';
+import { Modal } from "antd";
+import { Keyboard } from "lucide-react";
 
 interface KeyboardShortcutsHelpProps {
   isOpen: boolean;
@@ -16,41 +16,40 @@ interface KeyboardShortcutsHelpProps {
 }
 
 export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelpProps) {
-  const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-  const cmdKey = isMac ? '⌘' : 'Ctrl';
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+  const cmdKey = isMac ? "⌘" : "Ctrl";
 
   const shortcuts = [
     {
-      category: 'Navigation',
+      category: "Navigation",
       items: [
-        { key: '↓', description: 'Navigate to next item' },
-        { key: '↑', description: 'Navigate to previous item' },
-        { key: '←', description: 'Collapse phase or go to parent task' },
-        { key: '→', description: 'Expand phase or go to first child task' },
+        { key: "↓", description: "Navigate to next item" },
+        { key: "↑", description: "Navigate to previous item" },
+        { key: "←", description: "Collapse phase or go to parent task" },
+        { key: "→", description: "Expand phase or go to first child task" },
       ],
     },
     {
-      category: 'Actions',
+      category: "Actions",
       items: [
-        { key: 'Enter / Space', description: 'Edit selected item' },
-        { key: 'Delete / ⌫', description: 'Delete selected item (with confirmation)' },
-        { key: 'Esc', description: 'Deselect item or exit focus mode' },
-        { key: 'F', description: 'Focus on selected phase (RTS zoom)' },
+        { key: "Enter / Space", description: "Edit selected item" },
+        { key: "Delete / ⌫", description: "Delete selected item (with confirmation)" },
+        { key: "Esc", description: "Deselect item or exit focus mode" },
+        { key: "F", description: "Focus on selected phase (RTS zoom)" },
       ],
     },
     {
-      category: 'Create New',
+      category: "Create New",
       items: [
-        { key: 'N', description: 'Create new phase' },
-        { key: 'T', description: 'Create new task (when phase selected)' },
-        { key: 'M', description: 'Create new milestone' },
+        { key: "N", description: "Create new phase" },
+        { key: "T", description: "Create new task (when phase selected)" },
+        { key: "M", description: "Create new milestone" },
       ],
     },
     {
-      category: 'Help',
-      items: [
-        { key: 'Shift+?', description: 'Show this keyboard shortcuts panel' },
-      ],
+      category: "Help",
+      items: [{ key: "Shift+?", description: "Show this keyboard shortcuts panel" }],
     },
   ];
 
@@ -63,7 +62,9 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
           </div>
           <div>
             <div className="text-lg font-semibold text-gray-900">Keyboard Shortcuts</div>
-            <div className="text-sm font-normal text-gray-500">Speed up your workflow with keyboard navigation</div>
+            <div className="text-sm font-normal text-gray-500">
+              Speed up your workflow with keyboard navigation
+            </div>
           </div>
         </div>
       }
@@ -100,7 +101,13 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
           <h3 className="text-sm font-bold text-blue-900 mb-2">💡 Pro Tips</h3>
           <ul className="space-y-1.5 text-sm text-blue-800">
             <li>• Use arrow keys to quickly navigate through your project timeline</li>
-            <li>• Press <kbd className="px-1.5 py-0.5 rounded bg-white border border-blue-300 text-xs font-mono">F</kbd> to focus on a phase and see only its tasks</li>
+            <li>
+              • Press{" "}
+              <kbd className="px-1.5 py-0.5 rounded bg-white border border-blue-300 text-xs font-mono">
+                F
+              </kbd>{" "}
+              to focus on a phase and see only its tasks
+            </li>
             <li>• Keyboard shortcuts work everywhere except when typing in text fields</li>
             <li>• Delete actions always ask for confirmation - your data is safe</li>
           </ul>
@@ -109,8 +116,8 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
         {/* Accessibility Note */}
         <div className="mt-4 p-3 bg-gray-50 rounded border border-gray-200">
           <p className="text-xs text-gray-600">
-            <strong>Accessibility:</strong> All features are keyboard accessible. Screen reader users can navigate
-            with standard ARIA navigation keys. For assistance, contact support.
+            <strong>Accessibility:</strong> All features are keyboard accessible. Screen reader
+            users can navigate with standard ARIA navigation keys. For assistance, contact support.
           </p>
         </div>
       </div>

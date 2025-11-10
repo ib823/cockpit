@@ -10,7 +10,7 @@
  * @returns Date object at midnight UTC
  */
 export function parseISODate(isoString: string): Date {
-  const [year, month, day] = isoString.split('-').map(Number);
+  const [year, month, day] = isoString.split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, day));
 }
 
@@ -21,8 +21,8 @@ export function parseISODate(isoString: string): Date {
  */
 export function formatISODate(date: Date): string {
   const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
@@ -81,11 +81,9 @@ export function addBusinessDays(
 
   while (remaining > 0) {
     // Move to next day
-    date = new Date(Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate() + direction
-    ));
+    date = new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + direction)
+    );
 
     // Count only business days
     if (isBusinessDay(date, holidays)) {
@@ -121,11 +119,9 @@ export function diffBusinessDays(
   let count = 0;
 
   while (current.getTime() !== end.getTime()) {
-    current = new Date(Date.UTC(
-      current.getUTCFullYear(),
-      current.getUTCMonth(),
-      current.getUTCDate() + direction
-    ));
+    current = new Date(
+      Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate() + direction)
+    );
 
     if (isBusinessDay(current, holidays)) {
       count++;
@@ -142,18 +138,11 @@ export function diffBusinessDays(
  * @param holidays - Array of ISO date strings
  * @returns ISO date string of the next business day
  */
-export function getNextBusinessDay(
-  startISO: string,
-  holidays: string[] = []
-): string {
+export function getNextBusinessDay(startISO: string, holidays: string[] = []): string {
   let date = parseISODate(startISO);
 
   while (!isBusinessDay(date, holidays)) {
-    date = new Date(Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate() + 1
-    ));
+    date = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1));
   }
 
   return formatISODate(date);
@@ -169,7 +158,7 @@ export function getNextBusinessDay(
 export function snapToBusinessDay(
   dateISO: string,
   holidays: string[] = [],
-  direction: 'forward' | 'backward' | 'nearest' = 'forward'
+  direction: "forward" | "backward" | "nearest" = "forward"
 ): string {
   const date = parseISODate(dateISO);
 
@@ -177,18 +166,16 @@ export function snapToBusinessDay(
     return dateISO;
   }
 
-  if (direction === 'forward') {
+  if (direction === "forward") {
     return getNextBusinessDay(dateISO, holidays);
   }
 
-  if (direction === 'backward') {
+  if (direction === "backward") {
     let current = new Date(date);
     while (!isBusinessDay(current, holidays)) {
-      current = new Date(Date.UTC(
-        current.getUTCFullYear(),
-        current.getUTCMonth(),
-        current.getUTCDate() - 1
-      ));
+      current = new Date(
+        Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate() - 1)
+      );
     }
     return formatISODate(current);
   }
@@ -197,11 +184,9 @@ export function snapToBusinessDay(
   const forward = getNextBusinessDay(dateISO, holidays);
   let current = new Date(date);
   while (!isBusinessDay(current, holidays)) {
-    current = new Date(Date.UTC(
-      current.getUTCFullYear(),
-      current.getUTCMonth(),
-      current.getUTCDate() - 1
-    ));
+    current = new Date(
+      Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate() - 1)
+    );
   }
   const backward = formatISODate(current);
 
@@ -225,11 +210,9 @@ export function getDateRange(startISO: string, endISO: string): string[] {
   let current = new Date(start);
   while (current <= end) {
     dates.push(formatISODate(current));
-    current = new Date(Date.UTC(
-      current.getUTCFullYear(),
-      current.getUTCMonth(),
-      current.getUTCDate() + 1
-    ));
+    current = new Date(
+      Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate() + 1)
+    );
   }
 
   return dates;

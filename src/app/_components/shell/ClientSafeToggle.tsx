@@ -4,11 +4,11 @@
  * Persists to store and syncs with URL param
  */
 
-'use client';
+"use client";
 
-import React from 'react';
-import { useProjectStore } from '@/lib/unified-project-store';
-import { clsx } from 'clsx';
+import React from "react";
+import { useProjectStore } from "@/lib/unified-project-store";
+import { clsx } from "clsx";
 
 export const ClientSafeToggle: React.FC = () => {
   const { clientSafe, setClientSafe } = useProjectStore();
@@ -20,11 +20,11 @@ export const ClientSafeToggle: React.FC = () => {
     // Sync with URL
     const url = new URL(window.location.href);
     if (newValue) {
-      url.searchParams.set('clientSafe', '1');
+      url.searchParams.set("clientSafe", "1");
     } else {
-      url.searchParams.delete('clientSafe');
+      url.searchParams.delete("clientSafe");
     }
-    window.history.replaceState({}, '', url);
+    window.history.replaceState({}, "", url);
   };
 
   return (
@@ -34,18 +34,18 @@ export const ClientSafeToggle: React.FC = () => {
         aria-checked={clientSafe}
         onClick={handleToggle}
         className={clsx(
-          'relative inline-flex h-6 w-11 items-center rounded-[var(--r-full)]',
-          'transition-colors duration-[var(--dur)] ease-[var(--ease)]',
-          'focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-2',
-          clientSafe ? 'bg-[var(--accent)]' : 'bg-[var(--line)]'
+          "relative inline-flex h-6 w-11 items-center rounded-[var(--r-full)]",
+          "transition-colors duration-[var(--dur)] ease-[var(--ease)]",
+          "focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-2",
+          clientSafe ? "bg-[var(--accent)]" : "bg-[var(--line)]"
         )}
       >
         <span className="sr-only">Toggle client-safe mode</span>
         <span
           className={clsx(
-            'inline-block h-4 w-4 transform rounded-full bg-white shadow-sm',
-            'transition-transform duration-[var(--dur)] ease-[var(--ease)]',
-            clientSafe ? 'translate-x-6' : 'translate-x-1'
+            "inline-block h-4 w-4 transform rounded-full bg-white shadow-sm",
+            "transition-transform duration-[var(--dur)] ease-[var(--ease)]",
+            clientSafe ? "translate-x-6" : "translate-x-1"
           )}
         />
       </button>

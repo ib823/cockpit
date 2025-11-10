@@ -1,24 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig as authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
-import {
-  generateRegistrationOptions,
-  rpName,
-  rpID,
-  challenges,
-} from '@/lib/webauthn';
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authConfig as authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { generateRegistrationOptions, rpName, rpID, challenges } from "@/lib/webauthn";
 
 // POST /api/auth/passkey/register/begin - Start passkey registration
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await prisma.users.findUnique({
@@ -36,10 +28,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Generate registration options
@@ -51,13 +40,13 @@ export async function POST(req: NextRequest) {
       userDisplayName: user.name || user.email,
       // Exclude existing authenticators to prevent re-registration
       excludeCredentials: user.Authenticator.map((auth) => ({
-        id: Buffer.from(auth.publicKey).toString('base64url'),
+        id: Buffer.from(auth.publicKey).toString("base64url"),
         transports: auth.transports as AuthenticatorTransport[],
       })),
       authenticatorSelection: {
-        residentKey: 'preferred',
-        userVerification: 'preferred',
-        authenticatorAttachment: 'platform',
+        residentKey: "preferred",
+        userVerification: "preferred",
+        authenticatorAttachment: "platform",
       },
     });
 
@@ -66,10 +55,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(options);
   } catch (error) {
-    console.error('Passkey registration begin error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Passkey registration begin error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

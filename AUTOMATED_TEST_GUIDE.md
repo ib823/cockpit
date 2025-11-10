@@ -8,9 +8,11 @@
 ## What We Created
 
 ### 1. Comprehensive Test Suite
+
 **File**: `tests/e2e/plan-mode-responsive.spec.ts`
 
 **Tests Created** (13 total):
+
 1. ✓ Panel fits screen on iPhone SE (375px)
 2. ✓ Panel fits screen on iPhone 12 (390px)
 3. ✓ Panel fits screen on iPhone 14 Pro Max (430px)
@@ -28,9 +30,11 @@
 15. ✓ No console errors
 
 ### 2. Playwright Configuration
+
 **File**: `playwright.config.ts`
 
 Configured for:
+
 - 9 device profiles (iPhone SE → Desktop Full HD)
 - Parallel test execution
 - Screenshot on failure
@@ -38,9 +42,11 @@ Configured for:
 - HTML report generation
 
 ### 3. Test Runner Script
+
 **File**: `run-responsive-tests.sh`
 
 Quick script to:
+
 - Start dev server automatically
 - Run tests
 - Show pass/fail results
@@ -51,17 +57,20 @@ Quick script to:
 ## How to Run Tests
 
 ### Option 1: Quick Run (Recommended)
+
 ```bash
 ./run-responsive-tests.sh
 ```
 
 This will:
+
 1. Start dev server (if not running)
 2. Run all responsive tests
 3. Show results
 4. Stop server when done
 
 ### Option 2: Manual Run
+
 ```bash
 # Terminal 1: Start dev server
 npm run dev
@@ -74,6 +83,7 @@ npx playwright test tests/e2e/plan-mode-responsive.spec.ts
 ```
 
 ### Option 3: Debug Mode (Visual)
+
 ```bash
 # Terminal 1: Dev server
 npm run dev
@@ -89,6 +99,7 @@ npm run test:e2e:debug
 ### What Each Test Does
 
 #### ✓ Panel Fits Screen Tests
+
 ```typescript
 // For each viewport (375px, 390px, 768px, 1280px, etc.)
 - Sets viewport size
@@ -100,19 +111,23 @@ npm run test:e2e:debug
 ```
 
 **Pass Criteria**:
+
 - Panel never wider than screen
 - Panel respects max-width constraints
 - Desktop remains 480px
 
 #### ✓ No Horizontal Scroll
+
 ```typescript
 - Checks: document.scrollWidth <= document.clientWidth
 ```
 
 **Pass Criteria**:
+
 - No overflow on X-axis at any size
 
 #### ✓ Functionality Tests
+
 ```typescript
 - Panel opens on phase click
 - Close button (X) works
@@ -121,6 +136,7 @@ npm run test:e2e:debug
 ```
 
 **Pass Criteria**:
+
 - All interactions work as before
 
 ---
@@ -128,6 +144,7 @@ npm run test:e2e:debug
 ## Understanding Test Results
 
 ### Success Output
+
 ```
 ✅ ALL TESTS PASSED
 
@@ -138,6 +155,7 @@ Next step: Commit the changes
 ```
 
 ### Failure Output
+
 ```
 ❌ TESTS FAILED
 
@@ -150,12 +168,14 @@ Check playwright-report/index.html for details
 ## Test Reports
 
 ### HTML Report
+
 ```bash
 # After tests run, open:
 npx playwright show-report
 ```
 
 **Report Includes**:
+
 - Pass/fail for each test
 - Screenshots of failures
 - Execution time
@@ -163,6 +183,7 @@ npx playwright show-report
 - Network activity
 
 ### Visual Inspection
+
 ```bash
 # Run with headed mode to see tests execute
 npx playwright test --headed
@@ -173,6 +194,7 @@ npx playwright test --headed
 ## Troubleshooting
 
 ### "Dev server not ready"
+
 ```bash
 # Manually start server first
 npm run dev
@@ -183,19 +205,23 @@ npm run test:e2e
 ```
 
 ### "Cannot find element"
+
 This might happen if:
+
 - No phases exist in timeline (empty state)
 - Different selector needed
 
 **Solution**: Tests are designed to handle empty states gracefully.
 
 ### "Tests timing out"
+
 ```bash
 # Increase timeout in playwright.config.ts
 timeout: 60000 // 60 seconds
 ```
 
 ### "Browser not installed"
+
 ```bash
 npx playwright install chromium
 ```
@@ -205,22 +231,25 @@ npx playwright install chromium
 ## Test Maintenance
 
 ### Adding New Viewport Tests
+
 Edit `tests/e2e/plan-mode-responsive.spec.ts`:
 
 ```typescript
 const viewports = [
   // Add new viewport here
-  { name: 'Galaxy Fold', width: 280, height: 653, maxPanelWidth: 280 },
+  { name: "Galaxy Fold", width: 280, height: 653, maxPanelWidth: 280 },
 ];
 ```
 
 ### Updating Selectors
+
 If component structure changes, update:
+
 ```typescript
 // In helper functions
 async function openSidePanel(page) {
   // Update selector here
-  const phaseElements = await page.locator('[data-phase-id]').all();
+  const phaseElements = await page.locator("[data-phase-id]").all();
 }
 ```
 
@@ -229,6 +258,7 @@ async function openSidePanel(page) {
 ## CI/CD Integration
 
 ### GitHub Actions
+
 ```yaml
 # .github/workflows/test.yml
 - name: Run E2E Tests
@@ -247,11 +277,13 @@ async function openSidePanel(page) {
 ## Performance Benchmarks
 
 **Expected Execution Time**:
+
 - All tests (7 viewports × 15 tests): ~2-3 minutes
 - Single viewport: ~15-20 seconds
 - Debug mode: Varies (manual control)
 
 **Resource Usage**:
+
 - Memory: ~500MB (Chromium browser)
 - CPU: Moderate during test execution
 
@@ -260,6 +292,7 @@ async function openSidePanel(page) {
 ## Test Coverage
 
 ### What's Tested ✅
+
 - Panel width at 7 viewports
 - Horizontal scroll (7 viewports)
 - Open/close functionality
@@ -273,6 +306,7 @@ async function openSidePanel(page) {
 - Summary stats
 
 ### What's Not Tested (Manual)
+
 - Visual appearance (colors, fonts)
 - Actual phase data rendering
 - Integration with backend API
@@ -284,11 +318,13 @@ async function openSidePanel(page) {
 ## Next Steps After Tests Pass
 
 ### 1. Review Results
+
 ```bash
 npx playwright show-report
 ```
 
 ### 2. Commit Changes
+
 ```bash
 git add src/components/project-v2/modes/PlanMode.tsx
 git add tests/e2e/plan-mode-responsive.spec.ts
@@ -303,6 +339,7 @@ git commit -m "fix(mobile): make PlanMode panel responsive
 ```
 
 ### 3. Push and Create PR
+
 ```bash
 git push origin fix/mobile-responsive-p0
 # Then create PR on GitHub

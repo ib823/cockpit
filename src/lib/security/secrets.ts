@@ -26,38 +26,38 @@ export interface SecretConfig {
 
 const SECRETS: Record<string, SecretConfig> = {
   DATABASE_URL: {
-    key: 'DATABASE_URL',
+    key: "DATABASE_URL",
     required: true,
-    description: 'PostgreSQL database connection string',
+    description: "PostgreSQL database connection string",
     validationRegex: /^postgresql:\/\/.+/,
   },
   NEXTAUTH_SECRET: {
-    key: 'NEXTAUTH_SECRET',
+    key: "NEXTAUTH_SECRET",
     required: true,
-    description: 'NextAuth.js secret for session encryption',
+    description: "NextAuth.js secret for session encryption",
     validationRegex: /^.{32,}$/, // At least 32 characters
   },
   ADMIN_CODE: {
-    key: 'ADMIN_CODE',
+    key: "ADMIN_CODE",
     required: false,
-    description: 'Admin access code for initial setup',
+    description: "Admin access code for initial setup",
     validationRegex: /^[A-Z0-9]{6,12}$/,
   },
   WEBAUTHN_RP_ID: {
-    key: 'WEBAUTHN_RP_ID',
+    key: "WEBAUTHN_RP_ID",
     required: false,
-    description: 'WebAuthn Relying Party ID (domain)',
+    description: "WebAuthn Relying Party ID (domain)",
     validationRegex: /^[a-z0-9.-]+$/,
   },
   WEBAUTHN_RP_NAME: {
-    key: 'WEBAUTHN_RP_NAME',
+    key: "WEBAUTHN_RP_NAME",
     required: false,
-    description: 'WebAuthn Relying Party Name',
+    description: "WebAuthn Relying Party Name",
   },
   NEXTAUTH_URL: {
-    key: 'NEXTAUTH_URL',
+    key: "NEXTAUTH_URL",
     required: false,
-    description: 'NextAuth.js URL for callbacks',
+    description: "NextAuth.js URL for callbacks",
     validationRegex: /^https?:\/\/.+/,
   },
 };
@@ -153,12 +153,12 @@ export function listSecrets(): Array<{
  */
 export function maskSecret(value: string): string {
   if (value.length <= 4) {
-    return '****';
+    return "****";
   }
 
   const first = value.slice(0, 2);
   const last = value.slice(-2);
-  const masked = '*'.repeat(Math.min(value.length - 4, 20));
+  const masked = "*".repeat(Math.min(value.length - 4, 20));
 
   return `${first}${masked}${last}`;
 }
@@ -169,25 +169,25 @@ export function maskSecret(value: string): string {
 export function redactSecrets<T extends Record<string, any>>(obj: T): Record<string, any> {
   const redacted: Record<string, any> = { ...obj };
   const secretKeys = [
-    'password',
-    'secret',
-    'token',
-    'key',
-    'apiKey',
-    'api_key',
-    'accessToken',
-    'access_token',
-    'refreshToken',
-    'refresh_token',
+    "password",
+    "secret",
+    "token",
+    "key",
+    "apiKey",
+    "api_key",
+    "accessToken",
+    "access_token",
+    "refreshToken",
+    "refresh_token",
   ];
 
   for (const [key, value] of Object.entries(redacted)) {
     const lowerKey = key.toLowerCase();
     const isSecret = secretKeys.some((secretKey) => lowerKey.includes(secretKey));
 
-    if (isSecret && typeof value === 'string') {
+    if (isSecret && typeof value === "string") {
       redacted[key] = maskSecret(value);
-    } else if (typeof value === 'object' && value !== null) {
+    } else if (typeof value === "object" && value !== null) {
       redacted[key] = redactSecrets(value);
     }
   }
@@ -203,14 +203,14 @@ export function redactSecrets<T extends Record<string, any>>(obj: T): Record<str
  * Check if running in development mode
  */
 export function isDevelopment(): boolean {
-  return process.env.NODE_ENV === 'development';
+  return process.env.NODE_ENV === "development";
 }
 
 /**
  * Check if running in production mode
  */
 export function isProduction(): boolean {
-  return process.env.NODE_ENV === 'production';
+  return process.env.NODE_ENV === "production";
 }
 
 /**

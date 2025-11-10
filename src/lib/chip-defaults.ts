@@ -1,6 +1,6 @@
 /**
  * Smart Defaults for Missing Chips
- * 
+ *
  * SECURITY: All defaults are conservative and clearly marked as assumptions
  * PRIVACY: No PII in default values
  * UX: Low confidence scores (0.3-0.5) to indicate uncertainty
@@ -9,12 +9,15 @@
 import { Chip, ChipSource, ChipType } from "@/types/core";
 
 // Conservative default values for each chip type
-export const CHIP_DEFAULTS: Record<ChipType, {
-  value: string;
-  confidence: number;
-  note: string;
-  unit?: string;
-}> = {
+export const CHIP_DEFAULTS: Record<
+  ChipType,
+  {
+    value: string;
+    confidence: number;
+    note: string;
+    unit?: string;
+  }
+> = {
   COUNTRY: {
     value: "Malaysia",
     confidence: 0.3,
@@ -110,14 +113,17 @@ export const CHIP_DEFAULTS: Record<ChipType, {
 };
 
 // Validation rules for each chip type
-export const CHIP_VALIDATION: Record<ChipType, {
-  pattern?: RegExp;
-  min?: number;
-  max?: number;
-  options?: string[];
-  validator?: (value: string) => boolean;
-  errorMessage: string;
-}> = {
+export const CHIP_VALIDATION: Record<
+  ChipType,
+  {
+    pattern?: RegExp;
+    min?: number;
+    max?: number;
+    options?: string[];
+    validator?: (value: string) => boolean;
+    errorMessage: string;
+  }
+> = {
   COUNTRY: {
     options: ["Malaysia", "Singapore", "Vietnam", "Thailand", "Indonesia", "Philippines"],
     errorMessage: "Please select a valid country",
@@ -220,24 +226,27 @@ export const sanitizeChipValue = (value: string): string => {
   return value
     .trim()
     .slice(0, 200) // Max 200 chars
-    .replace(/<script[^>]*>.*?<\/script>/gi, '') // Remove script tags
-    .replace(/<[^>]*>/g, '') // Remove all HTML tags
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/\bon\w+\s*=\s*"[^"]*"/gi, '') // Remove event handlers with double quotes
-    .replace(/\bon\w+\s*=\s*'[^']*'/gi, '') // Remove event handlers with single quotes
-    .replace(/\bon\w+\s*=\s*\S+/gi, ''); // Remove event handlers without quotes
+    .replace(/<script[^>]*>.*?<\/script>/gi, "") // Remove script tags
+    .replace(/<[^>]*>/g, "") // Remove all HTML tags
+    .replace(/javascript:/gi, "") // Remove javascript: protocol
+    .replace(/\bon\w+\s*=\s*"[^"]*"/gi, "") // Remove event handlers with double quotes
+    .replace(/\bon\w+\s*=\s*'[^']*'/gi, "") // Remove event handlers with single quotes
+    .replace(/\bon\w+\s*=\s*\S+/gi, ""); // Remove event handlers without quotes
 };
 
 /**
  * Validate a chip value against its type rules
  */
-export const validateChipValue = (type: ChipType, value: string): {
+export const validateChipValue = (
+  type: ChipType,
+  value: string
+): {
   isValid: boolean;
   error?: string;
 } => {
   const rules = CHIP_VALIDATION[type];
-  
-  if (!value || value.trim() === '') {
+
+  if (!value || value.trim() === "") {
     return { isValid: false, error: "Value cannot be empty" };
   }
 
@@ -278,7 +287,7 @@ export const validateChipValue = (type: ChipType, value: string): {
  */
 export const createDefaultChip = (type: ChipType): Chip => {
   const defaults = CHIP_DEFAULTS[type];
-  
+
   return {
     id: `default_${type}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
     type,
@@ -297,32 +306,29 @@ export const createDefaultChip = (type: ChipType): Chip => {
 /**
  * Fill all missing chips with smart defaults
  */
-export const fillMissingChips = (
-  existingChips: Chip[],
-  gaps: string[]
-): Chip[] => {
+export const fillMissingChips = (existingChips: Chip[], gaps: string[]): Chip[] => {
   const newChips: Chip[] = [];
-  
+
   for (const gap of gaps) {
     // Only create if not already exists
-    const exists = existingChips.some(chip => chip.type === gap);
+    const exists = existingChips.some((chip) => chip.type === gap);
     if (!exists && gap in CHIP_DEFAULTS) {
       newChips.push(createDefaultChip(gap as ChipType));
     }
   }
-  
+
   return newChips;
 };
 
 /**
  * Get input type for a chip type (for form rendering)
  */
-export const getInputType = (type: ChipType): 'text' | 'number' | 'select' => {
+export const getInputType = (type: ChipType): "text" | "number" | "select" => {
   const validation = CHIP_VALIDATION[type];
-  
-  if (validation.options) return 'select';
-  if (validation.pattern && validation.pattern.source.includes('\\d')) return 'number';
-  return 'text';
+
+  if (validation.options) return "select";
+  if (validation.pattern && validation.pattern.source.includes("\\d")) return "number";
+  return "text";
 };
 
 /**
@@ -335,16 +341,16 @@ const RATE_WINDOW = 10000; // 10 seconds
 
 export const checkRateLimit = (): boolean => {
   const now = Date.now();
-  
+
   if (now - lastAddTime > RATE_WINDOW) {
     chipAddCount = 0;
     lastAddTime = now;
   }
-  
+
   if (chipAddCount >= RATE_LIMIT) {
     return false;
   }
-  
+
   chipAddCount++;
   return true;
 };

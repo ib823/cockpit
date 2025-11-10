@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
   Users,
@@ -16,14 +16,14 @@ import {
   ChevronDown,
   ChevronRight,
   Info,
-} from 'lucide-react';
-import { useProjectContextStore } from '@/stores/project-context-store';
-import { useWrappersStore } from '@/stores/wrappers-store';
-import { useTimelineStore } from '@/stores/timeline-store';
-import { formatCurrency } from '@/lib/utils';
+} from "lucide-react";
+import { useProjectContextStore } from "@/stores/project-context-store";
+import { useWrappersStore } from "@/stores/wrappers-store";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { formatCurrency } from "@/lib/utils";
 
 export function ComprehensiveReferenceArchitecture() {
-  const [expandedSection, setExpandedSection] = useState<string | null>('business');
+  const [expandedSection, setExpandedSection] = useState<string | null>("business");
 
   const {
     businessContext,
@@ -39,7 +39,7 @@ export function ComprehensiveReferenceArchitecture() {
   const { phases, getProjectCost } = useTimelineStore();
 
   // Show message if no real project data
-  const hasRealData = phases.length > 0 && businessContext.clientName !== 'Example Corp';
+  const hasRealData = phases.length > 0 && businessContext.clientName !== "Example Corp";
 
   // Calculate efforts
   const coreModuleEffort = phases.reduce((sum, phase) => sum + (phase.workingDays || 0), 0);
@@ -59,9 +59,7 @@ export function ComprehensiveReferenceArchitecture() {
       <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 px-6 py-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold mb-1">
-              SAP Implementation Reference Architecture
-            </h2>
+            <h2 className="text-2xl font-bold mb-1">SAP Implementation Reference Architecture</h2>
             <p className="text-blue-100 text-sm">
               {businessContext.clientName} - {businessContext.projectCode}
             </p>
@@ -80,7 +78,8 @@ export function ComprehensiveReferenceArchitecture() {
           <div className="flex items-center gap-2 text-sm text-yellow-800">
             <Info className="w-4 h-4" />
             <p>
-              <strong>Demo Data:</strong> This reference shows example data. Generate a timeline from your requirements in Plan mode to see your actual project architecture.
+              <strong>Demo Data:</strong> This reference shows example data. Generate a timeline
+              from your requirements in Plan mode to see your actual project architecture.
             </p>
           </div>
         </div>
@@ -90,8 +89,8 @@ export function ComprehensiveReferenceArchitecture() {
       <Section
         title="Business Context"
         icon={<Building2 className="w-5 h-5" />}
-        isExpanded={expandedSection === 'business'}
-        onToggle={() => toggleSection('business')}
+        isExpanded={expandedSection === "business"}
+        onToggle={() => toggleSection("business")}
         badge={`${businessContext.numberOfUsers} users`}
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -124,19 +123,14 @@ export function ComprehensiveReferenceArchitecture() {
         {/* Countries Grid */}
         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
           {businessContext.countries.map((country) => (
-            <div
-              key={country.code}
-              className="bg-gray-50 rounded-lg p-3 border border-gray-200"
-            >
+            <div key={country.code} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
               <div className="text-2xl mb-1">{getFlagEmoji(country.code)}</div>
               <div className="text-sm font-semibold text-gray-900">{country.name}</div>
               <div className="text-xs text-gray-500 mt-1">
                 {country.users} users • {country.legalEntities} entities
               </div>
               {country.compliance.length > 0 && (
-                <div className="text-xs text-blue-600 mt-1">
-                  {country.compliance.join(', ')}
-                </div>
+                <div className="text-xs text-blue-600 mt-1">{country.compliance.join(", ")}</div>
               )}
             </div>
           ))}
@@ -147,8 +141,8 @@ export function ComprehensiveReferenceArchitecture() {
       <Section
         title="Strategy & Drivers"
         icon={<Target className="w-5 h-5" />}
-        isExpanded={expandedSection === 'strategy'}
-        onToggle={() => toggleSection('strategy')}
+        isExpanded={expandedSection === "strategy"}
+        onToggle={() => toggleSection("strategy")}
         badge={`${getCriticalDrivers().length} critical`}
       >
         <div className="space-y-4">
@@ -156,11 +150,11 @@ export function ComprehensiveReferenceArchitecture() {
             <motion.div
               key={driver.id}
               className={`p-4 rounded-lg border-2 ${
-                driver.priority === 'critical'
-                  ? 'border-red-200 bg-red-50'
-                  : driver.priority === 'high'
-                  ? 'border-orange-200 bg-orange-50'
-                  : 'border-gray-200 bg-gray-50'
+                driver.priority === "critical"
+                  ? "border-red-200 bg-red-50"
+                  : driver.priority === "high"
+                    ? "border-orange-200 bg-orange-50"
+                    : "border-gray-200 bg-gray-50"
               }`}
               whileHover={{ scale: 1.01 }}
             >
@@ -183,11 +177,11 @@ export function ComprehensiveReferenceArchitecture() {
                 </div>
                 <div
                   className={`px-2 py-1 rounded text-xs font-semibold ${
-                    driver.priority === 'critical'
-                      ? 'bg-red-100 text-red-700'
-                      : driver.priority === 'high'
-                      ? 'bg-orange-100 text-orange-700'
-                      : 'bg-gray-100 text-gray-700'
+                    driver.priority === "critical"
+                      ? "bg-red-100 text-red-700"
+                      : driver.priority === "high"
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-gray-100 text-gray-700"
                   }`}
                 >
                   {driver.priority.toUpperCase()}
@@ -202,8 +196,8 @@ export function ComprehensiveReferenceArchitecture() {
       <Section
         title="IT Landscape"
         icon={<Layers className="w-5 h-5" />}
-        isExpanded={expandedSection === 'landscape'}
-        onToggle={() => toggleSection('landscape')}
+        isExpanded={expandedSection === "landscape"}
+        onToggle={() => toggleSection("landscape")}
         badge={`${phases.length} modules`}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -271,7 +265,7 @@ export function ComprehensiveReferenceArchitecture() {
                       <div className="text-gray-700">{system.name}</div>
                       <div className="text-xs text-gray-500">
                         {system.interfaces.length} interface
-                        {system.interfaces.length > 1 ? 's' : ''}
+                        {system.interfaces.length > 1 ? "s" : ""}
                       </div>
                     </div>
                     <span className="font-semibold text-green-600">{systemEffort} PD</span>
@@ -321,47 +315,47 @@ export function ComprehensiveReferenceArchitecture() {
       <Section
         title="SAP Activate Methodology"
         icon={<Calendar className="w-5 h-5" />}
-        isExpanded={expandedSection === 'activate'}
-        onToggle={() => toggleSection('activate')}
+        isExpanded={expandedSection === "activate"}
+        onToggle={() => toggleSection("activate")}
         badge="5 phases"
       >
         <div className="grid grid-cols-5 gap-4">
           {[
             {
-              name: 'Prepare',
-              icon: '🎯',
-              range: '5-10 PD',
-              activities: ['Kickoff', 'Planning', 'Team Setup'],
+              name: "Prepare",
+              icon: "🎯",
+              range: "5-10 PD",
+              activities: ["Kickoff", "Planning", "Team Setup"],
             },
             {
-              name: 'Explore',
-              icon: '🔍',
-              range: '20-30 PD',
-              activities: ['Fit-Gap', 'Design', 'Prototypes'],
+              name: "Explore",
+              icon: "🔍",
+              range: "20-30 PD",
+              activities: ["Fit-Gap", "Design", "Prototypes"],
             },
             {
-              name: 'Realize',
-              icon: '⚙️',
-              range: '60-80 PD',
-              activities: ['Config', 'Development', 'Unit Test'],
+              name: "Realize",
+              icon: "⚙️",
+              range: "60-80 PD",
+              activities: ["Config", "Development", "Unit Test"],
             },
             {
-              name: 'Deploy',
-              icon: '🚀',
-              range: '15-25 PD',
-              activities: ['Cutover', 'Go-Live', 'Training'],
+              name: "Deploy",
+              icon: "🚀",
+              range: "15-25 PD",
+              activities: ["Cutover", "Go-Live", "Training"],
             },
             {
-              name: 'Run',
-              icon: '📈',
-              range: '10-15 PD',
-              activities: ['Hypercare', 'Operations', 'Support'],
+              name: "Run",
+              icon: "📈",
+              range: "10-15 PD",
+              activities: ["Hypercare", "Operations", "Support"],
             },
           ].map((phase, index) => (
             <motion.div
               key={phase.name}
               className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border-2 border-blue-200"
-              whileHover={{ scale: 1.05, boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}
+              whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0,0,0,0.1)" }}
             >
               <div className="text-3xl mb-2">{phase.icon}</div>
               <div className="font-bold text-gray-900 mb-1">{phase.name}</div>
@@ -390,8 +384,8 @@ export function ComprehensiveReferenceArchitecture() {
       <Section
         title="Wrappers (Continuous Activities)"
         icon={<Workflow className="w-5 h-5" />}
-        isExpanded={expandedSection === 'wrappers'}
-        onToggle={() => toggleSection('wrappers')}
+        isExpanded={expandedSection === "wrappers"}
+        onToggle={() => toggleSection("wrappers")}
         badge={`${wrapperEffort.toFixed(0)} PD`}
       >
         <div className="space-y-2">
@@ -414,9 +408,7 @@ export function ComprehensiveReferenceArchitecture() {
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold text-gray-900">{wrapperPD.toFixed(0)} PD</div>
-                  <div className="text-xs text-gray-500">
-                    {wrapper.currentPercentage}% of core
-                  </div>
+                  <div className="text-xs text-gray-500">{wrapper.currentPercentage}% of core</div>
                 </div>
               </div>
             );
@@ -448,9 +440,7 @@ export function ComprehensiveReferenceArchitecture() {
             <div className="text-xs text-gray-400">TOTAL (PD)</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-green-400">
-              {Math.ceil(totalEffort / 20)}
-            </div>
+            <div className="text-2xl font-bold text-green-400">{Math.ceil(totalEffort / 20)}</div>
             <div className="text-xs text-gray-400">Months (est.)</div>
           </div>
         </div>
@@ -496,7 +486,7 @@ function Section({ title, icon, isExpanded, onToggle, badge, children }: Section
         {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
@@ -533,17 +523,17 @@ function MetricCard({ icon, label, value, sublabel }: MetricCardProps) {
 function getFlagEmoji(countryCode: string): string {
   const codePoints = countryCode
     .toUpperCase()
-    .split('')
+    .split("")
     .map((char) => 127397 + char.charCodeAt(0));
   return String.fromCodePoint(...codePoints);
 }
 
 function getCategoryIcon(category: string): string {
   const icons: Record<string, string> = {
-    efficiency: '⚡',
-    compliance: '📋',
-    growth: '📈',
-    modernization: '🔄',
+    efficiency: "⚡",
+    compliance: "📋",
+    growth: "📈",
+    modernization: "🔄",
   };
-  return icons[category] || '🎯';
+  return icons[category] || "🎯";
 }

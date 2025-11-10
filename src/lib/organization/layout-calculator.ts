@@ -5,10 +5,15 @@
  * Converts resource hierarchy into ReactFlow nodes and edges.
  */
 
-import dagre from 'dagre';
-import type { Node, Edge } from 'reactflow';
-import type { Resource, ResourceCategory, ResourceDesignation, GanttProject } from '@/types/gantt-tool';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
+import dagre from "dagre";
+import type { Node, Edge } from "reactflow";
+import type {
+  Resource,
+  ResourceCategory,
+  ResourceDesignation,
+  GanttProject,
+} from "@/types/gantt-tool";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 
 export interface OrgChartNode extends Node {
   data: {
@@ -28,7 +33,7 @@ export type OrgChartEdge = Edge & {
   data: {
     fromResourceId: string;
     toResourceId: string;
-    type?: 'solid' | 'dotted'; // For primary vs secondary reporting
+    type?: "solid" | "dotted"; // For primary vs secondary reporting
   };
 };
 
@@ -38,7 +43,7 @@ export interface OrgChartLayout {
   rootNodes: OrgChartNode[]; // Resources with no manager (top of hierarchy)
 }
 
-export type LayoutAlgorithm = 'TB' | 'LR' | 'compact' | 'radial';
+export type LayoutAlgorithm = "TB" | "LR" | "compact" | "radial";
 
 const NODE_WIDTH = 280;
 const NODE_HEIGHT = 140;
@@ -50,12 +55,12 @@ const NODE_SEPARATION = 60; // Horizontal spacing between nodes
  */
 export function calculateOrgChartLayout(
   resources: Resource[],
-  algorithm: LayoutAlgorithm = 'TB'
+  algorithm: LayoutAlgorithm = "TB"
 ): OrgChartLayout {
-  if (algorithm === 'radial') {
+  if (algorithm === "radial") {
     return calculateRadialLayout(resources);
   }
-  if (algorithm === 'compact') {
+  if (algorithm === "compact") {
     return calculateCompactLayout(resources);
   }
 
@@ -65,7 +70,7 @@ export function calculateOrgChartLayout(
 /**
  * Calculate layout using Dagre (TB or LR)
  */
-function calculateDagreLayout(resources: Resource[], direction: 'TB' | 'LR'): OrgChartLayout {
+function calculateDagreLayout(resources: Resource[], direction: "TB" | "LR"): OrgChartLayout {
   // Create a new directed graph
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -73,8 +78,8 @@ function calculateDagreLayout(resources: Resource[], direction: 'TB' | 'LR'): Or
   // Configure graph layout
   dagreGraph.setGraph({
     rankdir: direction,
-    ranksep: direction === 'LR' ? 300 : RANK_SEPARATION,
-    nodesep: direction === 'LR' ? 40 : NODE_SEPARATION,
+    ranksep: direction === "LR" ? 300 : RANK_SEPARATION,
+    nodesep: direction === "LR" ? 40 : NODE_SEPARATION,
     edgesep: 50,
     marginx: 50,
     marginy: 50,
@@ -107,10 +112,10 @@ function calculateDagreLayout(resources: Resource[], direction: 'TB' | 'LR'): Or
         id: `edge-${resource.managerResourceId}-${resource.id}`,
         source: resource.managerResourceId,
         target: resource.id,
-        type: 'smoothstep',
+        type: "smoothstep",
         animated: false,
         style: {
-          stroke: '#94a3b8',
+          stroke: "#94a3b8",
           strokeWidth: 2,
         },
         data: {
@@ -131,7 +136,7 @@ function calculateDagreLayout(resources: Resource[], direction: 'TB' | 'LR'): Or
 
     return {
       id: resource.id,
-      type: 'orgChartNode', // Custom node type
+      type: "orgChartNode", // Custom node type
       position: {
         x: nodeWithPosition.x - NODE_WIDTH / 2,
         y: nodeWithPosition.y - NODE_HEIGHT / 2,
@@ -152,9 +157,7 @@ function calculateDagreLayout(resources: Resource[], direction: 'TB' | 'LR'): Or
   });
 
   // Identify root nodes (no manager)
-  const rootNodes = nodes.filter(
-    (node) => !node.data.resource.managerResourceId
-  );
+  const rootNodes = nodes.filter((node) => !node.data.resource.managerResourceId);
 
   return {
     nodes,
@@ -239,9 +242,10 @@ export function getOrgChartStats(resources: Resource[]): {
   });
 
   const managersWithReports = Array.from(directReportsCounts.values());
-  const avgDirectReports = managersWithReports.length > 0
-    ? managersWithReports.reduce((sum, count) => sum + count, 0) / managersWithReports.length
-    : 0;
+  const avgDirectReports =
+    managersWithReports.length > 0
+      ? managersWithReports.reduce((sum, count) => sum + count, 0) / managersWithReports.length
+      : 0;
 
   // Count by category
   const categoryCounts = {} as Record<ResourceCategory, number>;
@@ -291,7 +295,9 @@ export function validateOrgChart(resources: Resource[]): {
     if (resource.managerResourceId) {
       const managerExists = resources.some((r) => r.id === resource.managerResourceId);
       if (!managerExists) {
-        errors.push(`Resource "${resource.name}" has invalid manager reference: ${resource.managerResourceId}`);
+        errors.push(
+          `Resource "${resource.name}" has invalid manager reference: ${resource.managerResourceId}`
+        );
       }
     }
   });
@@ -299,18 +305,24 @@ export function validateOrgChart(resources: Resource[]): {
   // Warn about resources with no manager
   const orphanCount = resources.filter((r) => !r.managerResourceId).length;
   if (orphanCount > 5) {
-    warnings.push(`${orphanCount} resources have no manager assigned. Consider organizing the hierarchy.`);
+    warnings.push(
+      `${orphanCount} resources have no manager assigned. Consider organizing the hierarchy.`
+    );
   }
 
   // Warn about very deep hierarchies
   const stats = getOrgChartStats(resources);
   if (stats.maxDepth > 6) {
-    warnings.push(`Organization hierarchy is ${stats.maxDepth} levels deep. Consider flattening for better communication.`);
+    warnings.push(
+      `Organization hierarchy is ${stats.maxDepth} levels deep. Consider flattening for better communication.`
+    );
   }
 
   // Warn about span of control issues
   if (stats.avgDirectReports > 10) {
-    warnings.push(`Average span of control is ${stats.avgDirectReports}. Some managers may be overloaded.`);
+    warnings.push(
+      `Average span of control is ${stats.avgDirectReports}. Some managers may be overloaded.`
+    );
   }
 
   return {
@@ -405,7 +417,7 @@ export function calculateWorkAllocationLayout(project: GanttProject): OrgChartLa
     phaseResources.forEach((resource, index) => {
       nodes.push({
         id: resource.id,
-        type: 'orgChartNode',
+        type: "orgChartNode",
         position: {
           x: currentX,
           y: yOffset,
@@ -436,7 +448,7 @@ export function calculateWorkAllocationLayout(project: GanttProject): OrgChartLa
     unassignedResources.forEach((resource) => {
       nodes.push({
         id: resource.id,
-        type: 'orgChartNode',
+        type: "orgChartNode",
         position: {
           x: currentX,
           y: yOffset,
@@ -519,7 +531,7 @@ function calculateRadialLayout(resources: Resource[]): OrgChartLayout {
 
       nodes.push({
         id: resource.id,
-        type: 'orgChartNode',
+        type: "orgChartNode",
         position: { x, y },
         data: {
           resource,
@@ -541,10 +553,10 @@ function calculateRadialLayout(resources: Resource[]): OrgChartLayout {
           id: `edge-${resource.managerResourceId}-${resource.id}`,
           source: resource.managerResourceId,
           target: resource.id,
-          type: 'smoothstep',
+          type: "smoothstep",
           animated: false,
           style: {
-            stroke: '#94a3b8',
+            stroke: "#94a3b8",
             strokeWidth: 2,
           },
           data: {
@@ -575,9 +587,9 @@ function calculateCompactLayout(resources: Resource[]): OrgChartLayout {
 
   // Configure for compact layout with tighter spacing
   dagreGraph.setGraph({
-    rankdir: 'TB',
+    rankdir: "TB",
     ranksep: 100, // Tighter vertical spacing
-    nodesep: 30,  // Tighter horizontal spacing
+    nodesep: 30, // Tighter horizontal spacing
     edgesep: 20,
     marginx: 30,
     marginy: 30,
@@ -611,10 +623,10 @@ function calculateCompactLayout(resources: Resource[]): OrgChartLayout {
         id: `edge-${resource.managerResourceId}-${resource.id}`,
         source: resource.managerResourceId,
         target: resource.id,
-        type: 'step',
+        type: "step",
         animated: false,
         style: {
-          stroke: '#94a3b8',
+          stroke: "#94a3b8",
           strokeWidth: 1.5,
         },
         data: {
@@ -633,7 +645,7 @@ function calculateCompactLayout(resources: Resource[]): OrgChartLayout {
 
     return {
       id: resource.id,
-      type: 'orgChartNode',
+      type: "orgChartNode",
       position: {
         x: nodeWithPosition.x - compactWidth / 2,
         y: nodeWithPosition.y - compactHeight / 2,

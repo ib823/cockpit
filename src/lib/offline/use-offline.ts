@@ -2,30 +2,30 @@
  * React Hooks for Offline Support
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { syncService } from './sync-service';
-import { offlineStorage } from './offline-storage';
+import { useState, useEffect, useCallback } from "react";
+import { syncService } from "./sync-service";
+import { offlineStorage } from "./offline-storage";
 
 /**
  * Hook to track online/offline status
  */
 export function useOnlineStatus() {
   const [isOnline, setIsOnline] = useState(
-    typeof navigator !== 'undefined' ? navigator.onLine : true
+    typeof navigator !== "undefined" ? navigator.onLine : true
   );
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
@@ -94,12 +94,7 @@ export function useOfflineStorage() {
 /**
  * Hook to automatically save data offline
  */
-export function useAutoSaveOffline<T>(
-  key: string,
-  data: T,
-  enabled = true,
-  debounceMs = 1000
-) {
+export function useAutoSaveOffline<T>(key: string, data: T, enabled = true, debounceMs = 1000) {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -112,7 +107,7 @@ export function useAutoSaveOffline<T>(
         await offlineStorage.setCache(key, data, 60 * 24); // 24 hour TTL
         setLastSaved(new Date());
       } catch (error) {
-        console.error('[useAutoSaveOffline] Failed to save:', error);
+        console.error("[useAutoSaveOffline] Failed to save:", error);
       } finally {
         setSaving(false);
       }
@@ -145,7 +140,7 @@ export function useCachedData<T>(key: string, defaultValue: T | null = null) {
         setLoading(false);
       })
       .catch((error) => {
-        console.error('[useCachedData] Failed to load:', error);
+        console.error("[useCachedData] Failed to load:", error);
         setLoading(false);
       });
   }, [key]);
@@ -164,23 +159,23 @@ export function useServiceWorker() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
       return;
     }
 
     // Register service worker
     navigator.serviceWorker
-      .register('/service-worker.js')
+      .register("/service-worker.js")
       .then((reg) => {
-        console.log('[ServiceWorker] Registered:', reg.scope);
+        console.log("[ServiceWorker] Registered:", reg.scope);
         setRegistration(reg);
 
         // Check for updates
-        reg.addEventListener('updatefound', () => {
+        reg.addEventListener("updatefound", () => {
           const newWorker = reg.installing;
           if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
                 setUpdateAvailable(true);
               }
             });
@@ -188,13 +183,13 @@ export function useServiceWorker() {
         });
       })
       .catch((error) => {
-        console.error('[ServiceWorker] Registration failed:', error);
+        console.error("[ServiceWorker] Registration failed:", error);
       });
   }, []);
 
   const updateServiceWorker = useCallback(() => {
     if (registration?.waiting) {
-      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      registration.waiting.postMessage({ type: "SKIP_WAITING" });
       window.location.reload();
     }
   }, [registration]);

@@ -3,9 +3,9 @@
  * Handles synchronization of offline data when connection is restored
  */
 
-'use client';
+"use client";
 
-import { offlineStorage, PendingSyncItem } from './offline-storage';
+import { offlineStorage, PendingSyncItem } from "./offline-storage";
 
 class SyncService {
   private syncing = false;
@@ -13,10 +13,10 @@ class SyncService {
   private listeners: Set<(syncing: boolean) => void> = new Set();
 
   constructor() {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       // Listen for online/offline events
-      window.addEventListener('online', () => this.handleOnline());
-      window.addEventListener('offline', () => this.handleOffline());
+      window.addEventListener("online", () => this.handleOnline());
+      window.addEventListener("offline", () => this.handleOffline());
 
       // Start periodic sync check
       this.startSyncInterval();
@@ -27,7 +27,7 @@ class SyncService {
    * Handle online event
    */
   private handleOnline() {
-    console.log('[SyncService] Connection restored');
+    console.log("[SyncService] Connection restored");
     this.sync();
   }
 
@@ -35,7 +35,7 @@ class SyncService {
    * Handle offline event
    */
   private handleOffline() {
-    console.log('[SyncService] Connection lost');
+    console.log("[SyncService] Connection lost");
   }
 
   /**
@@ -86,7 +86,7 @@ class SyncService {
    * Check if online
    */
   isOnline(): boolean {
-    return typeof navigator !== 'undefined' && navigator.onLine;
+    return typeof navigator !== "undefined" && navigator.onLine;
   }
 
   /**
@@ -94,12 +94,12 @@ class SyncService {
    */
   async sync(): Promise<void> {
     if (this.syncing) {
-      console.log('[SyncService] Sync already in progress');
+      console.log("[SyncService] Sync already in progress");
       return;
     }
 
     if (!this.isOnline()) {
-      console.log('[SyncService] Cannot sync while offline');
+      console.log("[SyncService] Cannot sync while offline");
       return;
     }
 
@@ -107,13 +107,13 @@ class SyncService {
       this.syncing = true;
       this.notifyListeners();
 
-      console.log('[SyncService] Starting sync...');
+      console.log("[SyncService] Starting sync...");
 
       // Get pending sync items
       const pendingItems = await offlineStorage.getPendingSync();
 
       if (pendingItems.length === 0) {
-        console.log('[SyncService] No items to sync');
+        console.log("[SyncService] No items to sync");
         return;
       }
 
@@ -129,22 +129,21 @@ class SyncService {
           await offlineStorage.removeFromPendingSync(item.id!);
           successCount++;
         } catch (error) {
-          console.error('[SyncService] Failed to sync item:', error);
+          console.error("[SyncService] Failed to sync item:", error);
           failureCount++;
         }
       }
 
-      console.log(
-        `[SyncService] Sync complete: ${successCount} succeeded, ${failureCount} failed`
-      );
+      console.log(`[SyncService] Sync complete: ${successCount} succeeded, ${failureCount} failed`);
 
       // Trigger service worker sync if available
-      if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
+      if ("serviceWorker" in navigator && "sync" in ServiceWorkerRegistration.prototype) {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register('sync-offline-data');
+        // Use type assertion for Background Sync API
+        await (registration as any).sync.register("sync-offline-data");
       }
     } catch (error) {
-      console.error('[SyncService] Sync error:', error);
+      console.error("[SyncService] Sync error:", error);
     } finally {
       this.syncing = false;
       this.notifyListeners();
@@ -186,7 +185,7 @@ class SyncService {
     };
 
     await offlineStorage.addToPendingSync(item);
-    console.log('[SyncService] Request queued for sync:', url);
+    console.log("[SyncService] Request queued for sync:", url);
 
     // Try to sync immediately if online
     if (this.isOnline()) {
@@ -212,7 +211,7 @@ class SyncService {
     for (const item of items) {
       await offlineStorage.removeFromPendingSync(item.id!);
     }
-    console.log('[SyncService] Cleared all pending sync items');
+    console.log("[SyncService] Cleared all pending sync items");
   }
 
   /**

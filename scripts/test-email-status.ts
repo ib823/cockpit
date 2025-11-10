@@ -24,11 +24,7 @@ async function testEmailStatus() {
     });
 
     const registered = !!user;
-    const hasPasskey = !!(
-      user &&
-      user.Authenticator &&
-      user.Authenticator.length > 0
-    );
+    const hasPasskey = !!(user && user.Authenticator && user.Authenticator.length > 0);
     const invited = !!(
       invite &&
       !invite.usedAt &&
@@ -37,18 +33,9 @@ async function testEmailStatus() {
     );
 
     const useMagicLinks = process.env.ENABLE_MAGIC_LINKS === "true";
-    const inviteMethod: "code" | "link" | null = invited
-      ? useMagicLinks
-        ? "link"
-        : "code"
-      : null;
+    const inviteMethod: "code" | "link" | null = invited ? (useMagicLinks ? "link" : "code") : null;
 
-    const needsAction =
-      registered && hasPasskey
-        ? "login"
-        : invited
-        ? "enter_invite"
-        : "not_found";
+    const needsAction = registered && hasPasskey ? "login" : invited ? "enter_invite" : "not_found";
 
     console.log("\n📊 Status Response:");
     console.log(`   registered: ${registered}`);
@@ -79,7 +66,9 @@ async function testEmailStatus() {
     // Expected behavior
     console.log("\n💡 Expected Behavior:");
     if (needsAction === "enter_invite") {
-      console.log(`   ✅ User should see: "${inviteMethod === 'code' ? '6-Digit Code' : 'Magic Link'}" input`);
+      console.log(
+        `   ✅ User should see: "${inviteMethod === "code" ? "6-Digit Code" : "Magic Link"}" input`
+      );
     } else if (needsAction === "login") {
       console.log(`   ✅ User should see: "Use Passkey" button`);
     } else {

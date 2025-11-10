@@ -49,7 +49,9 @@
    ═══════════════════════════════════════════════════════ */
 
 .hover-lift {
-  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
 }
 
 .hover-lift:hover {

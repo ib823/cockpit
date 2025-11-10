@@ -4,14 +4,14 @@
  * An information icon with hover tooltip
  */
 
-'use client';
+"use client";
 
 interface InfoTooltipProps {
   text: string;
   className?: string;
 }
 
-export function InfoTooltip({ text, className = '' }: InfoTooltipProps) {
+export function InfoTooltip({ text, className = "" }: InfoTooltipProps) {
   return (
     <section className={`relative flex justify-center items-center ${className}`}>
       <div className="group flex justify-center transition-all rounded-full bg-gray-200 p-1 hover:bg-gray-300">

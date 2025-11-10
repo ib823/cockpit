@@ -1,6 +1,6 @@
 /**
  * SAP Deliverables Catalog - Configuration-Level Granularity
- * 
+ *
  * Structure: Module → SubModule → ConfigTask
  * Each task has base effort, skills, shareability, and risk level
  */
@@ -8,25 +8,25 @@
 export interface ConfigTask {
   id: string;
   name: string;
-  category: 'functional' | 'technical' | 'wrapper';
-  stream: 'FI' | 'MM' | 'SD' | 'HCM' | 'RICEW' | 'PM' | 'Change' | 'Basis' | 'Security';
-  baseEffort: number;           // Person-days
-  skillRequired: string[];       // e.g., ["SAP FI", "Accounting"]
-  sharable: boolean;             // Can be shared across modules?
-  riskLevel: 'low' | 'medium' | 'high';
-  dependencies?: string[];       // Task IDs
+  category: "functional" | "technical" | "wrapper";
+  stream: "FI" | "MM" | "SD" | "HCM" | "RICEW" | "PM" | "Change" | "Basis" | "Security";
+  baseEffort: number; // Person-days
+  skillRequired: string[]; // e.g., ["SAP FI", "Accounting"]
+  sharable: boolean; // Can be shared across modules?
+  riskLevel: "low" | "medium" | "high";
+  dependencies?: string[]; // Task IDs
 }
 
 export interface SubModule {
   id: string;
   name: string;
   configurations: ConfigTask[];
-  estimatedEffort: number;       // Sum of config tasks
-  complexity: number;            // Multiplier 0.7-1.5
+  estimatedEffort: number; // Sum of config tasks
+  complexity: number; // Multiplier 0.7-1.5
 }
 
 export interface DeliverableTree {
-  moduleId: string;              // Maps to SAP_MODULES keys
+  moduleId: string; // Maps to SAP_MODULES keys
   moduleName: string;
   subModules: SubModule[];
 }
@@ -748,10 +748,7 @@ export const WRAPPER_DELIVERABLES = {
 
 // ========== CATALOG AGGREGATION ==========
 export const SAP_DELIVERABLES_CATALOG = {
-  modules: [
-    FINANCE_DELIVERABLES,
-    MM_DELIVERABLES,
-  ],
+  modules: [FINANCE_DELIVERABLES, MM_DELIVERABLES],
   technical: TECHNICAL_DELIVERABLES,
   wrapper: WRAPPER_DELIVERABLES,
 };
@@ -759,25 +756,21 @@ export const SAP_DELIVERABLES_CATALOG = {
 // Helper function to get all tasks for selected modules
 export function getTasksForModules(moduleIds: string[]): ConfigTask[] {
   const tasks: ConfigTask[] = [];
-  
-  moduleIds.forEach(moduleId => {
-    const moduleTree = SAP_DELIVERABLES_CATALOG.modules.find(
-      m => m.moduleId === moduleId
-    );
-    
+
+  moduleIds.forEach((moduleId) => {
+    const moduleTree = SAP_DELIVERABLES_CATALOG.modules.find((m) => m.moduleId === moduleId);
+
     if (moduleTree) {
-      moduleTree.subModules.forEach(subModule => {
+      moduleTree.subModules.forEach((subModule) => {
         tasks.push(...subModule.configurations);
       });
     }
   });
-  
+
   return tasks;
 }
 
 // Helper to get deliverable tree for a module
 export function getDeliverableTree(moduleId: string): DeliverableTree | null {
-  return SAP_DELIVERABLES_CATALOG.modules.find(
-    m => m.moduleId === moduleId
-  ) || null;
+  return SAP_DELIVERABLES_CATALOG.modules.find((m) => m.moduleId === moduleId) || null;
 }

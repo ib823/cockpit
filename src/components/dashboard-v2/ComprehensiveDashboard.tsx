@@ -7,10 +7,10 @@
  * - RIGHT: Strategic Insights (Risk Gauges, AI Recommendations, What-If Scenarios)
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo, useEffect } from 'react';
-import { Card, Select, Button, Space, Typography, Badge, Alert, Divider, Tabs, Spin } from 'antd';
+import { useState, useMemo, useEffect } from "react";
+import { Card, Select, Button, Space, Typography, Badge, Alert, Divider, Tabs, Spin } from "antd";
 import {
   Save,
   Download,
@@ -21,16 +21,20 @@ import {
   Info,
   Settings,
   Zap,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { GanttProject } from '@/types/gantt-tool';
-import { OperationalPanel } from './panels/OperationalPanel';
-import { FinancialIntelligencePanel } from './panels/FinancialIntelligencePanel';
-import { StrategicInsightsPanel } from './panels/StrategicInsightsPanel';
-import { validateProject, ValidationResult } from '@/lib/dashboard/validation-engine';
-import { calculateTotalCost, calculateMargins, calculateRiskScore } from '@/lib/dashboard/calculation-engine';
-import { OptimizationEngine } from '@/lib/dashboard/optimization-engine';
-import { formatMYR } from '@/lib/rate-card';
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { GanttProject } from "@/types/gantt-tool";
+import { OperationalPanel } from "./panels/OperationalPanel";
+import { FinancialIntelligencePanel } from "./panels/FinancialIntelligencePanel";
+import { StrategicInsightsPanel } from "./panels/StrategicInsightsPanel";
+import { validateProject, ValidationResult } from "@/lib/dashboard/validation-engine";
+import {
+  calculateTotalCost,
+  calculateMargins,
+  calculateRiskScore,
+} from "@/lib/dashboard/calculation-engine";
+import { OptimizationEngine } from "@/lib/dashboard/optimization-engine";
+import { formatMYR } from "@/lib/rate-card";
 
 const { Title, Text } = Typography;
 
@@ -59,20 +63,21 @@ export function ComprehensiveDashboard({
   onShare,
 }: ComprehensiveDashboardProps) {
   const [scenarios, setScenarios] = useState<Scenario[]>([
-    { id: 'baseline', name: 'Current Plan (Baseline)', project, revenue: proposedRevenue },
+    { id: "baseline", name: "Current Plan (Baseline)", project, revenue: proposedRevenue },
   ]);
-  const [activeScenarioId, setActiveScenarioId] = useState('baseline');
+  const [activeScenarioId, setActiveScenarioId] = useState("baseline");
   const [isCalculating, setIsCalculating] = useState(false);
-  const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
 
   // Get active scenario
-  const activeScenario = scenarios.find(s => s.id === activeScenarioId) || scenarios[0];
+  const activeScenario = scenarios.find((s) => s.id === activeScenarioId) || scenarios[0];
 
   // Calculate metrics for active scenario
   const metrics = useMemo(() => {
     setIsCalculating(true);
     const costBreakdown = calculateTotalCost(activeScenario.project);
-    const revenue = activeScenario.revenue > 0 ? activeScenario.revenue : costBreakdown.totalCost / 0.7;
+    const revenue =
+      activeScenario.revenue > 0 ? activeScenario.revenue : costBreakdown.totalCost / 0.7;
     const margins = calculateMargins(revenue, costBreakdown);
     const riskScore = calculateRiskScore(activeScenario.project);
 
@@ -102,10 +107,10 @@ export function ComprehensiveDashboard({
 
   // Auto-save simulation
   useEffect(() => {
-    setAutoSaveStatus('unsaved');
+    setAutoSaveStatus("unsaved");
     const timer = setTimeout(() => {
-      setAutoSaveStatus('saving');
-      setTimeout(() => setAutoSaveStatus('saved'), 500);
+      setAutoSaveStatus("saving");
+      setTimeout(() => setAutoSaveStatus("saved"), 500);
     }, 2000);
 
     return () => clearTimeout(timer);
@@ -115,7 +120,9 @@ export function ComprehensiveDashboard({
   const totalViolations = validation.violations.length + validation.warnings.length;
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#F5F7FA' }}>
+    <div
+      style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#F5F7FA" }}
+    >
       {/* ============================================ */}
       {/* HEADER: Global Controls */}
       {/* ============================================ */}
@@ -126,31 +133,44 @@ export function ComprehensiveDashboard({
       >
         <Card
           style={{
-            margin: '16px 16px 0 16px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+            margin: "16px 16px 0 16px",
+            borderRadius: "12px",
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            border: "none",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "16px",
+            }}
+          >
             {/* Project Metadata */}
             <Space direction="vertical" size={0}>
-              <Title level={3} style={{ margin: 0, color: 'white' }}>
+              <Title level={3} style={{ margin: 0, color: "white" }}>
                 📊 {activeScenario.project.name}
               </Title>
-              <Space size="large" style={{ marginTop: '8px' }}>
-                <Text style={{ color: 'rgba(255,255,255,0.9)' }} className="text-sm">
+              <Space size="large" style={{ marginTop: "8px" }}>
+                <Text style={{ color: "rgba(255,255,255,0.9)" }} className="text-sm">
                   <strong>{activeScenario.project.phases.length}</strong> Phases
                 </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.9)' }} className="text-sm">
+                <Text style={{ color: "rgba(255,255,255,0.9)" }} className="text-sm">
                   <strong>{activeScenario.project.resources?.length || 0}</strong> Resources
                 </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.9)' }} className="text-sm">
+                <Text style={{ color: "rgba(255,255,255,0.9)" }} className="text-sm">
                   Revenue: <strong>{formatMYR(metrics.revenue)}</strong>
                 </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.9)' }} className="text-sm">
-                  Margin: <strong style={{ color: metrics.margins.grossMarginPercent >= 20 ? '#A7F3D0' : '#FCA5A5' }}>
+                <Text style={{ color: "rgba(255,255,255,0.9)" }} className="text-sm">
+                  Margin:{" "}
+                  <strong
+                    style={{
+                      color: metrics.margins.grossMarginPercent >= 20 ? "#A7F3D0" : "#FCA5A5",
+                    }}
+                  >
                     {metrics.margins.grossMarginPercent.toFixed(1)}%
                   </strong>
                 </Text>
@@ -164,22 +184,22 @@ export function ComprehensiveDashboard({
                 value={activeScenarioId}
                 onChange={setActiveScenarioId}
                 style={{ width: 200 }}
-                options={scenarios.map(s => ({
+                options={scenarios.map((s) => ({
                   label: s.name,
                   value: s.id,
                 }))}
                 suffixIcon={<Zap size={16} color="white" />}
-                dropdownStyle={{ borderRadius: '8px' }}
+                dropdownStyle={{ borderRadius: "8px" }}
               />
 
               {/* Action Buttons */}
               <Button
                 icon={<Settings size={16} />}
-                onClick={() => console.log('Settings')}
+                onClick={() => console.log("Settings")}
                 style={{
-                  background: 'rgba(255,255,255,0.15)',
-                  border: 'none',
-                  color: 'white',
+                  background: "rgba(255,255,255,0.15)",
+                  border: "none",
+                  color: "white",
                 }}
               >
                 Settings
@@ -190,9 +210,9 @@ export function ComprehensiveDashboard({
                   icon={<Save size={16} />}
                   onClick={onSave}
                   style={{
-                    background: 'rgba(255,255,255,0.15)',
-                    border: 'none',
-                    color: 'white',
+                    background: "rgba(255,255,255,0.15)",
+                    border: "none",
+                    color: "white",
                   }}
                 >
                   Save
@@ -204,9 +224,9 @@ export function ComprehensiveDashboard({
                   icon={<Download size={16} />}
                   onClick={onExport}
                   style={{
-                    background: 'rgba(255,255,255,0.15)',
-                    border: 'none',
-                    color: 'white',
+                    background: "rgba(255,255,255,0.15)",
+                    border: "none",
+                    color: "white",
                   }}
                 >
                   Export
@@ -219,9 +239,9 @@ export function ComprehensiveDashboard({
                   onClick={onShare}
                   type="primary"
                   style={{
-                    background: 'white',
-                    color: '#667eea',
-                    border: 'none',
+                    background: "white",
+                    color: "#667eea",
+                    border: "none",
                   }}
                 >
                   Share
@@ -235,23 +255,33 @@ export function ComprehensiveDashboard({
       {/* ============================================ */}
       {/* MAIN CANVAS: Three-Panel Interactive View */}
       {/* ============================================ */}
-      <div style={{ flex: 1, overflow: 'hidden', padding: '16px', display: 'flex', gap: '16px' }}>
+      <div style={{ flex: 1, overflow: "hidden", padding: "16px", display: "flex", gap: "16px" }}>
         {/* LEFT PANEL: Operational Reality */}
         <motion.div
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.3 }}
-          style={{ flex: 1, overflow: 'auto' }}
+          style={{ flex: 1, overflow: "auto" }}
         >
           <Card
             title={
               <Space>
-                <span style={{ fontWeight: 600 }} className="text-base">🎯 Operational Reality</span>
-                <Badge count={validation.violations.filter(v => v.rule === 'resource_allocation').length} />
+                <span style={{ fontWeight: 600 }} className="text-base">
+                  🎯 Operational Reality
+                </span>
+                <Badge
+                  count={
+                    validation.violations.filter((v) => v.rule === "resource_allocation").length
+                  }
+                />
               </Space>
             }
-            style={{ height: '100%', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-            bodyStyle={{ padding: '16px', height: 'calc(100% - 57px)', overflow: 'auto' }}
+            style={{
+              height: "100%",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            }}
+            bodyStyle={{ padding: "16px", height: "calc(100% - 57px)", overflow: "auto" }}
           >
             <OperationalPanel project={activeScenario.project} validation={validation} />
           </Card>
@@ -262,17 +292,23 @@ export function ComprehensiveDashboard({
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.3 }}
-          style={{ flex: 1.2, overflow: 'auto' }}
+          style={{ flex: 1.2, overflow: "auto" }}
         >
           <Card
             title={
               <Space>
-                <span style={{ fontWeight: 600 }} className="text-base">💰 Financial Intelligence</span>
+                <span style={{ fontWeight: 600 }} className="text-base">
+                  💰 Financial Intelligence
+                </span>
                 {isCalculating && <Spin size="small" />}
               </Space>
             }
-            style={{ height: '100%', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-            bodyStyle={{ padding: '16px', height: 'calc(100% - 57px)', overflow: 'auto' }}
+            style={{
+              height: "100%",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            }}
+            bodyStyle={{ padding: "16px", height: "calc(100% - 57px)", overflow: "auto" }}
           >
             <FinancialIntelligencePanel
               project={activeScenario.project}
@@ -289,17 +325,23 @@ export function ComprehensiveDashboard({
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.3 }}
-          style={{ flex: 1, overflow: 'auto' }}
+          style={{ flex: 1, overflow: "auto" }}
         >
           <Card
             title={
               <Space>
-                <span style={{ fontWeight: 600 }} className="text-base">🚀 Strategic Insights</span>
-                <Badge count={recommendations.length} style={{ background: '#52c41a' }} />
+                <span style={{ fontWeight: 600 }} className="text-base">
+                  🚀 Strategic Insights
+                </span>
+                <Badge count={recommendations.length} style={{ background: "#52c41a" }} />
               </Space>
             }
-            style={{ height: '100%', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-            bodyStyle={{ padding: '16px', height: 'calc(100% - 57px)', overflow: 'auto' }}
+            style={{
+              height: "100%",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            }}
+            bodyStyle={{ padding: "16px", height: "calc(100% - 57px)", overflow: "auto" }}
           >
             <StrategicInsightsPanel
               project={activeScenario.project}
@@ -331,24 +373,26 @@ export function ComprehensiveDashboard({
       >
         <Card
           style={{
-            margin: '0 16px 16px 16px',
-            borderRadius: '12px',
-            boxShadow: '0 -2px 8px rgba(0,0,0,0.05)',
+            margin: "0 16px 16px 16px",
+            borderRadius: "12px",
+            boxShadow: "0 -2px 8px rgba(0,0,0,0.05)",
           }}
-          bodyStyle={{ padding: '12px 16px' }}
+          bodyStyle={{ padding: "12px 16px" }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             {/* Validation Status */}
             <Space size="large">
               {validation.isValid ? (
                 <Space>
                   <CheckCircle2 size={20} color="#52c41a" />
-                  <Text strong style={{ color: '#52c41a' }}>All Validations Passed</Text>
+                  <Text strong style={{ color: "#52c41a" }}>
+                    All Validations Passed
+                  </Text>
                 </Space>
               ) : (
                 <Space>
                   <AlertTriangle size={20} color="#ff4d4f" />
-                  <Text strong style={{ color: '#ff4d4f' }}>
+                  <Text strong style={{ color: "#ff4d4f" }}>
                     {validation.violations.length} Critical Issue(s)
                   </Text>
                 </Space>
@@ -357,9 +401,7 @@ export function ComprehensiveDashboard({
               {validation.warnings.length > 0 && (
                 <Space>
                   <Info size={20} color="#faad14" />
-                  <Text style={{ color: '#faad14' }}>
-                    {validation.warnings.length} Warning(s)
-                  </Text>
+                  <Text style={{ color: "#faad14" }}>{validation.warnings.length} Warning(s)</Text>
                 </Space>
               )}
 
@@ -369,12 +411,12 @@ export function ComprehensiveDashboard({
                   style={{
                     width: 8,
                     height: 8,
-                    borderRadius: '50%',
-                    background: validation.isValid ? '#52c41a' : '#ff4d4f',
+                    borderRadius: "50%",
+                    background: validation.isValid ? "#52c41a" : "#ff4d4f",
                   }}
                 />
                 <Text type="secondary" className="text-sm">
-                  Data Quality: {validation.isValid ? 'Excellent' : 'Needs Review'}
+                  Data Quality: {validation.isValid ? "Excellent" : "Needs Review"}
                 </Text>
               </Space>
             </Space>
@@ -382,7 +424,7 @@ export function ComprehensiveDashboard({
             {/* Auto-save Status */}
             <Space>
               <AnimatePresence mode="wait">
-                {autoSaveStatus === 'saved' && (
+                {autoSaveStatus === "saved" && (
                   <motion.div
                     key="saved"
                     initial={{ opacity: 0 }}
@@ -391,11 +433,13 @@ export function ComprehensiveDashboard({
                   >
                     <Space>
                       <CheckCircle2 size={16} color="#52c41a" />
-                      <Text type="secondary" className="text-sm">Saved</Text>
+                      <Text type="secondary" className="text-sm">
+                        Saved
+                      </Text>
                     </Space>
                   </motion.div>
                 )}
-                {autoSaveStatus === 'saving' && (
+                {autoSaveStatus === "saving" && (
                   <motion.div
                     key="saving"
                     initial={{ opacity: 0 }}
@@ -404,7 +448,9 @@ export function ComprehensiveDashboard({
                   >
                     <Space>
                       <Spin size="small" />
-                      <Text type="secondary" className="text-sm">Saving...</Text>
+                      <Text type="secondary" className="text-sm">
+                        Saving...
+                      </Text>
                     </Space>
                   </motion.div>
                 )}
@@ -416,12 +462,12 @@ export function ComprehensiveDashboard({
           {!validation.isValid && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
+              animate={{ height: "auto", opacity: 1 }}
               transition={{ delay: 0.2 }}
-              style={{ marginTop: '12px' }}
+              style={{ marginTop: "12px" }}
             >
-              <Divider style={{ margin: '8px 0' }} />
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <Divider style={{ margin: "8px 0" }} />
+              <Space direction="vertical" size="small" style={{ width: "100%" }}>
                 {validation.violations.slice(0, 3).map((violation, idx) => (
                   <Alert
                     key={idx}

@@ -8,16 +8,16 @@
  *   const { inputs, setInputs, results } = useEstimatorStore();
  */
 
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type {
   EstimatorInputs,
   EstimatorResults,
   Profile,
   L3ScopeItem,
   PhaseBreakdown,
-} from '@/lib/estimator/types';
-import { DEFAULT_PROFILE, INPUT_CONSTRAINTS } from '@/lib/estimator/types';
+} from "@/lib/estimator/types";
+import { DEFAULT_PROFILE, INPUT_CONSTRAINTS } from "@/lib/estimator/types";
 
 /**
  * Estimator store state
@@ -109,20 +109,12 @@ export interface EstimatorState {
   /**
    * Update organizational scale
    */
-  setOrgScale: (params: {
-    legalEntities?: number;
-    countries?: number;
-    languages?: number;
-  }) => void;
+  setOrgScale: (params: { legalEntities?: number; countries?: number; languages?: number }) => void;
 
   /**
    * Update capacity parameters
    */
-  setCapacity: (params: {
-    fte?: number;
-    utilization?: number;
-    overlapFactor?: number;
-  }) => void;
+  setCapacity: (params: { fte?: number; utilization?: number; overlapFactor?: number }) => void;
 
   /**
    * Set calculation results
@@ -187,24 +179,24 @@ const getDefaultInputs = (): EstimatorInputs => ({
  */
 const getDefaultState = (): Omit<
   EstimatorState,
-  | 'setInputs'
-  | 'updateInputs'
-  | 'setProfile'
-  | 'setSelectedL3Items'
-  | 'toggleL3Item'
-  | 'setIntegrations'
-  | 'setCustomForms'
-  | 'setFitToStandard'
-  | 'setOrgScale'
-  | 'setCapacity'
-  | 'setResults'
-  | 'setCalculating'
-  | 'setError'
-  | 'clearError'
-  | 'setStartDate'
-  | 'setPhasesWithDates'
-  | 'reset'
-  | 'resetInputs'
+  | "setInputs"
+  | "updateInputs"
+  | "setProfile"
+  | "setSelectedL3Items"
+  | "toggleL3Item"
+  | "setIntegrations"
+  | "setCustomForms"
+  | "setFitToStandard"
+  | "setOrgScale"
+  | "setCapacity"
+  | "setResults"
+  | "setCalculating"
+  | "setError"
+  | "clearError"
+  | "setStartDate"
+  | "setPhasesWithDates"
+  | "reset"
+  | "resetInputs"
 > => ({
   inputs: getDefaultInputs(),
   results: null,
@@ -225,8 +217,7 @@ export const useEstimatorStore = create<EstimatorState>()(
       ...getDefaultState(),
 
       // Actions
-      setInputs: (inputs) =>
-        set({ inputs }),
+      setInputs: (inputs) => set({ inputs }),
 
       updateInputs: (partial) =>
         set((state) => ({
@@ -245,9 +236,7 @@ export const useEstimatorStore = create<EstimatorState>()(
 
       toggleL3Item: (item) =>
         set((state) => {
-          const isSelected = state.inputs.selectedL3Items.some(
-            (i) => i.l3Code === item.l3Code
-          );
+          const isSelected = state.inputs.selectedL3Items.some((i) => i.l3Code === item.l3Code);
 
           const newItems = isSelected
             ? state.inputs.selectedL3Items.filter((i) => i.l3Code !== item.l3Code)
@@ -344,29 +333,22 @@ export const useEstimatorStore = create<EstimatorState>()(
       setResults: (results, warnings) =>
         set({ results, warnings, calculating: false, error: null }),
 
-      setCalculating: (calculating) =>
-        set({ calculating }),
+      setCalculating: (calculating) => set({ calculating }),
 
-      setError: (error) =>
-        set({ error, calculating: false }),
+      setError: (error) => set({ error, calculating: false }),
 
-      clearError: () =>
-        set({ error: null }),
+      clearError: () => set({ error: null }),
 
-      setStartDate: (date) =>
-        set({ startDate: date }),
+      setStartDate: (date) => set({ startDate: date }),
 
-      setPhasesWithDates: (phases) =>
-        set({ phasesWithDates: phases }),
+      setPhasesWithDates: (phases) => set({ phasesWithDates: phases }),
 
-      reset: () =>
-        set(getDefaultState()),
+      reset: () => set(getDefaultState()),
 
-      resetInputs: () =>
-        set({ inputs: getDefaultInputs() }),
+      resetInputs: () => set({ inputs: getDefaultInputs() }),
     }),
     {
-      name: 'estimator-storage', // localStorage key
+      name: "estimator-storage", // localStorage key
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         // Only persist inputs and startDate
@@ -387,9 +369,7 @@ export const estimatorSelectors = {
   isCalculating: (state: EstimatorState) => state.calculating,
   selectedItemsCount: (state: EstimatorState) => state.inputs.selectedL3Items.length,
   hasTierDItems: (state: EstimatorState) =>
-    state.inputs.selectedL3Items.some(
-      (item) => item.complexityMetrics?.defaultTier === 'D'
-    ),
+    state.inputs.selectedL3Items.some((item) => item.complexityMetrics?.defaultTier === "D"),
   totalCoefficient: (state: EstimatorState) =>
     state.inputs.selectedL3Items.reduce(
       (sum, item) => sum + (item.complexityMetrics?.coefficient ?? 0),

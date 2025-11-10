@@ -5,26 +5,65 @@
  * Features: Phases, Tasks, Milestones, Holidays, Interactive editing
  */
 
-'use client';
+"use client";
 
-import { useGanttToolStoreV2 as useGanttToolStore } from '@/stores/gantt-tool-store-v2';
-import { useMemo, useRef, useState, useCallback } from 'react';
-import { differenceInDays, format, addDays, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, eachQuarterOfInterval, eachYearOfInterval, startOfWeek, startOfMonth, startOfQuarter, startOfYear, getDay, getMonth, getQuarter } from 'date-fns';
-import { ChevronDown, ChevronRight, Flag, Users, ChevronUp, MoveUp, MoveDown, ArrowRightToLine, Maximize2, AlertTriangle } from 'lucide-react';
-import type { GanttPhase } from '@/types/gantt-tool';
-import { getHolidaysInRange } from '@/data/holidays';
-import { formatGanttDate, formatGanttDateCompact, formatDurationCompact, formatWorkingDays } from '@/lib/gantt-tool/date-utils';
-import { formatDuration } from '@/lib/gantt-tool/formatters';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, canAssignToPhase } from '@/types/gantt-tool';
-import { calculateWorkingDaysInclusive } from '@/lib/gantt-tool/working-days';
-import { PhaseTaskResourceAllocationModal } from './PhaseTaskResourceAllocationModal';
-import { GanttMinimap } from './GanttMinimap';
-import { DependencyArrows } from './DependencyArrows';
-import { Tooltip } from 'antd';
-import { getTaskColor as getTaskColorFromDesignSystem, withOpacity, getElevationShadow, GANTT_STATUS_COLORS, GANTT_STATUS_LABELS, type GanttStatus } from '@/lib/design-system';
-import { useKeyboardNavigation } from './useKeyboardNavigation';
-import { getVisibleTasksInOrder, isLastSibling } from '@/lib/gantt-tool/task-hierarchy';
-import { StatusLegendMini } from './StatusLegend';
+import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { useMemo, useRef, useState, useCallback } from "react";
+import {
+  differenceInDays,
+  format,
+  addDays,
+  eachDayOfInterval,
+  eachWeekOfInterval,
+  eachMonthOfInterval,
+  eachQuarterOfInterval,
+  eachYearOfInterval,
+  startOfWeek,
+  startOfMonth,
+  startOfQuarter,
+  startOfYear,
+  getDay,
+  getMonth,
+  getQuarter,
+} from "date-fns";
+import {
+  ChevronDown,
+  ChevronRight,
+  Flag,
+  Users,
+  ChevronUp,
+  MoveUp,
+  MoveDown,
+  ArrowRightToLine,
+  Maximize2,
+  AlertTriangle,
+} from "lucide-react";
+import type { GanttPhase } from "@/types/gantt-tool";
+import { getHolidaysInRange } from "@/data/holidays";
+import {
+  formatGanttDate,
+  formatGanttDateCompact,
+  formatDurationCompact,
+  formatWorkingDays,
+} from "@/lib/gantt-tool/date-utils";
+import { formatDuration } from "@/lib/gantt-tool/formatters";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, canAssignToPhase } from "@/types/gantt-tool";
+import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
+import { PhaseTaskResourceAllocationModal } from "./PhaseTaskResourceAllocationModal";
+import { GanttMinimap } from "./GanttMinimap";
+import { DependencyArrows } from "./DependencyArrows";
+import { Tooltip } from "antd";
+import {
+  getTaskColor as getTaskColorFromDesignSystem,
+  withOpacity,
+  getElevationShadow,
+  GANTT_STATUS_COLORS,
+  GANTT_STATUS_LABELS,
+  type GanttStatus,
+} from "@/lib/design-system";
+import { useKeyboardNavigation } from "./useKeyboardNavigation";
+import { getVisibleTasksInOrder, isLastSibling } from "@/lib/gantt-tool/task-hierarchy";
+import { StatusLegendMini } from "./StatusLegend";
 
 // Get consistent color for a task based on its index within the phase
 // Now using professional colors from the centralized design system
@@ -36,24 +75,28 @@ const getTaskColor = (taskIndex: number): string => {
  * Calculate status based on dates and progress
  * Returns GanttStatus for semantic color coding
  */
-const calculateItemStatus = (startDate: string, endDate: string, progress: number = 0): GanttStatus => {
+const calculateItemStatus = (
+  startDate: string,
+  endDate: string,
+  progress: number = 0
+): GanttStatus => {
   const now = new Date();
   const start = new Date(startDate);
   const end = new Date(endDate);
 
   // Not started yet
   if (now < start) {
-    return 'notStarted';
+    return "notStarted";
   }
 
   // Completed
   if (progress === 100) {
-    return 'completed';
+    return "completed";
   }
 
   // Overdue/Blocked
   if (now > end && progress < 100) {
-    return 'blocked';
+    return "blocked";
   }
 
   // At risk (approaching deadline with low progress)
@@ -63,20 +106,20 @@ const calculateItemStatus = (startDate: string, endDate: string, progress: numbe
 
   // If we're more than 70% through the timeline but less than 70% done, at risk
   if (percentElapsed > 70 && progress < 70) {
-    return 'atRisk';
+    return "atRisk";
   }
 
   // In progress
   if (progress > 0 && now >= start && now <= end) {
-    return 'inProgress';
+    return "inProgress";
   }
 
   // On hold (no progress but within timeline)
   if (progress === 0 && now >= start && now <= end) {
-    return 'onHold';
+    return "onHold";
   }
 
-  return 'inProgress'; // Default
+  return "inProgress"; // Default
 };
 
 export function GanttCanvas() {
@@ -113,7 +156,9 @@ export function GanttCanvas() {
     openSidePanel,
     deletePhase,
     deleteTask,
-    focusPhase,
+    focusPhase: (phaseId: string | null) => {
+      if (phaseId) focusPhase(phaseId);
+    },
     exitFocusMode,
     focusedPhaseId,
   });
@@ -121,9 +166,9 @@ export function GanttCanvas() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [dragState, setDragState] = useState<{
     itemId: string | null;
-    itemType: 'phase' | 'task' | null;
+    itemType: "phase" | "task" | null;
     phaseId?: string | null;
-    mode: 'move' | 'resize-start' | 'resize-end' | null;
+    mode: "move" | "resize-start" | "resize-end" | null;
     startX: number;
     initialStartDate: string;
     initialEndDate: string;
@@ -131,7 +176,10 @@ export function GanttCanvas() {
   } | null>(null);
   const [dropTarget, setDropTarget] = useState<{ taskId: string; phaseId: string } | null>(null);
   const [phaseDropTarget, setPhaseDropTarget] = useState<string | null>(null);
-  const [resourceModalState, setResourceModalState] = useState<{ itemId: string; itemType: 'phase' | 'task' } | null>(null);
+  const [resourceModalState, setResourceModalState] = useState<{
+    itemId: string;
+    itemType: "phase" | "task";
+  } | null>(null);
 
   // Get duration before any early returns to maintain hook order
   // RTS Focus Mode: Override duration to show only focused phase
@@ -142,7 +190,7 @@ export function GanttCanvas() {
   const duration = useMemo(() => {
     if (!baseDuration || !focusedPhaseId || !currentProject) return baseDuration;
 
-    const focusedPhase = currentProject.phases.find(p => p.id === focusedPhaseId);
+    const focusedPhase = currentProject.phases.find((p) => p.id === focusedPhaseId);
     if (!focusedPhase) return baseDuration;
 
     const startDate = new Date(focusedPhase.startDate);
@@ -161,46 +209,46 @@ export function GanttCanvas() {
     const markers: Array<{ date: Date; label: string; position: number }> = [];
 
     switch (viewSettings.zoomLevel) {
-      case 'day':
+      case "day":
         const days = eachDayOfInterval({ start: startDate, end: endDate });
         days.forEach((day) => {
           const offset = differenceInDays(day, startDate);
           const position = (offset / durationDays) * 100;
           markers.push({
             date: day,
-            label: format(day, 'd'),
+            label: format(day, "d"),
             position,
           });
         });
         break;
 
-      case 'week':
+      case "week":
         const weeks = eachWeekOfInterval({ start: startDate, end: endDate }, { weekStartsOn: 1 });
         weeks.forEach((week) => {
           const offset = differenceInDays(week, startDate);
           const position = (offset / durationDays) * 100;
           markers.push({
             date: week,
-            label: format(week, 'dd MMM'),
+            label: format(week, "dd MMM"),
             position,
           });
         });
         break;
 
-      case 'month':
+      case "month":
         const months = eachMonthOfInterval({ start: startDate, end: endDate });
         months.forEach((month) => {
           const offset = differenceInDays(month, startDate);
           const position = (offset / durationDays) * 100;
           markers.push({
             date: month,
-            label: format(month, 'MMM yyyy'),
+            label: format(month, "MMM yyyy"),
             position,
           });
         });
         break;
 
-      case 'quarter':
+      case "quarter":
         const quarters = eachQuarterOfInterval({ start: startDate, end: endDate });
         quarters.forEach((quarter) => {
           const offset = differenceInDays(quarter, startDate);
@@ -208,13 +256,13 @@ export function GanttCanvas() {
           const quarterNum = getQuarter(quarter);
           markers.push({
             date: quarter,
-            label: `Q${quarterNum} ${format(quarter, 'yyyy')}`,
+            label: `Q${quarterNum} ${format(quarter, "yyyy")}`,
             position,
           });
         });
         break;
 
-      case 'half-year':
+      case "half-year":
         // Generate half-yearly markers (Jan and Jul of each year)
         const years = eachYearOfInterval({ start: startDate, end: endDate });
         years.forEach((year) => {
@@ -225,7 +273,7 @@ export function GanttCanvas() {
             const position = (offset / durationDays) * 100;
             markers.push({
               date: h1,
-              label: `H1 ${format(h1, 'yyyy')}`,
+              label: `H1 ${format(h1, "yyyy")}`,
               position,
             });
           }
@@ -237,7 +285,7 @@ export function GanttCanvas() {
             const position = (offset / durationDays) * 100;
             markers.push({
               date: h2,
-              label: `H2 ${format(h2, 'yyyy')}`,
+              label: `H2 ${format(h2, "yyyy")}`,
               position,
             });
           }
@@ -255,7 +303,7 @@ export function GanttCanvas() {
             const position = (offset / durationDays) * 100;
             markers.push({
               date: h1,
-              label: `H1 ${format(h1, 'yyyy')}`,
+              label: `H1 ${format(h1, "yyyy")}`,
               position,
             });
           }
@@ -265,21 +313,21 @@ export function GanttCanvas() {
             const position = (offset / durationDays) * 100;
             markers.push({
               date: h2,
-              label: `H2 ${format(h2, 'yyyy')}`,
+              label: `H2 ${format(h2, "yyyy")}`,
               position,
             });
           }
         }
         break;
 
-      case 'year':
+      case "year":
         const yearMarkers = eachYearOfInterval({ start: startDate, end: endDate });
         yearMarkers.forEach((year) => {
           const offset = differenceInDays(year, startDate);
           const position = (offset / durationDays) * 100;
           markers.push({
             date: year,
-            label: format(year, 'yyyy'),
+            label: format(year, "yyyy"),
             position,
           });
         });
@@ -294,10 +342,10 @@ export function GanttCanvas() {
     if (!duration) return [];
 
     const { startDate, endDate, durationDays } = duration;
-    const holidays = getHolidaysInRange(startDate, endDate, 'ABMY');
+    const holidays = getHolidaysInRange(startDate, endDate, "ABMY");
 
     // Include all holidays, even those on weekends
-    return holidays.map(holiday => {
+    return holidays.map((holiday) => {
       const holidayDate = new Date(holiday.date);
       const dayOfWeek = getDay(holidayDate);
       const offset = differenceInDays(holidayDate, startDate);
@@ -336,12 +384,12 @@ export function GanttCanvas() {
       let newEndDate: Date;
 
       switch (dragState.mode) {
-        case 'move':
+        case "move":
           newStartDate = addDays(initialStart, deltaDays);
           newEndDate = addDays(initialEnd, deltaDays);
           break;
 
-        case 'resize-start':
+        case "resize-start":
           newStartDate = addDays(initialStart, deltaDays);
           newEndDate = initialEnd;
           // Prevent start from going past end
@@ -350,7 +398,7 @@ export function GanttCanvas() {
           }
           break;
 
-        case 'resize-end':
+        case "resize-end":
           newStartDate = initialStart;
           newEndDate = addDays(initialEnd, deltaDays);
           // Prevent end from going before start
@@ -363,11 +411,11 @@ export function GanttCanvas() {
           return;
       }
 
-      if (dragState.itemType === 'phase' && dragState.itemId) {
+      if (dragState.itemType === "phase" && dragState.itemId) {
         movePhase(dragState.itemId, newStartDate.toISOString(), newEndDate.toISOString());
-      } else if (dragState.itemType === 'task' && dragState.phaseId && dragState.itemId) {
+      } else if (dragState.itemType === "task" && dragState.phaseId && dragState.itemId) {
         // Validate task stays within phase boundaries
-        const phase = currentProject?.phases.find(p => p.id === dragState.phaseId);
+        const phase = currentProject?.phases.find((p) => p.id === dragState.phaseId);
         if (phase) {
           const phaseStart = new Date(phase.startDate);
           const phaseEnd = new Date(phase.endDate);
@@ -387,7 +435,12 @@ export function GanttCanvas() {
             }
           }
 
-          moveTask(dragState.itemId, dragState.phaseId, newStartDate.toISOString(), newEndDate.toISOString());
+          moveTask(
+            dragState.itemId,
+            dragState.phaseId,
+            newStartDate.toISOString(),
+            newEndDate.toISOString()
+          );
         }
       }
     },
@@ -407,7 +460,7 @@ export function GanttCanvas() {
         <div className="text-center text-gray-500">
           <p className="mb-2">No phases yet</p>
           <button
-            onClick={() => openSidePanel('add', 'phase')}
+            onClick={() => openSidePanel("add", "phase")}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
             Add Your First Phase
@@ -442,7 +495,11 @@ export function GanttCanvas() {
   };
 
   // Drag handler for phases
-  const handleMouseDown = (e: React.MouseEvent, phaseId: string, mode: 'move' | 'resize-start' | 'resize-end') => {
+  const handleMouseDown = (
+    e: React.MouseEvent,
+    phaseId: string,
+    mode: "move" | "resize-start" | "resize-end"
+  ) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -451,7 +508,7 @@ export function GanttCanvas() {
 
     setDragState({
       itemId: phaseId,
-      itemType: 'phase',
+      itemType: "phase",
       mode,
       startX: e.clientX,
       initialStartDate: phase.startDate,
@@ -461,7 +518,12 @@ export function GanttCanvas() {
   };
 
   // Drag handler for tasks
-  const handleTaskMouseDown = (e: React.MouseEvent, taskId: string, phaseId: string, mode: 'move' | 'resize-start' | 'resize-end') => {
+  const handleTaskMouseDown = (
+    e: React.MouseEvent,
+    taskId: string,
+    phaseId: string,
+    mode: "move" | "resize-start" | "resize-end"
+  ) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -473,7 +535,7 @@ export function GanttCanvas() {
 
     setDragState({
       itemId: taskId,
-      itemType: 'task',
+      itemType: "task",
       phaseId: phaseId,
       mode,
       startX: e.clientX,
@@ -486,14 +548,14 @@ export function GanttCanvas() {
   // Handle click to open edit panel (only if not dragging)
   const handlePhaseClick = (phaseId: string) => {
     if (dragState?.hasMoved) return; // Don't open panel if we were dragging
-    selectItem(phaseId, 'phase');
-    openSidePanel('edit', 'phase', phaseId);
+    selectItem(phaseId, "phase");
+    openSidePanel("edit", "phase", phaseId);
   };
 
   const handleTaskClick = (taskId: string) => {
     if (dragState?.hasMoved) return; // Don't open panel if we were dragging
-    selectItem(taskId, 'task');
-    openSidePanel('edit', 'task', taskId);
+    selectItem(taskId, "task");
+    openSidePanel("edit", "task", taskId);
   };
 
   // Handle focus mode activation (RTS-style zoom)
@@ -504,7 +566,7 @@ export function GanttCanvas() {
 
   const handleTaskDoubleClick = (taskId: string) => {
     if (dragState?.hasMoved) return;
-    setResourceModalState({ itemId: taskId, itemType: 'task' });
+    setResourceModalState({ itemId: taskId, itemType: "task" });
   };
 
   // Resource drag-and-drop handlers
@@ -525,20 +587,24 @@ export function GanttCanvas() {
     setDropTarget(null);
 
     try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json'));
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
 
-      if (data.type === 'resource' && data.resourceId) {
+      if (data.type === "resource" && data.resourceId) {
         // Find task to generate smart assignment notes
-        const phase = currentProject?.phases.find(p => p.id === phaseId);
-        const task = phase?.tasks.find(t => t.id === taskId);
-        const resource = currentProject?.resources?.find(r => r.id === data.resourceId);
+        const phase = currentProject?.phases.find((p) => p.id === phaseId);
+        const task = phase?.tasks.find((t) => t.id === taskId);
+        const resource = currentProject?.resources?.find((r) => r.id === data.resourceId);
 
         if (task && resource) {
           // Check if resource is already assigned
-          const alreadyAssigned = task.resourceAssignments?.some(a => a.resourceId === data.resourceId);
+          const alreadyAssigned = task.resourceAssignments?.some(
+            (a) => a.resourceId === data.resourceId
+          );
 
           if (alreadyAssigned) {
-            alert(`${resource.name} is already assigned to this task. Edit the assignment in the task details.`);
+            alert(
+              `${resource.name} is already assigned to this task. Edit the assignment in the task details.`
+            );
             return;
           }
 
@@ -553,12 +619,12 @@ export function GanttCanvas() {
           assignResourceToTask(taskId, phaseId, data.resourceId, smartNotes, defaultAllocation);
 
           // Success feedback - brief console log for debugging
-          console.log(`✅ ${data.resourceName} → ${task.name} (${defaultAllocation}%)`);
+          console.warn(`✅ ${data.resourceName} → ${task.name} (${defaultAllocation}%)`);
         }
       }
     } catch (error) {
-      console.error('Failed to assign resource:', error);
-      alert('Failed to assign resource. Please try again.');
+      console.error("Failed to assign resource:", error);
+      alert("Failed to assign resource. Please try again.");
     }
   };
 
@@ -568,15 +634,15 @@ export function GanttCanvas() {
     e.stopPropagation();
 
     try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json'));
-      if (data.type === 'resource' && data.resourceId) {
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
+      if (data.type === "resource" && data.resourceId) {
         const resource = getResourceById(data.resourceId);
         // Only allow resources configured for phase-level assignment
         if (resource && canAssignToPhase(resource)) {
           setPhaseDropTarget(phaseId);
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // Ignore parse errors during drag over
     }
   };
@@ -592,44 +658,50 @@ export function GanttCanvas() {
     setPhaseDropTarget(null);
 
     try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json'));
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
 
-      if (data.type === 'resource' && data.resourceId) {
-        const phase = currentProject?.phases.find(p => p.id === phaseId);
+      if (data.type === "resource" && data.resourceId) {
+        const phase = currentProject?.phases.find((p) => p.id === phaseId);
         const resource = getResourceById(data.resourceId);
 
         if (phase && resource) {
           // Validate assignment level
           if (!canAssignToPhase(resource)) {
-            alert(`This resource cannot be assigned at the phase level.\n\n${resource.name} is configured for ${resource.assignmentLevel === 'task' ? 'task-level assignments only' : 'assignments'}.\n\nTo enable phase-level assignment, edit the resource and change its "Assignment Level" setting to "Phase" or "Both".`);
+            alert(
+              `This resource cannot be assigned at the phase level.\n\n${resource.name} is configured for ${resource.assignmentLevel === "task" ? "task-level assignments only" : "assignments"}.\n\nTo enable phase-level assignment, edit the resource and change its "Assignment Level" setting to "Phase" or "Both".`
+            );
             return;
           }
 
           // Check if resource is already assigned to this phase
-          const alreadyAssigned = phase.phaseResourceAssignments?.some(a => a.resourceId === data.resourceId);
+          const alreadyAssigned = phase.phaseResourceAssignments?.some(
+            (a) => a.resourceId === data.resourceId
+          );
 
           if (alreadyAssigned) {
-            alert(`${resource.name} is already assigned to this phase. Edit the assignment in the phase details.`);
+            alert(
+              `${resource.name} is already assigned to this phase. Edit the assignment in the phase details.`
+            );
             return;
           }
 
           // Smart allocation logic: Base 20% + 5% per task, capped at 100%
           const taskCount = phase.tasks.length;
-          const smartAllocation = Math.min(20 + (taskCount * 5), 100);
+          const smartAllocation = Math.min(20 + taskCount * 5, 100);
 
           // Generate smart default notes
           const designation = RESOURCE_DESIGNATIONS[resource.designation];
-          const smartNotes = `${designation} overseeing ${phase.name}${taskCount > 0 ? ` (${taskCount} task${taskCount > 1 ? 's' : ''})` : ''}`;
+          const smartNotes = `${designation} overseeing ${phase.name}${taskCount > 0 ? ` (${taskCount} task${taskCount > 1 ? "s" : ""})` : ""}`;
 
           assignResourceToPhase(phaseId, data.resourceId, smartNotes, smartAllocation);
 
           // Success feedback
-          console.log(`✅ ${data.resourceName} → ${phase.name} (${smartAllocation}% allocation)`);
+          console.warn(`✅ ${data.resourceName} → ${phase.name} (${smartAllocation}% allocation)`);
         }
       }
     } catch (error) {
-      console.error('Failed to assign resource to phase:', error);
-      alert('Failed to assign resource. Please try again.');
+      console.error("Failed to assign resource to phase:", error);
+      alert("Failed to assign resource. Please try again.");
     }
   };
 
@@ -638,10 +710,10 @@ export function GanttCanvas() {
       ref={canvasRef}
       className="bg-gray-100 p-2 sm:p-4"
       style={{
-        height: '100%',
-        width: '100%',
-        overflow: 'auto',
-        position: 'relative'
+        height: "100%",
+        width: "100%",
+        overflow: "auto",
+        position: "relative",
       }}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -681,14 +753,14 @@ export function GanttCanvas() {
         <div className="flex border-b-2 border-gray-300 mb-6">
           <div className="w-16 flex flex-col justify-center py-2 transition-all duration-300">
             {/* Minimal left column - just a subtle label */}
-            <div className="text-xs text-gray-400 font-medium text-center">
-              Controls
-            </div>
+            <div className="text-xs text-gray-400 font-medium text-center">Controls</div>
           </div>
 
           {/* Three-lane header: Dates (top) → Milestones (middle) → Holidays (bottom) */}
-          <div className="flex-1 relative bg-gradient-to-b from-gray-50 to-white" style={{ height: '64px' }}>
-
+          <div
+            className="flex-1 relative bg-gradient-to-b from-gray-50 to-white"
+            style={{ height: "64px" }}
+          >
             {/* LANE 1 (TOP): Date Markers - The foundation */}
             <div className="absolute top-0 left-0 right-0 h-5 flex items-center px-2 bg-white/50 z-20">
               <div className="relative w-full h-full">
@@ -696,7 +768,7 @@ export function GanttCanvas() {
                   <div
                     key={idx}
                     className="absolute flex items-center z-30"
-                    style={{ left: `${marker.position}%`, top: '2px' }}
+                    style={{ left: `${marker.position}%`, top: "2px" }}
                   >
                     {/* Date Label - Jobs/Ive: Always on top, never obscured */}
                     <span className="text-sm font-bold text-gray-800 bg-white px-2 py-2 rounded shadow-md border border-gray-300 relative z-30">
@@ -725,8 +797,8 @@ export function GanttCanvas() {
                         className="absolute top-1/2 -translate-y-1/2 group cursor-pointer z-20"
                         style={{ left: `${position}%` }}
                         onClick={() => {
-                          selectItem(milestone.id, 'milestone');
-                          openSidePanel('edit', 'milestone', milestone.id);
+                          selectItem(milestone.id, "milestone");
+                          openSidePanel("edit", "milestone", milestone.id);
                         }}
                       >
                         {/* Vertical Milestone Line - positioned first, exactly at position% */}
@@ -742,7 +814,8 @@ export function GanttCanvas() {
                               <div>
                                 <div className="font-semibold">{milestone.name}</div>
                                 <div className="text-xs opacity-90 mt-2">
-                                  {format(milestoneDate, 'dd MMM yy')} ({format(milestoneDate, 'EEE')})
+                                  {format(milestoneDate, "dd MMM yy")} (
+                                  {format(milestoneDate, "EEE")})
                                 </div>
                               </div>
                             }
@@ -786,7 +859,9 @@ export function GanttCanvas() {
                         <div className="font-semibold">{holiday.name}</div>
                         <div className="text-xs opacity-90 mt-2">
                           {formatGanttDate(holiday.date)}
-                          {holiday.isWeekend && <span className="ml-1.5 opacity-75">(Weekend)</span>}
+                          {holiday.isWeekend && (
+                            <span className="ml-1.5 opacity-75">(Weekend)</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -794,7 +869,6 @@ export function GanttCanvas() {
                 ))}
               </div>
             </div>
-
           </div>
         </div>
 
@@ -802,11 +876,12 @@ export function GanttCanvas() {
         <div className={focusedPhaseId ? "space-y-2" : "space-y-4"}>
           {/* RTS Focus Mode: Filter to show only focused phase */}
           {(focusedPhaseId
-            ? currentProject.phases.filter(p => p.id === focusedPhaseId)
+            ? currentProject.phases.filter((p) => p.id === focusedPhaseId)
             : currentProject.phases
           ).map((phase, phaseIndex) => {
             const metrics = getPhaseMetrics(phase);
-            const isSelected = selection.selectedItemId === phase.id && selection.selectedItemType === 'phase';
+            const isSelected =
+              selection.selectedItemId === phase.id && selection.selectedItemType === "phase";
             const isDragging = dragState?.itemId === phase.id;
             const isFirstPhase = phaseIndex === 0;
             const isLastPhase = phaseIndex === currentProject.phases.length - 1;
@@ -815,7 +890,7 @@ export function GanttCanvas() {
             const phaseStartDate = new Date(phase.startDate);
             const phaseEndDate = new Date(phase.endDate);
 
-            const tasksWithBoundaryIssues = phase.tasks.filter(task => {
+            const tasksWithBoundaryIssues = phase.tasks.filter((task) => {
               const taskStart = new Date(task.startDate);
               const taskEnd = new Date(task.endDate);
               return taskStart < phaseStartDate || taskEnd > phaseEndDate;
@@ -824,12 +899,12 @@ export function GanttCanvas() {
             const hasTaskBoundaryIssue = tasksWithBoundaryIssues.length > 0;
             const tasksExceedingCount = tasksWithBoundaryIssues.length;
 
-            const tasksStartingEarly = phase.tasks.filter(task => {
+            const tasksStartingEarly = phase.tasks.filter((task) => {
               const taskStart = new Date(task.startDate);
               return taskStart < phaseStartDate;
             }).length;
 
-            const tasksEndingLate = phase.tasks.filter(task => {
+            const tasksEndingLate = phase.tasks.filter((task) => {
               const taskEnd = new Date(task.endDate);
               return taskEnd > phaseEndDate;
             }).length;
@@ -838,20 +913,21 @@ export function GanttCanvas() {
             const allResourceIds = new Set<string>();
 
             // Add phase-level resources
-            phase.phaseResourceAssignments?.forEach(assignment => {
+            phase.phaseResourceAssignments?.forEach((assignment) => {
               allResourceIds.add(assignment.resourceId);
             });
 
             // Add task-level resources
-            phase.tasks.forEach(task => {
-              task.resourceAssignments?.forEach(assignment => {
+            phase.tasks.forEach((task) => {
+              task.resourceAssignments?.forEach((assignment) => {
                 allResourceIds.add(assignment.resourceId);
               });
             });
 
             const totalPhaseResourceCount = allResourceIds.size;
-            const taskResourceCount = phase.tasks.reduce((sum, task) =>
-              sum + (task.resourceAssignments?.length || 0), 0
+            const taskResourceCount = phase.tasks.reduce(
+              (sum, task) => sum + (task.resourceAssignments?.length || 0),
+              0
             );
             const phaseManagementCount = phase.phaseResourceAssignments?.length || 0;
 
@@ -860,13 +936,16 @@ export function GanttCanvas() {
                 {/* Phase Row */}
                 <div className="flex items-start group">
                   {/* Jobs/Ive: Minimal control column - essential buttons only */}
-                  <div className="w-16 flex flex-col items-center gap-2 pt-6 flex-shrink-0" style={{ position: 'relative', zIndex: 999, pointerEvents: 'auto' }}>
+                  <div
+                    className="w-16 flex flex-col items-center gap-2 pt-6 flex-shrink-0"
+                    style={{ position: "relative", zIndex: 999, pointerEvents: "auto" }}
+                  >
                     {/* Collapse/Expand Button */}
                     {phase.tasks.length > 0 && (
                       <button
                         onClick={() => togglePhaseCollapse(phase.id)}
                         className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
-                        style={{ pointerEvents: 'auto', position: 'relative', zIndex: 1000 }}
+                        style={{ pointerEvents: "auto", position: "relative", zIndex: 1000 }}
                         title={phase.collapsed ? "Expand tasks" : "Collapse tasks"}
                       >
                         {phase.collapsed ? (
@@ -886,27 +965,32 @@ export function GanttCanvas() {
                       disabled={isFirstPhase}
                       className={`p-1 rounded-full transition-all shadow-sm ${
                         isFirstPhase
-                          ? 'opacity-20 cursor-not-allowed bg-gray-200'
-                          : 'bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 hover:shadow-md hover:scale-110 cursor-pointer'
+                          ? "opacity-20 cursor-not-allowed bg-gray-200"
+                          : "bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 hover:shadow-md hover:scale-110 cursor-pointer"
                       }`}
-                      style={{ pointerEvents: 'auto', position: 'relative', zIndex: 1000 }}
+                      style={{ pointerEvents: "auto", position: "relative", zIndex: 1000 }}
                       title="Auto-align: Schedule +1 WD after previous phase"
                     >
                       <ArrowRightToLine className="w-3.5 h-3.5" />
                     </button>
 
                     {/* Reorder Buttons - Show on hover */}
-                    <div className="flex flex-col   transition-opacity" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 1000 }}>
+                    <div
+                      className="flex flex-col   transition-opacity"
+                      style={{ pointerEvents: "auto", position: "relative", zIndex: 1000 }}
+                    >
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          reorderPhase(phase.id, 'up');
+                          reorderPhase(phase.id, "up");
                         }}
                         disabled={isFirstPhase}
                         className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${
-                          isFirstPhase ? 'opacity-30 cursor-not-allowed' : 'text-gray-600 hover:text-blue-600 cursor-pointer'
+                          isFirstPhase
+                            ? "opacity-30 cursor-not-allowed"
+                            : "text-gray-600 hover:text-blue-600 cursor-pointer"
                         }`}
-                        style={{ pointerEvents: 'auto' }}
+                        style={{ pointerEvents: "auto" }}
                         title="Move phase up"
                       >
                         <MoveUp className="w-3 h-3" />
@@ -914,13 +998,15 @@ export function GanttCanvas() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          reorderPhase(phase.id, 'down');
+                          reorderPhase(phase.id, "down");
                         }}
                         disabled={isLastPhase}
                         className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${
-                          isLastPhase ? 'opacity-30 cursor-not-allowed' : 'text-gray-600 hover:text-blue-600 cursor-pointer'
+                          isLastPhase
+                            ? "opacity-30 cursor-not-allowed"
+                            : "text-gray-600 hover:text-blue-600 cursor-pointer"
                         }`}
-                        style={{ pointerEvents: 'auto' }}
+                        style={{ pointerEvents: "auto" }}
                         title="Move phase down"
                       >
                         <MoveDown className="w-3 h-3" />
@@ -933,31 +1019,35 @@ export function GanttCanvas() {
                     className="flex-1 relative transition-all duration-300 ease-in-out"
                     style={{
                       minHeight: phase.collapsed
-                        ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '126px' : '132px')
-                        : '95px'
+                        ? (viewSettings?.barDurationDisplay ?? "all") === "clean"
+                          ? "126px"
+                          : "132px"
+                        : "95px",
                     }}
                   >
                     {/* Animated Phase Title - Morphs between above bar (collapsed) and inside bar (expanded) */}
                     {(viewSettings?.showTitles ?? true) && (
                       <div
                         className={`absolute z-20 flex justify-center transition-all duration-300 ease-in-out ${
-                          phase.collapsed ? 'pointer-events-auto' : 'pointer-events-none'
+                          phase.collapsed ? "pointer-events-auto" : "pointer-events-none"
                         }`}
                         style={{
                           left: `${metrics.left}%`,
                           width: `${metrics.width}%`,
                           // Clean mode: title positioned with 12px gap above bar (professional spacing)
                           top: phase.collapsed
-                            ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '36px' : '0px')
-                            : '36px',
+                            ? (viewSettings?.barDurationDisplay ?? "all") === "clean"
+                              ? "36px"
+                              : "0px"
+                            : "36px",
                         }}
                       >
                         <div className="relative group/phaselabel">
                           <div
                             className={`text-sm font-bold whitespace-nowrap px-2 cursor-help text-center transition-all duration-300 ease-in-out ${
                               phase.collapsed
-                                ? 'text-gray-900 drop-shadow-none'
-                                : 'text-white drop-shadow-lg pointer-events-none'
+                                ? "text-gray-900 drop-shadow-none"
+                                : "text-white drop-shadow-lg pointer-events-none"
                             }`}
                           >
                             {phase.name}
@@ -975,12 +1065,19 @@ export function GanttCanvas() {
                                 )}
                                 <div className="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-2">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <span>{format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}</span>
+                                    <span>
+                                      {format(new Date(phase.startDate), "dd MMM yy")} →{" "}
+                                      {format(new Date(phase.endDate), "dd MMM yy")}
+                                    </span>
                                   </div>
                                   <div className="flex items-center gap-3 text-xs lg:text-sm">
-                                    <span className="text-blue-400 font-semibold">{formatDuration(metrics.workingDays)}</span>
+                                    <span className="text-blue-400 font-semibold">
+                                      {formatDuration(metrics.workingDays)}
+                                    </span>
                                     <span>·</span>
-                                    <span>{phase.tasks.length} task{phase.tasks.length !== 1 ? 's' : ''}</span>
+                                    <span>
+                                      {phase.tasks.length} task{phase.tasks.length !== 1 ? "s" : ""}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -995,21 +1092,23 @@ export function GanttCanvas() {
                       data-item-id={phase.id}
                       data-item-type="phase"
                       className={`absolute h-14 rounded transition-all duration-300 ease-in-out cursor-move hover:-translate-y-0.5 hover:shadow-2xl ${
-                        isDragging ? 'opacity-70 scale-105' : ''
-                      } ${isSelected ? 'ring-4 ring-blue-400' : ''}
-                      ${phaseDropTarget === phase.id ? 'ring-4 ring-purple-500 ring-offset-2 scale-105' : ''}`}
+                        isDragging ? "opacity-70 scale-105" : ""
+                      } ${isSelected ? "ring-4 ring-blue-400" : ""}
+                      ${phaseDropTarget === phase.id ? "ring-4 ring-purple-500 ring-offset-2 scale-105" : ""}`}
                       style={{
                         left: `${metrics.left}%`,
                         width: `${metrics.width}%`,
                         // Clean mode: bar positioned with 12px gap below title (professional spacing)
                         top: phase.collapsed
-                          ? ((viewSettings?.barDurationDisplay ?? 'all') === 'clean' ? '68px' : '74px')
-                          : '24px',
+                          ? (viewSettings?.barDurationDisplay ?? "all") === "clean"
+                            ? "68px"
+                            : "74px"
+                          : "24px",
                         background: `linear-gradient(180deg, ${phase.color} 0%, ${withOpacity(phase.color, 0.85)} 100%)`,
                         boxShadow: isDragging
                           ? `0 12px 32px ${withOpacity(phase.color, 0.4)}`
-                          : `0 4px 12px ${withOpacity(phase.color, 0.25)}, inset 0 1px 0 ${withOpacity('#ffffff', 0.2)}`,
-                        border: `1px solid ${withOpacity('#ffffff', 0.15)}`,
+                          : `0 4px 12px ${withOpacity(phase.color, 0.25)}, inset 0 1px 0 ${withOpacity("#ffffff", 0.2)}`,
+                        border: `1px solid ${withOpacity("#ffffff", 0.15)}`,
                       }}
                       onClick={() => handlePhaseClick(phase.id)}
                       onDoubleClick={(e) => {
@@ -1017,7 +1116,7 @@ export function GanttCanvas() {
                         e.stopPropagation();
                         handlePhaseDoubleClick(phase.id);
                       }}
-                      onMouseDown={(e) => handleMouseDown(e, phase.id, 'move')}
+                      onMouseDown={(e) => handleMouseDown(e, phase.id, "move")}
                       onDragOver={(e) => handlePhaseResourceDragOver(e, phase.id)}
                       onDragLeave={handlePhaseResourceDragLeave}
                       onDrop={(e) => handlePhaseResourceDrop(e, phase.id)}
@@ -1027,14 +1126,14 @@ export function GanttCanvas() {
                         className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  "
                         onMouseDown={(e) => {
                           e.stopPropagation();
-                          handleMouseDown(e, phase.id, 'resize-start');
+                          handleMouseDown(e, phase.id, "resize-start");
                         }}
                       />
                       <div
                         className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  "
                         onMouseDown={(e) => {
                           e.stopPropagation();
-                          handleMouseDown(e, phase.id, 'resize-end');
+                          handleMouseDown(e, phase.id, "resize-end");
                         }}
                       />
 
@@ -1066,66 +1165,90 @@ export function GanttCanvas() {
                         )}
 
                         {/* Clean Mode Enhancements for Phases - Status, Progress, PM */}
-                        {(viewSettings?.barDurationDisplay ?? 'all') === 'clean' && phase.collapsed && (
-                          <>
-                            {/* Phase Status Indicator - Top Right */}
-                            {(() => {
-                              // Calculate phase progress as average of task progress
-                              const phaseProgress = phase.tasks.length > 0
-                                ? phase.tasks.reduce((sum, t) => sum + (t.progress || 0), 0) / phase.tasks.length
-                                : 0;
-                              const phaseStatus = calculateItemStatus(phase.startDate, phase.endDate, phaseProgress);
-                              const statusColor = GANTT_STATUS_COLORS[phaseStatus];
-                              return (
-                                <Tooltip title={`Phase ${GANTT_STATUS_LABELS[phaseStatus]} (${Math.round(phaseProgress)}% complete)`} placement="top">
-                                  <div
-                                    className="absolute top-2 right-12 w-3 h-3 rounded-full border-2 border-white/70 shadow-md z-20"
-                                    style={{ backgroundColor: statusColor }}
-                                  />
-                                </Tooltip>
-                              );
-                            })()}
+                        {(viewSettings?.barDurationDisplay ?? "all") === "clean" &&
+                          phase.collapsed && (
+                            <>
+                              {/* Phase Status Indicator - Top Right */}
+                              {(() => {
+                                // Calculate phase progress as average of task progress
+                                const phaseProgress =
+                                  phase.tasks.length > 0
+                                    ? phase.tasks.reduce((sum, t) => sum + (t.progress || 0), 0) /
+                                      phase.tasks.length
+                                    : 0;
+                                const phaseStatus = calculateItemStatus(
+                                  phase.startDate,
+                                  phase.endDate,
+                                  phaseProgress
+                                );
+                                const statusColor = GANTT_STATUS_COLORS[phaseStatus];
+                                return (
+                                  <Tooltip
+                                    title={`Phase ${GANTT_STATUS_LABELS[phaseStatus]} (${Math.round(phaseProgress)}% complete)`}
+                                    placement="top"
+                                  >
+                                    <div
+                                      className="absolute top-2 right-12 w-3 h-3 rounded-full border-2 border-white/70 shadow-md z-20"
+                                      style={{ backgroundColor: statusColor }}
+                                    />
+                                  </Tooltip>
+                                );
+                              })()}
 
-                            {/* Phase Progress Bar - Bottom Edge */}
-                            {(() => {
-                              const phaseProgress = phase.tasks.length > 0
-                                ? phase.tasks.reduce((sum, t) => sum + (t.progress || 0), 0) / phase.tasks.length
-                                : 0;
-                              return phaseProgress > 0 && phaseProgress < 100 ? (
-                                <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/30 rounded-b overflow-hidden">
-                                  <div
-                                    className="h-full bg-white/95 transition-all duration-300 shadow-sm"
-                                    style={{ width: `${phaseProgress}%` }}
-                                  />
-                                </div>
-                              ) : null;
-                            })()}
-
-                            {/* PM Resource Badge - Top Left */}
-                            {phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0 && (
-                              <div className="absolute top-2 left-2 z-20">
-                                <Tooltip
-                                  title={`PM: ${phase.phaseResourceAssignments.map(a => {
-                                    const res = getResourceById(a.resourceId);
-                                    return res?.name || 'Unknown';
-                                  }).join(', ')}`}
-                                  placement="top"
-                                >
-                                  <div className="bg-purple-700/90 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded shadow-md border border-purple-400/50 flex items-center gap-1">
-                                    <Users className="w-3 h-3" />
-                                    <span>{phase.phaseResourceAssignments.length === 1
-                                      ? (() => {
-                                          const resource = getResourceById(phase.phaseResourceAssignments[0].resourceId);
-                                          return resource?.name.split(' ').map(n => n[0]).join('').slice(0, 2) || 'PM';
-                                        })()
-                                      : `${phase.phaseResourceAssignments.length}PM`}
-                                    </span>
+                              {/* Phase Progress Bar - Bottom Edge */}
+                              {(() => {
+                                const phaseProgress =
+                                  phase.tasks.length > 0
+                                    ? phase.tasks.reduce((sum, t) => sum + (t.progress || 0), 0) /
+                                      phase.tasks.length
+                                    : 0;
+                                return phaseProgress > 0 && phaseProgress < 100 ? (
+                                  <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/30 rounded-b overflow-hidden">
+                                    <div
+                                      className="h-full bg-white/95 transition-all duration-300 shadow-sm"
+                                      style={{ width: `${phaseProgress}%` }}
+                                    />
                                   </div>
-                                </Tooltip>
-                              </div>
-                            )}
-                          </>
-                        )}
+                                ) : null;
+                              })()}
+
+                              {/* PM Resource Badge - Top Left */}
+                              {phase.phaseResourceAssignments &&
+                                phase.phaseResourceAssignments.length > 0 && (
+                                  <div className="absolute top-2 left-2 z-20">
+                                    <Tooltip
+                                      title={`PM: ${phase.phaseResourceAssignments
+                                        .map((a) => {
+                                          const res = getResourceById(a.resourceId);
+                                          return res?.name || "Unknown";
+                                        })
+                                        .join(", ")}`}
+                                      placement="top"
+                                    >
+                                      <div className="bg-purple-700/90 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded shadow-md border border-purple-400/50 flex items-center gap-1">
+                                        <Users className="w-3 h-3" />
+                                        <span>
+                                          {phase.phaseResourceAssignments.length === 1
+                                            ? (() => {
+                                                const resource = getResourceById(
+                                                  phase.phaseResourceAssignments[0].resourceId
+                                                );
+                                                return (
+                                                  resource?.name
+                                                    .split(" ")
+                                                    .map((n) => n[0])
+                                                    .join("")
+                                                    .slice(0, 2) || "PM"
+                                                );
+                                              })()
+                                            : `${phase.phaseResourceAssignments.length}PM`}
+                                        </span>
+                                      </div>
+                                    </Tooltip>
+                                  </div>
+                                )}
+                            </>
+                          )}
 
                         {/* Jobs: "Clear layering - most important information on top, literally." */}
 
@@ -1153,7 +1276,10 @@ export function GanttCanvas() {
                                   const taskDuration = differenceInDays(taskEnd, taskStart);
 
                                   const taskLeft = (taskOffset / phaseDuration) * 100;
-                                  const taskWidth = Math.max((taskDuration / phaseDuration) * 100, 2);
+                                  const taskWidth = Math.max(
+                                    (taskDuration / phaseDuration) * 100,
+                                    2
+                                  );
 
                                   // Jobs/Ive: Use consistent color palette - same task = same color always
                                   const taskColor = getTaskColor(taskIdx);
@@ -1172,16 +1298,23 @@ export function GanttCanvas() {
                                         left: `${taskLeft}%`,
                                         width: `${taskWidth}%`,
                                         background: `linear-gradient(180deg, ${taskColor} 0%, ${withOpacity(taskColor, 0.85)} 100%)`,
-                                        boxShadow: `inset 0 1px 0 ${withOpacity('#ffffff', 0.2)}`,
+                                        boxShadow: `inset 0 1px 0 ${withOpacity("#ffffff", 0.2)}`,
                                       }}
                                       title={task.name}
                                     >
                                       {/* Hover tooltip */}
                                       <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/minitask:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
-                                        <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-2xl border-2" style={{ borderColor: taskColor }}>
-                                          <div className="font-semibold text-xs lg:text-sm">{task.name}</div>
+                                        <div
+                                          className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-2xl border-2"
+                                          style={{ borderColor: taskColor }}
+                                        >
+                                          <div className="font-semibold text-xs lg:text-sm">
+                                            {task.name}
+                                          </div>
                                           <div className="text-xs text-gray-300 mt-2">
-                                            {formatWorkingDays(taskWorkingDays)} · {format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}
+                                            {formatWorkingDays(taskWorkingDays)} ·{" "}
+                                            {format(taskStart, "dd MMM yy")} →{" "}
+                                            {format(taskEnd, "dd MMM yy")}
                                           </div>
                                         </div>
                                       </div>
@@ -1194,7 +1327,8 @@ export function GanttCanvas() {
                         )}
 
                         {/* Floating Badges Above Phase Bar - Apple-style: Restraint, Focus, Progressive Disclosure */}
-                        {(hasTaskBoundaryIssue || (viewSettings?.barDurationDisplay ?? 'all') !== 'clean') && (
+                        {(hasTaskBoundaryIssue ||
+                          (viewSettings?.barDurationDisplay ?? "all") !== "clean") && (
                           <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 flex items-center justify-center text-white z-20 transition-all duration-300 ease-in-out w-full max-w-full px-1">
                             {/* Single-line badge container - Allow wrapping on overflow to prevent truncation */}
                             <div className="flex items-center gap-2 sm:gap-2 md:gap-2 justify-center flex-wrap max-w-full">
@@ -1202,8 +1336,13 @@ export function GanttCanvas() {
                               {hasTaskBoundaryIssue && (
                                 <div className="relative group/phasewarning flex-shrink-0">
                                   <div className="flex items-center gap-2 sm:gap-2 bg-red-500 px-1 sm:px-2 py-0.5 sm:py-1 rounded shadow-lg border border-red-300 sm:border-2 animate-pulse pointer-events-auto cursor-help">
-                                    <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
-                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold">{tasksExceedingCount}</span>
+                                    <AlertTriangle
+                                      className="w-3 h-3 sm:w-4 sm:h-4"
+                                      strokeWidth={2.5}
+                                    />
+                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold">
+                                      {tasksExceedingCount}
+                                    </span>
                                   </div>
                                   {/* Warning Tooltip */}
                                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/phasewarning:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
@@ -1215,20 +1354,33 @@ export function GanttCanvas() {
                                       <div className="text-xs lg:text-sm leading-relaxed space-y-1">
                                         {tasksStartingEarly > 0 && (
                                           <div>
-                                            • {tasksStartingEarly} task{tasksStartingEarly > 1 ? 's start' : ' starts'} <span className="font-semibold">before</span> phase begins
+                                            • {tasksStartingEarly} task
+                                            {tasksStartingEarly > 1 ? "s start" : " starts"}{" "}
+                                            <span className="font-semibold">before</span> phase
+                                            begins
                                           </div>
                                         )}
                                         {tasksEndingLate > 0 && (
                                           <div>
-                                            • {tasksEndingLate} task{tasksEndingLate > 1 ? 's end' : ' ends'} <span className="font-semibold">after</span> phase ends
+                                            • {tasksEndingLate} task
+                                            {tasksEndingLate > 1 ? "s end" : " ends"}{" "}
+                                            <span className="font-semibold">after</span> phase ends
                                           </div>
                                         )}
                                       </div>
                                       <div className="text-xs lg:text-sm mt-2 pt-1.5 border-t border-red-400/30">
-                                        <div>Phase: <span className="font-semibold">{format(phaseStartDate, 'dd MMM yy')} → {format(phaseEndDate, 'dd MMM yy')}</span></div>
+                                        <div>
+                                          Phase:{" "}
+                                          <span className="font-semibold">
+                                            {format(phaseStartDate, "dd MMM yy")} →{" "}
+                                            {format(phaseEndDate, "dd MMM yy")}
+                                          </span>
+                                        </div>
                                       </div>
                                       <div className="text-xs mt-2 pt-1.5 border-t border-red-400/30 text-red-100 italic">
-                                        {phase.collapsed ? '💡 Expand phase to see which tasks need adjustment' : '💡 Check tasks with red borders below'}
+                                        {phase.collapsed
+                                          ? "💡 Expand phase to see which tasks need adjustment"
+                                          : "💡 Check tasks with red borders below"}
                                       </div>
                                     </div>
                                   </div>
@@ -1236,217 +1388,317 @@ export function GanttCanvas() {
                               )}
 
                               {/* Other badges - Only shown when barDurationDisplay is not 'clean' */}
-                              {(viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
+                              {(viewSettings?.barDurationDisplay ?? "all") !== "clean" && (
                                 <>
-                              {/* WD Mode */}
-                              {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
-                                <>
-                                  <span className="hidden sm:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {formatWorkingDays(metrics.workingDays)}
-                                  </span>
-                                  {/* Mobile: Condensed badge */}
-                                  <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {metrics.workingDays}WD
-                                  </span>
-                                  {/* Resource badge in WD mode */}
-                                  {totalPhaseResourceCount > 0 && (
-                                    <div className="relative group/wdresbadge hidden md:block">
-                                      <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                        <Users className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
-                                        <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
-                                      </div>
-                                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/wdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                        <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                          <div className="font-semibold mb-2 text-xs text-purple-100">Total Resources (Phase + Tasks):</div>
-                                          <div className="space-y-2">
-                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Phase Management:</span>
-                                              <span className="font-semibold">{phaseManagementCount}</span>
+                                  {/* WD Mode */}
+                                  {(viewSettings?.barDurationDisplay ?? "all") === "wd" && (
+                                    <>
+                                      <span className="hidden sm:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {formatWorkingDays(metrics.workingDays)}
+                                      </span>
+                                      {/* Mobile: Condensed badge */}
+                                      <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {metrics.workingDays}WD
+                                      </span>
+                                      {/* Resource badge in WD mode */}
+                                      {totalPhaseResourceCount > 0 && (
+                                        <div className="relative group/wdresbadge hidden md:block">
+                                          <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                            <Users
+                                              className="w-3 h-3 flex-shrink-0"
+                                              strokeWidth={2.5}
+                                            />
+                                            <span className="text-xs sm:text-sm font-bold">
+                                              {totalPhaseResourceCount}
+                                            </span>
+                                          </div>
+                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/wdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                            <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
+                                              <div className="font-semibold mb-2 text-xs text-purple-100">
+                                                Total Resources (Phase + Tasks):
+                                              </div>
+                                              <div className="space-y-2">
+                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Phase Management:
+                                                  </span>
+                                                  <span className="font-semibold">
+                                                    {phaseManagementCount}
+                                                  </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Task Assignments:
+                                                  </span>
+                                                  <span className="font-semibold">
+                                                    {taskResourceCount}
+                                                  </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Total Unique:
+                                                  </span>
+                                                  <span className="font-bold">
+                                                    {totalPhaseResourceCount}
+                                                  </span>
+                                                </div>
+                                              </div>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Task Assignments:</span>
-                                              <span className="font-semibold">{taskResourceCount}</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+
+                                  {/* CD Mode */}
+                                  {(viewSettings?.barDurationDisplay ?? "all") === "cd" && (
+                                    <>
+                                      <span className="hidden sm:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {formatDuration(metrics.workingDays)}
+                                      </span>
+                                      {/* Mobile: Condensed badge */}
+                                      <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {metrics.duration}CD
+                                      </span>
+                                      {/* Resource badge in CD mode */}
+                                      {totalPhaseResourceCount > 0 && (
+                                        <div className="relative group/cdresbadge hidden md:block">
+                                          <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                            <Users
+                                              className="w-3 h-3 flex-shrink-0"
+                                              strokeWidth={2.5}
+                                            />
+                                            <span className="text-xs sm:text-sm font-bold">
+                                              {totalPhaseResourceCount}
+                                            </span>
+                                          </div>
+                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/cdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                            <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
+                                              <div className="font-semibold mb-2 text-xs text-purple-100">
+                                                Total Resources (Phase + Tasks):
+                                              </div>
+                                              <div className="space-y-2">
+                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Phase Management:
+                                                  </span>
+                                                  <span className="font-semibold">
+                                                    {phaseManagementCount}
+                                                  </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Task Assignments:
+                                                  </span>
+                                                  <span className="font-semibold">
+                                                    {taskResourceCount}
+                                                  </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Total Unique:
+                                                  </span>
+                                                  <span className="font-bold">
+                                                    {totalPhaseResourceCount}
+                                                  </span>
+                                                </div>
+                                              </div>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Total Unique:</span>
-                                              <span className="font-bold">{totalPhaseResourceCount}</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+
+                                  {/* Resource Mode */}
+                                  {(viewSettings?.barDurationDisplay ?? "all") === "resource" &&
+                                    totalPhaseResourceCount > 0 && (
+                                      <div className="relative group/pmbadge">
+                                        <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                          <Users
+                                            className="w-3 h-3 flex-shrink-0"
+                                            strokeWidth={2.5}
+                                          />
+                                          <span className="text-xs sm:text-sm font-bold">
+                                            {totalPhaseResourceCount}
+                                          </span>
+                                        </div>
+                                        {/* Total Resource Tooltip */}
+                                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                          <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
+                                            <div className="font-semibold mb-2 text-xs text-purple-100">
+                                              Total Resources (Phase + Tasks):
+                                            </div>
+                                            <div className="space-y-2">
+                                              <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
+                                                <span className="text-purple-100">
+                                                  Phase Management:
+                                                </span>
+                                                <span className="font-semibold">
+                                                  {phaseManagementCount}
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
+                                                <span className="text-purple-100">
+                                                  Task Assignments:
+                                                </span>
+                                                <span className="font-semibold">
+                                                  {taskResourceCount}
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
+                                                <span className="text-purple-100">
+                                                  Total Unique:
+                                                </span>
+                                                <span className="font-bold">
+                                                  {totalPhaseResourceCount}
+                                                </span>
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  )}
-                                </>
-                              )}
+                                    )}
 
-                              {/* CD Mode */}
-                              {(viewSettings?.barDurationDisplay ?? 'all') === 'cd' && (
-                                <>
-                                  <span className="hidden sm:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {formatDuration(metrics.workingDays)}
-                                  </span>
-                                  {/* Mobile: Condensed badge */}
-                                  <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {metrics.duration}CD
-                                  </span>
-                                  {/* Resource badge in CD mode */}
-                                  {totalPhaseResourceCount > 0 && (
-                                    <div className="relative group/cdresbadge hidden md:block">
-                                      <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                        <Users className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
-                                        <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
-                                      </div>
-                                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/cdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                        <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                          <div className="font-semibold mb-2 text-xs text-purple-100">Total Resources (Phase + Tasks):</div>
-                                          <div className="space-y-2">
-                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Phase Management:</span>
-                                              <span className="font-semibold">{phaseManagementCount}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Task Assignments:</span>
-                                              <span className="font-semibold">{taskResourceCount}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Total Unique:</span>
-                                              <span className="font-bold">{totalPhaseResourceCount}</span>
+                                  {/* Dates Mode */}
+                                  {(viewSettings?.barDurationDisplay ?? "all") === "dates" && (
+                                    <>
+                                      <span className="hidden lg:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {format(new Date(phase.startDate), "dd MMM yy")} →{" "}
+                                        {format(new Date(phase.endDate), "dd MMM yy")}
+                                      </span>
+                                      {/* Tablet: Shorter dates */}
+                                      <span className="hidden sm:inline-flex lg:hidden text-[11px] font-bold bg-black/40 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {format(new Date(phase.startDate), "dd/MM")} →{" "}
+                                        {format(new Date(phase.endDate), "dd/MM")}
+                                      </span>
+                                      {/* Mobile: Minimal dates */}
+                                      <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-0.5 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {format(new Date(phase.startDate), "dd/MM")}
+                                      </span>
+                                      {/* Resource badge in Dates mode */}
+                                      {totalPhaseResourceCount > 0 && (
+                                        <div className="relative group/datesresbadge hidden md:block">
+                                          <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                            <Users
+                                              className="w-3 h-3 flex-shrink-0"
+                                              strokeWidth={2.5}
+                                            />
+                                            <span className="text-xs sm:text-sm font-bold">
+                                              {totalPhaseResourceCount}
+                                            </span>
+                                          </div>
+                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/datesresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                            <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
+                                              <div className="font-semibold mb-2 text-xs text-purple-100">
+                                                Total Resources (Phase + Tasks):
+                                              </div>
+                                              <div className="space-y-2">
+                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Phase Management:
+                                                  </span>
+                                                  <span className="font-semibold">
+                                                    {phaseManagementCount}
+                                                  </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Task Assignments:
+                                                  </span>
+                                                  <span className="font-semibold">
+                                                    {taskResourceCount}
+                                                  </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Total Unique:
+                                                  </span>
+                                                  <span className="font-bold">
+                                                    {totalPhaseResourceCount}
+                                                  </span>
+                                                </div>
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
-                                      </div>
-                                    </div>
+                                      )}
+                                    </>
                                   )}
-                                </>
-                              )}
 
-                              {/* Resource Mode */}
-                              {(viewSettings?.barDurationDisplay ?? 'all') === 'resource' && totalPhaseResourceCount > 0 && (
-                                <div className="relative group/pmbadge">
-                                  <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                    <Users className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
-                                    <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
-                                  </div>
-                                  {/* Total Resource Tooltip */}
-                                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                    <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                      <div className="font-semibold mb-2 text-xs text-purple-100">Total Resources (Phase + Tasks):</div>
-                                      <div className="space-y-2">
-                                        <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                          <span className="text-purple-100">Phase Management:</span>
-                                          <span className="font-semibold">{phaseManagementCount}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                          <span className="text-purple-100">Task Assignments:</span>
-                                          <span className="font-semibold">{taskResourceCount}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
-                                          <span className="text-purple-100">Total Unique:</span>
-                                          <span className="font-bold">{totalPhaseResourceCount}</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
+                                  {/* All Mode - Show all info (Apple principle: Progressive Disclosure) */}
+                                  {(viewSettings?.barDurationDisplay ?? "all") === "all" && (
+                                    <>
+                                      {/* Desktop: Full dates badge */}
+                                      <span className="hidden xl:inline-flex text-xs sm:text-sm font-semibold bg-blue-600/90 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {format(new Date(phase.startDate), "dd MMM yy")} →{" "}
+                                        {format(new Date(phase.endDate), "dd MMM yy")}
+                                      </span>
+                                      {/* Tablet: Condensed dates */}
+                                      <span className="hidden md:inline-flex xl:hidden text-[11px] font-semibold bg-blue-600/90 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {format(new Date(phase.startDate), "dd/MM")} →{" "}
+                                        {format(new Date(phase.endDate), "dd/MM")}
+                                      </span>
 
-                              {/* Dates Mode */}
-                              {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
-                                <>
-                                  <span className="hidden lg:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
-                                  </span>
-                                  {/* Tablet: Shorter dates */}
-                                  <span className="hidden sm:inline-flex lg:hidden text-[11px] font-bold bg-black/40 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {format(new Date(phase.startDate), 'dd/MM')} → {format(new Date(phase.endDate), 'dd/MM')}
-                                  </span>
-                                  {/* Mobile: Minimal dates */}
-                                  <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-0.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {format(new Date(phase.startDate), 'dd/MM')}
-                                  </span>
-                                  {/* Resource badge in Dates mode */}
-                                  {totalPhaseResourceCount > 0 && (
-                                    <div className="relative group/datesresbadge hidden md:block">
-                                      <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                        <Users className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
-                                        <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
-                                      </div>
-                                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/datesresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                        <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                          <div className="font-semibold mb-2 text-xs text-purple-100">Total Resources (Phase + Tasks):</div>
-                                          <div className="space-y-2">
-                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Phase Management:</span>
-                                              <span className="font-semibold">{phaseManagementCount}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Task Assignments:</span>
-                                              <span className="font-semibold">{taskResourceCount}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Total Unique:</span>
-                                              <span className="font-bold">{totalPhaseResourceCount}</span>
+                                      {/* Desktop/Tablet: Duration badge - Single format (Jobs/Ive principle) */}
+                                      <span className="hidden md:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {formatDuration(metrics.workingDays)}
+                                      </span>
+                                      {/* Mobile: Ultra-condensed - Single format */}
+                                      <span className="inline-flex md:hidden text-[10px] font-bold bg-black/40 px-1.5 py-0.5 rounded shadow-md border border-white/20 whitespace-nowrap">
+                                        {formatDuration(metrics.workingDays)}
+                                      </span>
+
+                                      {/* Total Resource badge - Only on large screens */}
+                                      {totalPhaseResourceCount > 0 && (
+                                        <div className="relative group/allresbadge hidden lg:block">
+                                          <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                            <Users
+                                              className="w-3 h-3 flex-shrink-0"
+                                              strokeWidth={2.5}
+                                            />
+                                            <span className="text-xs sm:text-sm font-bold">
+                                              {totalPhaseResourceCount}
+                                            </span>
+                                          </div>
+                                          {/* Total Resource Tooltip */}
+                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/allresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                            <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
+                                              <div className="font-semibold mb-2 text-xs text-purple-100">
+                                                Total Resources (Phase + Tasks):
+                                              </div>
+                                              <div className="space-y-2">
+                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Phase Management:
+                                                  </span>
+                                                  <span className="font-semibold">
+                                                    {phaseManagementCount}
+                                                  </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Task Assignments:
+                                                  </span>
+                                                  <span className="font-semibold">
+                                                    {taskResourceCount}
+                                                  </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
+                                                  <span className="text-purple-100">
+                                                    Total Unique:
+                                                  </span>
+                                                  <span className="font-bold">
+                                                    {totalPhaseResourceCount}
+                                                  </span>
+                                                </div>
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
-                                      </div>
-                                    </div>
+                                      )}
+                                    </>
                                   )}
-                                </>
-                              )}
-
-                              {/* All Mode - Show all info (Apple principle: Progressive Disclosure) */}
-                              {(viewSettings?.barDurationDisplay ?? 'all') === 'all' && (
-                                <>
-                                  {/* Desktop: Full dates badge */}
-                                  <span className="hidden xl:inline-flex text-xs sm:text-sm font-semibold bg-blue-600/90 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {format(new Date(phase.startDate), 'dd MMM yy')} → {format(new Date(phase.endDate), 'dd MMM yy')}
-                                  </span>
-                                  {/* Tablet: Condensed dates */}
-                                  <span className="hidden md:inline-flex xl:hidden text-[11px] font-semibold bg-blue-600/90 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {format(new Date(phase.startDate), 'dd/MM')} → {format(new Date(phase.endDate), 'dd/MM')}
-                                  </span>
-
-                                  {/* Desktop/Tablet: Duration badge - Single format (Jobs/Ive principle) */}
-                                  <span className="hidden md:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {formatDuration(metrics.workingDays)}
-                                  </span>
-                                  {/* Mobile: Ultra-condensed - Single format */}
-                                  <span className="inline-flex md:hidden text-[10px] font-bold bg-black/40 px-1.5 py-0.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                    {formatDuration(metrics.workingDays)}
-                                  </span>
-
-                                  {/* Total Resource badge - Only on large screens */}
-                                  {totalPhaseResourceCount > 0 && (
-                                    <div className="relative group/allresbadge hidden lg:block">
-                                      <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                        <Users className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
-                                        <span className="text-xs sm:text-sm font-bold">{totalPhaseResourceCount}</span>
-                                      </div>
-                                      {/* Total Resource Tooltip */}
-                                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/allresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                        <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                          <div className="font-semibold mb-2 text-xs text-purple-100">Total Resources (Phase + Tasks):</div>
-                                          <div className="space-y-2">
-                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Phase Management:</span>
-                                              <span className="font-semibold">{phaseManagementCount}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Task Assignments:</span>
-                                              <span className="font-semibold">{taskResourceCount}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
-                                              <span className="text-purple-100">Total Unique:</span>
-                                              <span className="font-bold">{totalPhaseResourceCount}</span>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </>
-                              )}
                                 </>
                               )}
                             </div>
@@ -1459,7 +1711,9 @@ export function GanttCanvas() {
 
                 {/* Tasks (when expanded) - Jobs/Ive: Clean, focused design */}
                 {!phase.collapsed && phase.tasks.length > 0 && (
-                  <div className={`ml-2 mt-2 relative ${focusedPhaseId ? 'space-y-7' : 'space-y-8'}`}>
+                  <div
+                    className={`ml-2 mt-2 relative ${focusedPhaseId ? "space-y-7" : "space-y-8"}`}
+                  >
                     {/* Tree Lines - SVG connections showing hierarchy */}
                     {getVisibleTasksInOrder(phase.tasks)
                       .filter((task) => task.level > 0)
@@ -1475,7 +1729,7 @@ export function GanttCanvas() {
                             style={{
                               left: `${(task.level - 1) * 24 + 14}px`, // Position at parent level + offset for centering
                               top: `${yPosition}px`,
-                              width: '24px',
+                              width: "24px",
                               height: `${taskSpacing}px`,
                               zIndex: 1,
                             }}
@@ -1522,8 +1776,11 @@ export function GanttCanvas() {
                         currentProject.holidays
                       );
 
-                      const isTaskSelected = selection.selectedItemId === task.id && selection.selectedItemType === 'task';
-                      const isTaskDragging = dragState?.itemId === task.id && dragState?.itemType === 'task';
+                      const isTaskSelected =
+                        selection.selectedItemId === task.id &&
+                        selection.selectedItemType === "task";
+                      const isTaskDragging =
+                        dragState?.itemId === task.id && dragState?.itemType === "task";
 
                       // Check if task violates phase boundaries (starts before OR ends after)
                       const phaseStartDate = new Date(phase.startDate);
@@ -1531,8 +1788,12 @@ export function GanttCanvas() {
                       const taskStartsEarly = taskStart < phaseStartDate;
                       const taskEndsLate = taskEnd > phaseEndDate;
                       const taskExceedsPhase = taskStartsEarly || taskEndsLate;
-                      const daysStartedEarly = taskStartsEarly ? differenceInDays(phaseStartDate, taskStart) : 0;
-                      const daysEndedLate = taskEndsLate ? differenceInDays(taskEnd, phaseEndDate) : 0;
+                      const daysStartedEarly = taskStartsEarly
+                        ? differenceInDays(phaseStartDate, taskStart)
+                        : 0;
+                      const daysEndedLate = taskEndsLate
+                        ? differenceInDays(taskEnd, phaseEndDate)
+                        : 0;
 
                       // Jobs/Ive: Use consistent color palette - matches collapsed mini-segments
                       const taskColor = getTaskColor(taskIdx);
@@ -1544,7 +1805,10 @@ export function GanttCanvas() {
                           style={{ paddingLeft: `${task.level * 24}px` }}
                         >
                           {/* Jobs/Ive: Minimal control column for tasks */}
-                          <div className="w-14 flex flex-col items-center gap-2 pt-1 flex-shrink-0" style={{ position: 'relative', zIndex: 999, pointerEvents: 'auto' }}>
+                          <div
+                            className="w-14 flex flex-col items-center gap-2 pt-1 flex-shrink-0"
+                            style={{ position: "relative", zIndex: 999, pointerEvents: "auto" }}
+                          >
                             {/* Auto-Align Button */}
                             <button
                               onClick={(e) => {
@@ -1554,27 +1818,32 @@ export function GanttCanvas() {
                               disabled={isFirstTask}
                               className={`p-1 rounded-full transition-all shadow-sm ${
                                 isFirstTask
-                                  ? 'opacity-20 cursor-not-allowed bg-gray-200'
-                                  : 'bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 hover:shadow-md hover:scale-110 cursor-pointer'
+                                  ? "opacity-20 cursor-not-allowed bg-gray-200"
+                                  : "bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 hover:shadow-md hover:scale-110 cursor-pointer"
                               }`}
-                              style={{ pointerEvents: 'auto', position: 'relative', zIndex: 1000 }}
+                              style={{ pointerEvents: "auto", position: "relative", zIndex: 1000 }}
                               title="Auto-align: Schedule +1 WD after previous task"
                             >
                               <ArrowRightToLine className="w-3.5 h-3.5" />
                             </button>
 
                             {/* Reorder Buttons - Show on hover */}
-                            <div className="flex flex-col opacity-0 group-hover/task:opacity-100 transition-opacity" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 1000 }}>
+                            <div
+                              className="flex flex-col opacity-0 group-hover/task:opacity-100 transition-opacity"
+                              style={{ pointerEvents: "auto", position: "relative", zIndex: 1000 }}
+                            >
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  reorderTask(task.id, phase.id, 'up');
+                                  reorderTask(task.id, phase.id, "up");
                                 }}
                                 disabled={isFirstTask}
                                 className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${
-                                  isFirstTask ? 'opacity-30 cursor-not-allowed' : 'text-gray-600 hover:text-blue-600 cursor-pointer'
+                                  isFirstTask
+                                    ? "opacity-30 cursor-not-allowed"
+                                    : "text-gray-600 hover:text-blue-600 cursor-pointer"
                                 }`}
-                                style={{ pointerEvents: 'auto' }}
+                                style={{ pointerEvents: "auto" }}
                                 title="Move task up"
                               >
                                 <MoveUp className="w-3 h-3" />
@@ -1582,13 +1851,15 @@ export function GanttCanvas() {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  reorderTask(task.id, phase.id, 'down');
+                                  reorderTask(task.id, phase.id, "down");
                                 }}
                                 disabled={isLastTask}
                                 className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${
-                                  isLastTask ? 'opacity-30 cursor-not-allowed' : 'text-gray-600 hover:text-blue-600 cursor-pointer'
+                                  isLastTask
+                                    ? "opacity-30 cursor-not-allowed"
+                                    : "text-gray-600 hover:text-blue-600 cursor-pointer"
                                 }`}
-                                style={{ pointerEvents: 'auto' }}
+                                style={{ pointerEvents: "auto" }}
                                 title="Move task down"
                               >
                                 <MoveDown className="w-3 h-3" />
@@ -1605,7 +1876,7 @@ export function GanttCanvas() {
                                   toggleTaskCollapse(task.id, phase.id);
                                 }}
                                 className="p-1 rounded hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors"
-                                style={{ pointerEvents: 'auto' }}
+                                style={{ pointerEvents: "auto" }}
                                 title={task.collapsed ? "Expand subtasks" : "Collapse subtasks"}
                               >
                                 {task.collapsed ? (
@@ -1623,16 +1894,16 @@ export function GanttCanvas() {
                           )}
 
                           {/* Task Timeline Area with Title Below */}
-                          <div className="flex-1 relative" style={{ minHeight: '65px' }}>
+                          <div className="flex-1 relative" style={{ minHeight: "65px" }}>
                             {/* Task Bar */}
                             <div
                               data-item-id={task.id}
                               data-item-type="task"
                               className={`absolute top-1 h-8 rounded transition-all cursor-move hover:-translate-y-0.5 hover:shadow-2xl
-                                ${isTaskDragging ? 'opacity-60 scale-105 z-10' : ''}
-                                ${isTaskSelected ? 'ring-2 ring-offset-1 ring-blue-400' : ''}
-                                ${dropTarget?.taskId === task.id ? 'ring-4 ring-purple-500 ring-offset-2 scale-110' : ''}
-                                ${taskExceedsPhase ? 'ring-2 ring-red-500 ring-offset-1' : ''}
+                                ${isTaskDragging ? "opacity-60 scale-105 z-10" : ""}
+                                ${isTaskSelected ? "ring-2 ring-offset-1 ring-blue-400" : ""}
+                                ${dropTarget?.taskId === task.id ? "ring-4 ring-purple-500 ring-offset-2 scale-110" : ""}
+                                ${taskExceedsPhase ? "ring-2 ring-red-500 ring-offset-1" : ""}
                               `}
                               style={{
                                 left: `${taskLeft}%`,
@@ -1644,15 +1915,15 @@ export function GanttCanvas() {
                                 boxShadow: isTaskDragging
                                   ? `0 8px 24px ${withOpacity(taskColor, 0.4)}`
                                   : taskExceedsPhase
-                                    ? `0 0 0 2px rgba(239, 68, 68, 0.1), 0 4px 12px rgba(239, 68, 68, 0.3), inset 0 1px 0 ${withOpacity('#ffffff', 0.25)}`
-                                    : `0 2px 8px ${withOpacity(taskColor, 0.2)}, inset 0 1px 0 ${withOpacity('#ffffff', 0.25)}`,
+                                    ? `0 0 0 2px rgba(239, 68, 68, 0.1), 0 4px 12px rgba(239, 68, 68, 0.3), inset 0 1px 0 ${withOpacity("#ffffff", 0.25)}`
+                                    : `0 2px 8px ${withOpacity(taskColor, 0.2)}, inset 0 1px 0 ${withOpacity("#ffffff", 0.25)}`,
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleTaskClick(task.id);
                               }}
                               onDoubleClick={() => handleTaskDoubleClick(task.id)}
-                              onMouseDown={(e) => handleTaskMouseDown(e, task.id, phase.id, 'move')}
+                              onMouseDown={(e) => handleTaskMouseDown(e, task.id, phase.id, "move")}
                               onDragOver={(e) => handleResourceDragOver(e, task.id, phase.id)}
                               onDragLeave={handleResourceDragLeave}
                               onDrop={(e) => handleResourceDrop(e, task.id, phase.id)}
@@ -1662,14 +1933,14 @@ export function GanttCanvas() {
                                 className="absolute left-0 top-0 bottom-0 w-1.5 cursor-ew-resize bg-white/40 opacity-0 group-hover/task:opacity-100 transition-opacity"
                                 onMouseDown={(e) => {
                                   e.stopPropagation();
-                                  handleTaskMouseDown(e, task.id, phase.id, 'resize-start');
+                                  handleTaskMouseDown(e, task.id, phase.id, "resize-start");
                                 }}
                               />
                               <div
                                 className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize bg-white/40 opacity-0 group-hover/task:opacity-100 transition-opacity"
                                 onMouseDown={(e) => {
                                   e.stopPropagation();
-                                  handleTaskMouseDown(e, task.id, phase.id, 'resize-end');
+                                  handleTaskMouseDown(e, task.id, phase.id, "resize-end");
                                 }}
                               />
 
@@ -1686,14 +1957,21 @@ export function GanttCanvas() {
                                 )}
 
                                 {/* Clean Mode Enhancements - Status, Progress, Owner */}
-                                {(viewSettings?.barDurationDisplay ?? 'all') === 'clean' && (
+                                {(viewSettings?.barDurationDisplay ?? "all") === "clean" && (
                                   <>
                                     {/* Status Indicator Dot - Top Right Corner */}
                                     {(() => {
-                                      const taskStatus = calculateItemStatus(task.startDate, task.endDate, task.progress);
+                                      const taskStatus = calculateItemStatus(
+                                        task.startDate,
+                                        task.endDate,
+                                        task.progress
+                                      );
                                       const statusColor = GANTT_STATUS_COLORS[taskStatus];
                                       return (
-                                        <Tooltip title={GANTT_STATUS_LABELS[taskStatus]} placement="top">
+                                        <Tooltip
+                                          title={GANTT_STATUS_LABELS[taskStatus]}
+                                          placement="top"
+                                        >
                                           <div
                                             className="absolute top-1 right-1 w-2 h-2 rounded-full border border-white/50 shadow-sm z-10"
                                             style={{ backgroundColor: statusColor }}
@@ -1713,23 +1991,32 @@ export function GanttCanvas() {
                                     )}
 
                                     {/* Owner/Assignee Badge - Center or Left */}
-                                    {task.resourceAssignments && task.resourceAssignments.length > 0 && (
-                                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                        <div className="bg-black/30 backdrop-blur-sm text-white text-[10px] font-semibold px-1.5 py-0.5 rounded shadow-sm">
-                                          {task.resourceAssignments.length === 1
-                                            ? (() => {
-                                                const resource = getResourceById(task.resourceAssignments[0].resourceId);
-                                                return resource?.name.split(' ').map(n => n[0]).join('').slice(0, 3) || '?';
-                                              })()
-                                            : `${task.resourceAssignments.length} PPL`}
+                                    {task.resourceAssignments &&
+                                      task.resourceAssignments.length > 0 && (
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                          <div className="bg-black/30 backdrop-blur-sm text-white text-[10px] font-semibold px-1.5 py-0.5 rounded shadow-sm">
+                                            {task.resourceAssignments.length === 1
+                                              ? (() => {
+                                                  const resource = getResourceById(
+                                                    task.resourceAssignments[0].resourceId
+                                                  );
+                                                  return (
+                                                    resource?.name
+                                                      .split(" ")
+                                                      .map((n) => n[0])
+                                                      .join("")
+                                                      .slice(0, 3) || "?"
+                                                  );
+                                                })()
+                                              : `${task.resourceAssignments.length} PPL`}
+                                          </div>
                                         </div>
-                                      </div>
-                                    )}
+                                      )}
                                   </>
                                 )}
 
                                 {/* Floating Badges - Always appear horizontally above bars */}
-                                {(viewSettings?.barDurationDisplay ?? 'all') !== 'clean' && (
+                                {(viewSettings?.barDurationDisplay ?? "all") !== "clean" && (
                                   <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 flex items-center justify-center text-white z-20 max-w-full px-1">
                                     {/* All badges in a clean horizontal row - responsive with wrapping, increased margin to prevent overlap */}
                                     <div className="flex items-center gap-2 sm:gap-2 flex-wrap justify-center max-w-full">
@@ -1737,7 +2024,10 @@ export function GanttCanvas() {
                                       {taskExceedsPhase && (
                                         <div className="relative group/warning">
                                           <div className="flex items-center gap-2 sm:gap-2 bg-red-500 h-6 px-1.5 rounded shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
-                                            <AlertTriangle className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
+                                            <AlertTriangle
+                                              className="w-3 h-3 flex-shrink-0"
+                                              strokeWidth={2.5}
+                                            />
                                             <span className="text-xs font-bold">!</span>
                                           </div>
                                           {/* Warning Tooltip */}
@@ -1750,18 +2040,42 @@ export function GanttCanvas() {
                                               <div className="text-xs lg:text-sm leading-relaxed space-y-1">
                                                 {taskStartsEarly && (
                                                   <div>
-                                                    This task starts <span className="font-semibold">{daysStartedEarly} day{daysStartedEarly > 1 ? 's' : ''}</span> <span className="font-semibold">before</span> the phase begins.
+                                                    This task starts{" "}
+                                                    <span className="font-semibold">
+                                                      {daysStartedEarly} day
+                                                      {daysStartedEarly > 1 ? "s" : ""}
+                                                    </span>{" "}
+                                                    <span className="font-semibold">before</span>{" "}
+                                                    the phase begins.
                                                   </div>
                                                 )}
                                                 {taskEndsLate && (
                                                   <div>
-                                                    This task ends <span className="font-semibold">{daysEndedLate} day{daysEndedLate > 1 ? 's' : ''}</span> <span className="font-semibold">after</span> the phase ends.
+                                                    This task ends{" "}
+                                                    <span className="font-semibold">
+                                                      {daysEndedLate} day
+                                                      {daysEndedLate > 1 ? "s" : ""}
+                                                    </span>{" "}
+                                                    <span className="font-semibold">after</span> the
+                                                    phase ends.
                                                   </div>
                                                 )}
                                               </div>
                                               <div className="text-xs lg:text-sm mt-2 pt-1.5 border-t border-red-400/30 space-y-2">
-                                                <div>Task: <span className="font-semibold">{format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}</span></div>
-                                                <div>Phase: <span className="font-semibold">{format(phaseStartDate, 'dd MMM yy')} → {format(phaseEndDate, 'dd MMM yy')}</span></div>
+                                                <div>
+                                                  Task:{" "}
+                                                  <span className="font-semibold">
+                                                    {format(taskStart, "dd MMM yy")} →{" "}
+                                                    {format(taskEnd, "dd MMM yy")}
+                                                  </span>
+                                                </div>
+                                                <div>
+                                                  Phase:{" "}
+                                                  <span className="font-semibold">
+                                                    {format(phaseStartDate, "dd MMM yy")} →{" "}
+                                                    {format(phaseEndDate, "dd MMM yy")}
+                                                  </span>
+                                                </div>
                                               </div>
                                               <div className="text-xs mt-2 pt-1.5 border-t border-red-400/30 text-red-100 italic">
                                                 💡 Adjust task or phase dates to fix this issue
@@ -1771,76 +2085,101 @@ export function GanttCanvas() {
                                         </div>
                                       )}
                                       {/* WD Mode */}
-                                      {(viewSettings?.barDurationDisplay ?? 'all') === 'wd' && (
+                                      {(viewSettings?.barDurationDisplay ?? "all") === "wd" && (
                                         <span className="text-xs font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20">
                                           {formatWorkingDays(taskWorkingDays)}
                                         </span>
                                       )}
 
                                       {/* CD Mode */}
-                                      {(viewSettings?.barDurationDisplay ?? 'all') === 'cd' && (
+                                      {(viewSettings?.barDurationDisplay ?? "all") === "cd" && (
                                         <span className="text-xs font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20">
                                           {formatDuration(taskWorkingDays)}
                                         </span>
                                       )}
 
                                       {/* Resource Mode */}
-                                      {(viewSettings?.barDurationDisplay ?? 'all') === 'resource' && task.resourceAssignments && task.resourceAssignments.length > 0 && (
-                                        <div className="relative group/resourcebadge">
-                                          <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                            <Users className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
-                                            <span className="text-xs font-bold">{task.resourceAssignments.length}</span>
-                                          </div>
-                                          {/* Tooltip */}
-                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/resourcebadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                            <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                              <div className="font-semibold mb-2 text-xs text-gray-300">Assigned Resources:</div>
-                                              <div className="space-y-1">
-                                                {task.resourceAssignments.map((assignment) => {
-                                                  const resource = (currentProject.resources || []).find(r => r.id === assignment.resourceId);
-                                                  if (!resource) return null;
-                                                  const category = RESOURCE_CATEGORIES[resource.category];
-                                                  return (
-                                                    <div key={assignment.id} className="flex items-start gap-2">
-                                                      <span className="text-sm flex-shrink-0">{category.icon}</span>
-                                                      <div className="flex-1">
-                                                        <div className="flex items-center gap-2">
-                                                          <div className="font-medium text-xs lg:text-sm">{resource.name}</div>
-                                                          <span className="px-1.5 py-0.5 text-xs font-semibold bg-purple-700 text-white rounded">
-                                                            {assignment.allocationPercentage}%
-                                                          </span>
-                                                        </div>
-                                                        <div className="text-xs text-gray-400">
-                                                          {RESOURCE_DESIGNATIONS[resource.designation]}
-                                                        </div>
-                                                        {assignment.assignmentNotes && (
-                                                          <div className="text-xs text-gray-300 mt-2 italic">
-                                                            {assignment.assignmentNotes}
+                                      {(viewSettings?.barDurationDisplay ?? "all") === "resource" &&
+                                        task.resourceAssignments &&
+                                        task.resourceAssignments.length > 0 && (
+                                          <div className="relative group/resourcebadge">
+                                            <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                              <Users
+                                                className="w-3 h-3 flex-shrink-0"
+                                                strokeWidth={2.5}
+                                              />
+                                              <span className="text-xs font-bold">
+                                                {task.resourceAssignments.length}
+                                              </span>
+                                            </div>
+                                            {/* Tooltip */}
+                                            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/resourcebadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                              <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
+                                                <div className="font-semibold mb-2 text-xs text-gray-300">
+                                                  Assigned Resources:
+                                                </div>
+                                                <div className="space-y-1">
+                                                  {task.resourceAssignments.map((assignment) => {
+                                                    const resource = (
+                                                      currentProject.resources || []
+                                                    ).find((r) => r.id === assignment.resourceId);
+                                                    if (!resource) return null;
+                                                    const category =
+                                                      RESOURCE_CATEGORIES[resource.category];
+                                                    return (
+                                                      <div
+                                                        key={assignment.id}
+                                                        className="flex items-start gap-2"
+                                                      >
+                                                        <span className="text-sm flex-shrink-0">
+                                                          {category.icon}
+                                                        </span>
+                                                        <div className="flex-1">
+                                                          <div className="flex items-center gap-2">
+                                                            <div className="font-medium text-xs lg:text-sm">
+                                                              {resource.name}
+                                                            </div>
+                                                            <span className="px-1.5 py-0.5 text-xs font-semibold bg-purple-700 text-white rounded">
+                                                              {assignment.allocationPercentage}%
+                                                            </span>
                                                           </div>
-                                                        )}
+                                                          <div className="text-xs text-gray-400">
+                                                            {
+                                                              RESOURCE_DESIGNATIONS[
+                                                                resource.designation
+                                                              ]
+                                                            }
+                                                          </div>
+                                                          {assignment.assignmentNotes && (
+                                                            <div className="text-xs text-gray-300 mt-2 italic">
+                                                              {assignment.assignmentNotes}
+                                                            </div>
+                                                          )}
+                                                        </div>
                                                       </div>
-                                                    </div>
-                                                  );
-                                                })}
+                                                    );
+                                                  })}
+                                                </div>
                                               </div>
                                             </div>
                                           </div>
-                                        </div>
-                                      )}
+                                        )}
 
                                       {/* Dates Mode */}
-                                      {(viewSettings?.barDurationDisplay ?? 'all') === 'dates' && (
+                                      {(viewSettings?.barDurationDisplay ?? "all") === "dates" && (
                                         <span className="text-xs font-semibold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20">
-                                          {formatGanttDateCompact(taskStart)} → {formatGanttDateCompact(taskEnd)}
+                                          {formatGanttDateCompact(taskStart)} →{" "}
+                                          {formatGanttDateCompact(taskEnd)}
                                         </span>
                                       )}
 
                                       {/* All Mode */}
-                                      {(viewSettings?.barDurationDisplay ?? 'all') === 'all' && (
+                                      {(viewSettings?.barDurationDisplay ?? "all") === "all" && (
                                         <>
                                           {/* Dates badge - Primary info with semi-bold weight */}
                                           <span className="text-xs font-semibold bg-blue-600/90 h-6 px-1.5 rounded shadow-md border border-white/20">
-                                            {formatGanttDateCompact(taskStart)} → {formatGanttDateCompact(taskEnd)}
+                                            {formatGanttDateCompact(taskStart)} →{" "}
+                                            {formatGanttDateCompact(taskEnd)}
                                           </span>
 
                                           {/* Duration badge - Secondary info with normal weight and muted color */}
@@ -1849,48 +2188,77 @@ export function GanttCanvas() {
                                           </span>
 
                                           {/* Resource badge */}
-                                          {task.resourceAssignments && task.resourceAssignments.length > 0 && (
-                                            <div className="relative group/resourcebadge">
-                                              <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                                <Users className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
-                                                <span className="text-xs font-bold">{task.resourceAssignments.length}</span>
-                                              </div>
-                                              {/* Tooltip */}
-                                              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/resourcebadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                                <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                                  <div className="font-semibold mb-2 text-xs text-gray-300">Assigned Resources:</div>
-                                                  <div className="space-y-1">
-                                                    {task.resourceAssignments.map((assignment) => {
-                                                      const resource = (currentProject.resources || []).find(r => r.id === assignment.resourceId);
-                                                      if (!resource) return null;
-                                                      const category = RESOURCE_CATEGORIES[resource.category];
-                                                      return (
-                                                        <div key={assignment.id} className="flex items-start gap-2">
-                                                          <span className="text-sm flex-shrink-0">{category.icon}</span>
-                                                          <div className="flex-1">
-                                                            <div className="flex items-center gap-2">
-                                                              <div className="font-medium text-xs lg:text-sm">{resource.name}</div>
-                                                              <span className="px-1.5 py-0.5 text-xs font-semibold bg-purple-700 text-white rounded">
-                                                                {assignment.allocationPercentage}%
+                                          {task.resourceAssignments &&
+                                            task.resourceAssignments.length > 0 && (
+                                              <div className="relative group/resourcebadge">
+                                                <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
+                                                  <Users
+                                                    className="w-3 h-3 flex-shrink-0"
+                                                    strokeWidth={2.5}
+                                                  />
+                                                  <span className="text-xs font-bold">
+                                                    {task.resourceAssignments.length}
+                                                  </span>
+                                                </div>
+                                                {/* Tooltip */}
+                                                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/resourcebadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
+                                                  <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
+                                                    <div className="font-semibold mb-2 text-xs text-gray-300">
+                                                      Assigned Resources:
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                      {task.resourceAssignments.map(
+                                                        (assignment) => {
+                                                          const resource = (
+                                                            currentProject.resources || []
+                                                          ).find(
+                                                            (r) => r.id === assignment.resourceId
+                                                          );
+                                                          if (!resource) return null;
+                                                          const category =
+                                                            RESOURCE_CATEGORIES[resource.category];
+                                                          return (
+                                                            <div
+                                                              key={assignment.id}
+                                                              className="flex items-start gap-2"
+                                                            >
+                                                              <span className="text-sm flex-shrink-0">
+                                                                {category.icon}
                                                               </span>
-                                                            </div>
-                                                            <div className="text-xs text-gray-400">
-                                                              {RESOURCE_DESIGNATIONS[resource.designation]}
-                                                            </div>
-                                                            {assignment.assignmentNotes && (
-                                                              <div className="text-xs text-gray-300 mt-2 italic">
-                                                                {assignment.assignmentNotes}
+                                                              <div className="flex-1">
+                                                                <div className="flex items-center gap-2">
+                                                                  <div className="font-medium text-xs lg:text-sm">
+                                                                    {resource.name}
+                                                                  </div>
+                                                                  <span className="px-1.5 py-0.5 text-xs font-semibold bg-purple-700 text-white rounded">
+                                                                    {
+                                                                      assignment.allocationPercentage
+                                                                    }
+                                                                    %
+                                                                  </span>
+                                                                </div>
+                                                                <div className="text-xs text-gray-400">
+                                                                  {
+                                                                    RESOURCE_DESIGNATIONS[
+                                                                      resource.designation
+                                                                    ]
+                                                                  }
+                                                                </div>
+                                                                {assignment.assignmentNotes && (
+                                                                  <div className="text-xs text-gray-300 mt-2 italic">
+                                                                    {assignment.assignmentNotes}
+                                                                  </div>
+                                                                )}
                                                               </div>
-                                                            )}
-                                                          </div>
-                                                        </div>
-                                                      );
-                                                    })}
+                                                            </div>
+                                                          );
+                                                        }
+                                                      )}
+                                                    </div>
                                                   </div>
                                                 </div>
                                               </div>
-                                            </div>
-                                          )}
+                                            )}
                                         </>
                                       )}
                                     </div>
@@ -1923,9 +2291,14 @@ export function GanttCanvas() {
                                         </div>
                                       )}
                                       <div className="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-1.5">
-                                        <div className="mb-1">{format(taskStart, 'dd MMM yy')} → {format(taskEnd, 'dd MMM yy')}</div>
+                                        <div className="mb-1">
+                                          {format(taskStart, "dd MMM yy")} →{" "}
+                                          {format(taskEnd, "dd MMM yy")}
+                                        </div>
                                         <div className="flex items-center gap-2">
-                                          <span className="text-purple-400 font-semibold">{formatDuration(taskWorkingDays)}</span>
+                                          <span className="text-purple-400 font-semibold">
+                                            {formatDuration(taskWorkingDays)}
+                                          </span>
                                         </div>
                                       </div>
                                     </div>
@@ -1947,9 +2320,11 @@ export function GanttCanvas() {
         {/* Empty State */}
         {currentProject.phases.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">No phases yet. Add your first phase to get started.</p>
+            <p className="text-gray-500 mb-4">
+              No phases yet. Add your first phase to get started.
+            </p>
             <button
-              onClick={() => openSidePanel('add', 'phase')}
+              onClick={() => openSidePanel("add", "phase")}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
             >
               Add Phase

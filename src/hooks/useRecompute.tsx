@@ -9,10 +9,17 @@
  *   console.log(computed.totalCost, computed.totalEffort);
  */
 
-'use client';
+"use client";
 
-import { ComputedOutputs, ProjectInputs, recompute, recomputeCosts, recomputePhases, recomputeRicefw } from '@/lib/engine/recompute';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  ComputedOutputs,
+  ProjectInputs,
+  recompute,
+  recomputeCosts,
+  recomputePhases,
+  recomputeRicefw,
+} from "@/lib/engine/recompute";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 // ============================================================================
 // Types
@@ -71,14 +78,9 @@ export function useRecompute(
   inputs: ProjectInputs,
   options: UseRecomputeOptions = {}
 ): UseRecomputeResult {
-  const {
-    autoRecompute = true,
-    debounceMs = 100,
-    debug = false,
-    onRecompute,
-  } = options;
+  const { autoRecompute = true, debounceMs = 100, debug = false, onRecompute } = options;
 
-  const lastComputedInputsRef = useRef<string>('');
+  const lastComputedInputsRef = useRef<string>("");
   const lastComputedAtRef = useRef<Date | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -96,7 +98,7 @@ export function useRecompute(
     }
 
     if (debug) {
-      console.log('[useRecompute] Computing outputs', { inputs, isDirty });
+      console.log("[useRecompute] Computing outputs", { inputs, isDirty });
     }
 
     const result = recompute(inputs);
@@ -113,9 +115,9 @@ export function useRecompute(
   // Manual recompute function
   const manualRecompute = useCallback(() => {
     if (debug) {
-      console.log('[useRecompute] Manual recompute triggered');
+      console.log("[useRecompute] Manual recompute triggered");
     }
-    lastComputedInputsRef.current = '';
+    lastComputedInputsRef.current = "";
     lastComputedAtRef.current = new Date();
   }, [debug]);
 
@@ -123,7 +125,7 @@ export function useRecompute(
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         clearTimeout(debounceTimerRef.current);
       }
     };
@@ -145,7 +147,7 @@ export function useRecompute(
  * Hook for RICEFW-only recomputation (optimized)
  */
 export function useRecomputeRicefw(
-  ricefwItems: ProjectInputs['ricefwItems'],
+  ricefwItems: ProjectInputs["ricefwItems"],
   averageHourlyRate: number = 150
 ) {
   return useMemo(() => {
@@ -157,7 +159,7 @@ export function useRecomputeRicefw(
  * Hook for phase-only recomputation (optimized)
  */
 export function useRecomputePhases(
-  phases: ProjectInputs['phases'],
+  phases: ProjectInputs["phases"],
   averageHourlyRate: number = 150
 ) {
   return useMemo(() => {
@@ -198,7 +200,7 @@ export function useDebouncedInputs<T>(value: T, delayMs: number = 500): T {
 }
 
 // Missing import
-import { useState } from 'react';
+import { useState } from "react";
 
 /**
  * Hook that tracks computation performance metrics

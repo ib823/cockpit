@@ -3,15 +3,15 @@
  * Uses IndexedDB for storing data when offline
  */
 
-const DB_NAME = 'sap-cockpit-offline';
+const DB_NAME = "sap-cockpit-offline";
 const DB_VERSION = 1;
 
 // Object store names
 const STORES = {
-  ESTIMATES: 'estimates',
-  PROJECTS: 'projects',
-  PENDING_SYNC: 'pending-sync',
-  CACHE: 'cache',
+  ESTIMATES: "estimates",
+  PROJECTS: "projects",
+  PENDING_SYNC: "pending-sync",
+  CACHE: "cache",
 };
 
 export interface StoredEstimate {
@@ -59,20 +59,20 @@ class OfflineStorage {
     }
 
     this.initPromise = new Promise((resolve, reject) => {
-      if (typeof window === 'undefined' || !window.indexedDB) {
-        reject(new Error('IndexedDB not supported'));
+      if (typeof window === "undefined" || !window.indexedDB) {
+        reject(new Error("IndexedDB not supported"));
         return;
       }
 
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onerror = () => {
-        reject(new Error('Failed to open database'));
+        reject(new Error("Failed to open database"));
       };
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log('[OfflineStorage] Database initialized');
+        console.log("[OfflineStorage] Database initialized");
         resolve(this.db);
       };
 
@@ -81,27 +81,27 @@ class OfflineStorage {
 
         // Create object stores
         if (!db.objectStoreNames.contains(STORES.ESTIMATES)) {
-          const estimateStore = db.createObjectStore(STORES.ESTIMATES, { keyPath: 'id' });
-          estimateStore.createIndex('createdAt', 'createdAt', { unique: false });
-          estimateStore.createIndex('synced', 'synced', { unique: false });
+          const estimateStore = db.createObjectStore(STORES.ESTIMATES, { keyPath: "id" });
+          estimateStore.createIndex("createdAt", "createdAt", { unique: false });
+          estimateStore.createIndex("synced", "synced", { unique: false });
         }
 
         if (!db.objectStoreNames.contains(STORES.PROJECTS)) {
-          const projectStore = db.createObjectStore(STORES.PROJECTS, { keyPath: 'id' });
-          projectStore.createIndex('createdAt', 'createdAt', { unique: false });
-          projectStore.createIndex('synced', 'synced', { unique: false });
+          const projectStore = db.createObjectStore(STORES.PROJECTS, { keyPath: "id" });
+          projectStore.createIndex("createdAt", "createdAt", { unique: false });
+          projectStore.createIndex("synced", "synced", { unique: false });
         }
 
         if (!db.objectStoreNames.contains(STORES.PENDING_SYNC)) {
-          db.createObjectStore(STORES.PENDING_SYNC, { keyPath: 'id', autoIncrement: true });
+          db.createObjectStore(STORES.PENDING_SYNC, { keyPath: "id", autoIncrement: true });
         }
 
         if (!db.objectStoreNames.contains(STORES.CACHE)) {
-          const cacheStore = db.createObjectStore(STORES.CACHE, { keyPath: 'key' });
-          cacheStore.createIndex('timestamp', 'timestamp', { unique: false });
+          const cacheStore = db.createObjectStore(STORES.CACHE, { keyPath: "key" });
+          cacheStore.createIndex("timestamp", "timestamp", { unique: false });
         }
 
-        console.log('[OfflineStorage] Database schema created');
+        console.log("[OfflineStorage] Database schema created");
       };
     });
 
@@ -114,12 +114,12 @@ class OfflineStorage {
   async saveEstimate(estimate: StoredEstimate): Promise<void> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.ESTIMATES], 'readwrite');
+      const transaction = db.transaction([STORES.ESTIMATES], "readwrite");
       const store = transaction.objectStore(STORES.ESTIMATES);
       const request = store.put(estimate);
 
       request.onsuccess = () => {
-        console.log('[OfflineStorage] Estimate saved:', estimate.id);
+        console.log("[OfflineStorage] Estimate saved:", estimate.id);
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -132,7 +132,7 @@ class OfflineStorage {
   async getEstimate(id: string): Promise<StoredEstimate | null> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.ESTIMATES], 'readonly');
+      const transaction = db.transaction([STORES.ESTIMATES], "readonly");
       const store = transaction.objectStore(STORES.ESTIMATES);
       const request = store.get(id);
 
@@ -147,7 +147,7 @@ class OfflineStorage {
   async getAllEstimates(): Promise<StoredEstimate[]> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.ESTIMATES], 'readonly');
+      const transaction = db.transaction([STORES.ESTIMATES], "readonly");
       const store = transaction.objectStore(STORES.ESTIMATES);
       const request = store.getAll();
 
@@ -162,10 +162,10 @@ class OfflineStorage {
   async getUnsyncedEstimates(): Promise<StoredEstimate[]> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.ESTIMATES], 'readonly');
+      const transaction = db.transaction([STORES.ESTIMATES], "readonly");
       const store = transaction.objectStore(STORES.ESTIMATES);
-      const index = store.index('synced');
-      const request = index.getAll(false);
+      const index = store.index("synced");
+      const request = index.getAll(false as any); // IDBKeyRange accepts boolean in some implementations
 
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -178,12 +178,12 @@ class OfflineStorage {
   async deleteEstimate(id: string): Promise<void> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.ESTIMATES], 'readwrite');
+      const transaction = db.transaction([STORES.ESTIMATES], "readwrite");
       const store = transaction.objectStore(STORES.ESTIMATES);
       const request = store.delete(id);
 
       request.onsuccess = () => {
-        console.log('[OfflineStorage] Estimate deleted:', id);
+        console.log("[OfflineStorage] Estimate deleted:", id);
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -196,12 +196,12 @@ class OfflineStorage {
   async saveProject(project: StoredProject): Promise<void> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.PROJECTS], 'readwrite');
+      const transaction = db.transaction([STORES.PROJECTS], "readwrite");
       const store = transaction.objectStore(STORES.PROJECTS);
       const request = store.put(project);
 
       request.onsuccess = () => {
-        console.log('[OfflineStorage] Project saved:', project.id);
+        console.log("[OfflineStorage] Project saved:", project.id);
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -214,7 +214,7 @@ class OfflineStorage {
   async getProject(id: string): Promise<StoredProject | null> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.PROJECTS], 'readonly');
+      const transaction = db.transaction([STORES.PROJECTS], "readonly");
       const store = transaction.objectStore(STORES.PROJECTS);
       const request = store.get(id);
 
@@ -229,7 +229,7 @@ class OfflineStorage {
   async getAllProjects(): Promise<StoredProject[]> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.PROJECTS], 'readonly');
+      const transaction = db.transaction([STORES.PROJECTS], "readonly");
       const store = transaction.objectStore(STORES.PROJECTS);
       const request = store.getAll();
 
@@ -244,12 +244,12 @@ class OfflineStorage {
   async addToPendingSync(item: PendingSyncItem): Promise<void> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.PENDING_SYNC], 'readwrite');
+      const transaction = db.transaction([STORES.PENDING_SYNC], "readwrite");
       const store = transaction.objectStore(STORES.PENDING_SYNC);
       const request = store.add(item);
 
       request.onsuccess = () => {
-        console.log('[OfflineStorage] Added to pending sync:', item.url);
+        console.log("[OfflineStorage] Added to pending sync:", item.url);
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -262,7 +262,7 @@ class OfflineStorage {
   async getPendingSync(): Promise<PendingSyncItem[]> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.PENDING_SYNC], 'readonly');
+      const transaction = db.transaction([STORES.PENDING_SYNC], "readonly");
       const store = transaction.objectStore(STORES.PENDING_SYNC);
       const request = store.getAll();
 
@@ -277,12 +277,12 @@ class OfflineStorage {
   async removeFromPendingSync(id: number): Promise<void> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.PENDING_SYNC], 'readwrite');
+      const transaction = db.transaction([STORES.PENDING_SYNC], "readwrite");
       const store = transaction.objectStore(STORES.PENDING_SYNC);
       const request = store.delete(id);
 
       request.onsuccess = () => {
-        console.log('[OfflineStorage] Removed from pending sync:', id);
+        console.log("[OfflineStorage] Removed from pending sync:", id);
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -297,7 +297,7 @@ class OfflineStorage {
     const expiresAt = Date.now() + ttlMinutes * 60 * 1000;
 
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.CACHE], 'readwrite');
+      const transaction = db.transaction([STORES.CACHE], "readwrite");
       const store = transaction.objectStore(STORES.CACHE);
       const request = store.put({
         key,
@@ -317,7 +317,7 @@ class OfflineStorage {
   async getCache(key: string): Promise<any | null> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.CACHE], 'readonly');
+      const transaction = db.transaction([STORES.CACHE], "readonly");
       const store = transaction.objectStore(STORES.CACHE);
       const request = store.get(key);
 
@@ -348,7 +348,7 @@ class OfflineStorage {
   async deleteCache(key: string): Promise<void> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORES.CACHE], 'readwrite');
+      const transaction = db.transaction([STORES.CACHE], "readwrite");
       const store = transaction.objectStore(STORES.CACHE);
       const request = store.delete(key);
 
@@ -368,7 +368,7 @@ class OfflineStorage {
       stores.map(
         (storeName) =>
           new Promise<void>((resolve, reject) => {
-            const transaction = db.transaction([storeName], 'readwrite');
+            const transaction = db.transaction([storeName], "readwrite");
             const store = transaction.objectStore(storeName);
             const request = store.clear();
 
@@ -377,7 +377,7 @@ class OfflineStorage {
           })
       )
     ).then(() => {
-      console.log('[OfflineStorage] All data cleared');
+      console.log("[OfflineStorage] All data cleared");
     });
   }
 }

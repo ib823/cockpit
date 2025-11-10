@@ -4,14 +4,14 @@
  * Business-day aware, keyboard accessible
  */
 
-'use client';
+"use client";
 
-import React, { useRef, useState, useEffect } from 'react';
-import { clsx } from 'clsx';
-import { useTimelineEngine } from './useTimelineEngine';
-import { TimelinePhase, ViewMode, TimelineInteraction } from './types';
-import { Segmented, Tooltip } from '../ui';
-import { formatISODate } from './utils/date';
+import React, { useRef, useState, useEffect } from "react";
+import { clsx } from "clsx";
+import { useTimelineEngine } from "./useTimelineEngine";
+import { TimelinePhase, ViewMode, TimelineInteraction as _TimelineInteraction } from "./types";
+import { Segmented } from "../ui";
+import { formatISODate } from "./utils/date";
 
 interface AeroTimelineProps {
   startDateISO: string;
@@ -26,20 +26,12 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
   startDateISO,
   phases,
   holidays = [],
-  onPhaseUpdate,
   onPhaseClick,
   className,
 }) => {
-  const [viewMode, setViewMode] = useState<ViewMode>('week');
+  const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [selectedPhaseId, setSelectedPhaseId] = useState<string | null>(null);
-  const [interaction, setInteraction] = useState<TimelineInteraction>({
-    type: 'none',
-    phaseId: null,
-    startX: 0,
-    startBD: 0,
-    originalStartBD: 0,
-    originalDurationBD: 0,
-  });
+
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,7 +48,7 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     // Set canvas size
@@ -71,7 +63,7 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
     ctx.clearRect(0, 0, totalWidth, totalHeight);
 
     // Draw grid lines
-    ctx.strokeStyle = 'var(--g-grid)';
+    ctx.strokeStyle = "var(--g-grid)";
     ctx.lineWidth = 1;
     for (let i = 0; i <= phases.length; i++) {
       const y = i * config.rowHeight;
@@ -86,7 +78,7 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
     if (todayISO >= startDateISO) {
       const todayBD = 0; // Simplified - should calculate actual BD from start
       const todayX = config.paddingLeft + todayBD * config.pixelsPerDay;
-      ctx.strokeStyle = 'var(--g-today)';
+      ctx.strokeStyle = "var(--g-today)";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(todayX, 0);
@@ -95,7 +87,7 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
     }
 
     // Draw links (dependencies)
-    ctx.strokeStyle = 'var(--g-link)';
+    ctx.strokeStyle = "var(--g-link)";
     ctx.lineWidth = 1.5;
     links.forEach((link) => {
       const path = new Path2D(link.path);
@@ -106,7 +98,7 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
     rows.forEach((row, index) => {
       if (row.baseline) {
         const y = index * config.rowHeight + config.rowHeight / 2;
-        ctx.strokeStyle = 'var(--g-baseline)';
+        ctx.strokeStyle = "var(--g-baseline)";
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(row.baseline.startX, y);
@@ -117,15 +109,15 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
   }, [rows, links, config, totalWidth, totalHeight, phases.length, startDateISO]);
 
   return (
-    <div className={clsx('flex flex-col gap-4', className)}>
+    <div className={clsx("flex flex-col gap-4", className)}>
       {/* Toolbar */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-[var(--ink)]">Timeline</h2>
         <Segmented
           options={[
-            { label: 'Week', value: 'week' },
-            { label: 'Month', value: 'month' },
-            { label: 'Quarter', value: 'quarter' },
+            { label: "Week", value: "week" },
+            { label: "Month", value: "month" },
+            { label: "Quarter", value: "quarter" },
           ]}
           value={viewMode}
           onChange={(v) => setViewMode(v as ViewMode)}
@@ -137,31 +129,26 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
       <div
         ref={containerRef}
         className="relative border border-[var(--line)] rounded-[var(--r-md)] overflow-auto bg-[var(--surface)]"
-        style={{ height: '600px' }}
+        style={{ height: "600px" }}
       >
         {/* Left rail (names) */}
         <div
           className="absolute left-0 top-0 bottom-0 bg-[var(--surface-sub)] border-r border-[var(--line)] z-10"
           style={{ width: `${config.leftRailWidth}px` }}
         >
-          {rows.map((row, index) => (
+          {rows.map((row) => (
             <div
               key={row.id}
               className="flex items-center px-3 border-b border-[var(--line)]"
               style={{ height: `${config.rowHeight}px` }}
             >
-              <span className="text-sm text-[var(--ink)] truncate">
-                {row.name}
-              </span>
+              <span className="text-sm text-[var(--ink)] truncate">{row.name}</span>
             </div>
           ))}
         </div>
 
         {/* Canvas timeline */}
-        <div
-          className="absolute top-0 bottom-0"
-          style={{ left: `${config.leftRailWidth}px` }}
-        >
+        <div className="absolute top-0 bottom-0" style={{ left: `${config.leftRailWidth}px` }}>
           <canvas ref={canvasRef} className="block" />
 
           {/* DOM overlays (bars, tooltips) */}
@@ -185,7 +172,7 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
                     onPhaseClick?.(row.phase);
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       onPhaseClick?.(row.phase);
                     }
@@ -197,9 +184,9 @@ export const AeroTimeline: React.FC<AeroTimelineProps> = ({
                   {/* Bar */}
                   <div
                     className={clsx(
-                      'relative h-full rounded-[var(--r-sm)] transition-all duration-[var(--dur)]',
-                      row.critical ? 'bg-[var(--g-bar-critical)]' : 'bg-[var(--g-bar)]',
-                      isSelected && 'ring-2 ring-[var(--focus)]'
+                      "relative h-full rounded-[var(--r-sm)] transition-all duration-[var(--dur)]",
+                      row.critical ? "bg-[var(--g-bar-critical)]" : "bg-[var(--g-bar)]",
+                      isSelected && "ring-2 ring-[var(--focus)]"
                     )}
                   >
                     {/* Progress inner bar */}

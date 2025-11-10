@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 interface SecurityEducationModalProps {
   isOpen: boolean;
@@ -31,12 +31,14 @@ export default function SecurityEducationModal({
         }
       `}</style>
 
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-2 border-amber-200 pointer-events-auto float-down-3d"
-           style={{
-             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.1)',
-             perspective: '1000px',
-             transform: 'translateZ(20px)'
-           }}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-2 border-amber-200 pointer-events-auto float-down-3d"
+        style={{
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.1)",
+          perspective: "1000px",
+          transform: "translateZ(20px)",
+        }}
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-6 border-b-2 border-amber-100">
           <div className="text-center">
@@ -48,7 +50,9 @@ export default function SecurityEducationModal({
         <div className="px-6 py-6 bg-white text-center space-y-4">
           <p className="text-base text-slate-800">Your phone, laptop, or tablet</p>
           <p className="text-base text-slate-800 font-medium">Never on shared or public devices</p>
-          <p className="text-sm text-slate-600">Does not work in private browsing (e.g., incognito, Tor)</p>
+          <p className="text-sm text-slate-600">
+            Does not work in private browsing (e.g., incognito, Tor)
+          </p>
         </div>
 
         {/* Footer with Understood button */}

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import clsx from 'clsx';
-import { useTheme } from '@/components/theme/ThemeProvider';
+import React, { useState } from "react";
+import clsx from "clsx";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 export interface NavItem {
   key: string;
@@ -23,12 +23,12 @@ export const AppShell: React.FC<AppShellProps> = ({ nav, children, pageHeader })
   return (
     <div
       className="min-h-screen bg-[var(--canvas)] text-[var(--ink)] grid"
-      style={{ gridTemplateColumns: open ? '240px 1fr' : '64px 1fr' }}
+      style={{ gridTemplateColumns: open ? "240px 1fr" : "64px 1fr" }}
     >
       {/* Sidebar */}
       <aside
         className={clsx(
-          'border-r border-[var(--line)] bg-[var(--surface)] transition-all duration-200 sticky top-0 h-screen hidden md:flex flex-col'
+          "border-r border-[var(--line)] bg-[var(--surface)] transition-all duration-200 sticky top-0 h-screen hidden md:flex flex-col"
         )}
       >
         <div className="h-14 px-4 flex items-center justify-between">
@@ -39,7 +39,13 @@ export const AppShell: React.FC<AppShellProps> = ({ nav, children, pageHeader })
             aria-label="Toggle sidebar"
           >
             <svg width="16" height="16" viewBox="0 0 24 24">
-              <path d="M8 6l8 6-8 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path
+                d="M8 6l8 6-8 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
         </div>
@@ -47,12 +53,12 @@ export const AppShell: React.FC<AppShellProps> = ({ nav, children, pageHeader })
           {nav.map((item) => (
             <a
               key={item.key}
-              href={item.href || '#'}
+              href={item.href || "#"}
               className={clsx(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-[var(--canvas)]',
-                item.active && 'bg-[var(--accent-soft)]'
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-[var(--canvas)]",
+                item.active && "bg-[var(--accent-soft)]"
               )}
-              aria-current={item.active ? 'page' : undefined}
+              aria-current={item.active ? "page" : undefined}
             >
               {item.icon}
               <span className="truncate">{item.label}</span>
@@ -62,9 +68,9 @@ export const AppShell: React.FC<AppShellProps> = ({ nav, children, pageHeader })
         <div className="mt-auto p-3">
           <button
             className="w-full h-9 rounded-md border border-[var(--line)] hover:bg-[var(--canvas)]"
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
-            {theme === 'light' ? 'Dark mode' : 'Light mode'}
+            {theme === "light" ? "Dark mode" : "Light mode"}
           </button>
         </div>
       </aside>
@@ -75,13 +81,18 @@ export const AppShell: React.FC<AppShellProps> = ({ nav, children, pageHeader })
         <div className="md:hidden sticky top-0 z-[40] bg-[var(--surface)] border-b border-[var(--line)] px-4 h-12 flex items-center justify-between">
           <button className="p-2 -ml-2" onClick={() => setOpen((o) => !o)} aria-label="Toggle nav">
             <svg width="20" height="20" viewBox="0 0 24 24">
-              <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path
+                d="M3 6h18M3 12h18M3 18h18"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
           <div className="font-medium">Keystone</div>
           <button
             className="p-2"
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
             aria-label="Toggle theme"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
@@ -97,7 +108,9 @@ export const AppShell: React.FC<AppShellProps> = ({ nav, children, pageHeader })
 
         {/* Page header */}
         {pageHeader && (
-          <div className="px-4 lg:px-8 py-4 border-b border-[var(--line)] bg-[var(--surface)]">{pageHeader}</div>
+          <div className="px-4 lg:px-8 py-4 border-b border-[var(--line)] bg-[var(--surface)]">
+            {pageHeader}
+          </div>
         )}
 
         {/* Content */}

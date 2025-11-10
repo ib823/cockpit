@@ -1,7 +1,7 @@
 /* From Uiverse.io by ilkhoeri */
-'use client';
+"use client";
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode } from "react";
 
 interface CustomTooltipProps {
   children: ReactNode;
@@ -15,19 +15,19 @@ interface CustomTooltipProps {
 export function CustomTooltip({
   children,
   content,
-  color = 'red',
-  bgColor = '#fff',
-  size = '1rem',
-  className = '',
+  color = "red",
+  bgColor = "#fff",
+  size = "1rem",
+  className = "",
 }: CustomTooltipProps) {
   return (
     <div
       className={`custom-tooltip ${className}`}
       style={
         {
-          '--cl': color,
-          '--bg': bgColor,
-          '--sz': size,
+          "--cl": color,
+          "--bg": bgColor,
+          "--sz": size,
         } as React.CSSProperties
       }
     >
@@ -109,7 +109,7 @@ export function CustomTooltip({
 
         .custom-tooltip-content::before {
           position: absolute;
-          content: '';
+          content: "";
           height: 1rem;
           width: 1rem;
           bottom: -0.2em;

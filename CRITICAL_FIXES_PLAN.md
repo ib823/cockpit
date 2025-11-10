@@ -27,32 +27,28 @@
 **Location:** Resource utilization displays
 
 **Fix:**
+
 ```typescript
 // Create shared utility
 // File: src/lib/gantt-tool/formatters.ts
 
-export const formatPercentage = (
-  value: number,
-  decimals: number = 1
-): string => {
+export const formatPercentage = (value: number, decimals: number = 1): string => {
   if (value === null || value === undefined || isNaN(value)) {
-    return '0%';
+    return "0%";
   }
   return `${(value * 100).toFixed(decimals)}%`;
 };
 
-export const formatDecimal = (
-  value: number,
-  decimals: number = 1
-): string => {
+export const formatDecimal = (value: number, decimals: number = 1): string => {
   if (value === null || value === undefined || isNaN(value)) {
-    return '0';
+    return "0";
   }
   return value.toFixed(decimals);
 };
 ```
 
 **Apply everywhere:**
+
 - Resource utilization displays
 - Progress bars
 - Budget percentages
@@ -71,6 +67,7 @@ export const formatDecimal = (
 **Location:** Phase badges, task metadata
 
 **Fix:**
+
 ```typescript
 // File: src/lib/gantt-tool/formatters.ts
 
@@ -79,11 +76,7 @@ export const formatDuration = (
   endDate: string,
   holidays: string[] = []
 ): string => {
-  const workingDays = calculateWorkingDaysInclusive(
-    startDate,
-    endDate,
-    holidays
-  );
+  const workingDays = calculateWorkingDaysInclusive(startDate, endDate, holidays);
 
   // Simple, single format:
   const weeks = Math.round(workingDays / 5);
@@ -100,6 +93,7 @@ export const formatDuration = (
 ```
 
 **Remove:**
+
 - Calendar days in parentheses
 - Multiple format separators (•)
 - Redundant "83d" + "114 days"
@@ -118,6 +112,7 @@ export const formatDuration = (
 **Location:** Mission Control dashboard
 
 **Fix:**
+
 ```typescript
 // File: src/components/gantt-tool/MissionControl.tsx (or similar)
 
@@ -135,7 +130,7 @@ const calculateScheduleProgress = (
     return {
       daysPassed: 0,
       totalDays: calculateBusinessDays(start, end),
-      percentage: 0
+      percentage: 0,
     };
   }
 
@@ -145,7 +140,7 @@ const calculateScheduleProgress = (
     return {
       daysPassed: totalDays,
       totalDays,
-      percentage: 100
+      percentage: 100,
     };
   }
 
@@ -159,6 +154,7 @@ const calculateScheduleProgress = (
 ```
 
 **Display:**
+
 - If not started: "Not started (0 of 314 days)"
 - If in progress: "58 of 314 days (18.5%)"
 - If complete: "314 of 314 days (100%)"
@@ -175,17 +171,18 @@ const calculateScheduleProgress = (
 **Location:** Mission Control, Resource Control, Cost Analytics
 
 **Fix:**
+
 ```typescript
 // File: src/lib/gantt-tool/demo-data.ts
 
 export const generateRealisticMetrics = (project: GanttProject) => {
   const phases = project.phases || [];
-  const tasks = phases.flatMap(p => p.tasks || []);
+  const tasks = phases.flatMap((p) => p.tasks || []);
 
   // Calculate based on actual data
   const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.progress === 100).length;
-  const inProgressTasks = tasks.filter(t => t.progress > 0 && t.progress < 100).length;
+  const completedTasks = tasks.filter((t) => t.progress === 100).length;
+  const inProgressTasks = tasks.filter((t) => t.progress > 0 && t.progress < 100).length;
 
   // Budget calculations
   const estimatedBudget = 1000000; // $1M default
@@ -209,12 +206,11 @@ export const generateRealisticMetrics = (project: GanttProject) => {
   const resourceUtilization = (assignedResources / totalResources) * 100;
 
   // Project health (weighted average)
-  const projectHealth = (
-    (Math.min(budgetUtilization, 100) * 0.25) +
-    (scheduleProgress * 0.30) +
-    (taskCompletion * 0.30) +
-    (resourceUtilization * 0.15)
-  );
+  const projectHealth =
+    Math.min(budgetUtilization, 100) * 0.25 +
+    scheduleProgress * 0.3 +
+    taskCompletion * 0.3 +
+    resourceUtilization * 0.15;
 
   return {
     budgetUtilization: formatPercentage(budgetUtilization / 100, 1),
@@ -230,16 +226,16 @@ export const generateRealisticMetrics = (project: GanttProject) => {
     assignedResources,
     totalResources,
     projectHealth: Math.round(projectHealth),
-    projectHealthLabel: getHealthLabel(projectHealth)
+    projectHealthLabel: getHealthLabel(projectHealth),
   };
 };
 
 const getHealthLabel = (score: number): string => {
-  if (score >= 90) return 'Excellent';
-  if (score >= 75) return 'Good';
-  if (score >= 60) return 'Fair';
-  if (score >= 40) return 'At Risk';
-  return 'Critical';
+  if (score >= 90) return "Excellent";
+  if (score >= 75) return "Good";
+  if (score >= 60) return "Fair";
+  if (score >= 40) return "At Risk";
+  return "Critical";
 };
 ```
 
@@ -257,6 +253,7 @@ const getHealthLabel = (score: number): string => {
 **Fix:** (Included in Priority 4 above)
 
 **Add tooltip showing breakdown:**
+
 ```typescript
 <Tooltip title={
   <div>
@@ -291,16 +288,19 @@ const getHealthLabel = (score: number): string => {
 **Target:** 4 status types
 
 **Remove:**
+
 - "Blocked/Overdue" - Use red indicator badge instead
 - "On Hold/Paused" - Rare edge case, use icon instead
 
 **Keep:**
+
 - Not Started (Gray #9CA3AF)
 - In Progress (Blue #3B82F6)
 - At Risk (Amber #F59E0B)
 - Complete (Green #10B981)
 
 **Update legend component:**
+
 ```typescript
 const STATUS_TYPES = [
   { label: 'Not Started', color: '#9CA3AF' },
@@ -331,6 +331,7 @@ const STATUS_TYPES = [
 ### Priority 7: Remove Visual Redundancies
 
 **Remove:**
+
 1. "4wk" duration badges from timeline bars
 2. "Active" status badges (show only exceptions)
 3. Month labels ("Feb", "Mar", "Apr") from Gantt bars
@@ -429,6 +430,7 @@ const getConflictPriority = (resource) => {
 ## WEEK 3: USER EXPERIENCE (MEDIUM PRIORITY)
 
 ### Priority 11: Enhanced Tooltips
+
 - Show calculation breakdowns
 - Explain metrics on hover
 - Add contextual help
@@ -438,6 +440,7 @@ const getConflictPriority = (resource) => {
 ---
 
 ### Priority 12: Empty State Improvements
+
 - Add specific guidance
 - Show example structures
 - Provide templates
@@ -448,6 +451,7 @@ const getConflictPriority = (resource) => {
 ---
 
 ### Priority 13: Search and Filter
+
 - Add search bars to list views
 - Filter by status/category/role
 - Sort options
@@ -457,6 +461,7 @@ const getConflictPriority = (resource) => {
 ---
 
 ### Priority 14: Responsive Timeline Labels
+
 - Show actual date ranges
 - Week 1 → "Feb 2-8"
 - Clearer context
@@ -466,6 +471,7 @@ const getConflictPriority = (resource) => {
 ---
 
 ### Priority 15: Capacity Context
+
 - Show assignments with capacity
 - "18 tasks (90% capacity)"
 - Visual indicators
@@ -481,11 +487,13 @@ const getConflictPriority = (resource) => {
 ## IMPLEMENTATION STRATEGY
 
 ### Phase 1: Create Utilities (Day 1)
+
 1. `src/lib/gantt-tool/formatters.ts` - formatPercentage, formatDuration, formatCurrency
 2. `src/lib/gantt-tool/demo-data.ts` - generateRealisticMetrics
 3. `src/lib/gantt-tool/health-calculator.ts` - calculateProjectHealth
 
 ### Phase 2: Fix Critical Bugs (Days 2-3)
+
 1. Apply formatPercentage everywhere
 2. Simplify duration displays
 3. Fix negative days calculation
@@ -493,6 +501,7 @@ const getConflictPriority = (resource) => {
 5. Fix project health calculation
 
 ### Phase 3: Visual System (Days 4-5)
+
 1. Simplify status legend to 4 types
 2. Remove visual redundancies
 3. Fix category color system
@@ -500,6 +509,7 @@ const getConflictPriority = (resource) => {
 5. Prioritize conflict badges
 
 ### Phase 4: Test & Validate (Day 6-7)
+
 1. Manual QA all fixes
 2. Check for regressions
 3. Verify calculations
@@ -511,6 +521,7 @@ const getConflictPriority = (resource) => {
 ## SUCCESS CRITERIA
 
 **Week 1 Complete When:**
+
 - ✅ No floating point display errors anywhere
 - ✅ All durations show single format (weeks or months)
 - ✅ No negative day counts
@@ -518,6 +529,7 @@ const getConflictPriority = (resource) => {
 - ✅ Project health calculation is transparent and accurate
 
 **Week 2 Complete When:**
+
 - ✅ Status legend has 4 types, positioned top-right
 - ✅ No redundant badges or labels
 - ✅ Categories use icons, not colors
@@ -525,6 +537,7 @@ const getConflictPriority = (resource) => {
 - ✅ Conflict badges only on priority issues
 
 **Week 3 Complete When:**
+
 - ✅ All metrics have explanatory tooltips
 - ✅ Empty states guide users clearly
 - ✅ Search/filter works on all list views
@@ -563,4 +576,5 @@ We will NOT ship Week 3 until Week 2 is 100% complete.
 ---
 
 **"This is not about perfection. This is about professional competence."**
+
 - Tim Cook (probably)

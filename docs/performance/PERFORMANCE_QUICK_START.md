@@ -18,6 +18,7 @@ These optimizations are **working right now**:
 ### 1. Enable Redis Caching (Biggest Impact!)
 
 **Add to `.env.local`:**
+
 ```env
 UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your-token
@@ -37,9 +38,10 @@ npm run test:performance
 ### 3. Check Results
 
 Open browser console and run:
+
 ```javascript
 // Import benchmarks
-import { runAllBenchmarks } from '@/lib/performance/benchmarks';
+import { runAllBenchmarks } from "@/lib/performance/benchmarks";
 
 // Run tests
 const results = await runAllBenchmarks();
@@ -79,7 +81,7 @@ npm install @duckdb/duckdb-wasm
 ### Check Cache Hit Rate
 
 ```typescript
-import { cache } from '@/lib/cache/redis-cache';
+import { cache } from "@/lib/cache/redis-cache";
 
 // Get statistics
 const stats = cache.getStats();
@@ -90,7 +92,7 @@ console.log(stats);
 ### Check Database Performance
 
 ```typescript
-import { getQueryStats } from '@/lib/db';
+import { getQueryStats } from "@/lib/db";
 
 const stats = getQueryStats();
 console.log(stats);
@@ -108,6 +110,7 @@ curl -w "\nTime: %{time_total}s\n" http://localhost:3000/api/l3-catalog
 ```
 
 **Expected:**
+
 - First: ~200ms
 - Second: ~5ms (40x faster!)
 
@@ -149,14 +152,14 @@ import { GanttCanvas, GanttSidePanel } from '@/lib/code-splitting';
 
 After setup, you should see:
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| L3 Catalog API (cached) | 200ms | 5ms | **40x faster** |
-| Formula calculation | 1ms | 0.05ms | **20x faster** |
-| Dashboard queries | 500ms | 10ms | **50x faster** |
-| Large list scrolling | Janky | 60fps | **Instant** |
-| Initial load | 3s | 800ms | **4x faster** |
-| Repeat visits | 2s | 100ms | **20x faster** |
+| Metric                  | Before | After  | Improvement    |
+| ----------------------- | ------ | ------ | -------------- |
+| L3 Catalog API (cached) | 200ms  | 5ms    | **40x faster** |
+| Formula calculation     | 1ms    | 0.05ms | **20x faster** |
+| Dashboard queries       | 500ms  | 10ms   | **50x faster** |
+| Large list scrolling    | Janky  | 60fps  | **Instant**    |
+| Initial load            | 3s     | 800ms  | **4x faster**  |
+| Repeat visits           | 2s     | 100ms  | **20x faster** |
 
 ---
 

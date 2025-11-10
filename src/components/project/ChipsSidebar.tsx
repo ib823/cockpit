@@ -69,10 +69,7 @@ function ChipCard({ chip, onRemove }: { chip: Chip; onRemove: () => void }) {
             </div>
           </div>
         </div>
-        <button
-          onClick={onRemove}
-          className="  text-gray-400 hover:text-red-600 transition-all"
-        >
+        <button onClick={onRemove} className="  text-gray-400 hover:text-red-600 transition-all">
           ×
         </button>
       </div>

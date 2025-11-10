@@ -4,10 +4,24 @@
  * Allows users to configure export settings for optimized, consistent Gantt chart snapshots
  */
 
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Modal, Tabs, Select, Slider, Switch, Button, Checkbox, Input, Row, Col, Card, Space, Typography } from 'antd';
+import React, { useState } from "react";
+import {
+  Modal,
+  Tabs,
+  Select,
+  Slider,
+  Switch,
+  Button,
+  Checkbox,
+  Input,
+  Row,
+  Col,
+  Card,
+  Space,
+  Typography,
+} from "antd";
 import type {
   GanttProject,
   EnhancedExportConfig,
@@ -16,8 +30,8 @@ import type {
   DEFAULT_EXPORT_CONFIG,
   EXPORT_SIZE_PRESETS,
   EXPORT_QUALITY_SETTINGS,
-} from '@/types/gantt-tool';
-import { exportGanttEnhanced } from '@/lib/gantt-tool/export-utils';
+} from "@/types/gantt-tool";
+import { exportGanttEnhanced } from "@/lib/gantt-tool/export-utils";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -29,13 +43,17 @@ interface ExportConfigModalProps {
 
 export default function ExportConfigModal({ visible, onClose, project }: ExportConfigModalProps) {
   // Import constants
-  const [exportSizePresets, setExportSizePresets] = useState<typeof EXPORT_SIZE_PRESETS | null>(null);
-  const [exportQualitySettings, setExportQualitySettings] = useState<typeof EXPORT_QUALITY_SETTINGS | null>(null);
+  const [exportSizePresets, setExportSizePresets] = useState<typeof EXPORT_SIZE_PRESETS | null>(
+    null
+  );
+  const [exportQualitySettings, setExportQualitySettings] = useState<
+    typeof EXPORT_QUALITY_SETTINGS | null
+  >(null);
   const [defaultConfig, setDefaultConfig] = useState<typeof DEFAULT_EXPORT_CONFIG | null>(null);
 
   // Load constants on mount
   React.useEffect(() => {
-    import('@/types/gantt-tool').then((module) => {
+    import("@/types/gantt-tool").then((module) => {
       setExportSizePresets(module.EXPORT_SIZE_PRESETS);
       setExportQualitySettings(module.EXPORT_QUALITY_SETTINGS);
       setDefaultConfig(module.DEFAULT_EXPORT_CONFIG);
@@ -44,10 +62,10 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
 
   // Configuration state
   const [config, setConfig] = useState<EnhancedExportConfig>({
-    format: 'png',
-    quality: 'high',
-    sizePreset: 'presentation',
-    exportScope: 'all',
+    format: "png",
+    quality: "high",
+    sizePreset: "presentation",
+    exportScope: "all",
     contentOptions: {
       hideUIControls: true,
       hidePhaseNames: false,
@@ -63,7 +81,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
       bottom: 40,
       left: 40,
     },
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     transparentBackground: false,
   });
 
@@ -75,14 +93,14 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
     setConfig((prev) => ({ ...prev, ...updates }));
   };
 
-  const updateContentOptions = (updates: Partial<EnhancedExportConfig['contentOptions']>) => {
+  const updateContentOptions = (updates: Partial<EnhancedExportConfig["contentOptions"]>) => {
     setConfig((prev) => ({
       ...prev,
       contentOptions: { ...prev.contentOptions, ...updates },
     }));
   };
 
-  const updatePadding = (updates: Partial<EnhancedExportConfig['padding']>) => {
+  const updatePadding = (updates: Partial<EnhancedExportConfig["padding"]>) => {
     setConfig((prev) => ({
       ...prev,
       padding: { ...prev.padding, ...updates },
@@ -95,12 +113,12 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
     try {
       const exportConfig: EnhancedExportConfig = {
         ...config,
-        selectedPhaseIds: config.exportScope === 'selected-phases' ? selectedPhases : undefined,
+        selectedPhaseIds: config.exportScope === "selected-phases" ? selectedPhases : undefined,
       };
       await exportGanttEnhanced(project, exportConfig);
       onClose();
     } catch (error) {
-      console.error('Export failed:', error);
+      console.error("Export failed:", error);
     } finally {
       setIsExporting(false);
     }
@@ -138,21 +156,21 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
         defaultActiveKey="format"
         items={[
           {
-            key: 'format',
-            label: 'Format & Size',
+            key: "format",
+            label: "Format & Size",
             children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="large">
+              <Space direction="vertical" style={{ width: "100%" }} size="large">
                 {/* Format Selection */}
                 <div>
                   <Text strong>Export Format</Text>
                   <Select
                     value={config.format}
                     onChange={(value) => updateConfig({ format: value })}
-                    style={{ width: '100%', marginTop: 8 }}
+                    style={{ width: "100%", marginTop: 8 }}
                     options={[
-                      { value: 'png', label: 'PNG Image (Recommended)' },
-                      { value: 'pdf', label: 'PDF Document' },
-                      { value: 'svg', label: 'SVG Vector (Coming Soon)', disabled: true },
+                      { value: "png", label: "PNG Image (Recommended)" },
+                      { value: "pdf", label: "PDF Document" },
+                      { value: "svg", label: "SVG Vector (Coming Soon)", disabled: true },
                     ]}
                   />
                 </div>
@@ -163,7 +181,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                   <Select
                     value={config.quality}
                     onChange={(value) => updateConfig({ quality: value })}
-                    style={{ width: '100%', marginTop: 8 }}
+                    style={{ width: "100%", marginTop: 8 }}
                   >
                     {Object.entries(exportQualitySettings).map(([key, value]) => (
                       <Select.Option key={key} value={key}>
@@ -182,7 +200,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                   <Select
                     value={config.sizePreset}
                     onChange={(value) => updateConfig({ sizePreset: value })}
-                    style={{ width: '100%' }}
+                    style={{ width: "100%" }}
                   >
                     {Object.entries(exportSizePresets).map(([key, value]) => (
                       <Select.Option key={key} value={key}>
@@ -193,14 +211,16 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                 </div>
 
                 {/* Custom Dimensions */}
-                {config.sizePreset === 'custom' && (
+                {config.sizePreset === "custom" && (
                   <Row gutter={16}>
                     <Col span={12}>
                       <Text strong>Width (px)</Text>
                       <Input
                         type="number"
                         value={config.customWidth || exportSizePresets.custom.width}
-                        onChange={(e) => updateConfig({ customWidth: parseInt(e.target.value, 10) })}
+                        onChange={(e) =>
+                          updateConfig({ customWidth: parseInt(e.target.value, 10) })
+                        }
                         style={{ marginTop: 8 }}
                       />
                     </Col>
@@ -209,7 +229,9 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                       <Input
                         type="number"
                         value={config.customHeight || exportSizePresets.custom.height}
-                        onChange={(e) => updateConfig({ customHeight: parseInt(e.target.value, 10) })}
+                        onChange={(e) =>
+                          updateConfig({ customHeight: parseInt(e.target.value, 10) })
+                        }
                         style={{ marginTop: 8 }}
                       />
                     </Col>
@@ -219,24 +241,24 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
             ),
           },
           {
-            key: 'content',
-            label: 'Content',
+            key: "content",
+            label: "Content",
             children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="large">
+              <Space direction="vertical" style={{ width: "100%" }} size="large">
                 {/* Phase Selection */}
                 <Card size="small" title="Phase Selection">
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
                     <Select
                       value={config.exportScope}
                       onChange={(value) => updateConfig({ exportScope: value })}
-                      style={{ width: '100%' }}
+                      style={{ width: "100%" }}
                       options={[
-                        { value: 'all', label: 'Export All Phases' },
-                        { value: 'selected-phases', label: 'Export Selected Phases Only' },
+                        { value: "all", label: "Export All Phases" },
+                        { value: "selected-phases", label: "Export Selected Phases Only" },
                       ]}
                     />
 
-                    {config.exportScope === 'selected-phases' && (
+                    {config.exportScope === "selected-phases" && (
                       <div style={{ marginTop: 16 }}>
                         <Text strong>Select Phases:</Text>
                         <div style={{ marginTop: 8 }}>
@@ -248,13 +270,15 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                                   if (e.target.checked) {
                                     setSelectedPhases([...selectedPhases, phase.id]);
                                   } else {
-                                    setSelectedPhases(selectedPhases.filter((id) => id !== phase.id));
+                                    setSelectedPhases(
+                                      selectedPhases.filter((id) => id !== phase.id)
+                                    );
                                   }
                                 }}
                               >
                                 <span
                                   style={{
-                                    display: 'inline-block',
+                                    display: "inline-block",
                                     width: 12,
                                     height: 12,
                                     backgroundColor: phase.color,
@@ -274,7 +298,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
 
                 {/* Content Options */}
                 <Card size="small" title="Content Options">
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
                     <Switch
                       checked={config.contentOptions.hideUIControls}
                       onChange={(checked) => updateContentOptions({ hideUIControls: checked })}
@@ -313,7 +337,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
 
                 {/* Additional Elements */}
                 <Card size="small" title="Additional Elements">
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
                     <Switch
                       checked={config.contentOptions.includeHeader}
                       onChange={(checked) => updateContentOptions({ includeHeader: checked })}
@@ -349,10 +373,10 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
             ),
           },
           {
-            key: 'style',
-            label: 'Style',
+            key: "style",
+            label: "Style",
             children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="large">
+              <Space direction="vertical" style={{ width: "100%" }} size="large">
                 {/* Background */}
                 <div>
                   <Text strong>Background</Text>
@@ -380,7 +404,7 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
 
                 {/* Padding */}
                 <Card size="small" title="Padding">
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
                     <div>
                       <Text>Top: {config.padding.top}px</Text>
                       <Slider
@@ -423,13 +447,13 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
             ),
           },
           {
-            key: 'preview',
-            label: 'Summary',
+            key: "preview",
+            label: "Summary",
             children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="large">
+              <Space direction="vertical" style={{ width: "100%" }} size="large">
                 <Card>
                   <Title level={5}>Export Summary</Title>
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
                     <Text>
                       <strong>Format:</strong> {config.format.toUpperCase()}
                     </Text>
@@ -440,34 +464,34 @@ export default function ExportConfigModal({ visible, onClose, project }: ExportC
                       <strong>Size:</strong> {exportSizePresets[config.sizePreset].description}
                     </Text>
                     <Text>
-                      <strong>Dimensions:</strong>{' '}
-                      {config.sizePreset === 'custom' && config.customWidth && config.customHeight
+                      <strong>Dimensions:</strong>{" "}
+                      {config.sizePreset === "custom" && config.customWidth && config.customHeight
                         ? `${config.customWidth}x${config.customHeight}px`
                         : `${exportSizePresets[config.sizePreset].width}x${exportSizePresets[config.sizePreset].height}px`}
                     </Text>
                     <Text>
-                      <strong>Phases:</strong>{' '}
-                      {config.exportScope === 'all'
+                      <strong>Phases:</strong>{" "}
+                      {config.exportScope === "all"
                         ? `All phases (${project.phases.length})`
                         : `${selectedPhases.length} selected phases`}
                     </Text>
                     <Text>
-                      <strong>Header:</strong> {config.contentOptions.includeHeader ? 'Yes' : 'No'}
+                      <strong>Header:</strong> {config.contentOptions.includeHeader ? "Yes" : "No"}
                     </Text>
                     <Text>
-                      <strong>Footer:</strong> {config.contentOptions.includeFooter ? 'Yes' : 'No'}
+                      <strong>Footer:</strong> {config.contentOptions.includeFooter ? "Yes" : "No"}
                     </Text>
                     <Text>
-                      <strong>Legend:</strong> {config.contentOptions.includeLegend ? 'Yes' : 'No'}
+                      <strong>Legend:</strong> {config.contentOptions.includeLegend ? "Yes" : "No"}
                     </Text>
                   </Space>
                 </Card>
 
                 <Card type="inner">
                   <Paragraph>
-                    All exports will use consistent sizing and formatting for professional presentations.
-                    The snapshot will focus on the timeline and bars, optimized for PowerPoint, Word, and
-                    other documents.
+                    All exports will use consistent sizing and formatting for professional
+                    presentations. The snapshot will focus on the timeline and bars, optimized for
+                    PowerPoint, Word, and other documents.
                   </Paragraph>
                 </Card>
               </Space>

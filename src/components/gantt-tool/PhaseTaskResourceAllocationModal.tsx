@@ -11,20 +11,11 @@
  * - One-click assign with instant preview
  */
 
-'use client';
+"use client";
 
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { useState, useMemo, useEffect } from 'react';
-import {
-  X,
-  Users,
-  ChevronDown,
-  ChevronRight,
-  Plus,
-  Trash2,
-  Calendar,
-  Clock,
-} from 'lucide-react';
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { useState, useMemo, useEffect } from "react";
+import { X, Users, ChevronDown, ChevronRight, Plus, Trash2, Calendar, Clock } from "lucide-react";
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_DESIGNATIONS,
@@ -32,11 +23,11 @@ import {
   canAssignToTask,
   type Resource,
   type ResourceCategory,
-} from '@/types/gantt-tool';
+} from "@/types/gantt-tool";
 
 interface Props {
   itemId: string;
-  itemType: 'phase' | 'task';
+  itemType: "phase" | "task";
   onClose: () => void;
 }
 
@@ -54,7 +45,12 @@ function AssignedResourceCard({
   onAllocate,
   onRemove,
 }: {
-  assignment: { resourceId: string; allocationPercentage: number; assignmentNotes: string; assignmentId?: string };
+  assignment: {
+    resourceId: string;
+    allocationPercentage: number;
+    assignmentNotes: string;
+    assignmentId?: string;
+  };
   resource: Resource;
   category: { label: string; color: string; icon: string };
   onAllocate: (resourceId: string, percentage: number, notes?: string) => void;
@@ -114,7 +110,7 @@ function AssignedResourceCard({
           }}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
           style={{
-            background: `linear-gradient(to right, #2563eb 0%, #2563eb ${localPercentage}%, #e5e7eb ${localPercentage}%, #e5e7eb 100%)`
+            background: `linear-gradient(to right, #2563eb 0%, #2563eb ${localPercentage}%, #e5e7eb ${localPercentage}%, #e5e7eb 100%)`,
           }}
         />
       </div>
@@ -149,12 +145,12 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
   useEffect(() => {
     // Prevent body scroll while modal is open
     const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
 
     return () => {
       // Restore original styles on unmount
       document.body.style.overflow = originalOverflow;
-      document.body.style.pointerEvents = '';
+      document.body.style.pointerEvents = "";
     };
   }, []);
 
@@ -162,12 +158,12 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
   const item = useMemo(() => {
     if (!currentProject) return null;
 
-    if (itemType === 'phase') {
-      return currentProject.phases.find(p => p.id === itemId);
+    if (itemType === "phase") {
+      return currentProject.phases.find((p) => p.id === itemId);
     } else {
       // Find task across all phases
       for (const phase of currentProject.phases) {
-        const task = phase.tasks.find(t => t.id === itemId);
+        const task = phase.tasks.find((t) => t.id === itemId);
         if (task) {
           return { ...task, phaseId: phase.id, phaseName: phase.name };
         }
@@ -180,15 +176,15 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
   const currentAssignments = useMemo(() => {
     if (!item) return [];
 
-    if (itemType === 'phase' && 'phaseResourceAssignments' in item) {
-      return (item.phaseResourceAssignments || []).map(a => ({
+    if (itemType === "phase" && "phaseResourceAssignments" in item) {
+      return (item.phaseResourceAssignments || []).map((a) => ({
         resourceId: a.resourceId,
         allocationPercentage: a.allocationPercentage,
         assignmentNotes: a.assignmentNotes,
         assignmentId: a.id,
       }));
-    } else if (itemType === 'task' && 'resourceAssignments' in item) {
-      return (item.resourceAssignments || []).map(a => ({
+    } else if (itemType === "task" && "resourceAssignments" in item) {
+      return (item.resourceAssignments || []).map((a) => ({
         resourceId: a.resourceId,
         allocationPercentage: a.allocationPercentage,
         assignmentNotes: a.assignmentNotes,
@@ -218,7 +214,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       other: [],
     };
 
-    (currentProject.resources || []).forEach(resource => {
+    (currentProject.resources || []).forEach((resource) => {
       // Safeguard: only push if category exists in grouped object
       if (resource.category && grouped[resource.category]) {
         grouped[resource.category].push(resource);
@@ -234,16 +230,18 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
 
   // Check if resource is already assigned
   const isAssigned = (resourceId: string) => {
-    return currentAssignments.some(a => a.resourceId === resourceId) ||
-           pendingAllocations.some(a => a.resourceId === resourceId);
+    return (
+      currentAssignments.some((a) => a.resourceId === resourceId) ||
+      pendingAllocations.some((a) => a.resourceId === resourceId)
+    );
   };
 
   // Get current allocation for resource
   const getCurrentAllocation = (resourceId: string): number => {
-    const current = currentAssignments.find(a => a.resourceId === resourceId);
+    const current = currentAssignments.find((a) => a.resourceId === resourceId);
     if (current) return current.allocationPercentage;
 
-    const pending = pendingAllocations.find(a => a.resourceId === resourceId);
+    const pending = pendingAllocations.find((a) => a.resourceId === resourceId);
     if (pending) return pending.allocationPercentage;
 
     return 80; // Default
@@ -251,33 +249,37 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
 
   // Get current notes for resource
   const getCurrentNotes = (resourceId: string): string => {
-    const current = currentAssignments.find(a => a.resourceId === resourceId);
+    const current = currentAssignments.find((a) => a.resourceId === resourceId);
     if (current) return current.assignmentNotes;
 
-    const pending = pendingAllocations.find(a => a.resourceId === resourceId);
+    const pending = pendingAllocations.find((a) => a.resourceId === resourceId);
     if (pending) return pending.assignmentNotes;
 
-    return '';
+    return "";
   };
 
   // Handle adding/updating allocation
   const handleAllocate = (resourceId: string, percentage: number, notes?: string) => {
-    const resource = currentProject?.resources.find(r => r.id === resourceId);
+    const resource = currentProject?.resources.find((r) => r.id === resourceId);
     if (!resource) return;
 
     // Check if resource can be assigned to phase
-    if (itemType === 'phase' && !canAssignToPhase(resource)) {
-      alert(`This resource cannot be assigned at the phase level.\n\n${resource.name} is configured for ${resource.assignmentLevel === 'task' ? 'task-level assignments only' : 'assignments'}.\n\nTo enable phase-level assignment, edit the resource and change its "Assignment Level" setting to "Phase" or "Both".`);
+    if (itemType === "phase" && !canAssignToPhase(resource)) {
+      alert(
+        `This resource cannot be assigned at the phase level.\n\n${resource.name} is configured for ${resource.assignmentLevel === "task" ? "task-level assignments only" : "assignments"}.\n\nTo enable phase-level assignment, edit the resource and change its "Assignment Level" setting to "Phase" or "Both".`
+      );
       return;
     }
 
     // Check if resource can be assigned to task
-    if (itemType === 'task' && !canAssignToTask(resource)) {
-      alert(`This resource cannot be assigned at the task level.\n\n${resource.name} is configured for ${resource.assignmentLevel === 'phase' ? 'phase-level assignments only' : 'assignments'}.\n\nTo enable task-level assignment, edit the resource and change its "Assignment Level" setting to "Task" or "Both".`);
+    if (itemType === "task" && !canAssignToTask(resource)) {
+      alert(
+        `This resource cannot be assigned at the task level.\n\n${resource.name} is configured for ${resource.assignmentLevel === "phase" ? "phase-level assignments only" : "assignments"}.\n\nTo enable task-level assignment, edit the resource and change its "Assignment Level" setting to "Task" or "Both".`
+      );
       return;
     }
 
-    const existingIndex = currentAssignments.findIndex(a => a.resourceId === resourceId);
+    const existingIndex = currentAssignments.findIndex((a) => a.resourceId === resourceId);
     const designation = RESOURCE_DESIGNATIONS[resource.designation];
 
     if (existingIndex >= 0) {
@@ -285,19 +287,27 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       const assignment = currentAssignments[existingIndex];
       const finalNotes = notes !== undefined ? notes : assignment.assignmentNotes;
 
-      if (itemType === 'phase') {
+      if (itemType === "phase") {
         updatePhaseResourceAssignment(itemId, assignment.assignmentId, finalNotes, percentage);
       } else {
         const task = item as any;
-        updateTaskResourceAssignment(itemId, task.phaseId, assignment.assignmentId, finalNotes, percentage);
+        updateTaskResourceAssignment(
+          itemId,
+          task.phaseId,
+          assignment.assignmentId,
+          finalNotes,
+          percentage
+        );
       }
     } else {
       // New assignment
-      const smartNotes = notes || (itemType === 'phase'
-        ? `${designation} overseeing ${item?.name}`
-        : `${designation} assigned to ${item?.name}`);
+      const smartNotes =
+        notes ||
+        (itemType === "phase"
+          ? `${designation} overseeing ${item?.name}`
+          : `${designation} assigned to ${item?.name}`);
 
-      if (itemType === 'phase') {
+      if (itemType === "phase") {
         assignResourceToPhase(itemId, resourceId, smartNotes, percentage);
       } else {
         const task = item as any;
@@ -308,18 +318,18 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
 
   // Handle removing allocation
   const handleRemove = (resourceId: string) => {
-    const assignment = currentAssignments.find(a => a.resourceId === resourceId);
+    const assignment = currentAssignments.find((a) => a.resourceId === resourceId);
     if (!assignment) {
       // Remove from pending
-      setPendingAllocations(prev => prev.filter(a => a.resourceId !== resourceId));
+      setPendingAllocations((prev) => prev.filter((a) => a.resourceId !== resourceId));
       return;
     }
 
-    const resource = currentProject?.resources.find(r => r.id === resourceId);
+    const resource = currentProject?.resources.find((r) => r.id === resourceId);
     if (!resource) return;
 
     if (confirm(`Remove ${resource.name} from this ${itemType}?`)) {
-      if (itemType === 'phase') {
+      if (itemType === "phase") {
         unassignResourceFromPhase(itemId, assignment.assignmentId);
       } else {
         const task = item as any;
@@ -330,7 +340,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
 
   // Toggle category collapse
   const toggleCategory = (category: ResourceCategory) => {
-    setCollapsedCategories(prev => {
+    setCollapsedCategories((prev) => {
       const next = new Set(prev);
       if (next.has(category)) {
         next.delete(category);
@@ -360,12 +370,10 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
               <div className="flex-1 min-w-0">
                 <h2 className="text-xl font-bold text-gray-900">Resource Allocation</h2>
                 <p className="text-sm text-gray-600 mt-0.5 truncate">
-                  {itemType === 'phase' ? '📊 Phase:' : '✓ Task:'} {item.name}
+                  {itemType === "phase" ? "📊 Phase:" : "✓ Task:"} {item.name}
                 </p>
-                {itemType === 'task' && 'phaseName' in item && (
-                  <p className="text-xs text-gray-500">
-                    Phase: {item.phaseName}
-                  </p>
+                {itemType === "task" && "phaseName" in item && (
+                  <p className="text-xs text-gray-500">Phase: {item.phaseName}</p>
                 )}
               </div>
             </div>
@@ -378,11 +386,12 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
           </div>
 
           {/* Info Banner */}
-          {itemType === 'phase' && (
+          {itemType === "phase" && (
             <div className="px-6 py-3 bg-blue-50 border-b border-blue-100">
               <p className="text-sm text-blue-900 flex items-center gap-2">
                 <span className="font-semibold">ℹ️ Phase-Level Assignment:</span>
-                Only resources configured for "Phase" or "Both" assignment levels can be assigned here.
+                Only resources configured for "Phase" or "Both" assignment levels can be assigned
+                here.
               </p>
             </div>
           )}
@@ -396,7 +405,9 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
               </h3>
               <div className="space-y-2">
                 {currentAssignments.map((assignment) => {
-                  const resource = currentProject.resources.find(r => r.id === assignment.resourceId);
+                  const resource = currentProject.resources.find(
+                    (r) => r.id === assignment.resourceId
+                  );
                   if (!resource) return null;
 
                   const category = RESOURCE_CATEGORIES[resource.category];
@@ -427,9 +438,9 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
               {Object.entries(resourcesByCategory).map(([categoryKey, resources]) => {
                 const category = RESOURCE_CATEGORIES[categoryKey as ResourceCategory];
                 const isCollapsed = collapsedCategories.has(categoryKey as ResourceCategory);
-                const availableResources = (resources as Resource[]).filter(r => {
+                const availableResources = (resources as Resource[]).filter((r) => {
                   // Filter by assignment level
-                  if (itemType === 'phase') {
+                  if (itemType === "phase") {
                     return canAssignToPhase(r) && !isAssigned(r.id);
                   }
                   return canAssignToTask(r) && !isAssigned(r.id);
@@ -438,14 +449,21 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
                 if (availableResources.length === 0) return null;
 
                 return (
-                  <div key={categoryKey} className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div
+                    key={categoryKey}
+                    className="border border-gray-200 rounded-lg overflow-hidden"
+                  >
                     {/* Category Header */}
                     <button
                       onClick={() => toggleCategory(categoryKey as ResourceCategory)}
                       className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {isCollapsed ? (
+                          <ChevronRight className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
                         <span className="text-lg">{category.icon}</span>
                         <span className="font-semibold text-sm" style={{ color: category.color }}>
                           {category.label}
@@ -459,18 +477,24 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
                     {/* Resources List */}
                     {!isCollapsed && (
                       <div className="p-3 space-y-2 bg-white">
-                        {availableResources.map(resource => (
+                        {availableResources.map((resource) => (
                           <div
                             key={resource.id}
                             className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all"
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex-1">
-                                <h4 className="font-semibold text-sm text-gray-900">{resource.name}</h4>
-                                <p className="text-xs text-gray-500">{RESOURCE_DESIGNATIONS[resource.designation]}</p>
+                                <h4 className="font-semibold text-sm text-gray-900">
+                                  {resource.name}
+                                </h4>
+                                <p className="text-xs text-gray-500">
+                                  {RESOURCE_DESIGNATIONS[resource.designation]}
+                                </p>
                               </div>
                               <button
-                                onClick={() => handleAllocate(resource.id, itemType === 'phase' ? 20 : 80)}
+                                onClick={() =>
+                                  handleAllocate(resource.id, itemType === "phase" ? 20 : 80)
+                                }
                                 className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
                               >
                                 <Plus className="w-3 h-3" />
@@ -478,7 +502,9 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
                               </button>
                             </div>
                             {resource.description && (
-                              <p className="text-xs text-gray-600 line-clamp-2">{resource.description}</p>
+                              <p className="text-xs text-gray-600 line-clamp-2">
+                                {resource.description}
+                              </p>
                             )}
                           </div>
                         ))}
@@ -490,20 +516,27 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
             </div>
 
             {/* Empty State */}
-            {Object.values(resourcesByCategory).every(resources =>
-              (resources as Resource[]).filter(r => itemType === 'phase' ? canAssignToPhase(r) && !isAssigned(r.id) : canAssignToTask(r) && !isAssigned(r.id)).length === 0
+            {Object.values(resourcesByCategory).every(
+              (resources) =>
+                (resources as Resource[]).filter((r) =>
+                  itemType === "phase"
+                    ? canAssignToPhase(r) && !isAssigned(r.id)
+                    : canAssignToTask(r) && !isAssigned(r.id)
+                ).length === 0
             ) && (
               <div className="text-center py-12">
                 <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {currentAssignments.length > 0 ? 'All resources assigned!' : 'No available resources'}
+                  {currentAssignments.length > 0
+                    ? "All resources assigned!"
+                    : "No available resources"}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  {itemType === 'phase'
-                    ? 'All resources configured for phase-level assignment are already assigned to this phase.'
+                  {itemType === "phase"
+                    ? "All resources configured for phase-level assignment are already assigned to this phase."
                     : currentAssignments.length > 0
-                    ? 'All project resources are assigned. Remove existing assignments or add more resources.'
-                    : 'Add resources to your project first, then assign them here.'}
+                      ? "All project resources are assigned. Remove existing assignments or add more resources."
+                      : "Add resources to your project first, then assign them here."}
                 </p>
               </div>
             )}

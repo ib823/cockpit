@@ -1,22 +1,25 @@
-'use client';
-import { Card, Progress, Row, Col, Tag, Button, Space } from 'antd';
-import { CheckCircleOutlined, ArrowRightOutlined } from '@ant-design/icons';
-import { AppLayout } from '@/components/project-v2/AppLayout';
-import { usePresalesStore } from '@/stores/presales-store';
-import { useRouter } from 'next/navigation';
+"use client";
+import { Card, Progress, Row, Col, Tag, Button, Space } from "antd";
+import { CheckCircleOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import { AppLayout } from "@/components/project-v2/AppLayout";
+import { usePresalesStore } from "@/stores/presales-store";
+import { useRouter } from "next/navigation";
 
 export default function CapturePage() {
   const { chips } = usePresalesStore();
   const router = useRouter();
-  
+
   const progress = Math.min((chips.length / 10) * 100, 100);
-  
-  const chipsByCategory = chips.reduce((acc, chip) => {
-    const category = chip.type || 'Other';
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(chip);
-    return acc;
-  }, {} as Record<string, typeof chips>);
+
+  const chipsByCategory = chips.reduce(
+    (acc, chip) => {
+      const category = chip.type || "Other";
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(chip);
+      return acc;
+    },
+    {} as Record<string, typeof chips>
+  );
 
   return (
     <AppLayout progress={progress}>
@@ -52,7 +55,7 @@ export default function CapturePage() {
                       <span className="font-semibold text-blue-600">{category}:</span>
                       <Tag color="blue">{Math.round((items.length / chips.length) * 100)}%</Tag>
                     </div>
-                    <div className="text-lg">{items.map(i => i.value).join(', ')}</div>
+                    <div className="text-lg">{items.map((i) => i.value).join(", ")}</div>
                   </Space>
                 </Card>
               </Col>
@@ -61,11 +64,11 @@ export default function CapturePage() {
         </Card>
 
         <div className="flex justify-center">
-          <Button 
-            type="primary" 
-            size="large" 
+          <Button
+            type="primary"
+            size="large"
             icon={<ArrowRightOutlined />}
-            onClick={() => router.push('/project/decide')}
+            onClick={() => router.push("/project/decide")}
             className="h-14 px-8 text-lg"
           >
             Continue to Decisions

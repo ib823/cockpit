@@ -33,6 +33,7 @@ cd rust-formula-engine
 ```
 
 This will:
+
 1. Build the Rust code to WASM
 2. Generate TypeScript bindings
 3. Optimize the WASM bundle
@@ -43,7 +44,7 @@ This will:
 ### JavaScript/TypeScript
 
 ```typescript
-import init, { FormulaEngine } from '@/lib/wasm/keystone_formula_engine';
+import init, { FormulaEngine } from "@/lib/wasm/keystone_formula_engine";
 
 // Initialize WASM module (once)
 await init();
@@ -53,9 +54,7 @@ const engine = new FormulaEngine();
 
 // Calculate
 const inputs = {
-  selected_l3_items: [
-    { l3_code: 'M1.1', coefficient: 0.05, default_tier: 'B' },
-  ],
+  selected_l3_items: [{ l3_code: "M1.1", coefficient: 0.05, default_tier: "B" }],
   integrations: 3,
   custom_forms: 15,
   fit_to_standard: 0.85,
@@ -63,7 +62,7 @@ const inputs = {
   countries: 3,
   languages: 2,
   profile: {
-    name: 'S/4HANA Greenfield',
+    name: "S/4HANA Greenfield",
     base_ft: 500,
     basis: 50,
     security_auth: 30,
@@ -92,11 +91,11 @@ console.log(`Calculated ${results.length} scenarios`);
 
 ## Performance Comparison
 
-| Operation | JavaScript | Rust/WASM | Speedup |
-|-----------|-----------|-----------|---------|
-| Single calculation | ~1ms | ~0.05ms | 20x |
-| Batch 100 scenarios | ~100ms | ~2ms | 50x |
-| Batch 1000 scenarios | ~1000ms | ~15ms | 66x |
+| Operation            | JavaScript | Rust/WASM | Speedup |
+| -------------------- | ---------- | --------- | ------- |
+| Single calculation   | ~1ms       | ~0.05ms   | 20x     |
+| Batch 100 scenarios  | ~100ms     | ~2ms      | 50x     |
+| Batch 1000 scenarios | ~1000ms    | ~15ms     | 66x     |
 
 ## Development
 

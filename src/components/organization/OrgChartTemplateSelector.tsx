@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { ORG_CHART_TEMPLATES, type OrgChartTemplate } from '@/lib/gantt-tool/org-chart-templates';
-import { useGanttToolStore } from '@/stores/gantt-tool-store-v2';
+import React, { useState } from "react";
+import { ORG_CHART_TEMPLATES, type OrgChartTemplate } from "@/lib/gantt-tool/org-chart-templates";
+import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 
 interface OrgChartTemplateSelectorProps {
   onClose?: () => void;
@@ -19,9 +19,9 @@ export function OrgChartTemplateSelector({ onClose }: OrgChartTemplateSelectorPr
 
     const confirmed = replaceExisting
       ? window.confirm(
-          'This will replace ALL existing resources with the template. This cannot be undone. Continue?'
+          "This will replace ALL existing resources with the template. This cannot be undone. Continue?"
         )
-      : window.confirm('This will add template resources to your existing org chart. Continue?');
+      : window.confirm("This will add template resources to your existing org chart. Continue?");
 
     if (confirmed) {
       applyOrgChartTemplate(selectedTemplate, replaceExisting);
@@ -50,8 +50,8 @@ export function OrgChartTemplateSelector({ onClose }: OrgChartTemplateSelectorPr
                 onClick={() => setSelectedTemplate(template)}
                 className={`p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
                   selectedTemplate?.id === template.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -64,7 +64,7 @@ export function OrgChartTemplateSelector({ onClose }: OrgChartTemplateSelectorPr
                         {template.resources.length} roles
                       </span>
                       <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded capitalize">
-                        {template.category.replace('-', ' ')}
+                        {template.category.replace("-", " ")}
                       </span>
                     </div>
                   </div>
@@ -87,13 +87,19 @@ export function OrgChartTemplateSelector({ onClose }: OrgChartTemplateSelectorPr
                       className="w-2 h-2 rounded-full"
                       style={{
                         backgroundColor:
-                          resource.category === 'pm' ? '#F59E0B' :
-                          resource.category === 'functional' ? '#3B82F6' :
-                          resource.category === 'technical' ? '#8B5CF6' :
-                          resource.category === 'basis' ? '#10B981' :
-                          resource.category === 'security' ? '#EF4444' :
-                          resource.category === 'change' ? '#EC4899' :
-                          '#64748B'
+                          resource.category === "pm"
+                            ? "#F59E0B"
+                            : resource.category === "functional"
+                              ? "#3B82F6"
+                              : resource.category === "technical"
+                                ? "#8B5CF6"
+                                : resource.category === "basis"
+                                  ? "#10B981"
+                                  : resource.category === "security"
+                                    ? "#EF4444"
+                                    : resource.category === "change"
+                                      ? "#EC4899"
+                                      : "#64748B",
                       }}
                     />
                     <div className="flex-1">
@@ -128,8 +134,8 @@ export function OrgChartTemplateSelector({ onClose }: OrgChartTemplateSelectorPr
                   <div className="font-medium text-gray-900">Replace existing resources</div>
                   <div className="text-sm text-gray-600 mt-1">
                     {replaceExisting
-                      ? 'All existing resources will be removed and replaced with template resources.'
-                      : 'Template resources will be added to your existing org chart (duplicates by name will be skipped).'}
+                      ? "All existing resources will be removed and replaced with template resources."
+                      : "Template resources will be added to your existing org chart (duplicates by name will be skipped)."}
                   </div>
                 </label>
               </div>
@@ -150,8 +156,8 @@ export function OrgChartTemplateSelector({ onClose }: OrgChartTemplateSelectorPr
             disabled={!selectedTemplate}
             className={`px-4 py-2 rounded-lg transition-colors ${
               selectedTemplate
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
             Apply Template

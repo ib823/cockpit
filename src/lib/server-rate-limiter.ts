@@ -3,7 +3,7 @@
 // SECURITY: Prevents brute force attacks on authentication endpoints
 // Fixed: V-002 - OTP Brute Force vulnerability
 
-import { Redis } from '@upstash/redis';
+import { Redis } from "@upstash/redis";
 
 // Try to initialize Redis, fallback to in-memory storage
 let redis: Redis | null = null;
@@ -14,7 +14,10 @@ try {
     redis = new Redis({ url, token });
   }
 } catch (error) {
-  console.warn('[server-rate-limiter] Redis initialization failed, using in-memory fallback:', error);
+  console.warn(
+    "[server-rate-limiter] Redis initialization failed, using in-memory fallback:",
+    error
+  );
   redis = null;
 }
 
@@ -88,7 +91,7 @@ export class ServerRateLimiter {
           retryAfter: success ? undefined : Math.ceil(this.windowMs / 1000),
         };
       } catch (error) {
-        console.error('[server-rate-limiter] Redis error, falling back to in-memory:', error);
+        console.error("[server-rate-limiter] Redis error, falling back to in-memory:", error);
         // Fall through to in-memory implementation
       }
     }
@@ -132,7 +135,7 @@ export class ServerRateLimiter {
         await redis.del(key);
         return;
       } catch (error) {
-        console.error('[server-rate-limiter] Redis reset error:', error);
+        console.error("[server-rate-limiter] Redis reset error:", error);
       }
     }
 
@@ -146,22 +149,22 @@ export class ServerRateLimiter {
  * OTP verification: 5 attempts per 15 minutes per email
  * Prevents brute force attacks on 6-digit OTP codes
  */
-export const otpVerifyLimiter = new ServerRateLimiter('otp-verify', 5, 15 * 60 * 1000);
+export const otpVerifyLimiter = new ServerRateLimiter("otp-verify", 5, 15 * 60 * 1000);
 
 /**
  * OTP sending: 3 attempts per 15 minutes per email
  * Prevents email flooding and DoS attacks
  */
-export const otpSendLimiter = new ServerRateLimiter('otp-send', 3, 15 * 60 * 1000);
+export const otpSendLimiter = new ServerRateLimiter("otp-send", 3, 15 * 60 * 1000);
 
 /**
  * Login attempts: 10 attempts per hour per email
  * Prevents brute force attacks on passwords
  */
-export const loginLimiter = new ServerRateLimiter('login', 10, 60 * 60 * 1000);
+export const loginLimiter = new ServerRateLimiter("login", 10, 60 * 60 * 1000);
 
 /**
  * WebAuthn verification: 10 attempts per 15 minutes per email
  * More lenient than OTP due to device-based authentication
  */
-export const webauthnLimiter = new ServerRateLimiter('webauthn', 10, 15 * 60 * 1000);
+export const webauthnLimiter = new ServerRateLimiter("webauthn", 10, 15 * 60 * 1000);

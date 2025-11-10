@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 /**
  * GET /api/admin/stats
@@ -16,11 +16,8 @@ export async function GET() {
     const session = await getServerSession(authConfig);
 
     // Check admin authorization
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
+    if (!session || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 403 });
     }
 
     // Fetch statistics in parallel for better performance
@@ -31,7 +28,7 @@ export async function GET() {
       // Active projects (APPROVED status)
       prisma.projects.count({
         where: {
-          status: 'APPROVED',
+          status: "APPROVED",
         },
       }),
 
@@ -39,7 +36,7 @@ export async function GET() {
       prisma.projects.count({
         where: {
           status: {
-            in: ['DRAFT', 'IN_REVIEW'],
+            in: ["DRAFT", "IN_REVIEW"],
           },
         },
       }),
@@ -51,10 +48,7 @@ export async function GET() {
       proposals,
     });
   } catch (error) {
-    console.error('[Admin Stats] Error fetching statistics:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch statistics' },
-      { status: 500 }
-    );
+    console.error("[Admin Stats] Error fetching statistics:", error);
+    return NextResponse.json({ error: "Failed to fetch statistics" }, { status: 500 });
   }
 }

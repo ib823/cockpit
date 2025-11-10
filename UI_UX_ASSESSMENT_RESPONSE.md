@@ -12,6 +12,7 @@
 ## IMMEDIATE ACTION TAKEN
 
 ### ✅ Created: `CRITICAL_FIXES_PLAN.md`
+
 - 3-week bug bash plan
 - Prioritized into CRITICAL / HIGH / MEDIUM
 - Week 1: 13 hours of critical fixes
@@ -19,6 +20,7 @@
 - Week 3: 15 hours of UX improvements
 
 ### ✅ Created: `src/lib/gantt-tool/formatters.ts`
+
 - `formatPercentage(value, decimals)` - Fixes 91.66666666666666%
 - `formatDuration(days)` - Single format (weeks or months)
 - `formatCurrency(value)` - Proper currency formatting
@@ -36,15 +38,16 @@
 **Impact:** Destroys credibility instantly
 
 **Fix Applied:**
+
 ```typescript
 // WRONG (current):
 const utilization = (22 / 24) * 100;
-display: `${utilization}%` // 91.66666666666666%
+display: `${utilization}%`; // 91.66666666666666%
 
 // CORRECT (using new utility):
-import { formatPercentage } from '@/lib/gantt-tool/formatters';
+import { formatPercentage } from "@/lib/gantt-tool/formatters";
 const utilization = 22 / 24;
-display: formatPercentage(utilization) // "91.7%"
+display: formatPercentage(utilization); // "91.7%"
 ```
 
 **Status:** Utility created ✅ - Needs application across codebase
@@ -58,13 +61,14 @@ display: formatPercentage(utilization) // "91.7%"
 **Impact:** Confusing, unprofessional
 
 **Fix Applied:**
+
 ```typescript
 // WRONG (current):
-"83d • 4 months (114 days)"
+"83d • 4 months (114 days)";
 
 // CORRECT (using new utility):
-import { formatDuration } from '@/lib/gantt-tool/formatters';
-formatDuration(83) // "16 weeks" (83 working days ÷ 5 = 16.6 weeks)
+import { formatDuration } from "@/lib/gantt-tool/formatters";
+formatDuration(83); // "16 weeks" (83 working days ÷ 5 = 16.6 weeks)
 ```
 
 **Principle:** ONE format only - human-readable, consistent
@@ -80,6 +84,7 @@ formatDuration(83) // "16 weeks" (83 working days ÷ 5 = 16.6 weeks)
 **Impact:** Nonsensical display, breaks trust
 
 **Fix Required:**
+
 ```typescript
 const calculateScheduleProgress = (startDate, endDate) => {
   const start = new Date(startDate);
@@ -108,11 +113,13 @@ const calculateScheduleProgress = (startDate, endDate) => {
 **Impact:** Meaningless displays, reveals system not production-ready
 
 **Fix Required:**
+
 1. Calculate metrics from actual project data
 2. If no data exists, use realistic demo values
 3. Never show dashboard with all zeros
 
 **Example:**
+
 ```typescript
 // Calculate from actual data:
 const totalTasks = phases.flatMap(p => p.tasks).length;
@@ -135,28 +142,34 @@ Completed: {completedTasks} of {totalTasks} tasks
 **Impact:** Impossible math, zero trust
 
 **Fix Required:**
+
 ```typescript
 const calculateProjectHealth = (metrics) => {
   const {
-    budgetUtilization,    // 0-100
-    scheduleProgress,     // 0-100
-    taskCompletion,       // 0-100
-    resourceUtilization   // 0-100
+    budgetUtilization, // 0-100
+    scheduleProgress, // 0-100
+    taskCompletion, // 0-100
+    resourceUtilization, // 0-100
   } = metrics;
 
-  const health = (
-    (budgetUtilization * 0.25) +
-    (scheduleProgress * 0.30) +
-    (taskCompletion * 0.30) +
-    (resourceUtilization * 0.15)
-  );
+  const health =
+    budgetUtilization * 0.25 +
+    scheduleProgress * 0.3 +
+    taskCompletion * 0.3 +
+    resourceUtilization * 0.15;
 
   return {
     score: Math.round(health),
-    label: health >= 90 ? 'Excellent' :
-           health >= 75 ? 'Good' :
-           health >= 60 ? 'Fair' :
-           health >= 40 ? 'At Risk' : 'Critical'
+    label:
+      health >= 90
+        ? "Excellent"
+        : health >= 75
+          ? "Good"
+          : health >= 60
+            ? "Fair"
+            : health >= 40
+              ? "At Risk"
+              : "Critical",
   };
 };
 ```
@@ -173,10 +186,12 @@ const calculateProjectHealth = (metrics) => {
 **Target:** 4 status types (clear)
 
 Remove:
+
 - "Blocked/Overdue" - Use red badge instead
 - "On Hold/Paused" - Rare, use icon instead
 
 Keep:
+
 - Not Started (Gray)
 - In Progress (Blue)
 - At Risk (Amber)
@@ -187,6 +202,7 @@ Keep:
 ### Fix #7: Remove Visual Redundancies
 
 **Remove:**
+
 1. "4wk" duration badges from bars
 2. "Active" status badges (show only exceptions)
 3. Month labels ("Feb", "Mar") from Gantt bars
@@ -201,6 +217,7 @@ Keep:
 **Problem:** Categories use random colors conflicting with status colors
 
 **Solution:** Use icons instead of colors
+
 - Leadership: 🎯 Target
 - Functional: 💼 Briefcase
 - Technical: 💻 Laptop
@@ -213,11 +230,13 @@ Keep:
 ### Fix #9: Add Progress Bars
 
 **Add visual progress bars to:**
+
 - Phase Analysis table
 - Resource utilization cards
 - Metric cards in Mission Control
 
 **Format:**
+
 ```
 ████████░░ 75%
 (visual bar + percentage)
@@ -229,6 +248,7 @@ Keep:
 
 **Don't show:** Orange "CONFLICT" on every resource
 **Show only:**
+
 - Critical (Red): >150% allocated
 - High (Orange): Conflict today
 - Medium (Yellow dot): Conflict this week
@@ -268,6 +288,7 @@ Keep:
 **"The floating point bug is unforgivable"** - AGREED
 
 This is Programming 101. The fact that "91.66666666666666%" appeared on screen indicates:
+
 - ❌ No code review process
 - ❌ No visual QA testing
 - ❌ No attention to detail
@@ -284,18 +305,21 @@ For a $100K-500K enterprise product, this is completely unacceptable.
 **Stop Feature Work. Fix Critical Bugs.**
 
 ### Monday-Tuesday: Create & Apply Utilities
+
 - [x] Create formatters.ts
 - [ ] Apply formatPercentage everywhere
 - [ ] Apply formatDuration everywhere
 - [ ] Apply formatCurrency everywhere
 
 ### Wednesday-Thursday: Fix Calculations
+
 - [ ] Fix negative days bug
 - [ ] Implement realistic demo data
 - [ ] Fix project health calculation
 - [ ] Add calculation tooltips
 
 ### Friday: Test & Validate
+
 - [ ] Manual QA all fixes
 - [ ] Check for regressions
 - [ ] Verify all metrics make sense
@@ -306,16 +330,19 @@ For a $100K-500K enterprise product, this is completely unacceptable.
 ## SPECIFIC FILES TO FIX
 
 ### Priority 1: Percentage Displays
+
 - `src/components/gantt-tool/MissionControlModal.tsx` (line 554, others)
 - `src/components/gantt-tool/ResourceManagementModal.tsx`
 - `src/components/gantt-tool/AnalyticsDashboard.tsx`
 - `src/components/gantt-tool/CostDashboard.tsx`
 
 ### Priority 2: Duration Displays
+
 - `src/components/gantt-tool/GanttCanvas.tsx` (phase badges, task metadata)
 - `src/components/gantt-tool/GanttSidePanel.tsx` (duration inputs)
 
 ### Priority 3: Calculation Logic
+
 - Mission Control metrics calculation
 - Resource utilization calculation
 - Project health calculation
@@ -326,6 +353,7 @@ For a $100K-500K enterprise product, this is completely unacceptable.
 ## SUCCESS METRICS
 
 **Week 1 Complete When:**
+
 - ✅ Zero instances of raw floating point (run: `grep -r "\.66666" src/`)
 - ✅ All durations show single format
 - ✅ No negative day counts anywhere
@@ -333,6 +361,7 @@ For a $100K-500K enterprise product, this is completely unacceptable.
 - ✅ Project health calculation documented with tooltip
 
 **Quality Gate:**
+
 - Run application
 - Open every dashboard/modal
 - Check every percentage display
@@ -344,6 +373,7 @@ For a $100K-500K enterprise product, this is completely unacceptable.
 ## PROFESSIONAL ACCOUNTABILITY
 
 **I acknowledge:**
+
 1. These bugs should never have reached any review
 2. The floating point error is embarrassing
 3. Zero data everywhere reveals premature feature deployment
@@ -351,6 +381,7 @@ For a $100K-500K enterprise product, this is completely unacceptable.
 5. The assessment is accurate and justified
 
 **I commit:**
+
 1. Fix all CRITICAL bugs this week
 2. No new features until fundamentals are solid
 3. Apply Jobs/Ive principles consistently
@@ -364,6 +395,7 @@ For a $100K-500K enterprise product, this is completely unacceptable.
 **From 70% → 95% Quality**
 
 **Week 1:** Bug Bash (CRITICAL)
+
 - Fix floating point displays
 - Fix duration formats
 - Fix negative calculations
@@ -371,6 +403,7 @@ For a $100K-500K enterprise product, this is completely unacceptable.
 - Fix project health calculation
 
 **Week 2:** Visual System (HIGH)
+
 - Simplify status legend
 - Remove redundancies
 - Fix color system
@@ -378,6 +411,7 @@ For a $100K-500K enterprise product, this is completely unacceptable.
 - Prioritize alerts
 
 **Week 3:** User Experience (MEDIUM)
+
 - Enhanced tooltips
 - Better empty states
 - Search/filter
@@ -385,6 +419,7 @@ For a $100K-500K enterprise product, this is completely unacceptable.
 - Capacity context
 
 **Week 4:** Polish
+
 - Performance optimization
 - Accessibility audit
 - Edge case handling

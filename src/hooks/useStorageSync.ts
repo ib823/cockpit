@@ -49,7 +49,7 @@ export function useStorageSync() {
             console.log("[StorageSync] State changed, prompting user...");
             const userConfirmed = window.confirm(
               "Timeline was updated in another tab. Reload to see changes?\n\n" +
-              "(Any unsaved work in this tab will be lost)"
+                "(Any unsaved work in this tab will be lost)"
             );
 
             if (userConfirmed) {

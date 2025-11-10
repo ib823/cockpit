@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { AppShell } from '@/ui/layout/AppShell';
-import { PageHeader } from '@/ui/layout/PageHeader';
+import React, { useState } from "react";
+import { AppShell } from "@/ui/layout/AppShell";
+import { PageHeader } from "@/ui/layout/PageHeader";
 import {
   Button,
   Input,
@@ -18,10 +18,10 @@ import {
   Tabs,
   Breadcrumb,
   Pagination,
-} from '@/ui';
-import { useToast } from '@/ui/toast/ToastProvider';
-import { AntDataGrid } from '@/ui/datagrid/AntDataGrid';
-import type { ColumnsType } from 'antd/es/table';
+} from "@/ui";
+import { useToast } from "@/ui/toast/ToastProvider";
+import { AntDataGrid } from "@/ui/datagrid/AntDataGrid";
+import type { ColumnsType } from "antd/es/table";
 
 type ProjectRow = {
   key: string;
@@ -32,40 +32,46 @@ type ProjectRow = {
 };
 
 const columns: ColumnsType<ProjectRow> = [
-  { title: 'Project', dataIndex: 'name', key: 'name' },
-  { title: 'Owner', dataIndex: 'owner', key: 'owner' },
-  { title: 'Status', dataIndex: 'status', key: 'status' },
+  { title: "Project", dataIndex: "name", key: "name" },
+  { title: "Owner", dataIndex: "owner", key: "owner" },
+  { title: "Status", dataIndex: "status", key: "status" },
   {
-    title: 'Progress',
-    dataIndex: 'progress',
-    key: 'progress',
+    title: "Progress",
+    dataIndex: "progress",
+    key: "progress",
     render: (val: number) => <Progress value={val} className="w-24" />,
   },
 ];
 
 const data: ProjectRow[] = [
-  { key: '1', name: 'SAP S/4HANA Migration', owner: 'Alice Chen', status: 'Active', progress: 75 },
-  { key: '2', name: 'Cloud ERP Implementation', owner: 'Bob Smith', status: 'Planning', progress: 30 },
-  { key: '3', name: 'Fiori UX Redesign', owner: 'Carol Wang', status: 'Active', progress: 60 },
-  { key: '4', name: 'Data Warehouse Setup', owner: 'David Lee', status: 'On Hold', progress: 15 },
-  { key: '5', name: 'Integration Hub', owner: 'Eve Martinez', status: 'Active', progress: 90 },
+  { key: "1", name: "SAP S/4HANA Migration", owner: "Alice Chen", status: "Active", progress: 75 },
+  {
+    key: "2",
+    name: "Cloud ERP Implementation",
+    owner: "Bob Smith",
+    status: "Planning",
+    progress: 30,
+  },
+  { key: "3", name: "Fiori UX Redesign", owner: "Carol Wang", status: "Active", progress: 60 },
+  { key: "4", name: "Data Warehouse Setup", owner: "David Lee", status: "On Hold", progress: 15 },
+  { key: "5", name: "Integration Hub", owner: "Eve Martinez", status: "Active", progress: 90 },
 ];
 
 export default function UIDemo() {
   const { push } = useToast();
   const [checked, setChecked] = useState(false);
   const [toggled, setToggled] = useState(true);
-  const [selectVal, setSelectVal] = useState<string | null>('alpha');
+  const [selectVal, setSelectVal] = useState<string | null>("alpha");
   const [modalOpen, setModalOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
 
   return (
     <AppShell
       nav={[
-        { key: 'demo', label: 'UI Demo', active: true },
-        { key: 'components', label: 'Components' },
-        { key: 'docs', label: 'Documentation' },
+        { key: "demo", label: "UI Demo", active: true },
+        { key: "components", label: "Components" },
+        { key: "docs", label: "Documentation" },
       ]}
       pageHeader={
         <PageHeader
@@ -74,9 +80,9 @@ export default function UIDemo() {
           breadcrumb={
             <Breadcrumb
               items={[
-                { label: 'Home', href: '/' },
-                { label: 'Tools', href: '#' },
-                { label: 'UI Demo' },
+                { label: "Home", href: "/" },
+                { label: "Tools", href: "#" },
+                { label: "UI Demo" },
               ]}
             />
           }
@@ -84,11 +90,17 @@ export default function UIDemo() {
             <>
               <Button
                 variant="ghost"
-                onClick={() => push({ kind: 'info', title: 'Refreshed', desc: 'Data is up to date' })}
+                onClick={() =>
+                  push({ kind: "info", title: "Refreshed", desc: "Data is up to date" })
+                }
               >
                 Refresh
               </Button>
-              <Button onClick={() => push({ kind: 'success', title: 'Saved!', desc: 'All changes persisted' })}>
+              <Button
+                onClick={() =>
+                  push({ kind: "success", title: "Saved!", desc: "All changes persisted" })
+                }
+              >
                 Save
               </Button>
             </>
@@ -110,7 +122,7 @@ export default function UIDemo() {
             <Alert variant="warning" title="Warning">
               This action may have unintended consequences.
             </Alert>
-            <Alert variant="error" title="Error" onClose={() => console.log('closed')}>
+            <Alert variant="error" title="Error" onClose={() => { /* Alert closed */ }}>
               Something went wrong. Please try again.
             </Alert>
           </div>
@@ -156,9 +168,9 @@ export default function UIDemo() {
                 <label className="block text-sm font-medium mb-2">Select</label>
                 <Select
                   options={[
-                    { value: 'alpha', label: 'Alpha Project' },
-                    { value: 'beta', label: 'Beta Release' },
-                    { value: 'gamma', label: 'Gamma Testing' },
+                    { value: "alpha", label: "Alpha Project" },
+                    { value: "beta", label: "Beta Release" },
+                    { value: "gamma", label: "Gamma Testing" },
                   ]}
                   value={selectVal}
                   onChange={setSelectVal}
@@ -221,18 +233,18 @@ export default function UIDemo() {
             onChange={setActiveTab}
             items={[
               {
-                value: 'overview',
-                label: 'Overview',
+                value: "overview",
+                label: "Overview",
                 content: <div className="py-4">Overview content with project summaries.</div>,
               },
               {
-                value: 'activity',
-                label: 'Activity',
+                value: "activity",
+                label: "Activity",
                 content: <div className="py-4">Recent activity and updates.</div>,
               },
               {
-                value: 'settings',
-                label: 'Settings',
+                value: "settings",
+                label: "Settings",
                 content: <div className="py-4">Configuration and preferences.</div>,
               },
             ]}

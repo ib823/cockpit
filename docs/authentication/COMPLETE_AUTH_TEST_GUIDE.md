@@ -3,11 +3,13 @@
 ## 🎯 All Systems Ready for Testing
 
 ### Dev Server
+
 **URL:** http://localhost:3001/login
 
 ### What Was Fixed
 
 #### 1. Authentication Flow ✅
+
 - ✅ Challenge TTL: 60s → 300s (5 minutes)
 - ✅ Auto-retry on challenge expiration
 - ✅ Clear error messages with auto-clear
@@ -15,6 +17,7 @@
 - ✅ All error paths handled consistently
 
 #### 2. Notification System ✅
+
 - ✅ Fixed hardcoded email bug
 - ✅ Updated modal content and positioning
 - ✅ Service worker configured
@@ -26,6 +29,7 @@
 ### Phase 1: New User Registration
 
 **Test Case 1.1: Fresh Registration**
+
 1. Navigate to: http://localhost:3001/login
 2. Enter email: `ikmls@hotmail.com`
 3. Click "Continue"
@@ -40,6 +44,7 @@
    - ✅ No errors in console
 
 **Test Case 1.2: Enable Notifications During Registration**
+
 1. Start fresh (clear browser data or new email)
 2. Navigate to: http://localhost:3001/login
 3. Enter email
@@ -64,6 +69,7 @@
 ### Phase 2: Returning User Login
 
 **Test Case 2.1: Normal Login**
+
 1. Navigate to: http://localhost:3001/login
 2. Enter email: `ikmls@hotmail.com`
 3. Click "Continue"
@@ -75,6 +81,7 @@
    - ✅ Notification toggle shows active state if previously enabled
 
 **Test Case 2.2: Toggle Notification State**
+
 1. Log in successfully
 2. Go back to /login
 3. Click notification toggle (active state)
@@ -90,6 +97,7 @@
 ### Phase 3: Error Handling
 
 **Test Case 3.1: Invalid Code**
+
 1. Navigate to login
 2. Enter email
 3. Enter invalid code: `000000`
@@ -101,6 +109,7 @@
    - ✅ Error auto-clears after 5 seconds
 
 **Test Case 3.2: Cancel Passkey**
+
 1. Navigate to login
 2. Enter registered email
 3. Click "Continue"
@@ -112,6 +121,7 @@
    - ✅ Can retry
 
 **Test Case 3.3: Challenge Expiration (Now Fixed!)**
+
 1. Navigate to login
 2. Enter email → Continue
 3. Enter code → Verify
@@ -129,6 +139,7 @@
 ### Phase 4: Public Computer Detection
 
 **Test Case 4.1: Incognito Mode**
+
 1. Open incognito/private browsing window
 2. Navigate to: http://localhost:3001/login
 3. **Expected Result:**
@@ -138,6 +149,7 @@
    - ✅ Cannot click toggle
 
 **Test Case 4.2: Normal Browser**
+
 1. Regular browser window
 2. Navigate to login
 3. **Expected Result:**
@@ -148,6 +160,7 @@
 ### Phase 5: Admin Login
 
 **Test Case 5.1: Admin Code Login**
+
 1. Navigate to login
 2. Enter admin email (configured in system)
 3. Click "Continue"
@@ -161,12 +174,14 @@
 ## 🔍 What to Check in Console
 
 ### Normal Flow (No Errors)
+
 ```
 ✅ Service Worker registered: ServiceWorkerRegistration {...}
 ✅ Push subscription: PushSubscription {...}
 ```
 
 ### Error Scenarios
+
 ```
 ❌ Registration error: NotAllowedError: User cancelled
 ❌ Failed to parse finish-login response: SyntaxError
@@ -175,18 +190,19 @@
 
 ## 🐛 Known Issues (All Fixed)
 
-| Issue | Status | Fix |
-|-------|--------|-----|
-| Challenge expires too fast (60s) | ✅ Fixed | Increased to 300s |
-| Empty error response `{}` | ✅ Fixed | Added challengeExpired flag |
-| No error banner on failure | ✅ Fixed | All paths set errorMessage |
-| Hardcoded email in notifications | ✅ Fixed | Pass email as prop |
-| Modal wrong positioning | ✅ Fixed | Centered with inset-0 |
-| Modal wrong content | ✅ Fixed | Updated to spec |
+| Issue                            | Status   | Fix                         |
+| -------------------------------- | -------- | --------------------------- |
+| Challenge expires too fast (60s) | ✅ Fixed | Increased to 300s           |
+| Empty error response `{}`        | ✅ Fixed | Added challengeExpired flag |
+| No error banner on failure       | ✅ Fixed | All paths set errorMessage  |
+| Hardcoded email in notifications | ✅ Fixed | Pass email as prop          |
+| Modal wrong positioning          | ✅ Fixed | Centered with inset-0       |
+| Modal wrong content              | ✅ Fixed | Updated to spec             |
 
 ## 📊 Success Criteria
 
 ### ✅ Registration Flow
+
 - [ ] User can register with 6-digit code
 - [ ] Passkey registration works on localhost
 - [ ] Success message displays
@@ -194,12 +210,14 @@
 - [ ] No console errors
 
 ### ✅ Login Flow
+
 - [ ] User can login with passkey
 - [ ] Success message displays
 - [ ] Redirects to home page
 - [ ] No console errors
 
 ### ✅ Notification Flow
+
 - [ ] Toggle appears on login page
 - [ ] Modal shows on toggle click
 - [ ] Modal content matches spec
@@ -208,6 +226,7 @@
 - [ ] Toggle state persists across refreshes
 
 ### ✅ Error Handling
+
 - [ ] All errors show in banner
 - [ ] Error messages are clear
 - [ ] Errors auto-clear after 5s

@@ -7,60 +7,73 @@
  * - Desktop (>= 1024px): Full GanttCanvas
  */
 
-import React from 'react';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, waitFor, act } from '@testing-library/react';
-import { ResponsiveGanttWrapper } from '../ResponsiveGanttWrapper';
-import { GanttCanvas } from '../GanttCanvas';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import type { GanttProject } from '@/types/gantt-tool';
-import { format, addDays } from 'date-fns';
+import React from "react";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { render, screen, waitFor, act } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { ResponsiveGanttWrapper } from "../ResponsiveGanttWrapper";
+import { GanttCanvas } from "../GanttCanvas";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import type { GanttProject } from "@/types/gantt-tool";
+import { format, addDays } from "date-fns";
 
 // Mock background sync to avoid indexedDB issues
-vi.mock('@/lib/gantt-tool/background-sync', () => ({
+vi.mock("@/lib/gantt-tool/background-sync", () => ({
   startBackgroundSync: vi.fn(),
   stopBackgroundSync: vi.fn(),
   processSyncQueue: vi.fn(),
 }));
 
-// Mock GanttCanvas and GanttMobileListView
-vi.mock('../GanttCanvas', () => ({
+// Mock GanttCanvas
+vi.mock("../GanttCanvas", () => ({
   GanttCanvas: vi.fn(() => <div data-testid="gantt-canvas">Timeline View</div>),
 }));
 
-vi.mock('../GanttMobileListView', () => ({
-  GanttMobileListView: vi.fn(() => <div data-testid="gantt-mobile-list">List View</div>),
+// Mock GanttMobileListView - make it a React component that accesses the store
+vi.mock("../GanttMobileListView", () => ({
+  GanttMobileListView: function MockGanttMobileListView() {
+    // Import at top level to access in factory
+    const store = useGanttToolStoreV2;
+    const currentProject = store((state) => state.currentProject);
+
+    if (!currentProject) {
+      return <div data-testid="gantt-mobile-list">No project loaded</div>;
+    }
+    return <div data-testid="gantt-mobile-list">List View</div>;
+  },
 }));
 
 // Helper to create a minimal test project
 function createMinimalProject(): GanttProject {
   const today = new Date();
   return {
-    id: 'test-1',
-    name: 'Test Project',
-    description: 'Test',
-    startDate: format(today, 'yyyy-MM-dd'),
-    endDate: format(addDays(today, 30), 'yyyy-MM-dd'),
-    status: 'active',
+    id: "test-1",
+    name: "Test Project",
+    description: "Test",
+    startDate: format(today, "yyyy-MM-dd"),
     phases: [
       {
-        id: 'phase-1',
-        name: 'Phase 1',
+        id: "phase-1",
+        name: "Phase 1",
         order: 0,
-        startDate: format(today, 'yyyy-MM-dd'),
-        endDate: format(addDays(today, 30), 'yyyy-MM-dd'),
-        color: '#3B82F6',
+        startDate: format(today, "yyyy-MM-dd"),
+        endDate: format(addDays(today, 30), "yyyy-MM-dd"),
+        color: "#3B82F6",
         collapsed: false,
+        dependencies: [],
         tasks: [
           {
-            id: 'task-1',
-            name: 'Task 1',
-            phaseId: 'phase-1',
+            id: "task-1",
+            name: "Task 1",
+            phaseId: "phase-1",
             order: 0,
             level: 0,
-            startDate: format(today, 'yyyy-MM-dd'),
-            endDate: format(addDays(today, 10), 'yyyy-MM-dd'),
+            startDate: format(today, "yyyy-MM-dd"),
+            endDate: format(addDays(today, 10), "yyyy-MM-dd"),
             progress: 50,
+            dependencies: [],
+            collapsed: false,
+            isParent: false,
             resourceAssignments: [],
           },
         ],
@@ -69,14 +82,22 @@ function createMinimalProject(): GanttProject {
     milestones: [],
     resources: [],
     holidays: [],
+    viewSettings: {
+      zoomLevel: "month",
+      showWeekends: false,
+      showHolidays: true,
+      showMilestones: true,
+      showTaskDependencies: true,
+      showCriticalPath: false,
+    },
     createdAt: today.toISOString(),
     updatedAt: today.toISOString(),
-  } as GanttProject;
+  };
 }
 
 // Helper to mock window.innerWidth
 function mockWindowWidth(width: number) {
-  Object.defineProperty(window, 'innerWidth', {
+  Object.defineProperty(window, "innerWidth", {
     writable: true,
     configurable: true,
     value: width,
@@ -86,11 +107,11 @@ function mockWindowWidth(width: number) {
 // Helper to trigger resize event
 function triggerResize() {
   act(() => {
-    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event("resize"));
   });
 }
 
-describe('ResponsiveGanttWrapper Integration Tests', () => {
+describe("ResponsiveGanttWrapper Integration Tests", () => {
   let originalInnerWidth: number;
 
   beforeEach(() => {
@@ -104,15 +125,15 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
 
   afterEach(() => {
     // Restore original window.innerWidth
-    Object.defineProperty(window, 'innerWidth', {
+    Object.defineProperty(window, "innerWidth", {
       writable: true,
       configurable: true,
       value: originalInnerWidth,
     });
   });
 
-  describe('Mobile View (< 768px)', () => {
-    it('shows GanttMobileListView on iPhone SE (375px)', async () => {
+  describe("Mobile View (< 768px)", () => {
+    it("shows GanttMobileListView on iPhone SE (375px)", async () => {
       mockWindowWidth(375);
 
       const { container } = render(
@@ -133,7 +154,7 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
       });
     });
 
-    it('shows GanttMobileListView on standard mobile (390px)', async () => {
+    it("shows GanttMobileListView on standard mobile (390px)", async () => {
       mockWindowWidth(390);
 
       const { container } = render(
@@ -150,7 +171,7 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
       });
     });
 
-    it('shows GanttMobileListView on large mobile (428px)', async () => {
+    it("shows GanttMobileListView on large mobile (428px)", async () => {
       mockWindowWidth(428);
 
       const { container } = render(
@@ -167,7 +188,7 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
       });
     });
 
-    it('shows GanttMobileListView at exactly 767px (edge case)', async () => {
+    it("shows GanttMobileListView at exactly 767px (edge case)", async () => {
       mockWindowWidth(767);
 
       const { container } = render(
@@ -185,8 +206,8 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
     });
   });
 
-  describe('Tablet View (768-1023px)', () => {
-    it('shows GanttCanvas on iPad portrait (768px)', async () => {
+  describe("Tablet View (768-1023px)", () => {
+    it("shows GanttCanvas on iPad portrait (768px)", async () => {
       mockWindowWidth(768);
 
       const { container } = render(
@@ -206,7 +227,7 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
       });
     });
 
-    it('shows tablet alert banner on tablet view', async () => {
+    it("shows tablet alert banner on tablet view", async () => {
       mockWindowWidth(800);
 
       const { container } = render(
@@ -219,12 +240,12 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
 
       await waitFor(() => {
         // Should show "Tablet View" alert
-        const bodyText = container.textContent || '';
+        const bodyText = container.textContent || "";
         expect(bodyText).toMatch(/tablet/i);
       });
     });
 
-    it('shows GanttCanvas at exactly 1023px (edge case)', async () => {
+    it("shows GanttCanvas at exactly 1023px (edge case)", async () => {
       mockWindowWidth(1023);
 
       const { container } = render(
@@ -242,8 +263,8 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
     });
   });
 
-  describe('Desktop View (>= 1024px)', () => {
-    it('shows GanttCanvas on desktop (1280px)', async () => {
+  describe("Desktop View (>= 1024px)", () => {
+    it("shows GanttCanvas on desktop (1280px)", async () => {
       mockWindowWidth(1280);
 
       const { container } = render(
@@ -263,7 +284,7 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
       });
     });
 
-    it('does not show tablet banner on desktop', async () => {
+    it("does not show tablet banner on desktop", async () => {
       mockWindowWidth(1920);
 
       const { container } = render(
@@ -275,14 +296,14 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
       triggerResize();
 
       await waitFor(() => {
-        const bodyText = container.textContent || '';
+        const bodyText = container.textContent || "";
         // Should NOT show tablet-specific messages
         expect(bodyText).not.toMatch(/tablet view/i);
         expect(bodyText).not.toMatch(/optimized for touch/i);
       });
     });
 
-    it('shows GanttCanvas on 4K desktop (3840px)', async () => {
+    it("shows GanttCanvas on 4K desktop (3840px)", async () => {
       mockWindowWidth(3840);
 
       const { container } = render(
@@ -300,8 +321,8 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
     });
   });
 
-  describe('Breakpoint Transitions', () => {
-    it('transitions from mobile to tablet (767px → 768px)', async () => {
+  describe("Breakpoint Transitions", () => {
+    it("transitions from mobile to tablet (767px → 768px)", async () => {
       mockWindowWidth(767);
 
       const { container, rerender } = render(
@@ -330,7 +351,7 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
       });
     });
 
-    it('transitions from tablet to desktop (1023px → 1024px)', async () => {
+    it("transitions from tablet to desktop (1023px → 1024px)", async () => {
       mockWindowWidth(1023);
 
       const { container } = render(
@@ -342,7 +363,7 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
       triggerResize();
 
       await waitFor(() => {
-        const bodyText = container.textContent || '';
+        const bodyText = container.textContent || "";
         expect(bodyText).toMatch(/tablet/i);
       });
 
@@ -351,13 +372,13 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
       triggerResize();
 
       await waitFor(() => {
-        const bodyText = container.textContent || '';
+        const bodyText = container.textContent || "";
         // Tablet banner should disappear
         expect(bodyText).not.toMatch(/tablet view/i);
       });
     });
 
-    it('maintains data state during view transitions', async () => {
+    it("maintains data state during view transitions", async () => {
       mockWindowWidth(375); // Mobile
 
       const { container } = render(
@@ -383,8 +404,8 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
     });
   });
 
-  describe('SSR Safety', () => {
-    it('renders children during server-side rendering', () => {
+  describe("SSR Safety", () => {
+    it("renders children during server-side rendering", () => {
       // Simulate SSR by not triggering mount
       const { container } = render(
         <ResponsiveGanttWrapper>
@@ -398,8 +419,8 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
     });
   });
 
-  describe('View Mode Toggle (Development)', () => {
-    it('shows view toggle when showViewToggle=true', async () => {
+  describe("View Mode Toggle (Development)", () => {
+    it("shows view toggle when showViewToggle=true", async () => {
       mockWindowWidth(375); // Mobile
 
       const { container } = render(
@@ -411,14 +432,14 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
       triggerResize();
 
       await waitFor(() => {
-        const bodyText = container.textContent || '';
+        const bodyText = container.textContent || "";
         // Should show "View:" toggle
         expect(bodyText).toMatch(/view/i);
         expect(bodyText).toMatch(/list|timeline/i);
       });
     });
 
-    it('allows manual override to timeline view on mobile', async () => {
+    it("allows manual override to timeline view on mobile", async () => {
       mockWindowWidth(375); // Mobile
 
       const { container } = render(
@@ -440,8 +461,8 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
     });
   });
 
-  describe('No Project State', () => {
-    it('handles empty project gracefully in list view', async () => {
+  describe("No Project State", () => {
+    it("handles empty project gracefully in list view", async () => {
       useGanttToolStoreV2.setState({ currentProject: null });
       mockWindowWidth(375);
 
@@ -457,7 +478,7 @@ describe('ResponsiveGanttWrapper Integration Tests', () => {
         const listView = container.querySelector('[data-testid="gantt-mobile-list"]');
         expect(listView).toBeInTheDocument();
 
-        const bodyText = container.textContent || '';
+        const bodyText = container.textContent || "";
         expect(bodyText).toMatch(/no project|empty/i);
       });
     });

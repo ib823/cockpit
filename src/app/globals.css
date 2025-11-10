@@ -3,10 +3,10 @@
  * Minimalist, Steve Jobs-inspired design system
  */
 
-@import '../styles/tokens.css';
-@import '../styles/motion.css';
-@import '../styles/button-normalize.css';
-@import '../ui/datagrid/ant-table.css';
+@import "../styles/tokens.css";
+@import "../styles/motion.css";
+@import "../styles/button-normalize.css";
+@import "../ui/datagrid/ant-table.css";
 
 @tailwind base;
 @tailwind components;
@@ -24,7 +24,7 @@
 
 html {
   font-family: var(--font-sans);
-  font-feature-settings: 'ss01', 'cv02';
+  font-feature-settings: "ss01", "cv02";
   scroll-behavior: smooth;
   /* Apple/Jobs: "Let architecture handle constraints, not global overrides" */
 }
@@ -47,7 +47,7 @@ a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
-[tabindex='0']:focus-visible {
+[tabindex="0"]:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   border-radius: var(--r-sm);
@@ -141,7 +141,7 @@ a:hover {
   }
 
   /* Client-safe mode (hide cost elements) */
-  [data-client-safe='true'] .cost-element {
+  [data-client-safe="true"] .cost-element {
     display: none;
   }
 
@@ -317,15 +317,15 @@ a:hover {
   /* Brand Colors */
   --primary: #1890ff;
   --primary-hover: #40a9ff;
-  
+
   /* Surfaces */
   --surface: #f9fafb;
   --surface-elevated: #ffffff;
-  
+
   /* Text */
   --ink: #1f2937;
   --ink-dim: #6b7280;
-  
+
   /* Borders */
   --border: #e5e7eb;
 }
@@ -363,9 +363,9 @@ a:hover {
 
 /* Darker, more professional modal backdrop */
 .ant-modal-mask {
-  background-color: rgba(0, 0, 0, 0.55) !important;  /* Darker than default 0.45 */
-  backdrop-filter: blur(4px);  /* Subtle blur effect */
-  -webkit-backdrop-filter: blur(4px);  /* Safari support */
+  background-color: rgba(0, 0, 0, 0.55) !important; /* Darker than default 0.45 */
+  backdrop-filter: blur(4px); /* Subtle blur effect */
+  -webkit-backdrop-filter: blur(4px); /* Safari support */
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
@@ -387,7 +387,7 @@ a:hover {
 
 /* Ensure modal content has proper shadows from theme */
 .ant-modal-content {
-  overflow: hidden;  /* Ensures border-radius clips content properly */
+  overflow: hidden; /* Ensures border-radius clips content properly */
 }
 
 /* Dropdown animations */
@@ -410,8 +410,8 @@ a:hover {
 .ant-select-focused .ant-select-selector,
 .ant-picker:focus,
 .ant-picker-focused {
-  border-color: #3B82F6 !important;  /* Blue-500 */
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;  /* Soft blue glow */
+  border-color: #3b82f6 !important; /* Blue-500 */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important; /* Soft blue glow */
   outline: none !important;
 }
 
@@ -421,7 +421,7 @@ a:hover {
 .ant-input-number-status-error,
 .ant-select-status-error .ant-select-selector,
 .ant-picker-status-error {
-  border-color: #EF4444 !important;  /* Red-500 */
+  border-color: #ef4444 !important; /* Red-500 */
 }
 
 .ant-input-status-error:focus,
@@ -429,33 +429,33 @@ a:hover {
 .ant-input-number-status-error:focus,
 .ant-select-status-error.ant-select-focused .ant-select-selector,
 .ant-picker-status-error:focus {
-  border-color: #EF4444 !important;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;  /* Soft red glow */
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important; /* Soft red glow */
 }
 
 /* Error messages styling */
 .ant-form-item-explain-error {
   font-size: 12px !important;
-  color: #EF4444 !important;  /* Red-500 */
+  color: #ef4444 !important; /* Red-500 */
   margin-top: 4px !important;
 }
 
 /* Success states (optional) */
 .ant-input-status-success,
 .ant-input-affix-wrapper-status-success {
-  border-color: #10B981 !important;  /* Green-600 */
+  border-color: #10b981 !important; /* Green-600 */
 }
 
 .ant-input-status-success:focus,
 .ant-input-affix-wrapper-status-success:focus {
-  border-color: #10B981 !important;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;  /* Soft green glow */
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important; /* Soft green glow */
 }
 
 /* Helper text styling */
 .ant-form-item-extra {
   font-size: 12px !important;
-  color: #6B7280 !important;  /* Gray-500 */
+  color: #6b7280 !important; /* Gray-500 */
   margin-top: 4px !important;
 }
 
@@ -465,9 +465,9 @@ a:hover {
 .ant-input-number-disabled,
 .ant-select-disabled .ant-select-selector,
 .ant-picker-disabled {
-  background-color: #F3F4F6 !important;  /* Gray-100 */
-  border-color: #E5E7EB !important;  /* Gray-200 */
-  color: #9CA3AF !important;  /* Gray-400 */
+  background-color: #f3f4f6 !important; /* Gray-100 */
+  border-color: #e5e7eb !important; /* Gray-200 */
+  color: #9ca3af !important; /* Gray-400 */
   cursor: not-allowed !important;
 }
 
@@ -475,7 +475,7 @@ a:hover {
 .ant-input::placeholder,
 .ant-input-affix-wrapper input::placeholder,
 .ant-select-selection-placeholder {
-  color: #9CA3AF !important;  /* Gray-400 */
+  color: #9ca3af !important; /* Gray-400 */
   font-weight: 400 !important;
 }
 
@@ -483,12 +483,12 @@ a:hover {
 .ant-form-item-label > label {
   font-size: 14px !important;
   font-weight: 500 !important;
-  color: #374151 !important;  /* Gray-700 */
+  color: #374151 !important; /* Gray-700 */
 }
 
 /* Required asterisk styling */
 .ant-form-item-required::before {
-  color: #EF4444 !important;  /* Red-500 */
+  color: #ef4444 !important; /* Red-500 */
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -498,8 +498,8 @@ a:hover {
 
 /* Lucide icons - consistent sizing */
 .lucide {
-  stroke-width: 2px !important;  /* Consistent stroke weight */
-  vertical-align: middle !important;  /* Better alignment */
+  stroke-width: 2px !important; /* Consistent stroke weight */
+  vertical-align: middle !important; /* Better alignment */
 }
 
 /* Icon button sizing (matching design system) */
@@ -548,7 +548,9 @@ a:hover {
 .card-hover,
 .ant-card-hoverable:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
@@ -580,13 +582,21 @@ a:hover {
 
 /* Delete confirmation shake animation */
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
-  10%, 30%, 50%, 70%, 90% {
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
     transform: translateX(-4px);
   }
-  20%, 40%, 60%, 80% {
+  20%,
+  40%,
+  60%,
+  80% {
     transform: translateX(4px);
   }
 }
@@ -613,7 +623,7 @@ a:hover {
 }
 
 .ripple::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -635,17 +645,19 @@ a:hover {
   opacity: 0.5 !important;
   cursor: grabbing !important;
   transform: scale(1.02) !important;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
 }
 
 .drag-over {
-  border: 2px dashed #3B82F6 !important;  /* Blue-500 */
+  border: 2px dashed #3b82f6 !important; /* Blue-500 */
   background-color: rgba(59, 130, 246, 0.05) !important;
 }
 
 /* Loading spinner enhancement */
 .ant-spin-dot-item {
-  background-color: #3B82F6 !important;  /* Blue-500 */
+  background-color: #3b82f6 !important; /* Blue-500 */
 }
 
 /* Tooltip animations */
@@ -660,69 +672,69 @@ a:hover {
 
 /* Ensure body text meets WCAG AA (4.5:1) */
 body {
-  color: #1F2937;  /* Gray-800 - 13.62:1 on white (excellent) */
+  color: #1f2937; /* Gray-800 - 13.62:1 on white (excellent) */
 }
 
 /* Ensure secondary text meets minimum contrast */
 .text-secondary,
 .ant-typography-secondary {
-  color: #4B5563 !important;  /* Gray-600 - 7.62:1 on white (excellent) */
+  color: #4b5563 !important; /* Gray-600 - 7.62:1 on white (excellent) */
 }
 
 /* Ensure muted text is still readable */
 .text-muted,
 .ant-form-item-extra {
-  color: #6B7280 !important;  /* Gray-500 - 4.67:1 on white (passes AA) */
+  color: #6b7280 !important; /* Gray-500 - 4.67:1 on white (passes AA) */
 }
 
 /* Ensure disabled text meets minimum 3:1 for large text */
 .ant-input:disabled,
 .ant-btn-disabled {
-  color: #9CA3AF !important;  /* Gray-400 - 3.23:1 on white (passes for large text) */
+  color: #9ca3af !important; /* Gray-400 - 3.23:1 on white (passes for large text) */
 }
 
 /* Primary button - ensure text contrast */
 .ant-btn-primary {
-  background-color: #2563EB !important;  /* Blue-600 - better contrast than Blue-500 */
-  border-color: #2563EB !important;
+  background-color: #2563eb !important; /* Blue-600 - better contrast than Blue-500 */
+  border-color: #2563eb !important;
 }
 
 .ant-btn-primary:hover {
-  background-color: #1D4ED8 !important;  /* Blue-700 */
-  border-color: #1D4ED8 !important;
+  background-color: #1d4ed8 !important; /* Blue-700 */
+  border-color: #1d4ed8 !important;
 }
 
 /* Error text - ensure visibility */
 .ant-form-item-explain-error,
 .text-error {
-  color: #DC2626 !important;  /* Red-600 - 5.64:1 on white (passes AA) */
+  color: #dc2626 !important; /* Red-600 - 5.64:1 on white (passes AA) */
 }
 
 /* Success text - ensure visibility */
 .text-success {
-  color: #059669 !important;  /* Green-600 - 4.77:1 on white (passes AA) */
+  color: #059669 !important; /* Green-600 - 4.77:1 on white (passes AA) */
 }
 
 /* Warning text - ensure visibility */
 .text-warning {
-  color: #D97706 !important;  /* Amber-600 - 4.57:1 on white (passes AA) */
+  color: #d97706 !important; /* Amber-600 - 4.57:1 on white (passes AA) */
 }
 
 /* Link text - ensure visibility and underline */
 a {
-  color: #2563EB !important;  /* Blue-600 - 5.99:1 on white (passes AA) */
+  color: #2563eb !important; /* Blue-600 - 5.99:1 on white (passes AA) */
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 
 a:hover {
-  color: #1D4ED8 !important;  /* Blue-700 - 7.59:1 (excellent) */
+  color: #1d4ed8 !important; /* Blue-700 - 7.59:1 (excellent) */
 }
 
 /* Placeholder text - meets 4.5:1 minimum */
 ::placeholder {
-  color: #9CA3AF !important;  /* Gray-400 */
+  color: #9ca3af !important; /* Gray-400 */
   opacity: 1 !important;
 }
 
@@ -761,15 +773,23 @@ a:hover {
 }
 
 /* Hide stray header/nav links to /gantt or /estimator (keeps dashboard cards intact) */
-header a[href="/gantt"], nav a[href="/gantt"],
-header a[href="/estimator"], nav a[href="/estimator"] { display: none !important; }
+header a[href="/gantt"],
+nav a[href="/gantt"],
+header a[href="/estimator"],
+nav a[href="/estimator"] {
+  display: none !important;
+}
 
 /* Overlay safety: visually hidden overlays cannot capture clicks */
 .fixed.inset-0[hidden],
 .fixed.inset-0.opacity-0,
 .fixed.inset-0[aria-hidden="true"],
-[role="dialog"][aria-hidden="true"] { pointer-events: none !important; }
+[role="dialog"][aria-hidden="true"] {
+  pointer-events: none !important;
+}
 
 /* Common portal containers */
 [data-headlessui-portal] .fixed.inset-0.opacity-0,
-[data-radix-portal] .fixed.inset-0.opacity-0 { pointer-events: none !important; }
+[data-radix-portal] .fixed.inset-0.opacity-0 {
+  pointer-events: none !important;
+}

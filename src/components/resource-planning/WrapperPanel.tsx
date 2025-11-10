@@ -35,10 +35,7 @@ export function WrapperPanel({
   averageRate,
   onUpdateWrapper,
 }: WrapperPanelProps) {
-  const totalWrapperEffort = wrappers.reduce(
-    (sum, w) => sum + w.calculatedEffort,
-    0
-  );
+  const totalWrapperEffort = wrappers.reduce((sum, w) => sum + w.calculatedEffort, 0);
   const totalWrapperCost = wrappers.reduce((sum, w) => sum + w.calculatedCost, 0);
 
   return (
@@ -49,9 +46,7 @@ export function WrapperPanel({
           <div className="flex items-center gap-4">
             <Sliders className="w-5 h-5 text-purple-600" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Wrapper Activities
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900">Wrapper Activities</h3>
               <p className="text-sm text-gray-500">
                 Overhead activities calculated as % of technical effort
               </p>
@@ -77,9 +72,7 @@ export function WrapperPanel({
           </div>
           <div>
             <div className="text-xs text-gray-500">Average Rate</div>
-            <div className="text-sm font-semibold text-gray-900">
-              ${averageRate.toFixed(0)}/hr
-            </div>
+            <div className="text-sm font-semibold text-gray-900">${averageRate.toFixed(0)}/hr</div>
           </div>
           <div>
             <div className="text-xs text-gray-500">Wrapper Cost</div>
@@ -131,16 +124,12 @@ export function WrapperPanel({
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mb-4">
-                    {wrapper.description}
-                  </p>
+                  <p className="text-xs text-gray-500 mb-4">{wrapper.description}</p>
 
                   {/* Slider */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-medium text-gray-700">
-                        Effort Percentage
-                      </label>
+                      <label className="text-xs font-medium text-gray-700">Effort Percentage</label>
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
@@ -221,9 +210,7 @@ export function WrapperPanel({
         <div className="grid grid-cols-4 gap-4">
           <div className="text-center">
             <div className="text-xs text-gray-600">Technical Base</div>
-            <div className="text-lg font-bold text-gray-900">
-              {technicalEffort.toFixed(0)} PD
-            </div>
+            <div className="text-lg font-bold text-gray-900">{technicalEffort.toFixed(0)} PD</div>
           </div>
           <div className="text-center">
             <div className="text-xs text-gray-600">Wrapper Total</div>

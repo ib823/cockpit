@@ -9,8 +9,8 @@
  * - 90-day password rotation enforcement
  */
 
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const BCRYPT_COST = 12;
 const PASSWORD_MIN_LENGTH = 12;
@@ -52,33 +52,39 @@ export function validatePasswordComplexity(password: string): PasswordValidation
   }
 
   if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter');
+    errors.push("Password must contain at least one uppercase letter");
   }
 
   if (!/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter');
+    errors.push("Password must contain at least one lowercase letter");
   }
 
   if (!/[0-9]/.test(password)) {
-    errors.push('Password must contain at least one number');
+    errors.push("Password must contain at least one number");
   }
 
   if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('Password must contain at least one special character');
+    errors.push("Password must contain at least one special character");
   }
 
   // Check for common patterns
   if (/(.)\1{2,}/.test(password)) {
-    errors.push('Password should not contain repeated characters');
+    errors.push("Password should not contain repeated characters");
   }
 
   // Check for sequential characters (abc, 123, etc.)
-  const sequences = ['abcdefghijklmnopqrstuvwxyz', '0123456789', 'qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+  const sequences = [
+    "abcdefghijklmnopqrstuvwxyz",
+    "0123456789",
+    "qwertyuiop",
+    "asdfghjkl",
+    "zxcvbnm",
+  ];
   for (const seq of sequences) {
     for (let i = 0; i < seq.length - 2; i++) {
       const subseq = seq.substring(i, i + 3);
       if (password.toLowerCase().includes(subseq)) {
-        errors.push('Password should not contain sequential characters');
+        errors.push("Password should not contain sequential characters");
         break;
       }
     }
@@ -86,7 +92,7 @@ export function validatePasswordComplexity(password: string): PasswordValidation
 
   return {
     valid: errors.length === 0,
-    errors
+    errors,
   };
 }
 
@@ -94,10 +100,12 @@ export function validatePasswordComplexity(password: string): PasswordValidation
  * Check if password has been breached using HIBP API (k-anonymity model)
  * https://haveibeenpwned.com/API/v3#PwnedPasswords
  */
-export async function checkPasswordBreach(password: string): Promise<{ breached: boolean; count: number }> {
+export async function checkPasswordBreach(
+  password: string
+): Promise<{ breached: boolean; count: number }> {
   try {
     // Hash the password with SHA-1
-    const hash = crypto.createHash('sha1').update(password).digest('hex').toUpperCase();
+    const hash = crypto.createHash("sha1").update(password).digest("hex").toUpperCase();
 
     // Use k-anonymity: send only first 5 chars of hash
     const prefix = hash.substring(0, 5);
@@ -106,21 +114,21 @@ export async function checkPasswordBreach(password: string): Promise<{ breached:
     // Query HIBP API
     const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
       headers: {
-        'Add-Padding': 'true' // Security enhancement
-      }
+        "Add-Padding": "true", // Security enhancement
+      },
     });
 
     if (!response.ok) {
-      console.error('[HIBP] API request failed:', response.status);
+      console.error("[HIBP] API request failed:", response.status);
       return { breached: false, count: 0 }; // Fail open (don't block user on API failure)
     }
 
     const text = await response.text();
-    const lines = text.split('\n');
+    const lines = text.split("\n");
 
     // Check if our suffix appears in the results
     for (const line of lines) {
-      const [hashSuffix, countStr] = line.split(':');
+      const [hashSuffix, countStr] = line.split(":");
       if (hashSuffix === suffix) {
         return { breached: true, count: parseInt(countStr, 10) };
       }
@@ -128,7 +136,7 @@ export async function checkPasswordBreach(password: string): Promise<{ breached:
 
     return { breached: false, count: 0 };
   } catch (error) {
-    console.error('[HIBP] Error checking password:', error);
+    console.error("[HIBP] Error checking password:", error);
     return { breached: false, count: 0 }; // Fail open
   }
 }
@@ -187,30 +195,30 @@ export function assessPasswordStrength(password: string): PasswordStrength {
   if (password.length >= PASSWORD_MIN_LENGTH) score++;
   if (password.length >= 16) {
     score++;
-    feedback.push('✓ Strong length');
+    feedback.push("✓ Strong length");
   }
   if (password.length >= 20) {
     score++;
-    feedback.push('✓ Excellent length');
+    feedback.push("✓ Excellent length");
   }
 
   // Character diversity
   if (/[A-Z]/.test(password) && /[a-z]/.test(password)) {
     score++;
-    feedback.push('✓ Mixed case');
+    feedback.push("✓ Mixed case");
   }
   if (/[0-9]/.test(password)) {
-    feedback.push('✓ Contains numbers');
+    feedback.push("✓ Contains numbers");
   }
   if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
     score++;
-    feedback.push('✓ Contains special characters');
+    feedback.push("✓ Contains special characters");
   }
 
   // Entropy check (unique characters)
   const uniqueChars = new Set(password).size;
   if (uniqueChars > password.length * 0.7) {
-    feedback.push('✓ High character diversity');
+    feedback.push("✓ High character diversity");
   }
 
   return { score: Math.min(score, 5), feedback };
@@ -220,14 +228,14 @@ export function assessPasswordStrength(password: string): PasswordStrength {
  * Generate a secure random password
  */
 export function generateSecurePassword(length: number = 16): string {
-  const uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // No I, O
-  const lowercase = 'abcdefghjkmnpqrstuvwxyz'; // No i, l, o
-  const numbers = '23456789'; // No 0, 1
-  const symbols = '!@#$%^&*_+-=';
+  const uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ"; // No I, O
+  const lowercase = "abcdefghjkmnpqrstuvwxyz"; // No i, l, o
+  const numbers = "23456789"; // No 0, 1
+  const symbols = "!@#$%^&*_+-=";
 
   const allChars = uppercase + lowercase + numbers + symbols;
 
-  let password = '';
+  let password = "";
 
   // Ensure at least one of each required type
   password += uppercase[crypto.randomInt(uppercase.length)];
@@ -241,5 +249,8 @@ export function generateSecurePassword(length: number = 16): string {
   }
 
   // Shuffle the password
-  return password.split('').sort(() => crypto.randomInt(3) - 1).join('');
+  return password
+    .split("")
+    .sort(() => crypto.randomInt(3) - 1)
+    .join("");
 }

@@ -5,10 +5,10 @@
  * Following best practices: explanation + clear action
  */
 
-'use client';
+"use client";
 
-import { Plus, Search, Calendar, Filter, Inbox, Users, Upload, FileText } from 'lucide-react';
-import { Button } from 'antd';
+import { Plus, Search, Calendar, Filter, Inbox, Users, Upload, FileText } from "lucide-react";
+import { Button } from "antd";
 
 interface EmptyStateProps {
   title: string;
@@ -78,17 +78,11 @@ export function NoTasks({ onAddTask, phaseName }: { onAddTask: () => void; phase
   return (
     <div className="flex flex-col items-center justify-center py-8 px-4 text-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
       <Calendar className="w-12 h-12 text-gray-400 mb-3" />
-      <h4 className="text-sm font-semibold text-gray-700 mb-2">
-        No tasks in "{phaseName}"
-      </h4>
+      <h4 className="text-sm font-semibold text-gray-700 mb-2">No tasks in "{phaseName}"</h4>
       <p className="text-xs text-gray-600 max-w-sm mb-4">
         Add tasks to break down this phase into actionable work items.
       </p>
-      <Button
-        size="small"
-        icon={<Plus className="w-3 h-3" />}
-        onClick={onAddTask}
-      >
+      <Button size="small" icon={<Plus className="w-3 h-3" />} onClick={onAddTask}>
         Add Task
       </Button>
     </div>
@@ -137,7 +131,13 @@ export function NoProjects({ onCreateProject }: { onCreateProject: () => void })
  * No Search Results State
  * Shown when search query returns no results
  */
-export function NoSearchResults({ query, onClearSearch }: { query: string; onClearSearch: () => void }) {
+export function NoSearchResults({
+  query,
+  onClearSearch,
+}: {
+  query: string;
+  onClearSearch: () => void;
+}) {
   return (
     <BaseEmptyState
       Icon={Search}
@@ -162,11 +162,10 @@ export function NoDateRangeData({ onResetView }: { onResetView: () => void }) {
       <div className="w-16 h-16 mb-4 rounded-full bg-blue-50 flex items-center justify-center">
         <Calendar className="w-8 h-8 text-blue-500" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-        No data in this date range
-      </h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">No data in this date range</h3>
       <p className="text-sm text-gray-600 max-w-md mb-6">
-        The current timeline view doesn't contain any phases or tasks. Try zooming out or adjusting the date range to see your project timeline.
+        The current timeline view doesn't contain any phases or tasks. Try zooming out or adjusting
+        the date range to see your project timeline.
       </p>
       <Button
         type="primary"
@@ -260,15 +259,21 @@ export function NoTeamMembers({ onAddTeamMember }: { onAddTeamMember: () => void
         <ul className="space-y-2 text-sm text-gray-700">
           <li className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
-            <span>Add <strong>Executive Sponsor</strong> or <strong>Delivery Lead</strong></span>
+            <span>
+              Add <strong>Executive Sponsor</strong> or <strong>Delivery Lead</strong>
+            </span>
           </li>
           <li className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0"></span>
-            <span>Add <strong>Project Manager</strong></span>
+            <span>
+              Add <strong>Project Manager</strong>
+            </span>
           </li>
           <li className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
-            <span>Add your <strong>team members</strong></span>
+            <span>
+              Add your <strong>team members</strong>
+            </span>
           </li>
         </ul>
       </div>
@@ -320,9 +325,7 @@ export function NoLevelResources({
       <div className="inline-flex flex-col items-center gap-3 px-6 py-4 rounded-lg bg-gray-50 border border-gray-200">
         <Users className="w-8 h-8 text-gray-400" />
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-1">
-            No {levelName} resources yet
-          </p>
+          <p className="text-sm font-medium text-gray-700 mb-1">No {levelName} resources yet</p>
           <p className="text-xs text-gray-500">{levelDescription}</p>
         </div>
         {onAddResources && (

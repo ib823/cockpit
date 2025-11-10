@@ -10,16 +10,16 @@ import { sanitizeObject, sanitizeHtml } from "@/lib/input-sanitizer";
  * Prevents XSS attacks in user-provided chip data
  */
 function sanitizeChipValue(value: unknown): string {
-  if (!value) return '';
+  if (!value) return "";
 
   // Limit length to prevent DoS attacks (1000 char max)
   const str = String(value).slice(0, 1000);
 
   // Strip HTML tags and dangerous patterns
   const clean = str
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/javascript:/gi, '') // Remove javascript protocol
-    .replace(/on\w+\s*=/gi, ''); // Remove event handlers
+    .replace(/<[^>]*>/g, "") // Remove HTML tags
+    .replace(/javascript:/gi, "") // Remove javascript protocol
+    .replace(/on\w+\s*=/gi, ""); // Remove event handlers
 
   return clean;
 }
@@ -151,7 +151,10 @@ function calculateMultipliers(chips: Chip[]): MultipliersResult {
   };
 }
 
-export function convertPresalesToTimeline(chips: Chip[], decisions:unknown): TimelineConversionResult {
+export function convertPresalesToTimeline(
+  chips: Chip[],
+  decisions: unknown
+): TimelineConversionResult {
   try {
     // Sanitize chips
     const sanitizedChips = chips.map((chip) => sanitizeObject(chip)) as Chip[];

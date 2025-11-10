@@ -4,16 +4,16 @@
  * Powerful search across projects, tasks, phases, and resources
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Modal, Input, Empty, Tabs } from 'antd';
-import { Search, FolderKanban, CheckCircle2, Calendar, Users, Target } from 'lucide-react';
-import type { GanttProject, GanttTask, GanttPhase, Resource } from '@/types/gantt-tool';
-import { colorValues, withOpacity } from '@/lib/design-system';
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { Modal, Input, Empty, Tabs } from "antd";
+import { Search, FolderKanban, CheckCircle2, Calendar, Users, Target } from "lucide-react";
+import type { GanttProject, GanttTask, GanttPhase, Resource } from "@/types/gantt-tool";
+import { colorValues, withOpacity } from "@/lib/design-system";
 
 interface SearchResult {
-  type: 'project' | 'phase' | 'task' | 'resource' | 'milestone';
+  type: "project" | "phase" | "task" | "resource" | "milestone";
   id: string;
   title: string;
   subtitle?: string;
@@ -31,8 +31,8 @@ interface GlobalSearchProps {
 }
 
 export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: GlobalSearchProps) {
-  const [query, setQuery] = useState('');
-  const [selectedTab, setSelectedTab] = useState<'all' | SearchResult['type']>('all');
+  const [query, setQuery] = useState("");
+  const [selectedTab, setSelectedTab] = useState<"all" | SearchResult["type"]>("all");
 
   // Perform search
   const results = useMemo(() => {
@@ -44,17 +44,18 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
     projects.forEach((project) => {
       // Search in project
       const projectMatches: string[] = [];
-      if (project.name.toLowerCase().includes(lowerQuery)) projectMatches.push('name');
-      if (project.description?.toLowerCase().includes(lowerQuery)) projectMatches.push('description');
+      if (project.name.toLowerCase().includes(lowerQuery)) projectMatches.push("name");
+      if (project.description?.toLowerCase().includes(lowerQuery))
+        projectMatches.push("description");
 
       if (projectMatches.length > 0) {
         searchResults.push({
-          type: 'project',
+          type: "project",
           id: project.id,
           title: project.name,
           subtitle: project.description,
           metadata: project.startDate,
-          relevance: projectMatches.includes('name') ? 100 : 80,
+          relevance: projectMatches.includes("name") ? 100 : 80,
           matchedFields: projectMatches,
           item: project,
         });
@@ -63,17 +64,17 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
       // Search in phases
       project.phases.forEach((phase) => {
         const phaseMatches: string[] = [];
-        if (phase.name.toLowerCase().includes(lowerQuery)) phaseMatches.push('name');
-        if (phase.description?.toLowerCase().includes(lowerQuery)) phaseMatches.push('description');
+        if (phase.name.toLowerCase().includes(lowerQuery)) phaseMatches.push("name");
+        if (phase.description?.toLowerCase().includes(lowerQuery)) phaseMatches.push("description");
 
         if (phaseMatches.length > 0) {
           searchResults.push({
-            type: 'phase',
+            type: "phase",
             id: phase.id,
             title: phase.name,
             subtitle: `${project.name} • ${phase.description}`,
             metadata: `${phase.startDate} - ${phase.endDate}`,
-            relevance: phaseMatches.includes('name') ? 90 : 70,
+            relevance: phaseMatches.includes("name") ? 90 : 70,
             matchedFields: phaseMatches,
             item: phase,
           });
@@ -82,18 +83,18 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
         // Search in tasks
         phase.tasks.forEach((task) => {
           const taskMatches: string[] = [];
-          if (task.name.toLowerCase().includes(lowerQuery)) taskMatches.push('name');
-          if (task.description?.toLowerCase().includes(lowerQuery)) taskMatches.push('description');
-          if (task.assignee?.toLowerCase().includes(lowerQuery)) taskMatches.push('assignee');
+          if (task.name.toLowerCase().includes(lowerQuery)) taskMatches.push("name");
+          if (task.description?.toLowerCase().includes(lowerQuery)) taskMatches.push("description");
+          if (task.assignee?.toLowerCase().includes(lowerQuery)) taskMatches.push("assignee");
 
           if (taskMatches.length > 0) {
             searchResults.push({
-              type: 'task',
+              type: "task",
               id: task.id,
               title: task.name,
               subtitle: `${project.name} • ${phase.name}`,
-              metadata: task.assignee || 'Unassigned',
-              relevance: taskMatches.includes('name') ? 85 : 65,
+              metadata: task.assignee || "Unassigned",
+              relevance: taskMatches.includes("name") ? 85 : 65,
               matchedFields: taskMatches,
               item: task,
             });
@@ -104,18 +105,18 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
       // Search in resources
       project.resources?.forEach((resource) => {
         const resourceMatches: string[] = [];
-        if (resource.name.toLowerCase().includes(lowerQuery)) resourceMatches.push('name');
-        if (resource.email?.toLowerCase().includes(lowerQuery)) resourceMatches.push('email');
-        if (resource.role.toLowerCase().includes(lowerQuery)) resourceMatches.push('role');
+        if (resource.name.toLowerCase().includes(lowerQuery)) resourceMatches.push("name");
+        if (resource.email?.toLowerCase().includes(lowerQuery)) resourceMatches.push("email");
+        if (resource.projectRole?.toLowerCase().includes(lowerQuery)) resourceMatches.push("projectRole");
 
         if (resourceMatches.length > 0) {
           searchResults.push({
-            type: 'resource',
+            type: "resource",
             id: resource.id,
             title: resource.name,
-            subtitle: resource.role,
-            metadata: resource.email || '',
-            relevance: resourceMatches.includes('name') ? 95 : 75,
+            subtitle: resource.projectRole || resource.category,
+            metadata: resource.email || "",
+            relevance: resourceMatches.includes("name") ? 95 : 75,
             matchedFields: resourceMatches,
             item: resource,
           });
@@ -125,18 +126,18 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
       // Search in milestones
       project.milestones?.forEach((milestone) => {
         const milestoneMatches: string[] = [];
-        if (milestone.name.toLowerCase().includes(lowerQuery)) milestoneMatches.push('name');
+        if (milestone.name.toLowerCase().includes(lowerQuery)) milestoneMatches.push("name");
         if (milestone.description?.toLowerCase().includes(lowerQuery))
-          milestoneMatches.push('description');
+          milestoneMatches.push("description");
 
         if (milestoneMatches.length > 0) {
           searchResults.push({
-            type: 'milestone',
+            type: "milestone",
             id: milestone.id,
             title: milestone.name,
             subtitle: `${project.name} • ${milestone.description}`,
             metadata: milestone.date,
-            relevance: milestoneMatches.includes('name') ? 90 : 70,
+            relevance: milestoneMatches.includes("name") ? 90 : 70,
             matchedFields: milestoneMatches,
             item: milestone,
           });
@@ -150,7 +151,7 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
 
   // Filter by selected tab
   const filteredResults = useMemo(() => {
-    if (selectedTab === 'all') return results;
+    if (selectedTab === "all") return results;
     return results.filter((r) => r.type === selectedTab);
   }, [results, selectedTab]);
 
@@ -176,7 +177,7 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
     (result: SearchResult) => {
       onSelectResult?.(result);
       onClose();
-      setQuery('');
+      setQuery("");
     },
     [onSelectResult, onClose]
   );
@@ -184,8 +185,8 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
   // Reset on close
   useEffect(() => {
     if (!open) {
-      setQuery('');
-      setSelectedTab('all');
+      setQuery("");
+      setSelectedTab("all");
     }
   }, [open]);
 
@@ -201,7 +202,7 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
         body: { padding: 0 },
       }}
     >
-      <div className="flex flex-col" style={{ maxHeight: '70vh' }}>
+      <div className="flex flex-col" style={{ maxHeight: "70vh" }}>
         {/* Search Input */}
         <div className="p-4 border-b border-gray-200">
           <Input
@@ -212,7 +213,7 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
             style={{
-              fontSize: '15px',
+              fontSize: "15px",
             }}
           />
         </div>
@@ -224,22 +225,22 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
             <Tabs
               activeKey={selectedTab}
               onChange={(key) => setSelectedTab(key as any)}
-              style={{ padding: '0 16px' }}
+              style={{ padding: "0 16px" }}
               items={[
-                { key: 'all', label: `All (${counts.all})` },
-                { key: 'project', label: `Projects (${counts.project})` },
-                { key: 'task', label: `Tasks (${counts.task})` },
-                { key: 'phase', label: `Phases (${counts.phase})` },
-                { key: 'resource', label: `Resources (${counts.resource})` },
-                { key: 'milestone', label: `Milestones (${counts.milestone})` },
+                { key: "all", label: `All (${counts.all})` },
+                { key: "project", label: `Projects (${counts.project})` },
+                { key: "task", label: `Tasks (${counts.task})` },
+                { key: "phase", label: `Phases (${counts.phase})` },
+                { key: "resource", label: `Resources (${counts.resource})` },
+                { key: "milestone", label: `Milestones (${counts.milestone})` },
               ]}
             />
 
             {/* Results List */}
-            <div className="overflow-y-auto px-4 pb-4" style={{ maxHeight: '400px' }}>
+            <div className="overflow-y-auto px-4 pb-4" style={{ maxHeight: "400px" }}>
               {filteredResults.length === 0 ? (
                 <Empty
-                  description={`No ${selectedTab === 'all' ? '' : selectedTab + 's'} found`}
+                  description={`No ${selectedTab === "all" ? "" : selectedTab + "s"} found`}
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
               ) : (
@@ -258,7 +259,10 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
           </>
         ) : (
           <div className="p-12 text-center">
-            <Search className="w-12 h-12 mx-auto mb-3" style={{ color: colorValues.neutral[300] }} />
+            <Search
+              className="w-12 h-12 mx-auto mb-3"
+              style={{ color: colorValues.neutral[300] }}
+            />
             <p className="text-sm" style={{ color: colorValues.neutral[500] }}>
               Type at least 2 characters to search
             </p>
@@ -299,7 +303,7 @@ function SearchResultCard({
   const highlightText = (text: string) => {
     if (!query) return text;
 
-    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    const parts = text.split(new RegExp(`(${query})`, "gi"));
     return (
       <span>
         {parts.map((part, i) =>
@@ -308,8 +312,8 @@ function SearchResultCard({
               key={i}
               style={{
                 backgroundColor: withOpacity(colorValues.warning[500], 0.3),
-                padding: '0 2px',
-                borderRadius: '2px',
+                padding: "0 2px",
+                borderRadius: "2px",
               }}
             >
               {part}
@@ -326,7 +330,7 @@ function SearchResultCard({
     <div
       className="p-3 rounded-lg border cursor-pointer transition-all duration-150 hover:shadow-md"
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
         borderColor: colorValues.neutral[200],
       }}
       onClick={onClick}
@@ -336,7 +340,7 @@ function SearchResultCard({
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = colorValues.neutral[200];
-        e.currentTarget.style.backgroundColor = '#fff';
+        e.currentTarget.style.backgroundColor = "#fff";
       }}
     >
       <div className="flex items-start gap-3">
@@ -363,7 +367,10 @@ function SearchResultCard({
             >
               {result.type}
             </span>
-            <span className="text-sm font-medium truncate" style={{ color: colorValues.neutral[900] }}>
+            <span
+              className="text-sm font-medium truncate"
+              style={{ color: colorValues.neutral[900] }}
+            >
               {highlightText(result.title)}
             </span>
           </div>

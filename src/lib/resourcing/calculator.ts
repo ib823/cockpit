@@ -15,23 +15,28 @@ import {
   calculateMargin,
   getDefaultRate,
   ResourceRole,
-} from './model';
-import { Phase } from '@/types/core';
+} from "./model";
+import { Phase } from "@/types/core";
 
 /**
  * Generate complete resource plan from phases
  */
 export function generateResourcePlan(
   phases: Phase[],
-  region: string = 'US-East',
-  projectId: string = 'default'
+  region: string = "US-East",
+  projectId: string = "default"
 ): ResourcePlan {
   // Create phase allocations with default resources
-  const phaseAllocations: Omit<PhaseAllocation, 'totalCost' | 'averageRate'>[] = phases.map(
+  const phaseAllocations: Omit<PhaseAllocation, "totalCost" | "averageRate">[] = phases.map(
     (phase) => ({
       phaseId: phase.id,
       phaseName: phase.name,
-      category: (phase.category || 'prepare') as 'prepare' | 'explore' | 'realize' | 'deploy' | 'run',
+      category: (phase.category || "prepare") as
+        | "prepare"
+        | "explore"
+        | "realize"
+        | "deploy"
+        | "run",
       baseEffort: phase.effort || 0,
       resources: createDefaultPhaseResources(phase.id, phase.name, phase.effort || 0, region),
     })
@@ -41,7 +46,7 @@ export function generateResourcePlan(
   const wrappers = createDefaultWrappers(
     projectId,
     phases.map((p) => p.id)
-  ).map(w => ({ ...w, calculatedEffort: 0, calculatedCost: 0 }));
+  ).map((w) => ({ ...w, calculatedEffort: 0, calculatedCost: 0 }));
 
   // Calculate plan
   return calculateResourcePlan(phaseAllocations, wrappers);
@@ -69,7 +74,7 @@ export function updateResourceAllocation(
 
   return calculateResourcePlan(
     updatedPhases,
-    plan.wrappers.map(w => ({ ...w, calculatedEffort: 0, calculatedCost: 0 }))
+    plan.wrappers.map((w) => ({ ...w, calculatedEffort: 0, calculatedCost: 0 }))
   );
 }
 
@@ -86,7 +91,7 @@ export function addResourceToPhase(
   const phase = plan.phases.find((p) => p.phaseId === phaseId);
   if (!phase) return plan;
 
-  const newResource: Omit<PhaseResource, 'calculatedHours' | 'calculatedCost'> = {
+  const newResource: Omit<PhaseResource, "calculatedHours" | "calculatedCost"> = {
     id: `${phaseId}-${role}-${Date.now()}`,
     phaseId,
     phaseName: phase.phaseName,
@@ -107,7 +112,7 @@ export function addResourceToPhase(
 
   return calculateResourcePlan(
     updatedPhases,
-    plan.wrappers.map(w => ({ ...w, calculatedEffort: 0, calculatedCost: 0 }))
+    plan.wrappers.map((w) => ({ ...w, calculatedEffort: 0, calculatedCost: 0 }))
   );
 }
 
@@ -130,7 +135,7 @@ export function removeResourceFromPhase(
 
   return calculateResourcePlan(
     updatedPhases,
-    plan.wrappers.map(w => ({ ...w, calculatedEffort: 0, calculatedCost: 0 }))
+    plan.wrappers.map((w) => ({ ...w, calculatedEffort: 0, calculatedCost: 0 }))
   );
 }
 
@@ -195,7 +200,10 @@ export function getResourceUtilization(plan: ResourcePlan): {
 
   // Calculate percentages
   // Calculate percentages
-  const byRoleWithPercentage: Record<ResourceRole, { hours: number; cost: number; percentage: number }> = {} as any;
+  const byRoleWithPercentage: Record<
+    ResourceRole,
+    { hours: number; cost: number; percentage: number }
+  > = {} as any;
   Object.keys(byRole).forEach((role) => {
     byRoleWithPercentage[role as ResourceRole] = {
       ...byRole[role],
@@ -203,7 +211,8 @@ export function getResourceUtilization(plan: ResourcePlan): {
     };
   });
 
-  const byPhaseWithPercentage: Record<string, { hours: number; cost: number; percentage: number }> = {};
+  const byPhaseWithPercentage: Record<string, { hours: number; cost: number; percentage: number }> =
+    {};
   Object.keys(byPhase).forEach((phase) => {
     byPhaseWithPercentage[phase] = {
       ...byPhase[phase],

@@ -21,6 +21,7 @@ Created a dedicated React hook that provides full keyboard navigation support:
 **File:** `src/components/gantt-tool/useKeyboardNavigation.ts`
 
 **Key Features:**
+
 - Arrow key navigation through phases and tasks
 - Hierarchical navigation (parent/child relationships)
 - Keyboard shortcuts for common actions
@@ -32,14 +33,15 @@ Created a dedicated React hook that provides full keyboard navigation support:
 
 #### Navigation Keys
 
-| Key | Action | Details |
-|-----|--------|---------|
-| `↓` | Next Item | Navigate to next phase or task in list |
-| `↑` | Previous Item | Navigate to previous phase or task in list |
-| `←` | Collapse/Parent | Collapse phase OR navigate to parent task |
-| `→` | Expand/Child | Expand phase OR navigate to first child task |
+| Key | Action          | Details                                      |
+| --- | --------------- | -------------------------------------------- |
+| `↓` | Next Item       | Navigate to next phase or task in list       |
+| `↑` | Previous Item   | Navigate to previous phase or task in list   |
+| `←` | Collapse/Parent | Collapse phase OR navigate to parent task    |
+| `→` | Expand/Child    | Expand phase OR navigate to first child task |
 
 **Navigation Logic:**
+
 - Creates flat list of all visible items (phases + expanded tasks)
 - Respects collapsed state (hidden tasks excluded)
 - Wraps around at list boundaries
@@ -47,37 +49,39 @@ Created a dedicated React hook that provides full keyboard navigation support:
 
 #### Action Keys
 
-| Key | Action | Details |
-|-----|--------|---------|
-| `Enter` | Edit Item | Open side panel for selected phase/task/milestone |
-| `Space` | Edit Item | Same as Enter - alternative for accessibility |
-| `Delete` | Delete Item | Delete selected item (with confirmation dialog) |
-| `⌫` (Backspace) | Delete Item | Alternative delete key |
-| `Esc` | Deselect/Exit | Deselect item OR exit focus mode if active |
-| `F` | Focus Phase | Zoom into selected phase (RTS mode) |
+| Key             | Action        | Details                                           |
+| --------------- | ------------- | ------------------------------------------------- |
+| `Enter`         | Edit Item     | Open side panel for selected phase/task/milestone |
+| `Space`         | Edit Item     | Same as Enter - alternative for accessibility     |
+| `Delete`        | Delete Item   | Delete selected item (with confirmation dialog)   |
+| `⌫` (Backspace) | Delete Item   | Alternative delete key                            |
+| `Esc`           | Deselect/Exit | Deselect item OR exit focus mode if active        |
+| `F`             | Focus Phase   | Zoom into selected phase (RTS mode)               |
 
 **Safety Features:**
+
 - Delete requires confirmation dialog
 - Prevents accidental deletions
 - Clear feedback on all actions
 
 #### Creation Keys
 
-| Key | Action | Details |
-|-----|--------|---------|
-| `N` | New Phase | Open "Add Phase" panel |
-| `T` | New Task | Open "Add Task" panel (requires phase selection) |
-| `M` | New Milestone | Open "Add Milestone" panel |
+| Key | Action        | Details                                          |
+| --- | ------------- | ------------------------------------------------ |
+| `N` | New Phase     | Open "Add Phase" panel                           |
+| `T` | New Task      | Open "Add Task" panel (requires phase selection) |
+| `M` | New Milestone | Open "Add Milestone" panel                       |
 
 **Workflow Optimization:**
+
 - Quick item creation without mouse
 - Context-aware (T only works when phase selected)
 - Streamlines project planning
 
 #### Help Key
 
-| Key | Action | Details |
-|-----|--------|---------|
+| Key       | Action    | Details                          |
+| --------- | --------- | -------------------------------- |
 | `Shift+?` | Show Help | Display keyboard shortcuts modal |
 
 ### 3. Implementation Architecture
@@ -110,6 +114,7 @@ useKeyboardNavigation({
 Added `data-item-id` attributes to enable smooth scrolling:
 
 **Phase Bars:**
+
 ```tsx
 <div
   data-item-id={phase.id}
@@ -119,6 +124,7 @@ Added `data-item-id` attributes to enable smooth scrolling:
 ```
 
 **Task Bars:**
+
 ```tsx
 <div
   data-item-id={task.id}
@@ -128,6 +134,7 @@ Added `data-item-id` attributes to enable smooth scrolling:
 ```
 
 **Scrolling Behavior:**
+
 - Uses `scrollIntoView()` with smooth animation
 - Scrolls to `nearest` block (minimal movement)
 - 50ms delay for state update completion
@@ -137,6 +144,7 @@ Added `data-item-id` attributes to enable smooth scrolling:
 **Component:** `src/components/gantt-tool/KeyboardShortcutsHelp.tsx`
 
 **Features:**
+
 - Beautiful, professional design
 - Organized by category (Navigation, Actions, Create, Help)
 - Platform-aware display (⌘ on Mac, Ctrl on Windows/Linux)
@@ -183,15 +191,18 @@ Project
 ### WCAG 2.1 Requirements Met
 
 **Level A:**
+
 - ✅ 2.1.1 Keyboard: All functionality available via keyboard
 - ✅ 2.1.2 No Keyboard Trap: Focus never trapped
 - ✅ 2.4.3 Focus Order: Logical focus order maintained
 
 **Level AA:**
+
 - ✅ 2.4.7 Focus Visible: Clear visual focus indicators
 - ✅ 3.2.1 On Focus: No unexpected context changes
 
 **Additional Best Practices:**
+
 - ✅ Confirmation dialogs for destructive actions
 - ✅ Visual feedback for all keyboard actions
 - ✅ Keyboard shortcuts don't conflict with browser/screen reader shortcuts
@@ -274,24 +285,28 @@ Project
 ## 🎨 DESIGN PRINCIPLES APPLIED
 
 ### 1. **Discoverability** (Apple HIG)
+
 - Help modal accessible via `Shift+?`
 - Standard keyboard conventions (arrows, Enter, Escape)
 - Tooltips mention keyboard shortcuts
 - Progressive disclosure of advanced shortcuts
 
 ### 2. **Consistency** (Material Design)
+
 - Arrow keys for navigation (universal pattern)
 - Enter/Space for activation (standard)
 - Escape for cancel/close (expected behavior)
 - Delete for deletion (industry standard)
 
 ### 3. **Predictability** (Nielsen Norman Group)
+
 - No surprising behavior
 - Confirmation for destructive actions
 - Visual feedback for every action
 - Familiar keyboard patterns
 
 ### 4. **Efficiency** (Jakob's Law)
+
 - Single-key shortcuts for common actions
 - No modifier keys needed for navigation
 - Minimal keystrokes for frequent tasks
@@ -313,7 +328,7 @@ src/components/gantt-tool/
 
 ```typescript
 // GanttCanvas.tsx
-import { useKeyboardNavigation } from './useKeyboardNavigation';
+import { useKeyboardNavigation } from "./useKeyboardNavigation";
 
 // Inside component
 useKeyboardNavigation({
@@ -336,9 +351,9 @@ useKeyboardNavigation({
 // Detects and ignores keyboard events in input fields
 const target = event.target as HTMLElement;
 if (
-  target.tagName === 'INPUT' ||
-  target.tagName === 'TEXTAREA' ||
-  target.contentEditable === 'true'
+  target.tagName === "INPUT" ||
+  target.tagName === "TEXTAREA" ||
+  target.contentEditable === "true"
 ) {
   return; // Don't interfere with typing
 }
@@ -348,7 +363,7 @@ if (
 
 ```typescript
 // Mac vs PC keyboard differences
-const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 const cmdKey = isMac ? metaKey : ctrlKey;
 ```
 
@@ -357,6 +372,7 @@ const cmdKey = isMac ? metaKey : ctrlKey;
 ## 📊 PERFORMANCE
 
 **Metrics:**
+
 - Hook initialization: < 1ms
 - Event handler execution: < 2ms
 - Navigation response: < 50ms (including scroll)
@@ -364,6 +380,7 @@ const cmdKey = isMac ? metaKey : ctrlKey;
 - No memory leaks (proper cleanup)
 
 **Optimization:**
+
 - `useCallback` for all handlers (prevents re-renders)
 - `useMemo` for navigable items list
 - Event listener cleanup on unmount
@@ -429,11 +446,13 @@ const cmdKey = isMac ? metaKey : ctrlKey;
 ### User-Facing Documentation
 
 **In-App Help:**
+
 - `Shift+?` opens keyboard shortcuts modal
 - Tooltips mention keyboard alternatives
 - Status bar shows available shortcuts
 
 **External Documentation:**
+
 - User guide section on keyboard navigation
 - Video tutorials for power users
 - Accessibility guide for disabled users
@@ -441,11 +460,13 @@ const cmdKey = isMac ? metaKey : ctrlKey;
 ### Developer Documentation
 
 **Code Comments:**
+
 - Comprehensive JSDoc for all functions
 - Inline comments for complex logic
 - Type definitions for all parameters
 
 **This Document:**
+
 - Complete implementation guide
 - Architecture explanation
 - Usage examples
@@ -457,6 +478,7 @@ const cmdKey = isMac ? metaKey : ctrlKey;
 Successfully implemented comprehensive keyboard navigation for the Gantt tool, making it fully accessible and significantly more efficient for power users.
 
 **Key Achievements:**
+
 - ✅ Full WCAG 2.1 AA compliance
 - ✅ Complete keyboard-only operation
 - ✅ 2-3× faster navigation for power users
@@ -465,6 +487,7 @@ Successfully implemented comprehensive keyboard navigation for the Gantt tool, m
 - ✅ Production-ready quality
 
 **Impact:**
+
 - **Accessibility:** Gantt tool now usable by keyboard-only users
 - **Productivity:** Power users can navigate 2-3× faster
 - **Compliance:** Meets WCAG 2.1 AA standards

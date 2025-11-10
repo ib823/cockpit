@@ -3,14 +3,14 @@
  * Shows financial outcomes: revenue, cost, margin, and profitability metrics
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Space, Statistic, Row, Col, InputNumber, Button, Typography, Alert, Card } from 'antd';
-import { DollarSign, TrendingUp, TrendingDown, Target } from 'lucide-react';
-import { GanttProject } from '@/types/gantt-tool';
-import { CostBreakdown, MarginAnalysis } from '@/lib/dashboard/calculation-engine';
-import { formatMYR, getMarginColor } from '@/lib/rate-card';
+import { useState, useMemo } from "react";
+import { Space, Statistic, Row, Col, InputNumber, Button, Typography, Alert, Card } from "antd";
+import { DollarSign, TrendingUp, TrendingDown, Target } from "lucide-react";
+import { GanttProject } from "@/types/gantt-tool";
+import { CostBreakdown, MarginAnalysis } from "@/lib/dashboard/calculation-engine";
+import { formatMYR, getMarginColor } from "@/lib/rate-card";
 import {
   BarChart,
   Bar,
@@ -23,7 +23,7 @@ import {
   ComposedChart,
   Line,
   Cell,
-} from 'recharts';
+} from "recharts";
 
 const { Text, Title } = Typography;
 
@@ -45,11 +45,14 @@ export function FinancialIntelligencePanel({
   const [editingRevenue, setEditingRevenue] = useState(false);
   const [tempRevenue, setTempRevenue] = useState(revenue);
 
-  const marginColor = useMemo(() => getMarginColor(margins.grossMarginPercent), [margins.grossMarginPercent]);
+  const marginColor = useMemo(
+    () => getMarginColor(margins.grossMarginPercent),
+    [margins.grossMarginPercent]
+  );
 
   // Prepare chart data
   const costByPhaseData = useMemo(() => {
-    return project.phases.map(phase => {
+    return project.phases.map((phase) => {
       const phaseCost = costBreakdown.costByPhase.get(phase.id) || 0;
       return {
         name: phase.name,
@@ -60,7 +63,7 @@ export function FinancialIntelligencePanel({
 
   const costByCategoryData = useMemo(() => {
     return Array.from(costBreakdown.costByCategory.entries()).map(([category, cost]) => ({
-      name: category.replace('_', ' ').toUpperCase(),
+      name: category.replace("_", " ").toUpperCase(),
       cost,
     }));
   }, [costBreakdown.costByCategory]);
@@ -68,9 +71,9 @@ export function FinancialIntelligencePanel({
   // Margin waterfall data
   const waterfallData = useMemo(() => {
     const data = [
-      { name: 'Revenue', value: revenue, fill: '#10B981' },
-      { name: 'Cost', value: -costBreakdown.totalCost, fill: '#EF4444' },
-      { name: 'Margin', value: margins.grossMargin, fill: marginColor },
+      { name: "Revenue", value: revenue, fill: "#10B981" },
+      { name: "Cost", value: -costBreakdown.totalCost, fill: "#EF4444" },
+      { name: "Margin", value: margins.grossMargin, fill: marginColor },
     ];
     return data;
   }, [revenue, costBreakdown.totalCost, margins.grossMargin, marginColor]);
@@ -81,26 +84,26 @@ export function FinancialIntelligencePanel({
   };
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space direction="vertical" size="large" style={{ width: "100%" }}>
       {/* Financial KPIs */}
       <Row gutter={[16, 16]}>
         <Col span={8}>
-          <Card size="small" style={{ background: '#ECFDF5', border: '1px solid #10B981' }}>
+          <Card size="small" style={{ background: "#ECFDF5", border: "1px solid #10B981" }}>
             <Statistic
               title="Total Revenue"
               value={revenue}
               precision={0}
               prefix={<DollarSign size={18} />}
-              valueStyle={{ color: '#10B981' }}
+              valueStyle={{ color: "#10B981" }}
               className="[&_.ant-statistic-content]:text-lg"
               formatter={(value) => formatMYR(Number(value))}
             />
             {editingRevenue ? (
-              <Space style={{ marginTop: '8px' }}>
+              <Space style={{ marginTop: "8px" }}>
                 <InputNumber
                   value={tempRevenue}
                   onChange={(val) => setTempRevenue(val || 0)}
-                  style={{ width: '120px' }}
+                  style={{ width: "120px" }}
                   size="small"
                 />
                 <Button size="small" type="primary" onClick={handleSaveRevenue}>
@@ -118,7 +121,7 @@ export function FinancialIntelligencePanel({
                   setTempRevenue(revenue);
                   setEditingRevenue(true);
                 }}
-                style={{ padding: 0, marginTop: '4px' }}
+                style={{ padding: 0, marginTop: "4px" }}
               >
                 Edit Price
               </Button>
@@ -126,13 +129,13 @@ export function FinancialIntelligencePanel({
           </Card>
         </Col>
         <Col span={8}>
-          <Card size="small" style={{ background: '#FEF3C7', border: '1px solid #F59E0B' }}>
+          <Card size="small" style={{ background: "#FEF3C7", border: "1px solid #F59E0B" }}>
             <Statistic
               title="Total Cost"
               value={costBreakdown.totalCost}
               precision={0}
               prefix={<TrendingDown size={18} />}
-              valueStyle={{ color: '#F59E0B' }}
+              valueStyle={{ color: "#F59E0B" }}
               className="[&_.ant-statistic-content]:text-lg"
               formatter={(value) => formatMYR(Number(value))}
             />
@@ -145,7 +148,7 @@ export function FinancialIntelligencePanel({
           <Card
             size="small"
             style={{
-              background: margins.grossMarginPercent >= 20 ? '#ECFDF5' : '#FEE2E2',
+              background: margins.grossMarginPercent >= 20 ? "#ECFDF5" : "#FEE2E2",
               border: `1px solid ${marginColor}`,
             }}
           >
@@ -154,7 +157,13 @@ export function FinancialIntelligencePanel({
               value={margins.grossMarginPercent}
               precision={1}
               suffix="%"
-              prefix={margins.grossMarginPercent >= 20 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+              prefix={
+                margins.grossMarginPercent >= 20 ? (
+                  <TrendingUp size={18} />
+                ) : (
+                  <TrendingDown size={18} />
+                )
+              }
               valueStyle={{ color: marginColor }}
               className="[&_.ant-statistic-content]:text-lg"
             />
@@ -178,7 +187,7 @@ export function FinancialIntelligencePanel({
 
       {/* Margin Waterfall Chart */}
       <div>
-        <Title level={5} style={{ marginBottom: '12px' }}>
+        <Title level={5} style={{ marginBottom: "12px" }}>
           Margin Waterfall
         </Title>
         <ResponsiveContainer width="100%" height={200}>
@@ -198,7 +207,7 @@ export function FinancialIntelligencePanel({
 
       {/* Cost by Phase */}
       <div>
-        <Title level={5} style={{ marginBottom: '12px' }}>
+        <Title level={5} style={{ marginBottom: "12px" }}>
           Cost by Phase
         </Title>
         <ResponsiveContainer width="100%" height={200}>
@@ -214,7 +223,7 @@ export function FinancialIntelligencePanel({
 
       {/* Cost by Category */}
       <div>
-        <Title level={5} style={{ marginBottom: '12px' }}>
+        <Title level={5} style={{ marginBottom: "12px" }}>
           Cost by Resource Category
         </Title>
         <ResponsiveContainer width="100%" height={200}>
@@ -229,23 +238,29 @@ export function FinancialIntelligencePanel({
       </div>
 
       {/* Financial Insights */}
-      <Card size="small" style={{ background: '#F3F4F6', marginTop: '16px' }}>
-        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+      <Card size="small" style={{ background: "#F3F4F6", marginTop: "16px" }}>
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
           <Text strong className="text-sm">
-            <Target size={14} style={{ marginRight: '8px' }} />
+            <Target size={14} style={{ marginRight: "8px" }} />
             Financial Insights
           </Text>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Text type="secondary" className="text-xs">Break-even Revenue:</Text>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <Text type="secondary" className="text-xs">
+              Break-even Revenue:
+            </Text>
             <Text className="text-xs">{formatMYR(margins.breakEvenRevenue)}</Text>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Text type="secondary" className="text-xs">Contribution Margin:</Text>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <Text type="secondary" className="text-xs">
+              Contribution Margin:
+            </Text>
             <Text className="text-xs">{formatMYR(margins.contributionMargin)}</Text>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Text type="secondary" className="text-xs">Suggested 30% Margin Price:</Text>
-            <Text strong style={{ color: '#3B82F6' }} className="text-xs">
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <Text type="secondary" className="text-xs">
+              Suggested 30% Margin Price:
+            </Text>
+            <Text strong style={{ color: "#3B82F6" }} className="text-xs">
               {formatMYR(costBreakdown.totalCost / 0.7)}
             </Text>
           </div>

@@ -6,12 +6,12 @@
  * Configure project budget, alerts, and constraints.
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Button, Divider, Space, Tag } from 'antd';
-import { DollarSign, AlertTriangle, Plus, Trash2 } from 'lucide-react';
-import type { ProjectBudget, BudgetAlert } from '@/types/gantt-tool';
+import { useState, useEffect } from "react";
+import { Modal, Form, Input, InputNumber, Select, Button, Divider, Space, Tag } from "antd";
+import { DollarSign, AlertTriangle, Plus, Trash2 } from "lucide-react";
+import type { ProjectBudget, BudgetAlert } from "@/types/gantt-tool";
 
 interface Props {
   isOpen: boolean;
@@ -21,12 +21,12 @@ interface Props {
 }
 
 const CURRENCY_OPTIONS = [
-  { label: 'USD - US Dollar', value: 'USD' },
-  { label: 'EUR - Euro', value: 'EUR' },
-  { label: 'GBP - British Pound', value: 'GBP' },
-  { label: 'CAD - Canadian Dollar', value: 'CAD' },
-  { label: 'AUD - Australian Dollar', value: 'AUD' },
-  { label: 'INR - Indian Rupee', value: 'INR' },
+  { label: "USD - US Dollar", value: "USD" },
+  { label: "EUR - Euro", value: "EUR" },
+  { label: "GBP - British Pound", value: "GBP" },
+  { label: "CAD - Canadian Dollar", value: "CAD" },
+  { label: "AUD - Australian Dollar", value: "AUD" },
+  { label: "INR - Indian Rupee", value: "INR" },
 ];
 
 export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }: Props) {
@@ -45,7 +45,7 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
     } else {
       // Set defaults
       form.setFieldsValue({
-        currency: 'USD',
+        currency: "USD",
         contingencyPercentage: 10,
       });
       // Default alerts
@@ -53,13 +53,13 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
         {
           id: `alert-${Date.now()}-1`,
           threshold: 75,
-          type: 'warning',
+          type: "warning",
           triggered: false,
         },
         {
           id: `alert-${Date.now()}-2`,
           threshold: 90,
-          type: 'critical',
+          type: "critical",
           triggered: false,
         },
       ]);
@@ -70,7 +70,7 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
     const newAlert: BudgetAlert = {
       id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       threshold: 80,
-      type: 'warning',
+      type: "warning",
       triggered: false,
     };
     setAlerts([...alerts, newAlert]);
@@ -80,14 +80,12 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
     setAlerts(alerts.filter((a) => a.id !== alertId));
   };
 
-  const handleUpdateAlert = (alertId: string, field: 'threshold' | 'type', value: number | string) => {
-    setAlerts(
-      alerts.map((alert) =>
-        alert.id === alertId
-          ? { ...alert, [field]: value }
-          : alert
-      )
-    );
+  const handleUpdateAlert = (
+    alertId: string,
+    field: "threshold" | "type",
+    value: number | string
+  ) => {
+    setAlerts(alerts.map((alert) => (alert.id === alertId ? { ...alert, [field]: value } : alert)));
   };
 
   const handleSave = () => {
@@ -112,9 +110,9 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
       onCancel={onClose}
       afterClose={() => {
         // PERMANENT FIX: Force cleanup of modal side effects
-        if (document.body.style.overflow === 'hidden') document.body.style.overflow = '';
-        if (document.body.style.paddingRight) document.body.style.paddingRight = '';
-        document.body.style.pointerEvents = '';
+        if (document.body.style.overflow === "hidden") document.body.style.overflow = "";
+        if (document.body.style.paddingRight) document.body.style.paddingRight = "";
+        document.body.style.pointerEvents = "";
       }}
       destroyOnHidden={true}
       width={600}
@@ -140,15 +138,15 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
         <Form.Item
           label="Total Budget"
           name="totalBudget"
-          rules={[{ required: true, message: 'Please enter total budget' }]}
+          rules={[{ required: true, message: "Please enter total budget" }]}
         >
           <InputNumber
             min={0}
             step={1000}
             className="w-full"
             prefix={<DollarSign className="w-4 h-4 text-gray-400" />}
-            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-            parser={(value: any) => value!.replace(/\$\s?|(,*)/g, '')}
+            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+            parser={(value: any) => value!.replace(/\$\s?|(,*)/g, "")}
           />
         </Form.Item>
 
@@ -156,7 +154,7 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
         <Form.Item
           label="Currency"
           name="currency"
-          rules={[{ required: true, message: 'Please select currency' }]}
+          rules={[{ required: true, message: "Please select currency" }]}
         >
           <Select options={CURRENCY_OPTIONS} />
         </Form.Item>
@@ -165,16 +163,10 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
         <Form.Item
           label="Contingency Reserve (%)"
           name="contingencyPercentage"
-          rules={[{ required: true, message: 'Please enter contingency percentage' }]}
+          rules={[{ required: true, message: "Please enter contingency percentage" }]}
           tooltip="Reserve budget for unexpected costs"
         >
-          <InputNumber
-            min={0}
-            max={50}
-            step={5}
-            className="w-full"
-            suffix="%"
-          />
+          <InputNumber min={0} max={50} step={5} className="w-full" suffix="%" />
         </Form.Item>
 
         {/* Approved By */}
@@ -207,14 +199,17 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
 
           <div className="space-y-2">
             {alerts.map((alert) => (
-              <div key={alert.id} className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg">
+              <div
+                key={alert.id}
+                className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg"
+              >
                 <div className="flex-1 flex items-center gap-2">
                   <span className="text-sm text-gray-600">When budget reaches</span>
                   <InputNumber
                     min={0}
                     max={100}
                     value={alert.threshold}
-                    onChange={(value) => handleUpdateAlert(alert.id, 'threshold', value as number)}
+                    onChange={(value) => handleUpdateAlert(alert.id, "threshold", value as number)}
                     suffix="%"
                     size="small"
                     className="w-20"
@@ -222,12 +217,12 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
                   <span className="text-sm text-gray-600">show</span>
                   <Select
                     value={alert.type}
-                    onChange={(value) => handleUpdateAlert(alert.id, 'type', value)}
+                    onChange={(value) => handleUpdateAlert(alert.id, "type", value)}
                     size="small"
                     className="w-28"
                     options={[
-                      { label: 'Warning', value: 'warning' },
-                      { label: 'Critical', value: 'critical' },
+                      { label: "Warning", value: "warning" },
+                      { label: "Critical", value: "critical" },
                     ]}
                   />
                 </div>
@@ -252,7 +247,8 @@ export function BudgetManagementModal({ isOpen, onClose, initialBudget, onSave }
         <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
           <div className="text-xs text-blue-800 font-semibold mb-1">Tip</div>
           <div className="text-xs text-blue-700">
-            Budget alerts help you stay aware of spending. Set warning alerts at 75% and critical alerts at 90% to avoid going over budget.
+            Budget alerts help you stay aware of spending. Set warning alerts at 75% and critical
+            alerts at 90% to avoid going over budget.
           </div>
         </div>
       </Form>

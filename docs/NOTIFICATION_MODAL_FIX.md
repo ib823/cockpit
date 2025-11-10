@@ -1,12 +1,15 @@
 # Notification Modal Auto-Display Fix
 
 ## Issue
+
 User `ikmls@hotmail.com` registered but security education modal didn't appear - went straight to 6-digit code input.
 
 ## Root Cause
+
 The SecurityEducationModal was only triggered when user manually clicked the PushNotificationToggle. For new users, the flow went:
 
 **Old Flow:**
+
 ```
 1. Enter email
 2. Click "Continue"
@@ -22,6 +25,7 @@ The modal was passive - waiting for user interaction that never happened for fir
 **File:** `/src/app/login/page.tsx`
 
 **New Flow:**
+
 ```
 1. Enter email
 2. Click "Continue"
@@ -34,12 +38,14 @@ The modal was passive - waiting for user interaction that never happened for fir
 ### Implementation Details
 
 **1. Added State Variables:**
+
 ```typescript
 const [showSecurityModal, setShowSecurityModal] = useState(false);
 const [isNewUser, setIsNewUser] = useState(false);
 ```
 
 **2. Modified handleContinue Logic:**
+
 ```typescript
 if (!data.pendingPasskey) {
   // No passkey found - this is a new user
@@ -48,18 +54,19 @@ if (!data.pendingPasskey) {
 
   // Show security education modal for new users
   // Only show if browser supports notifications and not in incognito
-  if ('Notification' in window && 'indexedDB' in window) {
+  if ("Notification" in window && "indexedDB" in window) {
     setShowSecurityModal(true);
     return; // ✅ Stop here, show modal
   }
 
   // If no notification support, go straight to code
-  setStage('code');
+  setStage("code");
   return;
 }
 ```
 
 **3. Added Modal Component:**
+
 ```typescript
 <SecurityEducationModal
   isOpen={showSecurityModal}
@@ -81,6 +88,7 @@ The modal displays (centered on screen):
 **Header:** "Use Personal Devices Only"
 
 **Content:**
+
 - Your phone, laptop, or tablet
 - Never on shared or public devices
 - Does not work in private browsing (e.g., incognito, Tor)
@@ -90,11 +98,13 @@ The modal displays (centered on screen):
 ## Detection Logic
 
 ### When Modal Shows
+
 ✅ New user (no passkey registered)
 ✅ Browser supports notifications (`'Notification' in window`)
 ✅ Not in incognito mode (`'indexedDB' in window`)
 
 ### When Modal Skips
+
 ❌ Returning user (has passkey) → Goes straight to passkey prompt
 ❌ Incognito/private browsing → Goes straight to code page
 ❌ Browser doesn't support notifications → Goes straight to code page
@@ -102,6 +112,7 @@ The modal displays (centered on screen):
 ## Complete New User Flow
 
 ### Scenario 1: Normal Browser (Notification Supported)
+
 ```
 1. Enter: ikmls@hotmail.com
 2. Click: "Continue"
@@ -113,6 +124,7 @@ The modal displays (centered on screen):
 ```
 
 ### Scenario 2: Incognito Mode
+
 ```
 1. Enter: new@email.com
 2. Click: "Continue"
@@ -123,6 +135,7 @@ The modal displays (centered on screen):
 ```
 
 ### Scenario 3: Returning User
+
 ```
 1. Enter: existing@email.com
 2. Click: "Continue"
@@ -137,6 +150,7 @@ The modal displays (centered on screen):
 ### Test New User with Modal
 
 1. **Create access code in admin:**
+
    ```
    Email: test.modal@example.com
    ```
@@ -202,6 +216,7 @@ The modal displays (centered on screen):
 ✅ **Result:** New users now see device security education before code entry
 
 The notification flow is now complete:
+
 1. New user detected → Modal shows ✅
 2. User acknowledges → Proceeds to registration ✅
 3. Browser/device checks prevent misuse ✅

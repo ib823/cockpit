@@ -7,9 +7,9 @@
  * This module acts as a bridge between state management and computation.
  */
 
-import { Phase } from '@/types/core';
-import { RicefwItem, FormItem, IntegrationItem } from '@/lib/ricefw/model';
-import { ProjectInputs } from './recompute';
+import { Phase } from "@/types/core";
+import { RicefwItem, FormItem, IntegrationItem } from "@/lib/ricefw/model";
+import { ProjectInputs } from "./recompute";
 
 // ============================================================================
 // Types
@@ -71,11 +71,11 @@ export function aggregateFromStores(snapshot: StoreSnapshot): AggregatedData {
 
     // Configuration
     averageHourlyRate: snapshot.averageHourlyRate || 150,
-    region: snapshot.region || 'ABMY',
+    region: snapshot.region || "ABMY",
 
     // Metadata
     aggregatedAt: new Date(),
-    dataSourceVersion: '1.0.0',
+    dataSourceVersion: "1.0.0",
   };
 }
 
@@ -94,7 +94,7 @@ export function aggregateFromDatabase(data: {
   // Extract project configuration
   const project = data.project || {};
   const averageHourlyRate = project.averageHourlyRate || 150;
-  const region = project.region || 'ABMY';
+  const region = project.region || "ABMY";
 
   // Convert decisions array to record
   const decisions: Record<string, any> = {};
@@ -108,11 +108,11 @@ export function aggregateFromDatabase(data: {
   const phases: Phase[] = (data.phases || []).map((p) => ({
     id: p.id,
     name: p.name,
-    category: p.category || 'implementation',
+    category: p.category || "implementation",
     startBusinessDay: p.startBusinessDay || 0,
     workingDays: p.workingDays || p.duration || 0,
     effort: p.effort || 0,
-    color: p.color || '#3b82f6',
+    color: p.color || "#3b82f6",
     dependencies: p.dependencies || [],
     skipHolidays: p.skipHolidays !== undefined ? p.skipHolidays : true,
   }));
@@ -180,7 +180,7 @@ export function aggregateFromDatabase(data: {
 
     // Metadata
     aggregatedAt: new Date(),
-    dataSourceVersion: '1.0.0',
+    dataSourceVersion: "1.0.0",
   };
 }
 
@@ -212,7 +212,7 @@ function calculateCompletenessFromChips(chips: any[]): number {
   // Count chips by type
   const counts: Record<string, number> = {};
   for (const chip of chips) {
-    const type = chip.type?.toLowerCase() || 'unknown';
+    const type = chip.type?.toLowerCase() || "unknown";
     counts[type] = (counts[type] || 0) + 1;
   }
 
@@ -222,7 +222,7 @@ function calculateCompletenessFromChips(chips: any[]): number {
     country: 15,
     industry: 15,
     modules: 15,
-    'legal-entities': 15,
+    "legal-entities": 15,
     employees: 10,
     revenue: 10,
     timeline: 10,
@@ -249,9 +249,9 @@ export function extractSelectedPackages(decisions: Record<string, any>): string[
   if (moduleCombo) {
     // Map module combo to SAP packages (simplified)
     const packageMap: Record<string, string[]> = {
-      'finance-only': ['sap-fico'],
-      'finance-supply': ['sap-fico', 'sap-mm', 'sap-sd'],
-      'full-erp': ['sap-fico', 'sap-mm', 'sap-sd', 'sap-pp', 'sap-hr'],
+      "finance-only": ["sap-fico"],
+      "finance-supply": ["sap-fico", "sap-mm", "sap-sd"],
+      "full-erp": ["sap-fico", "sap-mm", "sap-sd", "sap-pp", "sap-hr"],
     };
     packages.push(...(packageMap[moduleCombo] || []));
   }
@@ -270,11 +270,11 @@ export function validateAggregatedData(data: AggregatedData): {
 
   // Check for required fields
   if (data.chipCount === undefined) {
-    errors.push('Missing chipCount');
+    errors.push("Missing chipCount");
   }
 
   if (data.completenessScore === undefined) {
-    errors.push('Missing completenessScore');
+    errors.push("Missing completenessScore");
   }
 
   // Check for data consistency

@@ -1,6 +1,6 @@
 // src/stores/project-context-store.ts
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
   BusinessContext,
   StrategyDriver,
@@ -10,7 +10,7 @@ import {
   DEFAULT_STRATEGY_DRIVERS,
   DEFAULT_EXTERNAL_SYSTEMS,
   DEFAULT_SAP_SUPPLEMENTS,
-} from '@/types/project-context';
+} from "@/types/project-context";
 
 interface ProjectContextState {
   // State
@@ -98,8 +98,7 @@ export const useProjectContextStore = create<ProjectContextState>()(
         const { externalSystems } = get();
         return externalSystems.reduce(
           (total, system) =>
-            total +
-            system.interfaces.reduce((sum, iface) => sum + iface.estimatedEffort, 0),
+            total + system.interfaces.reduce((sum, iface) => sum + iface.estimatedEffort, 0),
           0
         );
       },
@@ -119,7 +118,7 @@ export const useProjectContextStore = create<ProjectContextState>()(
       // Computed: Critical drivers
       getCriticalDrivers: () => {
         const { strategyDrivers } = get();
-        return strategyDrivers.filter((d) => d.priority === 'critical');
+        return strategyDrivers.filter((d) => d.priority === "critical");
       },
 
       // Reset to defaults
@@ -133,7 +132,7 @@ export const useProjectContextStore = create<ProjectContextState>()(
       },
     }),
     {
-      name: 'cockpit-project-context-storage',
+      name: "cockpit-project-context-storage",
       partialize: (state) => ({
         businessContext: state.businessContext,
         strategyDrivers: state.strategyDrivers,

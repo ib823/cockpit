@@ -1,8 +1,8 @@
 // src/hooks/useWrapperPhases.ts
-import { useWrappersStore } from '@/stores/wrappers-store';
-import { useTimelineStore } from '@/stores/timeline-store';
-import { useMemo, useEffect } from 'react';
-import { Phase } from '@/stores/timeline-store';
+import { useWrappersStore } from "@/stores/wrappers-store";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { useMemo, useEffect } from "react";
+import { Phase } from "@/stores/timeline-store";
 
 /**
  * Hook to generate virtual wrapper phases for Gantt chart visualization
@@ -27,9 +27,7 @@ export function useWrapperPhases() {
 
     // Find timeline bounds
     const minStart = Math.min(...phases.map((p) => p.startBusinessDay || 0));
-    const maxEnd = Math.max(
-      ...phases.map((p) => (p.startBusinessDay || 0) + (p.workingDays || 0))
-    );
+    const maxEnd = Math.max(...phases.map((p) => (p.startBusinessDay || 0) + (p.workingDays || 0)));
 
     return wrappers.map((wrapper, idx) => {
       const calculation = calculations.find((c) => c.wrapperId === wrapper.id);
@@ -38,7 +36,7 @@ export function useWrapperPhases() {
       return {
         id: `wrapper-${wrapper.id}`,
         name: wrapper.name,
-        category: 'wrapper', // Add required category field
+        category: "wrapper", // Add required category field
         description: wrapper.description,
         workingDays: maxEnd - minStart, // Span entire timeline
         startBusinessDay: minStart, // Start with first core phase

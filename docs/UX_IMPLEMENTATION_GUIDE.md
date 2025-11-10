@@ -1,4 +1,5 @@
 # UX Implementation Guide
+
 ## Keystone - Refined Professional Style
 
 **Last Updated:** 2025-10-22
@@ -47,8 +48,8 @@ Location: `/src/styles/tokens.css`
 --s-128: 128px;
 
 /* Enhanced Motion */
---ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
---ease-in: cubic-bezier(0.4, 0.0, 1.0, 1.0);
+--ease-out: cubic-bezier(0, 0, 0.2, 1);
+--ease-in: cubic-bezier(0.4, 0, 1, 1);
 --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 
 /* Button System */
@@ -93,12 +94,14 @@ All buttons now have enhanced visual hierarchy:
 Standardized loading patterns for consistent UX.
 
 **Types:**
+
 - `page`: Full page loading
 - `inline`: Inline content loading
 - `skeleton`: Content placeholder
 - `overlay`: Overlay loading state
 
 **Usage:**
+
 ```tsx
 import { LoadingState, SkeletonCard } from '@/components/shared/LoadingState';
 
@@ -116,6 +119,7 @@ import { LoadingState, SkeletonCard } from '@/components/shared/LoadingState';
 ```
 
 **Features:**
+
 - Consistent spinner styling
 - Accessible with aria-labels
 - Responsive design
@@ -130,19 +134,21 @@ import { LoadingState, SkeletonCard } from '@/components/shared/LoadingState';
 Screen reader announcements for dynamic content.
 
 **Usage:**
+
 ```tsx
-import { AriaLive, useAriaAnnounce } from '@/components/shared/AriaLive';
+import { AriaLive, useAriaAnnounce } from "@/components/shared/AriaLive";
 
 // Component approach
-const [message, setMessage] = useState('');
-<AriaLive message={message} priority="polite" />
+const [message, setMessage] = useState("");
+<AriaLive message={message} priority="polite" />;
 
 // Hook approach
 const announce = useAriaAnnounce();
-announce('Calculation complete');
+announce("Calculation complete");
 ```
 
 **Features:**
+
 - Screen reader only (visually hidden)
 - Polite or assertive priorities
 - Auto-clear after 3 seconds
@@ -157,14 +163,16 @@ announce('Calculation complete');
 Visual progress indicator for project workflow.
 
 **Usage:**
+
 ```tsx
-import { WorkflowProgress } from '@/components/project/WorkflowProgress';
+import { WorkflowProgress } from "@/components/project/WorkflowProgress";
 
 // In project pages
-<WorkflowProgress />
+<WorkflowProgress />;
 ```
 
 **Features:**
+
 - Automatic current step detection
 - Visual completion indicators
 - Accessible with ARIA labels
@@ -172,6 +180,7 @@ import { WorkflowProgress } from '@/components/project/WorkflowProgress';
 - Clear step descriptions
 
 **Steps:**
+
 1. Capture (Requirements)
 2. Decide (Architecture)
 3. Plan (Timeline)
@@ -186,8 +195,9 @@ import { WorkflowProgress } from '@/components/project/WorkflowProgress';
 Automatic saving with visual feedback.
 
 **Usage:**
+
 ```tsx
-import { useAutoSave, AutoSaveIndicator } from '@/hooks/useAutoSave';
+import { useAutoSave, AutoSaveIndicator } from "@/hooks/useAutoSave";
 
 function MyForm() {
   const [formData, setFormData] = useState({});
@@ -197,16 +207,12 @@ function MyForm() {
     onSave: async (data) => {
       await api.saveProject(data);
     },
-    debounceMs: 2000
+    debounceMs: 2000,
   });
 
   return (
     <div>
-      <AutoSaveIndicator
-        saving={saving}
-        lastSaved={lastSaved}
-        error={error}
-      />
+      <AutoSaveIndicator saving={saving} lastSaved={lastSaved} error={error} />
       {/* Form fields */}
     </div>
   );
@@ -214,6 +220,7 @@ function MyForm() {
 ```
 
 **Features:**
+
 - Automatic debounced saving
 - Manual save function
 - Visual feedback (Saved just now, 2m ago, etc.)
@@ -229,20 +236,21 @@ function MyForm() {
 Confirmation dialogs for destructive actions.
 
 **Usage:**
+
 ```tsx
-import { useConfirmDialog, confirmDelete } from '@/components/shared/ConfirmDialog';
+import { useConfirmDialog, confirmDelete } from "@/components/shared/ConfirmDialog";
 
 // General confirm
 const showConfirm = useConfirmDialog();
 const confirmed = await showConfirm({
-  title: 'Delete Project?',
-  description: 'This will permanently delete all project data.',
-  confirmText: 'Delete',
-  danger: true
+  title: "Delete Project?",
+  description: "This will permanently delete all project data.",
+  confirmText: "Delete",
+  danger: true,
 });
 
 // Pre-configured delete confirm
-const confirmed = await confirmDelete('Project', 'This includes 10 tasks and 5 resources');
+const confirmed = await confirmDelete("Project", "This includes 10 tasks and 5 resources");
 
 if (confirmed) {
   // Proceed with deletion
@@ -250,6 +258,7 @@ if (confirmed) {
 ```
 
 **Pre-configured functions:**
+
 - `confirmDelete()` - Delete confirmation
 - `confirmDiscardChanges()` - Discard unsaved changes
 - `confirmNavigation()` - Leave page with unsaved changes
@@ -263,14 +272,16 @@ if (confirmed) {
 Interactive tour for first-time users.
 
 **Usage:**
+
 ```tsx
-import { FirstTimeOnboarding } from '@/components/onboarding/FirstTimeOnboarding';
+import { FirstTimeOnboarding } from "@/components/onboarding/FirstTimeOnboarding";
 
 // Add to page
-<FirstTimeOnboarding pathname="/dashboard" />
+<FirstTimeOnboarding pathname="/dashboard" />;
 ```
 
 **Features:**
+
 - Browser localStorage tracking
 - Version-based (show again after updates)
 - Page-specific steps
@@ -278,10 +289,12 @@ import { FirstTimeOnboarding } from '@/components/onboarding/FirstTimeOnboarding
 - Skip/complete functionality
 
 **Integrated Pages:**
+
 - Dashboard
 - Estimator
 
 **To add new steps:**
+
 ```tsx
 // Edit ONBOARDING_STEPS in FirstTimeOnboarding.tsx
 {
@@ -300,42 +313,49 @@ import { FirstTimeOnboarding } from '@/components/onboarding/FirstTimeOnboarding
 ### CTA Visual Hierarchy
 
 **Files Modified:**
+
 - `/src/components/estimator/ResultsPanel.tsx`
 - `/src/app/dashboard/page.tsx`
 - `/src/app/globals.css`
 
 **Changes:**
+
 - Primary actions: Larger (48px), bold, shadow
 - Secondary actions: Smaller (44px), no shadow
 - Vertical stacking for mobile clarity
 - Clear visual weight difference
 
 **Example:**
+
 ```tsx
-{/* Primary Action */}
+{
+  /* Primary Action */
+}
 <Button
   type="primary"
   size="large"
   style={{
-    height: '48px',
-    fontSize: '16px',
+    height: "48px",
+    fontSize: "16px",
     fontWeight: 600,
-    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.16)'
+    boxShadow: "0 2px 8px rgba(37, 99, 235, 0.16)",
   }}
 >
   Generate Timeline
-</Button>
+</Button>;
 
-{/* Secondary Action */}
+{
+  /* Secondary Action */
+}
 <Button
   size="large"
   style={{
-    height: '44px',
-    fontSize: '15px'
+    height: "44px",
+    fontSize: "15px",
   }}
 >
   Save for Later
-</Button>
+</Button>;
 ```
 
 ---
@@ -345,6 +365,7 @@ import { FirstTimeOnboarding } from '@/components/onboarding/FirstTimeOnboarding
 **File Modified:** `/src/app/login/page.tsx`
 
 **Before:**
+
 ```
 "Invalid. Contact Admin"
 "Could not check email. Try again."
@@ -352,6 +373,7 @@ import { FirstTimeOnboarding } from '@/components/onboarding/FirstTimeOnboarding
 ```
 
 **After:**
+
 ```
 "We couldn't find an account with that email. If you need access, please contact your administrator."
 "We're having trouble connecting. Please check your internet connection and try again."
@@ -359,6 +381,7 @@ import { FirstTimeOnboarding } from '@/components/onboarding/FirstTimeOnboarding
 ```
 
 **Principles:**
+
 - Explain what happened
 - Explain why it might have happened
 - Provide clear next steps
@@ -370,18 +393,21 @@ import { FirstTimeOnboarding } from '@/components/onboarding/FirstTimeOnboarding
 ### Accessibility Enhancements
 
 **AriaLive Regions Added:**
+
 - Estimator calculation announcements
 - Form save confirmations
 - Error state announcements
 - Workflow step changes
 
 **ARIA Attributes Added:**
+
 - `role="alert"` for error messages
 - `aria-live="polite"` for updates
 - `aria-live="assertive"` for errors
 - `aria-label` for icon buttons
 
 **Screen Reader Support:**
+
 - WorkflowProgress announces current step
 - LoadingState announces loading states
 - Errors have proper alert roles
@@ -394,31 +420,31 @@ import { FirstTimeOnboarding } from '@/components/onboarding/FirstTimeOnboarding
 ### Complete Form with Auto-Save
 
 ```tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useAutoSave, AutoSaveIndicator } from '@/hooks/useAutoSave';
-import { LoadingState } from '@/components/shared/LoadingState';
-import { AriaLive } from '@/components/shared/AriaLive';
+import { useState } from "react";
+import { useAutoSave, AutoSaveIndicator } from "@/hooks/useAutoSave";
+import { LoadingState } from "@/components/shared/LoadingState";
+import { AriaLive } from "@/components/shared/AriaLive";
 
 export function ProjectForm() {
   const [formData, setFormData] = useState({
-    name: '',
-    description: ''
+    name: "",
+    description: "",
   });
 
   const { saving, lastSaved, error } = useAutoSave({
     data: formData,
     onSave: async (data) => {
-      await fetch('/api/projects', {
-        method: 'POST',
-        body: JSON.stringify(data)
+      await fetch("/api/projects", {
+        method: "POST",
+        body: JSON.stringify(data),
       });
     },
-    debounceMs: 2000
+    debounceMs: 2000,
   });
 
-  const [ariaMessage, setAriaMessage] = useState('');
+  const [ariaMessage, setAriaMessage] = useState("");
 
   return (
     <div>
@@ -426,7 +452,7 @@ export function ProjectForm() {
       <AriaLive message={ariaMessage} />
 
       {/* Visual save indicator */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
         <AutoSaveIndicator saving={saving} lastSaved={lastSaved} error={error} />
       </div>
 
@@ -435,7 +461,7 @@ export function ProjectForm() {
           value={formData.name}
           onChange={(e) => {
             setFormData({ ...formData, name: e.target.value });
-            setAriaMessage('Project name updated');
+            setAriaMessage("Project name updated");
           }}
           placeholder="Project Name"
         />
@@ -449,22 +475,19 @@ export function ProjectForm() {
 ### Delete with Confirmation
 
 ```tsx
-import { confirmDelete } from '@/components/shared/ConfirmDialog';
-import { toast } from 'react-hot-toast';
+import { confirmDelete } from "@/components/shared/ConfirmDialog";
+import { toast } from "react-hot-toast";
 
 async function handleDelete(projectId: string) {
-  const confirmed = await confirmDelete(
-    'Project',
-    'This will remove 15 tasks and 8 resources.'
-  );
+  const confirmed = await confirmDelete("Project", "This will remove 15 tasks and 8 resources.");
 
   if (!confirmed) return;
 
   try {
     await api.deleteProject(projectId);
-    toast.success('Project deleted successfully');
+    toast.success("Project deleted successfully");
   } catch (error) {
-    toast.error('Failed to delete project');
+    toast.error("Failed to delete project");
   }
 }
 ```
@@ -577,6 +600,7 @@ async function handleDelete(projectId: string) {
 ## Support & Questions
 
 For questions about these implementations:
+
 1. Check this documentation first
 2. Review component source code
 3. Check existing usage examples in codebase

@@ -9,12 +9,12 @@
  * - Editable timeline
  */
 
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { Timeline } from 'vis-timeline/standalone';
-import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
-import type { PhaseBreakdown } from '@/lib/estimator/types';
+import { useEffect, useRef } from "react";
+import { Timeline } from "vis-timeline/standalone";
+import "vis-timeline/styles/vis-timeline-graph2d.min.css";
+import type { PhaseBreakdown } from "@/lib/estimator/types";
 
 interface GanttProps {
   phases: PhaseBreakdown[];
@@ -23,12 +23,7 @@ interface GanttProps {
   editable?: boolean;
 }
 
-export function VisGanttChart({
-  phases,
-  startDate,
-  onPhaseUpdate,
-  editable = true
-}: GanttProps) {
+export function VisGanttChart({ phases, startDate, onPhaseUpdate, editable = true }: GanttProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<Timeline | null>(null);
 
@@ -63,7 +58,7 @@ export function VisGanttChart({
         remove: false,
       },
       stack: false,
-      orientation: 'top' as const,
+      orientation: "top" as const,
       zoomMin: 1000 * 60 * 60 * 24 * 7, // 1 week
       zoomMax: 1000 * 60 * 60 * 24 * 365, // 1 year
       start: startDate,
@@ -80,9 +75,9 @@ export function VisGanttChart({
     // Note: Reading items back from vis-timeline requires using DataSet
     // For now, phase updates are handled via the items array directly
     if (onPhaseUpdate) {
-      timelineRef.current.on('itemover', (properties: any) => {
+      timelineRef.current.on("itemover", (properties: any) => {
         // Handle item updates when implemented
-        console.log('[VisGanttChart] Item interaction:', properties);
+        console.log("[VisGanttChart] Item interaction:", properties);
       });
     }
 
@@ -96,7 +91,7 @@ export function VisGanttChart({
     <div
       ref={containerRef}
       className="h-96 border rounded bg-white"
-      style={{ minHeight: '400px' }}
+      style={{ minHeight: "400px" }}
     />
   );
 }

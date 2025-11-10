@@ -100,9 +100,7 @@ export function ResourcePanel({
                       className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: ROLE_COLORS[resource.role] }}
                     />
-                    <span className="text-sm font-medium text-gray-900">
-                      {resource.role}
-                    </span>
+                    <span className="text-sm font-medium text-gray-900">{resource.role}</span>
                   </div>
 
                   {/* Region */}
@@ -111,18 +109,14 @@ export function ResourcePanel({
                     {editingId === resource.id ? (
                       <select
                         value={resource.region}
-                        onChange={(e) =>
-                          onUpdateResource(resource.id, { region: e.target.value })
-                        }
+                        onChange={(e) => onUpdateResource(resource.id, { region: e.target.value })}
                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
                       >
                         <option value="US-East">US-East</option>
                         <option value="Asia-Pacific">Asia-Pacific</option>
                       </select>
                     ) : (
-                      <div className="text-sm font-medium text-gray-900">
-                        {resource.region}
-                      </div>
+                      <div className="text-sm font-medium text-gray-900">{resource.region}</div>
                     )}
                   </div>
 
@@ -241,9 +235,7 @@ export function ResourcePanel({
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-600 block mb-1">
-                  Allocation %
-                </label>
+                <label className="text-xs text-gray-600 block mb-1">Allocation %</label>
                 <input
                   type="number"
                   min="0"
@@ -287,15 +279,11 @@ export function ResourcePanel({
           <div className="flex items-center gap-6">
             <div className="text-right">
               <div className="text-xs text-gray-500">Total Hours</div>
-              <div className="text-sm font-bold text-gray-900">
-                {totalHours.toFixed(0)} hrs
-              </div>
+              <div className="text-sm font-bold text-gray-900">{totalHours.toFixed(0)} hrs</div>
             </div>
             <div className="text-right">
               <div className="text-xs text-gray-500">Total Cost</div>
-              <div className="text-sm font-bold text-green-600">
-                ${totalCost.toLocaleString()}
-              </div>
+              <div className="text-sm font-bold text-green-600">${totalCost.toLocaleString()}</div>
             </div>
           </div>
         </div>

@@ -12,15 +12,16 @@
  * - Cache warming
  */
 
-import { Redis } from '@upstash/redis';
+import { Redis } from "@upstash/redis";
 
 // Initialize Redis client
-const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-  : null;
+const redis =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      })
+    : null;
 
 /**
  * Cache configuration
@@ -51,14 +52,14 @@ export const CACHE_CONFIG = {
  */
 export const CacheKeys = {
   // L3 Catalog
-  l3CatalogAll: () => 'l3:catalog:all',
+  l3CatalogAll: () => "l3:catalog:all",
   l3CatalogByLob: (lobName: string) => `l3:catalog:lob:${lobName}`,
   l3CatalogByModule: (module: string) => `l3:catalog:module:${module}`,
   l3CatalogByTier: (tier: string) => `l3:catalog:tier:${tier}`,
   l3CatalogSearch: (query: string) => `l3:catalog:search:${query}`,
 
   // LOBs
-  lobsAll: () => 'lobs:all',
+  lobsAll: () => "lobs:all",
   lobById: (id: string) => `lobs:id:${id}`,
 
   // User data
@@ -70,7 +71,7 @@ export const CacheKeys = {
   dashboardCharts: (userId: string) => `dashboard:${userId}:charts`,
 
   // Analytics
-  analyticsOverview: () => 'analytics:overview',
+  analyticsOverview: () => "analytics:overview",
   analyticsProject: (projectId: string) => `analytics:project:${projectId}`,
 } as const;
 
@@ -157,7 +158,7 @@ class CacheManager {
   constructor() {
     this.useRedis = redis !== null;
     if (!this.useRedis) {
-      console.warn('[Cache] Redis not configured, using in-memory fallback');
+      console.warn("[Cache] Redis not configured, using in-memory fallback");
     }
   }
 
@@ -198,7 +199,7 @@ class CacheManager {
       return null;
     } catch (error) {
       statsTracker.recordError();
-      console.error('[Cache] Error getting from cache:', error);
+      console.error("[Cache] Error getting from cache:", error);
       return null;
     }
   }
@@ -223,7 +224,7 @@ class CacheManager {
       }
     } catch (error) {
       statsTracker.recordError();
-      console.error('[Cache] Error setting cache:', error);
+      console.error("[Cache] Error setting cache:", error);
     }
   }
 
@@ -243,7 +244,7 @@ class CacheManager {
       }
     } catch (error) {
       statsTracker.recordError();
-      console.error('[Cache] Error deleting from cache:', error);
+      console.error("[Cache] Error deleting from cache:", error);
     }
   }
 
@@ -267,12 +268,12 @@ class CacheManager {
             keysToDelete.push(key);
           }
         }
-        keysToDelete.forEach(key => this.memoryCache.delete(key));
+        keysToDelete.forEach((key) => this.memoryCache.delete(key));
         console.log(`[Cache] 🗑️  DELETE PATTERN (memory) ${pattern} (${keysToDelete.length} keys)`);
       }
     } catch (error) {
       statsTracker.recordError();
-      console.error('[Cache] Error deleting pattern from cache:', error);
+      console.error("[Cache] Error deleting pattern from cache:", error);
     }
   }
 
@@ -280,18 +281,14 @@ class CacheManager {
    * Simple pattern matching for memory cache
    */
   private matchPattern(key: string, pattern: string): boolean {
-    const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+    const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
     return regex.test(key);
   }
 
   /**
    * Get or set pattern - fetch from cache or compute and cache
    */
-  async getOrSet<T>(
-    key: string,
-    fetcher: () => Promise<T>,
-    ttlSeconds: number
-  ): Promise<T> {
+  async getOrSet<T>(key: string, fetcher: () => Promise<T>, ttlSeconds: number): Promise<T> {
     // Try cache first
     const cached = await this.get<T>(key);
     if (cached !== null) {
@@ -342,13 +339,13 @@ class CacheManager {
     try {
       if (this.useRedis && redis) {
         await redis.flushdb();
-        console.log('[Cache] 🗑️  CLEARED ALL (Redis)');
+        console.log("[Cache] 🗑️  CLEARED ALL (Redis)");
       } else {
         this.memoryCache.clear();
-        console.log('[Cache] 🗑️  CLEARED ALL (memory)');
+        console.log("[Cache] 🗑️  CLEARED ALL (memory)");
       }
     } catch (error) {
-      console.error('[Cache] Error clearing cache:', error);
+      console.error("[Cache] Error clearing cache:", error);
     }
   }
 }
@@ -380,8 +377,8 @@ export async function withCache<T>(
     if (cached !== null) {
       // Refresh in background
       fetcher()
-        .then(fresh => cache.set(key, fresh, ttlSeconds))
-        .catch(err => console.error('[Cache] Background refresh failed:', err));
+        .then((fresh) => cache.set(key, fresh, ttlSeconds))
+        .catch((err) => console.error("[Cache] Background refresh failed:", err));
 
       return cached;
     }

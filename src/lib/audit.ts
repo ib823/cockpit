@@ -5,8 +5,8 @@
  * Required for SOC 2, ISO 27001, and other security certifications
  */
 
-import { prisma } from './db';
-import { AuditAction } from '@prisma/client';
+import { prisma } from "./db";
+import { AuditAction } from "@prisma/client";
 
 export { AuditAction };
 
@@ -44,7 +44,7 @@ export async function logAuditEvent(
       },
     });
 
-    console.log('[Audit]', {
+    console.log("[Audit]", {
       action,
       entity,
       entityId,
@@ -53,12 +53,12 @@ export async function logAuditEvent(
     });
   } catch (error) {
     // CRITICAL: Log to monitoring but don't fail the request
-    console.error('[Audit] Failed to log event:', error);
+    console.error("[Audit] Failed to log event:", error);
 
     // In production, alert monitoring system
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       // Note: Integrate with Sentry or monitoring service for production alerts
-      console.error('[Audit] ALERT: Audit logging failed in production!', {
+      console.error("[Audit] ALERT: Audit logging failed in production!", {
         action,
         entity,
         entityId,
@@ -72,16 +72,13 @@ export async function logAuditEvent(
  * Extract audit context from NextRequest
  * Use this in API route handlers
  */
-export function getAuditContext(
-  request: Request,
-  userId: string
-): AuditContext {
+export function getAuditContext(request: Request, userId: string): AuditContext {
   const headers = request.headers;
 
   return {
     userId,
     ipAddress: extractIPAddress(headers),
-    userAgent: headers.get('user-agent') || undefined,
+    userAgent: headers.get("user-agent") || undefined,
   };
 }
 
@@ -91,20 +88,19 @@ export function getAuditContext(
  */
 function extractIPAddress(headers: Headers): string | undefined {
   // Trust proxy headers only in production with TRUST_PROXY=true
-  const trustProxy =
-    process.env.TRUST_PROXY === 'true' && process.env.NODE_ENV === 'production';
+  const trustProxy = process.env.TRUST_PROXY === "true" && process.env.NODE_ENV === "production";
 
   if (!trustProxy) {
     return undefined;
   }
 
-  const forwardedFor = headers.get('x-forwarded-for');
+  const forwardedFor = headers.get("x-forwarded-for");
   if (forwardedFor) {
     // X-Forwarded-For can contain multiple IPs: "client, proxy1, proxy2"
-    return forwardedFor.split(',')[0].trim();
+    return forwardedFor.split(",")[0].trim();
   }
 
-  const realIp = headers.get('x-real-ip');
+  const realIp = headers.get("x-real-ip");
   if (realIp) {
     return realIp;
   }
@@ -116,11 +112,7 @@ function extractIPAddress(headers: Headers): string | undefined {
  * Query audit logs for a specific entity
  * Useful for showing audit history in UI
  */
-export async function getAuditLog(
-  entity: string,
-  entityId: string,
-  limit: number = 50
-) {
+export async function getAuditLog(entity: string, entityId: string, limit: number = 50) {
   return prisma.audit_logs.findMany({
     where: {
       entity,
@@ -136,7 +128,7 @@ export async function getAuditLog(
       },
     },
     orderBy: {
-      createdAt: 'desc',
+      createdAt: "desc",
     },
     take: limit,
   });
@@ -152,7 +144,7 @@ export async function getUserAuditLog(userId: string, limit: number = 100) {
       userId,
     },
     orderBy: {
-      createdAt: 'desc',
+      createdAt: "desc",
     },
     take: limit,
   });
@@ -187,7 +179,7 @@ export async function getAuditLogByAction(
       },
     },
     orderBy: {
-      createdAt: 'desc',
+      createdAt: "desc",
     },
     take: limit,
   });
@@ -206,20 +198,20 @@ export async function getAuditStats(days: number = 30) {
     }),
 
     // Events by action type
-    prisma.audit_logs.groupBy({
-      by: ['action'],
+    (prisma.audit_logs.groupBy as any)({
+      by: ["action"],
       where: { createdAt: { gte: since } },
-      _count: true,
+      _count: { _all: true },
     }),
 
     // Most active users
-    prisma.audit_logs.groupBy({
-      by: ['userId'],
+    (prisma.audit_logs.groupBy as any)({
+      by: ["userId"],
       where: { createdAt: { gte: since } },
-      _count: true,
+      _count: { _all: true },
       orderBy: {
         _count: {
-          userId: 'desc',
+          userId: "desc",
         },
       },
       take: 10,
@@ -228,13 +220,13 @@ export async function getAuditStats(days: number = 30) {
 
   return {
     totalEvents,
-    byAction: byAction.map((item) => ({
+    byAction: byAction.map((item: any) => ({
       action: item.action,
-      count: item._count,
+      count: item._count?._all || 0,
     })),
-    topUsers: byUser.map((item) => ({
+    topUsers: byUser.map((item: any) => ({
       userId: item.userId,
-      count: item._count,
+      count: item._count?._all || 0,
     })),
   };
 }
@@ -247,13 +239,13 @@ export async function detectSuspiciousActivity(hours: number = 24) {
   const since = new Date(Date.now() - hours * 60 * 60 * 1000);
 
   // Find users with unusual delete activity
-  const suspiciousDeletes = await prisma.audit_logs.groupBy({
-    by: ['userId'],
+  const suspiciousDeletes = await (prisma.audit_logs.groupBy as any)({
+    by: ["userId"],
     where: {
-      action: 'DELETE',
+      action: "DELETE",
       createdAt: { gte: since },
     },
-    _count: true,
+    _count: { _all: true },
     having: {
       userId: {
         _count: {
@@ -266,7 +258,7 @@ export async function detectSuspiciousActivity(hours: number = 24) {
   // Find failed access attempts (if logged)
   const failedAccess = await prisma.audit_logs.findMany({
     where: {
-      entity: 'access_denied',
+      entity: "access_denied",
       createdAt: { gte: since },
     },
     include: {
@@ -280,7 +272,7 @@ export async function detectSuspiciousActivity(hours: number = 24) {
   });
 
   return {
-    suspiciousDeletes: suspiciousDeletes.map((item) => ({
+    suspiciousDeletes: suspiciousDeletes.map((item: { userId: string; _count: number }) => ({
       userId: item.userId,
       deleteCount: item._count,
     })),

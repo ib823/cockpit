@@ -74,8 +74,11 @@
 .cockpit-ant-table :where(.ant-pagination .ant-pagination-item-active a) {
   color: #fff;
 }
-.cockpit-ant-table :where(.ant-pagination .ant-pagination-prev .ant-pagination-item-link,
-                          .ant-pagination .ant-pagination-next .ant-pagination-item-link) {
+.cockpit-ant-table
+  :where(
+    .ant-pagination .ant-pagination-prev .ant-pagination-item-link,
+    .ant-pagination .ant-pagination-next .ant-pagination-item-link
+  ) {
   border-color: var(--line);
   background: var(--surface);
 }

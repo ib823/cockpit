@@ -5,12 +5,12 @@
  * Allows users to adjust key parameters and see impact on estimates.
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, Slider, InputNumber, Select, Space, Typography, Divider, Button } from 'antd';
-import { ExperimentOutlined, ReloadOutlined } from '@ant-design/icons';
-import type { ConfidenceLevel } from '@/lib/decision-support/pert-engine';
+import { useState } from "react";
+import { Card, Slider, InputNumber, Select, Space, Typography, Divider, Button } from "antd";
+import { ExperimentOutlined, ReloadOutlined } from "@ant-design/icons";
+import type { ConfidenceLevel } from "@/lib/decision-support/pert-engine";
 
 const { Text, Title } = Typography;
 
@@ -30,7 +30,7 @@ export function WhatIfControls({ onParametersChange, onReset }: WhatIfControlsPr
   const [fteMultiplier, setFteMultiplier] = useState(1.0);
   const [utilizationMultiplier, setUtilizationMultiplier] = useState(1.0);
   const [scopeMultiplier, setScopeMultiplier] = useState(1.0);
-  const [confidenceLevel, setConfidenceLevel] = useState<ConfidenceLevel>('medium');
+  const [confidenceLevel, setConfidenceLevel] = useState<ConfidenceLevel>("medium");
 
   const handleChange = (updates: Partial<WhatIfParameters>) => {
     const newParams = {
@@ -55,7 +55,7 @@ export function WhatIfControls({ onParametersChange, onReset }: WhatIfControlsPr
     setFteMultiplier(1.0);
     setUtilizationMultiplier(1.0);
     setScopeMultiplier(1.0);
-    setConfidenceLevel('medium');
+    setConfidenceLevel("medium");
     onReset();
   };
 
@@ -73,7 +73,7 @@ export function WhatIfControls({ onParametersChange, onReset }: WhatIfControlsPr
         </Button>
       }
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
+      <Space direction="vertical" style={{ width: "100%" }} size="middle">
         {/* FTE Multiplier */}
         <div>
           <div className="flex justify-between mb-2">
@@ -96,10 +96,10 @@ export function WhatIfControls({ onParametersChange, onReset }: WhatIfControlsPr
             max={2.0}
             step={0.1}
             marks={{
-              0.5: '50%',
-              1.0: '100%',
-              1.5: '150%',
-              2.0: '200%',
+              0.5: "50%",
+              1.0: "100%",
+              1.5: "150%",
+              2.0: "200%",
             }}
             onChange={(value) => handleChange({ fteMultiplier: value })}
           />
@@ -132,9 +132,9 @@ export function WhatIfControls({ onParametersChange, onReset }: WhatIfControlsPr
             max={1.3}
             step={0.05}
             marks={{
-              0.7: '70%',
-              1.0: '100%',
-              1.3: '130%',
+              0.7: "70%",
+              1.0: "100%",
+              1.3: "130%",
             }}
             onChange={(value) => handleChange({ utilizationMultiplier: value })}
           />
@@ -167,9 +167,9 @@ export function WhatIfControls({ onParametersChange, onReset }: WhatIfControlsPr
             max={1.5}
             step={0.1}
             marks={{
-              0.5: '50%',
-              1.0: '100%',
-              1.5: '150%',
+              0.5: "50%",
+              1.0: "100%",
+              1.5: "150%",
             }}
             onChange={(value) => handleChange({ scopeMultiplier: value })}
           />
@@ -188,11 +188,11 @@ export function WhatIfControls({ onParametersChange, onReset }: WhatIfControlsPr
           <Select
             value={confidenceLevel}
             onChange={(value) => handleChange({ confidenceLevel: value })}
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             options={[
-              { value: 'low', label: 'Low Uncertainty (±15%)' },
-              { value: 'medium', label: 'Medium Uncertainty (±30%)' },
-              { value: 'high', label: 'High Uncertainty (±50%)' },
+              { value: "low", label: "Low Uncertainty (±15%)" },
+              { value: "medium", label: "Medium Uncertainty (±30%)" },
+              { value: "high", label: "High Uncertainty (±50%)" },
             ]}
           />
           <Text type="secondary" className="text-xs mt-2 block">
@@ -207,20 +207,20 @@ export function WhatIfControls({ onParametersChange, onReset }: WhatIfControlsPr
           </Text>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <Text>Team Size:</Text>{' '}
-              <Text strong>{(fteMultiplier * 100).toFixed(0)}%</Text>
+              <Text>Team Size:</Text> <Text strong>{(fteMultiplier * 100).toFixed(0)}%</Text>
             </div>
             <div>
-              <Text>Productivity:</Text>{' '}
+              <Text>Productivity:</Text>{" "}
               <Text strong>{(utilizationMultiplier * 100).toFixed(0)}%</Text>
             </div>
             <div>
-              <Text>Scope:</Text>{' '}
-              <Text strong>{(scopeMultiplier * 100).toFixed(0)}%</Text>
+              <Text>Scope:</Text> <Text strong>{(scopeMultiplier * 100).toFixed(0)}%</Text>
             </div>
             <div>
-              <Text>Uncertainty:</Text>{' '}
-              <Text strong className="capitalize">{confidenceLevel}</Text>
+              <Text>Uncertainty:</Text>{" "}
+              <Text strong className="capitalize">
+                {confidenceLevel}
+              </Text>
             </div>
           </div>
         </div>

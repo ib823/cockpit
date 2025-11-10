@@ -2,27 +2,27 @@
  * Set 6-digit codes for production users in EmailApproval table
  */
 
-import { PrismaClient } from '@prisma/client';
-import { hash } from 'bcryptjs';
-import crypto from 'crypto';
+import { PrismaClient } from "@prisma/client";
+import { hash } from "bcryptjs";
+import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🔧 Setting 6-digit codes for production users...\n');
+  console.log("🔧 Setting 6-digit codes for production users...\n");
 
   const users = [
-    { email: 'ikmls@hotmail.com', role: 'ADMIN' },
-    { email: 'ibaharudin@abeam.com', role: 'USER' },
+    { email: "ikmls@hotmail.com", role: "ADMIN" },
+    { email: "ibaharudin@abeam.com", role: "USER" },
   ];
 
   // Get system admin for approvedByUserId
   let systemAdmin = await prisma.users.findFirst({
-    where: { role: 'ADMIN' },
+    where: { role: "ADMIN" },
   });
 
   if (!systemAdmin) {
-    console.error('❌ No admin user found in database');
+    console.error("❌ No admin user found in database");
     process.exit(1);
   }
 
@@ -76,9 +76,9 @@ async function main() {
     }
   }
 
-  console.log('\n' + '='.repeat(60));
-  console.log('📋 PRODUCTION CODES');
-  console.log('='.repeat(60));
+  console.log("\n" + "=".repeat(60));
+  console.log("📋 PRODUCTION CODES");
+  console.log("=".repeat(60));
 
   for (const result of results) {
     console.log(`\n📧 ${result.email}`);
@@ -86,9 +86,9 @@ async function main() {
     console.log(`   ⏰ Valid for: 7 days`);
   }
 
-  console.log('\n' + '='.repeat(60));
-  console.log('✅ Codes set successfully!');
-  console.log('='.repeat(60));
+  console.log("\n" + "=".repeat(60));
+  console.log("✅ Codes set successfully!");
+  console.log("=".repeat(60));
 }
 
 main()

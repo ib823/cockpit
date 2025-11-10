@@ -44,6 +44,7 @@ npx prisma studio
 ```
 
 You should see these new tables:
+
 - TrustedDevice
 - LoginHistory
 - RecoveryCode
@@ -57,34 +58,40 @@ Create a test file to verify everything works:
 
 ```typescript
 // test-auth.ts
-import { hashPassword, verifyPassword, checkPasswordBreach } from '@/lib/security/password';
-import { generateTOTPSecret, verifyTOTPCode } from '@/lib/security/totp';
-import { generateBackupCodes } from '@/lib/security/backup-codes';
+import { hashPassword, verifyPassword, checkPasswordBreach } from "@/lib/security/password";
+import { generateTOTPSecret, verifyTOTPCode } from "@/lib/security/totp";
+import { generateBackupCodes } from "@/lib/security/backup-codes";
 
 async function testAuth() {
-  console.log('🔐 Testing Password Security...');
-  const hash = await hashPassword('MySecureP@ssw0rd123');
-  const valid = await verifyPassword('MySecureP@ssw0rd123', hash);
-  console.log('✓ Password hashing works:', valid);
+  console.log("🔐 Testing Password Security...");
+  const hash = await hashPassword("MySecureP@ssw0rd123");
+  const valid = await verifyPassword("MySecureP@ssw0rd123", hash);
+  console.log("✓ Password hashing works:", valid);
 
-  const breached = await checkPasswordBreach('password123');
-  console.log('✓ HIBP check works - password123 breached:', breached.breached, 'times:', breached.count);
+  const breached = await checkPasswordBreach("password123");
+  console.log(
+    "✓ HIBP check works - password123 breached:",
+    breached.breached,
+    "times:",
+    breached.count
+  );
 
-  console.log('\n🔑 Testing TOTP...');
-  const totp = await generateTOTPSecret('test@example.com');
-  console.log('✓ TOTP secret generated');
-  console.log('✓ QR Code:', totp.qrCode.substring(0, 50) + '...');
+  console.log("\n🔑 Testing TOTP...");
+  const totp = await generateTOTPSecret("test@example.com");
+  console.log("✓ TOTP secret generated");
+  console.log("✓ QR Code:", totp.qrCode.substring(0, 50) + "...");
 
-  console.log('\n🎫 Testing Backup Codes...');
+  console.log("\n🎫 Testing Backup Codes...");
   const codes = await generateBackupCodes();
-  console.log('✓ Generated', codes.codes.length, 'backup codes');
-  console.log('✓ First code:', codes.codes[0]);
+  console.log("✓ Generated", codes.codes.length, "backup codes");
+  console.log("✓ First code:", codes.codes[0]);
 }
 
 testAuth();
 ```
 
 Run with:
+
 ```bash
 npx tsx test-auth.ts
 ```
@@ -96,9 +103,11 @@ npx tsx test-auth.ts
 You have 3 options:
 
 ### Option A: Continue Implementation (Recommended)
+
 **Next Phase:** Email templates + Rate limiting + Registration flow
 
 **Tasks:**
+
 1. Create 8 email templates (welcome, new device, password expiry, etc.)
 2. Build email queue with retry logic
 3. Implement rate limiting (5/10/20 failures → lockout)
@@ -108,9 +117,11 @@ You have 3 options:
 **Ready to start?** Reply: "Continue with Option A"
 
 ### Option B: Test What's Built
+
 **Focus:** Write tests for existing infrastructure
 
 **Tasks:**
+
 1. Unit tests for password utilities (HIBP, complexity, history)
 2. Unit tests for TOTP (generate, verify, encryption)
 3. Unit tests for backup codes
@@ -120,9 +131,11 @@ You have 3 options:
 **Ready to start?** Reply: "Continue with Option B"
 
 ### Option C: Build One Complete Flow
+
 **Focus:** Get user registration working end-to-end
 
 **Tasks:**
+
 1. Create welcome email template
 2. Build registration page UI
 3. TOTP setup with QR code display
@@ -139,6 +152,7 @@ You have 3 options:
 ### Core Security Libraries
 
 **Password Management** (`src/lib/security/password.ts`)
+
 - `hashPassword(password)` - Bcrypt with cost 12
 - `verifyPassword(password, hash)` - Constant-time comparison
 - `validatePasswordComplexity(password)` - 12+ chars, upper, lower, number, symbol
@@ -148,6 +162,7 @@ You have 3 options:
 - `assessPasswordStrength(password)` - Score 0-5 with feedback
 
 **TOTP Management** (`src/lib/security/totp.ts`)
+
 - `generateTOTPSecret(email)` - Generate secret + QR code
 - `verifyTOTPCode(code, secret)` - Verify 6-digit code (±60s window)
 - `encryptTOTPSecret(secret)` - AES-256 encryption
@@ -155,12 +170,14 @@ You have 3 options:
 - `getTOTPTimeRemaining()` - Countdown timer
 
 **Backup Codes** (`src/lib/security/backup-codes.ts`)
+
 - `generateBackupCodes()` - 10 codes (XXXX-XXXX format)
 - `verifyAndUseBackupCode(userId, code)` - One-time use
 - `getRemainingBackupCodeCount(userId)` - Check remaining
 - `regenerateBackupCodes(userId)` - Invalidate old, generate new
 
 **Device Fingerprinting** (`src/lib/security/device-fingerprint.ts`)
+
 - `generateDeviceFingerprint(data)` - SHA-256 hash
 - `isDeviceTrusted(userId, fingerprint)` - Check trust status
 - `trustDevice(userId, fingerprint, info)` - Add to trusted list
@@ -169,6 +186,7 @@ You have 3 options:
 - `parseUserAgent(ua)` - Extract browser, OS, device type
 
 **IP Geolocation** (`src/lib/security/ip-geolocation.ts`)
+
 - `getClientIP()` - Extract from headers (x-forwarded-for, etc.)
 - `lookupIP(ip)` - Get country, city, timezone, ISP
 - `hasLocationChanged(prev, current)` - Detect significant changes
@@ -209,18 +227,21 @@ You have 3 options:
 ## 📊 Security Compliance
 
 ✅ **OWASP Top 10:**
+
 - A02 (Cryptographic Failures): AES-256, Bcrypt cost 12
 - A04 (Insecure Design): Multi-factor auth, device tracking
 - A05 (Security Misconfiguration): Secure defaults
 - A07 (Authentication Failures): TOTP + Password + Passkey
 
 ✅ **NIST 800-63B:**
+
 - Password length: 12+ characters
 - Password complexity: Enforced
 - Breach detection: HIBP integration
 - Account recovery: Backup codes + admin-assisted
 
 ✅ **GDPR:**
+
 - Data minimization: Hashed fingerprints
 - Right to erasure: Delete trusted devices
 - Purpose limitation: Security-only data collection
@@ -230,6 +251,7 @@ You have 3 options:
 ## 🚀 Production Considerations
 
 ### Before Going Live:
+
 1. **Rotate all secrets** in production
 2. **Set up monitoring** (error tracking, failed logins)
 3. **Configure email provider** (Resend or Gmail SMTP)
@@ -238,6 +260,7 @@ You have 3 options:
 6. **Prepare security incident** response plan
 
 ### Ongoing Maintenance:
+
 - Rotate secrets every 90 days
 - Monitor failed login attempts
 - Review suspicious login reports
@@ -296,21 +319,23 @@ You have 3 options:
 ### How to Test:
 
 1. **Visit the new registration page:**
+
    ```
    http://localhost:3000/register-secure
    ```
 
 2. **Create an email approval first:**
+
    ```typescript
    // Via Prisma Studio or API
    await prisma.emailApproval.create({
      data: {
-       email: 'test@example.com',
-       tokenHash: await bcrypt.hash('123456', 12),
+       email: "test@example.com",
+       tokenHash: await bcrypt.hash("123456", 12),
        tokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-       approvedByUserId: 'admin-id',
-       codeSent: true
-     }
+       approvedByUserId: "admin-id",
+       codeSent: true,
+     },
    });
    ```
 
@@ -328,7 +353,9 @@ You have 3 options:
 Now that Option C is complete, you can:
 
 #### **Option A: Full Implementation**
+
 Continue building the remaining features:
+
 - Login flow with password + TOTP verification
 - "Not Me" button functionality
 - Password rotation cron jobs
@@ -338,14 +365,18 @@ Continue building the remaining features:
 - Admin recovery workflow
 
 #### **Option B: Write Tests**
+
 Add comprehensive testing:
+
 - Unit tests for all security utilities
 - Integration tests for registration flow
 - E2E tests with Playwright
 - Security penetration testing
 
 #### **Option D: Deploy & Monitor**
+
 Get it production-ready:
+
 - Apply database migrations
 - Configure production secrets
 - Set up error monitoring (Sentry)
@@ -358,6 +389,7 @@ Get it production-ready:
 ## 📞 Ready to Continue?
 
 **Just reply with:**
+
 - "Continue with Option A" - Complete the auth system
 - "Continue with Option B" - Write comprehensive tests
 - "Continue with Option D" - Deploy to production

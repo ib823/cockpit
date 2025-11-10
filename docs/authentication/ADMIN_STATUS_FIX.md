@@ -1,15 +1,18 @@
 # Admin Dashboard Status Fix
 
 ## Issue
+
 User `ikmls@hotmail.com` showed status "pending" in admin dashboard even after successfully registering passkey.
 
 ## Root Cause
+
 The admin dashboard status logic checks:
+
 ```typescript
 if (!hasPasskey || !user.firstLoginAt) {
-  status = 'pending';
+  status = "pending";
 } else {
-  status = 'active';
+  status = "active";
 }
 ```
 
@@ -18,9 +21,11 @@ if (!hasPasskey || !user.firstLoginAt) {
 ## Fix Applied
 
 ### 1. Updated `finish-register` Route
+
 **File:** `/src/app/api/auth/finish-register/route.ts`
 
 Now sets `firstLoginAt` during registration:
+
 ```typescript
 const newUser = await tx.user.upsert({
   where: { email },
@@ -37,9 +42,11 @@ const newUser = await tx.user.upsert({
 ```
 
 ### 2. Updated `finish-login` Route
+
 **File:** `/src/app/api/auth/finish-login/route.ts`
 
 Now updates both `firstLoginAt` and `lastLoginAt` on login:
+
 ```typescript
 await prisma.user.update({
   where: { id: user.id },
@@ -51,7 +58,9 @@ await prisma.user.update({
 ```
 
 ### 3. Fixed Existing User
+
 Manually updated `ikmls@hotmail.com`:
+
 ```
 ✅ First login: 2025-10-06T08:00:15.668Z
 ✅ Last login: 2025-10-06T08:00:15.668Z
@@ -69,17 +78,20 @@ The status is determined by:
 ## Testing
 
 ### Test New User Registration
+
 1. Admin creates access code for new email
 2. User registers with code → passkey created
 3. **Expected:** Status shows "active" immediately ✅
 4. **Verified:** `firstLoginAt` is set during registration
 
 ### Test Returning User Login
+
 1. User logs in with existing passkey
 2. **Expected:** `lastLoginAt` updates ✅
 3. **Expected:** Status remains "active" ✅
 
 ### Test Edge Cases
+
 1. **User with passkey but NULL firstLoginAt** (the bug)
    - ✅ Fixed by setting `firstLoginAt` on login
 2. **New user registration**
@@ -119,6 +131,7 @@ checkStatus();
 ```
 
 **Output:**
+
 ```
 Has passkey: true
 First login: 2025-10-06T08:00:15.668Z

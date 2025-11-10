@@ -12,9 +12,9 @@
  * - Progress indicators
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   X,
   Download,
@@ -27,65 +27,79 @@ import {
   FileText,
   Users,
   Calendar,
-} from 'lucide-react';
-import { parseScheduleData, type ParsedSchedule, type ScheduleParseResult } from '@/lib/gantt-tool/schedule-parser';
-import { parseResourceData, type ParsedResources, type ResourceParseResult, type ParsedResource } from '@/lib/gantt-tool/resource-parser';
-import { generateScheduleTemplate, generateResourceTemplate } from '@/lib/gantt-tool/template-generator-v2';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { allocateResourcesToTasks } from '@/lib/gantt-tool/resource-allocator';
-import type { ResourceDesignation, ResourceCategory } from '@/types/gantt-tool';
+} from "lucide-react";
+import {
+  parseScheduleData,
+  type ParsedSchedule,
+  type ScheduleParseResult,
+} from "@/lib/gantt-tool/schedule-parser";
+import {
+  parseResourceData,
+  type ParsedResources,
+  type ResourceParseResult,
+  type ParsedResource,
+} from "@/lib/gantt-tool/resource-parser";
+import {
+  generateScheduleTemplate,
+  generateResourceTemplate,
+} from "@/lib/gantt-tool/template-generator-v2";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { allocateResourcesToTasks } from "@/lib/gantt-tool/resource-allocator";
+import type { ResourceDesignation, ResourceCategory } from "@/types/gantt-tool";
 import {
   detectImportConflicts,
   generatePhaseSuggestions,
   generateResourceSuggestions,
   type ConflictDetectionResult,
-} from '@/lib/gantt-tool/conflict-detector';
+} from "@/lib/gantt-tool/conflict-detector";
 import {
   ConflictResolutionModal,
   type ConflictResolution,
-} from '@/components/gantt-tool/ConflictResolutionModal';
+} from "@/components/gantt-tool/ConflictResolutionModal";
 
 // Helper to ensure date is in YYYY-MM-DD format
 function formatDateField(date: string | Date): string {
-  if (typeof date === 'string') {
-    return date.includes('T') ? date.split('T')[0] : date;
+  if (typeof date === "string") {
+    return date.includes("T") ? date.split("T")[0] : date;
   }
   // It's a Date object, format it
-  return new Date(date).toISOString().split('T')[0];
+  return new Date(date).toISOString().split("T")[0];
 }
 
 interface ImportModalV2Props {
   onClose: () => void;
 }
 
-type Stage = 'schedule' | 'resources' | 'mapping' | 'review';
+type Stage = "schedule" | "resources" | "mapping" | "review";
 
 export function ImportModalV2({ onClose }: ImportModalV2Props) {
   const { currentProject, projects } = useGanttToolStoreV2();
 
   // Stage management
-  const [currentStage, setCurrentStage] = useState<Stage>('schedule');
+  const [currentStage, setCurrentStage] = useState<Stage>("schedule");
 
   // Stage 1: Schedule
-  const [scheduleData, setScheduleData] = useState('');
+  const [scheduleData, setScheduleData] = useState("");
   const [scheduleResult, setScheduleResult] = useState<ScheduleParseResult | null>(null);
   const [parsedSchedule, setParsedSchedule] = useState<ParsedSchedule | null>(null);
 
   // Stage 2: Resources (optional)
-  const [resourceData, setResourceData] = useState('');
+  const [resourceData, setResourceData] = useState("");
   const [resourceResult, setResourceResult] = useState<ResourceParseResult | null>(null);
   const [parsedResources, setParsedResources] = useState<ParsedResources | null>(null);
   const [skipResources, setSkipResources] = useState(false);
 
   // Stage 3: Resource Mapping (if needed)
-  const [resourceMappings, setResourceMappings] = useState<Map<number, { designation: string; category: string }>>(new Map());
+  const [resourceMappings, setResourceMappings] = useState<
+    Map<number, { designation: string; category: string }>
+  >(new Map());
 
   // Review stage
   const [isImporting, setIsImporting] = useState(false);
 
   // Project creation options
-  const [importMode, setImportMode] = useState<'new' | 'append'>('new');
-  const [newProjectName, setNewProjectName] = useState('');
+  const [importMode, setImportMode] = useState<"new" | "append">("new");
+  const [newProjectName, setNewProjectName] = useState("");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   // Conflict detection
@@ -98,13 +112,13 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     // Prevent body scroll while modal is open
     const originalOverflow = document.body.style.overflow;
     const originalPaddingRight = document.body.style.paddingRight;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
 
     // Cleanup on unmount
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.paddingRight = originalPaddingRight;
-      document.body.style.pointerEvents = '';
+      document.body.style.pointerEvents = "";
     };
   }, []);
 
@@ -132,10 +146,10 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       if (result.requiresMapping && result.data.unmappedResources.length > 0) {
         // Initialize mappings with empty values
         const initialMappings = new Map<number, { designation: string; category: string }>();
-        result.data.unmappedResources.forEach(unmapped => {
+        result.data.unmappedResources.forEach((unmapped) => {
           initialMappings.set(unmapped.rowNumber, {
-            designation: '',
-            category: unmapped.suggestedCategory || 'other'
+            designation: "",
+            category: unmapped.suggestedCategory || "other",
           });
         });
         setResourceMappings(initialMappings);
@@ -148,7 +162,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     setShowConflictModal(false);
 
     if (!preparedProjectData) {
-      alert('No prepared data found. Please try again.');
+      alert("No prepared data found. Please try again.");
       return;
     }
 
@@ -156,8 +170,8 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     try {
       await performImportWithResolution(preparedProjectData, resolution);
     } catch (err) {
-      console.error('[ImportModalV2] Import failed after conflict resolution:', err);
-      alert(err instanceof Error ? err.message : 'Failed to import project');
+      console.error("[ImportModalV2] Import failed after conflict resolution:", err);
+      alert(err instanceof Error ? err.message : "Failed to import project");
     } finally {
       setIsImporting(false);
     }
@@ -176,23 +190,25 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     if (!parsedSchedule) return;
 
     // Validate import mode
-    if (importMode === 'new') {
+    if (importMode === "new") {
       if (!newProjectName.trim()) {
-        alert('Please enter a project name.');
+        alert("Please enter a project name.");
         return;
       }
       // Check for duplicate names
       const isDuplicate = projects.some(
-        p => p.name.toLowerCase() === newProjectName.trim().toLowerCase()
+        (p) => p.name.toLowerCase() === newProjectName.trim().toLowerCase()
       );
       if (isDuplicate) {
-        alert(`A project named "${newProjectName}" already exists. Please choose a different name.`);
+        alert(
+          `A project named "${newProjectName}" already exists. Please choose a different name.`
+        );
         return;
       }
     } else {
       // Append mode
       if (!selectedProjectId) {
-        alert('Please select a project to append data to.');
+        alert("Please select a project to append data to.");
         return;
       }
     }
@@ -205,11 +221,12 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       let targetProject;
       let isNewProject = false;
 
-      if (importMode === 'new') {
+      if (importMode === "new") {
         // Create new project structure
-        const projectStartDate = parsedSchedule.phases.length > 0
-          ? parsedSchedule.phases[0].startDate
-          : new Date().toISOString().split('T')[0];
+        const projectStartDate =
+          parsedSchedule.phases.length > 0
+            ? parsedSchedule.phases[0].startDate
+            : new Date().toISOString().split("T")[0];
 
         targetProject = {
           id: `temp-${Date.now()}`, // Will be replaced by server
@@ -221,14 +238,14 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           holidays: [],
           resources: [],
           viewSettings: {
-            zoomLevel: 'week' as const,
+            zoomLevel: "week" as const,
             showWeekends: true,
             showHolidays: true,
             showMilestones: true,
             showTaskDependencies: false,
             showCriticalPath: false,
             showTitles: true,
-            barDurationDisplay: 'all' as const,
+            barDurationDisplay: "all" as const,
           },
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -236,9 +253,9 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
         isNewProject = true;
       } else {
         // Append to existing project
-        const existingProject = projects.find(p => p.id === selectedProjectId);
+        const existingProject = projects.find((p) => p.id === selectedProjectId);
         if (!existingProject) {
-          throw new Error('Selected project not found');
+          throw new Error("Selected project not found");
         }
         targetProject = { ...existingProject };
       }
@@ -247,9 +264,9 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       const allParsedResources: ParsedResource[] = [];
 
       if (parsedResources && !skipResources) {
-        console.log('📥 Collecting resources...');
-        console.log('  - Mapped resources:', parsedResources.resources.length);
-        console.log('  - Unmapped resources:', parsedResources.unmappedResources?.length || 0);
+        console.warn("📥 Collecting resources...");
+        console.warn("  - Mapped resources:", parsedResources.resources.length);
+        console.warn("  - Unmapped resources:", parsedResources.unmappedResources?.length || 0);
 
         // Add already-mapped resources
         allParsedResources.push(...parsedResources.resources);
@@ -259,10 +276,14 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           for (const unmapped of parsedResources.unmappedResources) {
             const mapping = resourceMappings.get(unmapped.rowNumber);
             if (!mapping || !mapping.designation || !mapping.category) {
-              throw new Error(`Resource at row ${unmapped.rowNumber} ("${unmapped.name}") is not properly mapped`);
+              throw new Error(
+                `Resource at row ${unmapped.rowNumber} ("${unmapped.name}") is not properly mapped`
+              );
             }
 
-            console.log(`  ✏️ Applying mapping for row ${unmapped.rowNumber}: ${unmapped.originalDesignation} → ${mapping.designation}, ${mapping.category}`);
+            console.warn(
+              `  ✏️ Applying mapping for row ${unmapped.rowNumber}: ${unmapped.originalDesignation} → ${mapping.designation}, ${mapping.category}`
+            );
 
             allParsedResources.push({
               name: unmapped.name,
@@ -276,9 +297,15 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           }
         }
 
-        console.log(`✅ Total resources to process: ${allParsedResources.length}`);
+        console.warn(`✅ Total resources to process: ${allParsedResources.length}`);
       } else {
-        console.log('⏭️ Skipping resources (skipResources:', skipResources, ', parsedResources:', !!parsedResources, ')');
+        console.warn(
+          "⏭️ Skipping resources (skipResources:",
+          skipResources,
+          ", parsedResources:",
+          !!parsedResources,
+          ")"
+        );
       }
 
       // Step 2: Create resource entities and build ID map
@@ -295,36 +322,40 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           description: `Imported resource with ${resource.totalDays} total mandays`,
           createdAt: new Date().toISOString(),
           managerResourceId: null,
-          email: null,  // FIX: Use null instead of undefined for consistency
-          department: null,  // FIX: Use null instead of undefined for consistency
-          location: null,  // FIX: Use null instead of undefined for consistency
-          projectRole: null,  // FIX: Use null instead of undefined for consistency
+          email: null, // FIX: Use null instead of undefined for consistency
+          department: null, // FIX: Use null instead of undefined for consistency
+          location: null, // FIX: Use null instead of undefined for consistency
+          projectRole: null, // FIX: Use null instead of undefined for consistency
         };
       });
 
       targetProject.resources = [...(targetProject.resources || []), ...newResources] as any;
 
       // Step 3: Allocate resources to tasks based on weekly effort
-      console.log('🔍 Starting resource allocation...');
-      console.log('Parsed resources:', allParsedResources);
-      console.log('Resource ID map:', Array.from(resourceIdMap.entries()));
+      console.warn("🔍 Starting resource allocation...");
+      console.warn("Parsed resources:", allParsedResources);
+      console.warn("Resource ID map:", Array.from(resourceIdMap.entries()));
 
-      const allocationResult = allocateResourcesToTasks(allParsedResources, parsedSchedule, resourceIdMap);
+      const allocationResult = allocateResourcesToTasks(
+        allParsedResources,
+        parsedSchedule,
+        resourceIdMap
+      );
 
-      console.log('🎯 Allocation result:', allocationResult);
+      console.warn("🎯 Allocation result:", allocationResult);
 
       if (!allocationResult.success) {
-        console.error('Resource allocation errors:', allocationResult.errors);
-        alert(`Resource allocation failed:\n${allocationResult.errors.join('\n')}`);
+        console.error("Resource allocation errors:", allocationResult.errors);
+        alert(`Resource allocation failed:\n${allocationResult.errors.join("\n")}`);
         return;
       }
 
       // Show allocation warnings if any
       if (allocationResult.warnings.length > 0) {
-        console.warn('Resource allocation warnings:', allocationResult.warnings);
+        console.warn("Resource allocation warnings:", allocationResult.warnings);
       }
 
-      console.log('✅ Resource allocations created:', allocationResult.allocations.length);
+      console.warn("✅ Resource allocations created:", allocationResult.allocations.length);
 
       // Step 4: Create phases with tasks that have resource assignments
       const newPhases = parsedSchedule.phases.map((phase, phaseIndex) => {
@@ -338,7 +369,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
 
           for (const allocatedResource of allocationResult.allocations) {
             const taskAlloc = allocatedResource.taskAllocations.find(
-              a => a.taskName === task.name && a.phaseName === phase.name
+              (a) => a.taskName === task.name && a.phaseName === phase.name
             );
 
             if (taskAlloc) {
@@ -353,28 +384,34 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             }
           }
 
-          console.log(`📋 Task "${task.name}" in phase "${phase.name}": ${taskResourceAssignments.length} resource assignments`, taskResourceAssignments);
+          console.warn(
+            `📋 Task "${task.name}" in phase "${phase.name}": ${taskResourceAssignments.length} resource assignments`,
+            taskResourceAssignments
+          );
 
           return {
             id: taskId,
             phaseId: phaseId,
             name: task.name,
-            description: '',
+            description: "",
             startDate: task.startDate,
             endDate: task.endDate,
             dependencies: [],
-            assignee: '',
+            assignee: "",
             progress: 0,
             resourceAssignments: taskResourceAssignments,
             order: taskIndex,
+            level: 0,
+            collapsed: false,
+            isParent: false,
           };
         });
 
         return {
           id: phaseId,
           name: phase.name,
-          description: '',
-          color: '#3B82F6',
+          description: "",
+          color: "#3B82F6",
           startDate: phase.startDate,
           endDate: phase.endDate,
           tasks,
@@ -387,14 +424,10 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
 
       // Check for conflicts if appending to existing project
       if (!isNewProject && targetProject.phases.length > 0) {
-        const conflicts = detectImportConflicts(
-          targetProject,
-          newPhases,
-          newResources as any
-        );
+        const conflicts = detectImportConflicts(targetProject, newPhases, newResources as any);
 
         if (conflicts.hasConflicts) {
-          console.log('[ImportModalV2] Conflicts detected:', conflicts.summary);
+          console.warn("[ImportModalV2] Conflicts detected:", conflicts.summary);
 
           // Store prepared data for later use after conflict resolution
           setPreparedProjectData({
@@ -417,30 +450,35 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       targetProject.updatedAt = new Date().toISOString();
 
       // Log what we're about to save
-      console.log('\n💾 About to save to database...');
-      console.log('Total phases:', targetProject.phases.length);
-      const totalTasksWithResources = targetProject.phases.reduce((sum, phase) =>
-        sum + phase.tasks.filter(t => t.resourceAssignments && t.resourceAssignments.length > 0).length, 0
+      console.warn("\n💾 About to save to database...");
+      console.warn("Total phases:", targetProject.phases.length);
+      const totalTasksWithResources = targetProject.phases.reduce(
+        (sum, phase) =>
+          sum +
+          phase.tasks.filter((t) => t.resourceAssignments && t.resourceAssignments.length > 0)
+            .length,
+        0
       );
-      console.log('Tasks with resource assignments:', totalTasksWithResources);
-      console.log('Sample task with resources:',
+      console.warn("Tasks with resource assignments:", totalTasksWithResources);
+      console.warn(
+        "Sample task with resources:",
         targetProject.phases
-          .flatMap(p => p.tasks)
-          .find(t => t.resourceAssignments && t.resourceAssignments.length > 0)
+          .flatMap((p) => p.tasks)
+          .find((t) => t.resourceAssignments && t.resourceAssignments.length > 0)
       );
 
       // Prepare payload for API call
       // Only send the fields that the API expects, clean up database-only fields
       const projectPayload = {
         name: targetProject.name,
-        description: targetProject.description ?? '',  // FIX: Convert null/undefined to empty string
+        description: targetProject.description ?? "", // FIX: Convert null/undefined to empty string
         startDate: targetProject.startDate,
         viewSettings: targetProject.viewSettings,
         budget: targetProject.budget,
         phases: targetProject.phases.map((phase: any) => ({
           id: phase.id,
           name: phase.name,
-          description: phase.description ?? '',  // FIX: Use nullish coalescing
+          description: phase.description ?? "", // FIX: Use nullish coalescing
           color: phase.color,
           startDate: formatDateField(phase.startDate),
           endDate: formatDateField(phase.endDate),
@@ -450,26 +488,26 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           tasks: (phase.tasks || []).map((task: any) => ({
             id: task.id,
             name: task.name,
-            description: task.description ?? '',  // FIX: Use nullish coalescing
+            description: task.description ?? "", // FIX: Use nullish coalescing
             startDate: formatDateField(task.startDate),
             endDate: formatDateField(task.endDate),
-            progress: task.progress ?? 0,  // FIX: Use nullish coalescing
-            assignee: task.assignee ?? '',  // FIX: Use nullish coalescing
+            progress: task.progress ?? 0, // FIX: Use nullish coalescing
+            assignee: task.assignee ?? "", // FIX: Use nullish coalescing
             order: task.order || 0,
             dependencies: task.dependencies || [],
             resourceAssignments: (task.resourceAssignments || []).map((ra: any) => ({
               id: ra.id,
               resourceId: ra.resourceId,
-              assignmentNotes: ra.assignmentNotes ?? '',  // FIX: Use nullish coalescing
-              allocationPercentage: ra.allocationPercentage ?? 0,  // FIX: Use nullish coalescing
+              assignmentNotes: ra.assignmentNotes ?? "", // FIX: Use nullish coalescing
+              allocationPercentage: ra.allocationPercentage ?? 0, // FIX: Use nullish coalescing
               assignedAt: ra.assignedAt ?? new Date().toISOString(),
             })),
           })),
           phaseResourceAssignments: (phase.phaseResourceAssignments || []).map((pra: any) => ({
             id: pra.id,
             resourceId: pra.resourceId,
-            assignmentNotes: pra.assignmentNotes ?? '',  // FIX: Use nullish coalescing
-            allocationPercentage: pra.allocationPercentage ?? 0,  // FIX: Use nullish coalescing
+            assignmentNotes: pra.assignmentNotes ?? "", // FIX: Use nullish coalescing
+            allocationPercentage: pra.allocationPercentage ?? 0, // FIX: Use nullish coalescing
             assignedAt: pra.assignedAt ?? new Date().toISOString(),
           })),
         })),
@@ -477,26 +515,30 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           id: r.id,
           name: r.name,
           category: r.category,
-          description: r.description ?? '',  // FIX: Use nullish coalescing
+          description: r.description ?? "", // FIX: Use nullish coalescing
           designation: r.designation,
-          managerResourceId: r.managerResourceId ?? null,  // FIX: Explicit null is OK here
-          email: r.email ?? null,  // FIX: Explicit null is OK here
-          department: r.department ?? null,  // FIX: Explicit null is OK here
-          location: r.location ?? null,  // FIX: Explicit null is OK here
-          projectRole: r.projectRole ?? null,  // FIX: Explicit null is OK here
+          managerResourceId: r.managerResourceId ?? null, // FIX: Explicit null is OK here
+          email: r.email ?? null, // FIX: Explicit null is OK here
+          department: r.department ?? null, // FIX: Explicit null is OK here
+          location: r.location ?? null, // FIX: Explicit null is OK here
+          projectRole: r.projectRole ?? null, // FIX: Explicit null is OK here
           createdAt: r.createdAt ?? new Date().toISOString(),
         })),
         milestones: targetProject.milestones || [],
         holidays: targetProject.holidays || [],
       };
 
-      console.log('📤 Sending project payload with', {
+      console.warn("📤 Sending project payload with", {
         mode: importMode,
         phases: projectPayload.phases.length,
         resources: projectPayload.resources.length,
         totalTasks: projectPayload.phases.reduce((sum: number, p: any) => sum + p.tasks.length, 0),
-        tasksWithResources: projectPayload.phases.reduce((sum: number, p: any) =>
-          sum + p.tasks.filter((t: any) => t.resourceAssignments && t.resourceAssignments.length > 0).length, 0
+        tasksWithResources: projectPayload.phases.reduce(
+          (sum: number, p: any) =>
+            sum +
+            p.tasks.filter((t: any) => t.resourceAssignments && t.resourceAssignments.length > 0)
+              .length,
+          0
         ),
       });
 
@@ -504,43 +546,48 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       try {
         if (isNewProject) {
           // Create new project via importProject
-          console.log('🌐 Fetching: POST /api/gantt-tool/projects');
-          response = await fetch('/api/gantt-tool/projects', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          console.warn("🌐 Fetching: POST /api/gantt-tool/projects");
+          response = await fetch("/api/gantt-tool/projects", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(projectPayload),
           });
         } else {
           // Update existing project
-          console.log(`🌐 Fetching: PATCH /api/gantt-tool/projects/${selectedProjectId}`);
+          console.warn(`🌐 Fetching: PATCH /api/gantt-tool/projects/${selectedProjectId}`);
           response = await fetch(`/api/gantt-tool/projects/${selectedProjectId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(projectPayload),
           });
         }
       } catch (fetchError) {
-        console.error('❌ Network error during fetch:', fetchError);
-        throw new Error('Network error: Cannot connect to the server. Make sure the development server is running.');
+        console.error("❌ Network error during fetch:", fetchError);
+        throw new Error(
+          "Network error: Cannot connect to the server. Make sure the development server is running."
+        );
       }
 
-      console.log('API Response status:', response.status);
+      console.warn("API Response status:", response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ API Error Response:', errorData);
+        console.error("❌ API Error Response:", errorData);
 
         // Log the payload that caused the error for debugging
-        if (errorData.error?.includes('Validation failed')) {
-          console.error('📤 Payload that failed validation:', JSON.stringify(projectPayload, null, 2));
+        if (errorData.error?.includes("Validation failed")) {
+          console.error(
+            "📤 Payload that failed validation:",
+            JSON.stringify(projectPayload, null, 2)
+          );
         }
 
         // Show detailed validation errors if available
         if (errorData.details) {
-          console.error('Validation errors:', errorData.details);
-          const validationErrors = errorData.details.map((d: any) =>
-            `${d.path.join('.')}: ${d.message}`
-          ).join('\n');
+          console.error("Validation errors:", errorData.details);
+          const validationErrors = errorData.details
+            .map((d: any) => `${d.path.join(".")}: ${d.message}`)
+            .join("\n");
           throw new Error(`Validation failed:\n${validationErrors}`);
         }
 
@@ -553,7 +600,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       const projectId = data.project?.id || (isNewProject ? data.project?.id : selectedProjectId);
 
       if (!projectId) {
-        throw new Error('Failed to get project ID from response');
+        throw new Error("Failed to get project ID from response");
       }
 
       // Update local state - fetch all projects and load the created/updated one
@@ -566,31 +613,34 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
         const updatedState = useGanttToolStoreV2.getState();
         const fetchedProject = updatedState.currentProject;
         if (fetchedProject) {
-          console.log('\n🔍 Verifying persisted data...');
+          console.warn("\n🔍 Verifying persisted data...");
           const tasksWithResources = fetchedProject.phases
-            .flatMap(p => p.tasks)
-            .filter(t => t.resourceAssignments && t.resourceAssignments.length > 0);
-          console.log('Tasks with resources after fetch:', tasksWithResources.length);
+            .flatMap((p) => p.tasks)
+            .filter((t) => t.resourceAssignments && t.resourceAssignments.length > 0);
+          console.warn("Tasks with resources after fetch:", tasksWithResources.length);
           if (tasksWithResources.length > 0) {
-            console.log('✅ Sample persisted task:', tasksWithResources[0]);
+            console.warn("✅ Sample persisted task:", tasksWithResources[0]);
           } else {
-            console.warn('⚠️ No resource assignments found after fetch (resources were imported but not assigned)');
+            console.warn(
+              "⚠️ No resource assignments found after fetch (resources were imported but not assigned)"
+            );
           }
         }
       } else {
-        console.log('⏭️ Resources were skipped - no resource verification needed');
+        console.warn("⏭️ Resources were skipped - no resource verification needed");
       }
 
-      alert(isNewProject ?
-        `Project "${newProjectName}" created successfully!` :
-        'Project updated successfully!'
+      alert(
+        isNewProject
+          ? `Project "${newProjectName}" created successfully!`
+          : "Project updated successfully!"
       );
 
       // Close modal
       onClose();
     } catch (error) {
-      console.error('Import failed:', error);
-      const errorMessage = (error as Error).message || 'Import failed. Please try again.';
+      console.error("Import failed:", error);
+      const errorMessage = (error as Error).message || "Import failed. Please try again.";
       alert(`Import failed: ${errorMessage}`);
     } finally {
       setIsImporting(false);
@@ -605,23 +655,26 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     let finalPhases = newPhases;
     let finalResources = newResources;
 
-    if (resolution.strategy === 'refresh') {
+    if (resolution.strategy === "refresh") {
       // Total Refresh: Replace all existing data
-      console.log('[ImportModalV2] Applying Total Refresh strategy');
+      console.warn("[ImportModalV2] Applying Total Refresh strategy");
       targetProject.phases = newPhases;
       targetProject.resources = newResources;
-    } else if (resolution.strategy === 'merge') {
+    } else if (resolution.strategy === "merge") {
       // Smart Merge: Apply suggested renames
-      console.log('[ImportModalV2] Applying Smart Merge strategy');
+      console.warn("[ImportModalV2] Applying Smart Merge strategy");
 
       // Generate suggested names for conflicts
       const phaseSuggestions = generatePhaseSuggestions(newPhases, targetProject.phases);
-      const resourceSuggestions = generateResourceSuggestions(newResources, targetProject.resources);
+      const resourceSuggestions = generateResourceSuggestions(
+        newResources,
+        targetProject.resources
+      );
 
       // Apply custom names from user input or use suggestions
       finalPhases = newPhases.map((phase: any) => {
         const conflictId = conflictResult?.conflicts.find(
-          c => c.type === 'phase' && (c.detail as any).phaseName === phase.name
+          (c) => c.type === "phase" && (c.detail as any).phaseName === phase.name
         )?.id;
 
         if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -634,7 +687,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
 
       finalResources = newResources.map((resource: any) => {
         const conflictId = conflictResult?.conflicts.find(
-          c => c.type === 'resource' && (c.detail as any).resourceName === resource.name
+          (c) => c.type === "resource" && (c.detail as any).resourceName === resource.name
         )?.id;
 
         if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -655,14 +708,14 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     // Prepare payload for API call
     const projectPayload = {
       name: targetProject.name,
-      description: targetProject.description ?? '',
+      description: targetProject.description ?? "",
       startDate: targetProject.startDate,
       viewSettings: targetProject.viewSettings,
       budget: targetProject.budget,
       phases: targetProject.phases.map((phase: any) => ({
         id: phase.id,
         name: phase.name,
-        description: phase.description ?? '',
+        description: phase.description ?? "",
         color: phase.color,
         startDate: formatDateField(phase.startDate),
         endDate: formatDateField(phase.endDate),
@@ -673,11 +726,11 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           id: task.id,
           phaseId: task.phaseId,
           name: task.name,
-          description: task.description ?? '',
+          description: task.description ?? "",
           startDate: formatDateField(task.startDate),
           endDate: formatDateField(task.endDate),
           dependencies: task.dependencies || [],
-          assignee: task.assignee || '',
+          assignee: task.assignee || "",
           progress: task.progress || 0,
           resourceAssignments: task.resourceAssignments || [],
         })),
@@ -688,7 +741,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
         name: resource.name,
         category: resource.category,
         designation: resource.designation,
-        description: resource.description ?? '',
+        description: resource.description ?? "",
         createdAt: resource.createdAt,
         managerResourceId: resource.managerResourceId,
         email: resource.email,
@@ -704,20 +757,20 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     let response;
     try {
       if (isNewProject) {
-        response = await fetch('/api/gantt-tool/projects', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        response = await fetch("/api/gantt-tool/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(projectPayload),
         });
       } else {
         response = await fetch(`/api/gantt-tool/projects/${selectedProjectId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(projectPayload),
         });
       }
     } catch (fetchError) {
-      throw new Error('Network error: Cannot connect to the server.');
+      throw new Error("Network error: Cannot connect to the server.");
     }
 
     if (!response.ok) {
@@ -731,7 +784,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     const projectId = data.project?.id || (isNewProject ? data.project?.id : selectedProjectId);
 
     if (!projectId) {
-      throw new Error('Failed to get project ID from response');
+      throw new Error("Failed to get project ID from response");
     }
 
     // Update local state
@@ -739,9 +792,10 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     await store.fetchProjects();
     await store.fetchProject(projectId);
 
-    alert(isNewProject ?
-      `Project "${newProjectName}" created successfully!` :
-      'Project updated successfully with conflict resolution!'
+    alert(
+      isNewProject
+        ? `Project "${newProjectName}" created successfully!`
+        : "Project updated successfully with conflict resolution!"
     );
 
     // Close modal
@@ -750,13 +804,16 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
 
   // Navigation helpers
   const canProceedToResources = scheduleResult?.success && parsedSchedule;
-  const needsMapping = resourceResult?.requiresMapping && parsedResources?.unmappedResources && parsedResources.unmappedResources.length > 0;
+  const needsMapping =
+    resourceResult?.requiresMapping &&
+    parsedResources?.unmappedResources &&
+    parsedResources.unmappedResources.length > 0;
   const canProceedToMapping = resourceResult?.success && parsedResources && needsMapping;
-  const canProceedToReview = canProceedToResources && (
-    skipResources ||
-    (resourceResult?.success && parsedResources && !needsMapping) ||
-    (needsMapping && allResourcesMapped())
-  );
+  const canProceedToReview =
+    canProceedToResources &&
+    (skipResources ||
+      (resourceResult?.success && parsedResources && !needsMapping) ||
+      (needsMapping && allResourcesMapped()));
 
   // Check if all unmapped resources have been mapped
   function allResourcesMapped(): boolean {
@@ -793,10 +850,10 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Import Project</h2>
             <p className="text-sm text-gray-500 mt-1">
-              {currentStage === 'schedule' && 'Step 1: Import Schedule'}
-              {currentStage === 'resources' && 'Step 2: Import Resources (Optional)'}
-              {currentStage === 'mapping' && 'Step 3: Map Resource Designations'}
-              {currentStage === 'review' && 'Step 4: Review & Import'}
+              {currentStage === "schedule" && "Step 1: Import Schedule"}
+              {currentStage === "resources" && "Step 2: Import Resources (Optional)"}
+              {currentStage === "mapping" && "Step 3: Map Resource Designations"}
+              {currentStage === "review" && "Step 4: Review & Import"}
             </p>
           </div>
           <button
@@ -814,33 +871,33 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             <StageIndicator
               icon={Calendar}
               label="Schedule"
-              active={currentStage === 'schedule'}
+              active={currentStage === "schedule"}
               completed={!!parsedSchedule}
             />
             <div className="flex-1 h-1 bg-gray-200 mx-2">
               <div
                 className={`h-full transition-all duration-300 ${
-                  parsedSchedule ? 'bg-blue-600 w-full' : 'bg-gray-300 w-0'
+                  parsedSchedule ? "bg-blue-600 w-full" : "bg-gray-300 w-0"
                 }`}
               />
             </div>
             <StageIndicator
               icon={Users}
               label="Resources"
-              active={currentStage === 'resources'}
+              active={currentStage === "resources"}
               completed={!!parsedResources || skipResources}
             />
             <div className="flex-1 h-1 bg-gray-200 mx-2">
               <div
                 className={`h-full transition-all duration-300 ${
-                  (parsedResources || skipResources) ? 'bg-blue-600 w-full' : 'bg-gray-300 w-0'
+                  parsedResources || skipResources ? "bg-blue-600 w-full" : "bg-gray-300 w-0"
                 }`}
               />
             </div>
             <StageIndicator
               icon={CheckCircle}
               label="Review"
-              active={currentStage === 'review'}
+              active={currentStage === "review"}
               completed={false}
             />
           </div>
@@ -848,7 +905,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
-          {currentStage === 'schedule' && (
+          {currentStage === "schedule" && (
             <ScheduleStage
               data={scheduleData}
               onDataChange={setScheduleData}
@@ -858,7 +915,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             />
           )}
 
-          {currentStage === 'resources' && (
+          {currentStage === "resources" && (
             <ResourceStage
               data={resourceData}
               onDataChange={setResourceData}
@@ -870,7 +927,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             />
           )}
 
-          {currentStage === 'mapping' && parsedResources && (
+          {currentStage === "mapping" && parsedResources && (
             <ResourceMappingStage
               unmappedResources={parsedResources.unmappedResources}
               mappings={resourceMappings}
@@ -878,7 +935,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             />
           )}
 
-          {currentStage === 'review' && parsedSchedule && (
+          {currentStage === "review" && parsedSchedule && (
             <ReviewStage
               schedule={parsedSchedule}
               resources={parsedResources}
@@ -899,14 +956,14 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           <div className="flex items-center justify-between gap-3">
             <button
               onClick={() => {
-                if (currentStage === 'resources') setCurrentStage('schedule');
-                if (currentStage === 'mapping') setCurrentStage('resources');
-                if (currentStage === 'review') {
+                if (currentStage === "resources") setCurrentStage("schedule");
+                if (currentStage === "mapping") setCurrentStage("resources");
+                if (currentStage === "review") {
                   // Go back to mapping if needed, otherwise resources
-                  setCurrentStage(needsMapping ? 'mapping' : 'resources');
+                  setCurrentStage(needsMapping ? "mapping" : "resources");
                 }
               }}
-              disabled={currentStage === 'schedule'}
+              disabled={currentStage === "schedule"}
               className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -914,9 +971,9 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             </button>
 
             <div className="flex items-center gap-3">
-              {currentStage === 'schedule' && (
+              {currentStage === "schedule" && (
                 <button
-                  onClick={() => setCurrentStage('resources')}
+                  onClick={() => setCurrentStage("resources")}
                   disabled={!canProceedToResources}
                   className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
@@ -925,20 +982,20 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
                 </button>
               )}
 
-              {currentStage === 'resources' && (
+              {currentStage === "resources" && (
                 <button
-                  onClick={() => setCurrentStage(needsMapping ? 'mapping' : 'review')}
+                  onClick={() => setCurrentStage(needsMapping ? "mapping" : "review")}
                   disabled={!canProceedToReview && !canProceedToMapping}
                   className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                  <span>{needsMapping ? 'Next: Mapping' : 'Next: Review'}</span>
+                  <span>{needsMapping ? "Next: Mapping" : "Next: Review"}</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               )}
 
-              {currentStage === 'mapping' && (
+              {currentStage === "mapping" && (
                 <button
-                  onClick={() => setCurrentStage('review')}
+                  onClick={() => setCurrentStage("review")}
                   disabled={!canProceedToReview}
                   className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
@@ -947,7 +1004,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
                 </button>
               )}
 
-              {currentStage === 'review' && (
+              {currentStage === "review" && (
                 <button
                   onClick={handleImport}
                   disabled={isImporting}
@@ -977,7 +1034,10 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           conflictResult={conflictResult}
           existingProject={preparedProjectData.targetProject}
           importedPhaseCount={preparedProjectData.newPhases.length}
-          importedTaskCount={preparedProjectData.newPhases.reduce((sum: number, p: any) => sum + p.tasks.length, 0)}
+          importedTaskCount={preparedProjectData.newPhases.reduce(
+            (sum: number, p: any) => sum + p.tasks.length,
+            0
+          )}
           importedResourceCount={preparedProjectData.newResources.length}
           onResolve={handleConflictResolution}
           onCancel={handleConflictCancel}
@@ -1004,17 +1064,17 @@ function StageIndicator({
       <div
         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
           completed
-            ? 'bg-green-100 text-green-600'
+            ? "bg-green-100 text-green-600"
             : active
-            ? 'bg-blue-100 text-blue-600 ring-4 ring-blue-100'
-            : 'bg-gray-100 text-gray-400'
+              ? "bg-blue-100 text-blue-600 ring-4 ring-blue-100"
+              : "bg-gray-100 text-gray-400"
         }`}
       >
         <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
       </div>
       <span
         className={`text-xs sm:text-sm font-medium ${
-          active ? 'text-blue-600' : completed ? 'text-green-600' : 'text-gray-500'
+          active ? "text-blue-600" : completed ? "text-green-600" : "text-gray-500"
         }`}
       >
         {label}
@@ -1076,7 +1136,7 @@ function ScheduleStage({
           className="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none"
         />
         <p className="mt-2 text-xs text-gray-500">
-          {data.split('\n').filter(l => l.trim()).length} lines
+          {data.split("\n").filter((l) => l.trim()).length} lines
         </p>
       </div>
 
@@ -1120,7 +1180,9 @@ function ScheduleStage({
                       </li>
                     ))}
                     {result.errors.length > 5 && (
-                      <li className="text-red-600">... and {result.errors.length - 5} more errors</li>
+                      <li className="text-red-600">
+                        ... and {result.errors.length - 5} more errors
+                      </li>
                     )}
                   </ul>
                 </div>
@@ -1291,27 +1353,27 @@ function ResourceMappingStage({
   mappings,
   onMappingsChange,
 }: {
-  unmappedResources: import('@/lib/gantt-tool/resource-parser').UnmappedResource[];
+  unmappedResources: import("@/lib/gantt-tool/resource-parser").UnmappedResource[];
   mappings: Map<number, { designation: string; category: string }>;
   onMappingsChange: (mappings: Map<number, { designation: string; category: string }>) => void;
 }) {
-  const { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } = require('@/types/gantt-tool');
+  const { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } = require("@/types/gantt-tool");
 
   const handleDesignationChange = (rowNumber: number, designation: string) => {
     const newMappings = new Map(mappings);
-    const current = mappings.get(rowNumber) || { designation: '', category: 'other' };
+    const current = mappings.get(rowNumber) || { designation: "", category: "other" };
     newMappings.set(rowNumber, { ...current, designation });
     onMappingsChange(newMappings);
   };
 
   const handleCategoryChange = (rowNumber: number, category: string) => {
     const newMappings = new Map(mappings);
-    const current = mappings.get(rowNumber) || { designation: '', category: 'other' };
+    const current = mappings.get(rowNumber) || { designation: "", category: "other" };
     newMappings.set(rowNumber, { ...current, category });
     onMappingsChange(newMappings);
   };
 
-  const allMapped = unmappedResources.every(unmapped => {
+  const allMapped = unmappedResources.every((unmapped) => {
     const mapping = mappings.get(unmapped.rowNumber);
     return mapping && mapping.designation && mapping.category;
   });
@@ -1325,11 +1387,13 @@ function ResourceMappingStage({
           <div className="flex-1">
             <h3 className="font-semibold text-red-900 mb-2">Resource Mapping Required</h3>
             <p className="text-sm text-red-800 mb-3">
-              The following resources have invalid designations that don't match the Gantt Tool's fixed parameters.
-              Please map each resource to a valid designation and category to proceed.
+              The following resources have invalid designations that don't match the Gantt Tool's
+              fixed parameters. Please map each resource to a valid designation and category to
+              proceed.
             </p>
             <p className="text-sm text-red-700 font-medium">
-              {unmappedResources.length} resource{unmappedResources.length > 1 ? 's' : ''} need{unmappedResources.length === 1 ? 's' : ''} mapping
+              {unmappedResources.length} resource{unmappedResources.length > 1 ? "s" : ""} need
+              {unmappedResources.length === 1 ? "s" : ""} mapping
             </p>
           </div>
         </div>
@@ -1341,22 +1405,39 @@ function ResourceMappingStage({
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Row</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Resource Name</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Invalid Designation</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Map to Designation</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Map to Category</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Effort</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Row
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Resource Name
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Invalid Designation
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Map to Designation
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Map to Category
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Effort
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {unmappedResources.map((unmapped) => {
-                const mapping = mappings.get(unmapped.rowNumber) || { designation: '', category: '' };
+                const mapping = mappings.get(unmapped.rowNumber) || {
+                  designation: "",
+                  category: "",
+                };
                 const isRowMapped = mapping.designation && mapping.category;
 
                 return (
-                  <tr key={unmapped.rowNumber} className={isRowMapped ? 'bg-green-50' : 'bg-white'}>
-                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">{unmapped.rowNumber}</td>
+                  <tr key={unmapped.rowNumber} className={isRowMapped ? "bg-green-50" : "bg-white"}>
+                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                      {unmapped.rowNumber}
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-900">{unmapped.name}</td>
                     <td className="px-4 py-3 text-sm">
                       <span className="inline-flex items-center px-2 py-1 rounded bg-red-100 text-red-800 text-xs font-medium">
@@ -1366,12 +1447,16 @@ function ResourceMappingStage({
                     <td className="px-4 py-3">
                       <select
                         value={mapping.designation}
-                        onChange={(e) => handleDesignationChange(unmapped.rowNumber, e.target.value)}
+                        onChange={(e) =>
+                          handleDesignationChange(unmapped.rowNumber, e.target.value)
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       >
                         <option value="">-- Select Designation --</option>
                         {Object.entries(RESOURCE_DESIGNATIONS).map(([key, label]) => (
-                          <option key={key} value={key}>{String(label)}</option>
+                          <option key={key} value={key}>
+                            {String(label)}
+                          </option>
                         ))}
                       </select>
                     </td>
@@ -1388,9 +1473,7 @@ function ResourceMappingStage({
                         ))}
                       </select>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {unmapped.totalDays} days
-                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{unmapped.totalDays} days</td>
                   </tr>
                 );
               })}
@@ -1439,8 +1522,8 @@ function ReviewStage({
   schedule: ParsedSchedule;
   resources: ParsedResources | null;
   skippedResources: boolean;
-  importMode: 'new' | 'append';
-  onImportModeChange: (mode: 'new' | 'append') => void;
+  importMode: "new" | "append";
+  onImportModeChange: (mode: "new" | "append") => void;
   newProjectName: string;
   onNewProjectNameChange: (name: string) => void;
   selectedProjectId: string | null;
@@ -1459,14 +1542,14 @@ function ReviewStage({
               type="radio"
               name="importMode"
               value="new"
-              checked={importMode === 'new'}
-              onChange={() => onImportModeChange('new')}
+              checked={importMode === "new"}
+              onChange={() => onImportModeChange("new")}
               className="mt-1"
             />
             <div className="flex-1">
               <div className="font-medium text-blue-900">Create New Project</div>
               <p className="text-sm text-blue-800">Import data into a brand new project</p>
-              {importMode === 'new' && (
+              {importMode === "new" && (
                 <input
                   type="text"
                   value={newProjectName}
@@ -1486,16 +1569,16 @@ function ReviewStage({
                 type="radio"
                 name="importMode"
                 value="append"
-                checked={importMode === 'append'}
-                onChange={() => onImportModeChange('append')}
+                checked={importMode === "append"}
+                onChange={() => onImportModeChange("append")}
                 className="mt-1"
               />
               <div className="flex-1">
                 <div className="font-medium text-blue-900">Append to Existing Project</div>
                 <p className="text-sm text-blue-800">Add data to an existing project</p>
-                {importMode === 'append' && (
+                {importMode === "append" && (
                   <select
-                    value={selectedProjectId || ''}
+                    value={selectedProjectId || ""}
                     onChange={(e) => onSelectedProjectIdChange(e.target.value || null)}
                     className="mt-2 w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >

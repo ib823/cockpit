@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
-import { prisma } from '@/lib/db';
-import { sendSecurityEmail } from '@/lib/email';
+import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
+import { prisma } from "@/lib/db";
+import { sendSecurityEmail } from "@/lib/email";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 /**
  * Account Recovery Request (User-initiated)
@@ -27,17 +27,14 @@ export async function POST(req: Request) {
     // ============================================
     if (!email || !reason) {
       return NextResponse.json(
-        { ok: false, message: 'Email and reason are required' },
+        { ok: false, message: "Email and reason are required" },
         { status: 400 }
       );
     }
 
-    const validReasons = ['lost_totp', 'lost_all', 'lost_passkey', 'account_locked'];
+    const validReasons = ["lost_totp", "lost_all", "lost_passkey", "account_locked"];
     if (!validReasons.includes(reason)) {
-      return NextResponse.json(
-        { ok: false, message: 'Invalid reason' },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, message: "Invalid reason" }, { status: 400 });
     }
 
     // ============================================
@@ -48,21 +45,20 @@ export async function POST(req: Request) {
       include: {
         recoveryRequests: {
           where: {
-            status: 'pending'
-          }
-        }
-      }
+            status: "pending",
+          },
+        },
+      },
     });
 
     if (!user) {
       // Don't reveal whether user exists
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return NextResponse.json(
-        {
-          ok: true,
-          message: 'Recovery request submitted. If your email is registered, you will receive further instructions.'
-        }
-      );
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return NextResponse.json({
+        ok: true,
+        message:
+          "Recovery request submitted. If your email is registered, you will receive further instructions.",
+      });
     }
 
     // ============================================
@@ -73,7 +69,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           ok: false,
-          message: `You already have a pending recovery request submitted on ${existingRequest.submittedAt.toLocaleDateString()}. Please wait for admin review.`
+          message: `You already have a pending recovery request submitted on ${existingRequest.submittedAt.toLocaleDateString()}. Please wait for admin review.`,
         },
         { status: 409 }
       );
@@ -88,9 +84,9 @@ export async function POST(req: Request) {
         userId: user.id,
         reason,
         notes: notes || null,
-        status: 'pending',
-        submittedAt: new Date()
-      }
+        status: "pending",
+        submittedAt: new Date(),
+      },
     });
 
     // ============================================
@@ -100,13 +96,13 @@ export async function POST(req: Request) {
       data: {
         id: randomUUID(),
         userId: user.id,
-        type: 'RECOVERY_REQUEST_SUBMITTED',
+        type: "RECOVERY_REQUEST_SUBMITTED",
         createdAt: new Date(),
         meta: {
           requestId: recoveryRequest.id,
-          reason
-        }
-      }
+          reason,
+        },
+      },
     });
 
     // ============================================
@@ -114,7 +110,7 @@ export async function POST(req: Request) {
     // ============================================
     try {
       const confirmationEmail = {
-        subject: 'Account Recovery Request Received',
+        subject: "Account Recovery Request Received",
         html: `
 <!DOCTYPE html>
 <html>
@@ -144,7 +140,7 @@ export async function POST(req: Request) {
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Reason:</td>
-            <td style="padding: 8px 0; color: #0f172a; font-size: 14px;">${reason.replace('_', ' ')}</td>
+            <td style="padding: 8px 0; color: #0f172a; font-size: 14px;">${reason.replace("_", " ")}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Submitted:</td>
@@ -185,16 +181,12 @@ export async function POST(req: Request) {
   </div>
 </body>
 </html>
-        `
+        `,
       };
 
-      await sendSecurityEmail(
-        user.email,
-        confirmationEmail.subject,
-        confirmationEmail.html
-      );
+      await sendSecurityEmail(user.email, confirmationEmail.subject, confirmationEmail.html);
     } catch (emailError) {
-      console.error('[Recovery] Failed to send confirmation email:', emailError);
+      console.error("[Recovery] Failed to send confirmation email:", emailError);
       // Don't fail the request
     }
 
@@ -204,8 +196,8 @@ export async function POST(req: Request) {
     try {
       // Get all admin users
       const admins = await prisma.users.findMany({
-        where: { role: 'ADMIN' },
-        select: { email: true }
+        where: { role: "ADMIN" },
+        select: { email: true },
       });
 
       const adminNotificationEmail = {
@@ -214,14 +206,14 @@ export async function POST(req: Request) {
 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px;">
   <h1>🔐 New Account Recovery Request</h1>
   <p><strong>User:</strong> ${user.email}</p>
-  <p><strong>Reason:</strong> ${reason.replace('_', ' ')}</p>
+  <p><strong>Reason:</strong> ${reason.replace("_", " ")}</p>
   <p><strong>Request ID:</strong> ${recoveryRequest.id}</p>
   <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
-  ${notes ? `<p><strong>User Notes:</strong> ${notes}</p>` : ''}
+  ${notes ? `<p><strong>User Notes:</strong> ${notes}</p>` : ""}
   <p>Please review this request in the admin panel and verify the user's identity before approving.</p>
   <p><a href="${process.env.NEXTAUTH_URL}/admin/recovery-requests/${recoveryRequest.id}" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-top: 16px;">Review Request</a></p>
 </div>
-        `
+        `,
       };
 
       for (const admin of admins) {
@@ -232,20 +224,20 @@ export async function POST(req: Request) {
         );
       }
     } catch (emailError) {
-      console.error('[Recovery] Failed to send admin notifications:', emailError);
+      console.error("[Recovery] Failed to send admin notifications:", emailError);
       // Don't fail the request
     }
 
     return NextResponse.json({
       ok: true,
-      message: 'Recovery request submitted successfully. You will receive an email confirmation shortly.',
-      requestId: recoveryRequest.id
+      message:
+        "Recovery request submitted successfully. You will receive an email confirmation shortly.",
+      requestId: recoveryRequest.id,
     });
-
   } catch (error: any) {
-    console.error('[Recovery] Request error:', error);
+    console.error("[Recovery] Request error:", error);
     return NextResponse.json(
-      { ok: false, message: 'Failed to submit recovery request' },
+      { ok: false, message: "Failed to submit recovery request" },
       { status: 500 }
     );
   }

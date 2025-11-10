@@ -13,10 +13,10 @@
  * - Real-time stats dashboard
  */
 
-'use client';
+"use client";
 
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { useState, useMemo, useEffect } from 'react';
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { useState, useMemo, useEffect } from "react";
 import {
   Plus,
   Search,
@@ -43,7 +43,7 @@ import {
   Maximize,
   Maximize2,
   Monitor,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   Resource,
   ResourceFormData,
@@ -55,8 +55,8 @@ import {
   AssignmentLevel,
   GanttPhase,
   GanttTask,
-} from '@/types/gantt-tool';
-import { differenceInCalendarDays, parseISO, format as formatDate } from 'date-fns';
+} from "@/types/gantt-tool";
+import { differenceInCalendarDays, parseISO, format as formatDate } from "date-fns";
 
 // Fixed rate ratios based on designation
 const DESIGNATION_RATE_RATIOS: Record<ResourceDesignation, number> = {
@@ -70,8 +70,8 @@ const DESIGNATION_RATE_RATIOS: Record<ResourceDesignation, number> = {
   subcontractor: 0.5,
 };
 
-type ViewMode = 'matrix' | 'timeline' | 'hybrid';
-type ModalSize = 'nearfull' | 'fullscreen' | 'adaptive';
+type ViewMode = "matrix" | "timeline" | "hybrid";
+type ModalSize = "nearfull" | "fullscreen" | "adaptive";
 
 interface ResourceAssignment {
   id: string;
@@ -83,7 +83,7 @@ interface ResourceAssignment {
   hours: number;
   startDate: string;
   endDate: string;
-  type: 'phase' | 'task';
+  type: "phase" | "task";
 }
 
 interface ResourceStats {
@@ -102,14 +102,12 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     addResource,
     updateResource,
     deleteResource,
-    removeResourceAssignment,
-    updateResourceAssignment,
   } = useGanttToolStoreV2();
 
-  const [viewMode, setViewMode] = useState<ViewMode>('matrix');
-  const [modalSize, setModalSize] = useState<ModalSize>('nearfull');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<ResourceCategory | 'all'>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>("matrix");
+  const [modalSize, setModalSize] = useState<ModalSize>("nearfull");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<ResourceCategory | "all">("all");
   const [showForm, setShowForm] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [expandedResources, setExpandedResources] = useState<Set<string>>(new Set());
@@ -123,13 +121,13 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     const stats = new Map<string, ResourceStats>();
     const resources = currentProject.resources || [];
 
-    resources.forEach(resource => {
+    resources.forEach((resource) => {
       const assignments: ResourceAssignment[] = [];
       let totalHours = 0;
 
       // Collect phase assignments
-      currentProject.phases.forEach(phase => {
-        phase.resourceAssignments?.forEach(assignment => {
+      currentProject.phases.forEach((phase) => {
+        phase.phaseResourceAssignments?.forEach((assignment: any) => {
           if (assignment.resourceId === resource.id) {
             const hours = Number(assignment.hours) || 0; // Safety: convert to number, default to 0
             totalHours += hours;
@@ -141,16 +139,20 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
               hours,
               startDate: phase.startDate,
               endDate: phase.endDate,
-              type: 'phase',
+              type: "phase",
             });
           }
         });
 
         // Collect task assignments
-        phase.tasks.forEach(task => {
-          task.resourceAssignments?.forEach(assignment => {
+        phase.tasks.forEach((task) => {
+          task.resourceAssignments?.forEach((assignment) => {
             if (assignment.resourceId === resource.id) {
-              const hours = Number(assignment.hours) || 0; // Safety: convert to number, default to 0
+              // Calculate hours from allocation percentage and task duration
+              const taskStart = new Date(task.startDate);
+              const taskEnd = new Date(task.endDate);
+              const durationDays = Math.max(1, Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)));
+              const hours = Math.round((durationDays * 8 * assignment.allocationPercentage) / 100); // Assuming 8 hours/day
               totalHours += hours;
               assignments.push({
                 id: `task-${task.id}-${assignment.resourceId}`,
@@ -162,7 +164,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                 hours,
                 startDate: task.startDate,
                 endDate: task.endDate,
-                type: 'task',
+                type: "task",
               });
             }
           });
@@ -214,12 +216,12 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     if (!currentProject) return [];
 
     const resources = currentProject.resources || [];
-    return resources.filter(resource => {
+    return resources.filter((resource) => {
       const matchesSearch =
         resource.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         resource.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesCategory = categoryFilter === 'all' || resource.category === categoryFilter;
+      const matchesCategory = categoryFilter === "all" || resource.category === categoryFilter;
 
       return matchesSearch && matchesCategory;
     });
@@ -237,7 +239,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
       unassignedCount: 0,
     };
 
-    filteredResources.forEach(resource => {
+    filteredResources.forEach((resource) => {
       const resourceStat = resourceStats.get(resource.id);
       if (resourceStat) {
         stats.totalAssignments += resourceStat.assignmentCount || 0;
@@ -265,7 +267,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   };
 
   const cycleModalSize = () => {
-    const sizes: ModalSize[] = ['nearfull', 'fullscreen', 'adaptive'];
+    const sizes: ModalSize[] = ["nearfull", "fullscreen", "adaptive"];
     const currentIndex = sizes.indexOf(modalSize);
     const nextIndex = (currentIndex + 1) % sizes.length;
     setModalSize(sizes[nextIndex]);
@@ -274,39 +276,36 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   // Modal size configuration
   const modalSizeConfig = {
     nearfull: {
-      containerClass: 'max-w-[98vw] h-[calc(100vh-2rem)]',
-      padding: 'p-4',
+      containerClass: "max-w-[98vw] h-[calc(100vh-2rem)]",
+      padding: "p-4",
       icon: Maximize,
-      label: 'Near-Fullscreen',
-      description: '98% viewport - comfortable padding',
+      label: "Near-Fullscreen",
+      description: "98% viewport - comfortable padding",
     },
     fullscreen: {
-      containerClass: 'w-screen h-screen',
-      padding: 'p-0',
+      containerClass: "w-screen h-screen",
+      padding: "p-0",
       icon: Maximize2,
-      label: 'Fullscreen',
-      description: '100% viewport - maximum space',
+      label: "Fullscreen",
+      description: "100% viewport - maximum space",
     },
     adaptive: {
-      containerClass: 'w-full max-w-7xl max-h-[90vh]',
-      padding: 'p-4',
+      containerClass: "w-full max-w-7xl max-h-[90vh]",
+      padding: "p-4",
       icon: Monitor,
-      label: 'Adaptive',
-      description: 'Smart sizing - responsive',
+      label: "Adaptive",
+      description: "Smart sizing - responsive",
     },
   };
 
   const handleRemoveAssignment = (assignment: ResourceAssignment) => {
     if (!currentProject) return;
 
-    const confirmMsg = `Remove ${assignment.type === 'phase' ? 'phase' : 'task'} assignment?\n\n${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ''}\n${assignment.hours} hours`;
+    const confirmMsg = `Remove ${assignment.type === "phase" ? "phase" : "task"} assignment?\n\n${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ""}\n${assignment.hours} hours`;
 
     if (confirm(confirmMsg)) {
-      removeResourceAssignment(
-        assignment.resourceId,
-        assignment.phaseId,
-        assignment.taskId
-      );
+      // TODO: Implement removeResourceAssignment in store
+      console.warn("removeResourceAssignment not yet implemented", assignment);
     }
   };
 
@@ -314,24 +313,24 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     if (selectedAssignments.size === 0) return;
 
     if (confirm(`Delete ${selectedAssignments.size} selected assignment(s)?`)) {
-      selectedAssignments.forEach(assignmentId => {
+      selectedAssignments.forEach((assignmentId) => {
         // Parse assignmentId: "phase-{phaseId}-{resourceId}" or "task-{taskId}-{resourceId}"
-        const parts = assignmentId.split('-');
+        const parts = assignmentId.split("-");
         const type = parts[0];
 
-        if (type === 'phase') {
+        if (type === "phase") {
           const phaseId = parts[1];
           const resourceId = parts[2];
-          removeResourceAssignment(resourceId, phaseId);
-        } else if (type === 'task') {
+          // TODO: Implement removeResourceAssignment in store
+          console.warn("removeResourceAssignment not yet implemented", resourceId, phaseId);
+        } else if (type === "task") {
           const taskId = parts[1];
           const resourceId = parts[2];
           // Find phase containing this task
-          const phase = currentProject?.phases.find(p =>
-            p.tasks.some(t => t.id === taskId)
-          );
+          const phase = currentProject?.phases.find((p) => p.tasks.some((t) => t.id === taskId));
           if (phase) {
-            removeResourceAssignment(resourceId, phase.id, taskId);
+            // TODO: Implement removeResourceAssignment in store
+            console.warn("removeResourceAssignment not yet implemented", resourceId, phase.id, taskId);
           }
         }
       });
@@ -349,14 +348,15 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   return (
     <>
       {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/30 z-[60]"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/30 z-[60]" onClick={onClose} />
 
       {/* Modal */}
-      <div className={`fixed inset-0 z-[70] flex items-center justify-center ${currentSizeConfig.padding}`}>
-        <div className={`bg-white rounded-xl shadow-2xl flex flex-col ${currentSizeConfig.containerClass}`}>
+      <div
+        className={`fixed inset-0 z-[70] flex items-center justify-center ${currentSizeConfig.padding}`}
+      >
+        <div
+          className={`bg-white rounded-xl shadow-2xl flex flex-col ${currentSizeConfig.containerClass}`}
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
@@ -400,31 +400,43 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
               </div>
               <div className="text-center">
                 <div className="text-xs text-gray-600 mb-1">Assignments</div>
-                <div className="text-lg font-bold text-blue-600">{overallStats.totalAssignments}</div>
+                <div className="text-lg font-bold text-blue-600">
+                  {overallStats.totalAssignments}
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-xs text-gray-600 mb-1">Total Hours</div>
-                <div className="text-lg font-bold text-purple-600">{(Number(overallStats.totalHours) || 0).toFixed(0)}h</div>
+                <div className="text-lg font-bold text-purple-600">
+                  {(Number(overallStats.totalHours) || 0).toFixed(0)}h
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-xs text-gray-600 mb-1">Total Cost</div>
-                <div className="text-lg font-bold text-green-600">${overallStats.totalCost.toFixed(0)}</div>
+                <div className="text-lg font-bold text-green-600">
+                  ${overallStats.totalCost.toFixed(0)}
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-xs text-gray-600 mb-1">Overallocated</div>
-                <div className={`text-lg font-bold ${overallStats.overallocatedCount > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                <div
+                  className={`text-lg font-bold ${overallStats.overallocatedCount > 0 ? "text-red-600" : "text-gray-400"}`}
+                >
                   {overallStats.overallocatedCount}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-xs text-gray-600 mb-1">Conflicts</div>
-                <div className={`text-lg font-bold ${overallStats.conflictsCount > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                <div
+                  className={`text-lg font-bold ${overallStats.conflictsCount > 0 ? "text-orange-600" : "text-gray-400"}`}
+                >
                   {overallStats.conflictsCount}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-xs text-gray-600 mb-1">Unassigned</div>
-                <div className={`text-lg font-bold ${overallStats.unassignedCount > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                <div
+                  className={`text-lg font-bold ${overallStats.unassignedCount > 0 ? "text-yellow-600" : "text-gray-400"}`}
+                >
                   {overallStats.unassignedCount}
                 </div>
               </div>
@@ -437,33 +449,33 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
             <div className="flex items-center justify-between mb-3">
               <div className="flex gap-2">
                 <button
-                  onClick={() => setViewMode('matrix')}
+                  onClick={() => setViewMode("matrix")}
                   className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
-                    viewMode === 'matrix'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    viewMode === "matrix"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
                   }`}
                 >
                   <List className="w-4 h-4" />
                   Matrix View
                 </button>
                 <button
-                  onClick={() => setViewMode('timeline')}
+                  onClick={() => setViewMode("timeline")}
                   className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
-                    viewMode === 'timeline'
-                      ? 'bg-purple-600 text-white shadow-md'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    viewMode === "timeline"
+                      ? "bg-purple-600 text-white shadow-md"
+                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
                   }`}
                 >
                   <BarChart3 className="w-4 h-4" />
                   Timeline View
                 </button>
                 <button
-                  onClick={() => setViewMode('hybrid')}
+                  onClick={() => setViewMode("hybrid")}
                   className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
-                    viewMode === 'hybrid'
-                      ? 'bg-green-600 text-white shadow-md'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    viewMode === "hybrid"
+                      ? "bg-green-600 text-white shadow-md"
+                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
                   }`}
                 >
                   <Columns className="w-4 h-4" />
@@ -496,11 +508,11 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
               {/* Category Pills */}
               <div className="flex gap-2">
                 <button
-                  onClick={() => setCategoryFilter('all')}
+                  onClick={() => setCategoryFilter("all")}
                   className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                    categoryFilter === 'all'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    categoryFilter === "all"
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
                   }`}
                 >
                   All
@@ -511,8 +523,8 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                     onClick={() => setCategoryFilter(key as ResourceCategory)}
                     className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors flex items-center gap-1 ${
                       categoryFilter === key
-                        ? 'text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                        ? "text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
                     }`}
                     style={{
                       backgroundColor: categoryFilter === key ? color : undefined,
@@ -571,7 +583,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                   }}
                 />
               </div>
-            ) : viewMode === 'matrix' ? (
+            ) : viewMode === "matrix" ? (
               <MatrixView
                 resources={filteredResources}
                 resourceStats={resourceStats}
@@ -594,16 +606,17 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                 onDeleteResource={(resourceId, resourceName) => {
                   const stats = resourceStats.get(resourceId);
                   const usage = stats?.assignmentCount || 0;
-                  const confirmMessage = usage > 0
-                    ? `Delete "${resourceName}"?\n\nThis resource is used in ${usage} assignment(s). All will be removed.`
-                    : `Delete "${resourceName}"?`;
+                  const confirmMessage =
+                    usage > 0
+                      ? `Delete "${resourceName}"?\n\nThis resource is used in ${usage} assignment(s). All will be removed.`
+                      : `Delete "${resourceName}"?`;
                   if (confirm(confirmMessage)) {
                     deleteResource(resourceId);
                   }
                 }}
                 onRemoveAssignment={handleRemoveAssignment}
               />
-            ) : viewMode === 'timeline' ? (
+            ) : viewMode === "timeline" ? (
               <TimelineView
                 resources={filteredResources}
                 resourceStats={resourceStats}
@@ -713,8 +726,7 @@ function MatrixView({
                       </div>
                       {resource.isBillable && (
                         <div className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium flex items-center gap-1">
-                          <DollarSign className="w-3 h-3" />
-                          ${stats.totalCost.toFixed(0)}
+                          <DollarSign className="w-3 h-3" />${stats.totalCost.toFixed(0)}
                         </div>
                       )}
                       {stats.isOverallocated && (
@@ -871,9 +883,13 @@ function TimelineView({
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{category.icon}</span>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm text-gray-900 truncate">{resource.name}</div>
+                      <div className="font-medium text-sm text-gray-900 truncate">
+                        {resource.name}
+                      </div>
                       <div className="text-xs text-gray-600">
-                        {stats ? `${stats.assignmentCount} · ${(Number(stats.totalHours) || 0).toFixed(0)}h` : 'Unassigned'}
+                        {stats
+                          ? `${stats.assignmentCount} · ${(Number(stats.totalHours) || 0).toFixed(0)}h`
+                          : "Unassigned"}
                       </div>
                     </div>
                   </div>
@@ -897,12 +913,12 @@ function TimelineView({
                     const widthPercent = (durationDays / (totalWeeks * 7)) * 100;
 
                     const colors = [
-                      'bg-blue-500',
-                      'bg-purple-500',
-                      'bg-green-500',
-                      'bg-orange-500',
-                      'bg-pink-500',
-                      'bg-indigo-500',
+                      "bg-blue-500",
+                      "bg-purple-500",
+                      "bg-green-500",
+                      "bg-orange-500",
+                      "bg-pink-500",
+                      "bg-indigo-500",
                     ];
                     const color = colors[idx % colors.length];
 
@@ -914,7 +930,7 @@ function TimelineView({
                           left: `${leftPercent}%`,
                           width: `${Math.max(widthPercent, 1)}%`,
                         }}
-                        title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ''}\n${assignment.hours}h`}
+                        title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ""}\n${assignment.hours}h`}
                       >
                         <div className="text-xs text-white font-medium px-2 py-1 truncate">
                           {assignment.taskName || assignment.phaseName}
@@ -996,9 +1012,13 @@ function HybridView({
                   </button>
                   <span className="text-xl">{category.icon}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm text-gray-900 truncate">{resource.name}</div>
+                    <div className="font-semibold text-sm text-gray-900 truncate">
+                      {resource.name}
+                    </div>
                     <div className="text-xs text-gray-600">
-                      {stats ? `${stats.assignmentCount} · ${(Number(stats.totalHours) || 0).toFixed(0)}h` : 'Unassigned'}
+                      {stats
+                        ? `${stats.assignmentCount} · ${(Number(stats.totalHours) || 0).toFixed(0)}h`
+                        : "Unassigned"}
                     </div>
                   </div>
                   {stats?.isOverallocated && (
@@ -1068,7 +1088,7 @@ function HybridView({
                   const leftPercent = (daysFromStart / (totalWeeks * 7)) * 100;
                   const widthPercent = (durationDays / (totalWeeks * 7)) * 100;
 
-                  const colors = ['bg-blue-500', 'bg-purple-500', 'bg-green-500', 'bg-orange-500'];
+                  const colors = ["bg-blue-500", "bg-purple-500", "bg-green-500", "bg-orange-500"];
                   const color = colors[idx % colors.length];
 
                   return (
@@ -1079,7 +1099,7 @@ function HybridView({
                         left: `${leftPercent}%`,
                         width: `${Math.max(widthPercent, 1)}%`,
                       }}
-                      title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ''}`}
+                      title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ""}`}
                     >
                       <div className="text-xs text-white font-medium px-2 py-1 truncate">
                         {assignment.hours}h
@@ -1104,9 +1124,9 @@ function ResourceTimelineBar({ assignments }: { assignments: ResourceAssignment[
   if (assignments.length === 0) return <div className="h-6 bg-gray-200 rounded" />;
 
   // Find overall timeline bounds
-  const dates = assignments.flatMap(a => [parseISO(a.startDate), parseISO(a.endDate)]);
-  const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
-  const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+  const dates = assignments.flatMap((a) => [parseISO(a.startDate), parseISO(a.endDate)]);
+  const minDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+  const maxDate = new Date(Math.max(...dates.map((d) => d.getTime())));
   const totalDays = differenceInCalendarDays(maxDate, minDate);
 
   return (
@@ -1120,7 +1140,13 @@ function ResourceTimelineBar({ assignments }: { assignments: ResourceAssignment[
         const leftPercent = (daysFromStart / totalDays) * 100;
         const widthPercent = (duration / totalDays) * 100;
 
-        const colors = ['bg-blue-600', 'bg-purple-600', 'bg-green-600', 'bg-orange-600', 'bg-pink-600'];
+        const colors = [
+          "bg-blue-600",
+          "bg-purple-600",
+          "bg-green-600",
+          "bg-orange-600",
+          "bg-pink-600",
+        ];
         const color = colors[idx % colors.length];
 
         return (
@@ -1131,7 +1157,7 @@ function ResourceTimelineBar({ assignments }: { assignments: ResourceAssignment[
               left: `${leftPercent}%`,
               width: `${Math.max(widthPercent, 1)}%`,
             }}
-            title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ''}`}
+            title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ""}`}
           />
         );
       })}
@@ -1154,8 +1180,8 @@ function AssignmentCard({
     <div
       className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${
         isSelected
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+          ? "border-blue-500 bg-blue-50"
+          : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
       }`}
       onClick={onSelect}
     >
@@ -1170,7 +1196,7 @@ function AssignmentCard({
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              {assignment.type === 'phase' ? (
+              {assignment.type === "phase" ? (
                 <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
                   Phase
                 </span>
@@ -1196,7 +1222,8 @@ function AssignmentCard({
               </span>
               <span className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
-                {formatDate(parseISO(assignment.startDate), 'MMM d')} - {formatDate(parseISO(assignment.endDate), 'MMM d')}
+                {formatDate(parseISO(assignment.startDate), "MMM d")} -{" "}
+                {formatDate(parseISO(assignment.endDate), "MMM d")}
               </span>
             </div>
           </div>
@@ -1229,20 +1256,20 @@ function ResourceFormInline({
   onClose: () => void;
   onSubmit: (data: ResourceFormData) => void;
 }) {
-  const initialDesignation = resource?.designation || 'consultant';
+  const initialDesignation = resource?.designation || "consultant";
   const [formData, setFormData] = useState<ResourceFormData>({
-    name: resource?.name || '',
-    category: resource?.category || 'functional',
-    description: resource?.description || '',
+    name: resource?.name || "",
+    category: resource?.category || "functional",
+    description: resource?.description || "",
     designation: initialDesignation,
-    assignmentLevel: resource?.assignmentLevel || 'both',
+    assignmentLevel: resource?.assignmentLevel || "both",
     isBillable: resource?.isBillable !== undefined ? resource.isBillable : true,
     chargeRatePerHour: resource?.chargeRatePerHour || DESIGNATION_RATE_RATIOS[initialDesignation],
   });
 
   useEffect(() => {
     if (formData.isBillable) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         chargeRatePerHour: DESIGNATION_RATE_RATIOS[prev.designation],
       }));
@@ -1252,7 +1279,7 @@ function ResourceFormInline({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.description.trim()) {
-      alert('Please fill in all required fields');
+      alert("Please fill in all required fields");
       return;
     }
     onSubmit(formData);
@@ -1262,7 +1289,7 @@ function ResourceFormInline({
     <div className="max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-300 rounded-xl p-8">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-2xl font-bold text-gray-900">
-          {resource ? 'Edit Resource' : 'Add New Resource'}
+          {resource ? "Edit Resource" : "Add New Resource"}
         </h3>
         <button
           onClick={onClose}
@@ -1287,9 +1314,7 @@ function ResourceFormInline({
             required
             autoFocus
           />
-          <p className="text-xs text-gray-600 mt-1">
-            This is a role, not a person name
-          </p>
+          <p className="text-xs text-gray-600 mt-1">This is a role, not a person name</p>
         </div>
 
         {/* Category and Designation */}
@@ -1300,7 +1325,9 @@ function ResourceFormInline({
             </label>
             <select
               value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value as ResourceCategory })}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value as ResourceCategory })
+              }
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               {Object.entries(RESOURCE_CATEGORIES).map(([key, { label, icon }]) => (
@@ -1317,11 +1344,15 @@ function ResourceFormInline({
             </label>
             <select
               value={formData.designation}
-              onChange={(e) => setFormData({ ...formData, designation: e.target.value as ResourceDesignation })}
+              onChange={(e) =>
+                setFormData({ ...formData, designation: e.target.value as ResourceDesignation })
+              }
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               {Object.entries(RESOURCE_DESIGNATIONS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
+                <option key={key} value={key}>
+                  {label}
+                </option>
               ))}
             </select>
           </div>
@@ -1349,13 +1380,18 @@ function ResourceFormInline({
           </label>
           <div className="space-y-2">
             {Object.entries(ASSIGNMENT_LEVELS).map(([key, { label, description }]) => (
-              <label key={key} className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors">
+              <label
+                key={key}
+                className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors"
+              >
                 <input
                   type="radio"
                   name="assignmentLevel"
                   value={key}
                   checked={formData.assignmentLevel === key}
-                  onChange={(e) => setFormData({ ...formData, assignmentLevel: e.target.value as AssignmentLevel })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, assignmentLevel: e.target.value as AssignmentLevel })
+                  }
                   className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
                 <div className="flex-1">
@@ -1397,9 +1433,7 @@ function ResourceFormInline({
                 readOnly
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-600 mt-1">
-                Auto-calculated based on designation
-              </p>
+              <p className="text-xs text-gray-600 mt-1">Auto-calculated based on designation</p>
             </div>
           )}
         </div>
@@ -1418,7 +1452,7 @@ function ResourceFormInline({
             className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors font-semibold flex items-center justify-center gap-2 shadow-lg"
           >
             <Save className="w-5 h-5" />
-            {resource ? 'Save Changes' : 'Add Resource'}
+            {resource ? "Save Changes" : "Add Resource"}
           </button>
         </div>
       </form>

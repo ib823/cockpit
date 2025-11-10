@@ -5,10 +5,10 @@
  * Provides Excel export and drill-down capabilities.
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState } from "react";
+import Link from "next/link";
 import {
   ArrowLeft,
   Users,
@@ -19,23 +19,23 @@ import {
   ChevronRight,
   BarChart3,
   Calendar,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   useResourceMetrics,
   useResourceMetricsWithTimeline,
   useCategoryMetrics,
   useDesignationMetrics,
   useResourceAnalyticsSummary,
-} from '@/stores/resource-analytics-selectors';
-import { useGanttToolStore } from '@/stores/gantt-tool-store-v2';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
-import { exportResourcesToExcel } from '@/lib/resources/export-excel';
+} from "@/stores/resource-analytics-selectors";
+import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
+import { exportResourcesToExcel } from "@/lib/resources/export-excel";
 
-type ViewMode = 'skills' | 'timeline';
+type ViewMode = "skills" | "timeline";
 
 export default function ResourcesDashboardPage() {
-  const currentProject = useGanttToolStore(state => state.currentProject);
-  const [viewMode, setViewMode] = useState<ViewMode>('skills');
+  const currentProject = useGanttToolStore((state) => state.currentProject);
+  const [viewMode, setViewMode] = useState<ViewMode>("skills");
   const [expandedResources, setExpandedResources] = useState<Set<string>>(new Set());
 
   const summary = useResourceAnalyticsSummary();
@@ -56,7 +56,7 @@ export default function ResourcesDashboardPage() {
   };
 
   const toggleResourceExpand = (resourceId: string) => {
-    setExpandedResources(prev => {
+    setExpandedResources((prev) => {
       const next = new Set(prev);
       if (next.has(resourceId)) {
         next.delete(resourceId);
@@ -108,9 +108,12 @@ export default function ResourcesDashboardPage() {
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="text-center py-16">
             <Users className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Resource Assignments Yet</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              No Resource Assignments Yet
+            </h2>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Start by adding phases and tasks to your timeline, then assign resources to tasks to see analytics here.
+              Start by adding phases and tasks to your timeline, then assign resources to tasks to
+              see analytics here.
             </p>
             <Link
               href="/gantt-tool"
@@ -132,7 +135,10 @@ export default function ResourcesDashboardPage() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link href="/gantt-tool" className="text-gray-400 hover:text-gray-600 transition-colors">
+              <Link
+                href="/gantt-tool"
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
@@ -173,12 +179,8 @@ export default function ResourcesDashboardPage() {
               <span className="text-sm font-medium text-gray-600">Active Resources</span>
               <TrendingUp className="w-4 h-4 text-green-600" />
             </div>
-            <div className="text-3xl font-bold text-gray-900">
-              {summary.activeResources}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              of {summary.totalResources} total
-            </div>
+            <div className="text-3xl font-bold text-gray-900">{summary.activeResources}</div>
+            <div className="text-xs text-gray-500 mt-1">of {summary.totalResources} total</div>
           </div>
 
           {/* Average Utilization */}
@@ -197,13 +199,19 @@ export default function ResourcesDashboardPage() {
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-600">Overallocated</span>
-              <AlertTriangle className={`w-4 h-4 ${summary.overallocatedResources > 0 ? 'text-red-600' : 'text-gray-400'}`} />
+              <AlertTriangle
+                className={`w-4 h-4 ${summary.overallocatedResources > 0 ? "text-red-600" : "text-gray-400"}`}
+              />
             </div>
-            <div className={`text-3xl font-bold ${summary.overallocatedResources > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+            <div
+              className={`text-3xl font-bold ${summary.overallocatedResources > 0 ? "text-red-600" : "text-gray-900"}`}
+            >
               {summary.overallocatedResources}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              {summary.overallocatedResources > 0 ? 'resources need attention' : 'all resources balanced'}
+              {summary.overallocatedResources > 0
+                ? "resources need attention"
+                : "all resources balanced"}
             </div>
           </div>
         </div>
@@ -213,22 +221,22 @@ export default function ResourcesDashboardPage() {
           <div className="border-b border-gray-200">
             <div className="flex items-center gap-1 p-1">
               <button
-                onClick={() => setViewMode('skills')}
+                onClick={() => setViewMode("skills")}
                 className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  viewMode === 'skills'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50'
+                  viewMode === "skills"
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <BarChart3 className="w-4 h-4 inline mr-2" />
                 Skills Breakdown
               </button>
               <button
-                onClick={() => setViewMode('timeline')}
+                onClick={() => setViewMode("timeline")}
                 className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  viewMode === 'timeline'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50'
+                  viewMode === "timeline"
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <Calendar className="w-4 h-4 inline mr-2" />
@@ -238,7 +246,7 @@ export default function ResourcesDashboardPage() {
           </div>
 
           <div className="p-6">
-            {viewMode === 'skills' ? (
+            {viewMode === "skills" ? (
               <SkillsBreakdownView
                 categoryMetrics={categoryMetrics}
                 designationMetrics={designationMetrics}
@@ -258,7 +266,7 @@ export default function ResourcesDashboardPage() {
             </p>
           </div>
           <div className="divide-y divide-gray-200">
-            {metrics.map(resource => (
+            {metrics.map((resource) => (
               <ResourceDetailRow
                 key={resource.resourceId}
                 resource={resource}
@@ -287,9 +295,9 @@ function SkillsBreakdownView({
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">By Category</h3>
         <div className="space-y-3">
-          {categoryMetrics.map(cat => {
+          {categoryMetrics.map((cat) => {
             const categoryInfo = RESOURCE_CATEGORIES[cat.category];
-            const maxEffort = Math.max(...categoryMetrics.map(c => c.totalEffortDays));
+            const maxEffort = Math.max(...categoryMetrics.map((c) => c.totalEffortDays));
             const widthPercent = (cat.totalEffortDays / maxEffort) * 100;
 
             return (
@@ -299,12 +307,16 @@ function SkillsBreakdownView({
                     <span className="text-xl">{categoryInfo.icon}</span>
                     <span className="font-medium text-gray-900">{categoryInfo.label}</span>
                     <span className="text-xs text-gray-500">
-                      ({cat.resourceCount} {cat.resourceCount === 1 ? 'resource' : 'resources'})
+                      ({cat.resourceCount} {cat.resourceCount === 1 ? "resource" : "resources"})
                     </span>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-gray-900">{cat.totalEffortDays.toFixed(1)} days</div>
-                    <div className="text-xs text-gray-500">{cat.averageUtilization.toFixed(0)}% avg util</div>
+                    <div className="font-semibold text-gray-900">
+                      {cat.totalEffortDays.toFixed(1)} days
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {cat.averageUtilization.toFixed(0)}% avg util
+                    </div>
                   </div>
                 </div>
                 <div className="h-8 bg-gray-100 rounded-lg overflow-hidden">
@@ -326,8 +338,8 @@ function SkillsBreakdownView({
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">By Designation</h3>
         <div className="space-y-3">
-          {designationMetrics.map(des => {
-            const maxEffort = Math.max(...designationMetrics.map(d => d.totalEffortDays));
+          {designationMetrics.map((des) => {
+            const maxEffort = Math.max(...designationMetrics.map((d) => d.totalEffortDays));
             const widthPercent = (des.totalEffortDays / maxEffort) * 100;
 
             return (
@@ -338,12 +350,16 @@ function SkillsBreakdownView({
                       {RESOURCE_DESIGNATIONS[des.designation]}
                     </span>
                     <span className="text-xs text-gray-500">
-                      ({des.resourceCount} {des.resourceCount === 1 ? 'resource' : 'resources'})
+                      ({des.resourceCount} {des.resourceCount === 1 ? "resource" : "resources"})
                     </span>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-gray-900">{des.totalEffortDays.toFixed(1)} days</div>
-                    <div className="text-xs text-gray-500">{des.averageUtilization.toFixed(0)}% avg util</div>
+                    <div className="font-semibold text-gray-900">
+                      {des.totalEffortDays.toFixed(1)} days
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {des.averageUtilization.toFixed(0)}% avg util
+                    </div>
                   </div>
                 </div>
                 <div className="h-6 bg-gray-100 rounded-lg overflow-hidden">
@@ -385,7 +401,7 @@ function TimelineView({
               <div
                 key={idx}
                 className="flex-1 text-center text-xs font-medium text-gray-600"
-                style={{ minWidth: '60px' }}
+                style={{ minWidth: "60px" }}
               >
                 {week.weekLabel}
               </div>
@@ -395,7 +411,7 @@ function TimelineView({
 
         {/* Heatmap Rows */}
         <div className="space-y-2">
-          {metricsWithTimeline.map(resource => {
+          {metricsWithTimeline.map((resource) => {
             const categoryInfo = RESOURCE_CATEGORIES[resource.category];
             return (
               <div key={resource.resourceId} className="flex items-center">
@@ -415,25 +431,25 @@ function TimelineView({
                 <div className="flex-1 flex gap-1">
                   {resource.timeline.map((week, idx) => {
                     const allocation = week.allocation;
-                    let bgColor = 'bg-gray-50';
-                    let textColor = 'text-gray-400';
+                    let bgColor = "bg-gray-50";
+                    let textColor = "text-gray-400";
 
                     if (allocation > 0) {
                       if (allocation > 100) {
-                        bgColor = 'bg-red-500';
-                        textColor = 'text-white';
+                        bgColor = "bg-red-500";
+                        textColor = "text-white";
                       } else if (allocation >= 80) {
-                        bgColor = 'bg-blue-700';
-                        textColor = 'text-white';
+                        bgColor = "bg-blue-700";
+                        textColor = "text-white";
                       } else if (allocation >= 60) {
-                        bgColor = 'bg-blue-500';
-                        textColor = 'text-white';
+                        bgColor = "bg-blue-500";
+                        textColor = "text-white";
                       } else if (allocation >= 40) {
-                        bgColor = 'bg-blue-300';
-                        textColor = 'text-gray-800';
+                        bgColor = "bg-blue-300";
+                        textColor = "text-gray-800";
                       } else {
-                        bgColor = 'bg-blue-100';
-                        textColor = 'text-gray-700';
+                        bgColor = "bg-blue-100";
+                        textColor = "text-gray-700";
                       }
                     }
 
@@ -441,16 +457,18 @@ function TimelineView({
                       <div
                         key={idx}
                         className={`flex-1 h-12 rounded ${bgColor} flex items-center justify-center text-xs font-medium ${textColor} group relative cursor-pointer transition-all hover:ring-2 hover:ring-blue-400`}
-                        style={{ minWidth: '60px' }}
+                        style={{ minWidth: "60px" }}
                         title={`${allocation}% allocation`}
                       >
-                        {allocation > 0 ? `${allocation}%` : ''}
+                        {allocation > 0 ? `${allocation}%` : ""}
 
                         {/* Tooltip */}
                         {week.contributingTasks.length > 0 && (
                           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2   transition-opacity  z-50">
                             <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-xl whitespace-nowrap max-w-xs">
-                              <div className="font-semibold mb-1">{week.weekLabel}: {allocation}%</div>
+                              <div className="font-semibold mb-1">
+                                {week.weekLabel}: {allocation}%
+                              </div>
                               <div className="space-y-0.5 text-[10px]">
                                 {week.contributingTasks.map((task, tidx) => (
                                   <div key={tidx} className="text-gray-300">
@@ -519,6 +537,14 @@ function ResourceDetailRow({
       <div
         className="px-6 py-4 cursor-pointer"
         onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
@@ -544,7 +570,7 @@ function ResourceDetailRow({
                 {resource.totalEffortDays.toFixed(1)} days
               </div>
               <div className="text-xs text-gray-500">
-                {resource.taskCount} {resource.taskCount === 1 ? 'task' : 'tasks'}
+                {resource.taskCount} {resource.taskCount === 1 ? "task" : "tasks"}
               </div>
             </div>
 
@@ -556,7 +582,9 @@ function ResourceDetailRow({
             </div>
 
             <div className="text-right">
-              <div className={`text-sm font-semibold ${resource.peakAllocation > 100 ? 'text-red-600' : 'text-gray-900'}`}>
+              <div
+                className={`text-sm font-semibold ${resource.peakAllocation > 100 ? "text-red-600" : "text-gray-900"}`}
+              >
                 {resource.peakAllocation.toFixed(0)}%
               </div>
               <div className="text-xs text-gray-500">peak</div>
@@ -588,12 +616,11 @@ function ResourceDetailRow({
                       <span className="font-medium text-sm text-gray-900">
                         {assignment.taskName}
                       </span>
-                      <span className="text-xs text-gray-500">
-                        in {assignment.phaseName}
-                      </span>
+                      <span className="text-xs text-gray-500">in {assignment.phaseName}</span>
                     </div>
                     <div className="text-xs text-gray-600 mb-2">
-                      {assignment.startDate.toLocaleDateString()} - {assignment.endDate.toLocaleDateString()}
+                      {assignment.startDate.toLocaleDateString()} -{" "}
+                      {assignment.endDate.toLocaleDateString()}
                     </div>
                     {assignment.assignmentNotes && (
                       <div className="text-xs text-gray-700 italic bg-gray-50 p-2 rounded">

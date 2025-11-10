@@ -11,7 +11,7 @@
  * - Prefetching critical resources
  */
 
-const CACHE_VERSION = 'keystone-v2';
+const CACHE_VERSION = "keystone-v2";
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_IMAGES = `${CACHE_VERSION}-images`;
@@ -19,12 +19,12 @@ const CACHE_API = `${CACHE_VERSION}-api`;
 
 // Static assets to cache immediately
 const STATIC_ASSETS = [
-  '/',
-  '/manifest.json',
-  '/favicon.ico',
-  '/logo-keystone.png',
-  '/icon-192.png',
-  '/icon-512.png',
+  "/",
+  "/manifest.json",
+  "/favicon.ico",
+  "/logo-keystone.png",
+  "/icon-192.png",
+  "/icon-512.png",
 ];
 
 // Maximum cache sizes
@@ -45,18 +45,18 @@ const CACHE_DURATION = {
 /**
  * Install event - cache static assets
  */
-self.addEventListener('install', (event) => {
-  console.log('[SW] ⚙️  Installing service worker...');
+self.addEventListener("install", (event) => {
+  console.log("[SW] ⚙️  Installing service worker...");
 
   event.waitUntil(
     caches
       .open(CACHE_STATIC)
       .then((cache) => {
-        console.log('[SW] 💾 Caching static assets');
+        console.log("[SW] 💾 Caching static assets");
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
-        console.log('[SW] ✅ Service worker installed');
+        console.log("[SW] ✅ Service worker installed");
         return self.skipWaiting();
       })
   );
@@ -65,8 +65,8 @@ self.addEventListener('install', (event) => {
 /**
  * Activate event - clean up old caches
  */
-self.addEventListener('activate', (event) => {
-  console.log('[SW] 🔄 Activating service worker...');
+self.addEventListener("activate", (event) => {
+  console.log("[SW] 🔄 Activating service worker...");
 
   event.waitUntil(
     caches
@@ -76,7 +76,13 @@ self.addEventListener('activate', (event) => {
           cacheNames
             .filter((name) => {
               // Delete old cache versions
-              return name.startsWith('keystone-') && name !== CACHE_STATIC && name !== CACHE_DYNAMIC && name !== CACHE_IMAGES && name !== CACHE_API;
+              return (
+                name.startsWith("keystone-") &&
+                name !== CACHE_STATIC &&
+                name !== CACHE_DYNAMIC &&
+                name !== CACHE_IMAGES &&
+                name !== CACHE_API
+              );
             })
             .map((name) => {
               console.log(`[SW] 🗑️  Deleting old cache: ${name}`);
@@ -85,7 +91,7 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => {
-        console.log('[SW] ✅ Service worker activated');
+        console.log("[SW] ✅ Service worker activated");
         return self.clients.claim();
       })
   );
@@ -94,7 +100,7 @@ self.addEventListener('activate', (event) => {
 /**
  * Fetch event - intelligent caching strategies
  */
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
@@ -104,7 +110,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Skip chrome-extension and other special URLs
-  if (request.url.startsWith('chrome-extension://') || request.url.startsWith('moz-extension://')) {
+  if (request.url.startsWith("chrome-extension://") || request.url.startsWith("moz-extension://")) {
     return;
   }
 
@@ -145,7 +151,7 @@ async function cacheFirst(request, cacheName) {
     return response;
   } catch (error) {
     console.error(`[SW] ❌ Error in cacheFirst:`, error);
-    return new Response('Offline', { status: 503 });
+    return new Response("Offline", { status: 503 });
   }
 }
 
@@ -184,9 +190,9 @@ async function networkFirstWithCache(request, cacheName) {
     }
   } catch (error) {
     console.error(`[SW] ❌ Error in networkFirstWithCache:`, error);
-    return new Response(JSON.stringify({ error: 'Offline' }), {
+    return new Response(JSON.stringify({ error: "Offline" }), {
       status: 503,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 }
@@ -222,7 +228,7 @@ async function staleWhileRevalidate(request, cacheName) {
     return await fetchPromise;
   } catch (error) {
     console.error(`[SW] ❌ Error in staleWhileRevalidate:`, error);
-    return new Response('Offline', { status: 503 });
+    return new Response("Offline", { status: 503 });
   }
 }
 
@@ -253,29 +259,29 @@ async function limitCacheSize(cacheName, maxSize) {
  */
 
 function isStaticAsset(url) {
-  const staticExtensions = ['.js', '.css', '.woff', '.woff2', '.ttf', '.otf'];
+  const staticExtensions = [".js", ".css", ".woff", ".woff2", ".ttf", ".otf"];
   return staticExtensions.some((ext) => url.pathname.endsWith(ext));
 }
 
 function isImage(url) {
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico'];
+  const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".ico"];
   return imageExtensions.some((ext) => url.pathname.endsWith(ext));
 }
 
 function isAPICall(url) {
-  return url.pathname.startsWith('/api/');
+  return url.pathname.startsWith("/api/");
 }
 
 /**
  * Background sync for offline mutations
  */
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-mutations') {
-    console.log('[SW] 🔄 Syncing offline mutations...');
+self.addEventListener("sync", (event) => {
+  if (event.tag === "sync-mutations") {
+    console.log("[SW] 🔄 Syncing offline mutations...");
 
     event.waitUntil(
       syncMutations().then(() => {
-        console.log('[SW] ✅ Offline mutations synced');
+        console.log("[SW] ✅ Offline mutations synced");
       })
     );
   }
@@ -291,77 +297,71 @@ async function syncMutations() {
 /**
  * Push notifications
  */
-self.addEventListener('push', (event) => {
-  console.log('[SW] 📬 Push notification received');
+self.addEventListener("push", (event) => {
+  console.log("[SW] 📬 Push notification received");
 
   const data = event.data ? event.data.json() : {};
 
   const options = {
-    body: data.body || 'New notification',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    body: data.body || "New notification",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
     vibrate: [200, 100, 200],
     data: {
-      url: data.url || '/',
+      url: data.url || "/",
     },
   };
 
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Keystone', options)
-  );
+  event.waitUntil(self.registration.showNotification(data.title || "Keystone", options));
 });
 
 /**
  * Notification click handler
  */
-self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] 🔔 Notification clicked');
+self.addEventListener("notificationclick", (event) => {
+  console.log("[SW] 🔔 Notification clicked");
 
   event.notification.close();
 
-  const url = event.notification.data.url || '/';
+  const url = event.notification.data.url || "/";
 
   event.waitUntil(
-    clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
-        // Focus existing window if available
-        for (const client of clientList) {
-          if (client.url === url && 'focus' in client) {
-            return client.focus();
-          }
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // Focus existing window if available
+      for (const client of clientList) {
+        if (client.url === url && "focus" in client) {
+          return client.focus();
         }
+      }
 
-        // Open new window
-        if (clients.openWindow) {
-          return clients.openWindow(url);
-        }
-      })
+      // Open new window
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })
   );
 });
 
 /**
  * Message handler (communication with main thread)
  */
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[SW] ⏭️  Skip waiting');
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    console.log("[SW] ⏭️  Skip waiting");
     self.skipWaiting();
   }
 
-  if (event.data && event.data.type === 'CLEAR_CACHE') {
-    console.log('[SW] 🗑️  Clearing all caches');
+  if (event.data && event.data.type === "CLEAR_CACHE") {
+    console.log("[SW] 🗑️  Clearing all caches");
     event.waitUntil(
       caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((name) => caches.delete(name))
-        );
+        return Promise.all(cacheNames.map((name) => caches.delete(name)));
       })
     );
   }
 
-  if (event.data && event.data.type === 'PREFETCH') {
-    console.log('[SW] 🔥 Prefetching resources:', event.data.urls);
+  if (event.data && event.data.type === "PREFETCH") {
+    console.log("[SW] 🔥 Prefetching resources:", event.data.urls);
     event.waitUntil(
       caches.open(CACHE_DYNAMIC).then((cache) => {
         return cache.addAll(event.data.urls);
@@ -370,4 +370,4 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('[SW] 🚀 Service worker script loaded');
+console.log("[SW] 🚀 Service worker script loaded");

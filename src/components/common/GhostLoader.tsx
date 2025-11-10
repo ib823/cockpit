@@ -1,7 +1,7 @@
 /* From Uiverse.io by BlackisPlay */
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 export function GhostLoader() {
   return (
@@ -272,7 +272,7 @@ export function GhostLoader() {
         }
 
         #eye::before {
-          content: '';
+          content: "";
           background-color: white;
           width: 20px;
           height: 50px;
@@ -282,7 +282,7 @@ export function GhostLoader() {
         }
 
         #eye::after {
-          content: '';
+          content: "";
           background-color: white;
           width: 40px;
           height: 30px;
@@ -300,7 +300,7 @@ export function GhostLoader() {
         }
 
         #eye1::before {
-          content: '';
+          content: "";
           background-color: white;
           width: 20px;
           height: 50px;
@@ -310,7 +310,7 @@ export function GhostLoader() {
         }
 
         #eye1::after {
-          content: '';
+          content: "";
           background-color: white;
           width: 40px;
           height: 30px;

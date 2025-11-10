@@ -10,9 +10,9 @@
  * - MetricCard: Icon + label + value
  */
 
-import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
-import React from 'react';
+import { motion } from "framer-motion";
+import { LucideIcon } from "lucide-react";
+import React from "react";
 
 // ============================================================================
 // STAT CARD
@@ -21,24 +21,24 @@ import React from 'react';
 interface StatCardProps {
   label: string;
   value: string;
-  color: 'purple' | 'orange' | 'green' | 'gray' | 'blue';
+  color: "purple" | "orange" | "green" | "gray" | "blue";
 }
 
 export function StatCard({ label, value, color }: StatCardProps) {
   const colorClasses = {
-    purple: 'bg-purple-50 border-purple-200',
-    orange: 'bg-orange-50 border-orange-200',
-    green: 'bg-green-50 border-green-200',
-    gray: 'bg-gray-50 border-gray-200',
-    blue: 'bg-blue-50 border-blue-200'
+    purple: "bg-purple-50 border-purple-200",
+    orange: "bg-orange-50 border-orange-200",
+    green: "bg-green-50 border-green-200",
+    gray: "bg-gray-50 border-gray-200",
+    blue: "bg-blue-50 border-blue-200",
   };
 
   const textClasses = {
-    purple: 'text-purple-700',
-    orange: 'text-orange-700',
-    green: 'text-green-700',
-    gray: 'text-gray-700',
-    blue: 'text-blue-700'
+    purple: "text-purple-700",
+    orange: "text-orange-700",
+    green: "text-green-700",
+    gray: "text-gray-700",
+    blue: "text-blue-700",
   };
 
   return (
@@ -56,16 +56,16 @@ export function StatCard({ label, value, color }: StatCardProps) {
 interface BarItemProps {
   label: string;
   value: number; // Percentage
-  color: 'blue' | 'purple' | 'orange' | 'gray' | 'green';
+  color: "blue" | "purple" | "orange" | "gray" | "green";
 }
 
 export function BarItem({ label, value, color }: BarItemProps) {
   const colorClasses = {
-    blue: 'bg-blue-500',
-    purple: 'bg-purple-500',
-    orange: 'bg-orange-500',
-    gray: 'bg-gray-500',
-    green: 'bg-green-500'
+    blue: "bg-blue-500",
+    purple: "bg-purple-500",
+    orange: "bg-orange-500",
+    gray: "bg-gray-500",
+    green: "bg-green-500",
   };
 
   return (
@@ -79,7 +79,7 @@ export function BarItem({ label, value, color }: BarItemProps) {
           className={`h-full ${colorClasses[color]}`}
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
     </div>
@@ -111,9 +111,7 @@ export function TornadoDiagram({ baseValue, factors }: TornadoDiagramProps) {
           <div key={factor.name} className="relative">
             <div className="text-sm font-medium text-gray-700 mb-2">{factor.name}</div>
             <div className="flex items-center gap-2">
-              <div className="w-12 text-right text-xs text-gray-500">
-                {baseValue + factor.low}
-              </div>
+              <div className="w-12 text-right text-xs text-gray-500">{baseValue + factor.low}</div>
               <div className="flex-1 h-8 bg-gray-100 rounded relative">
                 {/* Center line */}
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -124,16 +122,14 @@ export function TornadoDiagram({ baseValue, factors }: TornadoDiagramProps) {
                   className="absolute h-full bg-gradient-to-r from-red-400 to-green-400 rounded"
                   style={{
                     width: `${Math.min(widthPercent, 100)}%`,
-                    left: `${leftOffset}%`
+                    left: `${leftOffset}%`,
                   }}
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(widthPercent, 100)}%` }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 />
               </div>
-              <div className="w-12 text-left text-xs text-gray-500">
-                {baseValue + factor.high}
-              </div>
+              <div className="w-12 text-left text-xs text-gray-500">{baseValue + factor.high}</div>
             </div>
           </div>
         );
@@ -162,7 +158,7 @@ export function BenchmarkChart({ yourEstimate, benchmarks }: BenchmarkChartProps
           <div key={i} className="flex-1 flex flex-col items-center">
             <motion.div
               className={`w-full rounded-t ${
-                value === yourEstimate ? 'bg-blue-500' : 'bg-gray-300'
+                value === yourEstimate ? "bg-blue-500" : "bg-gray-300"
               }`}
               style={{ height: `${(value / max) * 100}%` }}
               initial={{ height: 0 }}
@@ -189,7 +185,7 @@ interface ConfidenceMeterProps {
   label?: string;
 }
 
-export function ConfidenceMeter({ value, label = 'Confidence Level' }: ConfidenceMeterProps) {
+export function ConfidenceMeter({ value, label = "Confidence Level" }: ConfidenceMeterProps) {
   return (
     <div className="mt-6">
       <div className="flex justify-between text-sm mb-2">
@@ -201,7 +197,7 @@ export function ConfidenceMeter({ value, label = 'Confidence Level' }: Confidenc
           className="h-full bg-gradient-to-r from-yellow-400 via-green-400 to-green-500 rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
-          transition={{ duration: 1, ease: 'easeOut' }}
+          transition={{ duration: 1, ease: "easeOut" }}
         />
       </div>
       <p className="text-xs text-gray-600 mt-2">
@@ -219,15 +215,15 @@ interface MetricCardProps {
   icon: LucideIcon;
   label: string;
   value: string;
-  color: 'blue' | 'purple' | 'green' | 'orange';
+  color: "blue" | "purple" | "green" | "orange";
 }
 
 export function MetricCard({ icon: Icon, label, value, color }: MetricCardProps) {
   const colorClasses = {
-    blue: 'bg-blue-50 border-blue-200 text-blue-700',
-    purple: 'bg-purple-50 border-purple-200 text-purple-700',
-    green: 'bg-green-50 border-green-200 text-green-700',
-    orange: 'bg-orange-50 border-orange-200 text-orange-700'
+    blue: "bg-blue-50 border-blue-200 text-blue-700",
+    purple: "bg-purple-50 border-purple-200 text-purple-700",
+    green: "bg-green-50 border-green-200 text-green-700",
+    orange: "bg-orange-50 border-orange-200 text-orange-700",
   };
 
   return (
@@ -275,16 +271,15 @@ export function RegressionTable({ variables }: RegressionTableProps) {
               <td className="py-3 px-3">
                 <span
                   className={`px-2 py-1 rounded text-xs font-medium ${
-                    variable.significant
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
+                    variable.significant ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                   }`}
                 >
-                  {variable.pValue < 0.001 ? '<0.001' : variable.pValue.toFixed(3)}
+                  {variable.pValue < 0.001 ? "<0.001" : variable.pValue.toFixed(3)}
                 </span>
               </td>
               <td className="py-3 px-3 font-mono">
-                [{variable.confidenceInterval[0].toFixed(3)}, {variable.confidenceInterval[1].toFixed(3)}]
+                [{variable.confidenceInterval[0].toFixed(3)},{" "}
+                {variable.confidenceInterval[1].toFixed(3)}]
               </td>
             </tr>
           ))}
@@ -361,7 +356,7 @@ export function AccordionItem({ title, children, defaultOpen = false }: Accordio
       {isOpen && (
         <motion.div
           initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
+          animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3 }}
           className="pb-4 overflow-hidden"

@@ -12,8 +12,8 @@ Edit `/src/config/brand.ts`:
 
 ```typescript
 export const company = {
-  name: "Acme Solutions",              // ← Your company name
-  tagline: "SAP Excellence Delivered",  // ← Your tagline
+  name: "Acme Solutions", // ← Your company name
+  tagline: "SAP Excellence Delivered", // ← Your tagline
 
   website: "https://acmesolutions.com",
   email: "hello@acmesolutions.com",
@@ -33,6 +33,7 @@ export const company = {
    - Icon version: `icon.svg` (square, for favicon)
 
 2. **Add to project:**
+
    ```bash
    # Place files in the /public folder
    /public/logo-light.svg
@@ -41,11 +42,12 @@ export const company = {
    ```
 
 3. **Update paths in** `/src/config/brand.ts`:
+
    ```typescript
    export const logo = {
-     light: "/logo-light.svg",  // ✓ Your light logo
-     dark: "/logo-dark.svg",    // ✓ Your dark logo
-     icon: "/icon.svg",         // ✓ Your icon
+     light: "/logo-light.svg", // ✓ Your light logo
+     dark: "/logo-dark.svg", // ✓ Your dark logo
+     icon: "/icon.svg", // ✓ Your icon
      alt: "Acme Solutions Logo",
    };
    ```
@@ -69,26 +71,27 @@ Edit `/src/config/brand.ts` and replace with your brand colors:
 ```typescript
 export const brandColors = {
   primary: {
-    50: "#f0f9ff",   // Lightest
+    50: "#f0f9ff", // Lightest
     100: "#e0f2fe",
     200: "#bae6fd",
     300: "#7dd3fc",
     400: "#38bdf8",
-    500: "#0ea5e9",  // ← Main brand color (buttons, links)
-    600: "#0284c7",  // ← Hover state
+    500: "#0ea5e9", // ← Main brand color (buttons, links)
+    600: "#0284c7", // ← Hover state
     700: "#0369a1",
     800: "#075985",
-    900: "#0c4a6e",  // Darkest
+    900: "#0c4a6e", // Darkest
   },
 
   accent: {
-    500: "#8b5cf6",  // ← Secondary color (highlights, CTAs)
+    500: "#8b5cf6", // ← Secondary color (highlights, CTAs)
     600: "#7c3aed",
   },
 };
 ```
 
 **How to pick colors:**
+
 - Use your existing brand guidelines
 - Generate shades with: https://uicolors.app/create
 - Or use Tailwind's color palette: https://tailwindcss.com/docs/customizing-colors
@@ -150,20 +153,24 @@ export const colors = {
 #### **Logo Specifications**
 
 **Recommended formats:**
+
 - **SVG:** Best choice (scalable, small file size)
 - **PNG:** Use with transparency, 2x resolution for retina
 
 **Dimensions:**
+
 - Light/Dark logo: Horizontal layout, ~200px width, ~48px height
 - Icon: Square, 512x512px minimum
 
 **File size:**
+
 - SVG: < 50KB
 - PNG: < 100KB
 
 #### **Logo Placement**
 
 The Logo component is used in:
+
 - Navigation bar (top-left)
 - Login/auth pages
 - Footer
@@ -198,7 +205,7 @@ Edit `/src/config/brand.ts`:
 
 ```typescript
 export const theme = {
-  borderRadius: "modern",  // Choose: "sharp" | "modern" | "rounded"
+  borderRadius: "modern", // Choose: "sharp" | "modern" | "rounded"
 };
 ```
 
@@ -212,14 +219,26 @@ Then update `/src/lib/design-system.ts`:
 import { theme } from "@/config/brand";
 
 export const radius = {
-  sm: theme.borderRadius === "sharp" ? "rounded-none" :
-      theme.borderRadius === "modern" ? "rounded-lg" : "rounded-xl",
+  sm:
+    theme.borderRadius === "sharp"
+      ? "rounded-none"
+      : theme.borderRadius === "modern"
+        ? "rounded-lg"
+        : "rounded-xl",
 
-  md: theme.borderRadius === "sharp" ? "rounded-none" :
-      theme.borderRadius === "modern" ? "rounded-xl" : "rounded-2xl",
+  md:
+    theme.borderRadius === "sharp"
+      ? "rounded-none"
+      : theme.borderRadius === "modern"
+        ? "rounded-xl"
+        : "rounded-2xl",
 
-  lg: theme.borderRadius === "sharp" ? "rounded-none" :
-      theme.borderRadius === "modern" ? "rounded-2xl" : "rounded-3xl",
+  lg:
+    theme.borderRadius === "sharp"
+      ? "rounded-none"
+      : theme.borderRadius === "modern"
+        ? "rounded-2xl"
+        : "rounded-3xl",
 };
 ```
 
@@ -229,7 +248,7 @@ Edit `/src/config/brand.ts`:
 
 ```typescript
 export const theme = {
-  shadows: "subtle",  // Choose: "none" | "subtle" | "pronounced"
+  shadows: "subtle", // Choose: "none" | "subtle" | "pronounced"
 };
 ```
 
@@ -244,24 +263,26 @@ export const theme = {
 #### **Using Custom Fonts**
 
 1. **Add font files to** `/public/fonts/`:
+
    ```
    /public/fonts/YourFont-Regular.woff2
    /public/fonts/YourFont-Bold.woff2
    ```
 
 2. **Create font CSS** in `/src/app/globals.css`:
+
    ```css
    @font-face {
-     font-family: 'YourFont';
-     src: url('/fonts/YourFont-Regular.woff2') format('woff2');
+     font-family: "YourFont";
+     src: url("/fonts/YourFont-Regular.woff2") format("woff2");
      font-weight: 400;
      font-style: normal;
      font-display: swap;
    }
 
    @font-face {
-     font-family: 'YourFont';
-     src: url('/fonts/YourFont-Bold.woff2') format('woff2');
+     font-family: "YourFont";
+     src: url("/fonts/YourFont-Bold.woff2") format("woff2");
      font-weight: 700;
      font-style: normal;
      font-display: swap;
@@ -269,6 +290,7 @@ export const theme = {
    ```
 
 3. **Update** `/src/config/brand.ts`:
+
    ```typescript
    export const theme = {
      fontFamily: {
@@ -279,6 +301,7 @@ export const theme = {
    ```
 
 4. **Apply to Tailwind** in `/tailwind.config.ts`:
+
    ```typescript
    import { theme } from "./src/config/brand";
 
@@ -297,6 +320,7 @@ export const theme = {
 #### **Using Google Fonts**
 
 1. **Add to** `/src/app/layout.tsx`:
+
    ```typescript
    import { Inter } from 'next/font/google';
 
@@ -318,14 +342,16 @@ export const theme = {
 ### **Enable Dark Mode**
 
 1. **Update** `/src/config/brand.ts`:
+
    ```typescript
    export const theme = {
-     defaultMode: "system",  // "light" | "dark" | "system"
+     defaultMode: "system", // "light" | "dark" | "system"
      allowThemeToggle: true,
    };
    ```
 
 2. **Create theme provider** `/src/providers/ThemeProvider.tsx`:
+
    ```typescript
    "use client";
 
@@ -366,6 +392,7 @@ export const theme = {
    ```
 
 3. **Add dark mode colors to** `/tailwind.config.ts`:
+
    ```typescript
    module.exports = {
      darkMode: "class",
@@ -382,6 +409,7 @@ export const theme = {
    ```
 
 4. **Define CSS variables in** `/src/app/globals.css`:
+
    ```css
    @layer base {
      :root {
@@ -406,7 +434,7 @@ Edit `/src/config/brand.ts`:
 
 ```typescript
 export const icons = {
-  useEmojis: true,  // Set to false to disable emojis
+  useEmojis: true, // Set to false to disable emojis
 
   // Customize emojis used throughout the app
   success: "✅",
@@ -423,11 +451,13 @@ export const icons = {
 If you prefer icon libraries (Lucide, Heroicons):
 
 1. **Install:**
+
    ```bash
    # Already installed: lucide-react
    ```
 
 2. **Update components to use icons instead:**
+
    ```tsx
    // Before (emoji)
    <span>🎉 Success!</span>
@@ -449,12 +479,12 @@ export const regions = {
   default: "ABMY",
 
   labels: {
-    ABMY: "🇲🇾 Malaysia HQ",      // ← Customize labels
+    ABMY: "🇲🇾 Malaysia HQ", // ← Customize labels
     ABSG: "🇸🇬 Singapore Office",
     ABVN: "🇻🇳 Vietnam Office",
   },
 
-  showFlags: true,  // Set false to hide flags
+  showFlags: true, // Set false to hide flags
 };
 ```
 
@@ -518,18 +548,18 @@ export const company = {
 
 export const brandColors = {
   primary: {
-    500: "#6366f1",  // Indigo
+    500: "#6366f1", // Indigo
     600: "#4f46e5",
   },
   accent: {
-    500: "#ec4899",  // Pink
+    500: "#ec4899", // Pink
     600: "#db2777",
   },
 };
 
 export const theme = {
-  borderRadius: "rounded",  // Very rounded
-  shadows: "pronounced",    // Strong shadows
+  borderRadius: "rounded", // Very rounded
+  shadows: "pronounced", // Strong shadows
 };
 ```
 
@@ -544,18 +574,18 @@ export const company = {
 
 export const brandColors = {
   primary: {
-    500: "#1e40af",  // Dark blue
+    500: "#1e40af", // Dark blue
     600: "#1e3a8a",
   },
   accent: {
-    500: "#059669",  // Green
+    500: "#059669", // Green
     600: "#047857",
   },
 };
 
 export const theme = {
-  borderRadius: "modern",  // Subtle rounded
-  shadows: "subtle",       // Soft shadows
+  borderRadius: "modern", // Subtle rounded
+  shadows: "subtle", // Soft shadows
 };
 ```
 
@@ -570,18 +600,18 @@ export const company = {
 
 export const brandColors = {
   primary: {
-    500: "#f59e0b",  // Orange
+    500: "#f59e0b", // Orange
     600: "#d97706",
   },
   accent: {
-    500: "#8b5cf6",  // Purple
+    500: "#8b5cf6", // Purple
     600: "#7c3aed",
   },
 };
 
 export const theme = {
-  borderRadius: "sharp",     // No rounded corners
-  shadows: "none",           // Flat design
+  borderRadius: "sharp", // No rounded corners
+  shadows: "none", // Flat design
 };
 ```
 
@@ -600,21 +630,25 @@ export const theme = {
 ## 💡 Pro Tips
 
 **Tip 1:** Use your existing brand guidelines
+
 - Extract exact hex colors from your logo
 - Match your website's color scheme
 - Keep it consistent across all platforms
 
 **Tip 2:** Test color contrast
+
 - Use https://webaim.org/resources/contrastchecker/
 - Ensure text is readable (4.5:1 ratio minimum)
 - Test with colorblind simulators
 
 **Tip 3:** Start simple
+
 - Get the logo and primary color right first
 - Add more customizations later
 - Don't overwhelm yourself with options
 
 **Tip 4:** Document your choices
+
 - Save your brand hex codes
 - Take screenshots of the styled app
 - Share with your team for feedback

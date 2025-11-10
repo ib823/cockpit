@@ -4,7 +4,7 @@
  * Unassigned resources are those with no task or phase assignments.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -14,8 +14,8 @@ async function removeUnassignedResources() {
     const projects = await prisma.ganttProject.findMany({
       where: {
         name: {
-          contains: 'KPJ',
-          mode: 'insensitive',
+          contains: "KPJ",
+          mode: "insensitive",
         },
         deletedAt: null,
       },
@@ -70,12 +70,12 @@ async function removeUnassignedResources() {
     console.log(`Unassigned resources: ${unassignedResources.length}\n`);
 
     if (unassignedResources.length === 0) {
-      console.log('✅ No unassigned resources to remove!');
+      console.log("✅ No unassigned resources to remove!");
       return;
     }
 
     // Show unassigned resources
-    console.log('📋 Unassigned resources to be deleted:');
+    console.log("📋 Unassigned resources to be deleted:");
     unassignedResources.forEach((resource, index) => {
       console.log(`${index + 1}. ${resource.name} (${resource.category})`);
     });
@@ -99,9 +99,8 @@ async function removeUnassignedResources() {
     console.log(`   Before: ${project.resources.length} resources`);
     console.log(`   After: ${remainingCount} resources`);
     console.log(`   Deleted: ${deleteResult.count} unassigned resources`);
-
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error("❌ Error:", error);
   } finally {
     await prisma.$disconnect();
   }

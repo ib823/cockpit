@@ -79,7 +79,7 @@
       "page": "RICEFW",
       "component": "IntegrationPanel",
       "validation": "enum: ['S', 'M', 'L']",
-      "mdMultipliers": {"S": 8, "M": 12, "L": 18},
+      "mdMultipliers": { "S": 8, "M": 12, "L": 18 },
       "auditTrail": true
     },
     "resources.pm.allocation": {
@@ -238,10 +238,7 @@
       "status": "completed",
       "healthScore": 90,
       "completedDate": "2025-10-06",
-      "components": [
-        "src/lib/resourcing/model.ts",
-        "src/lib/resourcing/calculator.ts"
-      ]
+      "components": ["src/lib/resourcing/model.ts", "src/lib/resourcing/calculator.ts"]
     }
   }
 }

@@ -4,17 +4,17 @@
  * Usage: npx tsx scripts/bootstrap-admin.ts admin@example.com
  */
 
-import { PrismaClient, Role } from '@prisma/client';
-import { hash } from 'bcryptjs';
-import { randomUUID } from 'crypto';
+import { PrismaClient, Role } from "@prisma/client";
+import { hash } from "bcryptjs";
+import { randomUUID } from "crypto";
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = process.argv[2] || process.env.ADMIN_EMAILS?.split(',')[0];
+  const email = process.argv[2] || process.env.ADMIN_EMAILS?.split(",")[0];
 
   if (!email) {
-    console.error('Usage: npx tsx scripts/bootstrap-admin.ts <admin-email>');
-    console.error('Or set ADMIN_EMAILS in .env.local');
+    console.error("Usage: npx tsx scripts/bootstrap-admin.ts <admin-email>");
+    console.error("Or set ADMIN_EMAILS in .env.local");
     process.exit(1);
   }
 
@@ -59,14 +59,14 @@ async function main() {
     },
   });
 
-  console.log('\n✅ Admin user created successfully!');
-  console.log('\n📋 Setup Instructions:');
-  console.log('1. Go to http://localhost:3000/login');
-  console.log('2. Enter the 6-digit code below:');
+  console.log("\n✅ Admin user created successfully!");
+  console.log("\n📋 Setup Instructions:");
+  console.log("1. Go to http://localhost:3000/login");
+  console.log("2. Enter the 6-digit code below:");
   console.log(`\n   ${code}\n`);
-  console.log('3. Follow the prompts to set up your passkey');
-  console.log('4. Future logins will use your passkey only\n');
-  console.log('💡 Code expires in 24 hours\n');
+  console.log("3. Follow the prompts to set up your passkey");
+  console.log("4. Future logins will use your passkey only\n");
+  console.log("💡 Code expires in 24 hours\n");
 }
 
 main()

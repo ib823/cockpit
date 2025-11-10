@@ -16,7 +16,7 @@ A comprehensive, token-based UI component library for the SAP Keystone applicati
 The UI toolkit is already integrated into your app. Components are available at:
 
 ```tsx
-import { Button, Input, Modal, Alert } from '@/ui';
+import { Button, Input, Modal, Alert } from "@/ui";
 ```
 
 ## 🎨 Theming
@@ -26,26 +26,24 @@ import { Button, Input, Modal, Alert } from '@/ui';
 All components use CSS variables defined in `/src/styles/tokens.css`:
 
 ```css
---accent: #2563eb;           /* Primary brand color */
---surface: #ffffff;          /* Background surfaces */
---ink: #0f172a;             /* Text color */
---line: #e5e7eb;            /* Borders */
---success: #16a34a;         /* Success states */
---warning: #f59e0b;         /* Warning states */
---error: #ef4444;           /* Error states */
+--accent: #2563eb; /* Primary brand color */
+--surface: #ffffff; /* Background surfaces */
+--ink: #0f172a; /* Text color */
+--line: #e5e7eb; /* Borders */
+--success: #16a34a; /* Success states */
+--warning: #f59e0b; /* Warning states */
+--error: #ef4444; /* Error states */
 ```
 
 ### Runtime Theme Changes
 
 ```tsx
-import { useTheme } from '@/components/theme/ThemeProvider';
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
   return (
-    <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-      Toggle Theme
-    </button>
+    <button onClick={() => setTheme(theme === "light" ? "dark" : "light")}>Toggle Theme</button>
   );
 }
 ```
@@ -57,11 +55,11 @@ function ThemeSwitcher() {
 #### Button
 
 ```tsx
-import { Button } from '@/ui';
+import { Button } from "@/ui";
 
 <Button variant="primary" size="md" loading={false}>
   Click me
-</Button>
+</Button>;
 ```
 
 **Variants**: `primary`, `secondary`, `ghost`, `danger`
@@ -70,37 +68,29 @@ import { Button } from '@/ui';
 #### Input
 
 ```tsx
-import { Input } from '@/ui';
+import { Input } from "@/ui";
 
 <Input
   placeholder="Enter text..."
   state="default" // 'error' | 'success'
   size="md"
-/>
+/>;
 ```
 
 #### Checkbox
 
 ```tsx
-import { Checkbox } from '@/ui';
+import { Checkbox } from "@/ui";
 
-<Checkbox
-  checked={value}
-  onChange={setValue}
-  label="Accept terms"
-/>
+<Checkbox checked={value} onChange={setValue} label="Accept terms" />;
 ```
 
 #### Toggle (Switch)
 
 ```tsx
-import { Toggle } from '@/ui';
+import { Toggle } from "@/ui";
 
-<Toggle
-  checked={enabled}
-  onChange={setEnabled}
-  label="Enable notifications"
-/>
+<Toggle checked={enabled} onChange={setEnabled} label="Enable notifications" />;
 ```
 
 ### Advanced Components
@@ -108,24 +98,24 @@ import { Toggle } from '@/ui';
 #### Select
 
 ```tsx
-import { Select } from '@/ui';
+import { Select } from "@/ui";
 
 <Select
   options={[
-    { value: 'a', label: 'Option A' },
-    { value: 'b', label: 'Option B', disabled: true },
+    { value: "a", label: "Option A" },
+    { value: "b", label: "Option B", disabled: true },
   ]}
   value={selected}
   onChange={setSelected}
   searchable
   placeholder="Select..."
-/>
+/>;
 ```
 
 #### Modal
 
 ```tsx
-import { Modal, Button } from '@/ui';
+import { Modal, Button } from "@/ui";
 
 <Modal
   open={isOpen}
@@ -133,23 +123,25 @@ import { Modal, Button } from '@/ui';
   title="Confirm Action"
   footer={
     <>
-      <Button variant="ghost" onClick={() => setIsOpen(false)}>Cancel</Button>
+      <Button variant="ghost" onClick={() => setIsOpen(false)}>
+        Cancel
+      </Button>
       <Button onClick={handleConfirm}>Confirm</Button>
     </>
   }
 >
   <p>Are you sure you want to proceed?</p>
-</Modal>
+</Modal>;
 ```
 
 #### Alert
 
 ```tsx
-import { Alert } from '@/ui';
+import { Alert } from "@/ui";
 
 <Alert variant="warning" title="Warning" onClose={handleClose}>
   This action cannot be undone.
-</Alert>
+</Alert>;
 ```
 
 **Variants**: `info`, `success`, `warning`, `error`
@@ -157,17 +149,17 @@ import { Alert } from '@/ui';
 #### Toast
 
 ```tsx
-import { useToast } from '@/ui';
+import { useToast } from "@/ui";
 
 function MyComponent() {
   const { push } = useToast();
 
   const showToast = () => {
     push({
-      kind: 'success',
-      title: 'Saved!',
-      desc: 'Your changes have been saved.',
-      duration: 3500
+      kind: "success",
+      title: "Saved!",
+      desc: "Your changes have been saved.",
+      duration: 3500,
     });
   };
 
@@ -180,44 +172,39 @@ function MyComponent() {
 #### Tabs
 
 ```tsx
-import { Tabs } from '@/ui';
+import { Tabs } from "@/ui";
 
 <Tabs
   variant="underline" // 'pill' | 'contained'
   items={[
-    { value: 'overview', label: 'Overview', content: <Overview /> },
-    { value: 'settings', label: 'Settings', content: <Settings /> },
+    { value: "overview", label: "Overview", content: <Overview /> },
+    { value: "settings", label: "Settings", content: <Settings /> },
   ]}
   defaultValue="overview"
   onChange={(value) => console.log(value)}
-/>
+/>;
 ```
 
 #### Breadcrumb
 
 ```tsx
-import { Breadcrumb } from '@/ui';
+import { Breadcrumb } from "@/ui";
 
 <Breadcrumb
   items={[
-    { label: 'Home', href: '/' },
-    { label: 'Projects', href: '/projects' },
-    { label: 'Alpha' }, // Current page
+    { label: "Home", href: "/" },
+    { label: "Projects", href: "/projects" },
+    { label: "Alpha" }, // Current page
   ]}
-/>
+/>;
 ```
 
 #### Pagination
 
 ```tsx
-import { Pagination } from '@/ui';
+import { Pagination } from "@/ui";
 
-<Pagination
-  page={currentPage}
-  pageCount={totalPages}
-  onPageChange={setCurrentPage}
-  size="md"
-/>
+<Pagination page={currentPage} pageCount={totalPages} onPageChange={setCurrentPage} size="md" />;
 ```
 
 ### Loading States
@@ -246,12 +233,12 @@ import { SkeletonText, SkeletonRect, SkeletonCircle } from '@/ui';
 #### AppShell
 
 ```tsx
-import { AppShell, PageHeader } from '@/ui';
+import { AppShell, PageHeader } from "@/ui";
 
 <AppShell
   nav={[
-    { key: 'dashboard', label: 'Dashboard', active: true, href: '/' },
-    { key: 'projects', label: 'Projects', href: '/projects' },
+    { key: "dashboard", label: "Dashboard", active: true, href: "/" },
+    { key: "projects", label: "Projects", href: "/projects" },
   ]}
   pageHeader={
     <PageHeader
@@ -262,7 +249,7 @@ import { AppShell, PageHeader } from '@/ui';
   }
 >
   {children}
-</AppShell>
+</AppShell>;
 ```
 
 ### DataGrid
@@ -270,14 +257,14 @@ import { AppShell, PageHeader } from '@/ui';
 Enhanced AntD Table with token-based styling:
 
 ```tsx
-import { AntDataGrid } from '@/ui';
-import type { ColumnsType } from 'antd/es/table';
+import { AntDataGrid } from "@/ui";
+import type { ColumnsType } from "antd/es/table";
 
 type Row = { key: string; name: string; status: string };
 
 const columns: ColumnsType<Row> = [
-  { title: 'Name', dataIndex: 'name' },
-  { title: 'Status', dataIndex: 'status' },
+  { title: "Name", dataIndex: "name" },
+  { title: "Status", dataIndex: "status" },
 ];
 
 <AntDataGrid<Row>
@@ -287,7 +274,7 @@ const columns: ColumnsType<Row> = [
   zebra
   stickyHeader
   rowAccentOnHover
-/>
+/>;
 ```
 
 ## 🎭 AntD Compatibility
@@ -297,10 +284,10 @@ const columns: ColumnsType<Row> = [
 All existing AntD components automatically pick up theme tokens via `AntDThemeBridge` in `providers.tsx`:
 
 ```tsx
-import { Button, Table } from 'antd';
+import { Button, Table } from "antd";
 
 // These will use your CSS tokens automatically
-<Button type="primary">AntD Button</Button>
+<Button type="primary">AntD Button</Button>;
 ```
 
 ### Gradual Migration
@@ -308,10 +295,10 @@ import { Button, Table } from 'antd';
 Import AntD components via the compat layer:
 
 ```tsx
-import { AntButton, AntTable } from '@/ui/compat';
+import { AntButton, AntTable } from "@/ui/compat";
 
 // Functionally identical to AntD, but explicitly scoped
-<AntButton type="primary">Click me</AntButton>
+<AntButton type="primary">Click me</AntButton>;
 ```
 
 ## 🎨 Customization
@@ -321,13 +308,13 @@ import { AntButton, AntTable } from '@/ui/compat';
 Extend components with your own variants:
 
 ```tsx
-import { Button, ButtonProps } from '@/ui';
-import clsx from 'clsx';
+import { Button, ButtonProps } from "@/ui";
+import clsx from "clsx";
 
 function CustomButton({ className, ...props }: ButtonProps) {
   return (
     <Button
-      className={clsx('bg-gradient-to-r from-purple-500 to-pink-500', className)}
+      className={clsx("bg-gradient-to-r from-purple-500 to-pink-500", className)}
       {...props}
     />
   );
@@ -340,7 +327,7 @@ Override tokens at runtime:
 
 ```tsx
 useEffect(() => {
-  document.documentElement.style.setProperty('--accent', '#0a6ed1'); // SAP blue
+  document.documentElement.style.setProperty("--accent", "#0a6ed1"); // SAP blue
 }, []);
 ```
 
@@ -399,17 +386,19 @@ Visit `/ui-demo` to see all components in action with live examples.
 ### From AntD to Toolkit
 
 1. **Start with simple replacements:**
+
    ```tsx
    // Before
-   import { Button } from 'antd';
+   import { Button } from "antd";
 
    // After
-   import { Button } from '@/ui';
+   import { Button } from "@/ui";
    ```
 
 2. **Use compat layer for complex components:**
+
    ```tsx
-   import { AntTable } from '@/ui/compat';
+   import { AntTable } from "@/ui/compat";
    ```
 
 3. **Leverage the bridge:**

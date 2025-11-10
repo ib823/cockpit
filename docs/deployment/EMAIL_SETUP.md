@@ -5,6 +5,7 @@ The app now supports **two free email options** (no credit card required):
 ## Option 1: Gmail SMTP (Recommended - Completely Free)
 
 **Pros:**
+
 - ✅ Completely free (500 emails/day)
 - ✅ No credit card required
 - ✅ Built-in, works immediately
@@ -22,6 +23,7 @@ The app now supports **two free email options** (no credit card required):
    - Copy the 16-character password
 
 3. **Add to `.env.local`:**
+
    ```bash
    GMAIL_USER=your-email@gmail.com
    GMAIL_APP_PASSWORD=your-16-char-app-password
@@ -39,6 +41,7 @@ The app now supports **two free email options** (no credit card required):
 ## Option 2: Resend API (Best deliverability)
 
 **Pros:**
+
 - ✅ Free tier: 3,000 emails/month, 100/day
 - ✅ Excellent deliverability (rarely goes to spam)
 - ✅ Professional email service
@@ -80,14 +83,17 @@ After setup, test by:
 ## Troubleshooting
 
 **Gmail "Less secure app access" error:**
+
 - You must use App Passwords (not regular password)
 - Enable 2FA first, then generate App Password
 
 **Resend emails going to spam:**
+
 - Verify your domain in Resend dashboard
 - Or use `onboarding@resend.dev` for testing (may still go to spam)
 
 **No email received:**
+
 - Check server console logs for errors
 - Dev mode will log: `[DEV] Email not sent. Code: XXXXXX`
 - Gmail will log: `[Gmail] Email sent to: user@example.com`

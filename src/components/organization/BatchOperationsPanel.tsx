@@ -4,19 +4,19 @@
  * Panel for performing batch operations on multiple selected resources
  */
 
-'use client';
+"use client";
 
-import { useCallback } from 'react';
-import { Drawer, Form, Select, Button, Typography, Space, List, Tag, App } from 'antd';
+import { useCallback } from "react";
+import { Drawer, Form, Select, Button, Typography, Space, List, Tag, App } from "antd";
 import {
   TeamOutlined,
   SaveOutlined,
   CloseOutlined,
   DeleteOutlined,
   ClearOutlined,
-} from '@ant-design/icons';
-import { useGanttToolStore } from '@/stores/gantt-tool-store-v2';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
+} from "@ant-design/icons";
+import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 
 const { Title, Text } = Typography;
 
@@ -31,7 +31,7 @@ export function BatchOperationsPanel({
   selectedResourceIds,
   onClose,
   onUpdate,
-  onClearSelection
+  onClearSelection,
 }: BatchOperationsPanelProps) {
   const { message } = App.useApp();
   const [form] = Form.useForm();
@@ -39,14 +39,12 @@ export function BatchOperationsPanel({
   const assignManager = useGanttToolStore((state) => (state as any).assignManager);
   const unassignManager = useGanttToolStore((state) => (state as any).unassignManager);
 
-  const selectedResources = currentProject?.resources.filter((r) =>
-    selectedResourceIds.has(r.id)
-  ) || [];
+  const selectedResources =
+    currentProject?.resources.filter((r) => selectedResourceIds.has(r.id)) || [];
 
   // Available managers (exclude selected resources to prevent circular refs)
-  const availableManagers = currentProject?.resources.filter(
-    (r) => !selectedResourceIds.has(r.id)
-  ) || [];
+  const availableManagers =
+    currentProject?.resources.filter((r) => !selectedResourceIds.has(r.id)) || [];
 
   const handleBatchAssignManager = useCallback(() => {
     form.validateFields().then((values) => {
@@ -95,7 +93,7 @@ export function BatchOperationsPanel({
     <Drawer
       title={
         <Space direction="vertical" size={0}>
-          <Title level={4} style={{ margin: 0>
+          <Title level={4} style={{ margin: 0 }}>
             Batch Operations
           </Title>
           <Text type="secondary">{selectedResourceIds.size} resources selected</Text>
@@ -106,11 +104,8 @@ export function BatchOperationsPanel({
       onClose={onClose}
       open={true}
       footer={
-        <Space style={{ width: '100%', justifyContent: 'space-between'>
-          <Button
-            onClick={onClearSelection}
-            icon={<ClearOutlined />}
-          >
+        <Space style={{ width: "100%", justifyContent: "space-between" }}>
+          <Button onClick={onClearSelection} icon={<ClearOutlined />}>
             Clear Selection
           </Button>
           <Button onClick={onClose} icon={<CloseOutlined />}>
@@ -126,7 +121,7 @@ export function BatchOperationsPanel({
           size="small"
           bordered
           dataSource={selectedResources}
-          style={{ maxHeight: '200px', overflowY: 'auto' }}
+          style={{ maxHeight: "200px", overflowY: "auto" }}
           renderItem={(resource) => {
             const categoryInfo = RESOURCE_CATEGORIES[resource.category];
             const designationLabel = RESOURCE_DESIGNATIONS[resource.designation];
@@ -150,11 +145,7 @@ export function BatchOperationsPanel({
       {/* Batch Assign Manager */}
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <Title level={5}>Assign Manager to All</Title>
-        <Form
-          form={form}
-          layout="vertical"
-          requiredMark={false}
-        >
+        <Form form={form} layout="vertical" requiredMark={false}>
           <Form.Item
             name="managerId"
             label={
@@ -171,7 +162,7 @@ export function BatchOperationsPanel({
               showSearch
               optionFilterProp="label"
               options={[
-                { value: undefined, label: '🎯 No Manager (Top Level)' },
+                { value: undefined, label: "🎯 No Manager (Top Level)" },
                 ...availableManagers.map((manager) => ({
                   value: manager.id,
                   label: `${RESOURCE_CATEGORIES[manager.category].icon} ${manager.name} - ${RESOURCE_DESIGNATIONS[manager.designation]}`,
@@ -181,13 +172,8 @@ export function BatchOperationsPanel({
           </Form.Item>
         </Form>
 
-        <Space style={{ width: '100%', marginTop: '12px'>
-          <Button
-            type="primary"
-            onClick={handleBatchAssignManager}
-            icon={<SaveOutlined />}
-            block
-          >
+        <Space style={{ width: "100%", marginTop: "12px" }}>
+          <Button type="primary" onClick={handleBatchAssignManager} icon={<SaveOutlined />} block>
             Assign to All Selected
           </Button>
         </Space>
@@ -196,15 +182,10 @@ export function BatchOperationsPanel({
       {/* Batch Remove Manager */}
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
         <Title level={5}>Remove Manager from All</Title>
-        <Text type="secondary" style={{ display: 'block', marginBottom: '12px'>
+        <Text type="secondary" style={{ display: "block", marginBottom: "12px" }}>
           This will make all selected resources top-level (no manager)
         </Text>
-        <Button
-          danger
-          onClick={handleBatchRemoveManager}
-          icon={<DeleteOutlined />}
-          block
-        >
+        <Button danger onClick={handleBatchRemoveManager} icon={<DeleteOutlined />} block>
           Remove Manager from All
         </Button>
       </div>

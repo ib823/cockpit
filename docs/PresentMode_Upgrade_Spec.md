@@ -48,7 +48,7 @@ export function generateSlides(project: UnifiedProject): Slide[] {
   }
 
   // Always: Team structure
-  const teamMembers = project.timeline.phases.flatMap(p => p.resources || []);
+  const teamMembers = project.timeline.phases.flatMap((p) => p.resources || []);
   if (teamMembers.length > 0) {
     slides.push(createTeamSlide(teamMembers));
   }
@@ -65,11 +65,11 @@ export function generateSlides(project: UnifiedProject): Slide[] {
 ```typescript
 // src/lib/presentation/pdf-exporter.ts
 
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export async function exportToPDF(slides: Slide[]): Promise<void> {
-  const pdf = new jsPDF('landscape', 'mm', 'a4'); // 297x210mm
+  const pdf = new jsPDF("landscape", "mm", "a4"); // 297x210mm
 
   for (let i = 0; i < slides.length; i++) {
     // Render slide to DOM
@@ -83,14 +83,14 @@ export async function exportToPDF(slides: Slide[]): Promise<void> {
       logging: false,
     });
 
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL("image/png");
 
     // Add to PDF
     if (i > 0) pdf.addPage();
-    pdf.addImage(imgData, 'PNG', 0, 0, 297, 210);
+    pdf.addImage(imgData, "PNG", 0, 0, 297, 210);
   }
 
-  pdf.save(`${project.name || 'proposal'}.pdf`);
+  pdf.save(`${project.name || "proposal"}.pdf`);
 }
 ```
 
@@ -131,11 +131,13 @@ const coverSlide: Slide = {
 ## 📁 FILES TO CREATE/MODIFY
 
 **New Files:**
+
 - `src/lib/presentation/slide-generator.ts`
 - `src/lib/presentation/pdf-exporter.ts`
 - `src/lib/presentation/pptx-exporter.ts`
 
 **Modified:**
+
 - `src/components/project-v2/modes/PresentMode.tsx` - Add export buttons + notes
 
 ---

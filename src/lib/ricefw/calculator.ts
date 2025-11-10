@@ -12,7 +12,7 @@ import {
   calculateRicefwItem,
   getRicefwEffortByPhase,
   BASE_EFFORT,
-} from './model';
+} from "./model";
 
 /**
  * Create new RICEFW item with calculated effort
@@ -26,7 +26,7 @@ export function createRicefwItem(
   phase: Phase,
   description?: string
 ): RicefwItem {
-  const item: Omit<RicefwItem, 'totalEffort'> = {
+  const item: Omit<RicefwItem, "totalEffort"> = {
     id: `ricefw-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     projectId,
     type,
@@ -48,7 +48,7 @@ export function createRicefwItem(
  */
 export function updateRicefwItem(
   item: RicefwItem,
-  updates: Partial<Omit<RicefwItem, 'id' | 'projectId' | 'totalEffort' | 'createdAt'>>
+  updates: Partial<Omit<RicefwItem, "id" | "projectId" | "totalEffort" | "createdAt">>
 ): RicefwItem {
   const updated = { ...item, ...updates, updatedAt: new Date() };
 
@@ -81,7 +81,7 @@ export function bulkCreateRicefwItems(
       entry.name,
       entry.complexity,
       entry.count,
-      entry.phase || 'realize',
+      entry.phase || "realize",
       entry.description
     )
   );
@@ -90,9 +90,7 @@ export function bulkCreateRicefwItems(
 /**
  * Calculate effort impact on phases
  */
-export function calculateRicefwPhaseImpact(
-  items: RicefwItem[]
-): {
+export function calculateRicefwPhaseImpact(items: RicefwItem[]): {
   explore: number;
   realize: number;
   deploy: number;
@@ -134,72 +132,72 @@ export function getRicefwRecommendations(scope: {
   // Multi-country reports
   if (scope.countries > 1) {
     recommendations.push({
-      type: 'report',
-      name: 'Statutory Reports by Country',
-      complexity: 'M',
+      type: "report",
+      name: "Statutory Reports by Country",
+      complexity: "M",
       count: scope.countries,
-      rationale: 'Each country requires localized statutory reporting',
+      rationale: "Each country requires localized statutory reporting",
     });
   }
 
   // Legal entity consolidation
   if (scope.legalEntities > 1) {
     recommendations.push({
-      type: 'report',
-      name: 'Consolidated Financial Reports',
-      complexity: 'L',
+      type: "report",
+      name: "Consolidated Financial Reports",
+      complexity: "L",
       count: Math.ceil(scope.legalEntities / 3),
-      rationale: 'Multi-entity consolidation requires complex reporting',
+      rationale: "Multi-entity consolidation requires complex reporting",
     });
   }
 
   // Module-specific interfaces
-  if (scope.modules.includes('SCM')) {
+  if (scope.modules.includes("SCM")) {
     recommendations.push({
-      type: 'interface',
-      name: 'WMS Integration',
-      complexity: 'M',
+      type: "interface",
+      name: "WMS Integration",
+      complexity: "M",
       count: 1,
-      rationale: 'SCM typically requires warehouse management integration',
+      rationale: "SCM typically requires warehouse management integration",
     });
   }
 
-  if (scope.modules.includes('Sales')) {
+  if (scope.modules.includes("Sales")) {
     recommendations.push({
-      type: 'interface',
-      name: 'E-commerce Integration',
-      complexity: 'L',
+      type: "interface",
+      name: "E-commerce Integration",
+      complexity: "L",
       count: 1,
-      rationale: 'Sales module often integrates with e-commerce platforms',
+      rationale: "Sales module often integrates with e-commerce platforms",
     });
   }
 
   // Industry-specific
-  if (scope.industry === 'Manufacturing') {
+  if (scope.industry === "Manufacturing") {
     recommendations.push({
-      type: 'interface',
-      name: 'MES/SCADA Integration',
-      complexity: 'L',
+      type: "interface",
+      name: "MES/SCADA Integration",
+      complexity: "L",
       count: 1,
-      rationale: 'Manufacturing requires shop floor system integration',
+      rationale: "Manufacturing requires shop floor system integration",
     });
   }
 
   // Standard forms
   recommendations.push({
-    type: 'form',
-    name: 'Purchase Order Template',
-    complexity: 'S',
+    type: "form",
+    name: "Purchase Order Template",
+    complexity: "S",
     count: scope.countries,
-    rationale: 'Localized PO templates per country',
+    rationale: "Localized PO templates per country",
   });
 
   recommendations.push({
-    type: 'form',
-    name: 'Invoice Template',
-    complexity: 'M',
+    type: "form",
+    name: "Invoice Template",
+    complexity: "M",
     count: scope.countries,
-    rationale: 'Country-specific invoice requirements',
+    rationale: "Country-specific invoice requirements",
   });
 
   return recommendations;

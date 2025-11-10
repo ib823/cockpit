@@ -9,17 +9,21 @@
 ## 🔍 Root Causes Identified
 
 ### 1. **AbortError** - Race Condition
+
 **Symptom:** `Authentication ceremony was sent an abort signal`
 
 **Root Cause:**
+
 - Auto-restart logic (line 299) could trigger a new authentication while the previous one was still aborting
 - Multiple concurrent calls to `startAuthentication()` are not allowed by the WebAuthn API
 - No protection against overlapping authentication attempts
 
 ### 2. **NotAllowedError** - Timeout/Permission Denied
+
 **Symptom:** `The operation either timed out or was not allowed`
 
 **Root Cause:**
+
 - User didn't respond to passkey prompt in time (browser timeout ~60 seconds)
 - Browser blocked the passkey prompt
 - Poor error messaging didn't guide users to alternative auth method
@@ -37,21 +41,23 @@ const [isAuthInProgress, setIsAuthInProgress] = useState(false);
 ```
 
 **Protected all auth functions:**
+
 - `handleContinue()` - passkey login
 - `handleMagicLinkLogin()` - magic link flow
 - `handleRegister()` - passkey registration
 
 **Pattern applied:**
+
 ```typescript
 async function handleContinue() {
   if (!email || isAuthInProgress) return; // ← Prevent concurrent calls
-  setIsAuthInProgress(true);               // ← Set flag at start
+  setIsAuthInProgress(true); // ← Set flag at start
 
   try {
     // ... auth logic ...
-    setIsAuthInProgress(false);            // ← Clear on success
+    setIsAuthInProgress(false); // ← Clear on success
   } catch (err) {
-    setIsAuthInProgress(false);            // ← Clear on error
+    setIsAuthInProgress(false); // ← Clear on error
   }
 }
 ```
@@ -59,28 +65,31 @@ async function handleContinue() {
 ### 2. Improved Error Handling & User Guidance
 
 **Before:**
+
 - Generic error messages
 - User stuck on email page
 - No fallback path
 
 **After:**
+
 - Specific error detection (timeout vs cancel vs abort)
 - Automatic redirect to code input as fallback
 - Clear, actionable error messages
 
 **Error Handling Matrix:**
 
-| Error Type | Detection | User Message | Fallback Action |
-|------------|-----------|--------------|-----------------|
-| **Timeout** | `NotAllowedError` + "timeout" in message | "Passkey timed out - use code instead" | Show code input |
-| **User Cancelled** | `NotAllowedError` (no timeout) | "Passkey cancelled - use code instead" | Show code input |
-| **Abort** | `AbortError` | "Passkey unavailable - use code instead" | Show code input |
-| **Security** | `SecurityError` | "Passkey requires localhost or HTTPS" | Show code input |
-| **Other** | Any other error | "Passkey error - use code instead" | Show code input |
+| Error Type         | Detection                                | User Message                             | Fallback Action |
+| ------------------ | ---------------------------------------- | ---------------------------------------- | --------------- |
+| **Timeout**        | `NotAllowedError` + "timeout" in message | "Passkey timed out - use code instead"   | Show code input |
+| **User Cancelled** | `NotAllowedError` (no timeout)           | "Passkey cancelled - use code instead"   | Show code input |
+| **Abort**          | `AbortError`                             | "Passkey unavailable - use code instead" | Show code input |
+| **Security**       | `SecurityError`                          | "Passkey requires localhost or HTTPS"    | Show code input |
+| **Other**          | Any other error                          | "Passkey error - use code instead"       | Show code input |
 
 ### 3. UI State Management
 
 **Disabled buttons during authentication:**
+
 ```typescript
 <button
   disabled={!email.includes('@') || isAuthInProgress}
@@ -91,6 +100,7 @@ async function handleContinue() {
 ```
 
 **Reset flag on navigation:**
+
 ```typescript
 <button
   onClick={() => {
@@ -107,6 +117,7 @@ async function handleContinue() {
 ## 🔄 Authentication Flows
 
 ### Flow 1: Successful Passkey Login
+
 ```
 1. User enters email
 2. handleContinue() → check admin → begin-login API
@@ -115,6 +126,7 @@ async function handleContinue() {
 ```
 
 ### Flow 2: Passkey Timeout (NEW - Fixed)
+
 ```
 1. User enters email
 2. handleContinue() → check admin → begin-login API
@@ -124,6 +136,7 @@ async function handleContinue() {
 ```
 
 ### Flow 3: Passkey Cancelled (NEW - Fixed)
+
 ```
 1. User enters email
 2. handleContinue() → check admin → begin-login API
@@ -133,6 +146,7 @@ async function handleContinue() {
 ```
 
 ### Flow 4: Race Condition (NEW - Fixed)
+
 ```
 1. User enters email
 2. handleContinue() → isAuthInProgress = true
@@ -149,6 +163,7 @@ async function handleContinue() {
 **File:** `src/app/login/page.tsx`
 
 **Lines Modified:**
+
 - Line 45: Added `isAuthInProgress` state
 - Line 83-204: Added flag to `handleMagicLinkLogin()`
 - Line 207-353: Added flag to `handleContinue()` + improved error handling
@@ -158,6 +173,7 @@ async function handleContinue() {
 - Line 626: Reset flag on Back button
 
 **Key Improvements:**
+
 1. ✅ Prevents concurrent authentication attempts
 2. ✅ Graceful timeout handling with fallback to code input
 3. ✅ Clear error messages guide users to alternative
@@ -181,16 +197,19 @@ async function handleContinue() {
 ## 🚀 Deployment Notes
 
 **No Breaking Changes**
+
 - All changes are backwards compatible
 - Existing passkey users unaffected
 - No database migrations needed
 - No API changes
 
 **Browser Support**
+
 - WebAuthn API timeout behavior varies by browser
 - Tested pattern works across Chrome, Safari, Firefox, Edge
 
 **Monitoring**
+
 - Watch for `NotAllowedError` logs (indicates timeout/cancel)
 - Monitor code input usage (fallback path)
 - Track passkey success rate

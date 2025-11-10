@@ -10,10 +10,10 @@
  * - Export to PDF, PowerPoint, and interactive HTML
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Modal, Tabs, Button, Progress, Tag, Divider, App } from 'antd';
+import { useState, useMemo } from "react";
+import { Modal, Tabs, Button, Progress, Tag, Divider, App } from "antd";
 import {
   FileText,
   Download,
@@ -30,11 +30,11 @@ import {
   Clock,
   Award,
   Zap,
-} from 'lucide-react';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { differenceInDays, format } from 'date-fns';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
-import { exportToPDF } from '@/lib/gantt-tool/export-utils';
+} from "lucide-react";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { differenceInDays, format } from "date-fns";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
+import { exportToPDF } from "@/lib/gantt-tool/export-utils";
 
 interface ProposalGenerationModalProps {
   isOpen: boolean;
@@ -44,7 +44,7 @@ interface ProposalGenerationModalProps {
 export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationModalProps) {
   const { message } = App.useApp();
   const { currentProject, getProjectDuration } = useGanttToolStoreV2();
-  const [activeTab, setActiveTab] = useState('summary');
+  const [activeTab, setActiveTab] = useState("summary");
   const [isExporting, setIsExporting] = useState(false);
 
   const duration = getProjectDuration();
@@ -62,39 +62,38 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
     const estimatedCost = resources.length * 50000; // $50K per resource baseline
     const costByCategory = {
       pm: estimatedCost * 0.15,
-      technical: estimatedCost * 0.40,
-      functional: estimatedCost * 0.30,
-      security: estimatedCost * 0.10,
+      technical: estimatedCost * 0.4,
+      functional: estimatedCost * 0.3,
+      security: estimatedCost * 0.1,
       change: estimatedCost * 0.05,
     };
 
     // Resource utilization
     const assignedResources = new Set<string>();
-    phases.forEach(phase => {
-      phase.phaseResourceAssignments?.forEach(a => assignedResources.add(a.resourceId));
-      phase.tasks.forEach(task => {
-        task.resourceAssignments?.forEach(a => assignedResources.add(a.resourceId));
+    phases.forEach((phase) => {
+      phase.phaseResourceAssignments?.forEach((a) => assignedResources.add(a.resourceId));
+      phase.tasks.forEach((task) => {
+        task.resourceAssignments?.forEach((a) => assignedResources.add(a.resourceId));
       });
     });
 
-    const utilizationRate = resources.length > 0
-      ? (assignedResources.size / resources.length) * 100
-      : 0;
+    const utilizationRate =
+      resources.length > 0 ? (assignedResources.size / resources.length) * 100 : 0;
 
     // Milestones
     const milestones = currentProject.milestones || [];
 
     // Project complexity score (0-100)
     const complexityScore = Math.min(
-      (phases.length * 10) + (totalTasks * 2) + (resources.length * 5),
+      phases.length * 10 + totalTasks * 2 + resources.length * 5,
       100
     );
 
     return {
       projectName: currentProject.name,
-      description: currentProject.description || '',
-      startDate: format(startDate, 'MMMM dd, yyyy'),
-      endDate: format(endDate, 'MMMM dd, yyyy'),
+      description: currentProject.description || "",
+      startDate: format(startDate, "MMMM dd, yyyy"),
+      endDate: format(endDate, "MMMM dd, yyyy"),
       duration: durationDays,
       durationMonths: Math.round(durationDays / 30),
       phases: phases.length,
@@ -106,13 +105,13 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
       costByCategory,
       milestones: milestones.length,
       complexityScore,
-      phasesList: phases.map(p => ({
+      phasesList: phases.map((p) => ({
         name: p.name,
-        description: p.description || '',
+        description: p.description || "",
         tasks: p.tasks.length,
         duration: differenceInDays(new Date(p.endDate), new Date(p.startDate)),
       })),
-      resourcesList: resources.map(r => ({
+      resourcesList: resources.map((r) => ({
         name: r.name,
         category: RESOURCE_CATEGORIES[r.category].label,
         designation: RESOURCE_DESIGNATIONS[r.designation],
@@ -128,9 +127,9 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
     setIsExporting(true);
     try {
       await exportToPDF(currentProject);
-      message.success('Proposal exported to PDF successfully!');
+      message.success("Proposal exported to PDF successfully!");
     } catch (error) {
-      message.error('Failed to export proposal. Please try again.');
+      message.error("Failed to export proposal. Please try again.");
     } finally {
       setIsExporting(false);
     }
@@ -138,14 +137,15 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
 
   const handleExportPowerPoint = () => {
     message.info({
-      content: 'PowerPoint export is coming soon! This will generate a client-ready presentation.',
+      content: "PowerPoint export is coming soon! This will generate a client-ready presentation.",
       duration: 3,
     });
   };
 
   const handleExportHTML = () => {
     message.info({
-      content: 'Interactive HTML export is coming soon! Share a live, explorable proposal with clients.',
+      content:
+        "Interactive HTML export is coming soon! Share a live, explorable proposal with clients.",
       duration: 3,
     });
   };
@@ -156,9 +156,9 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
       onCancel={onClose}
       afterClose={() => {
         // PERMANENT FIX: Force cleanup of modal side effects
-        if (document.body.style.overflow === 'hidden') document.body.style.overflow = '';
-        if (document.body.style.paddingRight) document.body.style.paddingRight = '';
-        document.body.style.pointerEvents = '';
+        if (document.body.style.overflow === "hidden") document.body.style.overflow = "";
+        if (document.body.style.paddingRight) document.body.style.paddingRight = "";
+        document.body.style.pointerEvents = "";
       }}
       destroyOnHidden={true}
       width={900}
@@ -170,7 +170,9 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
           </div>
           <div>
             <h2 className="text-lg font-bold text-gray-900 m-0">Generate Proposal</h2>
-            <p className="text-xs text-gray-500 m-0">AI-powered, client-ready proposal in seconds</p>
+            <p className="text-xs text-gray-500 m-0">
+              AI-powered, client-ready proposal in seconds
+            </p>
           </div>
         </div>
       }
@@ -181,7 +183,7 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
         onChange={setActiveTab}
         items={[
           {
-            key: 'summary',
+            key: "summary",
             label: (
               <span className="flex items-center gap-2">
                 <FileText className="w-4 h-4" />
@@ -201,15 +203,21 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
 
                   <div className="grid grid-cols-4 gap-4">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600">{proposalData.durationMonths}</div>
+                      <div className="text-3xl font-bold text-blue-600">
+                        {proposalData.durationMonths}
+                      </div>
                       <div className="text-xs text-gray-600 mt-1">Months</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-purple-600">{proposalData.phases}</div>
+                      <div className="text-3xl font-bold text-purple-600">
+                        {proposalData.phases}
+                      </div>
                       <div className="text-xs text-gray-600 mt-1">Phases</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-green-600">{proposalData.resources}</div>
+                      <div className="text-3xl font-bold text-green-600">
+                        {proposalData.resources}
+                      </div>
                       <div className="text-xs text-gray-600 mt-1">Team Members</div>
                     </div>
                     <div className="text-center">
@@ -231,18 +239,22 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
                     <div className="flex items-center justify-between text-sm">
                       <div>
                         <span className="text-gray-600">Start Date:</span>
-                        <span className="ml-2 font-semibold text-gray-900">{proposalData.startDate}</span>
+                        <span className="ml-2 font-semibold text-gray-900">
+                          {proposalData.startDate}
+                        </span>
                       </div>
                       <div className="text-gray-400">→</div>
                       <div>
                         <span className="text-gray-600">End Date:</span>
-                        <span className="ml-2 font-semibold text-gray-900">{proposalData.endDate}</span>
+                        <span className="ml-2 font-semibold text-gray-900">
+                          {proposalData.endDate}
+                        </span>
                       </div>
                     </div>
                     <div className="mt-3">
                       <Progress
                         percent={100}
-                        strokeColor={{ from: '#3b82f6', to: '#8b5cf6' }}
+                        strokeColor={{ from: "#3b82f6", to: "#8b5cf6" }}
                         showInfo={false}
                       />
                       <p className="text-xs text-gray-600 mt-2 text-center">
@@ -267,7 +279,9 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-blue-600">Phase {idx + 1}</span>
+                              <span className="text-xs font-bold text-blue-600">
+                                Phase {idx + 1}
+                              </span>
                               <h5 className="text-sm font-semibold text-gray-900">{phase.name}</h5>
                             </div>
                             {phase.description && (
@@ -295,19 +309,33 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
                     <div className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                       <p className="text-gray-700">
-                        <strong>Timeline Assessment:</strong> {proposalData.durationMonths}-month timeline is {proposalData.durationMonths < 6 ? 'aggressive' : 'conservative'} for this project scope.
+                        <strong>Timeline Assessment:</strong> {proposalData.durationMonths}-month
+                        timeline is{" "}
+                        {proposalData.durationMonths < 6 ? "aggressive" : "conservative"} for this
+                        project scope.
                       </p>
                     </div>
                     <div className="flex items-start gap-2">
                       <TrendingUp className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
                       <p className="text-gray-700">
-                        <strong>Resource Optimization:</strong> {Math.round(proposalData.utilizationRate)}% team utilization - {proposalData.utilizationRate > 85 ? 'excellent efficiency' : 'room for optimization'}.
+                        <strong>Resource Optimization:</strong>{" "}
+                        {Math.round(proposalData.utilizationRate)}% team utilization -{" "}
+                        {proposalData.utilizationRate > 85
+                          ? "excellent efficiency"
+                          : "room for optimization"}
+                        .
                       </p>
                     </div>
                     <div className="flex items-start gap-2">
                       <Award className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
                       <p className="text-gray-700">
-                        <strong>Complexity Score:</strong> {proposalData.complexityScore}/100 - {proposalData.complexityScore < 40 ? 'Low' : proposalData.complexityScore < 70 ? 'Medium' : 'High'} complexity project.
+                        <strong>Complexity Score:</strong> {proposalData.complexityScore}/100 -{" "}
+                        {proposalData.complexityScore < 40
+                          ? "Low"
+                          : proposalData.complexityScore < 70
+                            ? "Medium"
+                            : "High"}{" "}
+                        complexity project.
                       </p>
                     </div>
                   </div>
@@ -316,7 +344,7 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
             ),
           },
           {
-            key: 'costs',
+            key: "costs",
             label: (
               <span className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
@@ -333,7 +361,8 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
                       ${Math.round(proposalData.estimatedCost / 1000)}K
                     </div>
                     <div className="text-xs text-gray-600">
-                      Estimated based on {proposalData.resources} team members over {proposalData.durationMonths} months
+                      Estimated based on {proposalData.resources} team members over{" "}
+                      {proposalData.durationMonths} months
                     </div>
                   </div>
                 </div>
@@ -371,7 +400,9 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
 
                 {/* Payment Schedule */}
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Suggested Payment Schedule</h4>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                    Suggested Payment Schedule
+                  </h4>
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-gray-700">Project Kickoff (30%)</span>
@@ -397,7 +428,7 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
             ),
           },
           {
-            key: 'team',
+            key: "team",
             label: (
               <span className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
@@ -411,11 +442,15 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
                   <h4 className="text-sm font-semibold text-gray-900 mb-3">Project Team</h4>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="text-2xl font-bold text-purple-600">{proposalData.resources}</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {proposalData.resources}
+                      </div>
                       <div className="text-xs text-gray-600 mt-1">Total Team Members</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-blue-600">{proposalData.assignedResources}</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {proposalData.assignedResources}
+                      </div>
                       <div className="text-xs text-gray-600 mt-1">Actively Assigned</div>
                     </div>
                     <div>
@@ -439,7 +474,9 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
                         <div className="flex items-center gap-2">
                           <div className="text-2xl">{resource.icon}</div>
                           <div className="flex-1 min-w-0">
-                            <h5 className="text-sm font-semibold text-gray-900 truncate">{resource.name}</h5>
+                            <h5 className="text-sm font-semibold text-gray-900 truncate">
+                              {resource.name}
+                            </h5>
                             <p className="text-xs text-gray-600">{resource.designation}</p>
                             <Tag className="mt-1 text-xs">{resource.category}</Tag>
                           </div>
@@ -479,9 +516,7 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
       {/* Export Actions */}
       <Divider />
       <div className="flex items-center justify-between">
-        <div className="text-xs text-gray-500">
-          Generated with AI · Ready to share with clients
-        </div>
+        <div className="text-xs text-gray-500">Generated with AI · Ready to share with clients</div>
         <div className="flex items-center gap-2">
           <Button
             icon={<FileText className="w-4 h-4" />}
@@ -499,11 +534,7 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
           >
             PowerPoint
           </Button>
-          <Button
-            icon={<Globe className="w-4 h-4" />}
-            onClick={handleExportHTML}
-            size="large"
-          >
+          <Button icon={<Globe className="w-4 h-4" />} onClick={handleExportHTML} size="large">
             Interactive HTML
           </Button>
         </div>

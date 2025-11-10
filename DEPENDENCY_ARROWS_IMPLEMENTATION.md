@@ -21,6 +21,7 @@ Implement visual arrows showing task dependencies on the Gantt chart, supporting
 A pure SVG overlay component that renders dependency arrows between tasks based on their position on the Gantt chart.
 
 **Key Features:**
+
 - ✅ Supports 4 dependency types: FS, SS, FF, SF
 - ✅ Smooth Bezier curve paths for professional appearance
 - ✅ Color-coded arrows by dependency type
@@ -44,24 +45,28 @@ A pure SVG overlay component that renders dependency arrows between tasks based 
 ## 🎨 DEPENDENCY TYPES & COLORS
 
 ### Finish-to-Start (FS) - Most Common
+
 - **Color:** Blue (#3B82F6)
 - **Line Style:** Solid
 - **Logic:** Task B starts when Task A finishes
 - **Arrow:** From right edge of A → to left edge of B
 
 ### Start-to-Start (SS)
+
 - **Color:** Green (#10B981)
 - **Line Style:** Dashed (4,4 pattern)
 - **Logic:** Task B starts when Task A starts
 - **Arrow:** From left edge of A → to left edge of B
 
 ### Finish-to-Finish (FF)
+
 - **Color:** Amber (#F59E0B)
 - **Line Style:** Dashed (4,4 pattern)
 - **Logic:** Task B finishes when Task A finishes
 - **Arrow:** From right edge of A → to right edge of B
 
 ### Start-to-Finish (SF) - Rare
+
 - **Color:** Purple (#8B5CF6)
 - **Line Style:** Dashed (4,4 pattern)
 - **Logic:** Task B finishes when Task A starts
@@ -81,9 +86,9 @@ const generateArrowPath = (dep: Dependency): string => {
   let startX, startY, endX, endY;
 
   switch (type) {
-    case 'FS':
+    case "FS":
       startX = sourceX + sourceWidth; // Right edge
-      endX = targetX;                 // Left edge
+      endX = targetX; // Left edge
       break;
     // ... other cases
   }
@@ -97,6 +102,7 @@ const generateArrowPath = (dep: Dependency): string => {
 ### Position Calculation
 
 Tasks positions are calculated in `useMemo` based on:
+
 - Phase start/end dates relative to project timeline
 - Task start/end dates within phase
 - Vertical position based on task index (70px per task row)
@@ -104,9 +110,9 @@ Tasks positions are calculated in `useMemo` based on:
 - Pixel-based Y positioning
 
 ```typescript
-const taskLeft = (taskOffsetDays / durationDays) * 100;  // Percentage
+const taskLeft = (taskOffsetDays / durationDays) * 100; // Percentage
 const taskWidth = (taskDurationDays / durationDays) * 100;
-const taskY = currentY + phaseHeight + (taskIdx * 70);  // Pixels
+const taskY = currentY + phaseHeight + taskIdx * 70; // Pixels
 ```
 
 ### SVG Structure
@@ -141,6 +147,7 @@ const taskY = currentY + phaseHeight + (taskIdx * 70);  // Pixels
 The `dependencies` field already exists in both:
 
 **Prisma Schema** (`prisma/schema.prisma:725`)
+
 ```prisma
 model GanttTask {
   // ...
@@ -150,6 +157,7 @@ model GanttTask {
 ```
 
 **TypeScript Types** (`src/types/gantt-tool.ts:49`)
+
 ```typescript
 export interface GanttTask {
   // ...
@@ -166,13 +174,13 @@ export interface GanttTask {
 
 ```typescript
 interface DependencyArrowsProps {
-  phases: GanttPhase[];        // Project phases with tasks
-  startDate: Date;             // Project start date
-  endDate: Date;               // Project end date
-  durationDays: number;        // Total project duration
-  containerWidth: number;      // Canvas width in pixels
-  containerHeight: number;     // Canvas height in pixels
-  viewportTop?: number;        // Optional viewport scroll offset
+  phases: GanttPhase[]; // Project phases with tasks
+  startDate: Date; // Project start date
+  endDate: Date; // Project end date
+  durationDays: number; // Total project duration
+  containerWidth: number; // Canvas width in pixels
+  containerHeight: number; // Canvas height in pixels
+  viewportTop?: number; // Optional viewport scroll offset
 }
 ```
 
@@ -258,9 +266,7 @@ Hover over arrow → Shows tooltip with:
 // In GanttCanvas.tsx (already integrated)
 <div ref={canvasRef} className="gantt-canvas">
   {/* Main grid with phases and tasks */}
-  <div className="grid-container">
-    {/* ... phases and tasks ... */}
-  </div>
+  <div className="grid-container">{/* ... phases and tasks ... */}</div>
 
   {/* Dependency Arrows Overlay */}
   {canvasRef.current && (
@@ -285,18 +291,20 @@ Hover over arrow → Shows tooltip with:
 **Status:** Schema supports, UI doesn't expose
 
 **What's Missing:**
+
 - Dropdown to select dependency type (FS/SS/FF/SF) when creating dependency
 - Currently defaults to FS for all dependencies
 
 **Future Enhancement:**
+
 ```tsx
 <Select
   label="Dependency Type"
   options={[
-    { value: 'FS', label: 'Finish-to-Start (FS)' },
-    { value: 'SS', label: 'Start-to-Start (SS)' },
-    { value: 'FF', label: 'Finish-to-Finish (FF)' },
-    { value: 'SF', label: 'Start-to-Finish (SF)' },
+    { value: "FS", label: "Finish-to-Start (FS)" },
+    { value: "SS", label: "Start-to-Start (SS)" },
+    { value: "FF", label: "Finish-to-Finish (FF)" },
+    { value: "SF", label: "Start-to-Finish (SF)" },
   ]}
 />
 ```
@@ -306,11 +314,13 @@ Hover over arrow → Shows tooltip with:
 **Status:** Can only add dependencies via task edit form
 
 **What's Missing:**
+
 - Click source task → click target task to create arrow
 - Drag from task to task to create dependency
 - Right-click arrow to delete dependency
 
 **Future Enhancement:**
+
 - Click mode: "Add Dependency" toolbar button
 - Click source → highlights valid targets
 - Click target → creates dependency, opens type selector
@@ -320,13 +330,15 @@ Hover over arrow → Shows tooltip with:
 **Status:** Not supported
 
 **What's Missing:**
+
 - Ability to specify +X days or -X days offset
 - Example: "Task B starts 2 days after Task A finishes (FS+2)"
 
 **Future Enhancement:**
+
 ```typescript
 interface Dependency {
-  type: 'FS' | 'SS' | 'FF' | 'SF';
+  type: "FS" | "SS" | "FF" | "SF";
   lag: number; // Days (positive = delay, negative = lead)
 }
 ```
@@ -421,12 +433,14 @@ interface Dependency {
 ## 📚 REFERENCES
 
 ### Design Inspiration
+
 - **Microsoft Project** - Standard dependency visualization
 - **Monday.com** - Clean, colorful arrows
 - **Asana Timeline** - Subtle, professional styling
 - **Smartsheet** - Interactive dependency creation
 
 ### Technical Resources
+
 - SVG Bezier Curves: [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths#curve_commands)
 - Dependency Types: [Project Management Institute](https://www.pmi.org/)
 - Critical Path Method: [Wikipedia](https://en.wikipedia.org/wiki/Critical_path_method)

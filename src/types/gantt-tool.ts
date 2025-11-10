@@ -74,18 +74,18 @@ export interface GanttHoliday {
   name: string;
   date: string; // ISO 8601 format
   region: string;
-  type: 'public' | 'company' | 'custom';
+  type: "public" | "company" | "custom";
 }
 
 export interface GanttViewSettings {
-  zoomLevel: 'day' | 'week' | 'month' | 'quarter' | 'half-year' | 'year';
+  zoomLevel: "day" | "week" | "month" | "quarter" | "half-year" | "year";
   showWeekends: boolean;
   showHolidays: boolean;
   showMilestones: boolean;
   showTaskDependencies: boolean;
   showCriticalPath: boolean;
   showTitles?: boolean; // Phase/task title display mode (default: true = visible)
-  barDurationDisplay?: 'wd' | 'cd' | 'resource' | 'dates' | 'all' | 'clean'; // What to show on bars (default: 'all')
+  barDurationDisplay?: "wd" | "cd" | "resource" | "dates" | "all" | "clean"; // What to show on bars (default: 'all')
   timelineStart?: string; // Override project start date for viewport
   timelineEnd?: string; // Override calculated end date for viewport
 }
@@ -94,8 +94,8 @@ export interface GanttViewSettings {
 export interface DragState {
   isDragging: boolean;
   draggedItemId: string | null;
-  draggedItemType: 'phase' | 'task' | 'milestone' | null;
-  dragMode: 'move' | 'resize-start' | 'resize-end' | null;
+  draggedItemType: "phase" | "task" | "milestone" | null;
+  dragMode: "move" | "resize-start" | "resize-end" | null;
   startX: number;
   startY: number;
   ghostElement?: {
@@ -107,13 +107,13 @@ export interface DragState {
 
 export interface SelectionState {
   selectedItemId: string | null;
-  selectedItemType: 'phase' | 'task' | 'milestone' | null;
+  selectedItemType: "phase" | "task" | "milestone" | null;
 }
 
 export interface SidePanelState {
   isOpen: boolean;
-  mode: 'view' | 'add' | 'edit';
-  itemType: 'phase' | 'task' | 'milestone' | 'holiday' | null;
+  mode: "view" | "add" | "edit";
+  itemType: "phase" | "task" | "milestone" | "holiday" | null;
   itemId?: string;
 }
 
@@ -149,28 +149,28 @@ export interface HolidayFormData {
   name: string;
   date: string;
   region: string;
-  type: 'public' | 'company' | 'custom';
+  type: "public" | "company" | "custom";
 }
 
 // Export Types
-export type ExportFormat = 'png' | 'pdf' | 'excel' | 'json';
+export type ExportFormat = "png" | "pdf" | "excel" | "json";
 
 export interface ExportOptions {
   format: ExportFormat;
   includeMetadata: boolean;
   includeHolidays: boolean;
   includeMilestones: boolean;
-  paperSize?: 'A4' | 'A3' | 'Letter';
-  orientation?: 'portrait' | 'landscape';
+  paperSize?: "A4" | "A3" | "Letter";
+  orientation?: "portrait" | "landscape";
 }
 
 // Enhanced Export Configuration for Optimized Snapshots
-export type ExportSizePreset = 'presentation' | 'document' | 'print' | 'custom';
-export type ExportQuality = 'standard' | 'high' | 'print';
+export type ExportSizePreset = "presentation" | "document" | "print" | "custom";
+export type ExportQuality = "standard" | "high" | "print";
 
 export interface EnhancedExportConfig {
   // Format and quality
-  format: 'png' | 'pdf' | 'svg';
+  format: "png" | "pdf" | "svg";
   quality: ExportQuality; // standard=150dpi, high=225dpi, print=300dpi
 
   // Size presets for consistency
@@ -179,7 +179,7 @@ export interface EnhancedExportConfig {
   customHeight?: number; // in pixels (only for custom preset)
 
   // Phase filtering
-  exportScope: 'all' | 'selected-phases';
+  exportScope: "all" | "selected-phases";
   selectedPhaseIds?: string[]; // Required when exportScope is 'selected-phases'
 
   // Content optimization
@@ -207,42 +207,48 @@ export interface EnhancedExportConfig {
 }
 
 // Export Size Presets (in pixels at 72 DPI baseline)
-export const EXPORT_SIZE_PRESETS: Record<ExportSizePreset, { width: number; height: number; description: string }> = {
+export const EXPORT_SIZE_PRESETS: Record<
+  ExportSizePreset,
+  { width: number; height: number; description: string }
+> = {
   presentation: {
     width: 1920,
     height: 1080,
-    description: 'PowerPoint/Google Slides (16:9)',
+    description: "PowerPoint/Google Slides (16:9)",
   },
   document: {
     width: 2100,
     height: 1400,
-    description: 'Word/PDF Documents (3:2)',
+    description: "Word/PDF Documents (3:2)",
   },
   print: {
     width: 3300,
     height: 2550,
-    description: 'Print A4 Landscape (300 DPI)',
+    description: "Print A4 Landscape (300 DPI)",
   },
   custom: {
     width: 1920,
     height: 1080,
-    description: 'Custom dimensions',
+    description: "Custom dimensions",
   },
 };
 
 // Export Quality Settings (DPI scale multipliers)
-export const EXPORT_QUALITY_SETTINGS: Record<ExportQuality, { scale: number; description: string }> = {
-  standard: { scale: 2, description: '150 DPI - Good for screen viewing' },
-  high: { scale: 3, description: '225 DPI - High quality for presentations' },
-  print: { scale: 4, description: '300 DPI - Print quality' },
+export const EXPORT_QUALITY_SETTINGS: Record<
+  ExportQuality,
+  { scale: number; description: string }
+> = {
+  standard: { scale: 2, description: "150 DPI - Good for screen viewing" },
+  high: { scale: 3, description: "225 DPI - High quality for presentations" },
+  print: { scale: 4, description: "300 DPI - Print quality" },
 };
 
 // Default Export Configuration
 export const DEFAULT_EXPORT_CONFIG: EnhancedExportConfig = {
-  format: 'png',
-  quality: 'high',
-  sizePreset: 'presentation',
-  exportScope: 'all',
+  format: "png",
+  quality: "high",
+  sizePreset: "presentation",
+  exportScope: "all",
   contentOptions: {
     hideUIControls: true,
     hidePhaseNames: false,
@@ -258,26 +264,43 @@ export const DEFAULT_EXPORT_CONFIG: EnhancedExportConfig = {
     bottom: 40,
     left: 40,
   },
-  backgroundColor: '#ffffff',
+  backgroundColor: "#ffffff",
   transparentBackground: false,
 };
 
 // Color Presets
 export const PHASE_COLOR_PRESETS = [
-  '#3B82F6', // Blue
-  '#10B981', // Green
-  '#F59E0B', // Orange
+  "#3B82F6", // Blue
+  "#10B981", // Green
+  "#F59E0B", // Orange
 ] as const;
 
 export const MILESTONE_COLOR_PRESETS = [
-  '#10B981', // Green (Start/Success)
-  '#3B82F6', // Blue (Milestone)
-  '#F59E0B', // Orange (Warning)
+  "#10B981", // Green (Start/Success)
+  "#3B82F6", // Blue (Milestone)
+  "#F59E0B", // Orange (Warning)
 ] as const;
 
 // Resource Management Types
-export type ResourceCategory = 'leadership' | 'functional' | 'technical' | 'basis' | 'security' | 'pm' | 'change' | 'qa' | 'other';
-export type ResourceDesignation = 'principal' | 'director' | 'senior_manager' | 'manager' | 'senior_consultant' | 'consultant' | 'analyst' | 'subcontractor';
+export type ResourceCategory =
+  | "leadership"
+  | "functional"
+  | "technical"
+  | "basis"
+  | "security"
+  | "pm"
+  | "change"
+  | "qa"
+  | "other";
+export type ResourceDesignation =
+  | "principal"
+  | "director"
+  | "senior_manager"
+  | "manager"
+  | "senior_consultant"
+  | "consultant"
+  | "analyst"
+  | "subcontractor";
 
 export interface Resource {
   id: string;
@@ -295,7 +318,7 @@ export interface Resource {
   projectRole?: string; // Specific role on this project (optional override)
 
   // Assignment level control
-  assignmentLevel: 'phase' | 'task' | 'both'; // Where this resource can be assigned
+  assignmentLevel: "phase" | "task" | "both"; // Where this resource can be assigned
 
   // Cost tracking fields
   isBillable: boolean; // Whether this resource is billable to client
@@ -304,7 +327,7 @@ export interface Resource {
   utilizationTarget?: number; // Target utilization percentage (0-100)
 
   // Deprecated fields (kept for backward compatibility during migration)
-  rateType?: 'hourly' | 'daily' | 'fixed'; // DEPRECATED: Use chargeRatePerHour instead
+  rateType?: "hourly" | "daily" | "fixed"; // DEPRECATED: Use chargeRatePerHour instead
   hourlyRate?: number; // DEPRECATED: Use chargeRatePerHour instead
   dailyRate?: number; // DEPRECATED: Use chargeRatePerHour instead
 }
@@ -347,7 +370,7 @@ export interface ResourceFormData {
   projectRole?: string;
 
   // Assignment and billing configuration
-  assignmentLevel: 'phase' | 'task' | 'both';
+  assignmentLevel: "phase" | "task" | "both";
   isBillable: boolean;
   chargeRatePerHour: number;
   currency?: string;
@@ -378,34 +401,40 @@ export interface WorkingDaysCalculation {
  * This eliminates arbitrary colors (orange, pink, cyan) and ensures
  * colors have meaning rather than decoration.
  */
-export const RESOURCE_CATEGORIES: Record<ResourceCategory, { label: string; color: string; icon: string }> = {
-  leadership: { label: 'Leadership', color: '#7E22CE', icon: '🎯' },        // Purple - Strategic
-  pm: { label: 'Project Management', color: '#7E22CE', icon: '📊' },      // Purple - Strategic
-  change: { label: 'Change Management', color: '#7E22CE', icon: '🔄' },   // Purple - Strategic
-  functional: { label: 'Functional', color: '#2563EB', icon: '📘' },      // Blue - Technical
-  technical: { label: 'Technical', color: '#2563EB', icon: '🔧' },        // Blue - Technical
-  basis: { label: 'Basis/Infrastructure', color: '#2563EB', icon: '🏗️' }, // Blue - Technical
-  security: { label: 'Security & Authorization', color: '#2563EB', icon: '🔒' }, // Blue - Technical
-  qa: { label: 'Quality Assurance', color: '#2563EB', icon: '✅' },        // Blue - Technical
-  other: { label: 'Other/General', color: '#6B7280', icon: '👤' },        // Gray - Support
+export const RESOURCE_CATEGORIES: Record<
+  ResourceCategory,
+  { label: string; color: string; icon: string }
+> = {
+  leadership: { label: "Leadership", color: "#7E22CE", icon: "🎯" }, // Purple - Strategic
+  pm: { label: "Project Management", color: "#7E22CE", icon: "📊" }, // Purple - Strategic
+  change: { label: "Change Management", color: "#7E22CE", icon: "🔄" }, // Purple - Strategic
+  functional: { label: "Functional", color: "#2563EB", icon: "📘" }, // Blue - Technical
+  technical: { label: "Technical", color: "#2563EB", icon: "🔧" }, // Blue - Technical
+  basis: { label: "Basis/Infrastructure", color: "#2563EB", icon: "🏗️" }, // Blue - Technical
+  security: { label: "Security & Authorization", color: "#2563EB", icon: "🔒" }, // Blue - Technical
+  qa: { label: "Quality Assurance", color: "#2563EB", icon: "✅" }, // Blue - Technical
+  other: { label: "Other/General", color: "#6B7280", icon: "👤" }, // Gray - Support
 };
 
 export const RESOURCE_DESIGNATIONS: Record<ResourceDesignation, string> = {
-  principal: 'Principal',
-  director: 'Director',
-  senior_manager: 'Senior Manager',
-  manager: 'Manager',
-  senior_consultant: 'Senior Consultant',
-  consultant: 'Consultant',
-  analyst: 'Analyst',
-  subcontractor: 'SubContractor',
+  principal: "Principal",
+  director: "Director",
+  senior_manager: "Senior Manager",
+  manager: "Manager",
+  senior_consultant: "Senior Consultant",
+  consultant: "Consultant",
+  analyst: "Analyst",
+  subcontractor: "SubContractor",
 };
 
 // Assignment Level Configuration
 export const ASSIGNMENT_LEVELS = {
-  phase: { label: 'Phase Level Only', description: 'Can only be assigned to phases for oversight/coordination' },
-  task: { label: 'Task Level Only', description: 'Can only be assigned to tasks for execution' },
-  both: { label: 'Phase & Task Levels', description: 'Can be assigned to both phases and tasks' },
+  phase: {
+    label: "Phase Level Only",
+    description: "Can only be assigned to phases for oversight/coordination",
+  },
+  task: { label: "Task Level Only", description: "Can only be assigned to tasks for execution" },
+  both: { label: "Phase & Task Levels", description: "Can be assigned to both phases and tasks" },
 } as const;
 
 export type AssignmentLevel = keyof typeof ASSIGNMENT_LEVELS;
@@ -424,7 +453,7 @@ export interface ProjectBudget {
 export interface BudgetAlert {
   id: string;
   threshold: number; // Percentage of budget (0-100)
-  type: 'warning' | 'critical';
+  type: "warning" | "critical";
   triggered: boolean;
   triggeredAt?: string;
   message?: string;
@@ -468,8 +497,7 @@ export interface WhatIfScenario {
  */
 export function migrateResourceToNewSchema(resource: any): Resource {
   // Determine assignment level based on category (PM can assign to both, others only tasks)
-  const assignmentLevel: AssignmentLevel =
-    resource.category === 'pm' ? 'both' : 'task';
+  const assignmentLevel: AssignmentLevel = resource.category === "pm" ? "both" : "task";
 
   // Calculate chargeRatePerHour from legacy fields
   let chargeRatePerHour = 0;
@@ -495,14 +523,14 @@ export function migrateResourceToNewSchema(resource: any): Resource {
  * Helper function to check if a resource can be assigned to a phase
  */
 export function canAssignToPhase(resource: Resource): boolean {
-  return resource.assignmentLevel === 'phase' || resource.assignmentLevel === 'both';
+  return resource.assignmentLevel === "phase" || resource.assignmentLevel === "both";
 }
 
 /**
  * Helper function to check if a resource can be assigned to a task
  */
 export function canAssignToTask(resource: Resource): boolean {
-  return resource.assignmentLevel === 'task' || resource.assignmentLevel === 'both';
+  return resource.assignmentLevel === "task" || resource.assignmentLevel === "both";
 }
 
 /**
@@ -510,7 +538,7 @@ export function canAssignToTask(resource: Resource): boolean {
  */
 export function getFormattedRate(resource: Resource): string {
   if (!resource.isBillable) {
-    return 'Non-billable';
+    return "Non-billable";
   }
   return `${resource.chargeRatePerHour.toFixed(4)}x`;
 }

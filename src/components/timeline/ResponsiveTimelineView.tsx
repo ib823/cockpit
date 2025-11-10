@@ -123,7 +123,11 @@ export function ResponsiveTimelineView() {
                   <div className="text-xs text-gray-500">Margin</div>
                   <div
                     className={`text-xl font-bold ${
-                      margin >= 20 ? "text-green-600" : margin >= 10 ? "text-orange-600" : "text-red-600"
+                      margin >= 20
+                        ? "text-green-600"
+                        : margin >= 10
+                          ? "text-orange-600"
+                          : "text-red-600"
                     }`}
                   >
                     {margin.toFixed(1)}%
@@ -179,9 +183,7 @@ export function ResponsiveTimelineView() {
                 wrappers={resourcePlan.wrappers}
                 technicalEffort={resourcePlan.totals.technicalEffort}
                 averageRate={resourcePlan.totals.averageRate}
-                onUpdateWrapper={(wrapperId, updates) =>
-                  updateWrapperConfig(wrapperId, updates)
-                }
+                onUpdateWrapper={(wrapperId, updates) => updateWrapperConfig(wrapperId, updates)}
               />
             </ResponsiveStack>
           </motion.div>

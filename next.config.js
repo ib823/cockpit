@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ['http://127.0.0.1', 'http://localhost'],
+  allowedDevOrigins: ["http://127.0.0.1", "http://localhost"],
 
   // React 19 compatibility
   experimental: {
@@ -9,11 +9,11 @@ const nextConfig = {
 
   // SECURITY: Type checking runs separately in CI, ignore during builds to prevent warnings from blocking deployment
   typescript: {
-    ignoreBuildErrors: true,  // Type checking checked separately in CI pipeline
+    ignoreBuildErrors: true, // Type checking checked separately in CI pipeline
   },
   // SECURITY: Linting runs separately in CI, ignore during builds to prevent warnings from blocking deployment
   eslint: {
-    ignoreDuringBuilds: true,  // Linting checked separately in CI pipeline
+    ignoreDuringBuilds: true, // Linting checked separately in CI pipeline
   },
 
   // SECURITY: Add security headers
@@ -53,7 +53,7 @@ const nextConfig = {
               "img-src 'self' data: https: blob:",
               "font-src 'self'",
               "connect-src 'self'",
-              "worker-src 'self' blob:",  // Allow service workers
+              "worker-src 'self' blob:", // Allow service workers
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
@@ -76,7 +76,8 @@ const nextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), notifications=(self)",
+            value:
+              "camera=(), microphone=(), geolocation=(), payment=(), usb=(), notifications=(self)",
           },
           {
             key: "Strict-Transport-Security",
@@ -115,12 +116,9 @@ const nextConfig = {
 
       // Ignore node: protocol modules in browser bundles
       config.plugins.push(
-        new webpack.NormalModuleReplacementPlugin(
-          /^node:/,
-          (resource) => {
-            resource.request = resource.request.replace(/^node:/, '');
-          }
-        )
+        new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
+          resource.request = resource.request.replace(/^node:/, "");
+        })
       );
     }
 
@@ -135,16 +133,15 @@ const nextConfig = {
 
     return config;
   },
-
 };
 
 module.exports = nextConfig;
 
 // Suppress React 19 warnings
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   const originalError = console.error;
   console.error = (...args) => {
-    if (typeof args[0] === 'string' && args[0].includes('antd: compatible')) {
+    if (typeof args[0] === "string" && args[0].includes("antd: compatible")) {
       return;
     }
     originalError.apply(console, args);

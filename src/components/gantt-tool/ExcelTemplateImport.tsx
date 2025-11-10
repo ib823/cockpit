@@ -4,35 +4,39 @@
  * Allows users to paste Excel data and import into gantt tool
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { parseExcelTemplate, transformToGanttProject, ParsedExcelData } from '@/lib/gantt-tool/excel-template-parser';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { FileSpreadsheet, Copy, Download, AlertCircle, CheckCircle, Upload } from 'lucide-react';
-import { generateCopyPasteTemplate } from '@/lib/gantt-tool/copy-paste-template-generator';
+import { useState, useEffect } from "react";
+import {
+  parseExcelTemplate,
+  transformToGanttProject,
+  ParsedExcelData,
+} from "@/lib/gantt-tool/excel-template-parser";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { FileSpreadsheet, Copy, Download, AlertCircle, CheckCircle, Upload } from "lucide-react";
+import { generateCopyPasteTemplate } from "@/lib/gantt-tool/copy-paste-template-generator";
 import {
   detectImportConflicts,
   generatePhaseSuggestions,
   generateResourceSuggestions,
   type ConflictDetectionResult,
-} from '@/lib/gantt-tool/conflict-detector';
+} from "@/lib/gantt-tool/conflict-detector";
 import {
   ConflictResolutionModal,
   type ConflictResolution,
-} from '@/components/gantt-tool/ConflictResolutionModal';
-import type { GanttProject, GanttPhase, Resource } from '@/types/gantt-tool';
+} from "@/components/gantt-tool/ConflictResolutionModal";
+import type { GanttProject, GanttPhase, Resource } from "@/types/gantt-tool";
 
 // FIX ISSUE #16: Add file size limits
 const MAX_ROWS = 500; // Maximum total rows (tasks + resources)
 const MAX_PASTE_SIZE = 1024 * 1024; // 1MB maximum paste size
 
 export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
-  const [pastedData, setPastedData] = useState('');
+  const [pastedData, setPastedData] = useState("");
   const [parsed, setParsed] = useState<ParsedExcelData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
-  const [importMode, setImportMode] = useState<'new' | 'append'>('new');
+  const [importMode, setImportMode] = useState<"new" | "append">("new");
   const [conflictResult, setConflictResult] = useState<ConflictDetectionResult | null>(null);
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [ganttData, setGanttData] = useState<any>(null);
@@ -41,18 +45,18 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
   // Handle paste
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const tsvData = e.clipboardData.getData('text');
+    const tsvData = e.clipboardData.getData("text");
 
     // FIX ISSUE #16: Check paste size before processing
     if (tsvData.length > MAX_PASTE_SIZE) {
       setError(
         `⚠️ Data size too large (${(tsvData.length / 1024).toFixed(0)}KB)\n\n` +
-        `Maximum allowed: ${(MAX_PASTE_SIZE / 1024).toFixed(0)}KB\n\n` +
-        `Your data is too large to import. Please:\n` +
-        `• Reduce the number of rows\n` +
-        `• Split into multiple smaller imports\n` +
-        `• Remove unnecessary columns\n\n` +
-        `If you need to import large datasets, please contact support.`
+          `Maximum allowed: ${(MAX_PASTE_SIZE / 1024).toFixed(0)}KB\n\n` +
+          `Your data is too large to import. Please:\n` +
+          `• Reduce the number of rows\n` +
+          `• Split into multiple smaller imports\n` +
+          `• Remove unnecessary columns\n\n` +
+          `If you need to import large datasets, please contact support.`
       );
       setParsed(null);
       return;
@@ -69,12 +73,12 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       if (totalRows > MAX_ROWS) {
         setError(
           `⚠️ Too many rows to import (${totalRows} rows)\n\n` +
-          `Maximum allowed: ${MAX_ROWS} total rows (tasks + resources)\n\n` +
-          `Your import contains:\n` +
-          `• ${result.tasks.length} tasks\n` +
-          `• ${result.resources.length} resources\n` +
-          `• Total: ${totalRows} rows\n\n` +
-          `Please split your data into multiple smaller imports or contact support for bulk import assistance.`
+            `Maximum allowed: ${MAX_ROWS} total rows (tasks + resources)\n\n` +
+            `Your import contains:\n` +
+            `• ${result.tasks.length} tasks\n` +
+            `• ${result.resources.length} resources\n` +
+            `• Total: ${totalRows} rows\n\n` +
+            `Please split your data into multiple smaller imports or contact support for bulk import assistance.`
         );
         setParsed(null);
         return;
@@ -83,7 +87,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       setParsed(result);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to parse data');
+      setError(err instanceof Error ? err.message : "Failed to parse data");
       setParsed(null);
     }
   };
@@ -94,8 +98,8 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
     if (pastedData.length > MAX_PASTE_SIZE) {
       setError(
         `⚠️ Data size too large (${(pastedData.length / 1024).toFixed(0)}KB)\n\n` +
-        `Maximum allowed: ${(MAX_PASTE_SIZE / 1024).toFixed(0)}KB\n\n` +
-        `Please reduce the amount of data and try again.`
+          `Maximum allowed: ${(MAX_PASTE_SIZE / 1024).toFixed(0)}KB\n\n` +
+          `Please reduce the amount of data and try again.`
       );
       setParsed(null);
       return;
@@ -109,8 +113,8 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       if (totalRows > MAX_ROWS) {
         setError(
           `⚠️ Too many rows to import (${totalRows} rows)\n\n` +
-          `Maximum allowed: ${MAX_ROWS} total rows\n\n` +
-          `Please reduce the number of rows and try again.`
+            `Maximum allowed: ${MAX_ROWS} total rows\n\n` +
+            `Please reduce the number of rows and try again.`
         );
         setParsed(null);
         return;
@@ -119,7 +123,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       setParsed(result);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to parse data');
+      setError(err instanceof Error ? err.message : "Failed to parse data");
       setParsed(null);
     }
   };
@@ -132,14 +136,14 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
     try {
       if (!ganttData) {
-        throw new Error('No data to import');
+        throw new Error("No data to import");
       }
 
-      console.log('[ExcelImport] Applying conflict resolution:', resolution.strategy);
+      console.warn("[ExcelImport] Applying conflict resolution:", resolution.strategy);
       await performImport(ganttData, resolution);
     } catch (err) {
-      console.error('[ExcelImport] Import failed after conflict resolution:', err);
-      setError(err instanceof Error ? err.message : 'Failed to import project');
+      console.error("[ExcelImport] Import failed after conflict resolution:", err);
+      setError(err instanceof Error ? err.message : "Failed to import project");
     } finally {
       setIsImporting(false);
     }
@@ -160,17 +164,17 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
     setError(null);
 
     try {
-      console.log('[ExcelImport] Starting import...', {
+      console.warn("[ExcelImport] Starting import...", {
         mode: importMode,
         tasksCount: parsed.tasks.length,
-        resourcesCount: parsed.resources.length
+        resourcesCount: parsed.resources.length,
       });
 
       const projectName = `Imported Project - ${new Date().toLocaleDateString()}`;
       const transformedGanttData = transformToGanttProject(parsed, projectName);
       setGanttData(transformedGanttData);
 
-      console.log('[ExcelImport] Transformed data:', {
+      console.warn("[ExcelImport] Transformed data:", {
         name: transformedGanttData.name,
         phasesCount: transformedGanttData.phases.length,
         resourcesCount: transformedGanttData.resources.length,
@@ -178,7 +182,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       });
 
       // Check for conflicts in append mode
-      if (importMode === 'append' && currentProject) {
+      if (importMode === "append" && currentProject) {
         const conflicts = detectImportConflicts(
           currentProject,
           transformedGanttData.phases,
@@ -186,7 +190,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
         );
 
         if (conflicts.hasConflicts) {
-          console.log('[ExcelImport] Conflicts detected:', conflicts.summary);
+          console.warn("[ExcelImport] Conflicts detected:", conflicts.summary);
           setConflictResult(conflicts);
           setShowConflictModal(true);
           setIsImporting(false);
@@ -197,8 +201,8 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       // No conflicts or creating new project - proceed with import
       await performImport(transformedGanttData);
     } catch (err) {
-      console.error('[ExcelImport] Import failed:', err);
-      setError(err instanceof Error ? err.message : 'Failed to import project');
+      console.error("[ExcelImport] Import failed:", err);
+      setError(err instanceof Error ? err.message : "Failed to import project");
     } finally {
       setIsImporting(false);
     }
@@ -207,18 +211,18 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   // Actually perform the import (called after conflict resolution or directly if no conflicts)
   const performImport = async (dataToImport: any, resolution?: ConflictResolution) => {
     try {
-      if (importMode === 'append' && currentProject) {
+      if (importMode === "append" && currentProject) {
         // Append to existing project
-        console.log('[ExcelImport] Appending to current project:', currentProject.id);
+        console.warn("[ExcelImport] Appending to current project:", currentProject.id);
 
         let finalPhases = dataToImport.phases;
         let finalResources = dataToImport.resources;
 
         // Apply resolution strategy if provided
         if (resolution) {
-          if (resolution.strategy === 'refresh') {
+          if (resolution.strategy === "refresh") {
             // Total Refresh: Replace all data
-            console.log('[ExcelImport] Applying Total Refresh strategy');
+            console.warn("[ExcelImport] Applying Total Refresh strategy");
             finalPhases = dataToImport.phases;
             finalResources = dataToImport.resources;
 
@@ -229,8 +233,8 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
             };
 
             const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),
             });
 
@@ -239,24 +243,29 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
               throw new Error(`Failed to refresh project data (${response.status}): ${errorText}`);
             }
 
-            console.log('[ExcelImport] Total refresh complete');
+            console.warn("[ExcelImport] Total refresh complete");
             const store = useGanttToolStoreV2.getState();
             await store.fetchProject(currentProject.id);
             onClose();
             return;
-
-          } else if (resolution.strategy === 'merge') {
+          } else if (resolution.strategy === "merge") {
             // Smart Merge: Apply suggested renames
-            console.log('[ExcelImport] Applying Smart Merge strategy');
+            console.warn("[ExcelImport] Applying Smart Merge strategy");
 
             // Generate suggested names for conflicts
-            const phaseSuggestions = generatePhaseSuggestions(dataToImport.phases, currentProject.phases);
-            const resourceSuggestions = generateResourceSuggestions(dataToImport.resources, currentProject.resources);
+            const phaseSuggestions = generatePhaseSuggestions(
+              dataToImport.phases,
+              currentProject.phases
+            );
+            const resourceSuggestions = generateResourceSuggestions(
+              dataToImport.resources,
+              currentProject.resources
+            );
 
             // Apply custom names from user input or use suggestions
             finalPhases = dataToImport.phases.map((phase: GanttPhase) => {
               const conflictId = conflictResult?.conflicts.find(
-                c => c.type === 'phase' && (c.detail as any).phaseName === phase.name
+                (c) => c.type === "phase" && (c.detail as any).phaseName === phase.name
               )?.id;
 
               if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -271,7 +280,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
             finalResources = dataToImport.resources.map((resource: Resource) => {
               const conflictId = conflictResult?.conflicts.find(
-                c => c.type === 'resource' && (c.detail as any).resourceName === resource.name
+                (c) => c.type === "resource" && (c.detail as any).resourceName === resource.name
               )?.id;
 
               if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -292,21 +301,23 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           resources: [...currentProject.resources, ...finalResources],
         };
 
-        console.log('[ExcelImport] Payload size:', JSON.stringify(payload).length, 'bytes');
-        console.log('[ExcelImport] Total phases:', payload.phases.length);
+        console.warn("[ExcelImport] Payload size:", JSON.stringify(payload).length, "bytes");
+        console.warn("[ExcelImport] Total phases:", payload.phases.length);
 
         let response;
         try {
           response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
-            method: 'PATCH',
+            method: "PATCH",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify(payload),
           });
         } catch (fetchError) {
-          console.error('[ExcelImport] Fetch failed:', fetchError);
-          throw new Error(`Network error: ${fetchError instanceof Error ? fetchError.message : 'Failed to connect to server'}`);
+          console.error("[ExcelImport] Fetch failed:", fetchError);
+          throw new Error(
+            `Network error: ${fetchError instanceof Error ? fetchError.message : "Failed to connect to server"}`
+          );
         }
 
         if (!response.ok) {
@@ -314,31 +325,34 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           try {
             errorText = await response.text();
           } catch (e) {
-            errorText = 'Unable to read error response';
+            errorText = "Unable to read error response";
           }
-          console.error('[ExcelImport] Failed to append phases:', errorText);
-          console.error('[ExcelImport] Response status:', response.status);
-          console.error('[ExcelImport] Response headers:', Object.fromEntries(response.headers.entries()));
+          console.error("[ExcelImport] Failed to append phases:", errorText);
+          console.error("[ExcelImport] Response status:", response.status);
+          console.error(
+            "[ExcelImport] Response headers:",
+            Object.fromEntries(response.headers.entries())
+          );
           throw new Error(`Failed to append data (${response.status}): ${errorText}`);
         }
 
-        console.log('[ExcelImport] Phases appended successfully');
+        console.warn("[ExcelImport] Phases appended successfully");
 
         // Refresh the project from the API
         const store = useGanttToolStoreV2.getState();
         await store.fetchProject(currentProject.id);
 
-        console.log('[ExcelImport] Append complete!');
+        console.warn("[ExcelImport] Append complete!");
         onClose();
       } else {
         // Create new project
-        console.log('[ExcelImport] Creating new project...');
-        const response = await fetch('/api/gantt-tool/projects', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        console.warn("[ExcelImport] Creating new project...");
+        const response = await fetch("/api/gantt-tool/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: dataToImport.name,
-            description: 'Imported from Excel template',
+            description: "Imported from Excel template",
             startDate: dataToImport.startDate,
             viewSettings: dataToImport.viewSettings,
           }),
@@ -346,18 +360,18 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('[ExcelImport] Failed to create project:', errorText);
+          console.error("[ExcelImport] Failed to create project:", errorText);
           throw new Error(`Failed to create project: ${errorText}`);
         }
 
         const { project } = await response.json();
-        console.log('[ExcelImport] Project created:', project.id);
+        console.warn("[ExcelImport] Project created:", project.id);
 
         // Update project with phases, tasks, and resources
-        console.log('[ExcelImport] Updating with phases and resources...');
+        console.warn("[ExcelImport] Updating with phases and resources...");
         const updateResponse = await fetch(`/api/gantt-tool/projects/${project.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             phases: dataToImport.phases,
             resources: dataToImport.resources,
@@ -366,24 +380,24 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
         if (!updateResponse.ok) {
           const errorText = await updateResponse.text();
-          console.error('[ExcelImport] Failed to update project:', errorText);
+          console.error("[ExcelImport] Failed to update project:", errorText);
           throw new Error(`Failed to import project data: ${errorText}`);
         }
 
-        console.log('[ExcelImport] Project updated successfully');
+        console.warn("[ExcelImport] Project updated successfully");
 
         // Refresh projects list and load the new project
-        console.log('[ExcelImport] Loading project...');
+        console.warn("[ExcelImport] Loading project...");
         const store = useGanttToolStoreV2.getState();
         await store.fetchProjects();
         await store.fetchProject(project.id);
 
-        console.log('[ExcelImport] Import complete!');
+        console.warn("[ExcelImport] Import complete!");
         onClose();
       }
     } catch (err) {
-      console.error('[ExcelImport] Import failed:', err);
-      setError(err instanceof Error ? err.message : 'Failed to import project');
+      console.error("[ExcelImport] Import failed:", err);
+      setError(err instanceof Error ? err.message : "Failed to import project");
     } finally {
       setIsImporting(false);
     }
@@ -408,14 +422,28 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       <div className="p-6 bg-blue-50 border-b border-blue-200">
         <h3 className="font-semibold text-blue-900 mb-2">📋 How to Import:</h3>
         <ol className="text-sm text-blue-800 space-y-1 ml-4 list-decimal">
-          <li><strong>Download the template</strong> using the button below</li>
-          <li><strong>Open the template</strong> in Excel and fill in your tasks and resources</li>
-          <li><strong>Select ALL data</strong> (header + tasks + empty row + resources) and copy (Ctrl+C)</li>
-          <li><strong>Paste below</strong> (Ctrl+V) into the text area</li>
-          <li><strong>Review the preview</strong> and choose to create new or add to current project</li>
+          <li>
+            <strong>Download the template</strong> using the button below
+          </li>
+          <li>
+            <strong>Open the template</strong> in Excel and fill in your tasks and resources
+          </li>
+          <li>
+            <strong>Select ALL data</strong> (header + tasks + empty row + resources) and copy
+            (Ctrl+C)
+          </li>
+          <li>
+            <strong>Paste below</strong> (Ctrl+V) into the text area
+          </li>
+          <li>
+            <strong>Review the preview</strong> and choose to create new or add to current project
+          </li>
         </ol>
         <div className="mt-2 p-2 bg-blue-100 rounded text-xs text-blue-900">
-          <strong>💡 Tip:</strong> The template shows the exact format needed. Keep the weekly date headers (e.g., 2-Feb-26, 9-Feb-26), enter phase names and task names in separate columns (tasks with the same phase name will be grouped together), and use standard designations (Senior Manager, Manager, Senior Consultant, Consultant, Analyst) for resources.
+          <strong>💡 Tip:</strong> The template shows the exact format needed. Keep the weekly date
+          headers (e.g., 2-Feb-26, 9-Feb-26), enter phase names and task names in separate columns
+          (tasks with the same phase name will be grouped together), and use standard designations
+          (Senior Manager, Manager, Senior Consultant, Consultant, Analyst) for resources.
         </div>
 
         <button
@@ -423,8 +451,8 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
             try {
               await generateCopyPasteTemplate();
             } catch (err) {
-              console.error('Failed to generate template:', err);
-              setError('Failed to generate template. Please try again.');
+              console.error("Failed to generate template:", err);
+              setError("Failed to generate template. Please try again.");
             }
           }}
           className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-900"
@@ -448,8 +476,10 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
         />
         {/* FIX ISSUE #16: Show limits to users */}
         <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-          <span>{pastedData.split('\n').filter(l => l.trim()).length} lines pasted</span>
-          <span>Limits: {MAX_ROWS} rows max • {(MAX_PASTE_SIZE / 1024).toFixed(0)}KB max size</span>
+          <span>{pastedData.split("\n").filter((l) => l.trim()).length} lines pasted</span>
+          <span>
+            Limits: {MAX_ROWS} rows max • {(MAX_PASTE_SIZE / 1024).toFixed(0)}KB max size
+          </span>
         </div>
 
         {!parsed && pastedData && (
@@ -489,11 +519,15 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
                   </div>
                   <div>
                     <span className="text-green-700">Resources:</span>
-                    <span className="ml-2 font-semibold text-green-900">{parsed.resources.length}</span>
+                    <span className="ml-2 font-semibold text-green-900">
+                      {parsed.resources.length}
+                    </span>
                   </div>
                   <div>
                     <span className="text-green-700">Weeks:</span>
-                    <span className="ml-2 font-semibold text-green-900">{parsed.weeklyColumns.length}</span>
+                    <span className="ml-2 font-semibold text-green-900">
+                      {parsed.weeklyColumns.length}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -508,8 +542,8 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
                     type="radio"
                     name="importMode"
                     value="new"
-                    checked={importMode === 'new'}
-                    onChange={(e) => setImportMode('new')}
+                    checked={importMode === "new"}
+                    onChange={(e) => setImportMode("new")}
                     className="w-4 h-4 text-blue-600"
                   />
                   <div>
@@ -517,13 +551,15 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
                     <p className="text-xs text-blue-700">Import as a brand new project</p>
                   </div>
                 </label>
-                <label className={`flex items-center gap-3 ${currentProject ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
+                <label
+                  className={`flex items-center gap-3 ${currentProject ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+                >
                   <input
                     type="radio"
                     name="importMode"
                     value="append"
-                    checked={importMode === 'append'}
-                    onChange={(e) => setImportMode('append')}
+                    checked={importMode === "append"}
+                    onChange={(e) => setImportMode("append")}
                     disabled={!currentProject}
                     className="w-4 h-4 text-blue-600"
                   />
@@ -532,7 +568,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
                     <p className="text-xs text-blue-700">
                       {currentProject
                         ? `Append to "${currentProject.name}"`
-                        : 'No project loaded - create or load a project first'}
+                        : "No project loaded - create or load a project first"}
                     </p>
                   </div>
                 </label>
@@ -548,13 +584,9 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
                 <ul className="space-y-2 text-sm">
                   {parsed.tasks.slice(0, 10).map((task, i) => (
                     <li key={i} className="flex items-center gap-2">
-                      <span className="font-medium text-blue-600">
-                        📁 {task.phaseName}
-                      </span>
+                      <span className="font-medium text-blue-600">📁 {task.phaseName}</span>
                       <span className="text-gray-400">→</span>
-                      <span className="font-medium text-gray-700">
-                        📄 {task.name}
-                      </span>
+                      <span className="font-medium text-gray-700">📄 {task.name}</span>
                       <span className="text-gray-500 text-xs">
                         ({task.startDate} → {task.endDate})
                       </span>
@@ -607,13 +639,17 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
         </button>
         <button
           onClick={handleImport}
-          disabled={!parsed || isImporting || (importMode === 'append' && !currentProject)}
+          disabled={!parsed || isImporting || (importMode === "append" && !currentProject)}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <Upload className="w-4 h-4" />
           {isImporting
-            ? importMode === 'append' ? 'Adding...' : 'Importing...'
-            : importMode === 'append' ? 'Add to Project' : 'Import Project'}
+            ? importMode === "append"
+              ? "Adding..."
+              : "Importing..."
+            : importMode === "append"
+              ? "Add to Project"
+              : "Import Project"}
         </button>
       </div>
 
@@ -623,7 +659,10 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           conflictResult={conflictResult}
           existingProject={currentProject}
           importedPhaseCount={ganttData.phases.length}
-          importedTaskCount={ganttData.phases.reduce((sum: number, p: any) => sum + p.tasks.length, 0)}
+          importedTaskCount={ganttData.phases.reduce(
+            (sum: number, p: any) => sum + p.tasks.length,
+            0
+          )}
           importedResourceCount={ganttData.resources.length}
           onResolve={handleConflictResolution}
           onCancel={handleConflictCancel}

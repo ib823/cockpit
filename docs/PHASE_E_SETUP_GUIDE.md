@@ -29,6 +29,7 @@ npm run pwa:setup
 ```
 
 This creates:
+
 - App icons (72px - 512px)
 - Shortcut icons
 - Screenshots for app stores
@@ -42,6 +43,7 @@ npm run dev
 ```
 
 Open Chrome DevTools → Application tab:
+
 - ✅ Manifest loads correctly
 - ✅ Service worker registers
 - ✅ Icons display
@@ -76,12 +78,14 @@ import { HelpTooltip, FormFieldTooltip } from '@/components/shared/HelpTooltip';
 ```
 
 **Available Components:**
+
 - `HelpTooltip` - General contextual help
 - `FormFieldTooltip` - Form fields with examples
 - `FeatureTooltip` - Feature descriptions
 - `KeyboardShortcutTooltip` - Keyboard shortcuts
 
 **Integrated Pages:**
+
 - ✅ Dashboard - Statistics and quick actions
 - ✅ Estimator - Profile selector, team size, advanced options
 - 🔲 Add to your pages as needed
@@ -93,9 +97,11 @@ import { HelpTooltip, FormFieldTooltip } from '@/components/shared/HelpTooltip';
 **Status:** ✅ Ready to use (no configuration needed)
 
 **User Settings Location:**
+
 - Account page: `/account` → Theme & Appearance section
 
 **Features:**
+
 - **6 Accent Colors:** Blue, Purple, Green, Orange, Red, Teal
 - **3 Density Modes:** Compact, Comfortable, Spacious
 - **3 Theme Modes:** Light, Dark, System
@@ -103,18 +109,16 @@ import { HelpTooltip, FormFieldTooltip } from '@/components/shared/HelpTooltip';
 **Developer Integration:**
 
 ```tsx
-import { ThemeProvider } from '@/components/shared/ThemeProvider';
+import { ThemeProvider } from "@/components/shared/ThemeProvider";
 
 // Wrap your app
-<ThemeProvider>
-  {children}
-</ThemeProvider>
+<ThemeProvider>{children}</ThemeProvider>;
 ```
 
 **Accessing Preferences:**
 
 ```tsx
-import { useAccentColor, useDensityMode } from '@/stores/preferences-store';
+import { useAccentColor, useDensityMode } from "@/stores/preferences-store";
 
 function MyComponent() {
   const accentColor = useAccentColor();
@@ -133,12 +137,14 @@ function MyComponent() {
 #### Step 1: Get API Credentials
 
 **Hotjar:**
+
 1. Sign up at https://www.hotjar.com/
 2. Create a new site
 3. Copy your Site ID
 4. Set version to `6`
 
 **Mixpanel:**
+
 1. Sign up at https://mixpanel.com/
 2. Create a new project
 3. Go to Settings → Project Settings
@@ -160,15 +166,13 @@ NEXT_PUBLIC_ANALYTICS_ENABLED=true
 Add to your root layout or `_app.tsx`:
 
 ```tsx
-import { AnalyticsProvider } from '@/components/shared/AnalyticsProvider';
+import { AnalyticsProvider } from "@/components/shared/AnalyticsProvider";
 
 export default function RootLayout({ children }) {
   return (
     <html>
       <body>
-        <AnalyticsProvider>
-          {children}
-        </AnalyticsProvider>
+        <AnalyticsProvider>{children}</AnalyticsProvider>
       </body>
     </html>
   );
@@ -178,18 +182,18 @@ export default function RootLayout({ children }) {
 #### Step 4: Track Events
 
 ```tsx
-import { useAnalytics } from '@/lib/analytics/use-analytics';
+import { useAnalytics } from "@/lib/analytics/use-analytics";
 
 function MyComponent() {
   const { trackEvent, trackConversion } = useAnalytics();
 
   const handleSubmit = () => {
-    trackEvent('estimate_created', {
-      profile: 'greenfield',
+    trackEvent("estimate_created", {
+      profile: "greenfield",
       team_size: 5,
     });
 
-    trackConversion('estimate_completed', 1);
+    trackConversion("estimate_completed", 1);
   };
 
   return <button onClick={handleSubmit}>Create Estimate</button>;
@@ -199,9 +203,11 @@ function MyComponent() {
 #### Step 5: Privacy Controls
 
 Users can manage analytics in:
+
 - `/account` → Analytics & Privacy section
 
 Features:
+
 - Opt-in/opt-out controls
 - Do Not Track support
 - Granular tracking preferences
@@ -227,6 +233,7 @@ npm run pwa:screenshots
 #### Step 2: Verify Manifest
 
 Open `/manifest.json` in browser to verify:
+
 - ✅ App name and description
 - ✅ Icons paths correct
 - ✅ Theme colors
@@ -244,6 +251,7 @@ Open `/manifest.json` in browser to verify:
 See [OFFLINE_TESTING_GUIDE.md](./OFFLINE_TESTING_GUIDE.md) for comprehensive testing instructions.
 
 **Quick Test:**
+
 1. Visit `/dashboard` while online
 2. Open DevTools → Network
 3. Check "Offline" checkbox
@@ -253,7 +261,7 @@ See [OFFLINE_TESTING_GUIDE.md](./OFFLINE_TESTING_GUIDE.md) for comprehensive tes
 #### Step 5: Add Offline Indicator
 
 ```tsx
-import { OfflineIndicator } from '@/components/shared/OfflineIndicator';
+import { OfflineIndicator } from "@/components/shared/OfflineIndicator";
 
 export default function Layout({ children }) {
   return (
@@ -270,7 +278,7 @@ export default function Layout({ children }) {
 The sync service starts automatically. To manually trigger:
 
 ```tsx
-import { useSyncStatus } from '@/lib/offline/use-offline';
+import { useSyncStatus } from "@/lib/offline/use-offline";
 
 function SyncButton() {
   const { isSyncing, pendingCount, triggerSync } = useSyncStatus();
@@ -351,16 +359,19 @@ npm run lint
 ## Browser Support
 
 ### Full Support
+
 - ✅ Chrome 90+
 - ✅ Edge 90+
 - ✅ Firefox 88+
 - ✅ Safari 14+
 
 ### Partial Support
+
 - ⚠️ Safari iOS 14+ (limited service worker support)
 - ⚠️ Samsung Internet 14+
 
 ### Not Supported
+
 - ❌ Internet Explorer (all versions)
 - ❌ Opera Mini
 
@@ -373,6 +384,7 @@ npm run lint
 **Problem:** Events not appearing in Hotjar/Mixpanel
 
 **Solutions:**
+
 1. Check browser console for errors
 2. Verify environment variables are set
 3. Check `NEXT_PUBLIC_ANALYTICS_ENABLED=true`
@@ -385,6 +397,7 @@ npm run lint
 **Problem:** Service worker fails to register
 
 **Solutions:**
+
 1. Verify HTTPS or localhost
 2. Check service-worker.js syntax
 3. Clear browser cache
@@ -396,6 +409,7 @@ npm run lint
 **Problem:** App icons don't show in manifest
 
 **Solutions:**
+
 1. Run `npm run pwa:icons` to regenerate
 2. Verify files exist in `/public/icons/`
 3. Check manifest.json icon paths
@@ -407,6 +421,7 @@ npm run lint
 **Problem:** Theme changes don't take effect
 
 **Solutions:**
+
 1. Hard refresh browser
 2. Clear localStorage
 3. Check browser console for errors
@@ -417,13 +432,13 @@ npm run lint
 
 ## Performance Impact
 
-| Feature | Bundle Size | Runtime Impact | Notes |
-|---------|-------------|----------------|-------|
-| Tooltips | ~5KB | Negligible | Lazy loaded |
-| Theme | ~10KB | Instant | CSS variables |
-| Analytics | ~20KB | Async | Non-blocking |
-| Service Worker | ~15KB | Background | One-time install |
-| IndexedDB | ~8KB | Negligible | Async operations |
+| Feature        | Bundle Size | Runtime Impact | Notes            |
+| -------------- | ----------- | -------------- | ---------------- |
+| Tooltips       | ~5KB        | Negligible     | Lazy loaded      |
+| Theme          | ~10KB       | Instant        | CSS variables    |
+| Analytics      | ~20KB       | Async          | Non-blocking     |
+| Service Worker | ~15KB       | Background     | One-time install |
+| IndexedDB      | ~8KB        | Negligible     | Async operations |
 
 **Total Phase E Impact:** ~58KB (~2% of typical Next.js app)
 
@@ -432,6 +447,7 @@ npm run lint
 ## Security Considerations
 
 ### Analytics
+
 - ✅ Respects Do Not Track
 - ✅ User opt-in required
 - ✅ Data anonymized
@@ -439,6 +455,7 @@ npm run lint
 - ✅ GDPR compliant (with proper config)
 
 ### Offline Storage
+
 - ✅ Same-origin policy enforced
 - ✅ No sensitive data cached
 - ✅ Encrypted in transit (HTTPS)
@@ -446,6 +463,7 @@ npm run lint
 - ✅ Automatic data expiry
 
 ### Service Worker
+
 - ✅ Scoped to origin
 - ✅ HTTPS required (production)
 - ✅ No eval() or inline scripts
@@ -456,17 +474,20 @@ npm run lint
 ## Support & Resources
 
 ### Documentation
+
 - [Phase E Implementation Summary](./PHASE_E_IMPLEMENTATION_SUMMARY.md)
 - [Offline Testing Guide](./OFFLINE_TESTING_GUIDE.md)
 - [Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
 - [Web App Manifest](https://web.dev/add-manifest/)
 
 ### Tools
+
 - [Lighthouse](https://developers.google.com/web/tools/lighthouse) - PWA audit
 - [PWA Builder](https://www.pwabuilder.com/) - PWA testing
 - [Workbox](https://developers.google.com/web/tools/workbox) - Service worker library
 
 ### Debugging
+
 - Chrome DevTools → Application tab
 - Firefox DevTools → Application → Service Workers
 - Safari → Develop → Service Workers

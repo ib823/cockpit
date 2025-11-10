@@ -145,22 +145,22 @@ const [focusedIndex, setFocusedIndex] = useState(0);
 
 useEffect(() => {
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
-      setFocusedIndex(i => Math.min(i + 1, items.length - 1));
-    } else if (e.key === 'ArrowUp') {
+      setFocusedIndex((i) => Math.min(i + 1, items.length - 1));
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setFocusedIndex(i => Math.max(i - 1, 0));
-    } else if (e.key === 'Enter') {
+      setFocusedIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
       e.preventDefault();
       toggleItem(items[focusedIndex]);
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       onClose();
     }
   };
 
-  window.addEventListener('keydown', handleKeyDown);
-  return () => window.removeEventListener('keydown', handleKeyDown);
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
 }, [focusedIndex, items]);
 ```
 

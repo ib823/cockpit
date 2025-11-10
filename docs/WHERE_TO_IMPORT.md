@@ -37,6 +37,7 @@ After creating or loading a project, look at the **top toolbar**:
 ```
 
 **Steps:**
+
 1. Click the **dropdown arrow (▼)** next to your project name
 2. In the dropdown menu, you'll see:
    - List of your projects
@@ -105,11 +106,13 @@ That's it! You're ready to import.
 3. **Need to build:** Run `npm run dev` to start development server
 
 **Route to use:**
+
 ```
 http://localhost:3000/gantt-tool
 ```
 
 NOT:
+
 - `/project/...` (different tool)
 - `/estimator` (different tool)
 - `/timeline` (different tool)

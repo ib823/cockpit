@@ -70,11 +70,13 @@ npx playwright test tests/e2e/login-flows.spec.ts --debug
 ### ✅ Passkey Login (`login-passkey.test.ts`)
 
 **Success Scenarios:**
+
 - ✓ User with valid passkey logs in
 - ✓ Authentication challenge generated
 - ✓ Session created on successful verification
 
 **Failure Scenarios:**
+
 - ✗ User email not found
 - ✗ User has no passkey registered
 - ✗ User has no approval code
@@ -84,17 +86,20 @@ npx playwright test tests/e2e/login-flows.spec.ts --debug
 - ✗ Missing required fields
 
 **Tested Endpoints:**
+
 - `POST /api/auth/begin-login`
 - `POST /api/auth/finish-login`
 
 ### ✅ Admin Login (`login-admin.test.ts`)
 
 **Success Scenarios:**
+
 - ✓ Admin with valid code logs in
 - ✓ Audit event created
 - ✓ Code marked as used
 
 **Failure Scenarios:**
+
 - ✗ Invalid code provided
 - ✗ Expired code
 - ✗ Already used code
@@ -104,17 +109,20 @@ npx playwright test tests/e2e/login-flows.spec.ts --debug
 - ✗ Missing required fields
 
 **Tested Endpoints:**
+
 - `POST /api/auth/admin-login`
 
 ### ✅ Magic Link Login (`login-magic.test.ts`)
 
 **Success Scenarios:**
+
 - ✓ User with passkey gets auth challenge
 - ✓ User without passkey gets registration challenge
 - ✓ Token marked as used
 - ✓ Device info stored
 
 **Failure Scenarios:**
+
 - ✗ Invalid token
 - ✗ Expired token (2 min expiry)
 - ✗ Already used token
@@ -123,11 +131,13 @@ npx playwright test tests/e2e/login-flows.spec.ts --debug
 - ✗ Missing required fields
 
 **Tested Endpoints:**
+
 - `POST /api/auth/magic-login`
 
 ### ✅ Rate Limiting (`rate-limiting.test.ts`)
 
 **Tests:**
+
 - ✓ Login endpoints: 20 attempts per 5 minutes
 - ✓ API endpoints: 60 requests per minute
 - ✓ GET requests to /login not rate limited
@@ -141,6 +151,7 @@ npx playwright test tests/e2e/login-flows.spec.ts --debug
 The interactive CLI test script (`test-login-manual.ts`) provides an easy way to test scenarios manually.
 
 ### Features:
+
 - Interactive menu system
 - Real-time feedback with colors
 - Automatic test user creation/cleanup
@@ -154,6 +165,7 @@ npm run test:login:manual
 ```
 
 **Menu:**
+
 ```
 1. Regular User Login (Passkey)
 2. User Not Found
@@ -178,6 +190,7 @@ q. Quit
 The load test script (`load-test-login.ts`) stress tests rate limiting and measures performance.
 
 ### Features:
+
 - Concurrent user simulation
 - Real-time progress display
 - Detailed statistics
@@ -227,6 +240,7 @@ Response Time Percentiles:
 Browser automation tests for full user flows.
 
 ### Features:
+
 - Full browser simulation
 - UI interaction testing
 - Accessibility checks
@@ -252,22 +266,22 @@ npx playwright show-report
 
 ## 🔍 Test Scenarios Summary
 
-| Scenario | Passkey | Admin | Magic Link | Rate Limit | E2E |
-|----------|:-------:|:-----:|:----------:|:----------:|:---:|
-| Success - Valid credentials | ✓ | ✓ | ✓ | - | ✓ |
-| Failure - User not found | ✓ | ✓ | ✓ | - | ✓ |
-| Failure - No passkey | ✓ | - | ✓ | - | - |
-| Failure - No approval | ✓ | - | - | - | - |
-| Failure - Expired access | ✓ | ✓ | ✓ | - | - |
-| Failure - Expired challenge | ✓ | - | - | - | - |
-| Failure - Invalid credentials | ✓ | ✓ | ✓ | - | ✓ |
-| Failure - Used token | - | ✓ | ✓ | - | - |
-| Rate limit - Login POST | - | - | - | ✓ | ✓ |
-| Rate limit - API GET | - | - | - | ✓ | - |
-| Rate limit - Recovery | - | - | - | ✓ | - |
-| Security - Headers | - | - | - | ✓ | - |
-| UI - Accessibility | - | - | - | - | ✓ |
-| UI - Responsive | - | - | - | - | ✓ |
+| Scenario                      | Passkey | Admin | Magic Link | Rate Limit | E2E |
+| ----------------------------- | :-----: | :---: | :--------: | :--------: | :-: |
+| Success - Valid credentials   |    ✓    |   ✓   |     ✓      |     -      |  ✓  |
+| Failure - User not found      |    ✓    |   ✓   |     ✓      |     -      |  ✓  |
+| Failure - No passkey          |    ✓    |   -   |     ✓      |     -      |  -  |
+| Failure - No approval         |    ✓    |   -   |     -      |     -      |  -  |
+| Failure - Expired access      |    ✓    |   ✓   |     ✓      |     -      |  -  |
+| Failure - Expired challenge   |    ✓    |   -   |     -      |     -      |  -  |
+| Failure - Invalid credentials |    ✓    |   ✓   |     ✓      |     -      |  ✓  |
+| Failure - Used token          |    -    |   ✓   |     ✓      |     -      |  -  |
+| Rate limit - Login POST       |    -    |   -   |     -      |     ✓      |  ✓  |
+| Rate limit - API GET          |    -    |   -   |     -      |     ✓      |  -  |
+| Rate limit - Recovery         |    -    |   -   |     -      |     ✓      |  -  |
+| Security - Headers            |    -    |   -   |     -      |     ✓      |  -  |
+| UI - Accessibility            |    -    |   -   |     -      |     -      |  ✓  |
+| UI - Responsive               |    -    |   -   |     -      |     -      |  ✓  |
 
 ## 🛠️ Configuration
 
@@ -295,10 +309,10 @@ BASE_URL="http://localhost:3000"  # Default
 ### 1. Unit/Integration Tests
 
 ```typescript
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { setupTestDatabase, teardownTestDatabase } from './helpers/test-setup';
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { setupTestDatabase, teardownTestDatabase } from "./helpers/test-setup";
 
-describe('My New Test', () => {
+describe("My New Test", () => {
   beforeAll(async () => {
     await setupTestDatabase();
   });
@@ -307,7 +321,7 @@ describe('My New Test', () => {
     await teardownTestDatabase();
   });
 
-  it('should do something', async () => {
+  it("should do something", async () => {
     // Your test code
     expect(true).toBe(true);
   });
@@ -320,18 +334,18 @@ Add to `test-login-manual.ts`:
 
 ```typescript
 async function testMyScenario() {
-  logInfo('Testing my scenario...');
+  logInfo("Testing my scenario...");
   // Your test logic
-  logSuccess('Test passed!');
+  logSuccess("Test passed!");
 }
 
 // Add to scenarios array
 const scenarios: TestScenario[] = [
   // ... existing scenarios
   {
-    id: '6',
-    name: 'My New Scenario',
-    description: 'Description of what it tests',
+    id: "6",
+    name: "My New Scenario",
+    description: "Description of what it tests",
     run: testMyScenario,
   },
 ];
@@ -342,10 +356,10 @@ const scenarios: TestScenario[] = [
 Add to `login-flows.spec.ts`:
 
 ```typescript
-test.describe('My New Flow', () => {
-  test('should do something', async ({ page }) => {
-    await page.goto('http://localhost:3000/my-page');
-    await expect(page.locator('...')).toBeVisible();
+test.describe("My New Flow", () => {
+  test("should do something", async ({ page }) => {
+    await page.goto("http://localhost:3000/my-page");
+    await expect(page.locator("...")).toBeVisible();
   });
 });
 ```
@@ -428,7 +442,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install dependencies
         run: npm ci
@@ -462,19 +476,23 @@ jobs:
 ## ❓ Troubleshooting
 
 ### "Database connection failed"
+
 - Ensure PostgreSQL is running
 - Check `DATABASE_URL` or `TEST_DATABASE_URL`
 - Run migrations: `npx prisma migrate dev`
 
 ### "Server not running" (manual/load tests)
+
 - Start dev server: `npm run dev`
 - Check server is on port 3000
 
 ### "Playwright not installed"
+
 - Run: `npx playwright install`
 - Or: `npx playwright install --with-deps`
 
 ### "Rate limit tests failing"
+
 - Wait for rate limit window to reset
 - Restart server to clear in-memory limits
 - Check middleware configuration
@@ -482,6 +500,7 @@ jobs:
 ## 📞 Support
 
 For issues or questions:
+
 1. Check this README
 2. Review test output/errors
 3. Check middleware configuration

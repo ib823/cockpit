@@ -1,8 +1,8 @@
-'use client';
-import { Card, Button, Space } from 'antd';
-import { ArrowRightOutlined } from '@ant-design/icons';
-import { AppLayout } from '@/components/project-v2/AppLayout';
-import { useRouter } from 'next/navigation';
+"use client";
+import { Card, Button, Space } from "antd";
+import { ArrowRightOutlined } from "@ant-design/icons";
+import { AppLayout } from "@/components/project-v2/AppLayout";
+import { useRouter } from "next/navigation";
 
 export default function DecidePage() {
   const router = useRouter();
@@ -18,11 +18,11 @@ export default function DecidePage() {
         </Card>
 
         <div className="flex justify-center mt-8">
-          <Button 
-            type="primary" 
-            size="large" 
+          <Button
+            type="primary"
+            size="large"
             icon={<ArrowRightOutlined />}
-            onClick={() => router.push('/project/plan')}
+            onClick={() => router.push("/project/plan")}
           >
             Continue to Planning
           </Button>

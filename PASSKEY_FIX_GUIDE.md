@@ -5,6 +5,7 @@
 Your admin passkey (`ikmls@hotmail.com`) isn't working in production because of a **WebAuthn configuration mismatch**.
 
 **Evidence:**
+
 - ✅ User exists in database with ADMIN role
 - ✅ Passkey is registered (created Nov 5, 2025)
 - ❌ Passkey has NEVER been used successfully (counter = 0)
@@ -13,6 +14,7 @@ Your admin passkey (`ikmls@hotmail.com`) isn't working in production because of 
 ## Root Cause
 
 When a passkey is registered, it's bound to specific WebAuthn settings:
+
 - **RP ID** (Relying Party ID): Your domain
 - **Origin**: Your full URL
 
@@ -34,18 +36,21 @@ npx tsx scripts/check-webauthn-prod.ts
 Go to your hosting dashboard (Vercel, Railway, AWS, etc.) and set:
 
 **For Vercel deployment:**
+
 ```bash
 WEBAUTHN_RP_ID=your-app.vercel.app
 WEBAUTHN_ORIGIN=https://your-app.vercel.app
 ```
 
 **For custom domain:**
+
 ```bash
 WEBAUTHN_RP_ID=yourdomain.com          # or app.yourdomain.com
 WEBAUTHN_ORIGIN=https://app.yourdomain.com
 ```
 
 **Important Rules:**
+
 - RP ID = domain only (no `https://`, no trailing slash)
 - Origin = full URL with protocol (with `https://`, no trailing slash)
 - They must match EXACTLY what the browser sees
@@ -84,16 +89,19 @@ npx tsx scripts/clear-admin-passkey.ts --confirm
 ## Verification Commands
 
 ### Check if passkey exists:
+
 ```bash
 npx tsx scripts/check-admin-passkey-fixed.ts
 ```
 
 ### Check WebAuthn configuration:
+
 ```bash
 npx tsx scripts/check-webauthn-prod.ts
 ```
 
 ### Clear passkey (if needed):
+
 ```bash
 npx tsx scripts/clear-admin-passkey.ts --confirm
 ```
@@ -124,15 +132,18 @@ npx tsx scripts/clear-admin-passkey.ts --confirm
 ### Common Errors
 
 **"Challenge expired"**
+
 - Registration/login took too long
 - Try again immediately
 
 **"Passkey not found"**
+
 - You're using wrong device
 - Or passkey was deleted
 - Re-register
 
 **"Verification failed"**
+
 - RP ID mismatch
 - Check production env vars
 - Re-register with correct config
@@ -142,15 +153,18 @@ npx tsx scripts/clear-admin-passkey.ts --confirm
 If you need immediate access before fixing passkeys, you have options:
 
 ### Option 1: Force Admin Session (for emergencies)
+
 ```bash
 # Creates a temporary admin session
 npx tsx scripts/create-admin-session.ts
 ```
 
 ### Option 2: Magic Link (if enabled)
+
 Use magic link authentication instead of passkey temporarily.
 
 ### Option 3: Recovery Code
+
 If you have recovery codes set up, use those.
 
 ## Prevention

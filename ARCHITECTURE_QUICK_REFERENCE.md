@@ -14,11 +14,11 @@ Next.js 15.5.3 (App Router)
 
 ## Component Counts
 
-| Layer | Count | Location |
-|-------|-------|----------|
-| UI Library Components | 18 | `/src/ui/` |
-| Feature Components | 214 | `/src/components/` |
-| **Total** | **232** | **Combined** |
+| Layer                 | Count   | Location           |
+| --------------------- | ------- | ------------------ |
+| UI Library Components | 18      | `/src/ui/`         |
+| Feature Components    | 214     | `/src/components/` |
+| **Total**             | **232** | **Combined**       |
 
 ## Directory Map
 
@@ -39,6 +39,7 @@ src/
 ## Styling System (3 Layers)
 
 ### 1. CSS Variables (Design Tokens)
+
 **Source:** `src/styles/tokens.css` (147 lines)
 
 ```css
@@ -51,6 +52,7 @@ Z-Index:   --z-dropdown (1000) → --z-tooltip (1070)
 ```
 
 ### 2. Tailwind CSS
+
 **File:** `tailwind.config.js`
 
 ```
@@ -60,6 +62,7 @@ Typography: Fluid via clamp() - scales between min/preferred/max
 ```
 
 ### 3. Ant Design Theme Bridge
+
 **File:** `src/ui/compat/AntDThemeBridge.tsx`
 
 Maps CSS variables → Ant Design ConfigProvider at runtime
@@ -77,14 +80,14 @@ xl: 1280px (desktop)
 
 ## Layout Components
 
-| Component | Purpose | Location |
-|-----------|---------|----------|
-| `AppLayout` | Main app shell (header + content) | `/components/layout/` |
-| `AppShell` | Sidebar + main (desktop/mobile responsive) | `/ui/layout/` |
-| `ResponsiveShell` | Responsive wrapper (max-width + padding) | `/components/ui/` |
-| `ResponsiveGrid` | Responsive grid (1→2→3 cols) | `/components/ui/` |
-| `ResponsiveStack` | Responsive vertical stack | `/components/ui/` |
-| `ResponsiveCard` | Responsive card with padding | `/components/ui/` |
+| Component         | Purpose                                    | Location              |
+| ----------------- | ------------------------------------------ | --------------------- |
+| `AppLayout`       | Main app shell (header + content)          | `/components/layout/` |
+| `AppShell`        | Sidebar + main (desktop/mobile responsive) | `/ui/layout/`         |
+| `ResponsiveShell` | Responsive wrapper (max-width + padding)   | `/components/ui/`     |
+| `ResponsiveGrid`  | Responsive grid (1→2→3 cols)               | `/components/ui/`     |
+| `ResponsiveStack` | Responsive vertical stack                  | `/components/ui/`     |
+| `ResponsiveCard`  | Responsive card with padding               | `/components/ui/`     |
 
 ## Theme Management
 
@@ -99,8 +102,9 @@ const { theme, setTheme } = useTheme();
 ```
 
 **Dark Mode CSS Variables:**
+
 ```css
-:root[data-theme='dark'],
+:root[data-theme="dark"],
 :root.dark {
   --ink: #e5e7eb;
   --surface: #0b0f17;
@@ -111,16 +115,16 @@ const { theme, setTheme } = useTheme();
 
 ## Key Entry Points
 
-| Route | File | Purpose |
-|-------|------|---------|
-| `/` | `src/app/page.tsx` | Root redirect (to /login, /dashboard, or /admin) |
-| `/login` | `src/app/login/page.tsx` | Authentication |
-| `/dashboard` | `src/app/dashboard/page.tsx` | Main dashboard |
-| `/project/capture` | `src/app/project/capture/page.tsx` | RFP capture |
-| `/project/plan` | `src/app/project/plan/page.tsx` | Project planning |
-| `/project/present` | `src/app/project/present/page.tsx` | Presentation |
-| `/project/decide` | `src/app/project/decide/page.tsx` | Decision support |
-| `/admin` | `src/app/admin/page.tsx` | Admin panel |
+| Route              | File                               | Purpose                                          |
+| ------------------ | ---------------------------------- | ------------------------------------------------ |
+| `/`                | `src/app/page.tsx`                 | Root redirect (to /login, /dashboard, or /admin) |
+| `/login`           | `src/app/login/page.tsx`           | Authentication                                   |
+| `/dashboard`       | `src/app/dashboard/page.tsx`       | Main dashboard                                   |
+| `/project/capture` | `src/app/project/capture/page.tsx` | RFP capture                                      |
+| `/project/plan`    | `src/app/project/plan/page.tsx`    | Project planning                                 |
+| `/project/present` | `src/app/project/present/page.tsx` | Presentation                                     |
+| `/project/decide`  | `src/app/project/decide/page.tsx`  | Decision support                                 |
+| `/admin`           | `src/app/admin/page.tsx`           | Admin panel                                      |
 
 ## Provider Hierarchy
 
@@ -150,13 +154,14 @@ const { theme, setTheme } = useTheme();
 
 ## State Management
 
-| Library | Purpose | Location |
-|---------|---------|----------|
-| Zustand | Local state (11 stores) | `src/stores/` |
-| React Query | Server state + caching | Integrated in providers |
-| Context | Theme, Toast, Auth, Onboarding | Via `useContext` hooks |
+| Library     | Purpose                        | Location                |
+| ----------- | ------------------------------ | ----------------------- |
+| Zustand     | Local state (11 stores)        | `src/stores/`           |
+| React Query | Server state + caching         | Integrated in providers |
+| Context     | Theme, Toast, Auth, Onboarding | Via `useContext` hooks  |
 
 **Store Files:**
+
 - `project-store.ts` - Project data
 - `timeline-store.ts` - Timeline UI state
 - `resource-planning-store.ts` - Resource allocation
@@ -165,19 +170,20 @@ const { theme, setTheme } = useTheme();
 
 ## CSS File Summary
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `app/globals.css` | 776 | Global styles, utilities, component patterns |
-| `styles/tokens.css` | 147 | Design tokens (CSS variables) |
-| `styles/motion.css` | 213 | Animations, transitions, keyframes |
-| `styles/button-normalize.css` | 226 | Button resets, normalization |
-| `styles/vibe-theme.css` | 207 | Theme customizations |
-| `styles/unified-theme.css` | 90 | Unified theme definitions |
-| **TOTAL** | **1,659** | — |
+| File                          | Lines     | Purpose                                      |
+| ----------------------------- | --------- | -------------------------------------------- |
+| `app/globals.css`             | 776       | Global styles, utilities, component patterns |
+| `styles/tokens.css`           | 147       | Design tokens (CSS variables)                |
+| `styles/motion.css`           | 213       | Animations, transitions, keyframes           |
+| `styles/button-normalize.css` | 226       | Button resets, normalization                 |
+| `styles/vibe-theme.css`       | 207       | Theme customizations                         |
+| `styles/unified-theme.css`    | 90        | Unified theme definitions                    |
+| **TOTAL**                     | **1,659** | —                                            |
 
 ## Design Tokens Reference
 
 ### Colors
+
 ```
 Primary:     #2563eb (blue)
 Success:     #16a34a (green)
@@ -186,6 +192,7 @@ Error:       #ef4444 (red)
 ```
 
 ### Spacing (8px Grid)
+
 ```
 --s-4:  4px     --s-8:   8px    --s-12:  12px
 --s-16: 16px    --s-20:  20px   --s-24:  24px
@@ -194,6 +201,7 @@ Error:       #ef4444 (red)
 ```
 
 ### Border Radius
+
 ```
 --r-sm:   6px
 --r-md:   10px
@@ -202,6 +210,7 @@ Error:       #ef4444 (red)
 ```
 
 ### Shadows
+
 ```
 --shadow-sm: 0 1px 2px rgba(0,0,0,0.06)
 --shadow-md: 0 8px 24px rgba(0,0,0,0.08)
@@ -209,6 +218,7 @@ Error:       #ef4444 (red)
 ```
 
 ### Motion
+
 ```
 --dur:      180ms (standard)
 --dur-slow: 300ms (slow)
@@ -218,6 +228,7 @@ Error:       #ef4444 (red)
 ## Common Responsive Patterns
 
 ### Visibility
+
 ```tsx
 // Desktop only
 <div className="hidden md:block">Desktop content</div>
@@ -227,6 +238,7 @@ Error:       #ef4444 (red)
 ```
 
 ### Spacing Scales
+
 ```tsx
 // Responsive padding
 <div className="px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
@@ -240,6 +252,7 @@ Error:       #ef4444 (red)
 ```
 
 ### Grid Layouts
+
 ```tsx
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   1 col (mobile) → 2 cols (tablet) → 3 cols (desktop)
@@ -247,6 +260,7 @@ Error:       #ef4444 (red)
 ```
 
 ### Typography
+
 ```css
 /* Font sizes scale fluidly */
 font-sm:   clamp(0.875rem, 0.8rem + 0.375vw, 1rem)
@@ -270,19 +284,19 @@ npm run analyze      # Analyze bundle size
 
 ## Key Dependencies
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| next | 15.5.3 | Framework |
-| react | 19.1.1 | UI library |
-| typescript | 5.x | Type checking |
-| tailwindcss | 3.4.0 | Utility CSS |
-| antd | 5.27.4 | Enterprise UI |
-| zustand | 5.0.8 | State management |
-| @tanstack/react-query | 5.90.2 | Server state |
-| lucide-react | 0.544.0 | Icons |
-| framer-motion | 12.23.22 | Animations |
-| zod | 4.1.11 | Validation |
-| next-auth | 4.24.11 | Authentication |
+| Package               | Version  | Purpose          |
+| --------------------- | -------- | ---------------- |
+| next                  | 15.5.3   | Framework        |
+| react                 | 19.1.1   | UI library       |
+| typescript            | 5.x      | Type checking    |
+| tailwindcss           | 3.4.0    | Utility CSS      |
+| antd                  | 5.27.4   | Enterprise UI    |
+| zustand               | 5.0.8    | State management |
+| @tanstack/react-query | 5.90.2   | Server state     |
+| lucide-react          | 0.544.0  | Icons            |
+| framer-motion         | 12.23.22 | Animations       |
+| zod                   | 4.1.11   | Validation       |
+| next-auth             | 4.24.11  | Authentication   |
 
 ## Security Headers (next.config.js)
 
@@ -310,7 +324,6 @@ npm run analyze      # Analyze bundle size
 
 1. **Understand the structure:**
    - Read `CODEBASE_ARCHITECTURE.md` for detailed overview
-   
 2. **Review key files:**
    - `src/app/layout.tsx` - Root layout
    - `src/app/providers.tsx` - Provider setup

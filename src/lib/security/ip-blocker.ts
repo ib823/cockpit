@@ -5,8 +5,8 @@
  * that exceed thresholds. Supports temporary and permanent blocks.
  */
 
-import { Redis } from '@upstash/redis';
-import { prisma } from '@/lib/db';
+import { Redis } from "@upstash/redis";
+import { prisma } from "@/lib/db";
 
 // Redis connection (with fallback)
 let redis: Redis | null = null;
@@ -17,7 +17,7 @@ try {
     redis = new Redis({ url, token });
   }
 } catch (error) {
-  console.warn('[ip-blocker] Redis initialization failed, using in-memory fallback:', error);
+  console.warn("[ip-blocker] Redis initialization failed, using in-memory fallback:", error);
 }
 
 // In-memory fallback for development
@@ -67,7 +67,7 @@ export async function isIPBlocked(ip: string): Promise<{ blocked: boolean; reaso
         return { blocked: true, reason: blockData.reason };
       }
     } catch (error) {
-      console.error('[ip-blocker] Redis check error:', error);
+      console.error("[ip-blocker] Redis check error:", error);
     }
   }
 
@@ -95,9 +95,8 @@ export async function blockIP(
   permanent: boolean = false
 ): Promise<void> {
   const blockedAt = new Date();
-  const expiresAt = permanent || !durationMinutes
-    ? null
-    : new Date(Date.now() + durationMinutes * 60 * 1000);
+  const expiresAt =
+    permanent || !durationMinutes ? null : new Date(Date.now() + durationMinutes * 60 * 1000);
 
   const blockData: BlockedIP = {
     ip,
@@ -116,7 +115,7 @@ export async function blockIP(
         await redis.setex(`ipblock:${ip}`, durationMinutes! * 60, blockData);
       }
     } catch (error) {
-      console.error('[ip-blocker] Redis set error:', error);
+      console.error("[ip-blocker] Redis set error:", error);
     }
   }
 
@@ -128,7 +127,7 @@ export async function blockIP(
     await prisma.securityEvent.create({
       data: {
         id: crypto.randomUUID(),
-        type: 'ip_blocked',
+        type: "ip_blocked",
         ipAddress: ip,
         meta: {
           reason,
@@ -140,11 +139,11 @@ export async function blockIP(
       },
     });
   } catch (error) {
-    console.error('[ip-blocker] Failed to log block event:', error);
+    console.error("[ip-blocker] Failed to log block event:", error);
   }
 
   console.warn(`[IP BLOCKER] Blocked IP ${ip}: ${reason}`, {
-    expiresAt: expiresAt?.toISOString() || 'permanent',
+    expiresAt: expiresAt?.toISOString() || "permanent",
   });
 }
 
@@ -157,7 +156,7 @@ export async function unblockIP(ip: string): Promise<void> {
     try {
       await redis.del(`ipblock:${ip}`);
     } catch (error) {
-      console.error('[ip-blocker] Redis delete error:', error);
+      console.error("[ip-blocker] Redis delete error:", error);
     }
   }
 
@@ -169,7 +168,7 @@ export async function unblockIP(ip: string): Promise<void> {
     await prisma.securityEvent.create({
       data: {
         id: crypto.randomUUID(),
-        type: 'ip_unblocked',
+        type: "ip_unblocked",
         ipAddress: ip,
         meta: {
           unblockedAt: new Date().toISOString(),
@@ -178,7 +177,7 @@ export async function unblockIP(ip: string): Promise<void> {
       },
     });
   } catch (error) {
-    console.error('[ip-blocker] Failed to log unblock event:', error);
+    console.error("[ip-blocker] Failed to log unblock event:", error);
   }
 
   console.log(`[IP BLOCKER] Unblocked IP ${ip}`);
@@ -204,15 +203,15 @@ export async function checkAndBlockIP(
         },
         type: {
           in: [
-            'webauthn_failure',
-            'otp_failure',
-            'magic_link_failure',
-            'admin_login_failure',
-            'login_failure',
+            "webauthn_failure",
+            "otp_failure",
+            "magic_link_failure",
+            "admin_login_failure",
+            "login_failure",
           ],
         },
         meta: {
-          path: ['ipAddress'],
+          path: ["ipAddress"],
           equals: ip,
         },
       },
@@ -227,7 +226,7 @@ export async function checkAndBlockIP(
       const previousBlocks = await prisma.securityEvent.count({
         where: {
           ipAddress: ip,
-          type: 'ip_blocked',
+          type: "ip_blocked",
         },
       });
 
@@ -243,7 +242,7 @@ export async function checkAndBlockIP(
 
     return { blocked: false };
   } catch (error) {
-    console.error('[ip-blocker] Error checking failures:', error);
+    console.error("[ip-blocker] Error checking failures:", error);
     return { blocked: false };
   }
 }
@@ -257,7 +256,7 @@ export async function getBlockedIPs(): Promise<BlockedIP[]> {
   // Get from Redis (if available)
   if (redis) {
     try {
-      const keys = await redis.keys('ipblock:*');
+      const keys = await redis.keys("ipblock:*");
       for (const key of keys) {
         const data = await redis.get<BlockedIP>(key);
         if (data) {
@@ -268,7 +267,7 @@ export async function getBlockedIPs(): Promise<BlockedIP[]> {
         }
       }
     } catch (error) {
-      console.error('[ip-blocker] Error fetching blocked IPs from Redis:', error);
+      console.error("[ip-blocker] Error fetching blocked IPs from Redis:", error);
     }
   }
 
@@ -304,11 +303,11 @@ export async function getIPBlockHistory(ip: string): Promise<
       where: {
         ipAddress: ip,
         type: {
-          in: ['ip_blocked', 'ip_unblocked'],
+          in: ["ip_blocked", "ip_unblocked"],
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       take: 50,
     });
@@ -320,7 +319,7 @@ export async function getIPBlockHistory(ip: string): Promise<
       permanent: (event.meta as any)?.permanent,
     }));
   } catch (error) {
-    console.error('[ip-blocker] Error fetching block history:', error);
+    console.error("[ip-blocker] Error fetching block history:", error);
     return [];
   }
 }
@@ -344,7 +343,7 @@ export async function cleanupExpiredBlocks(): Promise<number> {
   // but we can manually clean up any that slipped through
   if (redis) {
     try {
-      const keys = await redis.keys('ipblock:*');
+      const keys = await redis.keys("ipblock:*");
       for (const key of keys) {
         const data = await redis.get<BlockedIP>(key);
         if (data && data.expiresAt && new Date(data.expiresAt) < now) {
@@ -353,7 +352,7 @@ export async function cleanupExpiredBlocks(): Promise<number> {
         }
       }
     } catch (error) {
-      console.error('[ip-blocker] Error cleaning up Redis:', error);
+      console.error("[ip-blocker] Error cleaning up Redis:", error);
     }
   }
 

@@ -10,10 +10,10 @@
  * });
  */
 
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { HexLoader } from '@/components/ui/HexLoader';
+import { useEffect, useRef, useState, useCallback } from "react";
+import { HexLoader } from "@/components/ui/HexLoader";
 
 interface UseAutoSaveOptions<T> {
   data: T;
@@ -37,7 +37,7 @@ export function useAutoSave<T>({
   debounceMs = 2000,
   enabled = true,
   onError,
-  onSuccess
+  onSuccess,
 }: UseAutoSaveOptions<T>): UseAutoSaveReturn {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -63,7 +63,7 @@ export function useAutoSave<T>({
         onSuccess?.();
       }
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Save failed');
+      const error = err instanceof Error ? err : new Error("Save failed");
       if (isMountedRef.current) {
         setError(error);
         onError?.(error);
@@ -115,7 +115,7 @@ export function useAutoSave<T>({
     save,
     saving,
     lastSaved,
-    error
+    error,
   };
 }
 
@@ -135,7 +135,7 @@ export function AutoSaveIndicator({ saving, lastSaved, error }: AutoSaveIndicato
 
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
 
-    if (seconds < 10) return 'just now';
+    if (seconds < 10) return "just now";
     if (seconds < 60) return `${seconds}s ago`;
 
     const minutes = Math.floor(seconds / 60);
@@ -153,7 +153,11 @@ export function AutoSaveIndicator({ saving, lastSaved, error }: AutoSaveIndicato
         aria-live="polite"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clipRule="evenodd"
+          />
         </svg>
         <span>Save failed</span>
       </div>
@@ -181,7 +185,11 @@ export function AutoSaveIndicator({ saving, lastSaved, error }: AutoSaveIndicato
         aria-live="polite"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
         </svg>
         <span>Saved {getRelativeTime(lastSaved)}</span>
       </div>

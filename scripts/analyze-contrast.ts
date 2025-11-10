@@ -15,7 +15,7 @@ interface ContrastResult {
   aaPassLarge: boolean;
   aaaPassNormal: boolean;
   aaaPassLarge: boolean;
-  severity: 'pass' | 'warning' | 'fail';
+  severity: "pass" | "warning" | "fail";
   recommendation: string;
 }
 
@@ -77,21 +77,21 @@ function evaluateCombination(
   const aaaPassNormal = ratio >= 7.0;
   const aaaPassLarge = ratio >= 4.5;
 
-  let severity: 'pass' | 'warning' | 'fail';
+  let severity: "pass" | "warning" | "fail";
   let recommendation: string;
 
   if (aaaPassNormal) {
-    severity = 'pass';
-    recommendation = 'Excellent contrast - passes AAA for all text sizes';
+    severity = "pass";
+    recommendation = "Excellent contrast - passes AAA for all text sizes";
   } else if (aaPassNormal) {
-    severity = 'pass';
-    recommendation = 'Good contrast - passes AA for all text sizes';
+    severity = "pass";
+    recommendation = "Good contrast - passes AA for all text sizes";
   } else if (aaPassLarge) {
-    severity = 'warning';
-    recommendation = 'Only use for large text (18px+ or 14px+ bold) - fails AA for normal text';
+    severity = "warning";
+    recommendation = "Only use for large text (18px+ or 14px+ bold) - fails AA for normal text";
   } else {
-    severity = 'fail';
-    recommendation = 'Insufficient contrast - do not use for text';
+    severity = "fail";
+    recommendation = "Insufficient contrast - do not use for text";
   }
 
   return {
@@ -118,98 +118,183 @@ function analyzeContrast(): ContrastResult[] {
   // Define color combinations to test
   const combinations = [
     // Light mode - text on backgrounds
-    { fg: '#0f172a', fgName: 'Primary Text', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#475569', fgName: 'Secondary Text', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#64748b', fgName: 'Muted Text', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#6b7280', fgName: 'Gray Text', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#0f172a', fgName: 'Primary Text', bg: '#f8fafc', bgName: 'Subtle Background' },
-    { fg: '#475569', fgName: 'Secondary Text', bg: '#f8fafc', bgName: 'Subtle Background' },
-    { fg: '#64748b', fgName: 'Muted Text', bg: '#f8fafc', bgName: 'Subtle Background' },
-    { fg: '#0f172a', fgName: 'Primary Text', bg: '#f9fafb', bgName: 'Surface Background' },
+    { fg: "#0f172a", fgName: "Primary Text", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#475569", fgName: "Secondary Text", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#64748b", fgName: "Muted Text", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#6b7280", fgName: "Gray Text", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#0f172a", fgName: "Primary Text", bg: "#f8fafc", bgName: "Subtle Background" },
+    { fg: "#475569", fgName: "Secondary Text", bg: "#f8fafc", bgName: "Subtle Background" },
+    { fg: "#64748b", fgName: "Muted Text", bg: "#f8fafc", bgName: "Subtle Background" },
+    { fg: "#0f172a", fgName: "Primary Text", bg: "#f9fafb", bgName: "Surface Background" },
 
     // Light mode - brand colors
-    { fg: '#2563eb', fgName: 'Primary Brand', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#1d4ed8', fgName: 'Primary Brand Hover', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#ffffff', fgName: 'White Text', bg: '#2563eb', bgName: 'Primary Brand Background' },
-    { fg: '#ffffff', fgName: 'White Text', bg: '#1d4ed8', bgName: 'Primary Brand Hover Background' },
-    { fg: '#2563eb', fgName: 'Primary Brand', bg: '#dbeafe', bgName: 'Primary Subtle Background' },
-    { fg: '#1d4ed8', fgName: 'Primary Brand Hover', bg: '#dbeafe', bgName: 'Primary Subtle Background' },
+    { fg: "#2563eb", fgName: "Primary Brand", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#1d4ed8", fgName: "Primary Brand Hover", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#ffffff", fgName: "White Text", bg: "#2563eb", bgName: "Primary Brand Background" },
+    {
+      fg: "#ffffff",
+      fgName: "White Text",
+      bg: "#1d4ed8",
+      bgName: "Primary Brand Hover Background",
+    },
+    { fg: "#2563eb", fgName: "Primary Brand", bg: "#dbeafe", bgName: "Primary Subtle Background" },
+    {
+      fg: "#1d4ed8",
+      fgName: "Primary Brand Hover",
+      bg: "#dbeafe",
+      bgName: "Primary Subtle Background",
+    },
 
     // Light mode - state colors
-    { fg: '#16a34a', fgName: 'Success Text', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#16a34a', fgName: 'Success Text', bg: '#dcfce7', bgName: 'Success Background' },
-    { fg: '#15803d', fgName: 'Success Dark', bg: '#dcfce7', bgName: 'Success Background' },
-    { fg: '#0f172a', fgName: 'Primary Text', bg: '#dcfce7', bgName: 'Success Background' },
+    { fg: "#16a34a", fgName: "Success Text", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#16a34a", fgName: "Success Text", bg: "#dcfce7", bgName: "Success Background" },
+    { fg: "#15803d", fgName: "Success Dark", bg: "#dcfce7", bgName: "Success Background" },
+    { fg: "#0f172a", fgName: "Primary Text", bg: "#dcfce7", bgName: "Success Background" },
 
-    { fg: '#f59e0b', fgName: 'Warning Text', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#f59e0b', fgName: 'Warning Text', bg: '#fef3c7', bgName: 'Warning Background' },
-    { fg: '#d97706', fgName: 'Warning Dark', bg: '#fef3c7', bgName: 'Warning Background' },
-    { fg: '#92400e', fgName: 'Warning Darker', bg: '#fef3c7', bgName: 'Warning Background' },
-    { fg: '#0f172a', fgName: 'Primary Text', bg: '#fef3c7', bgName: 'Warning Background' },
+    { fg: "#f59e0b", fgName: "Warning Text", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#f59e0b", fgName: "Warning Text", bg: "#fef3c7", bgName: "Warning Background" },
+    { fg: "#d97706", fgName: "Warning Dark", bg: "#fef3c7", bgName: "Warning Background" },
+    { fg: "#92400e", fgName: "Warning Darker", bg: "#fef3c7", bgName: "Warning Background" },
+    { fg: "#0f172a", fgName: "Primary Text", bg: "#fef3c7", bgName: "Warning Background" },
 
-    { fg: '#ef4444', fgName: 'Danger Text', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#ef4444', fgName: 'Danger Text', bg: '#fee2e2', bgName: 'Danger Background' },
-    { fg: '#dc2626', fgName: 'Danger Dark', bg: '#fee2e2', bgName: 'Danger Background' },
-    { fg: '#b91c1c', fgName: 'Danger Darker', bg: '#fee2e2', bgName: 'Danger Background' },
-    { fg: '#0f172a', fgName: 'Primary Text', bg: '#fee2e2', bgName: 'Danger Background' },
+    { fg: "#ef4444", fgName: "Danger Text", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#ef4444", fgName: "Danger Text", bg: "#fee2e2", bgName: "Danger Background" },
+    { fg: "#dc2626", fgName: "Danger Dark", bg: "#fee2e2", bgName: "Danger Background" },
+    { fg: "#b91c1c", fgName: "Danger Darker", bg: "#fee2e2", bgName: "Danger Background" },
+    { fg: "#0f172a", fgName: "Primary Text", bg: "#fee2e2", bgName: "Danger Background" },
 
     // Light mode - Gantt colors
-    { fg: '#111827', fgName: 'Gantt Bar', bg: '#eef2f6', bgName: 'Gantt Grid' },
-    { fg: '#2563eb', fgName: 'Gantt Bar Accent', bg: '#eef2f6', bgName: 'Gantt Grid' },
-    { fg: '#ef4444', fgName: 'Gantt Bar Critical', bg: '#eef2f6', bgName: 'Gantt Grid' },
-    { fg: '#10b981', fgName: 'Gantt Bar Progress', bg: '#eef2f6', bgName: 'Gantt Grid' },
-    { fg: '#9ca3af', fgName: 'Gantt Baseline', bg: '#eef2f6', bgName: 'Gantt Grid' },
-    { fg: '#fb923c', fgName: 'Gantt Today', bg: '#eef2f6', bgName: 'Gantt Grid' },
-    { fg: '#6b7280', fgName: 'Gantt Link', bg: '#eef2f6', bgName: 'Gantt Grid' },
-    { fg: '#ffffff', fgName: 'White Text', bg: '#111827', bgName: 'Gantt Bar' },
-    { fg: '#ffffff', fgName: 'White Text', bg: '#2563eb', bgName: 'Gantt Bar Accent' },
-    { fg: '#ffffff', fgName: 'White Text', bg: '#ef4444', bgName: 'Gantt Bar Critical' },
-    { fg: '#ffffff', fgName: 'White Text', bg: '#10b981', bgName: 'Gantt Bar Progress' },
+    { fg: "#111827", fgName: "Gantt Bar", bg: "#eef2f6", bgName: "Gantt Grid" },
+    { fg: "#2563eb", fgName: "Gantt Bar Accent", bg: "#eef2f6", bgName: "Gantt Grid" },
+    { fg: "#ef4444", fgName: "Gantt Bar Critical", bg: "#eef2f6", bgName: "Gantt Grid" },
+    { fg: "#10b981", fgName: "Gantt Bar Progress", bg: "#eef2f6", bgName: "Gantt Grid" },
+    { fg: "#9ca3af", fgName: "Gantt Baseline", bg: "#eef2f6", bgName: "Gantt Grid" },
+    { fg: "#fb923c", fgName: "Gantt Today", bg: "#eef2f6", bgName: "Gantt Grid" },
+    { fg: "#6b7280", fgName: "Gantt Link", bg: "#eef2f6", bgName: "Gantt Grid" },
+    { fg: "#ffffff", fgName: "White Text", bg: "#111827", bgName: "Gantt Bar" },
+    { fg: "#ffffff", fgName: "White Text", bg: "#2563eb", bgName: "Gantt Bar Accent" },
+    { fg: "#ffffff", fgName: "White Text", bg: "#ef4444", bgName: "Gantt Bar Critical" },
+    { fg: "#ffffff", fgName: "White Text", bg: "#10b981", bgName: "Gantt Bar Progress" },
 
     // Dark mode - text on backgrounds
-    { fg: '#e5e7eb', fgName: 'Dark: Primary Text', bg: '#0b0f17', bgName: 'Dark: Base Background' },
-    { fg: '#cbd5e1', fgName: 'Dark: Secondary Text', bg: '#0b0f17', bgName: 'Dark: Base Background' },
-    { fg: '#94a3b8', fgName: 'Dark: Muted Text', bg: '#0b0f17', bgName: 'Dark: Base Background' },
-    { fg: '#e5e7eb', fgName: 'Dark: Primary Text', bg: '#0f1520', bgName: 'Dark: Subtle Background' },
-    { fg: '#cbd5e1', fgName: 'Dark: Secondary Text', bg: '#0f1520', bgName: 'Dark: Subtle Background' },
-    { fg: '#94a3b8', fgName: 'Dark: Muted Text', bg: '#0f1520', bgName: 'Dark: Subtle Background' },
-    { fg: '#e5e7eb', fgName: 'Dark: Primary Text', bg: '#1a1f2e', bgName: 'Dark: Surface Background' },
-    { fg: '#cbd5e1', fgName: 'Dark: Secondary Text', bg: '#1a1f2e', bgName: 'Dark: Surface Background' },
+    { fg: "#e5e7eb", fgName: "Dark: Primary Text", bg: "#0b0f17", bgName: "Dark: Base Background" },
+    {
+      fg: "#cbd5e1",
+      fgName: "Dark: Secondary Text",
+      bg: "#0b0f17",
+      bgName: "Dark: Base Background",
+    },
+    { fg: "#94a3b8", fgName: "Dark: Muted Text", bg: "#0b0f17", bgName: "Dark: Base Background" },
+    {
+      fg: "#e5e7eb",
+      fgName: "Dark: Primary Text",
+      bg: "#0f1520",
+      bgName: "Dark: Subtle Background",
+    },
+    {
+      fg: "#cbd5e1",
+      fgName: "Dark: Secondary Text",
+      bg: "#0f1520",
+      bgName: "Dark: Subtle Background",
+    },
+    { fg: "#94a3b8", fgName: "Dark: Muted Text", bg: "#0f1520", bgName: "Dark: Subtle Background" },
+    {
+      fg: "#e5e7eb",
+      fgName: "Dark: Primary Text",
+      bg: "#1a1f2e",
+      bgName: "Dark: Surface Background",
+    },
+    {
+      fg: "#cbd5e1",
+      fgName: "Dark: Secondary Text",
+      bg: "#1a1f2e",
+      bgName: "Dark: Surface Background",
+    },
 
     // Dark mode - brand colors
-    { fg: '#2563eb', fgName: 'Dark: Primary Brand', bg: '#0b0f17', bgName: 'Dark: Base Background' },
-    { fg: '#1d4ed8', fgName: 'Dark: Primary Brand Hover', bg: '#0b0f17', bgName: 'Dark: Base Background' },
-    { fg: '#e5e7eb', fgName: 'Dark: Primary Text', bg: '#2563eb', bgName: 'Dark: Primary Brand Background' },
-    { fg: '#e5e7eb', fgName: 'Dark: Primary Text', bg: '#1e3a8a', bgName: 'Dark: Primary Subtle Background' },
+    {
+      fg: "#2563eb",
+      fgName: "Dark: Primary Brand",
+      bg: "#0b0f17",
+      bgName: "Dark: Base Background",
+    },
+    {
+      fg: "#1d4ed8",
+      fgName: "Dark: Primary Brand Hover",
+      bg: "#0b0f17",
+      bgName: "Dark: Base Background",
+    },
+    {
+      fg: "#e5e7eb",
+      fgName: "Dark: Primary Text",
+      bg: "#2563eb",
+      bgName: "Dark: Primary Brand Background",
+    },
+    {
+      fg: "#e5e7eb",
+      fgName: "Dark: Primary Text",
+      bg: "#1e3a8a",
+      bgName: "Dark: Primary Subtle Background",
+    },
 
     // Dark mode - state colors
-    { fg: '#16a34a', fgName: 'Dark: Success Text', bg: '#0b0f17', bgName: 'Dark: Base Background' },
-    { fg: '#16a34a', fgName: 'Dark: Success Text', bg: '#14532d', bgName: 'Dark: Success Background' },
-    { fg: '#e5e7eb', fgName: 'Dark: Primary Text', bg: '#14532d', bgName: 'Dark: Success Background' },
+    { fg: "#16a34a", fgName: "Dark: Success Text", bg: "#0b0f17", bgName: "Dark: Base Background" },
+    {
+      fg: "#16a34a",
+      fgName: "Dark: Success Text",
+      bg: "#14532d",
+      bgName: "Dark: Success Background",
+    },
+    {
+      fg: "#e5e7eb",
+      fgName: "Dark: Primary Text",
+      bg: "#14532d",
+      bgName: "Dark: Success Background",
+    },
 
-    { fg: '#f59e0b', fgName: 'Dark: Warning Text', bg: '#0b0f17', bgName: 'Dark: Base Background' },
-    { fg: '#f59e0b', fgName: 'Dark: Warning Text', bg: '#78350f', bgName: 'Dark: Warning Background' },
-    { fg: '#e5e7eb', fgName: 'Dark: Primary Text', bg: '#78350f', bgName: 'Dark: Warning Background' },
+    { fg: "#f59e0b", fgName: "Dark: Warning Text", bg: "#0b0f17", bgName: "Dark: Base Background" },
+    {
+      fg: "#f59e0b",
+      fgName: "Dark: Warning Text",
+      bg: "#78350f",
+      bgName: "Dark: Warning Background",
+    },
+    {
+      fg: "#e5e7eb",
+      fgName: "Dark: Primary Text",
+      bg: "#78350f",
+      bgName: "Dark: Warning Background",
+    },
 
-    { fg: '#ef4444', fgName: 'Dark: Danger Text', bg: '#0b0f17', bgName: 'Dark: Base Background' },
-    { fg: '#ef4444', fgName: 'Dark: Danger Text', bg: '#7f1d1d', bgName: 'Dark: Danger Background' },
-    { fg: '#e5e7eb', fgName: 'Dark: Primary Text', bg: '#7f1d1d', bgName: 'Dark: Danger Background' },
+    { fg: "#ef4444", fgName: "Dark: Danger Text", bg: "#0b0f17", bgName: "Dark: Base Background" },
+    {
+      fg: "#ef4444",
+      fgName: "Dark: Danger Text",
+      bg: "#7f1d1d",
+      bgName: "Dark: Danger Background",
+    },
+    {
+      fg: "#e5e7eb",
+      fgName: "Dark: Primary Text",
+      bg: "#7f1d1d",
+      bgName: "Dark: Danger Background",
+    },
 
     // Dark mode - Gantt colors
-    { fg: '#e5e7eb', fgName: 'Dark: Gantt Bar', bg: '#1f2937', bgName: 'Dark: Gantt Grid' },
-    { fg: '#6b7280', fgName: 'Dark: Gantt Baseline', bg: '#1f2937', bgName: 'Dark: Gantt Grid' },
-    { fg: '#0b0f17', fgName: 'Dark: Base Background', bg: '#e5e7eb', bgName: 'Dark: Gantt Bar' },
+    { fg: "#e5e7eb", fgName: "Dark: Gantt Bar", bg: "#1f2937", bgName: "Dark: Gantt Grid" },
+    { fg: "#6b7280", fgName: "Dark: Gantt Baseline", bg: "#1f2937", bgName: "Dark: Gantt Grid" },
+    { fg: "#0b0f17", fgName: "Dark: Base Background", bg: "#e5e7eb", bgName: "Dark: Gantt Bar" },
 
     // Additional critical combinations
-    { fg: '#1890ff', fgName: 'Ant Design Primary', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#ffffff', fgName: 'White Text', bg: '#1890ff', bgName: 'Ant Design Primary Background' },
-    { fg: '#a855f7', fgName: 'Purple Accent', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#ffffff', fgName: 'White Text', bg: '#a855f7', bgName: 'Purple Accent Background' },
+    { fg: "#1890ff", fgName: "Ant Design Primary", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#ffffff", fgName: "White Text", bg: "#1890ff", bgName: "Ant Design Primary Background" },
+    { fg: "#a855f7", fgName: "Purple Accent", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#ffffff", fgName: "White Text", bg: "#a855f7", bgName: "Purple Accent Background" },
 
     // Border colors (for visibility)
-    { fg: '#e5e7eb', fgName: 'Light Border', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#d1d5db', fgName: 'Strong Border', bg: '#ffffff', bgName: 'White Background' },
-    { fg: '#1f2937', fgName: 'Dark: Border', bg: '#0b0f17', bgName: 'Dark: Base Background' },
+    { fg: "#e5e7eb", fgName: "Light Border", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#d1d5db", fgName: "Strong Border", bg: "#ffffff", bgName: "White Background" },
+    { fg: "#1f2937", fgName: "Dark: Border", bg: "#0b0f17", bgName: "Dark: Base Background" },
   ];
 
   // Evaluate each combination
@@ -225,7 +310,7 @@ function analyzeContrast(): ContrastResult[] {
  */
 function generateCSV(results: ContrastResult[]): string {
   const header =
-    'ForegroundColor,ForegroundName,BackgroundColor,BackgroundName,ContrastRatio,AA_Normal,AA_Large,AAA_Normal,AAA_Large,Severity,Recommendation\n';
+    "ForegroundColor,ForegroundName,BackgroundColor,BackgroundName,ContrastRatio,AA_Normal,AA_Large,AAA_Normal,AAA_Large,Severity,Recommendation\n";
 
   const rows = results.map((result) => {
     return [
@@ -234,25 +319,25 @@ function generateCSV(results: ContrastResult[]): string {
       result.backgroundColor,
       `"${result.backgroundName}"`,
       result.contrastRatio.toFixed(2),
-      result.aaPassNormal ? 'PASS' : 'FAIL',
-      result.aaPassLarge ? 'PASS' : 'FAIL',
-      result.aaaPassNormal ? 'PASS' : 'FAIL',
-      result.aaaPassLarge ? 'PASS' : 'FAIL',
+      result.aaPassNormal ? "PASS" : "FAIL",
+      result.aaPassLarge ? "PASS" : "FAIL",
+      result.aaaPassNormal ? "PASS" : "FAIL",
+      result.aaaPassLarge ? "PASS" : "FAIL",
       result.severity.toUpperCase(),
       `"${result.recommendation}"`,
-    ].join(',');
+    ].join(",");
   });
 
-  return header + rows.join('\n');
+  return header + rows.join("\n");
 }
 
 /**
  * Generate Markdown report
  */
 function generateMarkdown(results: ContrastResult[]): string {
-  const fails = results.filter((r) => r.severity === 'fail');
-  const warnings = results.filter((r) => r.severity === 'warning');
-  const passes = results.filter((r) => r.severity === 'pass');
+  const fails = results.filter((r) => r.severity === "fail");
+  const warnings = results.filter((r) => r.severity === "warning");
+  const passes = results.filter((r) => r.severity === "pass");
   const aaaCompliant = results.filter((r) => r.aaaPassNormal);
 
   let md = `# Contrast Ratio Analysis Report
@@ -288,7 +373,7 @@ These combinations fail WCAG AA and should NOT be used for any text.
     fails.forEach((result) => {
       md += `| ${result.foregroundName}<br/>\`${result.foregroundColor}\` | ${result.backgroundName}<br/>\`${result.backgroundColor}\` | **${result.contrastRatio}:1** | ${result.recommendation} |\n`;
     });
-    md += '\n';
+    md += "\n";
   }
 
   // Warnings
@@ -303,7 +388,7 @@ These combinations pass AA for large text only (≥18px or ≥14px bold).
     warnings.forEach((result) => {
       md += `| ${result.foregroundName}<br/>\`${result.foregroundColor}\` | ${result.backgroundName}<br/>\`${result.backgroundColor}\` | **${result.contrastRatio}:1** | ${result.recommendation} |\n`;
     });
-    md += '\n';
+    md += "\n";
   }
 
   // Top Performers
@@ -323,7 +408,7 @@ These combinations provide excellent contrast for maximum accessibility.
     topPerformers.forEach((result) => {
       md += `| ${result.foregroundName}<br/>\`${result.foregroundColor}\` | ${result.backgroundName}<br/>\`${result.backgroundColor}\` | **${result.contrastRatio}:1** | AAA |\n`;
     });
-    md += '\n';
+    md += "\n";
   }
 
   // Mode-specific analysis
@@ -331,14 +416,16 @@ These combinations provide excellent contrast for maximum accessibility.
 
 `;
 
-  const lightResults = results.filter((r) => !r.foregroundName.startsWith('Dark:') && !r.backgroundName.startsWith('Dark:'));
-  const lightFails = lightResults.filter((r) => r.severity === 'fail');
-  const lightWarnings = lightResults.filter((r) => r.severity === 'warning');
+  const lightResults = results.filter(
+    (r) => !r.foregroundName.startsWith("Dark:") && !r.backgroundName.startsWith("Dark:")
+  );
+  const lightFails = lightResults.filter((r) => r.severity === "fail");
+  const lightWarnings = lightResults.filter((r) => r.severity === "warning");
 
   md += `- **Total:** ${lightResults.length} combinations
 - **Failures:** ${lightFails.length}
 - **Warnings:** ${lightWarnings.length}
-- **Pass Rate:** ${((lightResults.length - lightFails.length - lightWarnings.length) / lightResults.length * 100).toFixed(1)}%
+- **Pass Rate:** ${(((lightResults.length - lightFails.length - lightWarnings.length) / lightResults.length) * 100).toFixed(1)}%
 
 `;
 
@@ -346,14 +433,16 @@ These combinations provide excellent contrast for maximum accessibility.
 
 `;
 
-  const darkResults = results.filter((r) => r.foregroundName.startsWith('Dark:') || r.backgroundName.startsWith('Dark:'));
-  const darkFails = darkResults.filter((r) => r.severity === 'fail');
-  const darkWarnings = darkResults.filter((r) => r.severity === 'warning');
+  const darkResults = results.filter(
+    (r) => r.foregroundName.startsWith("Dark:") || r.backgroundName.startsWith("Dark:")
+  );
+  const darkFails = darkResults.filter((r) => r.severity === "fail");
+  const darkWarnings = darkResults.filter((r) => r.severity === "warning");
 
   md += `- **Total:** ${darkResults.length} combinations
 - **Failures:** ${darkFails.length}
 - **Warnings:** ${darkWarnings.length}
-- **Pass Rate:** ${((darkResults.length - darkFails.length - darkWarnings.length) / darkResults.length * 100).toFixed(1)}%
+- **Pass Rate:** ${(((darkResults.length - darkFails.length - darkWarnings.length) / darkResults.length) * 100).toFixed(1)}%
 
 `;
 
@@ -440,8 +529,9 @@ ${warnings.length} combination(s) only pass for large text:
 `;
 
   results.forEach((result) => {
-    const statusEmoji = result.severity === 'fail' ? '🔴' : result.severity === 'warning' ? '⚠️' : '✅';
-    md += `| ${result.foregroundName}<br/>\`${result.foregroundColor}\` | ${result.backgroundName}<br/>\`${result.backgroundColor}\` | ${result.contrastRatio}:1 | ${result.aaPassNormal ? '✓' : '✗'} | ${result.aaPassLarge ? '✓' : '✗'} | ${result.aaaPassNormal ? '✓' : '✗'} | ${result.aaaPassLarge ? '✓' : '✗'} | ${statusEmoji} |\n`;
+    const statusEmoji =
+      result.severity === "fail" ? "🔴" : result.severity === "warning" ? "⚠️" : "✅";
+    md += `| ${result.foregroundName}<br/>\`${result.foregroundColor}\` | ${result.backgroundName}<br/>\`${result.backgroundColor}\` | ${result.contrastRatio}:1 | ${result.aaPassNormal ? "✓" : "✗"} | ${result.aaPassLarge ? "✓" : "✗"} | ${result.aaaPassNormal ? "✓" : "✗"} | ${result.aaaPassLarge ? "✓" : "✗"} | ${statusEmoji} |\n`;
   });
 
   md += `\n---
@@ -464,42 +554,42 @@ ${warnings.length} combination(s) only pass for large text:
  * Main execution
  */
 function main() {
-  console.log('Analyzing contrast ratios...\n');
+  console.log("Analyzing contrast ratios...\n");
 
   const results = analyzeContrast();
 
   // Generate CSV
   const csv = generateCSV(results);
-  console.log('CSV generated. Sample:');
-  console.log(csv.split('\n').slice(0, 5).join('\n'));
+  console.log("CSV generated. Sample:");
+  console.log(csv.split("\n").slice(0, 5).join("\n"));
   console.log(`... (${results.length} total rows)\n`);
 
   // Generate Markdown
   const markdown = generateMarkdown(results);
-  console.log('Markdown report generated.\n');
+  console.log("Markdown report generated.\n");
 
   // Output results
-  const fs = require('fs');
-  const path = require('path');
+  const fs = require("fs");
+  const path = require("path");
 
-  const auditDir = path.join(process.cwd(), '_audit');
+  const auditDir = path.join(process.cwd(), "_audit");
   if (!fs.existsSync(auditDir)) {
     fs.mkdirSync(auditDir, { recursive: true });
   }
 
-  fs.writeFileSync(path.join(auditDir, 'contrast-findings.csv'), csv, 'utf-8');
-  fs.writeFileSync(path.join(auditDir, 'contrast-analysis.md'), markdown, 'utf-8');
+  fs.writeFileSync(path.join(auditDir, "contrast-findings.csv"), csv, "utf-8");
+  fs.writeFileSync(path.join(auditDir, "contrast-analysis.md"), markdown, "utf-8");
 
-  console.log('✅ Files written:');
-  console.log(`   - ${path.join(auditDir, 'contrast-findings.csv')}`);
-  console.log(`   - ${path.join(auditDir, 'contrast-analysis.md')}`);
+  console.log("✅ Files written:");
+  console.log(`   - ${path.join(auditDir, "contrast-findings.csv")}`);
+  console.log(`   - ${path.join(auditDir, "contrast-analysis.md")}`);
 
   // Summary
-  const fails = results.filter((r) => r.severity === 'fail').length;
-  const warnings = results.filter((r) => r.severity === 'warning').length;
-  const passes = results.filter((r) => r.severity === 'pass').length;
+  const fails = results.filter((r) => r.severity === "fail").length;
+  const warnings = results.filter((r) => r.severity === "warning").length;
+  const passes = results.filter((r) => r.severity === "pass").length;
 
-  console.log('\n📊 Summary:');
+  console.log("\n📊 Summary:");
   console.log(`   Total combinations: ${results.length}`);
   console.log(`   Failures: ${fails}`);
   console.log(`   Warnings: ${warnings}`);

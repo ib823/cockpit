@@ -11,24 +11,23 @@ export function HolidayManagerModal({
   region,
   onClose,
 }: {
-  region: 'ABMY' | 'ABSG' | 'ABVN';
+  region: "ABMY" | "ABSG" | "ABVN";
   onClose: () => void;
 }) {
   const [holidays, setHolidays] = useState<Holiday[]>(HOLIDAYS[region].holidays);
-  const [newHoliday, setNewHoliday] = useState({ date: '', name: '' });
-  const [filter, setFilter] = useState('');
+  const [newHoliday, setNewHoliday] = useState({ date: "", name: "" });
+  const [filter, setFilter] = useState("");
 
-  const filteredHolidays = holidays.filter(h =>
-    h.name.toLowerCase().includes(filter.toLowerCase()) ||
-    h.date.includes(filter)
+  const filteredHolidays = holidays.filter(
+    (h) => h.name.toLowerCase().includes(filter.toLowerCase()) || h.date.includes(filter)
   );
 
   const handleAddHoliday = () => {
     if (!newHoliday.date || !newHoliday.name) return;
-    
+
     const updated = [...holidays, newHoliday].sort((a, b) => a.date.localeCompare(b.date));
     setHolidays(updated);
-    setNewHoliday({ date: '', name: '' });
+    setNewHoliday({ date: "", name: "" });
   };
 
   const handleDeleteHoliday = (index: number) => {
@@ -37,7 +36,7 @@ export function HolidayManagerModal({
 
   const handleSave = () => {
     // Note: Future enhancement - persist to localStorage or backend API
-    console.log('Saving holidays:', holidays);
+    console.log("Saving holidays:", holidays);
     onClose();
   };
 
@@ -55,12 +54,7 @@ export function HolidayManagerModal({
               </BodySM>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            aria-label="Close modal"
-          >
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -119,11 +113,9 @@ export function HolidayManagerModal({
               >
                 <div className="flex items-center gap-4">
                   <div className="text-sm font-medium text-gray-900">
-                    {format(new Date(holiday.date), 'EEE, MMM dd, yyyy')}
+                    {format(new Date(holiday.date), "EEE, MMM dd, yyyy")}
                   </div>
-                  <div className="text-sm text-gray-600">
-                    {holiday.name}
-                  </div>
+                  <div className="text-sm text-gray-600">{holiday.name}</div>
                 </div>
                 <Button
                   variant="ghost"
@@ -144,18 +136,10 @@ export function HolidayManagerModal({
             {filteredHolidays.length} of {holidays.length} holidays shown
           </BodySM>
           <div className="flex gap-4">
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={onClose}
-            >
+            <Button variant="secondary" size="md" onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={handleSave}
-            >
+            <Button variant="primary" size="md" onClick={handleSave}>
               Save Changes
             </Button>
           </div>

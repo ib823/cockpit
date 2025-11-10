@@ -11,7 +11,9 @@
 ## How It Works (Current Flow)
 
 ### 1. Login Page Shows Notification Toggle
+
 **Location:** `/login` page (email stage)
+
 - A toggle button appears below the email input
 - Label: "Instant 1st Login"
 - 3 visual states:
@@ -20,7 +22,9 @@
   - **Active** (blue with checkmark): Notifications enabled
 
 ### 2. User Clicks to Enable Notifications
+
 When user clicks the toggle:
+
 1. **Security Education Modal appears** (centered on screen)
    - Title: "Use Personal Devices Only"
    - Content:
@@ -37,6 +41,7 @@ When user clicks the toggle:
    - Toggle switches to "Active" state
 
 ### 3. Future Logins
+
 - User receives push notification on their device
 - Clicking notification opens login link
 - User completes passkey authentication
@@ -45,6 +50,7 @@ When user clicks the toggle:
 ## Testing Checklist
 
 ### Test 1: Enable Notifications (Happy Path)
+
 - [ ] Navigate to http://localhost:3001/login
 - [ ] See "Instant 1st Login" toggle (blue, available state)
 - [ ] Click toggle
@@ -57,6 +63,7 @@ When user clicks the toggle:
 - [ ] Console shows: "Service Worker registered" and "Push subscription:"
 
 ### Test 2: Deny Notifications
+
 - [ ] Navigate to http://localhost:3001/login
 - [ ] Click toggle
 - [ ] Modal appears
@@ -67,6 +74,7 @@ When user clicks the toggle:
 - [ ] No errors in console
 
 ### Test 3: Public Computer Detection
+
 - [ ] Open incognito/private browsing window
 - [ ] Navigate to http://localhost:3001/login
 - [ ] Toggle shows danger state (red, disabled)
@@ -74,12 +82,14 @@ When user clicks the toggle:
 - [ ] Tooltip or visual indicates unsafe environment
 
 ### Test 4: Already Subscribed
+
 - [ ] Enable notifications (Test 1)
 - [ ] Refresh page
 - [ ] Toggle shows active state immediately
 - [ ] No duplicate subscriptions created
 
 ### Test 5: Unsubscribe
+
 - [ ] With notifications enabled (active state)
 - [ ] Click toggle again
 - [ ] Toggle switches to available state
@@ -89,14 +99,18 @@ When user clicks the toggle:
 ## Known Issues to Verify
 
 ### Issue 1: Email Hardcoded
+
 **File:** `PushNotificationToggle.tsx:75`
+
 ```typescript
-const saved = await sendPushSubscriptionToServer(subscription, 'admin@admin.com');
+const saved = await sendPushSubscriptionToServer(subscription, "admin@admin.com");
 ```
+
 ❌ Email is hardcoded to 'admin@admin.com'
 ✅ **FIX NEEDED:** Should use the actual user's email from login state
 
 ### Issue 2: Modal Already Fixed
+
 ✅ Modal content updated to match specification
 ✅ Modal centered on screen
 ✅ Modal appears on toggle click
@@ -104,6 +118,7 @@ const saved = await sendPushSubscriptionToServer(subscription, 'admin@admin.com'
 ## Recommended Improvements
 
 ### 1. Fix Hardcoded Email
+
 The notification toggle should receive the user's email as a prop:
 
 ```typescript
@@ -118,17 +133,21 @@ export default function PushNotificationToggle({ email }: { email?: string }) {
 ```
 
 ### 2. Auto-Show Modal on First Visit
+
 Currently: Modal only shows when user clicks toggle
 Suggestion: Show modal automatically on first visit to login page
 
 ### 3. Persist Dismissal
+
 If user dismisses modal, remember choice in localStorage
 Don't show again unless user explicitly clicks toggle
 
 ## API Endpoints
 
 ### Subscribe Endpoint
+
 **POST** `/api/push/subscribe`
+
 ```json
 {
   "email": "user@example.com",
@@ -140,7 +159,9 @@ Don't show again unless user explicitly clicks toggle
 ```
 
 ### Send Notification Endpoint
+
 **POST** `/api/push/send`
+
 ```json
 {
   "email": "user@example.com",

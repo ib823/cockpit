@@ -1,11 +1,11 @@
 "use client";
 
-import { Wrapper, WrapperCalculation } from '@/types/wrappers';
-import { useWrappersStore } from '@/stores/wrappers-store';
-import { motion } from 'framer-motion';
-import { RotateCcw } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
-import * as Slider from '@radix-ui/react-slider';
+import { Wrapper, WrapperCalculation } from "@/types/wrappers";
+import { useWrappersStore } from "@/stores/wrappers-store";
+import { motion } from "framer-motion";
+import { RotateCcw } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import * as Slider from "@radix-ui/react-slider";
 
 interface WrapperSliderProps {
   wrapper: Wrapper;
@@ -22,10 +22,7 @@ export function WrapperSlider({ wrapper, calculation }: WrapperSliderProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-          <div
-            className="w-4 h-4 rounded-full"
-            style={{ backgroundColor: wrapper.color }}
-          />
+          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: wrapper.color }} />
           <div>
             <h4 className="text-sm font-semibold text-gray-900">{wrapper.name}</h4>
             <p className="text-xs text-gray-500">{wrapper.description}</p>
@@ -39,9 +36,7 @@ export function WrapperSlider({ wrapper, calculation }: WrapperSliderProps) {
               {wrapper.currentPercentage.toFixed(0)}%
             </div>
             {calculation && (
-              <div className="text-xs text-gray-600">
-                {calculation.wrapperEffort.toFixed(0)} PD
-              </div>
+              <div className="text-xs text-gray-600">{calculation.wrapperEffort.toFixed(0)} PD</div>
             )}
           </div>
 
@@ -76,7 +71,7 @@ export function WrapperSlider({ wrapper, calculation }: WrapperSliderProps) {
           </Slider.Track>
           <Slider.Thumb
             className="block w-5 h-5 bg-white border-2 rounded-full shadow-md hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-2"
-            style={{ borderColor: wrapper.color, '--tw-ring-color': wrapper.color } as any}
+            style={{ borderColor: wrapper.color, "--tw-ring-color": wrapper.color } as any}
             aria-label={`${wrapper.name} percentage`}
           />
         </Slider.Root>
@@ -95,7 +90,7 @@ export function WrapperSlider({ wrapper, calculation }: WrapperSliderProps) {
             <div>
               <span className="text-gray-500">Cost: </span>
               <span className="font-semibold text-gray-900">
-                {formatCurrency(calculation.wrapperCost, 'MYR')}
+                {formatCurrency(calculation.wrapperCost, "MYR")}
               </span>
             </div>
           </div>

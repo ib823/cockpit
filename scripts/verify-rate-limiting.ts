@@ -6,7 +6,7 @@
  * Run with: npx tsx scripts/verify-rate-limiting.ts
  */
 
-import { ServerRateLimiter } from '../src/lib/server-rate-limiter';
+import { ServerRateLimiter } from "../src/lib/server-rate-limiter";
 
 interface TestResult {
   name: string;
@@ -21,7 +21,7 @@ const results: TestResult[] = [];
  * Test 1: Server Rate Limiter - Basic Functionality
  */
 async function testServerRateLimiterBasic() {
-  const testLimiter = new ServerRateLimiter('test-basic', 3, 5000); // 3 requests per 5 seconds
+  const testLimiter = new ServerRateLimiter("test-basic", 3, 5000); // 3 requests per 5 seconds
   const identifier = `test-${Date.now()}`;
 
   try {
@@ -29,9 +29,9 @@ async function testServerRateLimiterBasic() {
     const result1 = await testLimiter.check(identifier);
     if (!result1.success) {
       results.push({
-        name: 'Server Rate Limiter - First Request',
+        name: "Server Rate Limiter - First Request",
         passed: false,
-        message: 'First request should always succeed',
+        message: "First request should always succeed",
         details: result1,
       });
       return;
@@ -41,9 +41,9 @@ async function testServerRateLimiterBasic() {
     const result2 = await testLimiter.check(identifier);
     if (!result2.success) {
       results.push({
-        name: 'Server Rate Limiter - Second Request',
+        name: "Server Rate Limiter - Second Request",
         passed: false,
-        message: 'Second request should succeed',
+        message: "Second request should succeed",
         details: result2,
       });
       return;
@@ -53,9 +53,9 @@ async function testServerRateLimiterBasic() {
     const result3 = await testLimiter.check(identifier);
     if (!result3.success) {
       results.push({
-        name: 'Server Rate Limiter - Third Request',
+        name: "Server Rate Limiter - Third Request",
         passed: false,
-        message: 'Third request should succeed',
+        message: "Third request should succeed",
         details: result3,
       });
       return;
@@ -65,9 +65,9 @@ async function testServerRateLimiterBasic() {
     const result4 = await testLimiter.check(identifier);
     if (result4.success) {
       results.push({
-        name: 'Server Rate Limiter - Rate Limit Enforcement',
+        name: "Server Rate Limiter - Rate Limit Enforcement",
         passed: false,
-        message: 'Fourth request should be rate limited',
+        message: "Fourth request should be rate limited",
         details: result4,
       });
       return;
@@ -76,18 +76,18 @@ async function testServerRateLimiterBasic() {
     // Check rate limit headers
     if (result4.retryAfter === undefined) {
       results.push({
-        name: 'Server Rate Limiter - Retry-After Header',
+        name: "Server Rate Limiter - Retry-After Header",
         passed: false,
-        message: 'Rate limited response should include retryAfter',
+        message: "Rate limited response should include retryAfter",
         details: result4,
       });
       return;
     }
 
     results.push({
-      name: 'Server Rate Limiter - Basic Functionality',
+      name: "Server Rate Limiter - Basic Functionality",
       passed: true,
-      message: 'Rate limiter correctly enforces limits',
+      message: "Rate limiter correctly enforces limits",
       details: {
         limit: result4.limit,
         remaining: result4.remaining,
@@ -96,7 +96,7 @@ async function testServerRateLimiterBasic() {
     });
   } catch (error) {
     results.push({
-      name: 'Server Rate Limiter - Basic Functionality',
+      name: "Server Rate Limiter - Basic Functionality",
       passed: false,
       message: `Error: ${error instanceof Error ? error.message : String(error)}`,
     });
@@ -107,7 +107,7 @@ async function testServerRateLimiterBasic() {
  * Test 2: Server Rate Limiter - Window Expiry
  */
 async function testServerRateLimiterExpiry() {
-  const testLimiter = new ServerRateLimiter('test-expiry', 2, 2000); // 2 requests per 2 seconds
+  const testLimiter = new ServerRateLimiter("test-expiry", 2, 2000); // 2 requests per 2 seconds
   const identifier = `test-expiry-${Date.now()}`;
 
   try {
@@ -119,9 +119,9 @@ async function testServerRateLimiterExpiry() {
     const result1 = await testLimiter.check(identifier);
     if (result1.success) {
       results.push({
-        name: 'Server Rate Limiter - Window Expiry',
+        name: "Server Rate Limiter - Window Expiry",
         passed: false,
-        message: 'Third request should be rate limited',
+        message: "Third request should be rate limited",
       });
       return;
     }
@@ -133,22 +133,22 @@ async function testServerRateLimiterExpiry() {
     const result2 = await testLimiter.check(identifier);
     if (!result2.success) {
       results.push({
-        name: 'Server Rate Limiter - Window Expiry',
+        name: "Server Rate Limiter - Window Expiry",
         passed: false,
-        message: 'Request should succeed after window expiry',
+        message: "Request should succeed after window expiry",
         details: result2,
       });
       return;
     }
 
     results.push({
-      name: 'Server Rate Limiter - Window Expiry',
+      name: "Server Rate Limiter - Window Expiry",
       passed: true,
-      message: 'Rate limit window correctly expires and resets',
+      message: "Rate limit window correctly expires and resets",
     });
   } catch (error) {
     results.push({
-      name: 'Server Rate Limiter - Window Expiry',
+      name: "Server Rate Limiter - Window Expiry",
       passed: false,
       message: `Error: ${error instanceof Error ? error.message : String(error)}`,
     });
@@ -159,7 +159,7 @@ async function testServerRateLimiterExpiry() {
  * Test 3: Server Rate Limiter - Identifier Isolation
  */
 async function testServerRateLimiterIsolation() {
-  const testLimiter = new ServerRateLimiter('test-isolation', 2, 5000);
+  const testLimiter = new ServerRateLimiter("test-isolation", 2, 5000);
   const identifier1 = `test-iso-1-${Date.now()}`;
   const identifier2 = `test-iso-2-${Date.now()}`;
 
@@ -171,9 +171,9 @@ async function testServerRateLimiterIsolation() {
 
     if (result1.success) {
       results.push({
-        name: 'Server Rate Limiter - Identifier Isolation',
+        name: "Server Rate Limiter - Identifier Isolation",
         passed: false,
-        message: 'First identifier should be rate limited',
+        message: "First identifier should be rate limited",
       });
       return;
     }
@@ -182,22 +182,22 @@ async function testServerRateLimiterIsolation() {
     const result2 = await testLimiter.check(identifier2);
     if (!result2.success) {
       results.push({
-        name: 'Server Rate Limiter - Identifier Isolation',
+        name: "Server Rate Limiter - Identifier Isolation",
         passed: false,
-        message: 'Second identifier should not be rate limited',
+        message: "Second identifier should not be rate limited",
         details: result2,
       });
       return;
     }
 
     results.push({
-      name: 'Server Rate Limiter - Identifier Isolation',
+      name: "Server Rate Limiter - Identifier Isolation",
       passed: true,
-      message: 'Rate limits are correctly isolated per identifier',
+      message: "Rate limits are correctly isolated per identifier",
     });
   } catch (error) {
     results.push({
-      name: 'Server Rate Limiter - Identifier Isolation',
+      name: "Server Rate Limiter - Identifier Isolation",
       passed: false,
       message: `Error: ${error instanceof Error ? error.message : String(error)}`,
     });
@@ -210,7 +210,7 @@ async function testServerRateLimiterIsolation() {
 async function testPreconfiguredLimiters() {
   try {
     const { otpVerifyLimiter, otpSendLimiter, loginLimiter, webauthnLimiter } = await import(
-      '../src/lib/server-rate-limiter'
+      "../src/lib/server-rate-limiter"
     );
 
     const testId = `test-preconfig-${Date.now()}`;
@@ -221,19 +221,24 @@ async function testPreconfiguredLimiters() {
     const loginResult = await loginLimiter.check(testId);
     const webauthnResult = await webauthnLimiter.check(testId);
 
-    if (!otpResult.success || !sendResult.success || !loginResult.success || !webauthnResult.success) {
+    if (
+      !otpResult.success ||
+      !sendResult.success ||
+      !loginResult.success ||
+      !webauthnResult.success
+    ) {
       results.push({
-        name: 'Pre-configured Limiters',
+        name: "Pre-configured Limiters",
         passed: false,
-        message: 'Pre-configured limiters should allow first request',
+        message: "Pre-configured limiters should allow first request",
       });
       return;
     }
 
     results.push({
-      name: 'Pre-configured Limiters',
+      name: "Pre-configured Limiters",
       passed: true,
-      message: 'All pre-configured limiters are functional',
+      message: "All pre-configured limiters are functional",
       details: {
         otpVerify: { limit: otpResult.limit, remaining: otpResult.remaining },
         otpSend: { limit: sendResult.limit, remaining: sendResult.remaining },
@@ -243,7 +248,7 @@ async function testPreconfiguredLimiters() {
     });
   } catch (error) {
     results.push({
-      name: 'Pre-configured Limiters',
+      name: "Pre-configured Limiters",
       passed: false,
       message: `Error: ${error instanceof Error ? error.message : String(error)}`,
     });
@@ -254,7 +259,7 @@ async function testPreconfiguredLimiters() {
  * Test 5: Reset Functionality
  */
 async function testResetFunctionality() {
-  const testLimiter = new ServerRateLimiter('test-reset', 1, 5000);
+  const testLimiter = new ServerRateLimiter("test-reset", 1, 5000);
   const identifier = `test-reset-${Date.now()}`;
 
   try {
@@ -264,9 +269,9 @@ async function testResetFunctionality() {
 
     if (result1.success) {
       results.push({
-        name: 'Rate Limiter - Reset Functionality',
+        name: "Rate Limiter - Reset Functionality",
         passed: false,
-        message: 'Second request should be rate limited',
+        message: "Second request should be rate limited",
       });
       return;
     }
@@ -278,22 +283,22 @@ async function testResetFunctionality() {
     const result2 = await testLimiter.check(identifier);
     if (!result2.success) {
       results.push({
-        name: 'Rate Limiter - Reset Functionality',
+        name: "Rate Limiter - Reset Functionality",
         passed: false,
-        message: 'Request should succeed after reset',
+        message: "Request should succeed after reset",
         details: result2,
       });
       return;
     }
 
     results.push({
-      name: 'Rate Limiter - Reset Functionality',
+      name: "Rate Limiter - Reset Functionality",
       passed: true,
-      message: 'Rate limit reset works correctly',
+      message: "Rate limit reset works correctly",
     });
   } catch (error) {
     results.push({
-      name: 'Rate Limiter - Reset Functionality',
+      name: "Rate Limiter - Reset Functionality",
       passed: false,
       message: `Error: ${error instanceof Error ? error.message : String(error)}`,
     });
@@ -309,13 +314,13 @@ async function testEnvironmentSetup() {
 
   if (!hasRedisUrl || !hasRedisToken) {
     results.push({
-      name: 'Environment Setup',
+      name: "Environment Setup",
       passed: false,
-      message: 'Upstash Redis credentials not configured - using in-memory fallback',
+      message: "Upstash Redis credentials not configured - using in-memory fallback",
       details: {
         hasUrl: hasRedisUrl,
         hasToken: hasRedisToken,
-        warning: 'In-memory rate limiting will not work across multiple server instances',
+        warning: "In-memory rate limiting will not work across multiple server instances",
       },
     });
     return;
@@ -325,21 +330,21 @@ async function testEnvironmentSetup() {
     const url = process.env.UPSTASH_REDIS_REST_URL!;
     if (!/^https:\/\//i.test(url)) {
       results.push({
-        name: 'Environment Setup',
+        name: "Environment Setup",
         passed: false,
-        message: 'Upstash Redis URL must start with https://',
+        message: "Upstash Redis URL must start with https://",
       });
       return;
     }
 
     results.push({
-      name: 'Environment Setup',
+      name: "Environment Setup",
       passed: true,
-      message: 'Upstash Redis credentials are configured correctly',
+      message: "Upstash Redis credentials are configured correctly",
     });
   } catch (error) {
     results.push({
-      name: 'Environment Setup',
+      name: "Environment Setup",
       passed: false,
       message: `Error validating environment: ${error instanceof Error ? error.message : String(error)}`,
     });
@@ -350,8 +355,8 @@ async function testEnvironmentSetup() {
  * Run all tests
  */
 async function runTests() {
-  console.log('🚀 Starting Rate Limiting Verification\n');
-  console.log('=' .repeat(60));
+  console.log("🚀 Starting Rate Limiting Verification\n");
+  console.log("=".repeat(60));
 
   await testEnvironmentSetup();
   await testServerRateLimiterBasic();
@@ -360,14 +365,14 @@ async function runTests() {
   await testPreconfiguredLimiters();
   await testResetFunctionality();
 
-  console.log('\n' + '='.repeat(60));
-  console.log('\n📊 Test Results:\n');
+  console.log("\n" + "=".repeat(60));
+  console.log("\n📊 Test Results:\n");
 
   let passed = 0;
   let failed = 0;
 
   results.forEach((result) => {
-    const icon = result.passed ? '✅' : '❌';
+    const icon = result.passed ? "✅" : "❌";
     console.log(`${icon} ${result.name}`);
     console.log(`   ${result.message}`);
     if (result.details) {
@@ -379,19 +384,19 @@ async function runTests() {
     else failed++;
   });
 
-  console.log('='.repeat(60));
+  console.log("=".repeat(60));
   console.log(`\n📈 Summary: ${passed} passed, ${failed} failed\n`);
 
   if (failed > 0) {
-    console.log('❌ Some tests failed. Please review the results above.\n');
+    console.log("❌ Some tests failed. Please review the results above.\n");
     process.exit(1);
   } else {
-    console.log('✅ All tests passed! Rate limiting is working correctly.\n');
+    console.log("✅ All tests passed! Rate limiting is working correctly.\n");
     process.exit(0);
   }
 }
 
 runTests().catch((error) => {
-  console.error('Fatal error running tests:', error);
+  console.error("Fatal error running tests:", error);
   process.exit(1);
 });

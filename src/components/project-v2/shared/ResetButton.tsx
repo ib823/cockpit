@@ -70,9 +70,7 @@ export function ResetButton() {
               </h2>
 
               {/* Description */}
-              <p className="text-gray-600 text-center mb-6">
-                This will permanently delete:
-              </p>
+              <p className="text-gray-600 text-center mb-6">This will permanently delete:</p>
 
               <ul className="text-sm text-gray-700 space-y-2 mb-8 bg-gray-50 rounded-lg p-4">
                 <li className="flex items-center gap-2">

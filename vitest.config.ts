@@ -6,6 +6,24 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
+    // Run auth tests sequentially to avoid database race conditions
+    pool: "forks",
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
+    // Exclude Playwright e2e tests from Vitest
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/cypress/**",
+      "**/.{idea,git,cache,output,temp}/**",
+      "**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*",
+      "**/tests/e2e/**",
+      "**/tests/**/e2e/**",
+      "**/*.spec.ts", // Playwright uses .spec.ts, Vitest uses .test.ts
+    ],
   },
   resolve: {
     alias: {

@@ -4,15 +4,15 @@
  * A checkbox with smooth animations and 3D transform effects
  */
 
-'use client';
+"use client";
 
-import { InputHTMLAttributes } from 'react';
+import { InputHTMLAttributes } from "react";
 
-interface CustomCheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface CustomCheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   label?: string;
 }
 
-export function CustomCheckbox({ label, className = '', id, ...props }: CustomCheckboxProps) {
+export function CustomCheckbox({ label, className = "", id, ...props }: CustomCheckboxProps) {
   const checkboxId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
@@ -44,7 +44,10 @@ export function CustomCheckbox({ label, className = '', id, ...props }: CustomCh
           align-items: center;
           justify-content: center;
           margin-right: 10px;
-          transition: background-color 1.3s, border-color 1.3s, transform 0.3s;
+          transition:
+            background-color 1.3s,
+            border-color 1.3s,
+            transform 0.3s;
           transform-style: preserve-3d;
           flex-shrink: 0;
         }
@@ -53,7 +56,9 @@ export function CustomCheckbox({ label, className = '', id, ...props }: CustomCh
           content: "✓";
           font-size: 16px;
           color: transparent;
-          transition: color 1.3s, transform 0.3s;
+          transition:
+            color 1.3s,
+            transform 0.3s;
         }
 
         .custom-checkbox input[type="checkbox"]:checked + .checkmark {

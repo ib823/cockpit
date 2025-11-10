@@ -9,6 +9,7 @@ This document outlines **pixel-perfect refinements** to transform the Keystone i
 ## 📋 EXECUTIVE SUMMARY
 
 ### Issues Found
+
 - ❌ **23 different color variations** (no design system)
 - ❌ **7 heading sizes** with inconsistent weights
 - ❌ **5 button styles** in a single component
@@ -17,6 +18,7 @@ This document outlines **pixel-perfect refinements** to transform the Keystone i
 - ❌ **Inconsistent hover/focus states**
 
 ### Solution
+
 ✅ **Centralized design system** (`src/lib/design-system.ts`)
 ✅ **8px grid system** for all spacing
 ✅ **Modular typography scale** (1.5x ratio)
@@ -31,14 +33,15 @@ This document outlines **pixel-perfect refinements** to transform the Keystone i
 ### Phase 1: Core Components (Priority 1) ✅
 
 #### 1.1 Create Reusable Button Component
+
 **File:** `src/components/common/Button.tsx`
 
 ```tsx
 import { getButtonClass } from "@/lib/design-system";
 
 interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  variant?: "primary" | "secondary" | "ghost" | "danger";
+  size?: "xs" | "sm" | "md" | "lg";
   disabled?: boolean;
   loading?: boolean;
   children: React.ReactNode;
@@ -46,12 +49,12 @@ interface ButtonProps {
 }
 
 export function Button({
-  variant = 'primary',
-  size = 'md',
+  variant = "primary",
+  size = "md",
   disabled = false,
   loading = false,
   children,
-  onClick
+  onClick,
 }: ButtonProps) {
   return (
     <button
@@ -67,6 +70,7 @@ export function Button({
 ```
 
 **Replace in:**
+
 - ✅ `ProjectShell.tsx` - All mode navigation buttons
 - ✅ `CaptureMode.tsx` - Extract, Continue, Back buttons
 - ✅ `DecideMode.tsx` - Decision options, Continue button
@@ -75,6 +79,7 @@ export function Button({
 ---
 
 #### 1.2 Create Typography Components
+
 **File:** `src/components/common/Typography.tsx`
 
 ```tsx
@@ -92,11 +97,23 @@ export function Heading2({ children }: { children: React.ReactNode }) {
   return <h2 className={typography.heading.h2}>{children}</h2>;
 }
 
-export function BodyLarge({ children, className = "" }: { children: React.ReactNode, className?: string }) {
+export function BodyLarge({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return <p className={`${typography.body.lg} ${className}`}>{children}</p>;
 }
 
-export function Label({ children, className = "" }: { children: React.ReactNode, className?: string }) {
+export function Label({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return <span className={`${typography.label.md} ${className}`}>{children}</span>;
 }
 ```
@@ -106,11 +123,14 @@ export function Label({ children, className = "" }: { children: React.ReactNode,
 ### Phase 2: Mode Refinements (Priority 1)
 
 #### 2.1 ProjectShell.tsx - Mode Indicators
+
 **Current Issues:**
+
 - Line 79: `text-3xl font-light` - too light for hierarchy
 - Line 80: `text-sm font-light` - subtitle buried
 
 **Fix:**
+
 ```tsx
 // BEFORE (Line 79-80)
 <h1 className="text-3xl font-light tracking-tight">{current.title}</h1>
@@ -122,6 +142,7 @@ export function Label({ children, className = "" }: { children: React.ReactNode,
 ```
 
 **Fix Progress Bar:**
+
 ```tsx
 // BEFORE (Line 92-99) - Inconsistent sizing
 <div className="w-32 h-2 bg-white/20 rounded-full overflow-hidden">
@@ -140,7 +161,9 @@ export function Label({ children, className = "" }: { children: React.ReactNode,
 ---
 
 #### 2.2 CaptureMode.tsx - Visual Consistency
+
 **Current Issues:**
+
 - Line 170: `text-3xl` → should use `typography.heading.h1`
 - Line 259: `text-lg` mix → should use `typography.heading.h3`
 - Line 282: `duration: 0.5` → should use `animation.duration.normal`
@@ -184,6 +207,7 @@ export function Label({ children, className = "" }: { children: React.ReactNode,
 ```
 
 **Button replacements:**
+
 ```tsx
 // Line 186-193 - Extract button
 // BEFORE
@@ -213,7 +237,9 @@ export function Label({ children, className = "" }: { children: React.ReactNode,
 ---
 
 #### 2.3 DecideMode.tsx - Decision Cards
+
 **Current Issues:**
+
 - Line 217-219: `text-2xl font-light` → inconsistent with system
 - Line 265: `gap-3` → should be `gap-4` (8px grid)
 - Line 280: `p-4` nested in `p-6` card → visual chaos
@@ -245,6 +271,7 @@ export function Label({ children, className = "" }: { children: React.ReactNode,
 ```
 
 **Decision option buttons:**
+
 ```tsx
 // Line 274-286 - Option cards
 // BEFORE - 5 different states with complex logic
@@ -269,7 +296,9 @@ className={cn(
 ---
 
 #### 2.4 PlanMode.tsx - Toolbar & Stats
+
 **Current Issues:**
+
 - Line 156: `px-6 py-4` → should be `px-8 py-6` (8px grid)
 - Line 237: `gap-3` → should be `gap-4`
 - Line 186-202: Zoom buttons - no focus states
@@ -309,6 +338,7 @@ className={cn(
 ```
 
 **Navigation buttons:**
+
 ```tsx
 // Line 160-165 - Back button
 // BEFORE
@@ -341,7 +371,9 @@ className={cn(
 ### Phase 3: Gantt Chart Refinements (Priority 2)
 
 #### 3.1 ImprovedGanttChart.tsx
+
 **Current Issues:**
+
 - Line 494: `p-6` inconsistent with page padding
 - Line 505-517: Button styles don't match system
 - Line 537: Holiday count badge - custom styling
@@ -384,6 +416,7 @@ className={cn(
 ```
 
 **Phase bars - consistent colors:**
+
 ```tsx
 // Line 729-734 - Phase bar styling
 // BEFORE - Random stream colors
@@ -406,6 +439,7 @@ const getStreamColor = (index: number) => {
 ### Phase 4: Animation Refinements (Priority 2)
 
 #### 4.1 Standardize All Motion Timings
+
 **Replace all instances:**
 
 ```tsx
@@ -422,6 +456,7 @@ transition={{ duration: animation.duration.slow }}
 ```
 
 **Files to update:**
+
 - ✅ `ProjectShell.tsx` (Lines 74, 97)
 - ✅ `CaptureMode.tsx` (Lines 282, 295)
 - ✅ `DecideMode.tsx` (Lines 227, 246)
@@ -433,9 +468,11 @@ transition={{ duration: animation.duration.slow }}
 ### Phase 5: Empty States & Loading (Priority 3)
 
 #### 5.1 PlanMode Empty State
+
 **Current Issue:** Line 82-146 - Debug text in production
 
 **Fix:**
+
 ```tsx
 // BEFORE (Lines 99-104) - Debug info
 <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded text-left text-xs font-mono">
@@ -443,25 +480,29 @@ transition={{ duration: animation.duration.slow }}
   <div>Completeness: {completeness.score}%</div>
   <div>Phases: {phases.length}</div>
   <div>Can Generate: {hasEnoughData ? "YES ✅" : "NO ❌"}</div>
-</div>
+</div>;
 
 // AFTER - Remove debug info, improve messaging
-{!hasEnoughData && (
-  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-    <BodyLarge className="text-blue-900">
-      Need {Math.max(0, 30 - completeness.score)}% more requirements
-    </BodyLarge>
-    <BodyMedium className="text-blue-700 mt-2">
-      Go back to Capture mode to add more RFP details.
-    </BodyMedium>
-  </div>
-)}
+{
+  !hasEnoughData && (
+    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <BodyLarge className="text-blue-900">
+        Need {Math.max(0, 30 - completeness.score)}% more requirements
+      </BodyLarge>
+      <BodyMedium className="text-blue-700 mt-2">
+        Go back to Capture mode to add more RFP details.
+      </BodyMedium>
+    </div>
+  );
+}
 ```
 
 #### 5.2 Loading States
+
 **Current Issue:** Line 108-128 - Sparkles animation not using design system
 
 **Fix:**
+
 ```tsx
 // BEFORE
 <motion.div
@@ -489,6 +530,7 @@ transition={{ duration: animation.duration.slow }}
 ## 🎨 VISUAL REFINEMENT CHECKLIST
 
 ### Typography Consistency ✅
+
 - [ ] Replace all `text-3xl font-light` → `typography.heading.h1`
 - [ ] Replace all `text-2xl` → `typography.heading.h2`
 - [ ] Replace all `text-xl` → `typography.heading.h3`
@@ -496,12 +538,14 @@ transition={{ duration: animation.duration.slow }}
 - [ ] Replace all `text-sm` → `typography.body.md` or `typography.label.lg`
 
 ### Spacing Consistency (8px Grid) ✅
+
 - [ ] Replace all `gap-3` (12px) → `gap-4` (16px)
 - [ ] Replace all `px-6 py-4` → `px-8 py-6` or use spacing tokens
 - [ ] Replace all `p-6` → `p-8` for containers
 - [ ] Replace all `mt-3`, `mb-3` → `mt-4`, `mb-4`
 
 ### Color Consistency ✅
+
 - [ ] Replace all `bg-blue-600` → `colors.primary[600]`
 - [ ] Replace all `bg-purple-600` → `colors.accent[600]`
 - [ ] Replace all `bg-green-600` → `colors.success[600]`
@@ -509,6 +553,7 @@ transition={{ duration: animation.duration.slow }}
 - [ ] Replace all `text-gray-600` → `colors.text.secondary`
 
 ### Button Consistency ✅
+
 - [ ] Create `Button.tsx` component
 - [ ] Replace all `<button>` with `<Button>` in:
   - [ ] ProjectShell.tsx
@@ -518,6 +563,7 @@ transition={{ duration: animation.duration.slow }}
   - [ ] ImprovedGanttChart.tsx
 
 ### Animation Consistency ✅
+
 - [ ] Replace all `duration: 0.3` → `animation.duration.normal`
 - [ ] Replace all `duration: 0.5` → `animation.duration.slow`
 - [ ] Remove all `duration: 0.8`, `1.5`, `2` (use 0.15/0.3/0.5 only)
@@ -528,24 +574,28 @@ transition={{ duration: animation.duration.slow }}
 ## 🚀 IMPLEMENTATION PRIORITY
 
 ### Week 1: Foundation ⭐⭐⭐
+
 1. ✅ Create design system (`design-system.ts`)
 2. Create `Button.tsx` component
 3. Create `Typography.tsx` components
 4. Create `Card.tsx` component
 
 ### Week 2: Core Modes ⭐⭐
+
 5. Refactor `ProjectShell.tsx`
 6. Refactor `CaptureMode.tsx`
 7. Refactor `DecideMode.tsx`
 8. Refactor `PlanMode.tsx`
 
 ### Week 3: Advanced Components ⭐
+
 9. Refactor `ImprovedGanttChart.tsx`
 10. Refactor all modals (Holiday, Milestone, Resource)
 11. Update empty states
 12. Update loading states
 
 ### Week 4: Polish & Testing
+
 13. Accessibility audit (WCAG 2.1 AA)
 14. Animation polish
 15. Cross-browser testing
@@ -573,6 +623,7 @@ transition={{ duration: animation.duration.slow }}
 ## 🎯 SUCCESS METRICS
 
 Before implementation:
+
 - ❌ 23 different colors
 - ❌ 7 heading sizes
 - ❌ 5 button styles per component
@@ -580,6 +631,7 @@ Before implementation:
 - ❌ Inconsistent spacing (3px, 4px, 6px mix)
 
 After implementation:
+
 - ✅ 5 semantic color families
 - ✅ 4 heading sizes (strict scale)
 - ✅ 1 button component (3 variants × 4 sizes)
@@ -591,16 +643,19 @@ After implementation:
 ## 📚 RESOURCES
 
 ### Design References
+
 - **Apple Human Interface Guidelines**: https://developer.apple.com/design/human-interface-guidelines/
 - **Material Design 3**: https://m3.material.io/
 - **Tailwind CSS Design System**: https://tailwindcss.com/docs/customizing-spacing
 
 ### Tools
+
 - **Figma Inspect**: Measure exact pixel values
 - **Chrome DevTools**: Inspect computed styles
 - **Accessibility Insights**: Test WCAG compliance
 
 ### Reading
+
 - "The Design of Everyday Things" - Don Norman
 - "Don't Make Me Think" - Steve Krug
 - Steve Jobs' product design philosophy

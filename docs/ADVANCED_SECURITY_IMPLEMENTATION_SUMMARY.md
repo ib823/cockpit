@@ -11,6 +11,7 @@ Three advanced security features have been successfully implemented to enhance t
 **Status**: ✅ Complete and Operational
 
 **What Was Built:**
+
 - Real-time security monitoring interface at `/admin/security`
 - Interactive dashboard with auto-refresh (30s intervals)
 - Multiple visualization components:
@@ -21,6 +22,7 @@ Three advanced security features have been successfully implemented to enhance t
   - Top failure reasons ranking
 
 **Key Files Created:**
+
 ```
 src/app/admin/security/page.tsx                    # Server component
 src/components/admin/SecurityDashboardClient.tsx   # Client component
@@ -30,6 +32,7 @@ src/app/api/admin/security/geo-analysis/route.ts   # API endpoint
 ```
 
 **Features:**
+
 - ✅ Real-time metrics visualization
 - ✅ Auto-refresh toggle
 - ✅ One-click IP unblocking
@@ -38,6 +41,7 @@ src/app/api/admin/security/geo-analysis/route.ts   # API endpoint
 - ✅ Role-based access control (ADMIN only)
 
 **Access:**
+
 ```
 URL: http://localhost:3000/admin/security
 Permission: ADMIN role required
@@ -50,6 +54,7 @@ Permission: ADMIN role required
 **Status**: ✅ Complete and Operational
 
 **What Was Built:**
+
 - Intelligent IP blocking system with automatic escalation
 - Redis-backed distributed blocking (with in-memory fallback)
 - Three-tier escalation:
@@ -58,18 +63,21 @@ Permission: ADMIN role required
   3. 3 temporary blocks: Permanent block
 
 **Key Files Created:**
+
 ```
 src/lib/security/ip-blocker.ts                     # Core blocking logic
 prisma/schema.prisma (updated)                     # Added SecurityEvent model
 ```
 
 **Key Files Modified:**
+
 ```
 src/app/api/auth/finish-login/route.ts             # Added IP blocking
 src/app/api/auth/verify-otp/route.ts               # Added IP blocking
 ```
 
 **Features:**
+
 - ✅ Automatic blocking after threshold exceeded
 - ✅ Temporary blocks (60 min default, configurable)
 - ✅ Permanent blocks after repeat offenses
@@ -79,6 +87,7 @@ src/app/api/auth/verify-otp/route.ts               # Added IP blocking
 - ✅ In-memory fallback for development
 
 **Default Configuration:**
+
 ```typescript
 {
   maxFailures: 5,              // failures to trigger block
@@ -89,6 +98,7 @@ src/app/api/auth/verify-otp/route.ts               # Added IP blocking
 ```
 
 **Integration Points:**
+
 - All authentication endpoints now check IP status
 - Failures automatically increment counter
 - Block state checked at request start
@@ -101,6 +111,7 @@ src/app/api/auth/verify-otp/route.ts               # Added IP blocking
 **Status**: ✅ Complete and Operational
 
 **What Was Built:**
+
 - IP geolocation with risk scoring
 - Geographic distribution analysis
 - Impossible travel detection
@@ -108,11 +119,13 @@ src/app/api/auth/verify-otp/route.ts               # Added IP blocking
 - Datacenter/VPN/TOR detection
 
 **Key Files Created:**
+
 ```
 src/lib/security/geolocation.ts                    # Geolocation service
 ```
 
 **Features:**
+
 - ✅ Automatic IP-to-location resolution
 - ✅ Country/region/city identification
 - ✅ ISP/organization detection
@@ -125,6 +138,7 @@ src/lib/security/geolocation.ts                    # Geolocation service
 - ✅ Geographic distribution API
 
 **Geolocation Provider:**
+
 - Service: ip-api.com (free tier)
 - Rate Limit: 45 requests/minute
 - No API key required
@@ -138,16 +152,19 @@ src/lib/security/geolocation.ts                    # Geolocation service
 | TOR network | +40 | TOR exit nodes |
 
 **Risk Levels:**
+
 - **Low** (<20): Normal residential traffic
 - **Medium** (20-49): VPN/datacenter
 - **High** (≥50): High-risk country + VPN/TOR
 
 **API Endpoint:**
+
 ```bash
 GET /api/admin/security/geo-analysis?minutes=60
 ```
 
 **Response Example:**
+
 ```json
 {
   "distribution": [
@@ -189,6 +206,7 @@ model SecurityEvent {
 ```
 
 **Migration Required:**
+
 ```bash
 npx prisma db push
 ```
@@ -198,6 +216,7 @@ npx prisma db push
 ## API Endpoints Summary
 
 ### Security Metrics
+
 ```
 GET  /api/admin/auth-metrics?action=summary
 GET  /api/admin/auth-metrics?action=rate&period=24h
@@ -206,12 +225,14 @@ GET  /api/admin/auth-metrics?action=alerts
 ```
 
 ### IP Blocking
+
 ```
 GET  /api/admin/security/blocked-ips
 POST /api/admin/security/unblock-ip
 ```
 
 ### Geographic Analysis
+
 ```
 GET  /api/admin/security/geo-analysis?minutes=60
 ```
@@ -265,16 +286,19 @@ Manual admin intervention required
 ## Performance Impact
 
 ### Dashboard Loading
+
 - Initial load: ~500ms
 - Auto-refresh: ~200ms
 - Concurrent requests: 4 parallel API calls
 
 ### IP Blocking
+
 - Check overhead: ~5ms (Redis) / ~1ms (in-memory)
 - Block decision: ~50ms (includes database query)
 - Total auth overhead: <60ms
 
 ### Geographic Analysis
+
 - First lookup: ~200ms (API call)
 - Cached lookup: <1ms
 - Cache hit rate: ~95% after warmup
@@ -286,12 +310,14 @@ Manual admin intervention required
 ### Environment Variables
 
 **Required:**
+
 ```env
 DATABASE_URL=postgresql://...
 DATABASE_URL_UNPOOLED=postgresql://...
 ```
 
 **Optional (Recommended for Production):**
+
 ```env
 # Redis for distributed IP blocking
 UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
@@ -304,31 +330,38 @@ SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
 ### Customization
 
 **Adjust IP Blocking Thresholds:**
+
 ```typescript
 // src/lib/security/ip-blocker.ts
 const DEFAULT_CONFIG: BlockConfig = {
-  maxFailures: 10,             // More lenient
-  windowMinutes: 30,           // Longer window
-  blockDurationMinutes: 120,   // 2-hour blocks
-  permanentBlockThreshold: 5   // More chances
+  maxFailures: 10, // More lenient
+  windowMinutes: 30, // Longer window
+  blockDurationMinutes: 120, // 2-hour blocks
+  permanentBlockThreshold: 5, // More chances
 };
 ```
 
 **Add High-Risk Countries:**
+
 ```typescript
 // src/lib/security/geolocation.ts
 const HIGH_RISK_COUNTRIES = [
-  'CN', 'RU', 'KP', 'IR',
-  'XX', 'YY',  // Add more
+  "CN",
+  "RU",
+  "KP",
+  "IR",
+  "XX",
+  "YY", // Add more
 ];
 ```
 
 **Whitelist Trusted IPs:**
+
 ```typescript
 // src/lib/security/ip-blocker.ts
 const TRUSTED_IPS = [
-  '203.0.113.0/24',    // Office network
-  '198.51.100.0/24',   // VPN network
+  "203.0.113.0/24", // Office network
+  "198.51.100.0/24", // VPN network
 ];
 ```
 
@@ -339,6 +372,7 @@ const TRUSTED_IPS = [
 ### Test Suite
 
 **1. IP Blocking Test:**
+
 ```bash
 # Trigger 6 failed attempts
 for i in {1..6}; do
@@ -351,18 +385,21 @@ done
 ```
 
 **2. Dashboard Access Test:**
+
 ```bash
 # Login as admin, then visit:
 open http://localhost:3000/admin/security
 ```
 
 **3. Geographic Analysis Test:**
+
 ```bash
 curl http://localhost:3000/api/admin/security/geo-analysis?minutes=60 \
   -H "Cookie: next-auth.session-token=YOUR_SESSION"
 ```
 
 **4. Unblock IP Test:**
+
 ```bash
 # From admin dashboard, click "Unblock" button
 # Or via API:
@@ -379,14 +416,16 @@ curl -X POST http://localhost:3000/api/admin/security/unblock-ip \
 ### Recommended Alert Setup
 
 **1. High Failure Rate Alert**
+
 ```typescript
 // Trigger: Success rate < 85%
 if (metrics.last24Hours.successRate < 85) {
-  await sendAlert('⚠️ Authentication success rate below 85%');
+  await sendAlert("⚠️ Authentication success rate below 85%");
 }
 ```
 
 **2. Mass Blocking Alert**
+
 ```typescript
 // Trigger: >10 IPs blocked
 const blocked = await getBlockedIPs();
@@ -396,20 +435,22 @@ if (blocked.length > 10) {
 ```
 
 **3. High-Risk Country Alert**
+
 ```typescript
 // Trigger: Failures from high-risk countries
 const geoData = await getGeoAnalysis(60);
 if (geoData.statistics.highRiskCountries > 5) {
-  await sendAlert('⚠️ Attacks from multiple high-risk countries');
+  await sendAlert("⚠️ Attacks from multiple high-risk countries");
 }
 ```
 
 **4. Impossible Travel Alert**
+
 ```typescript
 // Trigger: User login from distant locations quickly
 const impossibleTravel = await detectImpossibleTravel(userLocations);
 if (impossibleTravel.length > 0) {
-  await sendAlert('🚨 Impossible travel detected for user');
+  await sendAlert("🚨 Impossible travel detected for user");
 }
 ```
 
@@ -418,24 +459,28 @@ if (impossibleTravel.length > 0) {
 ## Security Considerations
 
 ### 1. Privacy
+
 - ⚠️ IP geolocation may reveal PII
 - Store only what's necessary for security
 - Delete geographic data after 90 days
 - Update privacy policy to mention IP logging
 
 ### 2. False Positives
+
 - Shared IPs (office, cafe) may be blocked
 - Provide unblock request process
 - Consider whitelisting known good IPs
 - Monitor unblock request frequency
 
 ### 3. Distributed Attacks
+
 - In-memory blocking not effective across instances
 - Use Redis for production deployments
 - Consider CDN-level protection (Cloudflare)
 - Implement CAPTCHA for edge cases
 
 ### 4. Data Retention
+
 ```sql
 -- Clean up old security events (>90 days)
 DELETE FROM "SecurityEvent"
@@ -451,22 +496,26 @@ WHERE "createdAt" < NOW() - INTERVAL '90 days';
 ## Maintenance Tasks
 
 ### Daily
+
 - [ ] Check security dashboard for alerts
 - [ ] Review top failure reasons
 - [ ] Monitor blocked IP count
 
 ### Weekly
+
 - [ ] Review geographic distribution patterns
 - [ ] Audit permanently blocked IPs
 - [ ] Check for false positives
 
 ### Monthly
+
 - [ ] Analyze failure trends
 - [ ] Adjust blocking thresholds if needed
 - [ ] Review and update high-risk country list
 - [ ] Export security reports for compliance
 
 ### Quarterly
+
 - [ ] Clean up expired security events
 - [ ] Review and optimize geolocation cache
 - [ ] Audit whitelist/blocklist
@@ -477,32 +526,40 @@ WHERE "createdAt" < NOW() - INTERVAL '90 days';
 ## Troubleshooting
 
 ### Issue: Dashboard Shows 403 Forbidden
+
 **Solution:**
+
 ```sql
 -- Grant ADMIN role to user
 UPDATE users SET role = 'ADMIN' WHERE email = 'your@email.com';
 ```
 
 ### Issue: IPs Not Being Blocked
+
 **Checklist:**
+
 1. ✅ Prisma schema includes SecurityEvent model
 2. ✅ Database migration run: `npx prisma db push`
 3. ✅ Auth endpoints call `checkAndBlockIP()`
 4. ✅ Redis configured (or in-memory fallback active)
 
 ### Issue: Geographic Data Not Showing
+
 **Solutions:**
+
 - Check ip-api.com rate limits (45/min)
 - Verify server internet access
 - Clear cache: `clearGeoCache()`
 - Check console for API errors
 
 ### Issue: High Memory Usage from Cache
+
 **Solution:**
+
 ```typescript
 // Clear geolocation cache periodically
-import { clearGeoCache } from '@/lib/security/geolocation';
-setInterval(clearGeoCache, 24 * 60 * 60 * 1000);  // Daily
+import { clearGeoCache } from "@/lib/security/geolocation";
+setInterval(clearGeoCache, 24 * 60 * 60 * 1000); // Daily
 ```
 
 ---
@@ -510,6 +567,7 @@ setInterval(clearGeoCache, 24 * 60 * 60 * 1000);  // Daily
 ## Next Steps
 
 ### Short-term (Next 7 Days)
+
 - [ ] Test in staging environment
 - [ ] Configure Redis for production
 - [ ] Set up Slack alerts
@@ -517,12 +575,14 @@ setInterval(clearGeoCache, 24 * 60 * 60 * 1000);  // Daily
 - [ ] Train team on dashboard usage
 
 ### Medium-term (Next 30 Days)
+
 - [ ] Implement CAPTCHA for blocked IPs
 - [ ] Add IP whitelist management UI
 - [ ] Create security reports export
 - [ ] Set up automated backup of SecurityEvent table
 
 ### Long-term (3-6 Months)
+
 - [ ] Machine learning anomaly detection
 - [ ] Advanced visualization (charts, graphs)
 - [ ] Integration with SIEM systems
@@ -533,12 +593,14 @@ setInterval(clearGeoCache, 24 * 60 * 60 * 1000);  // Daily
 ## Documentation
 
 ### Complete Guide
+
 - [ADVANCED_SECURITY_FEATURES.md](./ADVANCED_SECURITY_FEATURES.md) - Comprehensive feature guide
 - [SECURITY_MONITORING_IMPLEMENTATION.md](./SECURITY_MONITORING_IMPLEMENTATION.md) - Original implementation
 - [AUTH_METRICS_USAGE.md](./AUTH_METRICS_USAGE.md) - Authentication metrics API
 - [RATE_LIMITING_VERIFICATION.md](./RATE_LIMITING_VERIFICATION.md) - Rate limiting guide
 
 ### Quick Reference
+
 ```bash
 # Dashboard
 /admin/security
@@ -561,18 +623,21 @@ analyzeIPGeolocation(ip)
 ## Success Metrics
 
 ### Security Improvements
+
 - ✅ **Automated threat response**: IPs blocked within seconds
 - ✅ **Visibility**: Real-time dashboard for security team
 - ✅ **Intelligence**: Geographic analysis of attack patterns
 - ✅ **Escalation**: Automatic permanent blocks for repeat offenders
 
 ### Operational Efficiency
+
 - ✅ **Reduced manual intervention**: Automatic blocking handles most cases
 - ✅ **Faster incident response**: Dashboard shows issues immediately
 - ✅ **Better forensics**: Complete audit trail in SecurityEvent table
 - ✅ **Proactive defense**: Alerts before major incidents
 
 ### Measurable Impact
+
 - **Before**: Manual review of logs, reactive blocking
 - **After**: Automatic blocking, proactive monitoring, geographic intelligence
 
@@ -587,6 +652,7 @@ All three advanced security features are **fully implemented and operational**:
 3. ✅ **Geographic Analysis** - Operational with risk scoring
 
 **Total Implementation:**
+
 - 10 new files created
 - 4 existing files modified
 - 1 database table added

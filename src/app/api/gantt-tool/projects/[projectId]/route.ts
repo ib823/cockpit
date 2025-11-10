@@ -6,11 +6,11 @@
  * DELETE /api/gantt-tool/projects/[projectId] - Delete project (soft delete)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
-import { prisma } from '@/lib/db';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { z } from "zod";
 
 // Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
 export const maxDuration = 10; // seconds
@@ -19,7 +19,10 @@ export const maxDuration = 10; // seconds
 const UpdateProjectSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(5000).optional(),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   viewSettings: z.any().optional(), // JSON field
   budget: z.any().optional(), // JSON field
   orgChart: z.any().optional(), // JSON field - organization chart structure
@@ -51,14 +54,14 @@ export async function GET(
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { projectId } = await params;
 
     // Check if we should load minimal data (for list previews)
     const { searchParams } = new URL(request.url);
-    const minimal = searchParams.get('minimal') === 'true';
+    const minimal = searchParams.get("minimal") === "true";
 
     const project = minimal
       ? // Minimal query - only basic info + counts (< 50ms)
@@ -101,50 +104,50 @@ export async function GET(
                   include: {
                     resourceAssignments: true,
                   },
-                  orderBy: { order: 'asc' },
+                  orderBy: { order: "asc" },
                 },
                 phaseResourceAssignments: true,
               },
-              orderBy: { order: 'asc' },
+              orderBy: { order: "asc" },
             },
             milestones: {
-              orderBy: { date: 'asc' },
+              orderBy: { date: "asc" },
             },
             holidays: {
-              orderBy: { date: 'asc' },
+              orderBy: { date: "asc" },
             },
             resources: {
-              orderBy: { createdAt: 'asc' },
+              orderBy: { createdAt: "asc" },
             },
           },
         });
 
     if (!project) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
     // Serialize dates to strings for frontend
     const serializedProject = minimal
       ? {
           ...project,
-          startDate: (project as any).startDate.toISOString().split('T')[0],
+          startDate: (project as any).startDate.toISOString().split("T")[0],
           createdAt: (project as any).createdAt.toISOString(),
           updatedAt: (project as any).updatedAt.toISOString(),
         }
       : {
           ...project,
-          startDate: (project as any).startDate.toISOString().split('T')[0],
+          startDate: (project as any).startDate.toISOString().split("T")[0],
           createdAt: (project as any).createdAt.toISOString(),
           updatedAt: (project as any).updatedAt.toISOString(),
           deletedAt: (project as any).deletedAt?.toISOString() || null,
           phases: (project as any).phases.map((phase: any) => ({
             ...phase,
-            startDate: phase.startDate.toISOString().split('T')[0],
-            endDate: phase.endDate.toISOString().split('T')[0],
+            startDate: phase.startDate.toISOString().split("T")[0],
+            endDate: phase.endDate.toISOString().split("T")[0],
             tasks: phase.tasks.map((task: any) => ({
               ...task,
-              startDate: task.startDate.toISOString().split('T')[0],
-              endDate: task.endDate.toISOString().split('T')[0],
+              startDate: task.startDate.toISOString().split("T")[0],
+              endDate: task.endDate.toISOString().split("T")[0],
               resourceAssignments: task.resourceAssignments.map((ra: any) => ({
                 ...ra,
                 assignedAt: ra.assignedAt.toISOString(),
@@ -157,11 +160,11 @@ export async function GET(
           })),
           milestones: (project as any).milestones.map((m: any) => ({
             ...m,
-            date: m.date.toISOString().split('T')[0],
+            date: m.date.toISOString().split("T")[0],
           })),
           holidays: (project as any).holidays.map((h: any) => ({
             ...h,
-            date: h.date.toISOString().split('T')[0],
+            date: h.date.toISOString().split("T")[0],
           })),
           resources: (project as any).resources.map((r: any) => ({
             ...r,
@@ -172,16 +175,13 @@ export async function GET(
     // Add caching headers to reduce repeated requests
     // Cache for 10 seconds with revalidation (stale-while-revalidate for 60s)
     const response = NextResponse.json({ project: serializedProject }, { status: 200 });
-    response.headers.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=60');
-    response.headers.set('ETag', `"${project.updatedAt.getTime()}"`);
+    response.headers.set("Cache-Control", "private, max-age=10, stale-while-revalidate=60");
+    response.headers.set("ETag", `"${project.updatedAt.getTime()}"`);
 
     return response;
   } catch (error) {
-    console.error('[API] Failed to fetch gantt project:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch project' },
-      { status: 500 }
-    );
+    console.error("[API] Failed to fetch gantt project:", error);
+    return NextResponse.json({ error: "Failed to fetch project" }, { status: 500 });
   }
 }
 
@@ -191,13 +191,13 @@ export async function PATCH(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const startTime = Date.now();
-  const isDev = process.env.NODE_ENV === 'development';
+  const isDev = process.env.NODE_ENV === "development";
 
   try {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { projectId } = await params;
@@ -205,18 +205,15 @@ export async function PATCH(
     // Check ownership
     const hasAccess = await checkProjectOwnership(projectId, session.user.id);
     if (!hasAccess) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     let body;
     try {
       body = await request.json();
     } catch (jsonError) {
-      if (isDev) console.error('[API] Failed to parse JSON:', jsonError);
-      return NextResponse.json(
-        { error: 'Invalid JSON in request body' },
-        { status: 400 }
-      );
+      if (isDev) console.error("[API] Failed to parse JSON:", jsonError);
+      return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 });
     }
 
     const validatedData = UpdateProjectSchema.parse(body);
@@ -228,7 +225,7 @@ export async function PATCH(
           userId: session.user.id,
           name: {
             equals: validatedData.name,
-            mode: 'insensitive',
+            mode: "insensitive",
           },
           deletedAt: null,
           NOT: {
@@ -239,7 +236,9 @@ export async function PATCH(
 
       if (existingProject) {
         return NextResponse.json(
-          { error: `A project named "${validatedData.name}" already exists. Please choose a different name.` },
+          {
+            error: `A project named "${validatedData.name}" already exists. Please choose a different name.`,
+          },
           { status: 409 }
         );
       }
@@ -248,7 +247,7 @@ export async function PATCH(
     // Update project in transaction
     const txStartTime = Date.now();
 
-    const updatedProject = await (prisma.$transaction as any)(async (tx: any) => {
+    const updatedProject: { id: string; updatedAt: Date } = await (prisma.$transaction as any)(async (tx: any) => {
       // Update main project fields
       const project = await tx.ganttProject.update({
         where: { id: projectId },
@@ -260,6 +259,7 @@ export async function PATCH(
           budget: validatedData.budget,
           orgChart: validatedData.orgChart, // Organization chart structure
         },
+        select: { id: true, updatedAt: true },
       });
 
       // IMPORTANT: Create resources FIRST before phases/tasks that reference them
@@ -274,7 +274,7 @@ export async function PATCH(
             projectId: projectId,
             name: r.name,
             category: r.category,
-            description: r.description || '',
+            description: r.description || "",
             designation: r.designation,
             managerResourceId: r.managerResourceId || null,
             email: r.email || null,
@@ -438,7 +438,7 @@ export async function PATCH(
       // Resources are already handled at the beginning of the transaction
 
       return project;
-    });
+    }) as { id: string; updatedAt: Date };
 
     const txDuration = Date.now() - txStartTime;
 
@@ -448,16 +448,16 @@ export async function PATCH(
         data: {
           id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           userId: session.user.id,
-          action: 'UPDATE',
-          entity: 'gantt_project',
+          action: "UPDATE",
+          entity: "gantt_project",
           entityId: projectId,
           changes: validatedData,
         },
       });
     } catch (auditError) {
       // Log the error but don't fail the request (only in development)
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[API] Failed to create audit log (non-critical):', auditError);
+      if (process.env.NODE_ENV === "development") {
+        console.error("[API] Failed to create audit log (non-critical):", auditError);
       }
     }
 
@@ -465,82 +465,87 @@ export async function PATCH(
 
     // Return minimal response - frontend already has the data
     // This saves 30-50% of execution time by avoiding the expensive refetch
-    return NextResponse.json({
-      success: true,
-      project: {
-        id: projectId,
-        updatedAt: updatedProject.updatedAt.toISOString(),
+    return NextResponse.json(
+      {
+        success: true,
+        project: {
+          id: projectId,
+          updatedAt: updatedProject.updatedAt.toISOString(),
+        },
+        meta: {
+          txDuration,
+          totalDuration: duration,
+        },
       },
-      meta: {
-        txDuration,
-        totalDuration: duration,
-      }
-    }, { status: 200 });
+      { status: 200 }
+    );
   } catch (error) {
     const duration = Date.now() - startTime;
 
     if (error instanceof z.ZodError) {
-      if (isDev) console.error('[API] Zod validation failed:', error.issues);
+      if (isDev) console.error("[API] Zod validation failed:", error.issues);
       return NextResponse.json(
-        { error: 'Validation failed', details: error.issues },
+        { error: "Validation failed", details: error.issues },
         { status: 400 }
       );
     }
 
     // Log detailed error information (only in development)
     if (isDev) {
-      console.error('[API] Failed to update gantt project:');
-      console.error('Error name:', error instanceof Error ? error.name : 'Unknown');
-      console.error('Error message:', error instanceof Error ? error.message : error);
-      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      console.error("[API] Failed to update gantt project:");
+      console.error("Error name:", error instanceof Error ? error.name : "Unknown");
+      console.error("Error message:", error instanceof Error ? error.message : error);
+      console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
     }
 
     // Check for Prisma-specific errors
-    if (error && typeof error === 'object' && 'code' in error) {
+    if (error && typeof error === "object" && "code" in error) {
       if (isDev) {
-        console.error('Prisma error code:', (error as any).code);
-        console.error('Prisma error meta:', (error as any).meta);
+        console.error("Prisma error code:", (error as any).code);
+        console.error("Prisma error meta:", (error as any).meta);
       }
 
       // Provide more user-friendly error messages for common Prisma errors
       const prismaCode = (error as any).code;
-      if (prismaCode === 'P2002') {
+      if (prismaCode === "P2002") {
         const meta = (error as any).meta;
         const target = meta?.target || [];
-        let detailedMessage = 'A record with this data already exists.';
+        let detailedMessage = "A record with this data already exists.";
 
         // Provide specific guidance based on constraint
-        if (target.includes('taskId') && target.includes('resourceId')) {
-          detailedMessage = 'Duplicate resource assignment detected: The same resource is already assigned to this task. Please refresh the page to sync with the latest data.';
-        } else if (target.includes('phaseId') && target.includes('resourceId')) {
-          detailedMessage = 'Duplicate PM resource assignment detected: The same PM resource is already assigned to this phase. Please refresh the page to sync with the latest data.';
-        } else if (target.includes('name')) {
-          detailedMessage = 'A project with this name already exists. Please use a different name.';
+        if (target.includes("taskId") && target.includes("resourceId")) {
+          detailedMessage =
+            "Duplicate resource assignment detected: The same resource is already assigned to this task. Please refresh the page to sync with the latest data.";
+        } else if (target.includes("phaseId") && target.includes("resourceId")) {
+          detailedMessage =
+            "Duplicate PM resource assignment detected: The same PM resource is already assigned to this phase. Please refresh the page to sync with the latest data.";
+        } else if (target.includes("name")) {
+          detailedMessage = "A project with this name already exists. Please use a different name.";
         }
 
         return NextResponse.json(
           {
-            error: 'Unique constraint violation',
+            error: "Unique constraint violation",
             message: detailedMessage,
             conflictField: target,
             details: meta,
           },
           { status: 409 }
         );
-      } else if (prismaCode === 'P2003') {
+      } else if (prismaCode === "P2003") {
         return NextResponse.json(
           {
-            error: 'Foreign key constraint violation',
-            message: 'Referenced record does not exist',
+            error: "Foreign key constraint violation",
+            message: "Referenced record does not exist",
             details: (error as any).meta,
           },
           { status: 400 }
         );
-      } else if (prismaCode === 'P2025') {
+      } else if (prismaCode === "P2025") {
         return NextResponse.json(
           {
-            error: 'Record not found',
-            message: 'The requested record was not found',
+            error: "Record not found",
+            message: "The requested record was not found",
             details: (error as any).meta,
           },
           { status: 404 }
@@ -550,9 +555,12 @@ export async function PATCH(
 
     return NextResponse.json(
       {
-        error: 'Failed to update project',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        details: error instanceof Error ? { name: error.name, stack: error.stack?.split('\n').slice(0, 3) } : undefined,
+        error: "Failed to update project",
+        message: error instanceof Error ? error.message : "Unknown error",
+        details:
+          error instanceof Error
+            ? { name: error.name, stack: error.stack?.split("\n").slice(0, 3) }
+            : undefined,
       },
       { status: 500 }
     );
@@ -568,7 +576,7 @@ export async function DELETE(
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { projectId } = await params;
@@ -576,7 +584,7 @@ export async function DELETE(
     // Check ownership
     const hasAccess = await checkProjectOwnership(projectId, session.user.id);
     if (!hasAccess) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Soft delete
@@ -590,18 +598,15 @@ export async function DELETE(
       data: {
         id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         userId: session.user.id,
-        action: 'DELETE',
-        entity: 'gantt_project',
+        action: "DELETE",
+        entity: "gantt_project",
         entityId: projectId,
       },
     });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('[API] Failed to delete gantt project:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete project' },
-      { status: 500 }
-    );
+    console.error("[API] Failed to delete gantt project:", error);
+    return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
   }
 }

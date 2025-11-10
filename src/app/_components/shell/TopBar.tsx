@@ -3,13 +3,13 @@
  * Apple-like top navigation with brand, mode nav, and actions
  */
 
-'use client';
+"use client";
 
-import React from 'react';
-import { ModeNav } from './ModeNav';
-import { ClientSafeToggle } from './ClientSafeToggle';
-import { Button, Tooltip } from '../ui';
-import { Download, Share2 } from 'lucide-react';
+import React from "react";
+import { ModeNav } from "./ModeNav";
+import { ClientSafeToggle } from "./ClientSafeToggle";
+import { Button, Tooltip } from "../ui";
+import { Download, Share2 } from "lucide-react";
 
 export const TopBar: React.FC = () => {
   return (
@@ -18,9 +18,7 @@ export const TopBar: React.FC = () => {
         <div className="flex items-center justify-between gap-8">
           {/* Brand */}
           <div className="flex items-center gap-4">
-            <div className="text-lg font-semibold text-[var(--ink)]">
-              Keystone
-            </div>
+            <div className="text-lg font-semibold text-[var(--ink)]">Keystone</div>
           </div>
 
           {/* Mode Navigation */}

@@ -10,16 +10,20 @@
 ## What Was Changed
 
 ### Before
+
 ```tsx
-className="fixed right-0 top-0 bottom-0 w-[480px] bg-white shadow-2xl z-50 flex flex-col"
+className = "fixed right-0 top-0 bottom-0 w-[480px] bg-white shadow-2xl z-50 flex flex-col";
 ```
 
 ### After
+
 ```tsx
-className="fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480px] bg-white shadow-2xl z-50 flex flex-col"
+className =
+  "fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480px] bg-white shadow-2xl z-50 flex flex-col";
 ```
 
 ### Changes Explained
+
 - **`w-full`**: Mobile (< 640px) - panel takes full width
 - **`sm:max-w-sm`**: Small screens (640px+) - panel max 384px
 - **`md:max-w-md`**: Medium screens (768px+) - panel max 448px
@@ -30,17 +34,20 @@ className="fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480
 ## How to Test (Manual - 5 minutes)
 
 ### Step 1: Start Development Server
+
 ```bash
 npm run dev
 ```
 
 ### Step 2: Navigate to Plan Mode
+
 1. Open: http://localhost:3000
 2. Log in (if needed)
 3. Go to: Project → Plan Mode
 4. OR directly: http://localhost:3000/project/plan
 
 ### Step 3: Open the Side Panel
+
 1. Click on **any phase** in the Gantt chart/timeline
 2. The side panel should slide in from the right
 
@@ -49,6 +56,7 @@ npm run dev
 **Use Chrome DevTools** (F12 → Device Toolbar - Cmd+Shift+M on Mac, Ctrl+Shift+M on Windows)
 
 #### Test 1: iPhone SE (375px wide)
+
 ```
 1. Select "iPhone SE" from device list
 2. Click a phase to open panel
@@ -59,6 +67,7 @@ npm run dev
 ```
 
 #### Test 2: iPhone 12 (390px wide)
+
 ```
 1. Select "iPhone 12" from device list
 2. Open panel
@@ -68,6 +77,7 @@ npm run dev
 ```
 
 #### Test 3: iPad Mini (768px wide)
+
 ```
 1. Select "iPad Mini" or set to 768px wide
 2. Open panel
@@ -77,6 +87,7 @@ npm run dev
 ```
 
 #### Test 4: Desktop (1280px wide)
+
 ```
 1. Set to "Responsive" and enter 1280px
 2. Open panel
@@ -86,6 +97,7 @@ npm run dev
 ```
 
 ### Step 5: Test Functionality
+
 ```
 For EACH viewport size above:
 ✓ Panel opens when phase clicked
@@ -103,6 +115,7 @@ For EACH viewport size above:
 ## Expected Results
 
 ### ✅ PASS Criteria
+
 - [ ] Panel fits screen at ALL viewport sizes
 - [ ] No horizontal scroll on any device
 - [ ] Close button always visible and functional
@@ -113,6 +126,7 @@ For EACH viewport size above:
 - [ ] Animation smooth on all devices
 
 ### ❌ FAIL Criteria (Revert if ANY of these occur)
+
 - Panel wider than screen on mobile
 - Horizontal scroll appears
 - Close button hidden or unreachable
@@ -150,10 +164,12 @@ If you have a real iPhone/iPad:
 **Open Browser Console** (F12 → Console tab)
 
 ### Should See
+
 - ✓ No errors
 - ✓ Normal React warnings only (if any)
 
 ### Should NOT See
+
 - ✗ TypeScript errors
 - ✗ "Cannot read property..." errors
 - ✗ Layout warnings
@@ -164,9 +180,11 @@ If you have a real iPhone/iPad:
 ## Screenshot Comparison (Optional)
 
 ### Before Fix
+
 - Mobile: Panel overflows, horizontal scroll
 
 ### After Fix
+
 - Mobile: Panel fills screen perfectly, no scroll
 
 ---
@@ -174,6 +192,7 @@ If you have a real iPhone/iPad:
 ## If Something Breaks
 
 ### Immediate Rollback
+
 ```bash
 # Undo the change instantly
 git restore src/components/project-v2/modes/PlanMode.tsx
@@ -187,6 +206,7 @@ git diff src/components/project-v2/modes/PlanMode.tsx
 ```
 
 ### Debug Steps
+
 1. Check browser console for errors
 2. Verify correct viewport size
 3. Clear browser cache (Cmd+Shift+R)
@@ -196,17 +216,18 @@ git diff src/components/project-v2/modes/PlanMode.tsx
 
 ## Test Results Template
 
-**Date Tested**: _____________
-**Tester**: _____________
+**Date Tested**: **\*\***\_**\*\***
+**Tester**: **\*\***\_**\*\***
 
-| Viewport | Width | Panel Width | Scroll? | Close Works? | Result |
-|----------|-------|-------------|---------|--------------|--------|
-| iPhone SE | 375px | _______ | ☐ Yes ☐ No | ☐ Yes ☐ No | ☐ Pass ☐ Fail |
-| iPhone 12 | 390px | _______ | ☐ Yes ☐ No | ☐ Yes ☐ No | ☐ Pass ☐ Fail |
-| iPad Mini | 768px | _______ | ☐ Yes ☐ No | ☐ Yes ☐ No | ☐ Pass ☐ Fail |
-| Desktop | 1280px | _______ | ☐ Yes ☐ No | ☐ Yes ☐ No | ☐ Pass ☐ Fail |
+| Viewport  | Width  | Panel Width | Scroll?    | Close Works? | Result        |
+| --------- | ------ | ----------- | ---------- | ------------ | ------------- |
+| iPhone SE | 375px  | **\_\_\_**  | ☐ Yes ☐ No | ☐ Yes ☐ No   | ☐ Pass ☐ Fail |
+| iPhone 12 | 390px  | **\_\_\_**  | ☐ Yes ☐ No | ☐ Yes ☐ No   | ☐ Pass ☐ Fail |
+| iPad Mini | 768px  | **\_\_\_**  | ☐ Yes ☐ No | ☐ Yes ☐ No   | ☐ Pass ☐ Fail |
+| Desktop   | 1280px | **\_\_\_**  | ☐ Yes ☐ No | ☐ Yes ☐ No   | ☐ Pass ☐ Fail |
 
 **Functionality Tests**:
+
 - [ ] Panel opens on phase click
 - [ ] X button closes panel
 - [ ] Backdrop click closes panel
@@ -215,13 +236,14 @@ git diff src/components/project-v2/modes/PlanMode.tsx
 
 **Overall Result**: ☐ PASS (Ready to commit) ☐ FAIL (Revert and debug)
 
-**Notes**: ________________________________________
+**Notes**: **\*\*\*\***\*\***\*\*\*\***\_\_\_\_**\*\*\*\***\*\***\*\*\*\***
 
 ---
 
 ## Next Steps After Testing
 
 ### If Tests PASS ✅
+
 ```bash
 # Commit the change
 git add src/components/project-v2/modes/PlanMode.tsx
@@ -238,6 +260,7 @@ git commit -m "fix(mobile): make PlanMode panel responsive
 ```
 
 ### If Tests FAIL ❌
+
 ```bash
 # Revert immediately
 git restore src/components/project-v2/modes/PlanMode.tsx

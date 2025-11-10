@@ -1,14 +1,14 @@
-'use client';
-import { Card, Timeline, Button, Space, Row, Col, Statistic } from 'antd';
-import { ClockCircleOutlined, TeamOutlined, ArrowRightOutlined } from '@ant-design/icons';
-import { AppLayout } from '@/components/project-v2/AppLayout';
-import { useTimelineStore } from '@/stores/timeline-store';
-import { useRouter } from 'next/navigation';
+"use client";
+import { Card, Timeline, Button, Space, Row, Col, Statistic } from "antd";
+import { ClockCircleOutlined, TeamOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import { AppLayout } from "@/components/project-v2/AppLayout";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { useRouter } from "next/navigation";
 
 export default function PlanPage() {
   const { phases } = useTimelineStore();
   const router = useRouter();
-  
+
   const totalDays = phases.reduce((sum, p) => sum + p.workingDays, 0);
   const totalResources = phases.reduce((sum, p) => sum + (p.resources?.length || 0), 0);
 
@@ -18,9 +18,9 @@ export default function PlanPage() {
         <Row gutter={16}>
           <Col span={8}>
             <Card>
-              <Statistic 
-                title="Duration" 
-                value={Math.round(totalDays / 22)} 
+              <Statistic
+                title="Duration"
+                value={Math.round(totalDays / 22)}
                 suffix="months"
                 prefix={<ClockCircleOutlined />}
               />
@@ -28,19 +28,12 @@ export default function PlanPage() {
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic 
-                title="Phases" 
-                value={phases.length}
-              />
+              <Statistic title="Phases" value={phases.length} />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic 
-                title="Team Members" 
-                value={totalResources}
-                prefix={<TeamOutlined />}
-              />
+              <Statistic title="Team Members" value={totalResources} prefix={<TeamOutlined />} />
             </Card>
           </Col>
         </Row>
@@ -48,12 +41,13 @@ export default function PlanPage() {
         <Card title="Implementation Timeline">
           <Timeline
             items={phases.map((phase, idx) => ({
-              color: idx === 0 ? 'green' : 'blue',
+              color: idx === 0 ? "green" : "blue",
               children: (
                 <div>
                   <div className="font-semibold">{phase.name}</div>
                   <div className="text-sm text-gray-500">
-                    {Math.round(phase.workingDays / 22)} months • {phase.resources?.length || 0} team members
+                    {Math.round(phase.workingDays / 22)} months • {phase.resources?.length || 0}{" "}
+                    team members
                   </div>
                 </div>
               ),
@@ -62,11 +56,11 @@ export default function PlanPage() {
         </Card>
 
         <div className="flex justify-center">
-          <Button 
-            type="primary" 
-            size="large" 
+          <Button
+            type="primary"
+            size="large"
             icon={<ArrowRightOutlined />}
-            onClick={() => router.push('/project/present')}
+            onClick={() => router.push("/project/present")}
           >
             Continue to Presentation
           </Button>

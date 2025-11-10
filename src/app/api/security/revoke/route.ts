@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
-import { randomUUID } from 'crypto';
-import { jwtVerify } from 'jose';
-import { prisma } from '@/lib/db';
-import { sendSecurityEmail } from '@/lib/email';
+import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { randomUUID } from "crypto";
+import { jwtVerify } from "jose";
+import { prisma } from "@/lib/db";
+import { sendSecurityEmail } from "@/lib/email";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 /**
  * Security Action Handler - "Not Me" Button
@@ -26,7 +26,7 @@ export const runtime = 'nodejs';
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
-    const token = searchParams.get('token');
+    const token = searchParams.get("token");
 
     if (!token) {
       return new Response(
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
         `,
         {
           status: 400,
-          headers: { 'Content-Type': 'text/html' }
+          headers: { "Content-Type": "text/html" },
         }
       );
     }
@@ -64,12 +64,12 @@ export async function GET(req: NextRequest) {
     let payload: any;
     try {
       const secret = new TextEncoder().encode(
-        process.env.JWT_SECRET_KEY || 'default-secret-change-in-production'
+        process.env.JWT_SECRET_KEY || "default-secret-change-in-production"
       );
       const { payload: jwtPayload } = await jwtVerify(token, secret);
       payload = jwtPayload;
     } catch (jwtError) {
-      console.error('[SecurityAction] JWT verification failed:', jwtError);
+      console.error("[SecurityAction] JWT verification failed:", jwtError);
       return new Response(
         `
 <!DOCTYPE html>
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
         `,
         {
           status: 401,
-          headers: { 'Content-Type': 'text/html' }
+          headers: { "Content-Type": "text/html" },
         }
       );
     }
@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
     const userId = payload.userId as string;
     const action = payload.action as string;
 
-    if (!userId || action !== 'revoke_all') {
+    if (!userId || action !== "revoke_all") {
       return new Response(
         `
 <!DOCTYPE html>
@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
         `,
         {
           status: 400,
-          headers: { 'Content-Type': 'text/html' }
+          headers: { "Content-Type": "text/html" },
         }
       );
     }
@@ -140,7 +140,7 @@ export async function GET(req: NextRequest) {
     // 2. Check if Token Already Used
     // ============================================
     const securityAction = await prisma.securityAction.findUnique({
-      where: { token }
+      where: { token },
     });
 
     if (securityAction?.usedAt) {
@@ -172,7 +172,7 @@ export async function GET(req: NextRequest) {
         `,
         {
           status: 409,
-          headers: { 'Content-Type': 'text/html' }
+          headers: { "Content-Type": "text/html" },
         }
       );
     }
@@ -186,14 +186,14 @@ export async function GET(req: NextRequest) {
         sessions: {
           where: {
             expires: { gt: new Date() },
-            revokedAt: null
-          }
+            revokedAt: null,
+          },
         },
         Authenticator: true,
         recoveryCodes: {
-          where: { usedAt: null }
-        }
-      }
+          where: { usedAt: null },
+        },
+      },
     });
 
     if (!user) {
@@ -221,7 +221,7 @@ export async function GET(req: NextRequest) {
         `,
         {
           status: 404,
-          headers: { 'Content-Type': 'text/html' }
+          headers: { "Content-Type": "text/html" },
         }
       );
     }
@@ -237,7 +237,7 @@ export async function GET(req: NextRequest) {
       // 4a. Mark security action as used
       prisma.securityAction.update({
         where: { token },
-        data: { usedAt: new Date() }
+        data: { usedAt: new Date() },
       }),
 
       // 4b. Revoke all active sessions
@@ -245,17 +245,17 @@ export async function GET(req: NextRequest) {
         where: {
           userId: user.id,
           expires: { gt: new Date() },
-          revokedAt: null
+          revokedAt: null,
         },
         data: {
           revokedAt: new Date(),
-          revokedReason: 'security_breach'
-        }
+          revokedReason: "security_breach",
+        },
       }),
 
       // 4c. Delete all passkeys/authenticators
       prisma.authenticator.deleteMany({
-        where: { userId: user.id }
+        where: { userId: user.id },
       }),
 
       // 4d. Reset TOTP secret (force re-enrollment)
@@ -266,9 +266,9 @@ export async function GET(req: NextRequest) {
           totpSecret: null,
           totpEnabledAt: null,
           accountLockedAt: new Date(),
-          accountLockedReason: 'security_breach_user_initiated',
-          passwordExpiresAt: new Date() // Force password change immediately
-        }
+          accountLockedReason: "security_breach_user_initiated",
+          passwordExpiresAt: new Date(), // Force password change immediately
+        },
       }),
 
       // 4e. Log audit event
@@ -276,18 +276,18 @@ export async function GET(req: NextRequest) {
         data: {
           id: randomUUID(),
           userId: user.id,
-          type: 'SECURITY_LOCKDOWN',
+          type: "SECURITY_LOCKDOWN",
           createdAt: new Date(),
           meta: {
-            action: 'revoke_all',
+            action: "revoke_all",
             sessionsRevoked: sessionCount,
             passkeysDeleted: passkeyCount,
             totpReset: true,
             backupCodesRemaining: backupCodesCount,
-            trigger: 'user_security_alert'
-          }
-        }
-      })
+            trigger: "user_security_alert",
+          },
+        },
+      }),
     ]);
 
     // ============================================
@@ -295,7 +295,7 @@ export async function GET(req: NextRequest) {
     // ============================================
     try {
       const confirmationEmail = {
-        subject: 'Account Secured - Action Required',
+        subject: "Account Secured - Action Required",
         html: `
 <!DOCTYPE html>
 <html>
@@ -337,14 +337,18 @@ export async function GET(req: NextRequest) {
         </ol>
       </div>
 
-      ${backupCodesCount === 0 ? `
+      ${
+        backupCodesCount === 0
+          ? `
       <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; border-radius: 8px; margin: 32px 0;">
         <h4 style="margin: 0 0 8px 0; color: #991b1b; font-size: 16px; font-weight: 600;">⚠️ No Backup Codes Available</h4>
         <p style="margin: 0; color: #991b1b; font-size: 14px; line-height: 1.6;">
           You have no backup codes remaining. Please contact support at <strong>support@example.com</strong> to regain access to your account.
         </p>
       </div>
-      ` : ''}
+      `
+          : ""
+      }
     </div>
 
     <div style="background: #f8fafc; padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
@@ -355,12 +359,12 @@ export async function GET(req: NextRequest) {
   </div>
 </body>
 </html>
-        `
+        `,
       };
 
       await sendSecurityEmail(user.email, confirmationEmail.subject, confirmationEmail.html);
     } catch (emailError) {
-      console.error('[SecurityAction] Failed to send confirmation email:', emailError);
+      console.error("[SecurityAction] Failed to send confirmation email:", emailError);
       // Continue even if email fails
     }
 
@@ -456,7 +460,9 @@ export async function GET(req: NextRequest) {
       color: #1e40af;
       line-height: 1.8;
     }
-    ${backupCodesCount === 0 ? `
+    ${
+      backupCodesCount === 0
+        ? `
     .warning-box {
       background: #fef2f2;
       border-left: 4px solid #dc2626;
@@ -474,7 +480,9 @@ export async function GET(req: NextRequest) {
       color: #991b1b;
       line-height: 1.6;
     }
-    ` : ''}
+    `
+        : ""
+    }
     .footer {
       text-align: center;
       margin-top: 32px;
@@ -525,7 +533,9 @@ export async function GET(req: NextRequest) {
       </ol>
     </div>
 
-    ${backupCodesCount === 0 ? `
+    ${
+      backupCodesCount === 0
+        ? `
     <div class="warning-box">
       <h4>⚠️ No Backup Codes Available</h4>
       <p>
@@ -534,7 +544,9 @@ export async function GET(req: NextRequest) {
         You will need to verify your identity.
       </p>
     </div>
-    ` : ''}
+    `
+        : ""
+    }
 
     <div class="footer">
       <p>
@@ -548,12 +560,11 @@ export async function GET(req: NextRequest) {
       `,
       {
         status: 200,
-        headers: { 'Content-Type': 'text/html' }
+        headers: { "Content-Type": "text/html" },
       }
     );
-
   } catch (error) {
-    console.error('[SecurityAction] Error:', error);
+    console.error("[SecurityAction] Error:", error);
     return new Response(
       `
 <!DOCTYPE html>
@@ -578,7 +589,7 @@ export async function GET(req: NextRequest) {
       `,
       {
         status: 500,
-        headers: { 'Content-Type': 'text/html' }
+        headers: { "Content-Type": "text/html" },
       }
     );
   }

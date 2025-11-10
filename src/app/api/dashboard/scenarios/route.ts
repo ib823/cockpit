@@ -3,10 +3,10 @@
  * Manage what-if scenarios
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 /**
  * GET /api/dashboard/scenarios
@@ -17,17 +17,14 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const projectId = searchParams.get('projectId');
+    const projectId = searchParams.get("projectId");
 
     if (!projectId) {
-      return NextResponse.json(
-        { error: 'projectId required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "projectId required" }, { status: 400 });
     }
 
     // Get user ID
@@ -37,7 +34,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Fetch scenarios
@@ -47,17 +44,14 @@ export async function GET(request: NextRequest) {
         userId: user.id,
       },
       orderBy: {
-        isBaseline: 'desc', // Baseline first
+        isBaseline: "desc", // Baseline first
       },
     });
 
     return NextResponse.json({ scenarios });
   } catch (error) {
-    console.error('Error fetching scenarios:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch scenarios' },
-      { status: 500 }
-    );
+    console.error("Error fetching scenarios:", error);
+    return NextResponse.json({ error: "Failed to fetch scenarios" }, { status: 500 });
   }
 }
 
@@ -70,7 +64,7 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -89,10 +83,7 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!projectId || !name || !projectData || revenue === undefined) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     // Get user ID
@@ -102,7 +93,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // If setting as baseline, unset other baselines
@@ -138,11 +129,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ scenario }, { status: 201 });
   } catch (error) {
-    console.error('Error creating scenario:', error);
-    return NextResponse.json(
-      { error: 'Failed to create scenario' },
-      { status: 500 }
-    );
+    console.error("Error creating scenario:", error);
+    return NextResponse.json({ error: "Failed to create scenario" }, { status: 500 });
   }
 }
 
@@ -155,14 +143,14 @@ export async function DELETE(request: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: 'Scenario ID required' }, { status: 400 });
+      return NextResponse.json({ error: "Scenario ID required" }, { status: 400 });
     }
 
     // Get user ID
@@ -172,7 +160,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Delete scenario (only if user owns it)
@@ -184,18 +172,12 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (deleted.count === 0) {
-      return NextResponse.json(
-        { error: 'Scenario not found or unauthorized' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Scenario not found or unauthorized" }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting scenario:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete scenario' },
-      { status: 500 }
-    );
+    console.error("Error deleting scenario:", error);
+    return NextResponse.json({ error: "Failed to delete scenario" }, { status: 500 });
   }
 }

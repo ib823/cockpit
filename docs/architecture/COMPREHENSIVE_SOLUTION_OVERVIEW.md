@@ -34,11 +34,13 @@
 ### The Core Value Proposition
 
 **For SAP Consultants:**
+
 - Generate SAP implementation estimates in **30 seconds** (vs. days of manual work)
 - Build detailed project plans with **90% accuracy** (validated against historical projects)
 - Create client-ready presentations with **zero manual formatting**
 
 **For Organizations:**
+
 - Increase presales team productivity by **10x**
 - Improve win rates with data-driven, accurate proposals
 - Standardize estimation methodology across the organization
@@ -71,6 +73,7 @@ WIN RATE: ~25% (industry average)
 ```
 
 **Problems:**
+
 1. **Time-consuming:** Junior consultants spend days on estimates
 2. **Inconsistent:** Different consultants use different methodologies
 3. **Error-prone:** Manual calculations lead to underestimation
@@ -81,15 +84,16 @@ WIN RATE: ~25% (industry average)
 
 **Existing tools fall short:**
 
-| Tool | Limitation |
-|------|------------|
-| **MS Excel** | No automation, no intelligence, prone to formula errors |
-| **MS Project** | Doesn't understand SAP methodology, steep learning curve |
-| **SAP Activate** | Methodology only (no tooling), requires manual interpretation |
-| **Generic PM tools** (Monday, ClickUp, Asana) | Not SAP-specific, no estimation engine, no RFP intelligence |
-| **Custom in-house tools** | Fragmented, not maintained, poor UX |
+| Tool                                          | Limitation                                                    |
+| --------------------------------------------- | ------------------------------------------------------------- |
+| **MS Excel**                                  | No automation, no intelligence, prone to formula errors       |
+| **MS Project**                                | Doesn't understand SAP methodology, steep learning curve      |
+| **SAP Activate**                              | Methodology only (no tooling), requires manual interpretation |
+| **Generic PM tools** (Monday, ClickUp, Asana) | Not SAP-specific, no estimation engine, no RFP intelligence   |
+| **Custom in-house tools**                     | Fragmented, not maintained, poor UX                           |
 
 **The opportunity:** Build a **vertical SaaS** tool specifically for SAP presales teams with:
+
 - Domain-specific intelligence (SAP Activate methodology built-in)
 - RFP extraction using AI/NLP
 - Benchmark data from thousands of projects
@@ -138,15 +142,15 @@ A **3-tier progressive disclosure system** that matches user intent:
 
 ### Differentiation from Generic PM Tools
 
-| Feature | Monday.com / ClickUp | Keystone |
-|---------|---------------------|-------------|
-| **Domain Knowledge** | Generic | SAP Activate methodology built-in |
-| **Estimation Engine** | Manual input | AI-powered with benchmarks |
-| **RFP Intelligence** | None | NLP extraction of requirements |
-| **Timeline Generation** | Manual | Auto-generated from chips + decisions |
-| **Industry Benchmarks** | None | Historical project data comparison |
-| **Client Presentations** | Export to PDF | Keynote-style slides (no costs visible) |
-| **Target User** | Any team | SAP presales consultants |
+| Feature                  | Monday.com / ClickUp | Keystone                                |
+| ------------------------ | -------------------- | --------------------------------------- |
+| **Domain Knowledge**     | Generic              | SAP Activate methodology built-in       |
+| **Estimation Engine**    | Manual input         | AI-powered with benchmarks              |
+| **RFP Intelligence**     | None                 | NLP extraction of requirements          |
+| **Timeline Generation**  | Manual               | Auto-generated from chips + decisions   |
+| **Industry Benchmarks**  | None                 | Historical project data comparison      |
+| **Client Presentations** | Export to PDF        | Keynote-style slides (no costs visible) |
+| **Target User**          | Any team             | SAP presales consultants                |
 
 ---
 
@@ -155,6 +159,7 @@ A **3-tier progressive disclosure system** that matches user intent:
 ### What's Built (97% Production-Ready)
 
 #### 1. Quick Estimator (Tier 1) ✅
+
 **File:** `src/app/estimator/page.tsx`
 
 - Select SAP profile (S4 Public, Private, GROW, RISE)
@@ -165,6 +170,7 @@ A **3-tier progressive disclosure system** that matches user intent:
 - Apply multipliers for complexity, integrations, extensions
 
 **Formula:**
+
 ```
 Total Effort (MD) = BCE + (SB_Multiplier + PC_Multiplier + OSG_Multiplier) + FW
 
@@ -177,6 +183,7 @@ Where:
 ```
 
 **Output:**
+
 - Total man-days (MD)
 - Duration (months)
 - Confidence level (%)
@@ -189,6 +196,7 @@ Where:
 **4-Mode Workflow:**
 
 ##### a) CAPTURE MODE (Blue) ✅
+
 **File:** `src/components/project-v2/modes/CaptureMode.tsx`
 
 - Upload RFP document or paste text
@@ -199,6 +207,7 @@ Where:
 - Completeness scoring (identifies missing requirements)
 
 **Extraction Patterns:**
+
 ```typescript
 // Critical patterns detected:
 - Legal entities: "3 legal entities", "multiple companies"
@@ -212,6 +221,7 @@ Where:
 **Current State:** Working, needs UI polish
 
 ##### b) DECIDE MODE (Purple) ✅
+
 **File:** `src/components/project-v2/modes/DecideMode.tsx`
 
 - 5 strategic decisions:
@@ -229,6 +239,7 @@ Where:
 **Current State:** Fully functional, beautiful UX
 
 ##### c) PLAN MODE (Green) ✅
+
 **File:** `src/components/project-v2/modes/PlanMode.tsx`
 
 - **Timeline Visualization:**
@@ -258,6 +269,7 @@ Where:
 **Current State:** Functional but has date display bug (shows NaN)
 
 ##### d) PRESENT MODE (Dark) ✅
+
 **File:** `src/components/project-v2/modes/PresentMode.tsx`
 
 - Keynote-style full-screen presentation
@@ -278,6 +290,7 @@ Where:
 **Current State:** Fully functional, ready for demos
 
 #### 3. Admin Dashboard ✅
+
 **File:** `src/app/admin/page.tsx`
 
 - User management (access code delivery)
@@ -299,6 +312,7 @@ Where:
 - **CVE Protection:** Security headers, CSRF tokens
 
 **Files:**
+
 - `src/middleware.ts` - Route protection, rate limiting
 - `src/lib/security/validation.ts` - Input sanitization
 - `prisma/schema.prisma` - Secure schema design
@@ -308,14 +322,17 @@ Where:
 #### 5. Database & Data Layer ✅
 
 **13 Tables:**
+
 - User, Project, Phase, Resource, Chip, RicefwItem, FormItem
 - IntegrationItem, AuditLog, Share, Comment, Snapshot, Authenticator
 
 **Data Access Layer:**
+
 - `src/data/dal.ts` - Interface + Zod schemas (single source of truth)
 - `src/data/prisma-adapter.ts` - Concrete implementation (938 lines)
 
 **Business Data:**
+
 - `src/data/sap-modules-complete.ts` - 1,351 lines (SAP module catalog)
 - `src/data/sap-deliverables.ts` - 782 lines (SAP Activate deliverables)
 - `src/data/sap-activate-skillsets.ts` - 605 lines (role definitions)
@@ -350,6 +367,7 @@ Where:
    - Resource allocation logic
 
 **Business Constants:**
+
 - `src/lib/estimation-constants.ts` (282 lines)
 - SAP Activate phase distributions
 - Complexity multipliers
@@ -366,6 +384,7 @@ Where:
 - E2E tests for critical flows
 
 **Files:**
+
 - `tests/unit/` - Unit tests
 - `tests/integration/` - Integration tests
 - `tests/e2e/` - End-to-end tests
@@ -425,6 +444,7 @@ Where:
 ### State Management Architecture
 
 **Current (Fragmented):**
+
 ```typescript
 // 3 separate stores
 presales-store.ts    → chips[], decisions{}
@@ -435,6 +455,7 @@ Problem: No single source of truth, hard to sync
 ```
 
 **Planned (Unified):**
+
 ```typescript
 unified-project-store.ts
   ├── projects[]
@@ -480,6 +501,7 @@ src/components/
 ### Security Architecture
 
 **Layers:**
+
 1. **Network:** Vercel edge network, DDoS protection
 2. **Application:** Middleware rate limiting, CSRF tokens
 3. **Authentication:** WebAuthn (FIDO2), magic links, access codes
@@ -489,6 +511,7 @@ src/components/
 7. **Output:** CSP headers, secure cookies
 
 **Compliance:**
+
 - GDPR-ready (data deletion, consent tracking)
 - SOC 2 considerations (audit logs, encryption at rest)
 - WCAG 2.1 AA accessibility (in progress)
@@ -502,6 +525,7 @@ src/components/
 SAP Activate is the official SAP implementation methodology. Our tool has it **fully encoded**:
 
 **5 Phases:**
+
 1. **Prepare (15%)** - Planning, project setup, infrastructure
 2. **Explore (25%)** - Fit-to-standard workshops, gap analysis
 3. **Realize (40%)** - Configuration, development, testing
@@ -509,12 +533,13 @@ SAP Activate is the official SAP implementation methodology. Our tool has it **f
 5. **Run (5%)** - Continuous improvement, support handover
 
 **Phase Distribution Logic:**
+
 ```typescript
 // src/lib/scenario-generator.ts
 const phaseDistribution = {
   prepare: 0.15,
   explore: 0.25,
-  realize: 0.40,
+  realize: 0.4,
   deploy: 0.15,
   run: 0.05,
 };
@@ -530,6 +555,7 @@ phases = baseEffort.map((effort, phase) => ({
 ### Complexity Multipliers (Real-World Validated)
 
 **1. Legal Entities Impact:**
+
 ```
 1-3 entities:  1.5x effort
 3-5 entities:  2.0x effort
@@ -540,6 +566,7 @@ consolidation complexity, transfer pricing logic
 ```
 
 **2. Geographic Spread:**
+
 ```
 1-3 countries:   1.3x effort
 3-10 countries:  1.8x effort
@@ -550,6 +577,7 @@ language support, regional banking
 ```
 
 **3. Integration Posture:**
+
 ```
 2-5 systems:   1.3x effort
 5-10 systems:  1.6x effort
@@ -560,6 +588,7 @@ monitoring, documentation
 ```
 
 **4. RICEFW Complexity:**
+
 ```
 Reports (R):        Simple: 4h,  Medium: 8h,  Complex: 16h
 Interfaces (I):     Simple: 16h, Medium: 40h, Complex: 80h
@@ -570,6 +599,7 @@ Workflows (W):      Simple: 8h,  Medium: 20h, Complex: 40h
 ```
 
 **5. Regional Rate Cards:**
+
 ```
 Malaysia (ABMY):    1.0x (baseline) - $80-120/hour
 Singapore (ABSG):   1.2x             - $100-150/hour
@@ -583,6 +613,7 @@ Mixed teams: Weighted average based on resource allocation
 **Scenario:** Finance + Procurement SAP S/4HANA implementation
 
 **Inputs:**
+
 - 5 legal entities
 - 8 countries (ASEAN region)
 - 3 languages (English, Malay, Vietnamese)
@@ -592,6 +623,7 @@ Mixed teams: Weighted average based on resource allocation
 - Cloud deployment (RISE)
 
 **Calculation:**
+
 ```
 1. Base Custom Effort (BCE) = L3 items complexity
    - Finance Core: 120 MD
@@ -631,6 +663,7 @@ Cost (Malaysia baseline):
 ```
 
 **Confidence Level:**
+
 - Complete requirements: 95%
 - Partial requirements: 75%
 - Ballpark only: 50%
@@ -644,6 +677,7 @@ This is **enterprise-grade estimation** with real-world validation.
 ### User Persona: **Sarah - SAP Presales Consultant**
 
 **Background:**
+
 - 5 years SAP experience
 - Handles 10-15 RFPs per month
 - Works for mid-sized SAP partner (50 consultants)
@@ -784,26 +818,30 @@ Deliverable: Professional proposal ready for submission
 ### 1. Technical Debt
 
 **State Fragmentation:**
+
 ```typescript
 // Problem: 3 stores don't share data model
-presales-store.ts   // chips[], decisions
-timeline-store.ts   // phases[], resources[]
-project-store.ts    // mode, overrides
+presales - store.ts; // chips[], decisions
+timeline - store.ts; // phases[], resources[]
+project - store.ts; // mode, overrides
 
 // Impact: Hard to sync, no undo/redo, data loss risk
 ```
 
 **Solution:**
+
 - Implement `unified-project-store.ts`
 - Migrate data with versioning
 - Add undo/redo capability
 
 **Missing Tests:**
+
 - UI component tests (only 30% coverage)
 - E2E tests for full workflow
 - Performance tests (large projects)
 
 **Code Quality:**
+
 - Some components >500 lines (needs splitting)
 - Inconsistent error handling
 - Magic numbers in calculations (need constants)
@@ -811,6 +849,7 @@ project-store.ts    // mode, overrides
 ### 2. UX Issues
 
 **Date Display Bug (Critical):**
+
 ```typescript
 // src/stores/timeline-store.ts
 getProjectStartDate: () => {
@@ -823,20 +862,24 @@ Fix: Use proper date library (date-fns), validate inputs
 ```
 
 **Estimator → Project Bridge (Missing):**
+
 - Users can't carry forward estimator data to project
 - Must re-enter all requirements manually
 - Breaks workflow continuity
 
 **Fix:**
+
 - Implement `convertEstimateToChips()` function
 - Add "Build Full Plan →" button in estimator
 - Pre-fill decisions based on estimator inputs
 
 **OptimizeMode Fragmentation:**
+
 - OptimizeMode exists as 5th mode but is placeholder
 - Should merge into PlanMode as tab
 
 **Fix:**
+
 - Remove OptimizeMode from mode enum
 - Add tabs to PlanMode: Timeline | Resources | RICEFW
 - Update navigation (5 modes → 4 modes)
@@ -844,6 +887,7 @@ Fix: Use proper date library (date-fns), validate inputs
 ### 3. Missing Features (High Value)
 
 **Export Capabilities:**
+
 - [ ] PDF export (client-ready proposals)
 - [ ] PowerPoint export (editable slides)
 - [ ] Excel export (cost breakdown)
@@ -851,17 +895,20 @@ Fix: Use proper date library (date-fns), validate inputs
 - [ ] Calendar export (.ics)
 
 **Benchmarking:**
+
 - [ ] Show industry averages ("Your estimate: 180 MD, Industry avg: 200 MD")
 - [ ] Recommended decisions ("78% of similar projects chose Cloud")
 - [ ] Timeline validation ("Duration is 15% longer than similar projects")
 
 **Collaboration:**
+
 - [ ] Share project with team (view-only or edit)
 - [ ] Comments on phases/resources
 - [ ] Approval workflow (junior submits → senior approves)
 - [ ] Version history with diff view
 
 **Integrations:**
+
 - [ ] Outlook calendar sync
 - [ ] Slack notifications (proposal ready)
 - [ ] Salesforce integration (link to opportunity)
@@ -870,11 +917,13 @@ Fix: Use proper date library (date-fns), validate inputs
 ### 4. Performance Concerns
 
 **Large Projects:**
+
 - Gantt chart lags with >50 phases
 - Resource panel slow with >20 team members
 - Chip extraction timeout on >100 page RFPs
 
 **Solutions:**
+
 - Virtualize Gantt chart (react-window)
 - Paginate resource lists
 - Stream chip extraction (show progress)
@@ -882,12 +931,14 @@ Fix: Use proper date library (date-fns), validate inputs
 ### 5. Accessibility Gaps
 
 **WCAG Compliance:**
+
 - Missing ARIA labels on interactive elements
 - Keyboard navigation incomplete (can't tab through Gantt)
 - Color contrast issues (some text on blue backgrounds)
 - No screen reader support
 
 **Solutions:**
+
 - Accessibility audit with axe DevTools
 - Add ARIA labels to all components
 - Implement keyboard shortcuts
@@ -900,11 +951,13 @@ Fix: Use proper date library (date-fns), validate inputs
 ### 1. Design System Maturity
 
 **Current State:**
+
 - Tailwind CSS + shadcn/ui components
 - Inconsistent spacing (some use `p-4`, others `p-6`)
 - No design tokens (colors hardcoded as `bg-blue-600`)
 
 **Opportunity:**
+
 ```typescript
 // Create design-tokens.ts
 export const tokens = {
@@ -935,6 +988,7 @@ export const tokens = {
 ```
 
 **Impact:**
+
 - Consistent design language
 - Easy theme switching (light/dark)
 - Brand customization per customer
@@ -974,6 +1028,7 @@ export const tokens = {
 ```
 
 **Examples:**
+
 - Chip extraction: Animate chips flying in from RFP
 - Timeline generation: Progress bar with phase icons lighting up
 - Export complete: Success checkmark with subtle bounce
@@ -982,6 +1037,7 @@ export const tokens = {
 ### 3. Information Architecture
 
 **Current Navigation:**
+
 ```
 / (landing) → /estimator
             → /project?mode=capture
@@ -989,6 +1045,7 @@ export const tokens = {
 ```
 
 **Improved IA:**
+
 ```
 /
 ├── Quick Estimate (30s)
@@ -1008,6 +1065,7 @@ Within /project:
 **Current:** Desktop-optimized, mobile broken
 
 **Opportunity:**
+
 ```
 Mobile-specific features:
 - Swipe gestures (left/right to change modes)
@@ -1022,11 +1080,12 @@ Mobile-specific features:
 **Current:** Empty forms every time
 
 **Opportunity:**
+
 ```typescript
 // Learn from user behavior
 const smartDefaults = {
   rateRegion: mostUsedRegion(userHistory),
-  deployment: lastSelected('deployment') || 'cloud',
+  deployment: lastSelected("deployment") || "cloud",
   modules: frequentlyPaired(selectedModules),
 };
 
@@ -1036,7 +1095,7 @@ if (comingFromEstimator) {
 }
 
 // Suggest similar projects
-"You have 3 similar projects. Load one as template?"
+("You have 3 similar projects. Load one as template?");
 ```
 
 ### 6. Contextual Help & Onboarding
@@ -1044,6 +1103,7 @@ if (comingFromEstimator) {
 **Current:** No guidance
 
 **Opportunity:**
+
 ```typescript
 // First-time user experience
 <OnboardingTour
@@ -1082,6 +1142,7 @@ if (comingFromEstimator) {
 #### Year 1: Foundation & Adoption (Current)
 
 **Q1-Q2 2025:**
+
 - ✅ Core estimation engine
 - ✅ Project builder (4 modes)
 - ✅ Authentication & security
@@ -1091,6 +1152,7 @@ if (comingFromEstimator) {
 - ⏳ Add PDF/PowerPoint export
 
 **Q3-Q4 2025:**
+
 - Unified project store
 - Benchmarking engine
 - Template library
@@ -1099,6 +1161,7 @@ if (comingFromEstimator) {
 - Public API (v1)
 
 **Metrics:**
+
 - 100 active users (SAP consultants)
 - 1,000 projects created
 - 80% user satisfaction (NPS >50)
@@ -1106,6 +1169,7 @@ if (comingFromEstimator) {
 #### Year 2: Intelligence & Expansion
 
 **Q1-Q2 2026:**
+
 - AI-powered RFP analysis (GPT-4 integration)
 - Predictive analytics (risk scoring)
 - Resource optimization engine
@@ -1114,6 +1178,7 @@ if (comingFromEstimator) {
 - Advanced reporting & dashboards
 
 **Q3-Q4 2026:**
+
 - Real-time collaboration (multiplayer editing)
 - Approval workflows
 - Version control & branching
@@ -1122,6 +1187,7 @@ if (comingFromEstimator) {
 - Custom branding per customer
 
 **Metrics:**
+
 - 500 active users
 - 10,000 projects created
 - 10 paying customers ($2k-$5k MRR each)
@@ -1129,6 +1195,7 @@ if (comingFromEstimator) {
 #### Year 3: Platform & Ecosystem
 
 **Q1-Q2 2027:**
+
 - Marketplace (templates, add-ons)
 - 3rd-party integrations (Jira, MS Project, Smartsheet)
 - Embed SDK (white-label for SAP partners)
@@ -1137,6 +1204,7 @@ if (comingFromEstimator) {
 - SSO (SAML, Azure AD)
 
 **Q3-Q4 2027:**
+
 - Mobile apps (iOS, Android)
 - Offline mode
 - Advanced analytics (ML insights)
@@ -1145,6 +1213,7 @@ if (comingFromEstimator) {
 - Partner program
 
 **Metrics:**
+
 - 2,000 active users
 - 100,000 projects created
 - 100 paying customers ($500k ARR)
@@ -1154,25 +1223,16 @@ if (comingFromEstimator) {
 Based on user feedback and market research:
 
 **High Priority:**
+
 1. **Template Library** - Save common project types (e.g., "Finance S4 RISE Standard")
 2. **Resource Conflict Detection** - Flag over-allocated team members
 3. **Critical Path Highlighting** - Show dependencies visually
 4. **What-if Analysis** - "What if we add 2 more consultants?"
 5. **Client Portal** - Read-only view for clients to track progress
 
-**Medium Priority:**
-6. **Time Tracking Integration** - Actual hours vs. estimated
-7. **Budget vs. Actual** - Variance analysis
-8. **Gantt Export to MS Project** - For traditional PMs
-9. **Risk Register** - Track and mitigate project risks
-10. **Change Request Management** - Scope changes with effort impact
+**Medium Priority:** 6. **Time Tracking Integration** - Actual hours vs. estimated 7. **Budget vs. Actual** - Variance analysis 8. **Gantt Export to MS Project** - For traditional PMs 9. **Risk Register** - Track and mitigate project risks 10. **Change Request Management** - Scope changes with effort impact
 
-**Low Priority (Nice-to-Have):**
-11. **AI Chatbot** - "How much effort for 3-way match in P2P?"
-12. **Voice Commands** - "Add Finance Core module"
-13. **Virtual Assistant** - "Your project is 20% over budget"
-14. **Social Features** - Share wins, benchmark with peers
-15. **Gamification** - Badges for accurate estimates
+**Low Priority (Nice-to-Have):** 11. **AI Chatbot** - "How much effort for 3-way match in P2P?" 12. **Voice Commands** - "Add Finance Core module" 13. **Virtual Assistant** - "Your project is 20% over budget" 14. **Social Features** - Share wins, benchmark with peers 15. **Gamification** - Badges for accurate estimates
 
 ---
 
@@ -1181,6 +1241,7 @@ Based on user feedback and market research:
 ### What Monday.com/ClickUp Do Well
 
 **Strengths:**
+
 - **Flexibility:** Customizable boards, views, workflows
 - **Collaboration:** Real-time editing, comments, @mentions
 - **Integrations:** 100+ integrations (Slack, Jira, Google Drive)
@@ -1193,6 +1254,7 @@ Based on user feedback and market research:
 ### Where They Fall Short for SAP Presales
 
 **Gaps:**
+
 1. **No Domain Knowledge**
    - Doesn't understand SAP Activate methodology
    - No SAP module catalog
@@ -1219,24 +1281,25 @@ Based on user feedback and market research:
 
 ### Keystone's Differentiation
 
-| Feature | Monday.com | ClickUp | Keystone |
-|---------|-----------|---------|-------------|
-| **Estimation Engine** | ❌ Manual | ❌ Manual | ✅ AI-powered with SAP standards |
-| **RFP Intelligence** | ❌ None | ❌ None | ✅ NLP extraction, chip parsing |
-| **SAP Activate Built-In** | ❌ Custom setup | ❌ Custom setup | ✅ Native 5-phase methodology |
-| **Benchmarking** | ❌ None | ❌ None | ✅ Historical project data |
-| **Client Presentations** | ⚠️ Export only | ⚠️ Export only | ✅ Keynote-style with cost hiding |
-| **Regional Rate Cards** | ❌ Manual | ❌ Manual | ✅ Built-in (MY, SG, VN) |
-| **RICEFW Effort Calc** | ❌ None | ❌ None | ✅ Automated based on complexity |
-| **Multi-Entity Logic** | ❌ None | ❌ None | ✅ Auto-applies multipliers |
-| **Integration Posture** | ❌ None | ❌ None | ✅ Predicts effort based on # systems |
-| **Target User** | Any team | Any team | SAP consultants only |
+| Feature                   | Monday.com      | ClickUp         | Keystone                              |
+| ------------------------- | --------------- | --------------- | ------------------------------------- |
+| **Estimation Engine**     | ❌ Manual       | ❌ Manual       | ✅ AI-powered with SAP standards      |
+| **RFP Intelligence**      | ❌ None         | ❌ None         | ✅ NLP extraction, chip parsing       |
+| **SAP Activate Built-In** | ❌ Custom setup | ❌ Custom setup | ✅ Native 5-phase methodology         |
+| **Benchmarking**          | ❌ None         | ❌ None         | ✅ Historical project data            |
+| **Client Presentations**  | ⚠️ Export only  | ⚠️ Export only  | ✅ Keynote-style with cost hiding     |
+| **Regional Rate Cards**   | ❌ Manual       | ❌ Manual       | ✅ Built-in (MY, SG, VN)              |
+| **RICEFW Effort Calc**    | ❌ None         | ❌ None         | ✅ Automated based on complexity      |
+| **Multi-Entity Logic**    | ❌ None         | ❌ None         | ✅ Auto-applies multipliers           |
+| **Integration Posture**   | ❌ None         | ❌ None         | ✅ Predicts effort based on # systems |
+| **Target User**           | Any team        | Any team        | SAP consultants only                  |
 
 ### Inspiration from Monday.com/ClickUp
 
 **What We Should Adopt:**
 
 1. **Multiplayer Editing:**
+
    ```typescript
    // Real-time collaboration
    const { users, cursor } = useRealtime(projectId);
@@ -1246,6 +1309,7 @@ Based on user feedback and market research:
    ```
 
 2. **Automation Engine:**
+
    ```typescript
    // Trigger-based rules
    const automations = [
@@ -1254,13 +1318,14 @@ Based on user feedback and market research:
        action: 'notifications.send(teamLead, "Phase complete")',
      },
      {
-       trigger: 'resource.allocation > 100%',
+       trigger: "resource.allocation > 100%",
        action: 'warnings.show("Over-allocated resource")',
      },
    ];
    ```
 
 3. **Dashboard Builder:**
+
    ```typescript
    // Customizable widgets
    <Dashboard>
@@ -1271,6 +1336,7 @@ Based on user feedback and market research:
    ```
 
 4. **View Switching:**
+
    ```typescript
    // Multiple views of same data
    const views = ['gantt', 'list', 'kanban', 'calendar', 'table'];
@@ -1300,9 +1366,10 @@ Based on user feedback and market research:
 
 **Keystone = Vertical SaaS for SAP Presales + Delivery**
 
-**Tagline:** *"From RFP to go-live in one platform"*
+**Tagline:** _"From RFP to go-live in one platform"_
 
 **Value Prop:**
+
 - 10x faster presales (30s estimates vs. days)
 - 90% accurate timelines (validated against historical data)
 - Client-ready outputs (no manual PowerPoint)
@@ -1336,23 +1403,27 @@ Based on user feedback and market research:
 ### Go-to-Market Strategy
 
 **Phase 1: Land (Freemium)**
+
 - Free tier: 5 projects/month, basic features
 - Hook: Quick Estimator (instant value)
 - Convert: Need more projects → upgrade
 
 **Phase 2: Expand (Seat-Based)**
+
 - $49/user/month (team plan)
 - Unlimited projects
 - Collaboration features
 - Integrations
 
 **Phase 3: Enterprise (Custom)**
+
 - SSO, multi-tenancy, white-label
 - Dedicated support
 - Custom integrations
 - $2k-$10k/month
 
 **Distribution Channels:**
+
 1. **Direct:** SAP consultant communities, LinkedIn
 2. **Partnerships:** SAP partner networks, consulting firms
 3. **Marketplaces:** SAP Store, AWS Marketplace
@@ -1361,17 +1432,20 @@ Based on user feedback and market research:
 ### Competitive Analysis
 
 **Direct Competitors:**
+
 - In-house Excel templates (90% of market)
 - Custom-built estimation tools (5%)
 - Manual estimation (5%)
 
 **Indirect Competitors:**
+
 - Monday.com (generic PM)
 - ClickUp (generic PM)
 - MS Project (traditional PM)
 - Smartsheet (spreadsheet-based PM)
 
 **Our Advantage:**
+
 - **10x faster** than Excel
 - **100x better UX** than custom tools
 - **SAP-specific** vs. generic PM tools
@@ -1384,6 +1458,7 @@ Based on user feedback and market research:
 ### Adjacent Markets
 
 **1. Other ERP Systems:**
+
 - Oracle Cloud (similar complexity)
 - Workday (HR/Finance)
 - NetSuite (mid-market)
@@ -1392,6 +1467,7 @@ Based on user feedback and market research:
 **Effort:** Moderate (reuse architecture, rebuild domain logic)
 
 **2. Other Consulting Services:**
+
 - Salesforce implementations
 - ServiceNow rollouts
 - Data migration projects
@@ -1400,6 +1476,7 @@ Based on user feedback and market research:
 **Effort:** High (different methodologies, different benchmarks)
 
 **3. Enterprise Software Vendors:**
+
 - White-label for SAP (partner portal)
 - OEM for Oracle, Workday
 - Embedded in ERP systems ("Request Proposal" button)
@@ -1409,6 +1486,7 @@ Based on user feedback and market research:
 ### Feature Expansion
 
 **1. Delivery Management (Post-Presales):**
+
 - Sprint planning (Agile + SAP Activate hybrid)
 - Issue tracking (integrated with Jira)
 - Time tracking (actual vs. estimated)
@@ -1416,18 +1494,21 @@ Based on user feedback and market research:
 - Status reporting (automated client updates)
 
 **2. Resource Management:**
+
 - Skill matching (match consultants to projects)
 - Availability calendar (prevent conflicts)
 - Bench management (utilization metrics)
 - Training tracker (certifications, courses)
 
 **3. Knowledge Management:**
+
 - Lessons learned repository
 - Best practices library
 - Runbook templates
 - Decision tree wizards
 
 **4. Financial Management:**
+
 - Invoicing (milestone-based)
 - Revenue recognition (% complete)
 - Profitability analysis (actual vs. budget)
@@ -1438,6 +1519,7 @@ Based on user feedback and market research:
 **Vision:** Keystone Platform
 
 **Concept:**
+
 ```
 Core Platform (SaaS)
   ├── Marketplace
@@ -1459,6 +1541,7 @@ Core Platform (SaaS)
 ```
 
 **Revenue Streams:**
+
 1. **Subscription:** $49-$199/user/month
 2. **Marketplace:** 20% commission on add-ons
 3. **API:** Usage-based pricing ($0.01/API call)
@@ -1479,42 +1562,46 @@ Target: 1,000 projects/month by end of Year 1
 
 ### Leading Indicators (Drive Growth)
 
-| Metric | Definition | Target | How to Measure |
-|--------|-----------|--------|----------------|
-| **Time to First Value** | Signup → First estimate shown | <30s | Telemetry: `estimate.generated` event timestamp |
-| **Bridge Adoption Rate** | Estimator → Project transition | >70% | `bridge.clicked / estimates.created` |
-| **Completeness at Plan** | Chip count when entering Plan mode | >80% | `chips.length / requiredChips.length` |
-| **Export Rate** | Projects with PDF/PPT export | >60% | `exports.created / projects.created` |
-| **Return Rate** | Same user, 7-day window | >40% | `unique_users_week2 / unique_users_week1` |
+| Metric                   | Definition                         | Target | How to Measure                                  |
+| ------------------------ | ---------------------------------- | ------ | ----------------------------------------------- |
+| **Time to First Value**  | Signup → First estimate shown      | <30s   | Telemetry: `estimate.generated` event timestamp |
+| **Bridge Adoption Rate** | Estimator → Project transition     | >70%   | `bridge.clicked / estimates.created`            |
+| **Completeness at Plan** | Chip count when entering Plan mode | >80%   | `chips.length / requiredChips.length`           |
+| **Export Rate**          | Projects with PDF/PPT export       | >60%   | `exports.created / projects.created`            |
+| **Return Rate**          | Same user, 7-day window            | >40%   | `unique_users_week2 / unique_users_week1`       |
 
 ### Lagging Indicators (Measure Success)
 
-| Metric | Definition | Target | How to Measure |
-|--------|-----------|--------|----------------|
-| **Time to Proposal** | Project start → PDF export | <10 min | Telemetry: `project.created` → `export.completed` |
-| **Win Rate** | Proposals → closed deals | Baseline +20% | Survey: "Did you win this deal?" |
-| **NPS** | Net Promoter Score | >50 | Quarterly survey |
-| **Weekly Active Users** | % of users active each week | >60% | `active_users_week / total_users` |
-| **MRR Growth** | Monthly Recurring Revenue | +20% MoM | Billing system |
+| Metric                  | Definition                  | Target        | How to Measure                                    |
+| ----------------------- | --------------------------- | ------------- | ------------------------------------------------- |
+| **Time to Proposal**    | Project start → PDF export  | <10 min       | Telemetry: `project.created` → `export.completed` |
+| **Win Rate**            | Proposals → closed deals    | Baseline +20% | Survey: "Did you win this deal?"                  |
+| **NPS**                 | Net Promoter Score          | >50           | Quarterly survey                                  |
+| **Weekly Active Users** | % of users active each week | >60%          | `active_users_week / total_users`                 |
+| **MRR Growth**          | Monthly Recurring Revenue   | +20% MoM      | Billing system                                    |
 
 ### Feature-Specific Metrics
 
 **Estimator:**
+
 - Estimates created per user per month
 - Deep Analysis clicks (engagement)
 - Benchmark comparison views
 
 **Project Builder:**
+
 - Mode completion rate (how many finish all 4 modes)
 - Edit rate post-generation (accuracy indicator)
 - Manual chip additions (extraction quality)
 
 **Collaboration:**
+
 - Share link clicks
 - Comment threads per project
 - Approval cycle time
 
 **Admin:**
+
 - Access code delivery time
 - User activation rate (code sent → login)
 - Support ticket volume (inversely correlated with UX quality)
@@ -1526,21 +1613,25 @@ Target: 1,000 projects/month by end of Year 1
 ### Technical Risks
 
 **1. State Management Complexity:**
+
 - **Risk:** 3 fragmented stores lead to data sync issues
 - **Impact:** High (data loss, bugs, poor UX)
 - **Mitigation:** Unified store implementation (Q1 2025)
 
 **2. Date Calculation Bug:**
+
 - **Risk:** Shows "NaN" dates in critical UI
 - **Impact:** Critical (unusable feature)
 - **Mitigation:** Immediate fix with date-fns library
 
 **3. Performance at Scale:**
+
 - **Risk:** Gantt chart lags with >50 phases
 - **Impact:** Medium (poor UX for large projects)
 - **Mitigation:** Virtualization with react-window
 
 **4. Mobile Responsiveness:**
+
 - **Risk:** Not optimized for mobile devices
 - **Impact:** Medium (limits adoption)
 - **Mitigation:** Mobile-first redesign (Q2 2025)
@@ -1548,16 +1639,19 @@ Target: 1,000 projects/month by end of Year 1
 ### Product Risks
 
 **1. Domain Complexity:**
+
 - **Risk:** SAP methodology changes (SAP Activate updated)
 - **Impact:** Medium (need to update formulas)
 - **Mitigation:** Configurable methodology engine
 
 **2. Estimation Accuracy:**
+
 - **Risk:** Users lose trust if estimates are consistently wrong
 - **Impact:** High (core value prop)
 - **Mitigation:** Continuous calibration with actual project data
 
 **3. Feature Bloat:**
+
 - **Risk:** Trying to compete with Monday.com on all features
 - **Impact:** High (lose focus, dilute value prop)
 - **Mitigation:** Strict prioritization, "SAP-only" features first
@@ -1565,16 +1659,19 @@ Target: 1,000 projects/month by end of Year 1
 ### Business Risks
 
 **1. Market Education:**
+
 - **Risk:** Users don't understand the value (happy with Excel)
 - **Impact:** High (slow adoption)
 - **Mitigation:** Content marketing, case studies, free tier
 
 **2. Enterprise Sales Cycle:**
+
 - **Risk:** Long sales cycles for large deals
 - **Impact:** Medium (cash flow pressure)
 - **Mitigation:** Freemium → land-and-expand strategy
 
 **3. SAP Partnership:**
+
 - **Risk:** SAP launches competing product
 - **Impact:** Critical (existential threat)
 - **Mitigation:** Become indispensable, integrate deeply, partner officially
@@ -1582,16 +1679,19 @@ Target: 1,000 projects/month by end of Year 1
 ### Security & Compliance Risks
 
 **1. Data Privacy:**
+
 - **Risk:** RFPs contain confidential client data
 - **Impact:** Critical (legal liability)
 - **Mitigation:** Encryption at rest, GDPR compliance, data residency options
 
 **2. Authentication:**
+
 - **Risk:** Account takeover, unauthorized access
 - **Impact:** High (data breach)
 - **Mitigation:** WebAuthn (FIDO2), 2FA, audit logs
 
 **3. SOC 2 Compliance:**
+
 - **Risk:** Enterprise customers require SOC 2 Type II
 - **Impact:** High (blocks enterprise sales)
 - **Mitigation:** Roadmap item for Year 2 (Q3 2026)
@@ -1771,12 +1871,14 @@ Keystone is a **production-ready, enterprise-grade estimation and project planni
 ✅ **Growth potential:** Can become "Monday.com for SAP implementations"
 
 **Key Challenges:**
+
 - UX fragmentation (estimator vs. project disconnect)
 - Date display bug (critical fix needed)
 - Missing collaboration features
 - Mobile optimization needed
 
 **Key Opportunities:**
+
 - Unified project store (data continuity)
 - Benchmarking engine (competitive advantage)
 - Export capabilities (client-ready outputs)
@@ -1788,6 +1890,7 @@ Transform SAP presales from a days-long, error-prone manual process into a **30-
 ---
 
 **This document is optimized for Claude.ai assessment to provide:**
+
 1. Complete security analysis
 2. Comprehensive UX evaluation
 3. Architecture review

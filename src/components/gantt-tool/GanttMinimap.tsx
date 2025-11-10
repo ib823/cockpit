@@ -11,15 +11,16 @@
  * - Top-right floating position
  */
 
-'use client';
+"use client";
 
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { differenceInDays } from 'date-fns';
-import { X, Maximize2, GripVertical } from 'lucide-react';
-import React, { useState, useRef } from 'react';
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { differenceInDays } from "date-fns";
+import { X, Maximize2, GripVertical } from "lucide-react";
+import React, { useState, useRef } from "react";
 
 export function GanttMinimap() {
-  const { currentProject, focusedPhaseId, exitFocusMode, getProjectDuration } = useGanttToolStoreV2();
+  const { currentProject, focusedPhaseId, exitFocusMode, getProjectDuration } =
+    useGanttToolStoreV2();
 
   // Draggable state
   const [position, setPosition] = useState({ x: window.innerWidth - 310, y: 24 }); // Default top-right
@@ -62,12 +63,12 @@ export function GanttMinimap() {
       const moveHandler = (e: MouseEvent) => handleMouseMove(e);
       const upHandler = () => handleMouseUp();
 
-      window.addEventListener('mousemove', moveHandler);
-      window.addEventListener('mouseup', upHandler);
+      window.addEventListener("mousemove", moveHandler);
+      window.addEventListener("mouseup", upHandler);
 
       return () => {
-        window.removeEventListener('mousemove', moveHandler);
-        window.removeEventListener('mouseup', upHandler);
+        window.removeEventListener("mousemove", moveHandler);
+        window.removeEventListener("mouseup", upHandler);
       };
     }
   }, [isDragging, position, dragStart]);
@@ -81,7 +82,7 @@ export function GanttMinimap() {
   const { startDate, endDate, durationDays } = duration;
 
   // Calculate phase positions
-  const getPhasePosition = (phase: typeof currentProject.phases[0]) => {
+  const getPhasePosition = (phase: (typeof currentProject.phases)[0]) => {
     const phaseStart = new Date(phase.startDate);
     const phaseEnd = new Date(phase.endDate);
     const offsetDays = differenceInDays(phaseStart, startDate);
@@ -107,7 +108,7 @@ export function GanttMinimap() {
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        cursor: isDragging ? 'grabbing' : 'default',
+        cursor: isDragging ? "grabbing" : "default",
       }}
     >
       {/* Header - Drag Handle */}
@@ -135,7 +136,7 @@ export function GanttMinimap() {
       {/* Minimap Canvas */}
       <div
         className="relative bg-gradient-to-b from-gray-100 to-gray-200 cursor-pointer"
-        style={{ width: '280px', height: '120px' }}
+        style={{ width: "280px", height: "120px" }}
         onClick={handleBackgroundClick}
       >
         {/* Phase bars */}
@@ -145,17 +146,13 @@ export function GanttMinimap() {
             const isFocused = phase.id === focusedPhaseId;
 
             return (
-              <div
-                key={phase.id}
-                className="relative mb-1.5"
-                style={{ height: '14px' }}
-              >
+              <div key={phase.id} className="relative mb-1.5" style={{ height: "14px" }}>
                 {/* Phase bar */}
                 <div
                   className={`absolute h-full rounded transition-all ${
                     isFocused
-                      ? 'ring-2 ring-yellow-400 ring-offset-1 shadow-lg z-10 scale-105'
-                      : 'opacity-70 hover:opacity-90'
+                      ? "ring-2 ring-yellow-400 ring-offset-1 shadow-lg z-10 scale-105"
+                      : "opacity-70 hover:opacity-90"
                   }`}
                   style={{
                     left: `${position.left}%`,
@@ -192,9 +189,7 @@ export function GanttMinimap() {
       {/* Footer info */}
       <div className="px-3 py-1.5 bg-gray-800 text-white text-xs flex items-center justify-between border-t border-gray-700">
         <span className="font-semibold">{currentProject.phases.length} phases</span>
-        <span className="text-gray-400">
-          {Math.ceil(durationDays / 7)} weeks
-        </span>
+        <span className="text-gray-400">{Math.ceil(durationDays / 7)} weeks</span>
       </div>
     </div>
   );

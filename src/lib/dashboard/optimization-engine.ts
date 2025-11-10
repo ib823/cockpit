@@ -4,24 +4,24 @@
  * Intelligent recommendation system for resource allocation and cost optimization
  */
 
-import { GanttProject, Resource, ResourceDesignation } from '@/types/gantt-tool';
-import { calculateTotalCost, calculateUtilization, UtilizationMetrics } from './calculation-engine';
-import { getDailyRate, RESOURCE_DESIGNATIONS } from '@/lib/rate-card';
+import { GanttProject, Resource, ResourceDesignation } from "@/types/gantt-tool";
+import { calculateTotalCost, calculateUtilization, UtilizationMetrics } from "./calculation-engine";
+import { getDailyRate, RESOURCE_DESIGNATIONS } from "@/lib/rate-card";
 
 export type RecommendationType =
-  | 'cost_optimization'
-  | 'skill_optimization'
-  | 'risk_mitigation'
-  | 'timeline_optimization'
-  | 'resource_balancing'
-  | 'budget_variance'
-  | 'skill_gap'
-  | 'communication_overhead'
-  | 'knowledge_transfer'
-  | 'quality_assurance'
-  | 'vendor_optimization'
-  | 'geographic_optimization'
-  | 'training_needs';
+  | "cost_optimization"
+  | "skill_optimization"
+  | "risk_mitigation"
+  | "timeline_optimization"
+  | "resource_balancing"
+  | "budget_variance"
+  | "skill_gap"
+  | "communication_overhead"
+  | "knowledge_transfer"
+  | "quality_assurance"
+  | "vendor_optimization"
+  | "geographic_optimization"
+  | "training_needs";
 
 export interface Recommendation {
   id: string;
@@ -34,7 +34,7 @@ export interface Recommendation {
   strategicAlignment: number; // 0-100
   actions: RecommendationAction[];
   score: number; // Calculated composite score
-  category?: 'cost' | 'time' | 'quality' | 'risk'; // Categorization for filtering
+  category?: "cost" | "time" | "quality" | "risk"; // Categorization for filtering
 }
 
 export interface RecommendationImpact {
@@ -101,8 +101,8 @@ export class OptimizationEngine {
     // Check for over-qualified resources on simple tasks
     // (This is simplified - would need skill data in real implementation)
     const resources = this.project.resources || [];
-    const seniorResources = resources.filter(r =>
-      ['principal', 'director', 'senior_manager'].includes(r.designation)
+    const seniorResources = resources.filter((r) =>
+      ["principal", "director", "senior_manager"].includes(r.designation)
     );
 
     if (seniorResources.length > resources.length * 0.4) {
@@ -110,10 +110,11 @@ export class OptimizationEngine {
       const potentialSaving = costBreakdown.totalCost * 0.15; // 15% potential saving
 
       recommendations.push({
-        id: 'skill-opt-1',
-        type: 'skill_optimization',
-        title: 'Right-size Senior Resource Allocation',
-        description: 'Your project has a high percentage of senior resources. Consider using mid-level consultants for routine tasks.',
+        id: "skill-opt-1",
+        type: "skill_optimization",
+        title: "Right-size Senior Resource Allocation",
+        description:
+          "Your project has a high percentage of senior resources. Consider using mid-level consultants for routine tasks.",
         impact: {
           costSaving: potentialSaving,
           marginImprovement: 5,
@@ -124,8 +125,8 @@ export class OptimizationEngine {
         strategicAlignment: 80,
         actions: [
           {
-            action: 'Replace senior resources on routine tasks',
-            target: 'resource-mix',
+            action: "Replace senior resources on routine tasks",
+            target: "resource-mix",
             details: `Replace ${Math.floor(seniorResources.length * 0.3)} senior resources with mid-level consultants on non-critical activities`,
           },
         ],
@@ -145,7 +146,7 @@ export class OptimizationEngine {
     const resources = this.project.resources || [];
 
     // 1. Identify expensive resources with low utilization
-    const expensiveUnderutilized = resources.filter(resource => {
+    const expensiveUnderutilized = resources.filter((resource) => {
       const utilization = this.utilizationMetrics.resourceUtilization.get(resource.id) || 0;
       const rate = getDailyRate(resource.designation);
       return utilization < 50 && rate > 4000; // Expensive and underutilized
@@ -157,13 +158,13 @@ export class OptimizationEngine {
         const rate = getDailyRate(resource.designation);
         const allocatedDays = (costBreakdown.costByResource.get(resource.id) || 0) / rate;
         const wastedCapacity = allocatedDays * ((100 - utilization) / 100);
-        return sum + (wastedCapacity * rate);
+        return sum + wastedCapacity * rate;
       }, 0);
 
       recommendations.push({
-        id: 'cost-opt-1',
-        type: 'cost_optimization',
-        title: 'Optimize Underutilized Expensive Resources',
+        id: "cost-opt-1",
+        type: "cost_optimization",
+        title: "Optimize Underutilized Expensive Resources",
         description: `${expensiveUnderutilized.length} expensive resource(s) are underutilized (<50% utilization). Consider reducing allocation or redistributing work.`,
         impact: {
           costSaving: totalWaste * 0.5, // Can save 50% of waste
@@ -173,8 +174,8 @@ export class OptimizationEngine {
         confidence: 85,
         easeOfImplementation: 70,
         strategicAlignment: 75,
-        actions: expensiveUnderutilized.map(resource => ({
-          action: 'Increase utilization or reduce allocation',
+        actions: expensiveUnderutilized.map((resource) => ({
+          action: "Increase utilization or reduce allocation",
           target: resource.id,
           details: `${resource.name} (${RESOURCE_DESIGNATIONS[resource.designation]}) is only ${Math.round(this.utilizationMetrics.resourceUtilization.get(resource.id) || 0)}% utilized`,
         })),
@@ -185,28 +186,29 @@ export class OptimizationEngine {
     // 2. Suggest phased resource ramp-up
     if (this.project.phases.length >= 3) {
       recommendations.push({
-        id: 'cost-opt-2',
-        type: 'cost_optimization',
-        title: 'Implement Phased Resource Ramp-up',
-        description: 'Instead of full team from day 1, gradually ramp up resources as project progresses to reduce idle time.',
+        id: "cost-opt-2",
+        type: "cost_optimization",
+        title: "Implement Phased Resource Ramp-up",
+        description:
+          "Instead of full team from day 1, gradually ramp up resources as project progresses to reduce idle time.",
         impact: {
           costSaving: costBreakdown.totalCost * 0.08, // 8% potential saving
           marginImprovement: 2,
-          description: 'Reduce resource idle time in early phases',
+          description: "Reduce resource idle time in early phases",
         },
         confidence: 70,
         easeOfImplementation: 65,
         strategicAlignment: 80,
         actions: [
           {
-            action: 'Start with core team in Prepare phase',
-            target: this.project.phases[0]?.id || '',
-            details: 'Begin with PM and architects only',
+            action: "Start with core team in Prepare phase",
+            target: this.project.phases[0]?.id || "",
+            details: "Begin with PM and architects only",
           },
           {
-            action: 'Ramp up during Realize phase',
-            target: this.project.phases[1]?.id || '',
-            details: 'Add functional and technical consultants',
+            action: "Ramp up during Realize phase",
+            target: this.project.phases[1]?.id || "",
+            details: "Add functional and technical consultants",
           },
         ],
         score: 0,
@@ -225,22 +227,22 @@ export class OptimizationEngine {
     // 1. Over-allocation risks
     if (this.utilizationMetrics.overallocatedResources.length > 0) {
       recommendations.push({
-        id: 'risk-1',
-        type: 'risk_mitigation',
-        title: 'Critical: Resolve Resource Over-allocation',
+        id: "risk-1",
+        type: "risk_mitigation",
+        title: "Critical: Resolve Resource Over-allocation",
         description: `${this.utilizationMetrics.overallocatedResources.length} resource(s) are over-allocated, risking burnout and delays.`,
         impact: {
           riskReduction: 40,
           timeReduction: 0,
-          description: 'Prevent project delays and quality issues from overworked resources',
+          description: "Prevent project delays and quality issues from overworked resources",
         },
         confidence: 95,
         easeOfImplementation: 50,
         strategicAlignment: 90,
-        actions: this.utilizationMetrics.overallocatedResources.map(resourceId => {
-          const resource = this.project.resources?.find(r => r.id === resourceId);
+        actions: this.utilizationMetrics.overallocatedResources.map((resourceId) => {
+          const resource = this.project.resources?.find((r) => r.id === resourceId);
           return {
-            action: 'Reduce allocation or add team member',
+            action: "Reduce allocation or add team member",
             target: resourceId,
             details: `${resource?.name || resourceId} exceeds 100% utilization`,
           };
@@ -253,19 +255,20 @@ export class OptimizationEngine {
     const criticalResources = this.findCriticalResources();
     if (criticalResources.length > 0) {
       recommendations.push({
-        id: 'risk-2',
-        type: 'risk_mitigation',
-        title: 'Mitigate Single Points of Failure',
-        description: 'Some resources are assigned to many critical tasks. Add backup resources or knowledge transfer.',
+        id: "risk-2",
+        type: "risk_mitigation",
+        title: "Mitigate Single Points of Failure",
+        description:
+          "Some resources are assigned to many critical tasks. Add backup resources or knowledge transfer.",
         impact: {
           riskReduction: 30,
-          description: 'Reduce dependency on key individuals',
+          description: "Reduce dependency on key individuals",
         },
         confidence: 80,
         easeOfImplementation: 60,
         strategicAlignment: 85,
-        actions: criticalResources.map(resource => ({
-          action: 'Add backup resource or pair programming',
+        actions: criticalResources.map((resource) => ({
+          action: "Add backup resource or pair programming",
           target: resource.id,
           details: `${resource.name} is critical to multiple phases`,
         })),
@@ -287,13 +290,13 @@ export class OptimizationEngine {
 
     if (parallelizablePhases.length > 0) {
       recommendations.push({
-        id: 'timeline-1',
-        type: 'timeline_optimization',
-        title: 'Parallelize Independent Work Streams',
-        description: 'Some phases/tasks can run in parallel to reduce overall timeline.',
+        id: "timeline-1",
+        type: "timeline_optimization",
+        title: "Parallelize Independent Work Streams",
+        description: "Some phases/tasks can run in parallel to reduce overall timeline.",
         impact: {
           timeReduction: 15, // days
-          description: 'Reduce project duration by up to 2 weeks',
+          description: "Reduce project duration by up to 2 weeks",
         },
         confidence: 75,
         easeOfImplementation: 55,
@@ -301,7 +304,7 @@ export class OptimizationEngine {
         actions: parallelizablePhases.map((phase, idx) => ({
           action: `Run ${phase.name} in parallel`,
           target: phase.id,
-          details: 'This phase has no hard dependencies on previous phases',
+          details: "This phase has no hard dependencies on previous phases",
         })),
         score: 0,
       });
@@ -322,21 +325,21 @@ export class OptimizationEngine {
 
     if (overallocated.length > 0 && underutilized.length > 0) {
       recommendations.push({
-        id: 'balance-1',
-        type: 'resource_balancing',
-        title: 'Balance Workload Across Team',
-        description: 'Redistribute work from overloaded to underutilized team members.',
+        id: "balance-1",
+        type: "resource_balancing",
+        title: "Balance Workload Across Team",
+        description: "Redistribute work from overloaded to underutilized team members.",
         impact: {
           riskReduction: 25,
-          description: 'Improve team morale and reduce burnout risk',
+          description: "Improve team morale and reduce burnout risk",
         },
         confidence: 80,
         easeOfImplementation: 65,
         strategicAlignment: 75,
         actions: [
           {
-            action: 'Redistribute tasks',
-            target: 'workload-balance',
+            action: "Redistribute tasks",
+            target: "workload-balance",
             details: `Move work from ${overallocated.length} overloaded to ${underutilized.length} underutilized resources`,
           },
         ],
@@ -361,9 +364,9 @@ export class OptimizationEngine {
 
     if (marginPercent < 20) {
       recommendations.push({
-        id: 'budget-1',
-        type: 'budget_variance',
-        title: 'Margin Below Target - Review Pricing',
+        id: "budget-1",
+        type: "budget_variance",
+        title: "Margin Below Target - Review Pricing",
         description: `Current margin is ${marginPercent.toFixed(1)}%, below the recommended 20-30% range.`,
         impact: {
           marginImprovement: 30 - marginPercent,
@@ -374,13 +377,13 @@ export class OptimizationEngine {
         strategicAlignment: 95,
         actions: [
           {
-            action: 'Review and adjust pricing',
-            target: 'pricing',
-            details: `Consider increasing proposed price by ${((targetRevenue * 1.2 - targetRevenue) / targetRevenue * 100).toFixed(1)}% to achieve 30% margin`,
+            action: "Review and adjust pricing",
+            target: "pricing",
+            details: `Consider increasing proposed price by ${(((targetRevenue * 1.2 - targetRevenue) / targetRevenue) * 100).toFixed(1)}% to achieve 30% margin`,
           },
         ],
         score: 0,
-        category: 'cost',
+        category: "cost",
       });
     }
 
@@ -395,37 +398,40 @@ export class OptimizationEngine {
     const resources = this.project.resources || [];
 
     // Analyze resource designation distribution
-    const designationCounts = resources.reduce((acc, r) => {
-      acc[r.designation] = (acc[r.designation] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const designationCounts = resources.reduce(
+      (acc, r) => {
+        acc[r.designation] = (acc[r.designation] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     // Check for missing functional consultants
-    const functionalConsultants = designationCounts['senior_consultant'] || 0;
-    const analysts = designationCounts['analyst'] || 0;
+    const functionalConsultants = designationCounts["senior_consultant"] || 0;
+    const analysts = designationCounts["analyst"] || 0;
 
     if (resources.length > 5 && functionalConsultants < 2) {
       recommendations.push({
-        id: 'skill-gap-1',
-        type: 'skill_gap',
-        title: 'Add Functional Expertise',
-        description: 'Project lacks sufficient functional consultants for business process design.',
+        id: "skill-gap-1",
+        type: "skill_gap",
+        title: "Add Functional Expertise",
+        description: "Project lacks sufficient functional consultants for business process design.",
         impact: {
           riskReduction: 35,
-          description: 'Reduce risk of poor requirement gathering and design',
+          description: "Reduce risk of poor requirement gathering and design",
         },
         confidence: 85,
         easeOfImplementation: 75,
         strategicAlignment: 90,
         actions: [
           {
-            action: 'Add senior functional consultants',
-            target: 'team-composition',
-            details: 'Recommend adding 2-3 functional consultants for FI/CO, MM, SD modules',
+            action: "Add senior functional consultants",
+            target: "team-composition",
+            details: "Recommend adding 2-3 functional consultants for FI/CO, MM, SD modules",
           },
         ],
         score: 0,
-        category: 'risk',
+        category: "risk",
       });
     }
 
@@ -444,9 +450,9 @@ export class OptimizationEngine {
       const overhead = Math.pow(resources.length, 1.5) * 0.1; // Simplified model
 
       recommendations.push({
-        id: 'comm-1',
-        type: 'communication_overhead',
-        title: 'Reduce Communication Overhead',
+        id: "comm-1",
+        type: "communication_overhead",
+        title: "Reduce Communication Overhead",
         description: `Large team size (${resources.length} members) creates significant communication overhead.`,
         impact: {
           timeReduction: overhead,
@@ -457,18 +463,18 @@ export class OptimizationEngine {
         strategicAlignment: 70,
         actions: [
           {
-            action: 'Organize into smaller workstreams',
-            target: 'team-structure',
-            details: 'Split into 3-5 sub-teams with clear ownership and minimal cross-dependencies',
+            action: "Organize into smaller workstreams",
+            target: "team-structure",
+            details: "Split into 3-5 sub-teams with clear ownership and minimal cross-dependencies",
           },
           {
-            action: 'Establish clear communication protocols',
-            target: 'process',
-            details: 'Daily standups per workstream, weekly cross-team sync',
+            action: "Establish clear communication protocols",
+            target: "process",
+            details: "Daily standups per workstream, weekly cross-team sync",
           },
         ],
         score: 0,
-        category: 'time',
+        category: "time",
       });
     }
 
@@ -483,35 +489,35 @@ export class OptimizationEngine {
     const resources = this.project.resources || [];
 
     // Check for high ratio of contractors/subcontractors
-    const subcontractors = resources.filter(r => r.designation === 'subcontractor');
+    const subcontractors = resources.filter((r) => r.designation === "subcontractor");
 
     if (subcontractors.length > resources.length * 0.4) {
       recommendations.push({
-        id: 'knowledge-1',
-        type: 'knowledge_transfer',
-        title: 'Plan Knowledge Transfer from Contractors',
+        id: "knowledge-1",
+        type: "knowledge_transfer",
+        title: "Plan Knowledge Transfer from Contractors",
         description: `${subcontractors.length} contractors will leave after project. Plan knowledge transfer to permanent staff.`,
         impact: {
           riskReduction: 40,
-          description: 'Ensure business continuity post-implementation',
+          description: "Ensure business continuity post-implementation",
         },
         confidence: 90,
         easeOfImplementation: 70,
         strategicAlignment: 95,
         actions: [
           {
-            action: 'Schedule knowledge transfer sessions',
-            target: 'project-plan',
-            details: 'Allocate 2-3 days per contractor for documentation and training',
+            action: "Schedule knowledge transfer sessions",
+            target: "project-plan",
+            details: "Allocate 2-3 days per contractor for documentation and training",
           },
           {
-            action: 'Pair contractors with permanent staff',
-            target: 'team-structure',
-            details: 'Shadow program for critical knowledge areas',
+            action: "Pair contractors with permanent staff",
+            target: "team-structure",
+            details: "Shadow program for critical knowledge areas",
           },
         ],
         score: 0,
-        category: 'risk',
+        category: "risk",
       });
     }
 
@@ -526,37 +532,37 @@ export class OptimizationEngine {
     const totalTasks = this.project.phases.reduce((sum, p) => sum + p.tasks.length, 0);
 
     // Check if QA resources are allocated
-    const qaResources = (this.project.resources || []).filter(r =>
-      r.category === 'qa' || r.name.toLowerCase().includes('test')
+    const qaResources = (this.project.resources || []).filter(
+      (r) => r.category === "qa" || r.name.toLowerCase().includes("test")
     );
 
     if (totalTasks > 20 && qaResources.length === 0) {
       recommendations.push({
-        id: 'quality-1',
-        type: 'quality_assurance',
-        title: 'Add Dedicated QA Resources',
-        description: 'Project has no dedicated QA/testing resources, risking quality issues.',
+        id: "quality-1",
+        type: "quality_assurance",
+        title: "Add Dedicated QA Resources",
+        description: "Project has no dedicated QA/testing resources, risking quality issues.",
         impact: {
           riskReduction: 50,
-          description: 'Reduce defect leakage and rework costs',
+          description: "Reduce defect leakage and rework costs",
         },
         confidence: 95,
         easeOfImplementation: 80,
         strategicAlignment: 90,
         actions: [
           {
-            action: 'Add QA analyst',
-            target: 'team-composition',
-            details: 'Allocate 1-2 QA resources for test planning and execution',
+            action: "Add QA analyst",
+            target: "team-composition",
+            details: "Allocate 1-2 QA resources for test planning and execution",
           },
           {
-            action: 'Define test strategy',
-            target: 'project-plan',
-            details: 'UAT, integration testing, and regression testing approach',
+            action: "Define test strategy",
+            target: "project-plan",
+            details: "UAT, integration testing, and regression testing approach",
           },
         ],
         score: 0,
-        category: 'quality',
+        category: "quality",
       });
     }
 
@@ -572,7 +578,7 @@ export class OptimizationEngine {
     const costBreakdown = calculateTotalCost(this.project);
 
     const subcontractorCost = resources
-      .filter(r => r.designation === 'subcontractor')
+      .filter((r) => r.designation === "subcontractor")
       .reduce((sum, r) => sum + (costBreakdown.costByResource.get(r.id) || 0), 0);
 
     const subcontractorPercent = (subcontractorCost / costBreakdown.totalCost) * 100;
@@ -581,9 +587,9 @@ export class OptimizationEngine {
       const savings = subcontractorCost * 0.1; // 10% potential saving
 
       recommendations.push({
-        id: 'vendor-1',
-        type: 'vendor_optimization',
-        title: 'Optimize Vendor vs Internal Staff Mix',
+        id: "vendor-1",
+        type: "vendor_optimization",
+        title: "Optimize Vendor vs Internal Staff Mix",
         description: `${subcontractorPercent.toFixed(0)}% of costs are contractors. Consider hiring or insourcing.`,
         impact: {
           costSaving: savings,
@@ -594,13 +600,13 @@ export class OptimizationEngine {
         strategicAlignment: 75,
         actions: [
           {
-            action: 'Review contractor vs permanent staff costs',
-            target: 'procurement',
-            details: 'Analyze total cost of ownership including onboarding and retention',
+            action: "Review contractor vs permanent staff costs",
+            target: "procurement",
+            details: "Analyze total cost of ownership including onboarding and retention",
           },
         ],
         score: 0,
-        category: 'cost',
+        category: "cost",
       });
     }
 
@@ -619,26 +625,26 @@ export class OptimizationEngine {
 
     if (resources.length > 10) {
       recommendations.push({
-        id: 'geo-1',
-        type: 'geographic_optimization',
-        title: 'Consider Offshore/Nearshore Resources',
-        description: 'For non-critical activities, consider lower-cost geographies.',
+        id: "geo-1",
+        type: "geographic_optimization",
+        title: "Consider Offshore/Nearshore Resources",
+        description: "For non-critical activities, consider lower-cost geographies.",
         impact: {
           costSaving: calculateTotalCost(this.project).totalCost * 0.15,
-          description: 'Up to 15% cost reduction on suitable activities',
+          description: "Up to 15% cost reduction on suitable activities",
         },
         confidence: 65,
         easeOfImplementation: 50,
         strategicAlignment: 60,
         actions: [
           {
-            action: 'Identify tasks suitable for offshore execution',
-            target: 'project-plan',
-            details: 'Testing, documentation, routine configuration can be offshore',
+            action: "Identify tasks suitable for offshore execution",
+            target: "project-plan",
+            details: "Testing, documentation, routine configuration can be offshore",
           },
         ],
         score: 0,
-        category: 'cost',
+        category: "cost",
       });
     }
 
@@ -653,38 +659,38 @@ export class OptimizationEngine {
     const resources = this.project.resources || [];
 
     // Check for junior resources
-    const juniorResources = resources.filter(r =>
-      ['analyst', 'consultant'].includes(r.designation)
+    const juniorResources = resources.filter((r) =>
+      ["analyst", "consultant"].includes(r.designation)
     );
 
     if (juniorResources.length > resources.length * 0.3) {
       recommendations.push({
-        id: 'training-1',
-        type: 'training_needs',
-        title: 'Invest in Team Training',
+        id: "training-1",
+        type: "training_needs",
+        title: "Invest in Team Training",
         description: `${juniorResources.length} junior resources would benefit from upskilling.`,
         impact: {
           riskReduction: 20,
           timeReduction: 5,
-          description: 'Improve productivity and reduce supervision needs',
+          description: "Improve productivity and reduce supervision needs",
         },
         confidence: 80,
         easeOfImplementation: 85,
         strategicAlignment: 85,
         actions: [
           {
-            action: 'Schedule SAP certification training',
-            target: 'team-development',
-            details: 'Enroll junior consultants in module-specific certification programs',
+            action: "Schedule SAP certification training",
+            target: "team-development",
+            details: "Enroll junior consultants in module-specific certification programs",
           },
           {
-            action: 'Implement mentorship program',
-            target: 'team-structure',
-            details: 'Pair junior resources with senior consultants',
+            action: "Implement mentorship program",
+            target: "team-structure",
+            details: "Pair junior resources with senior consultants",
           },
         ],
         score: 0,
-        category: 'quality',
+        category: "quality",
       });
     }
 
@@ -696,7 +702,7 @@ export class OptimizationEngine {
    */
   private rankRecommendations(recommendations: Recommendation[]): Recommendation[] {
     return recommendations
-      .map(rec => {
+      .map((rec) => {
         // Multi-factor scoring
         const score =
           rec.confidence * 0.4 +
@@ -717,16 +723,16 @@ export class OptimizationEngine {
     const resources = this.project.resources || [];
     const critical: Resource[] = [];
 
-    resources.forEach(resource => {
+    resources.forEach((resource) => {
       let phaseCount = 0;
       let taskCount = 0;
 
-      this.project.phases.forEach(phase => {
-        if (phase.phaseResourceAssignments?.some(a => a.resourceId === resource.id)) {
+      this.project.phases.forEach((phase) => {
+        if (phase.phaseResourceAssignments?.some((a) => a.resourceId === resource.id)) {
           phaseCount++;
         }
-        phase.tasks.forEach(task => {
-          if (task.resourceAssignments?.some(a => a.resourceId === resource.id)) {
+        phase.tasks.forEach((task) => {
+          if (task.resourceAssignments?.some((a) => a.resourceId === resource.id)) {
             taskCount++;
           }
         });
@@ -736,10 +742,7 @@ export class OptimizationEngine {
       const totalPhases = this.project.phases.length;
       const totalTasks = this.project.phases.reduce((sum, p) => sum + p.tasks.length, 0);
 
-      if (
-        (phaseCount / totalPhases > 0.5) ||
-        (taskCount / totalTasks > 0.3)
-      ) {
+      if (phaseCount / totalPhases > 0.5 || taskCount / totalTasks > 0.3) {
         critical.push(resource);
       }
     });
@@ -752,7 +755,7 @@ export class OptimizationEngine {
    */
   private findParallelizableWork() {
     // Simplified: Phases with no dependencies can potentially be parallelized
-    return this.project.phases.filter(phase => {
+    return this.project.phases.filter((phase) => {
       return !phase.dependencies || phase.dependencies.length === 0;
     });
   }
@@ -779,6 +782,6 @@ export function getQuickWins(project: GanttProject): Recommendation[] {
 
   // Return top 3 easiest and highest-impact recommendations
   return allRecommendations
-    .filter(rec => rec.easeOfImplementation >= 70 && rec.confidence >= 75)
+    .filter((rec) => rec.easeOfImplementation >= 70 && rec.confidence >= 75)
     .slice(0, 3);
 }

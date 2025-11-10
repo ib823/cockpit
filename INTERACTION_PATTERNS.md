@@ -56,36 +56,42 @@ className={isOpen ? 'opacity-100' : 'opacity-0'}
 ### Clickable Areas
 
 **Phase Bars:**
+
 - **Action:** Click to select, double-click to focus (RTS)
 - **Cursor:** `cursor-move`
 - **Hover:** Lift effect (-translate-y-0.5) + shadow-2xl
 - **Visual Feedback:** Ring on selection (ring-4 ring-blue-400)
 
 **Task Bars:**
+
 - **Action:** Click to select, drag to move
 - **Cursor:** `cursor-move`
 - **Hover:** Lift effect + shadow-2xl
 - **Visual Feedback:** Ring on selection (ring-2 ring-blue-400)
 
 **Resize Handles:**
+
 - **Position:** Left and right edges of bars (w-2)
 - **Cursor:** `cursor-ew-resize`
 - **Hover:** `hover:bg-white/30`
 - **Action:** Drag to resize duration
 
 **Buttons:**
+
 - **Small icons:** p-1 (4px padding) - compact controls
 - **Standard buttons:** px-4 py-2 (16px × 8px)
 - **Hover:** Background color change + cursor-pointer
 - **Disabled:** opacity-50 cursor-not-allowed
 
 **Milestones:**
+
 - **Action:** Click to edit
 - **Cursor:** `cursor-pointer`
 - **Hover:** scale-125 transform
 - **Visual Feedback:** Vertical line + flag icon
 
 **Holidays:**
+
 - **Action:** Hover for tooltip only
 - **Cursor:** `cursor-help`
 - **Visual Feedback:** Dot indicator (solid for weekdays, outlined for weekends)
@@ -93,16 +99,19 @@ className={isOpen ? 'opacity-100' : 'opacity-0'}
 ### Drag-and-Drop Zones
 
 **Phase Reordering:**
+
 - **Trigger:** Drag phase bar
 - **Target:** Drop on another phase
 - **Feedback:** `ring-4 ring-purple-500 ring-offset-2 scale-105`
 
 **Resource Assignment:**
+
 - **Trigger:** Drag resource from panel
 - **Target:** Drop on phase bar
 - **Feedback:** `ring-4 ring-purple-500 ring-offset-2 scale-105`
 
 **Task Reordering:**
+
 - **Trigger:** Drag task bar
 - **Target:** Drop on another task position
 - **Feedback:** Ring highlight + scale effect
@@ -115,7 +124,7 @@ className={isOpen ? 'opacity-100' : 'opacity-0'}
 
 ```tsx
 // Standard hover effect
-className="hover:-translate-y-0.5 hover:shadow-2xl transition-all duration-300"
+className = "hover:-translate-y-0.5 hover:shadow-2xl transition-all duration-300";
 
 // Combines:
 // - Subtle lift (2px upward)
@@ -127,23 +136,23 @@ className="hover:-translate-y-0.5 hover:shadow-2xl transition-all duration-300"
 
 ```tsx
 // Small controls
-className="hover:bg-gray-200 transition-colors"
+className = "hover:bg-gray-200 transition-colors";
 
 // Primary actions
-className="hover:bg-blue-700 hover:shadow-md transition-all"
+className = "hover:bg-blue-700 hover:shadow-md transition-all";
 
 // Icon-only buttons
-className="hover:scale-110 transition-transform"
+className = "hover:scale-110 transition-transform";
 ```
 
 ### Badge Hover
 
 ```tsx
 // Resource badges
-className="hover:bg-purple-800 transition-colors cursor-help"
+className = "hover:bg-purple-800 transition-colors cursor-help";
 
 // Warning badges
-className="animate-pulse pointer-events-auto cursor-help"
+className = "animate-pulse pointer-events-auto cursor-help";
 ```
 
 ---
@@ -153,23 +162,27 @@ className="animate-pulse pointer-events-auto cursor-help"
 ### Minimum Information
 
 **Phase Tooltips:**
+
 - Phase name
 - Date range
 - Duration (working days + calendar days)
 - Assigned resources (if any)
 
 **Task Tooltips:**
+
 - Task name
 - Date range
 - Duration
 - Status (if exceeds phase boundary)
 
 **Milestone Tooltips:**
+
 - Milestone name
 - Date + day of week
 - Milestone type (from icon field)
 
 **Holiday Tooltips:**
+
 - Holiday name
 - Date
 - Weekend indicator (if applicable)
@@ -178,23 +191,23 @@ className="animate-pulse pointer-events-auto cursor-help"
 
 ```tsx
 // Standard constraint
-className="max-w-xs"  // 320px max width
+className = "max-w-xs"; // 320px max width
 
 // For detailed warnings
-className="max-w-md"  // 448px max width
+className = "max-w-md"; // 448px max width
 ```
 
 ### Typography in Tooltips
 
 ```tsx
 // Title
-className="font-semibold text-sm"
+className = "font-semibold text-sm";
 
 // Body text
-className="text-xs opacity-90"
+className = "text-xs opacity-90";
 
 // Metadata
-className="text-xs opacity-75"
+className = "text-xs opacity-75";
 ```
 
 ---
@@ -205,10 +218,10 @@ className="text-xs opacity-75"
 
 ```tsx
 // Standard focus ring
-className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+className = "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
 
 // For dark backgrounds
-className="focus:ring-white focus:ring-offset-blue-600"
+className = "focus:ring-white focus:ring-offset-blue-600";
 ```
 
 ### Tab Order Priority
@@ -226,17 +239,17 @@ className="focus:ring-white focus:ring-offset-blue-600"
 
 ```tsx
 // Small buttons adjusted for touch
-className="p-2 min-w-[44px] min-h-[44px]"  // Ensures 44px minimum
+className = "p-2 min-w-[44px] min-h-[44px]"; // Ensures 44px minimum
 
 // Icon sizing
-className="w-5 h-5"  // 20px icons in 44px container = adequate padding
+className = "w-5 h-5"; // 20px icons in 44px container = adequate padding
 ```
 
 ### Touch-Friendly Spacing
 
 ```tsx
 // Between adjacent interactive elements
-className="gap-2"  // 8px minimum gap
+className = "gap-2"; // 8px minimum gap
 ```
 
 ---
@@ -258,13 +271,13 @@ duration: {
 
 ```typescript
 // Use for most interactions
-transition: 'transition-all duration-300 ease-in-out'
+transition: "transition-all duration-300 ease-in-out";
 
 // For entering elements
-transition: 'transition-opacity duration-150 ease-out'
+transition: "transition-opacity duration-150 ease-out";
 
 // For exiting elements
-transition: 'transition-opacity duration-150 ease-in'
+transition: "transition-opacity duration-150 ease-in";
 ```
 
 ---
@@ -284,6 +297,7 @@ className={prefersReducedMotion ? 'transition-none' : 'transition-all duration-3
 ### Alternative Feedback
 
 When motion is reduced:
+
 - Use opacity changes instead of transforms
 - Use color changes instead of animations
 - Maintain visual feedback without movement
@@ -292,18 +306,18 @@ When motion is reduced:
 
 ## Summary Table
 
-| Element | Cursor | Hover Effect | Click Action | Tooltip |
-|---------|--------|--------------|--------------|---------|
-| Phase Bar | move | lift + shadow | Select | ✓ |
-| Task Bar | move | lift + shadow | Select | ✓ |
-| Resize Handle | ew-resize | bg-white/30 | Resize | ✗ |
-| Milestone | pointer | scale-125 | Edit | ✓ |
-| Holiday | help | - | None | ✓ |
-| Button | pointer | bg-change | Execute | ✗ |
-| Warning Badge | help | - | None | ✓ |
-| Resource Badge | help | bg-change | None | ✓ |
-| Date Label | default | - | None | ✗ |
-| Grid Line | default | - | None | ✗ |
+| Element        | Cursor    | Hover Effect  | Click Action | Tooltip |
+| -------------- | --------- | ------------- | ------------ | ------- |
+| Phase Bar      | move      | lift + shadow | Select       | ✓       |
+| Task Bar       | move      | lift + shadow | Select       | ✓       |
+| Resize Handle  | ew-resize | bg-white/30   | Resize       | ✗       |
+| Milestone      | pointer   | scale-125     | Edit         | ✓       |
+| Holiday        | help      | -             | None         | ✓       |
+| Button         | pointer   | bg-change     | Execute      | ✗       |
+| Warning Badge  | help      | -             | None         | ✓       |
+| Resource Badge | help      | bg-change     | None         | ✓       |
+| Date Label     | default   | -             | None         | ✗       |
+| Grid Line      | default   | -             | None         | ✗       |
 
 ---
 

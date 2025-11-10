@@ -14,12 +14,12 @@ interface Milestone {
 }
 
 const COLORS = [
-  { name: 'Green', class: 'bg-green-500', value: 'green' },
-  { name: 'Blue', class: 'bg-blue-500', value: 'blue' },
-  { name: 'Purple', class: 'bg-purple-500', value: 'purple' },
-  { name: 'Orange', class: 'bg-orange-500', value: 'orange' },
-  { name: 'Red', class: 'bg-red-500', value: 'red' },
-  { name: 'Pink', class: 'bg-pink-500', value: 'pink' },
+  { name: "Green", class: "bg-green-500", value: "green" },
+  { name: "Blue", class: "bg-blue-500", value: "blue" },
+  { name: "Purple", class: "bg-purple-500", value: "purple" },
+  { name: "Orange", class: "bg-orange-500", value: "orange" },
+  { name: "Red", class: "bg-red-500", value: "red" },
+  { name: "Pink", class: "bg-pink-500", value: "pink" },
 ];
 
 export function MilestoneManagerModal({
@@ -32,24 +32,26 @@ export function MilestoneManagerModal({
   onClose: () => void;
 }) {
   const [localMilestones, setLocalMilestones] = useState<Milestone[]>(milestones);
-  const [newMilestone, setNewMilestone] = useState({ name: '', date: '', color: 'bg-green-500' });
+  const [newMilestone, setNewMilestone] = useState({ name: "", date: "", color: "bg-green-500" });
 
   const handleAdd = () => {
     if (!newMilestone.name || !newMilestone.date) return;
-    
+
     const milestone: Milestone = {
       id: `ms_${Date.now()}`,
       name: newMilestone.name,
       date: new Date(newMilestone.date),
       color: newMilestone.color,
     };
-    
-    setLocalMilestones([...localMilestones, milestone].sort((a, b) => a.date.getTime() - b.date.getTime()));
-    setNewMilestone({ name: '', date: '', color: 'bg-green-500' });
+
+    setLocalMilestones(
+      [...localMilestones, milestone].sort((a, b) => a.date.getTime() - b.date.getTime())
+    );
+    setNewMilestone({ name: "", date: "", color: "bg-green-500" });
   };
 
   const handleDelete = (id: string) => {
-    setLocalMilestones(localMilestones.filter(m => m.id !== id));
+    setLocalMilestones(localMilestones.filter((m) => m.id !== id));
   };
 
   const handleSave = () => {
@@ -99,8 +101,10 @@ export function MilestoneManagerModal({
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 aria-label="Milestone color"
               >
-                {COLORS.map(c => (
-                  <option key={c.value} value={c.class}>{c.name}</option>
+                {COLORS.map((c) => (
+                  <option key={c.value} value={c.class}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
               <Button
@@ -129,7 +133,7 @@ export function MilestoneManagerModal({
                   <div>
                     <div className="font-medium text-gray-900">{milestone.name}</div>
                     <div className="text-sm text-gray-600">
-                      {format(milestone.date, 'EEEE, MMMM dd, yyyy')}
+                      {format(milestone.date, "EEEE, MMMM dd, yyyy")}
                     </div>
                   </div>
                 </div>

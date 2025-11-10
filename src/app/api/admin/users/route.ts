@@ -1,10 +1,10 @@
-import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/nextauth-helpers';
-import { NextResponse } from 'next/server';
-import { randomBytes } from 'crypto';
-import { withCsrfProtection } from '@/lib/api-route-wrapper';
+import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/nextauth-helpers";
+import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
+import { withCsrfProtection } from "@/lib/api-route-wrapper";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function GET() {
   try {
@@ -12,7 +12,7 @@ export async function GET() {
 
     const users = await prisma.users.findMany({
       where: {
-        role: { not: 'ADMIN' },
+        role: { not: "ADMIN" },
       },
       include: {
         Authenticator: true,
@@ -23,7 +23,7 @@ export async function GET() {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
@@ -32,13 +32,13 @@ export async function GET() {
       const hasPasskey = user.Authenticator.length > 0;
       const expired = !user.exception && user.accessExpiresAt <= now;
 
-      let status: 'active' | 'pending' | 'expired';
+      let status: "active" | "pending" | "expired";
       if (expired) {
-        status = 'expired';
+        status = "expired";
       } else if (!hasPasskey || !user.firstLoginAt) {
-        status = 'pending';
+        status = "pending";
       } else {
-        status = 'active';
+        status = "active";
       }
 
       return {
@@ -59,19 +59,19 @@ export async function GET() {
 
     return NextResponse.json(
       { users: usersWithStatus },
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { "Content-Type": "application/json" } }
     );
-  } catch (e: any) {
-    if (e.message === 'forbidden') {
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === "forbidden") {
       return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
+        { error: "Admin access required" },
+        { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error('users error', e);
+    console.error("users error", e);
     return NextResponse.json(
-      { error: 'Internal error' },
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { error: "Internal error" },
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
@@ -85,17 +85,17 @@ export const POST = withCsrfProtection(async (req: Request) => {
     const { email, name, role, accessExpiresAt, exception } = body;
 
     // Validation
-    if (!email || !email.includes('@')) {
+    if (!email || !email.includes("@")) {
       return NextResponse.json(
-        { error: 'Valid email is required' },
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { error: "Valid email is required" },
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    if (role && !['USER', 'MANAGER', 'ADMIN'].includes(role)) {
+    if (role && !["USER", "MANAGER", "ADMIN"].includes(role)) {
       return NextResponse.json(
-        { error: 'Invalid role. Must be USER, MANAGER, or ADMIN' },
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { error: "Invalid role. Must be USER, MANAGER, or ADMIN" },
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -106,13 +106,13 @@ export const POST = withCsrfProtection(async (req: Request) => {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 409, headers: { 'Content-Type': 'application/json' } }
+        { error: "User with this email already exists" },
+        { status: 409, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // Generate random ID
-    const id = randomBytes(16).toString('hex');
+    const id = randomBytes(16).toString("hex");
 
     // Calculate access expiration (default 90 days from now)
     const expiresAt = accessExpiresAt
@@ -125,7 +125,7 @@ export const POST = withCsrfProtection(async (req: Request) => {
         id,
         email,
         name: name || null,
-        role: role || 'USER',
+        role: role || "USER",
         accessExpiresAt: expiresAt,
         exception: exception || false,
         updatedAt: new Date(),
@@ -134,19 +134,19 @@ export const POST = withCsrfProtection(async (req: Request) => {
 
     return NextResponse.json(
       { user },
-      { status: 201, headers: { 'Content-Type': 'application/json' } }
+      { status: 201, headers: { "Content-Type": "application/json" } }
     );
-  } catch (e: any) {
-    if (e.message === 'forbidden') {
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === "forbidden") {
       return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
+        { error: "Admin access required" },
+        { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error('create user error', e);
+    console.error("create user error", e);
     return NextResponse.json(
-      { error: 'Failed to create user' },
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { error: "Failed to create user" },
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 });

@@ -232,15 +232,16 @@ claude-project-knowledge/
 
 ## 📊 Size Comparison
 
-| Category | Files | Size |
-|----------|-------|------|
-| **✅ Included (Synced)** | ~500-800 | ~5-15 MB |
-| **❌ Excluded (Not Synced)** | ~15,000+ | ~500+ MB |
-| **Total Reduction** | ~95% fewer | ~97% smaller |
+| Category                     | Files      | Size         |
+| ---------------------------- | ---------- | ------------ |
+| **✅ Included (Synced)**     | ~500-800   | ~5-15 MB     |
+| **❌ Excluded (Not Synced)** | ~15,000+   | ~500+ MB     |
+| **Total Reduction**          | ~95% fewer | ~97% smaller |
 
 ## 🎯 Key Folders for Assessment
 
 ### 🔒 Security
+
 - `src/lib/auth/` - Authentication logic
 - `src/app/api/` - API routes
 - `lib/session.ts` - Session management
@@ -248,6 +249,7 @@ claude-project-knowledge/
 - `prisma/schema.prisma` - Database security
 
 ### 🎨 UX
+
 - `src/components/` - All UI components
 - `src/app/` - Page routing & layouts
 - `src/styles/` - Styling & theming
@@ -255,6 +257,7 @@ claude-project-knowledge/
 - `docs/ui-toolkit/` - Component docs
 
 ### 🔄 Business Logic
+
 - `src/lib/` - Core business logic
 - `src/utils/` - Utility functions
 - `src/stores/` - State management
@@ -262,6 +265,7 @@ claude-project-knowledge/
 - `src/data/` - Reference data
 
 ### 🏗️ Architecture
+
 - `src/types/` - Type system
 - `src/config/` - Configuration
 - `package.json` - Dependencies
@@ -270,13 +274,13 @@ claude-project-knowledge/
 
 ## 📝 Assessment Coverage Matrix
 
-| Assessment Type | Primary Folders | Supporting Files |
-|----------------|-----------------|------------------|
-| **Security Audit** | `src/lib/auth/`, `src/app/api/`, `middleware.ts` | `SECURITY.md`, `prisma/schema.prisma` |
-| **UX Review** | `src/components/`, `src/app/` | `docs/ui-toolkit/`, `ACCESSIBILITY_COMPLIANCE.md` |
-| **Code Quality** | `src/`, `tests/` | `eslintrc`, `tsconfig.json` |
-| **Architecture** | `src/types/`, `src/lib/` | `CODEBASE_OVERVIEW.md`, `package.json` |
-| **Flow Analysis** | `src/stores/`, `src/hooks/` | `docs/`, `Mermaid_System_Maps.md` |
+| Assessment Type    | Primary Folders                                  | Supporting Files                                  |
+| ------------------ | ------------------------------------------------ | ------------------------------------------------- |
+| **Security Audit** | `src/lib/auth/`, `src/app/api/`, `middleware.ts` | `SECURITY.md`, `prisma/schema.prisma`             |
+| **UX Review**      | `src/components/`, `src/app/`                    | `docs/ui-toolkit/`, `ACCESSIBILITY_COMPLIANCE.md` |
+| **Code Quality**   | `src/`, `tests/`                                 | `eslintrc`, `tsconfig.json`                       |
+| **Architecture**   | `src/types/`, `src/lib/`                         | `CODEBASE_OVERVIEW.md`, `package.json`            |
+| **Flow Analysis**  | `src/stores/`, `src/hooks/`                      | `docs/`, `Mermaid_System_Maps.md`                 |
 
 ## 🔍 Verification Checklist
 
@@ -297,6 +301,7 @@ After sync, verify these critical files exist:
 ## 🚀 Ready for Assessment
 
 This structure provides Claude.ai with:
+
 - ✅ Complete source code
 - ✅ Full type definitions
 - ✅ All business logic

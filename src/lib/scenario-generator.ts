@@ -660,20 +660,20 @@ export class ScenarioGenerator {
   private applyIntegrationPostureImpact(plan: ScenarioPlan, decision: Decision): void {
     // Integration posture affects Integration stream effort based on architecture approach
     const effortMultipliers: Record<string, number> = {
-      "Point-to-Point": 1.4,      // 40% more effort (hard to maintain, duplicate code)
-      "Hub-and-Spoke": 1.0,       // Baseline (middleware/ESB approach)
-      "Cloud-First": 0.8,         // 20% less effort (API-led, modern patterns)
-      "Hybrid": 1.15,             // 15% more effort (mix of approaches, coordination overhead)
+      "Point-to-Point": 1.4, // 40% more effort (hard to maintain, duplicate code)
+      "Hub-and-Spoke": 1.0, // Baseline (middleware/ESB approach)
+      "Cloud-First": 0.8, // 20% less effort (API-led, modern patterns)
+      Hybrid: 1.15, // 15% more effort (mix of approaches, coordination overhead)
     };
 
     const selected =
-      typeof decision.selected === "string" ? decision.selected : decision.selected?.[0] || "Hub-and-Spoke";
+      typeof decision.selected === "string"
+        ? decision.selected
+        : decision.selected?.[0] || "Hub-and-Spoke";
     const multiplier = effortMultipliers[selected] || 1.0;
 
     // Find all Integration phases across SAP Activate stages
-    const integrationPhases = plan.phases.filter((p) =>
-      p.name.includes("Integration")
-    );
+    const integrationPhases = plan.phases.filter((p) => p.name.includes("Integration"));
 
     if (integrationPhases.length === 0) {
       // Fallback: affect all Realize phases if Integration phases not found
@@ -734,10 +734,10 @@ export class ScenarioGenerator {
     // FRICEW target adjusts effort in Development & Extensions stream
     // based on anticipated custom development volume (Low/Medium/High)
     const impactMultipliers: Record<string, number> = {
-      Low: 1.10,      // 10% additional effort for minimal customization
-      Medium: 1.25,   // 25% additional effort for moderate customization
-      High: 1.50,     // 50% additional effort for extensive customization
-      None: 1.0,      // No additional customization
+      Low: 1.1, // 10% additional effort for minimal customization
+      Medium: 1.25, // 25% additional effort for moderate customization
+      High: 1.5, // 50% additional effort for extensive customization
+      None: 1.0, // No additional customization
     };
 
     const selected =
@@ -745,9 +745,7 @@ export class ScenarioGenerator {
     const multiplier = impactMultipliers[selected] || 1.0;
 
     // Find all Development & Extensions phases across all SAP Activate stages
-    const devPhases = plan.phases.filter((p) =>
-      p.name.includes("Development & Extensions")
-    );
+    const devPhases = plan.phases.filter((p) => p.name.includes("Development & Extensions"));
 
     if (devPhases.length === 0) {
       // Fallback: adjust Realize phases if Development & Extensions not found
@@ -784,11 +782,11 @@ export class ScenarioGenerator {
     // Rate region impacts cost, not effort
     // Uses costIndex multipliers from resource-catalog.ts RATE_CARDS
     const costMultipliers: Record<string, number> = {
-      ABMY: 1.0,    // Malaysia (baseline)
-      ABSG: 1.2,    // Singapore (20% premium)
-      ABVN: 0.6,    // Vietnam (40% discount)
-      NA: 1.8,      // North America (80% premium)
-      EU: 1.5,      // Europe (50% premium)
+      ABMY: 1.0, // Malaysia (baseline)
+      ABSG: 1.2, // Singapore (20% premium)
+      ABVN: 0.6, // Vietnam (40% discount)
+      NA: 1.8, // North America (80% premium)
+      EU: 1.5, // Europe (50% premium)
       default: 1.0, // Fallback
     };
 

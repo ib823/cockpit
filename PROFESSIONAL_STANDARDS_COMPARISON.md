@@ -12,11 +12,13 @@
 #### 1. **Clarity** - "Content is king"
 
 **Apple Standard**:
+
 - Text legible at all sizes
 - Icons precise and lucid
 - Decorations subtle and appropriate
 
 **Your Implementation** ✓:
+
 ```tsx
 // Typography hierarchy - EXCELLENT
 'text-7xl font-thin' // Display (hero sections)
@@ -28,11 +30,13 @@
 ```
 
 **What Apple Does**:
+
 - SF Pro font with optical sizing
 - Dynamic Type (scales with user preference)
 - High contrast for readability
 
 **How to Match**:
+
 ```tsx
 // Your current approach already matches!
 // Fluid typography = Apple's Dynamic Type equivalent
@@ -44,11 +48,13 @@ font-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem)
 #### 2. **Deference** - "UI helps understanding without competing"
 
 **Apple Standard**:
+
 - UI doesn't compete with content
 - Borderless buttons where appropriate
 - Translucency reveals layers
 
 **Your Implementation** ✓:
+
 ```css
 /* Subtle shadows - EXCELLENT */
 --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -59,6 +65,7 @@ bg-white border border-[var(--line)]
 ```
 
 **Apple Example** (iOS Mail):
+
 ```
 Subject line: font-semibold
 Preview text: font-normal, text-gray-600
@@ -66,6 +73,7 @@ Timestamp: font-normal, text-gray-400 (defers to content)
 ```
 
 **Your Equivalent**:
+
 ```tsx
 <h3 className="text-lg font-semibold">{project.name}</h3>
 <p className="text-sm text-[var(--ink-dim)]">{project.description}</p>
@@ -77,11 +85,13 @@ Timestamp: font-normal, text-gray-400 (defers to content)
 #### 3. **Depth** - "Visual layers and motion convey hierarchy"
 
 **Apple Standard**:
+
 - Z-axis layering (shadows, blur)
 - Motion reveals relationships
 - Parallax creates depth
 
 **Your Implementation** ✓:
+
 ```css
 /* Z-index scale - EXCELLENT */
 --z-dropdown: 1000;
@@ -97,6 +107,7 @@ Timestamp: font-normal, text-gray-400 (defers to content)
 ```
 
 **Apple Example** (macOS Big Sur):
+
 ```css
 /* Card hover effect */
 transform: translateY(-2px);
@@ -105,10 +116,9 @@ transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 ```
 
 **Your Equivalent**:
+
 ```tsx
-<div className="hover:shadow-lg transition-all duration-200">
-  {/* Card content */}
-</div>
+<div className="hover:shadow-lg transition-all duration-200">{/* Card content */}</div>
 ```
 
 ---
@@ -118,16 +128,17 @@ transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 ### Monday.com's Design DNA
 
 **Color System**:
+
 ```css
 /* Monday.com primary colors */
---monday-blue: #0073EA;
---monday-purple: #7F5EF2;
---monday-green: #00CA72;
---monday-red: #E44258;
---monday-orange: #FDAB3D;
+--monday-blue: #0073ea;
+--monday-purple: #7f5ef2;
+--monday-green: #00ca72;
+--monday-red: #e44258;
+--monday-orange: #fdab3d;
 
 /* Your equivalent - COMPARABLE QUALITY */
---accent: #2563eb;      /* Primary blue */
+--accent: #2563eb; /* Primary blue */
 --accent-strong: #1d4ed8;
 --success: #16a34a;
 --danger: #ef4444;
@@ -135,6 +146,7 @@ transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 ```
 
 **Spacing System**:
+
 ```css
 /* Monday.com uses 4px/8px hybrid */
 4px, 8px, 12px, 16px, 24px, 32px, 40px, 48px
@@ -153,6 +165,7 @@ Your app: **medium density** - better for complex workflows
 ### Monday.com Mobile Strategy
 
 **What Monday.com Does**:
+
 1. **Hamburger menu** → slide-out navigation
 2. **Bottom tab bar** for primary actions
 3. **Collapsible sections** on mobile
@@ -160,6 +173,7 @@ Your app: **medium density** - better for complex workflows
 5. **Native mobile apps** (not just responsive web)
 
 **Your Current Implementation**:
+
 1. ✗ No hamburger menu (CRITICAL GAP)
 2. ✓ Bottom nav in ProjectShell (EXCELLENT)
 3. ⚠ Some sections collapsible, not consistent
@@ -185,7 +199,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
       {/* Bottom Tab Bar (like Monday.com) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t safe-bottom">
         <nav className="grid grid-cols-4 gap-1 p-2">
-          {items.map(item => (
+          {items.map((item) => (
             <button
               key={item.key}
               className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-100"
@@ -208,6 +222,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
 ### Button Component Comparison
 
 #### Monday.com Button
+
 ```tsx
 // Hierarchy: Primary > Secondary > Tertiary > Ghost
 <Button variant="primary" size="medium">
@@ -225,39 +240,37 @@ export function MobileNav({ items }: { items: NavItem[] }) {
 ```
 
 #### Your Button (Should Match)
+
 ```tsx
 // File: src/ui/components/Button.tsx
 
 interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'tertiary' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: "primary" | "secondary" | "tertiary" | "ghost";
+  size?: "sm" | "md" | "lg";
 }
 
 const buttonStyles = {
-  base: 'inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-2',
+  base: "inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-2",
 
   variants: {
-    primary: 'bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]',
-    secondary: 'bg-white text-[var(--ink)] border border-[var(--line)] hover:bg-[var(--surface-sub)]',
-    tertiary: 'bg-[var(--surface-sub)] text-[var(--ink)] hover:bg-[var(--line)]',
-    ghost: 'text-[var(--ink-dim)] hover:bg-[var(--surface-sub)]',
+    primary: "bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]",
+    secondary:
+      "bg-white text-[var(--ink)] border border-[var(--line)] hover:bg-[var(--surface-sub)]",
+    tertiary: "bg-[var(--surface-sub)] text-[var(--ink)] hover:bg-[var(--line)]",
+    ghost: "text-[var(--ink-dim)] hover:bg-[var(--surface-sub)]",
   },
 
   sizes: {
-    sm: 'h-8 px-3 text-sm rounded-[var(--r-sm)]',
-    md: 'h-10 px-4 text-base rounded-[var(--r-md)]',
-    lg: 'h-12 px-6 text-lg rounded-[var(--r-lg)]',
+    sm: "h-8 px-3 text-sm rounded-[var(--r-sm)]",
+    md: "h-10 px-4 text-base rounded-[var(--r-md)]",
+    lg: "h-12 px-6 text-lg rounded-[var(--r-lg)]",
   },
 };
 
-export function Button({ variant = 'primary', size = 'md', children, ...props }: ButtonProps) {
+export function Button({ variant = "primary", size = "md", children, ...props }: ButtonProps) {
   return (
     <button
-      className={clsx(
-        buttonStyles.base,
-        buttonStyles.variants[variant],
-        buttonStyles.sizes[size]
-      )}
+      className={clsx(buttonStyles.base, buttonStyles.variants[variant], buttonStyles.sizes[size])}
       {...props}
     >
       {children}
@@ -267,6 +280,7 @@ export function Button({ variant = 'primary', size = 'md', children, ...props }:
 ```
 
 **Quality Comparison**:
+
 - ✓ Size options match industry standard
 - ✓ Variant hierarchy clear
 - ✓ Hover/active states defined
@@ -277,6 +291,7 @@ export function Button({ variant = 'primary', size = 'md', children, ...props }:
 ### Input Component Comparison
 
 #### Monday.com Input
+
 ```
 Height: 40px
 Padding: 10px 12px
@@ -288,6 +303,7 @@ Error: Red border + icon + message
 ```
 
 #### Your Input (Target Quality)
+
 ```tsx
 // File: src/ui/components/Input.tsx
 
@@ -300,22 +316,18 @@ interface InputProps {
 export function Input({ label, error, hint, ...props }: InputProps) {
   return (
     <div className="space-y-2">
-      {label && (
-        <label className="block text-sm font-medium text-[var(--ink)]">
-          {label}
-        </label>
-      )}
+      {label && <label className="block text-sm font-medium text-[var(--ink)]">{label}</label>}
       <div className="relative">
         <input
           className={clsx(
-            'w-full h-10 px-3 text-base',
-            'border rounded-[var(--r-md)]',
-            'transition-colors duration-200',
-            'placeholder:text-[var(--ink-muted)]',
-            'focus:outline-none focus:ring-2',
+            "w-full h-10 px-3 text-base",
+            "border rounded-[var(--r-md)]",
+            "transition-colors duration-200",
+            "placeholder:text-[var(--ink-muted)]",
+            "focus:outline-none focus:ring-2",
             error
-              ? 'border-[var(--danger)] focus:ring-[var(--danger)]'
-              : 'border-[var(--line)] focus:ring-[var(--focus)]'
+              ? "border-[var(--danger)] focus:ring-[var(--danger)]"
+              : "border-[var(--line)] focus:ring-[var(--focus)]"
           )}
           {...props}
         />
@@ -325,20 +337,15 @@ export function Input({ label, error, hint, ...props }: InputProps) {
           </div>
         )}
       </div>
-      {error && (
-        <p className="text-sm text-[var(--danger)] flex items-center gap-1">
-          {error}
-        </p>
-      )}
-      {hint && !error && (
-        <p className="text-sm text-[var(--ink-muted)]">{hint}</p>
-      )}
+      {error && <p className="text-sm text-[var(--danger)] flex items-center gap-1">{error}</p>}
+      {hint && !error && <p className="text-sm text-[var(--ink-muted)]">{hint}</p>}
     </div>
   );
 }
 ```
 
 **Quality Checklist**:
+
 - ✓ Label always visible (not placeholder-only)
 - ✓ Error state with icon + message
 - ✓ Helper text support
@@ -352,9 +359,11 @@ export function Input({ label, error, hint, ...props }: InputProps) {
 ### Card Component Professional Standard
 
 #### Linear's Card Design
+
 ```tsx
 // Linear uses sophisticated hover effects
-<div className="
+<div
+  className="
   bg-white
   border border-gray-200
   rounded-lg
@@ -364,13 +373,10 @@ export function Input({ label, error, hint, ...props }: InputProps) {
   hover:shadow-md
   hover:-translate-y-0.5
   cursor-pointer
-">
-  <h3 className="font-semibold text-gray-900 mb-1">
-    Task Title
-  </h3>
-  <p className="text-sm text-gray-600 mb-3">
-    Description text
-  </p>
+"
+>
+  <h3 className="font-semibold text-gray-900 mb-1">Task Title</h3>
+  <p className="text-sm text-gray-600 mb-3">Description text</p>
   <div className="flex items-center gap-2 text-xs text-gray-500">
     <span>Due date</span>
     <span>•</span>
@@ -380,6 +386,7 @@ export function Input({ label, error, hint, ...props }: InputProps) {
 ```
 
 #### Your Card Component (Should Match)
+
 ```tsx
 // File: src/components/data-display/Card.tsx
 
@@ -395,29 +402,21 @@ export function Card({ title, description, meta, onClick, interactive }: CardPro
   return (
     <div
       className={clsx(
-        'bg-white rounded-[var(--r-lg)] border border-[var(--line)] p-4',
-        'transition-all duration-[var(--dur)]',
+        "bg-white rounded-[var(--r-lg)] border border-[var(--line)] p-4",
+        "transition-all duration-[var(--dur)]",
         interactive && [
-          'cursor-pointer',
-          'hover:border-[var(--accent-subtle)]',
-          'hover:shadow-md',
-          'hover:-translate-y-0.5',
+          "cursor-pointer",
+          "hover:border-[var(--accent-subtle)]",
+          "hover:shadow-md",
+          "hover:-translate-y-0.5",
         ]
       )}
       onClick={onClick}
     >
-      <h3 className="font-semibold text-[var(--ink)] mb-1">
-        {title}
-      </h3>
-      {description && (
-        <p className="text-sm text-[var(--ink-dim)] mb-3">
-          {description}
-        </p>
-      )}
+      <h3 className="font-semibold text-[var(--ink)] mb-1">{title}</h3>
+      {description && <p className="text-sm text-[var(--ink-dim)] mb-3">{description}</p>}
       {meta && (
-        <div className="flex items-center gap-2 text-xs text-[var(--ink-muted)]">
-          {meta}
-        </div>
+        <div className="flex items-center gap-2 text-xs text-[var(--ink-muted)]">{meta}</div>
       )}
     </div>
   );
@@ -425,6 +424,7 @@ export function Card({ title, description, meta, onClick, interactive }: CardPro
 ```
 
 **Professional Touch**:
+
 - Subtle hover lift (-2px translateY)
 - Border color change on hover
 - Shadow appears on hover
@@ -436,6 +436,7 @@ export function Card({ title, description, meta, onClick, interactive }: CardPro
 ### Table Component Comparison
 
 #### Notion's Table Design
+
 ```
 Header: Bold, gray background, sticky
 Rows: White, hover gray-50
@@ -447,6 +448,7 @@ Zebra striping: Optional, very subtle
 ```
 
 #### Your Table (Target)
+
 ```tsx
 // File: src/ui/datagrid/AntDataGrid.tsx enhancements
 
@@ -486,18 +488,14 @@ const tableConfig = {
           "
         />
       ),
-      cell: (props) => (
-        <td
-          {...props}
-          className="px-4 py-3 text-sm text-[var(--ink-dim)]"
-        />
-      ),
+      cell: (props) => <td {...props} className="px-4 py-3 text-sm text-[var(--ink-dim)]" />,
     },
   },
 };
 ```
 
 **Professional Quality Markers**:
+
 - ✓ Sticky header
 - ✓ Subtle hover state
 - ✓ Consistent cell padding
@@ -511,6 +509,7 @@ const tableConfig = {
 ### Loading States (Skeleton Screens)
 
 #### Facebook/LinkedIn Pattern
+
 ```tsx
 // Content-aware skeleton matching final layout
 <div className="space-y-4">
@@ -533,6 +532,7 @@ const tableConfig = {
 ```
 
 #### Your Implementation (Check Quality)
+
 ```tsx
 // File: src/components/shared/SkeletonLoaders.tsx
 
@@ -561,6 +561,7 @@ export function CardSkeleton() {
 ```
 
 **Quality Markers**:
+
 - ✓ Matches final content layout
 - ✓ Uses same spacing as real content
 - ✓ Subtle pulse animation
@@ -571,6 +572,7 @@ export function CardSkeleton() {
 ### Toast Notifications
 
 #### Stripe's Toast Pattern
+
 ```
 Position: Bottom-right (desktop), bottom-center (mobile)
 Width: 400px max (desktop), 90% (mobile)
@@ -584,33 +586,31 @@ Stack: Max 3 toasts, oldest removed
 ```
 
 #### Your Toast Implementation
+
 ```tsx
 // File: src/ui/toast/ToastProvider.tsx
 
 const toastStyles = {
-  success: 'bg-[var(--success-bg)] border-l-4 border-[var(--success)] text-[var(--success)]',
-  error: 'bg-[var(--danger-bg)] border-l-4 border-[var(--danger)] text-[var(--danger)]',
-  warning: 'bg-[var(--warn-bg)] border-l-4 border-[var(--warn)] text-[var(--warn)]',
-  info: 'bg-blue-50 border-l-4 border-blue-500 text-blue-700',
+  success: "bg-[var(--success-bg)] border-l-4 border-[var(--success)] text-[var(--success)]",
+  error: "bg-[var(--danger-bg)] border-l-4 border-[var(--danger)] text-[var(--danger)]",
+  warning: "bg-[var(--warn-bg)] border-l-4 border-[var(--warn)] text-[var(--warn)]",
+  info: "bg-blue-50 border-l-4 border-blue-500 text-blue-700",
 };
 
 export function Toast({ type, message, onDismiss }: ToastProps) {
   return (
     <div
       className={clsx(
-        'flex items-start gap-3 p-4 rounded-[var(--r-lg)] shadow-lg',
-        'max-w-md w-full',
-        'animate-slide-up',
+        "flex items-start gap-3 p-4 rounded-[var(--r-lg)] shadow-lg",
+        "max-w-md w-full",
+        "animate-slide-up",
         toastStyles[type]
       )}
     >
       <div className="flex-1">
         <p className="font-medium">{message}</p>
       </div>
-      <button
-        onClick={onDismiss}
-        className="p-1 hover:bg-black/10 rounded"
-      >
+      <button onClick={onDismiss} className="p-1 hover:bg-black/10 rounded">
         <X className="w-4 h-4" />
       </button>
     </div>
@@ -619,6 +619,7 @@ export function Toast({ type, message, onDismiss }: ToastProps) {
 ```
 
 **Professional Quality**:
+
 - ✓ Color-coded by type
 - ✓ Dismissible
 - ✓ Auto-dismiss with timer
@@ -633,15 +634,16 @@ export function Toast({ type, message, onDismiss }: ToastProps) {
 
 #### Professional Apps Navigation Matrix
 
-| App | Desktop | Tablet | Mobile |
-|-----|---------|--------|--------|
-| **Monday.com** | Left sidebar + top bar | Collapsible sidebar | Hamburger + bottom tabs |
-| **Linear** | Left sidebar | Collapsible sidebar | Hamburger + gesture nav |
-| **Notion** | Left sidebar | Hidden sidebar (toggle) | Hamburger + bottom nav |
-| **Asana** | Left sidebar | Collapsible sidebar | Hamburger only |
-| **Your App** | AppShell sidebar | ⚠ Hidden completely | ⚠ Missing hamburger |
+| App            | Desktop                | Tablet                  | Mobile                  |
+| -------------- | ---------------------- | ----------------------- | ----------------------- |
+| **Monday.com** | Left sidebar + top bar | Collapsible sidebar     | Hamburger + bottom tabs |
+| **Linear**     | Left sidebar           | Collapsible sidebar     | Hamburger + gesture nav |
+| **Notion**     | Left sidebar           | Hidden sidebar (toggle) | Hamburger + bottom nav  |
+| **Asana**      | Left sidebar           | Collapsible sidebar     | Hamburger only          |
+| **Your App**   | AppShell sidebar       | ⚠ Hidden completely    | ⚠ Missing hamburger    |
 
 **What You Should Implement**:
+
 ```tsx
 // Desktop: Persistent sidebar (240px)
 <aside className="hidden lg:flex w-60 flex-col">
@@ -672,6 +674,7 @@ export function Toast({ type, message, onDismiss }: ToastProps) {
 #### Professional Form Pattern (Stripe Checkout)
 
 **Desktop** (2-column layout):
+
 ```tsx
 <form className="max-w-4xl mx-auto p-8">
   <div className="grid grid-cols-2 gap-6">
@@ -698,15 +701,15 @@ export function Toast({ type, message, onDismiss }: ToastProps) {
 ```
 
 **Mobile** (1-column layout):
+
 ```tsx
 <form className="p-4">
-  <div className="grid grid-cols-1 gap-4">
-    {/* All fields full width */}
-  </div>
+  <div className="grid grid-cols-1 gap-4">{/* All fields full width */}</div>
 </form>
 ```
 
 **Your Implementation**:
+
 ```tsx
 <form className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
@@ -733,12 +736,14 @@ export function Toast({ type, message, onDismiss }: ToastProps) {
 #### Apple's Motion Principles
 
 **Timing**:
+
 - **Quick actions** (button press): 100ms
 - **Standard transitions** (page change): 200ms
 - **Deliberate animations** (modal open): 300ms
 - **Never exceed** 500ms
 
 **Easing**:
+
 ```css
 /* Apple standard */
 cubic-bezier(0.25, 0.1, 0.25, 1.0) /* Ease (default) */
@@ -753,6 +758,7 @@ cubic-bezier(0.2, 0.8, 0.2, 1)     /* Similar to ease-out - GOOD */
 #### Material Design Motion
 
 **Duration Formula**:
+
 ```
 Duration = 200ms + (distance × 0.1ms)
 ```
@@ -760,14 +766,15 @@ Duration = 200ms + (distance × 0.1ms)
 For 500px movement: 200 + (500 × 0.1) = 250ms
 
 **Your Animation Review**:
+
 ```css
 /* Current */
---dur: 180ms;        /* ✓ Good for quick actions */
---dur-slow: 300ms;   /* ✓ Good for modals */
+--dur: 180ms; /* ✓ Good for quick actions */
+--dur-slow: 300ms; /* ✓ Good for modals */
 
 /* Add for completeness */
 --dur-instant: 100ms; /* Button feedback */
---dur-slow: 300ms;    /* Large movements */
+--dur-slow: 300ms; /* Large movements */
 ```
 
 ---
@@ -775,6 +782,7 @@ For 500px movement: 200 + (500 × 0.1) = 250ms
 ### Micro-Interaction Examples
 
 #### Button Press Feedback (Professional)
+
 ```tsx
 <button
   className="
@@ -789,6 +797,7 @@ For 500px movement: 200 + (500 × 0.1) = 250ms
 ```
 
 #### Card Hover (Professional)
+
 ```tsx
 <div
   className="
@@ -803,9 +812,10 @@ For 500px movement: 200 + (500 × 0.1) = 250ms
 ```
 
 #### Page Transition (Professional)
+
 ```tsx
 // Using Framer Motion (already installed)
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 <motion.div
   initial={{ opacity: 0, y: 20 }}
@@ -814,7 +824,7 @@ import { motion } from 'framer-motion';
   transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
 >
   Page content
-</motion.div>
+</motion.div>;
 ```
 
 ---
@@ -826,23 +836,18 @@ import { motion } from 'framer-motion';
 #### Color Contrast Ratios
 
 **Minimum Requirements**:
+
 - Normal text (< 18pt): 4.5:1
 - Large text (≥ 18pt or bold 14pt): 3:1
 - UI components & graphics: 3:1
 
 **Your Color Check**:
+
 ```css
 /* Primary button */
---accent: #2563eb on white background
-Ratio: 7.5:1 ✓ (exceeds 4.5:1)
-
-/* Secondary text */
---ink-dim: #475569 on white
-Ratio: 8.4:1 ✓ (exceeds 4.5:1)
-
-/* Muted text */
---ink-muted: #64748b on white
-Ratio: 5.6:1 ✓ (exceeds 4.5:1)
+--accent: #2563eb on white background Ratio: 7.5: 1 ✓ (exceeds 4.5: 1) /* Secondary text */
+  --ink-dim: #475569 on white Ratio: 8.4: 1 ✓ (exceeds 4.5: 1) /* Muted text */ --ink-muted: #64748b
+  on white Ratio: 5.6: 1 ✓ (exceeds 4.5: 1);
 ```
 
 **Tool**: Use https://contrast-ratio.com to verify
@@ -852,12 +857,14 @@ Ratio: 5.6:1 ✓ (exceeds 4.5:1)
 #### Keyboard Navigation Requirements
 
 **Tab Order**:
+
 - Sequential and logical
 - Visible focus indicator
 - Skip links available
 - No keyboard traps
 
 **Your Checklist**:
+
 ```tsx
 // Focus visible
 .focus:outline-none
@@ -881,6 +888,7 @@ Ratio: 5.6:1 ✓ (exceeds 4.5:1)
 #### Screen Reader Support
 
 **ARIA Landmarks**:
+
 ```tsx
 <header role="banner">
 <nav role="navigation" aria-label="Main">
@@ -890,6 +898,7 @@ Ratio: 5.6:1 ✓ (exceeds 4.5:1)
 ```
 
 **Form Labels**:
+
 ```tsx
 // Good (always visible label)
 <label htmlFor="email">Email</label>
@@ -900,6 +909,7 @@ Ratio: 5.6:1 ✓ (exceeds 4.5:1)
 ```
 
 **Status Updates**:
+
 ```tsx
 <div role="status" aria-live="polite">
   Changes saved
@@ -917,12 +927,14 @@ Ratio: 5.6:1 ✓ (exceeds 4.5:1)
 ### Google Lighthouse Scores (Mobile)
 
 **Professional Target**:
+
 - Performance: 90+
 - Accessibility: 100
 - Best Practices: 100
 - SEO: 100
 
 **Common Issues**:
+
 ```
 ❌ Largest Contentful Paint (LCP) > 2.5s
 ❌ Cumulative Layout Shift (CLS) > 0.1
@@ -932,9 +944,10 @@ Ratio: 5.6:1 ✓ (exceeds 4.5:1)
 ```
 
 **Your Optimization Checklist**:
+
 ```tsx
 // 1. Image optimization
-import Image from 'next/image';
+import Image from "next/image";
 
 <Image
   src="/hero.jpg"
@@ -943,22 +956,22 @@ import Image from 'next/image';
   alt="Hero image"
   priority // For above-fold images
   placeholder="blur"
-/>
+/>;
 
 // 2. Code splitting
-const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+const HeavyComponent = dynamic(() => import("./HeavyComponent"), {
   loading: () => <Skeleton />,
   ssr: false, // Client-only if needed
 });
 
 // 3. Font optimization (already in place with next/font)
-import { Inter } from 'next/font/google';
-const inter = Inter({ subsets: ['latin'], display: 'swap' });
+import { Inter } from "next/font/google";
+const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 // 4. Lazy load below-fold content
 <Suspense fallback={<Skeleton />}>
   <BelowFoldContent />
-</Suspense>
+</Suspense>;
 ```
 
 ---
@@ -968,27 +981,32 @@ const inter = Inter({ subsets: ['latin'], display: 'swap' });
 ### Design System Maturity Model
 
 **Level 1 - Ad Hoc** ✗:
+
 - Inconsistent styles
 - Hardcoded values
 - No documentation
 
 **Level 2 - Repeatable** ⚠:
+
 - Some shared components
 - Basic design tokens
 - Informal guidelines
 
 **Level 3 - Defined** ✓ **← You are here**:
+
 - Comprehensive component library (230+ components)
 - Design tokens system
 - Documented patterns
 
 **Level 4 - Managed** (Target):
+
 - Storybook documentation
 - Automated visual regression testing
 - Version control for design system
 - Component usage analytics
 
 **Level 5 - Optimizing**:
+
 - A/B testing variants
 - Performance monitoring
 - User feedback loop
@@ -999,22 +1017,24 @@ const inter = Inter({ subsets: ['latin'], display: 'swap' });
 ### How to Reach Level 4
 
 **1. Set up Storybook**:
+
 ```bash
 npx storybook@latest init
 ```
 
 **2. Document each component**:
+
 ```tsx
 // Button.stories.tsx
 export default {
-  title: 'Components/Button',
+  title: "Components/Button",
   component: Button,
 };
 
 export const Primary = {
   args: {
-    variant: 'primary',
-    children: 'Primary Button',
+    variant: "primary",
+    children: "Primary Button",
   },
 };
 
@@ -1028,6 +1048,7 @@ export const AllSizes = () => (
 ```
 
 **3. Add visual regression testing**:
+
 ```bash
 npm install --save-dev @percy/cli @percy/storybook
 
@@ -1038,19 +1059,23 @@ npm install --save-dev @percy/cli @percy/storybook
 ```
 
 **4. Create component usage guidelines**:
+
 ```markdown
 # Button Component
 
 ## When to use
+
 - Primary actions (save, submit, confirm)
 - Secondary actions (cancel, back)
 - Tertiary actions (view more, details)
 
 ## When not to use
+
 - Navigation (use Link instead)
 - Multiple primary actions (only one per section)
 
 ## Accessibility
+
 - Always provide meaningful text (not "Click here")
 - Use aria-label for icon-only buttons
 - Ensure sufficient color contrast
@@ -1062,15 +1087,15 @@ npm install --save-dev @percy/cli @percy/storybook
 
 ### Overall Comparison
 
-| Aspect | Target | Your App | Gap |
-|--------|--------|----------|-----|
-| **Design System** | Level 4 | Level 3 | +1 level |
-| **Responsive Design** | 90%+ coverage | 60% coverage | +30% |
-| **Component Quality** | Mature | Mature | None |
-| **Accessibility** | WCAG AA | WCAG AA | None |
-| **Performance** | Lighthouse 90+ | (needs testing) | TBD |
-| **Documentation** | Storybook | Code comments | +Storybook |
-| **Mobile UX** | Native-quality | Web with gaps | Fix P0 issues |
+| Aspect                | Target             | Your App        | Gap                    |
+| --------------------- | ------------------ | --------------- | ---------------------- |
+| **Design System**     | Level 4            | Level 3         | +1 level               |
+| **Responsive Design** | 90%+ coverage      | 60% coverage    | +30%                   |
+| **Component Quality** | Mature             | Mature          | None                   |
+| **Accessibility**     | WCAG AA            | WCAG AA         | None                   |
+| **Performance**       | Lighthouse 90+     | (needs testing) | TBD                    |
+| **Documentation**     | Storybook          | Code comments   | +Storybook             |
+| **Mobile UX**         | Native-quality     | Web with gaps   | Fix P0 issues          |
 | **Animation Quality** | Subtle, meaningful | Good foundation | Add micro-interactions |
 
 ---
@@ -1078,6 +1103,7 @@ npm install --save-dev @percy/cli @percy/storybook
 ### Your Competitive Position
 
 **Strengths** (On par with Monday.com/Linear):
+
 - ✓ Design token system
 - ✓ Component architecture
 - ✓ Typography scale
@@ -1086,6 +1112,7 @@ npm install --save-dev @percy/cli @percy/storybook
 - ✓ Dark mode support
 
 **Areas to Improve** (To match top-tier apps):
+
 - Mobile responsiveness (critical)
 - Touch interactions (gestures)
 - Micro-interactions (button feedback)
@@ -1093,6 +1120,7 @@ npm install --save-dev @percy/cli @percy/storybook
 - Performance optimization
 
 **Timeline to Professional Parity**:
+
 - **Week 1-2**: Fix P0 mobile issues → 70% parity
 - **Week 3-4**: Add mobile polish → 80% parity
 - **Month 2**: Performance + documentation → 90% parity

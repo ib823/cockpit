@@ -2,9 +2,9 @@
  * Build-time script to generate version information
  * Run during build to capture git commit hash and build timestamp
  */
-import { execSync } from 'child_process';
-import { writeFileSync } from 'fs';
-import { join } from 'path';
+import { execSync } from "child_process";
+import { writeFileSync } from "fs";
+import { join } from "path";
 
 interface VersionInfo {
   version: string;
@@ -15,23 +15,23 @@ interface VersionInfo {
 
 function getGitCommit(): string {
   try {
-    return execSync('git rev-parse --short HEAD').toString().trim();
+    return execSync("git rev-parse --short HEAD").toString().trim();
   } catch {
-    return 'unknown';
+    return "unknown";
   }
 }
 
 function getGitBranch(): string {
   try {
-    return execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
+    return execSync("git rev-parse --abbrev-ref HEAD").toString().trim();
   } catch {
-    return 'unknown';
+    return "unknown";
   }
 }
 
 function generateVersionInfo(): VersionInfo {
   // Read version from package.json
-  const packageJson = require('../package.json');
+  const packageJson = require("../package.json");
 
   return {
     version: packageJson.version,
@@ -43,8 +43,8 @@ function generateVersionInfo(): VersionInfo {
 
 // Generate and write version.json
 const versionInfo = generateVersionInfo();
-const outputPath = join(__dirname, '../public/version.json');
+const outputPath = join(__dirname, "../public/version.json");
 
 writeFileSync(outputPath, JSON.stringify(versionInfo, null, 2));
 
-console.log('✓ Version info generated:', versionInfo);
+console.log("✓ Version info generated:", versionInfo);

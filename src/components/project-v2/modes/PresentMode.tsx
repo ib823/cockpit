@@ -3,7 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft, ChevronRight, Calendar, Users, Flag, TrendingUp, FileDown, StickyNote } from "lucide-react";
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Users,
+  Flag,
+  TrendingUp,
+  FileDown,
+  StickyNote,
+} from "lucide-react";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { useProjectStore } from "@/stores/project-store";
 import { usePresalesStore } from "@/stores/presales-store";
@@ -22,7 +32,7 @@ interface Slide {
 export function PresentMode() {
   const { phases } = useTimelineStore();
   const { chips } = usePresalesStore();
-  
+
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -184,7 +194,9 @@ export function PresentMode() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-6 sm:mb-8 md:mb-12">Project Summary</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-6 sm:mb-8 md:mb-12">
+              Project Summary
+            </h2>
 
             <div className="grid grid-cols-3 gap-12 max-w-4xl mx-auto">
               <div>
@@ -253,7 +265,7 @@ export function PresentMode() {
       await exportToPDF(slideElements, {
         fileName: "SAP-Implementation-Proposal.pdf",
         quality: 0.95,
-        format: "16:9"
+        format: "16:9",
       });
       track("presentation_export_complete", { slideCount: slideElements.length });
     } catch (error) {
@@ -357,7 +369,9 @@ export function PresentMode() {
           aria-label="Export to PDF"
         >
           <FileDown className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span className="text-xs sm:text-sm hidden md:inline">{isExporting ? "Exporting..." : "Export PDF"}</span>
+          <span className="text-xs sm:text-sm hidden md:inline">
+            {isExporting ? "Exporting..." : "Export PDF"}
+          </span>
         </button>
 
         {/* Exit button */}
@@ -394,10 +408,7 @@ export function PresentMode() {
             <span className="font-medium">Presenter Notes</span>
             <span className="text-xs text-gray-400">(Press &apos;N&apos; to toggle)</span>
           </div>
-          <motion.div
-            animate={{ rotate: showNotes ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div animate={{ rotate: showNotes ? 180 : 0 }} transition={{ duration: 0.2 }}>
             <ChevronRight className="w-5 h-5 -rotate-90" />
           </motion.div>
         </button>

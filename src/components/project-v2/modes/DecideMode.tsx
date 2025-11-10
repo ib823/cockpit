@@ -1,6 +1,6 @@
 /**
  * DecideMode - Make 5 Strategic Decisions
- * 
+ *
  * UX: Large, clickable decision cards with instant feedback
  * Security: Input validation on all selections
  * Accessibility: Keyboard navigation, ARIA labels
@@ -204,7 +204,7 @@ export function DecideMode() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setMode('capture')}
+            onClick={() => setMode("capture")}
             leftIcon={<ArrowLeft className="w-4 h-4" />}
           >
             Back to Capture
@@ -314,7 +314,7 @@ export function DecideMode() {
                               )}
                             {option.impact.cost !== undefined && option.impact.cost !== 0 && (
                               <span className="px-2 py-1 rounded bg-gray-100 text-gray-700">
-                                {typeof option.impact.cost === 'number' && option.impact.cost < 10
+                                {typeof option.impact.cost === "number" && option.impact.cost < 10
                                   ? `${option.impact.cost}x cost`
                                   : `+${(option.impact.cost / 1000).toFixed(0)}K`}
                               </span>
@@ -374,13 +374,13 @@ export function DecideMode() {
         {!isComplete && selectedCount > 0 && (
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-500">
-              {totalCount - selectedCount} more decision{totalCount - selectedCount !== 1 ? "s" : ""} to complete
+              {totalCount - selectedCount} more decision
+              {totalCount - selectedCount !== 1 ? "s" : ""} to complete
             </p>
           </div>
         )}
       </div>
       {/* Navigation Button - Add this at the bottom */}
-      
     </div>
   );
 }

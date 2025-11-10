@@ -1,11 +1,11 @@
 /**
  * CaptureMode - Enhanced with Manual Entry + Smart Defaults
- * 
+ *
  * NEW FEATURES:
  * - Manual chip entry modal for missing gaps
  * - Smart defaults button (one-click fill)
  * - Both work together seamlessly
- * 
+ *
  * SECURITY: Input sanitization, rate limiting
  * UX: Steve Jobs minimalism - clean, clear, delightful
  */
@@ -22,7 +22,14 @@ import { motion } from "framer-motion";
 import { AlertCircle, ArrowLeft, CheckCircle, Plus, Sparkles, Upload, Zap } from "lucide-react";
 import React, { useState } from "react";
 import { Button } from "@/components/common/Button";
-import { Heading1, Heading3, BodyLG, BodyMD, BodySM, LabelMD } from "@/components/common/Typography";
+import {
+  Heading1,
+  Heading3,
+  BodyLG,
+  BodyMD,
+  BodySM,
+  LabelMD,
+} from "@/components/common/Typography";
 import { animation } from "@/lib/design-system";
 import { showSuccess } from "@/lib/toast";
 
@@ -90,7 +97,7 @@ export function CaptureMode() {
     chip.value = value;
     chip.source = "manual";
     chip.confidence = 0.7; // Manual entries get higher confidence
-    
+
     addChip(chip);
   };
 
@@ -99,7 +106,7 @@ export function CaptureMode() {
    */
   const handleSmartDefaults = () => {
     const newChips = fillMissingChips(chips, completeness?.gaps || []);
-    
+
     if (newChips.length > 0) {
       addChips(newChips);
 
@@ -149,9 +156,7 @@ export function CaptureMode() {
           animate={{ scale: 1, opacity: 1 }}
           className={cn(
             "max-w-3xl w-full p-12 rounded-3xl border-2 border-dashed transition-all duration-300",
-            isDragging
-              ? "border-blue-500 bg-blue-50 scale-105"
-              : "border-gray-300 bg-white"
+            isDragging ? "border-blue-500 bg-blue-50 scale-105" : "border-gray-300 bg-white"
           )}
         >
           <div className="text-center">
@@ -233,7 +238,7 @@ export function CaptureMode() {
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => window.location.href = '/'}
+          onClick={() => (window.location.href = "/")}
           leftIcon={<ArrowLeft className="w-4 h-4" />}
           className="bg-white/90 hover:bg-white shadow-md hover:shadow-lg"
         >
@@ -248,9 +253,7 @@ export function CaptureMode() {
           animate={{ y: 0, opacity: 1 }}
           className={cn(
             "mb-6 p-6 rounded-2xl border-2 transition-colors",
-            isComplete
-              ? "bg-green-50 border-green-200"
-              : "bg-yellow-50 border-yellow-200"
+            isComplete ? "bg-green-50 border-green-200" : "bg-yellow-50 border-yellow-200"
           )}
         >
           <div className="flex items-center justify-between">
@@ -261,9 +264,7 @@ export function CaptureMode() {
                 <AlertCircle className="w-8 h-8 text-yellow-600" />
               )}
               <div>
-                <Heading3>
-                  {isComplete ? "Requirements Complete!" : "Almost there..."}
-                </Heading3>
+                <Heading3>{isComplete ? "Requirements Complete!" : "Almost there..."}</Heading3>
                 <BodyMD className="mt-1">
                   {isComplete
                     ? "All key requirements identified"
@@ -286,10 +287,7 @@ export function CaptureMode() {
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
                 transition={{ duration: animation.duration.slow, ease: animation.easing.enter }}
-                className={cn(
-                  "h-2 rounded-full",
-                  isComplete ? "bg-green-500" : "bg-yellow-500"
-                )}
+                className={cn("h-2 rounded-full", isComplete ? "bg-green-500" : "bg-yellow-500")}
               />
             </div>
           </div>
@@ -301,9 +299,7 @@ export function CaptureMode() {
           animate={{ opacity: 1 }}
           className="bg-white rounded-2xl border border-gray-200 p-6 mb-6"
         >
-          <h4 className="text-sm font-medium text-gray-700 mb-4">
-            Extracted Requirements
-          </h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-4">Extracted Requirements</h4>
           <div className="grid grid-cols-2 gap-4">
             {chips.map((chip, idx) => (
               <motion.div
@@ -375,7 +371,9 @@ export function CaptureMode() {
                 className="flex-col items-start bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-md hover:shadow-lg"
               >
                 <div className="text-sm font-medium">Fill with Smart Defaults</div>
-                <div className="text-xs opacity-90 font-normal">One-click conservative estimates</div>
+                <div className="text-xs opacity-90 font-normal">
+                  One-click conservative estimates
+                </div>
               </Button>
 
               {/* Manual Entry Button */}
@@ -395,8 +393,8 @@ export function CaptureMode() {
             {!canProceedWithDefaults && (
               <div className="mt-4 p-3 bg-white border border-amber-300 rounded-lg">
                 <p className="text-xs text-amber-800">
-                  <strong>Need {Math.max(0, 30 - progressPercent)}% more data</strong> before you can use smart defaults.
-                  Try adding more RFP text or use manual entry.
+                  <strong>Need {Math.max(0, 30 - progressPercent)}% more data</strong> before you
+                  can use smart defaults. Try adding more RFP text or use manual entry.
                 </p>
               </div>
             )}

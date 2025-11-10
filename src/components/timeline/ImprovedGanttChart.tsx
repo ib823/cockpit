@@ -10,14 +10,7 @@ import { useProjectStore } from "@/stores/project-store";
 import { useTimelineStore } from "@/stores/timeline-store";
 import type { Phase } from "@/types/core";
 import { addDays, differenceInDays, format } from "date-fns";
-import {
-  Calendar,
-  ChevronDown,
-  ChevronRight,
-  Flag,
-  Maximize2,
-  Minimize2
-} from "lucide-react";
+import { Calendar, ChevronDown, ChevronRight, Flag, Maximize2, Minimize2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HolidayManagerModal } from "./HolidayManagerModal";
 import { MilestoneManagerModal } from "./MilestoneManagerModal";
@@ -50,7 +43,7 @@ const PROJECT_BASE_DATE = new Date(new Date().getFullYear(), 0, 1); // January 1
 
 export function ImprovedGanttChart({
   phases: phasesProp,
-  onPhaseClick
+  onPhaseClick,
 }: {
   phases?: Phase[];
   onPhaseClick?: (phase: Phase) => void;
@@ -59,18 +52,18 @@ export function ImprovedGanttChart({
   const updatePhase = useTimelineStore((state) => state.updatePhase);
   const selectPhase = useTimelineStore((state) => state.selectPhase);
   const selectedPhaseId = useTimelineStore((state) => state.selectedPhaseId);
-  const setMode = useProjectStore(state => state.setMode);
+  const setMode = useProjectStore((state) => state.setMode);
 
   const rawPhases = Array.isArray(phasesProp)
     ? phasesProp
     : Array.isArray(storePhases)
-    ? storePhases
-    : [];
+      ? storePhases
+      : [];
 
   // Compute phases with dates if they don't have them
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const safePhases = useMemo(() => {
-    return rawPhases.map(phase => {
+    return rawPhases.map((phase) => {
       // If phase already has dates, use them
       if (phase.startDate && phase.endDate) {
         return phase;
@@ -80,12 +73,12 @@ export function ImprovedGanttChart({
       const startDate = addWorkingDays(
         PROJECT_BASE_DATE,
         phase.startBusinessDay || 0,
-        'ABMY' // Default region
+        "ABMY" // Default region
       );
       const endDate = addWorkingDays(
         PROJECT_BASE_DATE,
         (phase.startBusinessDay || 0) + (phase.workingDays || 0),
-        'ABMY'
+        "ABMY"
       );
 
       return {
@@ -99,21 +92,26 @@ export function ImprovedGanttChart({
   // State - Default to all collapsed
   const [collapsedStreams, setCollapsedStreams] = useState<Set<string>>(new Set());
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
-  const [selectedRegion, setSelectedRegion] = useState<'ABMY' | 'ABSG' | 'ABVN'>('ABMY');
+  const [selectedRegion, setSelectedRegion] = useState<"ABMY" | "ABSG" | "ABVN">("ABMY");
   const [showHolidayModal, setShowHolidayModal] = useState(false);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
-  const [milestones, setMilestones] = useState<Array<{ id: string; name: string; date: Date; color: string }>>([]);
+  const [milestones, setMilestones] = useState<
+    Array<{ id: string; name: string; date: Date; color: string }>
+  >([]);
 
   // Drag state
   const [draggedPhase, setDraggedPhase] = useState<string | null>(null);
-  const [dragMode, setDragMode] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
+  const [dragMode, setDragMode] = useState<"move" | "resize-start" | "resize-end" | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [dragStartPhase, setDragStartPhase] = useState<Phase | null>(null);
   const dragThrottleRef = useRef<number | null>(null);
 
   // Edit mode state
-  const [editingField, setEditingField] = useState<{ phaseId: string; field: 'start' | 'end' | 'duration' } | null>(null);
-  const [editValue, setEditValue] = useState<string>('');
+  const [editingField, setEditingField] = useState<{
+    phaseId: string;
+    field: "start" | "end" | "duration";
+  } | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
 
   // Group phases into streams
   const streams = useMemo(() => {
@@ -152,50 +150,53 @@ export function ImprovedGanttChart({
   }, [safePhases]);
 
   // Calculate timeline bounds
-  const { minDate, maxDate, totalDays, startBusinessDay, endBusinessDay, totalBusinessDays } = useMemo(() => {
-    if (safePhases.length === 0) {
-      const today = new Date();
+  const { minDate, maxDate, totalDays, startBusinessDay, endBusinessDay, totalBusinessDays } =
+    useMemo(() => {
+      if (safePhases.length === 0) {
+        const today = new Date();
+        return {
+          minDate: today,
+          maxDate: addDays(today, 180),
+          totalDays: 180,
+          startBusinessDay: 0,
+          endBusinessDay: 180,
+          totalBusinessDays: 180,
+        };
+      }
+
+      const start = Math.min(...safePhases.map((p) => p.startBusinessDay || 0));
+      const end = Math.max(
+        ...safePhases.map((p) => (p.startBusinessDay || 0) + (p.workingDays || 0))
+      );
+
+      const dates = safePhases
+        .flatMap((p) => [p.startDate, p.endDate])
+        .filter((d): d is Date => d != null && d instanceof Date);
+
+      if (dates.length === 0) {
+        const today = new Date();
+        return {
+          minDate: today,
+          maxDate: addDays(today, 180),
+          totalDays: 180,
+          startBusinessDay: 0,
+          endBusinessDay: 180,
+          totalBusinessDays: 180,
+        };
+      }
+
+      const minD = new Date(Math.min(...dates.map((d) => d.getTime())));
+      const maxD = new Date(Math.max(...dates.map((d) => d.getTime())));
+
       return {
-        minDate: today,
-        maxDate: addDays(today, 180),
-        totalDays: 180,
-        startBusinessDay: 0,
-        endBusinessDay: 180,
-        totalBusinessDays: 180,
+        minDate: minD,
+        maxDate: maxD,
+        totalDays: differenceInDays(maxD, minD),
+        startBusinessDay: start,
+        endBusinessDay: end,
+        totalBusinessDays: end - start,
       };
-    }
-
-    const start = Math.min(...safePhases.map((p) => p.startBusinessDay || 0));
-    const end = Math.max(
-      ...safePhases.map((p) => (p.startBusinessDay || 0) + (p.workingDays || 0))
-    );
-
-    const dates = safePhases.flatMap(p => [p.startDate, p.endDate]).filter((d): d is Date => d != null && d instanceof Date);
-
-    if (dates.length === 0) {
-      const today = new Date();
-      return {
-        minDate: today,
-        maxDate: addDays(today, 180),
-        totalDays: 180,
-        startBusinessDay: 0,
-        endBusinessDay: 180,
-        totalBusinessDays: 180,
-      };
-    }
-
-    const minD = new Date(Math.min(...dates.map(d => d.getTime())));
-    const maxD = new Date(Math.max(...dates.map(d => d.getTime())));
-
-    return {
-      minDate: minD,
-      maxDate: maxD,
-      totalDays: differenceInDays(maxD, minD),
-      startBusinessDay: start,
-      endBusinessDay: end,
-      totalBusinessDays: end - start,
-    };
-  }, [safePhases]);
+    }, [safePhases]);
 
   // Get holidays in range
   const visibleHolidays = useMemo(() => {
@@ -205,32 +206,34 @@ export function ImprovedGanttChart({
   // Initialize milestones and default collapsed state when phases are available
   useEffect(() => {
     if (milestones.length === 0 && safePhases.length > 0) {
-      const dates = safePhases.flatMap(p => [p.startDate, p.endDate]).filter((d): d is Date => d != null && d instanceof Date);
+      const dates = safePhases
+        .flatMap((p) => [p.startDate, p.endDate])
+        .filter((d): d is Date => d != null && d instanceof Date);
       if (dates.length > 0) {
-        const min = new Date(Math.min(...dates.map(d => d.getTime())));
-        const max = new Date(Math.max(...dates.map(d => d.getTime())));
+        const min = new Date(Math.min(...dates.map((d) => d.getTime())));
+        const max = new Date(Math.max(...dates.map((d) => d.getTime())));
         setMilestones([
-          { id: 'm1', name: 'Project Kickoff', date: min, color: 'bg-green-500' },
-          { id: 'm2', name: 'Go-Live', date: max, color: 'bg-purple-500' },
+          { id: "m1", name: "Project Kickoff", date: min, color: "bg-green-500" },
+          { id: "m2", name: "Go-Live", date: max, color: "bg-purple-500" },
         ]);
       }
     }
 
     // Default all streams to collapsed on initial load
     if (streams.length > 0 && collapsedStreams.size === 0) {
-      setCollapsedStreams(new Set(streams.map(s => s.id)));
+      setCollapsedStreams(new Set(streams.map((s) => s.id)));
     }
   }, [safePhases, milestones.length, streams, collapsedStreams.size]);
 
   // Collapse/Expand handlers
   const handleExpandAll = () => {
-    setExpandedPhases(new Set(safePhases.map(p => p.id)));
+    setExpandedPhases(new Set(safePhases.map((p) => p.id)));
     setCollapsedStreams(new Set());
   };
 
   const handleCollapseAll = () => {
     setExpandedPhases(new Set());
-    setCollapsedStreams(new Set(streams.map(s => s.id)));
+    setCollapsedStreams(new Set(streams.map((s) => s.id)));
   };
 
   const toggleStream = (streamId: string) => {
@@ -258,67 +261,82 @@ export function ImprovedGanttChart({
   };
 
   // Handle editable date/duration updates
-  const handleDateDurationUpdate = useCallback((
-    phase: Phase,
-    field: 'start' | 'end' | 'duration',
-    newValue: string
-  ) => {
-    if (!updatePhase) return;
+  const handleDateDurationUpdate = useCallback(
+    (phase: Phase, field: "start" | "end" | "duration", newValue: string) => {
+      if (!updatePhase) return;
 
-    const startDate = phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion);
-    const endDate = phase.endDate || addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), selectedRegion);
+      const startDate =
+        phase.startDate ||
+        addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion);
+      const endDate =
+        phase.endDate ||
+        addWorkingDays(
+          PROJECT_BASE_DATE,
+          (phase.startBusinessDay || 0) + (phase.workingDays || 0),
+          selectedRegion
+        );
 
-    let updatedPhase: Partial<Phase> = {};
+      let updatedPhase: Partial<Phase> = {};
 
-    if (field === 'duration') {
-      // Update duration (working days)
-      const newDuration = parseInt(newValue, 10);
-      if (isNaN(newDuration) || newDuration <= 0) return;
+      if (field === "duration") {
+        // Update duration (working days)
+        const newDuration = parseInt(newValue, 10);
+        if (isNaN(newDuration) || newDuration <= 0) return;
 
-      const newEndDate = addWorkingDays(startDate, newDuration, selectedRegion);
-      const newEndBusinessDay = calculateWorkingDays(PROJECT_BASE_DATE, newEndDate, selectedRegion);
+        const newEndDate = addWorkingDays(startDate, newDuration, selectedRegion);
+        const newEndBusinessDay = calculateWorkingDays(
+          PROJECT_BASE_DATE,
+          newEndDate,
+          selectedRegion
+        );
 
-      updatedPhase = {
-        ...phase,
-        workingDays: newDuration,
-        endDate: newEndDate,
-      };
-    } else if (field === 'start') {
-      // Update start date
-      const newStartDate = new Date(newValue);
-      if (isNaN(newStartDate.getTime())) return;
+        updatedPhase = {
+          ...phase,
+          workingDays: newDuration,
+          endDate: newEndDate,
+        };
+      } else if (field === "start") {
+        // Update start date
+        const newStartDate = new Date(newValue);
+        if (isNaN(newStartDate.getTime())) return;
 
-      // Calculate new start business day
-      const newStartBusinessDay = calculateWorkingDays(PROJECT_BASE_DATE, newStartDate, selectedRegion);
+        // Calculate new start business day
+        const newStartBusinessDay = calculateWorkingDays(
+          PROJECT_BASE_DATE,
+          newStartDate,
+          selectedRegion
+        );
 
-      // Recalculate end date based on duration
-      const newEndDate = addWorkingDays(newStartDate, phase.workingDays || 0, selectedRegion);
+        // Recalculate end date based on duration
+        const newEndDate = addWorkingDays(newStartDate, phase.workingDays || 0, selectedRegion);
 
-      updatedPhase = {
-        ...phase,
-        startDate: newStartDate,
-        startBusinessDay: newStartBusinessDay,
-        endDate: newEndDate,
-      };
-    } else if (field === 'end') {
-      // Update end date
-      const newEndDate = new Date(newValue);
-      if (isNaN(newEndDate.getTime())) return;
+        updatedPhase = {
+          ...phase,
+          startDate: newStartDate,
+          startBusinessDay: newStartBusinessDay,
+          endDate: newEndDate,
+        };
+      } else if (field === "end") {
+        // Update end date
+        const newEndDate = new Date(newValue);
+        if (isNaN(newEndDate.getTime())) return;
 
-      // Calculate new duration
-      const newDuration = calculateWorkingDays(startDate, newEndDate, selectedRegion);
-      if (newDuration <= 0) return;
+        // Calculate new duration
+        const newDuration = calculateWorkingDays(startDate, newEndDate, selectedRegion);
+        if (newDuration <= 0) return;
 
-      updatedPhase = {
-        ...phase,
-        endDate: newEndDate,
-        workingDays: newDuration,
-      };
-    }
+        updatedPhase = {
+          ...phase,
+          endDate: newEndDate,
+          workingDays: newDuration,
+        };
+      }
 
-    updatePhase(phase.id, updatedPhase);
-    setEditingField(null);
-  }, [updatePhase, selectedRegion]);
+      updatePhase(phase.id, updatedPhase);
+      setEditingField(null);
+    },
+    [updatePhase, selectedRegion]
+  );
 
   // Drag handlers
   const isWeekend = (date: Date): boolean => {
@@ -329,98 +347,118 @@ export function ImprovedGanttChart({
   const handleMouseDown = (
     e: React.MouseEvent,
     phaseId: string,
-    mode: 'move' | 'resize-start' | 'resize-end'
+    mode: "move" | "resize-start" | "resize-end"
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const phase = safePhases.find(p => p.id === phaseId);
+
+    const phase = safePhases.find((p) => p.id === phaseId);
     if (!phase) return;
-    
+
     setDraggedPhase(phaseId);
     setDragMode(mode);
     setDragStartX(e.clientX);
     setDragStartPhase(phase);
   };
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    // Throttle to 60fps for smoothness
-    if (dragThrottleRef.current) return;
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      // Throttle to 60fps for smoothness
+      if (dragThrottleRef.current) return;
 
-    dragThrottleRef.current = window.requestAnimationFrame(() => {
-      dragThrottleRef.current = null;
+      dragThrottleRef.current = window.requestAnimationFrame(() => {
+        dragThrottleRef.current = null;
 
-      if (!draggedPhase || !dragMode || !dragStartPhase) return;
+        if (!draggedPhase || !dragMode || !dragStartPhase) return;
 
-      const deltaX = e.clientX - dragStartX;
-      const ganttWidth = window.innerWidth * 0.6;
-      const pixelsPerDay = ganttWidth / totalBusinessDays;
-      const deltaDays = Math.round(deltaX / pixelsPerDay);
+        const deltaX = e.clientX - dragStartX;
+        const ganttWidth = window.innerWidth * 0.6;
+        const pixelsPerDay = ganttWidth / totalBusinessDays;
+        const deltaDays = Math.round(deltaX / pixelsPerDay);
 
-      if (deltaDays === 0) return;
+        if (deltaDays === 0) return;
 
-      // Get start and end dates with fallbacks
-      const currentStartDate = dragStartPhase.startDate || addWorkingDays(PROJECT_BASE_DATE, dragStartPhase.startBusinessDay || 0, selectedRegion);
-      const currentEndDate = dragStartPhase.endDate || addWorkingDays(PROJECT_BASE_DATE, (dragStartPhase.startBusinessDay || 0) + (dragStartPhase.workingDays || 0), selectedRegion);
+        // Get start and end dates with fallbacks
+        const currentStartDate =
+          dragStartPhase.startDate ||
+          addWorkingDays(PROJECT_BASE_DATE, dragStartPhase.startBusinessDay || 0, selectedRegion);
+        const currentEndDate =
+          dragStartPhase.endDate ||
+          addWorkingDays(
+            PROJECT_BASE_DATE,
+            (dragStartPhase.startBusinessDay || 0) + (dragStartPhase.workingDays || 0),
+            selectedRegion
+          );
 
-      let newStartDate = new Date(currentStartDate);
-      let newEndDate = new Date(currentEndDate);
+        let newStartDate = new Date(currentStartDate);
+        let newEndDate = new Date(currentEndDate);
 
-    switch (dragMode) {
-      case 'move':
-        newStartDate = addDays(currentStartDate, deltaDays);
-        newEndDate = addDays(currentEndDate, deltaDays);
-        while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
-          if (deltaDays > 0) {
-            newStartDate = addDays(newStartDate, 1);
-            newEndDate = addDays(newEndDate, 1);
-          } else {
-            newStartDate = addDays(newStartDate, -1);
-            newEndDate = addDays(newEndDate, -1);
-          }
+        switch (dragMode) {
+          case "move":
+            newStartDate = addDays(currentStartDate, deltaDays);
+            newEndDate = addDays(currentEndDate, deltaDays);
+            while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+              if (deltaDays > 0) {
+                newStartDate = addDays(newStartDate, 1);
+                newEndDate = addDays(newEndDate, 1);
+              } else {
+                newStartDate = addDays(newStartDate, -1);
+                newEndDate = addDays(newEndDate, -1);
+              }
+            }
+            break;
+
+          case "resize-start":
+            newStartDate = addDays(currentStartDate, deltaDays);
+            newEndDate = new Date(currentEndDate);
+            while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+              newStartDate = addDays(newStartDate, deltaDays > 0 ? 1 : -1);
+            }
+            if (newStartDate >= newEndDate) {
+              newStartDate = addDays(newEndDate, -1);
+              while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
+                newStartDate = addDays(newStartDate, -1);
+              }
+            }
+            break;
+
+          case "resize-end":
+            newStartDate = new Date(currentStartDate);
+            newEndDate = addDays(currentEndDate, deltaDays);
+            while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
+              newEndDate = addDays(newEndDate, deltaDays > 0 ? 1 : -1);
+            }
+            if (newEndDate <= newStartDate) {
+              newEndDate = addDays(newStartDate, 1);
+              while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
+                newEndDate = addDays(newEndDate, 1);
+              }
+            }
+            break;
         }
-        break;
 
-      case 'resize-start':
-        newStartDate = addDays(currentStartDate, deltaDays);
-        newEndDate = new Date(currentEndDate);
-        while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
-          newStartDate = addDays(newStartDate, deltaDays > 0 ? 1 : -1);
-        }
-        if (newStartDate >= newEndDate) {
-          newStartDate = addDays(newEndDate, -1);
-          while (isWeekend(newStartDate) || isHoliday(newStartDate, selectedRegion)) {
-            newStartDate = addDays(newStartDate, -1);
-          }
-        }
-        break;
+        const newWorkingDays = calculateWorkingDays(newStartDate, newEndDate, selectedRegion);
+        const newStartBusinessDay = differenceInDays(newStartDate, minDate);
 
-      case 'resize-end':
-        newStartDate = new Date(currentStartDate);
-        newEndDate = addDays(currentEndDate, deltaDays);
-        while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
-          newEndDate = addDays(newEndDate, deltaDays > 0 ? 1 : -1);
-        }
-        if (newEndDate <= newStartDate) {
-          newEndDate = addDays(newStartDate, 1);
-          while (isWeekend(newEndDate) || isHoliday(newEndDate, selectedRegion)) {
-            newEndDate = addDays(newEndDate, 1);
-          }
-        }
-        break;
-    }
-
-      const newWorkingDays = calculateWorkingDays(newStartDate, newEndDate, selectedRegion);
-      const newStartBusinessDay = differenceInDays(newStartDate, minDate);
-
-      updatePhase(draggedPhase, {
-        startDate: newStartDate,
-        endDate: newEndDate,
-        workingDays: newWorkingDays,
-        startBusinessDay: newStartBusinessDay,
+        updatePhase(draggedPhase, {
+          startDate: newStartDate,
+          endDate: newEndDate,
+          workingDays: newWorkingDays,
+          startBusinessDay: newStartBusinessDay,
+        });
       });
-    });
-  }, [draggedPhase, dragMode, dragStartPhase, dragStartX, selectedRegion, totalBusinessDays, minDate, updatePhase]);
+    },
+    [
+      draggedPhase,
+      dragMode,
+      dragStartPhase,
+      dragStartX,
+      selectedRegion,
+      totalBusinessDays,
+      minDate,
+      updatePhase,
+    ]
+  );
 
   const handleMouseUp = () => {
     setDraggedPhase(null);
@@ -479,11 +517,7 @@ export function ImprovedGanttChart({
       resources.reduce((sum, r) => sum + (r.allocation || 0), 0) / resources.length;
 
     const barColor =
-      avgAllocation > 100
-        ? "bg-red-400"
-        : avgAllocation >= 80
-        ? "bg-orange-400"
-        : "bg-green-400";
+      avgAllocation > 100 ? "bg-red-400" : avgAllocation >= 80 ? "bg-orange-400" : "bg-green-400";
 
     return (
       <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/20 rounded-b-lg overflow-hidden">
@@ -574,11 +608,11 @@ export function ImprovedGanttChart({
       <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
         <div>
           <div className="text-xs text-gray-600 mb-1">Start Date</div>
-          <div className="font-semibold text-gray-900">{format(minDate, 'MMM dd, yyyy')}</div>
+          <div className="font-semibold text-gray-900">{format(minDate, "MMM dd, yyyy")}</div>
         </div>
         <div>
           <div className="text-xs text-gray-600 mb-1">End Date</div>
-          <div className="font-semibold text-gray-900">{format(maxDate, 'MMM dd, yyyy')}</div>
+          <div className="font-semibold text-gray-900">{format(maxDate, "MMM dd, yyyy")}</div>
         </div>
         <div>
           <div className="text-xs text-gray-600 mb-1">Total Working Days</div>
@@ -624,7 +658,12 @@ export function ImprovedGanttChart({
             >
               {/* Triangle marker */}
               <div className="relative">
-                <svg width="12" height="12" viewBox="0 0 12 12" className="drop-shadow-md align-middle">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  className="drop-shadow-md align-middle"
+                >
                   <polygon
                     points="6,0 12,12 0,12"
                     className="fill-red-500 group-hover:fill-red-600 transition-colors"
@@ -635,7 +674,9 @@ export function ImprovedGanttChart({
                 <div className="absolute top-14 left-1/2 -translate-x-1/2   transition-opacity  z-50 whitespace-nowrap">
                   <div className="bg-red-600 text-white text-xs px-3 py-2 rounded-lg shadow-xl">
                     <div className="font-semibold">{holiday.name}</div>
-                    <div className="text-red-100 text-[10px] mt-0.5">{format(holidayDate, 'EEEE, MMM dd, yyyy')}</div>
+                    <div className="text-red-100 text-[10px] mt-0.5">
+                      {format(holidayDate, "EEEE, MMM dd, yyyy")}
+                    </div>
                   </div>
                   {/* Arrow pointer */}
                   <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-red-600 rotate-45"></div>
@@ -664,7 +705,9 @@ export function ImprovedGanttChart({
                 <div className="absolute top-14 left-1/2 -translate-x-1/2   transition-opacity  z-50 whitespace-nowrap">
                   <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-lg shadow-xl">
                     <div className="font-semibold">{milestone.name}</div>
-                    <div className="text-purple-100 text-[10px] mt-0.5">{format(milestone.date, 'MMM dd, yyyy')}</div>
+                    <div className="text-purple-100 text-[10px] mt-0.5">
+                      {format(milestone.date, "MMM dd, yyyy")}
+                    </div>
                   </div>
                   {/* Arrow pointer */}
                   <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-purple-600 rotate-45"></div>
@@ -676,315 +719,379 @@ export function ImprovedGanttChart({
 
         {/* Streams */}
         {streams.map((stream) => {
-        const isCollapsed = collapsedStreams.has(stream.id);
+          const isCollapsed = collapsedStreams.has(stream.id);
 
-        return (
-          <div key={stream.id} className="mb-6">
-            {/* Stream Header */}
-            <div
-              className="flex items-center mb-2 cursor-pointer group hover:bg-gray-50 rounded-lg p-2 transition-colors"
-              onClick={() => toggleStream(stream.id)}
-            >
-              <div className="w-64 flex items-center gap-2">
-                {isCollapsed ? (
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-600" />
-                )}
-                <div className={`w-3 h-3 rounded ${stream.color}`} />
-                <span className="font-semibold text-gray-900 text-sm">{stream.name}</span>
-                <span className="text-xs text-gray-500">
-                  ({stream.phases.length} phases · {stream.totalDays}d)
-                </span>
+          return (
+            <div key={stream.id} className="mb-6">
+              {/* Stream Header */}
+              <div
+                className="flex items-center mb-2 cursor-pointer group hover:bg-gray-50 rounded-lg p-2 transition-colors"
+                onClick={() => toggleStream(stream.id)}
+              >
+                <div className="w-64 flex items-center gap-2">
+                  {isCollapsed ? (
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-600" />
+                  )}
+                  <div className={`w-3 h-3 rounded ${stream.color}`} />
+                  <span className="font-semibold text-gray-900 text-sm">{stream.name}</span>
+                  <span className="text-xs text-gray-500">
+                    ({stream.phases.length} phases · {stream.totalDays}d)
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {/* Collapsed View - Show ALL phases with full details */}
-            {isCollapsed && (
-              <div className="space-y-2">
-                {stream.phases.map((phase) => {
-                  const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
-                  const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
+              {/* Collapsed View - Show ALL phases with full details */}
+              {isCollapsed && (
+                <div className="space-y-2">
+                  {stream.phases.map((phase) => {
+                    const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
+                    const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
 
-                  return (
-                    <div key={phase.id} className="flex items-center group/phase">
-                      <div className="w-64 pl-8 pr-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-gray-700 truncate">{phase.name}</div>
-                          <div className="text-xs text-gray-500">{phase.workingDays}d • {phase.effort}md</div>
-                        </div>
-                      </div>
-
-                      <div className="flex-1 relative h-16">
-                        {/* Full insightful phase bar */}
-                        <div
-                          className={`absolute top-2 h-12 rounded-lg ${stream.color} hover:shadow-xl hover:brightness-110 transition-all cursor-pointer`}
-                          style={{
-                            left: `${startPercent}%`,
-                            width: `${widthPercent}%`,
-                          }}
-                          onClick={() => {
-                            if (onPhaseClick) {
-                              onPhaseClick(phase);
-                            } else if (selectPhase) {
-                              selectPhase(phase.id);
-                            }
-                          }}
-                        >
-                          {/* Phase Content */}
-                          <div className="p-2 h-full flex flex-col justify-between">
-                            {/* Dates */}
-                            <div className="flex justify-between text-[10px] text-white/80 font-medium gap-1">
-                              <span>
-                                {phase.startDate ? format(phase.startDate, 'MMM dd') : format(addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion), 'MMM dd')}
-                              </span>
-                              <span>
-                                {phase.endDate ? format(phase.endDate, 'MMM dd') : format(addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), selectedRegion), 'MMM dd')}
-                              </span>
-                            </div>
-
-                            {/* Duration */}
-                            <div className="text-center">
-                              <span className="text-xs font-bold text-white px-2 py-0.5 bg-black/20 rounded">
-                                {phase.workingDays}d
-                              </span>
+                    return (
+                      <div key={phase.id} className="flex items-center group/phase">
+                        <div className="w-64 pl-8 pr-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm text-gray-700 truncate">{phase.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {phase.workingDays}d • {phase.effort}md
                             </div>
                           </div>
+                        </div>
 
-                          {/* Avatars */}
-                          {renderResourceAvatars(phase)}
+                        <div className="flex-1 relative h-16">
+                          {/* Full insightful phase bar */}
+                          <div
+                            className={`absolute top-2 h-12 rounded-lg ${stream.color} hover:shadow-xl hover:brightness-110 transition-all cursor-pointer`}
+                            style={{
+                              left: `${startPercent}%`,
+                              width: `${widthPercent}%`,
+                            }}
+                            onClick={() => {
+                              if (onPhaseClick) {
+                                onPhaseClick(phase);
+                              } else if (selectPhase) {
+                                selectPhase(phase.id);
+                              }
+                            }}
+                          >
+                            {/* Phase Content */}
+                            <div className="p-2 h-full flex flex-col justify-between">
+                              {/* Dates */}
+                              <div className="flex justify-between text-[10px] text-white/80 font-medium gap-1">
+                                <span>
+                                  {phase.startDate
+                                    ? format(phase.startDate, "MMM dd")
+                                    : format(
+                                        addWorkingDays(
+                                          PROJECT_BASE_DATE,
+                                          phase.startBusinessDay || 0,
+                                          selectedRegion
+                                        ),
+                                        "MMM dd"
+                                      )}
+                                </span>
+                                <span>
+                                  {phase.endDate
+                                    ? format(phase.endDate, "MMM dd")
+                                    : format(
+                                        addWorkingDays(
+                                          PROJECT_BASE_DATE,
+                                          (phase.startBusinessDay || 0) + (phase.workingDays || 0),
+                                          selectedRegion
+                                        ),
+                                        "MMM dd"
+                                      )}
+                                </span>
+                              </div>
 
-                          {/* Utilization */}
-                          {renderUtilizationBar(phase)}
+                              {/* Duration */}
+                              <div className="text-center">
+                                <span className="text-xs font-bold text-white px-2 py-0.5 bg-black/20 rounded">
+                                  {phase.workingDays}d
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Avatars */}
+                            {renderResourceAvatars(phase)}
+
+                            {/* Utilization */}
+                            {renderUtilizationBar(phase)}
+                          </div>
                         </div>
                       </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Phases */}
+              {!isCollapsed &&
+                stream.phases.map((phase) => {
+                  const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
+                  const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
+                  const isDragging = draggedPhase === phase.id;
+                  const isPhaseExpanded = expandedPhases.has(phase.id);
+
+                  // Tasks are manually created by user (no auto-generation)
+                  const phaseTasks = phase.tasks || [];
+
+                  return (
+                    <div key={phase.id}>
+                      {/* Phase Row */}
+                      <div className="flex items-center mb-2 group/phase">
+                        <div className="w-64 pl-8 pr-4 flex items-center">
+                          <div className="flex-1 min-w-0 flex items-center gap-2">
+                            {phaseTasks && phaseTasks.length > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  togglePhase(phase.id);
+                                }}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                aria-label={isPhaseExpanded ? "Collapse tasks" : "Expand tasks"}
+                              >
+                                {isPhaseExpanded ? (
+                                  <ChevronDown className="w-4 h-4" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                            <div className="flex-1">
+                              <div className="text-sm text-gray-700 truncate">{phase.name}</div>
+                              <div className="text-xs text-gray-500">
+                                {phase.workingDays}d • {phase.effort}md
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 relative h-16">
+                          {/* Phase Bar */}
+                          <div
+                            className={`
+                          absolute top-2 h-12 rounded-lg transition-all duration-150
+                          ${
+                            isDragging
+                              ? "opacity-70 shadow-2xl scale-105 cursor-grabbing ring-4 ring-blue-300"
+                              : `${stream.color} hover:shadow-xl hover:brightness-110`
+                          }
+                        `}
+                            style={{
+                              left: `${startPercent}%`,
+                              width: `${widthPercent}%`,
+                            }}
+                            onClick={(e) => {
+                              // Only trigger if not dragging (click vs drag detection)
+                              if (!isDragging) {
+                                if (onPhaseClick) {
+                                  onPhaseClick(phase);
+                                } else if (selectPhase) {
+                                  selectPhase(phase.id);
+                                }
+                              }
+                            }}
+                          >
+                            {/* Resize Handles */}
+                            <div
+                              className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  group-hover/phase:opacity-100 transition-opacity"
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                handleMouseDown(e, phase.id, "resize-start");
+                              }}
+                            />
+                            <div
+                              className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  group-hover/phase:opacity-100 transition-opacity"
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                handleMouseDown(e, phase.id, "resize-end");
+                              }}
+                            />
+
+                            {/* Phase Content */}
+                            <div className="p-2 h-full flex flex-col justify-between">
+                              {/* Dates - Editable */}
+                              <div className="flex justify-between text-[10px] text-white/80 font-medium gap-1">
+                                {/* Start Date */}
+                                {editingField?.phaseId === phase.id &&
+                                editingField.field === "start" ? (
+                                  <input
+                                    type="date"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    onBlur={() =>
+                                      handleDateDurationUpdate(phase, "start", editValue)
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter")
+                                        handleDateDurationUpdate(phase, "start", editValue);
+                                      if (e.key === "Escape") setEditingField(null);
+                                    }}
+                                    autoFocus
+                                    className="w-20 px-1 text-gray-900 rounded pointer-events-auto"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                ) : (
+                                  <span
+                                    className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors pointer-events-auto"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const startDate =
+                                        phase.startDate ||
+                                        addWorkingDays(
+                                          PROJECT_BASE_DATE,
+                                          phase.startBusinessDay || 0,
+                                          selectedRegion
+                                        );
+                                      setEditingField({ phaseId: phase.id, field: "start" });
+                                      setEditValue(format(startDate, "yyyy-MM-dd"));
+                                    }}
+                                    title="Click to edit start date"
+                                  >
+                                    {phase.startDate
+                                      ? format(phase.startDate, "MMM dd")
+                                      : format(
+                                          addWorkingDays(
+                                            PROJECT_BASE_DATE,
+                                            phase.startBusinessDay || 0,
+                                            selectedRegion
+                                          ),
+                                          "MMM dd"
+                                        )}
+                                  </span>
+                                )}
+
+                                {/* End Date */}
+                                {editingField?.phaseId === phase.id &&
+                                editingField.field === "end" ? (
+                                  <input
+                                    type="date"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    onBlur={() => handleDateDurationUpdate(phase, "end", editValue)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter")
+                                        handleDateDurationUpdate(phase, "end", editValue);
+                                      if (e.key === "Escape") setEditingField(null);
+                                    }}
+                                    autoFocus
+                                    className="w-20 px-1 text-gray-900 rounded pointer-events-auto"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                ) : (
+                                  <span
+                                    className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors pointer-events-auto"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const endDate =
+                                        phase.endDate ||
+                                        addWorkingDays(
+                                          PROJECT_BASE_DATE,
+                                          (phase.startBusinessDay || 0) + (phase.workingDays || 0),
+                                          selectedRegion
+                                        );
+                                      setEditingField({ phaseId: phase.id, field: "end" });
+                                      setEditValue(format(endDate, "yyyy-MM-dd"));
+                                    }}
+                                    title="Click to edit end date"
+                                  >
+                                    {phase.endDate
+                                      ? format(phase.endDate, "MMM dd")
+                                      : format(
+                                          addWorkingDays(
+                                            PROJECT_BASE_DATE,
+                                            (phase.startBusinessDay || 0) +
+                                              (phase.workingDays || 0),
+                                            selectedRegion
+                                          ),
+                                          "MMM dd"
+                                        )}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Duration - Editable */}
+                              <div className="text-center">
+                                {editingField?.phaseId === phase.id &&
+                                editingField.field === "duration" ? (
+                                  <input
+                                    type="number"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    onBlur={() =>
+                                      handleDateDurationUpdate(phase, "duration", editValue)
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter")
+                                        handleDateDurationUpdate(phase, "duration", editValue);
+                                      if (e.key === "Escape") setEditingField(null);
+                                    }}
+                                    autoFocus
+                                    className="w-16 px-1 text-gray-900 rounded text-center pointer-events-auto"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                ) : (
+                                  <span
+                                    className="text-xs font-bold text-white px-2 py-0.5 bg-black/20 rounded cursor-pointer hover:bg-black/30 transition-colors pointer-events-auto"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingField({ phaseId: phase.id, field: "duration" });
+                                      setEditValue(String(phase.workingDays || 0));
+                                    }}
+                                    title="Click to edit duration (business days)"
+                                  >
+                                    {phase.workingDays}d
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Avatars */}
+                            {renderResourceAvatars(phase)}
+
+                            {/* Utilization */}
+                            {renderUtilizationBar(phase)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Tasks - Shown when phase is expanded */}
+                      {isPhaseExpanded && phaseTasks && phaseTasks.length > 0 && (
+                        <div className="ml-12 mt-1 mb-4 space-y-1">
+                          {phaseTasks.map((task, idx) => (
+                            <div key={task.id} className="flex items-center text-xs group/task">
+                              <div className="w-52 pr-4 text-gray-600">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-gray-400">└</span>
+                                  <span className="truncate">{task.name}</span>
+                                </div>
+                                <div className="text-[10px] text-gray-400 ml-4">
+                                  {task.workingDays}d • {task.effort}md • {task.defaultRole}
+                                </div>
+                              </div>
+                              <div className="flex-1 relative h-8">
+                                <div
+                                  className={`absolute top-1 h-6 rounded ${stream.color} opacity-30 hover:opacity-50 transition-opacity`}
+                                  style={{
+                                    left: `${startPercent + widthPercent * (idx / phaseTasks.length)}%`,
+                                    width: `${widthPercent * (1 / phaseTasks.length)}%`,
+                                  }}
+                                  title={`${task.name} - ${task.defaultRole}`}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
-              </div>
-            )}
-
-            {/* Phases */}
-            {!isCollapsed &&
-              stream.phases.map((phase) => {
-                const startPercent = ((phase.startBusinessDay || 0) / totalBusinessDays) * 100;
-                const widthPercent = ((phase.workingDays || 0) / totalBusinessDays) * 100;
-                const isDragging = draggedPhase === phase.id;
-                const isPhaseExpanded = expandedPhases.has(phase.id);
-
-                // Tasks are manually created by user (no auto-generation)
-                const phaseTasks = phase.tasks || [];
-
-                return (
-                  <div key={phase.id}>
-                    {/* Phase Row */}
-                    <div className="flex items-center mb-2 group/phase">
-                      <div className="w-64 pl-8 pr-4 flex items-center">
-                        <div className="flex-1 min-w-0 flex items-center gap-2">
-                          {phaseTasks && phaseTasks.length > 0 && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                togglePhase(phase.id);
-                              }}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
-                              aria-label={isPhaseExpanded ? "Collapse tasks" : "Expand tasks"}
-                            >
-                              {isPhaseExpanded ? (
-                                <ChevronDown className="w-4 h-4" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4" />
-                              )}
-                            </button>
-                          )}
-                          <div className="flex-1">
-                            <div className="text-sm text-gray-700 truncate">{phase.name}</div>
-                            <div className="text-xs text-gray-500">{phase.workingDays}d • {phase.effort}md</div>
-                          </div>
-                        </div>
-                      </div>
-
-                    <div className="flex-1 relative h-16">
-                      {/* Phase Bar */}
-                      <div
-                        className={`
-                          absolute top-2 h-12 rounded-lg transition-all duration-150
-                          ${isDragging
-                            ? 'opacity-70 shadow-2xl scale-105 cursor-grabbing ring-4 ring-blue-300'
-                            : `${stream.color} hover:shadow-xl hover:brightness-110`
-                          }
-                        `}
-                        style={{
-                          left: `${startPercent}%`,
-                          width: `${widthPercent}%`,
-                        }}
-                        onClick={(e) => {
-                          // Only trigger if not dragging (click vs drag detection)
-                          if (!isDragging) {
-                            if (onPhaseClick) {
-                              onPhaseClick(phase);
-                            } else if (selectPhase) {
-                              selectPhase(phase.id);
-                            }
-                          }
-                        }}
-                      >
-                        {/* Resize Handles */}
-                        <div
-                          className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  group-hover/phase:opacity-100 transition-opacity"
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                            handleMouseDown(e, phase.id, 'resize-start');
-                          }}
-                        />
-                        <div
-                          className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  group-hover/phase:opacity-100 transition-opacity"
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                            handleMouseDown(e, phase.id, 'resize-end');
-                          }}
-                        />
-
-                        {/* Phase Content */}
-                        <div className="p-2 h-full flex flex-col justify-between">
-                          {/* Dates - Editable */}
-                          <div className="flex justify-between text-[10px] text-white/80 font-medium gap-1">
-                            {/* Start Date */}
-                            {editingField?.phaseId === phase.id && editingField.field === 'start' ? (
-                              <input
-                                type="date"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onBlur={() => handleDateDurationUpdate(phase, 'start', editValue)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleDateDurationUpdate(phase, 'start', editValue);
-                                  if (e.key === 'Escape') setEditingField(null);
-                                }}
-                                autoFocus
-                                className="w-20 px-1 text-gray-900 rounded pointer-events-auto"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            ) : (
-                              <span
-                                className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors pointer-events-auto"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const startDate = phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion);
-                                  setEditingField({ phaseId: phase.id, field: 'start' });
-                                  setEditValue(format(startDate, 'yyyy-MM-dd'));
-                                }}
-                                title="Click to edit start date"
-                              >
-                                {phase.startDate ? format(phase.startDate, 'MMM dd') : format(addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, selectedRegion), 'MMM dd')}
-                              </span>
-                            )}
-
-                            {/* End Date */}
-                            {editingField?.phaseId === phase.id && editingField.field === 'end' ? (
-                              <input
-                                type="date"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onBlur={() => handleDateDurationUpdate(phase, 'end', editValue)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleDateDurationUpdate(phase, 'end', editValue);
-                                  if (e.key === 'Escape') setEditingField(null);
-                                }}
-                                autoFocus
-                                className="w-20 px-1 text-gray-900 rounded pointer-events-auto"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            ) : (
-                              <span
-                                className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors pointer-events-auto"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const endDate = phase.endDate || addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), selectedRegion);
-                                  setEditingField({ phaseId: phase.id, field: 'end' });
-                                  setEditValue(format(endDate, 'yyyy-MM-dd'));
-                                }}
-                                title="Click to edit end date"
-                              >
-                                {phase.endDate ? format(phase.endDate, 'MMM dd') : format(addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), selectedRegion), 'MMM dd')}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Duration - Editable */}
-                          <div className="text-center">
-                            {editingField?.phaseId === phase.id && editingField.field === 'duration' ? (
-                              <input
-                                type="number"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onBlur={() => handleDateDurationUpdate(phase, 'duration', editValue)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleDateDurationUpdate(phase, 'duration', editValue);
-                                  if (e.key === 'Escape') setEditingField(null);
-                                }}
-                                autoFocus
-                                className="w-16 px-1 text-gray-900 rounded text-center pointer-events-auto"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            ) : (
-                              <span
-                                className="text-xs font-bold text-white px-2 py-0.5 bg-black/20 rounded cursor-pointer hover:bg-black/30 transition-colors pointer-events-auto"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingField({ phaseId: phase.id, field: 'duration' });
-                                  setEditValue(String(phase.workingDays || 0));
-                                }}
-                                title="Click to edit duration (business days)"
-                              >
-                                {phase.workingDays}d
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Avatars */}
-                        {renderResourceAvatars(phase)}
-
-                        {/* Utilization */}
-                        {renderUtilizationBar(phase)}
-                      </div>
-                    </div>
-                    </div>
-
-                    {/* Tasks - Shown when phase is expanded */}
-                    {isPhaseExpanded && phaseTasks && phaseTasks.length > 0 && (
-                      <div className="ml-12 mt-1 mb-4 space-y-1">
-                        {phaseTasks.map((task, idx) => (
-                          <div key={task.id} className="flex items-center text-xs group/task">
-                            <div className="w-52 pr-4 text-gray-600">
-                              <div className="flex items-center gap-2">
-                                <span className="text-gray-400">└</span>
-                                <span className="truncate">{task.name}</span>
-                              </div>
-                              <div className="text-[10px] text-gray-400 ml-4">
-                                {task.workingDays}d • {task.effort}md • {task.defaultRole}
-                              </div>
-                            </div>
-                            <div className="flex-1 relative h-8">
-                              <div
-                                className={`absolute top-1 h-6 rounded ${stream.color} opacity-30 hover:opacity-50 transition-opacity`}
-                                style={{
-                                  left: `${startPercent + (widthPercent * (idx / phaseTasks.length))}%`,
-                                  width: `${widthPercent * (1 / phaseTasks.length)}%`,
-                                }}
-                                title={`${task.name} - ${task.defaultRole}`}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-          </div>
-        );
-      })}
+            </div>
+          );
+        })}
       </div>
 
       {/* Legend */}
@@ -1005,10 +1112,7 @@ export function ImprovedGanttChart({
 
       {/* Holiday Manager Modal */}
       {showHolidayModal && (
-        <HolidayManagerModal
-          region={selectedRegion}
-          onClose={() => setShowHolidayModal(false)}
-        />
+        <HolidayManagerModal region={selectedRegion} onClose={() => setShowHolidayModal(false)} />
       )}
 
       {/* Milestone Manager Modal */}
@@ -1027,23 +1131,27 @@ export function ImprovedGanttChart({
 }
 
 // Helper: Generate month markers
-function generateMonthMarkers(startDate: Date, endDate: Date, totalDays: number): Array<{ position: number; label: string }> {
+function generateMonthMarkers(
+  startDate: Date,
+  endDate: Date,
+  totalDays: number
+): Array<{ position: number; label: string }> {
   const markers: Array<{ position: number; label: string }> = [];
-  
+
   let current = new Date(startDate);
   current.setDate(1);
-  
+
   while (current <= endDate) {
     const offset = differenceInDays(current, startDate);
     const position = (offset / totalDays) * 100;
-    
+
     markers.push({
       position: Math.max(0, position),
-      label: format(current, 'MMM yyyy'),
+      label: format(current, "MMM yyyy"),
     });
-    
+
     current = new Date(current.getFullYear(), current.getMonth() + 1, 1);
   }
-  
+
   return markers;
 }

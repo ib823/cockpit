@@ -1,11 +1,13 @@
 # Update Database Connection - Step by Step Guide
 
 ## Current Status
+
 ❌ Your Neon database is unreachable. You need new credentials.
 
 ## Steps to Fix
 
 ### 1. Go to Neon Dashboard
+
 Visit: https://console.neon.tech
 
 - Log in to your account
@@ -32,12 +34,14 @@ postgresql://username:password@ep-xxx-yyy.region.aws.neon.tech/dbname?sslmode=re
 Open `/workspaces/cockpit/.env` and replace these lines:
 
 **Find these OLD lines:**
+
 ```env
 DATABASE_URL="postgresql://neondb_owner:npg_FgOv1WMr2jcb@ep-noisy-term-a171r0le-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
 DATABASE_URL_UNPOOLED="postgresql://neondb_owner:npg_FgOv1WMr2jcb@ep-noisy-term-a171r0le.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
 ```
 
 **Replace with NEW credentials from Neon:**
+
 ```env
 DATABASE_URL="YOUR_POOLED_CONNECTION_STRING_HERE"
 DATABASE_URL_UNPOOLED="YOUR_DIRECT_CONNECTION_STRING_HERE"
@@ -61,6 +65,7 @@ npx tsx scripts/test-db-connection.ts
 ### 5. Seed Database (Optional)
 
 If you have seed data:
+
 ```bash
 npx prisma db seed
 ```
@@ -91,6 +96,7 @@ npx prisma db push
 ## Need Help?
 
 Run the test script to verify connection:
+
 ```bash
 npx tsx scripts/test-db-connection.ts
 ```

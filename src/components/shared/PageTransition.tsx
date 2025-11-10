@@ -10,69 +10,73 @@
  * - Works with Next.js App Router
  */
 
-'use client';
+"use client";
 
-import { useEffect, useState, ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
-import { Spin } from 'antd';
+import { useEffect, useState, ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { Spin } from "antd";
 
 interface PageTransitionProps {
   children: ReactNode;
   /** Animation duration in milliseconds */
   duration?: number;
   /** Animation type */
-  type?: 'fade' | 'slide' | 'fade-slide';
+  type?: "fade" | "slide" | "fade-slide";
 }
 
 export function PageTransition({
   children,
   duration = 300,
-  type = 'fade-slide',
+  type = "fade-slide",
 }: PageTransitionProps) {
   const pathname = usePathname();
   const [isAnimating, setIsAnimating] = useState(true);
   const [displayChildren, setDisplayChildren] = useState(children);
 
   // Check for reduced motion preference
-  const prefersReducedMotion = typeof window !== 'undefined'
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    : false;
+  const prefersReducedMotion =
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false;
 
   // Trigger animation on pathname change
   useEffect(() => {
     setIsAnimating(true);
 
     // Delay to allow exit animation
-    const timer = setTimeout(() => {
-      setDisplayChildren(children);
-      setIsAnimating(false);
-    }, prefersReducedMotion ? 0 : duration / 2);
+    const timer = setTimeout(
+      () => {
+        setDisplayChildren(children);
+        setIsAnimating(false);
+      },
+      prefersReducedMotion ? 0 : duration / 2
+    );
 
     return () => clearTimeout(timer);
   }, [pathname, children, duration, prefersReducedMotion]);
 
-  const animationStyle = prefersReducedMotion ? {} : {
-    animation: isAnimating
-      ? `pageExit ${duration}ms ease-out`
-      : `pageEnter ${duration}ms ease-out`,
-  };
+  const animationStyle = prefersReducedMotion
+    ? {}
+    : {
+        animation: isAnimating
+          ? `pageExit ${duration}ms ease-out`
+          : `pageEnter ${duration}ms ease-out`,
+      };
 
   return (
     <>
-      <div style={animationStyle}>
-        {displayChildren}
-      </div>
+      <div style={animationStyle}>{displayChildren}</div>
 
       {/* CSS animations */}
       <style jsx>{`
         @keyframes pageEnter {
           from {
             opacity: 0;
-            ${type.includes('slide') ? 'transform: translateY(10px);' : ''}
+            ${type.includes("slide") ? "transform: translateY(10px);" : ""}
           }
           to {
             opacity: 1;
-            ${type.includes('slide') ? 'transform: translateY(0);' : ''}
+            ${type.includes("slide") ? "transform: translateY(0);" : ""}
           }
         }
 
@@ -100,7 +104,7 @@ interface NavigationLoaderProps {
   message?: string;
 }
 
-export function NavigationLoader({ loading, message = 'Loading...' }: NavigationLoaderProps) {
+export function NavigationLoader({ loading, message = "Loading..." }: NavigationLoaderProps) {
   const [show, setShow] = useState(false);
 
   // Delay showing loader to avoid flash on fast navigations
@@ -118,22 +122,22 @@ export function NavigationLoader({ loading, message = 'Loading...' }: Navigation
   return (
     <div
       style={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(255, 255, 255, 0.9)",
         zIndex: 9999,
-        animation: 'fadeIn 200ms ease-out',
+        animation: "fadeIn 200ms ease-out",
       }}
     >
-      <div style={{ textAlign: 'center' }}>
+      <div style={{ textAlign: "center" }}>
         <Spin size="large" />
-        <div style={{ marginTop: '16px', className="text-base", color: '#64748b' }}>
+        <div className="text-base" style={{ marginTop: "16px", color: "#64748b" }}>
           {message}
         </div>
       </div>
@@ -193,15 +197,15 @@ export function ScrollRestoration({ preserveScrollOnPages = [] }: ScrollRestorat
   useEffect(() => {
     // Save scroll position before navigation
     const handleScroll = () => {
-      if (preserveScrollOnPages.includes(pathname)) {
+      if (pathname && preserveScrollOnPages.includes(pathname)) {
         sessionStorage.setItem(`scroll-${pathname}`, window.scrollY.toString());
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
     // Restore scroll position on mount
-    if (preserveScrollOnPages.includes(pathname)) {
+    if (pathname && preserveScrollOnPages.includes(pathname)) {
       const savedScroll = sessionStorage.getItem(`scroll-${pathname}`);
       if (savedScroll) {
         window.scrollTo(0, parseInt(savedScroll, 10));
@@ -211,7 +215,7 @@ export function ScrollRestoration({ preserveScrollOnPages = [] }: ScrollRestorat
       window.scrollTo(0, 0);
     }
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [pathname, preserveScrollOnPages]);
 
   return null;

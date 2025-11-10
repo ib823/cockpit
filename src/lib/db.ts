@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = global as unknown as {
   prisma?: PrismaClient;
@@ -32,7 +32,7 @@ class QueryMonitor {
 
     if (duration > this.slowQueryThreshold) {
       this.stats.slowQueries++;
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.warn(`[DB] ⚠️  Slow query: ${duration.toFixed(2)}ms`);
       }
     }
@@ -43,8 +43,7 @@ class QueryMonitor {
     }
 
     // Update stats
-    this.stats.avgQueryTime =
-      this.queryTimes.reduce((a, b) => a + b, 0) / this.queryTimes.length;
+    this.stats.avgQueryTime = this.queryTimes.reduce((a, b) => a + b, 0) / this.queryTimes.length;
     this.stats.maxQueryTime = Math.max(...this.queryTimes);
   }
 
@@ -73,16 +72,14 @@ const prismaClientSingleton = () => {
     : 5; // Conservative default for serverless
 
   // Add connection pooling parameters to URL if DATABASE_URL doesn't already have them
-  let databaseUrl = process.env.DATABASE_URL || '';
-  if (!databaseUrl.includes('connection_limit')) {
-    const separator = databaseUrl.includes('?') ? '&' : '?';
+  let databaseUrl = process.env.DATABASE_URL || "";
+  if (!databaseUrl.includes("connection_limit")) {
+    const separator = databaseUrl.includes("?") ? "&" : "?";
     databaseUrl += `${separator}connection_limit=${connectionLimit}&pool_timeout=20`;
   }
 
   const client = new PrismaClient({
-    log: process.env.NODE_ENV === 'development'
-      ? ['warn', 'error']
-      : ['error'],
+    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
 
     // Override datasource URL with pooling parameters
     datasources: {
@@ -103,7 +100,7 @@ const prismaClientSingleton = () => {
 
           queryMonitor.recordQuery(duration);
 
-          if (process.env.NODE_ENV === 'development' && duration > 50) {
+          if (process.env.NODE_ENV === "development" && duration > 50) {
             console.log(`[DB] ${model}.${operation} - ${duration.toFixed(2)}ms`);
           }
 
@@ -119,8 +116,8 @@ const prismaClientSingleton = () => {
 export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
 // In development, store the client globally to prevent hot-reload issues
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma as any; // Extended client type
 }
 
 /**
@@ -139,7 +136,7 @@ async function warmupConnection() {
       const duration = performance.now() - startTime;
       console.log(`[DB] Connection warmed up in ${duration.toFixed(2)}ms`);
     } catch (error) {
-      console.error('[DB] Failed to warm up connection:', error);
+      console.error("[DB] Failed to warm up connection:", error);
     } finally {
       globalForPrisma.prismaConnecting = undefined;
     }
@@ -149,21 +146,21 @@ async function warmupConnection() {
 }
 
 // Warm up connection in production on module load (for serverless cold starts)
-if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
-  warmupConnection().catch(err => {
-    console.error('[DB] Connection warmup failed:', err);
+if (process.env.NODE_ENV === "production" && typeof window === "undefined") {
+  warmupConnection().catch((err) => {
+    console.error("[DB] Connection warmup failed:", err);
   });
 }
 
 // Graceful shutdown handler
-if (typeof process !== 'undefined') {
+if (typeof process !== "undefined") {
   const cleanup = async () => {
     await prisma.$disconnect();
   };
 
-  process.on('beforeExit', cleanup);
-  process.on('SIGINT', cleanup);
-  process.on('SIGTERM', cleanup);
+  process.on("beforeExit", cleanup);
+  process.on("SIGINT", cleanup);
+  process.on("SIGTERM", cleanup);
 }
 
 /**
@@ -190,13 +187,13 @@ export async function withRetry<T>(
 
       // Check if it's a connection error worth retrying
       const isConnectionError =
-        error?.message?.includes('connection') ||
-        error?.message?.includes('Connection') ||
-        error?.message?.includes('Closed') ||
-        error?.code === 'P1001' || // Can't reach database
-        error?.code === 'P1002' || // Database timeout
-        error?.code === 'P1008' || // Operations timed out
-        error?.code === 'P1017';   // Server closed connection
+        error?.message?.includes("connection") ||
+        error?.message?.includes("Connection") ||
+        error?.message?.includes("Closed") ||
+        error?.code === "P1001" || // Can't reach database
+        error?.code === "P1002" || // Database timeout
+        error?.code === "P1008" || // Operations timed out
+        error?.code === "P1017"; // Server closed connection
 
       if (!isConnectionError || attempt === maxRetries - 1) {
         throw error;
@@ -204,12 +201,14 @@ export async function withRetry<T>(
 
       // Exponential backoff with jitter
       const delay = delayMs * Math.pow(2, attempt) + Math.random() * 100;
-      console.warn(`[DB] Connection error, retrying in ${delay.toFixed(0)}ms... (attempt ${attempt + 1}/${maxRetries})`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      console.warn(
+        `[DB] Connection error, retrying in ${delay.toFixed(0)}ms... (attempt ${attempt + 1}/${maxRetries})`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
-  throw lastError || new Error('Operation failed after retries');
+  throw lastError || new Error("Operation failed after retries");
 }
 
 /**
@@ -232,12 +231,12 @@ export async function checkDatabaseHealth(): Promise<{
     };
   } catch (error) {
     const latency = performance.now() - startTime;
-    console.error('[DB] Health check failed:', error);
+    console.error("[DB] Health check failed:", error);
 
     return {
       healthy: false,
       latency,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }

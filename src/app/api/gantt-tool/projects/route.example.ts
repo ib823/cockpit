@@ -6,11 +6,11 @@
  * To use this, rename to route.ts and update your existing route
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { protectAPIRoute } from '@/lib/security/api-protection';
-import { RATE_LIMITS } from '@/lib/security/rate-limiter';
-import { addSecurityHeaders } from '@/lib/security/api-protection';
+import { NextRequest } from "next/server";
+import { getServerSession } from "next-auth";
+import { protectAPIRoute } from "@/lib/security/api-protection";
+import { RATE_LIMITS } from "@/lib/security/rate-limiter";
+import { addSecurityHeaders } from "@/lib/security/api-protection";
 
 /**
  * POST /api/gantt-tool/projects
@@ -29,14 +29,14 @@ export async function POST(req: NextRequest) {
 
       // Require CAPTCHA for project creation (prevents spam)
       requireCaptcha: true,
-      captchaAction: 'create_project',
+      captchaAction: "create_project",
 
       // Enable bot detection
       detectBots: true,
 
       // Enable abuse detection
       detectAbuse: true,
-      abuseAction: 'create_project',
+      abuseAction: "create_project",
 
       // User identification
       userId,
@@ -46,8 +46,8 @@ export async function POST(req: NextRequest) {
     if (!protection.allowed) {
       return NextResponse.json(
         {
-          error: protection.error?.code || 'FORBIDDEN',
-          message: protection.error?.message || 'Access denied',
+          error: protection.error?.code || "FORBIDDEN",
+          message: protection.error?.message || "Access denied",
         },
         {
           status: protection.error?.statusCode || 403,
@@ -62,14 +62,14 @@ export async function POST(req: NextRequest) {
     // Validate input
     if (!body.name || body.name.trim().length === 0) {
       return NextResponse.json(
-        { error: 'VALIDATION_ERROR', message: 'Project name is required' },
+        { error: "VALIDATION_ERROR", message: "Project name is required" },
         { status: 400 }
       );
     }
 
     if (body.name.length > 100) {
       return NextResponse.json(
-        { error: 'VALIDATION_ERROR', message: 'Project name too long (max 100 characters)' },
+        { error: "VALIDATION_ERROR", message: "Project name too long (max 100 characters)" },
         { status: 400 }
       );
     }
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json(
       {
         success: true,
-        message: 'Project created successfully',
+        message: "Project created successfully",
         // project,
       },
       {
@@ -91,14 +91,13 @@ export async function POST(req: NextRequest) {
     );
 
     return addSecurityHeaders(response);
-
   } catch (error) {
-    console.error('[API] Project creation failed:', error);
+    console.error("[API] Project creation failed:", error);
 
     return NextResponse.json(
       {
-        error: 'INTERNAL_ERROR',
-        message: 'Failed to create project',
+        error: "INTERNAL_ERROR",
+        message: "Failed to create project",
       },
       { status: 500 }
     );
@@ -124,8 +123,8 @@ export async function GET(req: NextRequest) {
     if (!protection.allowed) {
       return NextResponse.json(
         {
-          error: protection.error?.code || 'FORBIDDEN',
-          message: protection.error?.message || 'Access denied',
+          error: protection.error?.code || "FORBIDDEN",
+          message: protection.error?.message || "Access denied",
         },
         {
           status: protection.error?.statusCode || 403,
@@ -149,14 +148,13 @@ export async function GET(req: NextRequest) {
     );
 
     return addSecurityHeaders(response);
-
   } catch (error) {
-    console.error('[API] Failed to fetch projects:', error);
+    console.error("[API] Failed to fetch projects:", error);
 
     return NextResponse.json(
       {
-        error: 'INTERNAL_ERROR',
-        message: 'Failed to fetch projects',
+        error: "INTERNAL_ERROR",
+        message: "Failed to fetch projects",
       },
       { status: 500 }
     );

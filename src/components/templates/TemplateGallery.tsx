@@ -4,16 +4,20 @@
  * Modal dialog for browsing and selecting project templates
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Modal, Input, Tabs } from 'antd';
-import { Search, X, Sparkles, TrendingUp } from 'lucide-react';
-import type { ProjectTemplate, TemplateCategory } from '@/lib/templates/template-types';
-import { TEMPLATE_CATEGORIES, filterTemplatesByCategory, searchTemplates } from '@/lib/templates/template-types';
-import { TEMPLATES, getFeaturedTemplates } from '@/lib/templates/template-data';
-import { TemplateCard } from './TemplateCard';
-import { colorValues, spacing } from '@/lib/design-system';
+import { useState, useMemo } from "react";
+import { Modal, Input, Tabs } from "antd";
+import { Search, X, Sparkles, TrendingUp } from "lucide-react";
+import type { ProjectTemplate, TemplateCategory } from "@/lib/templates/template-types";
+import {
+  TEMPLATE_CATEGORIES,
+  filterTemplatesByCategory,
+  searchTemplates,
+} from "@/lib/templates/template-types";
+import { TEMPLATES, getFeaturedTemplates } from "@/lib/templates/template-data";
+import { TemplateCard } from "./TemplateCard";
+import { colorValues, spacing } from "@/lib/design-system";
 
 interface TemplateGalleryProps {
   open: boolean;
@@ -22,17 +26,19 @@ interface TemplateGalleryProps {
 }
 
 export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGalleryProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all' | 'featured'>('featured');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | "all" | "featured">(
+    "featured"
+  );
 
   // Filter and search templates
   const filteredTemplates = useMemo(() => {
     let templates = TEMPLATES;
 
     // Apply category filter
-    if (selectedCategory === 'featured') {
+    if (selectedCategory === "featured") {
       templates = getFeaturedTemplates();
-    } else if (selectedCategory !== 'all') {
+    } else if (selectedCategory !== "all") {
       templates = filterTemplatesByCategory(templates, selectedCategory);
     }
 
@@ -52,7 +58,7 @@ export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGal
   // Create tabs for categories
   const tabItems = [
     {
-      key: 'featured',
+      key: "featured",
       label: (
         <div className="flex items-center gap-2 px-2">
           <Sparkles className="w-4 h-4" />
@@ -61,7 +67,7 @@ export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGal
       ),
     },
     {
-      key: 'all',
+      key: "all",
       label: (
         <div className="flex items-center gap-2 px-2">
           <TrendingUp className="w-4 h-4" />
@@ -88,7 +94,7 @@ export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGal
       onCancel={onClose}
       footer={null}
       width="90vw"
-      style={{ maxWidth: '1400px', top: 20 }}
+      style={{ maxWidth: "1400px", top: 20 }}
       title={null}
       closeIcon={null}
     >
@@ -120,9 +126,9 @@ export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGal
             onChange={(e) => setSearchQuery(e.target.value)}
             allowClear
             style={{
-              borderRadius: '12px',
-              backgroundColor: '#F9FAFB',
-              border: '1px solid #E5E7EB',
+              borderRadius: "12px",
+              backgroundColor: "#F9FAFB",
+              border: "1px solid #E5E7EB",
             }}
           />
         </div>
@@ -151,11 +157,11 @@ export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGal
               <p className="text-sm text-gray-600 text-center max-w-md">
                 {searchQuery
                   ? `No templates match "${searchQuery}". Try a different search term.`
-                  : 'No templates available in this category.'}
+                  : "No templates available in this category."}
               </p>
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => setSearchQuery("")}
                   className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
                   Clear Search
@@ -166,8 +172,9 @@ export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGal
             <>
               {/* Results Count */}
               <div className="mb-4 text-sm text-gray-600">
-                Showing <span className="font-semibold text-gray-900">{filteredTemplates.length}</span>{' '}
-                {filteredTemplates.length === 1 ? 'template' : 'templates'}
+                Showing{" "}
+                <span className="font-semibold text-gray-900">{filteredTemplates.length}</span>{" "}
+                {filteredTemplates.length === 1 ? "template" : "templates"}
               </div>
 
               {/* Template Grid */}
@@ -177,7 +184,7 @@ export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGal
                     key={template.id}
                     template={template}
                     onSelect={handleSelectTemplate}
-                    featured={selectedCategory === 'featured'}
+                    featured={selectedCategory === "featured"}
                   />
                 ))}
               </div>
@@ -189,10 +196,10 @@ export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGal
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600">
-              Can't find what you need?{' '}
+              Can't find what you need?{" "}
               <button
                 onClick={() => {
-                  const blankTemplate = TEMPLATES.find((t) => t.id === 'blank');
+                  const blankTemplate = TEMPLATES.find((t) => t.id === "blank");
                   if (blankTemplate) handleSelectTemplate(blankTemplate);
                 }}
                 className="text-blue-600 font-medium hover:text-blue-700 transition-colors"

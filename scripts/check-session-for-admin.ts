@@ -53,7 +53,9 @@ async function checkAdminSession() {
       console.log(`   ${idx + 1}. Session ID: ${session.id}`);
       console.log(`      Created: ${session.createdAt}`);
       console.log(`      Expires: ${session.expires}`);
-      console.log(`      Status: ${isRevoked ? "❌ Revoked" : isExpired ? "❌ Expired" : "✅ Active"}`);
+      console.log(
+        `      Status: ${isRevoked ? "❌ Revoked" : isExpired ? "❌ Expired" : "✅ Active"}`
+      );
       if (isRevoked) {
         console.log(`      Revoked Reason: ${session.revokedReason}`);
       }

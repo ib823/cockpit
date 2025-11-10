@@ -12,23 +12,27 @@
 ### User Management
 
 **✅ Add Users**
+
 - Enter user email
 - Click "Send Code"
 - Code sent via email (or shown in dev mode)
 - User receives 6-digit code valid for 7 days
 
 **✅ User Status Tracking**
+
 - **Active** - Has passkey, access not expired
 - **Pending** - Code sent, awaiting passkey setup
 - **Expired** - Access period ended (7 days default)
 
 **✅ Activity Monitoring**
+
 - First login time
 - Last login time
 - Timelines generated count
 - Last timeline generation
 
 **✅ Access Control**
+
 - 7-day access by default
 - Exception users (no expiry)
 - Automatic expiry tracking
@@ -36,6 +40,7 @@
 ### Dashboard Sections
 
 #### 1. Add User Card
+
 - Email input with instant validation
 - Send code button
 - Code display (auto-copied)
@@ -43,7 +48,9 @@
 - Email delivery status
 
 #### 2. Users Table
+
 Columns:
+
 - Email (with exception badge)
 - Status (active/pending/expired)
 - First Login (date + relative)
@@ -52,6 +59,7 @@ Columns:
 - Access Expires (date + days left)
 
 #### 3. Statistics Panel
+
 - Active Users count
 - Pending Setup count
 - Total Timelines generated
@@ -59,6 +67,7 @@ Columns:
 ## 🔐 Security Features
 
 ### Session Management
+
 - **Admins:** 1-hour sessions
 - **Users:** 15-minute sessions
 - Automatic re-authentication required
@@ -66,6 +75,7 @@ Columns:
 - Secure in production
 
 ### Access Control
+
 - **Admins:** Code-only login (123456)
 - **Users:** Passkey required after first login
 - 7-day access validity
@@ -75,17 +85,20 @@ Columns:
 ### Login Flow
 
 **Admin:**
+
 1. Enter email → code input shown
 2. Enter 123456
 3. ✓ Logged in (no passkey)
 
 **Regular User:**
+
 1. Enter email
 2. If no passkey → enter code from email
 3. Set up passkey (fingerprint/Face ID)
 4. ✓ Logged in
 
 **Invalid Attempts:**
+
 - Subtle shake animation
 - No error messages (security)
 - Enumeration-safe responses
@@ -96,6 +109,7 @@ Columns:
 
 1. Get Resend API key: https://resend.com
 2. Add to `.env.local`:
+
    ```bash
    RESEND_API_KEY=re_xxx
    FROM_EMAIL=noreply@yourdomain.com
@@ -112,6 +126,7 @@ Columns:
 ## 📈 User Lifecycle
 
 ### 1. Admin Adds User
+
 ```
 Admin Dashboard → Enter Email → Send Code
 ↓
@@ -121,6 +136,7 @@ Code sent via email (6 digits, expires in 7 days)
 ```
 
 ### 2. User First Login
+
 ```
 User visits /login → Enters email
 ↓
@@ -134,6 +150,7 @@ Redirected to app
 ```
 
 ### 3. User Returns
+
 ```
 User visits app → Redirected to /login (if expired)
 ↓
@@ -146,6 +163,7 @@ Session created (15 min)
 ```
 
 ### 4. Access Expires (After 7 Days)
+
 ```
 User tries to login → Access denied
 ↓
@@ -161,6 +179,7 @@ Admin must renew access (send new code)
 **Smart** - Automatic status detection
 
 ### Color Coding
+
 - **Green** - Active, success, healthy
 - **Yellow** - Pending, warning, waiting
 - **Red** - Expired, error, blocked
@@ -190,6 +209,7 @@ POST /api/auth/finish-register - Complete registration
 ## 📊 Database Schema
 
 ### User Table
+
 ```prisma
 model User {
   email           String    @unique
@@ -207,6 +227,7 @@ model User {
 ### Tracking Timeline Usage
 
 When user generates timeline (future implementation):
+
 ```typescript
 await prisma.user.update({
   where: { id: userId },
@@ -220,6 +241,7 @@ await prisma.user.update({
 ## 🚀 Quick Start
 
 1. **Login as admin:**
+
    ```
    http://localhost:3001/login
    Email: admin@admin.com
@@ -227,11 +249,13 @@ await prisma.user.update({
    ```
 
 2. **Add first user:**
+
    ```
    Dashboard → Add User → Enter email → Send Code
    ```
 
 3. **User sets up:**
+
    ```
    User opens email → Clicks login → Enters code → Sets passkey
    ```
@@ -252,16 +276,19 @@ await prisma.user.update({
 ## 🐛 Troubleshooting
 
 **User can't login:**
+
 - Check status in dashboard
 - If expired → send new code
 - If pending → resend code
 
 **Email not received:**
+
 - Check spam folder
 - Verify RESEND_API_KEY
 - Use dev mode (copy code from dashboard)
 
 **Session expired quickly:**
+
 - Normal (15 min for users, 1 hour for admins)
 - Best practice for security
 - User re-authenticates with passkey (quick!)

@@ -24,6 +24,7 @@ npx prisma studio
 Visit: `http://localhost:3000/test-ricefw`
 
 **Try This:**
+
 1. Click "Load Sample Scenario"
 2. Click "Add RICEFW Item"
 3. Create a report: "Inventory Aging Report" (Medium, 2 items)
@@ -37,32 +38,26 @@ Visit: `http://localhost:3000/test-ricefw`
 ### Add to a Page
 
 ```tsx
-import { RicefwPanel } from '@/components/estimation/RicefwPanel';
-import { useState } from 'react';
+import { RicefwPanel } from "@/components/estimation/RicefwPanel";
+import { useState } from "react";
 
 export default function MyPage() {
   const [items, setItems] = useState([]);
 
-  return (
-    <RicefwPanel
-      projectId="my-project"
-      items={items}
-      onChange={setItems}
-    />
-  );
+  return <RicefwPanel projectId="my-project" items={items} onChange={setItems} />;
 }
 ```
 
 ### Get Recommendations
 
 ```typescript
-import { getRicefwRecommendations } from '@/lib/ricefw/calculator';
+import { getRicefwRecommendations } from "@/lib/ricefw/calculator";
 
 const recs = getRicefwRecommendations({
   countries: 3,
   legalEntities: 5,
-  modules: ['finance', 'hr'],
-  industry: 'manufacturing',
+  modules: ["finance", "hr"],
+  industry: "manufacturing",
 });
 
 console.log(recs);
@@ -80,7 +75,7 @@ console.log(recs);
 ### Basic Usage
 
 ```typescript
-import { recompute } from '@/lib/engine/recompute';
+import { recompute } from "@/lib/engine/recompute";
 
 const outputs = recompute({
   ricefwItems,
@@ -90,8 +85,8 @@ const outputs = recompute({
   averageHourlyRate: 150,
 });
 
-console.log(outputs.totalCost);      // $1,234,567
-console.log(outputs.totalEffortPD);  // 1,234.5
+console.log(outputs.totalCost); // $1,234,567
+console.log(outputs.totalEffortPD); // 1,234.5
 ```
 
 ### React Hook
@@ -122,7 +117,7 @@ function Dashboard() {
 ### Validate Input
 
 ```typescript
-import { validateRicefwItem } from '@/lib/security';
+import { validateRicefwItem } from "@/lib/security";
 
 const result = validateRicefwItem(userInput);
 if (!result.valid) {
@@ -135,7 +130,7 @@ const safeData = result.data;
 ### Sanitize Strings
 
 ```typescript
-import { sanitizeString } from '@/lib/security';
+import { sanitizeString } from "@/lib/security";
 
 const safeName = sanitizeString(userInput.name);
 // Strips HTML, removes dangerous protocols, truncates to 10KB
@@ -144,11 +139,11 @@ const safeName = sanitizeString(userInput.name);
 ### Rate Limiting
 
 ```typescript
-import { checkRateLimit } from '@/lib/security';
+import { checkRateLimit } from "@/lib/security";
 
-const limit = checkRateLimit('user-123', 100, 60000);
+const limit = checkRateLimit("user-123", 100, 60000);
 if (!limit.allowed) {
-  return { error: 'Rate limit exceeded' };
+  return { error: "Rate limit exceeded" };
 }
 // Proceed with operation
 ```
@@ -161,7 +156,7 @@ if (!limit.allowed) {
 
 ```tsx
 // In your project page
-import { RicefwPanel } from '@/components/estimation/RicefwPanel';
+import { RicefwPanel } from "@/components/estimation/RicefwPanel";
 
 function ProjectPage() {
   const [ricefwItems, setRicefwItems] = useState([]);
@@ -169,11 +164,7 @@ function ProjectPage() {
   return (
     <>
       {/* Existing UI */}
-      <RicefwPanel
-        projectId={projectId}
-        items={ricefwItems}
-        onChange={setRicefwItems}
-      />
+      <RicefwPanel projectId={projectId} items={ricefwItems} onChange={setRicefwItems} />
     </>
   );
 }
@@ -182,7 +173,7 @@ function ProjectPage() {
 ### Example 2: Show Summary Dashboard
 
 ```tsx
-import { RicefwSummary } from '@/components/estimation/RicefwSummary';
+import { RicefwSummary } from "@/components/estimation/RicefwSummary";
 
 function Dashboard({ items }) {
   return <RicefwSummary items={items} averageHourlyRate={150} />;
@@ -192,7 +183,7 @@ function Dashboard({ items }) {
 ### Example 3: Calculate Total Cost
 
 ```typescript
-import { recompute } from '@/lib/engine/recompute';
+import { recompute } from "@/lib/engine/recompute";
 
 const { totalCost, totalEffortPD } = recompute({
   ricefwItems: myRicefwItems,
@@ -211,8 +202,8 @@ console.log(`Project will cost $${totalCost} (${totalEffortPD} PD)`);
 
 ```typescript
 const items = await prisma.ricefwItem.findMany({
-  where: { projectId: 'my-project' },
-  orderBy: { createdAt: 'desc' },
+  where: { projectId: "my-project" },
+  orderBy: { createdAt: "desc" },
 });
 ```
 
@@ -221,14 +212,14 @@ const items = await prisma.ricefwItem.findMany({
 ```typescript
 const item = await prisma.ricefwItem.create({
   data: {
-    projectId: 'my-project',
-    type: 'report',
-    name: 'Inventory Aging Report',
-    complexity: 'M',
+    projectId: "my-project",
+    type: "report",
+    name: "Inventory Aging Report",
+    complexity: "M",
     count: 2,
     effortPerItem: 5.0,
     totalEffort: 10.0,
-    phase: 'realize',
+    phase: "realize",
   },
 });
 ```
@@ -237,7 +228,7 @@ const item = await prisma.ricefwItem.create({
 
 ```typescript
 const total = await prisma.ricefwItem.aggregate({
-  where: { projectId: 'my-project' },
+  where: { projectId: "my-project" },
   _sum: { totalEffort: true },
 });
 
@@ -251,33 +242,34 @@ console.log(`Total RICEFW effort: ${total._sum.totalEffort} PD`);
 ### Recipe: Auto-populate from Presales
 
 ```typescript
-import { getRicefwRecommendations } from '@/lib/ricefw/calculator';
+import { getRicefwRecommendations } from "@/lib/ricefw/calculator";
 
 // Get presales data
-const chips = usePresalesStore(state => state.chips);
+const chips = usePresalesStore((state) => state.chips);
 
 // Extract scope
 const scope = {
-  countries: chips.filter(c => c.type === 'COUNTRY').length,
-  legalEntities: Number(chips.find(c => c.type === 'LEGAL_ENTITIES')?.value || 1),
-  modules: chips.filter(c => c.type === 'MODULES')
-    .map(c => c.value.toLowerCase()),
-  industry: chips.find(c => c.type === 'INDUSTRY')?.value || '',
+  countries: chips.filter((c) => c.type === "COUNTRY").length,
+  legalEntities: Number(chips.find((c) => c.type === "LEGAL_ENTITIES")?.value || 1),
+  modules: chips.filter((c) => c.type === "MODULES").map((c) => c.value.toLowerCase()),
+  industry: chips.find((c) => c.type === "INDUSTRY")?.value || "",
 };
 
 // Get recommendations
 const recs = getRicefwRecommendations(scope);
 
 // Convert to RICEFW items
-const items = recs.map(rec => createRicefwItem(
-  projectId,
-  rec.type,
-  rec.name,
-  rec.complexity,
-  rec.count,
-  'realize',
-  rec.rationale
-));
+const items = recs.map((rec) =>
+  createRicefwItem(
+    projectId,
+    rec.type,
+    rec.name,
+    rec.complexity,
+    rec.count,
+    "realize",
+    rec.rationale
+  )
+);
 
 setRicefwItems(items);
 ```
@@ -285,7 +277,7 @@ setRicefwItems(items);
 ### Recipe: Calculate Phase Impact
 
 ```typescript
-import { calculateRicefwPhaseImpact } from '@/lib/ricefw/calculator';
+import { calculateRicefwPhaseImpact } from "@/lib/ricefw/calculator";
 
 const impact = calculateRicefwPhaseImpact(ricefwItems);
 
@@ -297,7 +289,7 @@ console.log(`Deploy: ${impact.deploy} PD`);
 ### Recipe: Validate Before Save
 
 ```typescript
-import { validateRicefwItem, sanitizeString } from '@/lib/security';
+import { validateRicefwItem, sanitizeString } from "@/lib/security";
 
 function handleSubmit(formData) {
   // Sanitize strings
@@ -326,13 +318,15 @@ function handleSubmit(formData) {
 ### Issue: Can't find RicefwPanel
 
 **Solution:** Check import path
+
 ```typescript
-import { RicefwPanel } from '@/components/estimation/RicefwPanel';
+import { RicefwPanel } from "@/components/estimation/RicefwPanel";
 ```
 
 ### Issue: TypeScript errors
 
 **Solution:** Regenerate Prisma client
+
 ```bash
 npx prisma generate
 npm run typecheck
@@ -341,6 +335,7 @@ npm run typecheck
 ### Issue: Calculations seem wrong
 
 **Solution:** Check base effort constants
+
 - See `/src/lib/ricefw/model.ts`
 - Look for `BASE_EFFORT` object
 - Verify complexity tier is correct
@@ -348,6 +343,7 @@ npm run typecheck
 ### Issue: Database not updated
 
 **Solution:** Run migration
+
 ```bash
 npx prisma db push
 ```
@@ -357,6 +353,7 @@ npx prisma db push
 ## 10. Reference
 
 ### RICEFW Types
+
 - `report` - SAP reports (Simple: 3.5 PD, Medium: 5.0 PD, Large: 7.0 PD)
 - `interface` - System interfaces (Simple: 8.0 PD, Medium: 12.0 PD, Large: 18.0 PD)
 - `conversion` - Data migrations (Simple: 2.0 PD, Medium: 3.5 PD, Large: 5.0 PD)
@@ -365,11 +362,13 @@ npx prisma db push
 - `workflow` - Business workflows (Simple: 6.0 PD, Medium: 10.0 PD, Large: 15.0 PD)
 
 ### Complexity Tiers
+
 - `S` - Simple (1.0x multiplier)
 - `M` - Medium (1.5x multiplier)
 - `L` - Large (2.5x multiplier)
 
 ### Phases
+
 - `explore` - Requirements gathering, design
 - `realize` - Development, configuration
 - `deploy` - Testing, go-live, support

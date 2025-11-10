@@ -4,7 +4,7 @@
  * One-time migration utility to move existing localStorage projects to database.
  */
 
-import type { GanttProject } from '@/types/gantt-tool';
+import type { GanttProject } from "@/types/gantt-tool";
 
 export interface MigrationResult {
   success: boolean;
@@ -16,16 +16,16 @@ export interface MigrationResult {
  * Helper to ensure date is in YYYY-MM-DD format
  */
 function formatDateForAPI(date: string | Date): string {
-  if (!date) return new Date().toISOString().split('T')[0];
+  if (!date) return new Date().toISOString().split("T")[0];
 
-  if (typeof date === 'string') {
+  if (typeof date === "string") {
     // If it's already a string, extract just the date part
-    return date.split('T')[0];
+    return date.split("T")[0];
   }
 
   // If it's a Date object, format it
   const d = new Date(date);
-  return d.toISOString().split('T')[0];
+  return d.toISOString().split("T")[0];
 }
 
 /**
@@ -40,16 +40,16 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
 
   try {
     // Check authentication first
-    const authCheck = await fetch('/api/gantt-tool/projects');
+    const authCheck = await fetch("/api/gantt-tool/projects");
     if (authCheck.status === 401) {
-      console.error('[Migration] User not authenticated');
+      console.error("[Migration] User not authenticated");
       result.success = false;
-      result.errors.push('Authentication required. Please log in and try again.');
+      result.errors.push("Authentication required. Please log in and try again.");
       return result;
     }
 
     // Read from localStorage
-    const storageKey = 'gantt-tool-storage';
+    const storageKey = "gantt-tool-storage";
     const rawData = localStorage.getItem(storageKey);
 
     if (!rawData) {
@@ -69,20 +69,20 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
         // Step 1: Create the project with basic info
         const projectPayload = {
           name: project.name,
-          description: project.description || '',
+          description: project.description || "",
           startDate: formatDateForAPI(project.startDate),
           viewSettings: project.viewSettings,
           budget: project.budget,
         };
 
-        const response = await fetch('/api/gantt-tool/projects', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/gantt-tool/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(projectPayload),
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
           console.error(`[Migration] Failed to create project "${project.name}":`, {
             status: response.status,
             statusText: response.statusText,
@@ -95,21 +95,21 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
 
         // Step 2: Add phases, tasks, milestones, etc. via PATCH
         const fullProjectData = {
-          phases: (project.phases || []).map(phase => ({
+          phases: (project.phases || []).map((phase) => ({
             ...phase,
             startDate: formatDateForAPI(phase.startDate),
             endDate: formatDateForAPI(phase.endDate),
-            tasks: (phase.tasks || []).map(task => ({
+            tasks: (phase.tasks || []).map((task) => ({
               ...task,
               startDate: formatDateForAPI(task.startDate),
               endDate: formatDateForAPI(task.endDate),
             })),
           })),
-          milestones: (project.milestones || []).map(m => ({
+          milestones: (project.milestones || []).map((m) => ({
             ...m,
             date: formatDateForAPI(m.date),
           })),
-          holidays: (project.holidays || []).map(h => ({
+          holidays: (project.holidays || []).map((h) => ({
             ...h,
             date: formatDateForAPI(h.date),
           })),
@@ -117,7 +117,7 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
             id: r.id,
             name: r.name,
             category: r.category,
-            description: r.description || '',
+            description: r.description || "",
             designation: r.designation,
             managerResourceId: r.managerResourceId || null,
             email: r.email || null,
@@ -134,24 +134,26 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
         };
 
         const updateResponse = await fetch(`/api/gantt-tool/projects/${createdProject.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(fullProjectData),
         });
 
         if (!updateResponse.ok) {
-          const errorData = await updateResponse.json().catch(() => ({ error: 'Unknown error' }));
+          const errorData = await updateResponse.json().catch(() => ({ error: "Unknown error" }));
           console.error(`[Migration] Failed to update project "${project.name}":`, {
             status: updateResponse.status,
             statusText: updateResponse.statusText,
             error: errorData,
           });
-          throw new Error(`HTTP ${updateResponse.status}: ${errorData.error || updateResponse.statusText}`);
+          throw new Error(
+            `HTTP ${updateResponse.status}: ${errorData.error || updateResponse.statusText}`
+          );
         }
 
         result.migratedCount++;
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        const errorMsg = error instanceof Error ? error.message : "Unknown error";
         console.error(`[Migration] ✗ Failed to migrate project "${project.name}":`, error);
         result.errors.push(`"${project.name}": ${errorMsg}`);
         result.success = false;
@@ -159,7 +161,7 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
     }
 
     if (result.errors.length > 0) {
-      console.error('[Migration] Errors:', result.errors);
+      console.error("[Migration] Errors:", result.errors);
     }
 
     // If all successful, backup and clear localStorage
@@ -172,7 +174,9 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
     return result;
   } catch (error) {
     result.success = false;
-    result.errors.push(`Migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    result.errors.push(
+      `Migration failed: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
     return result;
   }
 }
@@ -182,7 +186,7 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
  */
 export function hasLocalStorageProjects(): boolean {
   try {
-    const rawData = localStorage.getItem('gantt-tool-storage');
+    const rawData = localStorage.getItem("gantt-tool-storage");
     if (!rawData) return false;
 
     const parsed = JSON.parse(rawData);
@@ -198,7 +202,7 @@ export function hasLocalStorageProjects(): boolean {
  */
 export function getLocalStorageProjectCount(): number {
   try {
-    const rawData = localStorage.getItem('gantt-tool-storage');
+    const rawData = localStorage.getItem("gantt-tool-storage");
     if (!rawData) return 0;
 
     const parsed = JSON.parse(rawData);

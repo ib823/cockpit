@@ -5,21 +5,17 @@
  * Displays calculated monthly capacity.
  */
 
-'use client';
+"use client";
 
-import { Card, Slider, Space, Typography, Statistic } from 'antd';
-import { TeamOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { useEstimatorStore } from '@/stores/estimator-store';
-import { INPUT_CONSTRAINTS, FORMULA_CONSTANTS } from '@/lib/estimator/types';
+import { Card, Slider, Space, Typography, Statistic } from "antd";
+import { TeamOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { useEstimatorStore } from "@/stores/estimator-store";
+import { INPUT_CONSTRAINTS, FORMULA_CONSTANTS } from "@/lib/estimator/types";
 
 const { Text } = Typography;
 
 export function Capacity() {
-  const {
-    inputs,
-    setCapacity,
-    results,
-  } = useEstimatorStore();
+  const { inputs, setCapacity, results } = useEstimatorStore();
 
   const capacityPerMonth = results?.capacityPerMonth || 0;
 
@@ -38,7 +34,7 @@ export function Capacity() {
         </Text>
       }
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
+      <Space direction="vertical" style={{ width: "100%" }} size="middle">
         {/* FTE Slider */}
         <div>
           <div className="flex justify-between mb-2">
@@ -52,10 +48,10 @@ export function Capacity() {
             value={inputs.fte}
             onChange={(val) => setCapacity({ fte: val })}
             marks={{
-              1: '1',
-              5: '5',
-              10: '10',
-              20: '20',
+              1: "1",
+              5: "5",
+              10: "10",
+              20: "20",
             }}
             tooltip={{ formatter: (val) => `${val} FTE` }}
           />
@@ -77,10 +73,10 @@ export function Capacity() {
             value={inputs.utilization}
             onChange={(val) => setCapacity({ utilization: val })}
             marks={{
-              0.5: '50%',
-              0.7: '70%',
-              0.8: '80%',
-              0.95: '95%',
+              0.5: "50%",
+              0.7: "70%",
+              0.8: "80%",
+              0.95: "95%",
             }}
             tooltip={{ formatter: (val) => `${Math.round((val || 0) * 100)}%` }}
           />
@@ -102,10 +98,10 @@ export function Capacity() {
             value={inputs.overlapFactor}
             onChange={(val) => setCapacity({ overlapFactor: val })}
             marks={{
-              0.5: '50%',
-              0.65: '65%',
-              0.75: '75%',
-              0.85: '85%',
+              0.5: "50%",
+              0.65: "65%",
+              0.75: "75%",
+              0.85: "85%",
             }}
             tooltip={{ formatter: (val) => `${Math.round((val || 0) * 100)}%` }}
           />
@@ -121,11 +117,12 @@ export function Capacity() {
             value={capacityPerMonth}
             suffix="MD/month"
             precision={1}
-            valueStyle={{ color: '#1890ff' }}
+            valueStyle={{ color: "#1890ff" }}
             className="text-lg"
           />
           <Text type="secondary" className="text-xs">
-            = {inputs.fte} FTE × {FORMULA_CONSTANTS.WORKING_DAYS_PER_MONTH} days × {Math.round(inputs.utilization * 100)}%
+            = {inputs.fte} FTE × {FORMULA_CONSTANTS.WORKING_DAYS_PER_MONTH} days ×{" "}
+            {Math.round(inputs.utilization * 100)}%
           </Text>
         </div>
 

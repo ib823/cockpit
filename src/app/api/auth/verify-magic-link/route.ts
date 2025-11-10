@@ -1,22 +1,19 @@
-import { prisma } from '@/lib/db';
-import { NextResponse } from 'next/server';
+import { prisma } from "@/lib/db";
+import { NextResponse } from "next/server";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  if (process.env.ENABLE_MAGIC_LINKS !== 'true') {
-    return NextResponse.json({ ok: false, message: 'Disabled' }, { status: 404 });
+  if (process.env.ENABLE_MAGIC_LINKS !== "true") {
+    return NextResponse.json({ ok: false, message: "Disabled" }, { status: 404 });
   }
 
   try {
     const body = await req.json();
     const { token } = body;
 
-    if (!token || typeof token !== 'string') {
-      return NextResponse.json(
-        { ok: false, message: 'Token is required' },
-        { status: 400 }
-      );
+    if (!token || typeof token !== "string") {
+      return NextResponse.json({ ok: false, message: "Token is required" }, { status: 400 });
     }
 
     // Find the magic token in database
@@ -26,7 +23,7 @@ export async function POST(req: Request) {
 
     if (!magicToken) {
       return NextResponse.json(
-        { ok: false, message: 'Invalid or expired magic link' },
+        { ok: false, message: "Invalid or expired magic link" },
         { status: 404 }
       );
     }
@@ -39,7 +36,7 @@ export async function POST(req: Request) {
       });
 
       return NextResponse.json(
-        { ok: false, message: 'This magic link has expired. Please request a new one.' },
+        { ok: false, message: "This magic link has expired. Please request a new one." },
         { status: 410 }
       );
     }
@@ -47,7 +44,7 @@ export async function POST(req: Request) {
     // Check if token was already used
     if (magicToken.usedAt) {
       return NextResponse.json(
-        { ok: false, message: 'This magic link has already been used' },
+        { ok: false, message: "This magic link has already been used" },
         { status: 410 }
       );
     }
@@ -62,12 +59,12 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       email: magicToken.email,
-      message: 'Magic link verified successfully',
+      message: "Magic link verified successfully",
     });
   } catch (error) {
-    console.error('Verify magic link error:', error);
+    console.error("Verify magic link error:", error);
     return NextResponse.json(
-      { ok: false, message: 'Failed to verify magic link' },
+      { ok: false, message: "Failed to verify magic link" },
       { status: 500 }
     );
   }

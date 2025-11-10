@@ -1,10 +1,10 @@
-import { prisma } from '@/lib/db';
-import { randomUUID, randomBytes, randomInt } from 'crypto';
-import { requireAdmin } from '@/lib/nextauth-helpers';
-import { hash } from 'bcryptjs';
-import { NextResponse } from 'next/server';
+import { prisma } from "@/lib/db";
+import { randomUUID, randomBytes, randomInt } from "crypto";
+import { requireAdmin } from "@/lib/nextauth-helpers";
+import { hash } from "bcryptjs";
+import { NextResponse } from "next/server";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 // Generate cryptographically secure 6-digit code
 function generateCode(): string {
@@ -13,13 +13,10 @@ function generateCode(): string {
 
 // Generate secure magic token
 function generateMagicToken(): string {
-  return randomBytes(32).toString('hex');
+  return randomBytes(32).toString("hex");
 }
 
-export async function POST(
-  req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const session = await requireAdmin();
     const params = await context.params;
@@ -31,10 +28,7 @@ export async function POST(
     });
 
     if (!user) {
-      return NextResponse.json(
-        { ok: false, error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
     }
 
     // Generate new 6-digit code
@@ -75,7 +69,8 @@ export async function POST(
     });
 
     // Generate URLs
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
     const magicUrl = `${baseUrl}/login?token=${magicToken}`;
     const registrationUrl = `${baseUrl}/login?email=${encodeURIComponent(user.email)}`;
 
@@ -86,26 +81,20 @@ export async function POST(
       userName: user.name,
       magicUrl,
       registrationUrl,
-      codeExpiry: '7 days',
-      magicLinkExpiry: '24 hours',
+      codeExpiry: "7 days",
+      magicLinkExpiry: "24 hours",
       instructions: [
-        'Share one of the following with the user:',
+        "Share one of the following with the user:",
         `1. 6-digit code: ${code} (valid for 7 days)`,
         `2. Magic link: ${magicUrl} (valid for 24 hours)`,
         `3. Registration URL: ${registrationUrl}`,
-      ].join('\n'),
+      ].join("\n"),
     });
-  } catch (e: any) {
-    if (e.message === 'forbidden') {
-      return NextResponse.json(
-        { ok: false, error: 'Admin access required' },
-        { status: 403 }
-      );
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === "forbidden") {
+      return NextResponse.json({ ok: false, error: "Admin access required" }, { status: 403 });
     }
-    console.error('generate-code error:', e);
-    return NextResponse.json(
-      { ok: false, error: 'Failed to generate code' },
-      { status: 500 }
-    );
+    console.error("generate-code error:", e);
+    return NextResponse.json({ ok: false, error: "Failed to generate code" }, { status: 500 });
   }
 }

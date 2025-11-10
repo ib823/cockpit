@@ -10,16 +10,19 @@
 ### Method 1: Magic Link Registration (Recommended)
 
 **Admin Account:**
+
 ```
 http://localhost:3000/login?token=30685502f50b950117acc1a60948eb9a5a2f2b6ebba1c300e074ea3317f35c10
 ```
 
 **Regular User Account:**
+
 ```
 http://localhost:3000/login?token=2730d4f67d7f596e60176cdabe3926b06e65a60d03e777611c753afefef25e20
 ```
 
 **Steps:**
+
 1. Click one of the magic links above (or copy-paste into your browser)
 2. The system will verify your email automatically
 3. You'll be prompted to create a **Passkey** (use your fingerprint, face, or PIN)
@@ -27,6 +30,7 @@ http://localhost:3000/login?token=2730d4f67d7f596e60176cdabe3926b06e65a60d03e777
 5. You're logged in!
 
 **Next time you login:**
+
 - Just enter your email
 - Use your passkey (fingerprint/face)
 - Instant secure login!
@@ -36,12 +40,14 @@ http://localhost:3000/login?token=2730d4f67d7f596e60176cdabe3926b06e65a60d03e777
 ## 📧 Test Credentials
 
 ### Admin Account
+
 ```
 Email: admin@test.com
 Role:  ADMIN
 ```
 
 **Magic Link:**
+
 ```
 http://localhost:3000/login?token=30685502f50b950117acc1a60948eb9a5a2f2b6ebba1c300e074ea3317f35c10
 ```
@@ -49,12 +55,14 @@ http://localhost:3000/login?token=30685502f50b950117acc1a60948eb9a5a2f2b6ebba1c3
 ---
 
 ### Regular User Account
+
 ```
 Email: user@test.com
 Role:  USER
 ```
 
 **Magic Link:**
+
 ```
 http://localhost:3000/login?token=2730d4f67d7f596e60176cdabe3926b06e65a60d03e777611c753afefef25e20
 ```
@@ -64,12 +72,14 @@ http://localhost:3000/login?token=2730d4f67d7f596e60176cdabe3926b06e65a60d03e777
 ## 🔒 About Passkeys
 
 **What are Passkeys?**
+
 - Modern passwordless authentication (WebAuthn)
 - Uses your fingerprint, face, or device PIN
 - Phishing-resistant and ultra-secure
 - No passwords to remember!
 
 **Supported Devices:**
+
 - 📱 iPhone/iPad (Touch ID / Face ID)
 - 💻 MacBook (Touch ID)
 - 🖥️ Windows Hello (Fingerprint / Face / PIN)
@@ -91,12 +101,14 @@ http://localhost:3000/login?token=2730d4f67d7f596e60176cdabe3926b06e65a60d03e777
 ## 🔄 How Authentication Works
 
 ### First Time (Registration):
+
 1. Enter email → System checks if you're approved
 2. Click magic link → Email verified automatically
 3. Create passkey → Biometric authentication registered
 4. Logged in → Redirected to dashboard
 
 ### Every Time After (Login):
+
 1. Enter email
 2. Use passkey (fingerprint/face)
 3. Logged in instantly!
@@ -126,15 +138,18 @@ http://localhost:3000/login?token=2730d4f67d7f596e60176cdabe3926b06e65a60d03e777
 ## ❓ Troubleshooting
 
 **"Invalid. Contact Admin"**
+
 - Make sure you're using the magic link provided above
 - Or enter your email and wait for the system to recognize you
 
 **Passkey creation failed**
+
 - Ensure your device supports passkeys
 - Try using a different browser (Chrome/Edge/Safari recommended)
 - Check browser permissions for WebAuthn
 
 **Magic link expired**
+
 - Run: `npx tsx scripts/create-email-approvals.ts` to generate new links
 
 ---

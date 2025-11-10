@@ -4,20 +4,20 @@
  * All templates are responsive, accessible, and follow email best practices
  */
 
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Keystone';
-const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Keystone";
+const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
 // ============================================
 // 1. Welcome Email (Post-Registration)
 // ============================================
-export function welcomeEmailTemplate(data: {
-  email: string;
-  passwordExpiryDate: Date;
-}): { subject: string; html: string } {
-  const expiryDate = data.passwordExpiryDate.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+export function welcomeEmailTemplate(data: { email: string; passwordExpiryDate: Date }): {
+  subject: string;
+  html: string;
+} {
+  const expiryDate = data.passwordExpiryDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return {
@@ -132,7 +132,7 @@ export function welcomeEmailTemplate(data: {
   </div>
 </body>
 </html>
-    `
+    `,
   };
 }
 
@@ -147,9 +147,9 @@ export function newDeviceLoginTemplate(data: {
   timestamp: Date;
   notMeToken: string;
 }): { subject: string; html: string } {
-  const formattedTime = data.timestamp.toLocaleString('en-US', {
-    dateStyle: 'full',
-    timeStyle: 'short'
+  const formattedTime = data.timestamp.toLocaleString("en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
   });
 
   return {
@@ -247,7 +247,7 @@ export function newDeviceLoginTemplate(data: {
   </div>
 </body>
 </html>
-    `
+    `,
   };
 }
 
@@ -259,16 +259,16 @@ export function passwordExpiryWarningTemplate(data: {
   daysRemaining: number;
   expiryDate: Date;
 }): { subject: string; html: string } {
-  const expiryDate = data.expiryDate.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+  const expiryDate = data.expiryDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
-  const urgency = data.daysRemaining <= 5 ? 'high' : 'medium';
+  const urgency = data.daysRemaining <= 5 ? "high" : "medium";
 
   return {
-    subject: `Password Expires in ${data.daysRemaining} Day${data.daysRemaining === 1 ? '' : 's'}`,
+    subject: `Password Expires in ${data.daysRemaining} Day${data.daysRemaining === 1 ? "" : "s"}`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -279,7 +279,7 @@ export function passwordExpiryWarningTemplate(data: {
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
   <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, ${urgency === 'high' ? '#dc2626' : '#f59e0b'} 0%, ${urgency === 'high' ? '#991b1b' : '#d97706'} 100%); padding: 32px; text-align: center;">
+    <div style="background: linear-gradient(135deg, ${urgency === "high" ? "#dc2626" : "#f59e0b"} 0%, ${urgency === "high" ? "#991b1b" : "#d97706"} 100%); padding: 32px; text-align: center;">
       <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Password Expiry Reminder</h1>
     </div>
 
@@ -289,15 +289,17 @@ export function passwordExpiryWarningTemplate(data: {
         Hi <strong>${data.email}</strong>,
       </p>
       <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
-        Your password will expire in <strong style="color: ${urgency === 'high' ? '#dc2626' : '#f59e0b'};">${data.daysRemaining} day${data.daysRemaining === 1 ? '' : 's'}</strong> on <strong>${expiryDate}</strong>.
+        Your password will expire in <strong style="color: ${urgency === "high" ? "#dc2626" : "#f59e0b"};">${data.daysRemaining} day${data.daysRemaining === 1 ? "" : "s"}</strong> on <strong>${expiryDate}</strong>.
       </p>
 
       <!-- Warning Box -->
-      <div style="background: ${urgency === 'high' ? '#fef2f2' : '#fef3c7'}; border-left: 4px solid ${urgency === 'high' ? '#dc2626' : '#f59e0b'}; padding: 16px; border-radius: 8px; margin: 24px 0;">
-        <p style="margin: 0; color: ${urgency === 'high' ? '#991b1b' : '#92400e'}; font-size: 14px; line-height: 1.6;">
-          ${urgency === 'high'
-            ? 'Please change your password now to avoid being locked out of your account.'
-            : 'We recommend changing your password soon to maintain account security.'}
+      <div style="background: ${urgency === "high" ? "#fef2f2" : "#fef3c7"}; border-left: 4px solid ${urgency === "high" ? "#dc2626" : "#f59e0b"}; padding: 16px; border-radius: 8px; margin: 24px 0;">
+        <p style="margin: 0; color: ${urgency === "high" ? "#991b1b" : "#92400e"}; font-size: 14px; line-height: 1.6;">
+          ${
+            urgency === "high"
+              ? "Please change your password now to avoid being locked out of your account."
+              : "We recommend changing your password soon to maintain account security."
+          }
         </p>
       </div>
 
@@ -332,7 +334,7 @@ export function passwordExpiryWarningTemplate(data: {
   </div>
 </body>
 </html>
-    `
+    `,
   };
 }
 
@@ -344,9 +346,9 @@ export function backupCodeUsedTemplate(data: {
   codesRemaining: number;
   usedAt: Date;
 }): { subject: string; html: string } {
-  const formattedTime = data.usedAt.toLocaleString('en-US', {
-    dateStyle: 'full',
-    timeStyle: 'short'
+  const formattedTime = data.usedAt.toLocaleString("en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
   });
 
   return {
@@ -375,26 +377,32 @@ export function backupCodeUsedTemplate(data: {
       </p>
 
       <!-- Warning Box -->
-      <div style="background: ${data.codesRemaining <= 2 ? '#fef2f2' : '#fef3c7'}; border-left: 4px solid ${data.codesRemaining <= 2 ? '#dc2626' : '#f59e0b'}; padding: 16px; border-radius: 8px; margin: 24px 0;">
-        <h4 style="margin: 0 0 8px 0; color: ${data.codesRemaining <= 2 ? '#991b1b' : '#92400e'}; font-size: 16px; font-weight: 600;">
-          ${data.codesRemaining} Code${data.codesRemaining === 1 ? '' : 's'} Remaining
+      <div style="background: ${data.codesRemaining <= 2 ? "#fef2f2" : "#fef3c7"}; border-left: 4px solid ${data.codesRemaining <= 2 ? "#dc2626" : "#f59e0b"}; padding: 16px; border-radius: 8px; margin: 24px 0;">
+        <h4 style="margin: 0 0 8px 0; color: ${data.codesRemaining <= 2 ? "#991b1b" : "#92400e"}; font-size: 16px; font-weight: 600;">
+          ${data.codesRemaining} Code${data.codesRemaining === 1 ? "" : "s"} Remaining
         </h4>
-        <p style="margin: 0; color: ${data.codesRemaining <= 2 ? '#991b1b' : '#92400e'}; font-size: 14px; line-height: 1.6;">
-          ${data.codesRemaining <= 2
-            ? 'You are running low on backup codes. Generate new codes immediately to avoid lockout.'
-            : 'You have enough codes remaining, but consider generating new ones soon.'}
+        <p style="margin: 0; color: ${data.codesRemaining <= 2 ? "#991b1b" : "#92400e"}; font-size: 14px; line-height: 1.6;">
+          ${
+            data.codesRemaining <= 2
+              ? "You are running low on backup codes. Generate new codes immediately to avoid lockout."
+              : "You have enough codes remaining, but consider generating new ones soon."
+          }
         </p>
       </div>
 
       <!-- CTA Button -->
-      ${data.codesRemaining <= 2 ? `
+      ${
+        data.codesRemaining <= 2
+          ? `
       <div style="text-align: center; margin: 32px 0;">
         <a href="${APP_URL}/settings/security"
            style="display: inline-block; background: #dc2626; color: white; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
           Generate New Backup Codes
         </a>
       </div>
-      ` : ''}
+      `
+          : ""
+      }
 
       <!-- Info Box -->
       <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px; margin: 32px 0;">
@@ -414,21 +422,20 @@ export function backupCodeUsedTemplate(data: {
   </div>
 </body>
 </html>
-    `
+    `,
   };
 }
 
 // ============================================
 // 5. Account Locked Alert
 // ============================================
-export function accountLockedTemplate(data: {
-  email: string;
-  reason: string;
-  lockedAt: Date;
-}): { subject: string; html: string } {
-  const formattedTime = data.lockedAt.toLocaleString('en-US', {
-    dateStyle: 'full',
-    timeStyle: 'short'
+export function accountLockedTemplate(data: { email: string; reason: string; lockedAt: Date }): {
+  subject: string;
+  html: string;
+} {
+  const formattedTime = data.lockedAt.toLocaleString("en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
   });
 
   return {
@@ -498,6 +505,6 @@ export function accountLockedTemplate(data: {
   </div>
 </body>
 </html>
-    `
+    `,
   };
 }

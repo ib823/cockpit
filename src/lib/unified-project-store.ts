@@ -4,9 +4,9 @@
  * Fixes date fragmentation and NaN bugs
  */
 
-import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
+import { create } from "zustand";
+import { devtools, persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
 // ════════════════════════════════════════════════════════════════════
 // Types
@@ -85,7 +85,7 @@ interface ProjectState {
   setEstimate: (estimate: EstimateData | null) => void;
 
   // Presales actions
-  addChip: (chip: PresalesData['chips'][0]) => void;
+  addChip: (chip: PresalesData["chips"][0]) => void;
   removeChip: (chipId: string) => void;
   toggleChip: (chipId: string) => void;
   setDecision: (key: string, value: any) => void;
@@ -118,7 +118,7 @@ const initialState = {
     decisions: {},
   },
   timeline: {
-    startDateISO: new Date().toISOString().split('T')[0], // Today
+    startDateISO: new Date().toISOString().split("T")[0], // Today
     phases: [],
     resources: [],
     holidays: [],
@@ -160,9 +160,7 @@ export const useProjectStore = create<ProjectState>()(
 
         removeChip: (chipId) =>
           set((state) => {
-            state.presales.chips = state.presales.chips.filter(
-              (c) => c.id !== chipId
-            );
+            state.presales.chips = state.presales.chips.filter((c) => c.id !== chipId);
           }),
 
         toggleChip: (chipId) =>
@@ -199,9 +197,7 @@ export const useProjectStore = create<ProjectState>()(
 
         removePhase: (phaseId) =>
           set((state) => {
-            state.timeline.phases = state.timeline.phases.filter(
-              (p) => p.id !== phaseId
-            );
+            state.timeline.phases = state.timeline.phases.filter((p) => p.id !== phaseId);
           }),
 
         addResource: (resource) =>
@@ -211,9 +207,7 @@ export const useProjectStore = create<ProjectState>()(
 
         updateResource: (resourceId, updates) =>
           set((state) => {
-            const resource = state.timeline.resources.find(
-              (r) => r.id === resourceId
-            );
+            const resource = state.timeline.resources.find((r) => r.id === resourceId);
             if (resource) {
               Object.assign(resource, updates);
             }
@@ -221,9 +215,7 @@ export const useProjectStore = create<ProjectState>()(
 
         removeResource: (resourceId) =>
           set((state) => {
-            state.timeline.resources = state.timeline.resources.filter(
-              (r) => r.id !== resourceId
-            );
+            state.timeline.resources = state.timeline.resources.filter((r) => r.id !== resourceId);
           }),
 
         addHoliday: (dateISO) =>
@@ -235,16 +227,14 @@ export const useProjectStore = create<ProjectState>()(
 
         removeHoliday: (dateISO) =>
           set((state) => {
-            state.timeline.holidays = state.timeline.holidays.filter(
-              (h) => h !== dateISO
-            );
+            state.timeline.holidays = state.timeline.holidays.filter((h) => h !== dateISO);
           }),
 
         // Reset
         reset: () => set(initialState),
       })),
       {
-        name: 'project-store',
+        name: "project-store",
         partialize: (state) => ({
           activeProjectId: state.activeProjectId,
           clientSafe: state.clientSafe,

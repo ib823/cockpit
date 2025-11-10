@@ -4,32 +4,32 @@
  * Concrete implementation of IDAL using Prisma ORM and PostgreSQL
  */
 
-import { PrismaClient } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
-import { randomUUID } from 'crypto';
+import { PrismaClient } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
+import { randomUUID } from "crypto";
 import {
-    AuditContext,
-    Chip,
-    DALError,
-    EstimateSnapshot,
-    FormSpec,
-    IDAL,
-    IntegrationSpec,
-    NotFoundError,
-    Phase,
-    Project,
-    Resource,
-    RicefwItem,
-    validateChip,
-    validateFormSpec,
-    validateIntegrationSpec,
-    validatePhase,
-    validateProject,
-    validateResource,
-    validateRicefwItem,
-    validateSnapshot,
-    ValidationError,
-} from './dal';
+  AuditContext,
+  Chip,
+  DALError,
+  EstimateSnapshot,
+  FormSpec,
+  IDAL,
+  IntegrationSpec,
+  NotFoundError,
+  Phase,
+  Project,
+  Resource,
+  RicefwItem,
+  validateChip,
+  validateFormSpec,
+  validateIntegrationSpec,
+  validatePhase,
+  validateProject,
+  validateResource,
+  validateRicefwItem,
+  validateSnapshot,
+  ValidationError,
+} from "./dal";
 
 // Singleton Prisma client
 let prismaInstance: PrismaClient | null = null;
@@ -37,7 +37,7 @@ let prismaInstance: PrismaClient | null = null;
 export function getPrismaClient(): PrismaClient {
   if (!prismaInstance) {
     prismaInstance = new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
     });
   }
   return prismaInstance;
@@ -74,7 +74,7 @@ export class PrismaAdapter implements IDAL {
         },
       });
     } catch (error: any) {
-      console.error('Failed to create audit log:', error);
+      console.error("Failed to create audit log:", error);
       // Don't throw - audit failure shouldn't break business operations
     }
   }
@@ -84,7 +84,7 @@ export class PrismaAdapter implements IDAL {
   // ============================================================================
 
   async createProject(
-    data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>,
+    data: Omit<Project, "id" | "createdAt" | "updatedAt">,
     audit: AuditContext
   ): Promise<Project> {
     try {
@@ -101,14 +101,14 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'Project', project.id, { created: validated });
+      await this.createAuditLog(audit, "Project", project.id, { created: validated });
 
       return this.mapProject(project);
     } catch (error: any) {
-      if (error instanceof Error && error.name === 'ZodError') {
-        throw new ValidationError('Invalid project data', (error as any).errors);
+      if (error instanceof Error && error.name === "ZodError") {
+        throw new ValidationError("Invalid project data", (error as any).errors);
       }
-      throw new DALError('Failed to create project', 'DATABASE', error);
+      throw new DALError("Failed to create project", "DATABASE", error);
     }
   }
 
@@ -120,19 +120,15 @@ export class PrismaAdapter implements IDAL {
 
       return project ? this.mapProject(project) : null;
     } catch (error: any) {
-      throw new DALError('Failed to get project', 'DATABASE', error);
+      throw new DALError("Failed to get project", "DATABASE", error);
     }
   }
 
-  async updateProject(
-    id: string,
-    data: Partial<Project>,
-    audit: AuditContext
-  ): Promise<Project> {
+  async updateProject(id: string, data: Partial<Project>, audit: AuditContext): Promise<Project> {
     try {
       const existing = await this.getProject(id);
       if (!existing) {
-        throw new NotFoundError('Project', id);
+        throw new NotFoundError("Project", id);
       }
 
       const validated = validateProject({ ...existing, ...data });
@@ -147,15 +143,15 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'Project', id, { updated: data });
+      await this.createAuditLog(audit, "Project", id, { updated: data });
 
       return this.mapProject(project);
     } catch (error: any) {
       if (error instanceof NotFoundError) throw error;
-      if (error instanceof Error && error.name === 'ZodError') {
-        throw new ValidationError('Invalid project data', (error as any).errors);
+      if (error instanceof Error && error.name === "ZodError") {
+        throw new ValidationError("Invalid project data", (error as any).errors);
       }
-      throw new DALError('Failed to update project', 'DATABASE', error);
+      throw new DALError("Failed to update project", "DATABASE", error);
     }
   }
 
@@ -165,18 +161,18 @@ export class PrismaAdapter implements IDAL {
         where: { id },
       });
 
-      await this.createAuditLog(audit, 'Project', id, { deleted: true });
+      await this.createAuditLog(audit, "Project", id, { deleted: true });
     } catch (error: any) {
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
-        throw new NotFoundError('Project', id);
+      if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+        throw new NotFoundError("Project", id);
       }
-      throw new DALError('Failed to delete project', 'DATABASE', error);
+      throw new DALError("Failed to delete project", "DATABASE", error);
     }
   }
 
   async listProjects(
     ownerId: string,
-    filters?: { status?: Project['status'] }
+    filters?: { status?: Project["status"] }
   ): Promise<Project[]> {
     try {
       const projects = await this.prisma.projects.findMany({
@@ -184,12 +180,12 @@ export class PrismaAdapter implements IDAL {
           ownerId,
           ...(filters?.status && { status: filters.status }),
         },
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { updatedAt: "desc" },
       });
 
-      return projects.map(p => this.mapProject(p));
+      return projects.map((p) => this.mapProject(p));
     } catch (error: any) {
-      throw new DALError('Failed to list projects', 'DATABASE', error);
+      throw new DALError("Failed to list projects", "DATABASE", error);
     }
   }
 
@@ -198,7 +194,7 @@ export class PrismaAdapter implements IDAL {
   // ============================================================================
 
   async createPhase(
-    data: Omit<Phase, 'id' | 'createdAt' | 'updatedAt'>,
+    data: Omit<Phase, "id" | "createdAt" | "updatedAt">,
     audit: AuditContext
   ): Promise<Phase> {
     try {
@@ -214,14 +210,14 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'Phase', phase.id, { created: validated });
+      await this.createAuditLog(audit, "Phase", phase.id, { created: validated });
 
       return this.mapPhase(phase);
     } catch (error: any) {
-      if (error instanceof Error && error.name === 'ZodError') {
-        throw new ValidationError('Invalid phase data', (error as any).errors);
+      if (error instanceof Error && error.name === "ZodError") {
+        throw new ValidationError("Invalid phase data", (error as any).errors);
       }
-      throw new DALError('Failed to create phase', 'DATABASE', error);
+      throw new DALError("Failed to create phase", "DATABASE", error);
     }
   }
 
@@ -234,19 +230,15 @@ export class PrismaAdapter implements IDAL {
 
       return phase ? this.mapPhase(phase) : null;
     } catch (error: any) {
-      throw new DALError('Failed to get phase', 'DATABASE', error);
+      throw new DALError("Failed to get phase", "DATABASE", error);
     }
   }
 
-  async updatePhase(
-    id: string,
-    data: Partial<Phase>,
-    audit: AuditContext
-  ): Promise<Phase> {
+  async updatePhase(id: string, data: Partial<Phase>, audit: AuditContext): Promise<Phase> {
     try {
       const existing = await this.getPhase(id);
       if (!existing) {
-        throw new NotFoundError('Phase', id);
+        throw new NotFoundError("Phase", id);
       }
 
       const validated = validatePhase({ ...existing, ...data });
@@ -261,15 +253,15 @@ export class PrismaAdapter implements IDAL {
         include: { resources: true },
       });
 
-      await this.createAuditLog(audit, 'Phase', id, { updated: data });
+      await this.createAuditLog(audit, "Phase", id, { updated: data });
 
       return this.mapPhase(phase);
     } catch (error: any) {
       if (error instanceof NotFoundError) throw error;
-      if (error instanceof Error && error.name === 'ZodError') {
-        throw new ValidationError('Invalid phase data', (error as any).errors);
+      if (error instanceof Error && error.name === "ZodError") {
+        throw new ValidationError("Invalid phase data", (error as any).errors);
       }
-      throw new DALError('Failed to update phase', 'DATABASE', error);
+      throw new DALError("Failed to update phase", "DATABASE", error);
     }
   }
 
@@ -279,12 +271,12 @@ export class PrismaAdapter implements IDAL {
         where: { id },
       });
 
-      await this.createAuditLog(audit, 'Phase', id, { deleted: true });
+      await this.createAuditLog(audit, "Phase", id, { deleted: true });
     } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new NotFoundError('Phase', id);
+      if (error.code === "P2025") {
+        throw new NotFoundError("Phase", id);
       }
-      throw new DALError('Failed to delete phase', 'DATABASE', error);
+      throw new DALError("Failed to delete phase", "DATABASE", error);
     }
   }
 
@@ -293,24 +285,24 @@ export class PrismaAdapter implements IDAL {
       const phases = await this.prisma.phases.findMany({
         where: { projectId },
         include: { resources: true },
-        orderBy: { order: 'asc' },
+        orderBy: { order: "asc" },
       });
 
-      return phases.map(p => this.mapPhase(p));
+      return phases.map((p) => this.mapPhase(p));
     } catch (error: any) {
-      throw new DALError('Failed to list phases', 'DATABASE', error);
+      throw new DALError("Failed to list phases", "DATABASE", error);
     }
   }
 
   async bulkCreatePhases(
-    phases: Omit<Phase, 'id' | 'createdAt' | 'updatedAt'>[],
+    phases: Omit<Phase, "id" | "createdAt" | "updatedAt">[],
     audit: AuditContext
   ): Promise<Phase[]> {
     try {
-      const validated = phases.map(p => validatePhase(p));
+      const validated = phases.map((p) => validatePhase(p));
 
       const created = await this.prisma.$transaction(
-        validated.map(p => {
+        validated.map((p) => {
           return this.prisma.phases.create({
             data: {
               id: randomUUID(),
@@ -323,14 +315,14 @@ export class PrismaAdapter implements IDAL {
         })
       );
 
-      await this.createAuditLog(audit, 'Phase', 'bulk', { count: created.length });
+      await this.createAuditLog(audit, "Phase", "bulk", { count: created.length });
 
-      return created.map(p => this.mapPhase(p));
+      return created.map((p) => this.mapPhase(p));
     } catch (error: any) {
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid phase data in bulk operation', error.errors);
+      if (error.name === "ZodError") {
+        throw new ValidationError("Invalid phase data in bulk operation", error.errors);
       }
-      throw new DALError('Failed to bulk create phases', 'DATABASE', error);
+      throw new DALError("Failed to bulk create phases", "DATABASE", error);
     }
   }
 
@@ -341,7 +333,14 @@ export class PrismaAdapter implements IDAL {
     try {
       const updated = await this.prisma.$transaction(
         phases.map(({ id, data }) => {
-          const { id: _, projectId: __, createdAt: ___, updatedAt: ____, resources: _____, ...updateData } = data;
+          const {
+            id: _,
+            projectId: __,
+            createdAt: ___,
+            updatedAt: ____,
+            resources: _____,
+            ...updateData
+          } = data;
           return this.prisma.phases.update({
             where: { id },
             data: {
@@ -353,11 +352,11 @@ export class PrismaAdapter implements IDAL {
         })
       );
 
-      await this.createAuditLog(audit, 'Phase', 'bulk', { count: updated.length });
+      await this.createAuditLog(audit, "Phase", "bulk", { count: updated.length });
 
-      return updated.map(p => this.mapPhase(p));
+      return updated.map((p) => this.mapPhase(p));
     } catch (error: any) {
-      throw new DALError('Failed to bulk update phases', 'DATABASE', error);
+      throw new DALError("Failed to bulk update phases", "DATABASE", error);
     }
   }
 
@@ -366,7 +365,7 @@ export class PrismaAdapter implements IDAL {
   // ============================================================================
 
   async createResource(
-    data: Omit<Resource, 'id' | 'createdAt'>,
+    data: Omit<Resource, "id" | "createdAt">,
     audit: AuditContext
   ): Promise<Resource> {
     try {
@@ -380,14 +379,14 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'Resource', resource.id, { created: validated });
+      await this.createAuditLog(audit, "Resource", resource.id, { created: validated });
 
       return this.mapResource(resource);
     } catch (error: any) {
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid resource data', error.errors);
+      if (error.name === "ZodError") {
+        throw new ValidationError("Invalid resource data", error.errors);
       }
-      throw new DALError('Failed to create resource', 'DATABASE', error);
+      throw new DALError("Failed to create resource", "DATABASE", error);
     }
   }
 
@@ -399,7 +398,7 @@ export class PrismaAdapter implements IDAL {
 
       return resource ? this.mapResource(resource) : null;
     } catch (error: any) {
-      throw new DALError('Failed to get resource', 'DATABASE', error);
+      throw new DALError("Failed to get resource", "DATABASE", error);
     }
   }
 
@@ -417,14 +416,14 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'Resource', id, { updated: data });
+      await this.createAuditLog(audit, "Resource", id, { updated: data });
 
       return this.mapResource(resource);
     } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new NotFoundError('Resource', id);
+      if (error.code === "P2025") {
+        throw new NotFoundError("Resource", id);
       }
-      throw new DALError('Failed to update resource', 'DATABASE', error);
+      throw new DALError("Failed to update resource", "DATABASE", error);
     }
   }
 
@@ -434,12 +433,12 @@ export class PrismaAdapter implements IDAL {
         where: { id },
       });
 
-      await this.createAuditLog(audit, 'Resource', id, { deleted: true });
+      await this.createAuditLog(audit, "Resource", id, { deleted: true });
     } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new NotFoundError('Resource', id);
+      if (error.code === "P2025") {
+        throw new NotFoundError("Resource", id);
       }
-      throw new DALError('Failed to delete resource', 'DATABASE', error);
+      throw new DALError("Failed to delete resource", "DATABASE", error);
     }
   }
 
@@ -452,21 +451,21 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      return resources.map(r => this.mapResource(r));
+      return resources.map((r) => this.mapResource(r));
     } catch (error: any) {
-      throw new DALError('Failed to list resources', 'DATABASE', error);
+      throw new DALError("Failed to list resources", "DATABASE", error);
     }
   }
 
   async bulkCreateResources(
-    resources: Omit<Resource, 'id' | 'createdAt'>[],
+    resources: Omit<Resource, "id" | "createdAt">[],
     audit: AuditContext
   ): Promise<Resource[]> {
     try {
-      const validated = resources.map(r => validateResource(r));
+      const validated = resources.map((r) => validateResource(r));
 
       const created = await this.prisma.$transaction(
-        validated.map(r =>
+        validated.map((r) =>
           this.prisma.resources.create({
             data: {
               id: randomUUID(),
@@ -477,14 +476,14 @@ export class PrismaAdapter implements IDAL {
         )
       );
 
-      await this.createAuditLog(audit, 'Resource', 'bulk', { count: created.length });
+      await this.createAuditLog(audit, "Resource", "bulk", { count: created.length });
 
-      return created.map(r => this.mapResource(r));
+      return created.map((r) => this.mapResource(r));
     } catch (error: any) {
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid resource data in bulk operation', error.errors);
+      if (error.name === "ZodError") {
+        throw new ValidationError("Invalid resource data in bulk operation", error.errors);
       }
-      throw new DALError('Failed to bulk create resources', 'DATABASE', error);
+      throw new DALError("Failed to bulk create resources", "DATABASE", error);
     }
   }
 
@@ -493,7 +492,7 @@ export class PrismaAdapter implements IDAL {
   // ============================================================================
 
   async createRicefwItem(
-    data: Omit<RicefwItem, 'id' | 'createdAt' | 'updatedAt'>,
+    data: Omit<RicefwItem, "id" | "createdAt" | "updatedAt">,
     audit: AuditContext
   ): Promise<RicefwItem> {
     try {
@@ -511,7 +510,7 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'RicefwItem', snapshot.id, { created: validated });
+      await this.createAuditLog(audit, "RicefwItem", snapshot.id, { created: validated });
 
       return {
         id: snapshot.id,
@@ -520,10 +519,10 @@ export class PrismaAdapter implements IDAL {
         updatedAt: snapshot.createdAt,
       };
     } catch (error: any) {
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid RICEFW item data', error.errors);
+      if (error.name === "ZodError") {
+        throw new ValidationError("Invalid RICEFW item data", error.errors);
       }
-      throw new DALError('Failed to create RICEFW item', 'DATABASE', error);
+      throw new DALError("Failed to create RICEFW item", "DATABASE", error);
     }
   }
 
@@ -533,7 +532,7 @@ export class PrismaAdapter implements IDAL {
         where: { id },
       });
 
-      if (!snapshot || !snapshot.label?.startsWith('RICEFW_')) {
+      if (!snapshot || !snapshot.label?.startsWith("RICEFW_")) {
         return null;
       }
 
@@ -544,7 +543,7 @@ export class PrismaAdapter implements IDAL {
         updatedAt: snapshot.createdAt,
       };
     } catch (error: any) {
-      throw new DALError('Failed to get RICEFW item', 'DATABASE', error);
+      throw new DALError("Failed to get RICEFW item", "DATABASE", error);
     }
   }
 
@@ -556,7 +555,7 @@ export class PrismaAdapter implements IDAL {
     try {
       const existing = await this.getRicefwItem(id);
       if (!existing) {
-        throw new NotFoundError('RicefwItem', id);
+        throw new NotFoundError("RicefwItem", id);
       }
 
       const validated = validateRicefwItem({ ...existing, ...data });
@@ -568,7 +567,7 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'RicefwItem', id, { updated: data });
+      await this.createAuditLog(audit, "RicefwItem", id, { updated: data });
 
       return {
         id: snapshot.id,
@@ -578,10 +577,10 @@ export class PrismaAdapter implements IDAL {
       };
     } catch (error: any) {
       if (error instanceof NotFoundError) throw error;
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid RICEFW item data', error.errors);
+      if (error.name === "ZodError") {
+        throw new ValidationError("Invalid RICEFW item data", error.errors);
       }
-      throw new DALError('Failed to update RICEFW item', 'DATABASE', error);
+      throw new DALError("Failed to update RICEFW item", "DATABASE", error);
     }
   }
 
@@ -591,37 +590,34 @@ export class PrismaAdapter implements IDAL {
         where: { id },
       });
 
-      await this.createAuditLog(audit, 'RicefwItem', id, { deleted: true });
+      await this.createAuditLog(audit, "RicefwItem", id, { deleted: true });
     } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new NotFoundError('RicefwItem', id);
+      if (error.code === "P2025") {
+        throw new NotFoundError("RicefwItem", id);
       }
-      throw new DALError('Failed to delete RICEFW item', 'DATABASE', error);
+      throw new DALError("Failed to delete RICEFW item", "DATABASE", error);
     }
   }
 
-  async listRicefwItems(
-    projectId: string,
-    type?: RicefwItem['type']
-  ): Promise<RicefwItem[]> {
+  async listRicefwItems(projectId: string, type?: RicefwItem["type"]): Promise<RicefwItem[]> {
     try {
       const snapshots = await this.prisma.snapshots.findMany({
         where: {
           projectId,
           label: {
-            startsWith: type ? `RICEFW_${type}_` : 'RICEFW_',
+            startsWith: type ? `RICEFW_${type}_` : "RICEFW_",
           },
         },
       });
 
-      return snapshots.map(s => ({
+      return snapshots.map((s) => ({
         id: s.id,
         ...(s.data as any),
         createdAt: s.createdAt,
         updatedAt: s.createdAt,
       }));
     } catch (error: any) {
-      throw new DALError('Failed to list RICEFW items', 'DATABASE', error);
+      throw new DALError("Failed to list RICEFW items", "DATABASE", error);
     }
   }
 
@@ -630,7 +626,7 @@ export class PrismaAdapter implements IDAL {
   // ============================================================================
 
   async createForm(
-    data: Omit<FormSpec, 'id' | 'createdAt'>,
+    data: Omit<FormSpec, "id" | "createdAt">,
     audit: AuditContext
   ): Promise<FormSpec> {
     try {
@@ -647,7 +643,7 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'FormSpec', snapshot.id, { created: validated });
+      await this.createAuditLog(audit, "FormSpec", snapshot.id, { created: validated });
 
       return {
         id: snapshot.id,
@@ -655,10 +651,10 @@ export class PrismaAdapter implements IDAL {
         createdAt: snapshot.createdAt,
       };
     } catch (error: any) {
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid form data', error.errors);
+      if (error.name === "ZodError") {
+        throw new ValidationError("Invalid form data", error.errors);
       }
-      throw new DALError('Failed to create form', 'DATABASE', error);
+      throw new DALError("Failed to create form", "DATABASE", error);
     }
   }
 
@@ -667,17 +663,17 @@ export class PrismaAdapter implements IDAL {
       const snapshots = await this.prisma.snapshots.findMany({
         where: {
           projectId,
-          label: { startsWith: 'FORM_' },
+          label: { startsWith: "FORM_" },
         },
       });
 
-      return snapshots.map(s => ({
+      return snapshots.map((s) => ({
         id: s.id,
         ...(s.data as any),
         createdAt: s.createdAt,
       }));
     } catch (error: any) {
-      throw new DALError('Failed to list forms', 'DATABASE', error);
+      throw new DALError("Failed to list forms", "DATABASE", error);
     }
   }
 
@@ -686,7 +682,7 @@ export class PrismaAdapter implements IDAL {
   // ============================================================================
 
   async createIntegration(
-    data: Omit<IntegrationSpec, 'id' | 'createdAt'>,
+    data: Omit<IntegrationSpec, "id" | "createdAt">,
     audit: AuditContext
   ): Promise<IntegrationSpec> {
     try {
@@ -703,7 +699,7 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'IntegrationSpec', snapshot.id, { created: validated });
+      await this.createAuditLog(audit, "IntegrationSpec", snapshot.id, { created: validated });
 
       return {
         id: snapshot.id,
@@ -711,10 +707,10 @@ export class PrismaAdapter implements IDAL {
         createdAt: snapshot.createdAt,
       };
     } catch (error: any) {
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid integration data', error.errors);
+      if (error.name === "ZodError") {
+        throw new ValidationError("Invalid integration data", error.errors);
       }
-      throw new DALError('Failed to create integration', 'DATABASE', error);
+      throw new DALError("Failed to create integration", "DATABASE", error);
     }
   }
 
@@ -723,17 +719,17 @@ export class PrismaAdapter implements IDAL {
       const snapshots = await this.prisma.snapshots.findMany({
         where: {
           projectId,
-          label: { startsWith: 'INTEGRATION_' },
+          label: { startsWith: "INTEGRATION_" },
         },
       });
 
-      return snapshots.map(s => ({
+      return snapshots.map((s) => ({
         id: s.id,
         ...(s.data as any),
         createdAt: s.createdAt,
       }));
     } catch (error: any) {
-      throw new DALError('Failed to list integrations', 'DATABASE', error);
+      throw new DALError("Failed to list integrations", "DATABASE", error);
     }
   }
 
@@ -741,10 +737,7 @@ export class PrismaAdapter implements IDAL {
   // CHIP OPERATIONS
   // ============================================================================
 
-  async createChip(
-    data: Omit<Chip, 'id' | 'createdAt'>,
-    audit: AuditContext
-  ): Promise<Chip> {
+  async createChip(data: Omit<Chip, "id" | "createdAt">, audit: AuditContext): Promise<Chip> {
     try {
       const validated = validateChip(data);
 
@@ -756,18 +749,18 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'Chip', chip.id, { created: validated });
+      await this.createAuditLog(audit, "Chip", chip.id, { created: validated });
 
       return this.mapChip(chip);
     } catch (error: any) {
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid chip data', error.errors);
+      if (error.name === "ZodError") {
+        throw new ValidationError("Invalid chip data", error.errors);
       }
-      throw new DALError('Failed to create chip', 'DATABASE', error);
+      throw new DALError("Failed to create chip", "DATABASE", error);
     }
   }
 
-  async listChips(projectId: string, type?: Chip['type']): Promise<Chip[]> {
+  async listChips(projectId: string, type?: Chip["type"]): Promise<Chip[]> {
     try {
       const chips = await this.prisma.chips.findMany({
         where: {
@@ -776,9 +769,9 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      return chips.map(c => this.mapChip(c));
+      return chips.map((c) => this.mapChip(c));
     } catch (error: any) {
-      throw new DALError('Failed to list chips', 'DATABASE', error);
+      throw new DALError("Failed to list chips", "DATABASE", error);
     }
   }
 
@@ -788,12 +781,12 @@ export class PrismaAdapter implements IDAL {
         where: { id },
       });
 
-      await this.createAuditLog(audit, 'Chip', id, { deleted: true });
+      await this.createAuditLog(audit, "Chip", id, { deleted: true });
     } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new NotFoundError('Chip', id);
+      if (error.code === "P2025") {
+        throw new NotFoundError("Chip", id);
       }
-      throw new DALError('Failed to delete chip', 'DATABASE', error);
+      throw new DALError("Failed to delete chip", "DATABASE", error);
     }
   }
 
@@ -802,7 +795,7 @@ export class PrismaAdapter implements IDAL {
   // ============================================================================
 
   async createSnapshot(
-    data: Omit<EstimateSnapshot, 'id' | 'createdAt'>,
+    data: Omit<EstimateSnapshot, "id" | "createdAt">,
     audit: AuditContext
   ): Promise<EstimateSnapshot> {
     try {
@@ -815,7 +808,7 @@ export class PrismaAdapter implements IDAL {
         },
       });
 
-      await this.createAuditLog(audit, 'Snapshot', snapshot.id, { created: validated });
+      await this.createAuditLog(audit, "Snapshot", snapshot.id, { created: validated });
 
       return {
         ...snapshot,
@@ -823,10 +816,10 @@ export class PrismaAdapter implements IDAL {
         label: snapshot.label ?? undefined,
       };
     } catch (error: any) {
-      if (error.name === 'ZodError') {
-        throw new ValidationError('Invalid snapshot data', error.errors);
+      if (error.name === "ZodError") {
+        throw new ValidationError("Invalid snapshot data", error.errors);
       }
-      throw new DALError('Failed to create snapshot', 'DATABASE', error);
+      throw new DALError("Failed to create snapshot", "DATABASE", error);
     }
   }
 
@@ -842,7 +835,7 @@ export class PrismaAdapter implements IDAL {
         label: snapshot.label ?? undefined,
       };
     } catch (error: any) {
-      throw new DALError('Failed to get snapshot', 'DATABASE', error);
+      throw new DALError("Failed to get snapshot", "DATABASE", error);
     }
   }
 
@@ -851,17 +844,17 @@ export class PrismaAdapter implements IDAL {
       const snapshots = await this.prisma.snapshots.findMany({
         where: {
           projectId,
-          label: { not: { startsWith: 'RICEFW_' } }, // Exclude RICEFW items stored as snapshots
+          label: { not: { startsWith: "RICEFW_" } }, // Exclude RICEFW items stored as snapshots
         },
-        orderBy: { version: 'desc' },
+        orderBy: { version: "desc" },
       });
-      return snapshots.map(s => ({
+      return snapshots.map((s) => ({
         ...s,
         data: s.data as Record<string, any>,
         label: s.label ?? undefined,
       }));
     } catch (error: any) {
-      throw new DALError('Failed to list snapshots', 'DATABASE', error);
+      throw new DALError("Failed to list snapshots", "DATABASE", error);
     }
   }
 
@@ -873,7 +866,7 @@ export class PrismaAdapter implements IDAL {
     try {
       return await this.prisma.audit_logs.findMany({
         where: { entityId },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: limit,
         include: {
           users: {
@@ -886,7 +879,7 @@ export class PrismaAdapter implements IDAL {
         },
       });
     } catch (error: any) {
-      throw new DALError('Failed to get audit log', 'DATABASE', error);
+      throw new DALError("Failed to get audit log", "DATABASE", error);
     }
   }
 
@@ -905,12 +898,12 @@ export class PrismaAdapter implements IDAL {
   // HEALTH CHECK
   // ============================================================================
 
-  async healthCheck(): Promise<{ status: 'ok' | 'error'; message?: string }> {
+  async healthCheck(): Promise<{ status: "ok" | "error"; message?: string }> {
     try {
       await this.prisma.$queryRaw`SELECT 1`;
-      return { status: 'ok' };
+      return { status: "ok" };
     } catch (error: any) {
-      return { status: 'error', message: error.message };
+      return { status: "error", message: error.message };
     }
   }
 

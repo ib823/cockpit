@@ -1,18 +1,15 @@
-import { getSession } from '@/lib/nextauth-helpers';
-import { prisma } from '@/lib/db';
-import { NextResponse } from 'next/server';
+import { getSession } from "@/lib/nextauth-helpers";
+import { prisma } from "@/lib/db";
+import { NextResponse } from "next/server";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function GET() {
   try {
     const session = await getSession();
 
     if (!session) {
-      return NextResponse.json(
-        { ok: false, error: 'Not authenticated' },
-        { status: 401 }
-      );
+      return NextResponse.json({ ok: false, error: "Not authenticated" }, { status: 401 });
     }
 
     // Get user details from database
@@ -27,10 +24,7 @@ export async function GET() {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { ok: false, error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -43,10 +37,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Error fetching user session:', error);
-    return NextResponse.json(
-      { ok: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Error fetching user session:", error);
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

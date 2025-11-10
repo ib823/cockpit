@@ -5,25 +5,25 @@
  * Integrates with PostHog for real-time analytics and alerting.
  */
 
-import { prisma } from '@/lib/db';
-import posthog from './posthog';
+import { prisma } from "@/lib/db";
+import posthog from "./posthog";
 
 export type AuthEventType =
-  | 'login_success'
-  | 'login_failure'
-  | 'otp_success'
-  | 'otp_failure'
-  | 'magic_link_success'
-  | 'magic_link_failure'
-  | 'admin_login_success'
-  | 'admin_login_failure'
-  | 'webauthn_success'
-  | 'webauthn_failure'
-  | 'session_expired'
-  | 'account_locked'
-  | 'rate_limit_exceeded';
+  | "login_success"
+  | "login_failure"
+  | "otp_success"
+  | "otp_failure"
+  | "magic_link_success"
+  | "magic_link_failure"
+  | "admin_login_success"
+  | "admin_login_failure"
+  | "webauthn_success"
+  | "webauthn_failure"
+  | "session_expired"
+  | "account_locked"
+  | "rate_limit_exceeded";
 
-export type AuthMethod = 'passkey' | 'otp' | 'magic-link' | 'admin';
+export type AuthMethod = "passkey" | "otp" | "magic-link" | "admin";
 
 export interface AuthEventMetadata {
   ipAddress?: string;
@@ -45,8 +45,8 @@ export async function logAuthEvent(
 ): Promise<void> {
   try {
     // Determine if this is a success or failure
-    const isSuccess = type.includes('_success');
-    const isFailure = type.includes('_failure');
+    const isSuccess = type.includes("_success");
+    const isFailure = type.includes("_failure");
 
     // Log to database audit events if user is identified
     if (userId) {
@@ -66,8 +66,8 @@ export async function logAuthEvent(
     }
 
     // Log to PostHog for analytics
-    if (typeof window !== 'undefined' && posthog) {
-      posthog.capture('auth_event', {
+    if (typeof window !== "undefined" && posthog) {
+      posthog.capture("auth_event", {
         event_type: type,
         success: isSuccess,
         failure: isFailure,
@@ -81,8 +81,8 @@ export async function logAuthEvent(
     }
 
     // Log critical failures to console for alerting
-    if (isFailure || type === 'rate_limit_exceeded' || type === 'account_locked') {
-      console.warn('[AUTH METRICS]', {
+    if (isFailure || type === "rate_limit_exceeded" || type === "account_locked") {
+      console.warn("[AUTH METRICS]", {
         type,
         email: metadata.email,
         ipAddress: metadata.ipAddress,
@@ -91,7 +91,7 @@ export async function logAuthEvent(
       });
     }
   } catch (error) {
-    console.error('[AUTH METRICS] Failed to log auth event:', error);
+    console.error("[AUTH METRICS] Failed to log auth event:", error);
     // Don't throw - logging should not break auth flow
   }
 }
@@ -118,16 +118,16 @@ export async function getAuthSuccessRate(
       },
       type: {
         in: [
-          'login_success',
-          'login_failure',
-          'otp_success',
-          'otp_failure',
-          'magic_link_success',
-          'magic_link_failure',
-          'admin_login_success',
-          'admin_login_failure',
-          'webauthn_success',
-          'webauthn_failure',
+          "login_success",
+          "login_failure",
+          "otp_success",
+          "otp_failure",
+          "magic_link_success",
+          "magic_link_failure",
+          "admin_login_success",
+          "admin_login_failure",
+          "webauthn_success",
+          "webauthn_failure",
         ],
       },
     },
@@ -145,14 +145,14 @@ export async function getAuthSuccessRate(
     byMethod: {
       passkey: { total: 0, successful: 0, failed: 0, rate: 0 },
       otp: { total: 0, successful: 0, failed: 0, rate: 0 },
-      'magic-link': { total: 0, successful: 0, failed: 0, rate: 0 },
+      "magic-link": { total: 0, successful: 0, failed: 0, rate: 0 },
       admin: { total: 0, successful: 0, failed: 0, rate: 0 },
     } as Record<AuthMethod, { total: number; successful: number; failed: number; rate: number }>,
   };
 
   events.forEach((event) => {
-    const isSuccess = event.type.includes('_success');
-    const isFailure = event.type.includes('_failure');
+    const isSuccess = event.type.includes("_success");
+    const isFailure = event.type.includes("_failure");
     const eventMethod = (event.meta as any)?.method as AuthMethod | undefined;
 
     if (method && eventMethod !== method) {
@@ -207,17 +207,17 @@ export async function getRecentFailedAttempts(
       },
       type: {
         in: [
-          'login_failure',
-          'otp_failure',
-          'magic_link_failure',
-          'admin_login_failure',
-          'webauthn_failure',
-          'rate_limit_exceeded',
+          "login_failure",
+          "otp_failure",
+          "magic_link_failure",
+          "admin_login_failure",
+          "webauthn_failure",
+          "rate_limit_exceeded",
         ],
       },
     },
     orderBy: {
-      createdAt: 'desc',
+      createdAt: "desc",
     },
     take: limit,
     select: {
@@ -279,7 +279,7 @@ export async function getAuthMetricsSummary(): Promise<{
   // Aggregate failure reasons
   const reasonCounts = new Map<string, number>();
   recentFailures.forEach((failure) => {
-    const reason = failure.failureReason || 'unknown';
+    const reason = failure.failureReason || "unknown";
     reasonCounts.set(reason, (reasonCounts.get(reason) || 0) + 1);
   });
 
@@ -318,15 +318,15 @@ export async function getAuthMetricsSummary(): Promise<{
 export async function checkForSuspiciousActivity(): Promise<{
   hasAlert: boolean;
   alerts: Array<{
-    type: 'high_failure_rate' | 'repeated_failures' | 'distributed_attack';
-    severity: 'low' | 'medium' | 'high';
+    type: "high_failure_rate" | "repeated_failures" | "distributed_attack";
+    severity: "low" | "medium" | "high";
     message: string;
     data: any;
   }>;
 }> {
   const alerts: Array<{
-    type: 'high_failure_rate' | 'repeated_failures' | 'distributed_attack';
-    severity: 'low' | 'medium' | 'high';
+    type: "high_failure_rate" | "repeated_failures" | "distributed_attack";
+    severity: "low" | "medium" | "high";
     message: string;
     data: any;
   }> = [];
@@ -337,8 +337,8 @@ export async function checkForSuspiciousActivity(): Promise<{
 
   if (recentStats.total > 10 && recentStats.successRate < 50) {
     alerts.push({
-      type: 'high_failure_rate',
-      severity: 'high',
+      type: "high_failure_rate",
+      severity: "high",
       message: `Authentication success rate dropped to ${recentStats.successRate.toFixed(1)}% in the last 15 minutes`,
       data: recentStats,
     });
@@ -362,8 +362,8 @@ export async function checkForSuspiciousActivity(): Promise<{
   ipCounts.forEach((count, ip) => {
     if (count >= 5) {
       alerts.push({
-        type: 'repeated_failures',
-        severity: 'medium',
+        type: "repeated_failures",
+        severity: "medium",
         message: `IP ${ip} has ${count} failed authentication attempts in the last 15 minutes`,
         data: { ip, count },
       });
@@ -374,8 +374,8 @@ export async function checkForSuspiciousActivity(): Promise<{
   emailCounts.forEach((count, email) => {
     if (count >= 3) {
       alerts.push({
-        type: 'repeated_failures',
-        severity: 'medium',
+        type: "repeated_failures",
+        severity: "medium",
         message: `Email ${email} has ${count} failed authentication attempts in the last 15 minutes`,
         data: { email, count },
       });
@@ -385,8 +385,8 @@ export async function checkForSuspiciousActivity(): Promise<{
   // Check for distributed attack (many different IPs)
   if (ipCounts.size > 20 && recentFailures.length > 50) {
     alerts.push({
-      type: 'distributed_attack',
-      severity: 'high',
+      type: "distributed_attack",
+      severity: "high",
       message: `Potential distributed attack detected: ${recentFailures.length} failed attempts from ${ipCounts.size} different IPs`,
       data: { totalFailures: recentFailures.length, uniqueIPs: ipCounts.size },
     });

@@ -5,9 +5,9 @@
  * All formulas include derivations and proofs for transparency
  */
 
-import { GanttProject, Resource, GanttPhase, GanttTask } from '@/types/gantt-tool';
-import { getDailyRate } from '@/lib/rate-card';
-import { differenceInDays, parseISO, addDays, startOfWeek } from 'date-fns';
+import { GanttProject, Resource, GanttPhase, GanttTask } from "@/types/gantt-tool";
+import { getDailyRate } from "@/lib/rate-card";
+import { differenceInDays, parseISO, addDays, startOfWeek } from "date-fns";
 
 // ============================================
 // Core Financial Equations
@@ -34,13 +34,13 @@ export function calculateTotalCost(project: GanttProject, fixedCosts = 0): CostB
   const costByPhase = new Map<string, number>();
   let totalEffort = 0;
 
-  project.phases.forEach(phase => {
+  project.phases.forEach((phase) => {
     let phaseCost = 0;
     const phaseDuration = differenceInDays(parseISO(phase.endDate), parseISO(phase.startDate)) + 1;
 
     // Phase-level assignments
-    phase.phaseResourceAssignments?.forEach(assignment => {
-      const resource = resources.find(r => r.id === assignment.resourceId);
+    phase.phaseResourceAssignments?.forEach((assignment) => {
+      const resource = resources.find((r) => r.id === assignment.resourceId);
       if (resource) {
         const dailyRate = getDailyRate(resource.designation);
         const days = (phaseDuration * assignment.allocationPercentage) / 100;
@@ -54,11 +54,11 @@ export function calculateTotalCost(project: GanttProject, fixedCosts = 0): CostB
     });
 
     // Task-level assignments
-    phase.tasks.forEach(task => {
+    phase.tasks.forEach((task) => {
       const taskDuration = differenceInDays(parseISO(task.endDate), parseISO(task.startDate)) + 1;
 
-      task.resourceAssignments?.forEach(assignment => {
-        const resource = resources.find(r => r.id === assignment.resourceId);
+      task.resourceAssignments?.forEach((assignment) => {
+        const resource = resources.find((r) => r.id === assignment.resourceId);
         if (resource) {
           const dailyRate = getDailyRate(resource.designation);
           const days = (taskDuration * assignment.allocationPercentage) / 100;
@@ -66,7 +66,10 @@ export function calculateTotalCost(project: GanttProject, fixedCosts = 0): CostB
 
           phaseCost += cost;
           costByResource.set(resource.id, (costByResource.get(resource.id) || 0) + cost);
-          costByCategory.set(resource.category, (costByCategory.get(resource.category) || 0) + cost);
+          costByCategory.set(
+            resource.category,
+            (costByCategory.get(resource.category) || 0) + cost
+          );
           totalEffort += days;
         }
       });
@@ -102,10 +105,7 @@ export interface MarginAnalysis {
   breakEvenRevenue: number;
 }
 
-export function calculateMargins(
-  revenue: number,
-  costBreakdown: CostBreakdown
-): MarginAnalysis {
+export function calculateMargins(revenue: number, costBreakdown: CostBreakdown): MarginAnalysis {
   const grossMargin = revenue - costBreakdown.totalCost;
   const grossMarginPercent = revenue > 0 ? (grossMargin / revenue) * 100 : 0;
 
@@ -135,24 +135,24 @@ export interface SensitivityScenario {
   newMargin: number;
   newMarginPercent: number;
   delta: number;
-  feasibility: 'optimal' | 'acceptable' | 'risky' | 'unfeasible';
+  feasibility: "optimal" | "acceptable" | "risky" | "unfeasible";
 }
 
 export function calculateMarginSensitivity(
-  variable: 'revenue' | 'cost',
+  variable: "revenue" | "cost",
   currentValue: number,
   costBreakdown: CostBreakdown,
   currentRevenue: number
 ): SensitivityScenario[] {
   const percentages = [-20, -10, -5, 0, 5, 10, 20];
 
-  return percentages.map(percent => {
+  return percentages.map((percent) => {
     const newValue = currentValue * (1 + percent / 100);
 
     let newRevenue = currentRevenue;
     let newCost = costBreakdown.totalCost;
 
-    if (variable === 'revenue') {
+    if (variable === "revenue") {
       newRevenue = newValue;
     } else {
       newCost = newValue;
@@ -164,10 +164,10 @@ export function calculateMarginSensitivity(
     const currentMargin = currentRevenue - costBreakdown.totalCost;
     const delta = newMargin - currentMargin;
 
-    let feasibility: SensitivityScenario['feasibility'] = 'optimal';
-    if (newMarginPercent < 10) feasibility = 'unfeasible';
-    else if (newMarginPercent < 15) feasibility = 'risky';
-    else if (newMarginPercent < 25) feasibility = 'acceptable';
+    let feasibility: SensitivityScenario["feasibility"] = "optimal";
+    if (newMarginPercent < 10) feasibility = "unfeasible";
+    else if (newMarginPercent < 15) feasibility = "risky";
+    else if (newMarginPercent < 25) feasibility = "acceptable";
 
     return {
       change: percent,
@@ -202,7 +202,7 @@ export function calculateUtilization(project: GanttProject): UtilizationMetrics 
   // Calculate project duration
   const projectStart = parseISO(project.startDate);
   let projectEnd = projectStart;
-  project.phases.forEach(phase => {
+  project.phases.forEach((phase) => {
     const phaseEnd = parseISO(phase.endDate);
     if (phaseEnd > projectEnd) projectEnd = phaseEnd;
   });
@@ -214,21 +214,22 @@ export function calculateUtilization(project: GanttProject): UtilizationMetrics 
   let totalAllocatedEffort = 0;
   let totalAvailableCapacity = resources.length * availableDaysPerResource;
 
-  resources.forEach(resource => {
+  resources.forEach((resource) => {
     let billableDays = 0;
 
-    project.phases.forEach(phase => {
-      const phaseDuration = differenceInDays(parseISO(phase.endDate), parseISO(phase.startDate)) + 1;
+    project.phases.forEach((phase) => {
+      const phaseDuration =
+        differenceInDays(parseISO(phase.endDate), parseISO(phase.startDate)) + 1;
 
-      phase.phaseResourceAssignments?.forEach(assignment => {
+      phase.phaseResourceAssignments?.forEach((assignment) => {
         if (assignment.resourceId === resource.id) {
           billableDays += (phaseDuration * assignment.allocationPercentage) / 100;
         }
       });
 
-      phase.tasks.forEach(task => {
+      phase.tasks.forEach((task) => {
         const taskDuration = differenceInDays(parseISO(task.endDate), parseISO(task.startDate)) + 1;
-        task.resourceAssignments?.forEach(assignment => {
+        task.resourceAssignments?.forEach((assignment) => {
           if (assignment.resourceId === resource.id) {
             billableDays += (taskDuration * assignment.allocationPercentage) / 100;
           }
@@ -249,9 +250,8 @@ export function calculateUtilization(project: GanttProject): UtilizationMetrics 
     }
   });
 
-  const projectLoadFactor = totalAvailableCapacity > 0
-    ? (totalAllocatedEffort / totalAvailableCapacity) * 100
-    : 0;
+  const projectLoadFactor =
+    totalAvailableCapacity > 0 ? (totalAllocatedEffort / totalAvailableCapacity) * 100 : 0;
 
   return {
     resourceUtilization,
@@ -274,7 +274,12 @@ export interface RiskAssessment {
 }
 
 export interface RiskFactor {
-  category: 'skill_match' | 'historical_accuracy' | 'buffer_adequacy' | 'resource_contention' | 'complexity';
+  category:
+    | "skill_match"
+    | "historical_accuracy"
+    | "buffer_adequacy"
+    | "resource_contention"
+    | "complexity";
   score: number; // 0-100 (100 = low risk)
   weight: number; // importance weight
   description: string;
@@ -286,53 +291,54 @@ export function calculateRiskScore(project: GanttProject, historicalAccuracy = 8
   // 1. Skill Match Risk (assumed 90% for now - would need skill matching data)
   const skillMatchScore = 90;
   riskFactors.push({
-    category: 'skill_match',
+    category: "skill_match",
     score: skillMatchScore,
     weight: 0.3,
-    description: 'Resources have appropriate skills for assigned tasks',
+    description: "Resources have appropriate skills for assigned tasks",
   });
 
   // 2. Historical Accuracy
   riskFactors.push({
-    category: 'historical_accuracy',
+    category: "historical_accuracy",
     score: historicalAccuracy,
     weight: 0.3,
-    description: 'Based on past project estimation accuracy',
+    description: "Based on past project estimation accuracy",
   });
 
   // 3. Buffer Adequacy (check if phases have contingency)
   const totalPhases = project.phases.length;
   const bufferScore = Math.min(totalPhases * 15, 100); // More phases = better buffer
   riskFactors.push({
-    category: 'buffer_adequacy',
+    category: "buffer_adequacy",
     score: bufferScore,
     weight: 0.2,
-    description: 'Project has adequate contingency in timeline',
+    description: "Project has adequate contingency in timeline",
   });
 
   // 4. Resource Contention
   const utilization = calculateUtilization(project);
   const contentionScore = 100 - Math.min(utilization.overallocatedResources.length * 20, 100);
   riskFactors.push({
-    category: 'resource_contention',
+    category: "resource_contention",
     score: contentionScore,
     weight: 0.1,
-    description: 'Resource allocation conflicts',
+    description: "Resource allocation conflicts",
   });
 
   // 5. Complexity
-  const complexityFactor = project.phases.length + project.phases.reduce((sum, p) => sum + p.tasks.length, 0);
+  const complexityFactor =
+    project.phases.length + project.phases.reduce((sum, p) => sum + p.tasks.length, 0);
   const complexityScore = Math.max(100 - complexityFactor, 0);
   riskFactors.push({
-    category: 'complexity',
+    category: "complexity",
     score: complexityScore,
     weight: 0.1,
-    description: 'Project scope and complexity',
+    description: "Project scope and complexity",
   });
 
   // Calculate weighted confidence score
   const confidenceScore = riskFactors.reduce((sum, factor) => {
-    return sum + (factor.score * factor.weight);
+    return sum + factor.score * factor.weight;
   }, 0);
 
   // Risk penalty (higher risk = higher penalty)
@@ -364,7 +370,7 @@ export function calculateWeeklyAllocations(project: GanttProject): WeeklyAllocat
   const projectStart = parseISO(project.startDate);
   let projectEnd = projectStart;
 
-  project.phases.forEach(phase => {
+  project.phases.forEach((phase) => {
     const phaseEnd = parseISO(phase.endDate);
     if (phaseEnd > projectEnd) projectEnd = phaseEnd;
   });
@@ -378,15 +384,15 @@ export function calculateWeeklyAllocations(project: GanttProject): WeeklyAllocat
     const weekEnd = addDays(currentWeek, 6);
     const resourceAllocations = new Map<string, number>();
 
-    project.resources?.forEach(resource => {
+    project.resources?.forEach((resource) => {
       let weekHours = 0;
 
-      project.phases.forEach(phase => {
+      project.phases.forEach((phase) => {
         const phaseStart = parseISO(phase.startDate);
         const phaseEnd = parseISO(phase.endDate);
 
         // Phase assignments
-        phase.phaseResourceAssignments?.forEach(assignment => {
+        phase.phaseResourceAssignments?.forEach((assignment) => {
           if (assignment.resourceId === resource.id) {
             const overlapStart = phaseStart > currentWeek ? phaseStart : currentWeek;
             const overlapEnd = phaseEnd < weekEnd ? phaseEnd : weekEnd;
@@ -400,11 +406,11 @@ export function calculateWeeklyAllocations(project: GanttProject): WeeklyAllocat
         });
 
         // Task assignments
-        phase.tasks.forEach(task => {
+        phase.tasks.forEach((task) => {
           const taskStart = parseISO(task.startDate);
           const taskEnd = parseISO(task.endDate);
 
-          task.resourceAssignments?.forEach(assignment => {
+          task.resourceAssignments?.forEach((assignment) => {
             if (assignment.resourceId === resource.id) {
               const overlapStart = taskStart > currentWeek ? taskStart : currentWeek;
               const overlapEnd = taskEnd < weekEnd ? taskEnd : weekEnd;

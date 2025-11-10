@@ -9,7 +9,7 @@
  * - Alerts on country/city changes
  */
 
-import { headers } from 'next/headers';
+import { headers } from "next/headers";
 
 export interface IPGeolocation {
   ip: string;
@@ -48,11 +48,11 @@ export async function getClientIP(): Promise<string> {
 
   // Try various headers in order of reliability
   const ip =
-    headersList.get('x-real-ip') ||
-    headersList.get('x-forwarded-for')?.split(',')[0].trim() ||
-    headersList.get('cf-connecting-ip') || // Cloudflare
-    headersList.get('x-client-ip') ||
-    '127.0.0.1';
+    headersList.get("x-real-ip") ||
+    headersList.get("x-forwarded-for")?.split(",")[0].trim() ||
+    headersList.get("cf-connecting-ip") || // Cloudflare
+    headersList.get("x-client-ip") ||
+    "127.0.0.1";
 
   return ip;
 }
@@ -79,7 +79,7 @@ export async function lookupIP(ip: string): Promise<IPGeolocation> {
       latitude: null,
       longitude: null,
       isp: null,
-      isVPN: false
+      isVPN: false,
     };
     return result;
   }
@@ -104,14 +104,14 @@ export async function lookupIP(ip: string): Promise<IPGeolocation> {
       latitude: null,
       longitude: null,
       isp: null,
-      isVPN: false
+      isVPN: false,
     };
   }
 
   // Cache the result
   ipCache.set(ip, {
     data: result,
-    expiry: Date.now() + CACHE_TTL
+    expiry: Date.now() + CACHE_TTL,
   });
 
   return result;
@@ -124,9 +124,9 @@ async function lookupIPAPIco(ip: string): Promise<IPGeolocation | null> {
   try {
     const response = await fetch(`https://ipapi.co/${ip}/json/`, {
       headers: {
-        'User-Agent': 'Cockpit-Security/1.0'
+        "User-Agent": "Cockpit-Security/1.0",
       },
-      next: { revalidate: 3600 } // Cache for 1 hour
+      next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
     if (!response.ok) {
@@ -152,10 +152,10 @@ async function lookupIPAPIco(ip: string): Promise<IPGeolocation | null> {
       latitude: data.latitude || null,
       longitude: data.longitude || null,
       isp: data.org || null,
-      isVPN: detectVPN(data.org)
+      isVPN: detectVPN(data.org),
     };
   } catch (error) {
-    console.error('[IPAPIco] Lookup failed:', error);
+    console.error("[IPAPIco] Lookup failed:", error);
     return null;
   }
 }
@@ -165,9 +165,12 @@ async function lookupIPAPIco(ip: string): Promise<IPGeolocation | null> {
  */
 async function lookupIPAPIcom(ip: string): Promise<IPGeolocation | null> {
   try {
-    const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,region,city,timezone,lat,lon,isp,proxy`, {
-      next: { revalidate: 3600 }
-    });
+    const response = await fetch(
+      `http://ip-api.com/json/${ip}?fields=status,country,countryCode,region,city,timezone,lat,lon,isp,proxy`,
+      {
+        next: { revalidate: 3600 },
+      }
+    );
 
     if (!response.ok) {
       console.error(`[IPAPIcom] Failed to lookup ${ip}: ${response.status}`);
@@ -176,7 +179,7 @@ async function lookupIPAPIcom(ip: string): Promise<IPGeolocation | null> {
 
     const data = await response.json();
 
-    if (data.status !== 'success') {
+    if (data.status !== "success") {
       console.error(`[IPAPIcom] Status: ${data.status}`);
       return null;
     }
@@ -191,10 +194,10 @@ async function lookupIPAPIcom(ip: string): Promise<IPGeolocation | null> {
       latitude: data.lat || null,
       longitude: data.lon || null,
       isp: data.isp || null,
-      isVPN: data.proxy || false
+      isVPN: data.proxy || false,
     };
   } catch (error) {
-    console.error('[IPAPIcom] Lookup failed:', error);
+    console.error("[IPAPIcom] Lookup failed:", error);
     return null;
   }
 }
@@ -203,12 +206,12 @@ async function lookupIPAPIcom(ip: string): Promise<IPGeolocation | null> {
  * Check if IP is private/localhost
  */
 function isPrivateIP(ip: string): boolean {
-  if (ip === '127.0.0.1' || ip === 'localhost' || ip === '::1') {
+  if (ip === "127.0.0.1" || ip === "localhost" || ip === "::1") {
     return true;
   }
 
   // Check private ranges
-  const parts = ip.split('.');
+  const parts = ip.split(".");
   if (parts.length !== 4) return false;
 
   const first = parseInt(parts[0], 10);
@@ -233,14 +236,23 @@ function detectVPN(org: string | undefined): boolean {
   if (!org) return false;
 
   const vpnKeywords = [
-    'vpn', 'proxy', 'tunnel', 'relay',
-    'nordvpn', 'expressvpn', 'mullvad', 'protonvpn',
-    'privateinternetaccess', 'surfshark', 'cyberghost',
-    'tor', 'torbrowser'
+    "vpn",
+    "proxy",
+    "tunnel",
+    "relay",
+    "nordvpn",
+    "expressvpn",
+    "mullvad",
+    "protonvpn",
+    "privateinternetaccess",
+    "surfshark",
+    "cyberghost",
+    "tor",
+    "torbrowser",
   ];
 
   const orgLower = org.toLowerCase();
-  return vpnKeywords.some(keyword => orgLower.includes(keyword));
+  return vpnKeywords.some((keyword) => orgLower.includes(keyword));
 }
 
 /**
@@ -278,26 +290,20 @@ export function formatLocation(geo: IPGeolocation): string {
     return geo.ip;
   }
 
-  return parts.join(', ');
+  return parts.join(", ");
 }
 
 /**
  * Calculate distance between two coordinates (in km)
  */
-export function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
+export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth's radius in km
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
@@ -326,7 +332,8 @@ export function isSuspiciousTravel(
     currentLocation.longitude
   );
 
-  const timeDiff = (currentLocation.timestamp.getTime() - prevLocation.timestamp.getTime()) / 1000 / 60 / 60; // hours
+  const timeDiff =
+    (currentLocation.timestamp.getTime() - prevLocation.timestamp.getTime()) / 1000 / 60 / 60; // hours
   const speed = distance / timeDiff; // km/h
 
   // Average commercial flight speed is ~900 km/h
@@ -352,11 +359,11 @@ export function getCacheStats(): {
 } {
   const entries = Array.from(ipCache.entries()).map(([ip, data]) => ({
     ip,
-    expiresIn: Math.max(0, Math.floor((data.expiry - Date.now()) / 1000))
+    expiresIn: Math.max(0, Math.floor((data.expiry - Date.now()) / 1000)),
   }));
 
   return {
     size: ipCache.size,
-    entries
+    entries,
   };
 }

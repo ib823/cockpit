@@ -5,8 +5,8 @@
  * are needed to achieve a target timeline or budget.
  */
 
-import { formulaEngine } from './formula-engine';
-import type { EstimatorInputs } from './types';
+import { formulaEngine } from "./formula-engine";
+import type { EstimatorInputs } from "./types";
 
 export interface GoalSeekParams {
   targetMonths?: number;
@@ -39,7 +39,7 @@ export interface OptimizationSuggestion {
   costImpact: number;
   riskScore: number;
   riskFactors: string[];
-  feasibility: 'high' | 'medium' | 'low';
+  feasibility: "high" | "medium" | "low";
 }
 
 /**
@@ -52,10 +52,10 @@ export function goalSeekOptimizer(params: GoalSeekParams): OptimizationSuggestio
 
   // Validate target
   if (!targetMonths && !targetMD) {
-    throw new Error('Must specify either targetMonths or targetMD');
+    throw new Error("Must specify either targetMonths or targetMD");
   }
 
-  const target = targetMonths || (targetMD! / currentResult.capacityPerMonth);
+  const target = targetMonths || targetMD! / currentResult.capacityPerMonth;
 
   // Strategy 1: Add Resources (Increase FTE)
   if (!constraints.maxFTE || currentInputs.fte < constraints.maxFTE) {
@@ -64,7 +64,10 @@ export function goalSeekOptimizer(params: GoalSeekParams): OptimizationSuggestio
   }
 
   // Strategy 2: Increase Utilization
-  if (!constraints.maxUtilization || currentInputs.utilization < (constraints.maxUtilization || 0.9)) {
+  if (
+    !constraints.maxUtilization ||
+    currentInputs.utilization < (constraints.maxUtilization || 0.9)
+  ) {
     const suggestion = optimizeByUtilization(currentInputs, target, constraints);
     if (suggestion) suggestions.push(suggestion);
   }
@@ -98,7 +101,7 @@ export function goalSeekOptimizer(params: GoalSeekParams): OptimizationSuggestio
 function optimizeByAddingResources(
   currentInputs: EstimatorInputs,
   targetMonths: number,
-  constraints: GoalSeekParams['constraints']
+  constraints: GoalSeekParams["constraints"]
 ): OptimizationSuggestion | null {
   const currentResult = formulaEngine.calculateTotal(currentInputs);
 
@@ -119,31 +122,34 @@ function optimizeByAddingResources(
   const costImpact = additionalFTE * 22 * 150 * targetMonths;
 
   return {
-    scenario: 'Add Resources',
-    description: 'Increase team size to accelerate delivery',
-    adjustments: [{
-      field: 'fte',
-      label: 'Team Size (FTE)',
-      from: currentInputs.fte.toFixed(1),
-      to: finalFTE.toFixed(1),
-      change: `+${(finalFTE - currentInputs.fte).toFixed(1)} FTE`
-    }],
+    scenario: "Add Resources",
+    description: "Increase team size to accelerate delivery",
+    adjustments: [
+      {
+        field: "fte",
+        label: "Team Size (FTE)",
+        from: currentInputs.fte.toFixed(1),
+        to: finalFTE.toFixed(1),
+        change: `+${(finalFTE - currentInputs.fte).toFixed(1)} FTE`,
+      },
+    ],
     achievesGoal: achieves,
     resultingDuration: testResult.durationMonths,
     resultingEffort: testResult.totalMD,
     costImpact,
     riskScore: additionalFTE > 5 ? 6 : 3,
-    riskFactors: additionalFTE > 5
-      ? ['High coordination overhead', 'Onboarding time required']
-      : ['Minimal risk if resources available'],
-    feasibility: achieves && additionalFTE <= 10 ? 'high' : additionalFTE <= 15 ? 'medium' : 'low',
+    riskFactors:
+      additionalFTE > 5
+        ? ["High coordination overhead", "Onboarding time required"]
+        : ["Minimal risk if resources available"],
+    feasibility: achieves && additionalFTE <= 10 ? "high" : additionalFTE <= 15 ? "medium" : "low",
   };
 }
 
 function optimizeByUtilization(
   currentInputs: EstimatorInputs,
   targetMonths: number,
-  constraints: GoalSeekParams['constraints']
+  constraints: GoalSeekParams["constraints"]
 ): OptimizationSuggestion | null {
   const maxUtilization = Math.min(constraints.maxUtilization || 0.9, 0.95);
   const currentResult = formulaEngine.calculateTotal(currentInputs);
@@ -159,38 +165,42 @@ function optimizeByUtilization(
   const achieves = testResult.durationMonths <= targetMonths;
 
   return {
-    scenario: 'Intensify Schedule',
-    description: 'Increase team utilization rate',
-    adjustments: [{
-      field: 'utilization',
-      label: 'Utilization Rate',
-      from: `${(currentInputs.utilization * 100).toFixed(0)}%`,
-      to: `${(finalUtilization * 100).toFixed(0)}%`,
-      change: `+${((finalUtilization - currentInputs.utilization) * 100).toFixed(0)}%`
-    }],
+    scenario: "Intensify Schedule",
+    description: "Increase team utilization rate",
+    adjustments: [
+      {
+        field: "utilization",
+        label: "Utilization Rate",
+        from: `${(currentInputs.utilization * 100).toFixed(0)}%`,
+        to: `${(finalUtilization * 100).toFixed(0)}%`,
+        change: `+${((finalUtilization - currentInputs.utilization) * 100).toFixed(0)}%`,
+      },
+    ],
     achievesGoal: achieves,
     resultingDuration: testResult.durationMonths,
     resultingEffort: testResult.totalMD,
     costImpact: 0,
     riskScore: finalUtilization > 0.85 ? 7 : 4,
-    riskFactors: finalUtilization > 0.85
-      ? ['Burnout risk', 'Reduced quality', 'No buffer for issues']
-      : ['Sustainable if temporary'],
-    feasibility: finalUtilization <= 0.9 ? 'high' : 'medium',
+    riskFactors:
+      finalUtilization > 0.85
+        ? ["Burnout risk", "Reduced quality", "No buffer for issues"]
+        : ["Sustainable if temporary"],
+    feasibility: finalUtilization <= 0.9 ? "high" : "medium",
   };
 }
 
 function optimizeByScopeReduction(
   currentInputs: EstimatorInputs,
   targetMonths: number,
-  constraints: GoalSeekParams['constraints']
+  constraints: GoalSeekParams["constraints"]
 ): OptimizationSuggestion | null {
   const currentResult = formulaEngine.calculateTotal(currentInputs);
   const maxReduction = constraints.maxScopeReduction || 0.3; // Default max 30% reduction
 
   // Calculate required scope reduction
-  const targetCapacity = currentInputs.fte * 22 * currentInputs.utilization * currentInputs.overlapFactor * targetMonths;
-  const requiredReduction = Math.max(0, 1 - (targetCapacity / currentResult.totalMD));
+  const targetCapacity =
+    currentInputs.fte * 22 * currentInputs.utilization * currentInputs.overlapFactor * targetMonths;
+  const requiredReduction = Math.max(0, 1 - targetCapacity / currentResult.totalMD);
 
   const finalReduction = Math.min(requiredReduction, maxReduction);
   const itemsToRemove = Math.floor(currentInputs.selectedL3Items.length * finalReduction);
@@ -209,37 +219,41 @@ function optimizeByScopeReduction(
   const achieves = testResult.durationMonths <= targetMonths;
 
   return {
-    scenario: 'Reduce Scope',
-    description: 'Defer non-critical features to later phases',
-    adjustments: [{
-      field: 'selectedL3Items',
-      label: 'L3 Scope Items',
-      from: `${currentInputs.selectedL3Items.length} items`,
-      to: `${reducedItems.length} items`,
-      change: `-${itemsToRemove} items (${(finalReduction * 100).toFixed(0)}%)`
-    }],
+    scenario: "Reduce Scope",
+    description: "Defer non-critical features to later phases",
+    adjustments: [
+      {
+        field: "selectedL3Items",
+        label: "L3 Scope Items",
+        from: `${currentInputs.selectedL3Items.length} items`,
+        to: `${reducedItems.length} items`,
+        change: `-${itemsToRemove} items (${(finalReduction * 100).toFixed(0)}%)`,
+      },
+    ],
     achievesGoal: achieves,
     resultingDuration: testResult.durationMonths,
     resultingEffort: testResult.totalMD,
-    costImpact: -(currentResult.totalMD - testResult.totalMD) * 150 * 22 / currentResult.totalMD,
+    costImpact: (-(currentResult.totalMD - testResult.totalMD) * 150 * 22) / currentResult.totalMD,
     riskScore: finalReduction > 0.2 ? 8 : 5,
-    riskFactors: finalReduction > 0.2
-      ? ['Significant functionality loss', 'Stakeholder pushback', 'MVP viability risk']
-      : ['Manageable if prioritized correctly'],
-    feasibility: finalReduction <= 0.2 ? 'medium' : 'low',
+    riskFactors:
+      finalReduction > 0.2
+        ? ["Significant functionality loss", "Stakeholder pushback", "MVP viability risk"]
+        : ["Manageable if prioritized correctly"],
+    feasibility: finalReduction <= 0.2 ? "medium" : "low",
   };
 }
 
 function optimizeByOverlap(
   currentInputs: EstimatorInputs,
   targetMonths: number,
-  constraints: GoalSeekParams['constraints']
+  constraints: GoalSeekParams["constraints"]
 ): OptimizationSuggestion | null {
   const minOverlap = constraints.minOverlap || 0.6;
   const currentResult = formulaEngine.calculateTotal(currentInputs);
 
   // Calculate required overlap
-  const requiredOverlap = (currentResult.totalMD / currentInputs.fte / 22 / currentInputs.utilization) / targetMonths;
+  const requiredOverlap =
+    currentResult.totalMD / currentInputs.fte / 22 / currentInputs.utilization / targetMonths;
   const finalOverlap = Math.max(requiredOverlap, minOverlap);
 
   if (finalOverlap >= currentInputs.overlapFactor) return null; // Can't increase overlap to meet goal
@@ -249,35 +263,38 @@ function optimizeByOverlap(
   const achieves = testResult.durationMonths <= targetMonths;
 
   return {
-    scenario: 'Aggressive Parallelization',
-    description: 'Increase phase overlap for faster delivery',
-    adjustments: [{
-      field: 'overlapFactor',
-      label: 'Phase Overlap',
-      from: `${(currentInputs.overlapFactor * 100).toFixed(0)}%`,
-      to: `${(finalOverlap * 100).toFixed(0)}%`,
-      change: `-${((currentInputs.overlapFactor - finalOverlap) * 100).toFixed(0)}%`
-    }],
+    scenario: "Aggressive Parallelization",
+    description: "Increase phase overlap for faster delivery",
+    adjustments: [
+      {
+        field: "overlapFactor",
+        label: "Phase Overlap",
+        from: `${(currentInputs.overlapFactor * 100).toFixed(0)}%`,
+        to: `${(finalOverlap * 100).toFixed(0)}%`,
+        change: `-${((currentInputs.overlapFactor - finalOverlap) * 100).toFixed(0)}%`,
+      },
+    ],
     achievesGoal: achieves,
     resultingDuration: testResult.durationMonths,
     resultingEffort: testResult.totalMD,
     costImpact: 0,
     riskScore: finalOverlap < 0.7 ? 9 : 6,
-    riskFactors: finalOverlap < 0.7
-      ? ['Very high coordination complexity', 'Quality issues', 'Rework risk']
-      : ['Requires strong PMO', 'Integration challenges'],
-    feasibility: finalOverlap >= 0.7 ? 'medium' : 'low',
+    riskFactors:
+      finalOverlap < 0.7
+        ? ["Very high coordination complexity", "Quality issues", "Rework risk"]
+        : ["Requires strong PMO", "Integration challenges"],
+    feasibility: finalOverlap >= 0.7 ? "medium" : "low",
   };
 }
 
 function optimizeHybrid(
   currentInputs: EstimatorInputs,
   targetMonths: number,
-  constraints: GoalSeekParams['constraints']
+  constraints: GoalSeekParams["constraints"]
 ): OptimizationSuggestion | null {
   // Balanced approach: modest increases across multiple dimensions
   const testInputs = { ...currentInputs };
-  const adjustments: OptimizationSuggestion['adjustments'] = [];
+  const adjustments: OptimizationSuggestion["adjustments"] = [];
   const riskFactors: string[] = [];
   let riskScore = 2;
 
@@ -285,11 +302,11 @@ function optimizeHybrid(
   if (!constraints.maxFTE || currentInputs.fte * 1.2 <= constraints.maxFTE) {
     testInputs.fte = currentInputs.fte * 1.2;
     adjustments.push({
-      field: 'fte',
-      label: 'Team Size',
+      field: "fte",
+      label: "Team Size",
       from: currentInputs.fte.toFixed(1),
       to: testInputs.fte.toFixed(1),
-      change: '+20%'
+      change: "+20%",
     });
     riskScore += 1;
   }
@@ -299,11 +316,11 @@ function optimizeHybrid(
   if (newUtilization > currentInputs.utilization) {
     testInputs.utilization = newUtilization;
     adjustments.push({
-      field: 'utilization',
-      label: 'Utilization',
+      field: "utilization",
+      label: "Utilization",
       from: `${(currentInputs.utilization * 100).toFixed(0)}%`,
       to: `${(newUtilization * 100).toFixed(0)}%`,
-      change: '+5%'
+      change: "+5%",
     });
     riskScore += 1;
   }
@@ -313,11 +330,11 @@ function optimizeHybrid(
   if (newOverlap < currentInputs.overlapFactor) {
     testInputs.overlapFactor = newOverlap;
     adjustments.push({
-      field: 'overlapFactor',
-      label: 'Phase Overlap',
+      field: "overlapFactor",
+      label: "Phase Overlap",
       from: `${(currentInputs.overlapFactor * 100).toFixed(0)}%`,
       to: `${(newOverlap * 100).toFixed(0)}%`,
-      change: '-5%'
+      change: "-5%",
     });
     riskScore += 2;
   }
@@ -331,15 +348,15 @@ function optimizeHybrid(
   const costImpact = additionalFTE * 22 * 150 * targetMonths;
 
   return {
-    scenario: 'Balanced Optimization',
-    description: 'Modest adjustments across multiple levers',
+    scenario: "Balanced Optimization",
+    description: "Modest adjustments across multiple levers",
     adjustments,
     achievesGoal: achieves,
     resultingDuration: testResult.durationMonths,
     resultingEffort: testResult.totalMD,
     costImpact,
     riskScore,
-    riskFactors: ['Moderate coordination needed', 'Balanced risk profile'],
-    feasibility: 'high',
+    riskFactors: ["Moderate coordination needed", "Balanced risk profile"],
+    feasibility: "high",
   };
 }

@@ -138,12 +138,14 @@
 ## 🔄 DEFERRED ITEMS (Require Schema/Major Changes)
 
 ### Issue #12: Dependency Arrows
+
 - **Reason:** Requires implementing dependency arrow rendering algorithm
 - **Complexity:** High - SVG path generation, collision detection
 - **Effort:** 8-12 hours
 - **Recommendation:** Defer to future sprint
 
 ### Issues #24-27: Task Hierarchy System
+
 - **Issue #24:** Indentation system (24px per level)
 - **Issue #25:** Parent-child visual connections (tree lines)
 - **Issue #26:** Parent/child styling differentiation
@@ -159,18 +161,22 @@
 ## 📋 REMAINING ISSUES - ASSESSMENT
 
 ### Issues #21-23: Calendar/Tooltip Fixes
+
 - **#21:** Vertical date stacking - NOT OBSERVED (dates already horizontal)
 - **#22:** Tooltip-within-tooltip recursion - NOT OBSERVED
 - **#23:** Tooltip opacity - Already using semi-transparent backgrounds
 - **STATUS:** ✅ NO ACTION NEEDED (already resolved)
 
 ### Issues #29-30: Grid Alignment
+
 - **#29:** Major vs minor distinction - ALREADY IMPLEMENTED (gray-200 minor, gray-300 major)
 - **#30:** Pixel-perfect alignment - Visual inspection shows proper alignment
 - **STATUS:** ✅ NO ACTION NEEDED (already resolved)
 
 ### Issues #32-40: Minimap Enhancements
+
 **Requires checking minimap component implementation**
+
 - Minimap already exists (`GanttMinimap.tsx`)
 - Features to validate:
   - Panel width
@@ -210,6 +216,7 @@
 ## 🎯 VALIDATION SUMMARY
 
 ### Completed & Verified: 22 issues (49%)
+
 - Foundation: 9 issues ✅
 - Design System: 4 issues ✅
 - Information Architecture: 3 issues ✅
@@ -218,10 +225,12 @@
 - Already Complete: 5 issues ✅
 
 ### Deferred (High Complexity): 5 issues (11%)
+
 - Dependency arrows (1)
 - Task hierarchy system (4)
 
 ### Remaining Assessment Needed: 18 issues (40%)
+
 - Calendar/tooltip: 3 (likely complete)
 - Grid alignment: 2 (likely complete)
 - Minimap: 9 (needs audit)
@@ -232,12 +241,14 @@
 ## 🚀 NEXT STEPS
 
 ### Immediate (This Session)
+
 1. Audit minimap features (Issues 32-40)
 2. Validate calendar/tooltip status (Issues 21-23)
 3. Document responsive design current state (Issue 41)
 4. Create keyboard navigation guide (Issue 42)
 
 ### Short-term (Next Sprint)
+
 1. Implement keyboard navigation
 2. Add ARIA labels for screen readers
 3. Create loading state components
@@ -245,6 +256,7 @@
 5. Document component library
 
 ### Long-term (Future Sprints)
+
 1. Implement dependency arrows with proper algorithm
 2. Design and implement task hierarchy system
 3. Create comprehensive Storybook documentation

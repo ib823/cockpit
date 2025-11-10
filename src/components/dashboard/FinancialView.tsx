@@ -10,12 +10,23 @@
  * - Cost by Resource Category
  */
 
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { Row, Col, Statistic, Card, Space, Typography, Divider, InputNumber, Button, App } from 'antd';
-import { DollarSign, TrendingUp, TrendingDown, Target, Edit2, Save } from 'lucide-react';
-import { GanttProject, Resource } from '@/types/gantt-tool';
+import { useMemo, useState } from "react";
+import {
+  Row,
+  Col,
+  Statistic,
+  Card,
+  Space,
+  Typography,
+  Divider,
+  InputNumber,
+  Button,
+  App,
+} from "antd";
+import { DollarSign, TrendingUp, TrendingDown, Target, Edit2, Save } from "lucide-react";
+import { GanttProject, Resource } from "@/types/gantt-tool";
 import {
   BarChart,
   Bar,
@@ -29,10 +40,16 @@ import {
   ReferenceLine,
   ComposedChart,
   Line,
-} from 'recharts';
-import { differenceInDays, parseISO } from 'date-fns';
-import { getDailyRate, formatMYR, formatMYRShort, calculateMargin, getMarginColor } from '@/lib/rate-card';
-import { RESOURCE_CATEGORIES } from '@/types/gantt-tool';
+} from "recharts";
+import { differenceInDays, parseISO } from "date-fns";
+import {
+  getDailyRate,
+  formatMYR,
+  formatMYRShort,
+  calculateMargin,
+  getMarginColor,
+} from "@/lib/rate-card";
+import { RESOURCE_CATEGORIES } from "@/types/gantt-tool";
 
 const { Title, Text } = Typography;
 
@@ -56,42 +73,47 @@ export function FinancialView({ project }: FinancialViewProps) {
     const costByPhase: Record<string, number> = {};
 
     // Initialize categories
-    Object.keys(RESOURCE_CATEGORIES).forEach(category => {
+    Object.keys(RESOURCE_CATEGORIES).forEach((category) => {
       costByCategory[category] = 0;
     });
 
-    phases.forEach(phase => {
+    phases.forEach((phase) => {
       costByPhase[phase.id] = 0;
 
-      const phaseDuration = differenceInDays(parseISO(phase.endDate), parseISO(phase.startDate)) + 1;
+      const phaseDuration =
+        differenceInDays(parseISO(phase.endDate), parseISO(phase.startDate)) + 1;
 
       // Phase-level resource assignments
-      phase.phaseResourceAssignments?.forEach(assignment => {
-        const resource = resources.find(r => r.id === assignment.resourceId);
+      phase.phaseResourceAssignments?.forEach((assignment) => {
+        const resource = resources.find((r) => r.id === assignment.resourceId);
         if (resource) {
           const dailyRate = getDailyRate(resource.designation);
-          const assignmentCost = (phaseDuration * assignment.allocationPercentage / 100) * dailyRate;
+          const assignmentCost =
+            ((phaseDuration * assignment.allocationPercentage) / 100) * dailyRate;
 
           totalCost += assignmentCost;
           costByResource[resource.id] = (costByResource[resource.id] || 0) + assignmentCost;
-          costByCategory[resource.category] = (costByCategory[resource.category] || 0) + assignmentCost;
+          costByCategory[resource.category] =
+            (costByCategory[resource.category] || 0) + assignmentCost;
           costByPhase[phase.id] += assignmentCost;
         }
       });
 
       // Task-level resource assignments
-      phase.tasks.forEach(task => {
+      phase.tasks.forEach((task) => {
         const taskDuration = differenceInDays(parseISO(task.endDate), parseISO(task.startDate)) + 1;
 
-        task.resourceAssignments?.forEach(assignment => {
-          const resource = resources.find(r => r.id === assignment.resourceId);
+        task.resourceAssignments?.forEach((assignment) => {
+          const resource = resources.find((r) => r.id === assignment.resourceId);
           if (resource) {
             const dailyRate = getDailyRate(resource.designation);
-            const assignmentCost = (taskDuration * assignment.allocationPercentage / 100) * dailyRate;
+            const assignmentCost =
+              ((taskDuration * assignment.allocationPercentage) / 100) * dailyRate;
 
             totalCost += assignmentCost;
             costByResource[resource.id] = (costByResource[resource.id] || 0) + assignmentCost;
-            costByCategory[resource.category] = (costByCategory[resource.category] || 0) + assignmentCost;
+            costByCategory[resource.category] =
+              (costByCategory[resource.category] || 0) + assignmentCost;
             costByPhase[phase.id] += assignmentCost;
           }
         });
@@ -110,20 +132,22 @@ export function FinancialView({ project }: FinancialViewProps) {
     const totalEffort = resources.reduce((sum, resource) => {
       let resourceDays = 0;
 
-      phases.forEach(phase => {
-        const phaseDuration = differenceInDays(parseISO(phase.endDate), parseISO(phase.startDate)) + 1;
+      phases.forEach((phase) => {
+        const phaseDuration =
+          differenceInDays(parseISO(phase.endDate), parseISO(phase.startDate)) + 1;
 
-        phase.phaseResourceAssignments?.forEach(assignment => {
+        phase.phaseResourceAssignments?.forEach((assignment) => {
           if (assignment.resourceId === resource.id) {
-            resourceDays += (phaseDuration * assignment.allocationPercentage / 100);
+            resourceDays += (phaseDuration * assignment.allocationPercentage) / 100;
           }
         });
 
-        phase.tasks.forEach(task => {
-          const taskDuration = differenceInDays(parseISO(task.endDate), parseISO(task.startDate)) + 1;
-          task.resourceAssignments?.forEach(assignment => {
+        phase.tasks.forEach((task) => {
+          const taskDuration =
+            differenceInDays(parseISO(task.endDate), parseISO(task.startDate)) + 1;
+          task.resourceAssignments?.forEach((assignment) => {
             if (assignment.resourceId === resource.id) {
-              resourceDays += (taskDuration * assignment.allocationPercentage / 100);
+              resourceDays += (taskDuration * assignment.allocationPercentage) / 100;
             }
           });
         });
@@ -147,16 +171,16 @@ export function FinancialView({ project }: FinancialViewProps) {
 
   const handleSaveRevenue = () => {
     setEditingRevenue(false);
-    message.success('Revenue target updated!');
+    message.success("Revenue target updated!");
   };
 
   // Waterfall chart data
   const waterfallData = useMemo(() => {
     const data = [
       {
-        name: 'Revenue',
+        name: "Revenue",
         value: financialData.revenue,
-        fill: '#10B981',
+        fill: "#10B981",
       },
     ];
 
@@ -173,7 +197,7 @@ export function FinancialView({ project }: FinancialViewProps) {
       });
 
     data.push({
-      name: 'Gross Margin',
+      name: "Gross Margin",
       value: financialData.margin,
       fill: getMarginColor(financialData.marginPercent),
     });
@@ -183,37 +207,32 @@ export function FinancialView({ project }: FinancialViewProps) {
 
   // Cost by phase chart data
   const phaseChartData = useMemo(() => {
-    return project.phases.map(phase => ({
-      name: phase.name.length > 20 ? phase.name.substring(0, 20) + '...' : phase.name,
+    return project.phases.map((phase) => ({
+      name: phase.name.length > 20 ? phase.name.substring(0, 20) + "..." : phase.name,
       cost: financialData.costByPhase[phase.id] || 0,
       fill: phase.color,
     }));
   }, [project.phases, financialData.costByPhase]);
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%', display: 'flex' }}>
+    <Space direction="vertical" size="large" style={{ width: "100%", display: "flex" }}>
       {/* Financial KPI Cards */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={8}>
-          <Card bordered={false} style={{ background: '#EFF6FF', borderRadius: '8px' }}>
+          <Card bordered={false} style={{ background: "#EFF6FF", borderRadius: "8px" }}>
             {editingRevenue ? (
-              <Space direction="vertical" style={{ width: '100%' }}>
+              <Space direction="vertical" style={{ width: "100%" }}>
                 <Text strong>Proposed Price (MYR)</Text>
                 <InputNumber
                   value={proposedRevenue || financialData.suggestedRevenue}
                   onChange={(val) => setProposedRevenue(val || 0)}
                   prefix="RM"
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   size="large"
                   step={10000}
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 />
-                <Button
-                  type="primary"
-                  icon={<Save size={16} />}
-                  onClick={handleSaveRevenue}
-                  block
-                >
+                <Button type="primary" icon={<Save size={16} />} onClick={handleSaveRevenue} block>
                   Save
                 </Button>
               </Space>
@@ -233,12 +252,13 @@ export function FinancialView({ project }: FinancialViewProps) {
                   }
                   value={financialData.revenue}
                   prefix="RM"
-                  valueStyle={{ color: '#3B82F6' }}
+                  valueStyle={{ color: "#3B82F6" }}
                   className="[&_.ant-statistic-content]:text-xl"
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 />
                 <Text type="secondary" className="text-xs">
-                  {proposedRevenue === 0 && `Suggested: ${formatMYR(financialData.suggestedRevenue)}`}
+                  {proposedRevenue === 0 &&
+                    `Suggested: ${formatMYR(financialData.suggestedRevenue)}`}
                 </Text>
               </>
             )}
@@ -246,16 +266,16 @@ export function FinancialView({ project }: FinancialViewProps) {
         </Col>
 
         <Col xs={24} sm={12} lg={8}>
-          <Card bordered={false} style={{ background: '#FEF2F2', borderRadius: '8px' }}>
+          <Card bordered={false} style={{ background: "#FEF2F2", borderRadius: "8px" }}>
             <Statistic
               title="Total Cost"
               value={financialData.totalCost}
               prefix="RM"
-              valueStyle={{ color: '#EF4444' }}
+              valueStyle={{ color: "#EF4444" }}
               className="[&_.ant-statistic-content]:text-xl"
-              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
             />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type="secondary" style={{ fontSize: "12px" }}>
               {financialData.totalEffort} person-days
             </Text>
           </Card>
@@ -267,11 +287,11 @@ export function FinancialView({ project }: FinancialViewProps) {
             style={{
               background:
                 financialData.marginPercent >= 20
-                  ? '#ECFDF5'
+                  ? "#ECFDF5"
                   : financialData.marginPercent >= 10
-                  ? '#FFFBEB'
-                  : '#FEF2F2',
-              borderRadius: '8px',
+                    ? "#FFFBEB"
+                    : "#FEF2F2",
+              borderRadius: "8px",
               border: `3px solid ${getMarginColor(financialData.marginPercent)}`,
             }}
           >
@@ -281,40 +301,53 @@ export function FinancialView({ project }: FinancialViewProps) {
               suffix="%"
               prefix={
                 financialData.marginPercent >= 20 ? (
-                  <TrendingUp size={20} style={{ color: getMarginColor(financialData.marginPercent) }} />
+                  <TrendingUp
+                    size={20}
+                    style={{ color: getMarginColor(financialData.marginPercent) }}
+                  />
                 ) : (
-                  <TrendingDown size={20} style={{ color: getMarginColor(financialData.marginPercent) }} />
+                  <TrendingDown
+                    size={20}
+                    style={{ color: getMarginColor(financialData.marginPercent) }}
+                  />
                 )
               }
-              valueStyle={{ color: getMarginColor(financialData.marginPercent), fontWeight: 'bold' }}
+              valueStyle={{
+                color: getMarginColor(financialData.marginPercent),
+                fontWeight: "bold",
+              }}
               className="[&_.ant-statistic-content]:text-3xl"
             />
-            <Text style={{ color: getMarginColor(financialData.marginPercent) }} className="text-xs">
+            <Text
+              style={{ color: getMarginColor(financialData.marginPercent) }}
+              className="text-xs"
+            >
               {formatMYR(financialData.margin)} profit
             </Text>
           </Card>
         </Col>
       </Row>
 
-      <Divider style={{ margin: '8px 0' }} />
+      <Divider style={{ margin: "8px 0" }} />
 
       {/* Margin Waterfall Chart */}
-      <Card bordered={false} style={{ borderRadius: '8px' }}>
+      <Card bordered={false} style={{ borderRadius: "8px" }}>
         <Title level={5}>💧 Margin Waterfall Analysis</Title>
         <Text type="secondary" className="text-sm">
           How revenue flows to margin after subtracting costs
         </Text>
-        <ResponsiveContainer width="100%" height={400} style={{ marginTop: '20px' }}>
+        <ResponsiveContainer width="100%" height={400} style={{ marginTop: "20px" }}>
           <ComposedChart data={waterfallData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="name" tick={{ fontSize: 12 }} className="text-xs" />
             <YAxis
-              tick={{ fontSize: 12 }} className="text-xs"
+              tick={{ fontSize: 12 }}
+              className="text-xs"
               tickFormatter={(value) => formatMYRShort(Math.abs(value))}
             />
             <Tooltip
               formatter={(value: number) => formatMYR(Math.abs(value))}
-              contentStyle={{ borderRadius: '8px', border: '1px solid #f0f0f0' }}
+              contentStyle={{ borderRadius: "8px", border: "1px solid #f0f0f0" }}
             />
             <ReferenceLine y={0} stroke="#000" strokeWidth={2} />
             <Bar dataKey="value" radius={[8, 8, 0, 0]}>
@@ -326,25 +359,26 @@ export function FinancialView({ project }: FinancialViewProps) {
         </ResponsiveContainer>
       </Card>
 
-      <Divider style={{ margin: '8px 0' }} />
+      <Divider style={{ margin: "8px 0" }} />
 
       {/* Cost by Phase */}
-      <Card bordered={false} style={{ borderRadius: '8px' }}>
+      <Card bordered={false} style={{ borderRadius: "8px" }}>
         <Title level={5}>📊 Cost Breakdown by Phase</Title>
         <Text type="secondary" className="text-sm">
           Which phases consume the most resources?
         </Text>
-        <ResponsiveContainer width="100%" height={300} style={{ marginTop: '20px' }}>
+        <ResponsiveContainer width="100%" height={300} style={{ marginTop: "20px" }}>
           <BarChart data={phaseChartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="name" tick={{ fontSize: 11 }} className="text-xs" />
             <YAxis
-              tick={{ fontSize: 12 }} className="text-xs"
+              tick={{ fontSize: 12 }}
+              className="text-xs"
               tickFormatter={(value) => formatMYRShort(value)}
             />
             <Tooltip
               formatter={(value: number) => formatMYR(value)}
-              contentStyle={{ borderRadius: '8px', border: '1px solid #f0f0f0' }}
+              contentStyle={{ borderRadius: "8px", border: "1px solid #f0f0f0" }}
             />
             <Bar dataKey="cost" radius={[8, 8, 0, 0]}>
               {phaseChartData.map((entry, index) => (
@@ -359,13 +393,13 @@ export function FinancialView({ project }: FinancialViewProps) {
       <Card
         bordered={false}
         style={{
-          borderRadius: '8px',
+          borderRadius: "8px",
           background:
             financialData.marginPercent >= 20
-              ? '#D1FAE5'
+              ? "#D1FAE5"
               : financialData.marginPercent >= 10
-              ? '#FEF3C7'
-              : '#FEE2E2',
+                ? "#FEF3C7"
+                : "#FEE2E2",
           border: `2px solid ${getMarginColor(financialData.marginPercent)}`,
         }}
       >
@@ -376,33 +410,33 @@ export function FinancialView({ project }: FinancialViewProps) {
               margin: 0,
               color:
                 financialData.marginPercent >= 20
-                  ? '#065F46'
+                  ? "#065F46"
                   : financialData.marginPercent >= 10
-                  ? '#92400E'
-                  : '#7F1D1D',
+                    ? "#92400E"
+                    : "#7F1D1D",
             }}
           >
             💡 Financial Insights
           </Title>
           {financialData.marginPercent >= 30 ? (
-            <Text style={{ color: '#065F46' }}>
+            <Text style={{ color: "#065F46" }}>
               ✅ <strong>Excellent margin!</strong> This proposal offers strong profitability (
               {financialData.marginPercent.toFixed(1)}%).
             </Text>
           ) : financialData.marginPercent >= 20 ? (
-            <Text style={{ color: '#065F46' }}>
+            <Text style={{ color: "#065F46" }}>
               ✅ <strong>Healthy margin.</strong> This proposal meets profit targets (
               {financialData.marginPercent.toFixed(1)}%).
             </Text>
           ) : financialData.marginPercent >= 10 ? (
-            <Text style={{ color: '#92400E' }}>
-              ⚠️ <strong>Marginal profitability.</strong> Consider optimizing resources or increasing price (
-              {financialData.marginPercent.toFixed(1)}%).
+            <Text style={{ color: "#92400E" }}>
+              ⚠️ <strong>Marginal profitability.</strong> Consider optimizing resources or
+              increasing price ({financialData.marginPercent.toFixed(1)}%).
             </Text>
           ) : (
-            <Text style={{ color: '#7F1D1D' }}>
-              ⛔ <strong>Low margin alert!</strong> This proposal may not be profitable. Review resource mix or increase
-              price ({financialData.marginPercent.toFixed(1)}%).
+            <Text style={{ color: "#7F1D1D" }}>
+              ⛔ <strong>Low margin alert!</strong> This proposal may not be profitable. Review
+              resource mix or increase price ({financialData.marginPercent.toFixed(1)}%).
             </Text>
           )}
           <Text
@@ -410,13 +444,14 @@ export function FinancialView({ project }: FinancialViewProps) {
             style={{
               color:
                 financialData.marginPercent >= 20
-                  ? '#065F46'
+                  ? "#065F46"
                   : financialData.marginPercent >= 10
-                  ? '#92400E'
-                  : '#7F1D1D',
+                    ? "#92400E"
+                    : "#7F1D1D",
             }}
           >
-            Average daily rate across all resources: {formatMYR(financialData.totalCost / financialData.totalEffort)}
+            Average daily rate across all resources:{" "}
+            {formatMYR(financialData.totalCost / financialData.totalEffort)}
           </Text>
         </Space>
       </Card>

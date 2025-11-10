@@ -5,19 +5,14 @@
  * heuristics, pattern recognition, and best practices.
  */
 
-import type { GanttProject, GanttTask, GanttPhase } from '@/types/gantt-tool';
-import { differenceInDays, parseISO, addDays, format, isWeekend } from 'date-fns';
-import { calculateCriticalPath } from './critical-path';
+import type { GanttProject, GanttTask, GanttPhase } from "@/types/gantt-tool";
+import { differenceInDays, parseISO, addDays, format, isWeekend } from "date-fns";
+import { calculateCriticalPath } from "./critical-path";
 
 export interface SchedulingSuggestion {
   id: string;
-  type:
-    | 'optimization'
-    | 'risk-mitigation'
-    | 'resource-allocation'
-    | 'dependency'
-    | 'timeline';
-  priority: 'high' | 'medium' | 'low';
+  type: "optimization" | "risk-mitigation" | "resource-allocation" | "dependency" | "timeline";
+  priority: "high" | "medium" | "low";
   title: string;
   description: string;
   impact: {
@@ -26,7 +21,7 @@ export interface SchedulingSuggestion {
     efficiencyGain?: number; // percentage
   };
   action: {
-    type: 'auto' | 'manual';
+    type: "auto" | "manual";
     description: string;
     affectedTasks?: string[];
     affectedPhases?: string[];
@@ -70,12 +65,9 @@ export function generateSchedulingSuggestions(project: GanttProject): AIInsights
   suggestions.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
 
   // Calculate summary
-  const highPriority = suggestions.filter((s) => s.priority === 'high').length;
-  const potentialTimeSavings = suggestions.reduce(
-    (sum, s) => sum + (s.impact.timeSaved || 0),
-    0
-  );
-  const automationOpportunities = suggestions.filter((s) => s.action.type === 'auto').length;
+  const highPriority = suggestions.filter((s) => s.priority === "high").length;
+  const potentialTimeSavings = suggestions.reduce((sum, s) => sum + (s.impact.timeSaved || 0), 0);
+  const automationOpportunities = suggestions.filter((s) => s.action.type === "auto").length;
 
   // Identify patterns
   const patterns = identifyPatterns(project);
@@ -111,22 +103,20 @@ function analyzeParallelization(project: GanttProject): SchedulingSuggestion[] {
       const canParallelize = sequentialTasks.filter((task, idx) => {
         if (idx === 0) return false;
         const prevTask = sequentialTasks[idx - 1];
-        const timeDiff = differenceInDays(
-          parseISO(task.startDate),
-          parseISO(prevTask.endDate)
-        );
+        const timeDiff = differenceInDays(parseISO(task.startDate), parseISO(prevTask.endDate));
         return timeDiff <= 1; // Tasks start right after each other
       });
 
       if (canParallelize.length >= 2) {
-        const potentialSavings = canParallelize.reduce((sum, task) => {
-          return sum + differenceInDays(parseISO(task.endDate), parseISO(task.startDate));
-        }, 0) * 0.4; // Assume 40% time savings
+        const potentialSavings =
+          canParallelize.reduce((sum, task) => {
+            return sum + differenceInDays(parseISO(task.endDate), parseISO(task.startDate));
+          }, 0) * 0.4; // Assume 40% time savings
 
         suggestions.push({
           id: `parallel-${phase.id}`,
-          type: 'optimization',
-          priority: potentialSavings > 10 ? 'high' : 'medium',
+          type: "optimization",
+          priority: potentialSavings > 10 ? "high" : "medium",
           title: `Parallelize tasks in ${phase.name}`,
           description: `${canParallelize.length} tasks could potentially run in parallel`,
           impact: {
@@ -134,13 +124,13 @@ function analyzeParallelization(project: GanttProject): SchedulingSuggestion[] {
             efficiencyGain: 25,
           },
           action: {
-            type: 'manual',
-            description: 'Review task dependencies and adjust start dates to overlap work',
+            type: "manual",
+            description: "Review task dependencies and adjust start dates to overlap work",
             affectedTasks: canParallelize.map((t) => t.id),
             affectedPhases: [phase.id],
           },
           reasoning:
-            'Tasks without hard dependencies can often run simultaneously with proper resource allocation',
+            "Tasks without hard dependencies can often run simultaneously with proper resource allocation",
           confidence: 75,
         });
       }
@@ -174,8 +164,8 @@ function analyzeTaskDurations(project: GanttProject): SchedulingSuggestion[] {
 
       suggestions.push({
         id: `duration-${task.id}`,
-        type: 'optimization',
-        priority: duration > avgDuration * 4 ? 'high' : 'medium',
+        type: "optimization",
+        priority: duration > avgDuration * 4 ? "high" : "medium",
         title: `Break down long task: ${task.name}`,
         description: `Task duration is ${duration} days, significantly longer than average (${avgDuration.toFixed(1)} days)`,
         impact: {
@@ -183,13 +173,13 @@ function analyzeTaskDurations(project: GanttProject): SchedulingSuggestion[] {
           efficiencyGain: 20,
         },
         action: {
-          type: 'manual',
-          description: 'Split task into smaller, manageable subtasks with clear milestones',
+          type: "manual",
+          description: "Split task into smaller, manageable subtasks with clear milestones",
           affectedTasks: [task.id],
           affectedPhases: phase ? [phase.id] : [],
         },
         reasoning:
-          'Long tasks are harder to estimate, track, and parallelize. Breaking them down improves control and flexibility',
+          "Long tasks are harder to estimate, track, and parallelize. Breaking them down improves control and flexibility",
         confidence: 80,
       });
     });
@@ -213,8 +203,8 @@ function analyzeDependencies(project: GanttProject): SchedulingSuggestion[] {
 
     suggestions.push({
       id: `deps-${task.id}`,
-      type: 'dependency',
-      priority: 'medium',
+      type: "dependency",
+      priority: "medium",
       title: `Simplify dependencies for ${task.name}`,
       description: `Task has ${task.dependencies?.length} dependencies, which increases complexity`,
       impact: {
@@ -222,13 +212,13 @@ function analyzeDependencies(project: GanttProject): SchedulingSuggestion[] {
         efficiencyGain: 15,
       },
       action: {
-        type: 'manual',
-        description: 'Review and consolidate dependencies to only critical blockers',
+        type: "manual",
+        description: "Review and consolidate dependencies to only critical blockers",
         affectedTasks: [task.id],
         affectedPhases: phase ? [phase.id] : [],
       },
       reasoning:
-        'Excessive dependencies create bottlenecks and increase schedule risk. Simplify where possible.',
+        "Excessive dependencies create bottlenecks and increase schedule risk. Simplify where possible.",
       confidence: 70,
     });
   });
@@ -245,8 +235,8 @@ function analyzeDependencies(project: GanttProject): SchedulingSuggestion[] {
         if (phase && phase.tasks.length > 5) {
           suggestions.push({
             id: `dep-review-${task.id}-${depId}`,
-            type: 'dependency',
-            priority: 'low',
+            type: "dependency",
+            priority: "low",
             title: `Review intra-phase dependency`,
             description: `${task.name} depends on ${depTask.name} within same phase`,
             impact: {
@@ -254,13 +244,12 @@ function analyzeDependencies(project: GanttProject): SchedulingSuggestion[] {
               efficiencyGain: 10,
             },
             action: {
-              type: 'manual',
-              description: 'Verify if this dependency is truly necessary or can be relaxed',
+              type: "manual",
+              description: "Verify if this dependency is truly necessary or can be relaxed",
               affectedTasks: [task.id, depId],
               affectedPhases: phase ? [phase.id] : [],
             },
-            reasoning:
-              'Some intra-phase dependencies can be relaxed to allow more parallel work',
+            reasoning: "Some intra-phase dependencies can be relaxed to allow more parallel work",
             confidence: 60,
           });
         }
@@ -280,27 +269,27 @@ function analyzeResourceAllocation(project: GanttProject): SchedulingSuggestion[
   const resources = project.resources || [];
 
   // Find unassigned tasks
-  const unassigned = allTasks.filter((t) => !t.assignee || t.assignee.trim() === '');
+  const unassigned = allTasks.filter((t) => !t.assignee || t.assignee.trim() === "");
 
   if (unassigned.length > allTasks.length * 0.15) {
     // More than 15% unassigned
     suggestions.push({
-      id: 'resource-unassigned',
-      type: 'resource-allocation',
-      priority: 'high',
-      title: 'Assign resources to unassigned tasks',
+      id: "resource-unassigned",
+      type: "resource-allocation",
+      priority: "high",
+      title: "Assign resources to unassigned tasks",
       description: `${unassigned.length} tasks (${((unassigned.length / allTasks.length) * 100).toFixed(0)}%) have no assignee`,
       impact: {
         riskReduction: 40,
         efficiencyGain: 30,
       },
       action: {
-        type: 'manual',
-        description: 'Review and assign appropriate resources to all tasks',
+        type: "manual",
+        description: "Review and assign appropriate resources to all tasks",
         affectedTasks: unassigned.map((t) => t.id),
       },
       reasoning:
-        'Unassigned tasks often slip through the cracks. Clear ownership improves accountability and execution.',
+        "Unassigned tasks often slip through the cracks. Clear ownership improves accountability and execution.",
       confidence: 90,
     });
   }
@@ -321,8 +310,8 @@ function analyzeResourceAllocation(project: GanttProject): SchedulingSuggestion[
       if (tasks.length > avgTasksPerResource * 1.5) {
         suggestions.push({
           id: `resource-overload-${resourceName}`,
-          type: 'resource-allocation',
-          priority: 'medium',
+          type: "resource-allocation",
+          priority: "medium",
           title: `Balance workload for ${resourceName}`,
           description: `Assigned ${tasks.length} tasks, ${Math.floor((tasks.length / avgTasksPerResource - 1) * 100)}% above average`,
           impact: {
@@ -330,12 +319,12 @@ function analyzeResourceAllocation(project: GanttProject): SchedulingSuggestion[
             efficiencyGain: 20,
           },
           action: {
-            type: 'manual',
-            description: 'Redistribute some tasks to other team members',
+            type: "manual",
+            description: "Redistribute some tasks to other team members",
             affectedTasks: tasks.map((t) => t.id),
           },
           reasoning:
-            'Overloaded resources are at higher risk of burnout and delays. Balance workload across team.',
+            "Overloaded resources are at higher risk of burnout and delays. Balance workload across team.",
           confidence: 75,
         });
       }
@@ -359,23 +348,22 @@ function analyzeBufferTime(project: GanttProject): SchedulingSuggestion[] {
 
   if (!hasSlack && criticalTasks.length > 5) {
     suggestions.push({
-      id: 'buffer-critical',
-      type: 'risk-mitigation',
-      priority: 'high',
-      title: 'Add buffer time to critical path',
-      description: 'Critical path has zero slack - any delay will impact project completion',
+      id: "buffer-critical",
+      type: "risk-mitigation",
+      priority: "high",
+      title: "Add buffer time to critical path",
+      description: "Critical path has zero slack - any delay will impact project completion",
       impact: {
         riskReduction: 50,
         timeSaved: -5, // Actually adds time, but reduces risk
       },
       action: {
-        type: 'manual',
-        description:
-          'Add 10-15% buffer time to critical tasks or at phase boundaries',
+        type: "manual",
+        description: "Add 10-15% buffer time to critical tasks or at phase boundaries",
         affectedTasks: criticalTasks.slice(0, 3).map((t) => t.id),
       },
       reasoning:
-        'Buffer time protects against unexpected delays and provides contingency for risks',
+        "Buffer time protects against unexpected delays and provides contingency for risks",
       confidence: 85,
     });
   }
@@ -399,21 +387,21 @@ function analyzeWeekendWork(project: GanttProject): SchedulingSuggestion[] {
 
   if (weekendTasks.length > 0) {
     suggestions.push({
-      id: 'weekend-work',
-      type: 'optimization',
-      priority: 'low',
-      title: 'Adjust weekend scheduling',
+      id: "weekend-work",
+      type: "optimization",
+      priority: "low",
+      title: "Adjust weekend scheduling",
       description: `${weekendTasks.length} tasks start or end on weekends`,
       impact: {
         efficiencyGain: 10,
       },
       action: {
-        type: 'auto',
-        description: 'Automatically shift task dates to start/end on weekdays',
+        type: "auto",
+        description: "Automatically shift task dates to start/end on weekdays",
         affectedTasks: weekendTasks.map((t) => t.id),
       },
       reasoning:
-        'Weekend work is typically less productive and more expensive. Shift to weekdays where possible.',
+        "Weekend work is typically less productive and more expensive. Shift to weekdays where possible.",
       confidence: 65,
     });
   }
@@ -442,8 +430,8 @@ function analyzePhaseBalance(project: GanttProject): SchedulingSuggestion[] {
   longPhases.forEach((phaseData) => {
     suggestions.push({
       id: `phase-balance-${phaseData.phase.id}`,
-      type: 'timeline',
-      priority: 'medium',
+      type: "timeline",
+      priority: "medium",
       title: `Consider splitting ${phaseData.phase.name}`,
       description: `Phase is ${phaseData.duration} days, ${Math.floor((phaseData.duration / avgDuration - 1) * 100)}% longer than average`,
       impact: {
@@ -451,13 +439,12 @@ function analyzePhaseBalance(project: GanttProject): SchedulingSuggestion[] {
         riskReduction: 20,
       },
       action: {
-        type: 'manual',
-        description:
-          'Split into sub-phases with clear milestones to improve tracking and control',
+        type: "manual",
+        description: "Split into sub-phases with clear milestones to improve tracking and control",
         affectedPhases: [phaseData.phase.id],
       },
       reasoning:
-        'Long phases are harder to estimate and track. Breaking them down improves visibility and control.',
+        "Long phases are harder to estimate and track. Breaking them down improves visibility and control.",
       confidence: 70,
     });
   });
@@ -468,8 +455,8 @@ function analyzePhaseBalance(project: GanttProject): SchedulingSuggestion[] {
 /**
  * Identify patterns in project structure
  */
-function identifyPatterns(project: GanttProject): AIInsights['patterns'] {
-  const patterns: AIInsights['patterns'] = [];
+function identifyPatterns(project: GanttProject): AIInsights["patterns"] {
+  const patterns: AIInsights["patterns"] = [];
   const allTasks = project.phases.flatMap((p) => p.tasks);
 
   // Pattern: Many short tasks
@@ -478,8 +465,8 @@ function identifyPatterns(project: GanttProject): AIInsights['patterns'] {
   );
   if (shortTasks.length > allTasks.length * 0.4) {
     patterns.push({
-      name: 'Many Short Tasks',
-      description: 'Over 40% of tasks are 2 days or less',
+      name: "Many Short Tasks",
+      description: "Over 40% of tasks are 2 days or less",
       occurrences: shortTasks.length,
     });
   }
@@ -492,18 +479,18 @@ function identifyPatterns(project: GanttProject): AIInsights['patterns'] {
   });
   if (!hasOverlap && project.phases.length > 2) {
     patterns.push({
-      name: 'Strict Sequential Phases',
-      description: 'Phases do not overlap - consider parallel work',
+      name: "Strict Sequential Phases",
+      description: "Phases do not overlap - consider parallel work",
       occurrences: project.phases.length,
     });
   }
 
   // Pattern: Uneven resource distribution
-  const assignedTasks = allTasks.filter((t) => t.assignee && t.assignee.trim() !== '');
+  const assignedTasks = allTasks.filter((t) => t.assignee && t.assignee.trim() !== "");
   if (assignedTasks.length > 0 && assignedTasks.length < allTasks.length * 0.7) {
     patterns.push({
-      name: 'Inconsistent Resource Assignment',
-      description: 'Some tasks assigned, others not',
+      name: "Inconsistent Resource Assignment",
+      description: "Some tasks assigned, others not",
       occurrences: allTasks.length - assignedTasks.length,
     });
   }
@@ -520,6 +507,6 @@ export function applySuggestion(
 ): GanttProject {
   // This would implement the actual changes
   // For now, return project unchanged (implementation would vary by suggestion type)
-  console.log('[AI] Would apply suggestion:', suggestion.id);
+  console.log("[AI] Would apply suggestion:", suggestion.id);
   return project;
 }

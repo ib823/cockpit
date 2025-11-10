@@ -4,12 +4,12 @@
  * Provides context-aware help, tooltips, and guidance throughout the application
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, ReactNode } from 'react';
-import { Tooltip, Drawer, Collapse, Button } from 'antd';
-import { HelpCircle, BookOpen, Lightbulb, Video, ExternalLink, X } from 'lucide-react';
-import { colorValues, withOpacity } from '@/lib/design-system';
+import { useState, useEffect, ReactNode } from "react";
+import { Tooltip, Drawer, Collapse, Button } from "antd";
+import { HelpCircle, BookOpen, Lightbulb, Video, ExternalLink, X } from "lucide-react";
+import { colorValues, withOpacity } from "@/lib/design-system";
 
 interface HelpContent {
   title: string;
@@ -28,104 +28,104 @@ interface ContextualHelpProps {
 
 // Help content database
 const HELP_CONTENT: Record<string, HelpContent> = {
-  'gantt-tool': {
-    title: 'Gantt Chart Tool',
+  "gantt-tool": {
+    title: "Gantt Chart Tool",
     description:
-      'Create professional project timelines with phases, tasks, dependencies, and resource allocation.',
+      "Create professional project timelines with phases, tasks, dependencies, and resource allocation.",
     steps: [
-      'Create phases to organize your project',
-      'Add tasks within each phase',
-      'Set dependencies between tasks',
-      'Assign resources to tasks',
-      'Track progress with percentage completion',
+      "Create phases to organize your project",
+      "Add tasks within each phase",
+      "Set dependencies between tasks",
+      "Assign resources to tasks",
+      "Track progress with percentage completion",
     ],
     tips: [
-      'Use Cmd/Ctrl+Z to undo changes',
-      'Right-click tasks for quick actions',
-      'Drag tasks to reschedule',
-      'Use templates to start quickly',
+      "Use Cmd/Ctrl+Z to undo changes",
+      "Right-click tasks for quick actions",
+      "Drag tasks to reschedule",
+      "Use templates to start quickly",
     ],
   },
-  'critical-path': {
-    title: 'Critical Path Analysis',
+  "critical-path": {
+    title: "Critical Path Analysis",
     description:
-      'Identify the sequence of tasks that determines your project duration and find optimization opportunities.',
+      "Identify the sequence of tasks that determines your project duration and find optimization opportunities.",
     steps: [
-      'Review tasks on the critical path (zero slack)',
-      'Monitor risky tasks with low slack',
-      'Consider crashing opportunities for time savings',
-      'Evaluate fast-tracking to parallelize work',
+      "Review tasks on the critical path (zero slack)",
+      "Monitor risky tasks with low slack",
+      "Consider crashing opportunities for time savings",
+      "Evaluate fast-tracking to parallelize work",
     ],
     tips: [
-      'Any delay in critical path tasks delays the entire project',
-      'Focus resources on critical path to stay on schedule',
-      'Buffer time protects against unexpected delays',
+      "Any delay in critical path tasks delays the entire project",
+      "Focus resources on critical path to stay on schedule",
+      "Buffer time protects against unexpected delays",
     ],
   },
-  'baseline-comparison': {
-    title: 'Baseline Comparison',
+  "baseline-comparison": {
+    title: "Baseline Comparison",
     description:
-      'Compare actual project progress against saved baselines to track variance and identify issues early.',
+      "Compare actual project progress against saved baselines to track variance and identify issues early.",
     steps: [
-      'Save a baseline when your plan is approved',
-      'Update project progress regularly',
-      'Review variance reports to identify drift',
-      'Take corrective action on critical issues',
+      "Save a baseline when your plan is approved",
+      "Update project progress regularly",
+      "Review variance reports to identify drift",
+      "Take corrective action on critical issues",
     ],
     tips: [
-      'Save baselines at major milestones',
-      'Schedule Performance Index (SPI) > 1 means ahead of schedule',
-      'Address critical issues immediately',
+      "Save baselines at major milestones",
+      "Schedule Performance Index (SPI) > 1 means ahead of schedule",
+      "Address critical issues immediately",
     ],
   },
-  'analytics-dashboard': {
-    title: 'Analytics Dashboard',
+  "analytics-dashboard": {
+    title: "Analytics Dashboard",
     description:
-      'Comprehensive project insights with burndown charts, velocity tracking, and earned value management.',
+      "Comprehensive project insights with burndown charts, velocity tracking, and earned value management.",
     steps: [
-      'Review project health in the overview tab',
-      'Monitor burndown to track remaining work',
-      'Check velocity trends for predictability',
-      'Assess resource utilization',
-      'Address identified risks',
+      "Review project health in the overview tab",
+      "Monitor burndown to track remaining work",
+      "Check velocity trends for predictability",
+      "Assess resource utilization",
+      "Address identified risks",
     ],
     tips: [
-      'Green health = ahead of schedule',
-      'Velocity shows your team\'s sustainable pace',
-      'EVM metrics provide early warning signals',
+      "Green health = ahead of schedule",
+      "Velocity shows your team's sustainable pace",
+      "EVM metrics provide early warning signals",
     ],
   },
-  'templates': {
-    title: 'Project Templates',
-    description:
-      'Start projects quickly with pre-configured templates for common project types.',
+  templates: {
+    title: "Project Templates",
+    description: "Start projects quickly with pre-configured templates for common project types.",
     steps: [
-      'Browse templates by category',
-      'Preview template details',
+      "Browse templates by category",
+      "Preview template details",
       'Select "Use This Template"',
-      'Customize dates and resources',
-      'Save as your project',
+      "Customize dates and resources",
+      "Save as your project",
     ],
     tips: [
-      'Templates include realistic durations',
-      'You can modify any template after creation',
-      'Save your own projects as templates',
+      "Templates include realistic durations",
+      "You can modify any template after creation",
+      "Save your own projects as templates",
     ],
   },
-  'resource-planning': {
-    title: 'Resource Planning',
-    description: 'Manage team members, track allocation, and balance workload across your projects.',
+  "resource-planning": {
+    title: "Resource Planning",
+    description:
+      "Manage team members, track allocation, and balance workload across your projects.",
     steps: [
-      'Add team members with roles and rates',
-      'Assign resources to tasks',
-      'Monitor utilization percentages',
-      'Balance workload across team',
-      'Track costs and budgets',
+      "Add team members with roles and rates",
+      "Assign resources to tasks",
+      "Monitor utilization percentages",
+      "Balance workload across team",
+      "Track costs and budgets",
     ],
     tips: [
-      'Aim for 70-90% utilization for optimal productivity',
-      'Overallocation (>100%) leads to burnout',
-      'Underutilization (<60%) indicates capacity',
+      "Aim for 70-90% utilization for optimal productivity",
+      "Overallocation (>100%) leads to burnout",
+      "Underutilization (<60%) indicates capacity",
     ],
   },
 };
@@ -136,12 +136,12 @@ const HELP_CONTENT: Record<string, HelpContent> = {
 export function HelpTooltip({
   content,
   title,
-  placement = 'top',
+  placement = "top",
   children,
 }: {
   content: string;
   title?: string;
-  placement?: 'top' | 'bottom' | 'left' | 'right';
+  placement?: "top" | "bottom" | "left" | "right";
   children?: ReactNode;
 }) {
   return (
@@ -149,23 +149,20 @@ export function HelpTooltip({
       title={
         <div>
           {title && (
-            <div className="font-semibold mb-1" style={{ color: '#fff' }}>
+            <div className="font-semibold mb-1" style={{ color: "#fff" }}>
               {title}
             </div>
           )}
-          <div style={{ color: 'rgba(255,255,255,0.85)' }}>{content}</div>
+          <div style={{ color: "rgba(255,255,255,0.85)" }}>{content}</div>
         </div>
       }
       placement={placement}
       overlayStyle={{
-        maxWidth: '300px',
+        maxWidth: "300px",
       }}
     >
       {children || (
-        <HelpCircle
-          className="w-4 h-4 cursor-help"
-          style={{ color: colorValues.neutral[400] }}
-        />
+        <HelpCircle className="w-4 h-4 cursor-help" style={{ color: colorValues.neutral[400] }} />
       )}
     </Tooltip>
   );
@@ -187,8 +184,8 @@ export function HelpPanel({ context }: { context: string }) {
       }
     };
 
-    window.addEventListener('show-contextual-help', handleShowHelp);
-    return () => window.removeEventListener('show-contextual-help', handleShowHelp);
+    window.addEventListener("show-contextual-help", handleShowHelp);
+    return () => window.removeEventListener("show-contextual-help", handleShowHelp);
   }, [context]);
 
   if (!helpContent) return null;
@@ -201,9 +198,9 @@ export function HelpPanel({ context }: { context: string }) {
         className="fixed bottom-6 right-6 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 z-50"
         style={{
           backgroundColor: colorValues.primary[500],
-          color: '#fff',
-          border: 'none',
-          cursor: 'pointer',
+          color: "#fff",
+          border: "none",
+          cursor: "pointer",
         }}
         title="Get help"
       >
@@ -393,9 +390,7 @@ export function QuickTip({ children }: { children: ReactNode }) {
  */
 export function useContextualHelp() {
   const show = (context: string) => {
-    window.dispatchEvent(
-      new CustomEvent('show-contextual-help', { detail: { context } })
-    );
+    window.dispatchEvent(new CustomEvent("show-contextual-help", { detail: { context } }));
   };
 
   return { show };
@@ -417,9 +412,9 @@ export function FeatureHighlight({
     <div
       className="p-4 rounded-xl shadow-lg"
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
         border: `2px solid ${colorValues.primary[500]}`,
-        maxWidth: '350px',
+        maxWidth: "350px",
       }}
     >
       <div className="flex items-start gap-3">
@@ -427,7 +422,7 @@ export function FeatureHighlight({
           className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
           style={{
             backgroundColor: colorValues.primary[500],
-            color: '#fff',
+            color: "#fff",
           }}
         >
           ✨

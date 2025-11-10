@@ -109,58 +109,58 @@ function ConfirmationDialog({
               className="w-full max-w-md"
             >
               <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
-              {/* Icon */}
-              <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full mx-auto mb-4 sm:mb-6">
-                <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
+                {/* Icon */}
+                <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full mx-auto mb-4 sm:mb-6">
+                  <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
+                </div>
+
+                {/* Content */}
+                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 text-center mb-2 sm:mb-4">
+                  Reset All Data?
+                </h2>
+                <p className="text-sm sm:text-base text-gray-600 text-center mb-4 sm:mb-6">
+                  This will permanently delete all your data including:
+                </p>
+
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 space-y-2 text-xs sm:text-sm text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
+                    <span>All captured requirements and chips</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
+                    <span>All decisions and configurations</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
+                    <span>Generated timelines and manual overrides</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
+                    <span>All project data</span>
+                  </div>
+                </div>
+
+                <p className="text-xs sm:text-sm text-red-600 text-center font-medium mb-4 sm:mb-6">
+                  This action cannot be undone.
+                </p>
+
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                  <button
+                    onClick={onClose}
+                    className="flex-1 px-4 py-2.5 sm:py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all text-sm sm:text-base"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={onConfirm}
+                    className="flex-1 px-4 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-all text-sm sm:text-base"
+                  >
+                    Reset Everything
+                  </button>
+                </div>
               </div>
-
-              {/* Content */}
-              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 text-center mb-2 sm:mb-4">
-                Reset All Data?
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600 text-center mb-4 sm:mb-6">
-                This will permanently delete all your data including:
-              </p>
-
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 space-y-2 text-xs sm:text-sm text-gray-700">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
-                  <span>All captured requirements and chips</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
-                  <span>All decisions and configurations</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
-                  <span>Generated timelines and manual overrides</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
-                  <span>All project data</span>
-                </div>
-              </div>
-
-              <p className="text-xs sm:text-sm text-red-600 text-center font-medium mb-4 sm:mb-6">
-                This action cannot be undone.
-              </p>
-
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                <button
-                  onClick={onClose}
-                  className="flex-1 px-4 py-2.5 sm:py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all text-sm sm:text-base"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={onConfirm}
-                  className="flex-1 px-4 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-all text-sm sm:text-base"
-                >
-                  Reset Everything
-                </button>
-              </div>
-            </div>
             </motion.div>
           </div>
         </>

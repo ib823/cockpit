@@ -5,7 +5,7 @@
  * phases, tasks, milestones, and resources.
  */
 
-import type { GanttPhase, GanttTask, Resource, Holiday, Milestone } from '@/types/gantt-tool';
+import type { GanttPhase, GanttTask, Resource, GanttHoliday, GanttMilestone } from "@/types/gantt-tool";
 
 export interface ProjectTemplate {
   id: string;
@@ -15,14 +15,14 @@ export interface ProjectTemplate {
   thumbnail?: string; // Base64 or URL to preview image
   estimatedDuration: string; // Human-readable: "3 months", "6 weeks"
   estimatedCost?: string; // "$50k - $150k"
-  complexity: 'beginner' | 'intermediate' | 'advanced';
+  complexity: "beginner" | "intermediate" | "advanced";
   tags: string[];
 
   // Template content
   phases: TemplatePhase[];
   resources?: TemplateResource[];
   milestones?: TemplateMilestone[];
-  holidays?: Holiday[];
+  holidays?: GanttHoliday[];
 
   // Metadata
   author?: string;
@@ -70,12 +70,12 @@ export interface TemplateMilestone {
 }
 
 export type TemplateCategory =
-  | 'software'
-  | 'consulting-sap'
-  | 'construction'
-  | 'marketing'
-  | 'general'
-  | 'blank';
+  | "software"
+  | "consulting-sap"
+  | "construction"
+  | "marketing"
+  | "general"
+  | "blank";
 
 export interface TemplateCategoryInfo {
   id: TemplateCategory;
@@ -87,46 +87,46 @@ export interface TemplateCategoryInfo {
 
 export const TEMPLATE_CATEGORIES: Record<TemplateCategory, TemplateCategoryInfo> = {
   software: {
-    id: 'software',
-    name: 'Software Development',
-    description: 'Agile sprints, product launches, and feature development',
-    icon: 'Code',
-    color: '#3B82F6', // Blue
+    id: "software",
+    name: "Software Development",
+    description: "Agile sprints, product launches, and feature development",
+    icon: "Code",
+    color: "#3B82F6", // Blue
   },
-  'consulting-sap': {
-    id: 'consulting-sap',
-    name: 'SAP Consulting',
-    description: 'SAP implementations, integrations, and transformations',
-    icon: 'Briefcase',
-    color: '#8B5CF6', // Purple
+  "consulting-sap": {
+    id: "consulting-sap",
+    name: "SAP Consulting",
+    description: "SAP implementations, integrations, and transformations",
+    icon: "Briefcase",
+    color: "#8B5CF6", // Purple
   },
   construction: {
-    id: 'construction',
-    name: 'Construction',
-    description: 'Building projects, renovations, and infrastructure',
-    icon: 'HardHat',
-    color: '#F59E0B', // Amber
+    id: "construction",
+    name: "Construction",
+    description: "Building projects, renovations, and infrastructure",
+    icon: "HardHat",
+    color: "#F59E0B", // Amber
   },
   marketing: {
-    id: 'marketing',
-    name: 'Marketing',
-    description: 'Campaigns, content strategy, and event planning',
-    icon: 'Megaphone',
-    color: '#EC4899', // Pink
+    id: "marketing",
+    name: "Marketing",
+    description: "Campaigns, content strategy, and event planning",
+    icon: "Megaphone",
+    color: "#EC4899", // Pink
   },
   general: {
-    id: 'general',
-    name: 'General Purpose',
-    description: 'Versatile templates for any industry',
-    icon: 'FolderKanban',
-    color: '#10B981', // Green
+    id: "general",
+    name: "General Purpose",
+    description: "Versatile templates for any industry",
+    icon: "FolderKanban",
+    color: "#10B981", // Green
   },
   blank: {
-    id: 'blank',
-    name: 'Start from Scratch',
-    description: 'Empty project template',
-    icon: 'FilePlus',
-    color: '#6B7280', // Gray
+    id: "blank",
+    name: "Start from Scratch",
+    description: "Empty project template",
+    icon: "FilePlus",
+    color: "#6B7280", // Gray
   },
 };
 
@@ -138,17 +138,14 @@ export function getCategoryInfo(category: TemplateCategory): TemplateCategoryInf
 // Helper function to filter templates by category
 export function filterTemplatesByCategory(
   templates: ProjectTemplate[],
-  category: TemplateCategory | 'all'
+  category: TemplateCategory | "all"
 ): ProjectTemplate[] {
-  if (category === 'all') return templates;
+  if (category === "all") return templates;
   return templates.filter((t) => t.category === category);
 }
 
 // Helper function to search templates
-export function searchTemplates(
-  templates: ProjectTemplate[],
-  query: string
-): ProjectTemplate[] {
+export function searchTemplates(templates: ProjectTemplate[], query: string): ProjectTemplate[] {
   const lowerQuery = query.toLowerCase();
   return templates.filter(
     (t) =>

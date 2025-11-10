@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { sendSecurityEmail } from '@/lib/email';
-import { passwordExpiryWarningTemplate } from '@/lib/email-templates';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { sendSecurityEmail } from "@/lib/email";
+import { passwordExpiryWarningTemplate } from "@/lib/email-templates";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 /**
  * Password Expiry Warning Cron Job
@@ -29,25 +29,22 @@ export async function GET(req: Request) {
     // 1. Verify Cron Secret (Security)
     // ============================================
     const url = new URL(req.url);
-    const providedKey = url.searchParams.get('key');
+    const providedKey = url.searchParams.get("key");
     const cronSecret = process.env.CRON_SECRET_KEY;
 
     // Allow execution without key in development
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       if (!cronSecret) {
-        console.error('[PasswordExpiryCron] CRON_SECRET_KEY not configured');
+        console.error("[PasswordExpiryCron] CRON_SECRET_KEY not configured");
         return NextResponse.json(
-          { ok: false, message: 'Cron secret not configured' },
+          { ok: false, message: "Cron secret not configured" },
           { status: 500 }
         );
       }
 
       if (providedKey !== cronSecret) {
-        console.warn('[PasswordExpiryCron] Invalid cron secret provided');
-        return NextResponse.json(
-          { ok: false, message: 'Unauthorized' },
-          { status: 401 }
-        );
+        console.warn("[PasswordExpiryCron] Invalid cron secret provided");
+        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
       }
     }
 
@@ -87,61 +84,61 @@ export async function GET(req: Request) {
         where: {
           passwordExpiresAt: {
             gte: in15Days,
-            lt: in15DaysEnd
+            lt: in15DaysEnd,
           },
-          accountLockedAt: null // Don't email locked accounts
+          accountLockedAt: null, // Don't email locked accounts
         },
         select: {
           id: true,
           email: true,
-          passwordExpiresAt: true
-        }
+          passwordExpiresAt: true,
+        },
       }),
       // 10 days
       prisma.users.findMany({
         where: {
           passwordExpiresAt: {
             gte: in10Days,
-            lt: in10DaysEnd
+            lt: in10DaysEnd,
           },
-          accountLockedAt: null
+          accountLockedAt: null,
         },
         select: {
           id: true,
           email: true,
-          passwordExpiresAt: true
-        }
+          passwordExpiresAt: true,
+        },
       }),
       // 5 days
       prisma.users.findMany({
         where: {
           passwordExpiresAt: {
             gte: in5Days,
-            lt: in5DaysEnd
+            lt: in5DaysEnd,
           },
-          accountLockedAt: null
+          accountLockedAt: null,
         },
         select: {
           id: true,
           email: true,
-          passwordExpiresAt: true
-        }
+          passwordExpiresAt: true,
+        },
       }),
       // 1 day (critical)
       prisma.users.findMany({
         where: {
           passwordExpiresAt: {
             gte: in1Day,
-            lt: in1DayEnd
+            lt: in1DayEnd,
           },
-          accountLockedAt: null
+          accountLockedAt: null,
         },
         select: {
           id: true,
           email: true,
-          passwordExpiresAt: true
-        }
-      })
+          passwordExpiresAt: true,
+        },
+      }),
     ]);
 
     // ============================================
@@ -150,62 +147,62 @@ export async function GET(req: Request) {
     const results = {
       sent: 0,
       failed: 0,
-      errors: [] as string[]
+      errors: [] as string[],
     };
 
     // Helper function to send warnings
-    const sendWarnings = async (users: any[], daysRemaining: number) => {
+    const sendWarnings = async (users: { id: string; email: string; passwordExpiresAt: Date | null }[], daysRemaining: number) => {
       for (const user of users) {
+        // Skip users without password expiry date
+        if (!user.passwordExpiresAt) continue;
+
         try {
           const emailContent = passwordExpiryWarningTemplate({
             email: user.email,
             daysRemaining,
-            expiryDate: user.passwordExpiresAt!
+            expiryDate: user.passwordExpiresAt,
           });
 
-          await sendSecurityEmail(
-            user.email,
-            emailContent.subject,
-            emailContent.html
-          );
+          await sendSecurityEmail(user.email, emailContent.subject, emailContent.html);
 
           // Log email sent
           await prisma.emailLog.create({
             data: {
               to: user.email,
               subject: emailContent.subject,
-              template: 'password_expiry_warning',
-              status: 'sent',
-              provider: 'system',
+              template: "password_expiry_warning",
+              status: "sent",
+              provider: "system",
               metadata: {
                 daysRemaining,
-                expiryDate: user.passwordExpiresAt
+                expiryDate: user.passwordExpiresAt,
               },
-              sentAt: new Date()
-            }
+              sentAt: new Date(),
+            },
           });
 
           results.sent++;
-        } catch (emailError: any) {
+        } catch (emailError: unknown) {
           console.error(`[PasswordExpiryCron] Failed to send email to ${user.email}:`, emailError);
           results.failed++;
-          results.errors.push(`${user.email}: ${emailError.message}`);
+          const errorMessage = emailError instanceof Error ? emailError.message : String(emailError);
+          results.errors.push(`${user.email}: ${errorMessage}`);
 
           // Log failed email
           await prisma.emailLog.create({
             data: {
               to: user.email,
               subject: `Password Expiry Warning (${daysRemaining} days)`,
-              template: 'password_expiry_warning',
-              status: 'failed',
-              provider: 'system',
-              error: emailError.message,
+              template: "password_expiry_warning",
+              status: "failed",
+              provider: "system",
+              error: errorMessage,
               metadata: {
                 daysRemaining,
-                expiryDate: user.passwordExpiresAt
+                expiryDate: user.passwordExpiresAt,
               },
-              failedAt: new Date()
-            }
+              failedAt: new Date(),
+            },
           });
         }
       }
@@ -223,14 +220,14 @@ export async function GET(req: Request) {
     const expiredUsers = await prisma.users.findMany({
       where: {
         passwordExpiresAt: {
-          lt: today
+          lt: today,
         },
-        accountLockedAt: null
+        accountLockedAt: null,
       },
       select: {
         id: true,
-        email: true
-      }
+        email: true,
+      },
     });
 
     // Don't lock accounts yet, just force password change on next login
@@ -243,7 +240,7 @@ export async function GET(req: Request) {
 
     const summary = {
       ok: true,
-      message: 'Password expiry warnings sent successfully',
+      message: "Password expiry warnings sent successfully",
       stats: {
         warnings15Days: users15Days.length,
         warnings10Days: users10Days.length,
@@ -251,26 +248,26 @@ export async function GET(req: Request) {
         warnings1Day: users1Day.length,
         expiredPasswords: expiredUsers.length,
         totalEmailsSent: results.sent,
-        totalEmailsFailed: results.failed
+        totalEmailsFailed: results.failed,
       },
       execution: {
         duration: `${duration}ms`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
-      errors: results.errors.length > 0 ? results.errors : undefined
+      errors: results.errors.length > 0 ? results.errors : undefined,
     };
 
-    console.log('[PasswordExpiryCron] Execution summary:', summary);
+    // Log execution summary for monitoring
+    console.warn("[PasswordExpiryCron] Execution summary:", summary);
 
     return NextResponse.json(summary);
-
-  } catch (error: any) {
-    console.error('[PasswordExpiryCron] Cron job failed:', error);
+  } catch (error: unknown) {
+    console.error("[PasswordExpiryCron] Cron job failed:", error);
     return NextResponse.json(
       {
         ok: false,
-        message: 'Cron job failed',
-        error: error.message
+        message: "Cron job failed",
+        error: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

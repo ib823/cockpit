@@ -5,7 +5,7 @@
  * Provides variance analysis and recommendations
  */
 
-import type { Phase } from '@/types/core';
+import type { Phase } from "@/types/core";
 import {
   BENCHMARK_METRICS,
   INDUSTRY_FACTORS,
@@ -14,9 +14,9 @@ import {
   type ComplexityLevel,
   type ProjectCharacteristics,
   type BenchmarkMetric,
-} from './benchmark-data';
+} from "./benchmark-data";
 
-export type VarianceStatus = 'under' | 'on-track' | 'over' | 'significantly-over';
+export type VarianceStatus = "under" | "on-track" | "over" | "significantly-over";
 
 export interface BenchmarkComparison {
   metricId: string;
@@ -54,10 +54,10 @@ export interface ProjectBenchmarkReport {
  * Calculate variance status from percentage
  */
 function getVarianceStatus(variancePercent: number): VarianceStatus {
-  if (variancePercent < -20) return 'under';
-  if (variancePercent <= 10) return 'on-track';
-  if (variancePercent <= 30) return 'over';
-  return 'significantly-over';
+  if (variancePercent < -20) return "under";
+  if (variancePercent <= 10) return "on-track";
+  if (variancePercent <= 30) return "over";
+  return "significantly-over";
 }
 
 /**
@@ -68,29 +68,29 @@ function generateRecommendation(
   variance: number,
   status: VarianceStatus
 ): string | undefined {
-  if (status === 'on-track') return undefined;
+  if (status === "on-track") return undefined;
 
   const metricName = metric.name.toLowerCase();
 
-  if (status === 'under') {
-    if (metric.category === 'duration') {
+  if (status === "under") {
+    if (metric.category === "duration") {
       return `Your ${metricName} is ${Math.abs(variance).toFixed(0)}% below industry average. Ensure adequate time for quality assurance.`;
     }
-    if (metric.category === 'resources') {
+    if (metric.category === "resources") {
       return `Your team size is ${Math.abs(variance).toFixed(0)}% below industry average. Consider if resources are sufficient for scope.`;
     }
   }
 
-  if (status === 'over' || status === 'significantly-over') {
-    const severity = status === 'significantly-over' ? 'significantly' : 'moderately';
+  if (status === "over" || status === "significantly-over") {
+    const severity = status === "significantly-over" ? "significantly" : "moderately";
 
-    if (metric.category === 'duration') {
+    if (metric.category === "duration") {
       return `Your ${metricName} is ${severity} above industry average (+${variance.toFixed(0)}%). Review scope and efficiency opportunities.`;
     }
-    if (metric.category === 'resources') {
+    if (metric.category === "resources") {
       return `Your team size is ${severity} above industry average (+${variance.toFixed(0)}%). Validate resource requirements and utilization.`;
     }
-    if (metric.category === 'cost') {
+    if (metric.category === "cost") {
       return `Your cost estimate is ${severity} above industry average (+${variance.toFixed(0)}%). Review pricing and scope assumptions.`;
     }
   }
@@ -111,13 +111,11 @@ export function compareToBenchmarks(
   const complexity = determineComplexity(projectChars);
 
   // Get adjustment factors
-  const industryFactor = industry && INDUSTRY_FACTORS[industry]
-    ? INDUSTRY_FACTORS[industry].multiplier
-    : 1.0;
+  const industryFactor =
+    industry && INDUSTRY_FACTORS[industry] ? INDUSTRY_FACTORS[industry].multiplier : 1.0;
 
-  const geographicFactor = country && GEOGRAPHIC_FACTORS[country]
-    ? GEOGRAPHIC_FACTORS[country].multiplier
-    : 1.0;
+  const geographicFactor =
+    country && GEOGRAPHIC_FACTORS[country] ? GEOGRAPHIC_FACTORS[country].multiplier : 1.0;
 
   // Calculate actual metrics from phases
   const actualMetrics = calculateActualMetrics(phases, projectChars);
@@ -158,21 +156,21 @@ export function compareToBenchmarks(
   // Calculate summary
   const summary = {
     totalMetrics: comparisons.length,
-    onTrack: comparisons.filter((c) => c.status === 'on-track').length,
-    over: comparisons.filter((c) => c.status === 'over').length,
-    under: comparisons.filter((c) => c.status === 'under').length,
-    significantlyOver: comparisons.filter((c) => c.status === 'significantly-over').length,
+    onTrack: comparisons.filter((c) => c.status === "on-track").length,
+    over: comparisons.filter((c) => c.status === "over").length,
+    under: comparisons.filter((c) => c.status === "under").length,
+    significantlyOver: comparisons.filter((c) => c.status === "significantly-over").length,
   };
 
   // Determine overall status
   const overallStatus: VarianceStatus =
     summary.significantlyOver > 0
-      ? 'significantly-over'
+      ? "significantly-over"
       : summary.over > summary.onTrack
-      ? 'over'
-      : summary.under > summary.onTrack
-      ? 'under'
-      : 'on-track';
+        ? "over"
+        : summary.under > summary.onTrack
+          ? "under"
+          : "on-track";
 
   // Generate overall recommendations
   const recommendations = generateOverallRecommendations(comparisons, complexity, overallStatus);
@@ -208,8 +206,8 @@ function calculateComplexityScore(chars: ProjectCharacteristics): number {
   if (chars.integrationCount >= 10) score += 2;
   else if (chars.integrationCount >= 5) score += 1;
 
-  if (chars.customizationLevel === 'high') score += 2;
-  else if (chars.customizationLevel === 'medium') score += 1;
+  if (chars.customizationLevel === "high") score += 2;
+  else if (chars.customizationLevel === "medium") score += 1;
 
   if (chars.hasGlobalRollout) score += 1;
   if (chars.hasLegacyMigration) score += 1;
@@ -231,17 +229,23 @@ function calculateActualMetrics(
   metrics.total_duration = totalDays / 20; // Convert to months (20 working days/month)
 
   // Phase-specific durations
-  const designPhase = phases.find((p) => p.name.toLowerCase().includes('design') || p.name.toLowerCase().includes('blueprint'));
+  const designPhase = phases.find(
+    (p) => p.name.toLowerCase().includes("design") || p.name.toLowerCase().includes("blueprint")
+  );
   if (designPhase) {
     metrics.design_phase = designPhase.workingDays;
   }
 
-  const buildPhase = phases.find((p) => p.name.toLowerCase().includes('build') || p.name.toLowerCase().includes('realize'));
+  const buildPhase = phases.find(
+    (p) => p.name.toLowerCase().includes("build") || p.name.toLowerCase().includes("realize")
+  );
   if (buildPhase) {
     metrics.build_phase = buildPhase.workingDays;
   }
 
-  const testPhase = phases.find((p) => p.name.toLowerCase().includes('test') || p.name.toLowerCase().includes('uat'));
+  const testPhase = phases.find(
+    (p) => p.name.toLowerCase().includes("test") || p.name.toLowerCase().includes("uat")
+  );
   if (testPhase) {
     metrics.test_phase = testPhase.workingDays;
   }
@@ -249,12 +253,12 @@ function calculateActualMetrics(
   // Team size metrics
   const allResources = phases.flatMap((p) => p.resources || []);
   const uniqueResources = new Set(
-    allResources.map((r) => (typeof r === 'string' ? r : r.role || r.name || ''))
+    allResources.map((r) => (typeof r === "string" ? r : r.role || r.name || ""))
   );
   metrics.team_size = uniqueResources.size;
 
   // Peak team size (max resources in any single phase)
-  const peakTeamSize = Math.max(...phases.map((p) => (p.resources?.length || 0)));
+  const peakTeamSize = Math.max(...phases.map((p) => p.resources?.length || 0));
   metrics.peak_team_size = peakTeamSize;
 
   // Consultant to employee ratio (if employee count provided)
@@ -265,11 +269,11 @@ function calculateActualMetrics(
   // RICEFW per module
   if (chars.moduleCount > 0 && chars.customizationLevel) {
     const ricefwEstimate =
-      chars.customizationLevel === 'high'
+      chars.customizationLevel === "high"
         ? chars.moduleCount * 25
-        : chars.customizationLevel === 'medium'
-        ? chars.moduleCount * 10
-        : chars.moduleCount * 3;
+        : chars.customizationLevel === "medium"
+          ? chars.moduleCount * 10
+          : chars.moduleCount * 3;
 
     metrics.ricefw_per_module = ricefwEstimate / chars.moduleCount;
   }
@@ -291,43 +295,43 @@ function generateOverallRecommendations(
   const recommendations: string[] = [];
 
   // Add complexity-specific guidance
-  if (complexity === 'complex') {
+  if (complexity === "complex") {
     recommendations.push(
-      'This is a complex implementation. Ensure strong governance and risk management processes.'
+      "This is a complex implementation. Ensure strong governance and risk management processes."
     );
-  } else if (complexity === 'simple') {
+  } else if (complexity === "simple") {
     recommendations.push(
-      'This is a relatively straightforward implementation. Consider accelerated delivery approaches.'
+      "This is a relatively straightforward implementation. Consider accelerated delivery approaches."
     );
   }
 
   // Add status-specific guidance
-  if (overallStatus === 'significantly-over') {
+  if (overallStatus === "significantly-over") {
     recommendations.push(
-      'Multiple metrics significantly exceed industry benchmarks. Review scope, assumptions, and delivery approach.'
+      "Multiple metrics significantly exceed industry benchmarks. Review scope, assumptions, and delivery approach."
     );
-  } else if (overallStatus === 'over') {
+  } else if (overallStatus === "over") {
     recommendations.push(
-      'Some metrics exceed industry benchmarks. Validate estimates and identify optimization opportunities.'
+      "Some metrics exceed industry benchmarks. Validate estimates and identify optimization opportunities."
     );
-  } else if (overallStatus === 'under') {
+  } else if (overallStatus === "under") {
     recommendations.push(
-      'Some metrics are below industry benchmarks. Ensure adequate time and resources for quality delivery.'
+      "Some metrics are below industry benchmarks. Ensure adequate time and resources for quality delivery."
     );
   } else {
     recommendations.push(
-      'Your estimates align well with industry benchmarks. Proceed with confidence.'
+      "Your estimates align well with industry benchmarks. Proceed with confidence."
     );
   }
 
   // Add specific metric recommendations
   const significantVariances = comparisons.filter(
-    (c) => c.status === 'significantly-over' || (c.status === 'under' && c.variance < -30)
+    (c) => c.status === "significantly-over" || (c.status === "under" && c.variance < -30)
   );
 
   if (significantVariances.length > 0) {
     recommendations.push(
-      `Focus attention on: ${significantVariances.map((c) => c.metricName).join(', ')}`
+      `Focus attention on: ${significantVariances.map((c) => c.metricName).join(", ")}`
     );
   }
 
@@ -338,7 +342,7 @@ function generateOverallRecommendations(
  * Format variance for display
  */
 export function formatVariance(variance: number): string {
-  const prefix = variance > 0 ? '+' : '';
+  const prefix = variance > 0 ? "+" : "";
   return `${prefix}${variance.toFixed(1)}%`;
 }
 
@@ -347,14 +351,14 @@ export function formatVariance(variance: number): string {
  */
 export function getStatusColor(status: VarianceStatus): string {
   switch (status) {
-    case 'under':
-      return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400';
-    case 'on-track':
-      return 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400';
-    case 'over':
-      return 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400';
-    case 'significantly-over':
-      return 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400';
+    case "under":
+      return "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400";
+    case "on-track":
+      return "text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400";
+    case "over":
+      return "text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400";
+    case "significantly-over":
+      return "text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400";
   }
 }
 
@@ -363,13 +367,13 @@ export function getStatusColor(status: VarianceStatus): string {
  */
 export function getStatusLabel(status: VarianceStatus): string {
   switch (status) {
-    case 'under':
-      return 'Below Benchmark';
-    case 'on-track':
-      return 'On Track';
-    case 'over':
-      return 'Above Benchmark';
-    case 'significantly-over':
-      return 'Significantly Above';
+    case "under":
+      return "Below Benchmark";
+    case "on-track":
+      return "On Track";
+    case "over":
+      return "Above Benchmark";
+    case "significantly-over":
+      return "Significantly Above";
   }
 }

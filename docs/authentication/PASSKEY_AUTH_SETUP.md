@@ -160,6 +160,7 @@ npx tsx scripts/bootstrap-admin.ts admin@example.com
 Access: `/admin` (requires ADMIN role)
 
 Features:
+
 - Generate 6-digit access codes for new users
 - Codes expire in 24 hours
 - Single-use only
@@ -170,6 +171,7 @@ Features:
 ### Vercel/Production Checklist
 
 1. **Update Environment Variables:**
+
    ```bash
    WEBAUTHN_RP_ID=yourdomain.com
    WEBAUTHN_ORIGIN=https://yourdomain.com
@@ -183,11 +185,13 @@ Features:
    - Free tier: https://upstash.com
 
 3. **Run Migrations:**
+
    ```bash
    npx prisma migrate deploy
    ```
 
 4. **Bootstrap Admin:**
+
    ```bash
    npx tsx scripts/bootstrap-admin.ts admin@yourdomain.com
    ```
@@ -200,28 +204,33 @@ Features:
 ## Troubleshooting
 
 ### "Invalid or expired code"
+
 - Code expires after 24 hours
 - Code is single-use only
 - Regenerate new code via `/admin` or CLI
 
 ### "No passkey found"
+
 - User never registered a passkey
 - Database might have been reset
 - User needs access code to re-register
 
 ### WebAuthn not working
+
 - Check browser console for errors
 - Verify `WEBAUTHN_RP_ID` matches domain
 - Verify `WEBAUTHN_ORIGIN` matches URL
 - HTTPS required in production (not localhost)
 
 ### Hydration errors
+
 - Fixed with `suppressHydrationWarning` on html/body
 - Caused by browser extensions (Grammarly, etc.)
 
 ## Files Modified/Created
 
 **Created:**
+
 - `src/lib/session.ts` - JWT session management
 - `src/lib/webauthn.ts` - WebAuthn utilities
 - `src/app/login/page.tsx` - Login page (rebuilt)
@@ -235,12 +244,14 @@ Features:
 - `prisma/schema.prisma` - Auth tables added
 
 **Modified:**
+
 - `src/middleware.ts` - Added auth protection
 - `src/app/layout.tsx` - Removed NextAuth, added hydration fixes
 - `src/app/providers.tsx` - Removed SessionProvider
 - `.env.local` - Added passkey config
 
 **Removed:**
+
 - `src/lib/auth.ts` - Old NextAuth config (conflicted)
 - `src/app/api/auth/[...nextauth]/route.ts` - NextAuth handler
 
@@ -268,6 +279,7 @@ Features:
 ## Support
 
 For issues or questions:
+
 - Check browser console for errors
 - Verify environment variables
 - Check database connection

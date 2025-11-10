@@ -4,16 +4,16 @@
  * This allows re-registration with correct WebAuthn configuration
  */
 
-import { prisma } from '../src/lib/db';
+import { prisma } from "../src/lib/db";
 
 async function main() {
-  const email = 'admin@admin.com';
+  const email = "admin@admin.com";
 
   console.log(`🔍 Looking for user: ${email}`);
 
   const user = await prisma.users.findUnique({
     where: { email },
-    include: { Authenticator: true }
+    include: { Authenticator: true },
   });
 
   if (!user) {
@@ -31,7 +31,7 @@ async function main() {
 
   // Delete all authenticators for this user
   const result = await prisma.authenticator.deleteMany({
-    where: { userId: user.id }
+    where: { userId: user.id },
   });
 
   console.log(`✅ Deleted ${result.count} authenticator(s)`);
@@ -44,7 +44,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('❌ Error:', e);
+    console.error("❌ Error:", e);
     process.exit(1);
   })
   .finally(async () => {

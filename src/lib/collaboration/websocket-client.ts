@@ -4,12 +4,12 @@
  */
 
 export type CollaborationEvent =
-  | 'user_joined'
-  | 'user_left'
-  | 'cursor_moved'
-  | 'data_changed'
-  | 'comment_added'
-  | 'heartbeat';
+  | "user_joined"
+  | "user_left"
+  | "cursor_moved"
+  | "data_changed"
+  | "comment_added"
+  | "heartbeat";
 
 export interface CollaborationMessage {
   type: CollaborationEvent;
@@ -63,13 +63,13 @@ export class CollaborationClient {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
-          console.log('[Collaboration] Connected to WebSocket');
+          console.log("[Collaboration] Connected to WebSocket");
           this.isConnected = true;
           this.reconnectAttempts = 0;
 
           // Send join message
           this.send({
-            type: 'user_joined',
+            type: "user_joined",
             userId: this.currentUserId,
             userName: this.currentUserName,
             timestamp: Date.now(),
@@ -87,17 +87,17 @@ export class CollaborationClient {
             const message: CollaborationMessage = JSON.parse(event.data);
             this.handleMessage(message);
           } catch (error) {
-            console.error('[Collaboration] Failed to parse message:', error);
+            console.error("[Collaboration] Failed to parse message:", error);
           }
         };
 
         this.ws.onerror = (error) => {
-          console.error('[Collaboration] WebSocket error:', error);
+          console.error("[Collaboration] WebSocket error:", error);
           reject(error);
         };
 
         this.ws.onclose = () => {
-          console.log('[Collaboration] Disconnected from WebSocket');
+          console.log("[Collaboration] Disconnected from WebSocket");
           this.isConnected = false;
           this.stopHeartbeat();
 
@@ -123,7 +123,7 @@ export class CollaborationClient {
     if (this.ws) {
       // Send leave message
       this.send({
-        type: 'user_left',
+        type: "user_left",
         userId: this.currentUserId,
         userName: this.currentUserName,
         timestamp: Date.now(),
@@ -143,7 +143,7 @@ export class CollaborationClient {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     } else {
-      console.warn('[Collaboration] Cannot send message: Not connected');
+      console.warn("[Collaboration] Cannot send message: Not connected");
     }
   }
 
@@ -172,7 +172,7 @@ export class CollaborationClient {
    */
   updateCursor(position: CursorPosition): void {
     this.send({
-      type: 'cursor_moved',
+      type: "cursor_moved",
       userId: this.currentUserId,
       userName: this.currentUserName,
       timestamp: Date.now(),
@@ -185,7 +185,7 @@ export class CollaborationClient {
    */
   broadcastChange(changeType: string, data: any): void {
     this.send({
-      type: 'data_changed',
+      type: "data_changed",
       userId: this.currentUserId,
       userName: this.currentUserName,
       timestamp: Date.now(),
@@ -201,7 +201,7 @@ export class CollaborationClient {
    */
   addComment(comment: string, elementId?: string): void {
     this.send({
-      type: 'comment_added',
+      type: "comment_added",
       userId: this.currentUserId,
       userName: this.currentUserName,
       timestamp: Date.now(),
@@ -235,7 +235,7 @@ export class CollaborationClient {
   private startHeartbeat(): void {
     this.heartbeatInterval = setInterval(() => {
       this.send({
-        type: 'heartbeat',
+        type: "heartbeat",
         userId: this.currentUserId,
         userName: this.currentUserName,
         timestamp: Date.now(),
@@ -257,11 +257,11 @@ export class CollaborationClient {
    * Get WebSocket URL based on environment
    */
   private getWebSocketUrl(): string {
-    if (typeof window === 'undefined') {
-      throw new Error('WebSocket can only be used in browser');
+    if (typeof window === "undefined") {
+      throw new Error("WebSocket can only be used in browser");
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = process.env.NEXT_PUBLIC_WS_URL || window.location.host;
     return `${protocol}//${host}/api/ws/collaboration?roomId=${this.roomId}`;
   }
@@ -272,14 +272,14 @@ export class CollaborationClient {
  */
 export function generateUserColor(): string {
   const colors = [
-    '#FF6B6B', // Red
-    '#4ECDC4', // Teal
-    '#45B7D1', // Blue
-    '#FFA07A', // Orange
-    '#98D8C8', // Mint
-    '#F7DC6F', // Yellow
-    '#BB8FCE', // Purple
-    '#85C1E2', // Light Blue
+    "#FF6B6B", // Red
+    "#4ECDC4", // Teal
+    "#45B7D1", // Blue
+    "#FFA07A", // Orange
+    "#98D8C8", // Mint
+    "#F7DC6F", // Yellow
+    "#BB8FCE", // Purple
+    "#85C1E2", // Light Blue
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 }
@@ -294,7 +294,7 @@ export function getCollaborationClient(
   userName: string,
   roomId: string
 ): CollaborationClient {
-  if (!collaborationClientInstance || collaborationClientInstance['roomId'] !== roomId) {
+  if (!collaborationClientInstance || collaborationClientInstance["roomId"] !== roomId) {
     if (collaborationClientInstance) {
       collaborationClientInstance.disconnect();
     }

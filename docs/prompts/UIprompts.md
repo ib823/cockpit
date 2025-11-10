@@ -1,7 +1,9 @@
 # Keystone Development - Phase 1: Foundation & Formula Engine
 
 ## Context
+
 You are building an SAP S/4HANA estimation and project planning web app. Tech stack:
+
 - Next.js 15 (App Router) + React 19 + TypeScript
 - Prisma + PostgreSQL
 - Ant Design 5.27.4
@@ -9,6 +11,7 @@ You are building an SAP S/4HANA estimation and project planning web app. Tech st
 - Vitest + Playwright (testing)
 
 **Current codebase state:**
+
 - Basic Next.js scaffold exists in `/src`
 - Prisma client configured with User model
 - NextAuth working
@@ -21,7 +24,8 @@ You are building an SAP S/4HANA estimation and project planning web app. Tech st
 **Create/update** `prisma/schema.prisma`:
 
 Add these models (reference Addendum Section 10 for complete schema):
-```prisma
+
+````prisma
 model Organization {
   id       String   @id @default(cuid())
   name     String
@@ -256,9 +260,9 @@ export class FormulaEngine {
     const itemCoefficients = selectedItems
       .filter(item => item.complexityMetrics?.defaultTier !== 'D') // Tier D excluded
       .reduce((sum, item) => sum + (item.complexityMetrics?.coefficient || 0), 0);
-    
+
     const integrationFactor = integrations * 0.02;
-    
+
     return itemCoefficients + integrationFactor;
   }
 
@@ -270,10 +274,10 @@ export class FormulaEngine {
     const BASELINE_FORMS = 4;
     const extraForms = Math.max(0, customForms - BASELINE_FORMS);
     const formsFactor = extraForms * 0.01;
-    
+
     const fitGap = Math.max(0, 1 - fitToStandard);
     const fitFactor = fitGap * 0.25;
-    
+
     return formsFactor + fitFactor;
   }
 
@@ -285,7 +289,7 @@ export class FormulaEngine {
     const entitiesFactor = Math.max(0, legalEntities - 1) * 0.03;
     const countriesFactor = Math.max(0, countries - 1) * 0.05;
     const languagesFactor = Math.max(0, languages - 1) * 0.02;
-    
+
     return entitiesFactor + countriesFactor + languagesFactor;
   }
 
@@ -316,12 +320,12 @@ export class FormulaEngine {
 
     // Initial estimate without PMO
     D = ((E_FT + E_fixed) / capacity) * inputs.overlapFactor;
-    
+
     for (let i = 0; i < MAX_ITERATIONS; i++) {
       const D_prev = D;
       E_PMO = D * PMO_MONTHLY_RATE;
       D = ((E_FT + E_fixed + E_PMO) / capacity) * inputs.overlapFactor;
-      
+
       // Check convergence
       if (Math.abs(D - D_prev) < CONVERGENCE_THRESHOLD) {
         break;
@@ -408,11 +412,11 @@ interface EstimatorState {
   fte: number;
   utilization: number;
   overlapFactor: number;
-  
+
   // Results
   results: EstimatorResults | null;
   isCalculating: boolean;
-  
+
   // Actions
   setProfile: (profile: Profile) => void;
   setL3Items: (items: L3ScopeItem[]) => void;
@@ -450,7 +454,7 @@ export const useEstimatorStore = create<EstimatorState>()(
   devtools(
     (set) => ({
       ...initialState,
-      
+
       setProfile: (profile) => set({ profile }),
       setL3Items: (items) => set({ selectedL3Items: items }),
       setIntegrations: (count) => set({ integrations: count }),
@@ -464,7 +468,7 @@ export const useEstimatorStore = create<EstimatorState>()(
       setOverlapFactor: (value) => set({ overlapFactor: value }),
       setResults: (results) => set({ results }),
       setCalculating: (isCalculating) => set({ isCalculating }),
-      
+
       reset: () => set(initialState),
     }),
     { name: 'EstimatorStore' }
@@ -491,7 +495,7 @@ describe('FormulaEngine', () => {
         { complexityMetrics: { defaultTier: 'A', coefficient: 0.006 } },
         { complexityMetrics: { defaultTier: 'B', coefficient: 0.008 } },
       ] as any;
-      
+
       const Sb = engine.calculateScopeBreadth(items, 0);
       expect(Sb).toBeCloseTo(0.014, 3);
     });
@@ -506,7 +510,7 @@ describe('FormulaEngine', () => {
         { complexityMetrics: { defaultTier: 'A', coefficient: 0.006 } },
         { complexityMetrics: { defaultTier: 'D', coefficient: null } },
       ] as any;
-      
+
       const Sb = engine.calculateScopeBreadth(items, 0);
       expect(Sb).toBeCloseTo(0.006, 3);
     });
@@ -559,11 +563,11 @@ describe('FormulaEngine', () => {
 
       // Manually inject Sb=0.15 by adding items with total coefficient 0.15
       const mockItems = [
-        { 
+        {
           id: '1',
           l3Code: 'J58',
           l3Name: 'Accounting',
-          complexityMetrics: { defaultTier: 'C', coefficient: 0.15 } 
+          complexityMetrics: { defaultTier: 'C', coefficient: 0.15 }
         }
       ] as any;
       inputs.selectedL3Items = mockItems;
@@ -600,7 +604,7 @@ describe('FormulaEngine', () => {
       expect(results.phases).toHaveLength(5);
       expect(results.phases[0].phaseName).toBe('Prepare');
       expect(results.phases[4].phaseName).toBe('Run');
-      
+
       // Sum should equal total
       const sumEffort = results.phases.reduce((sum, p) => sum + p.effortMD, 0);
       expect(sumEffort).toBeCloseTo(results.totalMD, 1);
@@ -757,9 +761,10 @@ Tech stack: Next.js 15 + React 19 + TypeScript + Ant Design 5.27.4 + Zustand + T
 **Install:**
 ```bash
 npm install react-window react-virtualized-auto-sizer
-```
+````
 
 **Create** `components/estimator/L3CatalogModal.tsx`:
+
 - Virtual scrolling (renders only visible ~20 items)
 - Search bar with real-time filter
 - Tier badges (A/B/C/D with colors)
@@ -769,6 +774,7 @@ npm install react-window react-virtualized-auto-sizer
 - "Apply Selection" button
 
 **Create** `components/estimator/VirtualizedL3List.tsx`:
+
 ```typescript
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
@@ -782,13 +788,13 @@ interface L3Item {
   lob: { lobName: string };
 }
 
-export function VirtualizedL3List({ 
-  items, 
-  selectedIds, 
-  onToggle 
-}: { 
-  items: L3Item[]; 
-  selectedIds: Set<string>; 
+export function VirtualizedL3List({
+  items,
+  selectedIds,
+  onToggle
+}: {
+  items: L3Item[];
+  selectedIds: Set<string>;
   onToggle: (id: string) => void;
 }) {
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
@@ -819,6 +825,7 @@ export function VirtualizedL3List({
 ### 2. Input Controls Panel
 
 **Create** `components/estimator/InputPanel.tsx`:
+
 - Profile selector (dropdown with Malaysia Mid-Market default)
 - Scope Breadth section:
   - "Select L3 Items" button → opens modal
@@ -847,13 +854,14 @@ export function VirtualizedL3List({
 ### 3. Results Panel
 
 **Create** `components/estimator/ResultsPanel.tsx`:
+
 ```typescript
 import { Card, Statistic, Table, Button, Collapse } from 'antd';
 import { useEstimatorStore } from '@/stores/estimator-store';
 
 export function ResultsPanel() {
   const results = useEstimatorStore(state => state.results);
-  
+
   if (!results) return <Card>Configure inputs to see estimate</Card>;
 
   const phaseColumns = [
@@ -873,9 +881,9 @@ export function ResultsPanel() {
       </Card>
 
       <Card title="Phase Breakdown">
-        <Table 
-          dataSource={results.phases} 
-          columns={phaseColumns} 
+        <Table
+          dataSource={results.phases}
+          columns={phaseColumns}
           pagination={false}
           rowKey="phaseName"
         />
@@ -908,11 +916,13 @@ D_final = ${results.durationMonths.toFixed(2)} months`}
 ### 4. TanStack Query Integration
 
 **Install:**
+
 ```bash
 npm install @tanstack/react-query
 ```
 
 **Create** `app/providers.tsx`:
+
 ```typescript
 'use client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -937,15 +947,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
 ```
 
 **Create** `hooks/use-l3-catalog.ts`:
+
 ```typescript
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 
 export function useL3Catalog() {
   return useQuery({
-    queryKey: ['l3-catalog'],
+    queryKey: ["l3-catalog"],
     queryFn: async () => {
-      const res = await fetch('/api/l3-catalog');
-      if (!res.ok) throw new Error('Failed to fetch L3 catalog');
+      const res = await fetch("/api/l3-catalog");
+      if (!res.ok) throw new Error("Failed to fetch L3 catalog");
       return res.json();
     },
   });
@@ -953,15 +964,16 @@ export function useL3Catalog() {
 ```
 
 **Create** `hooks/use-scenarios.ts`:
+
 ```typescript
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useScenarios() {
   return useQuery({
-    queryKey: ['scenarios'],
+    queryKey: ["scenarios"],
     queryFn: async () => {
-      const res = await fetch('/api/scenarios');
-      if (!res.ok) throw new Error('Failed to fetch scenarios');
+      const res = await fetch("/api/scenarios");
+      if (!res.ok) throw new Error("Failed to fetch scenarios");
       return res.json();
     },
   });
@@ -969,19 +981,19 @@ export function useScenarios() {
 
 export function useSaveScenario() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (scenario: any) => {
-      const res = await fetch('/api/scenarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/scenarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(scenario),
       });
-      if (!res.ok) throw new Error('Failed to save scenario');
+      if (!res.ok) throw new Error("Failed to save scenario");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scenarios'] });
+      queryClient.invalidateQueries({ queryKey: ["scenarios"] });
     },
   });
 }
@@ -990,10 +1002,11 @@ export function useSaveScenario() {
 ### 5. Live Calculation Hook
 
 **Create** `hooks/use-live-calculation.ts`:
+
 ```typescript
-import { useEffect } from 'react';
-import { useEstimatorStore } from '@/stores/estimator-store';
-import { useFormulaWorker } from '@/lib/estimator/use-formula-worker';
+import { useEffect } from "react";
+import { useEstimatorStore } from "@/stores/estimator-store";
+import { useFormulaWorker } from "@/lib/estimator/use-formula-worker";
 
 export function useLiveCalculation() {
   const worker = useFormulaWorker();
@@ -1018,7 +1031,7 @@ export function useLiveCalculation() {
 
     store.setCalculating(true);
 
-    worker.calculateTotal(inputs, store.profile).then(results => {
+    worker.calculateTotal(inputs, store.profile).then((results) => {
       store.setResults(results);
       store.setCalculating(false);
     });
@@ -1041,6 +1054,7 @@ export function useLiveCalculation() {
 ### 6. Main Estimator Page
 
 **Update** `app/estimator/page.tsx`:
+
 ```typescript
 'use client';
 import { InputPanel } from '@/components/estimator/InputPanel';
@@ -1066,6 +1080,7 @@ export default function EstimatorPage() {
 ```
 
 ## Acceptance Criteria
+
 ✅ L3 modal opens in <500ms  
 ✅ Virtual scrolling renders only ~20 items  
 ✅ Search filters 293 items in <100ms  
@@ -1073,9 +1088,10 @@ export default function EstimatorPage() {
 ✅ All input controls connected to Zustand store  
 ✅ Formula transparency panel shows coefficients  
 ✅ TanStack Query caches L3 catalog  
-✅ Save scenario button triggers mutation  
+✅ Save scenario button triggers mutation
 
 ## Files to Create/Modify
+
 - `components/estimator/L3CatalogModal.tsx` (CREATE)
 - `components/estimator/VirtualizedL3List.tsx` (CREATE)
 - `components/estimator/TierBadge.tsx` (CREATE)
@@ -1093,6 +1109,7 @@ export default function EstimatorPage() {
 - `app/layout.tsx` (UPDATE - wrap with Providers)
 
 ## Validation Steps
+
 ```bash
 # 1. Check virtual scrolling performance
 npm run dev
@@ -1119,16 +1136,19 @@ npm run storybook
 ```
 
 ## Documents to Attach
+
 1. SAP_COCKPIT_UX_ARCHITECTURE_SPECIFICATION.md (Section 3.1 - Estimator Screen)
 2. ADDENDUM.md (Section 3.4 - Virtual Scrolling example)
 
 ## Output Format
+
 1. All component files (complete code)
 2. npm install commands
 3. Summary with file tree
 4. Test results
 5. Known issues
-```
+
+````
 
 ---
 
@@ -1153,9 +1173,10 @@ Tech stack: Next.js 15 + TypeScript + vis-timeline 7.7.x + Zustand
 ```bash
 npm install vis-timeline vis-data
 npm install -D @types/vis-timeline @types/vis-data
-```
+````
 
 **Create** `components/timeline/VisGanttChart.tsx`:
+
 ```typescript
 'use client';
 import { useEffect, useRef } from 'react';
@@ -1183,7 +1204,7 @@ export function VisGanttChart({ phases, startDate, onPhaseUpdate, editable = tru
       const durationDays = phase.durationMonths * 22; // Working days
       const end = new Date(start);
       end.setDate(end.getDate() + durationDays);
-      
+
       currentDate = new Date(end);
 
       return {
@@ -1231,17 +1252,34 @@ export function VisGanttChart({ phases, startDate, onPhaseUpdate, editable = tru
 ```
 
 **Create** `app/globals.css` (add styles):
+
 ```css
-.phase-prepare { background-color: #91d5ff; border-color: #40a9ff; }
-.phase-explore { background-color: #b7eb8f; border-color: #52c41a; }
-.phase-realize { background-color: #ffd591; border-color: #fa8c16; }
-.phase-deploy { background-color: #ffadd2; border-color: #eb2f96; }
-.phase-run { background-color: #d3adf7; border-color: #722ed1; }
+.phase-prepare {
+  background-color: #91d5ff;
+  border-color: #40a9ff;
+}
+.phase-explore {
+  background-color: #b7eb8f;
+  border-color: #52c41a;
+}
+.phase-realize {
+  background-color: #ffd591;
+  border-color: #fa8c16;
+}
+.phase-deploy {
+  background-color: #ffadd2;
+  border-color: #eb2f96;
+}
+.phase-run {
+  background-color: #d3adf7;
+  border-color: #722ed1;
+}
 ```
 
 ### 2. Resource Allocation Table
 
 **Create** `components/timeline/ResourceTable.tsx`:
+
 ```typescript
 import { Table, InputNumber, Button } from 'antd';
 import { useState } from 'react';
@@ -1254,10 +1292,10 @@ interface Resource {
   totalCost: number;
 }
 
-export function ResourceTable({ 
+export function ResourceTable({
   initialResources,
-  onResourcesChange 
-}: { 
+  onResourcesChange
+}: {
   initialResources: Resource[];
   onResourcesChange: (resources: Resource[]) => void;
 }) {
@@ -1265,15 +1303,15 @@ export function ResourceTable({
 
   const columns = [
     { title: 'Role', dataIndex: 'role', key: 'role' },
-    { 
-      title: 'FTE', 
-      dataIndex: 'fte', 
+    {
+      title: 'FTE',
+      dataIndex: 'fte',
       key: 'fte',
       render: (value: number, record: Resource, index: number) => (
-        <InputNumber 
-          min={0.1} 
-          max={10} 
-          step={0.1} 
+        <InputNumber
+          min={0.1}
+          max={10}
+          step={0.1}
           value={value}
           onChange={(val) => {
             const updated = [...resources];
@@ -1285,11 +1323,11 @@ export function ResourceTable({
         />
       )
     },
-    { 
-      title: 'Rate/Day', 
-      dataIndex: 'ratePerDay', 
+    {
+      title: 'Rate/Day',
+      dataIndex: 'ratePerDay',
       key: 'rate',
-      render: (v: number) => `$${v}` 
+      render: (v: number) => `$${v}`
     },
     { title: 'Phases', dataIndex: 'phases', key: 'phases', render: (p: string[]) => p.join(', ') },
     { title: 'Total Cost', dataIndex: 'totalCost', key: 'cost', render: (v: number) => `$${v.toLocaleString()}` },
@@ -1297,9 +1335,9 @@ export function ResourceTable({
 
   return (
     <div>
-      <Table 
-        dataSource={resources} 
-        columns={columns} 
+      <Table
+        dataSource={resources}
+        columns={columns}
         pagination={false}
         rowKey="role"
         summary={() => {
@@ -1330,10 +1368,11 @@ function calculateCost(resource: Resource): number {
 ### 3. Timeline Store
 
 **Create** `stores/timeline-store.ts`:
+
 ```typescript
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import type { PhaseBreakdown } from '@/lib/estimator/types';
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import type { PhaseBreakdown } from "@/lib/estimator/types";
 
 interface Resource {
   role: string;
@@ -1349,7 +1388,7 @@ interface TimelineState {
   phases: PhaseBreakdown[];
   resources: Resource[];
   isLocked: boolean;
-  
+
   setStartDate: (date: Date) => void;
   setPhases: (phases: PhaseBreakdown[]) => void;
   setResources: (resources: Resource[]) => void;
@@ -1358,11 +1397,35 @@ interface TimelineState {
 }
 
 const defaultResources: Resource[] = [
-  { role: 'Project Manager', fte: 1.0, ratePerDay: 180, phases: ['Prepare', 'Explore', 'Realize', 'Deploy', 'Run'], totalCost: 0 },
-  { role: 'Functional Consultant', fte: 2.5, ratePerDay: 150, phases: ['Explore', 'Realize', 'Deploy'], totalCost: 0 },
-  { role: 'Technical Consultant', fte: 1.6, ratePerDay: 160, phases: ['Realize', 'Deploy'], totalCost: 0 },
-  { role: 'Basis Consultant', fte: 0.5, ratePerDay: 140, phases: ['Explore', 'Realize', 'Deploy'], totalCost: 0 },
-  { role: 'Change Manager', fte: 0.5, ratePerDay: 120, phases: ['Deploy', 'Run'], totalCost: 0 },
+  {
+    role: "Project Manager",
+    fte: 1.0,
+    ratePerDay: 180,
+    phases: ["Prepare", "Explore", "Realize", "Deploy", "Run"],
+    totalCost: 0,
+  },
+  {
+    role: "Functional Consultant",
+    fte: 2.5,
+    ratePerDay: 150,
+    phases: ["Explore", "Realize", "Deploy"],
+    totalCost: 0,
+  },
+  {
+    role: "Technical Consultant",
+    fte: 1.6,
+    ratePerDay: 160,
+    phases: ["Realize", "Deploy"],
+    totalCost: 0,
+  },
+  {
+    role: "Basis Consultant",
+    fte: 0.5,
+    ratePerDay: 140,
+    phases: ["Explore", "Realize", "Deploy"],
+    totalCost: 0,
+  },
+  { role: "Change Manager", fte: 0.5, ratePerDay: 120, phases: ["Deploy", "Run"], totalCost: 0 },
 ];
 
 export const useTimelineStore = create<TimelineState>()(
@@ -1373,9 +1436,9 @@ export const useTimelineStore = create<TimelineState>()(
       phases: [],
       resources: defaultResources,
       isLocked: false,
-      
+
       setStartDate: (date) => set({ startDate: date }),
-      
+
       setPhases: (phases) => {
         set({ phases });
         // Calculate end date
@@ -1386,18 +1449,18 @@ export const useTimelineStore = create<TimelineState>()(
           set({ endDate: end });
         }
       },
-      
+
       setResources: (resources) => set({ resources }),
-      
+
       toggleLock: () => set((state) => ({ isLocked: !state.isLocked })),
-      
+
       syncFromEstimator: (phases) => {
         if (!get().isLocked) {
           set({ phases });
         }
       },
     }),
-    { name: 'TimelineStore' }
+    { name: "TimelineStore" }
   )
 );
 ```
@@ -1405,36 +1468,45 @@ export const useTimelineStore = create<TimelineState>()(
 ### 4. Bidirectional Sync
 
 **Update** `hooks/use-live-calculation.ts`:
+
 ```typescript
-import { useEffect } from 'react';
-import { useEstimatorStore } from '@/stores/estimator-store';
-import { useTimelineStore } from '@/stores/timeline-store';
-import { useFormulaWorker } from '@/lib/estimator/use-formula-worker';
+import { useEffect } from "react";
+import { useEstimatorStore } from "@/stores/estimator-store";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { useFormulaWorker } from "@/lib/estimator/use-formula-worker";
 
 export function useLiveCalculation() {
   const worker = useFormulaWorker();
   const estimatorStore = useEstimatorStore();
   const timelineStore = useTimelineStore();
 
-  useEffect(() => {
-    if (!worker) return;
+  useEffect(
+    () => {
+      if (!worker) return;
 
-    const inputs = { /* ... */ };
-    
-    estimatorStore.setCalculating(true);
+      const inputs = {
+        /* ... */
+      };
 
-    worker.calculateTotal(inputs, estimatorStore.profile).then(results => {
-      estimatorStore.setResults(results);
-      estimatorStore.setCalculating(false);
-      
-      // Sync to timeline
-      timelineStore.syncFromEstimator(results.phases);
-    });
-  }, [/* dependencies */]);
+      estimatorStore.setCalculating(true);
+
+      worker.calculateTotal(inputs, estimatorStore.profile).then((results) => {
+        estimatorStore.setResults(results);
+        estimatorStore.setCalculating(false);
+
+        // Sync to timeline
+        timelineStore.syncFromEstimator(results.phases);
+      });
+    },
+    [
+      /* dependencies */
+    ]
+  );
 }
 ```
 
 **Create** `components/timeline/SyncControls.tsx`:
+
 ```typescript
 import { Button, Switch, Space } from 'antd';
 import { LockOutlined, UnlockOutlined, SyncOutlined } from '@ant-design/icons';
@@ -1442,7 +1514,7 @@ import { useTimelineStore } from '@/stores/timeline-store';
 
 export function SyncControls() {
   const { isLocked, toggleLock } = useTimelineStore();
-  
+
   return (
     <Space>
       <Switch
@@ -1461,19 +1533,20 @@ export function SyncControls() {
 ### 5. Holiday Calendar Support
 
 **Create** `app/api/holidays/route.ts`:
+
 ```typescript
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const country = searchParams.get('country');
-  const year = searchParams.get('year');
+  const country = searchParams.get("country");
+  const year = searchParams.get("year");
 
   if (!country || !year) {
-    return Response.json({ error: 'Missing country or year' }, { status: 400 });
+    return Response.json({ error: "Missing country or year" }, { status: 400 });
   }
 
   // Fetch from database or hardcoded calendars
   const holidays = await prisma.holidayCalendar.findUnique({
-    where: { country_year: { country, year: parseInt(year) } }
+    where: { country_year: { country, year: parseInt(year) } },
   });
 
   return Response.json(holidays?.holidays || []);
@@ -1481,18 +1554,19 @@ export async function GET(req: Request) {
 ```
 
 **Seed holidays** in `prisma/seed.ts`:
+
 ```typescript
 const malaysiaHolidays2025 = [
-  { date: '2025-01-25', name: 'Chinese New Year' },
-  { date: '2025-03-31', name: 'Hari Raya Aidilfitri' },
-  { date: '2025-08-31', name: 'Merdeka Day' },
-  { date: '2025-09-16', name: 'Malaysia Day' },
-  { date: '2025-12-25', name: 'Christmas' },
+  { date: "2025-01-25", name: "Chinese New Year" },
+  { date: "2025-03-31", name: "Hari Raya Aidilfitri" },
+  { date: "2025-08-31", name: "Merdeka Day" },
+  { date: "2025-09-16", name: "Malaysia Day" },
+  { date: "2025-12-25", name: "Christmas" },
 ];
 
 await prisma.holidayCalendar.create({
   data: {
-    country: 'MY',
+    country: "MY",
     year: 2025,
     holidays: malaysiaHolidays2025,
   },
@@ -1502,6 +1576,7 @@ await prisma.holidayCalendar.create({
 ### 6. Main Timeline Page
 
 **Create** `app/timeline/page.tsx`:
+
 ```typescript
 'use client';
 import { useState } from 'react';
@@ -1527,10 +1602,10 @@ export default function TimelinePage() {
           <DatePicker onChange={handleStartDateChange} placeholder="Select start date" />
           <SyncControls />
         </div>
-        
+
         {startDate && phases.length > 0 ? (
-          <VisGanttChart 
-            phases={phases} 
+          <VisGanttChart
+            phases={phases}
             startDate={startDate}
             onPhaseUpdate={setPhases}
           />
@@ -1542,7 +1617,7 @@ export default function TimelinePage() {
       </Card>
 
       <Card title="Resource Allocation">
-        <ResourceTable 
+        <ResourceTable
           initialResources={resources}
           onResourcesChange={setResources}
         />
@@ -1558,15 +1633,17 @@ export default function TimelinePage() {
 ```
 
 ## Acceptance Criteria
+
 ✅ Gantt renders 5 SAP Activate phases  
 ✅ Dragging phase updates duration  
 ✅ Resource FTE changes sync to estimator  
 ✅ Lock prevents auto-sync  
 ✅ Holiday calendar excludes weekends  
 ✅ Start date picker works  
-✅ vis-timeline compiles without errors  
+✅ vis-timeline compiles without errors
 
 ## Files to Create/Modify
+
 - `components/timeline/VisGanttChart.tsx` (CREATE)
 - `components/timeline/ResourceTable.tsx` (CREATE)
 - `components/timeline/SyncControls.tsx` (CREATE)
@@ -1579,6 +1656,7 @@ export default function TimelinePage() {
 - `hooks/use-live-calculation.ts` (UPDATE - add sync)
 
 ## Validation Steps
+
 ```bash
 # 1. Test Gantt rendering
 npm run dev
@@ -1605,15 +1683,18 @@ curl http://localhost:3000/api/holidays?country=MY&year=2025
 ```
 
 ## Documents to Attach
+
 1. SAP_COCKPIT_UX_ARCHITECTURE_SPECIFICATION.md (Section 3.3 - Timeline)
 2. ADDENDUM.md (Section 3.3 - vis-timeline implementation)
 
 ## Output Format
+
 1. All component files
 2. npm install commands
 3. Summary
 4. Test results
-```
+
+````
 
 ---
 
@@ -1656,11 +1737,11 @@ export interface PERTResults {
 export class PERTEngine {
   calculate(inputs: PERTInputs): PERTResults {
     const { optimistic: O, mostLikely: M, pessimistic: P } = inputs;
-    
+
     const expected = (O + 4 * M + P) / 6;
     const stdDev = (P - O) / 6;
     const variance = stdDev ** 2;
-    
+
     return {
       expected,
       standardDeviation: stdDev,
@@ -1682,9 +1763,9 @@ export class PERTEngine {
       medium: { O: 0.80, M: 1.0, P: 1.30 },
       high: { O: 0.70, M: 1.0, P: 1.50 },
     };
-    
+
     const mult = multipliers[confidenceLevel];
-    
+
     return this.calculate({
       optimistic: baselineMonths * mult.O,
       mostLikely: baselineMonths * mult.M,
@@ -1694,9 +1775,10 @@ export class PERTEngine {
 }
 
 export const pertEngine = new PERTEngine();
-```
+````
 
 **Create** `components/estimator/ConfidenceRibbon.tsx`:
+
 ```typescript
 import { Card, Statistic, Progress, Alert, Select } from 'antd';
 import { useState } from 'react';
@@ -1706,11 +1788,11 @@ import { useEstimatorStore } from '@/stores/estimator-store';
 export function ConfidenceRibbon() {
   const [confidence, setConfidence] = useState<'low' | 'medium' | 'high'>('medium');
   const results = useEstimatorStore(state => state.results);
-  
+
   if (!results) return null;
-  
+
   const pertResults = pertEngine.addUncertainty(results.durationMonths, confidence);
-  
+
   return (
     <Card title="Uncertainty Analysis">
       <div className="mb-4">
@@ -1720,28 +1802,28 @@ export function ConfidenceRibbon() {
           <Select.Option value="high">High Uncertainty</Select.Option>
         </Select>
       </div>
-      
+
       <div className="grid grid-cols-3 gap-4 mb-4">
-        <Statistic 
-          title="Best Case (P10)" 
-          value={pertResults.expected - 1.28 * pertResults.standardDeviation} 
-          suffix="mo" 
-          precision={1} 
+        <Statistic
+          title="Best Case (P10)"
+          value={pertResults.expected - 1.28 * pertResults.standardDeviation}
+          suffix="mo"
+          precision={1}
         />
-        <Statistic 
-          title="Expected (P50)" 
-          value={pertResults.expected} 
-          suffix="mo" 
-          precision={1} 
+        <Statistic
+          title="Expected (P50)"
+          value={pertResults.expected}
+          suffix="mo"
+          precision={1}
         />
-        <Statistic 
-          title="Buffer (P90)" 
-          value={pertResults.confidenceInterval.p90} 
-          suffix="mo" 
-          precision={1} 
+        <Statistic
+          title="Buffer (P90)"
+          value={pertResults.confidenceInterval.p90}
+          suffix="mo"
+          precision={1}
         />
       </div>
-      
+
       <Alert
         message="Risk Assessment"
         description={`There's a 90% chance the project will complete within ${pertResults.confidenceInterval.p90.toFixed(1)} months.`}
@@ -1756,9 +1838,10 @@ export function ConfidenceRibbon() {
 ### 2. Sensitivity Analysis (Tornado Chart)
 
 **Create** `lib/estimator/sensitivity-analysis.ts`:
+
 ```typescript
-import { formulaEngine } from './formula-engine';
-import type { EstimatorInputs, Profile } from './types';
+import { formulaEngine } from "./formula-engine";
+import type { EstimatorInputs, Profile } from "./types";
 
 export interface SensitivityResult {
   variable: string;
@@ -1773,54 +1856,57 @@ export function performSensitivity(
   profile: Profile
 ): SensitivityResult[] {
   const variables = [
-    { name: 'FTE', field: 'fte' as const, delta: 0.2 },
-    { name: 'Scope Breadth', field: 'selectedL3Items' as const, delta: 0.2 },
-    { name: 'Utilization', field: 'utilization' as const, delta: 0.1 },
-    { name: 'Overlap Factor', field: 'overlapFactor' as const, delta: 0.1 },
-    { name: 'Integrations', field: 'integrations' as const, delta: 2 },
+    { name: "FTE", field: "fte" as const, delta: 0.2 },
+    { name: "Scope Breadth", field: "selectedL3Items" as const, delta: 0.2 },
+    { name: "Utilization", field: "utilization" as const, delta: 0.1 },
+    { name: "Overlap Factor", field: "overlapFactor" as const, delta: 0.1 },
+    { name: "Integrations", field: "integrations" as const, delta: 2 },
   ];
 
   const baseline = formulaEngine.calculateTotal(baseInputs, profile);
 
-  return variables.map(v => {
-    let lowInputs = { ...baseInputs };
-    let highInputs = { ...baseInputs };
+  return variables
+    .map((v) => {
+      let lowInputs = { ...baseInputs };
+      let highInputs = { ...baseInputs };
 
-    if (v.field === 'fte') {
-      lowInputs.fte = baseInputs.fte * (1 - v.delta);
-      highInputs.fte = baseInputs.fte * (1 + v.delta);
-    } else if (v.field === 'utilization') {
-      lowInputs.utilization = Math.max(0.5, baseInputs.utilization * (1 - v.delta));
-      highInputs.utilization = Math.min(1.0, baseInputs.utilization * (1 + v.delta));
-    } else if (v.field === 'overlapFactor') {
-      lowInputs.overlapFactor = Math.max(0.6, baseInputs.overlapFactor * (1 - v.delta));
-      highInputs.overlapFactor = Math.min(1.0, baseInputs.overlapFactor * (1 + v.delta));
-    } else if (v.field === 'integrations') {
-      lowInputs.integrations = Math.max(0, baseInputs.integrations - v.delta);
-      highInputs.integrations = baseInputs.integrations + v.delta;
-    } else if (v.field === 'selectedL3Items') {
-      // Simulate adding/removing 20% of items
-      const itemCount = baseInputs.selectedL3Items.length;
-      const delta = Math.floor(itemCount * v.delta);
-      lowInputs.selectedL3Items = baseInputs.selectedL3Items.slice(0, itemCount - delta);
-      highInputs.selectedL3Items = [...baseInputs.selectedL3Items]; // Keep same for high
-    }
+      if (v.field === "fte") {
+        lowInputs.fte = baseInputs.fte * (1 - v.delta);
+        highInputs.fte = baseInputs.fte * (1 + v.delta);
+      } else if (v.field === "utilization") {
+        lowInputs.utilization = Math.max(0.5, baseInputs.utilization * (1 - v.delta));
+        highInputs.utilization = Math.min(1.0, baseInputs.utilization * (1 + v.delta));
+      } else if (v.field === "overlapFactor") {
+        lowInputs.overlapFactor = Math.max(0.6, baseInputs.overlapFactor * (1 - v.delta));
+        highInputs.overlapFactor = Math.min(1.0, baseInputs.overlapFactor * (1 + v.delta));
+      } else if (v.field === "integrations") {
+        lowInputs.integrations = Math.max(0, baseInputs.integrations - v.delta);
+        highInputs.integrations = baseInputs.integrations + v.delta;
+      } else if (v.field === "selectedL3Items") {
+        // Simulate adding/removing 20% of items
+        const itemCount = baseInputs.selectedL3Items.length;
+        const delta = Math.floor(itemCount * v.delta);
+        lowInputs.selectedL3Items = baseInputs.selectedL3Items.slice(0, itemCount - delta);
+        highInputs.selectedL3Items = [...baseInputs.selectedL3Items]; // Keep same for high
+      }
 
-    const lowResult = formulaEngine.calculateTotal(lowInputs, profile);
-    const highResult = formulaEngine.calculateTotal(highInputs, profile);
+      const lowResult = formulaEngine.calculateTotal(lowInputs, profile);
+      const highResult = formulaEngine.calculateTotal(highInputs, profile);
 
-    return {
-      variable: v.name,
-      baseline: baseline.durationMonths,
-      lowImpact: lowResult.durationMonths,
-      highImpact: highResult.durationMonths,
-      range: Math.abs(highResult.durationMonths - lowResult.durationMonths),
-    };
-  }).sort((a, b) => b.range - a.range);
+      return {
+        variable: v.name,
+        baseline: baseline.durationMonths,
+        lowImpact: lowResult.durationMonths,
+        highImpact: highResult.durationMonths,
+        range: Math.abs(highResult.durationMonths - lowResult.durationMonths),
+      };
+    })
+    .sort((a, b) => b.range - a.range);
 }
 ```
 
 **Create** `components/estimator/TornadoChart.tsx`:
+
 ```typescript
 import { Card, Alert } from 'antd';
 import { BarChart, Bar, XAxis, YAxis, ReferenceLine, Tooltip, Cell } from 'recharts';
@@ -1829,9 +1915,9 @@ import { useEstimatorStore } from '@/stores/estimator-store';
 
 export function TornadoChart() {
   const store = useEstimatorStore();
-  
+
   if (!store.results) return null;
-  
+
   const inputs = {
     profileIndex: 0,
     selectedL3Items: store.selectedL3Items,
@@ -1845,9 +1931,9 @@ export function TornadoChart() {
     utilization: store.utilization,
     overlapFactor: store.overlapFactor,
   };
-  
+
   const sensitivity = performSensitivity(inputs, store.profile);
-  
+
   const data = sensitivity.map(s => ({
     variable: s.variable,
     low: s.lowImpact - s.baseline,
@@ -1870,7 +1956,7 @@ export function TornadoChart() {
         <Bar dataKey="low" fill="#ff4d4f" stackId="a" />
         <Bar dataKey="high" fill="#52c41a" stackId="a" />
       </BarChart>
-      
+
       <Alert
         className="mt-4"
         message={`${data[0].variable} has the highest impact on duration`}
@@ -1884,9 +1970,10 @@ export function TornadoChart() {
 ### 3. Goal-Seek Optimization
 
 **Create** `lib/estimator/goal-seek.ts`:
+
 ```typescript
-import { formulaEngine } from './formula-engine';
-import type { EstimatorInputs, Profile } from './types';
+import { formulaEngine } from "./formula-engine";
+import type { EstimatorInputs, Profile } from "./types";
 
 export interface GoalSeekParams {
   targetMonths: number;
@@ -1914,13 +2001,16 @@ export function goalSeekOptimizer(params: GoalSeekParams): OptimizationSuggestio
 
   // Strategy 1: Increase FTE
   if (!constraints.maxFTE || currentInputs.fte < constraints.maxFTE) {
-    const requiredCapacity = (currentResult.totalMD / targetMonths) / (22 * currentInputs.utilization * currentInputs.overlapFactor);
+    const requiredCapacity =
+      currentResult.totalMD /
+      targetMonths /
+      (22 * currentInputs.utilization * currentInputs.overlapFactor);
     const requiredFTE = requiredCapacity;
-    
+
     if (requiredFTE <= (constraints.maxFTE || 20)) {
       suggestions.push({
-        scenario: 'Add Resources',
-        adjustments: [{ field: 'FTE', from: currentInputs.fte, to: requiredFTE }],
+        scenario: "Add Resources",
+        adjustments: [{ field: "FTE", from: currentInputs.fte, to: requiredFTE }],
         achievesGoal: true,
         costImpact: (requiredFTE - currentInputs.fte) * 22 * 150 * targetMonths,
         riskScore: 3,
@@ -1930,12 +2020,26 @@ export function goalSeekOptimizer(params: GoalSeekParams): OptimizationSuggestio
 
   // Strategy 2: Reduce scope
   if (!constraints.fixedScope) {
-    const targetMD = targetMonths * currentInputs.fte * 22 * currentInputs.utilization * currentInputs.overlapFactor;
-    const requiredReduction = Math.max(0, (currentResult.totalMD - targetMD) / currentResult.totalMD);
-    
+    const targetMD =
+      targetMonths *
+      currentInputs.fte *
+      22 *
+      currentInputs.utilization *
+      currentInputs.overlapFactor;
+    const requiredReduction = Math.max(
+      0,
+      (currentResult.totalMD - targetMD) / currentResult.totalMD
+    );
+
     suggestions.push({
-      scenario: 'Reduce Scope',
-      adjustments: [{ field: 'L3 Items', from: currentInputs.selectedL3Items.length, to: Math.floor(currentInputs.selectedL3Items.length * (1 - requiredReduction)) }],
+      scenario: "Reduce Scope",
+      adjustments: [
+        {
+          field: "L3 Items",
+          from: currentInputs.selectedL3Items.length,
+          to: Math.floor(currentInputs.selectedL3Items.length * (1 - requiredReduction)),
+        },
+      ],
       achievesGoal: requiredReduction <= 0.3,
       costImpact: 0,
       riskScore: 7,
@@ -1943,13 +2047,13 @@ export function goalSeekOptimizer(params: GoalSeekParams): OptimizationSuggestio
   }
 
   // Strategy 3: Increase utilization
-  const maxUtilization = constraints.minUtilization || 0.90;
+  const maxUtilization = constraints.minUtilization || 0.9;
   if (currentInputs.utilization < maxUtilization) {
     suggestions.push({
-      scenario: 'Intensify Schedule',
+      scenario: "Intensify Schedule",
       adjustments: [
-        { field: 'Utilization', from: currentInputs.utilization, to: maxUtilization },
-        { field: 'Overlap', from: currentInputs.overlapFactor, to: 0.65 },
+        { field: "Utilization", from: currentInputs.utilization, to: maxUtilization },
+        { field: "Overlap", from: currentInputs.overlapFactor, to: 0.65 },
       ],
       achievesGoal: targetMonths >= currentResult.durationMonths * 0.85,
       costImpact: 0,
@@ -1962,6 +2066,7 @@ export function goalSeekOptimizer(params: GoalSeekParams): OptimizationSuggestio
 ```
 
 **Create** `components/timeline/OptimizationModal.tsx`:
+
 ```typescript
 import { Modal, List, Button, Tag } from 'antd';
 import { goalSeekOptimizer } from '@/lib/estimator/goal-seek';
@@ -1975,11 +2080,11 @@ interface Props {
 
 export function OptimizationModal({ targetDate, open, onClose }: Props) {
   const store = useEstimatorStore();
-  
+
   if (!store.results) return null;
-  
+
   const targetMonths = (targetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30);
-  
+
   const suggestions = goalSeekOptimizer({
     targetMonths,
     currentInputs: {
@@ -2000,9 +2105,9 @@ export function OptimizationModal({ targetDate, open, onClose }: Props) {
   });
 
   return (
-    <Modal 
-      title={`Achieve Target: ${targetDate.toLocaleDateString()}`} 
-      open={open} 
+    <Modal
+      title={`Achieve Target: ${targetDate.toLocaleDateString()}`}
+      open={open}
       onCancel={onClose}
       footer={null}
       width={700}
@@ -2048,6 +2153,7 @@ export function OptimizationModal({ targetDate, open, onClose }: Props) {
 ### 4. Scenario Comparison Screen
 
 **Create** `app/compare/page.tsx`:
+
 ```typescript
 'use client';
 import { Card, Table, Tag } from 'antd';
@@ -2064,9 +2170,9 @@ export default function ComparePage() {
 
   const columns = [
     { title: 'Scenario', dataIndex: 'name', key: 'name' },
-    { 
-      title: 'Effort (MD)', 
-      dataIndex: 'totalMD', 
+    {
+      title: 'Effort (MD)',
+      dataIndex: 'totalMD',
       key: 'totalMD',
       render: (v: number, record: any, index: number) => {
         if (index === 0) return v.toFixed(0);
@@ -2074,7 +2180,7 @@ export default function ComparePage() {
         const diff = ((v - baseline) / baseline * 100).toFixed(0);
         return (
           <span>
-            {v.toFixed(0)} 
+            {v.toFixed(0)}
             <Tag color={v > baseline ? 'red' : 'green'} className="ml-2">
               {v > baseline ? '+' : ''}{diff}%
             </Tag>
@@ -2082,9 +2188,9 @@ export default function ComparePage() {
         );
       }
     },
-    { 
-      title: 'Duration (mo)', 
-      dataIndex: 'durationMonths', 
+    {
+      title: 'Duration (mo)',
+      dataIndex: 'durationMonths',
       key: 'duration',
       render: (v: number, record: any, index: number) => {
         if (index === 0) return v.toFixed(1);
@@ -2092,7 +2198,7 @@ export default function ComparePage() {
         const diff = ((v - baseline) / baseline * 100).toFixed(0);
         return (
           <span>
-            {v.toFixed(1)} 
+            {v.toFixed(1)}
             <Tag color={v > baseline ? 'red' : 'green'} className="ml-2">
               {v > baseline ? '+' : ''}{diff}%
             </Tag>
@@ -2100,20 +2206,20 @@ export default function ComparePage() {
         );
       }
     },
-    { 
-      title: 'FTE', 
-      dataIndex: ['inputs', 'fte'], 
+    {
+      title: 'FTE',
+      dataIndex: ['inputs', 'fte'],
       key: 'fte',
-      render: (v: number) => v.toFixed(1) 
+      render: (v: number) => v.toFixed(1)
     },
   ];
 
   return (
     <div className="p-4">
       <Card title="Scenario Comparison">
-        <Table 
-          dataSource={scenarios?.slice(0, 3)} 
-          columns={columns} 
+        <Table
+          dataSource={scenarios?.slice(0, 3)}
+          columns={columns}
           pagination={false}
           rowKey="id"
         />
@@ -2126,35 +2232,36 @@ export default function ComparePage() {
 ### 5. Unit Tests
 
 **Create** `lib/estimator/__tests__/pert-engine.test.ts`:
-```typescript
-import { describe, it, expect } from 'vitest';
-import { pertEngine } from '../pert-engine';
 
-describe('PERTEngine', () => {
-  it('calculates expected value correctly', () => {
+```typescript
+import { describe, it, expect } from "vitest";
+import { pertEngine } from "../pert-engine";
+
+describe("PERTEngine", () => {
+  it("calculates expected value correctly", () => {
     const result = pertEngine.calculate({
       optimistic: 3,
       mostLikely: 4,
-      pessimistic: 6
+      pessimistic: 6,
     });
-    
+
     expect(result.expected).toBeCloseTo(4.17, 2);
     expect(result.standardDeviation).toBeCloseTo(0.5, 1);
   });
 
-  it('calculates P90 correctly', () => {
+  it("calculates P90 correctly", () => {
     const result = pertEngine.calculate({
       optimistic: 3,
       mostLikely: 4,
-      pessimistic: 6
+      pessimistic: 6,
     });
-    
+
     expect(result.confidenceInterval.p90).toBeCloseTo(4.81, 2); // 4.17 + 1.28*0.5
   });
 
-  it('adds uncertainty to baseline', () => {
-    const result = pertEngine.addUncertainty(4, 'medium');
-    
+  it("adds uncertainty to baseline", () => {
+    const result = pertEngine.addUncertainty(4, "medium");
+
     expect(result.expected).toBeCloseTo(4, 1);
     expect(result.confidenceInterval.p90).toBeGreaterThan(4);
   });
@@ -2162,14 +2269,16 @@ describe('PERTEngine', () => {
 ```
 
 ## Acceptance Criteria
+
 ✅ PERT P90 calculation matches formula  
 ✅ Tornado chart identifies highest-impact variable  
 ✅ Goal-seek suggests valid optimizations  
 ✅ Scenario comparison shows % diffs  
 ✅ Confidence ribbon displays P50/P80/P90  
-✅ Unit tests pass  
+✅ Unit tests pass
 
 ## Files to Create/Modify
+
 - `lib/estimator/pert-engine.ts` (CREATE)
 - `lib/estimator/sensitivity-analysis.ts` (CREATE)
 - `lib/estimator/goal-seek.ts` (CREATE)
@@ -2180,6 +2289,7 @@ describe('PERTEngine', () => {
 - `lib/estimator/__tests__/pert-engine.test.ts` (CREATE)
 
 ## Validation Steps
+
 ```bash
 # 1. Test PERT
 npm run test:unit -- pert-engine.test.ts
@@ -2199,14 +2309,17 @@ npm run test:unit -- pert-engine.test.ts
 ```
 
 ## Documents to Attach
+
 1. ADDENDUM.md (Section 5.1-5.3 - PERT, Sensitivity, Goal-Seek)
 
 ## Output Format
+
 1. All files
 2. npm commands
 3. Summary
 4. Test results
-```
+
+````
 
 ---
 
@@ -2231,12 +2344,13 @@ Tech stack: Next.js 15 + Puppeteer + PptxGenJS + Prisma
 ```bash
 npm install puppeteer
 npm install -D @types/puppeteer
-```
+````
 
 **Create** `lib/export/pdf-generator.ts`:
+
 ```typescript
-import puppeteer from 'puppeteer';
-import type { Scenario } from '@prisma/client';
+import puppeteer from "puppeteer";
+import type { Scenario } from "@prisma/client";
 
 export async function generatePDF(scenario: Scenario): Promise<Buffer> {
   const browser = await puppeteer.launch({ headless: true });
@@ -2270,13 +2384,17 @@ export async function generatePDF(scenario: Scenario): Promise<Buffer> {
   <h2>Phase Breakdown</h2>
   <table>
     <tr><th>Phase</th><th>Effort (MD)</th><th>Duration (mo)</th></tr>
-    ${(scenario.phases as any[]).map(p => `
+    ${(scenario.phases as any[])
+      .map(
+        (p) => `
       <tr>
         <td>${p.phaseName}</td>
         <td>${p.effortMD.toFixed(1)}</td>
         <td>${p.durationMonths.toFixed(2)}</td>
       </tr>
-    `).join('')}
+    `
+      )
+      .join("")}
   </table>
 
   <h2>Formula Transparency</h2>
@@ -2295,38 +2413,39 @@ export async function generatePDF(scenario: Scenario): Promise<Buffer> {
   `;
 
   await page.setContent(html);
-  const pdf = await page.pdf({ format: 'A4', printBackground: true });
-  
+  const pdf = await page.pdf({ format: "A4", printBackground: true });
+
   await browser.close();
   return pdf;
 }
 ```
 
 **Create** `app/api/export/pdf/route.ts`:
+
 ```typescript
-import { NextRequest } from 'next/server';
-import { generatePDF } from '@/lib/export/pdf-generator';
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { NextRequest } from "next/server";
+import { generatePDF } from "@/lib/export/pdf-generator";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession();
-  if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { scenarioId } = await req.json();
-  
+
   const scenario = await prisma.scenario.findUnique({
-    where: { id: scenarioId, userId: session.user.id }
+    where: { id: scenarioId, userId: session.user.id },
   });
 
-  if (!scenario) return Response.json({ error: 'Not found' }, { status: 404 });
+  if (!scenario) return Response.json({ error: "Not found" }, { status: 404 });
 
   const pdf = await generatePDF(scenario);
 
   return new Response(pdf, {
     headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="SAP_Estimate_${scenario.name}.pdf"`,
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="SAP_Estimate_${scenario.name}.pdf"`,
     },
   });
 }
@@ -2335,97 +2454,116 @@ export async function POST(req: NextRequest) {
 ### 2. PowerPoint Export
 
 **Install:**
+
 ```bash
 npm install pptxgenjs
 ```
 
 **Create** `lib/export/powerpoint-generator.ts`:
+
 ```typescript
-import PptxGenJS from 'pptxgenjs';
-import type { Scenario } from '@prisma/client';
+import PptxGenJS from "pptxgenjs";
+import type { Scenario } from "@prisma/client";
 
 export async function generatePowerPoint(scenario: Scenario): Promise<Buffer> {
   const pptx = new PptxGenJS();
 
   // Slide 1: Title
   const slide1 = pptx.addSlide();
-  slide1.addText('SAP S/4HANA Implementation Estimate', {
-    x: 1, y: 2, w: 8, h: 1.5,
-    fontSize: 32, bold: true, color: '0070f3', align: 'center'
+  slide1.addText("SAP S/4HANA Implementation Estimate", {
+    x: 1,
+    y: 2,
+    w: 8,
+    h: 1.5,
+    fontSize: 32,
+    bold: true,
+    color: "0070f3",
+    align: "center",
   });
   slide1.addText(scenario.name, {
-    x: 1, y: 3.5, w: 8, h: 1,
-    fontSize: 24, align: 'center'
+    x: 1,
+    y: 3.5,
+    w: 8,
+    h: 1,
+    fontSize: 24,
+    align: "center",
   });
 
   // Slide 2: Executive Summary
   const slide2 = pptx.addSlide();
-  slide2.addText('Executive Summary', { x: 0.5, y: 0.5, fontSize: 28, bold: true });
-  
+  slide2.addText("Executive Summary", { x: 0.5, y: 0.5, fontSize: 28, bold: true });
+
   const summaryData = [
-    ['Metric', 'Value'],
-    ['Total Effort', `${scenario.totalMD.toFixed(0)} MD`],
-    ['Duration', `${scenario.durationMonths.toFixed(1)} months`],
-    ['PMO Effort', `${scenario.pmoMD.toFixed(0)} MD`],
+    ["Metric", "Value"],
+    ["Total Effort", `${scenario.totalMD.toFixed(0)} MD`],
+    ["Duration", `${scenario.durationMonths.toFixed(1)} months`],
+    ["PMO Effort", `${scenario.pmoMD.toFixed(0)} MD`],
   ];
-  
+
   slide2.addTable(summaryData, {
-    x: 1, y: 1.5, w: 8, h: 2,
+    x: 1,
+    y: 1.5,
+    w: 8,
+    h: 2,
     fontSize: 14,
-    border: { pt: 1, color: 'CFCFCF' },
-    fill: { color: 'F0F0F0' },
+    border: { pt: 1, color: "CFCFCF" },
+    fill: { color: "F0F0F0" },
   });
 
   // Slide 3: Phase Breakdown
   const slide3 = pptx.addSlide();
-  slide3.addText('Phase Breakdown', { x: 0.5, y: 0.5, fontSize: 28, bold: true });
-  
+  slide3.addText("Phase Breakdown", { x: 0.5, y: 0.5, fontSize: 28, bold: true });
+
   const phases = scenario.phases as any[];
   const phaseData = [
-    ['Phase', 'Effort (MD)', 'Duration (mo)'],
-    ...phases.map(p => [p.phaseName, p.effortMD.toFixed(1), p.durationMonths.toFixed(2)])
+    ["Phase", "Effort (MD)", "Duration (mo)"],
+    ...phases.map((p) => [p.phaseName, p.effortMD.toFixed(1), p.durationMonths.toFixed(2)]),
   ];
-  
+
   slide3.addTable(phaseData, {
-    x: 1, y: 1.5, w: 8, h: 3,
+    x: 1,
+    y: 1.5,
+    w: 8,
+    h: 3,
     fontSize: 12,
   });
 
   // Slide 4: Gantt Chart (placeholder)
   const slide4 = pptx.addSlide();
-  slide4.addText('Project Timeline', { x: 0.5, y: 0.5, fontSize: 28, bold: true });
-  slide4.addText('[Gantt Chart Placeholder]', { x: 2, y: 3, fontSize: 18, color: '999999' });
+  slide4.addText("Project Timeline", { x: 0.5, y: 0.5, fontSize: 28, bold: true });
+  slide4.addText("[Gantt Chart Placeholder]", { x: 2, y: 3, fontSize: 18, color: "999999" });
 
-  const buffer = await pptx.write({ outputType: 'nodebuffer' }) as Buffer;
+  const buffer = (await pptx.write({ outputType: "nodebuffer" })) as Buffer;
   return buffer;
 }
 ```
 
 **Create** `app/api/export/powerpoint/route.ts`:
+
 ```typescript
-import { NextRequest } from 'next/server';
-import { generatePowerPoint } from '@/lib/export/powerpoint-generator';
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { NextRequest } from "next/server";
+import { generatePowerPoint } from "@/lib/export/powerpoint-generator";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession();
-  if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { scenarioId } = await req.json();
-  
+
   const scenario = await prisma.scenario.findUnique({
-    where: { id: scenarioId, userId: session.user.id }
+    where: { id: scenarioId, userId: session.user.id },
   });
 
-  if (!scenario) return Response.json({ error: 'Not found' }, { status: 404 });
+  if (!scenario) return Response.json({ error: "Not found" }, { status: 404 });
 
   const pptx = await generatePowerPoint(scenario);
 
   return new Response(pptx, {
     headers: {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'Content-Disposition': `attachment; filename="SAP_Estimate_${scenario.name}.pptx"`,
+      "Content-Type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "Content-Disposition": `attachment; filename="SAP_Estimate_${scenario.name}.pptx"`,
     },
   });
 }
@@ -2434,38 +2572,41 @@ export async function POST(req: NextRequest) {
 ### 3. CSV Export
 
 **Create** `app/api/export/csv/route.ts`:
+
 ```typescript
-import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession();
-  if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
-  const scenarioId = searchParams.get('scenarioId');
+  const scenarioId = searchParams.get("scenarioId");
 
-  if (!scenarioId) return Response.json({ error: 'Missing scenarioId' }, { status: 400 });
+  if (!scenarioId) return Response.json({ error: "Missing scenarioId" }, { status: 400 });
 
   const scenario = await prisma.scenario.findUnique({
-    where: { id: scenarioId, userId: session.user.id }
+    where: { id: scenarioId, userId: session.user.id },
   });
 
-  if (!scenario) return Response.json({ error: 'Not found' }, { status: 404 });
+  if (!scenario) return Response.json({ error: "Not found" }, { status: 404 });
 
   const phases = scenario.phases as any[];
   const csv = [
-    ['Phase', 'Effort (MD)', 'Duration (months)'],
-    ...phases.map(p => [p.phaseName, p.effortMD.toFixed(1), p.durationMonths.toFixed(2)]),
+    ["Phase", "Effort (MD)", "Duration (months)"],
+    ...phases.map((p) => [p.phaseName, p.effortMD.toFixed(1), p.durationMonths.toFixed(2)]),
     [],
-    ['Total', scenario.totalMD.toFixed(0), scenario.durationMonths.toFixed(1)],
-  ].map(row => row.join(',')).join('\n');
+    ["Total", scenario.totalMD.toFixed(0), scenario.durationMonths.toFixed(1)],
+  ]
+    .map((row) => row.join(","))
+    .join("\n");
 
   return new Response(csv, {
     headers: {
-      'Content-Type': 'text/csv',
-      'Content-Disposition': `attachment; filename="SAP_Estimate_${scenario.name}.csv"`,
+      "Content-Type": "text/csv",
+      "Content-Disposition": `attachment; filename="SAP_Estimate_${scenario.name}.csv"`,
     },
   });
 }
@@ -2474,6 +2615,7 @@ export async function GET(req: NextRequest) {
 ### 4. RBAC Implementation
 
 **Update** `prisma/schema.prisma`:
+
 ```prisma
 enum UserRole {
   ADMIN
@@ -2496,21 +2638,22 @@ model TeamMember {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   role           UserRole     @default(VIEWER)
-  
+
   @@unique([userId, organizationId])
 }
 ```
 
 **Create** `lib/auth/rbac.ts`:
+
 ```typescript
-import { getServerSession } from 'next-auth';
-import { prisma } from '@/lib/prisma';
+import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/prisma";
 
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  OWNER = 'OWNER',
-  EDITOR = 'EDITOR',
-  VIEWER = 'VIEWER',
+  ADMIN = "ADMIN",
+  OWNER = "OWNER",
+  EDITOR = "EDITOR",
+  VIEWER = "VIEWER",
 }
 
 const roleHierarchy = {
@@ -2525,7 +2668,7 @@ export async function requireRole(requiredRole: UserRole): Promise<boolean> {
   if (!session?.user?.id) return false;
 
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id }
+    where: { id: session.user.id },
   });
 
   if (!user) return false;
@@ -2538,7 +2681,7 @@ export async function canEditScenario(scenarioId: string): Promise<boolean> {
   if (!session?.user?.id) return false;
 
   const scenario = await prisma.scenario.findUnique({
-    where: { id: scenarioId }
+    where: { id: scenarioId },
   });
 
   if (!scenario) return false;
@@ -2552,14 +2695,15 @@ export async function canEditScenario(scenarioId: string): Promise<boolean> {
 ```
 
 **Update** `app/api/scenarios/[id]/route.ts`:
+
 ```typescript
-import { NextRequest } from 'next/server';
-import { canEditScenario } from '@/lib/auth/rbac';
-import { prisma } from '@/lib/prisma';
+import { NextRequest } from "next/server";
+import { canEditScenario } from "@/lib/auth/rbac";
+import { prisma } from "@/lib/prisma";
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const canEdit = await canEditScenario(params.id);
-  if (!canEdit) return Response.json({ error: 'Forbidden' }, { status: 403 });
+  if (!canEdit) return Response.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
   const scenario = await prisma.scenario.update({
@@ -2572,7 +2716,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const canEdit = await canEditScenario(params.id);
-  if (!canEdit) return Response.json({ error: 'Forbidden' }, { status: 403 });
+  if (!canEdit) return Response.json({ error: "Forbidden" }, { status: 403 });
 
   await prisma.scenario.delete({ where: { id: params.id } });
   return Response.json({ success: true });
@@ -2582,15 +2726,16 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 ### 5. Audit Logging
 
 **Create** `lib/audit/logger.ts`:
+
 ```typescript
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
 
 export enum AuditAction {
-  CREATE = 'CREATE',
-  UPDATE = 'UPDATE',
-  DELETE = 'DELETE',
-  EXPORT = 'EXPORT',
+  CREATE = "CREATE",
+  UPDATE = "UPDATE",
+  DELETE = "DELETE",
+  EXPORT = "EXPORT",
 }
 
 export async function logAudit(params: {
@@ -2614,8 +2759,8 @@ export async function logAudit(params: {
       entityId: params.entityId,
       changes: params.changes,
       metadata: params.metadata,
-      ipAddress: params.req.headers.get('x-forwarded-for') || 'unknown',
-      userAgent: params.req.headers.get('user-agent') || 'unknown',
+      ipAddress: params.req.headers.get("x-forwarded-for") || "unknown",
+      userAgent: params.req.headers.get("user-agent") || "unknown",
       timestamp: new Date(),
     },
   });
@@ -2623,17 +2768,18 @@ export async function logAudit(params: {
 ```
 
 **Update** `app/api/scenarios/route.ts`:
+
 ```typescript
-import { NextRequest } from 'next/server';
-import { logAudit, AuditAction } from '@/lib/audit/logger';
-import { prisma } from '@/lib/prisma';
+import { NextRequest } from "next/server";
+import { logAudit, AuditAction } from "@/lib/audit/logger";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession();
-  if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  
+
   const scenario = await prisma.scenario.create({
     data: {
       userId: session.user.id,
@@ -2643,7 +2789,7 @@ export async function POST(req: NextRequest) {
 
   await logAudit({
     action: AuditAction.CREATE,
-    entityType: 'scenario',
+    entityType: "scenario",
     entityId: scenario.id,
     metadata: { name: scenario.name },
     req,
@@ -2654,21 +2800,22 @@ export async function POST(req: NextRequest) {
 ```
 
 **Create** `app/api/audit-logs/route.ts`:
+
 ```typescript
-import { NextRequest } from 'next/server';
-import { requireRole, UserRole } from '@/lib/auth/rbac';
-import { prisma } from '@/lib/prisma';
+import { NextRequest } from "next/server";
+import { requireRole, UserRole } from "@/lib/auth/rbac";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const canView = await requireRole(UserRole.OWNER);
-  if (!canView) return Response.json({ error: 'Forbidden' }, { status: 403 });
+  if (!canView) return Response.json({ error: "Forbidden" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
-  const scenarioId = searchParams.get('scenarioId');
+  const scenarioId = searchParams.get("scenarioId");
 
   const logs = await prisma.auditLog.findMany({
     where: scenarioId ? { entityId: scenarioId } : undefined,
-    orderBy: { timestamp: 'desc' },
+    orderBy: { timestamp: "desc" },
     take: 100,
   });
 
@@ -2677,14 +2824,16 @@ export async function GET(req: NextRequest) {
 ```
 
 ## Acceptance Criteria
+
 ✅ PDF export includes formulas  
 ✅ PowerPoint has 4+ slides  
 ✅ CSV exports phase breakdown  
 ✅ VIEWER cannot delete scenarios  
 ✅ ADMIN can edit all scenarios  
-✅ Audit logs capture CREATE/UPDATE/DELETE/EXPORT  
+✅ Audit logs capture CREATE/UPDATE/DELETE/EXPORT
 
 ## Files to Create/Modify
+
 - `lib/export/pdf-generator.ts` (CREATE)
 - `lib/export/powerpoint-generator.ts` (CREATE)
 - `app/api/export/pdf/route.ts` (CREATE)
@@ -2698,6 +2847,7 @@ export async function GET(req: NextRequest) {
 - `prisma/schema.prisma` (UPDATE - add UserRole enum)
 
 ## Validation Steps
+
 ```bash
 # 1. Test PDF export
 curl -X POST http://localhost:3000/api/export/pdf \
@@ -2724,14 +2874,17 @@ curl http://localhost:3000/api/audit-logs?scenarioId=abc123
 ```
 
 ## Documents to Attach
+
 1. ADDENDUM.md (Section 4 - Security & RBAC)
 
 ## Output Format
+
 1. All files
 2. npm commands
 3. Summary
 4. Test results
-```
+
+````
 
 ---
 
@@ -2754,52 +2907,55 @@ Tech stack: Vitest + Playwright + @axe-core/playwright + Storybook
 **Install:**
 ```bash
 npm install -D vitest @vitest/ui @testing-library/react @testing-library/jest-dom jsdom
-```
+````
 
 **Create** `vitest.config.ts`:
+
 ```typescript
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts'],
+    environment: "jsdom",
+    setupFiles: ["./vitest.setup.ts"],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      include: ['lib/**/*.ts', 'components/**/*.tsx'],
-      exclude: ['**/*.test.ts', '**/*.spec.ts'],
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      include: ["lib/**/*.ts", "components/**/*.tsx"],
+      exclude: ["**/*.test.ts", "**/*.spec.ts"],
     },
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });
 ```
 
 **Create** `vitest.setup.ts`:
+
 ```typescript
-import { expect, afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
-import * as matchers from '@testing-library/jest-dom/matchers';
+import { expect, afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
+import * as matchers from "@testing-library/jest-dom/matchers";
 
 expect.extend(matchers);
 afterEach(() => cleanup());
 ```
 
 **Create** `lib/estimator/__tests__/sensitivity-analysis.test.ts`:
-```typescript
-import { describe, it, expect } from 'vitest';
-import { performSensitivity } from '../sensitivity-analysis';
-import { DEFAULT_PROFILE } from '../types';
 
-describe('Sensitivity Analysis', () => {
-  it('identifies FTE as highest impact variable', () => {
+```typescript
+import { describe, it, expect } from "vitest";
+import { performSensitivity } from "../sensitivity-analysis";
+import { DEFAULT_PROFILE } from "../types";
+
+describe("Sensitivity Analysis", () => {
+  it("identifies FTE as highest impact variable", () => {
     const inputs = {
       profileIndex: 0,
       selectedL3Items: [],
@@ -2816,12 +2972,14 @@ describe('Sensitivity Analysis', () => {
 
     const results = performSensitivity(inputs, DEFAULT_PROFILE);
 
-    expect(results[0].variable).toBe('FTE');
+    expect(results[0].variable).toBe("FTE");
     expect(results[0].range).toBeGreaterThan(0);
   });
 
-  it('returns results sorted by impact', () => {
-    const inputs = { /* ... */ };
+  it("returns results sorted by impact", () => {
+    const inputs = {
+      /* ... */
+    };
     const results = performSensitivity(inputs, DEFAULT_PROFILE);
 
     for (let i = 1; i < results.length; i++) {
@@ -2832,13 +2990,14 @@ describe('Sensitivity Analysis', () => {
 ```
 
 **Create** `lib/estimator/__tests__/goal-seek.test.ts`:
-```typescript
-import { describe, it, expect } from 'vitest';
-import { goalSeekOptimizer } from '../goal-seek';
-import { DEFAULT_PROFILE } from '../types';
 
-describe('Goal Seek Optimizer', () => {
-  it('suggests adding FTE for tight timeline', () => {
+```typescript
+import { describe, it, expect } from "vitest";
+import { goalSeekOptimizer } from "../goal-seek";
+import { DEFAULT_PROFILE } from "../types";
+
+describe("Goal Seek Optimizer", () => {
+  it("suggests adding FTE for tight timeline", () => {
     const suggestions = goalSeekOptimizer({
       targetMonths: 2.5,
       currentInputs: {
@@ -2859,11 +3018,13 @@ describe('Goal Seek Optimizer', () => {
     });
 
     expect(suggestions.length).toBeGreaterThan(0);
-    expect(suggestions[0].scenario).toContain('Resources');
+    expect(suggestions[0].scenario).toContain("Resources");
   });
 
-  it('sorts by risk score (lowest first)', () => {
-    const suggestions = goalSeekOptimizer({ /* ... */ });
+  it("sorts by risk score (lowest first)", () => {
+    const suggestions = goalSeekOptimizer({
+      /* ... */
+    });
 
     for (let i = 1; i < suggestions.length; i++) {
       expect(suggestions[i - 1].riskScore).toBeLessThanOrEqual(suggestions[i].riskScore);
@@ -2873,6 +3034,7 @@ describe('Goal Seek Optimizer', () => {
 ```
 
 **Update** `package.json`:
+
 ```json
 {
   "scripts": {
@@ -2886,80 +3048,83 @@ describe('Goal Seek Optimizer', () => {
 ### 2. E2E Tests (Playwright)
 
 **Install:**
+
 ```bash
 npm install -D @playwright/test
 npx playwright install
 ```
 
 **Create** `playwright.config.ts`:
+
 ```typescript
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: "html",
   use: {
-    baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
+    baseURL: "http://localhost:3000",
+    trace: "on-first-retry",
   },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+    command: "npm run dev",
+    url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
   },
 });
 ```
 
 **Create** `tests/e2e/estimator-flow.spec.ts`:
-```typescript
-import { test, expect } from '@playwright/test';
 
-test('complete estimation flow', async ({ page }) => {
-  await page.goto('/estimator');
+```typescript
+import { test, expect } from "@playwright/test";
+
+test("complete estimation flow", async ({ page }) => {
+  await page.goto("/estimator");
 
   // Wait for page load
   await expect(page.locator('h2:has-text("Estimator Inputs")')).toBeVisible();
 
   // Adjust FTE
   const fteSlider = page.locator('input[type="range"]').first();
-  await fteSlider.fill('7.0');
+  await fteSlider.fill("7.0");
 
   // Verify results update
   await expect(page.locator('[data-testid="total-md"]')).toContainText(/\d+/);
 
   // Open L3 catalog
-  await page.click('text=Select from Catalog');
+  await page.click("text=Select from Catalog");
   await expect(page.locator('[data-testid="l3-modal"]')).toBeVisible();
 
   // Search and select item
-  await page.fill('[placeholder="Search items..."]', 'Accounting');
-  await page.click('text=J58');
-  await page.click('text=Apply Selection');
+  await page.fill('[placeholder="Search items..."]', "Accounting");
+  await page.click("text=J58");
+  await page.click("text=Apply Selection");
 
   // Save scenario
-  await page.click('text=Save Scenario');
-  await page.fill('[placeholder="Scenario name"]', 'E2E Test');
+  await page.click("text=Save Scenario");
+  await page.fill('[placeholder="Scenario name"]', "E2E Test");
   await page.click('button:has-text("Save")');
 
   // Verify saved
-  await expect(page.locator('text=Saved successfully')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator("text=Saved successfully")).toBeVisible({ timeout: 5000 });
 });
 
-test('L3 catalog performance', async ({ page }) => {
-  await page.goto('/estimator');
+test("L3 catalog performance", async ({ page }) => {
+  await page.goto("/estimator");
 
   const startTime = Date.now();
-  await page.click('text=Select from Catalog');
+  await page.click("text=Select from Catalog");
   await page.waitForSelector('[data-testid="l3-modal"]');
   const loadTime = Date.now() - startTime;
 
@@ -2972,18 +3137,19 @@ test('L3 catalog performance', async ({ page }) => {
 ```
 
 **Create** `tests/e2e/timeline.spec.ts`:
-```typescript
-import { test, expect } from '@playwright/test';
 
-test('timeline sync with estimator', async ({ page }) => {
-  await page.goto('/estimator');
+```typescript
+import { test, expect } from "@playwright/test";
+
+test("timeline sync with estimator", async ({ page }) => {
+  await page.goto("/estimator");
 
   // Set FTE
-  await page.fill('[data-testid="fte-input"]', '7.0');
+  await page.fill('[data-testid="fte-input"]', "7.0");
 
   // Navigate to timeline
-  await page.click('text=Generate Timeline');
-  await page.waitForURL('/timeline');
+  await page.click("text=Generate Timeline");
+  await page.waitForURL("/timeline");
 
   // Check FTE reflected
   const resourceRow = page.locator('table tr:has-text("Project Manager")');
@@ -2994,54 +3160,55 @@ test('timeline sync with estimator', async ({ page }) => {
 ### 3. Accessibility Tests
 
 **Install:**
+
 ```bash
 npm install -D @axe-core/playwright
 ```
 
 **Create** `tests/a11y/estimator.spec.ts`:
-```typescript
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
 
-test('estimator meets WCAG 2.2 AA', async ({ page }) => {
-  await page.goto('/estimator');
+```typescript
+import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+
+test("estimator meets WCAG 2.2 AA", async ({ page }) => {
+  await page.goto("/estimator");
 
   const results = await new AxeBuilder({ page })
-    .withTags(['wcag2aa', 'wcag21aa', 'wcag22aa'])
+    .withTags(["wcag2aa", "wcag21aa", "wcag22aa"])
     .analyze();
 
   expect(results.violations).toEqual([]);
 });
 
-test('keyboard navigation works', async ({ page }) => {
-  await page.goto('/estimator');
+test("keyboard navigation works", async ({ page }) => {
+  await page.goto("/estimator");
 
   // Tab through controls
-  await page.keyboard.press('Tab');
+  await page.keyboard.press("Tab");
   const focused1 = await page.evaluate(() => document.activeElement?.tagName);
-  expect(['SELECT', 'BUTTON', 'INPUT']).toContain(focused1);
+  expect(["SELECT", "BUTTON", "INPUT"]).toContain(focused1);
 
   // Open L3 modal with keyboard
-  await page.keyboard.press('Enter');
+  await page.keyboard.press("Enter");
   await expect(page.locator('[role="dialog"]')).toBeVisible();
 
   // Close with Escape
-  await page.keyboard.press('Escape');
+  await page.keyboard.press("Escape");
   await expect(page.locator('[role="dialog"]')).not.toBeVisible();
 });
 ```
 
 **Create** `tests/a11y/timeline.spec.ts`:
+
 ```typescript
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
-test('timeline meets WCAG 2.2 AA', async ({ page }) => {
-  await page.goto('/timeline');
+test("timeline meets WCAG 2.2 AA", async ({ page }) => {
+  await page.goto("/timeline");
 
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2aa'])
-    .analyze();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2aa"]).analyze();
 
   expect(results.violations).toEqual([]);
 });
@@ -3050,17 +3217,19 @@ test('timeline meets WCAG 2.2 AA', async ({ page }) => {
 ### 4. Storybook Component Library
 
 **Install:**
+
 ```bash
 npx storybook@latest init
 ```
 
 **Create** `components/estimator/InputPanel.stories.tsx`:
+
 ```typescript
-import type { Meta, StoryObj } from '@storybook/react';
-import { InputPanel } from './InputPanel';
+import type { Meta, StoryObj } from "@storybook/react";
+import { InputPanel } from "./InputPanel";
 
 const meta: Meta<typeof InputPanel> = {
-  title: 'Estimator/InputPanel',
+  title: "Estimator/InputPanel",
   component: InputPanel,
 };
 
@@ -3073,7 +3242,7 @@ export const WithSelectedItems: Story = {
   parameters: {
     store: {
       selectedL3Items: [
-        { id: '1', l3Code: 'J58', l3Name: 'Accounting', tier: 'C', coefficient: 0.010 },
+        { id: "1", l3Code: "J58", l3Name: "Accounting", tier: "C", coefficient: 0.01 },
       ],
     },
   },
@@ -3081,9 +3250,10 @@ export const WithSelectedItems: Story = {
 ```
 
 **Create** `.storybook/preview.tsx`:
+
 ```typescript
-import type { Preview } from '@storybook/react';
-import '../app/globals.css';
+import type { Preview } from "@storybook/react";
+import "../app/globals.css";
 
 const preview: Preview = {
   parameters: {
@@ -3097,13 +3267,14 @@ export default preview;
 ### 5. Performance Benchmarks
 
 **Create** `tests/performance/calculation-speed.test.ts`:
-```typescript
-import { describe, it, expect } from 'vitest';
-import { formulaEngine } from '@/lib/estimator/formula-engine';
-import { DEFAULT_PROFILE } from '@/lib/estimator/types';
 
-describe('Performance Benchmarks', () => {
-  it('formula calculation completes in <50ms (p95)', () => {
+```typescript
+import { describe, it, expect } from "vitest";
+import { formulaEngine } from "@/lib/estimator/formula-engine";
+import { DEFAULT_PROFILE } from "@/lib/estimator/types";
+
+describe("Performance Benchmarks", () => {
+  it("formula calculation completes in <50ms (p95)", () => {
     const inputs = {
       profileIndex: 0,
       selectedL3Items: [],
@@ -3137,6 +3308,7 @@ describe('Performance Benchmarks', () => {
 ```
 
 **Update** `package.json`:
+
 ```json
 {
   "scripts": {
@@ -3149,14 +3321,16 @@ describe('Performance Benchmarks', () => {
 ```
 
 ## Acceptance Criteria
+
 ✅ Unit test coverage >90%  
 ✅ All E2E tests pass  
 ✅ 0 accessibility violations  
 ✅ Keyboard navigation works  
 ✅ Formula calculation <50ms (p95)  
-✅ Components render in Storybook  
+✅ Components render in Storybook
 
 ## Files to Create/Modify
+
 - `vitest.config.ts` (CREATE)
 - `vitest.setup.ts` (CREATE)
 - `playwright.config.ts` (CREATE)
@@ -3172,6 +3346,7 @@ describe('Performance Benchmarks', () => {
 - `package.json` (UPDATE - add test scripts)
 
 ## Validation Steps
+
 ```bash
 # 1. Run unit tests
 npm run test:coverage
@@ -3195,14 +3370,17 @@ npm run test -- performance
 ```
 
 ## Documents to Attach
+
 1. ADDENDUM.md (Section 9 - Testing Strategy)
 
 ## Output Format
+
 1. All test files
 2. npm commands
 3. Summary
 4. Test coverage report
-```
+
+````
 
 ---
 
@@ -3226,18 +3404,20 @@ Final phase: i18n, progressive disclosure, command palette, production deploymen
 **Install:**
 ```bash
 npm install next-intl
-```
+````
 
 **Create** `i18n.ts`:
+
 ```typescript
-import { getRequestConfig } from 'next-intl/server';
+import { getRequestConfig } from "next-intl/server";
 
 export default getRequestConfig(async ({ locale }) => ({
-  messages: (await import(`./messages/${locale}.json`)).default
+  messages: (await import(`./messages/${locale}.json`)).default,
 }));
 ```
 
 **Create** `messages/en.json`:
+
 ```json
 {
   "estimator": {
@@ -3259,6 +3439,7 @@ export default getRequestConfig(async ({ locale }) => ({
 ```
 
 **Create** `messages/zh.json`:
+
 ```json
 {
   "estimator": {
@@ -3280,10 +3461,11 @@ export default getRequestConfig(async ({ locale }) => ({
 ```
 
 **Update** `next.config.js`:
-```javascript
-import createNextIntlPlugin from 'next-intl/plugin';
 
-const withNextIntl = createNextIntlPlugin('./i18n.ts');
+```javascript
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("./i18n.ts");
 
 export default withNextIntl({
   // ... existing config
@@ -3291,6 +3473,7 @@ export default withNextIntl({
 ```
 
 **Update** `app/estimator/page.tsx`:
+
 ```typescript
 'use client';
 import { useTranslations } from 'next-intl';
@@ -3310,15 +3493,16 @@ export default function EstimatorPage() {
 ### 2. Progressive Disclosure (Novice/Expert Mode)
 
 **Create** `stores/preferences-store.ts`:
+
 ```typescript
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface PreferencesState {
   expertMode: boolean;
   showFormulas: boolean;
   defaultProfile: string;
-  
+
   toggleExpertMode: () => void;
   setShowFormulas: (show: boolean) => void;
   setDefaultProfile: (profile: string) => void;
@@ -3329,18 +3513,19 @@ export const usePreferences = create<PreferencesState>()(
     (set) => ({
       expertMode: false,
       showFormulas: false,
-      defaultProfile: 'malaysia-mid-market',
-      
+      defaultProfile: "malaysia-mid-market",
+
       toggleExpertMode: () => set((state) => ({ expertMode: !state.expertMode })),
       setShowFormulas: (show) => set({ showFormulas: show }),
       setDefaultProfile: (profile) => set({ defaultProfile: profile }),
     }),
-    { name: 'user-preferences' }
+    { name: "user-preferences" }
   )
 );
 ```
 
 **Update** `components/estimator/InputPanel.tsx`:
+
 ```typescript
 import { Switch } from 'antd';
 import { usePreferences } from '@/stores/preferences-store';
@@ -3376,11 +3561,13 @@ export function InputPanel() {
 ### 3. Command Palette
 
 **Install:**
+
 ```bash
 npm install cmdk
 ```
 
 **Create** `components/common/CommandPalette.tsx`:
+
 ```typescript
 'use client';
 import { useEffect, useState } from 'react';
@@ -3432,6 +3619,7 @@ export function CommandPalette() {
 ```
 
 **Update** `app/layout.tsx`:
+
 ```typescript
 import { CommandPalette } from '@/components/common/CommandPalette';
 
@@ -3450,6 +3638,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ### 4. Production Deployment (Vercel)
 
 **Create** `vercel.json`:
+
 ```json
 {
   "buildCommand": "npm run build",
@@ -3461,6 +3650,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 **Create** `.env.production` (template):
+
 ```env
 DATABASE_URL=
 NEXTAUTH_URL=
@@ -3470,6 +3660,7 @@ NEXT_PUBLIC_SENTRY_DSN=
 ```
 
 **Create** `scripts/migrate-prod.sh`:
+
 ```bash
 #!/bin/bash
 npx prisma migrate deploy
@@ -3477,6 +3668,7 @@ npx prisma db seed
 ```
 
 **Update** `package.json`:
+
 ```json
 {
   "scripts": {
@@ -3490,38 +3682,38 @@ npx prisma db seed
 ### 5. Monitoring Setup
 
 **Create** `lib/monitoring/sentry.ts`:
+
 ```typescript
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   environment: process.env.NODE_ENV,
   tracesSampleRate: 0.1,
-  integrations: [
-    new Sentry.BrowserTracing(),
-    new Sentry.Replay(),
-  ],
+  integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
 });
 ```
 
 **Create** `lib/monitoring/posthog.ts`:
-```typescript
-import posthog from 'posthog-js';
 
-if (typeof window !== 'undefined') {
+```typescript
+import posthog from "posthog-js";
+
+if (typeof window !== "undefined") {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-    api_host: 'https://app.posthog.com',
+    api_host: "https://app.posthog.com",
   });
 }
 
 export const trackEvent = {
-  estimatorCalculated: (data: any) => posthog.capture('estimator_calculated', data),
-  scenarioSaved: (data: any) => posthog.capture('scenario_saved', data),
-  exportGenerated: (data: any) => posthog.capture('export_generated', data),
+  estimatorCalculated: (data: any) => posthog.capture("estimator_calculated", data),
+  scenarioSaved: (data: any) => posthog.capture("scenario_saved", data),
+  exportGenerated: (data: any) => posthog.capture("export_generated", data),
 };
 ```
 
 **Create** `app/error.tsx`:
+
 ```typescript
 'use client';
 import { useEffect } from 'react';
@@ -3544,10 +3736,12 @@ export default function Error({ error }: { error: Error }) {
 ### 6. Production Checklist
 
 **Create** `docs/DEPLOYMENT.md`:
+
 ```markdown
 # Deployment Checklist
 
 ## Pre-Deployment
+
 - [ ] All tests passing (`npm test`)
 - [ ] No TypeScript errors (`npm run typecheck`)
 - [ ] Build succeeds (`npm run build`)
@@ -3555,16 +3749,19 @@ export default function Error({ error }: { error: Error }) {
 - [ ] Database migrations ready
 
 ## Database
+
 - [ ] Run `npx prisma migrate deploy` in production
 - [ ] Seed L3 catalog: `npm run db:seed`
 - [ ] Verify 293 items loaded
 
 ## Monitoring
+
 - [ ] Sentry DSN configured
 - [ ] PostHog key configured
 - [ ] Error tracking tested
 
 ## Post-Deployment
+
 - [ ] Smoke test: create scenario
 - [ ] Smoke test: export PDF
 - [ ] Smoke test: accessibility (axe extension)
@@ -3573,15 +3770,17 @@ export default function Error({ error }: { error: Error }) {
 ```
 
 ## Acceptance Criteria
+
 ✅ UI displays in English and Chinese  
 ✅ Expert mode shows advanced controls  
 ✅ Command palette opens with Ctrl+K  
 ✅ Deployed to Vercel  
 ✅ Database migrated in production  
 ✅ Sentry captures errors  
-✅ PostHog tracks events  
+✅ PostHog tracks events
 
 ## Files to Create/Modify
+
 - `i18n.ts` (CREATE)
 - `messages/en.json` (CREATE)
 - `messages/zh.json` (CREATE)
@@ -3600,6 +3799,7 @@ export default function Error({ error }: { error: Error }) {
 - `app/layout.tsx` (UPDATE - add CommandPalette)
 
 ## Validation Steps
+
 ```bash
 # 1. Test i18n
 # Visit /zh/estimator
@@ -3623,15 +3823,19 @@ vercel --prod
 ```
 
 ## Documents to Attach
+
 1. ADDENDUM.md (Section 11 - Progressive Disclosure, Section 12 - i18n)
 
 ## Output Format
+
 1. All files
 2. Deployment commands
 3. Summary
 4. Production URL
+
 ```
 
 ---
 
 **END OF ALL PROMPTS**
+```

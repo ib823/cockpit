@@ -22,15 +22,15 @@ export interface PhaseResource {
 }
 
 export type ResourceRole =
-  | 'PM'
-  | 'Technical'
-  | 'Functional'
-  | 'Architect'
-  | 'Basis'
-  | 'Security'
-  | 'ChangeManagement'
-  | 'Testing'
-  | 'Training';
+  | "PM"
+  | "Technical"
+  | "Functional"
+  | "Architect"
+  | "Basis"
+  | "Security"
+  | "ChangeManagement"
+  | "Testing"
+  | "Training";
 
 export interface Wrapper {
   id: string;
@@ -43,17 +43,17 @@ export interface Wrapper {
 }
 
 export type WrapperType =
-  | 'projectManagement'
-  | 'basis'
-  | 'security'
-  | 'testing'
-  | 'training'
-  | 'changeManagement';
+  | "projectManagement"
+  | "basis"
+  | "security"
+  | "testing"
+  | "training"
+  | "changeManagement";
 
 export interface PhaseAllocation {
   phaseId: string;
   phaseName: string;
-  category: 'prepare' | 'explore' | 'realize' | 'deploy' | 'run';
+  category: "prepare" | "explore" | "realize" | "deploy" | "run";
   baseEffort: number; // Technical effort (PD)
   resources: PhaseResource[];
   totalCost: number; // Sum of all resource costs
@@ -78,7 +78,7 @@ export interface ResourcePlan {
 // ============================================================================
 
 export const DEFAULT_HOURLY_RATES: Record<string, Record<ResourceRole, number>> = {
-  'US-East': {
+  "US-East": {
     PM: 175,
     Technical: 165,
     Functional: 155,
@@ -89,7 +89,7 @@ export const DEFAULT_HOURLY_RATES: Record<string, Record<ResourceRole, number>> 
     Testing: 135,
     Training: 125,
   },
-  'Asia-Pacific': {
+  "Asia-Pacific": {
     PM: 125,
     Technical: 115,
     Functional: 105,
@@ -102,40 +102,43 @@ export const DEFAULT_HOURLY_RATES: Record<string, Record<ResourceRole, number>> 
   },
 };
 
-export const WRAPPER_DEFAULTS: Record<WrapperType, {
-  percentage: number;
-  phases: Array<'prepare' | 'explore' | 'realize' | 'deploy' | 'run'>;
-  description: string;
-}> = {
+export const WRAPPER_DEFAULTS: Record<
+  WrapperType,
+  {
+    percentage: number;
+    phases: Array<"prepare" | "explore" | "realize" | "deploy" | "run">;
+    description: string;
+  }
+> = {
   projectManagement: {
     percentage: 15,
-    phases: ['prepare', 'explore', 'realize', 'deploy', 'run'],
-    description: 'Project planning, coordination, governance, and reporting',
+    phases: ["prepare", "explore", "realize", "deploy", "run"],
+    description: "Project planning, coordination, governance, and reporting",
   },
   basis: {
     percentage: 8,
-    phases: ['prepare', 'explore', 'realize', 'deploy', 'run'],
-    description: 'Landscape management, transports, monitoring, and support',
+    phases: ["prepare", "explore", "realize", "deploy", "run"],
+    description: "Landscape management, transports, monitoring, and support",
   },
   security: {
     percentage: 6,
-    phases: ['explore', 'realize', 'deploy'],
-    description: 'Role design, authorization objects, GRC, and security testing',
+    phases: ["explore", "realize", "deploy"],
+    description: "Role design, authorization objects, GRC, and security testing",
   },
   testing: {
     percentage: 20,
-    phases: ['realize', 'deploy'],
-    description: 'Test planning, script creation, execution, and defect management',
+    phases: ["realize", "deploy"],
+    description: "Test planning, script creation, execution, and defect management",
   },
   training: {
     percentage: 8,
-    phases: ['realize', 'deploy', 'run'],
-    description: 'Training material creation, train-the-trainer, and end-user training',
+    phases: ["realize", "deploy", "run"],
+    description: "Training material creation, train-the-trainer, and end-user training",
   },
   changeManagement: {
     percentage: 10,
-    phases: ['prepare', 'explore', 'realize', 'deploy', 'run'],
-    description: 'Stakeholder engagement, communication, and adoption activities',
+    phases: ["prepare", "explore", "realize", "deploy", "run"],
+    description: "Stakeholder engagement, communication, and adoption activities",
   },
 };
 
@@ -147,7 +150,7 @@ export const WRAPPER_DEFAULTS: Record<WrapperType, {
  * Calculate derived fields for a single phase resource
  */
 export function calculatePhaseResource(
-  resource: Omit<PhaseResource, 'calculatedHours' | 'calculatedCost'>
+  resource: Omit<PhaseResource, "calculatedHours" | "calculatedCost">
 ): PhaseResource {
   const calculatedHours = (resource.phaseEffort * 8 * resource.allocation) / 100;
   const calculatedCost = calculatedHours * resource.hourlyRate;
@@ -163,7 +166,7 @@ export function calculatePhaseResource(
  * Calculate totals for a phase allocation
  */
 export function calculatePhaseAllocation(
-  phase: Omit<PhaseAllocation, 'totalCost' | 'averageRate'>
+  phase: Omit<PhaseAllocation, "totalCost" | "averageRate">
 ): PhaseAllocation {
   const resources = phase.resources.map(calculatePhaseResource);
 
@@ -184,7 +187,7 @@ export function calculatePhaseAllocation(
  * Calculate wrapper effort based on technical effort
  */
 export function calculateWrapper(
-  wrapper: Omit<Wrapper, 'calculatedEffort' | 'calculatedCost'>,
+  wrapper: Omit<Wrapper, "calculatedEffort" | "calculatedCost">,
   technicalEffort: number,
   averageRate: number
 ): Wrapper {
@@ -202,8 +205,8 @@ export function calculateWrapper(
  * Calculate complete resource plan with all derived values
  */
 export function calculateResourcePlan(
-  phases: Omit<PhaseAllocation, 'totalCost' | 'averageRate'>[],
-  wrappers: Omit<Wrapper, 'calculatedEffort' | 'calculatedCost'>[]
+  phases: Omit<PhaseAllocation, "totalCost" | "averageRate">[],
+  wrappers: Omit<Wrapper, "calculatedEffort" | "calculatedCost">[]
 ): ResourcePlan {
   // Calculate phase allocations
   const calculatedPhases = phases.map(calculatePhaseAllocation);
@@ -216,9 +219,7 @@ export function calculateResourcePlan(
   const averageRate = technicalHours > 0 ? technicalCost / technicalHours : 0;
 
   // Calculate wrappers
-  const calculatedWrappers = wrappers.map(w =>
-    calculateWrapper(w, technicalEffort, averageRate)
-  );
+  const calculatedWrappers = wrappers.map((w) => calculateWrapper(w, technicalEffort, averageRate));
 
   const wrapperEffort = calculatedWrappers.reduce((sum, w) => sum + w.calculatedEffort, 0);
   const wrapperCost = calculatedWrappers.reduce((sum, w) => sum + w.calculatedCost, 0);
@@ -252,7 +253,7 @@ export function calculateMargin(totalCost: number, sellingPrice: number): number
  * Get default hourly rate for role and region
  */
 export function getDefaultRate(role: ResourceRole, region: string): number {
-  const regionRates = DEFAULT_HOURLY_RATES[region] || DEFAULT_HOURLY_RATES['US-East'];
+  const regionRates = DEFAULT_HOURLY_RATES[region] || DEFAULT_HOURLY_RATES["US-East"];
   return regionRates[role] || 150;
 }
 
@@ -263,7 +264,7 @@ export function createDefaultPhaseResources(
   phaseId: string,
   phaseName: string,
   phaseEffort: number,
-  region: string = 'US-East'
+  region: string = "US-East"
 ): PhaseResource[] {
   // Default mix: 70% Technical, 20% Functional, 10% Architect
   return [
@@ -271,10 +272,10 @@ export function createDefaultPhaseResources(
       id: `${phaseId}-tech`,
       phaseId,
       phaseName,
-      role: 'Technical',
+      role: "Technical",
       region,
       allocation: 70,
-      hourlyRate: getDefaultRate('Technical', region),
+      hourlyRate: getDefaultRate("Technical", region),
       phaseEffort,
       calculatedHours: 0,
       calculatedCost: 0,
@@ -283,10 +284,10 @@ export function createDefaultPhaseResources(
       id: `${phaseId}-func`,
       phaseId,
       phaseName,
-      role: 'Functional',
+      role: "Functional",
       region,
       allocation: 20,
-      hourlyRate: getDefaultRate('Functional', region),
+      hourlyRate: getDefaultRate("Functional", region),
       phaseEffort,
       calculatedHours: 0,
       calculatedCost: 0,
@@ -295,15 +296,17 @@ export function createDefaultPhaseResources(
       id: `${phaseId}-arch`,
       phaseId,
       phaseName,
-      role: 'Architect',
+      role: "Architect",
       region,
       allocation: 10,
-      hourlyRate: getDefaultRate('Architect', region),
+      hourlyRate: getDefaultRate("Architect", region),
       phaseEffort,
       calculatedHours: 0,
       calculatedCost: 0,
     },
-  ].map((r) => calculatePhaseResource(r as Omit<PhaseResource, 'calculatedHours' | 'calculatedCost'>));
+  ].map((r) =>
+    calculatePhaseResource(r as Omit<PhaseResource, "calculatedHours" | "calculatedCost">)
+  );
 }
 
 /**

@@ -3,12 +3,12 @@
  * User interface for managing analytics preferences
  */
 
-'use client';
+"use client";
 
-import { Card, Space, Switch, Typography, Alert, Divider } from 'antd';
-import { LineChartOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
-import { useState, useEffect } from 'react';
-import { HelpTooltip } from './HelpTooltip';
+import { Card, Space, Switch, Typography, Alert, Divider } from "antd";
+import { LineChartOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
+import { useState, useEffect } from "react";
+import { HelpTooltip } from "./HelpTooltip";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -32,13 +32,13 @@ export function AnalyticsSettings() {
 
   // Load preferences from localStorage on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('analytics-preferences');
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("analytics-preferences");
       if (saved) {
         try {
           setPreferences(JSON.parse(saved));
         } catch (error) {
-          console.error('Failed to load analytics preferences:', error);
+          console.error("Failed to load analytics preferences:", error);
         }
       }
     }
@@ -47,8 +47,8 @@ export function AnalyticsSettings() {
   // Save preferences to localStorage
   const savePreferences = (newPrefs: AnalyticsPreferences) => {
     setPreferences(newPrefs);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('analytics-preferences', JSON.stringify(newPrefs));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("analytics-preferences", JSON.stringify(newPrefs));
     }
     setHasUnsavedChanges(false);
   };
@@ -59,13 +59,13 @@ export function AnalyticsSettings() {
   };
 
   const isDoNotTrackEnabled =
-    typeof window !== 'undefined' &&
-    (window.navigator.doNotTrack === '1' ||
-      (window.navigator as any).msDoNotTrack === '1' ||
-      (window as any).doNotTrack === '1');
+    typeof window !== "undefined" &&
+    (window.navigator.doNotTrack === "1" ||
+      (window.navigator as any).msDoNotTrack === "1" ||
+      (window as any).doNotTrack === "1");
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }} size="large">
+    <Space direction="vertical" style={{ width: "100%" }} size="large">
       {isDoNotTrackEnabled && (
         <Alert
           message="Do Not Track Enabled"
@@ -88,17 +88,19 @@ export function AnalyticsSettings() {
           </Space>
         }
       >
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+        <Space direction="vertical" style={{ width: "100%" }} size="middle">
           <Paragraph type="secondary">
-            We use analytics to understand how you use our application and to improve your experience.
-            All data is anonymized and never shared with third parties.
+            We use analytics to understand how you use our application and to improve your
+            experience. All data is anonymized and never shared with third parties.
           </Paragraph>
 
           <Divider />
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}
+          >
             <div style={{ flex: 1, marginRight: 16 }}>
-              <Text strong style={{ display: 'block', marginBottom: 4 }}>
+              <Text strong style={{ display: "block", marginBottom: 4 }}>
                 Enable Analytics
                 <HelpTooltip
                   title="Analytics"
@@ -111,7 +113,7 @@ export function AnalyticsSettings() {
             </div>
             <Switch
               checked={preferences.analyticsEnabled}
-              onChange={(checked) => handleToggle('analyticsEnabled', checked)}
+              onChange={(checked) => handleToggle("analyticsEnabled", checked)}
               disabled={isDoNotTrackEnabled}
             />
           </div>
@@ -120,9 +122,15 @@ export function AnalyticsSettings() {
             <>
               <Divider />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                }}
+              >
                 <div style={{ flex: 1, marginRight: 16 }}>
-                  <Text strong style={{ display: 'block', marginBottom: 4 }}>
+                  <Text strong style={{ display: "block", marginBottom: 4 }}>
                     Performance Tracking
                     <HelpTooltip
                       title="Performance Tracking"
@@ -135,15 +143,21 @@ export function AnalyticsSettings() {
                 </div>
                 <Switch
                   checked={preferences.performanceTracking}
-                  onChange={(checked) => handleToggle('performanceTracking', checked)}
+                  onChange={(checked) => handleToggle("performanceTracking", checked)}
                 />
               </div>
 
               <Divider />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                }}
+              >
                 <div style={{ flex: 1, marginRight: 16 }}>
-                  <Text strong style={{ display: 'block', marginBottom: 4 }}>
+                  <Text strong style={{ display: "block", marginBottom: 4 }}>
                     Error Tracking
                     <HelpTooltip
                       title="Error Tracking"
@@ -156,15 +170,21 @@ export function AnalyticsSettings() {
                 </div>
                 <Switch
                   checked={preferences.errorTracking}
-                  onChange={(checked) => handleToggle('errorTracking', checked)}
+                  onChange={(checked) => handleToggle("errorTracking", checked)}
                 />
               </div>
 
               <Divider />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                }}
+              >
                 <div style={{ flex: 1, marginRight: 16 }}>
-                  <Text strong style={{ display: 'block', marginBottom: 4 }}>
+                  <Text strong style={{ display: "block", marginBottom: 4 }}>
                     User Behavior Tracking
                     <HelpTooltip
                       title="User Behavior Tracking"
@@ -177,7 +197,7 @@ export function AnalyticsSettings() {
                 </div>
                 <Switch
                   checked={preferences.userBehaviorTracking}
-                  onChange={(checked) => handleToggle('userBehaviorTracking', checked)}
+                  onChange={(checked) => handleToggle("userBehaviorTracking", checked)}
                 />
               </div>
             </>
@@ -186,7 +206,7 @@ export function AnalyticsSettings() {
       </Card>
 
       <Card>
-        <Space direction="vertical" style={{ width: '100%' }} size="small">
+        <Space direction="vertical" style={{ width: "100%" }} size="small">
           <Text strong>Privacy Information</Text>
           <Paragraph type="secondary" style={{ fontSize: 13, marginBottom: 0 }}>
             • All analytics data is anonymized and encrypted

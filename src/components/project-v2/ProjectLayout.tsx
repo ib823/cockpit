@@ -1,8 +1,13 @@
-'use client';
-import { Layout, Tabs, Button, Avatar, Dropdown, Space, Progress } from 'antd';
-import { UserOutlined, LogoutOutlined, DownloadOutlined, ShareAltOutlined } from '@ant-design/icons';
-import { useRouter, usePathname } from 'next/navigation';
-import { LogoutButton } from '@/components/common/LogoutButton';
+"use client";
+import { Layout, Tabs, Button, Avatar, Dropdown, Space, Progress } from "antd";
+import {
+  UserOutlined,
+  LogoutOutlined,
+  DownloadOutlined,
+  ShareAltOutlined,
+} from "@ant-design/icons";
+import { useRouter, usePathname } from "next/navigation";
+import { LogoutButton } from "@/components/common/LogoutButton";
 
 const { Header, Content } = Layout;
 
@@ -15,14 +20,14 @@ interface ProjectLayoutProps {
 export function ProjectLayout({ children, progress = 0, userEmail }: ProjectLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  
-  const currentTab = pathname?.split('/').pop() || 'capture';
+
+  const currentTab = pathname?.split("/").pop() || "capture";
 
   const tabs = [
-    { key: 'capture', label: 'Capture', path: '/project/capture' },
-    { key: 'decide', label: 'Decide', path: '/project/decide' },
-    { key: 'plan', label: 'Plan', path: '/project/plan' },
-    { key: 'present', label: 'Present', path: '/project/present' },
+    { key: "capture", label: "Capture", path: "/project/capture" },
+    { key: "decide", label: "Decide", path: "/project/decide" },
+    { key: "plan", label: "Plan", path: "/project/plan" },
+    { key: "present", label: "Present", path: "/project/present" },
   ];
 
   return (
@@ -34,13 +39,13 @@ export function ProjectLayout({ children, progress = 0, userEmail }: ProjectLayo
             activeKey={currentTab}
             items={tabs}
             onChange={(key) => {
-              const tab = tabs.find(t => t.key === key);
+              const tab = tabs.find((t) => t.key === key);
               if (tab) router.push(tab.path);
             }}
             className="mb-0"
           />
         </div>
-        
+
         <Space size="middle">
           {progress > 0 && (
             <div className="w-32">
@@ -52,11 +57,9 @@ export function ProjectLayout({ children, progress = 0, userEmail }: ProjectLayo
           <LogoutButton variant="button" />
         </Space>
       </Header>
-      
+
       <Content className="bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          {children}
-        </div>
+        <div className="max-w-7xl mx-auto">{children}</div>
       </Content>
     </Layout>
   );

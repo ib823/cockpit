@@ -10,7 +10,7 @@
  * - Effort calibration (learning curves)
  */
 
-import type { EstimatorInputs as BaseEstimatorInputs, EstimatorResults } from './types';
+import type { EstimatorInputs as BaseEstimatorInputs, EstimatorResults } from "./types";
 
 // Extended estimator inputs with additional fields used by theorem engine
 export interface EstimatorInputs extends BaseEstimatorInputs {
@@ -41,7 +41,7 @@ export interface ParetoDriver {
   effortMD: number;
   percentOfTotal: number;
   cumulativePercent: number;
-  category: 'base' | 'scope' | 'complexity' | 'geography' | 'wrapper';
+  category: "base" | "scope" | "complexity" | "geography" | "wrapper";
 }
 
 export interface RegressionAnalysis {
@@ -134,40 +134,40 @@ export class TheoremEngine {
     // Create drivers array
     const drivers: ParetoDriver[] = [
       {
-        label: 'Base scope',
+        label: "Base scope",
         effortMD: estimate.bce,
         percentOfTotal: (estimate.bce / total) * 100,
         cumulativePercent: 0,
-        category: 'base'
+        category: "base",
       },
       {
-        label: 'Scope breadth',
+        label: "Scope breadth",
         effortMD: estimate.sbEffort,
         percentOfTotal: (estimate.sbEffort / total) * 100,
         cumulativePercent: 0,
-        category: 'scope'
+        category: "scope",
       },
       {
-        label: 'Process complexity',
+        label: "Process complexity",
         effortMD: estimate.pcEffort,
         percentOfTotal: (estimate.pcEffort / total) * 100,
         cumulativePercent: 0,
-        category: 'complexity'
+        category: "complexity",
       },
       {
-        label: 'Org scale',
+        label: "Org scale",
         effortMD: estimate.osgEffort,
         percentOfTotal: (estimate.osgEffort / total) * 100,
         cumulativePercent: 0,
-        category: 'geography'
+        category: "geography",
       },
       {
-        label: 'Factory wrapper',
+        label: "Factory wrapper",
         effortMD: estimate.fw,
         percentOfTotal: (estimate.fw / total) * 100,
         cumulativePercent: 0,
-        category: 'wrapper'
-      }
+        category: "wrapper",
+      },
     ];
 
     // Sort by effort descending
@@ -175,25 +175,25 @@ export class TheoremEngine {
 
     // Calculate cumulative percentages
     let cumulative = 0;
-    drivers.forEach(driver => {
+    drivers.forEach((driver) => {
       cumulative += driver.percentOfTotal;
       driver.cumulativePercent = cumulative;
     });
 
     // Find 80% threshold
-    const top80 = drivers.filter(d => d.cumulativePercent <= 80 || drivers.indexOf(d) === 0);
-    const bottom20 = drivers.filter(d => !top80.includes(d));
+    const top80 = drivers.filter((d) => d.cumulativePercent <= 80 || drivers.indexOf(d) === 0);
+    const bottom20 = drivers.filter((d) => !top80.includes(d));
 
     // Generate recommendation
-    const topLabels = top80.map(d => d.label).join(' + ');
+    const topLabels = top80.map((d) => d.label).join(" + ");
     const topPercent = Math.round(top80.reduce((sum, d) => sum + d.percentOfTotal, 0));
 
     return {
       drivers,
-      cumulativePercent: drivers.map(d => d.cumulativePercent),
+      cumulativePercent: drivers.map((d) => d.cumulativePercent),
       top80Percent: top80,
       bottom20Percent: bottom20,
-      recommendation: `Focus negotiation on: ${topLabels} (${topPercent}% of effort)`
+      recommendation: `Focus negotiation on: ${topLabels} (${topPercent}% of effort)`,
     };
   }
 
@@ -205,46 +205,46 @@ export class TheoremEngine {
     // Simulated historical data (in production, use actual project data)
     return {
       projectCount: 24,
-      dateRange: '2020-2024',
-      region: 'APAC (MY, SG, ID, PH)',
+      dateRange: "2020-2024",
+      region: "APAC (MY, SG, ID, PH)",
       variables: [
         {
-          name: 'Integration',
+          name: "Integration",
           beta: 0.032,
           pValue: 0.0001,
           confidenceInterval: [0.028, 0.036],
-          significant: true
+          significant: true,
         },
         {
-          name: 'Country',
+          name: "Country",
           beta: 0.098,
           pValue: 0.0001,
           confidenceInterval: [0.085, 0.112],
-          significant: true
+          significant: true,
         },
         {
-          name: 'Entity',
+          name: "Entity",
           beta: 0.048,
           pValue: 0.003,
           confidenceInterval: [0.041, 0.055],
-          significant: true
+          significant: true,
         },
         {
-          name: 'Extension',
+          name: "Extension",
           beta: 0.012,
           pValue: 0.012,
           confidenceInterval: [0.009, 0.015],
-          significant: true
-        }
+          significant: true,
+        },
       ],
       modelFit: {
         rSquared: 0.84,
         adjRSquared: 0.82,
-        mape: 11.3
+        mape: 11.3,
       },
       allSignificant: true,
       interpretation:
-        'Model explains 84% of variance with 11.3% average error. All coefficients statistically significant (p < 0.05).'
+        "Model explains 84% of variance with 11.3% average error. All coefficients statistically significant (p < 0.05).",
     };
   }
 
@@ -252,38 +252,35 @@ export class TheoremEngine {
    * THEOREM 3: Sensitivity Analysis (Tornado Diagram)
    * Shows which inputs have biggest impact on output
    */
-  sensitivityAnalysis(
-    inputs: EstimatorInputs,
-    baseline: EstimateResult
-  ): SensitivityAnalysis {
+  sensitivityAnalysis(inputs: EstimatorInputs, baseline: EstimateResult): SensitivityAnalysis {
     const baselineTotal = baseline.totalEffort;
     const factors: SensitivityFactor[] = [];
 
     // Factor 1: Base effort (±10%)
     const bceVariation = inputs.profile.baseFT * 0.1;
     factors.push({
-      name: 'Base effort',
+      name: "Base effort",
       baseValue: inputs.profile.baseFT,
       lowValue: inputs.profile.baseFT - bceVariation,
       highValue: inputs.profile.baseFT + bceVariation,
       lowEstimate: baselineTotal - bceVariation,
       highEstimate: baselineTotal + bceVariation,
       swingMD: bceVariation * 2,
-      swingPercent: 10
+      swingPercent: 10,
     });
 
     // Factor 2: Integrations (±10%)
     if (inputs.integrations > 0) {
       const intSwing = baselineTotal * 0.03 * 0.1 * inputs.integrations;
       factors.push({
-        name: 'Integrations',
+        name: "Integrations",
         baseValue: inputs.integrations,
         lowValue: inputs.integrations * 0.9,
         highValue: inputs.integrations * 1.1,
         lowEstimate: baselineTotal - intSwing,
         highEstimate: baselineTotal + intSwing,
         swingMD: intSwing * 2,
-        swingPercent: (intSwing * 2 / baselineTotal) * 100
+        swingPercent: ((intSwing * 2) / baselineTotal) * 100,
       });
     }
 
@@ -291,14 +288,14 @@ export class TheoremEngine {
     if (inputs.countries > 1) {
       const countrySwing = baselineTotal * 0.1 * 0.1 * (inputs.countries - 1);
       factors.push({
-        name: 'Countries',
+        name: "Countries",
         baseValue: inputs.countries,
         lowValue: inputs.countries * 0.9,
         highValue: inputs.countries * 1.1,
         lowEstimate: baselineTotal - countrySwing,
         highEstimate: baselineTotal + countrySwing,
         swingMD: countrySwing * 2,
-        swingPercent: (countrySwing * 2 / baselineTotal) * 100
+        swingPercent: ((countrySwing * 2) / baselineTotal) * 100,
       });
     }
 
@@ -307,14 +304,14 @@ export class TheoremEngine {
     if (totalExt > 0) {
       const extSwing = baselineTotal * 0.01 * 0.1 * totalExt;
       factors.push({
-        name: 'Extensions',
+        name: "Extensions",
         baseValue: totalExt,
         lowValue: totalExt * 0.9,
         highValue: totalExt * 1.1,
         lowEstimate: baselineTotal - extSwing,
         highEstimate: baselineTotal + extSwing,
         swingMD: extSwing * 2,
-        swingPercent: (extSwing * 2 / baselineTotal) * 100
+        swingPercent: ((extSwing * 2) / baselineTotal) * 100,
       });
     }
 
@@ -324,8 +321,8 @@ export class TheoremEngine {
     return {
       baselineEstimate: baselineTotal,
       factors,
-      mostSensitive: factors[0]?.name || 'Base effort',
-      leastSensitive: factors[factors.length - 1]?.name || 'Extensions'
+      mostSensitive: factors[0]?.name || "Base effort",
+      leastSensitive: factors[factors.length - 1]?.name || "Extensions",
     };
   }
 
@@ -333,10 +330,7 @@ export class TheoremEngine {
    * THEOREM 4: Benchmark Validation
    * Compare against industry benchmarks
    */
-  benchmarkValidation(
-    estimate: EstimateResult,
-    inputs: EstimatorInputs
-  ): BenchmarkValidation {
+  benchmarkValidation(estimate: EstimateResult, inputs: EstimatorInputs): BenchmarkValidation {
     const yourEstimate = estimate.totalEffort;
 
     // Simulated benchmark data (in production, use actual data)
@@ -344,14 +338,14 @@ export class TheoremEngine {
     const median = benchmarks[Math.floor(benchmarks.length / 2)];
 
     // Calculate percentile
-    const below = benchmarks.filter(b => b < yourEstimate).length;
+    const below = benchmarks.filter((b) => b < yourEstimate).length;
     const percentile = Math.round((below / benchmarks.length) * 100);
 
     // Similar projects
     const similarProjects: BenchmarkProject[] = [
-      { name: 'MY-SG Finance', estimateMD: 485, similarity: 0.92 },
-      { name: 'TH-VN Finance+MM', estimateMD: 530, similarity: 0.88 },
-      { name: 'ID Finance (2 entities)', estimateMD: 510, similarity: 0.85 }
+      { name: "MY-SG Finance", estimateMD: 485, similarity: 0.92 },
+      { name: "TH-VN Finance+MM", estimateMD: 530, similarity: 0.88 },
+      { name: "ID Finance (2 entities)", estimateMD: 510, similarity: 0.85 },
     ];
 
     // Per-user check (assume 25 users for baseline)
@@ -376,9 +370,8 @@ export class TheoremEngine {
       perUserCheck: {
         yourValue: perUserMD,
         benchmarkRange: benchmarkPerUserRange,
-        withinRange:
-          perUserMD >= benchmarkPerUserRange[0] && perUserMD <= benchmarkPerUserRange[1]
-      }
+        withinRange: perUserMD >= benchmarkPerUserRange[0] && perUserMD <= benchmarkPerUserRange[1],
+      },
     };
   }
 
@@ -394,7 +387,7 @@ export class TheoremEngine {
       realistic: baseline,
       pessimistic: Math.round(baseline * 1.2),
       confidenceLevel: 90, // Based on historical data
-      range: [Math.round(baseline * 0.85), Math.round(baseline * 1.2)]
+      range: [Math.round(baseline * 0.85), Math.round(baseline * 1.2)],
     };
   }
 
@@ -408,22 +401,22 @@ export class TheoremEngine {
     l3Release: string
   ): EffortCalibration {
     let factor = 1.0;
-    let reasoning = '';
+    let reasoning = "";
 
     // Team experience adjustment
     if (teamExperience < 2) {
       factor += 0.15;
-      reasoning += 'Junior team (+15%). ';
+      reasoning += "Junior team (+15%). ";
     } else if (teamExperience >= 5) {
       factor -= 0.1;
-      reasoning += 'Experienced team (-10%). ';
+      reasoning += "Experienced team (-10%). ";
     }
 
     // L3 maturity (newer releases = more unknowns)
     const releaseYear = parseInt(l3Release.substring(0, 2));
     if (releaseYear >= 25) {
       factor += 0.05;
-      reasoning += 'Latest release (+5%).';
+      reasoning += "Latest release (+5%).";
     }
 
     factor = Math.max(0.85, Math.min(1.2, factor)); // Cap at ±20%
@@ -433,7 +426,7 @@ export class TheoremEngine {
       l3Maturity: l3Release,
       calibrationFactor: factor,
       adjustedEstimate: Math.round(estimate.totalEffort * factor),
-      reasoning: reasoning || 'Standard calibration (no adjustment).'
+      reasoning: reasoning || "Standard calibration (no adjustment).",
     };
   }
 
@@ -457,7 +450,7 @@ export class TheoremEngine {
       sensitivity: this.sensitivityAnalysis(inputs, estimate),
       benchmark: this.benchmarkValidation(estimate, inputs),
       confidence: this.confidenceInterval(estimate),
-      calibration: this.effortCalibration(estimate, 3, '2508') // Default: 3 projects, 2508 release
+      calibration: this.effortCalibration(estimate, 3, "2508"), // Default: 3 projects, 2508 release
     };
   }
 }

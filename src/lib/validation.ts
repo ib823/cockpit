@@ -7,7 +7,7 @@
  *
  * This file contains ONLY schemas for non-persisted or domain-specific entities.
  */
-import { z } from 'zod';
+import { z } from "zod";
 
 // --- Domain-Specific Schemas (Non-DAL) ---
 
@@ -25,20 +25,19 @@ export const DecisionSchema = z.object({
 export const RicefwSchema = z.object({
   id: z.string().cuid(),
   projectId: z.string().cuid(),
-  type: z.enum(['Report', 'Interface', 'Conversion', 'Enhancement', 'Form', 'Workflow']),
+  type: z.enum(["Report", "Interface", "Conversion", "Enhancement", "Form", "Workflow"]),
   name: z.string(),
-  complexity: z.enum(['S', 'M', 'L', 'XL']),
+  complexity: z.enum(["S", "M", "L", "XL"]),
   effort: z.number(),
 });
 
 export const TimelineProfileSchema = z.object({
-    id: z.string().cuid(),
-    projectId: z.string().cuid(),
-    company: z.string(),
-    industry: z.string(),
-    employees: z.number(),
+  id: z.string().cuid(),
+  projectId: z.string().cuid(),
+  company: z.string(),
+  industry: z.string(),
+  employees: z.number(),
 });
-
 
 // --- Validation Utility ---
 

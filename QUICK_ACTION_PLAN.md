@@ -13,15 +13,18 @@
 **File**: `src/components/project-v2/modes/PlanMode.tsx:311`
 
 **Change**:
+
 ```tsx
 // Line 311: BEFORE
-className="fixed right-0 top-0 bottom-0 w-[480px] bg-white shadow-2xl z-50"
+className = "fixed right-0 top-0 bottom-0 w-[480px] bg-white shadow-2xl z-50";
 
 // Line 311: AFTER
-className="fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480px] bg-white shadow-2xl z-50"
+className =
+  "fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480px] bg-white shadow-2xl z-50";
 ```
 
 **Test**:
+
 - iPhone SE (375px): Panel should be full-width
 - iPhone 12 (390px): Panel should be full-width
 - iPad (768px): Panel should be max-width ~384px
@@ -34,6 +37,7 @@ className="fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480
 **File**: `src/components/layout/AppLayout.tsx:42`
 
 **Change**:
+
 ```tsx
 // Line 42: BEFORE
 <Layout className="min-h-screen" style={{ width: '100vw' }}>
@@ -43,6 +47,7 @@ className="fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480
 ```
 
 **Also Fix Line 43**:
+
 ```tsx
 // Line 43: BEFORE
 <Header ... style={{ width: '100%' }}>
@@ -52,6 +57,7 @@ className="fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480
 ```
 
 **Test**:
+
 - No horizontal scroll on any screen size
 - Content stays within viewport
 
@@ -64,10 +70,10 @@ className="fixed right-0 top-0 bottom-0 w-full sm:max-w-sm md:max-w-md lg:w-[480
 **Implementation**:
 
 ```tsx
-'use client';
-import { useState } from 'react';
-import { Layout, Menu, Drawer } from 'antd';
-import { MenuOutlined } from '@ant-design/icons';
+"use client";
+import { useState } from "react";
+import { Layout, Menu, Drawer } from "antd";
+import { MenuOutlined } from "@ant-design/icons";
 
 const { Header, Content } = Layout;
 
@@ -79,11 +85,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const menuItems = [
     {
-      key: 'project',
+      key: "project",
       icon: <ProjectOutlined />,
-      label: 'Project Builder',
+      label: "Project Builder",
       onClick: () => {
-        router.push('/project/capture');
+        router.push("/project/capture");
         setMobileMenuOpen(false);
       },
     },
@@ -95,7 +101,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Header className="w-full bg-white border-b flex items-center justify-between px-4 lg:px-6 sticky top-0 z-50">
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8 flex-1">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push("/")}>
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg" />
             <span className="text-lg font-semibold">Keystone</span>
           </div>
@@ -117,12 +123,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           >
             <MenuOutlined className="text-xl" />
           </button>
-
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded" />
             <span className="font-semibold">Keystone</span>
           </div>
-
           <div className="w-8" /> {/* Spacer for centering */}
         </div>
 
@@ -154,12 +158,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <Menu
-          mode="vertical"
-          selectedKeys={[currentPath]}
-          items={menuItems}
-          className="border-0"
-        />
+        <Menu mode="vertical" selectedKeys={[currentPath]} items={menuItems} className="border-0" />
 
         {session?.user && (
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-gray-50">
@@ -169,15 +168,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         )}
       </Drawer>
 
-      <Content className="bg-gray-50 w-full">
-        {children}
-      </Content>
+      <Content className="bg-gray-50 w-full">{children}</Content>
     </Layout>
   );
 }
 ```
 
 **Test**:
+
 - Mobile: Hamburger icon appears, opens drawer
 - Desktop: Traditional horizontal menu
 - Drawer closes on navigation
@@ -192,6 +190,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 **File**: `src/components/project-v2/modes/PlanMode.tsx:175-224`
 
 **Change**:
+
 ```tsx
 // Wrap tabs in scrollable container
 <div className="overflow-x-auto">
@@ -214,6 +213,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 ```
 
 **Test**:
+
 - All tabs accessible on mobile via horizontal scroll
 - Scroll indicators visible
 - Active tab always visible
@@ -223,6 +223,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 ### 5. Gantt Chart Mobile Solution ⚡ **8-12 hours**
 
 **Option A: Defer to Desktop** (Quick - 2 hours)
+
 ```tsx
 // File: src/components/gantt-tool/GanttCanvas.tsx
 
@@ -247,6 +248,7 @@ export function GanttCanvas({ ... }) {
 ```
 
 **Option B: Vertical Task List** (Better UX - 8-12 hours)
+
 ```tsx
 export function GanttCanvas({ ... }) {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -290,6 +292,7 @@ function GanttMobileView({ tasks }) {
 ```
 
 **Test**:
+
 - Mobile: See task list or desktop message
 - Tablet: Consider showing simplified Gantt
 - Desktop: Full Gantt chart
@@ -308,6 +311,7 @@ grep -r "className.*md:" src/components --include="*.tsx" | grep -v "sm:"
 ```
 
 **Before** → **After**:
+
 ```tsx
 // Grid columns
 "grid grid-cols-2 gap-4"
@@ -327,6 +331,7 @@ grep -r "className.*md:" src/components --include="*.tsx" | grep -v "sm:"
 ```
 
 **Files to prioritize**:
+
 - All mode components (CaptureMode, PlanMode, DecideMode, PresentMode)
 - Dashboard components
 - Admin pages
@@ -340,6 +345,7 @@ grep -r "className.*md:" src/components --include="*.tsx" | grep -v "sm:"
 **File**: `src/app/globals.css`
 
 **Add**:
+
 ```css
 /* Safe Area Support for Notched Devices */
 .safe-top {
@@ -369,6 +375,7 @@ grep -r "className.*md:" src/components --include="*.tsx" | grep -v "sm:"
 ```
 
 **Update all fixed-position components**:
+
 ```tsx
 // Before
 <div className="fixed top-0 left-0 right-0">
@@ -378,6 +385,7 @@ grep -r "className.*md:" src/components --include="*.tsx" | grep -v "sm:"
 ```
 
 **Files to update**:
+
 - ProjectShell bottom nav
 - PlanMode panel
 - PresentMode controls
@@ -391,6 +399,7 @@ grep -r "className.*md:" src/components --include="*.tsx" | grep -v "sm:"
 **Files**: All modal components
 
 **Pattern**:
+
 ```tsx
 // Before
 <Modal open={isOpen} onClose={onClose}>
@@ -408,6 +417,7 @@ grep -r "className.*md:" src/components --include="*.tsx" | grep -v "sm:"
 ```
 
 **Modal size guide**:
+
 - Small modals: `max-w-sm` (384px) - Confirmations, alerts
 - Medium modals: `max-w-lg` (512px) - Forms, settings
 - Large modals: `max-w-2xl` (672px) - Complex content
@@ -420,11 +430,13 @@ grep -r "className.*md:" src/components --include="*.tsx" | grep -v "sm:"
 ### Device Testing Matrix
 
 **Browsers**:
+
 - [ ] Chrome (DevTools responsive mode)
 - [ ] Safari (actual iPhone if available)
 - [ ] Firefox (responsive mode)
 
 **Viewports to Test**:
+
 - [ ] **375px** - iPhone SE, iPhone 12/13 mini (CRITICAL)
 - [ ] **390px** - iPhone 12/13/14 (CRITICAL)
 - [ ] **414px** - iPhone 12 Pro Max, 13 Pro Max
@@ -437,6 +449,7 @@ grep -r "className.*md:" src/components --include="*.tsx" | grep -v "sm:"
 ### Functionality Testing
 
 **After Each Fix**:
+
 - [ ] No horizontal scroll at any viewport
 - [ ] All buttons/links tappable (48×48px minimum)
 - [ ] Text readable (not too small)
@@ -467,15 +480,18 @@ npm run start
 ### Week 1 (P0 Critical)
 
 **Day 1-2**:
+
 - [ ] Fix PlanMode panel width
 - [ ] Fix AppLayout horizontal scroll
 - [ ] Test on iPhone SE, iPad, Desktop
 
 **Day 3-4**:
+
 - [ ] Implement hamburger menu
 - [ ] Test navigation on all devices
 
 **Day 5**:
+
 - [ ] Code review
 - [ ] Regression testing
 - [ ] Deploy to staging
@@ -483,20 +499,24 @@ npm run start
 ### Week 2 (P1 High Priority)
 
 **Day 1-2**:
+
 - [ ] Fix PlanMode tabs
 - [ ] Add mobile-specific responsive classes
 
 **Day 3-5**:
+
 - [ ] Gantt mobile solution (choose option A or B)
 - [ ] Test and refine
 
 ### Week 3 (P2 Polish)
 
 **Day 1-2**:
+
 - [ ] Safe area insets
 - [ ] Modal max-widths
 
 **Day 3-5**:
+
 - [ ] Final testing
 - [ ] Documentation
 - [ ] Production deployment
@@ -506,16 +526,19 @@ npm run start
 ## Success Metrics
 
 **Before**:
+
 - Mobile usability score: 4/10
 - Mobile-blocking issues: 5 critical
 - Responsive breakpoint coverage: 40%
 
 **After (Target)**:
+
 - Mobile usability score: 8/10
 - Mobile-blocking issues: 0 critical
 - Responsive breakpoint coverage: 80%
 
 **Measurement**:
+
 ```bash
 # Lighthouse mobile score
 lhci autorun --preset=mobile
@@ -557,12 +580,14 @@ grep -r "className.*md:" src/components --include="*.tsx" | grep -v "sm:" | head
 ## Getting Help
 
 **Resources**:
+
 - Tailwind CSS Responsive Design: https://tailwindcss.com/docs/responsive-design
 - Apple HIG: https://developer.apple.com/design/human-interface-guidelines/
 - WCAG 2.1: https://www.w3.org/WAI/WCAG21/quickref/
 - Nielsen Norman Mobile UX: https://www.nngroup.com/topic/mobile-tablet/
 
 **Testing Tools**:
+
 - Chrome DevTools Device Mode
 - BrowserStack (cross-device testing)
 - Responsively App (https://responsively.app/)

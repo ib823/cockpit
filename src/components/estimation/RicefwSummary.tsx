@@ -4,14 +4,14 @@
  * Read-only summary of all RICEFW items for dashboard/review
  */
 
-'use client';
+"use client";
 
-import React from 'react';
-import { ResponsiveCard, ResponsiveGrid } from '@/components/ui/ResponsiveShell';
-import { Heading, Text } from '@/components/ui/Typography';
-import { Badge } from '@/components/ui/badge';
-import { RicefwItem, calculateRicefwSummary } from '@/lib/ricefw/model';
-import { FileText, Zap, Database, Code, FileSignature, Workflow } from 'lucide-react';
+import React from "react";
+import { ResponsiveCard, ResponsiveGrid } from "@/components/ui/ResponsiveShell";
+import { Heading, Text } from "@/components/ui/Typography";
+import { Badge } from "@/components/ui/badge";
+import { RicefwItem, calculateRicefwSummary } from "@/lib/ricefw/model";
+import { FileText, Zap, Database, Code, FileSignature, Workflow } from "lucide-react";
 
 export interface RicefwSummaryProps {
   items: RicefwItem[];
@@ -23,46 +23,46 @@ export function RicefwSummary({ items, averageHourlyRate = 150 }: RicefwSummaryP
 
   const categories = [
     {
-      key: 'reports',
-      label: 'Reports',
+      key: "reports",
+      label: "Reports",
       icon: FileText,
-      color: 'text-blue-600',
-      bg: 'bg-blue-100 dark:bg-blue-900/20',
+      color: "text-blue-600",
+      bg: "bg-blue-100 dark:bg-blue-900/20",
     },
     {
-      key: 'interfaces',
-      label: 'Interfaces',
+      key: "interfaces",
+      label: "Interfaces",
       icon: Zap,
-      color: 'text-green-600',
-      bg: 'bg-green-100 dark:bg-green-900/20',
+      color: "text-green-600",
+      bg: "bg-green-100 dark:bg-green-900/20",
     },
     {
-      key: 'conversions',
-      label: 'Conversions',
+      key: "conversions",
+      label: "Conversions",
       icon: Database,
-      color: 'text-yellow-600',
-      bg: 'bg-yellow-100 dark:bg-yellow-900/20',
+      color: "text-yellow-600",
+      bg: "bg-yellow-100 dark:bg-yellow-900/20",
     },
     {
-      key: 'enhancements',
-      label: 'Enhancements',
+      key: "enhancements",
+      label: "Enhancements",
       icon: Code,
-      color: 'text-purple-600',
-      bg: 'bg-purple-100 dark:bg-purple-900/20',
+      color: "text-purple-600",
+      bg: "bg-purple-100 dark:bg-purple-900/20",
     },
     {
-      key: 'forms',
-      label: 'Forms',
+      key: "forms",
+      label: "Forms",
       icon: FileSignature,
-      color: 'text-orange-600',
-      bg: 'bg-orange-100 dark:bg-orange-900/20',
+      color: "text-orange-600",
+      bg: "bg-orange-100 dark:bg-orange-900/20",
     },
     {
-      key: 'workflows',
-      label: 'Workflows',
+      key: "workflows",
+      label: "Workflows",
       icon: Workflow,
-      color: 'text-red-600',
-      bg: 'bg-red-100 dark:bg-red-900/20',
+      color: "text-red-600",
+      bg: "bg-red-100 dark:bg-red-900/20",
     },
   ];
 
@@ -87,12 +87,9 @@ export function RicefwSummary({ items, averageHourlyRate = 150 }: RicefwSummaryP
         {/* Category Cards */}
         <ResponsiveGrid cols={{ default: 2, md: 3, lg: 6 }} gap="sm">
           {categories.map(({ key, label, icon: Icon, color, bg }) => {
-            const data = summary[key as keyof Omit<typeof summary, 'totals'>];
+            const data = summary[key as keyof Omit<typeof summary, "totals">];
             return (
-              <div
-                key={key}
-                className={`p-4 rounded-lg ${bg} text-center space-y-2`}
-              >
+              <div key={key} className={`p-4 rounded-lg ${bg} text-center space-y-2`}>
                 <Icon className={`h-6 w-6 mx-auto ${color}`} />
                 <Text size="sm" weight="semibold">
                   {label}

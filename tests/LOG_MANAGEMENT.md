@@ -5,17 +5,21 @@
 All test logs are saved in the **project root directory** (`/workspaces/cockpit/`):
 
 ### Ultimate Test Logs
+
 ```
 ultimate-test-results-{timestamp}.log
 ```
+
 - Created by: `npm run test:ultimate`
 - Contains: Complete test results from all 83 tests
 - Example: `ultimate-test-results-2025-10-10T01-33-38-184Z.log`
 
 ### Regular Test Logs
+
 ```
 test-results-{timestamp}.log
 ```
+
 - Created by: `npm run test:all`
 - Contains: Basic test suite results
 - Example: `test-results-2025-10-10T00-46-30-373Z.log`
@@ -29,6 +33,7 @@ test-results-{timestamp}.log
 Both test runners **automatically delete old logs** before creating new ones:
 
 #### Ultimate Test Runner
+
 ```bash
 npm run test:ultimate
 # 🗑️ Cleaned up 3 old log file(s)
@@ -36,6 +41,7 @@ npm run test:ultimate
 ```
 
 #### Regular Test Runner
+
 ```bash
 npm run test:all
 # 🗑️ Cleaned up 2 old log file(s)
@@ -43,6 +49,7 @@ npm run test:all
 ```
 
 **Benefits:**
+
 - ✅ Always have only the latest test results
 - ✅ No log file clutter
 - ✅ Saves disk space
@@ -119,6 +126,7 @@ ultimate-test-results-*.log
 ```
 
 **This means:**
+
 - ✅ Logs won't be committed to version control
 - ✅ Won't clutter your git status
 - ✅ Won't be pushed to remote repository
@@ -158,6 +166,7 @@ ultimate-test-results-*.log
 ### What's Logged
 
 Each log file contains:
+
 - ✅ Test execution timestamps
 - ✅ Prerequisites check results
 - ✅ Each test suite output (stdout/stderr)
@@ -171,18 +180,21 @@ Each log file contains:
 ## 🎯 Best Practices
 
 ### 1. Let Auto-Cleanup Handle It
+
 ```bash
 # Just run tests - old logs auto-delete
 npm run test:ultimate
 ```
 
 ### 2. Save Important Results
+
 ```bash
 # If you need to keep a specific log, rename it
 mv ultimate-test-results-*.log important-test-run-$(date +%Y%m%d).log
 ```
 
 ### 3. Compare Test Runs
+
 ```bash
 # Run test and save with descriptive name
 npm run test:ultimate
@@ -194,6 +206,7 @@ diff baseline-test-*.log ultimate-test-results-*.log
 ```
 
 ### 4. Export for CI/CD
+
 ```bash
 # Upload to artifacts in GitHub Actions
 - uses: actions/upload-artifact@v3
@@ -211,6 +224,7 @@ diff baseline-test-*.log ultimate-test-results-*.log
 **Problem:** Test runs but no log file appears
 
 **Solutions:**
+
 1. Check write permissions in project root
 2. Ensure script has file system access
 3. Check for errors in console output
@@ -242,12 +256,14 @@ cat $(find . -maxdepth 1 -name "*test-results*.log" -type f -printf '%T@ %p\n' |
 **Git Ignore:** ✅ Configured (logs won't be committed)
 
 **View Latest:**
+
 ```bash
 cat ultimate-test-results-*.log  # Ultimate tests
 cat test-results-*.log           # Regular tests
 ```
 
 **Manual Delete:**
+
 ```bash
 rm -f *test-results*.log
 ```

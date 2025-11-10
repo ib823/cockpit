@@ -1,16 +1,16 @@
-'use client';
-import { useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+"use client";
+import { useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 
 function releaseScrollLock() {
-  document.documentElement.classList.remove('overflow-hidden');
-  document.body.classList.remove('overflow-hidden');
-  document.body.style.overflow = '';
-  document.body.style.pointerEvents = '';
+  document.documentElement.classList.remove("overflow-hidden");
+  document.body.classList.remove("overflow-hidden");
+  document.body.style.overflow = "";
+  document.body.style.pointerEvents = "";
 
   // Clear any residual inline styles that modals might leave
   if (document.body.style.paddingRight) {
-    document.body.style.paddingRight = '';
+    document.body.style.paddingRight = "";
   }
 }
 
@@ -31,7 +31,7 @@ export default function OverlaySafety() {
         releaseScrollLock();
 
         // Remove residual inert from focus-trap libs
-        document.querySelectorAll('[inert]').forEach((n) => n.removeAttribute('inert'));
+        document.querySelectorAll("[inert]").forEach((n) => n.removeAttribute("inert"));
 
         // Disable pointer-events on hidden overlays and clean up orphaned modals
         const overlays = Array.from(
@@ -42,30 +42,32 @@ export default function OverlaySafety() {
         overlays.forEach((el) => {
           const cs = getComputedStyle(el);
           const hidden =
-            el.hasAttribute('hidden') ||
-            el.getAttribute('aria-hidden') === 'true' ||
-            cs.display === 'none' ||
-            cs.visibility === 'hidden' ||
-            parseFloat(cs.opacity || '1') < 0.01;
+            el.hasAttribute("hidden") ||
+            el.getAttribute("aria-hidden") === "true" ||
+            cs.display === "none" ||
+            cs.visibility === "hidden" ||
+            parseFloat(cs.opacity || "1") < 0.01;
 
           // Only modify if needed to prevent triggering mutations
           const currentPointerEvents = el.style.pointerEvents;
-          if (hidden && currentPointerEvents !== 'none') {
-            el.style.pointerEvents = 'none';
+          if (hidden && currentPointerEvents !== "none") {
+            el.style.pointerEvents = "none";
           }
         });
 
         // Clean up orphaned Ant Design modal masks
-        const masks = document.querySelectorAll<HTMLElement>('.ant-modal-mask');
+        const masks = document.querySelectorAll<HTMLElement>(".ant-modal-mask");
         masks.forEach((mask) => {
           const cs = getComputedStyle(mask);
-          if (cs.display === 'none' || parseFloat(cs.opacity || '1') < 0.01) {
-            mask.style.pointerEvents = 'none';
+          if (cs.display === "none" || parseFloat(cs.opacity || "1") < 0.01) {
+            mask.style.pointerEvents = "none";
           }
         });
       } finally {
         // Release the lock after a short delay
-        setTimeout(() => { isFixing = false; }, 100);
+        setTimeout(() => {
+          isFixing = false;
+        }, 100);
       }
     };
 
@@ -81,7 +83,7 @@ export default function OverlaySafety() {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['hidden', 'aria-hidden', 'class'] // Don't observe 'style' to prevent loops
+      attributeFilter: ["hidden", "aria-hidden", "class"], // Don't observe 'style' to prevent loops
     });
 
     // Periodic safety sweep (less frequent)
@@ -90,12 +92,12 @@ export default function OverlaySafety() {
 
     // ESC often closes modals; sweep afterward
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setTimeout(fix, 100);
+      if (e.key === "Escape") setTimeout(fix, 100);
     };
-    window.addEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
 
     return () => {
-      window.removeEventListener('keydown', onKey);
+      window.removeEventListener("keydown", onKey);
       window.clearInterval(id);
       mo.disconnect();
       if (timeoutId) clearTimeout(timeoutId);

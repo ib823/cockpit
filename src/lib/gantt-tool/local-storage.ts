@@ -13,12 +13,12 @@
  * - Automatic conflict resolution
  */
 
-import type { GanttProject } from '@/types/gantt-tool';
+import type { GanttProject } from "@/types/gantt-tool";
 
-const DB_NAME = 'gantt_tool_local_v1';
+const DB_NAME = "gantt_tool_local_v1";
 const DB_VERSION = 1;
-const PROJECTS_STORE = 'projects';
-const SYNC_QUEUE_STORE = 'sync_queue';
+const PROJECTS_STORE = "projects";
+const SYNC_QUEUE_STORE = "sync_queue";
 
 interface SyncQueueItem {
   id: string;
@@ -43,15 +43,15 @@ function openDB(): Promise<IDBDatabase> {
 
       // Create projects store
       if (!db.objectStoreNames.contains(PROJECTS_STORE)) {
-        const projectStore = db.createObjectStore(PROJECTS_STORE, { keyPath: 'id' });
-        projectStore.createIndex('updatedAt', 'updatedAt', { unique: false });
+        const projectStore = db.createObjectStore(PROJECTS_STORE, { keyPath: "id" });
+        projectStore.createIndex("updatedAt", "updatedAt", { unique: false });
       }
 
       // Create sync queue store
       if (!db.objectStoreNames.contains(SYNC_QUEUE_STORE)) {
-        const syncStore = db.createObjectStore(SYNC_QUEUE_STORE, { keyPath: 'id' });
-        syncStore.createIndex('timestamp', 'timestamp', { unique: false });
-        syncStore.createIndex('projectId', 'projectId', { unique: false });
+        const syncStore = db.createObjectStore(SYNC_QUEUE_STORE, { keyPath: "id" });
+        syncStore.createIndex("timestamp", "timestamp", { unique: false });
+        syncStore.createIndex("projectId", "projectId", { unique: false });
       }
     };
   });
@@ -62,7 +62,7 @@ function openDB(): Promise<IDBDatabase> {
  */
 export async function saveProjectLocal(project: GanttProject): Promise<void> {
   const db = await openDB();
-  const tx = db.transaction([PROJECTS_STORE], 'readwrite');
+  const tx = db.transaction([PROJECTS_STORE], "readwrite");
   const store = tx.objectStore(PROJECTS_STORE);
 
   // Add metadata for tracking
@@ -84,7 +84,7 @@ export async function saveProjectLocal(project: GanttProject): Promise<void> {
  */
 export async function getProjectLocal(projectId: string): Promise<GanttProject | null> {
   const db = await openDB();
-  const tx = db.transaction([PROJECTS_STORE], 'readonly');
+  const tx = db.transaction([PROJECTS_STORE], "readonly");
   const store = tx.objectStore(PROJECTS_STORE);
 
   return new Promise((resolve, reject) => {
@@ -99,7 +99,7 @@ export async function getProjectLocal(projectId: string): Promise<GanttProject |
  */
 export async function getAllProjectsLocal(): Promise<GanttProject[]> {
   const db = await openDB();
-  const tx = db.transaction([PROJECTS_STORE], 'readonly');
+  const tx = db.transaction([PROJECTS_STORE], "readonly");
   const store = tx.objectStore(PROJECTS_STORE);
 
   return new Promise((resolve, reject) => {
@@ -114,7 +114,7 @@ export async function getAllProjectsLocal(): Promise<GanttProject[]> {
  */
 export async function deleteProjectLocal(projectId: string): Promise<void> {
   const db = await openDB();
-  const tx = db.transaction([PROJECTS_STORE], 'readwrite');
+  const tx = db.transaction([PROJECTS_STORE], "readwrite");
   const store = tx.objectStore(PROJECTS_STORE);
 
   return new Promise((resolve, reject) => {
@@ -129,7 +129,7 @@ export async function deleteProjectLocal(projectId: string): Promise<void> {
  */
 export async function addToSyncQueue(projectId: string): Promise<void> {
   const db = await openDB();
-  const tx = db.transaction([SYNC_QUEUE_STORE], 'readwrite');
+  const tx = db.transaction([SYNC_QUEUE_STORE], "readwrite");
   const store = tx.objectStore(SYNC_QUEUE_STORE);
 
   const queueItem: SyncQueueItem = {
@@ -151,7 +151,7 @@ export async function addToSyncQueue(projectId: string): Promise<void> {
  */
 export async function getPendingSyncItems(): Promise<SyncQueueItem[]> {
   const db = await openDB();
-  const tx = db.transaction([SYNC_QUEUE_STORE], 'readonly');
+  const tx = db.transaction([SYNC_QUEUE_STORE], "readonly");
   const store = tx.objectStore(SYNC_QUEUE_STORE);
 
   return new Promise((resolve, reject) => {
@@ -166,7 +166,7 @@ export async function getPendingSyncItems(): Promise<SyncQueueItem[]> {
  */
 export async function removeFromSyncQueue(syncId: string): Promise<void> {
   const db = await openDB();
-  const tx = db.transaction([SYNC_QUEUE_STORE], 'readwrite');
+  const tx = db.transaction([SYNC_QUEUE_STORE], "readwrite");
   const store = tx.objectStore(SYNC_QUEUE_STORE);
 
   return new Promise((resolve, reject) => {
@@ -181,7 +181,7 @@ export async function removeFromSyncQueue(syncId: string): Promise<void> {
  */
 export async function updateSyncQueueItem(item: SyncQueueItem): Promise<void> {
   const db = await openDB();
-  const tx = db.transaction([SYNC_QUEUE_STORE], 'readwrite');
+  const tx = db.transaction([SYNC_QUEUE_STORE], "readwrite");
   const store = tx.objectStore(SYNC_QUEUE_STORE);
 
   return new Promise((resolve, reject) => {
@@ -196,7 +196,7 @@ export async function updateSyncQueueItem(item: SyncQueueItem): Promise<void> {
  */
 export async function markProjectSynced(projectId: string): Promise<void> {
   const db = await openDB();
-  const tx = db.transaction([PROJECTS_STORE], 'readwrite');
+  const tx = db.transaction([PROJECTS_STORE], "readwrite");
   const store = tx.objectStore(PROJECTS_STORE);
 
   return new Promise((resolve, reject) => {
@@ -238,7 +238,7 @@ export async function projectNeedsSync(projectId: string): Promise<boolean> {
 export async function clearAllLocalData(): Promise<void> {
   const db = await openDB();
 
-  const tx = db.transaction([PROJECTS_STORE, SYNC_QUEUE_STORE], 'readwrite');
+  const tx = db.transaction([PROJECTS_STORE, SYNC_QUEUE_STORE], "readwrite");
   const projectStore = tx.objectStore(PROJECTS_STORE);
   const syncStore = tx.objectStore(SYNC_QUEUE_STORE);
 
@@ -260,7 +260,7 @@ export async function clearAllLocalData(): Promise<void> {
  * Get storage usage statistics
  */
 export async function getStorageStats() {
-  if ('storage' in navigator && 'estimate' in navigator.storage) {
+  if ("storage" in navigator && "estimate" in navigator.storage) {
     const estimate = await navigator.storage.estimate();
     return {
       usage: estimate.usage || 0,

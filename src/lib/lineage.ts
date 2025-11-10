@@ -1,9 +1,9 @@
-import traceability from '../../docs/traceability.json';
-import { z } from 'zod';
+import traceability from "../../docs/traceability.json";
+import { z } from "zod";
 
 // --- Zod Schemas for Validation ---
 
-const StatusEnum = z.enum(['mock', 'db', 'derived', 'user_input']);
+const StatusEnum = z.enum(["mock", "db", "derived", "user_input"]);
 
 const FieldSchema = z.object({
   id: z.string(),
@@ -90,7 +90,7 @@ class Lineage {
   getFieldsByPage(pageName: string): Field[] {
     const page = this.data.pages[pageName];
     if (!page) return [];
-    return page.fields.map(fieldId => this.getField(fieldId)).filter((f): f is Field => !!f);
+    return page.fields.map((fieldId) => this.getField(fieldId)).filter((f): f is Field => !!f);
   }
 
   /**
@@ -98,7 +98,7 @@ class Lineage {
    * @returns An array of mock fields.
    */
   getMockFields(): Field[] {
-    return Object.values(this.data.fields).filter(field => field.status === 'mock');
+    return Object.values(this.data.fields).filter((field) => field.status === "mock");
   }
 
   /**
@@ -106,12 +106,16 @@ class Lineage {
    * @param id - The ID of the field to trace.
    * @returns An object containing the field, its sources, and its destinations.
    */
-  trace(id: string): { field: Field; sources: (Field | string)[]; destinations: (Field | string)[] } | null {
+  trace(
+    id: string
+  ): { field: Field; sources: (Field | string)[]; destinations: (Field | string)[] } | null {
     const field = this.getField(id);
     if (!field) return null;
 
-    const sources = field.source.map(srcId => this.getField(srcId) || `External: ${srcId}`);
-    const destinations = field.destinations.map(destId => this.getField(destId) || `External: ${destId}`);
+    const sources = field.source.map((srcId) => this.getField(srcId) || `External: ${srcId}`);
+    const destinations = field.destinations.map(
+      (destId) => this.getField(destId) || `External: ${destId}`
+    );
 
     return { field, sources, destinations };
   }

@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/db';
-import { NextResponse } from 'next/server';
+import { prisma } from "@/lib/db";
+import { NextResponse } from "next/server";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
@@ -9,22 +9,19 @@ export async function POST(req: Request) {
     if (!email) {
       return NextResponse.json(
         { isAdmin: false },
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { "Content-Type": "application/json" } }
       );
     }
 
     const user = await prisma.users.findUnique({ where: { email } });
-    const isAdmin = !!user && user.role === 'ADMIN';
+    const isAdmin = !!user && user.role === "ADMIN";
 
-    return NextResponse.json(
-      { isAdmin },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    return NextResponse.json({ isAdmin }, { headers: { "Content-Type": "application/json" } });
   } catch (e) {
-    console.error('check-admin error', e);
+    console.error("check-admin error", e);
     return NextResponse.json(
       { isAdmin: false },
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { "Content-Type": "application/json" } }
     );
   }
 }

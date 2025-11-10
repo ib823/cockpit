@@ -11,8 +11,8 @@
  * - Variance Analysis: Task-by-task comparison
  */
 
-import type { GanttProject, GanttPhase, GanttTask } from '@/types/gantt-tool';
-import { differenceInDays, parseISO, format, addDays } from 'date-fns';
+import type { GanttProject, GanttPhase, GanttTask } from "@/types/gantt-tool";
+import { differenceInDays, parseISO, format, addDays } from "date-fns";
 
 export interface ProjectBaseline {
   id: string;
@@ -78,7 +78,7 @@ export interface PhaseVariance {
     endDateDays: number;
     durationDays: number;
   };
-  status: 'ahead' | 'on-track' | 'behind';
+  status: "ahead" | "on-track" | "behind";
 }
 
 export interface TaskVariance {
@@ -104,18 +104,18 @@ export interface TaskVariance {
     durationDays: number;
     progressPercentage: number;
   };
-  status: 'ahead' | 'on-track' | 'behind' | 'at-risk';
+  status: "ahead" | "on-track" | "behind" | "at-risk";
   isCritical: boolean;
 }
 
 export interface VarianceIssue {
-  type: 'critical' | 'warning';
-  category: 'schedule' | 'progress' | 'duration';
+  type: "critical" | "warning";
+  category: "schedule" | "progress" | "duration";
   taskId?: string;
   phaseId?: string;
   title: string;
   description: string;
-  impact: 'high' | 'medium' | 'low';
+  impact: "high" | "medium" | "low";
   recommendation?: string;
 }
 
@@ -178,15 +178,16 @@ export function compareToBaseline(
         phaseId: currentPhase.id,
         phaseName: currentPhase.name,
         baseline: {
-          startDate: '',
-          endDate: '',
+          startDate: "",
+          endDate: "",
           duration: 0,
           taskCount: 0,
         },
         actual: {
           startDate: currentPhase.startDate,
           endDate: currentPhase.endDate,
-          duration: differenceInDays(parseISO(currentPhase.endDate), parseISO(currentPhase.startDate)) + 1,
+          duration:
+            differenceInDays(parseISO(currentPhase.endDate), parseISO(currentPhase.startDate)) + 1,
           taskCount: currentPhase.tasks.length,
         },
         variance: {
@@ -194,7 +195,7 @@ export function compareToBaseline(
           endDateDays: 0,
           durationDays: 0,
         },
-        status: 'on-track' as const,
+        status: "on-track" as const,
       };
     }
 
@@ -213,10 +214,10 @@ export function compareToBaseline(
     );
     const durationVariance = actualDuration - baselineDuration;
 
-    let status: 'ahead' | 'on-track' | 'behind';
-    if (endDateVariance < -2) status = 'ahead';
-    else if (endDateVariance > 2) status = 'behind';
-    else status = 'on-track';
+    let status: "ahead" | "on-track" | "behind";
+    if (endDateVariance < -2) status = "ahead";
+    else if (endDateVariance > 2) status = "behind";
+    else status = "on-track";
 
     return {
       phaseId: currentPhase.id,
@@ -256,15 +257,16 @@ export function compareToBaseline(
           phaseId: currentPhase.id,
           phaseName: currentPhase.name,
           baseline: {
-            startDate: '',
-            endDate: '',
+            startDate: "",
+            endDate: "",
             duration: 0,
             progress: 0,
           },
           actual: {
             startDate: currentTask.startDate,
             endDate: currentTask.endDate,
-            duration: differenceInDays(parseISO(currentTask.endDate), parseISO(currentTask.startDate)) + 1,
+            duration:
+              differenceInDays(parseISO(currentTask.endDate), parseISO(currentTask.startDate)) + 1,
             progress: currentTask.progress,
           },
           variance: {
@@ -273,7 +275,7 @@ export function compareToBaseline(
             durationDays: 0,
             progressPercentage: 0,
           },
-          status: 'on-track',
+          status: "on-track",
           isCritical: false,
         });
         return;
@@ -299,7 +301,7 @@ export function compareToBaseline(
       const progressVariance = currentTask.progress - (baselineTask.progress || 0);
 
       // Determine status
-      let status: TaskVariance['status'];
+      let status: TaskVariance["status"];
       const today = new Date();
       const taskEnd = parseISO(currentTask.endDate);
       const expectedProgress = calculateExpectedProgress(
@@ -309,13 +311,13 @@ export function compareToBaseline(
       );
 
       if (currentTask.progress >= expectedProgress + 10) {
-        status = 'ahead';
+        status = "ahead";
       } else if (currentTask.progress < expectedProgress - 10) {
-        status = 'at-risk';
+        status = "at-risk";
       } else if (endDateVariance > 2) {
-        status = 'behind';
+        status = "behind";
       } else {
-        status = 'on-track';
+        status = "on-track";
       }
 
       taskVariances.push({
@@ -360,7 +362,9 @@ export function compareToBaseline(
   );
 
   const actualDuration = differenceInDays(
-    parseISO(currentProject.phases[currentProject.phases.length - 1]?.endDate || currentProject.startDate),
+    parseISO(
+      currentProject.phases[currentProject.phases.length - 1]?.endDate || currentProject.startDate
+    ),
     parseISO(currentProject.startDate)
   );
 
@@ -372,44 +376,46 @@ export function compareToBaseline(
   const warnings: VarianceIssue[] = [];
 
   taskVariances.forEach((tv) => {
-    if (tv.status === 'at-risk' && tv.isCritical) {
+    if (tv.status === "at-risk" && tv.isCritical) {
       criticalIssues.push({
-        type: 'critical',
-        category: 'progress',
+        type: "critical",
+        category: "progress",
         taskId: tv.taskId,
         phaseId: tv.phaseId,
         title: `Critical task behind schedule: ${tv.taskName}`,
         description: `Task is ${Math.abs(tv.variance.progressPercentage).toFixed(0)}% behind expected progress`,
-        impact: 'high',
-        recommendation: 'Allocate additional resources or re-evaluate dependencies',
+        impact: "high",
+        recommendation: "Allocate additional resources or re-evaluate dependencies",
       });
-    } else if (tv.status === 'at-risk') {
+    } else if (tv.status === "at-risk") {
       warnings.push({
-        type: 'warning',
-        category: 'progress',
+        type: "warning",
+        category: "progress",
         taskId: tv.taskId,
         title: `Task at risk: ${tv.taskName}`,
         description: `Progress is lagging behind schedule`,
-        impact: 'medium',
+        impact: "medium",
       });
     }
 
     if (tv.variance.endDateDays > 7) {
       warnings.push({
-        type: 'warning',
-        category: 'schedule',
+        type: "warning",
+        category: "schedule",
         taskId: tv.taskId,
         title: `Schedule slip: ${tv.taskName}`,
         description: `End date is ${tv.variance.endDateDays} days later than baseline`,
-        impact: 'medium',
-        recommendation: 'Review task dependencies and resource allocation',
+        impact: "medium",
+        recommendation: "Review task dependencies and resource allocation",
       });
     }
   });
 
-  const tasksAhead = taskVariances.filter((t) => t.status === 'ahead').length;
-  const tasksBehind = taskVariances.filter((t) => t.status === 'behind' || t.status === 'at-risk').length;
-  const tasksOnTrack = taskVariances.filter((t) => t.status === 'on-track').length;
+  const tasksAhead = taskVariances.filter((t) => t.status === "ahead").length;
+  const tasksBehind = taskVariances.filter(
+    (t) => t.status === "behind" || t.status === "at-risk"
+  ).length;
+  const tasksOnTrack = taskVariances.filter((t) => t.status === "on-track").length;
 
   return {
     projectId: currentProject.id,
@@ -474,9 +480,7 @@ function calculateProjectCompletion(project: GanttProject): number {
 /**
  * Get variance trend over time
  */
-export function getVarianceTrend(
-  comparisons: BaselineComparison[]
-): {
+export function getVarianceTrend(comparisons: BaselineComparison[]): {
   dates: string[];
   scheduleVariance: number[];
   completionVariance: number[];
@@ -487,7 +491,7 @@ export function getVarianceTrend(
   );
 
   return {
-    dates: sorted.map((c) => format(parseISO(c.comparisonDate), 'MMM dd')),
+    dates: sorted.map((c) => format(parseISO(c.comparisonDate), "MMM dd")),
     scheduleVariance: sorted.map((c) => c.overall.scheduleVarianceDays),
     completionVariance: sorted.map((c) => c.overall.completionPercentage.variance),
     spi: sorted.map((c) => c.overall.schedulePerformanceIndex),
@@ -503,7 +507,7 @@ export function forecastCompletion(
 ): {
   forecastEndDate: string;
   varianceFromBaseline: number;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: "high" | "medium" | "low";
   assumptions: string[];
 } {
   const spi = comparison.overall.schedulePerformanceIndex;
@@ -514,24 +518,24 @@ export function forecastCompletion(
 
   // Adjust remaining duration by SPI
   const forecastRemainingDays = Math.ceil(remainingDuration / spi);
-  const forecastEndDate = format(addDays(new Date(), forecastRemainingDays), 'yyyy-MM-dd');
+  const forecastEndDate = format(addDays(new Date(), forecastRemainingDays), "yyyy-MM-dd");
 
-  const baselineEnd = comparison.tasks[comparison.tasks.length - 1]?.baseline.endDate || '';
+  const baselineEnd = comparison.tasks[comparison.tasks.length - 1]?.baseline.endDate || "";
   const varianceFromBaseline = baselineEnd
     ? differenceInDays(parseISO(forecastEndDate), parseISO(baselineEnd))
     : 0;
 
   // Determine confidence based on data quality
-  let confidence: 'high' | 'medium' | 'low';
+  let confidence: "high" | "medium" | "low";
   const avgProgress =
     comparison.tasks.reduce((sum, t) => sum + t.actual.progress, 0) / comparison.tasks.length;
 
   if (avgProgress > 50 && comparison.summary.criticalIssues.length === 0) {
-    confidence = 'high';
+    confidence = "high";
   } else if (avgProgress > 25 && comparison.summary.criticalIssues.length <= 2) {
-    confidence = 'medium';
+    confidence = "medium";
   } else {
-    confidence = 'low';
+    confidence = "low";
   }
 
   const assumptions = [

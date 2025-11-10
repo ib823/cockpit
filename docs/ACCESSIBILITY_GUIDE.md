@@ -17,12 +17,12 @@ All dashboard functionality is accessible via keyboard:
 
 #### Keyboard Shortcuts
 
-| Action | Shortcut |
-|--------|----------|
-| Open export modal | Alt + E |
-| Refresh dashboard | Alt + R |
-| Open rate card | Alt + C |
-| Focus search | / |
+| Action            | Shortcut |
+| ----------------- | -------- |
+| Open export modal | Alt + E  |
+| Refresh dashboard | Alt + R  |
+| Open rate card    | Alt + C  |
+| Focus search      | /        |
 
 ### 2. Screen Reader Support
 
@@ -48,7 +48,7 @@ Dynamic content updates are announced to screen readers:
 
 ```tsx
 <div role="status" aria-live="polite" aria-atomic="true">
-  {autoSaveStatus === 'saved' ? 'Dashboard saved successfully' : 'Saving...'}
+  {autoSaveStatus === "saved" ? "Dashboard saved successfully" : "Saving..."}
 </div>
 ```
 
@@ -66,12 +66,12 @@ Proper use of semantic HTML elements:
 
 All text meets WCAG AA contrast requirements (4.5:1 minimum):
 
-| Element | Foreground | Background | Ratio |
-|---------|-----------|------------|-------|
-| Body text | #333333 | #FFFFFF | 12.63:1 ✅ |
-| Primary button | #FFFFFF | #667eea | 4.58:1 ✅ |
-| Success text | #10B981 | #FFFFFF | 3.21:1 ⚠️ |
-| Error text | #EF4444 | #FFFFFF | 4.67:1 ✅ |
+| Element        | Foreground | Background | Ratio      |
+| -------------- | ---------- | ---------- | ---------- |
+| Body text      | #333333    | #FFFFFF    | 12.63:1 ✅ |
+| Primary button | #FFFFFF    | #667eea    | 4.58:1 ✅  |
+| Success text   | #10B981    | #FFFFFF    | 3.21:1 ⚠️  |
+| Error text     | #EF4444    | #FFFFFF    | 4.67:1 ✅  |
 
 ⚠️ **Note**: Success text may need adjustment for small font sizes.
 
@@ -88,8 +88,8 @@ Color coding is supplemented with text and patterns:
 <Tooltip title="7 days allocated - Over capacity ⚠️">
   <div
     style={{
-      background: '#EF4444',
-      border: '2px solid #991b1b', // Additional visual indicator
+      background: "#EF4444",
+      border: "2px solid #991b1b", // Additional visual indicator
     }}
     aria-label="Resource over-allocated: 7 days in this week"
   >
@@ -132,13 +132,11 @@ input:focus-visible {
 Modals trap focus to prevent focus from escaping:
 
 ```tsx
-import { FocusTrap } from '@/components/FocusTrap';
+import { FocusTrap } from "@/components/FocusTrap";
 
 <Modal>
-  <FocusTrap>
-    {/* Modal content */}
-  </FocusTrap>
-</Modal>
+  <FocusTrap>{/* Modal content */}</FocusTrap>
+</Modal>;
 ```
 
 #### Focus Restoration
@@ -261,14 +259,14 @@ npm install -D @axe-core/playwright
 ```
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
-test('dashboard should not have accessibility violations', async ({ page }) => {
-  await page.goto('/dashboard-demo');
+test("dashboard should not have accessibility violations", async ({ page }) => {
+  await page.goto("/dashboard-demo");
 
   const accessibilityScanResults = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();
 
   expect(accessibilityScanResults.violations).toEqual([]);
@@ -290,8 +288,8 @@ npm install -D @lhci/cli
     },
     "assert": {
       "assertions": {
-        "categories:accessibility": ["error", {"minScore": 0.9}],
-        "categories:performance": ["warn", {"minScore": 0.85}]
+        "categories:accessibility": ["error", { "minScore": 0.9 }],
+        "categories:performance": ["warn", { "minScore": 0.85 }]
       }
     }
   }
@@ -310,6 +308,7 @@ npm install -D @lhci/cli
 #### 2. Screen Reader Testing
 
 **NVDA (Windows - Free)**
+
 1. Download from https://www.nvaccess.org/
 2. Navigate dashboard with NVDA running
 3. Verify all content is announced
@@ -317,20 +316,24 @@ npm install -D @lhci/cli
 5. Verify form labels are read correctly
 
 **VoiceOver (macOS - Built-in)**
+
 1. Enable with Cmd+F5
 2. Navigate with VO+Arrow keys
 3. Test rotor navigation (VO+U)
 
 **JAWS (Windows - Commercial)**
+
 1. Professional screen reader testing
 2. Most comprehensive compatibility
 
 #### 3. Color Contrast Testing
 
 **WebAIM Contrast Checker**
+
 - https://webaim.org/resources/contrastchecker/
 
 **Chrome DevTools**
+
 1. Inspect element
 2. Open "Accessibility" pane
 3. Check "Contrast" section
@@ -338,11 +341,13 @@ npm install -D @lhci/cli
 #### 4. Zoom Testing
 
 Test at different zoom levels:
+
 - 100% (default)
 - 200% (WCAG requirement)
 - 400% (extreme case)
 
 Verify:
+
 - No horizontal scrolling
 - Text remains readable
 - Interactive elements remain accessible
@@ -351,6 +356,7 @@ Verify:
 ### Browser Testing
 
 Test in:
+
 - Chrome/Edge (Chromium)
 - Firefox
 - Safari
@@ -361,64 +367,62 @@ Test in:
 ### Issue 1: Missing ARIA Labels
 
 **Problem:**
+
 ```tsx
 <Button icon={<Settings />} onClick={openSettings} />
 ```
 
 **Solution:**
+
 ```tsx
-<Button
-  icon={<Settings />}
-  onClick={openSettings}
-  aria-label="Open rate card settings"
-/>
+<Button icon={<Settings />} onClick={openSettings} aria-label="Open rate card settings" />
 ```
 
 ### Issue 2: Color-Only Information
 
 **Problem:**
+
 ```tsx
-<div style={{ color: margin >= 20 ? 'green' : 'red' }}>
-  {margin}%
-</div>
+<div style={{ color: margin >= 20 ? "green" : "red" }}>{margin}%</div>
 ```
 
 **Solution:**
+
 ```tsx
 <div style={{ color: getMarginColor(margin) }}>
-  {margin >= 20 ? '✓' : '⚠️'} {margin}% margin
-  {margin < 20 && ' (below target)'}
+  {margin >= 20 ? "✓" : "⚠️"} {margin}% margin
+  {margin < 20 && " (below target)"}
 </div>
 ```
 
 ### Issue 3: Keyboard Trap
 
 **Problem:**
+
 ```tsx
-<Modal visible={open}>
-  {/* Focus can escape modal */}
-</Modal>
+<Modal visible={open}>{/* Focus can escape modal */}</Modal>
 ```
 
 **Solution:**
+
 ```tsx
-import FocusTrap from 'focus-trap-react';
+import FocusTrap from "focus-trap-react";
 
 <Modal visible={open}>
-  <FocusTrap>
-    {/* Focus trapped in modal */}
-  </FocusTrap>
-</Modal>
+  <FocusTrap>{/* Focus trapped in modal */}</FocusTrap>
+</Modal>;
 ```
 
 ### Issue 4: Missing Form Labels
 
 **Problem:**
+
 ```tsx
 <InputNumber placeholder="Revenue" />
 ```
 
 **Solution:**
+
 ```tsx
 <label htmlFor="revenue-input">
   Proposed Revenue (MYR)
@@ -432,21 +436,25 @@ import FocusTrap from 'focus-trap-react';
 ## Resources
 
 ### WCAG 2.1 Guidelines
+
 - https://www.w3.org/WAI/WCAG21/quickref/
 
 ### Testing Tools
+
 - **axe DevTools**: Browser extension for accessibility testing
 - **WAVE**: Web accessibility evaluation tool
 - **Lighthouse**: Built into Chrome DevTools
 - **Pa11y**: Automated testing CLI
 
 ### Screen Readers
+
 - **NVDA**: https://www.nvaccess.org/ (Windows, Free)
 - **JAWS**: https://www.freedomscientific.com/products/software/jaws/ (Windows, Paid)
 - **VoiceOver**: Built into macOS/iOS
 - **TalkBack**: Built into Android
 
 ### Learning Resources
+
 - **WebAIM**: https://webaim.org/
 - **A11y Project**: https://www.a11yproject.com/
 - **MDN Accessibility**: https://developer.mozilla.org/en-US/docs/Web/Accessibility

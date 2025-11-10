@@ -3,6 +3,7 @@
 ## 1. PROJECT TYPE & FRAMEWORK
 
 **Framework Stack:**
+
 - **Next.js 15.5.3** - React 19.1.1 meta-framework with App Router
 - **React 19.1.1** - UI library (latest with experimental features)
 - **TypeScript 5.x** - Strict type checking enabled
@@ -10,6 +11,7 @@
 - **SSR/SSG**: Full server-side rendering with App Router
 
 **Key Build Configuration** (`next.config.js`):
+
 - React Compiler disabled (`reactCompiler: false`)
 - TypeScript errors ignored during builds (checked separately in CI)
 - ESLint disabled during builds (checked separately in CI)
@@ -216,22 +218,22 @@ src/styles/
 
 ```css
 /* Brand Colors */
---accent: #2563eb;              /* Primary blue */
---accent-strong: #1d4ed8;       /* Darker blue for hover */
---accent-subtle: #dbeafe;       /* Light blue for backgrounds */
+--accent: #2563eb; /* Primary blue */
+--accent-strong: #1d4ed8; /* Darker blue for hover */
+--accent-subtle: #dbeafe; /* Light blue for backgrounds */
 
 /* Greyscale (Neutral) */
---ink: #0f172a;                 /* Text color */
---ink-dim: #475569;             /* Secondary text */
---ink-muted: #64748b;           /* Tertiary text */
+--ink: #0f172a; /* Text color */
+--ink-dim: #475569; /* Secondary text */
+--ink-muted: #64748b; /* Tertiary text */
 
 /* Surfaces */
---surface: #ffffff;             /* Main background */
---surface-sub: #f8fafc;         /* Secondary background */
---surface-raised: #ffffff;      /* Elevated backgrounds */
+--surface: #ffffff; /* Main background */
+--surface-sub: #f8fafc; /* Secondary background */
+--surface-raised: #ffffff; /* Elevated backgrounds */
 
 /* Borders */
---line: #e5e7eb;                /* Border color */
+--line: #e5e7eb; /* Border color */
 
 /* States */
 --success: #16a34a;
@@ -265,8 +267,8 @@ src/styles/
 --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
 
 /* Motion */
---dur: 180ms;                   /* Standard duration */
---dur-slow: 300ms;              /* Slow duration */
+--dur: 180ms; /* Standard duration */
+--dur-slow: 300ms; /* Slow duration */
 --ease: cubic-bezier(0.2, 0.8, 0.2, 1); /* Apple-style easing */
 
 /* Z-index layers */
@@ -281,13 +283,14 @@ src/styles/
 --g-grid: #eef2f6;
 --g-weekend: rgba(2, 6, 23, 0.03);
 --g-holiday: rgba(244, 63, 94, 0.06);
---g-bar: #111827;               /* Gantt bars (dark charcoal) */
+--g-bar: #111827; /* Gantt bars (dark charcoal) */
 --g-bar-accent: var(--accent);
 --g-bar-critical: #ef4444;
 --g-bar-progress: #10b981;
 ```
 
 **Dark Mode Support:**
+
 - Class-based: `.dark` or `[data-theme='dark']` on `<html>`
 - Full token remapping for dark backgrounds, text, borders
 - Automatic via `prefers-color-scheme` media query
@@ -295,12 +298,14 @@ src/styles/
 ### Ant Design Integration
 
 **Theme Bridge** (`AntDThemeBridge.tsx`):
+
 - Reads CSS variables at runtime
 - Maps to Ant Design ConfigProvider
 - Supports both light and dark algorithms
 - Component-level overrides for Modal, Dropdown, Select, Input, DatePicker, Form
 
 **Ant Design Customizations:**
+
 ```typescript
 ConfigProvider theme={{
   token: {
@@ -328,13 +333,16 @@ ConfigProvider theme={{
 ### Typography System
 
 **Font Stack:**
+
 ```css
---font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-             'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
---font-mono: ui-monospace, 'SF Mono', 'Monaco', 'Cascadia Code', 'Courier New', monospace;
+--font-sans:
+  -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+  "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+--font-mono: ui-monospace, "SF Mono", "Monaco", "Cascadia Code", "Courier New", monospace;
 ```
 
 **Responsive Typography** (from Tailwind):
+
 - Font sizes use `clamp()` for fluid scaling
 - All sizes automatically responsive between mobile and desktop
 - Example: `font-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem)`
@@ -342,11 +350,13 @@ ConfigProvider theme={{
 ### Animation & Motion System
 
 **Motion Tokens:**
+
 - Duration: `--dur: 180ms` (standard), `--dur-slow: 300ms`
 - Easing: `cubic-bezier(0.2, 0.8, 0.2, 1)` (Apple-style ease-out)
 - Accessibility: Respects `prefers-reduced-motion`
 
 **Keyframe Animations:**
+
 - `fade-in`, `fade-out` - Opacity transitions
 - `slide-up`, `slide-down`, `slide-left`, `slide-right` - Transform-based
 - `scale-in` - Scale from 0.96 to 1
@@ -355,6 +365,7 @@ ConfigProvider theme={{
 - `shake`, `ripple` - Interaction feedback
 
 **Utility Classes** (motion.css):
+
 - `.transition-fast`, `.transition-slow`
 - `.transition-colors`, `.transition-opacity`, `.transition-transform`, `.transition-all`
 - `.hover-lift`, `.hover-scale`
@@ -367,6 +378,7 @@ ConfigProvider theme={{
 ### Breakpoints
 
 **Tailwind Custom Screens:**
+
 ```javascript
 screens: {
   'xs': '475px',    // Extra small (mobile landscape)
@@ -379,6 +391,7 @@ screens: {
 ```
 
 **Mobile-First Approach:**
+
 - Default styles for mobile
 - Breakpoint prefixes: `sm:`, `md:`, `lg:`, `xl:`, `2xl:`
 
@@ -402,11 +415,12 @@ fluid-lg: clamp(1.5rem, 1.2rem + 1.5vw, 2rem)
 ### Responsive Components
 
 **ResponsiveShell Component** (`src/components/ui/ResponsiveShell.tsx`):
+
 ```typescript
 interface ResponsiveShellProps {
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
-  padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
-  as?: 'div' | 'main' | 'section' | 'article';
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+  padding?: "none" | "sm" | "md" | "lg" | "xl";
+  as?: "div" | "main" | "section" | "article";
 }
 
 // Padding scales per breakpoint:
@@ -414,6 +428,7 @@ interface ResponsiveShellProps {
 ```
 
 **ResponsiveGrid Component:**
+
 ```typescript
 cols?: {
   default?: number;
@@ -426,6 +441,7 @@ cols?: {
 ```
 
 **ResponsiveStack Component:**
+
 ```typescript
 spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 // Scales vertically across breakpoints
@@ -434,23 +450,34 @@ spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 ### Mobile-Specific Patterns
 
 **Hidden Elements:**
+
 - Desktop navigation: `hidden md:flex`
 - Mobile navigation: `md:hidden`
 
 **Responsive Sidebar:**
+
 - Desktop: Persistent sidebar (240px or 64px)
 - Mobile: Collapsible/hamburger menu
 
 **Print Styles:**
+
 ```css
 @media print {
-  body { background: white; color: black; }
-  .no-print { display: none !important; }
-  a { text-decoration: underline; }
+  body {
+    background: white;
+    color: black;
+  }
+  .no-print {
+    display: none !important;
+  }
+  a {
+    text-decoration: underline;
+  }
 }
 ```
 
 **Container Queries Support:**
+
 ```css
 .content-max-w {
   max-width: 1400px;
@@ -466,6 +493,7 @@ spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 ### Core Layout System
 
 **AppLayout** (`src/components/layout/AppLayout.tsx`):
+
 - Ant Design `Layout` component wrapper
 - Header with navigation, user menu, logout button
 - Sticky header at top (z-50)
@@ -474,6 +502,7 @@ spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 - Responsive: Full width, flexbox-based
 
 **AppShell** (`src/ui/layout/AppShell.tsx`) - Alternative Layout:
+
 - Sidebar + main content grid layout
 - Collapsible sidebar (240px expanded, 64px collapsed)
 - Mobile: Hamburger menu, top bar (12px height)
@@ -481,15 +510,18 @@ spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 - Responsive: Grid with `gridTemplateColumns`
 
 **Container** (`src/components/layout/Container.tsx`):
+
 - Max-width wrapper
 - Centering utility
 - Standard padding
 
 **Section** (`src/components/layout/Section.tsx`):
+
 - Semantic `<section>` wrapper
 - Consistent spacing/padding
 
 **Footer** (`src/components/layout/Footer.tsx`):
+
 - Bottom page footer
 - Semantic HTML structure
 
@@ -503,12 +535,14 @@ spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 ### Modal & Slide-Over Layout
 
 **Modal.tsx** - Ant Design Modal wrapper
+
 - Centered on screen
 - Professional backdrop with blur effect
 - Smooth fade-in animation (modalFadeIn keyframe)
 - Custom sizing and positioning
 
 **SlideOver.tsx** - Slide-in panel
+
 - Part of project-v2 shared components
 - Alternative to modal for side operations
 
@@ -519,6 +553,7 @@ spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 ### Root Entry Point
 
 **`src/app/layout.tsx` (Root Layout):**
+
 - Server component
 - HTML structure setup
 - Meta tags (title, description, favicons, manifest)
@@ -527,6 +562,7 @@ spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 - Providers wrapper
 
 **`src/app/providers.tsx`:**
+
 - Client component
 - Provider hierarchy:
   1. `SessionProvider` (NextAuth)
@@ -540,11 +576,13 @@ spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 ### Page Routes
 
 **Main entry:** `/` (`src/app/page.tsx`)
+
 - Redirects to `/login` if not authenticated
 - Redirects to `/dashboard` for regular users
 - Redirects to `/admin` for admin users
 
 **Key Routes:**
+
 - `/login` - Authentication page
 - `/dashboard` - Main dashboard
 - `/project/*` - Project management (capture/plan/present/decide modes)
@@ -554,6 +592,7 @@ spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 - `/settings/*` - User settings
 
 **Key App Routing Files:**
+
 ```
 src/app/
 ├── page.tsx                  # Root redirect logic
@@ -581,6 +620,7 @@ src/app/
 ### Initial Loader
 
 **Hex Cube Animation** (Lottie-powered):
+
 - Rendered via inline script in root layout
 - Client-side only (prevents hydration mismatch)
 - SVG-based 3D hex cube with rotation/scale animations
@@ -590,6 +630,7 @@ src/app/
 ### Suspense & Streaming
 
 **Suspense Boundaries:**
+
 ```tsx
 <Suspense fallback={null}>
   <OverlaySafety />
@@ -597,6 +638,7 @@ src/app/
 ```
 
 **OverlaySafety Component:**
+
 - Prevents overlays from capturing clicks
 - Marks invisible overlays with `pointer-events: none`
 
@@ -607,12 +649,14 @@ src/app/
 ### Core Config Files
 
 **`tailwind.config.js`:**
+
 - Content scanning: `./src/**/*.{js,ts,jsx,tsx,mdx}`
 - Dark mode: Class-based (`class` or `[data-theme="dark"]`)
 - Custom screens, spacing, font sizes, animations
 - No Tailwind plugins
 
 **`postcss.config.js`:**
+
 ```javascript
 plugins: {
   tailwindcss: {},
@@ -621,6 +665,7 @@ plugins: {
 ```
 
 **`next.config.js`:**
+
 - TypeScript: `ignoreBuildErrors: true` (checked in CI)
 - ESLint: `ignoreDuringBuilds: true` (checked in CI)
 - Security headers with CSP, HSTS, X-Frame-Options, etc.
@@ -628,12 +673,14 @@ plugins: {
 - Webpack fallback config for Node.js modules in browser
 
 **`tsconfig.json`:**
+
 - `target: ES2017`, `module: esnext`
 - `strict: true` (full type checking)
 - Path alias: `@/*` -> `./src/*`
 - JSX: `preserve` (for Next.js handling)
 
 **`.env.example` & `.env.production.example`:**
+
 - Database: `DATABASE_URL`
 - NextAuth: `NEXTAUTH_URL`, `NEXTAUTH_SECRET`
 - API endpoints
@@ -643,6 +690,7 @@ plugins: {
 ### Design System Configuration
 
 **`src/lib/design-system.ts`:**
+
 - Comprehensive design token definitions
 - Spacing scale (8px grid)
 - Typography scale (modular 1.25x ratio)
@@ -651,6 +699,7 @@ plugins: {
 - Animation/motion configurations
 
 **`src/styles/tokens.css`:**
+
 - CSS custom properties (variables)
 - Root color values
 - Dark mode overrides
@@ -658,12 +707,14 @@ plugins: {
 - All values correspond to design-system.ts
 
 **`src/styles/motion.css`:**
+
 - Motion tokens and timings
 - Keyframe definitions
 - Utility animation classes
 - Accessibility: prefers-reduced-motion support
 
 **`src/styles/button-normalize.css`:**
+
 - Button reset styles
 - Consistent button appearance across browsers
 - Removes default UA button styling
@@ -671,12 +722,14 @@ plugins: {
 ### TypeScript & ESLint Config
 
 **`tsconfig.json`:**
+
 - Strict mode enabled
 - Incremental builds
 - Path aliases for clean imports
 - Plugin: Next.js
 
 **`.eslintrc.cjs`:**
+
 - `eslint-config-next`
 - TypeScript support via `@typescript-eslint`
 - Rules configured for React 19 compatibility
@@ -684,6 +737,7 @@ plugins: {
 ### Prettier & Code Formatting
 
 **`.prettierrc.json`:**
+
 ```json
 {
   "trailingComma": "es5",
@@ -702,6 +756,7 @@ plugins: {
 **Builder:** Next.js 15.5.3 (built on Webpack 5)
 
 **Build Process** (`package.json`):
+
 ```bash
 npm run build
 # 1. Runs: prisma generate (database schema)
@@ -712,6 +767,7 @@ npm run dev
 ```
 
 **Build Artifacts:**
+
 - Output: `.next/` directory
 - Server functions bundled separately
 - Client bundles with code splitting
@@ -720,11 +776,13 @@ npm run dev
 ### Bundling Strategy
 
 **Code Splitting:**
+
 - Next.js automatic code splitting per route
 - Dynamic imports via `next/dynamic`
 - React lazy + Suspense for component-level splitting
 
 **Browser Polyfills:**
+
 ```javascript
 // webpack config handles Node.js module fallbacks
 config.resolve.fallback = {
@@ -733,28 +791,32 @@ config.resolve.fallback = {
   crypto: false,
   path: false,
   // ... other Node built-ins
-}
+};
 ```
 
 ### Development Tools
 
 **HMR (Hot Module Replacement):**
+
 - Enabled by default in dev mode
 - Preserves state across rebuilds
 
 **Build Analyze:**
+
 ```bash
 npm run analyze
 # Bundles with Webpack Bundle Analyzer to see sizes
 ```
 
 **TypeScript Checking:**
+
 ```bash
 npm run typecheck
 # Runs tsc without emit (separate from build)
 ```
 
 **Linting:**
+
 ```bash
 npm run lint
 # Runs next lint with high warning threshold
@@ -763,24 +825,29 @@ npm run lint
 ### Dependencies Structure
 
 **Core Framework:**
+
 - `next@15.5.3`, `react@19.1.1`, `react-dom@19.1.1`
 
 **State Management:**
+
 - `zustand@5.0.8` - Lightweight state management
 - `@tanstack/react-query@5.90.2` - Server state management
 
 **UI Libraries:**
+
 - `antd@5.27.4` - Enterprise UI components
 - `lucide-react@0.544.0` - Icon library
 - `framer-motion@12.23.22` - Animation library
 - `clsx@2.1.1` - Utility for class name merging
 
 **Forms & Data:**
+
 - `react-hot-toast@2.6.0` - Toast notifications (alternative to custom)
 - `zod@4.1.11` - Schema validation
 - `fuse.js@7.1.0` - Fuzzy search
 
 **Data Visualization:**
+
 - `reactflow@11.11.4` - Node-graph visualization
 - `vis-timeline@8.3.1` - Timeline component
 - `dagre@0.8.5` - DAG layout algorithm
@@ -789,6 +856,7 @@ npm run lint
 - `react-chartjs-2@5.3.1` - Chart.js wrapper
 
 **Export/Report Generation:**
+
 - `@react-pdf/renderer@4.3.1` - PDF generation
 - `jspdf@3.0.3`, `jspdf-autotable@5.0.2` - PDF tables
 - `html2canvas@1.4.1` - Screenshot to canvas
@@ -797,12 +865,14 @@ npm run lint
 - `xlsx@0.18.5` - Excel reading/writing
 
 **Authentication:**
+
 - `next-auth@4.24.11` - Session & auth
 - `@auth/prisma-adapter@2.10.0` - Database adapter
 - `@simplewebauthn/browser@13.2.2`, `@simplewebauthn/server@13.2.2` - Passkey support
 - `jose@6.1.0` - JWT handling
 
 **Security & Utilities:**
+
 - `bcryptjs@3.0.2` - Password hashing
 - `dompurify@3.2.7` - XSS prevention
 - `speakeasy@2.0.0` - TOTP/2FA
@@ -810,6 +880,7 @@ npm run lint
 - `@upstash/redis@1.35.4`, `@upstash/ratelimit@2.0.6` - Rate limiting
 
 **Other:**
+
 - `lodash@4.17.21` - Utility functions
 - `date-fns@4.1.0`, `date-fns-tz@3.2.0` - Date manipulation
 - `ua-parser-js@2.0.6` - User agent parsing
@@ -968,16 +1039,15 @@ npm run lint
 ### Responsive Layout Patterns
 
 **1. Grid-based Responsive Layout:**
+
 ```tsx
-<ResponsiveGrid 
-  cols={{ default: 1, md: 2, lg: 3 }}
-  gap="md"
->
+<ResponsiveGrid cols={{ default: 1, md: 2, lg: 3 }} gap="md">
   {/* Children scale across breakpoints */}
 </ResponsiveGrid>
 ```
 
 **2. Padding Scales by Viewport:**
+
 ```css
 /* From ResponsiveShell */
 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8
@@ -986,30 +1056,36 @@ px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8
 ```
 
 **3. Typography Scales Fluidly:**
+
 ```css
-font-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem)
+font-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
 /* Automatically scales between viewport widths */
 ```
 
 ### Mobile-First Class Patterns
 
 **Visibility Control:**
-```tsx
-{/* Desktop only */}
-<div className="hidden md:block">Desktop content</div>
 
-{/* Mobile only */}
-<div className="md:hidden">Mobile content</div>
+```tsx
+{
+  /* Desktop only */
+}
+<div className="hidden md:block">Desktop content</div>;
+
+{
+  /* Mobile only */
+}
+<div className="md:hidden">Mobile content</div>;
 ```
 
 **Responsive Spacing:**
+
 ```tsx
-<div className="space-y-2 sm:space-y-4 lg:space-y-6">
-  {/* Gap increases at each breakpoint */}
-</div>
+<div className="space-y-2 sm:space-y-4 lg:space-y-6">{/* Gap increases at each breakpoint */}</div>
 ```
 
 **Responsive Grid:**
+
 ```tsx
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   {/* 1 col mobile, 2 cols tablet, 3 cols desktop */}
@@ -1019,40 +1095,57 @@ font-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem)
 ### Mobile Navigation Pattern
 
 **AppShell Component:**
+
 - Desktop: Persistent sidebar
 - Mobile: Hamburger menu + top bar
 - Transition: Hidden sidebar at `md` breakpoint
 
 ```tsx
-{/* Mobile menu toggle */}
+{
+  /* Mobile menu toggle */
+}
 <div className="md:hidden sticky top-0 h-12 flex items-center">
   <button onClick={() => setOpen(!open)} aria-label="Toggle nav" />
-</div>
+</div>;
 
-{/* Desktop sidebar */}
-<aside className="hidden md:flex flex-col" style={{ gridTemplateColumns: '240px 1fr' }}>
+{
+  /* Desktop sidebar */
+}
+<aside className="hidden md:flex flex-col" style={{ gridTemplateColumns: "240px 1fr" }}>
   {/* Sidebar nav */}
-</aside>
+</aside>;
 ```
 
 ### Print Styles
 
 **Print CSS:**
+
 ```css
 @media print {
-  body { background: white; color: black; }
-  .no-print { display: none !important; }
-  a { text-decoration: underline; }
-  .max-w-container-xl { max-width: 100%; }
+  body {
+    background: white;
+    color: black;
+  }
+  .no-print {
+    display: none !important;
+  }
+  a {
+    text-decoration: underline;
+  }
+  .max-w-container-xl {
+    max-width: 100%;
+  }
 }
 ```
 
 ### Viewport Meta Tag
 
 **HTML Meta (in layout.tsx):**
+
 ```html
 <html lang="en">
-  <body className={inter.className} suppressHydrationWarning>
+  <body className="{inter.className}" suppressHydrationWarning></body>
+</html>
 ```
 
 (Note: Viewport meta configured via Next.js automatically)
@@ -1062,6 +1155,7 @@ font-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem)
 ## SUMMARY: Architecture Highlights
 
 ### Strengths
+
 1. **Modern Stack**: Next.js 15 + React 19 + TypeScript
 2. **Comprehensive Design System**: CSS variables + Tailwind + Ant Design bridge
 3. **Component Library**: 230+ reusable components across two layers (UI + features)
@@ -1074,10 +1168,10 @@ font-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem)
 10. **Accessibility**: ARIA live regions, keyboard shortcuts, semantic HTML
 
 ### Key Scalability Points
+
 - Modular component structure (separate v1/v2 components)
 - Store-based state management (Zustand)
 - Server/client state separation (React Query)
 - Design tokens centralized in CSS variables
 - Clear dependency injection via providers
 - Test-ready architecture (Vitest + Playwright)
-

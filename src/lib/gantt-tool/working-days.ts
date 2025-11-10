@@ -7,8 +7,8 @@
  * - Excludes weekends (Saturday, Sunday) and holidays
  */
 
-import { addDays, differenceInDays, format, parseISO } from 'date-fns';
-import type { GanttHoliday } from '@/types/gantt-tool';
+import { addDays, differenceInDays, format, parseISO } from "date-fns";
+import type { GanttHoliday } from "@/types/gantt-tool";
 
 /**
  * Check if a date is a weekend (Saturday or Sunday)
@@ -26,8 +26,8 @@ export function isHoliday(date: Date, holidays: GanttHoliday[]): boolean {
   if (!date || isNaN(date.getTime())) {
     return false;
   }
-  const dateStr = format(date, 'yyyy-MM-dd');
-  return holidays.some(holiday => holiday.date === dateStr);
+  const dateStr = format(date, "yyyy-MM-dd");
+  return holidays.some((holiday) => holiday.date === dateStr);
 }
 
 /**
@@ -73,8 +73,8 @@ export function calculateWorkingDays(
   endDate: Date | string,
   holidays: GanttHoliday[]
 ): number {
-  const start = typeof startDate === 'string' ? parseISO(startDate) : startDate;
-  const end = typeof endDate === 'string' ? parseISO(endDate) : endDate;
+  const start = typeof startDate === "string" ? parseISO(startDate) : startDate;
+  const end = typeof endDate === "string" ? parseISO(endDate) : endDate;
 
   let workingDays = 0;
   let current = new Date(start);
@@ -97,8 +97,8 @@ export function calculateWorkingDaysInclusive(
   endDate: Date | string,
   holidays: GanttHoliday[]
 ): number {
-  const start = typeof startDate === 'string' ? parseISO(startDate) : startDate;
-  const end = typeof endDate === 'string' ? parseISO(endDate) : endDate;
+  const start = typeof startDate === "string" ? parseISO(startDate) : startDate;
+  const end = typeof endDate === "string" ? parseISO(endDate) : endDate;
 
   let workingDays = 0;
   let current = new Date(start);
@@ -121,11 +121,11 @@ export function addWorkingDays(
   workingDaysToAdd: number,
   holidays: GanttHoliday[]
 ): Date {
-  const start = typeof startDate === 'string' ? parseISO(startDate) : startDate;
+  const start = typeof startDate === "string" ? parseISO(startDate) : startDate;
 
   // Guard against invalid dates
   if (!start || isNaN(start.getTime())) {
-    throw new Error('Invalid start date provided to addWorkingDays');
+    throw new Error("Invalid start date provided to addWorkingDays");
   }
 
   let current = new Date(start);
@@ -157,7 +157,7 @@ export function adjustDatesToWorkingDays(
 
   // Guard against invalid dates
   if (!start || isNaN(start.getTime()) || !end || isNaN(end.getTime())) {
-    throw new Error('Invalid date provided to adjustDatesToWorkingDays');
+    throw new Error("Invalid date provided to adjustDatesToWorkingDays");
   }
 
   const adjustedStart = getNextWorkingDay(start, holidays);
@@ -166,14 +166,14 @@ export function adjustDatesToWorkingDays(
   // If adjusted end is before adjusted start, set end = start
   if (adjustedEnd < adjustedStart) {
     return {
-      startDate: format(adjustedStart, 'yyyy-MM-dd'),
-      endDate: format(adjustedStart, 'yyyy-MM-dd'),
+      startDate: format(adjustedStart, "yyyy-MM-dd"),
+      endDate: format(adjustedStart, "yyyy-MM-dd"),
     };
   }
 
   return {
-    startDate: format(adjustedStart, 'yyyy-MM-dd'),
-    endDate: format(adjustedEnd, 'yyyy-MM-dd'),
+    startDate: format(adjustedStart, "yyyy-MM-dd"),
+    endDate: format(adjustedEnd, "yyyy-MM-dd"),
   };
 }
 
