@@ -4,12 +4,12 @@
  * Protects against cross-site request forgery attacks
  */
 
-import { timingSafeEqual as cryptoTimingSafeEqual, randomBytes } from 'crypto';
-import { cookies } from 'next/headers';
+import { timingSafeEqual as cryptoTimingSafeEqual, randomBytes } from "crypto";
+import { cookies } from "next/headers";
 
-const CSRF_COOKIE = 'csrf-token';
-const CSRF_HEADER = 'x-csrf-token';
-const CSRF_FORM_FIELD = 'csrf_token';
+const CSRF_COOKIE = "csrf-token";
+const CSRF_HEADER = "x-csrf-token";
+const CSRF_FORM_FIELD = "csrf_token";
 const TOKEN_LENGTH = 32; // 256 bits
 
 /**
@@ -17,17 +17,17 @@ const TOKEN_LENGTH = 32; // 256 bits
  * Call this when creating a new session
  */
 export async function generateCsrfToken(): Promise<string> {
-  const token = randomBytes(TOKEN_LENGTH).toString('hex');
-  
+  const token = randomBytes(TOKEN_LENGTH).toString("hex");
+
   const store = await cookies();
   store.set(CSRF_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
     maxAge: 60 * 60 * 24, // 24 hours
   });
-  
+
   return token;
 }
 
@@ -47,17 +47,20 @@ export async function getCsrfToken(): Promise<string | null> {
 export async function validateCsrfToken(request: Request): Promise<boolean> {
   const store = await cookies();
   const cookieToken = store.get(CSRF_COOKIE)?.value;
-  
+
   if (!cookieToken) {
-    console.warn('[CSRF] No CSRF cookie found');
+    console.warn("[CSRF] No CSRF cookie found");
     return false;
   }
-  
+
   // Check header first (preferred for API calls)
   let requestToken = request.headers.get(CSRF_HEADER);
-  
+
   // If not in header, check form field (for traditional form submissions)
-  if (!requestToken && request.headers.get('content-type')?.includes('application/x-www-form-urlencoded')) {
+  if (
+    !requestToken &&
+    request.headers.get("content-type")?.includes("application/x-www-form-urlencoded")
+  ) {
     try {
       const formData = await request.clone().formData();
       requestToken = formData.get(CSRF_FORM_FIELD) as string;
@@ -65,24 +68,24 @@ export async function validateCsrfToken(request: Request): Promise<boolean> {
       // Not a form submission, token must be in header
     }
   }
-  
+
   if (!requestToken) {
-    console.warn('[CSRF] No CSRF token in request');
+    console.warn("[CSRF] No CSRF token in request");
     return false;
   }
-  
+
   // Timing-safe comparison to prevent timing attacks
   try {
     const cookieBuffer = Buffer.from(cookieToken);
     const requestBuffer = Buffer.from(requestToken);
-    
+
     if (cookieBuffer.length !== requestBuffer.length) {
       return false;
     }
-    
+
     return cryptoTimingSafeEqual(cookieBuffer, requestBuffer);
   } catch (error) {
-    console.error('[CSRF] Token comparison failed:', error);
+    console.error("[CSRF] Token comparison failed:", error);
     return false;
   }
 }
@@ -93,9 +96,9 @@ export async function validateCsrfToken(request: Request): Promise<boolean> {
  */
 export async function requireCsrf(request: Request): Promise<void> {
   const isValid = await validateCsrfToken(request);
-  
+
   if (!isValid) {
-    throw new Error('CSRF validation failed');
+    throw new Error("CSRF validation failed");
   }
 }
 
@@ -104,7 +107,7 @@ export async function requireCsrf(request: Request): Promise<void> {
  * GET, HEAD, and OPTIONS are safe methods that don't require protection
  */
 export function requiresCsrfProtection(method: string): boolean {
-  const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
+  const safeMethods = ["GET", "HEAD", "OPTIONS"];
   return !safeMethods.includes(method.toUpperCase());
 }
 
@@ -116,30 +119,30 @@ export async function csrfMiddleware(request: Request): Promise<Response | null>
   if (!requiresCsrfProtection(request.method)) {
     return null; // No protection needed for safe methods
   }
-  
+
   const isValid = await validateCsrfToken(request);
-  
+
   if (!isValid) {
-    console.warn('[SECURITY] CSRF validation failed', {
+    console.warn("[SECURITY] CSRF validation failed", {
       method: request.method,
       url: request.url,
       hasHeader: !!request.headers.get(CSRF_HEADER),
       timestamp: new Date().toISOString(),
     });
-    
+
     return new Response(
-      JSON.stringify({ 
-        ok: false, 
-        error: 'CSRF validation failed',
-        message: 'Invalid or missing CSRF token' 
+      JSON.stringify({
+        ok: false,
+        error: "CSRF validation failed",
+        message: "Invalid or missing CSRF token",
       }),
       {
         status: 403,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
-  
+
   return null; // Validation passed
 }
 
@@ -148,16 +151,16 @@ export async function csrfMiddleware(request: Request): Promise<Response | null>
  * Export this for use in frontend API calls
  */
 export function getCsrfTokenFromCookie(): string | null {
-  if (typeof document === 'undefined') {
+  if (typeof document === "undefined") {
     return null;
   }
-  
-  const cookies = document.cookie.split(';');
-  const csrfCookie = cookies.find(c => c.trim().startsWith(`${CSRF_COOKIE}=`));
-  
+
+  const cookies = document.cookie.split(";");
+  const csrfCookie = cookies.find((c) => c.trim().startsWith(`${CSRF_COOKIE}=`));
+
   if (!csrfCookie) {
     return null;
   }
-  
-  return csrfCookie.split('=')[1].trim();
+
+  return csrfCookie.split("=")[1].trim();
 }

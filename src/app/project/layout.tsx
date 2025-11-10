@@ -1,6 +1,6 @@
-import { authConfig } from '@/lib/auth';
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
+import { authConfig } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 
 export default async function ProjectRootLayout({ children }: { children: React.ReactNode }) {
   // CRITICAL: Server-side authentication check
@@ -8,12 +8,16 @@ export default async function ProjectRootLayout({ children }: { children: React.
 
   if (!session) {
     // Redirect to login if no session
-    redirect('/login?callbackUrl=/project');
+    redirect("/login?callbackUrl=/project");
   }
 
   // Additional check: ensure user is active
-  if (session.user.role !== 'ADMIN' && session.user.role !== 'USER' && session.user.role !== 'MANAGER') {
-    redirect('/login');
+  if (
+    session.user.role !== "ADMIN" &&
+    session.user.role !== "USER" &&
+    session.user.role !== "MANAGER"
+  ) {
+    redirect("/login");
   }
 
   return children;

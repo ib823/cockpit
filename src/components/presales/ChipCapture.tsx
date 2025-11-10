@@ -335,7 +335,9 @@ export function ChipCapture({ className = "" }: ChipCaptureProps) {
             </div>
             <div>
               <div className="text-gray-500">Blockers</div>
-              <div className="font-medium text-red-600">{(completeness?.blockers || []).length}</div>
+              <div className="font-medium text-red-600">
+                {(completeness?.blockers || []).length}
+              </div>
             </div>
           </div>
         </div>

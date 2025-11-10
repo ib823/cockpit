@@ -10,41 +10,41 @@
 
 :root {
   /* Primary Colors - Professional Blue */
-  --vibe-primary-color: #0073EA;
-  --vibe-primary-hover-color: #0060C2;
-  --vibe-primary-selected-color: #004C99;
+  --vibe-primary-color: #0073ea;
+  --vibe-primary-hover-color: #0060c2;
+  --vibe-primary-selected-color: #004c99;
 
   /* Secondary Colors - Deep Purple */
-  --vibe-secondary-color: #6161FF;
-  --vibe-secondary-hover-color: #5151E5;
-  --vibe-secondary-selected-color: #4141CC;
+  --vibe-secondary-color: #6161ff;
+  --vibe-secondary-hover-color: #5151e5;
+  --vibe-secondary-selected-color: #4141cc;
 
   /* Accent Colors - Success Green */
-  --vibe-accent-color: #00C875;
-  --vibe-accent-hover-color: #00A95F;
-  --vibe-accent-selected-color: #008A4A;
+  --vibe-accent-color: #00c875;
+  --vibe-accent-hover-color: #00a95f;
+  --vibe-accent-selected-color: #008a4a;
 
   /* Semantic Colors */
-  --vibe-success-color: #00C875;
-  --vibe-warning-color: #FDAB3D;
-  --vibe-error-color: #E44258;
-  --vibe-info-color: #0073EA;
+  --vibe-success-color: #00c875;
+  --vibe-warning-color: #fdab3d;
+  --vibe-error-color: #e44258;
+  --vibe-info-color: #0073ea;
 
   /* Neutral Colors */
-  --vibe-ui-border-color: #C3C6D4;
-  --vibe-ui-border-color-light: #E6E9EF;
-  --vibe-text-color-on-primary: #FFFFFF;
-  --vibe-text-color-on-inverted: #FFFFFF;
+  --vibe-ui-border-color: #c3c6d4;
+  --vibe-ui-border-color-light: #e6e9ef;
+  --vibe-text-color-on-primary: #ffffff;
+  --vibe-text-color-on-inverted: #ffffff;
 
   /* Backgrounds */
-  --vibe-background-color: #FFFFFF;
-  --vibe-secondary-background-color: #F6F7FB;
-  --vibe-tertiary-background-color: #E6E9EF;
+  --vibe-background-color: #ffffff;
+  --vibe-secondary-background-color: #f6f7fb;
+  --vibe-tertiary-background-color: #e6e9ef;
 
   /* Professional Gradients */
-  --vibe-gradient-primary: linear-gradient(135deg, #0073EA 0%, #6161FF 100%);
-  --vibe-gradient-success: linear-gradient(135deg, #00C875 0%, #00A95F 100%);
-  --vibe-gradient-dark: linear-gradient(135deg, #323338 0%, #1F1F1F 100%);
+  --vibe-gradient-primary: linear-gradient(135deg, #0073ea 0%, #6161ff 100%);
+  --vibe-gradient-success: linear-gradient(135deg, #00c875 0%, #00a95f 100%);
+  --vibe-gradient-dark: linear-gradient(135deg, #323338 0%, #1f1f1f 100%);
 
   /* Shadows */
   --vibe-shadow-small: 0 2px 4px rgba(0, 0, 0, 0.08);
@@ -99,17 +99,17 @@
 }
 
 .vibe-stat-card-primary {
-  background: linear-gradient(135deg, #F0F7FF 0%, #E6F0FF 100%);
+  background: linear-gradient(135deg, #f0f7ff 0%, #e6f0ff 100%);
   border-color: var(--vibe-primary-color);
 }
 
 .vibe-stat-card-success {
-  background: linear-gradient(135deg, #F0FDF7 0%, #E6FCF3 100%);
+  background: linear-gradient(135deg, #f0fdf7 0%, #e6fcf3 100%);
   border-color: var(--vibe-success-color);
 }
 
 .vibe-stat-card-purple {
-  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FF 100%);
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9ff 100%);
   border-color: var(--vibe-secondary-color);
 }
 

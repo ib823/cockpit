@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
-import { prisma } from '@/lib/db';
-import { randomInt } from 'crypto';
+import { NextResponse } from "next/server";
+import { hash } from "bcryptjs";
+import { prisma } from "@/lib/db";
+import { randomInt } from "crypto";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 /**
  * Admin Email Approvals Management
@@ -21,19 +21,16 @@ export async function POST(req: Request) {
     // 1. Validate Admin
     // ============================================
     if (!adminId) {
-      return NextResponse.json(
-        { ok: false, message: 'Admin ID required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ ok: false, message: "Admin ID required" }, { status: 401 });
     }
 
     const admin = await prisma.users.findUnique({
-      where: { id: adminId }
+      where: { id: adminId },
     });
 
-    if (!admin || admin.role !== 'ADMIN') {
+    if (!admin || admin.role !== "ADMIN") {
       return NextResponse.json(
-        { ok: false, message: 'Unauthorized - Admin access required' },
+        { ok: false, message: "Unauthorized - Admin access required" },
         { status: 403 }
       );
     }
@@ -42,18 +39,12 @@ export async function POST(req: Request) {
     // 2. Validate Email
     // ============================================
     if (!email) {
-      return NextResponse.json(
-        { ok: false, message: 'Email is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, message: "Email is required" }, { status: 400 });
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { ok: false, message: 'Invalid email format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, message: "Invalid email format" }, { status: 400 });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -62,12 +53,12 @@ export async function POST(req: Request) {
     // 3. Check if User Already Exists
     // ============================================
     const existingUser = await prisma.users.findUnique({
-      where: { email: normalizedEmail }
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { ok: false, message: 'User with this email already exists' },
+        { ok: false, message: "User with this email already exists" },
         { status: 409 }
       );
     }
@@ -76,14 +67,14 @@ export async function POST(req: Request) {
     // 4. Check if Approval Already Exists
     // ============================================
     const existingApproval = await prisma.emailApproval.findUnique({
-      where: { email: normalizedEmail }
+      where: { email: normalizedEmail },
     });
 
     if (existingApproval) {
       // Check if it's expired or used
       if (existingApproval.usedAt) {
         return NextResponse.json(
-          { ok: false, message: 'This email approval has already been used' },
+          { ok: false, message: "This email approval has already been used" },
           { status: 409 }
         );
       }
@@ -91,11 +82,11 @@ export async function POST(req: Request) {
       if (existingApproval.tokenExpiresAt < new Date()) {
         // Delete expired approval and create new one
         await prisma.emailApproval.delete({
-          where: { email: normalizedEmail }
+          where: { email: normalizedEmail },
         });
       } else {
         return NextResponse.json(
-          { ok: false, message: 'Active approval already exists for this email' },
+          { ok: false, message: "Active approval already exists for this email" },
           { status: 409 }
         );
       }
@@ -121,8 +112,8 @@ export async function POST(req: Request) {
         tokenExpiresAt,
         approvedByUserId: adminId,
         codeSent: false, // Will be set to true when email is sent
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     });
 
     // ============================================
@@ -147,16 +138,15 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      message: 'Email approval created successfully',
+      message: "Email approval created successfully",
       code, // Return code for admin to share
       email: normalizedEmail,
-      expiresAt: tokenExpiresAt
+      expiresAt: tokenExpiresAt,
     });
-
   } catch (error: any) {
-    console.error('[EmailApprovals] POST error:', error);
+    console.error("[EmailApprovals] POST error:", error);
     return NextResponse.json(
-      { ok: false, message: 'Failed to create email approval' },
+      { ok: false, message: "Failed to create email approval" },
       { status: 500 }
     );
   }
@@ -167,39 +157,38 @@ export async function GET(req: Request) {
     // TODO: Verify admin access
 
     const url = new URL(req.url);
-    const status = url.searchParams.get('status'); // 'active', 'used', 'expired', 'all'
+    const status = url.searchParams.get("status"); // 'active', 'used', 'expired', 'all'
 
     let where: any = {};
 
-    if (status === 'active') {
+    if (status === "active") {
       where = {
         usedAt: null,
-        tokenExpiresAt: { gt: new Date() }
+        tokenExpiresAt: { gt: new Date() },
       };
-    } else if (status === 'used') {
+    } else if (status === "used") {
       where = { usedAt: { not: null } };
-    } else if (status === 'expired') {
+    } else if (status === "expired") {
       where = {
         usedAt: null,
-        tokenExpiresAt: { lt: new Date() }
+        tokenExpiresAt: { lt: new Date() },
       };
     }
 
     const approvals = await prisma.emailApproval.findMany({
       where,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json({
       ok: true,
       approvals,
-      total: approvals.length
+      total: approvals.length,
     });
-
   } catch (error: any) {
-    console.error('[EmailApprovals] GET error:', error);
+    console.error("[EmailApprovals] GET error:", error);
     return NextResponse.json(
-      { ok: false, message: 'Failed to fetch email approvals' },
+      { ok: false, message: "Failed to fetch email approvals" },
       { status: 500 }
     );
   }

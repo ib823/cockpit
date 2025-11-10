@@ -15,12 +15,7 @@ interface LogoProps {
  * Displays your company logo with proper sizing and theming.
  * Falls back to company name if logo file doesn't exist.
  */
-export function Logo({
-  size = "md",
-  theme = "light",
-  showText = true,
-  className = "",
-}: LogoProps) {
+export function Logo({ size = "md", theme = "light", showText = true, className = "" }: LogoProps) {
   const dimensions = getLogoDimensions(size);
   const logoPath = getLogoPath(theme);
 
@@ -28,13 +23,7 @@ export function Logo({
     <div className={`flex items-center gap-4 ${className}`}>
       {/* Logo Image */}
       <div className="relative" style={{ width: dimensions.width, height: dimensions.height }}>
-        <Image
-          src={logoPath}
-          alt={logo.alt}
-          fill
-          className="object-contain"
-          priority
-        />
+        <Image src={logoPath} alt={logo.alt} fill className="object-contain" priority />
       </div>
 
       {/* Company Name (optional) */}

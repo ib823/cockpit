@@ -8,16 +8,16 @@
  * - Compatible with Google Authenticator, Authy, 1Password, etc.
  */
 
-import speakeasy from 'speakeasy';
-import QRCode from 'qrcode';
-import crypto from 'crypto';
+import speakeasy from "speakeasy";
+import QRCode from "qrcode";
+import crypto from "crypto";
 
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Cockpit';
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Cockpit";
 const TOTP_WINDOW = 2; // Allow 2 time steps before/after (60 second window)
 
 export interface TOTPSecret {
-  secret: string;      // Base32 encoded secret
-  qrCode: string;      // Data URL for QR code image
+  secret: string; // Base32 encoded secret
+  qrCode: string; // Data URL for QR code image
   manualEntry: string; // Secret in human-readable format
 }
 
@@ -34,28 +34,28 @@ export async function generateTOTPSecret(email: string): Promise<TOTPSecret> {
   const secret = speakeasy.generateSecret({
     length: 32,
     name: `${APP_NAME} (${email})`,
-    issuer: APP_NAME
+    issuer: APP_NAME,
   });
 
   // Generate QR code as data URL
   const otpAuthUrl = secret.otpauth_url;
   if (!otpAuthUrl) {
-    throw new Error('Failed to generate OTP auth URL');
+    throw new Error("Failed to generate OTP auth URL");
   }
 
   const qrCode = await QRCode.toDataURL(otpAuthUrl, {
     width: 300,
     margin: 2,
     color: {
-      dark: '#0f172a',  // Slate 900
-      light: '#ffffff'
-    }
+      dark: "#0f172a", // Slate 900
+      light: "#ffffff",
+    },
   });
 
   return {
     secret: secret.base32,
     qrCode,
-    manualEntry: formatSecretForDisplay(secret.base32)
+    manualEntry: formatSecretForDisplay(secret.base32),
   };
 }
 
@@ -64,24 +64,24 @@ export async function generateTOTPSecret(email: string): Promise<TOTPSecret> {
  */
 export function verifyTOTPCode(code: string, secret: string): TOTPVerifyResult {
   // Remove any whitespace from code
-  const cleanCode = code.replace(/\s/g, '');
+  const cleanCode = code.replace(/\s/g, "");
 
   // Verify the code
   const verified = speakeasy.totp.verify({
     secret,
-    encoding: 'base32',
+    encoding: "base32",
     token: cleanCode,
-    window: TOTP_WINDOW
+    window: TOTP_WINDOW,
   });
 
-  if (typeof verified === 'boolean') {
+  if (typeof verified === "boolean") {
     return { valid: verified };
   }
 
   // speakeasy returns delta if verification succeeds
   return {
     valid: true,
-    delta: verified
+    delta: verified,
   };
 }
 
@@ -92,7 +92,7 @@ export function verifyTOTPCode(code: string, secret: string): TOTPVerifyResult {
 export function generateTOTPCode(secret: string): string {
   return speakeasy.totp({
     secret,
-    encoding: 'base32'
+    encoding: "base32",
   });
 }
 
@@ -102,18 +102,18 @@ export function generateTOTPCode(secret: string): string {
 export function encryptTOTPSecret(secret: string): string {
   const encryptionKey = process.env.TOTP_ENCRYPTION_KEY;
   if (!encryptionKey || encryptionKey.length !== 64) {
-    throw new Error('TOTP_ENCRYPTION_KEY must be set to a 64-character hex string (32 bytes)');
+    throw new Error("TOTP_ENCRYPTION_KEY must be set to a 64-character hex string (32 bytes)");
   }
 
-  const key = Buffer.from(encryptionKey, 'hex');
+  const key = Buffer.from(encryptionKey, "hex");
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
 
-  let encrypted = cipher.update(secret, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
+  let encrypted = cipher.update(secret, "utf8", "hex");
+  encrypted += cipher.final("hex");
 
   // Return IV + encrypted data
-  return iv.toString('hex') + ':' + encrypted;
+  return iv.toString("hex") + ":" + encrypted;
 }
 
 /**
@@ -122,21 +122,21 @@ export function encryptTOTPSecret(secret: string): string {
 export function decryptTOTPSecret(encryptedSecret: string): string {
   const encryptionKey = process.env.TOTP_ENCRYPTION_KEY;
   if (!encryptionKey || encryptionKey.length !== 64) {
-    throw new Error('TOTP_ENCRYPTION_KEY must be set to a 64-character hex string (32 bytes)');
+    throw new Error("TOTP_ENCRYPTION_KEY must be set to a 64-character hex string (32 bytes)");
   }
 
-  const key = Buffer.from(encryptionKey, 'hex');
-  const [ivHex, encrypted] = encryptedSecret.split(':');
+  const key = Buffer.from(encryptionKey, "hex");
+  const [ivHex, encrypted] = encryptedSecret.split(":");
 
   if (!ivHex || !encrypted) {
-    throw new Error('Invalid encrypted TOTP secret format');
+    throw new Error("Invalid encrypted TOTP secret format");
   }
 
-  const iv = Buffer.from(ivHex, 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+  const iv = Buffer.from(ivHex, "hex");
+  const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
 
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
+  let decrypted = decipher.update(encrypted, "hex", "utf8");
+  decrypted += decipher.final("utf8");
 
   return decrypted;
 }
@@ -146,7 +146,7 @@ export function decryptTOTPSecret(encryptedSecret: string): string {
  * Example: JBSW Y3DP EHPK 3PXP
  */
 function formatSecretForDisplay(secret: string): string {
-  return secret.match(/.{1,4}/g)?.join(' ') || secret;
+  return secret.match(/.{1,4}/g)?.join(" ") || secret;
 }
 
 /**
@@ -172,5 +172,5 @@ export function getTOTPTimeRemaining(): number {
  * Run this once and store in environment variable
  */
 export function generateTOTPEncryptionKey(): string {
-  return crypto.randomBytes(32).toString('hex');
+  return crypto.randomBytes(32).toString("hex");
 }

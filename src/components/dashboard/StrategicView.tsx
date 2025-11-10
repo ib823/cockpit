@@ -10,22 +10,29 @@
  * - Risk & Feasibility Gauges
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Card, Space, Typography, Button, Row, Col, Statistic, Tag, Select, Divider, Empty, App } from 'antd';
-import { Plus, Copy, TrendingUp, TrendingDown, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { GanttProject, Resource } from '@/types/gantt-tool';
-import { formatMYR, calculateMargin, getMarginColor, getDailyRate } from '@/lib/rate-card';
-import { differenceInDays, parseISO } from 'date-fns';
-import { RESOURCE_CATEGORIES } from '@/types/gantt-tool';
+import { useState, useMemo } from "react";
 import {
-  RadialBarChart,
-  RadialBar,
-  Legend,
-  ResponsiveContainer,
-  PolarAngleAxis,
-} from 'recharts';
+  Card,
+  Space,
+  Typography,
+  Button,
+  Row,
+  Col,
+  Statistic,
+  Tag,
+  Select,
+  Divider,
+  Empty,
+  App,
+} from "antd";
+import { Plus, Copy, TrendingUp, TrendingDown, AlertCircle, CheckCircle2 } from "lucide-react";
+import { GanttProject, Resource } from "@/types/gantt-tool";
+import { formatMYR, calculateMargin, getMarginColor, getDailyRate } from "@/lib/rate-card";
+import { differenceInDays, parseISO } from "date-fns";
+import { RESOURCE_CATEGORIES } from "@/types/gantt-tool";
+import { RadialBarChart, RadialBar, Legend, ResponsiveContainer, PolarAngleAxis } from "recharts";
 
 const { Title, Text } = Typography;
 
@@ -48,7 +55,10 @@ interface Scenario {
 export function StrategicView({ project }: StrategicViewProps) {
   const { message } = App.useApp();
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
-  const [selectedScenarios, setSelectedScenarios] = useState<[string | null, string | null]>([null, null]);
+  const [selectedScenarios, setSelectedScenarios] = useState<[string | null, string | null]>([
+    null,
+    null,
+  ]);
 
   // Calculate baseline scenario from current project
   const baselineScenario = useMemo((): Scenario => {
@@ -58,27 +68,28 @@ export function StrategicView({ project }: StrategicViewProps) {
     let totalCost = 0;
     let totalEffort = 0;
 
-    phases.forEach(phase => {
-      const phaseDuration = differenceInDays(parseISO(phase.endDate), parseISO(phase.startDate)) + 1;
+    phases.forEach((phase) => {
+      const phaseDuration =
+        differenceInDays(parseISO(phase.endDate), parseISO(phase.startDate)) + 1;
 
-      phase.phaseResourceAssignments?.forEach(assignment => {
-        const resource = resources.find(r => r.id === assignment.resourceId);
+      phase.phaseResourceAssignments?.forEach((assignment) => {
+        const resource = resources.find((r) => r.id === assignment.resourceId);
         if (resource) {
           const dailyRate = getDailyRate(resource.designation);
-          const days = (phaseDuration * assignment.allocationPercentage / 100);
+          const days = (phaseDuration * assignment.allocationPercentage) / 100;
           totalCost += days * dailyRate;
           totalEffort += days;
         }
       });
 
-      phase.tasks.forEach(task => {
+      phase.tasks.forEach((task) => {
         const taskDuration = differenceInDays(parseISO(task.endDate), parseISO(task.startDate)) + 1;
 
-        task.resourceAssignments?.forEach(assignment => {
-          const resource = resources.find(r => r.id === assignment.resourceId);
+        task.resourceAssignments?.forEach((assignment) => {
+          const resource = resources.find((r) => r.id === assignment.resourceId);
           if (resource) {
             const dailyRate = getDailyRate(resource.designation);
-            const days = (taskDuration * assignment.allocationPercentage / 100);
+            const days = (taskDuration * assignment.allocationPercentage) / 100;
             totalCost += days * dailyRate;
             totalEffort += days;
           }
@@ -89,7 +100,7 @@ export function StrategicView({ project }: StrategicViewProps) {
     // Calculate project duration
     const projectStart = parseISO(project.startDate);
     let projectEnd = projectStart;
-    phases.forEach(phase => {
+    phases.forEach((phase) => {
       const phaseEnd = parseISO(phase.endDate);
       if (phaseEnd > projectEnd) projectEnd = phaseEnd;
     });
@@ -100,9 +111,9 @@ export function StrategicView({ project }: StrategicViewProps) {
     const marginPercent = calculateMargin(revenue, totalCost);
 
     return {
-      id: 'baseline',
-      name: 'Current Plan',
-      description: 'Baseline scenario with current resource allocation',
+      id: "baseline",
+      name: "Current Plan",
+      description: "Baseline scenario with current resource allocation",
       revenue,
       cost: totalCost,
       margin,
@@ -124,8 +135,8 @@ export function StrategicView({ project }: StrategicViewProps) {
 
     const newScenario: Scenario = {
       id: `scenario-${Date.now()}`,
-      name: 'Cost-Optimized',
-      description: 'Replace senior resources with mid-level consultants',
+      name: "Cost-Optimized",
+      description: "Replace senior resources with mid-level consultants",
       revenue: optimizedRevenue,
       cost: optimizedCost,
       margin,
@@ -135,7 +146,7 @@ export function StrategicView({ project }: StrategicViewProps) {
     };
 
     setScenarios([...scenarios, newScenario]);
-    message.success('Cost-Optimized scenario created!');
+    message.success("Cost-Optimized scenario created!");
   };
 
   const generatePremiumScenario = () => {
@@ -149,8 +160,8 @@ export function StrategicView({ project }: StrategicViewProps) {
 
     const newScenario: Scenario = {
       id: `scenario-${Date.now()}`,
-      name: 'Premium Fast-Track',
-      description: 'Senior resources for faster delivery with premium pricing',
+      name: "Premium Fast-Track",
+      description: "Senior resources for faster delivery with premium pricing",
       revenue: premiumRevenue,
       cost: premiumCost,
       margin,
@@ -160,15 +171,15 @@ export function StrategicView({ project }: StrategicViewProps) {
     };
 
     setScenarios([...scenarios, newScenario]);
-    message.success('Premium Fast-Track scenario created!');
+    message.success("Premium Fast-Track scenario created!");
   };
 
   // All available scenarios
   const allScenarios = [baselineScenario, ...scenarios];
 
   // Get selected scenario objects
-  const scenario1 = allScenarios.find(s => s.id === selectedScenarios[0]);
-  const scenario2 = allScenarios.find(s => s.id === selectedScenarios[1]);
+  const scenario1 = allScenarios.find((s) => s.id === selectedScenarios[0]);
+  const scenario2 = allScenarios.find((s) => s.id === selectedScenarios[1]);
 
   // Calculate deltas
   const calculateDelta = (s1: Scenario, s2: Scenario, field: keyof Scenario): number => {
@@ -194,55 +205,53 @@ export function StrategicView({ project }: StrategicViewProps) {
 
     return [
       {
-        name: 'Resource\nContention',
+        name: "Resource\nContention",
         value: resourceContention,
-        fill: resourceContention > 70 ? '#EF4444' : resourceContention > 50 ? '#F59E0B' : '#10B981',
+        fill: resourceContention > 70 ? "#EF4444" : resourceContention > 50 ? "#F59E0B" : "#10B981",
       },
       {
-        name: 'Critical Path\nComplexity',
+        name: "Critical Path\nComplexity",
         value: criticalPathComplexity,
-        fill: criticalPathComplexity > 70 ? '#EF4444' : criticalPathComplexity > 50 ? '#F59E0B' : '#10B981',
+        fill:
+          criticalPathComplexity > 70
+            ? "#EF4444"
+            : criticalPathComplexity > 50
+              ? "#F59E0B"
+              : "#10B981",
       },
       {
-        name: 'Budget\nRisk',
+        name: "Budget\nRisk",
         value: budgetRisk,
-        fill: budgetRisk > 70 ? '#EF4444' : budgetRisk > 50 ? '#F59E0B' : '#10B981',
+        fill: budgetRisk > 70 ? "#EF4444" : budgetRisk > 50 ? "#F59E0B" : "#10B981",
       },
     ];
   }, [project, scenario1]);
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%', display: 'flex' }}>
+    <Space direction="vertical" size="large" style={{ width: "100%", display: "flex" }}>
       {/* Scenario Actions */}
-      <Card bordered={false} style={{ borderRadius: '8px', background: '#FFFBEB' }}>
+      <Card bordered={false} style={{ borderRadius: "8px", background: "#FFFBEB" }}>
         <Space size="middle" wrap>
-          <Button
-            type="primary"
-            icon={<Plus size={16} />}
-            onClick={generateOptimizedScenario}
-          >
+          <Button type="primary" icon={<Plus size={16} />} onClick={generateOptimizedScenario}>
             Create Cost-Optimized Scenario
           </Button>
-          <Button
-            icon={<Copy size={16} />}
-            onClick={generatePremiumScenario}
-          >
+          <Button icon={<Copy size={16} />} onClick={generatePremiumScenario}>
             Create Premium Scenario
           </Button>
-          <Text type="secondary" style={{ marginLeft: '16px' }}>
+          <Text type="secondary" style={{ marginLeft: "16px" }}>
             {scenarios.length} alternative scenario(s) created
           </Text>
         </Space>
       </Card>
 
       {/* Scenario Comparison */}
-      <Card bordered={false} style={{ borderRadius: '8px' }}>
+      <Card bordered={false} style={{ borderRadius: "8px" }}>
         <Title level={5}>🔄 Scenario Comparison</Title>
         <Text type="secondary" className="text-sm">
           Compare different approaches side-by-side
         </Text>
 
-        <Divider style={{ margin: '16px 0' }} />
+        <Divider style={{ margin: "16px 0" }} />
 
         <Row gutter={[16, 16]}>
           {/* Scenario 1 Selector */}
@@ -251,34 +260,38 @@ export function StrategicView({ project }: StrategicViewProps) {
               <Select
                 value={selectedScenarios[0]}
                 onChange={(value) => setSelectedScenarios([value, selectedScenarios[1]])}
-                style={{ width: '100%', marginBottom: '16px' }}
+                style={{ width: "100%", marginBottom: "16px" }}
                 placeholder="Select first scenario"
-                options={allScenarios.map(s => ({ label: s.name, value: s.id }))}
+                options={allScenarios.map((s) => ({ label: s.name, value: s.id }))}
               />
 
               {scenario1 && (
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                <Space direction="vertical" size="small" style={{ width: "100%" }}>
                   <Statistic
                     title="Revenue"
                     value={scenario1.revenue}
                     prefix="RM"
                     className="[&_.ant-statistic-content]:text-lg"
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                   />
                   <Statistic
                     title="Cost"
                     value={scenario1.cost}
                     prefix="RM"
-                    valueStyle={{ fontSize: '20px', color: '#EF4444' }}
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    valueStyle={{ fontSize: "20px", color: "#EF4444" }}
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                   />
                   <Statistic
                     title="Margin"
                     value={scenario1.marginPercent}
                     suffix="%"
-                    valueStyle={{ fontSize: '24px', color: getMarginColor(scenario1.marginPercent), fontWeight: 'bold' }}
+                    valueStyle={{
+                      fontSize: "24px",
+                      color: getMarginColor(scenario1.marginPercent),
+                      fontWeight: "bold",
+                    }}
                   />
-                  <Divider style={{ margin: '8px 0' }} />
+                  <Divider style={{ margin: "8px 0" }} />
                   <Text type="secondary">
                     Duration: <strong>{scenario1.duration} months</strong>
                   </Text>
@@ -297,34 +310,38 @@ export function StrategicView({ project }: StrategicViewProps) {
               <Select
                 value={selectedScenarios[1]}
                 onChange={(value) => setSelectedScenarios([selectedScenarios[0], value])}
-                style={{ width: '100%', marginBottom: '16px' }}
+                style={{ width: "100%", marginBottom: "16px" }}
                 placeholder="Select second scenario"
-                options={allScenarios.map(s => ({ label: s.name, value: s.id }))}
+                options={allScenarios.map((s) => ({ label: s.name, value: s.id }))}
               />
 
               {scenario2 && (
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                <Space direction="vertical" size="small" style={{ width: "100%" }}>
                   <Statistic
                     title="Revenue"
                     value={scenario2.revenue}
                     prefix="RM"
                     className="[&_.ant-statistic-content]:text-lg"
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                   />
                   <Statistic
                     title="Cost"
                     value={scenario2.cost}
                     prefix="RM"
-                    valueStyle={{ fontSize: '20px', color: '#EF4444' }}
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    valueStyle={{ fontSize: "20px", color: "#EF4444" }}
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                   />
                   <Statistic
                     title="Margin"
                     value={scenario2.marginPercent}
                     suffix="%"
-                    valueStyle={{ fontSize: '24px', color: getMarginColor(scenario2.marginPercent), fontWeight: 'bold' }}
+                    valueStyle={{
+                      fontSize: "24px",
+                      color: getMarginColor(scenario2.marginPercent),
+                      fontWeight: "bold",
+                    }}
                   />
-                  <Divider style={{ margin: '8px 0' }} />
+                  <Divider style={{ margin: "8px 0" }} />
                   <Text type="secondary">
                     Duration: <strong>{scenario2.duration} months</strong>
                   </Text>
@@ -344,10 +361,21 @@ export function StrategicView({ project }: StrategicViewProps) {
             <Divider>Delta Analysis</Divider>
             <Row gutter={[16, 16]}>
               <Col xs={12} sm={6}>
-                <Card size="small" bordered={false} style={{ background: '#F9FAFB', textAlign: 'center' }}>
+                <Card
+                  size="small"
+                  bordered={false}
+                  style={{ background: "#F9FAFB", textAlign: "center" }}
+                >
                   <Text type="secondary">Margin Change</Text>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '8px' }}>
-                    {calculateDelta(scenario1, scenario2, 'marginPercent') > 0 ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginTop: "8px",
+                    }}
+                  >
+                    {calculateDelta(scenario1, scenario2, "marginPercent") > 0 ? (
                       <TrendingUp size={20} color="#10B981" />
                     ) : (
                       <TrendingDown size={20} color="#EF4444" />
@@ -355,65 +383,87 @@ export function StrategicView({ project }: StrategicViewProps) {
                     <Text
                       strong
                       style={{
-                        fontSize: '20px',
-                        marginLeft: '8px',
-                        color: calculateDelta(scenario1, scenario2, 'marginPercent') > 0 ? '#10B981' : '#EF4444',
+                        fontSize: "20px",
+                        marginLeft: "8px",
+                        color:
+                          calculateDelta(scenario1, scenario2, "marginPercent") > 0
+                            ? "#10B981"
+                            : "#EF4444",
                       }}
                     >
-                      {calculateDelta(scenario1, scenario2, 'marginPercent').toFixed(1)}%
+                      {calculateDelta(scenario1, scenario2, "marginPercent").toFixed(1)}%
                     </Text>
                   </div>
                 </Card>
               </Col>
 
               <Col xs={12} sm={6}>
-                <Card size="small" bordered={false} style={{ background: '#F9FAFB', textAlign: 'center' }}>
+                <Card
+                  size="small"
+                  bordered={false}
+                  style={{ background: "#F9FAFB", textAlign: "center" }}
+                >
                   <Text type="secondary">Cost Change</Text>
-                  <div style={{ marginTop: '8px' }}>
+                  <div style={{ marginTop: "8px" }}>
                     <Text
                       strong
                       style={{
-                        fontSize: '16px',
-                        color: calculateDelta(scenario1, scenario2, 'cost') < 0 ? '#10B981' : '#EF4444',
+                        fontSize: "16px",
+                        color:
+                          calculateDelta(scenario1, scenario2, "cost") < 0 ? "#10B981" : "#EF4444",
                       }}
                     >
-                      {formatMYR(calculateDelta(scenario1, scenario2, 'cost'))}
+                      {formatMYR(calculateDelta(scenario1, scenario2, "cost"))}
                     </Text>
                   </div>
                 </Card>
               </Col>
 
               <Col xs={12} sm={6}>
-                <Card size="small" bordered={false} style={{ background: '#F9FAFB', textAlign: 'center' }}>
+                <Card
+                  size="small"
+                  bordered={false}
+                  style={{ background: "#F9FAFB", textAlign: "center" }}
+                >
                   <Text type="secondary">Duration Change</Text>
-                  <div style={{ marginTop: '8px' }}>
+                  <div style={{ marginTop: "8px" }}>
                     <Text
                       strong
                       style={{
-                        fontSize: '16px',
-                        color: calculateDelta(scenario1, scenario2, 'duration') < 0 ? '#10B981' : '#EF4444',
+                        fontSize: "16px",
+                        color:
+                          calculateDelta(scenario1, scenario2, "duration") < 0
+                            ? "#10B981"
+                            : "#EF4444",
                       }}
                     >
-                      {calculateDelta(scenario1, scenario2, 'duration') > 0 ? '+' : ''}
-                      {calculateDelta(scenario1, scenario2, 'duration')} mo
+                      {calculateDelta(scenario1, scenario2, "duration") > 0 ? "+" : ""}
+                      {calculateDelta(scenario1, scenario2, "duration")} mo
                     </Text>
                   </div>
                 </Card>
               </Col>
 
               <Col xs={12} sm={6}>
-                <Card size="small" bordered={false} style={{ background: '#F9FAFB', textAlign: 'center' }}>
+                <Card
+                  size="small"
+                  bordered={false}
+                  style={{ background: "#F9FAFB", textAlign: "center" }}
+                >
                   <Text type="secondary">Effort Change</Text>
-                  <div style={{ marginTop: '8px' }}>
+                  <div style={{ marginTop: "8px" }}>
                     <Text
                       strong
                       style={{
-                        fontSize: '16px',
-                        color: calculateDelta(scenario1, scenario2, 'effort') < 0 ? '#10B981' : '#EF4444',
+                        fontSize: "16px",
+                        color:
+                          calculateDelta(scenario1, scenario2, "effort") < 0
+                            ? "#10B981"
+                            : "#EF4444",
                       }}
                     >
-                      {calculateDelta(scenario1, scenario2, 'effort') > 0 ? '+' : ''}
-                      {calculateDelta(scenario1, scenario2, 'effort')} days
+                      {calculateDelta(scenario1, scenario2, "effort") > 0 ? "+" : ""}
+                      {calculateDelta(scenario1, scenario2, "effort")} days
                     </Text>
                   </div>
                 </Card>
@@ -423,21 +473,18 @@ export function StrategicView({ project }: StrategicViewProps) {
         )}
 
         {!scenario1 && !scenario2 && (
-          <Empty
-            description="Select two scenarios to compare"
-            style={{ padding: '40px 0' }}
-          />
+          <Empty description="Select two scenarios to compare" style={{ padding: "40px 0" }} />
         )}
       </Card>
 
       {/* Risk & Feasibility Gauges */}
-      <Card bordered={false} style={{ borderRadius: '8px' }}>
+      <Card bordered={false} style={{ borderRadius: "8px" }}>
         <Title level={5}>⚠️ Risk & Feasibility Assessment</Title>
         <Text type="secondary" className="text-sm">
           Qualitative health check beyond the numbers
         </Text>
 
-        <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
+        <Row gutter={[16, 16]} style={{ marginTop: "20px" }}>
           <Col xs={24} md={12}>
             <ResponsiveContainer width="100%" height={250}>
               <RadialBarChart
@@ -452,25 +499,22 @@ export function StrategicView({ project }: StrategicViewProps) {
                   background
                   dataKey="value"
                   cornerRadius={10}
-                  label={{ position: 'insideStart', fill: '#fff', fontSize: 12 }}
+                  label={{ position: "insideStart", fill: "#fff", fontSize: 12 }}
                 />
-                <Legend
-                  iconSize={10}
-                  layout="horizontal"
-                  verticalAlign="bottom"
-                  align="center"
-                />
+                <Legend iconSize={10} layout="horizontal" verticalAlign="bottom" align="center" />
               </RadialBarChart>
             </ResponsiveContainer>
           </Col>
 
           <Col xs={24} md={12}>
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
               {scenario1 && scenario1.marginPercent >= 20 && (
-                <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
-                  <CheckCircle2 size={20} color="#10B981" style={{ marginTop: '2px' }} />
+                <div style={{ display: "flex", alignItems: "start", gap: "12px" }}>
+                  <CheckCircle2 size={20} color="#10B981" style={{ marginTop: "2px" }} />
                   <div>
-                    <Text strong style={{ color: '#065F46' }}>Healthy Margin</Text>
+                    <Text strong style={{ color: "#065F46" }}>
+                      Healthy Margin
+                    </Text>
                     <br />
                     <Text type="secondary" className="text-sm">
                       Project meets profitability targets
@@ -480,10 +524,12 @@ export function StrategicView({ project }: StrategicViewProps) {
               )}
 
               {scenario1 && scenario1.marginPercent < 20 && (
-                <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
-                  <AlertCircle size={20} color="#F59E0B" style={{ marginTop: '2px' }} />
+                <div style={{ display: "flex", alignItems: "start", gap: "12px" }}>
+                  <AlertCircle size={20} color="#F59E0B" style={{ marginTop: "2px" }} />
                   <div>
-                    <Text strong style={{ color: '#92400E' }}>Margin Risk</Text>
+                    <Text strong style={{ color: "#92400E" }}>
+                      Margin Risk
+                    </Text>
                     <br />
                     <Text type="secondary" className="text-sm">
                       Consider optimizing resource mix
@@ -492,23 +538,27 @@ export function StrategicView({ project }: StrategicViewProps) {
                 </div>
               )}
 
-              <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
-                <AlertCircle size={20} color="#3B82F6" style={{ marginTop: '2px' }} />
+              <div style={{ display: "flex", alignItems: "start", gap: "12px" }}>
+                <AlertCircle size={20} color="#3B82F6" style={{ marginTop: "2px" }} />
                 <div>
-                  <Text strong style={{ color: '#1E3A8A' }}>Resource Contention</Text>
+                  <Text strong style={{ color: "#1E3A8A" }}>
+                    Resource Contention
+                  </Text>
                   <br />
                   <Text type="secondary" className="text-sm">
                     {project.resources && project.resources.length > 5
-                      ? 'Multiple resources increase coordination complexity'
-                      : 'Resource count is manageable'}
+                      ? "Multiple resources increase coordination complexity"
+                      : "Resource count is manageable"}
                   </Text>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
-                <CheckCircle2 size={20} color="#10B981" style={{ marginTop: '2px' }} />
+              <div style={{ display: "flex", alignItems: "start", gap: "12px" }}>
+                <CheckCircle2 size={20} color="#10B981" style={{ marginTop: "2px" }} />
                 <div>
-                  <Text strong style={{ color: '#065F46' }}>Project Feasibility</Text>
+                  <Text strong style={{ color: "#065F46" }}>
+                    Project Feasibility
+                  </Text>
                   <br />
                   <Text type="secondary" className="text-sm">
                     Timeline and resource allocation appear realistic
@@ -524,23 +574,29 @@ export function StrategicView({ project }: StrategicViewProps) {
       <Card
         bordered={false}
         style={{
-          borderRadius: '8px',
-          background: '#EFF6FF',
-          border: '2px solid #3B82F6',
+          borderRadius: "8px",
+          background: "#EFF6FF",
+          border: "2px solid #3B82F6",
         }}
       >
         <Space direction="vertical" size={8}>
-          <Title level={5} style={{ margin: 0, color: '#1E3A8A' }}>
+          <Title level={5} style={{ margin: 0, color: "#1E3A8A" }}>
             🎯 Strategic Recommendation
           </Title>
-          <Text style={{ color: '#1E3A8A' }}>
-            Based on the analysis, consider creating scenarios that balance cost, margin, and delivery speed.
-            The optimal approach depends on client priorities:
+          <Text style={{ color: "#1E3A8A" }}>
+            Based on the analysis, consider creating scenarios that balance cost, margin, and
+            delivery speed. The optimal approach depends on client priorities:
           </Text>
-          <ul style={{ margin: '8px 0', paddingLeft: '20px', color: '#1E3A8A' }}>
-            <li><strong>Cost-sensitive clients:</strong> Optimize with mid-level resources</li>
-            <li><strong>Time-sensitive clients:</strong> Premium pricing with senior resources</li>
-            <li><strong>Balanced approach:</strong> Mix of senior and mid-level resources</li>
+          <ul style={{ margin: "8px 0", paddingLeft: "20px", color: "#1E3A8A" }}>
+            <li>
+              <strong>Cost-sensitive clients:</strong> Optimize with mid-level resources
+            </li>
+            <li>
+              <strong>Time-sensitive clients:</strong> Premium pricing with senior resources
+            </li>
+            <li>
+              <strong>Balanced approach:</strong> Mix of senior and mid-level resources
+            </li>
           </ul>
         </Space>
       </Card>

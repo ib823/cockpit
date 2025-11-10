@@ -8,7 +8,8 @@ import { useProjectStore } from "@/stores/project-store";
 import { Button } from "@/components/common/Button";
 
 export function OnboardingTour() {
-  const { isActive, currentStep, totalSteps, currentStepData, nextStep, prevStep, skipOnboarding } = useOnboarding();
+  const { isActive, currentStep, totalSteps, currentStepData, nextStep, prevStep, skipOnboarding } =
+    useOnboarding();
   const { mode, setMode } = useProjectStore();
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
@@ -202,7 +203,9 @@ export function OnboardingTour() {
                 variant="primary"
                 size="sm"
                 onClick={nextStep}
-                rightIcon={currentStep < totalSteps - 1 ? <ChevronRight className="w-4 h-4" /> : undefined}
+                rightIcon={
+                  currentStep < totalSteps - 1 ? <ChevronRight className="w-4 h-4" /> : undefined
+                }
                 className="min-w-[100px]"
               >
                 {currentStep < totalSteps - 1 ? "Next" : "Finish"}

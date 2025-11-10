@@ -5,10 +5,10 @@
  * Calculates utilization metrics, timeline allocations, and category breakdowns.
  */
 
-import { useMemo } from 'react';
-import { useGanttToolStore } from './gantt-tool-store-v2';
-import { differenceInDays, eachWeekOfInterval, startOfWeek, endOfWeek, format } from 'date-fns';
-import type { Resource, ResourceCategory, ResourceDesignation } from '@/types/gantt-tool';
+import { useMemo } from "react";
+import { useGanttToolStore } from "./gantt-tool-store-v2";
+import { differenceInDays, eachWeekOfInterval, startOfWeek, endOfWeek, format } from "date-fns";
+import type { Resource, ResourceCategory, ResourceDesignation } from "@/types/gantt-tool";
 
 export interface ResourceAssignmentDetail {
   taskId: string;
@@ -83,7 +83,7 @@ export interface ResourceAnalyticsSummary {
  * Main hook: Calculate resource metrics from gantt data
  */
 export function useResourceMetrics(): ResourceMetrics[] {
-  const currentProject = useGanttToolStore(state => state.currentProject);
+  const currentProject = useGanttToolStore((state) => state.currentProject);
 
   return useMemo(() => {
     if (!currentProject) return [];
@@ -91,17 +91,17 @@ export function useResourceMetrics(): ResourceMetrics[] {
     const metricsMap = new Map<string, ResourceMetrics>();
 
     // First pass: Collect all assignments
-    currentProject.phases.forEach(phase => {
-      phase.tasks.forEach(task => {
+    currentProject.phases.forEach((phase) => {
+      phase.tasks.forEach((task) => {
         if (!task.resourceAssignments || task.resourceAssignments.length === 0) return;
 
         const taskStart = new Date(task.startDate);
         const taskEnd = new Date(task.endDate);
         const taskDays = differenceInDays(taskEnd, taskStart) + 1;
 
-        task.resourceAssignments.forEach(assignment => {
+        task.resourceAssignments.forEach((assignment) => {
           // Look up resource details
-          const resource = currentProject.resources.find(r => r.id === assignment.resourceId);
+          const resource = currentProject.resources.find((r) => r.id === assignment.resourceId);
           if (!resource) return; // Resource was deleted
 
           const effortDays = taskDays * (assignment.allocationPercentage / 100);
@@ -163,7 +163,7 @@ export function useResourceMetrics(): ResourceMetrics[] {
 
       while (currentDate <= metrics.activeUntil) {
         let dailyAllocation = 0;
-        metrics.assignments.forEach(assignment => {
+        metrics.assignments.forEach((assignment) => {
           if (currentDate >= assignment.startDate && currentDate <= assignment.endDate) {
             dailyAllocation += assignment.allocationPercentage;
           }
@@ -178,9 +178,7 @@ export function useResourceMetrics(): ResourceMetrics[] {
     });
 
     // Sort by utilization score (highest first)
-    return Array.from(metricsMap.values()).sort(
-      (a, b) => b.utilizationScore - a.utilizationScore
-    );
+    return Array.from(metricsMap.values()).sort((a, b) => b.utilizationScore - a.utilizationScore);
   }, [currentProject]);
 }
 
@@ -189,20 +187,20 @@ export function useResourceMetrics(): ResourceMetrics[] {
  */
 export function useResourceMetricsWithTimeline(): ResourceWithTimeline[] {
   const metrics = useResourceMetrics();
-  const currentProject = useGanttToolStore(state => state.currentProject);
+  const currentProject = useGanttToolStore((state) => state.currentProject);
 
   return useMemo(() => {
     if (!currentProject || metrics.length === 0) return [];
 
     // Determine overall project timeline
     const allDates = metrics
-      .flatMap(m => [m.activeFrom, m.activeUntil])
+      .flatMap((m) => [m.activeFrom, m.activeUntil])
       .filter((d): d is Date => d !== null);
 
     if (allDates.length === 0) return [];
 
-    const projectStart = new Date(Math.min(...allDates.map(d => d.getTime())));
-    const projectEnd = new Date(Math.max(...allDates.map(d => d.getTime())));
+    const projectStart = new Date(Math.min(...allDates.map((d) => d.getTime())));
+    const projectEnd = new Date(Math.max(...allDates.map((d) => d.getTime())));
 
     // Generate week intervals
     const weeks = eachWeekOfInterval(
@@ -210,13 +208,13 @@ export function useResourceMetricsWithTimeline(): ResourceWithTimeline[] {
       { weekStartsOn: 1 } // Monday
     );
 
-    return metrics.map(resource => {
-      const timeline: TimelineAllocation[] = weeks.map(weekStart => {
+    return metrics.map((resource) => {
+      const timeline: TimelineAllocation[] = weeks.map((weekStart) => {
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         let totalAllocation = 0;
-        const contributingTasks: TimelineAllocation['contributingTasks'] = [];
+        const contributingTasks: TimelineAllocation["contributingTasks"] = [];
 
-        resource.assignments.forEach(assignment => {
+        resource.assignments.forEach((assignment) => {
           // Check if assignment overlaps with this week
           if (assignment.endDate < weekStart || assignment.startDate > weekEnd) {
             return; // No overlap
@@ -242,7 +240,7 @@ export function useResourceMetricsWithTimeline(): ResourceWithTimeline[] {
         return {
           weekStart,
           weekEnd,
-          weekLabel: format(weekStart, 'MMM d'),
+          weekLabel: format(weekStart, "MMM d"),
           allocation: Math.round(totalAllocation),
           contributingTasks,
         };
@@ -265,7 +263,7 @@ export function useCategoryMetrics(): CategoryMetrics[] {
   return useMemo(() => {
     const categoryMap = new Map<ResourceCategory, CategoryMetrics>();
 
-    metrics.forEach(resource => {
+    metrics.forEach((resource) => {
       if (!categoryMap.has(resource.category)) {
         categoryMap.set(resource.category, {
           category: resource.category,
@@ -284,16 +282,14 @@ export function useCategoryMetrics(): CategoryMetrics[] {
     });
 
     // Calculate averages
-    categoryMap.forEach(cat => {
+    categoryMap.forEach((cat) => {
       if (cat.resourceCount > 0) {
         cat.averageUtilization = cat.averageUtilization / cat.resourceCount;
       }
     });
 
     // Sort by total effort (largest first)
-    return Array.from(categoryMap.values()).sort(
-      (a, b) => b.totalEffortDays - a.totalEffortDays
-    );
+    return Array.from(categoryMap.values()).sort((a, b) => b.totalEffortDays - a.totalEffortDays);
   }, [metrics]);
 }
 
@@ -306,7 +302,7 @@ export function useDesignationMetrics(): DesignationMetrics[] {
   return useMemo(() => {
     const designationMap = new Map<ResourceDesignation, DesignationMetrics>();
 
-    metrics.forEach(resource => {
+    metrics.forEach((resource) => {
       if (!designationMap.has(resource.designation)) {
         designationMap.set(resource.designation, {
           designation: resource.designation,
@@ -323,7 +319,7 @@ export function useDesignationMetrics(): DesignationMetrics[] {
     });
 
     // Calculate averages
-    designationMap.forEach(des => {
+    designationMap.forEach((des) => {
       if (des.resourceCount > 0) {
         des.averageUtilization = des.averageUtilization / des.resourceCount;
       }
@@ -343,7 +339,7 @@ export function useResourceAnalyticsSummary(): ResourceAnalyticsSummary {
   const metrics = useResourceMetrics();
   const categories = useCategoryMetrics();
   const designations = useDesignationMetrics();
-  const currentProject = useGanttToolStore(state => state.currentProject);
+  const currentProject = useGanttToolStore((state) => state.currentProject);
 
   return useMemo(() => {
     const activeResources = metrics.length;
@@ -352,7 +348,7 @@ export function useResourceAnalyticsSummary(): ResourceAnalyticsSummary {
     const totalUtilization = metrics.reduce((sum, m) => sum + m.utilizationScore, 0);
     const averageUtilization = activeResources > 0 ? totalUtilization / activeResources : 0;
     const totalTasks = metrics.reduce((sum, m) => sum + m.taskCount, 0);
-    const overallocatedResources = metrics.filter(m => m.peakAllocation > 100).length;
+    const overallocatedResources = metrics.filter((m) => m.peakAllocation > 100).length;
 
     return {
       totalEffortDays: Math.round(totalEffortDays * 10) / 10,

@@ -1,6 +1,6 @@
-'use client';
-import React from 'react';
-import { Drawer } from 'antd';
+"use client";
+import React from "react";
+import { Drawer } from "antd";
 
 type SheetProps = {
   open: boolean;
@@ -10,13 +10,7 @@ type SheetProps = {
   children?: React.ReactNode;
 };
 
-export default function Sheet({
-  open,
-  onOpenChange,
-  title,
-  width = 480,
-  children,
-}: SheetProps) {
+export default function Sheet({ open, onOpenChange, title, width = 480, children }: SheetProps) {
   return (
     <Drawer
       open={open}

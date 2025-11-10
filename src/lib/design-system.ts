@@ -17,17 +17,17 @@ export const spacing = {
   // Micro spacing (use sparingly)
   px: "1px",
   "0.5": "0.125rem", // 2px
-  "1": "0.25rem",    // 4px
+  "1": "0.25rem", // 4px
 
   // Standard 8px grid
-  "2": "0.5rem",     // 8px  - tight gaps
-  "3": "0.75rem",    // 12px - comfortable gaps
-  "4": "1rem",       // 16px - standard padding
-  "6": "1.5rem",     // 24px - section padding
-  "8": "2rem",       // 32px - large padding
-  "12": "3rem",      // 48px - hero spacing
-  "16": "4rem",      // 64px - extra large
-  "24": "6rem",      // 96px - massive spacing
+  "2": "0.5rem", // 8px  - tight gaps
+  "3": "0.75rem", // 12px - comfortable gaps
+  "4": "1rem", // 16px - standard padding
+  "6": "1.5rem", // 24px - section padding
+  "8": "2rem", // 32px - large padding
+  "12": "3rem", // 48px - hero spacing
+  "16": "4rem", // 64px - extra large
+  "24": "6rem", // 96px - massive spacing
 } as const;
 
 // ============================================================================
@@ -38,38 +38,38 @@ export const spacing = {
 export const typography = {
   // Display text (hero sections)
   display: {
-    xl: "text-6xl font-light tracking-tight",      // 60px - Landing hero
-    lg: "text-5xl font-light tracking-tight",      // 48px - Page hero
-    md: "text-4xl font-light tracking-tight",      // 36px - Section hero
+    xl: "text-6xl font-light tracking-tight", // 60px - Landing hero
+    lg: "text-5xl font-light tracking-tight", // 48px - Page hero
+    md: "text-4xl font-light tracking-tight", // 36px - Section hero
   },
 
   // Headings
   heading: {
-    h1: "text-3xl font-semibold tracking-tight",   // 30px - Main headings
-    h2: "text-2xl font-semibold tracking-tight",   // 24px - Sub headings
-    h3: "text-xl font-semibold",                   // 20px - Card headings
-    h4: "text-lg font-semibold",                   // 18px - Minor headings
+    h1: "text-3xl font-semibold tracking-tight", // 30px - Main headings
+    h2: "text-2xl font-semibold tracking-tight", // 24px - Sub headings
+    h3: "text-xl font-semibold", // 20px - Card headings
+    h4: "text-lg font-semibold", // 18px - Minor headings
   },
 
   // Body text
   body: {
-    xl: "text-lg font-normal",                     // 18px - Large body
-    lg: "text-base font-normal",                   // 16px - Standard body
-    md: "text-sm font-normal",                     // 14px - Compact body
-    sm: "text-xs font-normal",                     // 12px - Fine print
+    xl: "text-lg font-normal", // 18px - Large body
+    lg: "text-base font-normal", // 16px - Standard body
+    md: "text-sm font-normal", // 14px - Compact body
+    sm: "text-xs font-normal", // 12px - Fine print
   },
 
   // Labels & UI text
   label: {
-    lg: "text-sm font-medium",                     // 14px - Primary labels
-    md: "text-xs font-medium",                     // 12px - Secondary labels
+    lg: "text-sm font-medium", // 14px - Primary labels
+    md: "text-xs font-medium", // 12px - Secondary labels
     sm: "text-xs font-medium uppercase tracking-wider", // 12px - Micro labels
   },
 
   // Code/Monospace
   code: {
-    lg: "text-sm font-mono",                       // 14px
-    md: "text-xs font-mono",                       // 12px
+    lg: "text-sm font-mono", // 14px
+    md: "text-xs font-mono", // 12px
   },
 } as const;
 
@@ -81,114 +81,114 @@ export const typography = {
 export const colorValues = {
   // Primary brand colors (Blue)
   primary: {
-    50: '#EFF6FF',
-    100: '#DBEAFE',
-    200: '#BFDBFE',
-    300: '#93C5FD',
-    400: '#60A5FA',
-    500: '#3B82F6',   // Main brand color
-    600: '#2563EB',   // Primary action color
-    700: '#1D4ED8',
-    800: '#1E40AF',
-    900: '#1E3A8A',
+    50: "#EFF6FF",
+    100: "#DBEAFE",
+    200: "#BFDBFE",
+    300: "#93C5FD",
+    400: "#60A5FA",
+    500: "#3B82F6", // Main brand color
+    600: "#2563EB", // Primary action color
+    700: "#1D4ED8",
+    800: "#1E40AF",
+    900: "#1E3A8A",
   },
 
   // Secondary/accent (Purple)
   accent: {
-    50: '#FAF5FF',
-    100: '#F3E8FF',
-    200: '#E9D5FF',
-    300: '#D8B4FE',
-    400: '#C084FC',
-    500: '#A855F7',
-    600: '#9333EA',   // Secondary actions
-    700: '#7E22CE',
-    800: '#6B21A8',
-    900: '#581C87',
+    50: "#FAF5FF",
+    100: "#F3E8FF",
+    200: "#E9D5FF",
+    300: "#D8B4FE",
+    400: "#C084FC",
+    500: "#A855F7",
+    600: "#9333EA", // Secondary actions
+    700: "#7E22CE",
+    800: "#6B21A8",
+    900: "#581C87",
   },
 
   // Success states (Green)
   success: {
-    50: '#ECFDF5',
-    100: '#D1FAE5',
-    200: '#A7F3D0',
-    300: '#6EE7B7',
-    400: '#34D399',
-    500: '#10B981',
-    600: '#059669',
-    700: '#047857',
-    800: '#065F46',
-    900: '#064E3B',
+    50: "#ECFDF5",
+    100: "#D1FAE5",
+    200: "#A7F3D0",
+    300: "#6EE7B7",
+    400: "#34D399",
+    500: "#10B981",
+    600: "#059669",
+    700: "#047857",
+    800: "#065F46",
+    900: "#064E3B",
   },
 
   // Warning states (Amber)
   warning: {
-    50: '#FFFBEB',
-    100: '#FEF3C7',
-    200: '#FDE68A',
-    300: '#FCD34D',
-    400: '#FBBF24',
-    500: '#F59E0B',
-    600: '#D97706',
-    700: '#B45309',
-    800: '#92400E',
-    900: '#78350F',
+    50: "#FFFBEB",
+    100: "#FEF3C7",
+    200: "#FDE68A",
+    300: "#FCD34D",
+    400: "#FBBF24",
+    500: "#F59E0B",
+    600: "#D97706",
+    700: "#B45309",
+    800: "#92400E",
+    900: "#78350F",
   },
 
   // Error states (Red)
   error: {
-    50: '#FEF2F2',
-    100: '#FEE2E2',
-    200: '#FECACA',
-    300: '#FCA5A5',
-    400: '#F87171',
-    500: '#EF4444',
-    600: '#DC2626',
-    700: '#B91C1C',
-    800: '#991B1B',
-    900: '#7F1D1D',
+    50: "#FEF2F2",
+    100: "#FEE2E2",
+    200: "#FECACA",
+    300: "#FCA5A5",
+    400: "#F87171",
+    500: "#EF4444",
+    600: "#DC2626",
+    700: "#B91C1C",
+    800: "#991B1B",
+    900: "#7F1D1D",
   },
 
   // Info states (Cyan)
   info: {
-    50: '#ECFEFF',
-    100: '#CFFAFE',
-    200: '#A5F3FC',
-    300: '#67E8F9',
-    400: '#22D3EE',
-    500: '#06B6D4',
-    600: '#0891B2',
-    700: '#0E7490',
-    800: '#155E75',
-    900: '#164E63',
+    50: "#ECFEFF",
+    100: "#CFFAFE",
+    200: "#A5F3FC",
+    300: "#67E8F9",
+    400: "#22D3EE",
+    500: "#06B6D4",
+    600: "#0891B2",
+    700: "#0E7490",
+    800: "#155E75",
+    900: "#164E63",
   },
 
   // Neutral grays
   gray: {
-    50: '#F9FAFB',     // Backgrounds
-    100: '#F3F4F6',    // Subtle backgrounds
-    200: '#E5E7EB',    // Borders
-    300: '#D1D5DB',    // Dividers
-    400: '#9CA3AF',    // Disabled text
-    500: '#6B7280',    // Secondary text
-    600: '#4B5563',    // Primary text (light bg)
-    700: '#374151',    // Headings
-    800: '#1F2937',    // Dark backgrounds
-    900: '#111827',    // Darkest
+    50: "#F9FAFB", // Backgrounds
+    100: "#F3F4F6", // Subtle backgrounds
+    200: "#E5E7EB", // Borders
+    300: "#D1D5DB", // Dividers
+    400: "#9CA3AF", // Disabled text
+    500: "#6B7280", // Secondary text
+    600: "#4B5563", // Primary text (light bg)
+    700: "#374151", // Headings
+    800: "#1F2937", // Dark backgrounds
+    900: "#111827", // Darkest
   },
 
   // Neutral alias (same as gray, for consistency with new components)
   neutral: {
-    50: '#F9FAFB',
-    100: '#F3F4F6',
-    200: '#E5E7EB',
-    300: '#D1D5DB',
-    400: '#9CA3AF',
-    500: '#6B7280',
-    600: '#4B5563',
-    700: '#374151',
-    800: '#1F2937',
-    900: '#111827',
+    50: "#F9FAFB",
+    100: "#F3F4F6",
+    200: "#E5E7EB",
+    300: "#D1D5DB",
+    400: "#9CA3AF",
+    500: "#6B7280",
+    600: "#4B5563",
+    700: "#374151",
+    800: "#1F2937",
+    900: "#111827",
   },
 } as const;
 
@@ -199,7 +199,7 @@ export const colors = {
     50: "bg-blue-50",
     100: "bg-blue-100",
     500: "bg-blue-500",
-    600: "bg-blue-600",    // Primary action color
+    600: "bg-blue-600", // Primary action color
     700: "bg-blue-700",
     900: "bg-blue-900",
   },
@@ -209,7 +209,7 @@ export const colors = {
     50: "bg-purple-50",
     100: "bg-purple-100",
     500: "bg-purple-500",
-    600: "bg-purple-600",  // Secondary actions
+    600: "bg-purple-600", // Secondary actions
     700: "bg-purple-700",
   },
 
@@ -242,14 +242,14 @@ export const colors = {
 
   // Neutral grays
   gray: {
-    50: "bg-gray-50",      // Backgrounds
-    100: "bg-gray-100",    // Subtle backgrounds
-    200: "bg-gray-200",    // Borders
-    300: "bg-gray-300",    // Dividers
-    500: "bg-gray-500",    // Secondary text
-    600: "bg-gray-600",    // Primary text (light bg)
-    700: "bg-gray-700",    // Headings
-    900: "bg-gray-900",    // Dark mode primary
+    50: "bg-gray-50", // Backgrounds
+    100: "bg-gray-100", // Subtle backgrounds
+    200: "bg-gray-200", // Borders
+    300: "bg-gray-300", // Dividers
+    500: "bg-gray-500", // Secondary text
+    600: "bg-gray-600", // Primary text (light bg)
+    700: "bg-gray-700", // Headings
+    900: "bg-gray-900", // Dark mode primary
   },
 
   // Text colors (use these instead of raw colors)
@@ -268,22 +268,22 @@ export const colors = {
  * These replace the old harsh 16-color palette
  */
 export const PROFESSIONAL_TASK_COLORS = [
-  '#3B82F6', // Blue - Primary
-  '#8B5CF6', // Purple - Secondary
-  '#EC4899', // Pink - Vibrant
-  '#10B981', // Green - Success
-  '#F59E0B', // Amber - Warning
-  '#EF4444', // Red - Error
-  '#06B6D4', // Cyan - Info
-  '#6366F1', // Indigo - Deep
-  '#84CC16', // Lime - Fresh
-  '#F97316', // Orange - Warm
-  '#14B8A6', // Teal - Cool
-  '#A855F7', // Violet - Rich
-  '#22C55E', // Emerald - Natural
-  '#FB923C', // Light Orange - Soft
-  '#0EA5E9', // Sky - Bright
-  '#D946EF', // Fuchsia - Bold
+  "#3B82F6", // Blue - Primary
+  "#8B5CF6", // Purple - Secondary
+  "#EC4899", // Pink - Vibrant
+  "#10B981", // Green - Success
+  "#F59E0B", // Amber - Warning
+  "#EF4444", // Red - Error
+  "#06B6D4", // Cyan - Info
+  "#6366F1", // Indigo - Deep
+  "#84CC16", // Lime - Fresh
+  "#F97316", // Orange - Warm
+  "#14B8A6", // Teal - Cool
+  "#A855F7", // Violet - Rich
+  "#22C55E", // Emerald - Natural
+  "#FB923C", // Light Orange - Soft
+  "#0EA5E9", // Sky - Bright
+  "#D946EF", // Fuchsia - Bold
 ] as const;
 
 /**
@@ -291,15 +291,15 @@ export const PROFESSIONAL_TASK_COLORS = [
  * Consistent colors for resource categories across the app
  */
 export const RESOURCE_CATEGORY_COLORS = {
-  leadership: '#D97706',   // Amber
-  functional: '#3B82F6',   // Blue
-  technical: '#8B5CF6',    // Purple
-  basis: '#10B981',        // Green
-  security: '#EF4444',     // Red
-  pm: '#F59E0B',           // Orange
-  change: '#EC4899',       // Pink
-  qa: '#06B6D4',           // Cyan
-  other: '#6B7280',        // Gray
+  leadership: "#D97706", // Amber
+  functional: "#3B82F6", // Blue
+  technical: "#8B5CF6", // Purple
+  basis: "#10B981", // Green
+  security: "#EF4444", // Red
+  pm: "#F59E0B", // Orange
+  change: "#EC4899", // Pink
+  qa: "#06B6D4", // Cyan
+  other: "#6B7280", // Gray
 } as const;
 
 /**
@@ -308,24 +308,24 @@ export const RESOURCE_CATEGORY_COLORS = {
  */
 export const GANTT_STATUS_COLORS = {
   // Status-based colors
-  notStarted: colorValues.gray[500],      // #6B7280 - Gray: Not yet begun
-  inProgress: colorValues.primary[500],   // #3B82F6 - Blue: Currently active, on schedule
-  atRisk: colorValues.warning[500],       // #F59E0B - Amber: Approaching deadline or blocked
-  blocked: colorValues.error[500],        // #EF4444 - Red: Cannot proceed, overdue
-  completed: colorValues.success[600],    // #059669 - Green: Successfully finished
-  onHold: colorValues.accent[400],        // #C084FC - Purple: Paused/waiting
+  notStarted: colorValues.gray[500], // #6B7280 - Gray: Not yet begun
+  inProgress: colorValues.primary[500], // #3B82F6 - Blue: Currently active, on schedule
+  atRisk: colorValues.warning[500], // #F59E0B - Amber: Approaching deadline or blocked
+  blocked: colorValues.error[500], // #EF4444 - Red: Cannot proceed, overdue
+  completed: colorValues.success[600], // #059669 - Green: Successfully finished
+  onHold: colorValues.accent[400], // #C084FC - Purple: Paused/waiting
 } as const;
 
 /**
  * Status Labels for Legend
  */
 export const GANTT_STATUS_LABELS = {
-  notStarted: 'Not Started',
-  inProgress: 'In Progress / On Schedule',
-  atRisk: 'At Risk / Approaching Deadline',
-  blocked: 'Blocked / Overdue',
-  completed: 'Completed',
-  onHold: 'On Hold / Paused',
+  notStarted: "Not Started",
+  inProgress: "In Progress / On Schedule",
+  atRisk: "At Risk / Approaching Deadline",
+  blocked: "Blocked / Overdue",
+  completed: "Completed",
+  onHold: "On Hold / Paused",
 } as const;
 
 export type GanttStatus = keyof typeof GANTT_STATUS_COLORS;
@@ -337,9 +337,9 @@ export type GanttStatus = keyof typeof GANTT_STATUS_COLORS;
 export const animation = {
   // Duration (use only these 3 values)
   duration: {
-    fast: 0.15,      // Micro-interactions (hover, focus)
-    normal: 0.3,     // Standard transitions
-    slow: 0.5,       // Page transitions, reveals
+    fast: 0.15, // Micro-interactions (hover, focus)
+    normal: 0.3, // Standard transitions
+    slow: 0.5, // Page transitions, reveals
   },
 
   // Easing curves
@@ -359,7 +359,7 @@ export const animation = {
 
   // Reduced motion support (accessibility)
   reducedMotion: {
-    duration: 0.01,  // Near-instant (user preference)
+    duration: 0.01, // Near-instant (user preference)
     transition: "transition-none",
   },
 
@@ -395,18 +395,22 @@ export const animation = {
 export const buttonStyles = {
   // Variants
   variant: {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-sm hover:shadow-md transition-all",
-    secondary: "bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100 transition-all",
-    ghost: "bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 transition-all",
-    danger: "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm hover:shadow-md transition-all",
+    primary:
+      "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-sm hover:shadow-md transition-all",
+    secondary:
+      "bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100 transition-all",
+    ghost:
+      "bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 transition-all",
+    danger:
+      "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm hover:shadow-md transition-all",
   },
 
   // Sizes (consistent with 8px grid)
   size: {
-    xs: "px-3 py-1.5 text-xs rounded-lg",           // 24px height
-    sm: "px-4 py-2 text-sm rounded-lg",             // 32px height
-    md: "px-6 py-3 text-base rounded-xl",           // 48px height
-    lg: "px-8 py-4 text-lg rounded-xl",             // 56px height
+    xs: "px-3 py-1.5 text-xs rounded-lg", // 24px height
+    sm: "px-4 py-2 text-sm rounded-lg", // 32px height
+    md: "px-6 py-3 text-base rounded-xl", // 48px height
+    lg: "px-8 py-4 text-lg rounded-xl", // 56px height
   },
 
   // States
@@ -424,19 +428,20 @@ export const containerStyles = {
   card: {
     default: "bg-white rounded-2xl border border-gray-200 shadow-sm",
     elevated: "bg-white rounded-2xl border border-gray-200 shadow-lg",
-    interactive: "bg-white rounded-2xl border-2 border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer",
+    interactive:
+      "bg-white rounded-2xl border-2 border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer",
   },
 
   padding: {
-    sm: "p-4",     // 16px
-    md: "p-6",     // 24px
-    lg: "p-8",     // 32px
+    sm: "p-4", // 16px
+    md: "p-6", // 24px
+    lg: "p-8", // 32px
   },
 
   gap: {
-    sm: "gap-2",   // 8px
-    md: "gap-4",   // 16px
-    lg: "gap-6",   // 24px
+    sm: "gap-2", // 8px
+    md: "gap-4", // 16px
+    lg: "gap-6", // 24px
   },
 } as const;
 
@@ -445,11 +450,11 @@ export const containerStyles = {
 // ============================================================================
 
 export const shadows = {
-  sm: "shadow-sm",           // Subtle cards
-  md: "shadow-md",           // Elevated cards
-  lg: "shadow-lg",           // Modals, dropdowns
-  xl: "shadow-xl",           // Floating action buttons
-  "2xl": "shadow-2xl",       // Hero elements
+  sm: "shadow-sm", // Subtle cards
+  md: "shadow-md", // Elevated cards
+  lg: "shadow-lg", // Modals, dropdowns
+  xl: "shadow-xl", // Floating action buttons
+  "2xl": "shadow-2xl", // Hero elements
   none: "shadow-none",
 } as const;
 
@@ -459,10 +464,10 @@ export const shadows = {
 
 export const radius = {
   none: "rounded-none",
-  sm: "rounded-lg",          // 8px - buttons, inputs
-  md: "rounded-xl",          // 12px - cards
-  lg: "rounded-2xl",         // 16px - containers
-  full: "rounded-full",      // Pills, avatars
+  sm: "rounded-lg", // 8px - buttons, inputs
+  md: "rounded-xl", // 12px - cards
+  lg: "rounded-2xl", // 16px - containers
+  full: "rounded-full", // Pills, avatars
 } as const;
 
 // ============================================================================
@@ -482,11 +487,11 @@ export const focusStyles = {
 export const layout = {
   // Max widths for content
   maxWidth: {
-    xs: "max-w-xs",    // 320px
-    sm: "max-w-sm",    // 384px
-    md: "max-w-md",    // 448px
-    lg: "max-w-lg",    // 512px
-    xl: "max-w-xl",    // 576px
+    xs: "max-w-xs", // 320px
+    sm: "max-w-sm", // 384px
+    md: "max-w-md", // 448px
+    lg: "max-w-lg", // 512px
+    xl: "max-w-xl", // 576px
     "2xl": "max-w-2xl", // 672px
     "4xl": "max-w-4xl", // 896px
     "7xl": "max-w-7xl", // 1280px
@@ -506,8 +511,13 @@ export const layout = {
 /**
  * Combines button styles based on variant and size
  */
-export function getButtonClass(variant: keyof typeof buttonStyles.variant, size: keyof typeof buttonStyles.size, disabled = false) {
-  const base = "font-medium transition-all duration-150 inline-flex items-center justify-center gap-2";
+export function getButtonClass(
+  variant: keyof typeof buttonStyles.variant,
+  size: keyof typeof buttonStyles.size,
+  disabled = false
+) {
+  const base =
+    "font-medium transition-all duration-150 inline-flex items-center justify-center gap-2";
   const variantClass = buttonStyles.variant[variant];
   const sizeClass = buttonStyles.size[size];
   const stateClass = disabled ? buttonStyles.state.disabled : "";
@@ -518,15 +528,23 @@ export function getButtonClass(variant: keyof typeof buttonStyles.variant, size:
 /**
  * Combines card styles
  */
-export function getCardClass(variant: keyof typeof containerStyles.card, padding: keyof typeof containerStyles.padding) {
+export function getCardClass(
+  variant: keyof typeof containerStyles.card,
+  padding: keyof typeof containerStyles.padding
+) {
   return `${containerStyles.card[variant]} ${containerStyles.padding[padding]}`;
 }
 
 /**
  * Get animation config for Framer Motion
  */
-export function getAnimationConfig(type: keyof typeof animation.variants, speed: keyof typeof animation.duration = 'normal') {
-  const duration = prefersReducedMotion() ? animation.reducedMotion.duration : animation.duration[speed];
+export function getAnimationConfig(
+  type: keyof typeof animation.variants,
+  speed: keyof typeof animation.duration = "normal"
+) {
+  const duration = prefersReducedMotion()
+    ? animation.reducedMotion.duration
+    : animation.duration[speed];
 
   return {
     ...animation.variants[type],
@@ -541,14 +559,14 @@ export function getAnimationConfig(type: keyof typeof animation.variants, speed:
  * Check if user prefers reduced motion (accessibility)
  */
 export function prefersReducedMotion(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 /**
  * Get animation duration respecting user preferences
  */
-export function getAnimationDuration(speed: keyof typeof animation.duration = 'normal'): number {
+export function getAnimationDuration(speed: keyof typeof animation.duration = "normal"): number {
   return prefersReducedMotion() ? animation.reducedMotion.duration : animation.duration[speed];
 }
 
@@ -562,7 +580,7 @@ export function getAnimationDuration(speed: keyof typeof animation.duration = 'n
  */
 export function getContrastColor(hexColor: string): string {
   // Remove # if present
-  const hex = hexColor.replace('#', '');
+  const hex = hexColor.replace("#", "");
 
   // Convert to RGB
   const r = parseInt(hex.substring(0, 2), 16);
@@ -573,7 +591,7 @@ export function getContrastColor(hexColor: string): string {
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
   // Return white or black based on luminance
-  return luminance > 0.5 ? colorValues.gray[900] : '#ffffff';
+  return luminance > 0.5 ? colorValues.gray[900] : "#ffffff";
 }
 
 /**
@@ -581,7 +599,7 @@ export function getContrastColor(hexColor: string): string {
  * Returns rgba() string
  */
 export function withOpacity(hexColor: string, opacity: number): string {
-  const hex = hexColor.replace('#', '');
+  const hex = hexColor.replace("#", "");
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
@@ -614,11 +632,14 @@ export function getGanttStatusColor(status: GanttStatus): string {
 /**
  * Generate a gradient from a base color
  */
-export function generateGradient(baseColor: string, direction: 'to-r' | 'to-b' | 'to-br' = 'to-r'): string {
+export function generateGradient(
+  baseColor: string,
+  direction: "to-r" | "to-b" | "to-br" = "to-r"
+): string {
   const directionMap = {
-    'to-r': 'to right',
-    'to-b': 'to bottom',
-    'to-br': 'to bottom right',
+    "to-r": "to right",
+    "to-b": "to bottom",
+    "to-br": "to bottom right",
   };
 
   // Add slight transparency to the end for a professional fade
@@ -632,7 +653,7 @@ export function generateGradient(baseColor: string, direction: 'to-r' | 'to-b' |
  * Lighten a hex color by a percentage
  */
 export function lightenColor(hexColor: string, percent: number): string {
-  const hex = hexColor.replace('#', '');
+  const hex = hexColor.replace("#", "");
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
@@ -641,14 +662,14 @@ export function lightenColor(hexColor: string, percent: number): string {
   const newG = Math.min(255, Math.round(g + (255 - g) * (percent / 100)));
   const newB = Math.min(255, Math.round(b + (255 - b) * (percent / 100)));
 
-  return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+  return `#${newR.toString(16).padStart(2, "0")}${newG.toString(16).padStart(2, "0")}${newB.toString(16).padStart(2, "0")}`;
 }
 
 /**
  * Darken a hex color by a percentage
  */
 export function darkenColor(hexColor: string, percent: number): string {
-  const hex = hexColor.replace('#', '');
+  const hex = hexColor.replace("#", "");
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
@@ -657,7 +678,7 @@ export function darkenColor(hexColor: string, percent: number): string {
   const newG = Math.max(0, Math.round(g * (1 - percent / 100)));
   const newB = Math.max(0, Math.round(b * (1 - percent / 100)));
 
-  return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+  return `#${newR.toString(16).padStart(2, "0")}${newG.toString(16).padStart(2, "0")}${newB.toString(16).padStart(2, "0")}`;
 }
 
 // ============================================================================
@@ -667,11 +688,11 @@ export function darkenColor(hexColor: string, percent: number): string {
 /**
  * Get shadow with custom color (useful for colored shadows on buttons, cards)
  */
-export function getColoredShadow(hexColor: string, intensity: 'sm' | 'md' | 'lg' = 'md'): string {
+export function getColoredShadow(hexColor: string, intensity: "sm" | "md" | "lg" = "md"): string {
   const shadowSizes = {
-    sm: '0 2px 8px',
-    md: '0 4px 16px',
-    lg: '0 8px 24px',
+    sm: "0 2px 8px",
+    md: "0 4px 16px",
+    lg: "0 8px 24px",
   };
 
   return `${shadowSizes[intensity]} ${withOpacity(hexColor, 0.25)}`;
@@ -682,12 +703,12 @@ export function getColoredShadow(hexColor: string, intensity: 'sm' | 'md' | 'lg'
  */
 export function getElevationShadow(level: 0 | 1 | 2 | 3 | 4 | 5): string {
   const elevations = {
-    0: 'none',
-    1: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-    2: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-    3: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-    4: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-    5: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+    0: "none",
+    1: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+    2: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+    3: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+    4: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+    5: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
   };
 
   return elevations[level];

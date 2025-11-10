@@ -12,13 +12,13 @@
  * - Customizable colors
  */
 
-import React from 'react';
+import React from "react";
 
 interface AnimatedSpinnerProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
   label?: string;
-  color?: 'blue' | 'white' | 'gray' | 'purple' | 'green' | 'red';
+  color?: "blue" | "white" | "gray" | "purple" | "green" | "red";
 }
 
 const sizeMap = {
@@ -30,19 +30,19 @@ const sizeMap = {
 };
 
 const colorMap = {
-  blue: '#3B82F6',
-  white: '#FFFFFF',
-  gray: '#6B7280',
-  purple: '#8B5CF6',
-  green: '#10B981',
-  red: '#EF4444',
+  blue: "#3B82F6",
+  white: "#FFFFFF",
+  gray: "#6B7280",
+  purple: "#8B5CF6",
+  green: "#10B981",
+  red: "#EF4444",
 };
 
 export function AnimatedSpinner({
-  size = 'md',
-  className = '',
+  size = "md",
+  className = "",
   label,
-  color = 'blue',
+  color = "blue",
 }: AnimatedSpinnerProps) {
   const pixelSize = sizeMap[size];
   const spinnerColor = colorMap[color];
@@ -57,8 +57,8 @@ export function AnimatedSpinner({
         style={{
           width: pixelSize,
           height: pixelSize,
-          margin: 'auto',
-          position: 'relative',
+          margin: "auto",
+          position: "relative",
         }}
       >
         {/* Shadow */}
@@ -68,25 +68,25 @@ export function AnimatedSpinner({
             width: pixelSize,
             height: pixelSize * 0.1,
             background: shadowColor,
-            position: 'absolute',
+            position: "absolute",
             top: pixelSize * 1.25,
             left: 0,
-            borderRadius: '50%',
-            animation: 'shadow324 0.5s linear infinite',
+            borderRadius: "50%",
+            animation: "shadow324 0.5s linear infinite",
           }}
         />
         {/* Cube */}
         <div
           style={{
             content: '""',
-            width: '100%',
-            height: '100%',
+            width: "100%",
+            height: "100%",
             background: spinnerColor,
-            position: 'absolute',
+            position: "absolute",
             top: 0,
             left: 0,
-            borderRadius: '4px',
-            animation: 'jump7456 0.5s linear infinite',
+            borderRadius: "4px",
+            animation: "jump7456 0.5s linear infinite",
           }}
         />
 
@@ -147,10 +147,10 @@ export function AnimatedSpinner({
  * Three bouncing dots animation
  */
 export function DotSpinner({
-  size = 'md',
-  className = '',
-  color = 'blue',
-}: Omit<AnimatedSpinnerProps, 'label'>) {
+  size = "md",
+  className = "",
+  color = "blue",
+}: Omit<AnimatedSpinnerProps, "label">) {
   const dotSize = sizeMap[size] / 4;
   const spinnerColor = colorMap[color];
 
@@ -167,14 +167,16 @@ export function DotSpinner({
             width: dotSize,
             height: dotSize,
             backgroundColor: spinnerColor,
-            borderRadius: '50%',
+            borderRadius: "50%",
             animation: `bounce 1.4s ease-in-out ${i * 0.16}s infinite`,
           }}
         />
       ))}
       <style jsx>{`
         @keyframes bounce {
-          0%, 80%, 100% {
+          0%,
+          80%,
+          100% {
             transform: scale(0);
             opacity: 0.5;
           }
@@ -199,10 +201,10 @@ export function DotSpinner({
  * Pulse Spinner - Expanding circle
  */
 export function PulseSpinner({
-  size = 'md',
-  className = '',
-  color = 'blue',
-}: Omit<AnimatedSpinnerProps, 'label'>) {
+  size = "md",
+  className = "",
+  color = "blue",
+}: Omit<AnimatedSpinnerProps, "label">) {
   const pixelSize = sizeMap[size];
   const spinnerColor = colorMap[color];
 
@@ -214,27 +216,27 @@ export function PulseSpinner({
       style={{
         width: pixelSize,
         height: pixelSize,
-        position: 'relative',
+        position: "relative",
       }}
     >
       <div
         style={{
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
-          borderRadius: '50%',
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+          borderRadius: "50%",
           border: `3px solid ${spinnerColor}`,
-          animation: 'pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite',
+          animation: "pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite",
         }}
       />
       <div
         style={{
-          position: 'absolute',
-          width: '60%',
-          height: '60%',
-          borderRadius: '50%',
+          position: "absolute",
+          width: "60%",
+          height: "60%",
+          borderRadius: "50%",
           backgroundColor: spinnerColor,
-          animation: 'pulse-dot 1.25s cubic-bezier(0.455, 0.03, 0.515, 0.955) -0.4s infinite',
+          animation: "pulse-dot 1.25s cubic-bezier(0.455, 0.03, 0.515, 0.955) -0.4s infinite",
         }}
       />
       <style jsx>{`
@@ -243,13 +245,15 @@ export function PulseSpinner({
             transform: scale(0.33);
             opacity: 1;
           }
-          80%, 100% {
+          80%,
+          100% {
             opacity: 0;
           }
         }
 
         @keyframes pulse-dot {
-          0%, 100% {
+          0%,
+          100% {
             transform: scale(0);
           }
           50% {
@@ -271,27 +275,26 @@ export function PulseSpinner({
 /**
  * Spinner Overlay - Full screen loading overlay
  */
-export function SpinnerOverlay({ label, variant = 'default' }: {
+export function SpinnerOverlay({
+  label,
+  variant = "default",
+}: {
   label?: string;
-  variant?: 'default' | 'dots' | 'pulse';
+  variant?: "default" | "dots" | "pulse";
 }) {
   const SpinnerComponent =
-    variant === 'dots' ? DotSpinner :
-    variant === 'pulse' ? PulseSpinner :
-    AnimatedSpinner;
+    variant === "dots" ? DotSpinner : variant === "pulse" ? PulseSpinner : AnimatedSpinner;
 
   return (
     <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl p-8">
-        {variant === 'default' ? (
+        {variant === "default" ? (
           <AnimatedSpinner size="lg" label={label} />
         ) : (
           <>
             <SpinnerComponent size="lg" />
             {label && (
-              <p className="text-sm text-gray-600 mt-4 text-center animate-pulse">
-                {label}
-              </p>
+              <p className="text-sm text-gray-600 mt-4 text-center animate-pulse">{label}</p>
             )}
           </>
         )}

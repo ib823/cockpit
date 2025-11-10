@@ -1,26 +1,28 @@
 # Secrets Rotation Policy
 
 ## Overview
+
 This document defines the policy and procedures for rotating sensitive credentials and secrets used in the Keystone application.
 
 ## Rotation Schedule
 
-| Secret Type | Rotation Frequency | Responsible Team | Method |
-|-------------|-------------------|------------------|---------|
-| NEXTAUTH_SECRET | Every 90 days | DevOps | Manual |
-| Database Password | Every 90 days | DBA Team | Automated Script |
-| API Keys (Resend) | Every 180 days | DevOps | Manual |
-| API Keys (Upstash Redis) | Every 180 days | DevOps | Manual |
-| Admin Password Hash | Every 90 days | Security Team | Script |
-| Service Account Keys | Every 90 days | DevOps | Automated |
-| TLS Certificates | Before expiry (-90 days) | DevOps | Automated (Let's Encrypt) |
-| WebAuthn RP Secret | Every 180 days | DevOps | Manual |
+| Secret Type              | Rotation Frequency       | Responsible Team | Method                    |
+| ------------------------ | ------------------------ | ---------------- | ------------------------- |
+| NEXTAUTH_SECRET          | Every 90 days            | DevOps           | Manual                    |
+| Database Password        | Every 90 days            | DBA Team         | Automated Script          |
+| API Keys (Resend)        | Every 180 days           | DevOps           | Manual                    |
+| API Keys (Upstash Redis) | Every 180 days           | DevOps           | Manual                    |
+| Admin Password Hash      | Every 90 days            | Security Team    | Script                    |
+| Service Account Keys     | Every 90 days            | DevOps           | Automated                 |
+| TLS Certificates         | Before expiry (-90 days) | DevOps           | Automated (Let's Encrypt) |
+| WebAuthn RP Secret       | Every 180 days           | DevOps           | Manual                    |
 
 ## Standard Rotation Procedure
 
 ### Phase 1: Pre-Rotation (1-2 days before)
 
 **Checklist:**
+
 - [ ] Schedule maintenance window if needed (off-peak hours)
 - [ ] Notify team in #engineering Slack channel
 - [ ] Backup current configuration to secure vault (1Password/Vault)
@@ -156,18 +158,21 @@ pnpm tsx scripts/rotate-admin-password.ts
 ### Phase 3: Post-Rotation Validation
 
 **Immediate (0-1 hour):**
+
 - [ ] All environments connecting successfully
 - [ ] No authentication errors in logs
 - [ ] Monitor error rates (should be unchanged)
 - [ ] Test all critical user flows
 
 **Short-term (24 hours):**
+
 - [ ] Rate limiting working (if Redis rotated)
 - [ ] Email sending working (if Resend rotated)
 - [ ] Admin login working (if admin hash rotated)
 - [ ] Run automated smoke tests: `pnpm test:smoke`
 
 **Long-term (7 days):**
+
 - [ ] No increase in error rates
 - [ ] No user-reported issues
 - [ ] Monitoring shows stable metrics
@@ -183,6 +188,7 @@ After successful rotation:
    - Record: Secret name, rotation date, next rotation due, rotated by
 
 2. **Log in Audit System**
+
    ```sql
    INSERT INTO audit_logs (id, userId, action, entity, entityId, changes, createdAt)
    VALUES (
@@ -220,6 +226,7 @@ After successful rotation:
    - Disable compromised user accounts
 
 3. **Rotate**
+
    ```bash
    # Emergency rotation script
    ./scripts/emergency-rotate.sh --secret=NEXTAUTH_SECRET --reason="security_incident"
@@ -249,16 +256,16 @@ case $SECRET_TYPE in
   nextauth)
     echo "Rotating NEXTAUTH_SECRET..."
     NEW_SECRET=$(openssl rand -base64 32)
-    
+
     # Update production immediately
     echo "$NEW_SECRET" | vercel env add NEXTAUTH_SECRET production --force
-    
+
     # Trigger immediate redeploy
     vercel --prod --force
-    
+
     # Invalidate all existing sessions
     psql $DATABASE_URL -c "DELETE FROM sessions WHERE \"expires\" > NOW();"
-    
+
     echo "✓ NEXTAUTH_SECRET rotated"
     echo "✓ All user sessions invalidated (users must re-login)"
     ;;
@@ -266,17 +273,17 @@ case $SECRET_TYPE in
   db)
     echo "Rotating database password..."
     NEW_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
-    
+
     # Update password immediately
     psql $DATABASE_URL -c "ALTER USER cockpit_app PASSWORD '$NEW_PASSWORD';"
-    
+
     # Update connection string
     NEW_URL="postgresql://cockpit_app:$NEW_PASSWORD@${DB_HOST}:5432/${DB_NAME}"
     echo "$NEW_URL" | vercel env add DATABASE_URL production --force
-    
+
     # Redeploy
     vercel --prod --force
-    
+
     echo "✓ Database password rotated"
     ;;
 
@@ -334,7 +341,7 @@ echo "  4. Schedule post-incident review"
 
 - [ ] Root cause analysis completed
 - [ ] Incident report filed in ticketing system
-- [ ] Security team debriefing conducted  
+- [ ] Security team debriefing conducted
 - [ ] Identify and implement preventive measures
 - [ ] Review and update monitoring alerts
 - [ ] Customer notification (if required by contract/regulations)
@@ -344,12 +351,14 @@ echo "  4. Schedule post-incident review"
 ### Production Secrets
 
 **Storage:** Vercel Environment Variables
+
 - Encrypted at rest by Vercel
 - Separate environments (staging/production)
 - Access controlled by team permissions
 - Audit log of all changes
 
 **Backup:** 1Password Team Vault
+
 - "Engineering Secrets" vault
 - Encrypted with master password + 2FA
 - Shared only with authorized team members
@@ -358,12 +367,14 @@ echo "  4. Schedule post-incident review"
 ### Development Secrets
 
 **Storage:** `.env.local` (gitignored)
+
 - Different values from production
 - Never commit to version control
 - Each developer manages their own
 - Shared via secure channel only (1Password)
 
 **Never:**
+
 - Email secrets
 - Post in Slack/Teams
 - Commit to Git
@@ -372,6 +383,7 @@ echo "  4. Schedule post-incident review"
 ### CI/CD Secrets
 
 **Storage:** GitHub Actions Secrets
+
 - Encrypted by GitHub
 - Scoped to specific workflows
 - Masked in logs automatically
@@ -380,6 +392,7 @@ echo "  4. Schedule post-incident review"
 ## Secrets Inventory
 
 Maintain spreadsheet with:
+
 - Secret name and purpose
 - Owner/responsible team
 - Last rotated date
@@ -387,7 +400,8 @@ Maintain spreadsheet with:
 - Storage location(s)
 - Dependencies (what breaks if rotated incorrectly)
 
-**Template:** 
+**Template:**
+
 ```
 | Secret              | Owner   | Last Rotated | Next Due   | Location          |
 |---------------------|---------|--------------|------------|-------------------|
@@ -399,11 +413,13 @@ Maintain spreadsheet with:
 ## Compliance Requirements
 
 ### Audit Trail
+
 - All rotations logged in `audit_logs` table
 - Quarterly review of rotation compliance
 - Annual security audit includes secrets management
 
 ### Retention
+
 - Old secrets retained in encrypted backup for 30 days
 - After 30 days, permanently delete (not just marked deleted)
 - Rotation logs retained for 7 years (compliance requirement)
@@ -411,12 +427,14 @@ Maintain spreadsheet with:
 ### Access Control
 
 **Who Can Rotate Secrets:**
+
 - `NEXTAUTH_SECRET`: DevOps Team Lead only
-- `DATABASE_URL`: DBA Team only  
+- `DATABASE_URL`: DBA Team only
 - `API Keys`: DevOps team members (with approval)
 - `ADMIN_PASSWORD_HASH`: Security Team + CTO
 
 **MFA Required:** Yes, for all secret rotation operations
+
 - Vercel dashboard access requires 2FA
 - Database admin access requires 2FA
 - API provider dashboards require 2FA
@@ -427,6 +445,7 @@ Maintain spreadsheet with:
 ### Automated Alerts
 
 Set up alerts for:
+
 - Secret expiring within 14 days
 - Failed authentication attempts spike (> 50/hour)
 - Unauthorized secret access attempts
@@ -442,6 +461,7 @@ Set up alerts for:
 ## Training Requirements
 
 All team members with secret access must complete:
+
 - [ ] Secrets management training (annual)
 - [ ] Incident response training (annual)
 - [ ] This rotation procedure walkthrough

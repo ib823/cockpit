@@ -21,12 +21,14 @@ Desired state: Admin feels **empowered**, **informed**, and **in control** of sy
 ### Primary: "Sarah - SAP Practice Leader"
 
 **Demographics:**
+
 - Role: Practice Leader / Partner
 - Experience: 15+ years SAP consulting
 - Tech savvy: Medium (uses tools, doesn't build them)
 - Team size: 10-50 consultants
 
 **Jobs to Be Done:**
+
 1. **Ensure team productivity** → "Are consultants using the tool effectively?"
 2. **Maintain quality** → "Are proposals meeting our standards?"
 3. **Control access** → "Who should have access? Block bad actors."
@@ -34,6 +36,7 @@ Desired state: Admin feels **empowered**, **informed**, and **in control** of sy
 5. **Stay compliant** → "Audit trail for client engagements?"
 
 **Pain Points (Current):**
+
 - Manual user approval takes 5-10 min each (20+ requests/week = 3 hours)
 - No visibility into usage (who's active, who's not)
 - Can't see proposal quality (just user count)
@@ -41,6 +44,7 @@ Desired state: Admin feels **empowered**, **informed**, and **in control** of sy
 - Approval emails feel spammy
 
 **Emotional Needs:**
+
 - **Feel in control** → "I can see everything at a glance"
 - **Feel respected** → "Tool helps me, doesn't create more work"
 - **Feel confident** → "I trust the system is healthy"
@@ -87,6 +91,7 @@ Desired state: Admin feels **empowered**, **informed**, and **in control** of sy
 ### Hero Metrics (Detail)
 
 **1. Active Users**
+
 ```typescript
 <MetricCard
   icon={Users}
@@ -100,11 +105,13 @@ Desired state: Admin feels **empowered**, **informed**, and **in control** of sy
 ```
 
 **Why this matters:**
+
 - Shows adoption (are we getting ROI?)
 - Trend indicates growth or decline
 - Clickable → drills into details
 
 **2. Today's Proposals**
+
 ```typescript
 <MetricCard
   icon={FileText}
@@ -118,11 +125,13 @@ Desired state: Admin feels **empowered**, **informed**, and **in control** of sy
 ```
 
 **Why this matters:**
+
 - Immediate activity pulse
 - Shows seasonal patterns
 - Helps resource planning
 
 **3. Monthly Total**
+
 ```typescript
 <MetricCard
   icon={Calendar}
@@ -136,11 +145,13 @@ Desired state: Admin feels **empowered**, **informed**, and **in control** of sy
 ```
 
 **Why this matters:**
+
 - Goal tracking (team metrics)
 - Budget forecasting
 - Performance reviews
 
 **4. Win Rate**
+
 ```typescript
 <MetricCard
   icon={Trophy}
@@ -154,6 +165,7 @@ Desired state: Admin feels **empowered**, **informed**, and **in control** of sy
 ```
 
 **Why this matters:**
+
 - **Proves ROI** (most important metric for admin)
 - Justifies tool investment
 - Creates pride ("we're winning more")
@@ -165,11 +177,12 @@ Desired state: Admin feels **empowered**, **informed**, and **in control** of sy
 ### Priority Queue (Smart Sorting)
 
 **Algorithm:**
+
 ```typescript
 interface PendingAction {
   id: string;
-  type: 'user_approval' | 'system_warning' | 'quality_review';
-  priority: 'urgent' | 'high' | 'medium' | 'low';
+  type: "user_approval" | "system_warning" | "quality_review";
+  priority: "urgent" | "high" | "medium" | "low";
   title: string;
   description: string;
   ageInHours: number;
@@ -178,14 +191,15 @@ interface PendingAction {
 
 // Priority rules
 function calculatePriority(action: PendingAction): string {
-  if (action.type === 'system_warning') return 'urgent';
-  if (action.type === 'user_approval' && action.ageInHours > 48) return 'high';
-  if (action.type === 'quality_review' && action.ageInHours > 72) return 'high';
-  return 'medium';
+  if (action.type === "system_warning") return "urgent";
+  if (action.type === "user_approval" && action.ageInHours > 48) return "high";
+  if (action.type === "quality_review" && action.ageInHours > 72) return "high";
+  return "medium";
 }
 ```
 
 **Display:**
+
 ```typescript
 <div className="space-y-3">
   {pendingActions
@@ -199,6 +213,7 @@ function calculatePriority(action: PendingAction): string {
 ### One-Click Actions (Reduce Friction)
 
 **User Approval (Before):**
+
 ```
 1. Click "Pending Approvals"
 2. Navigate to list page
@@ -208,9 +223,11 @@ function calculatePriority(action: PendingAction): string {
 6. Confirm dialog
 7. Back to list
 ```
+
 **Time: ~2 minutes per user**
 
 **User Approval (After):**
+
 ```typescript
 <ActionCard
   type="user_approval"
@@ -240,9 +257,11 @@ function calculatePriority(action: PendingAction): string {
   }
 />
 ```
+
 **Time: 5 seconds per user (96% faster!)**
 
 **Batch Actions:**
+
 ```typescript
 <div className="flex items-center gap-3 mb-4">
   <input
@@ -264,6 +283,7 @@ function calculatePriority(action: PendingAction): string {
 ```
 
 **Why this matters:**
+
 - Reduces admin workload by 96%
 - Feels empowering (not tedious)
 - Encourages prompt action (SLA compliance)
@@ -275,6 +295,7 @@ function calculatePriority(action: PendingAction): string {
 ### Usage Dashboard
 
 **Top Users (Leaderboard)**
+
 ```typescript
 <div className="bg-white rounded-xl p-6 border">
   <h3 className="text-lg font-semibold mb-4">Top Performers This Month</h3>
@@ -304,11 +325,13 @@ function calculatePriority(action: PendingAction): string {
 ```
 
 **Why this matters:**
+
 - Gamification (encourages usage)
 - Identifies champions (for training)
 - Shows value per user
 
 **Inactive Users (At-Risk)**
+
 ```typescript
 <div className="bg-yellow-50 rounded-xl p-6 border border-yellow-200">
   <h3 className="text-lg font-semibold mb-2">⚠️ Inactive Users (7+ Days)</h3>
@@ -326,6 +349,7 @@ function calculatePriority(action: PendingAction): string {
 ```
 
 **Why this matters:**
+
 - Prevents churn
 - Identifies training needs
 - Shows admin cares about adoption
@@ -333,12 +357,13 @@ function calculatePriority(action: PendingAction): string {
 ### Proposal Quality Metrics
 
 **Quality Score Algorithm:**
+
 ```typescript
 interface ProposalQuality {
-  completeness: number;     // 0-100 (% of required fields filled)
-  accuracy: number;          // 0-100 (estimate vs benchmark deviation)
-  timeToCreate: number;      // Minutes (lower is better, but too low = sloppy)
-  clientFeedback?: number;   // 1-5 stars (if tracked)
+  completeness: number; // 0-100 (% of required fields filled)
+  accuracy: number; // 0-100 (estimate vs benchmark deviation)
+  timeToCreate: number; // Minutes (lower is better, but too low = sloppy)
+  clientFeedback?: number; // 1-5 stars (if tracked)
 }
 
 function calculateQualityScore(proposal: Proposal): number {
@@ -352,9 +377,10 @@ function calculateQualityScore(proposal: Proposal): number {
   score += accuracyScore * 0.3;
 
   // Time (20% weight) - sweet spot 5-15 min
-  const timeScore = proposal.timeToCreate >= 5 && proposal.timeToCreate <= 15
-    ? 100
-    : Math.max(0, 100 - Math.abs(10 - proposal.timeToCreate) * 5);
+  const timeScore =
+    proposal.timeToCreate >= 5 && proposal.timeToCreate <= 15
+      ? 100
+      : Math.max(0, 100 - Math.abs(10 - proposal.timeToCreate) * 5);
   score += timeScore * 0.2;
 
   // Feedback (10% weight)
@@ -367,6 +393,7 @@ function calculateQualityScore(proposal: Proposal): number {
 ```
 
 **Dashboard Display:**
+
 ```typescript
 <div className="grid grid-cols-3 gap-4">
   <StatCard
@@ -393,6 +420,7 @@ function calculateQualityScore(proposal: Proposal): number {
 ```
 
 **Why this matters:**
+
 - Proves tool effectiveness
 - Identifies training gaps
 - Quality control without manual review
@@ -409,49 +437,50 @@ function calculateQualityScore(proposal: Proposal): number {
 
 ```typescript
 interface UserApprovalRisk {
-  level: 'low' | 'medium' | 'high';
+  level: "low" | "medium" | "high";
   reasons: string[];
   autoApprove: boolean;
 }
 
 function assessRisk(userRequest: UserRequest): UserApprovalRisk {
   const reasons: string[] = [];
-  let riskLevel: 'low' | 'medium' | 'high' = 'low';
+  let riskLevel: "low" | "medium" | "high" = "low";
 
   // Known domain (whitelist)
   if (!APPROVED_DOMAINS.includes(userRequest.emailDomain)) {
-    reasons.push('Unknown email domain');
-    riskLevel = 'medium';
+    reasons.push("Unknown email domain");
+    riskLevel = "medium";
   }
 
   // Unusual location
   if (!EXPECTED_COUNTRIES.includes(userRequest.country)) {
     reasons.push(`Unusual location: ${userRequest.country}`);
-    riskLevel = 'high';
+    riskLevel = "high";
   }
 
   // First-time domain
   const existingUsers = getUsersByDomain(userRequest.emailDomain);
   if (existingUsers.length === 0) {
-    reasons.push('First user from this company');
-    riskLevel = 'medium';
+    reasons.push("First user from this company");
+    riskLevel = "medium";
   }
 
   // Suspicious patterns
-  if (userRequest.email.includes('test') || userRequest.email.includes('demo')) {
-    reasons.push('Test/demo email detected');
-    riskLevel = 'high';
+  if (userRequest.email.includes("test") || userRequest.email.includes("demo")) {
+    reasons.push("Test/demo email detected");
+    riskLevel = "high";
   }
 
   return {
     level: riskLevel,
     reasons,
-    autoApprove: riskLevel === 'low',
+    autoApprove: riskLevel === "low",
   };
 }
 ```
 
 **Admin Experience:**
+
 ```typescript
 // Low-risk users (auto-approved)
 <div className="bg-green-50 rounded-lg p-4 mb-4">
@@ -478,6 +507,7 @@ function assessRisk(userRequest: UserRequest): UserApprovalRisk {
 ```
 
 **Why this matters:**
+
 - Reduces admin workload (auto-approve 70%)
 - Focuses attention on real risks
 - Maintains security without friction
@@ -490,8 +520,8 @@ function assessRisk(userRequest: UserRequest): UserApprovalRisk {
 
 ```typescript
 interface HealthSignal {
-  category: 'performance' | 'reliability' | 'usage' | 'security';
-  status: 'healthy' | 'warning' | 'critical';
+  category: "performance" | "reliability" | "usage" | "security";
+  status: "healthy" | "warning" | "critical";
   metric: string;
   value: number;
   threshold: number;
@@ -500,41 +530,42 @@ interface HealthSignal {
 
 const healthSignals: HealthSignal[] = [
   {
-    category: 'performance',
-    status: 'healthy',
-    metric: 'Avg Response Time',
+    category: "performance",
+    status: "healthy",
+    metric: "Avg Response Time",
     value: 1.2,
     threshold: 2.0,
     recommendation: null,
   },
   {
-    category: 'reliability',
-    status: 'warning',
-    metric: 'Error Rate',
+    category: "reliability",
+    status: "warning",
+    metric: "Error Rate",
     value: 0.8,
     threshold: 1.0,
-    recommendation: 'Spike in errors detected. Check logs.',
+    recommendation: "Spike in errors detected. Check logs.",
   },
   {
-    category: 'usage',
-    status: 'healthy',
-    metric: 'Daily Active Users',
+    category: "usage",
+    status: "healthy",
+    metric: "Daily Active Users",
     value: 42,
     threshold: 30,
     recommendation: null,
   },
   {
-    category: 'security',
-    status: 'critical',
-    metric: 'Failed Login Attempts',
+    category: "security",
+    status: "critical",
+    metric: "Failed Login Attempts",
     value: 15,
     threshold: 10,
-    recommendation: 'Possible brute-force attack. Review access logs.',
+    recommendation: "Possible brute-force attack. Review access logs.",
   },
 ];
 ```
 
 **Dashboard Display:**
+
 ```typescript
 <div className="grid grid-cols-2 gap-4">
   {healthSignals.map(signal => (
@@ -570,9 +601,10 @@ const healthSignals: HealthSignal[] = [
 ```
 
 **Proactive Alerts:**
+
 ```typescript
 // Email admin when critical signal triggered
-if (signal.status === 'critical') {
+if (signal.status === "critical") {
   sendEmail({
     to: adminEmail,
     subject: `🚨 Critical: ${signal.metric} exceeded threshold`,
@@ -590,6 +622,7 @@ if (signal.status === 'critical') {
 ```
 
 **Why this matters:**
+
 - Admin feels in control (not blindsided)
 - Issues caught before users complain
 - Builds trust ("system is monitored")
@@ -615,20 +648,21 @@ interface AuditLogEntry {
 // Examples
 const auditLog: AuditLogEntry[] = [
   {
-    id: 'log-001',
-    timestamp: new Date('2025-10-06T14:30:00Z'),
-    actor: { id: 'user-123', name: 'John Doe', email: 'john@acme.com' },
-    action: 'created_proposal',
-    resource: { type: 'proposal', id: 'prop-456', name: 'Acme Corp SAP Project' },
-    details: { estimatedMD: 180, duration: '6 months' },
-    ipAddress: '203.0.113.45',
-    userAgent: 'Mozilla/5.0...',
+    id: "log-001",
+    timestamp: new Date("2025-10-06T14:30:00Z"),
+    actor: { id: "user-123", name: "John Doe", email: "john@acme.com" },
+    action: "created_proposal",
+    resource: { type: "proposal", id: "prop-456", name: "Acme Corp SAP Project" },
+    details: { estimatedMD: 180, duration: "6 months" },
+    ipAddress: "203.0.113.45",
+    userAgent: "Mozilla/5.0...",
   },
   // ...
 ];
 ```
 
 **Dashboard View:**
+
 ```typescript
 <div className="bg-white rounded-xl border">
   <div className="p-4 border-b">
@@ -663,6 +697,7 @@ const auditLog: AuditLogEntry[] = [
 ```
 
 **Export for Compliance:**
+
 ```typescript
 <button
   onClick={exportAuditLog}
@@ -674,6 +709,7 @@ const auditLog: AuditLogEntry[] = [
 ```
 
 **Why this matters:**
+
 - SOC2/ISO compliance requirement
 - Forensics (if security incident)
 - Transparency (users trust auditable systems)
@@ -683,6 +719,7 @@ const auditLog: AuditLogEntry[] = [
 ## 🛠️ WHAT CHANGES IN CODE
 
 ### New Files
+
 ```
 src/app/admin/
   dashboard/
@@ -721,6 +758,7 @@ src/lib/admin/
 ```
 
 ### Modified Files
+
 ```
 src/app/admin/page.tsx
   # Redirect to /admin/dashboard
@@ -753,19 +791,20 @@ Admin journey is complete when:
 
 ## 📊 ADMIN METRICS
 
-| Metric | Baseline | Target | How to Measure |
-|--------|----------|--------|----------------|
-| **Time per approval** | 2 min | 10 sec | Log: approval_clicked → approval_completed |
-| **Approvals/day** | 3 | 20 | Count auto + manual |
-| **Admin satisfaction** | ? | 8/10 | Quarterly survey |
-| **System health checks** | Manual | Automated | Alert frequency |
-| **Time to resolve incidents** | ? | < 1 hour | Alert → resolution log |
+| Metric                        | Baseline | Target    | How to Measure                             |
+| ----------------------------- | -------- | --------- | ------------------------------------------ |
+| **Time per approval**         | 2 min    | 10 sec    | Log: approval_clicked → approval_completed |
+| **Approvals/day**             | 3        | 20        | Count auto + manual                        |
+| **Admin satisfaction**        | ?        | 8/10      | Quarterly survey                           |
+| **System health checks**      | Manual   | Automated | Alert frequency                            |
+| **Time to resolve incidents** | ?        | < 1 hour  | Alert → resolution log                     |
 
 ---
 
 **End of Admin Journey V2**
 
 **Cross-references:**
+
 - Holistic_Redesign_V2.md (Overall architecture)
 - Measurement_and_Experiments.md (Metrics telemetry)
 - First_Impression_Onboarding.md (User approval flow)

@@ -8,12 +8,12 @@
  * - GDPR-compliant (no PII in fingerprint)
  */
 
-import crypto from 'crypto';
-import { headers } from 'next/headers';
-import { prisma } from '@/lib/db';
+import crypto from "crypto";
+import { headers } from "next/headers";
+import { prisma } from "@/lib/db";
 
 export interface DeviceFingerprint {
-  fingerprint: string;      // Hashed fingerprint
+  fingerprint: string; // Hashed fingerprint
   userAgent: string;
   platform?: string;
   screenResolution?: string;
@@ -42,27 +42,24 @@ export function generateDeviceFingerprint(data: {
   timezone?: string;
   language?: string;
   platform?: string;
-  canvas?: string;      // Canvas fingerprint
-  webgl?: string;       // WebGL fingerprint
-  fonts?: string[];     // Installed fonts
+  canvas?: string; // Canvas fingerprint
+  webgl?: string; // WebGL fingerprint
+  fonts?: string[]; // Installed fonts
 }): DeviceFingerprint {
   // Create a deterministic string from device properties
   const components = [
     data.userAgent,
-    data.screenResolution || '',
-    data.timezone || '',
-    data.language || '',
-    data.platform || '',
-    data.canvas || '',
-    data.webgl || '',
-    (data.fonts || []).sort().join(',')
-  ].join('|');
+    data.screenResolution || "",
+    data.timezone || "",
+    data.language || "",
+    data.platform || "",
+    data.canvas || "",
+    data.webgl || "",
+    (data.fonts || []).sort().join(","),
+  ].join("|");
 
   // Hash the fingerprint for privacy
-  const fingerprint = crypto
-    .createHash('sha256')
-    .update(components)
-    .digest('hex');
+  const fingerprint = crypto.createHash("sha256").update(components).digest("hex");
 
   return {
     fingerprint,
@@ -70,7 +67,7 @@ export function generateDeviceFingerprint(data: {
     platform: data.platform,
     screenResolution: data.screenResolution,
     timezone: data.timezone,
-    language: data.language
+    language: data.language,
   };
 }
 
@@ -80,23 +77,17 @@ export function generateDeviceFingerprint(data: {
  */
 export async function generateServerFingerprint(): Promise<DeviceFingerprint> {
   const headersList = await headers();
-  const userAgent = headersList.get('user-agent') || 'unknown';
-  const acceptLanguage = headersList.get('accept-language') || '';
+  const userAgent = headersList.get("user-agent") || "unknown";
+  const acceptLanguage = headersList.get("accept-language") || "";
 
-  const components = [
-    userAgent,
-    acceptLanguage
-  ].join('|');
+  const components = [userAgent, acceptLanguage].join("|");
 
-  const fingerprint = crypto
-    .createHash('sha256')
-    .update(components)
-    .digest('hex');
+  const fingerprint = crypto.createHash("sha256").update(components).digest("hex");
 
   return {
     fingerprint,
     userAgent,
-    language: acceptLanguage.split(',')[0]
+    language: acceptLanguage.split(",")[0],
   };
 }
 
@@ -104,41 +95,34 @@ export async function generateServerFingerprint(): Promise<DeviceFingerprint> {
  * Generate server-side fingerprint from provided headers
  * Synchronous version for use with already-obtained headers
  */
-export function getServerSideFingerprint(headersList: Awaited<ReturnType<typeof headers>>): DeviceFingerprint {
-  const userAgent = headersList.get('user-agent') || 'unknown';
-  const acceptLanguage = headersList.get('accept-language') || '';
+export function getServerSideFingerprint(
+  headersList: Awaited<ReturnType<typeof headers>>
+): DeviceFingerprint {
+  const userAgent = headersList.get("user-agent") || "unknown";
+  const acceptLanguage = headersList.get("accept-language") || "";
 
-  const components = [
-    userAgent,
-    acceptLanguage
-  ].join('|');
+  const components = [userAgent, acceptLanguage].join("|");
 
-  const fingerprint = crypto
-    .createHash('sha256')
-    .update(components)
-    .digest('hex');
+  const fingerprint = crypto.createHash("sha256").update(components).digest("hex");
 
   return {
     fingerprint,
     userAgent,
-    language: acceptLanguage.split(',')[0]
+    language: acceptLanguage.split(",")[0],
   };
 }
 
 /**
  * Check if device is trusted for a user
  */
-export async function isDeviceTrusted(
-  userId: string,
-  fingerprint: string
-): Promise<boolean> {
+export async function isDeviceTrusted(userId: string, fingerprint: string): Promise<boolean> {
   const device = await prisma.trustedDevice.findUnique({
     where: {
       userId_fingerprint: {
         userId,
-        fingerprint
-      }
-    }
+        fingerprint,
+      },
+    },
   });
 
   return device !== null;
@@ -162,8 +146,8 @@ export async function trustDevice(
     where: {
       userId_fingerprint: {
         userId,
-        fingerprint
-      }
+        fingerprint,
+      },
     },
     create: {
       id: crypto.randomUUID(),
@@ -175,14 +159,14 @@ export async function trustDevice(
       country: deviceInfo.country,
       city: deviceInfo.city,
       nickname: deviceInfo.nickname,
-      createdAt: new Date()
+      createdAt: new Date(),
     },
     update: {
       lastSeenIp: deviceInfo.ipAddress,
       lastSeenAt: new Date(),
       country: deviceInfo.country,
-      city: deviceInfo.city
-    }
+      city: deviceInfo.city,
+    },
   });
 }
 
@@ -192,7 +176,7 @@ export async function trustDevice(
 export async function getTrustedDevices(userId: string): Promise<TrustedDeviceInfo[]> {
   return prisma.trustedDevice.findMany({
     where: { userId },
-    orderBy: { lastSeenAt: 'desc' }
+    orderBy: { lastSeenAt: "desc" },
   });
 }
 
@@ -203,8 +187,8 @@ export async function removeTrustedDevice(userId: string, deviceId: string): Pro
   const result = await prisma.trustedDevice.deleteMany({
     where: {
       id: deviceId,
-      userId // Ensure user owns this device
-    }
+      userId, // Ensure user owns this device
+    },
   });
 
   return result.count > 0;
@@ -221,9 +205,9 @@ export async function updateDeviceNickname(
   const result = await prisma.trustedDevice.updateMany({
     where: {
       id: deviceId,
-      userId
+      userId,
     },
-    data: { nickname }
+    data: { nickname },
   });
 
   return result.count > 0;
@@ -238,26 +222,27 @@ export function parseUserAgent(userAgent: string): {
   device: string;
 } {
   // Simple user agent parsing (consider using a library like ua-parser-js for production)
-  let browser = 'Unknown Browser';
-  let os = 'Unknown OS';
-  let device = 'Desktop';
+  let browser = "Unknown Browser";
+  let os = "Unknown OS";
+  let device = "Desktop";
 
   // Browser detection
-  if (userAgent.includes('Chrome')) browser = 'Chrome';
-  else if (userAgent.includes('Firefox')) browser = 'Firefox';
-  else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) browser = 'Safari';
-  else if (userAgent.includes('Edge')) browser = 'Edge';
+  if (userAgent.includes("Chrome")) browser = "Chrome";
+  else if (userAgent.includes("Firefox")) browser = "Firefox";
+  else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) browser = "Safari";
+  else if (userAgent.includes("Edge")) browser = "Edge";
 
   // OS detection
-  if (userAgent.includes('Windows')) os = 'Windows';
-  else if (userAgent.includes('Mac')) os = 'macOS';
-  else if (userAgent.includes('Linux')) os = 'Linux';
-  else if (userAgent.includes('Android')) os = 'Android';
-  else if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) os = 'iOS';
+  if (userAgent.includes("Windows")) os = "Windows";
+  else if (userAgent.includes("Mac")) os = "macOS";
+  else if (userAgent.includes("Linux")) os = "Linux";
+  else if (userAgent.includes("Android")) os = "Android";
+  else if (userAgent.includes("iOS") || userAgent.includes("iPhone") || userAgent.includes("iPad"))
+    os = "iOS";
 
   // Device type detection
-  if (userAgent.includes('Mobile') || userAgent.includes('Android')) device = 'Mobile';
-  else if (userAgent.includes('Tablet') || userAgent.includes('iPad')) device = 'Tablet';
+  if (userAgent.includes("Mobile") || userAgent.includes("Android")) device = "Mobile";
+  else if (userAgent.includes("Tablet") || userAgent.includes("iPad")) device = "Tablet";
 
   return { browser, os, device };
 }
@@ -283,14 +268,14 @@ export async function detectFingerprintChange(
 }> {
   const devices = await prisma.trustedDevice.findMany({
     where: { userId },
-    orderBy: { lastSeenAt: 'desc' },
-    take: 1
+    orderBy: { lastSeenAt: "desc" },
+    take: 1,
   });
 
   if (devices.length === 0) {
     return {
       changed: true,
-      isNewDevice: true
+      isNewDevice: true,
     };
   }
 
@@ -300,14 +285,17 @@ export async function detectFingerprintChange(
   return {
     changed,
     previousFingerprint: lastDevice.fingerprint,
-    isNewDevice: changed
+    isNewDevice: changed,
   };
 }
 
 /**
  * Clean up old trusted devices (e.g., not seen in 90 days)
  */
-export async function cleanupOldDevices(userId: string, daysInactive: number = 90): Promise<number> {
+export async function cleanupOldDevices(
+  userId: string,
+  daysInactive: number = 90
+): Promise<number> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - daysInactive);
 
@@ -315,9 +303,9 @@ export async function cleanupOldDevices(userId: string, daysInactive: number = 9
     where: {
       userId,
       lastSeenAt: {
-        lt: cutoffDate
-      }
-    }
+        lt: cutoffDate,
+      },
+    },
   });
 
   return result.count;

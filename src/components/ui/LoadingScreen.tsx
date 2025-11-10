@@ -1,5 +1,5 @@
-'use client';
-import { HexCubeLoader } from '@/components/common';
+"use client";
+import { HexCubeLoader } from "@/components/common";
 
 export function LoadingScreen({ message }: { message?: string }) {
   return (

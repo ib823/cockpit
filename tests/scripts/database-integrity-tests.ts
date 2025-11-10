@@ -15,28 +15,28 @@
  *   tsx tests/scripts/database-integrity-tests.ts
  */
 
-import { PrismaClient } from '@prisma/client';
-import { randomUUID } from 'crypto';
+import { PrismaClient } from "@prisma/client";
+import { randomUUID } from "crypto";
 
 const prisma = new PrismaClient();
 
 const colors = {
-  reset: '\x1b[0m',
-  bright: '\x1b[1m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  cyan: '\x1b[36m',
+  reset: "\x1b[0m",
+  bright: "\x1b[1m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  cyan: "\x1b[36m",
 };
 
-function log(message: string, color: keyof typeof colors = 'reset') {
+function log(message: string, color: keyof typeof colors = "reset") {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
 
 interface TestResult {
   name: string;
   passed: boolean;
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   description: string;
   details?: string;
 }
@@ -56,8 +56,8 @@ async function testUniqueConstraints(): Promise<TestResult> {
       data: {
         id: randomUUID(),
         email,
-        name: 'Test User',
-        role: 'USER',
+        name: "Test User",
+        role: "USER",
         accessExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         exception: false,
         updatedAt: new Date(),
@@ -68,9 +68,9 @@ async function testUniqueConstraints(): Promise<TestResult> {
     await prisma.users.create({
       data: {
         id: randomUUID(),
-        email,  // Same email
-        name: 'Test User 2',
-        role: 'USER',
+        email, // Same email
+        name: "Test User 2",
+        role: "USER",
         accessExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         exception: false,
         updatedAt: new Date(),
@@ -79,26 +79,26 @@ async function testUniqueConstraints(): Promise<TestResult> {
 
     // Should not reach here
     return {
-      name: 'Unique Constraints',
+      name: "Unique Constraints",
       passed: false,
-      severity: 'HIGH',
-      description: 'Duplicate email allowed - unique constraint failed',
+      severity: "HIGH",
+      description: "Duplicate email allowed - unique constraint failed",
     };
   } catch (error: any) {
-    if (error.code === 'P2002') {
+    if (error.code === "P2002") {
       return {
-        name: 'Unique Constraints',
+        name: "Unique Constraints",
         passed: true,
-        severity: 'HIGH',
-        description: 'Unique constraints properly enforced',
+        severity: "HIGH",
+        description: "Unique constraints properly enforced",
       };
     }
 
     return {
-      name: 'Unique Constraints',
+      name: "Unique Constraints",
       passed: false,
-      severity: 'HIGH',
-      description: 'Unexpected error in unique constraint test',
+      severity: "HIGH",
+      description: "Unexpected error in unique constraint test",
       details: error.message,
     };
   } finally {
@@ -113,37 +113,37 @@ async function testForeignKeyConstraints(): Promise<TestResult> {
     await prisma.authenticator.create({
       data: {
         id: randomUUID(),
-        userId: 'non-existent-user-id',
-        publicKey: Buffer.from('test'),
+        userId: "non-existent-user-id",
+        publicKey: Buffer.from("test"),
         counter: 0,
-        transports: ['internal'],
-        deviceType: 'platform',
+        transports: ["internal"],
+        deviceType: "platform",
         backedUp: false,
       },
     });
 
     // Should not reach here
     return {
-      name: 'Foreign Key Constraints',
+      name: "Foreign Key Constraints",
       passed: false,
-      severity: 'CRITICAL',
-      description: 'Foreign key constraint violated - orphaned record created',
+      severity: "CRITICAL",
+      description: "Foreign key constraint violated - orphaned record created",
     };
   } catch (error: any) {
-    if (error.code === 'P2003') {
+    if (error.code === "P2003") {
       return {
-        name: 'Foreign Key Constraints',
+        name: "Foreign Key Constraints",
         passed: true,
-        severity: 'CRITICAL',
-        description: 'Foreign key constraints properly enforced',
+        severity: "CRITICAL",
+        description: "Foreign key constraints properly enforced",
       };
     }
 
     return {
-      name: 'Foreign Key Constraints',
+      name: "Foreign Key Constraints",
       passed: false,
-      severity: 'CRITICAL',
-      description: 'Unexpected error in foreign key test',
+      severity: "CRITICAL",
+      description: "Unexpected error in foreign key test",
       details: error.message,
     };
   }
@@ -159,8 +159,8 @@ async function testCascadeDelete(): Promise<TestResult> {
       data: {
         id: userId,
         email,
-        name: 'Cascade Test',
-        role: 'USER',
+        name: "Cascade Test",
+        role: "USER",
         accessExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         exception: false,
         updatedAt: new Date(),
@@ -171,10 +171,10 @@ async function testCascadeDelete(): Promise<TestResult> {
       data: {
         id: randomUUID(),
         userId,
-        publicKey: Buffer.from('test'),
+        publicKey: Buffer.from("test"),
         counter: 0,
-        transports: ['internal'],
-        deviceType: 'platform',
+        transports: ["internal"],
+        deviceType: "platform",
         backedUp: false,
       },
     });
@@ -189,25 +189,25 @@ async function testCascadeDelete(): Promise<TestResult> {
 
     if (orphanedAuth) {
       return {
-        name: 'Cascade Delete',
+        name: "Cascade Delete",
         passed: false,
-        severity: 'HIGH',
-        description: 'Cascade delete failed - orphaned records exist',
+        severity: "HIGH",
+        description: "Cascade delete failed - orphaned records exist",
       };
     }
 
     return {
-      name: 'Cascade Delete',
+      name: "Cascade Delete",
       passed: true,
-      severity: 'HIGH',
-      description: 'Cascade delete properly configured',
+      severity: "HIGH",
+      description: "Cascade delete properly configured",
     };
   } catch (error: any) {
     return {
-      name: 'Cascade Delete',
+      name: "Cascade Delete",
       passed: false,
-      severity: 'HIGH',
-      description: 'Error in cascade delete test',
+      severity: "HIGH",
+      description: "Error in cascade delete test",
       details: error.message,
     };
   } finally {
@@ -232,8 +232,8 @@ async function testTransactionAtomicity(): Promise<TestResult> {
         data: {
           id: userId,
           email,
-          name: 'Transaction Test',
-          role: 'USER',
+          name: "Transaction Test",
+          role: "USER",
           accessExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           exception: false,
           updatedAt: new Date(),
@@ -241,15 +241,15 @@ async function testTransactionAtomicity(): Promise<TestResult> {
       });
 
       // Force an error
-      throw new Error('Intentional transaction rollback');
+      throw new Error("Intentional transaction rollback");
     });
 
     // Should not reach here
     return {
-      name: 'Transaction Atomicity',
+      name: "Transaction Atomicity",
       passed: false,
-      severity: 'CRITICAL',
-      description: 'Transaction not rolled back on error',
+      severity: "CRITICAL",
+      description: "Transaction not rolled back on error",
     };
   } catch (error: any) {
     // Check if user was NOT created (rollback successful)
@@ -257,18 +257,18 @@ async function testTransactionAtomicity(): Promise<TestResult> {
 
     if (user) {
       return {
-        name: 'Transaction Atomicity',
+        name: "Transaction Atomicity",
         passed: false,
-        severity: 'CRITICAL',
-        description: 'Transaction rollback failed - partial data committed',
+        severity: "CRITICAL",
+        description: "Transaction rollback failed - partial data committed",
       };
     }
 
     return {
-      name: 'Transaction Atomicity',
+      name: "Transaction Atomicity",
       passed: true,
-      severity: 'CRITICAL',
-      description: 'Transaction atomicity properly enforced',
+      severity: "CRITICAL",
+      description: "Transaction atomicity properly enforced",
     };
   } finally {
     // Cleanup
@@ -286,8 +286,8 @@ async function testConcurrentAccess(): Promise<TestResult> {
       data: {
         id: userId,
         email,
-        name: 'Concurrent Test',
-        role: 'USER',
+        name: "Concurrent Test",
+        role: "USER",
         accessExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         exception: false,
         updatedAt: new Date(),
@@ -295,12 +295,14 @@ async function testConcurrentAccess(): Promise<TestResult> {
     });
 
     // Simulate concurrent updates
-    const updates = Array(5).fill(null).map((_, i) =>
-      prisma.users.update({
-        where: { id: userId },
-        data: { name: `Update ${i}` },
-      })
-    );
+    const updates = Array(5)
+      .fill(null)
+      .map((_, i) =>
+        prisma.users.update({
+          where: { id: userId },
+          data: { name: `Update ${i}` },
+        })
+      );
 
     await Promise.all(updates);
 
@@ -309,26 +311,26 @@ async function testConcurrentAccess(): Promise<TestResult> {
 
     if (!user) {
       return {
-        name: 'Concurrent Access',
+        name: "Concurrent Access",
         passed: false,
-        severity: 'HIGH',
-        description: 'User lost during concurrent updates',
+        severity: "HIGH",
+        description: "User lost during concurrent updates",
       };
     }
 
     return {
-      name: 'Concurrent Access',
+      name: "Concurrent Access",
       passed: true,
-      severity: 'HIGH',
-      description: 'Concurrent access handled correctly',
+      severity: "HIGH",
+      description: "Concurrent access handled correctly",
       details: `Final name: ${user.name}`,
     };
   } catch (error: any) {
     return {
-      name: 'Concurrent Access',
+      name: "Concurrent Access",
       passed: false,
-      severity: 'HIGH',
-      description: 'Concurrent access failed',
+      severity: "HIGH",
+      description: "Concurrent access failed",
       details: error.message,
     };
   } finally {
@@ -350,8 +352,8 @@ async function testEmailValidation(): Promise<TestResult> {
       data: {
         id: randomUUID(),
         email,
-        name: 'Test',
-        role: 'USER',
+        name: "Test",
+        role: "USER",
         accessExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         exception: false,
         updatedAt: new Date(),
@@ -363,18 +365,18 @@ async function testEmailValidation(): Promise<TestResult> {
     // Database accepts any string for email (this is expected)
     // Email validation is enforced at the API level (begin-login, begin-register, finish-register, approve-email)
     return {
-      name: 'Email Validation',
+      name: "Email Validation",
       passed: true,
-      severity: 'MEDIUM',
-      description: 'Email validation enforced at API level',
-      details: 'Database accepts any string - API validates before insertion',
+      severity: "MEDIUM",
+      description: "Email validation enforced at API level",
+      details: "Database accepts any string - API validates before insertion",
     };
   } catch (error: any) {
     return {
-      name: 'Email Validation',
+      name: "Email Validation",
       passed: false,
-      severity: 'MEDIUM',
-      description: 'Email validation test failed',
+      severity: "MEDIUM",
+      description: "Email validation test failed",
       details: error.message,
     };
   }
@@ -389,9 +391,9 @@ async function testDateValidation(): Promise<TestResult> {
       data: {
         id: randomUUID(),
         email,
-        name: 'Date Test',
-        role: 'USER',
-        accessExpiresAt: new Date('2020-01-01'), // Past date
+        name: "Date Test",
+        role: "USER",
+        accessExpiresAt: new Date("2020-01-01"), // Past date
         exception: false,
         updatedAt: new Date(),
       },
@@ -401,18 +403,18 @@ async function testDateValidation(): Promise<TestResult> {
     await prisma.users.delete({ where: { id: user.id } });
 
     return {
-      name: 'Date Validation',
+      name: "Date Validation",
       passed: true,
-      severity: 'LOW',
-      description: 'Date validation needs application-level checks',
-      details: 'Database accepts past dates - ensure API validates',
+      severity: "LOW",
+      description: "Date validation needs application-level checks",
+      details: "Database accepts past dates - ensure API validates",
     };
   } catch (error: any) {
     return {
-      name: 'Date Validation',
+      name: "Date Validation",
       passed: false,
-      severity: 'LOW',
-      description: 'Error in date validation test',
+      severity: "LOW",
+      description: "Error in date validation test",
       details: error.message,
     };
   }
@@ -432,8 +434,8 @@ async function testMassAssignment(): Promise<TestResult> {
       data: {
         id: randomUUID(),
         email,
-        name: 'Test User',
-        role: 'USER',  // API endpoints hardcode this value
+        name: "Test User",
+        role: "USER", // API endpoints hardcode this value
         accessExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         exception: false,
         updatedAt: new Date(),
@@ -448,18 +450,18 @@ async function testMassAssignment(): Promise<TestResult> {
     // - approve-email/route.ts:46 hardcodes role: 'USER'
     // - No API endpoints accept role from user input
     return {
-      name: 'Mass Assignment',
+      name: "Mass Assignment",
       passed: true,
-      severity: 'CRITICAL',
-      description: 'Mass assignment protection enforced at API level',
-      details: 'All user creation endpoints hardcode role=USER',
+      severity: "CRITICAL",
+      description: "Mass assignment protection enforced at API level",
+      details: "All user creation endpoints hardcode role=USER",
     };
   } catch (error: any) {
     return {
-      name: 'Mass Assignment',
+      name: "Mass Assignment",
       passed: false,
-      severity: 'CRITICAL',
-      description: 'Mass assignment test failed',
+      severity: "CRITICAL",
+      description: "Mass assignment test failed",
       details: error.message,
     };
   } finally {
@@ -473,97 +475,100 @@ async function testMassAssignment(): Promise<TestResult> {
 // ============================================================================
 
 async function runDatabaseTests() {
-  log('╔═══════════════════════════════════════════════════════════════╗', 'bright');
-  log('║     DATABASE SECURITY & INTEGRITY TEST SUITE                 ║', 'bright');
-  log('╚═══════════════════════════════════════════════════════════════╝', 'bright');
+  log("╔═══════════════════════════════════════════════════════════════╗", "bright");
+  log("║     DATABASE SECURITY & INTEGRITY TEST SUITE                 ║", "bright");
+  log("╚═══════════════════════════════════════════════════════════════╝", "bright");
 
-  log('\n🗄️  Running database tests...\n', 'cyan');
+  log("\n🗄️  Running database tests...\n", "cyan");
 
   const tests = [
-    { name: 'Unique Constraints', fn: testUniqueConstraints },
-    { name: 'Foreign Key Constraints', fn: testForeignKeyConstraints },
-    { name: 'Cascade Delete', fn: testCascadeDelete },
-    { name: 'Transaction Atomicity', fn: testTransactionAtomicity },
-    { name: 'Concurrent Access', fn: testConcurrentAccess },
-    { name: 'Email Validation', fn: testEmailValidation },
-    { name: 'Date Validation', fn: testDateValidation },
-    { name: 'Mass Assignment', fn: testMassAssignment },
+    { name: "Unique Constraints", fn: testUniqueConstraints },
+    { name: "Foreign Key Constraints", fn: testForeignKeyConstraints },
+    { name: "Cascade Delete", fn: testCascadeDelete },
+    { name: "Transaction Atomicity", fn: testTransactionAtomicity },
+    { name: "Concurrent Access", fn: testConcurrentAccess },
+    { name: "Email Validation", fn: testEmailValidation },
+    { name: "Date Validation", fn: testDateValidation },
+    { name: "Mass Assignment", fn: testMassAssignment },
   ];
 
   for (const test of tests) {
-    log(`Testing: ${test.name}...`, 'cyan');
+    log(`Testing: ${test.name}...`, "cyan");
     try {
       const result = await test.fn();
       results.push(result);
 
-      const icon = result.passed ? '✓' : '✗';
-      const color = result.passed ? 'green' : 'red';
+      const icon = result.passed ? "✓" : "✗";
+      const color = result.passed ? "green" : "red";
       log(`${icon} ${result.description}`, color);
 
       if (result.details) {
-        log(`  ${result.details}`, 'yellow');
+        log(`  ${result.details}`, "yellow");
       }
     } catch (error: any) {
-      log(`✗ Test failed: ${error.message}`, 'red');
+      log(`✗ Test failed: ${error.message}`, "red");
       results.push({
         name: test.name,
         passed: false,
-        severity: 'HIGH',
+        severity: "HIGH",
         description: `Test execution failed: ${error.message}`,
       });
     }
-    log('');
+    log("");
   }
 
   // Summary
-  log('═'.repeat(70), 'bright');
-  log('DATABASE TEST SUMMARY', 'bright');
-  log('═'.repeat(70), 'bright');
+  log("═".repeat(70), "bright");
+  log("DATABASE TEST SUMMARY", "bright");
+  log("═".repeat(70), "bright");
 
-  const critical = results.filter(r => !r.passed && r.severity === 'CRITICAL');
-  const high = results.filter(r => !r.passed && r.severity === 'HIGH');
-  const medium = results.filter(r => !r.passed && r.severity === 'MEDIUM');
-  const low = results.filter(r => !r.passed && r.severity === 'LOW');
-  const passed = results.filter(r => r.passed);
+  const critical = results.filter((r) => !r.passed && r.severity === "CRITICAL");
+  const high = results.filter((r) => !r.passed && r.severity === "HIGH");
+  const medium = results.filter((r) => !r.passed && r.severity === "MEDIUM");
+  const low = results.filter((r) => !r.passed && r.severity === "LOW");
+  const passed = results.filter((r) => r.passed);
 
-  log(`\nTotal Tests: ${results.length}`, 'cyan');
-  log(`Passed: ${passed.length}`, 'green');
-  log(`Failed: ${results.length - passed.length}`, results.length > passed.length ? 'red' : 'green');
+  log(`\nTotal Tests: ${results.length}`, "cyan");
+  log(`Passed: ${passed.length}`, "green");
+  log(
+    `Failed: ${results.length - passed.length}`,
+    results.length > passed.length ? "red" : "green"
+  );
 
   if (critical.length > 0) {
-    log(`\n🚨 CRITICAL Issues: ${critical.length}`, 'red');
-    critical.forEach(r => log(`  - ${r.name}: ${r.description}`, 'red'));
+    log(`\n🚨 CRITICAL Issues: ${critical.length}`, "red");
+    critical.forEach((r) => log(`  - ${r.name}: ${r.description}`, "red"));
   }
 
   if (high.length > 0) {
-    log(`\n⚠️  HIGH Issues: ${high.length}`, 'red');
-    high.forEach(r => log(`  - ${r.name}: ${r.description}`, 'red'));
+    log(`\n⚠️  HIGH Issues: ${high.length}`, "red");
+    high.forEach((r) => log(`  - ${r.name}: ${r.description}`, "red"));
   }
 
   if (medium.length > 0) {
-    log(`\n⚠️  MEDIUM Issues: ${medium.length}`, 'yellow');
-    medium.forEach(r => log(`  - ${r.name}: ${r.description}`, 'yellow'));
+    log(`\n⚠️  MEDIUM Issues: ${medium.length}`, "yellow");
+    medium.forEach((r) => log(`  - ${r.name}: ${r.description}`, "yellow"));
   }
 
   if (low.length > 0) {
-    log(`\nℹ️  LOW Issues: ${low.length}`, 'yellow');
-    low.forEach(r => log(`  - ${r.name}: ${r.description}`, 'yellow'));
+    log(`\nℹ️  LOW Issues: ${low.length}`, "yellow");
+    low.forEach((r) => log(`  - ${r.name}: ${r.description}`, "yellow"));
   }
 
   await prisma.$disconnect();
 
   if (critical.length > 0 || high.length > 0) {
-    log(`\n✗ DATABASE INTEGRITY ISSUES FOUND`, 'red');
+    log(`\n✗ DATABASE INTEGRITY ISSUES FOUND`, "red");
     process.exit(1);
   } else {
-    log(`\n✓ DATABASE INTEGRITY VERIFIED`, 'green');
+    log(`\n✓ DATABASE INTEGRITY VERIFIED`, "green");
     process.exit(0);
   }
 }
 
 // Run tests
-runDatabaseTests().catch(error => {
-  log(`Fatal error: ${error.message}`, 'red');
+runDatabaseTests().catch((error) => {
+  log(`Fatal error: ${error.message}`, "red");
   prisma.$disconnect();
   process.exit(1);
 });

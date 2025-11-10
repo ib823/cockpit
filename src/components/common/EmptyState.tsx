@@ -15,13 +15,7 @@ interface EmptyStateProps {
   children?: React.ReactNode;
 }
 
-export function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  action,
-  children,
-}: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, action, children }: EmptyStateProps) {
   return (
     <div className="bg-gray-50 rounded-lg p-12 text-center shadow-sm">
       {Icon && (
@@ -33,17 +27,11 @@ export function EmptyState({
       <Heading3 className="text-gray-900 mb-2">{title}</Heading3>
 
       {description && (
-        <BodyMD className="text-gray-600 mb-6 max-w-md mx-auto">
-          {description}
-        </BodyMD>
+        <BodyMD className="text-gray-600 mb-6 max-w-md mx-auto">{description}</BodyMD>
       )}
 
       {action && (
-        <Button
-          variant={action.variant || "primary"}
-          size="md"
-          onClick={action.onClick}
-        >
+        <Button variant={action.variant || "primary"} size="md" onClick={action.onClick}>
           {action.label}
         </Button>
       )}

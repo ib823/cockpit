@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { Card, Select, Statistic, Alert, Progress } from 'antd';
-import { useState } from 'react';
-import { pertEngine, type UncertaintyLevel } from '@/lib/estimator/pert-engine';
-import { useEstimatorStore } from '@/stores/estimator-store';
+import { Card, Select, Statistic, Alert, Progress } from "antd";
+import { useState } from "react";
+import { pertEngine, type UncertaintyLevel } from "@/lib/estimator/pert-engine";
+import { useEstimatorStore } from "@/stores/estimator-store";
 
 export function ConfidenceRibbon() {
-  const [confidence, setConfidence] = useState<UncertaintyLevel>('medium');
-  const results = useEstimatorStore(state => state.results);
+  const [confidence, setConfidence] = useState<UncertaintyLevel>("medium");
+  const results = useEstimatorStore((state) => state.results);
 
   if (!results) {
     return (
@@ -34,9 +34,9 @@ export function ConfidenceRibbon() {
           onChange={setConfidence}
           className="w-40"
           options={[
-            { value: 'low', label: '✅ Low Uncertainty' },
-            { value: 'medium', label: '⚠️ Medium Uncertainty' },
-            { value: 'high', label: '🚨 High Uncertainty' }
+            { value: "low", label: "✅ Low Uncertainty" },
+            { value: "medium", label: "⚠️ Medium Uncertainty" },
+            { value: "high", label: "🚨 High Uncertainty" },
           ]}
         />
       }
@@ -49,21 +49,21 @@ export function ConfidenceRibbon() {
             value={pertResults.confidenceInterval.p10}
             suffix="mo"
             precision={1}
-            valueStyle={{ color: '#52c41a' }}
+            valueStyle={{ color: "#52c41a" }}
           />
           <Statistic
             title="Expected (P50)"
             value={pertResults.expected}
             suffix="mo"
             precision={1}
-            valueStyle={{ color: '#1890ff' }}
+            valueStyle={{ color: "#1890ff" }}
           />
           <Statistic
             title="Buffer (P90)"
             value={pertResults.confidenceInterval.p90}
             suffix="mo"
             precision={1}
-            valueStyle={{ color: '#faad14' }}
+            valueStyle={{ color: "#faad14" }}
           />
         </div>
 
@@ -75,15 +75,16 @@ export function ConfidenceRibbon() {
             <div className="flex-1 relative h-8 bg-gradient-to-r from-green-200 via-blue-200 to-yellow-200 rounded">
               <div
                 className="absolute top-0 h-full w-1 bg-blue-600"
-                style={{ left: '50%' }}
+                style={{ left: "50%" }}
                 title="Expected (P50)"
               />
             </div>
             <span className="text-xs text-gray-500 w-12 text-right">P90</span>
           </div>
           <div className="text-xs text-gray-600 text-center">
-            Range: {pertResults.confidenceInterval.p10.toFixed(1)} - {pertResults.confidenceInterval.p90.toFixed(1)} months
-            ({rangePercent.toFixed(0)}% variation)
+            Range: {pertResults.confidenceInterval.p10.toFixed(1)} -{" "}
+            {pertResults.confidenceInterval.p90.toFixed(1)} months ({rangePercent.toFixed(0)}%
+            variation)
           </div>
         </div>
 
@@ -107,15 +108,21 @@ export function ConfidenceRibbon() {
         <Alert
           message="Risk Assessment"
           description={riskAssessment}
-          type={confidence === 'low' ? 'success' : confidence === 'medium' ? 'warning' : 'error'}
+          type={confidence === "low" ? "success" : confidence === "medium" ? "warning" : "error"}
           showIcon
         />
 
         {/* Interpretation Guide */}
         <div className="text-xs text-gray-500 space-y-1 pt-2 border-t">
-          <div><strong>P10:</strong> Only 10% chance of completing this fast</div>
-          <div><strong>P50:</strong> Most likely outcome (50% probability)</div>
-          <div><strong>P90:</strong> 90% confidence of completing within this time</div>
+          <div>
+            <strong>P10:</strong> Only 10% chance of completing this fast
+          </div>
+          <div>
+            <strong>P50:</strong> Most likely outcome (50% probability)
+          </div>
+          <div>
+            <strong>P90:</strong> 90% confidence of completing within this time
+          </div>
         </div>
       </div>
     </Card>

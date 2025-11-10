@@ -14,24 +14,28 @@
 After analyzing all local issues from the audit, **four systemic problems** emerge:
 
 #### 1. **Identity Crisis** (Disconnected Experiences)
+
 - **Symptoms:** Two tools (`/estimator` + `/project`) serve same persona but no data bridge
 - **Root cause:** Built sequentially without unified mental model
 - **Impact:** Users re-enter data, maintain two workflows, feel tool fragmentation
 - **Audit refs:** Section 2.1 (Estimator disconnected), Section 4.2 (Data disconnects)
 
 #### 2. **Incomplete Value Chain** (Missing Links)
+
 - **Symptoms:** OptimizeMode placeholder, no PDF export, L3Selector lacks search
 - **Root cause:** Feature delivery prioritized over complete user journey
 - **Impact:** Users hit dead ends, can't finish what they started
 - **Audit refs:** Section 1.5 (Optimize incomplete), Section 1.4 (Present no export)
 
 #### 3. **State Fragmentation** (Data Silos)
+
 - **Symptoms:** 3 Zustand stores (presales/timeline/project) don't share unified model
 - **Root cause:** Domain-driven design without integration layer
 - **Impact:** Data sync issues, regeneration risk, no single source of truth
 - **Audit refs:** Section 4.1 (Store analysis), Section 1.3 (Timeline stale warnings)
 
 #### 4. **Emotional Flatness** (No Delight Moments)
+
 - **Symptoms:** Functional but not memorable, no pre-login appreciation, admin feels like chore
 - **Root cause:** UX designed for tasks, not feelings
 - **Impact:** No viral hooks, no habit formation, no word-of-mouth
@@ -43,10 +47,10 @@ After analyzing all local issues from the audit, **four systemic problems** emer
 
 ### Decision Matrix
 
-| Option | Pros | Cons | Verdict |
-|--------|------|------|---------|
-| Keep separate tools | Simpler to maintain | User confusion, data re-entry | ❌ REJECT |
-| Full merge into one | Unified experience | Loss of quick-estimate path | ❌ REJECT |
+| Option                  | Pros                                                         | Cons                                | Verdict       |
+| ----------------------- | ------------------------------------------------------------ | ----------------------------------- | ------------- |
+| Keep separate tools     | Simpler to maintain                                          | User confusion, data re-entry       | ❌ REJECT     |
+| Full merge into one     | Unified experience                                           | Loss of quick-estimate path         | ❌ REJECT     |
 | **3-Tier unified flow** | Progressive disclosure, single mental model, data continuity | Requires bridge + state unification | ✅ **CHOSEN** |
 
 ### The 3-Tier Model
@@ -117,11 +121,13 @@ After analyzing all local issues from the audit, **four systemic problems** emer
 ### OptimizeMode Resolution: **MERGE INTO PLANMODE**
 
 **Why merge (not remove):**
+
 - RICEFW objects are valuable (custom development estimation)
 - Resource planning belongs with timeline editing (same mental context)
 - OptimizeMode as separate mode = artificial split
 
 **How to merge:**
+
 ```typescript
 // PlanMode becomes multi-tab view
 <PlanMode>
@@ -138,6 +144,7 @@ After analyzing all local issues from the audit, **four systemic problems** emer
 ```
 
 **What changes in code:**
+
 - `src/components/project-v2/modes/OptimizeMode.tsx` → DELETE
 - `src/components/project-v2/modes/PlanMode.tsx` → ADD tab navigation
 - `src/stores/project-store.ts` → Remove `optimize` from mode enum
@@ -145,12 +152,14 @@ After analyzing all local issues from the audit, **four systemic problems** emer
 - Mobile nav: 5 buttons → 4 buttons (remove Optimize icon)
 
 **Navigation updates:**
+
 ```diff
 - <button onClick={() => setMode('optimize')}>Optimize</button>
 + {/* Removed - now tab inside Plan */}
 ```
 
 **Acceptance criteria:**
+
 - [ ] ResourcePanel fully functional (no placeholder text)
 - [ ] RICEFW panel accessible via tab
 - [ ] No broken links to `/project?mode=optimize`
@@ -174,6 +183,7 @@ mode, timelineIsStale, manualOverrides
 ```
 
 **Issues:**
+
 - No single source of truth for "project"
 - Regeneration requires manual sync across stores
 - Estimator data can't persist to project stores
@@ -188,7 +198,7 @@ interface UnifiedProject {
   // Metadata
   id: string;
   name: string;
-  source: 'estimator' | 'rfp-extraction' | 'manual';
+  source: "estimator" | "rfp-extraction" | "manual";
   createdAt: Date;
   updatedAt: Date;
 
@@ -225,7 +235,7 @@ interface UnifiedProject {
   };
 
   // Navigation state
-  currentMode: 'capture' | 'decide' | 'plan' | 'present';
+  currentMode: "capture" | "decide" | "plan" | "present";
   currentTier: 1 | 2 | 3;
 }
 
@@ -234,7 +244,7 @@ interface UnifiedProjectStore {
   activeProjectId: string | null;
 
   // Actions
-  createProject: (source: UnifiedProject['source']) => string;
+  createProject: (source: UnifiedProject["source"]) => string;
   loadProject: (id: string) => void;
   updateProject: (id: string, updates: Partial<UnifiedProject>) => void;
   deleteProject: (id: string) => void;
@@ -257,6 +267,7 @@ interface UnifiedProjectStore {
 ```
 
 **Migration path:**
+
 1. Create `unified-project-store.ts` with backward-compatible getters
 2. Add data migration utility: `migrateFromLegacyStores()`
 3. Update components to use unified store (1 at a time)
@@ -264,6 +275,7 @@ interface UnifiedProjectStore {
 5. Add localStorage versioning for safe upgrades
 
 **What changes in code:**
+
 - `src/stores/unified-project-store.ts` → NEW
 - `src/lib/store-migration.ts` → NEW (migration utilities)
 - All mode components → Update hooks to `useUnifiedProject()`
@@ -298,9 +310,9 @@ User on /project:
 **File: `src/lib/estimator/to-chips-converter.ts` (NEW)**
 
 ```typescript
-import { Chip, ChipType } from '@/types/core';
-import { EstimatorInputs } from './formula-engine';
-import { sanitizeInput } from '@/lib/input-sanitizer';
+import { Chip, ChipType } from "@/types/core";
+import { EstimatorInputs } from "./formula-engine";
+import { sanitizeInput } from "@/lib/input-sanitizer";
 
 export function convertEstimateToChips(inputs: EstimatorInputs): Chip[] {
   const chips: Chip[] = [];
@@ -310,11 +322,11 @@ export function convertEstimateToChips(inputs: EstimatorInputs): Chip[] {
   if (inputs.modules.length > 0) {
     chips.push({
       id: `chip-modules-${timestamp}`,
-      type: 'modules' as ChipType,
-      value: sanitizeInput(inputs.modules.join(', ')),
+      type: "modules" as ChipType,
+      value: sanitizeInput(inputs.modules.join(", ")),
       confidence: 1.0,
-      source: 'estimator',
-      raw: inputs.modules.join(', '),
+      source: "estimator",
+      raw: inputs.modules.join(", "),
     });
   }
 
@@ -322,51 +334,51 @@ export function convertEstimateToChips(inputs: EstimatorInputs): Chip[] {
   if (inputs.l3Items.length > 0) {
     chips.push({
       id: `chip-scope-${timestamp}`,
-      type: 'scope' as ChipType,
+      type: "scope" as ChipType,
       value: `${inputs.l3Items.length} L3 scope items`,
       confidence: 1.0,
-      source: 'estimator',
-      raw: inputs.l3Items.map(i => i.name).join(', '),
+      source: "estimator",
+      raw: inputs.l3Items.map((i) => i.name).join(", "),
     });
   }
 
   // Geography
   chips.push({
     id: `chip-country-${timestamp}`,
-    type: 'country' as ChipType,
-    value: `${inputs.countries} ${inputs.countries === 1 ? 'country' : 'countries'}`,
+    type: "country" as ChipType,
+    value: `${inputs.countries} ${inputs.countries === 1 ? "country" : "countries"}`,
     confidence: 1.0,
-    source: 'estimator',
+    source: "estimator",
     raw: String(inputs.countries),
   });
 
   // Legal entities
   chips.push({
     id: `chip-entities-${timestamp}`,
-    type: 'legal_entities' as ChipType,
-    value: `${inputs.entities} legal ${inputs.entities === 1 ? 'entity' : 'entities'}`,
+    type: "legal_entities" as ChipType,
+    value: `${inputs.entities} legal ${inputs.entities === 1 ? "entity" : "entities"}`,
     confidence: 1.0,
-    source: 'estimator',
+    source: "estimator",
     raw: String(inputs.entities),
   });
 
   // Languages
   chips.push({
     id: `chip-language-${timestamp}`,
-    type: 'language' as ChipType,
-    value: `${inputs.languages} ${inputs.languages === 1 ? 'language' : 'languages'}`,
+    type: "language" as ChipType,
+    value: `${inputs.languages} ${inputs.languages === 1 ? "language" : "languages"}`,
     confidence: 1.0,
-    source: 'estimator',
+    source: "estimator",
     raw: String(inputs.languages),
   });
 
   // Peak sessions (users)
   chips.push({
     id: `chip-users-${timestamp}`,
-    type: 'employee_count' as ChipType,
+    type: "employee_count" as ChipType,
     value: `${inputs.peakSessions} peak concurrent users`,
     confidence: 0.8, // Lower confidence - proxy metric
-    source: 'estimator',
+    source: "estimator",
     raw: String(inputs.peakSessions),
   });
 
@@ -377,9 +389,9 @@ export function extractDecisionsFromProfile(
   profile: ProfilePreset
 ): Partial<Record<DecisionKey, string>> {
   return {
-    moduleCombo: profile.modules.includes('S/4HANA') ? 'finance_p2p' : 'finance_only',
-    deployment: 'cloud', // Default assumption
-    rateRegion: 'ABMY', // From estimator context
+    moduleCombo: profile.modules.includes("S/4HANA") ? "finance_p2p" : "finance_only",
+    deployment: "cloud", // Default assumption
+    rateRegion: "ABMY", // From estimator context
     // ssoMode and bankingPath left unset - user must decide
   };
 }
@@ -492,6 +504,7 @@ export default function ProjectPage() {
 ```
 
 **Edge cases handled:**
+
 - User closes browser mid-transfer → Data saved in unified store, recoverable
 - User goes back to estimator after bridge → Show "Continue project" option
 - Estimator inputs conflict with RFP chips → Estimator wins (explicit user input)
@@ -615,6 +628,7 @@ interface BenchmarkData {
 ```
 
 **What changes in code:**
+
 - `src/data/benchmark-data.ts` → NEW (static benchmarks, later API)
 - `src/lib/benchmark-calculator.ts` → NEW (comparison logic)
 - `src/app/estimator/page.tsx` → Add benchmark display
@@ -636,83 +650,83 @@ interface BenchmarkData {
 
 export const colorTokens = {
   primary: {
-    50: '#eff6ff',
-    100: '#dbeafe',
-    200: '#bfdbfe',
-    300: '#93c5fd',
-    400: '#60a5fa',
-    500: '#3b82f6',
-    600: '#2563eb', // Main brand color
-    700: '#1d4ed8',
-    800: '#1e40af',
-    900: '#1e3a8a',
+    50: "#eff6ff",
+    100: "#dbeafe",
+    200: "#bfdbfe",
+    300: "#93c5fd",
+    400: "#60a5fa",
+    500: "#3b82f6",
+    600: "#2563eb", // Main brand color
+    700: "#1d4ed8",
+    800: "#1e40af",
+    900: "#1e3a8a",
   },
   accent: {
-    50: '#faf5ff',
-    100: '#f3e8ff',
-    200: '#e9d5ff',
-    300: '#d8b4fe',
-    400: '#c084fc',
-    500: '#a855f7',
-    600: '#9333ea',
-    700: '#7e22ce',
-    800: '#6b21a8',
-    900: '#581c87',
+    50: "#faf5ff",
+    100: "#f3e8ff",
+    200: "#e9d5ff",
+    300: "#d8b4fe",
+    400: "#c084fc",
+    500: "#a855f7",
+    600: "#9333ea",
+    700: "#7e22ce",
+    800: "#6b21a8",
+    900: "#581c87",
   },
   success: {
-    50: '#f0fdf4',
-    100: '#dcfce7',
-    200: '#bbf7d0',
-    300: '#86efac',
-    400: '#4ade80',
-    500: '#22c55e',
-    600: '#16a34a',
-    700: '#15803d',
-    800: '#166534',
-    900: '#14532d',
+    50: "#f0fdf4",
+    100: "#dcfce7",
+    200: "#bbf7d0",
+    300: "#86efac",
+    400: "#4ade80",
+    500: "#22c55e",
+    600: "#16a34a",
+    700: "#15803d",
+    800: "#166534",
+    900: "#14532d",
   },
   warning: {
-    50: '#fffbeb',
-    100: '#fef3c7',
-    200: '#fde68a',
-    300: '#fcd34d',
-    400: '#fbbf24',
-    500: '#f59e0b',
-    600: '#d97706',
-    700: '#b45309',
-    800: '#92400e',
-    900: '#78350f',
+    50: "#fffbeb",
+    100: "#fef3c7",
+    200: "#fde68a",
+    300: "#fcd34d",
+    400: "#fbbf24",
+    500: "#f59e0b",
+    600: "#d97706",
+    700: "#b45309",
+    800: "#92400e",
+    900: "#78350f",
   },
   error: {
-    50: '#fef2f2',
-    100: '#fee2e2',
-    200: '#fecaca',
-    300: '#fca5a5',
-    400: '#f87171',
-    500: '#ef4444',
-    600: '#dc2626',
-    700: '#b91c1c',
-    800: '#991b1b',
-    900: '#7f1d1d',
+    50: "#fef2f2",
+    100: "#fee2e2",
+    200: "#fecaca",
+    300: "#fca5a5",
+    400: "#f87171",
+    500: "#ef4444",
+    600: "#dc2626",
+    700: "#b91c1c",
+    800: "#991b1b",
+    900: "#7f1d1d",
   },
   gray: {
-    50: '#f9fafb',
-    100: '#f3f4f6',
-    200: '#e5e7eb',
-    300: '#d1d5db',
-    400: '#9ca3af',
-    500: '#6b7280',
-    600: '#4b5563',
-    700: '#374151',
-    800: '#1f2937',
-    900: '#111827',
+    50: "#f9fafb",
+    100: "#f3f4f6",
+    200: "#e5e7eb",
+    300: "#d1d5db",
+    400: "#9ca3af",
+    500: "#6b7280",
+    600: "#4b5563",
+    700: "#374151",
+    800: "#1f2937",
+    900: "#111827",
   },
 } as const;
 
 // Dark mode variants
 export const colorTokensDark = {
   primary: {
-    50: '#1e3a8a',
+    50: "#1e3a8a",
     // ... inverted scale
   },
   // ... other colors inverted
@@ -723,7 +737,7 @@ export const colorTokensDark = {
 
 ```javascript
 // tailwind.config.js
-const { colorTokens } = require('./src/lib/design-tokens');
+const { colorTokens } = require("./src/lib/design-tokens");
 
 module.exports = {
   theme: {
@@ -742,6 +756,7 @@ module.exports = {
 ```
 
 **What changes in code:**
+
 - `src/lib/design-tokens.ts` → NEW
 - `tailwind.config.js` → Import and use tokens
 - All components → No change (classes still work)
@@ -752,28 +767,29 @@ module.exports = {
 
 ### Leading Indicators (Emotion & Friction)
 
-| Metric | Target | Measurement Point | Why It Matters |
-|--------|--------|-------------------|----------------|
-| **Time to first value** | < 30s | Estimator results shown | Tests instant gratification |
-| **Bridge adoption rate** | > 70% | Estimator → Project clicks | Tests tier integration |
-| **Completeness at handoff** | > 80% | Chips count when entering Plan | Tests data quality |
-| **Edit rate post-generation** | 20-40% | Phase edits after auto-gen | Tests accuracy (too low = not trusting, too high = not accurate) |
-| **Export rate** | > 60% | PDF/PPTX downloads per session | Tests completion intent |
-| **Return rate** | > 40% | Same user, 7-day window | Tests habit formation |
+| Metric                        | Target | Measurement Point              | Why It Matters                                                   |
+| ----------------------------- | ------ | ------------------------------ | ---------------------------------------------------------------- |
+| **Time to first value**       | < 30s  | Estimator results shown        | Tests instant gratification                                      |
+| **Bridge adoption rate**      | > 70%  | Estimator → Project clicks     | Tests tier integration                                           |
+| **Completeness at handoff**   | > 80%  | Chips count when entering Plan | Tests data quality                                               |
+| **Edit rate post-generation** | 20-40% | Phase edits after auto-gen     | Tests accuracy (too low = not trusting, too high = not accurate) |
+| **Export rate**               | > 60%  | PDF/PPTX downloads per session | Tests completion intent                                          |
+| **Return rate**               | > 40%  | Same user, 7-day window        | Tests habit formation                                            |
 
 ### Lagging Indicators (Business Outcomes)
 
-| Metric | Target | Measurement Point | Why It Matters |
-|--------|--------|-------------------|----------------|
-| **Time to proposal** | < 10 min | Project start → PDF export | Core value prop |
-| **Win rate** | Baseline + 20% | Proposals → closed deals | Revenue impact |
-| **NPS** | > 50 | Quarterly survey | Word-of-mouth predictor |
-| **Weekly active users** | > 60% retention | Weekly login rate | Stickiness |
-| **Admin task completion time** | -30% vs baseline | Task start → done | Admin satisfaction |
+| Metric                         | Target           | Measurement Point          | Why It Matters          |
+| ------------------------------ | ---------------- | -------------------------- | ----------------------- |
+| **Time to proposal**           | < 10 min         | Project start → PDF export | Core value prop         |
+| **Win rate**                   | Baseline + 20%   | Proposals → closed deals   | Revenue impact          |
+| **NPS**                        | > 50             | Quarterly survey           | Word-of-mouth predictor |
+| **Weekly active users**        | > 60% retention  | Weekly login rate          | Stickiness              |
+| **Admin task completion time** | -30% vs baseline | Task start → done          | Admin satisfaction      |
 
 ### Experiment Framework (see Measurement_and_Experiments.md)
 
 Each metric has:
+
 - Telemetry hook (where to log)
 - Dashboard visualization (how to read)
 - A/B test variant (how to improve)
@@ -783,6 +799,7 @@ Each metric has:
 ## 🔗 CROSS-REFERENCES
 
 This document connects to:
+
 - **First_Impression_Onboarding.md** - Pre-login experience for Tier 1 entry
 - **Admin_Journey_V2.md** - Parallel journey optimization
 - **Measurement_and_Experiments.md** - Metrics implementation
@@ -810,6 +827,7 @@ This redesign is complete when:
 - [ ] Mobile navigation updated (4 modes, not 5)
 
 **Definition of "Apple-grade":**
+
 - Zero friction between user intent and outcome
 - Every interaction has clear purpose
 - Visual hierarchy guides attention naturally

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig as authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
-import { getToken } from 'next-auth/jwt';
-import UAParser from 'ua-parser-js';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authConfig as authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { getToken } from "next-auth/jwt";
+
 
 // GET /api/account/sessions - List all active sessions
 export async function GET(req: NextRequest) {
@@ -11,10 +11,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await prisma.users.findUnique({
@@ -22,10 +19,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Get current session token
@@ -39,7 +33,7 @@ export async function GET(req: NextRequest) {
         expires: { gt: new Date() }, // Only active sessions
       },
       orderBy: {
-        lastActivity: 'desc',
+        lastActivity: "desc",
       },
     });
 
@@ -48,12 +42,12 @@ export async function GET(req: NextRequest) {
       let deviceInfo = null;
 
       // Parse deviceInfo if it exists
-      if (s.deviceInfo && typeof s.deviceInfo === 'object') {
-        const info = s.deviceInfo as any;
+      if (s.deviceInfo && typeof s.deviceInfo === "object") {
+        const info = s.deviceInfo as { browser?: string; os?: string; device?: string };
         deviceInfo = {
-          browser: info.browser || 'Unknown',
-          os: info.os || 'Unknown',
-          device: info.device || 'Unknown',
+          browser: info.browser || "Unknown",
+          os: info.os || "Unknown",
+          device: info.device || "Unknown",
         };
       }
 
@@ -68,10 +62,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(formattedSessions);
   } catch (error) {
-    console.error('Sessions fetch error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Sessions fetch error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

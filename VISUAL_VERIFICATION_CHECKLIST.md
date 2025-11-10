@@ -1,4 +1,5 @@
 # VISUAL VERIFICATION CHECKLIST
+
 ## Manual Testing Guide for Option 2 QA
 
 **Date:** 2025-11-09
@@ -11,15 +12,18 @@
 ## TEST SETUP
 
 ### 1. Start Development Server
+
 ```bash
 npm run dev
 # Server should start at http://localhost:3000
 ```
 
 ### 2. Create Realistic Test Data
+
 Use the following test project configuration:
 
 **Project Details:**
+
 - Name: "Enterprise SAP S/4HANA Implementation"
 - Start Date: 30 days ago
 - End Date: 60 days from now
@@ -27,6 +31,7 @@ Use the following test project configuration:
 - Status: Active
 
 **Phases (5):**
+
 1. Planning & Analysis (Days 1-30)
 2. Development (Days 31-60)
 3. Testing (Days 61-75)
@@ -36,19 +41,24 @@ Use the following test project configuration:
 **Tasks per Phase:** 4-6 tasks with varied progress (0%, 25%, 50%, 75%, 100%)
 
 **Milestones (3):**
+
 - Planning Complete (Day 30)
 - UAT Sign-off (Day 75)
 - Go-Live (Day 85)
 
 ### 3. Browser Setup
+
 Open these browsers for testing:
+
 - Google Chrome (latest)
 - Firefox (latest)
 - Safari (macOS/iOS if available)
 - Microsoft Edge (latest)
 
 ### 4. Device Emulation (Chrome DevTools)
+
 Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
+
 - iPhone SE (375px × 667px)
 - iPhone 12/13/14 (390px × 844px)
 - iPad (768px × 1024px)
@@ -62,6 +72,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 ### Test at: 1280px × 720px (Standard Desktop)
 
 #### GanttCanvas - Timeline View
+
 - [ ] Timeline grid renders with proper alignment
 - [ ] Month/week headers visible
 - [ ] Today marker shows current date (vertical red line)
@@ -77,6 +88,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `desktop-gantt-timeline-1280.png`
 
 #### GanttSidePanel
+
 - [ ] Phase list shows all phases
 - [ ] Task list shows all tasks under phases
 - [ ] Expand/collapse icons work
@@ -94,6 +106,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `desktop-side-panel-1280.png`
 
 #### GanttToolbar
+
 - [ ] All toolbar buttons visible
 - [ ] Zoom controls accessible
 - [ ] View mode toggles work
@@ -104,6 +117,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `desktop-toolbar-1280.png`
 
 #### MissionControlModal
+
 - [ ] Health score displays (0-100)
 - [ ] Health score color matches status:
   - Green (80-100): On track
@@ -119,6 +133,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 - [ ] Timeline section shows milestones
 
 **Test Data Scenarios:**
+
 1. On-track project: 50% tasks done, 33% time elapsed → Health 80-100
 2. At-risk project: 20% tasks done, 50% time elapsed → Health 40-60
 3. Over-budget project: 120% budget used → Health < 50, red alert
@@ -126,6 +141,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `desktop-mission-control-1280.png`
 
 #### CostDashboard
+
 - [ ] Total budget displays (formatted: $1,000,000)
 - [ ] Spent amount displays
 - [ ] Remaining budget displays
@@ -137,6 +153,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `desktop-cost-dashboard-1280.png`
 
 #### BaselineComparisonPanel
+
 - [ ] Baseline selector works
 - [ ] Variance charts display
 - [ ] Schedule variance shown
@@ -152,6 +169,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 ### Test at: 768px × 1024px (iPad Portrait)
 
 #### Responsive Behavior
+
 - [ ] GanttCanvas displays (timeline view, NOT list view)
 - [ ] Tablet alert banner shows: "Tablet View - Optimized for touch"
 - [ ] Banner is dismissible
@@ -165,6 +183,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `tablet-gantt-768.png`
 
 #### Touch Optimization
+
 - [ ] Buttons are touch-friendly (48px tap target)
 - [ ] No 300ms tap delay (test feels snappy)
 - [ ] Active states visible on tap
@@ -175,6 +194,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 ### Test at: 1024px × 768px (iPad Landscape)
 
 #### Desktop Mode Trigger
+
 - [ ] NO tablet banner (should be desktop mode)
 - [ ] Full desktop timeline view
 - [ ] All desktop features accessible
@@ -189,6 +209,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 ### Test at: 375px × 667px (iPhone SE - Minimum Width)
 
 #### GanttMobileListView
+
 - [ ] List view displays (NOT timeline)
 - [ ] No horizontal scroll
 - [ ] Phase cards render
@@ -203,6 +224,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `mobile-list-375.png`
 
 #### Task Items
+
 - [ ] Tasks display under phases
 - [ ] Task indentation visible (level-based padding)
 - [ ] Border-left accent color from parent phase
@@ -216,6 +238,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `mobile-tasks-375.png`
 
 #### Milestones Section
+
 - [ ] Milestones section renders if milestones exist
 - [ ] Section hidden if no milestones
 - [ ] Flag icons color-coded
@@ -226,6 +249,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `mobile-milestones-375.png`
 
 #### Mobile Navigation
+
 - [ ] Hamburger menu visible (3 horizontal lines)
 - [ ] Hamburger positioned top-right or top-left
 - [ ] Tap hamburger opens drawer
@@ -238,6 +262,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `mobile-navigation-375.png`
 
 #### PlanMode Panel (Mobile)
+
 - [ ] Panel is full-width on mobile (w-full)
 - [ ] No fixed 480px width
 - [ ] Content accessible
@@ -247,6 +272,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 **Screenshot:** Save as `mobile-planmode-375.png`
 
 #### PresentMode (Mobile)
+
 - [ ] Text scales down appropriately (text-3xl)
 - [ ] Navigation controls visible
 - [ ] Controls sized correctly (w-10 h-10)
@@ -260,6 +286,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 ### Test at: 390px × 844px (iPhone 12/13/14 - Standard)
 
 #### Verify All Mobile Tests Pass
+
 - [ ] All iPhone SE tests pass
 - [ ] Slightly more breathing room
 - [ ] Typography comfortable
@@ -269,6 +296,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 ### Test at: 428px × 926px (iPhone Pro Max - Large)
 
 #### Verify Large Mobile Behavior
+
 - [ ] Still shows list view (< 768px)
 - [ ] Better spacing utilization
 - [ ] Typography scales appropriately
@@ -282,6 +310,7 @@ Use responsive design mode (Ctrl+Shift+M / Cmd+Shift+M):
 ### Test on iPhone X/11/12/13/14 (Notched Devices)
 
 Use Chrome DevTools "Add device pixel ratio" to simulate:
+
 - [ ] Top content not hidden by notch
 - [ ] Bottom controls not hidden by home indicator
 - [ ] `pt-safe` adds padding at top
@@ -299,6 +328,7 @@ Use Chrome DevTools "Add device pixel ratio" to simulate:
 ### Test Smooth Transitions
 
 #### 767px → 768px (Mobile to Tablet)
+
 1. Set viewport to 767px
 2. Verify list view shows
 3. Slowly resize to 768px
@@ -312,6 +342,7 @@ Use Chrome DevTools "Add device pixel ratio" to simulate:
 **Screenshot:** Save as `transition-767-to-768.gif` (if recording)
 
 #### 1023px → 1024px (Tablet to Desktop)
+
 1. Set viewport to 1023px
 2. Verify tablet banner shows
 3. Resize to 1024px
@@ -328,14 +359,15 @@ Use Chrome DevTools "Add device pixel ratio" to simulate:
 
 Test at each breakpoint and verify text scales smoothly:
 
-| Element | Mobile (375px) | Small (640px) | Medium (768px) | Large (1024px) |
-|---------|----------------|---------------|----------------|----------------|
-| H1 (PresentMode) | text-3xl (30px) | text-5xl (48px) | text-6xl (60px) | text-7xl (72px) |
-| H2 | text-xl (20px) | text-2xl (24px) | text-3xl (30px) | text-4xl (36px) |
-| Body | text-sm (14px) | text-base (16px) | text-lg (18px) | text-lg (18px) |
-| Small | text-xs (12px) | text-xs (12px) | text-sm (14px) | text-sm (14px) |
+| Element          | Mobile (375px)  | Small (640px)    | Medium (768px)  | Large (1024px)  |
+| ---------------- | --------------- | ---------------- | --------------- | --------------- |
+| H1 (PresentMode) | text-3xl (30px) | text-5xl (48px)  | text-6xl (60px) | text-7xl (72px) |
+| H2               | text-xl (20px)  | text-2xl (24px)  | text-3xl (30px) | text-4xl (36px) |
+| Body             | text-sm (14px)  | text-base (16px) | text-lg (18px)  | text-lg (18px)  |
+| Small            | text-xs (12px)  | text-xs (12px)   | text-sm (14px)  | text-sm (14px)  |
 
 Checklist:
+
 - [ ] No jarring jumps between sizes
 - [ ] Clamp() creates smooth scaling
 - [ ] Readable at all sizes
@@ -350,6 +382,7 @@ Checklist:
 ### Test Edge Cases
 
 #### No Project Loaded
+
 1. Navigate to Gantt without project
 2. Verify:
    - [ ] "No project loaded" message displays
@@ -360,6 +393,7 @@ Checklist:
 **Screenshot:** Save as `empty-no-project.png`
 
 #### No Phases Added
+
 1. Create project with 0 phases
 2. Verify:
    - [ ] "No phases added yet" message shows
@@ -369,6 +403,7 @@ Checklist:
 **Screenshot:** Save as `empty-no-phases.png`
 
 #### No Milestones
+
 1. Create project with 0 milestones
 2. Verify:
    - [ ] Milestone section hidden
@@ -384,19 +419,20 @@ Checklist:
 
 Create tasks with each status and verify colors:
 
-| Status | Expected Color | Hex Code | Visual Check |
-|--------|----------------|----------|--------------|
-| Not Started | Gray | #9CA3AF | [ ] Matches |
-| In Progress | Blue | #3B82F6 | [ ] Matches |
-| At Risk | Amber | #F59E0B | [ ] Matches |
-| Blocked | Red | #EF4444 | [ ] Matches |
-| Completed | Green | #10B981 | [ ] Matches |
+| Status      | Expected Color | Hex Code | Visual Check |
+| ----------- | -------------- | -------- | ------------ |
+| Not Started | Gray           | #9CA3AF  | [ ] Matches  |
+| In Progress | Blue           | #3B82F6  | [ ] Matches  |
+| At Risk     | Amber          | #F59E0B  | [ ] Matches  |
+| Blocked     | Red            | #EF4444  | [ ] Matches  |
+| Completed   | Green          | #10B981  | [ ] Matches  |
 
 **Screenshot:** Save as `status-colors.png`
 
 ### Phase Colors
 
 Verify phases show custom colors:
+
 - [ ] Each phase has distinct color
 - [ ] Colors match design system
 - [ ] Accessible contrast ratios
@@ -410,18 +446,21 @@ Verify phases show custom colors:
 ### Visual Performance Checks
 
 #### Page Load
+
 - [ ] No layout shift on initial load
 - [ ] Components appear in order (no flash)
 - [ ] Smooth fade-in animations
 - [ ] No janky movements
 
 #### Scrolling
+
 - [ ] Mobile list scrolls smoothly (60fps)
 - [ ] Desktop timeline scrolls smoothly
 - [ ] No stuttering
 - [ ] No white flashes
 
 #### Interactions
+
 - [ ] Expand/collapse smooth
 - [ ] Modal open/close smooth
 - [ ] Tab transitions smooth
@@ -436,6 +475,7 @@ Verify phases show custom colors:
 ### Manual Accessibility Checks
 
 #### Keyboard Navigation
+
 - [ ] Tab through all interactive elements
 - [ ] Focus indicators visible
 - [ ] Logical tab order
@@ -443,12 +483,14 @@ Verify phases show custom colors:
 - [ ] Escape closes modals
 
 #### Screen Reader (Optional)
+
 - [ ] Labels read correctly
 - [ ] Alt text on images/icons
 - [ ] ARIA labels present
 - [ ] Semantic HTML used
 
 #### Color Contrast
+
 - [ ] Text readable on backgrounds
 - [ ] Status tags pass WCAG AA (4.5:1)
 - [ ] Links distinguishable
@@ -459,29 +501,34 @@ Verify phases show custom colors:
 ## TEST RESULTS SUMMARY
 
 ### Desktop (1280px)
+
 - [ ] All components render ✅
 - [ ] No visual bugs 🐛
 - [ ] Performance smooth ⚡
 - [ ] Screenshots captured 📸
 
 ### Tablet (768px)
+
 - [ ] Timeline shows ✅
 - [ ] Touch-optimized ✅
 - [ ] Alert banner works ✅
 - [ ] Screenshots captured 📸
 
 ### Mobile (375px)
+
 - [ ] List view shows ✅
 - [ ] No horizontal scroll ✅
 - [ ] All features accessible ✅
 - [ ] Screenshots captured 📸
 
 ### Cross-Breakpoint
+
 - [ ] Smooth transitions ✅
 - [ ] Data persists ✅
 - [ ] No layout shift ✅
 
 ### Edge Cases
+
 - [ ] Empty states work ✅
 - [ ] Long names truncate ✅
 - [ ] Safe areas respected ✅
@@ -503,6 +550,7 @@ Verify phases show custom colors:
 [What's wrong]
 
 **Steps to Reproduce:**
+
 1. [Step 1]
 2. [Step 2]
 3. [Step 3]
@@ -517,6 +565,7 @@ Verify phases show custom colors:
 [Attach screenshot]
 
 **Priority:**
+
 - [ ] Block release
 - [ ] Fix before release
 - [ ] Fix after release
@@ -528,11 +577,11 @@ Verify phases show custom colors:
 
 ### Visual Verification Complete
 
-**Tested By:** ___________
-**Date:** ___________
-**Total Issues Found:** ___________
-**Critical Issues:** ___________
-**High Priority Issues:** ___________
+**Tested By:** \***\*\_\_\_\*\***
+**Date:** \***\*\_\_\_\*\***
+**Total Issues Found:** \***\*\_\_\_\*\***
+**Critical Issues:** \***\*\_\_\_\*\***
+**High Priority Issues:** \***\*\_\_\_\*\***
 **Status:** ✅ PASSED / ⚠️ PASSED WITH ISSUES / ❌ FAILED
 
 **Notes:**
@@ -541,6 +590,7 @@ Verify phases show custom colors:
 ---
 
 **Next Steps:**
+
 1. Fix all critical issues
 2. Fix all high-priority issues
 3. Document medium/low issues for backlog
@@ -548,6 +598,6 @@ Verify phases show custom colors:
 5. Run integration tests
 6. Run E2E tests
 
-**Estimated Time for Fixes:** _____ hours
+**Estimated Time for Fixes:** **\_** hours
 
-**Projected Completion Date:** ___________
+**Projected Completion Date:** \***\*\_\_\_\*\***

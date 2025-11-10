@@ -3,27 +3,27 @@
  * Provides offline support and caching strategies
  */
 
-const CACHE_NAME = 'keystone-v1';
-const RUNTIME_CACHE = 'keystone-runtime';
-const OFFLINE_URL = '/offline';
+const CACHE_NAME = "keystone-v1";
+const RUNTIME_CACHE = "keystone-runtime";
+const OFFLINE_URL = "/offline";
 
 // Resources to cache on install
 const PRECACHE_ASSETS = [
-  '/',
-  '/dashboard',
-  '/estimator',
-  '/gantt-tool',
-  '/offline',
-  '/manifest.json',
+  "/",
+  "/dashboard",
+  "/estimator",
+  "/gantt-tool",
+  "/offline",
+  "/manifest.json",
 ];
 
 // Install event - cache essential resources
-self.addEventListener('install', (event) => {
-  console.log('[ServiceWorker] Install');
+self.addEventListener("install", (event) => {
+  console.log("[ServiceWorker] Install");
 
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Precaching app shell');
+      console.log("[ServiceWorker] Precaching app shell");
       return cache.addAll(PRECACHE_ASSETS);
     })
   );
@@ -32,15 +32,15 @@ self.addEventListener('install', (event) => {
 });
 
 // Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-  console.log('[ServiceWorker] Activate');
+self.addEventListener("activate", (event) => {
+  console.log("[ServiceWorker] Activate");
 
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
-            console.log('[ServiceWorker] Removing old cache:', cacheName);
+            console.log("[ServiceWorker] Removing old cache:", cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -52,22 +52,22 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch event - serve from cache, fallback to network
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
   // Skip non-GET requests
-  if (request.method !== 'GET') {
+  if (request.method !== "GET") {
     return;
   }
 
   // Skip chrome extensions and non-http(s) schemes
-  if (!url.protocol.startsWith('http')) {
+  if (!url.protocol.startsWith("http")) {
     return;
   }
 
   // API requests - Network first, cache fallback
-  if (url.pathname.startsWith('/api/')) {
+  if (url.pathname.startsWith("/api/")) {
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -86,9 +86,9 @@ self.addEventListener('fetch', (event) => {
             }
             // Return offline data response
             return new Response(
-              JSON.stringify({ offline: true, message: 'Data unavailable offline' }),
+              JSON.stringify({ offline: true, message: "Data unavailable offline" }),
               {
-                headers: { 'Content-Type': 'application/json' },
+                headers: { "Content-Type": "application/json" },
                 status: 503,
               }
             );
@@ -100,8 +100,8 @@ self.addEventListener('fetch', (event) => {
 
   // Static assets - Cache first, network fallback
   if (
-    url.pathname.startsWith('/_next/static/') ||
-    url.pathname.startsWith('/icons/') ||
+    url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/icons/") ||
     url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|gif|woff|woff2)$/)
   ) {
     event.respondWith(
@@ -126,7 +126,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // HTML pages - Network first, cache fallback
-  if (request.headers.get('accept').includes('text/html')) {
+  if (request.headers.get("accept").includes("text/html")) {
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -172,10 +172,10 @@ self.addEventListener('fetch', (event) => {
 });
 
 // Background sync for offline data
-self.addEventListener('sync', (event) => {
-  console.log('[ServiceWorker] Background sync:', event.tag);
+self.addEventListener("sync", (event) => {
+  console.log("[ServiceWorker] Background sync:", event.tag);
 
-  if (event.tag === 'sync-offline-data') {
+  if (event.tag === "sync-offline-data") {
     event.waitUntil(syncOfflineData());
   }
 });
@@ -187,7 +187,7 @@ async function syncOfflineData() {
     const db = await openDatabase();
     const pendingItems = await getPendingItems(db);
 
-    console.log('[ServiceWorker] Syncing', pendingItems.length, 'items');
+    console.log("[ServiceWorker] Syncing", pendingItems.length, "items");
 
     // Sync each item
     for (const item of pendingItems) {
@@ -201,28 +201,28 @@ async function syncOfflineData() {
         // Remove from pending queue
         await removeFromPending(db, item.id);
       } catch (error) {
-        console.error('[ServiceWorker] Failed to sync item:', error);
+        console.error("[ServiceWorker] Failed to sync item:", error);
       }
     }
 
-    console.log('[ServiceWorker] Sync complete');
+    console.log("[ServiceWorker] Sync complete");
   } catch (error) {
-    console.error('[ServiceWorker] Sync failed:', error);
+    console.error("[ServiceWorker] Sync failed:", error);
   }
 }
 
 // Helper functions for IndexedDB
 function openDatabase() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('keystone-offline', 1);
+    const request = indexedDB.open("keystone-offline", 1);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
-      if (!db.objectStoreNames.contains('pending')) {
-        db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains("pending")) {
+        db.createObjectStore("pending", { keyPath: "id", autoIncrement: true });
       }
     };
   });
@@ -230,8 +230,8 @@ function openDatabase() {
 
 function getPendingItems(db) {
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['pending'], 'readonly');
-    const store = transaction.objectStore('pending');
+    const transaction = db.transaction(["pending"], "readonly");
+    const store = transaction.objectStore("pending");
     const request = store.getAll();
 
     request.onerror = () => reject(request.error);
@@ -241,8 +241,8 @@ function getPendingItems(db) {
 
 function removeFromPending(db, id) {
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['pending'], 'readwrite');
-    const store = transaction.objectStore('pending');
+    const transaction = db.transaction(["pending"], "readwrite");
+    const store = transaction.objectStore("pending");
     const request = store.delete(id);
 
     request.onerror = () => reject(request.error);
@@ -251,42 +251,42 @@ function removeFromPending(db, id) {
 }
 
 // Push notifications (future feature)
-self.addEventListener('push', (event) => {
-  console.log('[ServiceWorker] Push received:', event);
+self.addEventListener("push", (event) => {
+  console.log("[ServiceWorker] Push received:", event);
 
   const options = {
-    body: event.data ? event.data.text() : 'New notification',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
+    body: event.data ? event.data.text() : "New notification",
+    icon: "/icons/icon-192x192.png",
+    badge: "/icons/badge-72x72.png",
     vibrate: [200, 100, 200],
-    tag: 'notification',
+    tag: "notification",
     requireInteraction: false,
   };
 
-  event.waitUntil(self.registration.showNotification('Keystone', options));
+  event.waitUntil(self.registration.showNotification("Keystone", options));
 });
 
 // Notification click handler
-self.addEventListener('notificationclick', (event) => {
-  console.log('[ServiceWorker] Notification click:', event);
+self.addEventListener("notificationclick", (event) => {
+  console.log("[ServiceWorker] Notification click:", event);
 
   event.notification.close();
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
       // Focus existing window if available
       for (const client of clientList) {
-        if ('focus' in client) {
+        if ("focus" in client) {
           return client.focus();
         }
       }
 
       // Open new window if none exists
       if (clients.openWindow) {
-        return clients.openWindow('/dashboard');
+        return clients.openWindow("/dashboard");
       }
     })
   );
 });
 
-console.log('[ServiceWorker] Loaded');
+console.log("[ServiceWorker] Loaded");

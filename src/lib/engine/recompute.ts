@@ -11,9 +11,9 @@
  * - Type-safe (full TypeScript coverage)
  */
 
-import { Phase } from '@/types/core';
-import { RicefwItem, calculateRicefwSummary, FormItem, IntegrationItem } from '@/lib/ricefw/model';
-import { calculateRicefwPhaseImpact } from '@/lib/ricefw/calculator';
+import { Phase } from "@/types/core";
+import { RicefwItem, calculateRicefwSummary, FormItem, IntegrationItem } from "@/lib/ricefw/model";
+import { calculateRicefwPhaseImpact } from "@/lib/ricefw/calculator";
 
 // ============================================================================
 // Types
@@ -133,7 +133,11 @@ export function recompute(inputs: ProjectInputs): ComputedOutputs {
 
   const totalEffort = totalEffortPD * HOURS_PER_PERSON_DAY;
 
-  const totalCost = ricefwCost + formCost + integrationCost + Object.values(phaseCost).reduce((sum, c) => sum + c, 0);
+  const totalCost =
+    ricefwCost +
+    formCost +
+    integrationCost +
+    Object.values(phaseCost).reduce((sum, c) => sum + c, 0);
 
   // Calculate timeline metrics
   const { earliestStart, latestEnd, totalDuration } = calculateTimelineMetrics(phases);
@@ -204,7 +208,7 @@ function calculateTimelineMetrics(phases: Phase[]): {
   return {
     earliestStart: null,
     latestEnd: null,
-    totalDuration
+    totalDuration,
   };
 }
 
@@ -227,12 +231,14 @@ function validateProject(inputs: ProjectInputs & { totalEffort?: number }): {
 
   // Check RICEFW items
   if (!inputs.ricefwItems || inputs.ricefwItems.length === 0) {
-    warnings.push('No RICEFW items defined - consider adding reports, interfaces, conversions, etc.');
+    warnings.push(
+      "No RICEFW items defined - consider adding reports, interfaces, conversions, etc."
+    );
   }
 
   // Check phases
   if (!inputs.phases || inputs.phases.length === 0) {
-    criticalGaps.push('No project phases defined');
+    criticalGaps.push("No project phases defined");
   }
 
   // Check for excessive effort
@@ -245,7 +251,9 @@ function validateProject(inputs: ProjectInputs & { totalEffort?: number }): {
     const { totalDuration } = calculateTimelineMetrics(inputs.phases);
     if (totalDuration > 730) {
       // 2 years
-      warnings.push(`Project duration is ${totalDuration} days (>2 years) - consider phasing the implementation`);
+      warnings.push(
+        `Project duration is ${totalDuration} days (>2 years) - consider phasing the implementation`
+      );
     }
   }
 
@@ -264,7 +272,7 @@ function validateProject(inputs: ProjectInputs & { totalEffort?: number }): {
 export function recomputeRicefw(
   ricefwItems: RicefwItem[],
   averageHourlyRate: number = 150
-): Pick<ComputedOutputs, 'ricefwEffort' | 'ricefwCost' | 'ricefwPhaseImpact'> {
+): Pick<ComputedOutputs, "ricefwEffort" | "ricefwCost" | "ricefwPhaseImpact"> {
   const ricefwSummary = calculateRicefwSummary(ricefwItems, averageHourlyRate);
   const ricefwPhaseImpact = calculateRicefwPhaseImpact(ricefwItems);
 
@@ -281,7 +289,10 @@ export function recomputeRicefw(
 export function recomputePhases(
   phases: Phase[],
   averageHourlyRate: number = 150
-): Pick<ComputedOutputs, 'phaseEffort' | 'phaseCost' | 'totalDuration' | 'earliestStart' | 'latestEnd'> {
+): Pick<
+  ComputedOutputs,
+  "phaseEffort" | "phaseCost" | "totalDuration" | "earliestStart" | "latestEnd"
+> {
   const phaseEffort: Record<string, number> = {};
   const phaseCost: Record<string, number> = {};
 
@@ -307,7 +318,10 @@ export function recomputePhases(
  */
 export function recomputeCosts(
   inputs: ProjectInputs
-): Pick<ComputedOutputs, 'totalCost' | 'ricefwCost' | 'formCost' | 'integrationCost' | 'phaseCost'> {
+): Pick<
+  ComputedOutputs,
+  "totalCost" | "ricefwCost" | "formCost" | "integrationCost" | "phaseCost"
+> {
   const {
     ricefwItems = [],
     formItems = [],
@@ -331,7 +345,11 @@ export function recomputeCosts(
     phaseCost[phase.id] = effort * HOURS_PER_PERSON_DAY * averageHourlyRate;
   }
 
-  const totalCost = ricefwCost + formCost + integrationCost + Object.values(phaseCost).reduce((sum, c) => sum + c, 0);
+  const totalCost =
+    ricefwCost +
+    formCost +
+    integrationCost +
+    Object.values(phaseCost).reduce((sum, c) => sum + c, 0);
 
   return {
     totalCost,

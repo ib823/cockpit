@@ -11,7 +11,16 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, X, RefreshCw, TrendingUp, TrendingDown, Clock, DollarSign, Layers } from "lucide-react";
+import {
+  AlertTriangle,
+  X,
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  DollarSign,
+  Layers,
+} from "lucide-react";
 import { useEffect } from "react";
 import { formatCurrency, formatDuration } from "@/lib/utils";
 import type { Phase } from "@/types/core";
@@ -39,18 +48,17 @@ export function RegenerateModal({
   onConfirm,
   diff,
   currentPhases,
-  newPhases = []
+  newPhases = [],
 }: RegenerateModalProps) {
-
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         onClose();
       }
     };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
   return (
@@ -79,9 +87,7 @@ export function RegenerateModal({
               <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <RefreshCw className="w-6 h-6 text-white" />
-                  <h2 className="text-xl font-semibold text-white">
-                    Regenerate Timeline?
-                  </h2>
+                  <h2 className="text-xl font-semibold text-white">Regenerate Timeline?</h2>
                 </div>
                 <button
                   onClick={onClose}
@@ -100,10 +106,12 @@ export function RegenerateModal({
                       <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="font-semibold text-orange-900 mb-1">
-                          You have {diff.manualEditsCount} manual edit{diff.manualEditsCount > 1 ? 's' : ''}
+                          You have {diff.manualEditsCount} manual edit
+                          {diff.manualEditsCount > 1 ? "s" : ""}
                         </h3>
                         <p className="text-sm text-orange-800">
-                          Regenerating will preserve your edits, but may cause inconsistencies if the underlying timeline structure changes.
+                          Regenerating will preserve your edits, but may cause inconsistencies if
+                          the underlying timeline structure changes.
                         </p>
                       </div>
                     </div>
@@ -163,11 +171,9 @@ export function RegenerateModal({
                     {diff.phasesAdded > 0 && (
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <div className="text-sm font-medium text-green-900 mb-1">
-                          +{diff.phasesAdded} phase{diff.phasesAdded > 1 ? 's' : ''} added
+                          +{diff.phasesAdded} phase{diff.phasesAdded > 1 ? "s" : ""} added
                         </div>
-                        <div className="text-xs text-green-700">
-                          New phases will be inserted
-                        </div>
+                        <div className="text-xs text-green-700">New phases will be inserted</div>
                       </div>
                     )}
 
@@ -175,11 +181,9 @@ export function RegenerateModal({
                     {diff.phasesRemoved > 0 && (
                       <div className="p-4 bg-red-50 rounded-lg border border-red-200">
                         <div className="text-sm font-medium text-red-900 mb-1">
-                          -{diff.phasesRemoved} phase{diff.phasesRemoved > 1 ? 's' : ''} removed
+                          -{diff.phasesRemoved} phase{diff.phasesRemoved > 1 ? "s" : ""} removed
                         </div>
-                        <div className="text-xs text-red-700">
-                          Existing phases will be deleted
-                        </div>
+                        <div className="text-xs text-red-700">Existing phases will be deleted</div>
                       </div>
                     )}
                   </div>
@@ -192,25 +196,35 @@ export function RegenerateModal({
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {newPhases.slice(0, 10).map((phase, idx) => {
                         const oldPhase = currentPhases[idx];
-                        const durationChanged = oldPhase && oldPhase.workingDays !== phase.workingDays;
+                        const durationChanged =
+                          oldPhase && oldPhase.workingDays !== phase.workingDays;
 
                         return (
-                          <div key={phase.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                          <div
+                            key={phase.id}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm"
+                          >
                             <span className="font-medium text-gray-900">{phase.name}</span>
                             <div className="flex items-center gap-3">
                               {oldPhase ? (
                                 <>
                                   {durationChanged ? (
                                     <>
-                                      <span className="text-gray-500 line-through">{oldPhase.workingDays}d</span>
-                                      <span className="text-blue-600 font-medium">{phase.workingDays}d</span>
+                                      <span className="text-gray-500 line-through">
+                                        {oldPhase.workingDays}d
+                                      </span>
+                                      <span className="text-blue-600 font-medium">
+                                        {phase.workingDays}d
+                                      </span>
                                     </>
                                   ) : (
                                     <span className="text-gray-600">{phase.workingDays}d</span>
                                   )}
                                 </>
                               ) : (
-                                <span className="text-green-600 font-medium">New: {phase.workingDays}d</span>
+                                <span className="text-green-600 font-medium">
+                                  New: {phase.workingDays}d
+                                </span>
                               )}
                             </div>
                           </div>
@@ -228,8 +242,9 @@ export function RegenerateModal({
                 {/* Info note */}
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-900">
-                    <strong>Note:</strong> This regeneration is based on your current requirements and decisions.
-                    Manual edits to phase durations, resources, or dates will be preserved where possible.
+                    <strong>Note:</strong> This regeneration is based on your current requirements
+                    and decisions. Manual edits to phase durations, resources, or dates will be
+                    preserved where possible.
                   </p>
                 </div>
               </div>

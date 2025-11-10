@@ -14,9 +14,9 @@
  * Note: DuckDB WASM works in browser and Node.js
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 
 /**
  * DuckDB Connection Interface
@@ -113,16 +113,16 @@ export class DuckDBEngine {
     if (this.initialized) return;
 
     try {
-      console.log('[DuckDB] 🦆 Initializing DuckDB WASM...');
+      console.log("[DuckDB] 🦆 Initializing DuckDB WASM...");
 
       // For now, use a mock connection until DuckDB WASM is installed
       // TODO: Replace with actual DuckDB WASM when npm package is added
       this.connection = await this.createMockConnection();
 
       this.initialized = true;
-      console.log('[DuckDB] ✅ DuckDB initialized');
+      console.log("[DuckDB] ✅ DuckDB initialized");
     } catch (error) {
-      console.error('[DuckDB] ❌ Initialization failed:', error);
+      console.error("[DuckDB] ❌ Initialization failed:", error);
       throw error;
     }
   }
@@ -138,7 +138,7 @@ export class DuckDBEngine {
         return [];
       },
       close: async () => {
-        console.log('[DuckDB] Connection closed');
+        console.log("[DuckDB] Connection closed");
       },
     };
   }
@@ -284,9 +284,9 @@ export class DuckDBEngine {
         AVG(duration_months) as avg_duration
       FROM projects
       WHERE 1=1
-        ${filters.dateFrom ? `AND created_at >= '${filters.dateFrom}'` : ''}
-        ${filters.dateTo ? `AND created_at <= '${filters.dateTo}'` : ''}
-        ${filters.status ? `AND status = '${filters.status}'` : ''}
+        ${filters.dateFrom ? `AND created_at >= '${filters.dateFrom}'` : ""}
+        ${filters.dateTo ? `AND created_at <= '${filters.dateTo}'` : ""}
+        ${filters.status ? `AND status = '${filters.status}'` : ""}
       GROUP BY month
       ORDER BY month DESC
     `;
@@ -299,7 +299,7 @@ export class DuckDBEngine {
    */
   clearCache(): void {
     analyticsCache.clear();
-    console.log('[DuckDB] 🗑️  Cache cleared');
+    console.log("[DuckDB] 🗑️  Cache cleared");
   }
 
   /**
@@ -321,7 +321,7 @@ export class DuckDBEngine {
       this.connection = null;
     }
     this.initialized = false;
-    console.log('[DuckDB] 🔌 Closed');
+    console.log("[DuckDB] 🔌 Closed");
   }
 }
 
@@ -366,7 +366,7 @@ export function useDuckDBAnalytics() {
         const results = await engine.query<T>(sql, params, options);
         return results;
       } catch (err) {
-        const error = err instanceof Error ? err : new Error('Query failed');
+        const error = err instanceof Error ? err : new Error("Query failed");
         setError(error);
         throw error;
       } finally {
@@ -385,7 +385,7 @@ export function useDuckDBAnalytics() {
         const analytics = await engine.getDashboardAnalytics(userId);
         return analytics;
       } catch (err) {
-        const error = err instanceof Error ? err : new Error('Analytics fetch failed');
+        const error = err instanceof Error ? err : new Error("Analytics fetch failed");
         setError(error);
         throw error;
       } finally {

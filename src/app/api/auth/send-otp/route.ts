@@ -1,11 +1,11 @@
-import { prisma } from '@/lib/db';
-import { NextResponse } from 'next/server';
-import { randomBytes, randomInt } from 'crypto';
-import { sendAccessCode } from '@/lib/email';
-import { otpSendLimiter } from '@/lib/server-rate-limiter';
-import { hashOTP } from '@/lib/crypto-utils';
+import { prisma } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { randomBytes, randomInt } from "crypto";
+import { sendAccessCode } from "@/lib/email";
+import { otpSendLimiter } from "@/lib/server-rate-limiter";
+import { hashOTP } from "@/lib/crypto-utils";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 // Generate 6-digit OTP using cryptographically secure random number generator
 // Fixed: V-001 - Replaced Math.random() with crypto.randomInt()
@@ -15,17 +15,14 @@ function generateOTP(): string {
 }
 
 export async function POST(req: Request) {
-  if (process.env.ENABLE_MAGIC_LINKS !== 'true') {
-    return NextResponse.json({ ok: false, message: 'Disabled' }, { status: 404 });
+  if (process.env.ENABLE_MAGIC_LINKS !== "true") {
+    return NextResponse.json({ ok: false, message: "Disabled" }, { status: 404 });
   }
   try {
     const { email } = await req.json();
 
-    if (!email || !email.includes('@')) {
-      return NextResponse.json(
-        { ok: false, message: 'Valid email is required' },
-        { status: 400 }
-      );
+    if (!email || !email.includes("@")) {
+      return NextResponse.json({ ok: false, message: "Valid email is required" }, { status: 400 });
     }
 
     // Fixed: V-002 - Rate limiting to prevent email flooding
@@ -41,10 +38,10 @@ export async function POST(req: Request) {
         {
           status: 429,
           headers: {
-            'Retry-After': String(rateLimitResult.retryAfter),
-            'X-RateLimit-Limit': String(rateLimitResult.limit),
-            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
-            'X-RateLimit-Reset': String(rateLimitResult.reset),
+            "Retry-After": String(rateLimitResult.retryAfter),
+            "X-RateLimit-Limit": String(rateLimitResult.limit),
+            "X-RateLimit-Remaining": String(rateLimitResult.remaining),
+            "X-RateLimit-Reset": String(rateLimitResult.reset),
           },
         }
       );
@@ -57,7 +54,10 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { ok: false, message: 'No account found with this email. Please contact your administrator.' },
+        {
+          ok: false,
+          message: "No account found with this email. Please contact your administrator.",
+        },
         { status: 404 }
       );
     }
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     // Check if user access has expired
     if (user.accessExpiresAt && new Date() > user.accessExpiresAt && !user.exception) {
       return NextResponse.json(
-        { ok: false, message: 'Your access has expired. Please contact your administrator.' },
+        { ok: false, message: "Your access has expired. Please contact your administrator." },
         { status: 403 }
       );
     }
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
 
     // Store OTP in database using magic_tokens table (expires in 10 minutes)
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-    const tokenId = randomBytes(16).toString('hex');
+    const tokenId = randomBytes(16).toString("hex");
 
     // Delete any existing OTP for this email
     await prisma.magic_tokens.deleteMany({
@@ -99,35 +99,29 @@ export async function POST(req: Request) {
     const emailResult = await sendAccessCode(user.email, otp);
 
     if (!emailResult.success && !emailResult.devMode) {
-      console.error('[send-otp] Failed to send email:', emailResult.error);
+      console.error("[send-otp] Failed to send email:", emailResult.error);
       return NextResponse.json(
-        { ok: false, message: 'Failed to send verification code. Please try again.' },
+        { ok: false, message: "Failed to send verification code. Please try again." },
         { status: 500 }
       );
     }
 
     // In dev mode, log the OTP to console
     if (emailResult.devMode) {
-      console.log('\n' + '='.repeat(80));
-      console.log('🔢 OTP CODE (Development Mode)');
-      console.log('='.repeat(80));
-      console.log('Email:', user.email);
-      console.log('OTP Code:', otp);
-      console.log('Expires:', expiresAt.toISOString());
-      console.log('='.repeat(80) + '\n');
+
     }
 
     return NextResponse.json({
       ok: true,
-      message: 'Verification code sent! Check your email.',
+      message: "Verification code sent! Check your email.",
       devMode: emailResult.devMode,
       // Only include OTP in dev mode for easy testing
       ...(emailResult.devMode && { otp }),
     });
   } catch (error) {
-    console.error('Send OTP error:', error);
+    console.error("Send OTP error:", error);
     return NextResponse.json(
-      { ok: false, message: 'Failed to send verification code. Please try again.' },
+      { ok: false, message: "Failed to send verification code. Please try again." },
       { status: 500 }
     );
   }

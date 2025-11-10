@@ -5,11 +5,13 @@
  * and other personalization options. Persisted to localStorage.
  */
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export type ThemeMode = 'light' | 'dark' | 'system';
-export type LanguageCode = 'en' | 'zh' | 'de' | 'es';
+export type ThemeMode = "light" | "dark" | "system";
+export type LanguageCode = "en" | "zh" | "de" | "es";
+export type AccentColor = "blue" | "purple" | "green" | "orange" | "red" | "teal";
+export type DensityMode = "compact" | "comfortable" | "spacious";
 
 interface PreferencesState {
   // UI Mode
@@ -63,12 +65,12 @@ const defaultState = {
   showTooltips: true,
 
   // Display
-  theme: 'system' as ThemeMode,
-  language: 'en' as LanguageCode,
+  theme: "system" as ThemeMode,
+  language: "en" as LanguageCode,
   compactMode: false,
 
   // Estimator Defaults
-  defaultProfile: 'malaysia-mid-market',
+  defaultProfile: "malaysia-mid-market",
   autoCalculate: true,
   showUncertaintyAnalysis: true,
   showSensitivityAnalysis: true,
@@ -88,13 +90,14 @@ export const usePreferencesStore = create<PreferencesState>()(
     (set) => ({
       ...defaultState,
 
-      toggleExpertMode: () => set((state) => ({
-        expertMode: !state.expertMode,
-        // Auto-enable advanced features in expert mode
-        showFormulas: !state.expertMode ? true : state.showFormulas,
-        showUncertaintyAnalysis: !state.expertMode ? true : state.showUncertaintyAnalysis,
-        showSensitivityAnalysis: !state.expertMode ? true : state.showSensitivityAnalysis,
-      })),
+      toggleExpertMode: () =>
+        set((state) => ({
+          expertMode: !state.expertMode,
+          // Auto-enable advanced features in expert mode
+          showFormulas: !state.expertMode ? true : state.showFormulas,
+          showUncertaintyAnalysis: !state.expertMode ? true : state.showUncertaintyAnalysis,
+          showSensitivityAnalysis: !state.expertMode ? true : state.showSensitivityAnalysis,
+        })),
 
       setShowFormulas: (show) => set({ showFormulas: show }),
       setShowTooltips: (show) => set({ showTooltips: show }),
@@ -114,7 +117,7 @@ export const usePreferencesStore = create<PreferencesState>()(
       resetToDefaults: () => set(defaultState),
     }),
     {
-      name: 'user-preferences',
+      name: "user-preferences",
       version: 1,
     }
   )

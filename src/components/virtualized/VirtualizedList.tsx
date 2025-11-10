@@ -12,11 +12,18 @@
  * - Accessibility
  */
 
-'use client';
+"use client";
 
-import { memo, useCallback, useMemo, useState, useRef, useEffect } from 'react';
-import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import { memo, useCallback, useMemo, useState, useRef, useEffect } from "react";
+import { List } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
+
+// Type for list child props
+interface ListChildComponentProps {
+  index: number;
+  style: React.CSSProperties;
+  data?: any;
+}
 
 export interface VirtualizedListItem {
   id: string | number;
@@ -88,30 +95,30 @@ export function VirtualizedList<T extends VirtualizedListItem>({
   renderItem,
   itemHeight = 50,
   searchable = false,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder = "Search...",
   filterFn,
   loading = false,
-  emptyMessage = 'No items found',
-  className = '',
+  emptyMessage = "No items found",
+  className = "",
   onItemClick,
   overscanCount = 5,
 }: VirtualizedListProps<T>) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const listRef = useRef<List>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const listRef = useRef<any>(null);
 
   // Filter items based on search query
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return items;
 
     if (filterFn) {
-      return items.filter(item => filterFn(item, searchQuery));
+      return items.filter((item) => filterFn(item, searchQuery));
     }
 
     // Default filter: search in all string properties
-    return items.filter(item => {
+    return items.filter((item) => {
       const searchLower = searchQuery.toLowerCase();
-      return Object.values(item).some(value => {
-        if (typeof value === 'string') {
+      return Object.values(item).some((value) => {
+        if (typeof value === "string") {
           return value.toLowerCase().includes(searchLower);
         }
         return false;
@@ -121,7 +128,7 @@ export function VirtualizedList<T extends VirtualizedListItem>({
 
   // Render row component
   const Row = useCallback(
-    ({ index, style }: ListChildComponentProps) => {
+    ({ index, style, ariaAttributes }: { index: number; style: React.CSSProperties; ariaAttributes: any }) => {
       const item = filteredItems[index];
 
       return (
@@ -129,14 +136,14 @@ export function VirtualizedList<T extends VirtualizedListItem>({
           style={style}
           className="virtualized-list-item"
           onClick={() => onItemClick?.(item, index)}
-          role="listitem"
           tabIndex={0}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               onItemClick?.(item, index);
             }
           }}
+          {...ariaAttributes}
         >
           {renderItem(item, index)}
         </div>
@@ -154,7 +161,7 @@ export function VirtualizedList<T extends VirtualizedListItem>({
 
   // Clear search
   const handleClearSearch = useCallback(() => {
-    setSearchQuery('');
+    setSearchQuery("");
     listRef.current?.scrollToItem(0);
   }, []);
 
@@ -200,24 +207,20 @@ export function VirtualizedList<T extends VirtualizedListItem>({
       )}
 
       {filteredItems.length === 0 ? (
-        <div className="flex items-center justify-center h-64 text-gray-500">
-          {emptyMessage}
-        </div>
+        <div className="flex items-center justify-center h-64 text-gray-500">{emptyMessage}</div>
       ) : (
-        <div className="virtualized-list-container" style={{ height: '100%', minHeight: 400 }}>
+        <div className="virtualized-list-container" style={{ height: "100%", minHeight: 400 }}>
           <AutoSizer>
             {({ height, width }) => (
               <List
-                ref={listRef}
-                height={height}
-                itemCount={filteredItems.length}
-                itemSize={itemHeight}
-                width={width}
+                listRef={listRef}
+                rowComponent={Row as any}
+                rowCount={filteredItems.length}
+                rowHeight={itemHeight}
+                rowProps={{} as any}
+                style={{ height, width }}
                 overscanCount={overscanCount}
-                role="list"
-              >
-                {Row}
-              </List>
+              />
             )}
           </AutoSizer>
         </div>
@@ -241,7 +244,7 @@ export function useVirtualizedList<T extends VirtualizedListItem>(
     searchFields?: (keyof T)[];
   }
 ) {
-  const [searchQuery, setSearchQuery] = useState(options?.defaultSearchQuery || '');
+  const [searchQuery, setSearchQuery] = useState(options?.defaultSearchQuery || "");
   const [selectedItems, setSelectedItems] = useState<Set<string | number>>(new Set());
 
   const filteredItems = useMemo(() => {
@@ -249,11 +252,11 @@ export function useVirtualizedList<T extends VirtualizedListItem>(
 
     const searchLower = searchQuery.toLowerCase();
 
-    return items.filter(item => {
+    return items.filter((item) => {
       if (options?.searchFields) {
-        return options.searchFields.some(field => {
+        return options.searchFields.some((field) => {
           const value = item[field];
-          if (typeof value === 'string') {
+          if (typeof value === "string") {
             return value.toLowerCase().includes(searchLower);
           }
           return false;
@@ -261,8 +264,8 @@ export function useVirtualizedList<T extends VirtualizedListItem>(
       }
 
       // Default: search all string fields
-      return Object.values(item).some(value => {
-        if (typeof value === 'string') {
+      return Object.values(item).some((value) => {
+        if (typeof value === "string") {
           return value.toLowerCase().includes(searchLower);
         }
         return false;
@@ -271,7 +274,7 @@ export function useVirtualizedList<T extends VirtualizedListItem>(
   }, [items, searchQuery, options?.searchFields]);
 
   const toggleItem = useCallback((id: string | number) => {
-    setSelectedItems(prev => {
+    setSelectedItems((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -283,7 +286,7 @@ export function useVirtualizedList<T extends VirtualizedListItem>(
   }, []);
 
   const selectAll = useCallback(() => {
-    setSelectedItems(new Set(filteredItems.map(item => item.id)));
+    setSelectedItems(new Set(filteredItems.map((item) => item.id)));
   }, [filteredItems]);
 
   const clearSelection = useCallback(() => {

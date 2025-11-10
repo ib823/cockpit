@@ -1,211 +1,245 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Morphing Hex Loader — Transparent</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    /* Transparent page */
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: transparent;
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Morphing Hex Loader — Transparent</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      /* Transparent page */
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: transparent;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
 
-    /* Centered demo wrapper (transparent as well) */
-    .wrap {
-      min-height: 100%;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      background: transparent;
-    }
+      /* Centered demo wrapper (transparent as well) */
+      .wrap {
+        min-height: 100%;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: transparent;
+      }
 
-    /* The loader itself – no background */
-    .loader {
-      width: 220px;   /* snapped to device pixels at runtime */
-      height: 220px;  /* snapped to device pixels at runtime */
-      display: grid;
-      place-items: center;
-      contain: strict;
-      background: transparent;
-    }
+      /* The loader itself – no background */
+      .loader {
+        width: 220px; /* snapped to device pixels at runtime */
+        height: 220px; /* snapped to device pixels at runtime */
+        display: grid;
+        place-items: center;
+        contain: strict;
+        background: transparent;
+      }
 
-    /* Animated node (rotate + breathe via rAF) */
-    .anim {
-      width: 100%;
-      height: 100%;
-      transform-origin: 50% 50%;
-      will-change: transform;
-      translate: 0;
-      contain: layout paint size;
-    }
+      /* Animated node (rotate + breathe via rAF) */
+      .anim {
+        width: 100%;
+        height: 100%;
+        transform-origin: 50% 50%;
+        will-change: transform;
+        translate: 0;
+        contain: layout paint size;
+      }
 
-    /* SVG canvas: explicitly transparent */
-    svg {
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: transparent;       /* <- key change */
-      shape-rendering: geometricPrecision;
-      text-rendering: optimizeLegibility;
-      color-rendering: optimizeQuality;
-    }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="loader"><div class="anim" id="loader"></div></div>
-  </div>
+      /* SVG canvas: explicitly transparent */
+      svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+        background: transparent; /* <- key change */
+        shape-rendering: geometricPrecision;
+        text-rendering: optimizeLegibility;
+        color-rendering: optimizeQuality;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="loader"><div class="anim" id="loader"></div></div>
+    </div>
 
-  <script>
-    // --- Geometry (same coordinates) ---
-    const FACETS = [
-      [[511.9,505.9],[183.8,316.5],[511.9,127.0]],
-      [[511.9,505.9],[511.9,127.0],[840.1,316.5]],
-      [[511.9,505.9],[840.1,316.5],[840.1,695.4]],
-      [[511.9,505.9],[840.1,695.4],[511.9,884.9]],
-      [[511.9,505.9],[511.9,884.9],[183.8,695.4]],
-      [[511.9,505.9],[183.8,695.4],[183.8,316.5]]
-    ];
+    <script>
+      // --- Geometry (same coordinates) ---
+      const FACETS = [
+        [
+          [511.9, 505.9],
+          [183.8, 316.5],
+          [511.9, 127.0],
+        ],
+        [
+          [511.9, 505.9],
+          [511.9, 127.0],
+          [840.1, 316.5],
+        ],
+        [
+          [511.9, 505.9],
+          [840.1, 316.5],
+          [840.1, 695.4],
+        ],
+        [
+          [511.9, 505.9],
+          [840.1, 695.4],
+          [511.9, 884.9],
+        ],
+        [
+          [511.9, 505.9],
+          [511.9, 884.9],
+          [183.8, 695.4],
+        ],
+        [
+          [511.9, 505.9],
+          [183.8, 695.4],
+          [183.8, 316.5],
+        ],
+      ];
 
-    // --- Palettes (hex) in facet order ---
-    const PALETTES_HEX = {
-      amber: ['#FFE08A','#FFD166','#FFC247','#FFDCA0','#FFE8B0','#FFF0C6'],
-      blue:  ['#A9D8FF','#99D0FF','#8ACBFF','#9ED4FF','#AEDCFF','#C2E7FF'],
-      red:   ['#FFB3B3','#FF9E9E','#FF8A8A','#FFBBBB','#FFCCCC','#FFD6D6'],
-      green: ['#B8E299','#A5D98F','#9BD48B','#AEDD93','#BCE49B','#CDECA9']
-    };
-    const PALETTE_KEYS = Object.keys(PALETTES_HEX);
+      // --- Palettes (hex) in facet order ---
+      const PALETTES_HEX = {
+        amber: ["#FFE08A", "#FFD166", "#FFC247", "#FFDCA0", "#FFE8B0", "#FFF0C6"],
+        blue: ["#A9D8FF", "#99D0FF", "#8ACBFF", "#9ED4FF", "#AEDCFF", "#C2E7FF"],
+        red: ["#FFB3B3", "#FF9E9E", "#FF8A8A", "#FFBBBB", "#FFCCCC", "#FFD6D6"],
+        green: ["#B8E299", "#A5D98F", "#9BD48B", "#AEDD93", "#BCE49B", "#CDECA9"],
+      };
+      const PALETTE_KEYS = Object.keys(PALETTES_HEX);
 
-    // --- Gamma-correct color interpolation ---
-    const srgbToLinear = c => (c <= 0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4));
-    const linearToSrgb = c => (c <= 0.0031308 ? 12.92*c : 1.055*Math.pow(c, 1/2.4) - 0.055);
-    const clamp01 = x => Math.min(1, Math.max(0, x));
+      // --- Gamma-correct color interpolation ---
+      const srgbToLinear = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+      const linearToSrgb = (c) =>
+        c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+      const clamp01 = (x) => Math.min(1, Math.max(0, x));
 
-    function hexToLinRGB(hex){
-      const h = hex.replace('#','');
-      const r = parseInt(h.slice(0,2),16)/255;
-      const g = parseInt(h.slice(2,4),16)/255;
-      const b = parseInt(h.slice(4,6),16)/255;
-      return [srgbToLinear(r), srgbToLinear(g), srgbToLinear(b)];
-    }
-    function linRGBToHex([r,g,b]){
-      const rs = Math.round(clamp01(linearToSrgb(r))*255);
-      const gs = Math.round(clamp01(linearToSrgb(g))*255);
-      const bs = Math.round(clamp01(linearToSrgb(b))*255);
-      return '#' + [rs,gs,bs].map(v=>v.toString(16).padStart(2,'0')).join('');
-    }
+      function hexToLinRGB(hex) {
+        const h = hex.replace("#", "");
+        const r = parseInt(h.slice(0, 2), 16) / 255;
+        const g = parseInt(h.slice(2, 4), 16) / 255;
+        const b = parseInt(h.slice(4, 6), 16) / 255;
+        return [srgbToLinear(r), srgbToLinear(g), srgbToLinear(b)];
+      }
+      function linRGBToHex([r, g, b]) {
+        const rs = Math.round(clamp01(linearToSrgb(r)) * 255);
+        const gs = Math.round(clamp01(linearToSrgb(g)) * 255);
+        const bs = Math.round(clamp01(linearToSrgb(b)) * 255);
+        return "#" + [rs, gs, bs].map((v) => v.toString(16).padStart(2, "0")).join("");
+      }
 
-    const PALETTES_LIN = {};
-    for(const k of PALETTE_KEYS) PALETTES_LIN[k] = PALETTES_HEX[k].map(hexToLinRGB);
-    const lerp = (a,b,t)=>a+(b-a)*t;
-    const lerpLinRGB = (c0,c1,t)=>[ lerp(c0[0],c1[0],t), lerp(c0[1],c1[1],t), lerp(c0[2],c1[2],t) ];
-    const easeCosine = t => 0.5 - 0.5*Math.cos(Math.PI*t);
+      const PALETTES_LIN = {};
+      for (const k of PALETTE_KEYS) PALETTES_LIN[k] = PALETTES_HEX[k].map(hexToLinRGB);
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const lerpLinRGB = (c0, c1, t) => [
+        lerp(c0[0], c1[0], t),
+        lerp(c0[1], c1[1], t),
+        lerp(c0[2], c1[2], t),
+      ];
+      const easeCosine = (t) => 0.5 - 0.5 * Math.cos(Math.PI * t);
 
-    // --- Build transparent SVG; no backplate ---
-    const STROKE_WIDTH = 0.4;   // hairline to hide fringe; set to 0 for pure fills
-    function makeHexSVG(paletteHex){
-      const svgNS = 'http://www.w3.org/2000/svg';
-      const svg = document.createElementNS(svgNS, 'svg');
-      svg.setAttribute('viewBox', '0 0 1024 1024');
-      svg.setAttribute('aria-label', 'Morphing Hex');
-      // (No background rect, no white style)
+      // --- Build transparent SVG; no backplate ---
+      const STROKE_WIDTH = 0.4; // hairline to hide fringe; set to 0 for pure fills
+      function makeHexSVG(paletteHex) {
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("viewBox", "0 0 1024 1024");
+        svg.setAttribute("aria-label", "Morphing Hex");
+        // (No background rect, no white style)
 
-      const g = document.createElementNS(svgNS, 'g');
-      const polys = [];
+        const g = document.createElementNS(svgNS, "g");
+        const polys = [];
 
-      for(let i=0;i<6;i++){
-        const poly = document.createElementNS(svgNS, 'polygon');
-        poly.setAttribute('points', FACETS[i].map(p=>p.join(',')).join(' '));
-        poly.setAttribute('fill', paletteHex[i]);
+        for (let i = 0; i < 6; i++) {
+          const poly = document.createElementNS(svgNS, "polygon");
+          poly.setAttribute("points", FACETS[i].map((p) => p.join(",")).join(" "));
+          poly.setAttribute("fill", paletteHex[i]);
 
-        // Anti-halo: same-color hairline stroke (won't scale)
-        if (STROKE_WIDTH > 0) {
-          poly.setAttribute('stroke', paletteHex[i]);
-          poly.setAttribute('stroke-width', String(STROKE_WIDTH));
-          poly.setAttribute('vector-effect', 'non-scaling-stroke');
+          // Anti-halo: same-color hairline stroke (won't scale)
+          if (STROKE_WIDTH > 0) {
+            poly.setAttribute("stroke", paletteHex[i]);
+            poly.setAttribute("stroke-width", String(STROKE_WIDTH));
+            poly.setAttribute("vector-effect", "non-scaling-stroke");
+          }
+
+          poly.setAttribute("shape-rendering", "geometricPrecision");
+          poly.setAttribute("pointer-events", "none");
+          g.appendChild(poly);
+          polys.push(poly);
+        }
+        svg.appendChild(g);
+        return { svg, polys };
+      }
+
+      // --- Mount SVG ---
+      const mount = document.getElementById("loader");
+      const { svg, polys } = makeHexSVG(PALETTES_HEX.green);
+      mount.appendChild(svg);
+
+      // --- Pixel-snap size to integer device pixels ---
+      function snapToDPR() {
+        const desired = 220;
+        const dpr = window.devicePixelRatio || 1;
+        const snapped = Math.max(160, Math.round(desired * dpr) / dpr);
+        const loader = document.querySelector(".loader");
+        loader.style.width = snapped + "px";
+        loader.style.height = snapped + "px";
+      }
+      snapToDPR();
+      addEventListener("resize", snapToDPR);
+
+      // --- Motion (seamless, no resets) ---
+      const ROT_PERIOD_MS = 3840;
+      const BREATH_PERIOD_MS = 4096;
+      const BREATH_AMPL = 0.04;
+
+      // --- Palette morphing (random, seamless) ---
+      let currentKey = "green";
+      let targetKey = "amber";
+      let tLegStart = performance.now();
+      let legDurMS = 5600;
+
+      function chooseNextTarget(excludeKey) {
+        const options = PALETTE_KEYS.filter((k) => k !== excludeKey);
+        return options[Math.floor(Math.random() * options.length)];
+      }
+      function scheduleNextLeg(now) {
+        currentKey = targetKey;
+        targetKey = chooseNextTarget(currentKey);
+        tLegStart = now;
+        legDurMS = 5200 + Math.random() * 1600; // 5.2s–6.8s
+      }
+
+      const t0 = performance.now();
+
+      function frame(now) {
+        // Rotation + breathing
+        const t = now - t0;
+        const angle = (t * 360) / ROT_PERIOD_MS;
+        const scale = 1 + BREATH_AMPL * Math.sin((t / BREATH_PERIOD_MS) * Math.PI * 2);
+        mount.style.transform = `translateZ(0) rotate(${angle}deg) scale(${scale})`;
+
+        // Palette morph (gamma-correct)
+        const u = (now - tLegStart) / legDurMS;
+        const w = u >= 1 ? 1 : u <= 0 ? 0 : easeCosine(u);
+        const P0 = PALETTES_LIN[currentKey];
+        const P1 = PALETTES_LIN[targetKey];
+
+        for (let i = 0; i < 6; i++) {
+          const hex = linRGBToHex(lerpLinRGB(P0[i], P1[i], w));
+          polys[i].setAttribute("fill", hex);
+          if (STROKE_WIDTH > 0) polys[i].setAttribute("stroke", hex);
         }
 
-        poly.setAttribute('shape-rendering', 'geometricPrecision');
-        poly.setAttribute('pointer-events', 'none');
-        g.appendChild(poly);
-        polys.push(poly);
-      }
-      svg.appendChild(g);
-      return {svg, polys};
-    }
-
-    // --- Mount SVG ---
-    const mount = document.getElementById('loader');
-    const { svg, polys } = makeHexSVG(PALETTES_HEX.green);
-    mount.appendChild(svg);
-
-    // --- Pixel-snap size to integer device pixels ---
-    function snapToDPR(){
-      const desired = 220;
-      const dpr = window.devicePixelRatio || 1;
-      const snapped = Math.max(160, Math.round(desired * dpr) / dpr);
-      const loader = document.querySelector('.loader');
-      loader.style.width  = snapped + 'px';
-      loader.style.height = snapped + 'px';
-    }
-    snapToDPR();
-    addEventListener('resize', snapToDPR);
-
-    // --- Motion (seamless, no resets) ---
-    const ROT_PERIOD_MS    = 3840;
-    const BREATH_PERIOD_MS = 4096;
-    const BREATH_AMPL      = 0.04;
-
-    // --- Palette morphing (random, seamless) ---
-    let currentKey = 'green';
-    let targetKey  = 'amber';
-    let tLegStart  = performance.now();
-    let legDurMS   = 5600;
-
-    function chooseNextTarget(excludeKey){
-      const options = PALETTE_KEYS.filter(k => k !== excludeKey);
-      return options[Math.floor(Math.random()*options.length)];
-    }
-    function scheduleNextLeg(now){
-      currentKey = targetKey;
-      targetKey  = chooseNextTarget(currentKey);
-      tLegStart  = now;
-      legDurMS   = 5200 + Math.random()*1600; // 5.2s–6.8s
-    }
-
-    const t0 = performance.now();
-
-    function frame(now){
-      // Rotation + breathing
-      const t = now - t0;
-      const angle = (t * 360) / ROT_PERIOD_MS;
-      const scale = 1 + BREATH_AMPL * Math.sin((t / BREATH_PERIOD_MS) * Math.PI * 2);
-      mount.style.transform = `translateZ(0) rotate(${angle}deg) scale(${scale})`;
-
-      // Palette morph (gamma-correct)
-      const u = (now - tLegStart) / legDurMS;
-      const w = u >= 1 ? 1 : (u <= 0 ? 0 : easeCosine(u));
-      const P0 = PALETTES_LIN[currentKey];
-      const P1 = PALETTES_LIN[targetKey];
-
-      for(let i=0;i<6;i++){
-        const hex = linRGBToHex( lerpLinRGB(P0[i], P1[i], w) );
-        polys[i].setAttribute('fill', hex);
-        if (STROKE_WIDTH > 0) polys[i].setAttribute('stroke', hex);
+        if (u >= 1) scheduleNextLeg(now);
+        requestAnimationFrame(frame);
       }
 
-      if(u >= 1) scheduleNextLeg(now);
-      requestAnimationFrame(frame);
-    }
-
-    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      requestAnimationFrame(frame);
-    }
-  </script>
-</body>
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        requestAnimationFrame(frame);
+      }
+    </script>
+  </body>
 </html>

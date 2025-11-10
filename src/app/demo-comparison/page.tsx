@@ -44,9 +44,7 @@ export default function ComparisonDemo() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            🎨 Framework Showdown
-          </h1>
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">🎨 Framework Showdown</h1>
           <p className="text-xl text-gray-600 mb-2">
             Custom Tailwind vs Ant Design vs Vibe Design System
           </p>
@@ -83,9 +81,7 @@ export default function ComparisonDemo() {
             </div>
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-2xl font-bold text-purple-600">
-                  ✨ Vibe Design System
-                </h2>
+                <h2 className="text-2xl font-bold text-purple-600">✨ Vibe Design System</h2>
                 <div className="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-semibold">
                   ~180 lines
                 </div>
@@ -112,26 +108,19 @@ export default function ComparisonDemo() {
               </div>
             </div>
 
-            <ResourcePanelVibe
-              phase={mockPhaseVibe}
-              onResourceUpdate={setResourcesVibe}
-            />
+            <ResourcePanelVibe phase={mockPhaseVibe} onResourceUpdate={setResourcesVibe} />
           </div>
 
           {/* Ant Design Version */}
           <div className="bg-white rounded-2xl shadow-xl p-8 border-4 border-blue-500">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-2xl font-bold text-blue-600">
-                  🐜 Ant Design
-                </h2>
+                <h2 className="text-2xl font-bold text-blue-600">🐜 Ant Design</h2>
                 <div className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-semibold">
                   ~200 lines
                 </div>
               </div>
-              <p className="text-gray-600 mb-4">
-                Enterprise-ready, battle-tested by millions
-              </p>
+              <p className="text-gray-600 mb-4">Enterprise-ready, battle-tested by millions</p>
               <div className="flex flex-wrap gap-2">
                 <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                   ✓ Massive ecosystem
@@ -151,10 +140,7 @@ export default function ComparisonDemo() {
               </div>
             </div>
 
-            <ResourcePanelAntD
-              phase={mockPhaseAntd}
-              onResourceUpdate={setResourcesAntd}
-            />
+            <ResourcePanelAntD phase={mockPhaseAntd} onResourceUpdate={setResourcesAntd} />
           </div>
         </div>
 
@@ -162,9 +148,7 @@ export default function ComparisonDemo() {
         <div className="mt-8 bg-white rounded-2xl shadow-xl p-8 border-4 border-gray-300">
           <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                🛠️ Custom Tailwind Version
-              </h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">🛠️ Custom Tailwind Version</h3>
               <p className="text-gray-600 mb-4">
                 Current implementation in the main app - see for yourself the difference
               </p>
@@ -205,9 +189,7 @@ export default function ComparisonDemo() {
 
         {/* Why Vibe Wins */}
         <div className="mt-8 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-2xl shadow-xl p-8 text-white">
-          <h3 className="text-3xl font-bold mb-6 text-center">
-            🏆 Why Vibe Design System Wins
-          </h3>
+          <h3 className="text-3xl font-bold mb-6 text-center">🏆 Why Vibe Design System Wins</h3>
 
           <div className="grid md:grid-cols-4 gap-6 mb-8">
             <div className="text-center">
@@ -232,7 +214,8 @@ export default function ComparisonDemo() {
             <div className="bg-white/10 rounded-lg p-4">
               <div className="font-bold mb-2">✨ Better Aesthetics</div>
               <div className="text-purple-100">
-                Modern, delightful - Jobs/Ive would approve. Built by Monday.com for productivity tools.
+                Modern, delightful - Jobs/Ive would approve. Built by Monday.com for productivity
+                tools.
               </div>
             </div>
             <div className="bg-white/10 rounded-lg p-4">
@@ -316,9 +299,7 @@ export default function ComparisonDemo() {
 
         {/* Documentation Links */}
         <div className="mt-8 bg-white rounded-xl shadow-lg p-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">
-            📖 Compare The Code
-          </h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">📖 Compare The Code</h3>
 
           <div className="grid md:grid-cols-3 gap-4">
             <div className="bg-gray-50 rounded-lg p-4">
@@ -346,9 +327,7 @@ export default function ComparisonDemo() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               📄 Full analysis in{" "}
-              <code className="bg-gray-100 px-2 py-1 rounded text-xs">
-                ANTD_COMPARISON.md
-              </code>
+              <code className="bg-gray-100 px-2 py-1 rounded text-xs">ANTD_COMPARISON.md</code>
             </p>
           </div>
         </div>

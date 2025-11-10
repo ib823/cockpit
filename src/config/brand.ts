@@ -32,15 +32,15 @@ export const company = {
 export const logo = {
   // Path to your logo files (place in /public folder)
   // Recommended formats: SVG (preferred), PNG (with transparency)
-  light: "/logo-keystone.svg",  // Logo for light backgrounds
-  dark: "/logo-keystone.svg",    // Logo for dark backgrounds (same logo works on both)
-  icon: "/logo-keystone.svg",    // Small icon/favicon
+  light: "/logo-keystone.svg", // Logo for light backgrounds
+  dark: "/logo-keystone.svg", // Logo for dark backgrounds (same logo works on both)
+  icon: "/logo-keystone.svg", // Small icon/favicon
 
   // Logo dimensions (adjust to your logo's aspect ratio)
   width: {
-    sm: "120px",   // Small screens, mobile
-    md: "160px",   // Medium screens, tablets
-    lg: "200px",   // Large screens, desktop
+    sm: "120px", // Small screens, mobile
+    md: "160px", // Medium screens, tablets
+    lg: "200px", // Large screens, desktop
   },
 
   height: {
@@ -61,16 +61,16 @@ export const brandColors = {
   // PRIMARY BRAND COLOR - Keystone Navy Blue
   // This will replace the default blue throughout the app
   primary: {
-    50: "#e0f2fe",   // Lightest tint
+    50: "#e0f2fe", // Lightest tint
     100: "#bae6fd",
     200: "#7dd3fc",
     300: "#38bdf8",
     400: "#0ea5e9",
-    500: "#1e3a8a",  // Main brand color - Navy Blue
-    600: "#1e40af",  // Darker for hover states
+    500: "#1e3a8a", // Main brand color - Navy Blue
+    600: "#1e40af", // Darker for hover states
     700: "#1d4ed8",
     800: "#1e3a8a",
-    900: "#172554",  // Darkest shade
+    900: "#172554", // Darkest shade
   },
 
   // SECONDARY/ACCENT COLOR - Keystone Cyan
@@ -81,7 +81,7 @@ export const brandColors = {
     200: "#a5f3fc",
     300: "#67e8f9",
     400: "#22d3ee",
-    500: "#06b6d4",  // Main accent - Cyan
+    500: "#06b6d4", // Main accent - Cyan
     600: "#0891b2",
     700: "#0e7490",
     800: "#155e75",

@@ -3,18 +3,18 @@
  * Centered, accessible, Esc closes
  */
 
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import { clsx } from 'clsx';
-import { X } from 'lucide-react';
+import React, { useEffect } from "react";
+import { clsx } from "clsx";
+import { X } from "lucide-react";
 
 export interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
   footer?: React.ReactNode;
 }
@@ -24,38 +24,38 @@ export const Dialog: React.FC<DialogProps> = ({
   onClose,
   title,
   children,
-  size = 'md',
+  size = "md",
   className,
   footer,
 }) => {
   const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
   };
 
   // Handle Esc key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         onClose();
       }
     };
 
-    document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
   }, [isOpen, onClose]);
 
   // Lock body scroll when open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
@@ -67,6 +67,13 @@ export const Dialog: React.FC<DialogProps> = ({
       <div
         className="fixed inset-0 bg-black/30 z-[var(--z-modal-backdrop)] animate-fade-in"
         onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            onClose();
+          }
+        }}
+        role="button"
+        tabIndex={-1}
         aria-hidden="true"
       />
 
@@ -75,16 +82,19 @@ export const Dialog: React.FC<DialogProps> = ({
         className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-4"
         role="dialog"
         aria-modal="true"
-        aria-labelledby={title ? 'dialog-title' : undefined}
+        aria-labelledby={title ? "dialog-title" : undefined}
       >
         <div
           className={clsx(
-            'w-full bg-[var(--surface)] rounded-[var(--r-lg)] shadow-[var(--shadow-lg)]',
-            'border border-[var(--line)] animate-scale-in',
+            "w-full bg-[var(--surface)] rounded-[var(--r-lg)] shadow-[var(--shadow-lg)]",
+            "border border-[var(--line)] animate-scale-in",
             sizeClasses[size],
             className
           )}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          role="document"
+          tabIndex={-1}
         >
           {/* Header */}
           {title && (

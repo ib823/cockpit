@@ -10,16 +10,16 @@
  * - Printable
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Modal, Input, Typography, Space, Tag, Tabs } from 'antd';
-import { SearchOutlined, CloseOutlined } from '@ant-design/icons';
+import { useState, useEffect } from "react";
+import { Modal, Input, Typography, Space, Tag, Tabs } from "antd";
+import { SearchOutlined, CloseOutlined } from "@ant-design/icons";
 import {
   getAllShortcuts,
   formatShortcut,
   type KeyboardShortcut,
-} from '@/hooks/useKeyboardShortcuts';
+} from "@/hooks/useKeyboardShortcuts";
 
 const { Text, Title } = Typography;
 
@@ -30,7 +30,7 @@ interface KeyboardShortcutsHelpProps {
 
 export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
   const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Listen for help shortcut
   useEffect(() => {
@@ -38,23 +38,26 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
       setOpen(true);
     };
 
-    window.addEventListener('show-keyboard-help', handleShowHelp);
+    window.addEventListener("show-keyboard-help", handleShowHelp);
 
-    return () => window.removeEventListener('show-keyboard-help', handleShowHelp);
+    return () => window.removeEventListener("show-keyboard-help", handleShowHelp);
   }, []);
 
   // Get all shortcuts
   const allShortcuts = getAllShortcuts(context);
 
   // Group by category
-  const groupedShortcuts = allShortcuts.reduce((acc, shortcut) => {
-    const category = shortcut.category;
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(shortcut);
-    return acc;
-  }, {} as Record<string, KeyboardShortcut[]>);
+  const groupedShortcuts = allShortcuts.reduce(
+    (acc, shortcut) => {
+      const category = shortcut.category;
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(shortcut);
+      return acc;
+    },
+    {} as Record<string, KeyboardShortcut[]>
+  );
 
   // Filter by search
   const filteredShortcuts = searchQuery
@@ -67,11 +70,11 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
 
   // Category labels
   const categoryLabels: Record<string, string> = {
-    navigation: '🧭 Navigation',
-    actions: '⚡ Actions',
-    editing: '✏️ Editing',
-    view: '👁️ View',
-    help: '❓ Help',
+    navigation: "🧭 Navigation",
+    actions: "⚡ Actions",
+    editing: "✏️ Editing",
+    view: "👁️ View",
+    help: "❓ Help",
   };
 
   // Render shortcut row
@@ -79,21 +82,21 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
     <div
       key={shortcut.id}
       style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '8px 0',
-        borderBottom: '1px solid #f0f0f0',
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "8px 0",
+        borderBottom: "1px solid #f0f0f0",
       }}
     >
       <Text>{shortcut.description}</Text>
       <Tag
+        className="text-sm"
         style={{
-          fontFamily: 'monospace',
-          className="text-sm",
-          padding: '4px 8px',
-          background: '#f5f5f5',
-          border: '1px solid #d9d9d9',
+          fontFamily: "monospace",
+          padding: "4px 8px",
+          background: "#f5f5f5",
+          border: "1px solid #d9d9d9",
         }}
       >
         {formatShortcut(shortcut)}
@@ -106,33 +109,33 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
       {/* Trigger Button (optional - also triggered by Cmd+/) */}
       <button
         onClick={() => setOpen(true)}
+        className="text-lg"
         style={{
-          position: 'fixed',
-          bottom: '20px',
-          right: '20px',
-          width: '48px',
-          height: '48px',
-          borderRadius: '50%',
-          background: '#1890ff',
-          color: '#fff',
-          border: 'none',
-          cursor: 'pointer',
-          boxShadow: '0 4px 12px rgba(24, 144, 255, 0.4)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          className="text-lg",
-          fontWeight: 'bold',
-          transition: 'transform 0.2s, box-shadow 0.2s',
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          width: "48px",
+          height: "48px",
+          borderRadius: "50%",
+          background: "#1890ff",
+          color: "#fff",
+          border: "none",
+          cursor: "pointer",
+          boxShadow: "0 4px 12px rgba(24, 144, 255, 0.4)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: "bold",
+          transition: "transform 0.2s, box-shadow 0.2s",
           zIndex: 999,
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1)';
-          e.currentTarget.style.boxShadow = '0 6px 16px rgba(24, 144, 255, 0.5)';
+          e.currentTarget.style.transform = "scale(1.1)";
+          e.currentTarget.style.boxShadow = "0 6px 16px rgba(24, 144, 255, 0.5)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.4)';
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = "0 4px 12px rgba(24, 144, 255, 0.4)";
         }}
         aria-label="Show keyboard shortcuts"
         title="Keyboard Shortcuts (⌘/)"
@@ -144,7 +147,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
       <Modal
         title={
           <Space>
-            <span className="text-lg" }}>⌨️ Keyboard Shortcuts</span>
+            <span className="text-lg">⌨️ Keyboard Shortcuts</span>
             <Tag color="blue">Press Cmd+/ to toggle</Tag>
           </Space>
         }
@@ -153,7 +156,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
         footer={null}
         width={700}
         styles={{
-          body: { maxHeight: '70vh', overflowY: 'auto' },
+          body: { maxHeight: "70vh", overflowY: "auto" },
         }}
       >
         {/* Search */}
@@ -171,8 +174,8 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
         {filteredShortcuts ? (
           // Search results
           <div>
-            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-              {filteredShortcuts.length} result{filteredShortcuts.length !== 1 ? 's' : ''}
+            <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+              {filteredShortcuts.length} result{filteredShortcuts.length !== 1 ? "s" : ""}
             </Text>
             {filteredShortcuts.map(renderShortcut)}
           </div>
@@ -182,11 +185,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
             items={Object.entries(groupedShortcuts).map(([category, shortcuts]) => ({
               key: category,
               label: categoryLabels[category] || category,
-              children: (
-                <div style={{ minHeight: '200px' }}>
-                  {shortcuts.map(renderShortcut)}
-                </div>
-              ),
+              children: <div style={{ minHeight: "200px" }}>{shortcuts.map(renderShortcut)}</div>,
             }))}
           />
         )}
@@ -195,20 +194,20 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
         <div
           style={{
             marginTop: 16,
-            padding: '12px',
-            background: '#f5f5f5',
-            borderRadius: '6px',
+            padding: "12px",
+            background: "#f5f5f5",
+            borderRadius: "6px",
           }}
         >
           <Text type="secondary" className="text-sm">
-            💡 <strong>Tip:</strong> Most shortcuts work globally. Some are context-specific
-            and only active on certain pages.
+            💡 <strong>Tip:</strong> Most shortcuts work globally. Some are context-specific and
+            only active on certain pages.
           </Text>
         </div>
 
         {/* Context Indicator */}
         {context && (
-          <div style={{ marginTop: 8, textAlign: 'center' }}>
+          <div style={{ marginTop: 8, textAlign: "center" }}>
             <Tag color="purple">Current context: {context}</Tag>
           </div>
         )}
@@ -222,7 +221,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
  */
 export function useKeyboardShortcutsHelp() {
   const show = () => {
-    window.dispatchEvent(new CustomEvent('show-keyboard-help'));
+    window.dispatchEvent(new CustomEvent("show-keyboard-help"));
   };
 
   return { show };

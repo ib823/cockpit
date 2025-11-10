@@ -25,7 +25,7 @@ export interface GeoLocationAnalysis {
   location: GeoLocation | null;
   suspicious: boolean;
   suspiciousReasons: string[];
-  risk: 'low' | 'medium' | 'high';
+  risk: "low" | "medium" | "high";
 }
 
 // In-memory cache to avoid excessive API calls
@@ -34,26 +34,26 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 // Known suspicious countries/regions (customize based on your threat model)
 const HIGH_RISK_COUNTRIES = [
-  'CN', // China
-  'RU', // Russia
-  'KP', // North Korea
-  'IR', // Iran
+  "CN", // China
+  "RU", // Russia
+  "KP", // North Korea
+  "IR", // Iran
   // Add more based on your security requirements
 ];
 
 // Known datacenter/VPN/proxy ASNs (partial list)
 const DATACENTER_KEYWORDS = [
-  'amazon',
-  'google cloud',
-  'microsoft azure',
-  'digitalocean',
-  'linode',
-  'vultr',
-  'ovh',
-  'hetzner',
-  'vpn',
-  'proxy',
-  'tor',
+  "amazon",
+  "google cloud",
+  "microsoft azure",
+  "digitalocean",
+  "linode",
+  "vultr",
+  "ovh",
+  "hetzner",
+  "vpn",
+  "proxy",
+  "tor",
 ];
 
 /**
@@ -61,21 +61,21 @@ const DATACENTER_KEYWORDS = [
  */
 export async function getIPGeolocation(ip: string): Promise<GeoLocation | null> {
   // Check if IP is private/local
-  if (isPrivateIP(ip) || ip === 'unknown' || ip === '127.0.0.1') {
+  if (isPrivateIP(ip) || ip === "unknown" || ip === "127.0.0.1") {
     return {
       ip,
-      country: 'Local',
-      countryCode: 'LOCAL',
-      region: '',
-      regionName: 'Local Network',
-      city: 'Local',
-      zip: '',
+      country: "Local",
+      countryCode: "LOCAL",
+      region: "",
+      regionName: "Local Network",
+      city: "Local",
+      zip: "",
       lat: 0,
       lon: 0,
-      timezone: '',
-      isp: 'Local Network',
-      org: 'Local Network',
-      as: '',
+      timezone: "",
+      isp: "Local Network",
+      org: "Local Network",
+      as: "",
     };
   }
 
@@ -89,36 +89,36 @@ export async function getIPGeolocation(ip: string): Promise<GeoLocation | null> 
     // Use ip-api.com (free, no API key needed, 45 req/min limit)
     const response = await fetch(`http://ip-api.com/json/${ip}?fields=66846719`, {
       headers: {
-        'User-Agent': 'SAP-Cockpit-Security-Monitor/1.0',
+        "User-Agent": "SAP-Cockpit-Security-Monitor/1.0",
       },
     });
 
     if (!response.ok) {
-      console.error('[geolocation] API error:', response.status, response.statusText);
+      console.error("[geolocation] API error:", response.status, response.statusText);
       return null;
     }
 
     const data = await response.json();
 
-    if (data.status === 'fail') {
-      console.error('[geolocation] Lookup failed:', data.message);
+    if (data.status === "fail") {
+      console.error("[geolocation] Lookup failed:", data.message);
       return null;
     }
 
     const geoData: GeoLocation = {
       ip,
-      country: data.country || 'Unknown',
-      countryCode: data.countryCode || 'XX',
-      region: data.region || '',
-      regionName: data.regionName || '',
-      city: data.city || '',
-      zip: data.zip || '',
+      country: data.country || "Unknown",
+      countryCode: data.countryCode || "XX",
+      region: data.region || "",
+      regionName: data.regionName || "",
+      city: data.city || "",
+      zip: data.zip || "",
       lat: data.lat || 0,
       lon: data.lon || 0,
-      timezone: data.timezone || '',
-      isp: data.isp || '',
-      org: data.org || '',
-      as: data.as || '',
+      timezone: data.timezone || "",
+      isp: data.isp || "",
+      org: data.org || "",
+      as: data.as || "",
     };
 
     // Cache the result
@@ -126,7 +126,7 @@ export async function getIPGeolocation(ip: string): Promise<GeoLocation | null> 
 
     return geoData;
   } catch (error) {
-    console.error('[geolocation] Error fetching geolocation:', error);
+    console.error("[geolocation] Error fetching geolocation:", error);
     return null;
   }
 }
@@ -142,7 +142,7 @@ export async function analyzeIPGeolocation(ip: string): Promise<GeoLocationAnaly
       location: null,
       suspicious: false,
       suspiciousReasons: [],
-      risk: 'low',
+      risk: "low",
     };
   }
 
@@ -156,7 +156,7 @@ export async function analyzeIPGeolocation(ip: string): Promise<GeoLocationAnaly
   }
 
   // Check if from known datacenter/VPN/proxy
-  const orgLower = (location.org + ' ' + location.isp + ' ' + location.as).toLowerCase();
+  const orgLower = (location.org + " " + location.isp + " " + location.as).toLowerCase();
   const isDatacenter = DATACENTER_KEYWORDS.some((keyword) => orgLower.includes(keyword));
   if (isDatacenter) {
     suspiciousReasons.push(`Datacenter/VPN/Proxy detected: ${location.org}`);
@@ -164,17 +164,17 @@ export async function analyzeIPGeolocation(ip: string): Promise<GeoLocationAnaly
   }
 
   // Check for TOR exit nodes (simplified check)
-  if (orgLower.includes('tor')) {
-    suspiciousReasons.push('TOR exit node detected');
+  if (orgLower.includes("tor")) {
+    suspiciousReasons.push("TOR exit node detected");
     riskScore += 40;
   }
 
   // Determine overall risk level
-  let risk: 'low' | 'medium' | 'high' = 'low';
+  let risk: "low" | "medium" | "high" = "low";
   if (riskScore >= 50) {
-    risk = 'high';
+    risk = "high";
   } else if (riskScore >= 20) {
-    risk = 'medium';
+    risk = "medium";
   }
 
   return {
@@ -196,17 +196,17 @@ export async function getFailureGeoDistribution(
     countryCode: string;
     count: number;
     ips: string[];
-    risk: 'low' | 'medium' | 'high';
+    risk: "low" | "medium" | "high";
   }>
 > {
   const countryMap = new Map<
     string,
-    { count: number; ips: Set<string>; risk: 'low' | 'medium' | 'high' }
+    { count: number; ips: Set<string>; risk: "low" | "medium" | "high" }
   >();
 
   // Process each failure
   for (const failure of failures) {
-    if (!failure.ipAddress || failure.ipAddress === 'unknown') continue;
+    if (!failure.ipAddress || failure.ipAddress === "unknown") continue;
 
     const analysis = await analyzeIPGeolocation(failure.ipAddress);
     if (!analysis.location) continue;
@@ -218,10 +218,10 @@ export async function getFailureGeoDistribution(
       existing.count++;
       existing.ips.add(failure.ipAddress);
       // Update risk to highest level
-      if (analysis.risk === 'high' || existing.risk === 'high') {
-        existing.risk = 'high';
-      } else if (analysis.risk === 'medium' || existing.risk === 'medium') {
-        existing.risk = 'medium';
+      if (analysis.risk === "high" || existing.risk === "high") {
+        existing.risk = "high";
+      } else if (analysis.risk === "medium" || existing.risk === "medium") {
+        existing.risk = "medium";
       }
     } else {
       countryMap.set(key, {
@@ -235,7 +235,7 @@ export async function getFailureGeoDistribution(
   // Convert to array and sort by count
   const distribution = Array.from(countryMap.entries())
     .map(([countryCode, data]) => ({
-      country: countryCode === 'LOCAL' ? 'Local Network' : countryCode,
+      country: countryCode === "LOCAL" ? "Local Network" : countryCode,
       countryCode,
       count: data.count,
       ips: Array.from(data.ips),
@@ -251,12 +251,12 @@ export async function getFailureGeoDistribution(
  */
 function isPrivateIP(ip: string): boolean {
   // IPv4 private ranges
-  if (ip.startsWith('10.')) return true;
-  if (ip.startsWith('192.168.')) return true;
+  if (ip.startsWith("10.")) return true;
+  if (ip.startsWith("192.168.")) return true;
   if (ip.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)) return true;
-  if (ip.startsWith('127.')) return true;
-  if (ip === '::1') return true; // IPv6 localhost
-  if (ip.startsWith('fe80:')) return true; // IPv6 link-local
+  if (ip.startsWith("127.")) return true;
+  if (ip === "::1") return true; // IPv6 localhost
+  if (ip.startsWith("fe80:")) return true; // IPv6 link-local
 
   return false;
 }

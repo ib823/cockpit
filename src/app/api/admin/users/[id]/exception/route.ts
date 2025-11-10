@@ -1,13 +1,10 @@
-import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/nextauth-helpers';
-import { NextResponse } from 'next/server';
+import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/nextauth-helpers";
+import { NextResponse } from "next/server";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdmin();
     const { id } = await params;
@@ -24,21 +21,18 @@ export async function POST(
       },
     });
 
-    return NextResponse.json(
-      { ok: true },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-  } catch (e: any) {
-    if (e.message === 'forbidden') {
+    return NextResponse.json({ ok: true }, { headers: { "Content-Type": "application/json" } });
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === "forbidden") {
       return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
+        { error: "Admin access required" },
+        { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error('toggle exception error', e);
+    console.error("toggle exception error", e);
     return NextResponse.json(
-      { error: 'Failed to update exception' },
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { error: "Failed to update exception" },
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

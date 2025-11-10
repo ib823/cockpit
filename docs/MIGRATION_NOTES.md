@@ -22,17 +22,20 @@ The application has migrated from a custom `jose` JWT-based authentication syste
 ### 1. Environment Variables
 
 #### REMOVED:
+
 ```bash
 SESSION_SECRET=your-secret-key  # ❌ No longer used
 ```
 
 #### ADDED:
+
 ```bash
 NEXTAUTH_SECRET=your-nextauth-secret-min-32-chars  # ✅ Required (min 32 characters)
 NEXTAUTH_URL=http://localhost:3000                  # ✅ Required
 ```
 
 **Action Required**:
+
 - Update `.env.local` to use `NEXTAUTH_SECRET` instead of `SESSION_SECRET`
 - Generate a secure secret: `openssl rand -base64 32`
 - Add `NEXTAUTH_URL` pointing to your application URL
@@ -40,12 +43,13 @@ NEXTAUTH_URL=http://localhost:3000                  # ✅ Required
 ### 2. Session Structure
 
 #### Old Session Structure (jose):
+
 ```typescript
 interface Session {
-  sub: string;        // User ID
-  role: string;       // User role
-  iat: number;        // Issued at
-  exp: number;        // Expiration
+  sub: string; // User ID
+  role: string; // User role
+  iat: number; // Issued at
+  exp: number; // Expiration
 }
 
 // Usage:
@@ -54,14 +58,15 @@ const userRole = session.role;
 ```
 
 #### New Session Structure (NextAuth):
+
 ```typescript
 interface Session {
   user: {
-    id: string;       // User ID (was `sub`)
-    email: string;    // User email
-    role: 'USER' | 'MANAGER' | 'ADMIN';
+    id: string; // User ID (was `sub`)
+    email: string; // User email
+    role: "USER" | "MANAGER" | "ADMIN";
   };
-  expires: string;    // ISO date string
+  expires: string; // ISO date string
 }
 
 // Usage:
@@ -71,6 +76,7 @@ const userEmail = session.user.email;
 ```
 
 **Action Required**:
+
 - Update code that accesses `session.sub` to use `session.user.id`
 - Update code that accesses `session.role` to use `session.user.role`
 - Add email handling if needed (`session.user.email`)
@@ -78,14 +84,17 @@ const userEmail = session.user.email;
 ### 3. API Changes
 
 #### Removed Files:
+
 - `src/lib/session.ts` - Custom jose JWT session management
 - `src/shims/` directory - Monday UI component shims
 
 #### Added Files:
+
 - `src/lib/nextauth-helpers.ts` - NextAuth session helpers
 - `src/types/next-auth.d.ts` - NextAuth TypeScript type extensions
 
 #### Updated Files:
+
 - `src/lib/auth.ts` - Now uses NextAuth configuration
 - `src/lib/env.ts` - Updated to validate `NEXTAUTH_SECRET`
 - `src/middleware.ts` - Edge-compatible JWT decoding
@@ -93,11 +102,12 @@ const userEmail = session.user.email;
 ### 4. Authentication Flow Changes
 
 #### Old Flow (Custom JWT):
+
 ```typescript
-import { setSession, logout } from '@/lib/session';
+import { setSession, logout } from "@/lib/session";
 
 // Login
-await setSession({ sub: user.id, role: 'USER' });
+await setSession({ sub: user.id, role: "USER" });
 
 // Logout
 await logout();
@@ -107,11 +117,12 @@ const session = await getSession();
 ```
 
 #### New Flow (NextAuth):
+
 ```typescript
-import { createAuthSession, destroyAuthSession, getAuthSession } from '@/lib/nextauth-helpers';
+import { createAuthSession, destroyAuthSession, getAuthSession } from "@/lib/nextauth-helpers";
 
 // Login (for custom WebAuthn routes)
-await createAuthSession(user.id, user.email, 'USER');
+await createAuthSession(user.id, user.email, "USER");
 
 // Logout
 await destroyAuthSession();
@@ -121,6 +132,7 @@ const session = await getAuthSession();
 ```
 
 **Action Required**:
+
 - Replace imports of `setSession`, `logout`, `getSession` from `@/lib/session`
 - Use new functions from `@/lib/nextauth-helpers`
 - Update function signatures to include email parameter
@@ -132,6 +144,7 @@ const session = await getAuthSession();
 ### For Existing Deployments
 
 #### Step 1: Update Environment Variables
+
 ```bash
 # Old .env.local
 SESSION_SECRET=abc123
@@ -195,12 +208,12 @@ The migration preserves custom WebAuthn routes by using NextAuth's manual sessio
 
 ```typescript
 // src/lib/nextauth-helpers.ts
-import { encode } from 'next-auth/jwt';
+import { encode } from "next-auth/jwt";
 
 export async function createAuthSession(
   userId: string,
   email: string,
-  role: 'USER' | 'MANAGER' | 'ADMIN'
+  role: "USER" | "MANAGER" | "ADMIN"
 ): Promise<void> {
   const token = await encode({
     token: {
@@ -214,11 +227,11 @@ export async function createAuthSession(
   });
 
   const cookieStore = await cookies();
-  cookieStore.set('next-auth.session-token', token, {
+  cookieStore.set("next-auth.session-token", token, {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
+    secure: env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
     maxAge: 24 * 60 * 60,
   });
 }
@@ -235,7 +248,7 @@ The middleware now uses edge-compatible JWT decoding:
 import { decode } from "next-auth/jwt";
 
 const session = await decode({
-  token: request.cookies.get('next-auth.session-token')?.value,
+  token: request.cookies.get("next-auth.session-token")?.value,
   secret: process.env.NEXTAUTH_SECRET!,
 });
 ```
@@ -248,13 +261,13 @@ NextAuth types are extended via module augmentation:
 
 ```typescript
 // src/types/next-auth.d.ts
-declare module 'next-auth' {
+declare module "next-auth" {
   interface Session {
     user: {
       id: string;
       email: string;
-      role: 'USER' | 'MANAGER' | 'ADMIN';
-    } & DefaultSession['user'];
+      role: "USER" | "MANAGER" | "ADMIN";
+    } & DefaultSession["user"];
   }
 }
 ```
@@ -273,6 +286,7 @@ If issues occur, you can rollback by:
 4. Notify users of potential session loss
 
 **Rollback commits**:
+
 - Last stable pre-migration: `b2b81073` (SNAPSHOT: Before release engineering fixes)
 
 ---
@@ -280,6 +294,7 @@ If issues occur, you can rollback by:
 ## Affected Routes
 
 ### Custom Authentication Routes (Updated):
+
 - `/api/auth/finish-login` - WebAuthn login completion
 - `/api/auth/admin-login` - Admin passkey login
 - `/api/auth/finish-register` - Registration completion
@@ -287,6 +302,7 @@ If issues occur, you can rollback by:
 - `/api/auth/magic-login` - Magic link authentication
 
 ### Protected API Routes (Updated):
+
 - `/api/admin/*` - Admin dashboard APIs
 - `/api/projects/*` - Project management APIs
 - `/api/approvals/*` - Approval workflow APIs
@@ -294,6 +310,7 @@ If issues occur, you can rollback by:
 - `/api/users/*` - User management APIs
 
 ### Middleware Protection:
+
 All routes except `/login`, `/api/auth/*`, and static assets require authentication.
 
 ---

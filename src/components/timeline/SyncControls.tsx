@@ -8,11 +8,11 @@
  * - Visual indicators for sync state
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button, Switch, Space, Tooltip } from 'antd';
-import { LockOutlined, UnlockOutlined, SyncOutlined } from '@ant-design/icons';
+import { useState } from "react";
+import { Button, Switch, Space, Tooltip } from "antd";
+import { LockOutlined, UnlockOutlined, SyncOutlined } from "@ant-design/icons";
 
 interface SyncControlsProps {
   isLocked: boolean;
@@ -25,7 +25,7 @@ export function SyncControls({
   isLocked,
   onToggleLock,
   onForceSync,
-  syncInProgress = false
+  syncInProgress = false,
 }: SyncControlsProps) {
   return (
     <Space size="middle">
@@ -33,8 +33,8 @@ export function SyncControls({
         <Tooltip
           title={
             isLocked
-              ? 'Timeline is locked - changes from estimator will not sync'
-              : 'Auto-sync enabled - timeline will update when estimator changes'
+              ? "Timeline is locked - changes from estimator will not sync"
+              : "Auto-sync enabled - timeline will update when estimator changes"
           }
         >
           <Switch
@@ -45,7 +45,7 @@ export function SyncControls({
           />
         </Tooltip>
         <span className="text-sm font-medium">
-          {isLocked ? 'Timeline Locked' : 'Auto-sync Enabled'}
+          {isLocked ? "Timeline Locked" : "Auto-sync Enabled"}
         </span>
       </div>
 
@@ -57,7 +57,7 @@ export function SyncControls({
             onClick={onForceSync}
             size="small"
           >
-            {syncInProgress ? 'Syncing...' : 'Force Sync'}
+            {syncInProgress ? "Syncing..." : "Force Sync"}
           </Button>
         </Tooltip>
       )}

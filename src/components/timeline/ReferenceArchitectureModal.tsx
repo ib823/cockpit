@@ -1,12 +1,12 @@
 "use client";
 
-import { useWrappersStore } from '@/stores/wrappers-store';
-import { AnimatePresence, motion } from 'framer-motion';
-import { X, Download } from 'lucide-react';
-import { ComprehensiveReferenceArchitecture } from './ComprehensiveReferenceArchitecture';
-import { Button } from '@/components/common/Button';
-import { Heading2, BodySM } from '@/components/common/Typography';
-import { animation } from '@/lib/design-system';
+import { useWrappersStore } from "@/stores/wrappers-store";
+import { AnimatePresence, motion } from "framer-motion";
+import { X, Download } from "lucide-react";
+import { ComprehensiveReferenceArchitecture } from "./ComprehensiveReferenceArchitecture";
+import { Button } from "@/components/common/Button";
+import { Heading2, BodySM } from "@/components/common/Typography";
+import { animation } from "@/lib/design-system";
 
 export function ReferenceArchitectureModal() {
   const { showModal, toggleModal } = useWrappersStore();
@@ -45,12 +45,7 @@ export function ReferenceArchitectureModal() {
               >
                 Export PDF
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleModal}
-                aria-label="Close modal"
-              >
+              <Button variant="ghost" size="sm" onClick={toggleModal} aria-label="Close modal">
                 <X className="w-5 h-5" />
               </Button>
             </div>

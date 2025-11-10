@@ -4,9 +4,9 @@
  * Handles exporting dashboard data to various formats
  */
 
-import { GanttProject } from '@/types/gantt-tool';
-import { CostBreakdown, MarginAnalysis } from './calculation-engine';
-import { formatMYR } from '@/lib/rate-card';
+import { GanttProject } from "@/types/gantt-tool";
+import { CostBreakdown, MarginAnalysis } from "./calculation-engine";
+import { formatMYR } from "@/lib/rate-card";
 
 export interface ExportData {
   project: GanttProject;
@@ -26,64 +26,62 @@ export function exportToCSV(data: ExportData): string {
   const rows: string[][] = [];
 
   // Header section
-  rows.push(['SAP Implementation Proposal Dashboard']);
-  rows.push(['Project:', project.name]);
-  rows.push(['Generated:', new Date().toLocaleString()]);
+  rows.push(["SAP Implementation Proposal Dashboard"]);
+  rows.push(["Project:", project.name]);
+  rows.push(["Generated:", new Date().toLocaleString()]);
   rows.push([]);
 
   // Financial Summary
-  rows.push(['FINANCIAL SUMMARY']);
-  rows.push(['Metric', 'Value']);
-  rows.push(['Total Revenue', formatMYR(revenue)]);
-  rows.push(['Total Cost', formatMYR(costBreakdown.totalCost)]);
-  rows.push(['Gross Margin', formatMYR(margins.grossMargin)]);
-  rows.push(['Gross Margin %', `${margins.grossMarginPercent.toFixed(2)}%`]);
-  rows.push(['Break-even Revenue', formatMYR(margins.breakEvenRevenue)]);
+  rows.push(["FINANCIAL SUMMARY"]);
+  rows.push(["Metric", "Value"]);
+  rows.push(["Total Revenue", formatMYR(revenue)]);
+  rows.push(["Total Cost", formatMYR(costBreakdown.totalCost)]);
+  rows.push(["Gross Margin", formatMYR(margins.grossMargin)]);
+  rows.push(["Gross Margin %", `${margins.grossMarginPercent.toFixed(2)}%`]);
+  rows.push(["Break-even Revenue", formatMYR(margins.breakEvenRevenue)]);
   rows.push([]);
 
   // Cost by Phase
-  rows.push(['COST BY PHASE']);
-  rows.push(['Phase', 'Cost']);
-  project.phases.forEach(phase => {
+  rows.push(["COST BY PHASE"]);
+  rows.push(["Phase", "Cost"]);
+  project.phases.forEach((phase) => {
     const phaseCost = costBreakdown.costByPhase.get(phase.id) || 0;
     rows.push([phase.name, formatMYR(phaseCost)]);
   });
   rows.push([]);
 
   // Cost by Resource Category
-  rows.push(['COST BY RESOURCE CATEGORY']);
-  rows.push(['Category', 'Cost']);
+  rows.push(["COST BY RESOURCE CATEGORY"]);
+  rows.push(["Category", "Cost"]);
   Array.from(costBreakdown.costByCategory.entries()).forEach(([category, cost]) => {
-    rows.push([category.replace(/_/g, ' ').toUpperCase(), formatMYR(cost)]);
+    rows.push([category.replace(/_/g, " ").toUpperCase(), formatMYR(cost)]);
   });
   rows.push([]);
 
   // Cost by Resource
-  rows.push(['COST BY RESOURCE']);
-  rows.push(['Resource ID', 'Cost']);
+  rows.push(["COST BY RESOURCE"]);
+  rows.push(["Resource ID", "Cost"]);
   Array.from(costBreakdown.costByResource.entries()).forEach(([resourceId, cost]) => {
-    const resource = project.resources?.find(r => r.id === resourceId);
+    const resource = project.resources?.find((r) => r.id === resourceId);
     const resourceName = resource ? resource.name : resourceId;
     rows.push([resourceName, formatMYR(cost)]);
   });
   rows.push([]);
 
   // Project Metrics
-  rows.push(['PROJECT METRICS']);
-  rows.push(['Metric', 'Value']);
-  rows.push(['Total Phases', project.phases.length.toString()]);
-  rows.push(['Total Resources', (project.resources?.length || 0).toString()]);
-  rows.push(['Total Effort (person-days)', costBreakdown.totalEffort.toFixed(2)]);
-  rows.push(['Variable Cost', formatMYR(costBreakdown.variableCost)]);
-  rows.push(['Fixed Costs', formatMYR(costBreakdown.fixedCosts)]);
+  rows.push(["PROJECT METRICS"]);
+  rows.push(["Metric", "Value"]);
+  rows.push(["Total Phases", project.phases.length.toString()]);
+  rows.push(["Total Resources", (project.resources?.length || 0).toString()]);
+  rows.push(["Total Effort (person-days)", costBreakdown.totalEffort.toFixed(2)]);
+  rows.push(["Variable Cost", formatMYR(costBreakdown.variableCost)]);
+  rows.push(["Fixed Costs", formatMYR(costBreakdown.fixedCosts)]);
 
   // Convert to CSV string
-  const csvContent = rows
-    .map(row => row.map(cell => `"${cell}"`).join(','))
-    .join('\n');
+  const csvContent = rows.map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
 
   // Create data URL
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
 
   return url;
@@ -134,11 +132,11 @@ export function exportToExcel(data: ExportData): string {
     </tr>
     <tr>
       <td class="metric">Gross Margin</td>
-      <td class="${margins.grossMargin >= 0 ? 'positive' : 'negative'}">${formatMYR(margins.grossMargin)}</td>
+      <td class="${margins.grossMargin >= 0 ? "positive" : "negative"}">${formatMYR(margins.grossMargin)}</td>
     </tr>
     <tr>
       <td class="metric">Gross Margin %</td>
-      <td class="${margins.grossMarginPercent >= 20 ? 'positive' : 'negative'}">${margins.grossMarginPercent.toFixed(2)}%</td>
+      <td class="${margins.grossMarginPercent >= 20 ? "positive" : "negative"}">${margins.grossMarginPercent.toFixed(2)}%</td>
     </tr>
     <tr>
       <td class="metric">Break-even Revenue</td>
@@ -156,10 +154,12 @@ export function exportToExcel(data: ExportData): string {
       <th>Phase</th>
       <th>Cost</th>
     </tr>
-    ${project.phases.map(phase => {
-      const phaseCost = costBreakdown.costByPhase.get(phase.id) || 0;
-      return `<tr><td>${phase.name}</td><td>${formatMYR(phaseCost)}</td></tr>`;
-    }).join('')}
+    ${project.phases
+      .map((phase) => {
+        const phaseCost = costBreakdown.costByPhase.get(phase.id) || 0;
+        return `<tr><td>${phase.name}</td><td>${formatMYR(phaseCost)}</td></tr>`;
+      })
+      .join("")}
   </table>
 
   <div class="section">👥 Cost by Resource Category</div>
@@ -168,9 +168,11 @@ export function exportToExcel(data: ExportData): string {
       <th>Category</th>
       <th>Cost</th>
     </tr>
-    ${Array.from(costBreakdown.costByCategory.entries()).map(([category, cost]) => {
-      return `<tr><td>${category.replace(/_/g, ' ').toUpperCase()}</td><td>${formatMYR(cost)}</td></tr>`;
-    }).join('')}
+    ${Array.from(costBreakdown.costByCategory.entries())
+      .map(([category, cost]) => {
+        return `<tr><td>${category.replace(/_/g, " ").toUpperCase()}</td><td>${formatMYR(cost)}</td></tr>`;
+      })
+      .join("")}
   </table>
 
   <div class="section">🔧 Cost by Resource</div>
@@ -179,11 +181,13 @@ export function exportToExcel(data: ExportData): string {
       <th>Resource</th>
       <th>Cost</th>
     </tr>
-    ${Array.from(costBreakdown.costByResource.entries()).map(([resourceId, cost]) => {
-      const resource = project.resources?.find(r => r.id === resourceId);
-      const resourceName = resource ? resource.name : resourceId;
-      return `<tr><td>${resourceName}</td><td>${formatMYR(cost)}</td></tr>`;
-    }).join('')}
+    ${Array.from(costBreakdown.costByResource.entries())
+      .map(([resourceId, cost]) => {
+        const resource = project.resources?.find((r) => r.id === resourceId);
+        const resourceName = resource ? resource.name : resourceId;
+        return `<tr><td>${resourceName}</td><td>${formatMYR(cost)}</td></tr>`;
+      })
+      .join("")}
   </table>
 
   <div class="section">📈 Project Metrics</div>
@@ -222,7 +226,7 @@ export function exportToExcel(data: ExportData): string {
 </html>
   `.trim();
 
-  const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
   const url = URL.createObjectURL(blob);
 
   return url;
@@ -386,7 +390,7 @@ export function exportToPDF(data: ExportData): string {
         <div class="kpi-label">Total Cost</div>
         <div class="kpi-value">${formatMYR(costBreakdown.totalCost)}</div>
       </div>
-      <div class="kpi-card ${margins.grossMarginPercent >= 20 ? 'positive' : 'negative'}">
+      <div class="kpi-card ${margins.grossMarginPercent >= 20 ? "positive" : "negative"}">
         <div class="kpi-label">Gross Margin</div>
         <div class="kpi-value">${margins.grossMarginPercent.toFixed(1)}%</div>
         <div class="kpi-label">${formatMYR(margins.grossMargin)}</div>
@@ -425,17 +429,19 @@ export function exportToPDF(data: ExportData): string {
         <th>Cost</th>
         <th>% of Total</th>
       </tr>
-      ${project.phases.map(phase => {
-        const phaseCost = costBreakdown.costByPhase.get(phase.id) || 0;
-        const percentage = ((phaseCost / costBreakdown.totalCost) * 100).toFixed(1);
-        return `
+      ${project.phases
+        .map((phase) => {
+          const phaseCost = costBreakdown.costByPhase.get(phase.id) || 0;
+          const percentage = ((phaseCost / costBreakdown.totalCost) * 100).toFixed(1);
+          return `
           <tr>
             <td>${phase.name}</td>
             <td>${formatMYR(phaseCost)}</td>
             <td>${percentage}%</td>
           </tr>
         `;
-      }).join('')}
+        })
+        .join("")}
     </table>
   </div>
 
@@ -447,16 +453,18 @@ export function exportToPDF(data: ExportData): string {
         <th>Cost</th>
         <th>% of Total</th>
       </tr>
-      ${Array.from(costBreakdown.costByCategory.entries()).map(([category, cost]) => {
-        const percentage = ((cost / costBreakdown.totalCost) * 100).toFixed(1);
-        return `
+      ${Array.from(costBreakdown.costByCategory.entries())
+        .map(([category, cost]) => {
+          const percentage = ((cost / costBreakdown.totalCost) * 100).toFixed(1);
+          return `
           <tr>
-            <td>${category.replace(/_/g, ' ').toUpperCase()}</td>
+            <td>${category.replace(/_/g, " ").toUpperCase()}</td>
             <td>${formatMYR(cost)}</td>
             <td>${percentage}%</td>
           </tr>
         `;
-      }).join('')}
+        })
+        .join("")}
     </table>
   </div>
 
@@ -480,7 +488,7 @@ export function exportToPDF(data: ExportData): string {
  * Trigger download of exported file
  */
 export function downloadFile(url: string, filename: string): void {
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = url;
   link.download = filename;
   document.body.appendChild(link);
@@ -494,28 +502,25 @@ export function downloadFile(url: string, filename: string): void {
 /**
  * Export dashboard with format selection
  */
-export function exportDashboard(
-  data: ExportData,
-  format: 'csv' | 'excel' | 'pdf'
-): void {
-  const timestamp = new Date().toISOString().split('T')[0];
-  const projectName = data.project.name.replace(/[^a-zA-Z0-9]/g, '_');
+export function exportDashboard(data: ExportData, format: "csv" | "excel" | "pdf"): void {
+  const timestamp = new Date().toISOString().split("T")[0];
+  const projectName = data.project.name.replace(/[^a-zA-Z0-9]/g, "_");
 
   switch (format) {
-    case 'csv': {
+    case "csv": {
       const url = exportToCSV(data);
       downloadFile(url, `${projectName}_dashboard_${timestamp}.csv`);
       break;
     }
-    case 'excel': {
+    case "excel": {
       const url = exportToExcel(data);
       downloadFile(url, `${projectName}_dashboard_${timestamp}.xls`);
       break;
     }
-    case 'pdf': {
+    case "pdf": {
       const html = exportToPDF(data);
       // Open in new window for printing
-      const printWindow = window.open('', '_blank');
+      const printWindow = window.open("", "_blank");
       if (printWindow) {
         printWindow.document.write(html);
         printWindow.document.close();

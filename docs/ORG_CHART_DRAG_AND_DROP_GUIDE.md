@@ -41,12 +41,14 @@ The organization chart management panel now supports **drag and drop** functiona
 You can drag resources:
 
 ✅ **Within the Same Level**:
+
 - Group → Another Group (same level)
 - Sub-Group → Another Sub-Group (same group)
 - Group → Sub-Group (same group)
 - Sub-Group → Group (same group)
 
 ❌ **Restrictions**:
+
 - Cannot drag between different levels (e.g., Level 2 → Level 3)
 - Cannot drop on the source location (no-op)
 
@@ -84,6 +86,7 @@ You can drag resources:
 ## Drop Zone States
 
 ### **Empty Drop Zone**
+
 ```
 ┌─────────────────────────────────┐
 │ Drop resources here             │ (gray italic text)
@@ -91,6 +94,7 @@ You can drag resources:
 ```
 
 ### **Drop Zone with Resources**
+
 ```
 ┌─────────────────────────────────┐
 │ ⋮⋮ John Smith            [X]    │
@@ -100,6 +104,7 @@ You can drag resources:
 ```
 
 ### **Drop Zone While Dragging (Can Drop)**
+
 ```
 ┌═══════════════════════════════════┐  ← Blue dashed border
 ║ Drop resources here               ║
@@ -107,6 +112,7 @@ You can drag resources:
 ```
 
 ### **Drop Zone While Hovering (Ready to Drop)**
+
 ```
 ┌═══════════════════════════════════┐  ← Green solid border + green bg
 ║ Drop resources here               ║
@@ -146,6 +152,7 @@ When you drag and drop:
 ## Keyboard Accessibility
 
 Currently, drag and drop requires mouse/touch input. For keyboard users:
+
 - Use the **+ icon** buttons to assign resources
 - Use the **X icon** buttons to remove resources
 - Repeat to "move" resources between locations
@@ -157,6 +164,7 @@ Currently, drag and drop requires mouse/touch input. For keyboard users:
 **Issue**: Can't drag a resource card
 
 **Solutions**:
+
 - Ensure you're clicking the drag handle (⋮⋮) or the card itself
 - Check that you're in the management panel (not the visualization)
 - Refresh the page if the drag handler stopped working
@@ -166,6 +174,7 @@ Currently, drag and drop requires mouse/touch input. For keyboard users:
 **Issue**: Drop zone doesn't highlight or accept the drop
 
 **Solutions**:
+
 - Verify source and target are in the **same level**
 - Check that you're not trying to drop in the source location
 - Ensure the target is a valid drop zone (group or sub-group)
@@ -175,6 +184,7 @@ Currently, drag and drop requires mouse/touch input. For keyboard users:
 **Issue**: Resource moves back to original location after drop
 
 **Solutions**:
+
 - Wait for auto-save (2 seconds after drop)
 - Click "Save" button manually to force save
 - Check browser console for errors
@@ -184,6 +194,7 @@ Currently, drag and drop requires mouse/touch input. For keyboard users:
 **Issue**: No borders or highlights during drag
 
 **Solutions**:
+
 - Check if CSS classes are loading correctly
 - Try zooming browser to 100% (sometimes helps with rendering)
 - Clear browser cache and reload
@@ -197,12 +208,14 @@ Create all your sub-groups first, then use Auto-Populate and drag resources into
 ### **2. Use Consistent Naming**
 
 Name sub-groups clearly so you know where to drag resources:
+
 - ✅ "Finance Team", "Sales Team", "SCM Team"
 - ❌ "Team 1", "Team 2", "Team 3"
 
 ### **3. Group by Specialization**
 
 Organize resources based on their actual work:
+
 - Functional → Finance, Sales, SCM
 - Technical → ABAP, BTP, Integration
 - QA → Functional Testing, Performance Testing
@@ -214,6 +227,7 @@ Empty drop zones show "Drop resources here" - use these as visual cues for where
 ### **5. Drag Multiple at Once**
 
 While you can only drag one resource at a time, you can:
+
 1. Drag first resource to target
 2. Immediately drag next resource (no need to close/reopen)
 3. Repeat for batch organization
@@ -234,6 +248,7 @@ Potential improvements for the drag and drop feature:
 ### **Tip 1: Visual Scanning**
 
 The color coding helps you scan quickly:
+
 - **Gray boxes** = Group-level resources
 - **Indigo boxes** = Sub-group resources
 - **White boxes** = Individual resources
@@ -241,6 +256,7 @@ The color coding helps you scan quickly:
 ### **Tip 2: Quick Reorganization**
 
 To quickly reorganize a group:
+
 1. Click "Manage Structure"
 2. Drag all resources from group level to appropriate sub-groups
 3. Close management panel to see the updated visualization
@@ -252,6 +268,7 @@ Use view filters (by phase/task) to see which resources are working on what, the
 ### **Tip 4: Export After Organizing**
 
 After organizing your org chart with drag and drop:
+
 1. Close the management panel
 2. Click "Export" → PNG or PDF
 3. Share the organized chart with stakeholders
@@ -259,6 +276,7 @@ After organizing your org chart with drag and drop:
 ## Summary
 
 Drag and drop makes it easy to:
+
 - ✅ Reorganize resources quickly
 - ✅ Move resources between groups and sub-groups
 - ✅ Visually organize your team structure

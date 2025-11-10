@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
-import { getRecentFailedAttempts } from '@/lib/monitoring/auth-metrics';
-import { getFailureGeoDistribution } from '@/lib/security/geolocation';
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { getRecentFailedAttempts } from "@/lib/monitoring/auth-metrics";
+import { getFailureGeoDistribution } from "@/lib/security/geolocation";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * GET /api/admin/security/geo-analysis
@@ -18,20 +18,20 @@ export async function GET(req: Request) {
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
     }
 
     // Check admin role
-    if ((session.user as any).role !== 'ADMIN') {
+    if ((session.user as { role?: string }).role !== "ADMIN") {
       return NextResponse.json(
-        { ok: false, message: 'Forbidden - Admin access required' },
+        { ok: false, message: "Forbidden - Admin access required" },
         { status: 403 }
       );
     }
 
     // Get query parameters
     const { searchParams } = new URL(req.url);
-    const minutes = parseInt(searchParams.get('minutes') || '60', 10);
+    const minutes = parseInt(searchParams.get("minutes") || "60", 10);
 
     // Get recent failures
     const failures = await getRecentFailedAttempts(minutes, 500);
@@ -41,7 +41,7 @@ export async function GET(req: Request) {
 
     // Calculate statistics
     const totalCountries = distribution.length;
-    const highRiskCountries = distribution.filter((d) => d.risk === 'high').length;
+    const highRiskCountries = distribution.filter((d) => d.risk === "high").length;
     const totalIPs = new Set(failures.map((f) => f.ipAddress).filter(Boolean)).size;
 
     return NextResponse.json({
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
       },
     });
   } catch (error) {
-    console.error('[GEO ANALYSIS API] Error:', error);
-    return NextResponse.json({ ok: false, message: 'Internal server error' }, { status: 500 });
+    console.error("[GEO ANALYSIS API] Error:", error);
+    return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 import React from "react";
-function ResourcePanelVibe(props: any){
+function ResourcePanelVibe(props: any) {
   return <div {...props}>Resource Panel (AntD variant placeholder)</div>;
 }
 export { ResourcePanelVibe };

@@ -5,10 +5,10 @@
  * Replaces generic "no data" messages with engaging, actionable designs
  */
 
-'use client';
+"use client";
 
-import { ReactNode } from 'react';
-import { Button } from 'antd';
+import { ReactNode } from "react";
+import { Button } from "antd";
 import {
   FileText,
   FolderOpen,
@@ -22,8 +22,8 @@ import {
   Inbox,
   Database,
   FileQuestion,
-} from 'lucide-react';
-import { colorValues, getElevationShadow, withOpacity } from '@/lib/design-system';
+} from "lucide-react";
+import { colorValues, getElevationShadow, withOpacity } from "@/lib/design-system";
 
 // Icon mapping for different empty states
 const ICON_MAP = {
@@ -51,7 +51,7 @@ interface EmptyStateProps {
     icon?: ReactNode;
   };
   illustration?: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
 }
 
 export function EmptyState({
@@ -60,35 +60,35 @@ export function EmptyState({
   description,
   action,
   illustration,
-  size = 'md',
+  size = "md",
 }: EmptyStateProps) {
   const Icon = ICON_MAP[type];
 
   // Size configurations
   const sizeConfig = {
     sm: {
-      container: 'py-8',
-      iconSize: 'w-12 h-12',
-      iconBg: 'w-20 h-20',
-      title: 'text-lg',
-      description: 'text-sm',
-      gap: 'gap-3',
+      container: "py-8",
+      iconSize: "w-12 h-12",
+      iconBg: "w-20 h-20",
+      title: "text-lg",
+      description: "text-sm",
+      gap: "gap-3",
     },
     md: {
-      container: 'py-12',
-      iconSize: 'w-16 h-16',
-      iconBg: 'w-28 h-28',
-      title: 'text-xl',
-      description: 'text-base',
-      gap: 'gap-4',
+      container: "py-12",
+      iconSize: "w-16 h-16",
+      iconBg: "w-28 h-28",
+      title: "text-xl",
+      description: "text-base",
+      gap: "gap-4",
     },
     lg: {
-      container: 'py-16',
-      iconSize: 'w-20 h-20',
-      iconBg: 'w-32 h-32',
-      title: 'text-2xl',
-      description: 'text-lg',
-      gap: 'gap-5',
+      container: "py-16",
+      iconSize: "w-20 h-20",
+      iconBg: "w-32 h-32",
+      title: "text-2xl",
+      description: "text-lg",
+      gap: "gap-5",
     },
   };
 
@@ -96,22 +96,56 @@ export function EmptyState({
 
   // Color scheme based on type
   const colorScheme = {
-    projects: { bg: colorValues.primary[50], icon: colorValues.primary[500], ring: colorValues.primary[100] },
-    phases: { bg: colorValues.accent[50], icon: colorValues.accent[500], ring: colorValues.accent[100] },
+    projects: {
+      bg: colorValues.primary[50],
+      icon: colorValues.primary[500],
+      ring: colorValues.primary[100],
+    },
+    phases: {
+      bg: colorValues.accent[50],
+      icon: colorValues.accent[500],
+      ring: colorValues.accent[100],
+    },
     tasks: { bg: colorValues.info[50], icon: colorValues.info[500], ring: colorValues.info[100] },
-    resources: { bg: colorValues.success[50], icon: colorValues.success[500], ring: colorValues.success[100] },
+    resources: {
+      bg: colorValues.success[50],
+      icon: colorValues.success[500],
+      ring: colorValues.success[100],
+    },
     files: { bg: colorValues.gray[100], icon: colorValues.gray[500], ring: colorValues.gray[200] },
-    search: { bg: colorValues.primary[50], icon: colorValues.primary[400], ring: colorValues.primary[100] },
-    error: { bg: colorValues.error[50], icon: colorValues.error[500], ring: colorValues.error[100] },
-    generic: { bg: colorValues.gray[100], icon: colorValues.gray[400], ring: colorValues.gray[200] },
-    data: { bg: colorValues.accent[50], icon: colorValues.accent[400], ring: colorValues.accent[100] },
-    unknown: { bg: colorValues.warning[50], icon: colorValues.warning[500], ring: colorValues.warning[100] },
+    search: {
+      bg: colorValues.primary[50],
+      icon: colorValues.primary[400],
+      ring: colorValues.primary[100],
+    },
+    error: {
+      bg: colorValues.error[50],
+      icon: colorValues.error[500],
+      ring: colorValues.error[100],
+    },
+    generic: {
+      bg: colorValues.gray[100],
+      icon: colorValues.gray[400],
+      ring: colorValues.gray[200],
+    },
+    data: {
+      bg: colorValues.accent[50],
+      icon: colorValues.accent[400],
+      ring: colorValues.accent[100],
+    },
+    unknown: {
+      bg: colorValues.warning[50],
+      icon: colorValues.warning[500],
+      ring: colorValues.warning[100],
+    },
   };
 
   const colors = colorScheme[type];
 
   return (
-    <div className={`flex flex-col items-center justify-center text-center ${config.container} px-6`}>
+    <div
+      className={`flex flex-col items-center justify-center text-center ${config.container} px-6`}
+    >
       {/* Icon or Illustration */}
       <div className="relative mb-6">
         {illustration ? (
@@ -129,33 +163,23 @@ export function EmptyState({
               className="absolute inset-0 rounded-full animate-ping opacity-20"
               style={{
                 backgroundColor: colors.icon,
-                animationDuration: '3s',
+                animationDuration: "3s",
               }}
             />
 
-            <Icon
-              className={config.iconSize}
-              style={{ color: colors.icon }}
-              strokeWidth={1.5}
-            />
+            <Icon className={config.iconSize} style={{ color: colors.icon }} strokeWidth={1.5} />
           </div>
         )}
       </div>
 
       {/* Content */}
       <div className={`max-w-md ${config.gap} flex flex-col items-center`}>
-        <h3
-          className={`${config.title} font-semibold`}
-          style={{ color: colorValues.gray[900] }}
-        >
+        <h3 className={`${config.title} font-semibold`} style={{ color: colorValues.gray[900] }}>
           {title}
         </h3>
 
         {description && (
-          <p
-            className={`${config.description}`}
-            style={{ color: colorValues.gray[600] }}
-          >
+          <p className={`${config.description}`} style={{ color: colorValues.gray[600] }}>
             {description}
           </p>
         )}
@@ -263,10 +287,14 @@ export function ErrorEmptyState({ message, onRetry }: { message?: string; onRetr
       type="error"
       title="Something Went Wrong"
       description={message || "We encountered an error loading this content. Please try again."}
-      action={onRetry ? {
-        label: "Try Again",
-        onClick: onRetry,
-      } : undefined}
+      action={
+        onRetry
+          ? {
+              label: "Try Again",
+              onClick: onRetry,
+            }
+          : undefined
+      }
     />
   );
 }

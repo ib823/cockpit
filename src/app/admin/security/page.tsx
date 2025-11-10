@@ -1,24 +1,24 @@
-import { authConfig } from '@/lib/auth';
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { LogoutButton } from '@/components/common/LogoutButton';
-import { SecurityDashboardClient } from '@/components/admin/SecurityDashboardClient';
+import { authConfig } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { LogoutButton } from "@/components/common/LogoutButton";
+import { SecurityDashboardClient } from "@/components/admin/SecurityDashboardClient";
 import {
   getAuthMetricsSummary,
   getRecentFailedAttempts,
   checkForSuspiciousActivity,
-} from '@/lib/monitoring/auth-metrics';
-import { getBlockedIPs } from '@/lib/security/ip-blocker';
+} from "@/lib/monitoring/auth-metrics";
+import { getBlockedIPs } from "@/lib/security/ip-blocker";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function SecurityDashboard() {
   const session = await getServerSession(authConfig);
 
-  if (!session || session.user.role !== 'ADMIN') {
-    redirect('/dashboard');
+  if (!session || session.user.role !== "ADMIN") {
+    redirect("/dashboard");
   }
 
   // Fetch initial data server-side
@@ -40,10 +40,7 @@ export default async function SecurityDashboard() {
                 Admin Dashboard
               </Link>
               <div className="flex gap-4">
-                <Link
-                  href="/admin/users"
-                  className="text-sm text-gray-600 hover:text-gray-900"
-                >
+                <Link href="/admin/users" className="text-sm text-gray-600 hover:text-gray-900">
                   Users
                 </Link>
                 <Link

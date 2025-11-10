@@ -4,11 +4,11 @@
  * Full WCAG 2.1 AA accessibility compliance with proper focus management
  */
 
-import { clsx } from 'clsx';
-import React from 'react';
+import { clsx } from "clsx";
+import React from "react";
 
-type ButtonVariant = 'primary' | 'ghost' | 'subtle' | 'danger';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = "primary" | "ghost" | "subtle" | "danger";
+type ButtonSize = "sm" | "md" | "lg";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -23,69 +23,64 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       children,
-      variant = 'primary',
-      size = 'md',
+      variant = "primary",
+      size = "md",
       className,
       disabled,
       isLoading,
       leftIcon,
       rightIcon,
       fullWidth,
-      type = 'button',
-      'aria-label': ariaLabel,
+      type = "button",
+      "aria-label": ariaLabel,
       ...props
     },
     ref
   ) => {
     const baseClasses = clsx(
-      'inline-flex items-center justify-center gap-2',
-      'font-medium transition-all duration-[var(--dur)] ease-[var(--ease)]',
-      'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-      'disabled:opacity-50 disabled:cursor-not-allowed disabled:',
-      fullWidth && 'w-full'
+      "inline-flex items-center justify-center gap-2",
+      "font-medium transition-all duration-[var(--dur)] ease-[var(--ease)]",
+      "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+      "disabled:opacity-50 disabled:cursor-not-allowed disabled:",
+      fullWidth && "w-full"
     );
 
     const variantClasses = {
       primary: clsx(
-        'bg-[var(--accent)] text-white',
-        'hover:bg-[var(--accent-strong)] active:scale-[0.98]',
-        'focus-visible:ring-[var(--accent)]',
-        'shadow-sm hover:shadow-md active:shadow-sm'
+        "bg-[var(--accent)] text-white",
+        "hover:bg-[var(--accent-strong)] active:scale-[0.98]",
+        "focus-visible:ring-[var(--accent)]",
+        "shadow-sm hover:shadow-md active:shadow-sm"
       ),
       ghost: clsx(
-        'bg-transparent text-[var(--ink)]',
-        'hover:bg-[var(--surface-sub)] active:scale-[0.98]',
-        'focus-visible:ring-[var(--ink-muted)]'
+        "bg-transparent text-[var(--ink)]",
+        "hover:bg-[var(--surface-sub)] active:scale-[0.98]",
+        "focus-visible:ring-[var(--ink-muted)]"
       ),
       subtle: clsx(
-        'bg-[var(--surface-sub)] text-[var(--ink)] border border-[var(--line)]',
-        'hover:border-[var(--ink-muted)] active:scale-[0.98]',
-        'focus-visible:ring-[var(--ink-muted)]'
+        "bg-[var(--surface-sub)] text-[var(--ink)] border border-[var(--line)]",
+        "hover:border-[var(--ink-muted)] active:scale-[0.98]",
+        "focus-visible:ring-[var(--ink-muted)]"
       ),
       danger: clsx(
-        'bg-[var(--danger)] text-white',
-        'hover:bg-[color-mix(in_srgb,var(--danger)_80%,black)] active:scale-[0.98]',
-        'focus-visible:ring-[var(--danger)]',
-        'shadow-sm hover:shadow-md active:shadow-sm'
+        "bg-[var(--danger)] text-white",
+        "hover:bg-[color-mix(in_srgb,var(--danger)_80%,black)] active:scale-[0.98]",
+        "focus-visible:ring-[var(--danger)]",
+        "shadow-sm hover:shadow-md active:shadow-sm"
       ),
     };
 
     const sizeClasses = {
-      sm: 'h-8 px-3 text-sm rounded-[var(--r-sm)]',
-      md: 'h-10 px-4 text-sm rounded-[var(--r-md)]',
-      lg: 'h-12 px-5 text-base rounded-[var(--r-md)]',
+      sm: "h-8 px-3 text-sm rounded-[var(--r-sm)]",
+      md: "h-10 px-4 text-sm rounded-[var(--r-md)]",
+      lg: "h-12 px-5 text-base rounded-[var(--r-md)]",
     };
 
     return (
       <button
         ref={ref}
         type={type}
-        className={clsx(
-          baseClasses,
-          variantClasses[variant],
-          sizeClasses[size],
-          className
-        )}
+        className={clsx(baseClasses, variantClasses[variant], sizeClasses[size], className)}
         disabled={disabled || isLoading}
         aria-disabled={disabled || isLoading}
         aria-busy={isLoading}
@@ -125,4 +120,4 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 
-Button.displayName = 'Button';
+Button.displayName = "Button";

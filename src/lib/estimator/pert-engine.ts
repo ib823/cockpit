@@ -24,7 +24,7 @@ export interface PERTResults {
   };
 }
 
-export type UncertaintyLevel = 'low' | 'medium' | 'high';
+export type UncertaintyLevel = "low" | "medium" | "high";
 
 export class PERTEngine {
   /**
@@ -38,11 +38,11 @@ export class PERTEngine {
 
     // Validate inputs
     if (O > M || M > P) {
-      throw new Error('Invalid PERT inputs: optimistic ≤ most likely ≤ pessimistic');
+      throw new Error("Invalid PERT inputs: optimistic ≤ most likely ≤ pessimistic");
     }
 
     if (O < 0 || M < 0 || P < 0) {
-      throw new Error('PERT inputs must be non-negative');
+      throw new Error("PERT inputs must be non-negative");
     }
 
     // PERT weighted average
@@ -65,7 +65,7 @@ export class PERTEngine {
         p80: expected + 0.84 * stdDev,
         p90: expected + 1.28 * stdDev,
         p95: expected + 1.645 * stdDev,
-      }
+      },
     };
   }
 
@@ -77,12 +77,12 @@ export class PERTEngine {
    */
   addUncertainty(
     baselineMonths: number,
-    confidenceLevel: UncertaintyLevel = 'medium'
+    confidenceLevel: UncertaintyLevel = "medium"
   ): PERTResults {
     const multipliers = {
-      low: { O: 0.85, M: 1.0, P: 1.15 },      // ±15%
-      medium: { O: 0.80, M: 1.0, P: 1.30 },   // -20%/+30%
-      high: { O: 0.70, M: 1.0, P: 1.50 },     // -30%/+50%
+      low: { O: 0.85, M: 1.0, P: 1.15 }, // ±15%
+      medium: { O: 0.8, M: 1.0, P: 1.3 }, // -20%/+30%
+      high: { O: 0.7, M: 1.0, P: 1.5 }, // -30%/+50%
     };
 
     const mult = multipliers[confidenceLevel];
@@ -99,10 +99,7 @@ export class PERTEngine {
    *
    * Uses normal distribution approximation
    */
-  calculateCompletionProbability(
-    pertResults: PERTResults,
-    targetDuration: number
-  ): number {
+  calculateCompletionProbability(pertResults: PERTResults, targetDuration: number): number {
     const z = (targetDuration - pertResults.expected) / pertResults.standardDeviation;
 
     // Approximate cumulative normal distribution using error function
@@ -118,8 +115,9 @@ export class PERTEngine {
   private normalCDF(z: number): number {
     // Abramowitz & Stegun approximation
     const t = 1 / (1 + 0.2316419 * Math.abs(z));
-    const d = 0.3989423 * Math.exp(-z * z / 2);
-    const probability = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+    const d = 0.3989423 * Math.exp((-z * z) / 2);
+    const probability =
+      d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
 
     return z > 0 ? 1 - probability : probability;
   }
@@ -129,8 +127,10 @@ export class PERTEngine {
    */
   getRiskAssessment(pertResults: PERTResults, targetDuration?: number): string {
     if (!targetDuration) {
-      return `Expected duration: ${pertResults.expected.toFixed(1)} months. ` +
-             `90% confidence range: ${pertResults.confidenceInterval.p10.toFixed(1)} - ${pertResults.confidenceInterval.p90.toFixed(1)} months.`;
+      return (
+        `Expected duration: ${pertResults.expected.toFixed(1)} months. ` +
+        `90% confidence range: ${pertResults.confidenceInterval.p10.toFixed(1)} - ${pertResults.confidenceInterval.p90.toFixed(1)} months.`
+      );
     }
 
     const probability = this.calculateCompletionProbability(pertResults, targetDuration);

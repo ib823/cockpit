@@ -12,18 +12,18 @@
  */
 
 const consoleColors = {
-  reset: '\x1b[0m',
-  bright: '\x1b[1m',
-  dim: '\x1b[2m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  cyan: '\x1b[36m',
-  magenta: '\x1b[35m',
+  reset: "\x1b[0m",
+  bright: "\x1b[1m",
+  dim: "\x1b[2m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  blue: "\x1b[34m",
+  cyan: "\x1b[36m",
+  magenta: "\x1b[35m",
 };
 
-function logWithColor(message: string, color: keyof typeof consoleColors = 'reset') {
+function logWithColor(message: string, color: keyof typeof consoleColors = "reset") {
   console.log(`${consoleColors[color]}${message}${consoleColors.reset}`);
 }
 
@@ -41,7 +41,7 @@ interface LoadTestStats {
 
 interface LoadTestConfig {
   concurrency: number;
-  duration: number;  // in seconds
+  duration: number; // in seconds
   endpoint: string;
   method: string;
   body?: any;
@@ -66,8 +66,8 @@ async function simulateUser(
       const response = await fetch(config.endpoint, {
         method: config.method,
         headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': userAgent,
+          "Content-Type": "application/json",
+          "User-Agent": userAgent,
         },
         body: config.body ? JSON.stringify(config.body) : undefined,
       });
@@ -89,8 +89,7 @@ async function simulateUser(
       }
 
       // Small delay between requests (100-300ms)
-      await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
-
+      await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 200));
     } catch (error: any) {
       stats.errorRequests++;
       stats.totalRequests++;
@@ -116,12 +115,12 @@ async function runLoadTest(config: LoadTestConfig): Promise<LoadTestStats> {
 
   const stopSignal = { stop: false };
 
-  log(`\nStarting load test...`, 'bright');
-  log(`Concurrency: ${config.concurrency} users`, 'cyan');
-  log(`Duration: ${config.duration}s`, 'cyan');
-  log(`Endpoint: ${config.endpoint}`, 'cyan');
-  log(`Method: ${config.method}`, 'cyan');
-  console.log('');
+  log(`\nStarting load test...`, "bright");
+  log(`Concurrency: ${config.concurrency} users`, "cyan");
+  log(`Duration: ${config.duration}s`, "cyan");
+  log(`Endpoint: ${config.endpoint}`, "cyan");
+  log(`Method: ${config.method}`, "cyan");
+  console.log("");
 
   // Start timer
   const startTime = Date.now();
@@ -142,21 +141,22 @@ async function runLoadTest(config: LoadTestConfig): Promise<LoadTestStats> {
 
     process.stdout.write(
       `\r${consoleColors.cyan}Progress: ${elapsed}/${config.duration}s | ` +
-      `Requests: ${stats.totalRequests} | ` +
-      `RPS: ${rps} | ` +
-      `Success: ${stats.successfulRequests} | ` +
-      `Rate Limited: ${stats.rateLimitedRequests}${consoleColors.reset}`
+        `Requests: ${stats.totalRequests} | ` +
+        `RPS: ${rps} | ` +
+        `Success: ${stats.successfulRequests} | ` +
+        `Rate Limited: ${stats.rateLimitedRequests}${consoleColors.reset}`
     );
   }, 1000);
 
   // Wait for all users to complete
   await Promise.all(users);
   clearInterval(progressInterval);
-  console.log('\n');
+  console.log("\n");
 
   // Calculate statistics
   if (stats.responseTimes.length > 0) {
-    stats.avgResponseTime = stats.responseTimes.reduce((a, b) => a + b, 0) / stats.responseTimes.length;
+    stats.avgResponseTime =
+      stats.responseTimes.reduce((a, b) => a + b, 0) / stats.responseTimes.length;
     stats.minResponseTime = Math.min(...stats.responseTimes);
     stats.maxResponseTime = Math.max(...stats.responseTimes);
   }
@@ -168,36 +168,36 @@ async function runLoadTest(config: LoadTestConfig): Promise<LoadTestStats> {
  * Display results
  */
 function displayResults(stats: LoadTestStats, duration: number) {
-  log('='.repeat(70), 'bright');
-  log('LOAD TEST RESULTS', 'bright');
-  log('='.repeat(70), 'bright');
-  console.log('');
+  log("=".repeat(70), "bright");
+  log("LOAD TEST RESULTS", "bright");
+  log("=".repeat(70), "bright");
+  console.log("");
 
   const rps = (stats.totalRequests / duration).toFixed(2);
   const successRate = ((stats.successfulRequests / stats.totalRequests) * 100).toFixed(2);
   const rateLimitRate = ((stats.rateLimitedRequests / stats.totalRequests) * 100).toFixed(2);
 
-  log(`Total Requests:      ${stats.totalRequests}`, 'cyan');
-  log(`Successful:          ${stats.successfulRequests} (${successRate}%)`, 'green');
-  log(`Rate Limited:        ${stats.rateLimitedRequests} (${rateLimitRate}%)`, 'yellow');
-  log(`Errors:              ${stats.errorRequests}`, 'red');
-  log(`Requests/second:     ${rps}`, 'cyan');
-  console.log('');
+  log(`Total Requests:      ${stats.totalRequests}`, "cyan");
+  log(`Successful:          ${stats.successfulRequests} (${successRate}%)`, "green");
+  log(`Rate Limited:        ${stats.rateLimitedRequests} (${rateLimitRate}%)`, "yellow");
+  log(`Errors:              ${stats.errorRequests}`, "red");
+  log(`Requests/second:     ${rps}`, "cyan");
+  console.log("");
 
-  log('Response Times:', 'bright');
-  log(`  Average:  ${stats.avgResponseTime.toFixed(2)}ms`, 'cyan');
-  log(`  Min:      ${stats.minResponseTime.toFixed(2)}ms`, 'green');
-  log(`  Max:      ${stats.maxResponseTime.toFixed(2)}ms`, 'red');
-  console.log('');
+  log("Response Times:", "bright");
+  log(`  Average:  ${stats.avgResponseTime.toFixed(2)}ms`, "cyan");
+  log(`  Min:      ${stats.minResponseTime.toFixed(2)}ms`, "green");
+  log(`  Max:      ${stats.maxResponseTime.toFixed(2)}ms`, "red");
+  console.log("");
 
-  log('Status Code Distribution:', 'bright');
+  log("Status Code Distribution:", "bright");
   const sortedCodes = Array.from(stats.statusCodes.entries()).sort((a, b) => b[1] - a[1]);
   sortedCodes.forEach(([code, count]) => {
     const percentage = ((count / stats.totalRequests) * 100).toFixed(2);
-    const color = code === 200 ? 'green' : code === 429 ? 'yellow' : 'red';
+    const color = code === 200 ? "green" : code === 429 ? "yellow" : "red";
     log(`  ${code}: ${count} (${percentage}%)`, color);
   });
-  console.log('');
+  console.log("");
 
   // Percentile calculations
   if (stats.responseTimes.length > 0) {
@@ -207,15 +207,15 @@ function displayResults(stats: LoadTestStats, duration: number) {
     const p95 = sorted[Math.floor(sorted.length * 0.95)];
     const p99 = sorted[Math.floor(sorted.length * 0.99)];
 
-    log('Response Time Percentiles:', 'bright');
-    log(`  50th (median):  ${p50.toFixed(2)}ms`, 'cyan');
-    log(`  90th:           ${p90.toFixed(2)}ms`, 'cyan');
-    log(`  95th:           ${p95.toFixed(2)}ms`, 'yellow');
-    log(`  99th:           ${p99.toFixed(2)}ms`, 'red');
+    log("Response Time Percentiles:", "bright");
+    log(`  50th (median):  ${p50.toFixed(2)}ms`, "cyan");
+    log(`  90th:           ${p90.toFixed(2)}ms`, "cyan");
+    log(`  95th:           ${p95.toFixed(2)}ms`, "yellow");
+    log(`  99th:           ${p99.toFixed(2)}ms`, "red");
   }
 
-  console.log('');
-  log('='.repeat(70), 'bright');
+  console.log("");
+  log("=".repeat(70), "bright");
 }
 
 /**
@@ -228,27 +228,27 @@ async function main() {
 
   // Check if server is running
   try {
-    await fetch('http://localhost:3000/api/health');
+    await fetch("http://localhost:3000/api/health");
   } catch {
-    log('Error: Server is not running at http://localhost:3000', 'red');
-    log('Please start the development server: npm run dev', 'yellow');
+    log("Error: Server is not running at http://localhost:3000", "red");
+    log("Please start the development server: npm run dev", "yellow");
     process.exit(1);
   }
 
-  log('╔════════════════════════════════════════╗', 'bright');
-  log('║   LOGIN ENDPOINT LOAD TEST             ║', 'bright');
-  log('╚════════════════════════════════════════╝', 'bright');
-  console.log('');
+  log("╔════════════════════════════════════════╗", "bright");
+  log("║   LOGIN ENDPOINT LOAD TEST             ║", "bright");
+  log("╚════════════════════════════════════════╝", "bright");
+  console.log("");
 
   // Test 1: Login endpoint (POST)
-  logWithColor('Test 1: Login Endpoint Rate Limiting', 'bright');
-  logWithColor('-'.repeat(70), 'dim');
+  logWithColor("Test 1: Login Endpoint Rate Limiting", "bright");
+  logWithColor("-".repeat(70), "dim");
 
   const loginConfig: LoadTestConfig = {
     concurrency,
     duration,
-    endpoint: 'http://localhost:3000/api/auth/begin-login',
-    method: 'POST',
+    endpoint: "http://localhost:3000/api/auth/begin-login",
+    method: "POST",
     body: { email: `test-${Date.now()}@example.com` },
   };
 
@@ -256,61 +256,61 @@ async function main() {
   displayResults(loginStats, duration);
 
   // Test 2: General API endpoint (GET)
-  log('\nTest 2: General API Rate Limiting', 'bright');
-  log('-'.repeat(70), 'dim');
+  log("\nTest 2: General API Rate Limiting", "bright");
+  log("-".repeat(70), "dim");
 
   const apiConfig: LoadTestConfig = {
     concurrency,
     duration,
-    endpoint: 'http://localhost:3000/api/projects',
-    method: 'GET',
+    endpoint: "http://localhost:3000/api/projects",
+    method: "GET",
   };
 
   const apiStats = await runLoadTest(apiConfig);
   displayResults(apiStats, duration);
 
   // Analysis
-  console.log('');
-  log('╔════════════════════════════════════════╗', 'bright');
-  log('║   ANALYSIS & RECOMMENDATIONS           ║', 'bright');
-  log('╚════════════════════════════════════════╝', 'bright');
-  console.log('');
+  console.log("");
+  log("╔════════════════════════════════════════╗", "bright");
+  log("║   ANALYSIS & RECOMMENDATIONS           ║", "bright");
+  log("╚════════════════════════════════════════╝", "bright");
+  console.log("");
 
   if (loginStats.rateLimitedRequests > 0) {
-    log('✓ Login rate limiting is active', 'green');
+    log("✓ Login rate limiting is active", "green");
     const avgPerUser = loginStats.rateLimitedRequests / concurrency;
-    log(`  Average blocks per user: ${avgPerUser.toFixed(2)}`, 'cyan');
+    log(`  Average blocks per user: ${avgPerUser.toFixed(2)}`, "cyan");
   } else {
-    log('⚠ No rate limiting detected on login endpoint', 'yellow');
-    log('  Consider reviewing rate limit configuration', 'yellow');
+    log("⚠ No rate limiting detected on login endpoint", "yellow");
+    log("  Consider reviewing rate limit configuration", "yellow");
   }
 
   if (apiStats.rateLimitedRequests > 0) {
-    log('✓ API rate limiting is active', 'green');
+    log("✓ API rate limiting is active", "green");
     const avgPerUser = apiStats.rateLimitedRequests / concurrency;
-    log(`  Average blocks per user: ${avgPerUser.toFixed(2)}`, 'cyan');
+    log(`  Average blocks per user: ${avgPerUser.toFixed(2)}`, "cyan");
   } else {
-    log('⚠ No rate limiting detected on API endpoints', 'yellow');
+    log("⚠ No rate limiting detected on API endpoints", "yellow");
   }
 
-  console.log('');
+  console.log("");
 
   // Performance recommendations
   if (loginStats.avgResponseTime > 1000) {
-    log('⚠ Login endpoint average response time is high (>1s)', 'yellow');
-    log('  Consider optimizing authentication flow', 'yellow');
+    log("⚠ Login endpoint average response time is high (>1s)", "yellow");
+    log("  Consider optimizing authentication flow", "yellow");
   }
 
   if (apiStats.avgResponseTime > 500) {
-    log('⚠ API endpoint average response time is high (>500ms)', 'yellow');
-    log('  Consider adding caching or optimizing queries', 'yellow');
+    log("⚠ API endpoint average response time is high (>500ms)", "yellow");
+    log("  Consider adding caching or optimizing queries", "yellow");
   }
 
-  console.log('');
-  log('Load test complete!', 'green');
+  console.log("");
+  log("Load test complete!", "green");
 }
 
-main().catch(error => {
-  log(`Fatal error: ${error.message}`, 'red');
+main().catch((error) => {
+  log(`Fatal error: ${error.message}`, "red");
   process.exit(1);
 });

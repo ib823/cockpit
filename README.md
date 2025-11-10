@@ -162,6 +162,7 @@ All authentication methods create NextAuth JWT sessions stored in secure HTTP-on
 ## Database Schema
 
 Key models:
+
 - `User`: Authentication and user profiles
 - `Project`: SAP implementation projects
 - `Phase`: Project phases (design, build, deploy)

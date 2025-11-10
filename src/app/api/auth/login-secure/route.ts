@@ -1,28 +1,28 @@
-import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
-import { headers } from 'next/headers';
-import { prisma } from '@/lib/db';
-import { verifyPassword } from '@/lib/security/password';
-import { verifyTOTPCode, decryptTOTPSecret } from '@/lib/security/totp';
+import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
+import { headers } from "next/headers";
+import { prisma } from "@/lib/db";
+import { verifyPassword } from "@/lib/security/password";
+import { verifyTOTPCode, decryptTOTPSecret } from "@/lib/security/totp";
 import {
-  generateDeviceFingerprint,
+  
   getServerSideFingerprint,
   isDeviceTrusted,
   trustDevice,
-  parseUserAgent
-} from '@/lib/security/device-fingerprint';
+  parseUserAgent,
+} from "@/lib/security/device-fingerprint";
 import {
   getClientIP,
   lookupIP,
   hasLocationChanged,
-  isSuspiciousTravel,
-  formatLocation
-} from '@/lib/security/ip-geolocation';
-import { sendSecurityEmail } from '@/lib/email';
-import { newDeviceLoginTemplate } from '@/lib/email-templates';
-import { SignJWT } from 'jose';
+  formatLocation,
+  IPGeolocation,
+} from "@/lib/security/ip-geolocation";
+import { sendSecurityEmail } from "@/lib/email";
+import { newDeviceLoginTemplate } from "@/lib/email-templates";
+import { SignJWT } from "jose";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 /**
  * Secure Login Endpoint
@@ -44,7 +44,9 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const email = String(body.email ?? '').trim().toLowerCase();
+    const email = String(body.email ?? "")
+      .trim()
+      .toLowerCase();
     const password = body.password;
     const totpCode = body.totpCode;
     const clientFingerprint = body.fingerprint; // From client-side FingerprintJS
@@ -55,7 +57,7 @@ export async function POST(req: Request) {
     // ============================================
     const headersList = await headers();
     const ipAddress = await getClientIP();
-    const userAgent = headersList.get('user-agent') || 'Unknown';
+    const userAgent = headersList.get("user-agent") || "Unknown";
     const serverFingerprint = await getServerSideFingerprint(headersList);
     const deviceFingerprint = clientFingerprint || serverFingerprint;
 
@@ -64,22 +66,19 @@ export async function POST(req: Request) {
     // ============================================
     if (!email || !password || !totpCode) {
       return NextResponse.json(
-        { ok: false, message: 'Email, password, and TOTP code are required.' },
+        { ok: false, message: "Email, password, and TOTP code are required." },
         { status: 400 }
       );
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { ok: false, message: 'Invalid email format.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, message: "Invalid email format." }, { status: 400 });
     }
 
     if (totpCode.length !== 6 || !/^\d{6}$/.test(totpCode)) {
       return NextResponse.json(
-        { ok: false, message: 'TOTP code must be 6 digits.' },
+        { ok: false, message: "TOTP code must be 6 digits." },
         { status: 400 }
       );
     }
@@ -92,17 +91,17 @@ export async function POST(req: Request) {
       include: {
         loginHistory: {
           where: { success: true },
-          orderBy: { timestamp: 'desc' },
-          take: 1
-        }
-      }
+          orderBy: { timestamp: "desc" },
+          take: 1,
+        },
+      },
     });
 
     if (!user) {
       // Don't reveal whether user exists
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Timing attack mitigation
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Timing attack mitigation
       return NextResponse.json(
-        { ok: false, message: 'Invalid email or password.' },
+        { ok: false, message: "Invalid email or password." },
         { status: 401 }
       );
     }
@@ -127,18 +126,20 @@ export async function POST(req: Request) {
       // 20+ failures = permanent lock (admin unlock required)
 
       if (!lockExpired) {
-        const remainingTime = user.failedLoginAttempts <= 10
-          ? Math.ceil((fifteenMinutes - lockDuration) / 60000)
-          : Math.ceil((oneHour - lockDuration) / 60000);
+        const remainingTime =
+          user.failedLoginAttempts <= 10
+            ? Math.ceil((fifteenMinutes - lockDuration) / 60000)
+            : Math.ceil((oneHour - lockDuration) / 60000);
 
         return NextResponse.json(
           {
             ok: false,
-            message: user.failedLoginAttempts >= 20
-              ? 'Account locked. Please contact support.'
-              : `Account temporarily locked. Try again in ${remainingTime} minute(s).`,
+            message:
+              user.failedLoginAttempts >= 20
+                ? "Account locked. Please contact support."
+                : `Account temporarily locked. Try again in ${remainingTime} minute(s).`,
             locked: true,
-            accountLockedReason: user.accountLockedReason
+            accountLockedReason: user.accountLockedReason,
           },
           { status: 423 }
         );
@@ -149,8 +150,8 @@ export async function POST(req: Request) {
           data: {
             accountLockedAt: null,
             accountLockedReason: null,
-            failedLoginAttempts: 0
-          }
+            failedLoginAttempts: 0,
+          },
         });
       }
     }
@@ -160,7 +161,7 @@ export async function POST(req: Request) {
     // ============================================
     if (!user.passwordHash) {
       return NextResponse.json(
-        { ok: false, message: 'Please complete your account setup first.' },
+        { ok: false, message: "Please complete your account setup first." },
         { status: 400 }
       );
     }
@@ -170,24 +171,28 @@ export async function POST(req: Request) {
     if (!passwordValid) {
       // Increment failed login attempts
       const newFailedAttempts = user.failedLoginAttempts + 1;
-      let lockData: any = { failedLoginAttempts: newFailedAttempts };
+      const lockData: {
+        failedLoginAttempts: number;
+        accountLockedAt?: Date;
+        accountLockedReason?: string;
+      } = { failedLoginAttempts: newFailedAttempts };
 
       // Apply lockout rules
       if (newFailedAttempts === 5) {
         lockData.accountLockedAt = new Date();
-        lockData.accountLockedReason = '5 failed login attempts - 15 minute lockout';
+        lockData.accountLockedReason = "5 failed login attempts - 15 minute lockout";
       } else if (newFailedAttempts === 10) {
         lockData.accountLockedAt = new Date();
-        lockData.accountLockedReason = '10 failed login attempts - 1 hour lockout';
+        lockData.accountLockedReason = "10 failed login attempts - 1 hour lockout";
       } else if (newFailedAttempts >= 20) {
         lockData.accountLockedAt = new Date();
-        lockData.accountLockedReason = '20+ failed login attempts - admin unlock required';
+        lockData.accountLockedReason = "20+ failed login attempts - admin unlock required";
       }
 
       await prisma.$transaction([
         prisma.users.update({
           where: { id: user.id },
-          data: lockData
+          data: lockData,
         }),
         prisma.loginHistory.create({
           data: {
@@ -197,15 +202,15 @@ export async function POST(req: Request) {
             deviceFingerprint,
             userAgent,
             success: false,
-            failureReason: 'invalid_password',
-            authMethod: 'password_totp',
-            timestamp: new Date()
-          }
-        })
+            failureReason: "invalid_password",
+            authMethod: "password_totp",
+            timestamp: new Date(),
+          },
+        }),
       ]);
 
       return NextResponse.json(
-        { ok: false, message: 'Invalid email or password.' },
+        { ok: false, message: "Invalid email or password." },
         { status: 401 }
       );
     }
@@ -217,9 +222,9 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           ok: false,
-          message: 'Your password has expired. Please reset your password.',
+          message: "Your password has expired. Please reset your password.",
           passwordExpired: true,
-          requirePasswordReset: true
+          requirePasswordReset: true,
         },
         { status: 403 }
       );
@@ -230,7 +235,7 @@ export async function POST(req: Request) {
     // ============================================
     if (!user.totpSecret) {
       return NextResponse.json(
-        { ok: false, message: 'TOTP not set up. Please complete registration.' },
+        { ok: false, message: "TOTP not set up. Please complete registration." },
         { status: 400 }
       );
     }
@@ -241,26 +246,31 @@ export async function POST(req: Request) {
     if (!totpValid) {
       // Increment failed login attempts
       const newFailedAttempts = user.failedLoginAttempts + 1;
-      let lockData: any = {
+      const lockData: {
+        failedLoginAttempts: number;
+        lastFailedLoginAt: Date;
+        accountLockedAt?: Date;
+        accountLockedReason?: string;
+      } = {
         failedLoginAttempts: newFailedAttempts,
-        lastFailedLoginAt: new Date()
+        lastFailedLoginAt: new Date(),
       };
 
       if (newFailedAttempts === 5) {
         lockData.accountLockedAt = new Date();
-        lockData.accountLockedReason = '5 failed TOTP attempts - 15 minute lockout';
+        lockData.accountLockedReason = "5 failed TOTP attempts - 15 minute lockout";
       } else if (newFailedAttempts === 10) {
         lockData.accountLockedAt = new Date();
-        lockData.accountLockedReason = '10 failed TOTP attempts - 1 hour lockout';
+        lockData.accountLockedReason = "10 failed TOTP attempts - 1 hour lockout";
       } else if (newFailedAttempts >= 20) {
         lockData.accountLockedAt = new Date();
-        lockData.accountLockedReason = '20+ failed TOTP attempts - admin unlock required';
+        lockData.accountLockedReason = "20+ failed TOTP attempts - admin unlock required";
       }
 
       await prisma.$transaction([
         prisma.users.update({
           where: { id: user.id },
-          data: lockData
+          data: lockData,
         }),
         prisma.loginHistory.create({
           data: {
@@ -270,23 +280,20 @@ export async function POST(req: Request) {
             deviceFingerprint,
             userAgent,
             success: false,
-            failureReason: 'invalid_totp',
-            authMethod: 'password_totp',
-            timestamp: new Date()
-          }
-        })
+            failureReason: "invalid_totp",
+            authMethod: "password_totp",
+            timestamp: new Date(),
+          },
+        }),
       ]);
 
-      return NextResponse.json(
-        { ok: false, message: 'Invalid TOTP code.' },
-        { status: 401 }
-      );
+      return NextResponse.json({ ok: false, message: "Invalid TOTP code." }, { status: 401 });
     }
 
     // ============================================
     // 8. Get IP Geolocation (with fallback)
     // ============================================
-    let geoData: any = null;
+    let geoData: IPGeolocation | null = null;
     let isNewLocation = false;
     let isSuspiciousLogin = false;
 
@@ -301,7 +308,7 @@ export async function POST(req: Request) {
             country: lastLogin.country,
             city: lastLogin.city,
             latitude: 0, // We don't store coordinates, so travel detection is limited
-            longitude: 0
+            longitude: 0,
           };
 
           const locationChange = hasLocationChanged(prevLocation, geoData);
@@ -315,7 +322,7 @@ export async function POST(req: Request) {
         }
       }
     } catch (geoError) {
-      console.error('[Login] IP geolocation failed:', geoError);
+      console.error("[Login] IP geolocation failed:", geoError);
       // Fail open - don't block login
     }
 
@@ -332,9 +339,9 @@ export async function POST(req: Request) {
       where: {
         userId: user.id,
         expires: { gt: new Date() },
-        revokedAt: null
+        revokedAt: null,
       },
-      orderBy: { lastActivity: 'desc' }
+      orderBy: { lastActivity: "desc" },
     });
 
     const maxSessions = user.maxConcurrentSessions || 1;
@@ -345,12 +352,12 @@ export async function POST(req: Request) {
 
       await prisma.sessions.updateMany({
         where: {
-          id: { in: sessionsToRevoke.map(s => s.id) }
+          id: { in: sessionsToRevoke.map((s) => s.id) },
         },
         data: {
           revokedAt: new Date(),
-          revokedReason: 'concurrent_limit'
-        }
+          revokedReason: "concurrent_limit",
+        },
       });
 
       // TODO: Send email notification about kicked sessions
@@ -374,8 +381,8 @@ export async function POST(req: Request) {
         country: geoData?.country || null,
         city: geoData?.city || null,
         lastActivity: new Date(),
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     });
 
     // ============================================
@@ -389,8 +396,8 @@ export async function POST(req: Request) {
         userAgent,
         ipAddress,
         nickname,
-        country: geoData?.country || null,
-        city: geoData?.city || null
+        country: geoData?.country ?? undefined,
+        city: geoData?.city ?? undefined,
       });
     }
 
@@ -403,8 +410,8 @@ export async function POST(req: Request) {
         data: {
           lastLoginAt: new Date(),
           failedLoginAttempts: 0, // Reset on successful login
-          lastFailedLoginAt: null
-        }
+          lastFailedLoginAt: null,
+        },
       }),
       prisma.loginHistory.create({
         data: {
@@ -419,27 +426,27 @@ export async function POST(req: Request) {
           deviceFingerprint,
           userAgent,
           success: true,
-          authMethod: 'password_totp',
-          timestamp: new Date()
-        }
+          authMethod: "password_totp",
+          timestamp: new Date(),
+        },
       }),
       prisma.auditEvent.create({
         data: {
           id: randomUUID(),
           userId: user.id,
-          type: 'LOGIN_SUCCESS',
+          type: "LOGIN_SUCCESS",
           createdAt: new Date(),
           meta: {
             ipAddress,
-            location: geoData ? formatLocation(geoData) : 'Unknown',
+            location: geoData ? formatLocation(geoData) : "Unknown",
             deviceFingerprint,
             newDevice: isNewDevice,
             newLocation: isNewLocation,
             suspicious: isSuspiciousLogin,
-            authMethod: 'password_totp'
-          }
-        }
-      })
+            authMethod: "password_totp",
+          },
+        },
+      }),
     ]);
 
     // ============================================
@@ -448,15 +455,17 @@ export async function POST(req: Request) {
     if (isNewDevice || isSuspiciousLogin) {
       try {
         // Generate "Not Me" token
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY || 'default-secret-change-in-production');
+        const secret = new TextEncoder().encode(
+          process.env.JWT_SECRET_KEY || "default-secret-change-in-production"
+        );
         const notMeToken = await new SignJWT({
           userId: user.id,
-          action: 'revoke_all',
+          action: "revoke_all",
           loginId: session.id,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         })
-          .setProtectedHeader({ alg: 'HS256' })
-          .setExpirationTime('5m')
+          .setProtectedHeader({ alg: "HS256" })
+          .setExpirationTime("5m")
           .setIssuedAt()
           .sign(secret);
 
@@ -465,7 +474,7 @@ export async function POST(req: Request) {
           data: {
             id: randomUUID(),
             userId: user.id,
-            action: 'revoke_all',
+            action: "revoke_all",
             token: notMeToken,
             expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
             ipAddress,
@@ -473,24 +482,24 @@ export async function POST(req: Request) {
             metadata: {
               loginId: session.id,
               deviceFingerprint,
-              location: geoData ? formatLocation(geoData) : 'Unknown'
-            }
-          }
+              location: geoData ? formatLocation(geoData) : "Unknown",
+            },
+          },
         });
 
         const deviceInfo = parseUserAgent(userAgent);
         const emailContent = newDeviceLoginTemplate({
           email: user.email,
           deviceInfo: `${deviceInfo.browser} on ${deviceInfo.os} (${deviceInfo.device})`,
-          location: geoData ? formatLocation(geoData) : 'Unknown Location',
+          location: geoData ? formatLocation(geoData) : "Unknown Location",
           ipAddress,
           timestamp: new Date(),
-          notMeToken
+          notMeToken,
         });
 
         await sendSecurityEmail(user.email, emailContent.subject, emailContent.html);
       } catch (emailError) {
-        console.error('[Login] Failed to send security alert:', emailError);
+        console.error("[Login] Failed to send security alert:", emailError);
         // Don't fail login if email fails
       }
     }
@@ -502,16 +511,16 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      message: 'Login successful',
+      message: "Login successful",
       session: {
         sessionToken,
-        expires: sessionExpiry
+        expires: sessionExpiry,
       },
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role
+        role: user.role,
       },
       security: {
         newDevice: isNewDevice,
@@ -519,17 +528,16 @@ export async function POST(req: Request) {
         suspicious: isSuspiciousLogin,
         passwordExpiresIn: user.passwordExpiresAt
           ? Math.ceil((user.passwordExpiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-          : null
+          : null,
       },
       meta: {
-        responseTime: `${responseTime}ms`
-      }
+        responseTime: `${responseTime}ms`,
+      },
     });
-
   } catch (error) {
-    console.error('[Login] Error:', error);
+    console.error("[Login] Error:", error);
     return NextResponse.json(
-      { ok: false, message: 'An internal server error occurred.' },
+      { ok: false, message: "An internal server error occurred." },
       { status: 500 }
     );
   }

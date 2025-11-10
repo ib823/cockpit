@@ -8,9 +8,9 @@
  * - Each code can only be used once
  */
 
-import crypto from 'crypto';
-import bcrypt from 'bcryptjs';
-import { prisma } from '@/lib/db';
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/db";
 
 const BACKUP_CODE_COUNT = 10;
 const BACKUP_CODE_LENGTH = 8;
@@ -22,9 +22,9 @@ export interface BackupCode {
 }
 
 export interface BackupCodesPackage {
-  codes: string[];          // Plain text codes (show to user ONCE)
-  hashes: string[];         // Bcrypt hashes (store in database)
-  downloadContent: string;  // .txt file content for download
+  codes: string[]; // Plain text codes (show to user ONCE)
+  hashes: string[]; // Bcrypt hashes (store in database)
+  downloadContent: string; // .txt file content for download
 }
 
 /**
@@ -39,12 +39,12 @@ export async function generateBackupCodes(): Promise<BackupCodesPackage> {
     codes.push({ code, hash });
   }
 
-  const downloadContent = createDownloadFile(codes.map(c => c.code));
+  const downloadContent = createDownloadFile(codes.map((c) => c.code));
 
   return {
-    codes: codes.map(c => c.code),
-    hashes: codes.map(c => c.hash),
-    downloadContent
+    codes: codes.map((c) => c.code),
+    hashes: codes.map((c) => c.hash),
+    downloadContent,
   };
 }
 
@@ -54,16 +54,16 @@ export async function generateBackupCodes(): Promise<BackupCodesPackage> {
  */
 function generateSingleCode(): string {
   // Use alphanumeric without confusing characters (no 0, O, 1, I, l)
-  const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-  let code = '';
+  let code = "";
   for (let i = 0; i < BACKUP_CODE_LENGTH; i++) {
     const randomIndex = crypto.randomInt(charset.length);
     code += charset[randomIndex];
 
     // Add hyphen in the middle for readability
     if (i === BACKUP_CODE_LENGTH / 2 - 1) {
-      code += '-';
+      code += "-";
     }
   }
 
@@ -74,8 +74,8 @@ function generateSingleCode(): string {
  * Create downloadable .txt file content
  */
 function createDownloadFile(codes: string[]): string {
-  const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Cockpit';
-  const date = new Date().toISOString().split('T')[0];
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || "Cockpit";
+  const date = new Date().toISOString().split("T")[0];
 
   return `${appName} - Backup Recovery Codes
 Generated: ${date}
@@ -88,7 +88,7 @@ IMPORTANT:
 
 Your Backup Codes:
 ==================
-${codes.map((code, i) => `${i + 1}. ${code}`).join('\n')}
+${codes.map((code, i) => `${i + 1}. ${code}`).join("\n")}
 
 ==================
 
@@ -105,17 +105,17 @@ Generating new codes will invalidate all previous codes.
 export async function saveBackupCodes(userId: string, hashes: string[]): Promise<void> {
   // Delete old backup codes
   await prisma.recoveryCode.deleteMany({
-    where: { userId }
+    where: { userId },
   });
 
   // Insert new codes
   await prisma.recoveryCode.createMany({
-    data: hashes.map(hash => ({
+    data: hashes.map((hash) => ({
       id: crypto.randomUUID(),
       userId,
       codeHash: hash,
-      createdAt: new Date()
-    }))
+      createdAt: new Date(),
+    })),
   });
 }
 
@@ -128,14 +128,14 @@ export async function verifyAndUseBackupCode(
   ipAddress: string
 ): Promise<{ valid: boolean; remaining: number }> {
   // Remove hyphen and whitespace
-  const cleanCode = code.replace(/[-\s]/g, '').toUpperCase();
+  const cleanCode = code.replace(/[-\s]/g, "").toUpperCase();
 
   // Get all unused codes for user
   const userCodes = await prisma.recoveryCode.findMany({
     where: {
       userId,
-      usedAt: null
-    }
+      usedAt: null,
+    },
   });
 
   // Try to match the code
@@ -148,8 +148,8 @@ export async function verifyAndUseBackupCode(
         where: { id: dbCode.id },
         data: {
           usedAt: new Date(),
-          usedFrom: ipAddress
-        }
+          usedFrom: ipAddress,
+        },
       });
 
       // Count remaining codes
@@ -169,8 +169,8 @@ export async function getRemainingBackupCodeCount(userId: string): Promise<numbe
   return prisma.recoveryCode.count({
     where: {
       userId,
-      usedAt: null
-    }
+      usedAt: null,
+    },
   });
 }
 
@@ -179,7 +179,7 @@ export async function getRemainingBackupCodeCount(userId: string): Promise<numbe
  */
 export async function hasBackupCodes(userId: string): Promise<boolean> {
   const count = await prisma.recoveryCode.count({
-    where: { userId }
+    where: { userId },
   });
   return count > 0;
 }
@@ -197,7 +197,7 @@ export async function regenerateBackupCodes(userId: string): Promise<BackupCodes
  * Format backup code for display (add hyphen if missing)
  */
 export function formatBackupCode(code: string): string {
-  const clean = code.replace(/[-\s]/g, '').toUpperCase();
+  const clean = code.replace(/[-\s]/g, "").toUpperCase();
   if (clean.length === BACKUP_CODE_LENGTH) {
     return `${clean.slice(0, 4)}-${clean.slice(4)}`;
   }
@@ -208,7 +208,7 @@ export function formatBackupCode(code: string): string {
  * Validate backup code format
  */
 export function isValidBackupCodeFormat(code: string): boolean {
-  const clean = code.replace(/[-\s]/g, '').toUpperCase();
+  const clean = code.replace(/[-\s]/g, "").toUpperCase();
   const validCharset = /^[A-Z2-9]+$/;
   return clean.length === BACKUP_CODE_LENGTH && validCharset.test(clean);
 }

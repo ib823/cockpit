@@ -1,44 +1,69 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 interface HexLoaderProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }
 
 const SIZES = {
-  sm: 40,   // Small - for inline/buttons
-  md: 80,   // Medium - for cards/sections
-  lg: 140,  // Large - for modals
-  xl: 220,  // Extra large - for full page
+  sm: 40, // Small - for inline/buttons
+  md: 80, // Medium - for cards/sections
+  lg: 140, // Large - for modals
+  xl: 220, // Extra large - for full page
 };
 
 const FACETS = [
-  [[511.9, 505.9], [183.8, 316.5], [511.9, 127.0]],
-  [[511.9, 505.9], [511.9, 127.0], [840.1, 316.5]],
-  [[511.9, 505.9], [840.1, 316.5], [840.1, 695.4]],
-  [[511.9, 505.9], [840.1, 695.4], [511.9, 884.9]],
-  [[511.9, 505.9], [511.9, 884.9], [183.8, 695.4]],
-  [[511.9, 505.9], [183.8, 695.4], [183.8, 316.5]],
+  [
+    [511.9, 505.9],
+    [183.8, 316.5],
+    [511.9, 127.0],
+  ],
+  [
+    [511.9, 505.9],
+    [511.9, 127.0],
+    [840.1, 316.5],
+  ],
+  [
+    [511.9, 505.9],
+    [840.1, 316.5],
+    [840.1, 695.4],
+  ],
+  [
+    [511.9, 505.9],
+    [840.1, 695.4],
+    [511.9, 884.9],
+  ],
+  [
+    [511.9, 505.9],
+    [511.9, 884.9],
+    [183.8, 695.4],
+  ],
+  [
+    [511.9, 505.9],
+    [183.8, 695.4],
+    [183.8, 316.5],
+  ],
 ];
 
 const PALETTES_HEX = {
-  amber: ['#FFE08A', '#FFD166', '#FFC247', '#FFDCA0', '#FFE8B0', '#FFF0C6'],
-  blue: ['#A9D8FF', '#99D0FF', '#8ACBFF', '#9ED4FF', '#AEDCFF', '#C2E7FF'],
-  red: ['#FFB3B3', '#FF9E9E', '#FF8A8A', '#FFBBBB', '#FFCCCC', '#FFD6D6'],
-  green: ['#B8E299', '#A5D98F', '#9BD48B', '#AEDD93', '#BCE49B', '#CDECA9'],
+  amber: ["#FFE08A", "#FFD166", "#FFC247", "#FFDCA0", "#FFE8B0", "#FFF0C6"],
+  blue: ["#A9D8FF", "#99D0FF", "#8ACBFF", "#9ED4FF", "#AEDCFF", "#C2E7FF"],
+  red: ["#FFB3B3", "#FF9E9E", "#FF8A8A", "#FFBBBB", "#FFCCCC", "#FFD6D6"],
+  green: ["#B8E299", "#A5D98F", "#9BD48B", "#AEDD93", "#BCE49B", "#CDECA9"],
 };
 
 const PALETTE_KEYS = Object.keys(PALETTES_HEX) as Array<keyof typeof PALETTES_HEX>;
 
 // Gamma-correct color helpers
 const srgbToLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
-const linearToSrgb = (c: number) => (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055);
+const linearToSrgb = (c: number) =>
+  c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
 function hexToLinRGB(hex: string): [number, number, number] {
-  const h = hex.replace('#', '');
+  const h = hex.replace("#", "");
   const r = parseInt(h.slice(0, 2), 16) / 255;
   const g = parseInt(h.slice(2, 4), 16) / 255;
   const b = parseInt(h.slice(4, 6), 16) / 255;
@@ -49,7 +74,7 @@ function linRGBToHex([r, g, b]: [number, number, number]): string {
   const rs = Math.round(clamp01(linearToSrgb(r)) * 255);
   const gs = Math.round(clamp01(linearToSrgb(g)) * 255);
   const bs = Math.round(clamp01(linearToSrgb(b)) * 255);
-  return '#' + [rs, gs, bs].map((v) => v.toString(16).padStart(2, '0')).join('');
+  return "#" + [rs, gs, bs].map((v) => v.toString(16).padStart(2, "0")).join("");
 }
 
 const PALETTES_LIN: Record<string, Array<[number, number, number]>> = {};
@@ -69,7 +94,7 @@ function lerpLinRGB(
 
 const easeCosine = (t: number) => 0.5 - 0.5 * Math.cos(Math.PI * t);
 
-export function HexLoader({ size = 'xl', className = '' }: HexLoaderProps) {
+export function HexLoader({ size = "xl", className = "" }: HexLoaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const polysRef = useRef<SVGPolygonElement[]>([]);
@@ -77,7 +102,7 @@ export function HexLoader({ size = 'xl', className = '' }: HexLoaderProps) {
   useEffect(() => {
     if (!containerRef.current || !svgRef.current) return;
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
 
     const polys = polysRef.current;
@@ -89,8 +114,8 @@ export function HexLoader({ size = 'xl', className = '' }: HexLoaderProps) {
     const BREATH_AMPL = 0.04;
 
     // Palette morph state
-    let currentKey: keyof typeof PALETTES_HEX = 'green';
-    let targetKey: keyof typeof PALETTES_HEX = 'amber';
+    let currentKey: keyof typeof PALETTES_HEX = "green";
+    let targetKey: keyof typeof PALETTES_HEX = "amber";
     let tLegStart = performance.now();
     let legDurMS = 5600;
 
@@ -124,8 +149,8 @@ export function HexLoader({ size = 'xl', className = '' }: HexLoaderProps) {
       for (let i = 0; i < 6; i++) {
         const mixLin = lerpLinRGB(P0[i], P1[i], w);
         const hex = linRGBToHex(mixLin);
-        polys[i]?.setAttribute('fill', hex);
-        polys[i]?.setAttribute('stroke', hex);
+        polys[i]?.setAttribute("fill", hex);
+        polys[i]?.setAttribute("stroke", hex);
       }
 
       if (u >= 1) {
@@ -152,11 +177,11 @@ export function HexLoader({ size = 'xl', className = '' }: HexLoaderProps) {
       <div
         ref={containerRef}
         style={{
-          width: '100%',
-          height: '100%',
-          transformOrigin: '50% 50%',
-          willChange: 'transform',
-          contain: 'layout paint size',
+          width: "100%",
+          height: "100%",
+          transformOrigin: "50% 50%",
+          willChange: "transform",
+          contain: "layout paint size",
         }}
       >
         <svg
@@ -164,11 +189,11 @@ export function HexLoader({ size = 'xl', className = '' }: HexLoaderProps) {
           viewBox="0 0 1024 1024"
           aria-label="Loading"
           style={{
-            width: '100%',
-            height: '100%',
-            display: 'block',
-            background: 'transparent',
-            shapeRendering: 'geometricPrecision',
+            width: "100%",
+            height: "100%",
+            display: "block",
+            background: "transparent",
+            shapeRendering: "geometricPrecision",
           }}
         >
           <g>
@@ -178,7 +203,7 @@ export function HexLoader({ size = 'xl', className = '' }: HexLoaderProps) {
                 ref={(el) => {
                   if (el) polysRef.current[i] = el;
                 }}
-                points={facet.map((p) => p.join(',')).join(' ')}
+                points={facet.map((p) => p.join(",")).join(" ")}
                 fill={PALETTES_HEX.green[i]}
                 stroke={PALETTES_HEX.green[i]}
                 strokeWidth="0.4"

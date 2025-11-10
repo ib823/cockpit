@@ -4,7 +4,7 @@
  * (e.g., Socket.io, WS library, or third-party service like Pusher/Ably)
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest } from "next/server";
 
 /**
  * WebSocket handler
@@ -33,18 +33,18 @@ import { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   return new Response(
     JSON.stringify({
-      error: 'WebSocket connections not supported in Next.js App Router',
-      message: 'Use a separate WebSocket server or third-party service',
+      error: "WebSocket connections not supported in Next.js App Router",
+      message: "Use a separate WebSocket server or third-party service",
       recommendations: [
-        'Deploy a separate Node.js WebSocket server (ws/socket.io)',
-        'Use Pusher, Ably, or other hosted WebSocket services',
-        'Use Server-Sent Events (SSE) for one-way updates',
-        'Implement polling as a fallback',
+        "Deploy a separate Node.js WebSocket server (ws/socket.io)",
+        "Use Pusher, Ably, or other hosted WebSocket services",
+        "Use Server-Sent Events (SSE) for one-way updates",
+        "Implement polling as a fallback",
       ],
     }),
     {
       status: 501,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     }
   );
 }
@@ -58,11 +58,8 @@ export async function POST(request: NextRequest) {
   // Store them in Redis/database for SSE to broadcast
   const body = await request.json();
 
-  return new Response(
-    JSON.stringify({ success: true, message: 'Message received' }),
-    {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }
-  );
+  return new Response(JSON.stringify({ success: true, message: "Message received" }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

@@ -10,14 +10,14 @@ import type {
   Resource,
   TaskResourceAssignment,
   PhaseResourceAssignment,
-} from '@/types/gantt-tool';
+} from "@/types/gantt-tool";
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type ConflictType = 'resource' | 'phase' | 'task';
-export type ConflictSeverity = 'error' | 'warning';
+export type ConflictType = "resource" | "phase" | "task";
+export type ConflictSeverity = "error" | "warning";
 
 export interface DateRange {
   start: string; // ISO date
@@ -89,10 +89,7 @@ function doDateRangesOverlap(range1: DateRange, range2: DateRange): boolean {
 /**
  * Calculate the overlap period between two date ranges
  */
-function getOverlapDateRange(
-  range1: DateRange,
-  range2: DateRange
-): DateRange | null {
+function getOverlapDateRange(range1: DateRange, range2: DateRange): DateRange | null {
   if (!doDateRangesOverlap(range1, range2)) {
     return null;
   }
@@ -106,8 +103,8 @@ function getOverlapDateRange(
   const overlapEnd = end1 < end2 ? end1 : end2;
 
   return {
-    start: overlapStart.toISOString().split('T')[0],
-    end: overlapEnd.toISOString().split('T')[0],
+    start: overlapStart.toISOString().split("T")[0],
+    end: overlapEnd.toISOString().split("T")[0],
   };
 }
 
@@ -139,9 +136,7 @@ function getResourceAllocations(project: GanttProject): ResourceAllocation[] {
     for (const task of phase.tasks) {
       if (task.resourceAssignments) {
         for (const assignment of task.resourceAssignments) {
-          const resource = project.resources.find(
-            (r) => r.id === assignment.resourceId
-          );
+          const resource = project.resources.find((r) => r.id === assignment.resourceId);
           if (resource) {
             allocations.push({
               resourceId: resource.id,
@@ -169,15 +164,15 @@ function getResourceAllocations(project: GanttProject): ResourceAllocation[] {
  * Format date range for display
  */
 function formatDateRange(range: DateRange): string {
-  const start = new Date(range.start).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  const start = new Date(range.start).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
-  const end = new Date(range.end).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  const end = new Date(range.end).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
   return `${start} - ${end}`;
 }
@@ -205,9 +200,7 @@ function detectResourceConflicts(
     for (const task of phase.tasks) {
       if (task.resourceAssignments) {
         for (const assignment of task.resourceAssignments) {
-          const resource = importedResources.find(
-            (r) => r.id === assignment.resourceId
-          );
+          const resource = importedResources.find((r) => r.id === assignment.resourceId);
           if (resource) {
             importedAllocations.push({
               resourceId: resource.id,
@@ -229,10 +222,13 @@ function detectResourceConflicts(
   }
 
   // Group allocations by resource name (case-insensitive)
-  const allocationsByResourceName = new Map<string, {
-    existing: ResourceAllocation[];
-    imported: ResourceAllocation[];
-  }>();
+  const allocationsByResourceName = new Map<
+    string,
+    {
+      existing: ResourceAllocation[];
+      imported: ResourceAllocation[];
+    }
+  >();
 
   for (const allocation of existingAllocations) {
     const key = allocation.resourceName.toLowerCase().trim();
@@ -262,24 +258,18 @@ function detectResourceConflicts(
     // Check for date range overlaps
     for (const existingAlloc of existing) {
       for (const importedAlloc of imported) {
-        const overlapRange = getOverlapDateRange(
-          existingAlloc.dateRange,
-          importedAlloc.dateRange
-        );
+        const overlapRange = getOverlapDateRange(existingAlloc.dateRange, importedAlloc.dateRange);
 
         if (overlapRange) {
           // Found overlap - calculate total allocation
           const totalAllocation =
-            existingAlloc.allocationPercentage +
-            importedAlloc.allocationPercentage;
+            existingAlloc.allocationPercentage + importedAlloc.allocationPercentage;
 
           // Get resource details
           const existingResource = existingProject.resources.find(
             (r) => r.id === existingAlloc.resourceId
           );
-          const importedResource = importedResources.find(
-            (r) => r.id === importedAlloc.resourceId
-          );
+          const importedResource = importedResources.find((r) => r.id === importedAlloc.resourceId);
 
           const detail: ResourceConflictDetail = {
             resourceName: existingAlloc.resourceName,
@@ -293,19 +283,18 @@ function detectResourceConflicts(
           };
 
           // Determine severity
-          const severity: ConflictSeverity =
-            totalAllocation > 100 ? 'error' : 'warning';
+          const severity: ConflictSeverity = totalAllocation > 100 ? "error" : "warning";
 
           conflicts.push({
             id: generateConflictId(),
-            type: 'resource',
+            type: "resource",
             severity,
             message: `Resource "${existingAlloc.resourceName}" has ${totalAllocation}% allocation during ${formatDateRange(overlapRange)}`,
             detail,
             suggestedResolution:
               totalAllocation > 100
-                ? 'Resource is over-allocated (>100%). Choose to overwrite existing or rename imported resource.'
-                : 'Resource has overlapping allocations. Consider reviewing resource assignments.',
+                ? "Resource is over-allocated (>100%). Choose to overwrite existing or rename imported resource."
+                : "Resource has overlapping allocations. Consider reviewing resource assignments.",
           });
         }
       }
@@ -352,12 +341,11 @@ function detectPhaseConflicts(
 
       conflicts.push({
         id: generateConflictId(),
-        type: 'phase',
-        severity: 'error',
+        type: "phase",
+        severity: "error",
         message: `Phase "${importedPhase.name}" already exists in the project`,
         detail,
-        suggestedResolution:
-          'Choose to overwrite existing phase or rename imported phase.',
+        suggestedResolution: "Choose to overwrite existing phase or rename imported phase.",
       });
     }
   }
@@ -411,12 +399,12 @@ function detectTaskConflicts(
 
           conflicts.push({
             id: generateConflictId(),
-            type: 'task',
-            severity: 'warning',
+            type: "task",
+            severity: "warning",
             message: `Task "${importedTask.name}" already exists in phase "${importedPhase.name}"`,
             detail,
             suggestedResolution:
-              'Task will be renamed automatically or overwritten if you choose refresh.',
+              "Task will be renamed automatically or overwritten if you choose refresh.",
           });
         }
       }
@@ -445,11 +433,11 @@ export function detectImportConflicts(
   ];
 
   const summary = {
-    resourceConflicts: conflicts.filter((c) => c.type === 'resource').length,
-    phaseConflicts: conflicts.filter((c) => c.type === 'phase').length,
-    taskConflicts: conflicts.filter((c) => c.type === 'task').length,
-    totalErrors: conflicts.filter((c) => c.severity === 'error').length,
-    totalWarnings: conflicts.filter((c) => c.severity === 'warning').length,
+    resourceConflicts: conflicts.filter((c) => c.type === "resource").length,
+    phaseConflicts: conflicts.filter((c) => c.type === "phase").length,
+    taskConflicts: conflicts.filter((c) => c.type === "task").length,
+    totalErrors: conflicts.filter((c) => c.severity === "error").length,
+    totalWarnings: conflicts.filter((c) => c.severity === "warning").length,
   };
 
   return {
@@ -463,10 +451,7 @@ export function detectImportConflicts(
  * Generate suggested names for conflicting items
  * Uses (2), (3), (4) suffix pattern
  */
-export function generateSuggestedName(
-  baseName: string,
-  existingNames: string[]
-): string {
+export function generateSuggestedName(baseName: string, existingNames: string[]): string {
   const baseNameLower = baseName.toLowerCase().trim();
   const existingNamesLower = existingNames.map((n) => n.toLowerCase().trim());
 

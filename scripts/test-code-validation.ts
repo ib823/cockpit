@@ -49,7 +49,9 @@ async function testCodeValidation() {
     console.log(`\n📋 Validation Checks:`);
     console.log(`   ✅ Approval exists: ${!!approval}`);
     console.log(`   ${approval.usedAt ? "❌" : "✅"} Not used: ${!approval.usedAt}`);
-    console.log(`   ${approval.tokenExpiresAt < new Date() ? "❌" : "✅"} Not expired: ${approval.tokenExpiresAt >= new Date()}`);
+    console.log(
+      `   ${approval.tokenExpiresAt < new Date() ? "❌" : "✅"} Not expired: ${approval.tokenExpiresAt >= new Date()}`
+    );
   }
 
   console.log("\n" + "=".repeat(60));

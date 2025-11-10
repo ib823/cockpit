@@ -5,14 +5,14 @@
  * for all user inputs and data operations.
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 import {
   RicefwItemSchema,
   FormSpecSchema as FormItemSchema,
   IntegrationSpecSchema as IntegrationItemSchema,
   PhaseSchema,
   ChipSchema,
-} from '@/data/dal';
+} from "@/data/dal";
 
 // ============================================================================
 // Constants
@@ -24,7 +24,7 @@ const MAX_NUMBER = Number.MAX_SAFE_INTEGER;
 const MIN_NUMBER = Number.MIN_SAFE_INTEGER;
 
 // Dangerous protocol prefixes
-const DANGEROUS_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'file:', 'about:'];
+const DANGEROUS_PROTOCOLS = ["javascript:", "data:", "vbscript:", "file:", "about:"];
 
 // ============================================================================
 // Input Sanitization
@@ -35,21 +35,21 @@ const DANGEROUS_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'file:', 'abou
  */
 function basicHtmlSanitize(input: string): string {
   return input
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
-    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
-    .replace(/<[^>]*>/g, ''); // Remove all HTML tags
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
+    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, "")
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, "")
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, "")
+    .replace(/on\w+\s*=\s*[^\s>]*/gi, "")
+    .replace(/<[^>]*>/g, ""); // Remove all HTML tags
 }
 
 /**
  * Sanitize string input to prevent XSS attacks
  */
 export function sanitizeString(input: unknown): string {
-  if (typeof input !== 'string') {
-    return String(input || '');
+  if (typeof input !== "string") {
+    return String(input || "");
   }
 
   // Truncate to max length
@@ -62,7 +62,7 @@ export function sanitizeString(input: unknown): string {
   for (const protocol of DANGEROUS_PROTOCOLS) {
     if (cleaned.toLowerCase().includes(protocol)) {
       console.warn(`[Security] Blocked dangerous protocol: ${protocol}`);
-      return cleaned.replace(new RegExp(protocol, 'gi'), '');
+      return cleaned.replace(new RegExp(protocol, "gi"), "");
     }
   }
 
@@ -86,10 +86,7 @@ export function sanitizeNumber(input: unknown): number {
 /**
  * Sanitize array input
  */
-export function sanitizeArray<T>(
-  input: unknown,
-  itemSanitizer: (item: unknown) => T
-): T[] {
+export function sanitizeArray<T>(input: unknown, itemSanitizer: (item: unknown) => T): T[] {
   if (!Array.isArray(input)) {
     return [];
   }
@@ -103,10 +100,8 @@ export function sanitizeArray<T>(
 /**
  * Sanitize object keys to prevent prototype pollution
  */
-export function sanitizeObjectKeys<T extends Record<string, any>>(
-  input: unknown
-): T {
-  if (typeof input !== 'object' || input === null) {
+export function sanitizeObjectKeys<T extends Record<string, any>>(input: unknown): T {
+  if (typeof input !== "object" || input === null) {
     return {} as T;
   }
 
@@ -115,7 +110,7 @@ export function sanitizeObjectKeys<T extends Record<string, any>>(
 
   for (const [key, value] of Object.entries(obj)) {
     // Block dangerous keys
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") {
       console.warn(`[Security] Blocked dangerous key: ${key}`);
       continue;
     }
@@ -313,7 +308,7 @@ export function sanitizeError(error: unknown): {
 } {
   if (error instanceof Error) {
     // Remove sensitive stack traces and file paths
-    const message = error.message.replace(/\/[\w\-\.\/]+/g, '[path]');
+    const message = error.message.replace(/\/[\w\-\.\/]+/g, "[path]");
 
     return {
       message: sanitizeString(message),
@@ -322,7 +317,7 @@ export function sanitizeError(error: unknown): {
   }
 
   return {
-    message: 'An unexpected error occurred',
-    code: 'UNKNOWN_ERROR',
+    message: "An unexpected error occurred",
+    code: "UNKNOWN_ERROR",
   };
 }

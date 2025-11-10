@@ -2,8 +2,8 @@
 // API Route Security Wrapper
 // Fixed: V-009 - Enforces CSRF protection on all state-changing endpoints
 
-import { NextResponse } from 'next/server';
-import { csrfMiddleware } from './csrf';
+import { NextResponse } from "next/server";
+import { csrfMiddleware } from "./csrf";
 
 /**
  * Wrapper for API route handlers that enforces CSRF protection

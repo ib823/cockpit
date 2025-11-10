@@ -4,19 +4,19 @@
  * Interactive test page for RICEFW components
  */
 
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { RicefwPanel } from '@/components/estimation/RicefwPanel';
-import { RicefwSummary } from '@/components/estimation/RicefwSummary';
-import { FormPanel } from '@/components/estimation/FormPanel';
-import { IntegrationPanel } from '@/components/estimation/IntegrationPanel';
-import { ResponsiveCard, ResponsiveStack } from '@/components/ui/ResponsiveShell';
-import { Heading, Text } from '@/components/ui/Typography';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { RicefwItem, FormItem, IntegrationItem } from '@/lib/ricefw/model';
-import { getRicefwRecommendations } from '@/lib/ricefw/calculator';
+import React, { useState } from "react";
+import { RicefwPanel } from "@/components/estimation/RicefwPanel";
+import { RicefwSummary } from "@/components/estimation/RicefwSummary";
+import { FormPanel } from "@/components/estimation/FormPanel";
+import { IntegrationPanel } from "@/components/estimation/IntegrationPanel";
+import { ResponsiveCard, ResponsiveStack } from "@/components/ui/ResponsiveShell";
+import { Heading, Text } from "@/components/ui/Typography";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { RicefwItem, FormItem, IntegrationItem } from "@/lib/ricefw/model";
+import { getRicefwRecommendations } from "@/lib/ricefw/calculator";
 
 export default function TestRicefwPage() {
   const [ricefwItems, setRicefwItems] = useState<RicefwItem[]>([]);
@@ -24,15 +24,15 @@ export default function TestRicefwPage() {
   const [integrationItems, setIntegrationItems] = useState<IntegrationItem[]>([]);
 
   // Mock project ID
-  const projectId = 'test-project-001';
+  const projectId = "test-project-001";
 
   // Test scenario: Multi-country manufacturing
   const loadSampleScenario = () => {
     const recommendations = getRicefwRecommendations({
       countries: 3,
       legalEntities: 5,
-      modules: ['finance', 'supply-chain', 'manufacturing'],
-      industry: 'manufacturing',
+      modules: ["finance", "supply-chain", "manufacturing"],
+      industry: "manufacturing",
     });
 
     const sampleItems: RicefwItem[] = recommendations.map((rec, index) => ({
@@ -45,7 +45,7 @@ export default function TestRicefwPage() {
       count: rec.count,
       effortPerItem: 0, // Will be calculated
       totalEffort: 0, // Will be calculated
-      phase: 'realize',
+      phase: "realize",
       createdAt: new Date(),
       updatedAt: new Date(),
     }));
@@ -115,9 +115,7 @@ export default function TestRicefwPage() {
           </ResponsiveCard>
 
           {/* RICEFW Summary */}
-          {ricefwItems.length > 0 && (
-            <RicefwSummary items={ricefwItems} />
-          )}
+          {ricefwItems.length > 0 && <RicefwSummary items={ricefwItems} />}
 
           {/* RICEFW Panel */}
           <RicefwPanel
@@ -187,14 +185,15 @@ export default function TestRicefwPage() {
               <div>
                 <Text weight="semibold">1. Load Sample Scenario</Text>
                 <Text size="sm" color="muted">
-                  Click &quot;Load Sample Scenario&quot; to populate with recommended RICEFW items for a
-                  multi-country manufacturing implementation
+                  Click &quot;Load Sample Scenario&quot; to populate with recommended RICEFW items
+                  for a multi-country manufacturing implementation
                 </Text>
               </div>
               <div>
                 <Text weight="semibold">2. Create New Items</Text>
                 <Text size="sm" color="muted">
-                  Click &quot;Add RICEFW Item&quot; to create custom reports, interfaces, conversions, etc.
+                  Click &quot;Add RICEFW Item&quot; to create custom reports, interfaces,
+                  conversions, etc.
                 </Text>
               </div>
               <div>

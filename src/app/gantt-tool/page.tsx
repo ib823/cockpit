@@ -5,9 +5,9 @@
  * No authentication required - fully client-side with localStorage persistence.
  */
 
-'use client';
+"use client";
 
-import { GanttToolShell } from '@/components/gantt-tool/GanttToolShell';
+import { GanttToolShell } from "@/components/gantt-tool/GanttToolShell";
 
 export default function GanttToolPage() {
   return <GanttToolShell />;

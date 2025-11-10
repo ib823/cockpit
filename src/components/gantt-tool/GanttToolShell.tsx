@@ -5,20 +5,20 @@
  * Handles project initialization and overall layout.
  */
 
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { GanttToolbar } from './GanttToolbar';
-import { GanttCanvas } from './GanttCanvas';
-import { GanttSidePanel } from './GanttSidePanel';
-import { QuickResourcePanel } from './QuickResourcePanel';
-import { MissionControlModal } from './MissionControlModal';
-import { ResponsiveGanttWrapper } from './ResponsiveGanttWrapper';
-import { format } from 'date-fns';
-import { AlertTriangle } from 'lucide-react';
-import { HexLoader } from '@/components/ui/HexLoader';
-import { useColorMorph } from '@/hooks/useColorMorph';
+import { useEffect, useState } from "react";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { GanttToolbar } from "./GanttToolbar";
+import { GanttCanvas } from "./GanttCanvas";
+import { GanttSidePanel } from "./GanttSidePanel";
+import { QuickResourcePanel } from "./QuickResourcePanel";
+import { MissionControlModal } from "./MissionControlModal";
+import { ResponsiveGanttWrapper } from "./ResponsiveGanttWrapper";
+import { format } from "date-fns";
+import { AlertTriangle } from "lucide-react";
+import { HexLoader } from "@/components/ui/HexLoader";
+import { useColorMorph } from "@/hooks/useColorMorph";
 
 export function GanttToolShell() {
   const {
@@ -51,13 +51,13 @@ export function GanttToolShell() {
 
   // Auto-dismiss success messages after 3 seconds (Apple-style)
   useEffect(() => {
-    if (syncStatus === 'synced-cloud' && !cloudSyncPending) {
+    if (syncStatus === "synced-cloud" && !cloudSyncPending) {
       setShowSyncIndicator(true);
       const timer = setTimeout(() => {
         setShowSyncIndicator(false);
       }, 3000);
       return () => clearTimeout(timer);
-    } else if (syncStatus !== 'idle') {
+    } else if (syncStatus !== "idle") {
       setShowSyncIndicator(true);
     }
   }, [syncStatus, cloudSyncPending]);
@@ -67,32 +67,32 @@ export function GanttToolShell() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Check if user is typing in an input/textarea
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
         return;
       }
 
       // Ctrl+Z or Cmd+Z for undo
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
         const { undo } = useGanttToolStoreV2.getState();
         undo();
       }
       // Ctrl+Shift+Z or Cmd+Shift+Z for redo
-      else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
+      else if ((e.ctrlKey || e.metaKey) && e.key === "z" && e.shiftKey) {
         e.preventDefault();
         const { redo } = useGanttToolStoreV2.getState();
         redo();
       }
       // Ctrl+Y or Cmd+Y for redo (alternative)
-      else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+      else if ((e.ctrlKey || e.metaKey) && e.key === "y") {
         e.preventDefault();
         const { redo } = useGanttToolStoreV2.getState();
         redo();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // No dependencies - get functions from store directly
 
@@ -102,7 +102,7 @@ export function GanttToolShell() {
       try {
         await fetchProjects();
       } catch (error) {
-        console.error('[GanttToolShell] Initial fetch failed:', error);
+        console.error("[GanttToolShell] Initial fetch failed:", error);
       } finally {
         setInitialFetchDone(true);
       }
@@ -126,21 +126,28 @@ export function GanttToolShell() {
             await loadProject(sortedProjects[0].id);
           } else {
             // Create a default project with unique name if none exist
-            const today = format(new Date(), 'yyyy-MM-dd');
+            const today = format(new Date(), "yyyy-MM-dd");
             const timestamp = Date.now();
-            const projectName = `Project ${format(new Date(), 'yyyy-MM-dd HH:mm')}`;
+            const projectName = `Project ${format(new Date(), "yyyy-MM-dd HH:mm")}`;
             await createProject(projectName, today);
           }
         } catch (error) {
-          console.error('[GanttToolShell] Auto-load failed:', error);
-          setAutoLoadError(error instanceof Error ? error.message : 'Failed to load project');
+          console.error("[GanttToolShell] Auto-load failed:", error);
+          setAutoLoadError(error instanceof Error ? error.message : "Failed to load project");
         }
       };
 
       autoLoad();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialFetchDone, isLoading, projects.length, currentProject, manuallyUnloaded, autoLoadError])
+  }, [
+    initialFetchDone,
+    isLoading,
+    projects.length,
+    currentProject,
+    manuallyUnloaded,
+    autoLoadError,
+  ]);
 
   // Error State - Show when auto-load fails
   if (autoLoadError && !currentProject) {
@@ -166,10 +173,10 @@ export function GanttToolShell() {
             <button
               onClick={() => {
                 setAutoLoadError(null);
-                const today = format(new Date(), 'yyyy-MM-dd');
-                const projectName = `New Project ${format(new Date(), 'MMM dd, HH:mm')}`;
+                const today = format(new Date(), "yyyy-MM-dd");
+                const projectName = `New Project ${format(new Date(), "MMM dd, HH:mm")}`;
                 createProject(projectName, today).catch((err) => {
-                  setAutoLoadError(err instanceof Error ? err.message : 'Failed to create project');
+                  setAutoLoadError(err instanceof Error ? err.message : "Failed to create project");
                 });
               }}
               className="w-full px-6 py-3 bg-white text-gray-700 border-2 border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
@@ -195,7 +202,7 @@ export function GanttToolShell() {
   return (
     <div
       className="min-h-screen bg-gray-50 flex flex-col"
-      style={{ width: '100vw', maxWidth: '100vw' }}
+      style={{ width: "100vw", maxWidth: "100vw" }}
     >
       {/* Toolbar */}
       <GanttToolbar
@@ -206,13 +213,13 @@ export function GanttToolShell() {
       />
 
       {/* Apple-Style Floating Sync Status Indicator - Non-intrusive, doesn't affect layout */}
-      {syncStatus !== 'idle' && showSyncIndicator && (
+      {syncStatus !== "idle" && showSyncIndicator && (
         <div
           className="fixed top-20 right-4 z-40 pointer-events-none"
           style={{
             animation: showSyncIndicator
-              ? 'slideInFromTop 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-              : 'fadeOutUp 0.3s cubic-bezier(0.4, 0, 1, 1)',
+              ? "slideInFromTop 0.4s cubic-bezier(0.16, 1, 0.3, 1)"
+              : "fadeOutUp 0.3s cubic-bezier(0.4, 0, 1, 1)",
           }}
         >
           <div
@@ -226,25 +233,25 @@ export function GanttToolShell() {
               text-sm font-medium
               transition-all duration-300
               ${
-                syncStatus === 'error'
-                  ? 'bg-red-50/90 text-red-900 border border-red-200/50'
-                  : syncStatus === 'synced-cloud' && !cloudSyncPending
-                  ? 'bg-green-50/90 text-green-900 border border-green-200/50'
-                  : 'bg-white/90 text-gray-900 border border-gray-200/50'
+                syncStatus === "error"
+                  ? "bg-red-50/90 text-red-900 border border-red-200/50"
+                  : syncStatus === "synced-cloud" && !cloudSyncPending
+                    ? "bg-green-50/90 text-green-900 border border-green-200/50"
+                    : "bg-white/90 text-gray-900 border border-gray-200/50"
               }
             `}
             style={{
-              backdropFilter: 'blur(20px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              backdropFilter: "blur(20px) saturate(180%)",
+              WebkitBackdropFilter: "blur(20px) saturate(180%)",
             }}
           >
-            {syncStatus === 'saving-local' && (
+            {syncStatus === "saving-local" && (
               <>
                 <HexLoader size="sm" />
                 <span>💾 Saving locally...</span>
               </>
             )}
-            {syncStatus === 'saved-local' && (
+            {syncStatus === "saved-local" && (
               <>
                 <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -253,10 +260,10 @@ export function GanttToolShell() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>✓ Saved locally{!navigator.onLine && ' (will sync when online)'}</span>
+                <span>✓ Saved locally{!navigator.onLine && " (will sync when online)"}</span>
               </>
             )}
-            {syncStatus === 'syncing-cloud' && (
+            {syncStatus === "syncing-cloud" && (
               <>
                 <HexLoader size="sm" />
                 {saveProgress ? (
@@ -266,9 +273,13 @@ export function GanttToolShell() {
                 )}
               </>
             )}
-            {syncStatus === 'synced-cloud' && !cloudSyncPending && (
+            {syncStatus === "synced-cloud" && !cloudSyncPending && (
               <>
-                <svg className="w-4 h-4 flex-shrink-0 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-4 h-4 flex-shrink-0 text-green-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fillRule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -278,7 +289,7 @@ export function GanttToolShell() {
                 <span>✓ Synced to cloud</span>
               </>
             )}
-            {syncStatus === 'error' && (
+            {syncStatus === "error" && (
               <div className="relative group">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0" />
@@ -300,7 +311,7 @@ export function GanttToolShell() {
                 )}
               </div>
             )}
-            {!navigator.onLine && syncStatus !== 'error' && (
+            {!navigator.onLine && syncStatus !== "error" && (
               <span className="ml-1 text-xs opacity-75">📡 Offline</span>
             )}
           </div>
@@ -308,15 +319,9 @@ export function GanttToolShell() {
       )}
 
       {/* Main Content Area - Jobs: "Ruthless containment - nothing escapes its bounds" */}
-      <div
-        className="flex-1 flex relative"
-        style={{ width: '100%', overflow: 'hidden' }}
-      >
+      <div className="flex-1 flex relative" style={{ width: "100%", overflow: "hidden" }}>
         {/* Content: Gantt Canvas - Constrained to viewport, scrolls internally */}
-        <div
-          className="flex-1"
-          style={{ overflow: 'hidden', width: '100%' }}
-        >
+        <div className="flex-1" style={{ overflow: "hidden", width: "100%" }}>
           <ResponsiveGanttWrapper>
             <GanttCanvas />
           </ResponsiveGanttWrapper>
@@ -333,10 +338,7 @@ export function GanttToolShell() {
       </div>
 
       {/* Mission Control - Full-screen command center for deep analysis */}
-      <MissionControlModal
-        isOpen={showContextPanel}
-        onClose={() => setShowContextPanel(false)}
-      />
+      <MissionControlModal isOpen={showContextPanel} onClose={() => setShowContextPanel(false)} />
     </div>
   );
 }

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { Command } from 'cmdk';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from "react";
+import { Command } from "cmdk";
+import { useRouter } from "next/navigation";
 import {
   Calculator,
   Calendar,
@@ -15,26 +15,26 @@ import {
   Sun,
   Monitor,
   Languages,
-} from 'lucide-react';
-import { usePreferencesStore } from '@/stores/preferences-store';
+} from "lucide-react";
+import { usePreferencesStore } from "@/stores/preferences-store";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const router = useRouter();
   const { theme, setTheme, language, setLanguage, toggleExpertMode } = usePreferencesStore();
 
   // Listen for Cmd+K / Ctrl+K
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen((open) => !open);
       }
     };
 
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
   }, []);
 
   const handleSelect = useCallback((callback: () => void) => {
@@ -79,49 +79,59 @@ export function CommandPalette() {
             </Command.Empty>
 
             {/* Navigation */}
-            <Command.Group heading="Navigation" className="text-xs font-medium text-gray-500 px-2 py-1.5">
+            <Command.Group
+              heading="Navigation"
+              className="text-xs font-medium text-gray-500 px-2 py-1.5"
+            >
               <CommandItem
                 icon={<Calculator className="w-4 h-4" />}
                 label="Go to Estimator"
                 shortcut="⌘E"
-                onSelect={() => handleSelect(() => router.push('/estimator'))}
+                onSelect={() => handleSelect(() => router.push("/estimator"))}
               />
               <CommandItem
                 icon={<Calendar className="w-4 h-4" />}
                 label="Go to Timeline"
                 shortcut="⌘T"
-                onSelect={() => handleSelect(() => router.push('/timeline'))}
+                onSelect={() => handleSelect(() => router.push("/timeline"))}
               />
               <CommandItem
                 icon={<Layout className="w-4 h-4" />}
                 label="Go to Dashboard"
                 shortcut="⌘D"
-                onSelect={() => handleSelect(() => router.push('/dashboard'))}
+                onSelect={() => handleSelect(() => router.push("/dashboard"))}
               />
               <CommandItem
                 icon={<Users className="w-4 h-4" />}
                 label="Go to Admin"
-                onSelect={() => handleSelect(() => router.push('/admin'))}
+                onSelect={() => handleSelect(() => router.push("/admin"))}
               />
             </Command.Group>
 
             {/* Actions */}
             <Command.Separator className="my-2 h-px bg-gray-200" />
-            <Command.Group heading="Actions" className="text-xs font-medium text-gray-500 px-2 py-1.5">
+            <Command.Group
+              heading="Actions"
+              className="text-xs font-medium text-gray-500 px-2 py-1.5"
+            >
               <CommandItem
                 icon={<FileDown className="w-4 h-4" />}
                 label="Export PDF"
-                onSelect={() => handleSelect(() => {
-                  // Trigger PDF export
-                  console.log('Export PDF');
-                })}
+                onSelect={() =>
+                  handleSelect(() => {
+                    // Trigger PDF export
+                    console.log("Export PDF");
+                  })
+                }
               />
               <CommandItem
                 icon={<FileDown className="w-4 h-4" />}
                 label="Export PowerPoint"
-                onSelect={() => handleSelect(() => {
-                  console.log('Export PowerPoint');
-                })}
+                onSelect={() =>
+                  handleSelect(() => {
+                    console.log("Export PowerPoint");
+                  })
+                }
               />
               <CommandItem
                 icon={<Settings className="w-4 h-4" />}
@@ -132,59 +142,67 @@ export function CommandPalette() {
 
             {/* Theme */}
             <Command.Separator className="my-2 h-px bg-gray-200" />
-            <Command.Group heading="Theme" className="text-xs font-medium text-gray-500 px-2 py-1.5">
+            <Command.Group
+              heading="Theme"
+              className="text-xs font-medium text-gray-500 px-2 py-1.5"
+            >
               <CommandItem
                 icon={<Sun className="w-4 h-4" />}
                 label="Light Mode"
-                selected={theme === 'light'}
-                onSelect={() => handleSelect(() => setTheme('light'))}
+                selected={theme === "light"}
+                onSelect={() => handleSelect(() => setTheme("light"))}
               />
               <CommandItem
                 icon={<Moon className="w-4 h-4" />}
                 label="Dark Mode"
-                selected={theme === 'dark'}
-                onSelect={() => handleSelect(() => setTheme('dark'))}
+                selected={theme === "dark"}
+                onSelect={() => handleSelect(() => setTheme("dark"))}
               />
               <CommandItem
                 icon={<Monitor className="w-4 h-4" />}
                 label="System Theme"
-                selected={theme === 'system'}
-                onSelect={() => handleSelect(() => setTheme('system'))}
+                selected={theme === "system"}
+                onSelect={() => handleSelect(() => setTheme("system"))}
               />
             </Command.Group>
 
             {/* Language */}
             <Command.Separator className="my-2 h-px bg-gray-200" />
-            <Command.Group heading="Language" className="text-xs font-medium text-gray-500 px-2 py-1.5">
+            <Command.Group
+              heading="Language"
+              className="text-xs font-medium text-gray-500 px-2 py-1.5"
+            >
               <CommandItem
                 icon={<Languages className="w-4 h-4" />}
                 label="English"
-                selected={language === 'en'}
-                onSelect={() => handleSelect(() => setLanguage('en'))}
+                selected={language === "en"}
+                onSelect={() => handleSelect(() => setLanguage("en"))}
               />
               <CommandItem
                 icon={<Languages className="w-4 h-4" />}
                 label="中文 (Chinese)"
-                selected={language === 'zh'}
-                onSelect={() => handleSelect(() => setLanguage('zh'))}
+                selected={language === "zh"}
+                onSelect={() => handleSelect(() => setLanguage("zh"))}
               />
               <CommandItem
                 icon={<Languages className="w-4 h-4" />}
                 label="Deutsch (German)"
-                selected={language === 'de'}
-                onSelect={() => handleSelect(() => setLanguage('de'))}
+                selected={language === "de"}
+                onSelect={() => handleSelect(() => setLanguage("de"))}
               />
               <CommandItem
                 icon={<Languages className="w-4 h-4" />}
                 label="Español (Spanish)"
-                selected={language === 'es'}
-                onSelect={() => handleSelect(() => setLanguage('es'))}
+                selected={language === "es"}
+                onSelect={() => handleSelect(() => setLanguage("es"))}
               />
             </Command.Group>
           </Command.List>
 
           <div className="border-t px-3 py-2 text-xs text-gray-500 flex items-center justify-between">
-            <div>Press <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">ESC</kbd> to close</div>
+            <div>
+              Press <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">ESC</kbd> to close
+            </div>
             <div>
               <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">⌘</kbd>
               <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs ml-1">K</kbd> to open
@@ -211,7 +229,7 @@ function CommandItem({ icon, label, shortcut, selected, onSelect }: CommandItemP
       className={`
         flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer
         hover:bg-gray-100 dark:hover:bg-gray-800
-        ${selected ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
+        ${selected ? "bg-blue-50 dark:bg-blue-900/20" : ""}
       `}
     >
       <div className="flex items-center gap-2 flex-1">

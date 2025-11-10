@@ -11,14 +11,9 @@
  *   const result = await api.calculateEstimate(inputs);
  */
 
-import { FormulaEngine } from './formula-engine';
-import type {
-  EstimatorInputs,
-  EstimatorResults,
-  PhaseBreakdown,
-  L3ScopeItem,
-} from './types';
-import { expose } from 'comlink';
+import { FormulaEngine } from "./formula-engine";
+import type { EstimatorInputs, EstimatorResults, PhaseBreakdown, L3ScopeItem } from "./types";
+import { expose } from "comlink";
 
 /**
  * Worker API interface (exported for type safety in consumer code)
@@ -70,7 +65,7 @@ class FormulaWorker implements FormulaWorkerAPI {
 
   constructor() {
     this.engine = new FormulaEngine();
-    console.log('[FormulaWorker] Initialized in Web Worker context');
+    console.log("[FormulaWorker] Initialized in Web Worker context");
   }
 
   /**
@@ -82,7 +77,9 @@ class FormulaWorker implements FormulaWorkerAPI {
     const duration = performance.now() - startTime;
 
     console.log(`[FormulaWorker] Calculation completed in ${duration.toFixed(2)}ms`);
-    console.log(`[FormulaWorker] Result: ${results.totalMD} MD over ${results.durationMonths.toFixed(1)} months`);
+    console.log(
+      `[FormulaWorker] Result: ${results.totalMD} MD over ${results.durationMonths.toFixed(1)} months`
+    );
 
     return results;
   }
@@ -134,14 +131,8 @@ class FormulaWorker implements FormulaWorkerAPI {
     Pc: number;
     Os: number;
   } {
-    const Sb = this.engine.calculateScopeBreadth(
-      inputs.selectedL3Items,
-      inputs.integrations
-    );
-    const Pc = this.engine.calculateProcessComplexity(
-      inputs.customForms,
-      inputs.fitToStandard
-    );
+    const Sb = this.engine.calculateScopeBreadth(inputs.selectedL3Items, inputs.integrations);
+    const Pc = this.engine.calculateProcessComplexity(inputs.customForms, inputs.fitToStandard);
     const Os = this.engine.calculateOrgScale(
       inputs.legalEntities,
       inputs.countries,

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { formatDistanceToNow } from 'date-fns';
-import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
+import { useSessionGuard } from "@/hooks/useSessionGuard";
 
 interface UserProfile {
   id: string;
@@ -35,7 +35,7 @@ interface Session {
 }
 
 export default function AccountPage() {
-  const { session, status } = useSessionGuard(); // SECURITY: Validates session on page visibility
+  const { status } = useSessionGuard(); // SECURITY: Validates session on page visibility
   const router = useRouter();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -43,7 +43,7 @@ export default function AccountPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
 
   const [isEditingName, setIsEditingName] = useState(false);
-  const [editedName, setEditedName] = useState('');
+  const [editedName, setEditedName] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,12 +51,12 @@ export default function AccountPage() {
 
   // Fetch profile, passkeys, and sessions
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
+    if (status === "unauthenticated") {
+      router.push("/login");
       return;
     }
 
-    if (status === 'authenticated') {
+    if (status === "authenticated") {
       fetchData();
     }
   }, [status, router]);
@@ -67,13 +67,13 @@ export default function AccountPage() {
       setError(null);
 
       const [profileRes, passkeysRes, sessionsRes] = await Promise.all([
-        fetch('/api/account/profile'),
-        fetch('/api/account/passkeys'),
-        fetch('/api/account/sessions'),
+        fetch("/api/account/profile"),
+        fetch("/api/account/passkeys"),
+        fetch("/api/account/sessions"),
       ]);
 
       if (!profileRes.ok || !passkeysRes.ok || !sessionsRes.ok) {
-        throw new Error('Failed to load account data');
+        throw new Error("Failed to load account data");
       }
 
       const profileData = await profileRes.json();
@@ -81,11 +81,11 @@ export default function AccountPage() {
       const sessionsData = await sessionsRes.json();
 
       setProfile(profileData);
-      setEditedName(profileData.name || '');
+      setEditedName(profileData.name || "");
       setPasskeys(passkeysData);
       setSessions(sessionsData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -94,75 +94,75 @@ export default function AccountPage() {
   const handleSaveName = async () => {
     try {
       setError(null);
-      const res = await fetch('/api/account/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/account/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: editedName }),
       });
 
       if (!res.ok) {
-        throw new Error('Failed to update name');
+        throw new Error("Failed to update name");
       }
 
       const updated = await res.json();
       setProfile(updated);
       setIsEditingName(false);
-      setSuccessMessage('Name updated successfully');
+      setSuccessMessage("Name updated successfully");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update name');
+      setError(err instanceof Error ? err.message : "Failed to update name");
     }
   };
 
   const handleDeletePasskey = async (passkeyId: string) => {
-    if (!confirm('Are you sure you want to remove this passkey?')) {
+    if (!confirm("Are you sure you want to remove this passkey?")) {
       return;
     }
 
     try {
       setError(null);
       const res = await fetch(`/api/account/passkeys/${passkeyId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to delete passkey');
+        throw new Error(data.error || "Failed to delete passkey");
       }
 
-      setPasskeys(passkeys.filter(p => p.id !== passkeyId));
-      setSuccessMessage('Passkey removed successfully');
+      setPasskeys(passkeys.filter((p) => p.id !== passkeyId));
+      setSuccessMessage("Passkey removed successfully");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete passkey');
+      setError(err instanceof Error ? err.message : "Failed to delete passkey");
     }
   };
 
   const handleRevokeSession = async (sessionId: string) => {
-    if (!confirm('Are you sure you want to revoke this session?')) {
+    if (!confirm("Are you sure you want to revoke this session?")) {
       return;
     }
 
     try {
       setError(null);
       const res = await fetch(`/api/account/sessions/${sessionId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to revoke session');
+        throw new Error(data.error || "Failed to revoke session");
       }
 
-      setSessions(sessions.filter(s => s.id !== sessionId));
-      setSuccessMessage('Session revoked successfully');
+      setSessions(sessions.filter((s) => s.id !== sessionId));
+      setSuccessMessage("Session revoked successfully");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to revoke session');
+      setError(err instanceof Error ? err.message : "Failed to revoke session");
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -179,7 +179,7 @@ export default function AccountPage() {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push("/")}
             className="mb-4 text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
           >
             ← Back to Home
@@ -232,7 +232,7 @@ export default function AccountPage() {
                   <button
                     onClick={() => {
                       setIsEditingName(false);
-                      setEditedName(profile?.name || '');
+                      setEditedName(profile?.name || "");
                     }}
                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
                   >
@@ -241,7 +241,7 @@ export default function AccountPage() {
                 </div>
               ) : (
                 <div className="mt-1 flex items-center gap-2">
-                  <p className="text-gray-900">{profile?.name || 'Not set'}</p>
+                  <p className="text-gray-900">{profile?.name || "Not set"}</p>
                   <button
                     onClick={() => setIsEditingName(true)}
                     className="text-sm text-blue-600 hover:text-blue-700"
@@ -260,11 +260,12 @@ export default function AccountPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700">Member Since</label>
               <p className="mt-1 text-gray-900">
-                {profile?.createdAt && new Date(profile.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {profile?.createdAt &&
+                  new Date(profile.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
               </p>
             </div>
 
@@ -284,7 +285,7 @@ export default function AccountPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Passkeys</h2>
             <button
-              onClick={() => router.push('/account/add-passkey')}
+              onClick={() => router.push("/account/add-passkey")}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
             >
               + Add Passkey
@@ -302,10 +303,10 @@ export default function AccountPage() {
                 >
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">
-                      {passkey.nickname || 'Unnamed Passkey'}
+                      {passkey.nickname || "Unnamed Passkey"}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {passkey.deviceType} • Last used{' '}
+                      {passkey.deviceType} • Last used{" "}
                       {formatDistanceToNow(new Date(passkey.lastUsedAt), { addSuffix: true })}
                     </p>
                   </div>
@@ -337,8 +338,8 @@ export default function AccountPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-gray-900">
-                        {session.deviceInfo?.browser || 'Unknown Browser'} on{' '}
-                        {session.deviceInfo?.os || 'Unknown OS'}
+                        {session.deviceInfo?.browser || "Unknown Browser"} on{" "}
+                        {session.deviceInfo?.os || "Unknown OS"}
                       </p>
                       {session.current && (
                         <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
@@ -347,7 +348,7 @@ export default function AccountPage() {
                       )}
                     </div>
                     <p className="text-sm text-gray-600">
-                      {session.ipAddress} • Last active{' '}
+                      {session.ipAddress} • Last active{" "}
                       {formatDistanceToNow(new Date(session.lastActivity), { addSuffix: true })}
                     </p>
                   </div>

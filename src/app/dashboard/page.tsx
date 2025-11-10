@@ -1,5 +1,5 @@
-'use client';
-import { Card, Row, Col, Button, Statistic, Dropdown } from 'antd';
+"use client";
+import { Card, Row, Col, Button, Statistic, Dropdown } from "antd";
 import {
   FileTextOutlined,
   CalculatorOutlined,
@@ -9,12 +9,12 @@ import {
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
-  CrownOutlined
-} from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { signOut } from 'next-auth/react';
-import { useSessionGuard } from '@/hooks/useSessionGuard';
+  CrownOutlined,
+} from "@ant-design/icons";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
+import { useSessionGuard } from "@/hooks/useSessionGuard";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -27,32 +27,36 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    fetch('/api/dashboard/stats')
-      .then(r => r.json())
-      .then(data => setStats(data))
+    fetch("/api/dashboard/stats")
+      .then((r) => r.json())
+      .then((data) => setStats(data))
       .catch(() => {});
   }, []);
 
-  const isAdmin = session?.user?.role === 'ADMIN';
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const menuItems = [
     {
-      key: 'account',
+      key: "account",
       icon: <UserOutlined />,
-      label: 'Account Settings',
-      onClick: () => router.push('/account'),
+      label: "Account Settings",
+      onClick: () => router.push("/account"),
     },
-    ...(isAdmin ? [{
-      key: 'admin',
-      icon: <CrownOutlined />,
-      label: 'Admin Dashboard',
-      onClick: () => router.push('/admin'),
-    }] : []),
+    ...(isAdmin
+      ? [
+          {
+            key: "admin",
+            icon: <CrownOutlined />,
+            label: "Admin Dashboard",
+            onClick: () => router.push("/admin"),
+          },
+        ]
+      : []),
     {
-      key: 'logout',
+      key: "logout",
       icon: <LogoutOutlined />,
-      label: 'Logout',
-      onClick: () => signOut({ callbackUrl: '/login' }),
+      label: "Logout",
+      onClick: () => signOut({ callbackUrl: "/login" }),
       danger: true,
     },
   ];
@@ -67,18 +71,14 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-4">
             {isAdmin && (
-              <Button
-                type="default"
-                icon={<CrownOutlined />}
-                onClick={() => router.push('/admin')}
-              >
+              <Button type="default" icon={<CrownOutlined />} onClick={() => router.push("/admin")}>
                 Admin Dashboard
               </Button>
             )}
             <Dropdown menu={{ items: menuItems }} placement="bottomRight">
               <Button type="text" className="flex items-center gap-2">
                 <UserOutlined />
-                <span>{session?.user?.email || session?.user?.name || 'User'}</span>
+                <span>{session?.user?.email || session?.user?.name || "User"}</span>
               </Button>
             </Dropdown>
           </div>
@@ -87,71 +87,77 @@ export default function DashboardPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-2">Welcome back, {session?.user?.name || session?.user?.email || 'User'}</h1>
-        <p className="text-gray-600 mb-6">Here&apos;s what&apos;s happening with your projects today.</p>
-      
-      <Row gutter={[16, 16]} className="mb-6">
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Gantt Projects"
-              value={stats.projects}
-              prefix={<FileTextOutlined />}
-              valueStyle={{ color: '#3b82f6' }}
-            />
-            <p className="text-xs text-gray-500 mt-1">Total timeline projects created</p>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Saved Scenarios"
-              value={stats.estimates}
-              prefix={<CalculatorOutlined />}
-              valueStyle={{ color: '#8b5cf6' }}
-            />
-            <p className="text-xs text-gray-500 mt-1">Estimator scenarios saved</p>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Est. Accuracy"
-              value={stats.accuracy}
-              suffix="%"
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#10b981' }}
-            />
-            <p className="text-xs text-gray-500 mt-1">Projected estimation accuracy</p>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Est. Time Saved"
-              value={stats.timeSaved}
-              suffix="h"
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#f59e0b' }}
-            />
-            <p className="text-xs text-gray-500 mt-1">Estimated hours saved vs. manual</p>
-          </Card>
-        </Col>
-      </Row>
+        <h1 className="text-3xl font-bold mb-2">
+          Welcome back, {session?.user?.name || session?.user?.email || "User"}
+        </h1>
+        <p className="text-gray-600 mb-6">
+          Here&apos;s what&apos;s happening with your projects today.
+        </p>
 
-      <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card hoverable onClick={() => router.push('/gantt-tool')}>
-            <div className="text-center">
-              <FileTextOutlined style={{ fontSize: 32, color: '#8b5cf6' }} />
-              <h3 className="font-bold mt-2">Gantt Tool</h3>
-              <p className="text-sm text-gray-600">Create and manage project timelines</p>
-              <Button type="link">Start now <RightOutlined /></Button>
-            </div>
-          </Card>
-        </Col>
-      </Row>
+        <Row gutter={[16, 16]} className="mb-6">
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Gantt Projects"
+                value={stats.projects}
+                prefix={<FileTextOutlined />}
+                valueStyle={{ color: "#3b82f6" }}
+              />
+              <p className="text-xs text-gray-500 mt-1">Total timeline projects created</p>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Saved Scenarios"
+                value={stats.estimates}
+                prefix={<CalculatorOutlined />}
+                valueStyle={{ color: "#8b5cf6" }}
+              />
+              <p className="text-xs text-gray-500 mt-1">Estimator scenarios saved</p>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Est. Accuracy"
+                value={stats.accuracy}
+                suffix="%"
+                prefix={<CheckCircleOutlined />}
+                valueStyle={{ color: "#10b981" }}
+              />
+              <p className="text-xs text-gray-500 mt-1">Projected estimation accuracy</p>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Est. Time Saved"
+                value={stats.timeSaved}
+                suffix="h"
+                prefix={<ClockCircleOutlined />}
+                valueStyle={{ color: "#f59e0b" }}
+              />
+              <p className="text-xs text-gray-500 mt-1">Estimated hours saved vs. manual</p>
+            </Card>
+          </Col>
+        </Row>
+
+        <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} lg={6}>
+            <Card hoverable onClick={() => router.push("/gantt-tool")}>
+              <div className="text-center">
+                <FileTextOutlined style={{ fontSize: 32, color: "#8b5cf6" }} />
+                <h3 className="font-bold mt-2">Gantt Tool</h3>
+                <p className="text-sm text-gray-600">Create and manage project timelines</p>
+                <Button type="link">
+                  Start now <RightOutlined />
+                </Button>
+              </div>
+            </Card>
+          </Col>
+        </Row>
       </div>
     </div>
   );

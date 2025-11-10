@@ -3,6 +3,7 @@
 ## Overview
 
 The Gantt Tool now supports importing project data from Excel through two methods:
+
 1. **Copy & Paste** - Copy data directly from Excel and paste into the tool (NEW)
 2. **Upload File** - Upload a formatted .xlsx file (Existing)
 
@@ -85,18 +86,21 @@ Developer	Frontend Developer	0.0	0.0	0.0	2.0	5.0	5.0
 ## Features
 
 ### Automatic Parsing
+
 - **Task Hierarchy**: Phases and sub-tasks are identified by indentation
 - **Date Conversion**: Multiple date formats are automatically converted to ISO format
 - **Resource Allocation**: Weekly mandays are converted to task assignments
 - **Smart Mapping**: Resources are automatically assigned to tasks based on overlapping time periods
 
 ### Preview Before Import
+
 - See how many tasks, resources, and weeks will be imported
 - Review task names and date ranges
 - Review resource names, roles, and total effort
 - Validate data before creating the project
 
 ### Error Handling
+
 - Clear error messages if data format is incorrect
 - Warnings for missing or invalid data
 - Instructions for fixing common issues
@@ -104,16 +108,19 @@ Developer	Frontend Developer	0.0	0.0	0.0	2.0	5.0	5.0
 ## Implementation Details
 
 ### Files Created
+
 1. `/src/lib/gantt-tool/excel-template-parser.ts` - Parser logic
 2. `/src/components/gantt-tool/ExcelTemplateImport.tsx` - UI component
 3. `/src/components/gantt-tool/ImportModal.tsx` - Updated with tabs
 
 ### API Integration
+
 - Creates project via `POST /api/gantt-tool/projects`
 - Updates project with phases/tasks/resources via `PATCH /api/gantt-tool/projects/[id]`
 - Automatically loads imported project in the Gantt Tool
 
 ### Technology Stack
+
 - TypeScript for type safety
 - `date-fns` for date parsing and formatting
 - `nanoid` for generating unique IDs
@@ -124,19 +131,23 @@ Developer	Frontend Developer	0.0	0.0	0.0	2.0	5.0	5.0
 ### Common Issues
 
 **Error: "Could not find weekly column headers"**
+
 - Make sure your Excel has weekly columns labeled "W 01", "W 02", etc.
 - Ensure headers are in the first 10 rows
 
 **Error: "Failed to parse data"**
+
 - Check that you copied the entire table including headers
 - Ensure there are no completely empty rows in the middle of your data
 - Verify date formats are consistent
 
 **Resources Not Assigned to Tasks**
+
 - Resources are only assigned if they have effort during the task period
 - Check that weekly effort columns align with task date ranges
 
 **Dates Are Incorrect**
+
 - Use ISO format (YYYY-MM-DD) for best results
 - For "12.00" week format, the parser assumes project starts Jan 1, 2026
 
@@ -151,6 +162,7 @@ Developer	Frontend Developer	0.0	0.0	0.0	2.0	5.0	5.0
 ## Next Steps
 
 After importing:
+
 1. Review the generated Gantt chart
 2. Adjust dates by dragging bars if needed
 3. Add milestones and holidays

@@ -17,7 +17,7 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.33,
         daysPercent: 33.33,
         defaultRole: "Project Manager",
-        description: "Project initiation and planning"
+        description: "Project initiation and planning",
       },
       {
         id: `${stageName}_task_2`,
@@ -25,7 +25,7 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.33,
         daysPercent: 33.33,
         defaultRole: "Business Analyst",
-        description: "Requirements gathering"
+        description: "Requirements gathering",
       },
       {
         id: `${stageName}_task_3`,
@@ -33,8 +33,8 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.34,
         daysPercent: 33.34,
         defaultRole: "Solution Architect",
-        description: "Solution design"
-      }
+        description: "Solution design",
+      },
     ],
     Explore: [
       {
@@ -43,7 +43,7 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.33,
         daysPercent: 33.33,
         defaultRole: "Business Analyst",
-        description: "Business process mapping"
+        description: "Business process mapping",
       },
       {
         id: `${stageName}_task_2`,
@@ -51,7 +51,7 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.33,
         daysPercent: 33.33,
         defaultRole: "Solution Architect",
-        description: "Technical architecture design"
+        description: "Technical architecture design",
       },
       {
         id: `${stageName}_task_3`,
@@ -59,8 +59,8 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.34,
         daysPercent: 33.34,
         defaultRole: "Functional Consultant",
-        description: "Fit-gap analysis"
-      }
+        description: "Fit-gap analysis",
+      },
     ],
     Realize: [
       {
@@ -69,7 +69,7 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.33,
         daysPercent: 33.33,
         defaultRole: "Developer",
-        description: "Configuration and development"
+        description: "Configuration and development",
       },
       {
         id: `${stageName}_task_2`,
@@ -77,7 +77,7 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.33,
         daysPercent: 33.33,
         defaultRole: "Functional Consultant",
-        description: "System integration testing"
+        description: "System integration testing",
       },
       {
         id: `${stageName}_task_3`,
@@ -85,8 +85,8 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.34,
         daysPercent: 33.34,
         defaultRole: "Quality Analyst",
-        description: "User acceptance testing"
-      }
+        description: "User acceptance testing",
+      },
     ],
     Deploy: [
       {
@@ -95,7 +95,7 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.33,
         daysPercent: 33.33,
         defaultRole: "Deployment Manager",
-        description: "Deployment preparation"
+        description: "Deployment preparation",
       },
       {
         id: `${stageName}_task_2`,
@@ -103,7 +103,7 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.33,
         daysPercent: 33.33,
         defaultRole: "Developer",
-        description: "Production cutover"
+        description: "Production cutover",
       },
       {
         id: `${stageName}_task_3`,
@@ -111,8 +111,8 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.34,
         daysPercent: 33.34,
         defaultRole: "Training Specialist",
-        description: "User training"
-      }
+        description: "User training",
+      },
     ],
     Run: [
       {
@@ -121,7 +121,7 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.33,
         daysPercent: 33.33,
         defaultRole: "Support Analyst",
-        description: "Hypercare support"
+        description: "Hypercare support",
       },
       {
         id: `${stageName}_task_2`,
@@ -129,7 +129,7 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.33,
         daysPercent: 33.33,
         defaultRole: "Project Manager",
-        description: "Performance monitoring"
+        description: "Performance monitoring",
       },
       {
         id: `${stageName}_task_3`,
@@ -137,9 +137,9 @@ const generateDefaultTasks = (stageName: string): Task[] => {
         effortPercent: 33.34,
         daysPercent: 33.34,
         defaultRole: "Business Analyst",
-        description: "Continuous improvement"
-      }
-    ]
+        description: "Continuous improvement",
+      },
+    ],
   };
 
   return taskTemplates[stageName] || taskTemplates.Prepare;

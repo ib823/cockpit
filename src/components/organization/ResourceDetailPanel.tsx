@@ -5,10 +5,10 @@
  * Allows editing all resource fields including manager assignment.
  */
 
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { Drawer, Form, Input, Select, Button, Typography, Space, Tag } from 'antd';
+import { useEffect } from "react";
+import { Drawer, Form, Input, Select, Button, Typography, Space, Tag } from "antd";
 import {
   UserOutlined,
   MailOutlined,
@@ -17,10 +17,10 @@ import {
   TeamOutlined,
   SaveOutlined,
   CloseOutlined,
-} from '@ant-design/icons';
-import { useGanttToolStore } from '@/stores/gantt-tool-store-v2';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
-import type { Resource, ResourceCategory, ResourceDesignation } from '@/types/gantt-tool';
+} from "@ant-design/icons";
+import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
+import type { Resource, ResourceCategory, ResourceDesignation } from "@/types/gantt-tool";
 
 const { Title, Text } = Typography;
 
@@ -34,20 +34,25 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
   const [form] = Form.useForm();
   const currentProject = useGanttToolStore((state) => state.currentProject);
   const updateResource = useGanttToolStore((state) => state.updateResource);
-  const assignManager = useGanttToolStore((state) => state.assignManager);
-  const getDirectReports = useGanttToolStore((state) => state.getDirectReports);
 
   const resource = currentProject?.resources.find((r) => r.id === resourceId);
+
+  // Get direct reports - resources that have this resource as their manager
+  const getDirectReports = (managerId: string): Resource[] => {
+    if (!currentProject) return [];
+    return currentProject.resources.filter((r) => r.managerResourceId === managerId);
+  };
+
   const directReports = getDirectReports(resourceId);
 
   useEffect(() => {
     if (!resource) return;
     form.setFieldsValue({
-      name: resource.name || '',
-      email: resource.email || '',
-      department: resource.department || '',
-      location: resource.location || '',
-      projectRole: resource.projectRole || '',
+      name: resource.name || "",
+      email: resource.email || "",
+      department: resource.department || "",
+      location: resource.location || "",
+      projectRole: resource.projectRole || "",
       managerResourceId: resource.managerResourceId || undefined,
     });
   }, [resource, form]);
@@ -61,7 +66,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
 
   // Available managers (all resources except self and direct reports to prevent circular refs)
   const availableManagers = currentProject.resources.filter(
-    (r) => r.id !== resourceId && !directReports.some((dr) => dr.id === r.id)
+    (r: Resource) => r.id !== resourceId && !directReports.some((dr: Resource) => dr.id === r.id)
   );
 
   const handleSave = () => {
@@ -78,7 +83,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
       // Update manager assignment if changed
       if (values.managerResourceId !== resource.managerResourceId) {
         const newManagerId = values.managerResourceId || null;
-        assignManager(resourceId, newManagerId);
+        updateResource(resourceId, { managerResourceId: newManagerId });
       }
 
       form.resetFields();
@@ -101,7 +106,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
               {categoryInfo.icon} {categoryInfo.label}
             </Tag>
           </Space>
-          <Title level={4} style={{ margin: 0>
+          <Title level={4} style={{ margin: 0 }}>
             {resource.name}
           </Title>
           <Text type="secondary">{designationLabel}</Text>
@@ -112,7 +117,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
       onClose={handleCancel}
       open={true}
       footer={
-        <Space style={{ width: '100%', justifyContent: 'flex-end'>
+        <Space style={{ width: "100%", justifyContent: "flex-end" }}>
           <Button onClick={handleCancel} icon={<CloseOutlined />}>
             Cancel
           </Button>
@@ -122,22 +127,14 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
         </Space>
       }
     >
-      <Form
-        form={form}
-        layout="vertical"
-        requiredMark={false}
-      >
+      <Form form={form} layout="vertical" requiredMark={false}>
         {/* Name */}
         <Form.Item
           name="name"
           label="Resource Name"
-          rules={[{ required: true, message: 'Please enter a resource name' }]}
+          rules={[{ required: true, message: "Please enter a resource name" }]}
         >
-          <Input
-            prefix={<UserOutlined />}
-            placeholder="e.g., John Smith"
-            size="large"
-          />
+          <Input prefix={<UserOutlined />} placeholder="e.g., John Smith" size="large" />
         </Form.Item>
 
         {/* Manager Assignment - Prominent */}
@@ -159,7 +156,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
               showSearch
               optionFilterProp="label"
               options={[
-                { value: undefined, label: '🎯 No Manager (Top Level)' },
+                { value: undefined, label: "🎯 No Manager (Top Level)" },
                 ...availableManagers.map((manager) => ({
                   value: manager.id,
                   label: `${RESOURCE_CATEGORIES[manager.category].icon} ${manager.name} - ${RESOURCE_DESIGNATIONS[manager.designation]}`,
@@ -176,32 +173,18 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
         <Form.Item
           name="email"
           label="Email"
-          rules={[{ type: 'email', message: 'Please enter a valid email' }]}
+          rules={[{ type: "email", message: "Please enter a valid email" }]}
         >
-          <Input
-            prefix={<MailOutlined />}
-            placeholder="email@example.com"
-            size="large"
-          />
+          <Input prefix={<MailOutlined />} placeholder="email@example.com" size="large" />
         </Form.Item>
 
         {/* Department */}
-        <Form.Item
-          name="department"
-          label="Department"
-        >
-          <Input
-            prefix={<TeamOutlined />}
-            placeholder="e.g., Finance & Accounting"
-            size="large"
-          />
+        <Form.Item name="department" label="Department">
+          <Input prefix={<TeamOutlined />} placeholder="e.g., Finance & Accounting" size="large" />
         </Form.Item>
 
         {/* Location */}
-        <Form.Item
-          name="location"
-          label="Location"
-        >
+        <Form.Item name="location" label="Location">
           <Input
             prefix={<EnvironmentOutlined />}
             placeholder="e.g., New York, Remote"
@@ -210,10 +193,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
         </Form.Item>
 
         {/* Project Role */}
-        <Form.Item
-          name="projectRole"
-          label="Project Role"
-        >
+        <Form.Item name="projectRole" label="Project Role">
           <Input
             prefix={<IdcardOutlined />}
             placeholder="e.g., Financial Workstream Lead"
@@ -224,17 +204,17 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
         {/* Direct Reports */}
         {directReports.length > 0 && (
           <Form.Item label={`Direct Reports (${directReports.length})`}>
-            <Space direction="vertical" style={{ width: '100%'>
-              {directReports.map((report) => {
+            <Space direction="vertical" style={{ width: "100%" }}>
+              {directReports.map((report: Resource) => {
                 const reportCategoryInfo = RESOURCE_CATEGORIES[report.category];
                 return (
                   <div
                     key={report.id}
                     style={{
-                      padding: '8px 12px',
-                      backgroundColor: '#f5f5f5',
-                      borderRadius: '6px',
-                      border: '1px solid #d9d9d9',
+                      padding: "8px 12px",
+                      backgroundColor: "#f5f5f5",
+                      borderRadius: "6px",
+                      border: "1px solid #d9d9d9",
                     }}
                   >
                     <Space>

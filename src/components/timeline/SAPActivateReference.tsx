@@ -1,15 +1,16 @@
 "use client";
 
-import { SAP_ACTIVATE_PHASES } from '@/types/wrappers';
-import { useWrappersStore } from '@/stores/wrappers-store';
-import { useTimelineStore } from '@/stores/timeline-store';
-import { motion } from 'framer-motion';
-import { ChevronRight, Info } from 'lucide-react';
-import { WrapperSlider } from './WrapperSlider';
-import { useEffect } from 'react';
+import { SAP_ACTIVATE_PHASES } from "@/types/wrappers";
+import { useWrappersStore } from "@/stores/wrappers-store";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { motion } from "framer-motion";
+import { ChevronRight, Info } from "lucide-react";
+import { WrapperSlider } from "./WrapperSlider";
+import { useEffect } from "react";
 
 export function SAPActivateReference() {
-  const { wrappers, calculations, getTotalWrapperPercentage, toggleModal, calculateWrappers } = useWrappersStore();
+  const { wrappers, calculations, getTotalWrapperPercentage, toggleModal, calculateWrappers } =
+    useWrappersStore();
   const { phases, getProjectCost } = useTimelineStore();
 
   // Calculate core effort and cost
@@ -70,13 +71,7 @@ export function SAPActivateReference() {
         {wrappers.map((wrapper) => {
           const calculation = calculations.find((c) => c.wrapperId === wrapper.id);
 
-          return (
-            <WrapperSlider
-              key={wrapper.id}
-              wrapper={wrapper}
-              calculation={calculation}
-            />
-          );
+          return <WrapperSlider key={wrapper.id} wrapper={wrapper} calculation={calculation} />;
         })}
       </div>
 
@@ -85,9 +80,7 @@ export function SAPActivateReference() {
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <div className="text-xs text-gray-500 mb-1">Core Effort</div>
-            <div className="text-lg font-semibold text-gray-900">
-              {coreEffort.toFixed(0)} PD
-            </div>
+            <div className="text-lg font-semibold text-gray-900">{coreEffort.toFixed(0)} PD</div>
           </div>
           <div>
             <div className="text-xs text-gray-500 mb-1">Wrapper Effort</div>
@@ -98,7 +91,8 @@ export function SAPActivateReference() {
           <div>
             <div className="text-xs text-gray-500 mb-1">Grand Total</div>
             <div className="text-lg font-semibold text-green-600">
-              {(coreEffort + calculations.reduce((sum, c) => sum + c.wrapperEffort, 0)).toFixed(0)} PD
+              {(coreEffort + calculations.reduce((sum, c) => sum + c.wrapperEffort, 0)).toFixed(0)}{" "}
+              PD
             </div>
           </div>
         </div>

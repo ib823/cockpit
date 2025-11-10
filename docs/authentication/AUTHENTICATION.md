@@ -52,16 +52,19 @@ Minimal, elegant passwordless authentication inspired by Apple's design philosop
 ### Features
 
 ✅ **Generate Access Codes**
+
 - Enter user email
 - Generate 6-digit code
 - Copy to clipboard
 
 ✅ **Code Display**
+
 - Large, readable mono font
 - Visual indicators (checkmarks, icons)
 - Expiry/usage information
 
 ✅ **Instructions**
+
 - Step-by-step guide
 - Clear, concise
 
@@ -85,17 +88,20 @@ POST /api/admin/create-access (requires admin)
 ### Login Page (`/login`)
 
 **Colors:**
+
 - Background: Pure white (#ffffff)
 - Text: Slate 900 (#0f172a)
 - Borders: Slate 200/900 (#e2e8f0/#0f172a)
 - Success: Green 100/600/900
 
 **Typography:**
+
 - Heading: 3xl, font-light, tight tracking
 - Input: Base size, clean
 - Code: 2xl, mono, wide tracking
 
 **States:**
+
 - `email` - Email input visible
 - `code` - Code input visible (when passkey not found)
 - `waiting` - Spinner shown
@@ -104,12 +110,14 @@ POST /api/admin/create-access (requires admin)
 ### Admin Page (`/admin`)
 
 **Layout:**
+
 - Two-column grid (responsive)
 - Left: Create access form
 - Right: Code display
 - Bottom: Instructions
 
 **Colors:**
+
 - Background: Slate 50 (#f8fafc)
 - Cards: White with border
 - Accents: Blue 50/100/800/900
@@ -117,12 +125,14 @@ POST /api/admin/create-access (requires admin)
 ## User Experience
 
 ### Login (Existing User)
+
 1. Type email
 2. Click Continue
 3. Passkey prompt appears
 4. ✓ Done (< 5 seconds)
 
 ### First Time Setup
+
 1. Type email
 2. Click Continue
 3. Enter 6-digit code
@@ -131,6 +141,7 @@ POST /api/admin/create-access (requires admin)
 6. ✓ Done (< 30 seconds)
 
 ### Admin Creating Access
+
 1. Type user email
 2. Click Generate
 3. Copy code
@@ -149,16 +160,19 @@ POST /api/admin/create-access (requires admin)
 ## Technical Details
 
 **Session Management:**
+
 - JWT with `jose` library
 - 8-hour expiration
 - HttpOnly, Secure, SameSite=Lax
 
 **WebAuthn:**
+
 - SimpleWebAuthn v13
 - User verification required
 - Resident keys (device-bound)
 
 **Challenge Storage:**
+
 - Redis (production)
 - In-memory fallback (development)
 - 60-second TTL

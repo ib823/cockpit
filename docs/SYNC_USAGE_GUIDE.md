@@ -8,6 +8,7 @@
 ```
 
 This will:
+
 1. Create a `claude-project-knowledge/` directory with all assessment-ready files
 2. Generate a timestamped `.zip` archive (e.g., `claude-assessment-20251008_143022.zip`)
 3. Show statistics about included files
@@ -17,6 +18,7 @@ This will:
 The script follows the **exact VS Code Explorer order** and includes:
 
 ### Critical Folders (Full Content)
+
 - ✅ `.github/` - CI/CD workflows
 - ✅ `src/` - **All source code** (most important)
 - ✅ `tests/` - All test files
@@ -27,11 +29,13 @@ The script follows the **exact VS Code Explorer order** and includes:
 - ✅ `public/` - Assets
 
 ### Configuration Files
+
 - ✅ `package.json`, `tsconfig.json`, `next.config.js`, etc.
 - ✅ `.env.example` (template only, no secrets)
 - ✅ All config files (`.eslintrc`, `.prettierrc`, `tailwind.config.js`, etc.)
 
 ### Key Documentation
+
 - ✅ `README.md`
 - ✅ `CODEBASE_OVERVIEW.md`
 - ✅ `SECURITY*.md`
@@ -41,20 +45,24 @@ The script follows the **exact VS Code Explorer order** and includes:
 ## 🚫 What's Excluded
 
 ### Security (Never Included)
+
 - ❌ `.env` - Contains secrets
 - ❌ `.env.local` - Contains secrets
 - ❌ Any `.env*.local` files
 
 ### Build Artifacts
+
 - ❌ `.next/` - Build output
 - ❌ `node_modules/` - Dependencies
 - ❌ `*.tsbuildinfo` - Build cache
 
 ### IDE & Tooling
+
 - ❌ `.claude/`, `.vscode/`, `.vercel/`
 - ❌ `.git/` - Version control
 
 ### Redundant Reports
+
 - ❌ `*_COMPLETE.md`, `*_STATUS.md`, `*_REPORT.md`
 - ❌ `SESSION_*.md`, `*_IMPLEMENTATION*.md`
 - ❌ Debug folders (`gptdebug/`, `env_report_*/`)
@@ -76,6 +84,7 @@ The script follows the **exact VS Code Explorer order** and includes:
 ## 🎯 Upload to Claude.ai
 
 ### Option 1: Upload Archive (Recommended)
+
 1. Go to your Claude.ai Project
 2. Open Project Knowledge settings
 3. Click "Add Files"
@@ -83,6 +92,7 @@ The script follows the **exact VS Code Explorer order** and includes:
 5. Claude will automatically extract and index all files
 
 ### Option 2: Drag & Drop Folder
+
 1. Go to your Claude.ai Project
 2. Open the `claude-project-knowledge/` folder in your file explorer
 3. Select all contents (Ctrl+A / Cmd+A)
@@ -118,6 +128,7 @@ When you make significant code changes:
 After uploading, use these prompts in Claude.ai for comprehensive assessment:
 
 ### Security Assessment
+
 ```
 Review this codebase for security vulnerabilities, focusing on:
 - Authentication and authorization flows
@@ -130,6 +141,7 @@ Provide specific file locations and severity ratings.
 ```
 
 ### UX Assessment
+
 ```
 Analyze the user experience across this application:
 - Component design patterns and consistency
@@ -142,6 +154,7 @@ Suggest specific improvements with file references.
 ```
 
 ### Architecture Assessment
+
 ```
 Evaluate the codebase architecture:
 - Code organization and structure
@@ -154,6 +167,7 @@ Identify areas for refactoring or improvement.
 ```
 
 ### Flow Assessment
+
 ```
 Map out the critical business flows:
 - User authentication journey
@@ -195,12 +209,14 @@ copy_with_structure "your-folder" "$OUTPUT_DIR/your-folder"
 ## 🐛 Troubleshooting
 
 ### "Permission denied"
+
 ```bash
 chmod +x sync-with-claude.sh
 ./sync-with-claude.sh
 ```
 
 ### "Command not found: zip"
+
 ```bash
 # Install zip utility
 sudo apt-get install zip  # Debian/Ubuntu
@@ -208,7 +224,9 @@ brew install zip          # macOS
 ```
 
 ### Archive too large for Claude.ai
+
 The script is designed to stay under Claude.ai's limits (~100MB), but if needed:
+
 - Check for accidentally included large files
 - Verify `node_modules/` and `.next/` are excluded
 - Review the strategy document for additional exclusions

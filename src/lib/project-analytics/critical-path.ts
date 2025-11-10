@@ -14,8 +14,8 @@
  * - Critical Path: Tasks with zero slack
  */
 
-import type { GanttProject, GanttTask, GanttPhase } from '@/types/gantt-tool';
-import { differenceInDays, addDays, parseISO } from 'date-fns';
+import type { GanttProject, GanttTask, GanttPhase } from "@/types/gantt-tool";
+import { differenceInDays, addDays, parseISO } from "date-fns";
 
 export interface CriticalPathTask {
   id: string;
@@ -217,9 +217,7 @@ export function calculateCriticalPath(project: GanttProject): CriticalPathAnalys
     const daysSinceStart = differenceInDays(milestoneDate, parseISO(project.startDate));
 
     const isCritical = criticalTasks.some((task) => {
-      return (
-        daysSinceStart >= task.earlyStart - 1 && daysSinceStart <= task.earlyFinish + 1
-      );
+      return daysSinceStart >= task.earlyStart - 1 && daysSinceStart <= task.earlyFinish + 1;
     });
 
     return {
@@ -319,7 +317,7 @@ export function getScheduleCompressionSuggestions(project: GanttProject): {
     taskId: string;
     taskName: string;
     potentialSavingsDays: number;
-    effort: 'low' | 'medium' | 'high';
+    effort: "low" | "medium" | "high";
     reason: string;
   }[];
   fastTrackingOpportunities: {
@@ -328,7 +326,7 @@ export function getScheduleCompressionSuggestions(project: GanttProject): {
     task1Name: string;
     task2Name: string;
     potentialSavingsDays: number;
-    risk: 'low' | 'medium' | 'high';
+    risk: "low" | "medium" | "high";
     reason: string;
   }[];
 } {
@@ -341,10 +339,16 @@ export function getScheduleCompressionSuggestions(project: GanttProject): {
       taskId: task.id,
       taskName: task.name,
       potentialSavingsDays: Math.ceil(task.duration * 0.25), // Assume 25% reduction possible
-      effort: task.duration > 10 ? ('low' as const) : task.duration > 5 ? ('medium' as const) : ('high' as const),
-      reason: task.duration > 10
-        ? 'Long duration task - good candidate for resource addition'
-        : 'Short task - limited room for compression',
+      effort:
+        task.duration > 10
+          ? ("low" as const)
+          : task.duration > 5
+            ? ("medium" as const)
+            : ("high" as const),
+      reason:
+        task.duration > 10
+          ? "Long duration task - good candidate for resource addition"
+          : "Short task - limited room for compression",
     }))
     .sort((a, b) => b.potentialSavingsDays - a.potentialSavingsDays)
     .slice(0, 5); // Top 5 opportunities
@@ -356,7 +360,7 @@ export function getScheduleCompressionSuggestions(project: GanttProject): {
     task1Name: string;
     task2Name: string;
     potentialSavingsDays: number;
-    risk: 'low' | 'medium' | 'high';
+    risk: "low" | "medium" | "high";
     reason: string;
   }[] = [];
 
@@ -373,11 +377,12 @@ export function getScheduleCompressionSuggestions(project: GanttProject): {
           task1Name: task.name,
           task2Name: successor.name,
           potentialSavingsDays: overlapPotential,
-          risk: task.dependencies.length > 2 ? 'high' : task.dependencies.length > 0 ? 'medium' : 'low',
+          risk:
+            task.dependencies.length > 2 ? "high" : task.dependencies.length > 0 ? "medium" : "low",
           reason:
             overlapPotential > 3
-              ? 'Significant overlap potential with manageable risk'
-              : 'Limited overlap potential',
+              ? "Significant overlap potential with manageable risk"
+              : "Limited overlap potential",
         });
       }
     });

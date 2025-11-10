@@ -11,6 +11,7 @@
 This document specifies the requirements and implementation strategy for features that require database schema changes. These features cannot be implemented without modifying the Prisma schema and running database migrations.
 
 **Deferred Issues:**
+
 1. **Issue #12:** Dependency Arrows (Visual task dependencies)
 2. **Issues #24-27:** Task Hierarchy System (Parent-child relationships)
 
@@ -27,6 +28,7 @@ This document specifies the requirements and implementation strategy for feature
 ### Current State
 
 **Database Schema (`prisma/schema.prisma`):**
+
 ```prisma
 model GanttTask {
   id           String   @id @default(cuid())
@@ -51,17 +53,19 @@ model GanttTask {
 #### 1. Algorithm Development
 
 **Arrow Path Generation:**
+
 - Calculate SVG path between source and target tasks
 - Support different arrow styles (straight, curved, orthogonal)
 - Handle vertical and horizontal offsets
 - Account for zoom level and viewport position
 
 **Example Algorithm:**
+
 ```typescript
 function generateArrowPath(
   sourceTask: { x: number; y: number; width: number; height: number },
   targetTask: { x: number; y: number; width: number; height: number },
-  style: 'straight' | 'curved' | 'orthogonal' = 'curved'
+  style: "straight" | "curved" | "orthogonal" = "curved"
 ): string {
   // Start from right edge of source task
   const startX = sourceTask.x + sourceTask.width;
@@ -71,7 +75,7 @@ function generateArrowPath(
   const endX = targetTask.x;
   const endY = targetTask.y + targetTask.height / 2;
 
-  if (style === 'curved') {
+  if (style === "curved") {
     // Bezier curve for smooth connection
     const controlX = (startX + endX) / 2;
     return `M ${startX},${startY} C ${controlX},${startY} ${controlX},${endY} ${endX},${endY}`;
@@ -86,20 +90,23 @@ function generateArrowPath(
 **Challenge:** Arrows should avoid overlapping with tasks and other arrows.
 
 **Strategy:**
+
 - Calculate bounding boxes for all tasks
 - Check if arrow path intersects any task
 - Adjust path with offset if collision detected
-- Use A* or similar pathfinding for complex cases
+- Use A\* or similar pathfinding for complex cases
 
 #### 3. Interactive Editing
 
 **Features:**
+
 - Click source task → Select
 - Click target task → Create dependency
 - Click arrow → Delete dependency
 - Hover arrow → Show dependency details (lag time, type)
 
 **UI Components:**
+
 ```tsx
 // Dependency creation mode
 const [dependencyMode, setDependencyMode] = useState<{
@@ -125,14 +132,7 @@ function DependencyArrow({ sourceTask, targetTask, type }: DependencyArrowProps)
 
       {/* Arrowhead marker */}
       <defs>
-        <marker
-          id="arrowhead"
-          markerWidth="10"
-          markerHeight="10"
-          refX="9"
-          refY="3"
-          orient="auto"
-        >
+        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
           <polygon points="0 0, 10 3, 0 6" fill="#3B82F6" />
         </marker>
       </defs>
@@ -140,7 +140,7 @@ function DependencyArrow({ sourceTask, targetTask, type }: DependencyArrowProps)
       {/* Hover tooltip */}
       <title>
         {sourceTask.name} → {targetTask.name}
-        {type === 'FS' && ' (Finish-to-Start)'}
+        {type === "FS" && " (Finish-to-Start)"}
       </title>
     </g>
   );
@@ -150,12 +150,14 @@ function DependencyArrow({ sourceTask, targetTask, type }: DependencyArrowProps)
 #### 4. Dependency Types
 
 **Standard Project Management Types:**
+
 - **FS (Finish-to-Start):** Default - Task B starts after Task A finishes
 - **SS (Start-to-Start):** Task B starts when Task A starts
 - **FF (Finish-to-Finish):** Task B finishes when Task A finishes
 - **SF (Start-to-Finish):** Task B finishes when Task A starts (rare)
 
 **Schema Extension Required:**
+
 ```prisma
 model GanttTaskDependency {
   id           String   @id @default(cuid())
@@ -209,6 +211,7 @@ model GanttTaskDependency {
 ### Current State
 
 **Database Schema (`prisma/schema.prisma`):**
+
 ```prisma
 model GanttTask {
   id          String   @id @default(cuid())
@@ -268,6 +271,7 @@ model GanttTask {
 ```
 
 **Migration Script:**
+
 ```sql
 -- Add new columns
 ALTER TABLE "GanttTask"
@@ -294,6 +298,7 @@ CREATE INDEX "GanttTask_level_idx" ON "GanttTask"("level");
 #### Issue #24: Indentation System (24px per level)
 
 **Visual Design:**
+
 ```
 Phase 1
   ├─ Task 1.1 (level 0, indent: 0px)
@@ -304,6 +309,7 @@ Phase 1
 ```
 
 **CSS Implementation:**
+
 ```tsx
 interface TaskRowProps {
   task: GanttTask;
@@ -314,10 +320,7 @@ function TaskRow({ task, level }: TaskRowProps) {
   const indentPx = level * 24; // 24px per level
 
   return (
-    <div
-      className="task-row flex items-center"
-      style={{ paddingLeft: `${indentPx}px` }}
-    >
+    <div className="task-row flex items-center" style={{ paddingLeft: `${indentPx}px` }}>
       {/* Tree line connector */}
       {level > 0 && (
         <div className="tree-line w-4 h-full border-l-2 border-b-2 border-gray-300 rounded-bl" />
@@ -331,9 +334,7 @@ function TaskRow({ task, level }: TaskRowProps) {
       )}
 
       {/* Task content */}
-      <div className="flex-1">
-        {task.name}
-      </div>
+      <div className="flex-1">{task.name}</div>
     </div>
   );
 }
@@ -342,6 +343,7 @@ function TaskRow({ task, level }: TaskRowProps) {
 #### Issue #25: Parent-Child Visual Connections (Tree Lines)
 
 **ASCII Example:**
+
 ```
 ├─ Parent Task 1
 │  ├─ Child Task 1.1
@@ -353,6 +355,7 @@ function TaskRow({ task, level }: TaskRowProps) {
 ```
 
 **SVG Tree Lines:**
+
 ```tsx
 function TreeLines({ tasks, level }: TreeLinesProps) {
   return (
@@ -365,24 +368,10 @@ function TreeLines({ tasks, level }: TreeLinesProps) {
         return (
           <g key={task.id}>
             {/* Vertical line from parent */}
-            <line
-              x1={x}
-              y1={0}
-              x2={x}
-              y2={y}
-              stroke="#D1D5DB"
-              strokeWidth="2"
-            />
+            <line x1={x} y1={0} x2={x} y2={y} stroke="#D1D5DB" strokeWidth="2" />
 
             {/* Horizontal line to task */}
-            <line
-              x1={x}
-              y1={y}
-              x2={x + 16}
-              y2={y}
-              stroke="#D1D5DB"
-              strokeWidth="2"
-            />
+            <line x1={x} y1={y} x2={x + 16} y2={y} stroke="#D1D5DB" strokeWidth="2" />
 
             {/* Vertical line to next sibling (if not last) */}
             {!isLast && (
@@ -406,26 +395,29 @@ function TreeLines({ tasks, level }: TreeLinesProps) {
 #### Issue #26: Parent/Child Styling Differentiation
 
 **Parent Tasks:**
+
 - Bold font weight (font-bold)
 - Larger text size (text-base vs text-sm)
 - Different background color (bg-blue-50)
 - Collapse/expand icon
 
 **Child Tasks:**
+
 - Normal font weight (font-normal)
 - Smaller text size (text-sm)
 - Standard background (bg-white)
 - No collapse icon
 
 **Implementation:**
+
 ```tsx
 function TaskRow({ task }: TaskRowProps) {
   return (
     <div
       className={`
         task-row p-2 rounded
-        ${task.isParent ? 'font-bold text-base bg-blue-50' : 'font-normal text-sm bg-white'}
-        ${task.level > 0 ? 'ml-6' : ''}
+        ${task.isParent ? "font-bold text-base bg-blue-50" : "font-normal text-sm bg-white"}
+        ${task.level > 0 ? "ml-6" : ""}
       `}
     >
       {task.name}
@@ -437,12 +429,14 @@ function TaskRow({ task }: TaskRowProps) {
 #### Issue #27: Expand/Collapse Controls
 
 **Functionality:**
+
 - Click chevron to collapse/expand parent task
 - Collapsed parent hides all children and descendants
 - Keyboard shortcut: Left arrow (collapse), Right arrow (expand)
 - Double-click parent task to toggle
 
 **State Management:**
+
 ```tsx
 // Store collapsed state in database
 const toggleTaskCollapse = async (taskId: string) => {
@@ -466,13 +460,9 @@ function CollapseButton({ task }: { task: GanttTask }) {
     <button
       onClick={() => toggleTaskCollapse(task.id)}
       className="p-1 hover:bg-gray-200 rounded"
-      title={task.collapsed ? 'Expand' : 'Collapse'}
+      title={task.collapsed ? "Expand" : "Collapse"}
     >
-      {task.collapsed ? (
-        <ChevronRight className="w-4 h-4" />
-      ) : (
-        <ChevronDown className="w-4 h-4" />
-      )}
+      {task.collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
     </button>
   );
 }
@@ -482,14 +472,17 @@ function CollapseButton({ task }: { task: GanttTask }) {
 
 **Parent Task Dates:**
 When a parent task has children, its dates should be automatically calculated:
+
 - `startDate` = earliest child start date
 - `endDate` = latest child end date
 
 **Parent Task Progress:**
 Aggregate progress from children:
+
 - `progress` = average of all children progress (weighted by duration)
 
 **Implementation:**
+
 ```typescript
 async function updateParentTask(taskId: string) {
   const children = await prisma.ganttTask.findMany({
@@ -499,11 +492,11 @@ async function updateParentTask(taskId: string) {
   if (children.length === 0) return;
 
   // Calculate dates
-  const startDates = children.map(c => new Date(c.startDate));
-  const endDates = children.map(c => new Date(c.endDate));
+  const startDates = children.map((c) => new Date(c.startDate));
+  const endDates = children.map((c) => new Date(c.endDate));
 
-  const earliestStart = new Date(Math.min(...startDates.map(d => d.getTime())));
-  const latestEnd = new Date(Math.max(...endDates.map(d => d.getTime())));
+  const earliestStart = new Date(Math.min(...startDates.map((d) => d.getTime())));
+  const latestEnd = new Date(Math.max(...endDates.map((d) => d.getTime())));
 
   // Calculate weighted progress
   const totalDuration = children.reduce((sum, c) => {
@@ -514,7 +507,7 @@ async function updateParentTask(taskId: string) {
   const weightedProgress = children.reduce((sum, c) => {
     const duration = differenceInDays(new Date(c.endDate), new Date(c.startDate));
     const weight = duration / totalDuration;
-    return sum + (c.progress * weight);
+    return sum + c.progress * weight;
   }, 0);
 
   // Update parent
@@ -583,6 +576,7 @@ async function updateParentTask(taskId: string) {
 ### Prerequisites
 
 **Before Starting:**
+
 - ✅ Backup production database
 - ✅ Test migrations in development environment
 - ✅ Write comprehensive tests for new features
@@ -592,6 +586,7 @@ async function updateParentTask(taskId: string) {
 ### Data Migration Considerations
 
 **For Task Hierarchy:**
+
 - All existing tasks will be top-level (level = 0, parentTaskId = null)
 - No data loss - purely additive schema changes
 - Consider adding migration to auto-detect potential parent-child relationships based on naming conventions (e.g., "Task 1.1" → child of "Task 1")
@@ -642,6 +637,7 @@ Response: Task[] (with nested children)
 Both dependency arrows and task hierarchy are valuable features that will significantly enhance the Gantt tool's project management capabilities. While they require careful planning and implementation, the database schema is well-structured to support these additions.
 
 **Recommendations:**
+
 1. Start with **Dependency Arrows (#12)** - Lower risk, immediate value
 2. Thoroughly test in development before production
 3. Consider feature flags for gradual rollout

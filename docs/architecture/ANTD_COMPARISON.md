@@ -3,9 +3,11 @@
 ## Resource Panel Comparison
 
 ### **CUSTOM TAILWIND VERSION** (PlanMode.tsx)
+
 **Lines of code:** ~400 lines
 **Dependencies:** Framer Motion, Lucide Icons, custom Button component
 **Issues we hit:**
+
 - Manual form validation
 - Custom modal styling
 - Manual accessibility
@@ -66,6 +68,7 @@ const ResourceSection = ({ phase, onResourceUpdate }) => {
 ```
 
 **Problems we encountered:**
+
 1. ❌ Manual validation logic
 2. ❌ Accessibility requires manual ARIA attributes
 3. ❌ Mobile responsiveness needs custom breakpoints
@@ -77,9 +80,11 @@ const ResourceSection = ({ phase, onResourceUpdate }) => {
 ---
 
 ### **ANT DESIGN VERSION** (ResourcePanelAntD.tsx)
+
 **Lines of code:** ~200 lines (50% reduction!)
 **Dependencies:** antd, @ant-design/icons (that's it)
 **Benefits:**
+
 - Built-in validation
 - Perfect accessibility
 - Mobile responsive by default
@@ -133,6 +138,7 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }) {
 ```
 
 **Benefits we get automatically:**
+
 1. ✅ Form validation built-in (`rules` prop)
 2. ✅ WCAG 2.1 Level AA accessibility
 3. ✅ Mobile responsive grid system
@@ -145,16 +151,16 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }) {
 
 ## Code Comparison Metrics
 
-| Feature | Custom Tailwind | Ant Design | Savings |
-|---------|----------------|------------|---------|
-| **Lines of Code** | ~400 | ~200 | **50%** |
-| **Dependencies** | 4+ custom components | 1 framework | **Simpler** |
-| **Accessibility** | Manual ARIA | Built-in WCAG 2.1 | **Auto** |
-| **TypeScript Errors** | Multiple | Zero | **Better DX** |
-| **Mobile Support** | Custom breakpoints | Responsive grid | **Auto** |
-| **Form Validation** | Manual | Declarative | **Easier** |
-| **Browser Testing** | Need to test all | Works everywhere | **Faster** |
-| **Maintenance** | High | Low | **80% less** |
+| Feature               | Custom Tailwind      | Ant Design        | Savings       |
+| --------------------- | -------------------- | ----------------- | ------------- |
+| **Lines of Code**     | ~400                 | ~200              | **50%**       |
+| **Dependencies**      | 4+ custom components | 1 framework       | **Simpler**   |
+| **Accessibility**     | Manual ARIA          | Built-in WCAG 2.1 | **Auto**      |
+| **TypeScript Errors** | Multiple             | Zero              | **Better DX** |
+| **Mobile Support**    | Custom breakpoints   | Responsive grid   | **Auto**      |
+| **Form Validation**   | Manual               | Declarative       | **Easier**    |
+| **Browser Testing**   | Need to test all     | Works everywhere  | **Faster**    |
+| **Maintenance**       | High                 | Low               | **80% less**  |
 
 ---
 
@@ -163,6 +169,7 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }) {
 ### 1. **Slider Component**
 
 **Custom (20 lines):**
+
 ```tsx
 <div className="space-y-1">
   <div className="flex items-center justify-between text-[10px] text-gray-500">
@@ -189,13 +196,14 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }) {
 ```
 
 **Ant Design (6 lines):**
+
 ```tsx
 <Form.Item name="allocation" label="Allocation (%)">
   <Slider
     min={0}
     max={100}
     step={25}
-    marks={{ 0: '0%', 25: '25%', 50: '50%', 75: '75%', 100: '100%' }}
+    marks={{ 0: "0%", 25: "25%", 50: "50%", 75: "75%", 100: "100%" }}
   />
 </Form.Item>
 ```
@@ -205,6 +213,7 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }) {
 ### 2. **Form Validation**
 
 **Custom (requires manual validation):**
+
 ```tsx
 const handleAddTask = () => {
   if (!newTask.name || !newTask.workingDays) {
@@ -223,12 +232,13 @@ const handleAddTask = () => {
 ```
 
 **Ant Design (automatic):**
+
 ```tsx
 <Form.Item
   name="taskName"
   rules={[
-    { required: true, message: 'Please enter task name' },
-    { min: 3, message: 'Minimum 3 characters' }
+    { required: true, message: "Please enter task name" },
+    { min: 3, message: "Minimum 3 characters" },
   ]}
 >
   <Input placeholder="Task name" />
@@ -242,16 +252,16 @@ const handleAddTask = () => {
 ### 3. **Statistics Display**
 
 **Custom (15+ lines):**
+
 ```tsx
 <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg">
   <DollarSign className="w-4 h-4 text-green-600" />
-  <span className="text-sm font-semibold text-green-900">
-    {formatCurrency(totalCost, "MYR")}
-  </span>
+  <span className="text-sm font-semibold text-green-900">{formatCurrency(totalCost, "MYR")}</span>
 </div>
 ```
 
 **Ant Design (3 lines):**
+
 ```tsx
 <Statistic
   title="Total Cost"
@@ -267,6 +277,7 @@ const handleAddTask = () => {
 ## Timeline/Gantt Chart Comparison
 
 ### Current Custom Implementation
+
 - ✅ Beautiful design (Jobs/Ive aesthetic)
 - ❌ No drag-drop
 - ❌ Manual holiday markers
@@ -275,8 +286,9 @@ const handleAddTask = () => {
 - ❌ ~500 lines of code
 
 ### With Ant Design + Gantt Library (dhtmlx-gantt or react-gantt-chart)
+
 ```tsx
-import { Gantt } from 'antd-gantt';
+import { Gantt } from "antd-gantt";
 
 <Gantt
   tasks={phases}
@@ -286,8 +298,9 @@ import { Gantt } from 'antd-gantt';
   zoom="week"
   enableDragDrop
   enableResize
-/>
+/>;
 ```
+
 - ✅ Drag-drop built-in
 - ✅ Holidays auto-rendered
 - ✅ Milestones auto-rendered
@@ -300,11 +313,13 @@ import { Gantt } from 'antd-gantt';
 ## The Verdict
 
 ### Keep Custom Tailwind If:
+
 - You need 100% unique design (Jobs/Ive aesthetic is critical)
 - Bundle size is paramount (Ant Design adds ~500KB gzipped)
 - You have time to build/maintain
 
 ### Switch to Ant Design If:
+
 - You want professional UX patterns NOW
 - You're tired of debugging edge cases
 - You want accessibility without thinking
@@ -316,11 +331,13 @@ import { Gantt } from 'antd-gantt';
 ## Recommendation for This Project
 
 **Hybrid Approach:**
+
 1. **Keep Tailwind** for: Landing page, simple layouts, marketing pages
 2. **Use Ant Design** for: Forms, tables, complex components (Resource Panel, Timeline filters, Settings)
 3. **Use specialized libraries** for: Gantt chart (dhtmlx-gantt), Calendar (react-big-calendar)
 
 **This gives you:**
+
 - ✅ Beautiful custom design where it matters
 - ✅ Battle-tested components where complexity lives
 - ✅ Faster development
@@ -331,6 +348,7 @@ import { Gantt } from 'antd-gantt';
 ## Next Steps
 
 Want to see the difference? Compare:
+
 - **Custom:** `src/components/project-v2/modes/PlanMode.tsx` (ResourceSection)
 - **Ant Design:** `src/components/project-v2/modes/ResourcePanelAntD.tsx`
 

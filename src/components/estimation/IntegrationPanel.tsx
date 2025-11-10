@@ -4,14 +4,14 @@
  * Manage integrations with CRUD operations
  */
 
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Table, Button, Modal, Input, Select, Tag, Space, Popconfirm, InputNumber } from 'antd';
-import { Plus, Edit, Trash2, Link2 } from 'lucide-react';
-import { ResponsiveCard } from '@/components/ui/ResponsiveShell';
-import { Heading, Text } from '@/components/ui/Typography';
-import { IntegrationItem, Complexity } from '@/lib/ricefw/model';
+import React, { useState } from "react";
+import { Table, Button, Modal, Input, Select, Tag, Space, Popconfirm, InputNumber } from "antd";
+import { Plus, Edit, Trash2, Link2 } from "lucide-react";
+import { ResponsiveCard } from "@/components/ui/ResponsiveShell";
+import { Heading, Text } from "@/components/ui/Typography";
+import { IntegrationItem, Complexity } from "@/lib/ricefw/model";
 
 const { Option } = Select;
 
@@ -23,31 +23,31 @@ export interface IntegrationPanelProps {
 }
 
 const integrationTypeColors: Record<string, string> = {
-  api: 'blue',
-  file: 'green',
-  database: 'purple',
-  realtime: 'orange',
-  batch: 'cyan',
+  api: "blue",
+  file: "green",
+  database: "purple",
+  realtime: "orange",
+  batch: "cyan",
 };
 
 const integrationTypeLabels: Record<string, string> = {
-  api: 'API',
-  file: 'File Transfer',
-  database: 'Database',
-  realtime: 'Real-time',
-  batch: 'Batch',
+  api: "API",
+  file: "File Transfer",
+  database: "Database",
+  realtime: "Real-time",
+  batch: "Batch",
 };
 
 const complexityColors: Record<Complexity, string> = {
-  S: 'green',
-  M: 'blue',
-  L: 'orange',
+  S: "green",
+  M: "blue",
+  L: "orange",
 };
 
 const volumeColors: Record<string, string> = {
-  low: 'green',
-  medium: 'blue',
-  high: 'red',
+  low: "green",
+  medium: "blue",
+  high: "red",
 };
 
 export function IntegrationPanel({
@@ -65,12 +65,12 @@ export function IntegrationPanel({
   const handleAdd = () => {
     setEditingIntegration(null);
     setIntegrationData({
-      type: 'api',
-      complexity: 'M',
-      volume: 'medium',
+      type: "api",
+      complexity: "M",
+      volume: "medium",
       effort: 8,
-      source: '',
-      target: '',
+      source: "",
+      target: "",
     });
     setIsModalVisible(true);
   };
@@ -82,11 +82,17 @@ export function IntegrationPanel({
   };
 
   const handleDelete = (integrationId: string) => {
-    onChange(integrations.filter(i => i.id !== integrationId));
+    onChange(integrations.filter((i) => i.id !== integrationId));
   };
 
   const handleSave = () => {
-    if (!integrationData.name || !integrationData.type || !integrationData.source || !integrationData.target) return;
+    if (
+      !integrationData.name ||
+      !integrationData.type ||
+      !integrationData.source ||
+      !integrationData.target
+    )
+      return;
 
     const newIntegration: IntegrationItem = {
       id: editingIntegration?.id || `integration-${Date.now()}`,
@@ -95,14 +101,14 @@ export function IntegrationPanel({
       type: integrationData.type as any,
       source: integrationData.source,
       target: integrationData.target,
-      complexity: integrationData.complexity || 'M',
-      volume: integrationData.volume || 'medium',
+      complexity: integrationData.complexity || "M",
+      volume: integrationData.volume || "medium",
       effort: integrationData.effort || 8,
       createdAt: editingIntegration?.createdAt || new Date(),
     };
 
     if (editingIntegration) {
-      onChange(integrations.map(i => i.id === editingIntegration.id ? newIntegration : i));
+      onChange(integrations.map((i) => (i.id === editingIntegration.id ? newIntegration : i)));
     } else {
       onChange([...integrations, newIntegration]);
     }
@@ -113,9 +119,9 @@ export function IntegrationPanel({
 
   const columns = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
       render: (text: string, record: IntegrationItem) => (
         <Space>
           <Link2 size={16} />
@@ -124,49 +130,47 @@ export function IntegrationPanel({
       ),
     },
     {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
       render: (type: string) => (
         <Tag color={integrationTypeColors[type]}>{integrationTypeLabels[type]}</Tag>
       ),
     },
     {
-      title: 'Source → Target',
-      key: 'flow',
+      title: "Source → Target",
+      key: "flow",
       render: (_: any, record: IntegrationItem) => (
         <span className="text-xs">
           <span style={{ fontWeight: 500 }}>{record.source}</span>
-          {' → '}
+          {" → "}
           <span style={{ fontWeight: 500 }}>{record.target}</span>
         </span>
       ),
     },
     {
-      title: 'Volume',
-      dataIndex: 'volume',
-      key: 'volume',
-      render: (volume: string) => (
-        <Tag color={volumeColors[volume]}>{volume.toUpperCase()}</Tag>
-      ),
+      title: "Volume",
+      dataIndex: "volume",
+      key: "volume",
+      render: (volume: string) => <Tag color={volumeColors[volume]}>{volume.toUpperCase()}</Tag>,
     },
     {
-      title: 'Complexity',
-      dataIndex: 'complexity',
-      key: 'complexity',
+      title: "Complexity",
+      dataIndex: "complexity",
+      key: "complexity",
       render: (complexity: Complexity) => (
         <Tag color={complexityColors[complexity]}>{complexity.toUpperCase()}</Tag>
       ),
     },
     {
-      title: 'Effort (PD)',
-      dataIndex: 'effort',
-      key: 'effort',
+      title: "Effort (PD)",
+      dataIndex: "effort",
+      key: "effort",
       render: (effort: number) => effort.toFixed(1),
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       render: (_: any, record: IntegrationItem) => (
         <Space>
           <Button
@@ -184,12 +188,7 @@ export function IntegrationPanel({
             cancelText="Cancel"
             disabled={readonly}
           >
-            <Button
-              type="link"
-              danger
-              icon={<Trash2 size={16} />}
-              disabled={readonly}
-            >
+            <Button type="link" danger icon={<Trash2 size={16} />} disabled={readonly}>
               Delete
             </Button>
           </Popconfirm>
@@ -200,7 +199,14 @@ export function IntegrationPanel({
 
   return (
     <ResponsiveCard padding="lg">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "24px",
+        }}
+      >
         <div>
           <Heading as="h2" size="xl">
             Integrations
@@ -216,14 +222,22 @@ export function IntegrationPanel({
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
+      <div style={{ display: "flex", gap: "24px", marginBottom: "24px" }}>
         <div>
-          <Text size="sm" color="muted">Total Integrations</Text>
-          <Text size="xl" weight="bold">{integrations.length}</Text>
+          <Text size="sm" color="muted">
+            Total Integrations
+          </Text>
+          <Text size="xl" weight="bold">
+            {integrations.length}
+          </Text>
         </div>
         <div>
-          <Text size="sm" color="muted">Total Effort</Text>
-          <Text size="xl" weight="bold" color="primary">{totalEffort.toFixed(1)} PD</Text>
+          <Text size="sm" color="muted">
+            Total Effort
+          </Text>
+          <Text size="xl" weight="bold" color="primary">
+            {totalEffort.toFixed(1)} PD
+          </Text>
         </div>
       </div>
 
@@ -232,37 +246,37 @@ export function IntegrationPanel({
         columns={columns}
         rowKey="id"
         pagination={false}
-        locale={{ emptyText: 'No integrations added yet' }}
+        locale={{ emptyText: "No integrations added yet" }}
       />
 
       <Modal
-        title={editingIntegration ? 'Edit Integration' : 'Add Integration'}
+        title={editingIntegration ? "Edit Integration" : "Add Integration"}
         open={isModalVisible}
         onOk={handleSave}
         onCancel={() => setIsModalVisible(false)}
         okText="Save"
         width={600}
       >
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
-              Integration Name <span style={{ color: 'red' }}>*</span>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: 500 }}>
+              Integration Name <span style={{ color: "red" }}>*</span>
             </label>
             <Input
               placeholder="e.g., SAP to Salesforce Sync"
               value={integrationData.name}
-              onChange={e => setIntegrationData({ ...integrationData, name: e.target.value })}
+              onChange={(e) => setIntegrationData({ ...integrationData, name: e.target.value })}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
-              Integration Type <span style={{ color: 'red' }}>*</span>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: 500 }}>
+              Integration Type <span style={{ color: "red" }}>*</span>
             </label>
             <Select
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               value={integrationData.type}
-              onChange={type => setIntegrationData({ ...integrationData, type: type as any })}
+              onChange={(type) => setIntegrationData({ ...integrationData, type: type as any })}
             >
               <Option value="api">API Integration</Option>
               <Option value="file">File Transfer</Option>
@@ -272,38 +286,40 @@ export function IntegrationPanel({
             </Select>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
-                Source System <span style={{ color: 'red' }}>*</span>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: 500 }}>
+                Source System <span style={{ color: "red" }}>*</span>
               </label>
               <Input
                 placeholder="e.g., SAP ECC"
                 value={integrationData.source}
-                onChange={e => setIntegrationData({ ...integrationData, source: e.target.value })}
+                onChange={(e) => setIntegrationData({ ...integrationData, source: e.target.value })}
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
-                Target System <span style={{ color: 'red' }}>*</span>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: 500 }}>
+                Target System <span style={{ color: "red" }}>*</span>
               </label>
               <Input
                 placeholder="e.g., Salesforce"
                 value={integrationData.target}
-                onChange={e => setIntegrationData({ ...integrationData, target: e.target.value })}
+                onChange={(e) => setIntegrationData({ ...integrationData, target: e.target.value })}
               />
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: 500 }}>
               Data Volume
             </label>
             <Select
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               value={integrationData.volume}
-              onChange={volume => setIntegrationData({ ...integrationData, volume: volume as any })}
+              onChange={(volume) =>
+                setIntegrationData({ ...integrationData, volume: volume as any })
+              }
             >
               <Option value="low">Low (&lt;1000 records/day)</Option>
               <Option value="medium">Medium (1K-10K records/day)</Option>
@@ -312,13 +328,15 @@ export function IntegrationPanel({
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: 500 }}>
               Complexity
             </label>
             <Select
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               value={integrationData.complexity}
-              onChange={complexity => setIntegrationData({ ...integrationData, complexity: complexity as Complexity })}
+              onChange={(complexity) =>
+                setIntegrationData({ ...integrationData, complexity: complexity as Complexity })
+              }
             >
               <Option value="simple">Simple</Option>
               <Option value="medium">Medium</Option>
@@ -327,15 +345,15 @@ export function IntegrationPanel({
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: 500 }}>
               Effort (Person-Days)
             </label>
             <InputNumber
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               min={0}
               step={0.5}
               value={integrationData.effort}
-              onChange={effort => setIntegrationData({ ...integrationData, effort: effort || 0 })}
+              onChange={(effort) => setIntegrationData({ ...integrationData, effort: effort || 0 })}
             />
           </div>
         </Space>

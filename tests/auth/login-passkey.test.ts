@@ -1,11 +1,12 @@
 /**
  * Passkey Login Tests
  * Tests for /api/auth/begin-login and /api/auth/finish-login
+ * @vitest-environment node
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { POST as beginLogin } from '../../src/app/api/auth/begin-login/route';
-import { POST as finishLogin } from '../../src/app/api/auth/finish-login/route';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import { POST as beginLogin } from "../../src/app/api/auth/begin-login/route";
+import { POST as finishLogin } from "../../src/app/api/auth/finish-login/route";
 import {
   setupTestDatabase,
   teardownTestDatabase,
@@ -13,11 +14,15 @@ import {
   createTestUserWithPasskey,
   createTestUserWithoutPasskey,
   mockChallenges,
-} from './helpers/test-setup';
-import { createMockRequest, parseJsonResponse, createMockPasskeyResponse } from './helpers/auth-helpers';
-import { TEST_USERS, TEST_SCENARIOS } from './helpers/mock-users';
+} from "./helpers/test-setup";
+import {
+  createMockRequest,
+  parseJsonResponse,
+  createMockPasskeyResponse,
+} from "./helpers/auth-helpers";
+import { TEST_USERS, TEST_SCENARIOS } from "./helpers/mock-users";
 
-describe('Passkey Login Flow', () => {
+describe("Passkey Login Flow", () => {
   beforeAll(async () => {
     await setupTestDatabase();
   });
@@ -31,7 +36,7 @@ describe('Passkey Login Flow', () => {
     mockChallenges.clear();
   });
 
-  describe('begin-login', () => {
+  describe("begin-login", () => {
     it(TEST_SCENARIOS.SUCCESS.passkey, async () => {
       // Setup: Create user with passkey
       const { user, authenticator } = await createTestUserWithPasskey({
@@ -40,8 +45,8 @@ describe('Passkey Login Flow', () => {
 
       // Act: Begin login
       const request = createMockRequest({
-        url: 'http://localhost:3000/api/auth/begin-login',
-        method: 'POST',
+        url: "http://localhost:3000/api/auth/begin-login",
+        method: "POST",
         body: { email: user.email },
       });
 
@@ -59,9 +64,9 @@ describe('Passkey Login Flow', () => {
     it(TEST_SCENARIOS.FAILURE.notFound, async () => {
       // Act: Try to login with non-existent email
       const request = createMockRequest({
-        url: 'http://localhost:3000/api/auth/begin-login',
-        method: 'POST',
-        body: { email: 'nonexistent@example.com' },
+        url: "http://localhost:3000/api/auth/begin-login",
+        method: "POST",
+        body: { email: "nonexistent@example.com" },
       });
 
       const response = await beginLogin(request);
@@ -70,7 +75,7 @@ describe('Passkey Login Flow', () => {
       // Assert
       expect(response.status).toBe(404);
       expect(data.ok).toBe(false);
-      expect(data.message).toContain('not found');
+      expect(data.message).toContain("not found");
       expect(data.notApproved).toBe(true);
     });
 
@@ -83,8 +88,8 @@ describe('Passkey Login Flow', () => {
 
       // Act
       const request = createMockRequest({
-        url: 'http://localhost:3000/api/auth/begin-login',
-        method: 'POST',
+        url: "http://localhost:3000/api/auth/begin-login",
+        method: "POST",
         body: { email: user.email },
       });
 
@@ -106,8 +111,8 @@ describe('Passkey Login Flow', () => {
 
       // Act
       const request = createMockRequest({
-        url: 'http://localhost:3000/api/auth/begin-login',
-        method: 'POST',
+        url: "http://localhost:3000/api/auth/begin-login",
+        method: "POST",
         body: { email: user.email },
       });
 
@@ -117,7 +122,7 @@ describe('Passkey Login Flow', () => {
       // Assert
       expect(response.status).toBe(404);
       expect(data.ok).toBe(false);
-      expect(data.message).toContain('No access code');
+      expect(data.message).toContain("Invalid. Contact Admin.");
       expect(data.notApproved).toBe(true);
     });
 
@@ -131,8 +136,8 @@ describe('Passkey Login Flow', () => {
 
       // Act
       const request = createMockRequest({
-        url: 'http://localhost:3000/api/auth/begin-login',
-        method: 'POST',
+        url: "http://localhost:3000/api/auth/begin-login",
+        method: "POST",
         body: { email: user.email },
       });
 
@@ -142,14 +147,14 @@ describe('Passkey Login Flow', () => {
       // Assert
       expect(response.status).toBe(403);
       expect(data.ok).toBe(false);
-      expect(data.message).toContain('expired');
+      expect(data.message).toContain("expired");
     });
 
-    it('should require email in request body', async () => {
+    it("should require email in request body", async () => {
       // Act
       const request = createMockRequest({
-        url: 'http://localhost:3000/api/auth/begin-login',
-        method: 'POST',
+        url: "http://localhost:3000/api/auth/begin-login",
+        method: "POST",
         body: {},
       });
 
@@ -159,24 +164,24 @@ describe('Passkey Login Flow', () => {
       // Assert
       expect(response.status).toBe(400);
       expect(data.ok).toBe(false);
-      expect(data.message).toContain('required');
+      expect(data.message).toContain("required");
     });
   });
 
-  describe('finish-login', () => {
-    it('should complete login with valid passkey response', async () => {
+  describe("finish-login", () => {
+    it("should complete login with valid passkey response", async () => {
       // Setup
       const { user, authenticator } = await createTestUserWithPasskey({
         email: TEST_USERS.REGULAR_USER.email,
       });
 
-      const challenge = 'test-challenge-' + Date.now();
+      const challenge = "test-challenge-" + Date.now();
       await mockChallenges.set(`auth:${user.email}`, challenge);
 
       // Act
       const request = createMockRequest({
-        url: 'http://localhost:3000/api/auth/finish-login',
-        method: 'POST',
+        url: "http://localhost:3000/api/auth/finish-login",
+        method: "POST",
         body: {
           email: user.email,
           response: createMockPasskeyResponse(authenticator.id),
@@ -201,11 +206,11 @@ describe('Passkey Login Flow', () => {
 
       // Act: Try to finish login without challenge
       const request = createMockRequest({
-        url: 'http://localhost:3000/api/auth/finish-login',
-        method: 'POST',
+        url: "http://localhost:3000/api/auth/finish-login",
+        method: "POST",
         body: {
           email: user.email,
-          response: createMockPasskeyResponse('some-id'),
+          response: createMockPasskeyResponse("some-id"),
         },
       });
 
@@ -215,16 +220,16 @@ describe('Passkey Login Flow', () => {
       // Assert
       expect(response.status).toBe(408);
       expect(data.ok).toBe(false);
-      expect(data.message).toContain('expired');
+      expect(data.message).toContain("expired");
       expect(data.challengeExpired).toBe(true);
     });
 
-    it('should require email and response', async () => {
+    it("should require email and response", async () => {
       // Act: Missing fields
       const request = createMockRequest({
-        url: 'http://localhost:3000/api/auth/finish-login',
-        method: 'POST',
-        body: { email: 'test@example.com' }, // Missing response
+        url: "http://localhost:3000/api/auth/finish-login",
+        method: "POST",
+        body: { email: "test@example.com" }, // Missing response
       });
 
       const response = await finishLogin(request);
@@ -233,7 +238,7 @@ describe('Passkey Login Flow', () => {
       // Assert
       expect(response.status).toBe(400);
       expect(data.ok).toBe(false);
-      expect(data.message).toContain('required');
+      expect(data.message).toContain("required");
     });
   });
 });

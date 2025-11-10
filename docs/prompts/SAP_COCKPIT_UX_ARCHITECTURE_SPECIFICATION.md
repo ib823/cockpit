@@ -1,4 +1,5 @@
 # Keystone - UX & Architecture Specification
+
 ## Comprehensive Estimation and Project Planning Platform
 
 **Document Version:** 1.0  
@@ -26,6 +27,7 @@ This document presents a complete UX redesign with technical architecture for st
 ### Current Problem
 
 The existing application has:
+
 - **Broken navigation** between estimate and project planning
 - **Inconsistent UI** mixing custom components with Ant Design
 - **No data synchronization** between estimator and timeline
@@ -101,6 +103,7 @@ The existing application has:
 **Purpose:** Primary calculation engine where users configure scope and see real-time estimates.
 
 **Layout Structure:**
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ HEADER: [Keystone Logo] [Estimator] [Timeline] [Compare] │
@@ -125,6 +128,7 @@ The existing application has:
    - Shows tooltip: "Starting point based on typical configurations"
 
 2. **Scope Breadth (Sb) Section**
+
    ```
    📊 Scope Breadth (Sb)
    ┌──────────────────────────────────┐
@@ -137,11 +141,13 @@ The existing application has:
    │ Impact: +57 MD                   │
    └──────────────────────────────────┘
    ```
+
    - "Select from Catalog" opens modal with 293 L3 items
    - Integration slider (0-10 typical)
    - Shows real-time coefficient and MD impact
 
 3. **Process Complexity (Pc) Section**
+
    ```
    ⚙️ Process Complexity (Pc)
    ┌──────────────────────────────────┐
@@ -154,10 +160,12 @@ The existing application has:
    │ Impact: +0 MD                    │
    └──────────────────────────────────┘
    ```
+
    - Forms beyond baseline add complexity
    - <80% fit-to-standard triggers Pc increase
 
 4. **Organizational Scale (Os) Section**
+
    ```
    🌍 Org Scale & Geography (Os)
    ┌──────────────────────────────────┐
@@ -169,9 +177,11 @@ The existing application has:
    │ Impact: +0 MD                    │
    └──────────────────────────────────┘
    ```
+
    - Each additional entity/country/language adds coefficient
 
 5. **Capacity Section**
+
    ```
    👥 Team Capacity
    ┌──────────────────────────────────┐
@@ -182,6 +192,7 @@ The existing application has:
    │ Capacity: 98.6 MD/month          │
    └──────────────────────────────────┘
    ```
+
    - FTE: Full-time equivalents allocated
    - Utilization: Productive percentage (70-90% typical)
    - Overlap: Concurrent phase execution (65-85% typical)
@@ -189,6 +200,7 @@ The existing application has:
 **Right Panel Components:**
 
 1. **Total Summary Card**
+
    ```
    🎯 Estimate Summary
    ┌──────────────────────────────────┐
@@ -202,6 +214,7 @@ The existing application has:
    ```
 
 2. **Phase Breakdown**
+
    ```
    📈 SAP Activate Phases
    ┌──────────────────────────────────┐
@@ -215,6 +228,7 @@ The existing application has:
    ```
 
 3. **Formula Transparency Panel** (expandable)
+
    ```
    🔢 Show Math
    ┌──────────────────────────────────────────┐
@@ -253,6 +267,7 @@ The existing application has:
 **Trigger:** User clicks "Select from Catalog..." in Scope Breadth section
 
 **Modal Layout:**
+
 ```
 ┌──────────────────────────────────────────────────────┐
 │ Select L3 Scope Items                      [×]       │
@@ -309,6 +324,7 @@ The existing application has:
    - Shows required integrations
 
 **Database Reference:**
+
 - Uses tables from attached document 3: `l3_scope_item`, `complexity_metrics`, `tier_definition`
 
 ---
@@ -318,6 +334,7 @@ The existing application has:
 **Purpose:** Convert estimate into detailed schedule with resource allocation.
 
 **Layout:**
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ [Estimator] [Timeline] [Compare] [Export]      [👤]│
@@ -402,6 +419,7 @@ The existing application has:
 **Purpose:** Compare multiple estimation/timeline configurations side-by-side.
 
 **Layout:**
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │ Scenario Comparison                            [Add +]     │
@@ -482,6 +500,7 @@ The existing application has:
 **Purpose:** Generate client-ready deliverables from finalized estimate/timeline.
 
 **Layout:**
+
 ```
 ┌──────────────────────────────────────────────────┐
 │ Generate Proposal                                │
@@ -581,6 +600,7 @@ The existing application has:
    - Appendix with L3 catalog reference
 
 **Generation Process:**
+
 - Server-side rendering (not client-side)
 - Uses templates stored in `/templates/`
 - Populates with data from scenario
@@ -593,6 +613,7 @@ The existing application has:
 ### 4.1 Technology Stack
 
 **Frontend:**
+
 - **Framework**: Next.js 15 (App Router)
 - **UI Library**: Ant Design 5.27.4
 - **State Management**: Zustand 5.0.8
@@ -601,6 +622,7 @@ The existing application has:
 - **Date Handling**: date-fns
 
 **Backend:**
+
 - **Runtime**: Next.js API routes
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: NextAuth.js
@@ -610,6 +632,7 @@ The existing application has:
   - PDF: jsPDF with jsPDF-AutoTable
 
 **Infrastructure:**
+
 - **Hosting**: Vercel (recommended)
 - **Database**: Vercel Postgres or Supabase
 - **File Storage**: Vercel Blob or AWS S3
@@ -635,7 +658,7 @@ Scenario {
   id: string
   userId: string
   name: string
-  
+
   // Estimator inputs
   profileIndex: number
   selectedL3Ids: string[]
@@ -648,17 +671,17 @@ Scenario {
   fte: number
   utilization: number
   overlapFactor: number
-  
+
   // Calculated outputs (denormalized for speed)
   totalMD: number
   durationMonths: number
   pmoMD: number
   phases: PhaseBreakdown[]
-  
+
   // Timeline data
   startDate?: Date
   resources?: ResourceAllocation[]
-  
+
   createdAt: Date
   updatedAt: Date
 }
@@ -713,23 +736,23 @@ model Scenario {
   userId          String
   user            User     @relation(fields: [userId], references: [id])
   name            String
-  
+
   // Inputs (JSON for flexibility)
   inputs          Json
-  
+
   // Outputs (denormalized)
   totalMD         Float
   durationMonths  Float
   pmoMD           Float
   phases          Json
-  
+
   // Timeline
   startDate       DateTime?
   resources       Json?
-  
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  
+
   @@index([userId])
 }
 
@@ -759,61 +782,61 @@ model L3ScopeItem {
 // stores/estimator-store.ts
 interface EstimatorState {
   // Inputs
-  profileIndex: number
-  selectedL3Items: L3ScopeItem[]
-  integrations: number
-  customForms: number
-  fitToStandard: number
-  legalEntities: number
-  countries: number
-  languages: number
-  fte: number
-  utilization: number
-  overlapFactor: number
-  
+  profileIndex: number;
+  selectedL3Items: L3ScopeItem[];
+  integrations: number;
+  customForms: number;
+  fitToStandard: number;
+  legalEntities: number;
+  countries: number;
+  languages: number;
+  fte: number;
+  utilization: number;
+  overlapFactor: number;
+
   // Computed outputs (calculated on state change)
   results: {
-    totalMD: number
-    durationMonths: number
-    pmoMD: number
-    phases: PhaseBreakdown[]
-    capacityPerMonth: number
-  }
-  
+    totalMD: number;
+    durationMonths: number;
+    pmoMD: number;
+    phases: PhaseBreakdown[];
+    capacityPerMonth: number;
+  };
+
   // Actions
-  setProfile: (index: number) => void
-  setL3Items: (items: L3ScopeItem[]) => void
-  setIntegrations: (count: number) => void
-  setFTE: (fte: number) => void
+  setProfile: (index: number) => void;
+  setL3Items: (items: L3ScopeItem[]) => void;
+  setIntegrations: (count: number) => void;
+  setFTE: (fte: number) => void;
   // ... other setters
-  
-  calculate: () => void  // Triggers formula engine
+
+  calculate: () => void; // Triggers formula engine
 }
 
 // stores/timeline-store.ts
 interface TimelineState {
-  startDate: Date | null
-  endDate: Date | null
-  resources: ResourceAllocation[]
-  ganttData: GanttPhase[]
-  isLocked: boolean  // Prevents auto-sync from estimator
-  
-  setStartDate: (date: Date) => void
-  setResources: (resources: ResourceAllocation[]) => void
-  optimizeSchedule: () => void
-  toggleLock: () => void
+  startDate: Date | null;
+  endDate: Date | null;
+  resources: ResourceAllocation[];
+  ganttData: GanttPhase[];
+  isLocked: boolean; // Prevents auto-sync from estimator
+
+  setStartDate: (date: Date) => void;
+  setResources: (resources: ResourceAllocation[]) => void;
+  optimizeSchedule: () => void;
+  toggleLock: () => void;
 }
 
 // stores/scenarios-store.ts
 interface ScenariosState {
-  scenarios: Scenario[]
-  activeScenarioId: string | null
-  
-  loadScenarios: () => Promise<void>
-  createScenario: (name: string) => Promise<void>
-  updateScenario: (id: string, data: Partial<Scenario>) => Promise<void>
-  deleteScenario: (id: string) => Promise<void>
-  setActive: (id: string) => void
+  scenarios: Scenario[];
+  activeScenarioId: string | null;
+
+  loadScenarios: () => Promise<void>;
+  createScenario: (name: string) => Promise<void>;
+  updateScenario: (id: string, data: Partial<Scenario>) => Promise<void>;
+  deleteScenario: (id: string) => Promise<void>;
+  setActive: (id: string) => void;
 }
 ```
 
@@ -824,40 +847,40 @@ interface ScenariosState {
 export const formulaEngine = {
   calculateTotal(inputs: EstimatorInputs): EstimatorResults {
     // Step 1: Calculate coefficients
-    const Sb = calculateScopeBreadth(inputs.l3Items, inputs.integrations)
-    const Pc = calculateProcessComplexity(inputs.customForms, inputs.fitToStandard)
-    const Os = calculateOrgScale(inputs.legalEntities, inputs.countries, inputs.languages)
-    
+    const Sb = calculateScopeBreadth(inputs.l3Items, inputs.integrations);
+    const Pc = calculateProcessComplexity(inputs.customForms, inputs.fitToStandard);
+    const Os = calculateOrgScale(inputs.legalEntities, inputs.countries, inputs.languages);
+
     // Step 2: Calculate effort
-    const E_FT = inputs.profile.baseFT * (1 + Sb) * (1 + Pc) * (1 + Os)
-    const E_fixed = inputs.profile.basis + inputs.profile.securityAuth
-    
+    const E_FT = inputs.profile.baseFT * (1 + Sb) * (1 + Pc) * (1 + Os);
+    const E_fixed = inputs.profile.basis + inputs.profile.securityAuth;
+
     // Step 3: Calculate duration (iterative for PMO)
-    const capacity = inputs.fte * 22 * inputs.utilization
-    let D = ((E_FT + E_fixed) / capacity) * inputs.overlapFactor
-    let E_PMO = D * 16.25  // PMO rate
-    
+    const capacity = inputs.fte * 22 * inputs.utilization;
+    let D = ((E_FT + E_fixed) / capacity) * inputs.overlapFactor;
+    let E_PMO = D * 16.25; // PMO rate
+
     // Iterate to convergence
     for (let i = 0; i < 3; i++) {
-      D = ((E_FT + E_fixed + E_PMO) / capacity) * inputs.overlapFactor
-      E_PMO = D * 16.25
+      D = ((E_FT + E_fixed + E_PMO) / capacity) * inputs.overlapFactor;
+      E_PMO = D * 16.25;
     }
-    
-    const E_total = E_FT + E_fixed + E_PMO
-    
+
+    const E_total = E_FT + E_fixed + E_PMO;
+
     // Step 4: Distribute across phases
-    const phases = distributePhases(E_total, D)
-    
+    const phases = distributePhases(E_total, D);
+
     return {
       totalMD: E_total,
       durationMonths: D,
       pmoMD: E_PMO,
       phases,
       capacityPerMonth: capacity,
-      coefficients: { Sb, Pc, Os }
-    }
-  }
-}
+      coefficients: { Sb, Pc, Os },
+    };
+  },
+};
 ```
 
 ---
@@ -870,20 +893,20 @@ export const formulaEngine = {
 // GET /api/scenarios
 // Returns all scenarios for authenticated user
 export async function GET(req: Request) {
-  const session = await getServerSession()
+  const session = await getServerSession();
   const scenarios = await prisma.scenario.findMany({
     where: { userId: session.user.id },
-    orderBy: { updatedAt: 'desc' }
-  })
-  return Response.json(scenarios)
+    orderBy: { updatedAt: "desc" },
+  });
+  return Response.json(scenarios);
 }
 
 // POST /api/scenarios
 // Create new scenario
 export async function POST(req: Request) {
-  const session = await getServerSession()
-  const body = await req.json()
-  
+  const session = await getServerSession();
+  const body = await req.json();
+
   const scenario = await prisma.scenario.create({
     data: {
       userId: session.user.id,
@@ -892,50 +915,50 @@ export async function POST(req: Request) {
       totalMD: body.totalMD,
       durationMonths: body.durationMonths,
       pmoMD: body.pmoMD,
-      phases: body.phases
-    }
-  })
-  
-  return Response.json(scenario)
+      phases: body.phases,
+    },
+  });
+
+  return Response.json(scenario);
 }
 
 // PUT /api/scenarios/:id
 // Update existing scenario
 export async function PUT(req: Request) {
-  const { id } = req.params
-  const body = await req.json()
-  
+  const { id } = req.params;
+  const body = await req.json();
+
   const scenario = await prisma.scenario.update({
     where: { id },
-    data: body
-  })
-  
-  return Response.json(scenario)
+    data: body,
+  });
+
+  return Response.json(scenario);
 }
 
 // DELETE /api/scenarios/:id
 // Delete scenario
 export async function DELETE(req: Request) {
-  const { id } = req.params
-  await prisma.scenario.delete({ where: { id } })
-  return Response.json({ success: true })
+  const { id } = req.params;
+  await prisma.scenario.delete({ where: { id } });
+  return Response.json({ success: true });
 }
 
 // POST /api/export/powerpoint
 // Generate PowerPoint from scenario
 export async function POST(req: Request) {
-  const { scenarioId } = await req.json()
-  const scenario = await prisma.scenario.findUnique({ where: { id: scenarioId } })
-  
-  const pptx = await generatePowerPoint(scenario)
-  const buffer = await pptx.write('nodebuffer')
-  
+  const { scenarioId } = await req.json();
+  const scenario = await prisma.scenario.findUnique({ where: { id: scenarioId } });
+
+  const pptx = await generatePowerPoint(scenario);
+  const buffer = await pptx.write("nodebuffer");
+
   return new Response(buffer, {
     headers: {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'Content-Disposition': `attachment; filename="SAP_Estimate_${scenario.name}.pptx"`
-    }
-  })
+      "Content-Type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "Content-Disposition": `attachment; filename="SAP_Estimate_${scenario.name}.pptx"`,
+    },
+  });
 }
 
 // Similar for CSV and PDF exports
@@ -1035,9 +1058,10 @@ Capacity = FTE × 22 × Utilization
 ### Coefficients
 
 1. **Scope Breadth (Sb)**
+
    ```
    Sb = Σ(selected L3 items' coefficients) + (integrations × 0.02)
-   
+
    Example:
    - J58 (Accounting, Tier C): 0.010
    - J59 (AR, Tier B): 0.008
@@ -1046,10 +1070,11 @@ Capacity = FTE × 22 × Utilization
    ```
 
 2. **Process Complexity (Pc)**
+
    ```
-   Pc = (custom_forms - baseline_forms) × 0.01 + 
+   Pc = (custom_forms - baseline_forms) × 0.01 +
         (1 - fit_to_standard%) × 0.25
-   
+
    Example:
    - 4 forms (baseline), 2 extra forms: 2 × 0.01 = 0.02
    - 90% fit-to-standard: (1 - 0.9) × 0.25 = 0.025
@@ -1057,11 +1082,12 @@ Capacity = FTE × 22 × Utilization
    ```
 
 3. **Organizational Scale (Os)**
+
    ```
-   Os = (entities - 1) × 0.03 + 
-        (countries - 1) × 0.05 + 
+   Os = (entities - 1) × 0.03 +
+        (countries - 1) × 0.05 +
         (languages - 1) × 0.02
-   
+
    Example:
    - 3 entities: 2 × 0.03 = 0.06
    - 2 countries: 1 × 0.05 = 0.05
@@ -1086,6 +1112,7 @@ Each phase duration = Total_Duration × weight
 ### Worked Example
 
 **Given:**
+
 - Base_FT = 378 MD
 - Sb = 0.15 (selected L3 items + integrations)
 - Pc = 0.00 (100% fit-to-standard, no extra forms)
@@ -1096,6 +1123,7 @@ Each phase duration = Total_Duration × weight
 - PMO_rate = 16.25 MD/month
 
 **Step 1: Calculate E_FT**
+
 ```
 E_FT = 378 × (1 + 0.15) × (1 + 0.00) × (1 + 0.00)
      = 378 × 1.15
@@ -1103,12 +1131,14 @@ E_FT = 378 × (1 + 0.15) × (1 + 0.00) × (1 + 0.00)
 ```
 
 **Step 2: Calculate Capacity**
+
 ```
 Capacity = 5.6 × 22 × 0.80
          = 98.56 MD/month
 ```
 
 **Step 3: Provisional Duration (no PMO)**
+
 ```
 D_0 = (434.7 + 24 + 8) / 98.56 × 0.75
     = 466.7 / 98.56 × 0.75
@@ -1116,6 +1146,7 @@ D_0 = (434.7 + 24 + 8) / 98.56 × 0.75
 ```
 
 **Step 4: Add PMO and iterate**
+
 ```
 E_PMO = 3.55 × 16.25 = 57.7 MD
 
@@ -1133,11 +1164,13 @@ Converged (change < 0.05)
 ```
 
 **Final Results:**
+
 - **Total Effort**: 531.7 MD
 - **Duration**: 4.05 months (~4 months)
 - **PMO**: 65 MD
 
 **Phase Breakdown:**
+
 ```
 Prepare:  53.2 MD,  0.41 months
 Explore: 133.0 MD,  1.01 months
@@ -1163,24 +1196,27 @@ The application must load all 293 L3 scope items from the provided SQL scripts i
 ### Usage in Application
 
 **L3 Catalog Modal:**
+
 - Query: `SELECT * FROM l3_scope_item JOIN complexity_metrics ON l3_id`
 - Filter by: LoB, module, tier, localization_flag
 - Search: code, name (full-text search)
 
 **Coefficient Calculation:**
+
 ```typescript
 function calculateScopeBreadth(selectedItems: L3ScopeItem[], integrations: number): number {
   const itemCoefficients = selectedItems
-    .filter(item => item.tier !== 'D')  // Tier D excluded from auto-calc
-    .reduce((sum, item) => sum + item.coefficient, 0)
-  
-  const integrationFactor = integrations * 0.02
-  
-  return itemCoefficients + integrationFactor
+    .filter((item) => item.tier !== "D") // Tier D excluded from auto-calc
+    .reduce((sum, item) => sum + item.coefficient, 0);
+
+  const integrationFactor = integrations * 0.02;
+
+  return itemCoefficients + integrationFactor;
 }
 ```
 
 **Tier D Handling:**
+
 - If user selects Tier D item, show warning: "⚠️ Extension Required - Custom pricing needed"
 - Disable "Generate Timeline" until tier D items removed or custom quote provided
 
@@ -1207,46 +1243,46 @@ function calculateScopeBreadth(selectedItems: L3ScopeItem[], integrations: numbe
 // In estimator-store.ts
 const useEstimatorStore = create<EstimatorState>((set, get) => ({
   // ... state
-  
+
   setFTE: (fte: number) => {
-    set({ fte })
-    get().calculate()
-    
+    set({ fte });
+    get().calculate();
+
     // Sync to timeline if unlocked
-    const timelineStore = useTimelineStore.getState()
+    const timelineStore = useTimelineStore.getState();
     if (!timelineStore.isLocked) {
-      timelineStore.syncFromEstimator(get().results)
+      timelineStore.syncFromEstimator(get().results);
     }
   },
-  
+
   calculate: () => {
-    const results = formulaEngine.calculateTotal(get())
-    set({ results })
-  }
-}))
+    const results = formulaEngine.calculateTotal(get());
+    set({ results });
+  },
+}));
 
 // In timeline-store.ts
 const useTimelineStore = create<TimelineState>((set, get) => ({
   // ... state
-  
+
   syncFromEstimator: (estimatorResults: EstimatorResults) => {
-    if (get().isLocked) return  // Don't sync if locked
-    
+    if (get().isLocked) return; // Don't sync if locked
+
     set({
       ganttData: generateGanttFromPhases(estimatorResults.phases, get().startDate),
-      endDate: calculateEndDate(get().startDate, estimatorResults.durationMonths)
-    })
+      endDate: calculateEndDate(get().startDate, estimatorResults.durationMonths),
+    });
   },
-  
+
   setResources: (resources: ResourceAllocation[]) => {
-    set({ resources })
-    
+    set({ resources });
+
     // Sync total FTE back to estimator
-    const totalFTE = resources.reduce((sum, r) => sum + r.fte, 0)
-    const estimatorStore = useEstimatorStore.getState()
-    estimatorStore.setFTE(totalFTE)
-  }
-}))
+    const totalFTE = resources.reduce((sum, r) => sum + r.fte, 0);
+    const estimatorStore = useEstimatorStore.getState();
+    estimatorStore.setFTE(totalFTE);
+  },
+}));
 ```
 
 **Lock Mechanism:**
@@ -1263,6 +1299,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 ### Phase 1: Foundation (Week 1-2)
 
 **Deliverables:**
+
 - Next.js app scaffold with Ant Design
 - Authentication (NextAuth)
 - Database schema (Prisma)
@@ -1270,6 +1307,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 - Basic routing structure
 
 **Acceptance Criteria:**
+
 - User can log in
 - Navigation between screens works
 - Database queries return L3 items
@@ -1279,6 +1317,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 ### Phase 2: Estimator (Week 3-4)
 
 **Deliverables:**
+
 - Estimator UI with all input controls
 - L3 catalog modal with search/filter
 - Formula engine implementation
@@ -1286,6 +1325,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 - Formula transparency panel
 
 **Acceptance Criteria:**
+
 - User can select L3 items
 - Adjusting sliders updates results instantly
 - "Show Math" displays correct formulas
@@ -1296,6 +1336,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 ### Phase 3: Timeline (Week 5-6)
 
 **Deliverables:**
+
 - Gantt chart component
 - Resource allocation table
 - Date picker with working days
@@ -1303,6 +1344,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 - Lock/unlock mechanism
 
 **Acceptance Criteria:**
+
 - Gantt renders phases correctly
 - Resource changes update estimator FTE
 - Lock prevents auto-sync
@@ -1313,6 +1355,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 ### Phase 4: Scenarios & Export (Week 7-8)
 
 **Deliverables:**
+
 - Scenario CRUD (create, read, update, delete)
 - Comparison screen with 3 scenarios
 - PowerPoint generator
@@ -1320,6 +1363,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 - PDF generator
 
 **Acceptance Criteria:**
+
 - User can save/load scenarios
 - Comparison shows differences
 - Exports contain all required sections
@@ -1330,6 +1374,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 ### Phase 5: Polish & Deploy (Week 9-10)
 
 **Deliverables:**
+
 - Mobile responsive design
 - Performance optimization
 - Error handling
@@ -1337,6 +1382,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 - Production deployment
 
 **Acceptance Criteria:**
+
 - Works on mobile (<768px)
 - Page load < 2 seconds
 - No console errors
@@ -1401,16 +1447,19 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 ## 10. Success Metrics
 
 **User Adoption:**
+
 - 80% of consultants use it for every estimate
 - Average time to create estimate: <15 minutes
 - 90% of estimates progress to timeline
 
 **Quality:**
+
 - Estimate accuracy within ±10% of actuals
 - Zero calculation errors (automated test coverage >95%)
 - Client satisfaction rating >4.5/5
 
 **Technical:**
+
 - Page load time <2 seconds (P95)
 - Zero data loss incidents
 - 99.9% uptime
@@ -1419,26 +1468,28 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 
 ## 11. Risk Assessment
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Formula complexity causes bugs | High | Medium | Comprehensive unit tests, manual validation |
-| L3 catalog too large for modal | Medium | Low | Pagination, virtual scrolling |
-| Sync between estimator/timeline breaks | High | Medium | Lock mechanism, clear sync indicators |
-| Export generation slow | Medium | Medium | Background jobs, caching |
-| Mobile UX poor | Medium | High | Mobile-first design, early testing |
-| Database performance issues | High | Low | Indexes, query optimization |
+| Risk                                   | Impact | Likelihood | Mitigation                                  |
+| -------------------------------------- | ------ | ---------- | ------------------------------------------- |
+| Formula complexity causes bugs         | High   | Medium     | Comprehensive unit tests, manual validation |
+| L3 catalog too large for modal         | Medium | Low        | Pagination, virtual scrolling               |
+| Sync between estimator/timeline breaks | High   | Medium     | Lock mechanism, clear sync indicators       |
+| Export generation slow                 | Medium | Medium     | Background jobs, caching                    |
+| Mobile UX poor                         | Medium | High       | Mobile-first design, early testing          |
+| Database performance issues            | High   | Low        | Indexes, query optimization                 |
 
 ---
 
 ## 12. Assumptions & Constraints
 
 **Assumptions:**
+
 1. Users are familiar with SAP Activate methodology
 2. Base effort (378 MD) is accurate for standard FI+MM Public Cloud
 3. L3 coefficients in document 3 are validated
 4. Users have modern browsers (Chrome 90+, Safari 14+)
 
 **Constraints:**
+
 1. Must work offline for demo purposes (optional)
 2. No budget for third-party AI services
 3. Data must remain on Vercel/EU servers (GDPR)
@@ -1465,6 +1516,7 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 ### Appendix C: Sample Data
 
 **Profile Presets:**
+
 ```json
 [
   {
@@ -1491,12 +1543,14 @@ const useTimelineStore = create<TimelineState>((set, get) => ({
 ## Document Control
 
 **Approval Required From:**
+
 - [ ] Product Owner
 - [ ] Technical Lead
 - [ ] UX Designer
 - [ ] Stakeholders
 
 **Change Log:**
+
 - 2025-10-12: Initial draft for review
 - [Date]: Feedback incorporated
 - [Date]: Final approval

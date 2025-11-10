@@ -27,19 +27,19 @@ export interface L3ScopeItem {
  * Complexity metrics for effort calculation
  */
 export interface ComplexityMetrics {
-  defaultTier: 'A' | 'B' | 'C' | 'D';
+  defaultTier: "A" | "B" | "C" | "D";
   coefficient: number | null; // NULL for Tier D
   tierRationale: string;
   crossModuleTouches: string | null; // e.g., "FI↔CO"
   localizationFlag: boolean;
-  extensionRisk: 'Low' | 'Med' | 'High';
+  extensionRisk: "Low" | "Med" | "High";
 }
 
 /**
  * Integration details for each L3 item
  */
 export interface IntegrationDetails {
-  integrationPackageAvailable: 'Yes' | 'No' | 'NA';
+  integrationPackageAvailable: "Yes" | "No" | "NA";
   testScriptExists: boolean;
 }
 
@@ -63,12 +63,12 @@ export interface Profile {
  * Default profile for Malaysia Mid-Market
  */
 export const DEFAULT_PROFILE: Profile = {
-  name: 'Malaysia Mid-Market',
+  name: "Malaysia Mid-Market",
   baseFT: 378,
   basis: 24,
   securityAuth: 8,
-  description: 'Standard FI+MM for Public Cloud',
-  region: 'Malaysia',
+  description: "Standard FI+MM for Public Cloud",
+  region: "Malaysia",
 };
 
 /**
@@ -77,20 +77,20 @@ export const DEFAULT_PROFILE: Profile = {
 export const AVAILABLE_PROFILES: Profile[] = [
   DEFAULT_PROFILE,
   {
-    name: 'Singapore Enterprise',
+    name: "Singapore Enterprise",
     baseFT: 550,
     basis: 36,
     securityAuth: 12,
-    description: 'Enterprise deployment with FI+MM+SD',
-    region: 'Singapore',
+    description: "Enterprise deployment with FI+MM+SD",
+    region: "Singapore",
   },
   {
-    name: 'Vietnam SME',
+    name: "Vietnam SME",
     baseFT: 280,
     basis: 18,
     securityAuth: 6,
-    description: 'Small-medium enterprise basic setup',
-    region: 'Vietnam',
+    description: "Small-medium enterprise basic setup",
+    region: "Vietnam",
   },
 ];
 
@@ -147,7 +147,7 @@ export const INPUT_CONSTRAINTS = {
  * Phase breakdown following SAP Activate methodology
  */
 export interface PhaseBreakdown {
-  phaseName: 'Prepare' | 'Explore' | 'Realize' | 'Deploy' | 'Run';
+  phaseName: "Prepare" | "Explore" | "Realize" | "Deploy" | "Run";
   effortMD: number; // Effort in man-days
   durationMonths: number; // Duration in calendar months
   startDate?: Date;
@@ -157,8 +157,8 @@ export interface PhaseBreakdown {
 /**
  * SAP Activate phase distribution weights
  */
-export const PHASE_WEIGHTS: Record<PhaseBreakdown['phaseName'], number> = {
-  Prepare: 0.10,
+export const PHASE_WEIGHTS: Record<PhaseBreakdown["phaseName"], number> = {
+  Prepare: 0.1,
   Explore: 0.25,
   Realize: 0.45,
   Deploy: 0.15,
@@ -206,7 +206,7 @@ export interface ResourceAllocation {
   role: string; // e.g., "Functional Consultant", "Technical Architect"
   fte: number; // Full-time equivalent allocation
   ratePerDay: number; // Daily rate in currency
-  phases: PhaseBreakdown['phaseName'][]; // Which phases this role is active
+  phases: PhaseBreakdown["phaseName"][]; // Which phases this role is active
   totalCost: number; // Calculated total cost
 }
 
@@ -214,12 +214,12 @@ export interface ResourceAllocation {
  * Default rate card (Malaysia rates in USD)
  */
 export const DEFAULT_RATE_CARD: Record<string, number> = {
-  'Project Manager': 180,
-  'Functional Consultant': 150,
-  'Technical Architect': 160,
-  'Basis Administrator': 140,
-  'Change Management': 120,
-  'QA Tester': 100,
+  "Project Manager": 180,
+  "Functional Consultant": 150,
+  "Technical Architect": 160,
+  "Basis Administrator": 140,
+  "Change Management": 120,
+  "QA Tester": 100,
 } as const;
 
 // ============================================
@@ -271,9 +271,12 @@ export function validateInputs(inputs: EstimatorInputs): ValidationError[] {
   const errors: ValidationError[] = [];
 
   // Validate integrations
-  if (inputs.integrations < INPUT_CONSTRAINTS.integrations.min || inputs.integrations > INPUT_CONSTRAINTS.integrations.max) {
+  if (
+    inputs.integrations < INPUT_CONSTRAINTS.integrations.min ||
+    inputs.integrations > INPUT_CONSTRAINTS.integrations.max
+  ) {
     errors.push({
-      field: 'integrations',
+      field: "integrations",
       message: `Integrations must be between ${INPUT_CONSTRAINTS.integrations.min} and ${INPUT_CONSTRAINTS.integrations.max}`,
       constraint: INPUT_CONSTRAINTS.integrations,
     });
@@ -282,27 +285,39 @@ export function validateInputs(inputs: EstimatorInputs): ValidationError[] {
   // Validate FTE
   if (inputs.fte < INPUT_CONSTRAINTS.fte.min || inputs.fte > INPUT_CONSTRAINTS.fte.max) {
     errors.push({
-      field: 'fte',
+      field: "fte",
       message: `FTE must be between ${INPUT_CONSTRAINTS.fte.min} and ${INPUT_CONSTRAINTS.fte.max}`,
       constraint: INPUT_CONSTRAINTS.fte,
     });
   }
 
   // Validate utilization (0-1 range)
-  if (inputs.utilization < INPUT_CONSTRAINTS.utilization.min || inputs.utilization > INPUT_CONSTRAINTS.utilization.max) {
+  if (
+    inputs.utilization < INPUT_CONSTRAINTS.utilization.min ||
+    inputs.utilization > INPUT_CONSTRAINTS.utilization.max
+  ) {
     errors.push({
-      field: 'utilization',
+      field: "utilization",
       message: `Utilization must be between ${INPUT_CONSTRAINTS.utilization.min * 100}% and ${INPUT_CONSTRAINTS.utilization.max * 100}%`,
-      constraint: { min: INPUT_CONSTRAINTS.utilization.min * 100, max: INPUT_CONSTRAINTS.utilization.max * 100 },
+      constraint: {
+        min: INPUT_CONSTRAINTS.utilization.min * 100,
+        max: INPUT_CONSTRAINTS.utilization.max * 100,
+      },
     });
   }
 
   // Validate fit-to-standard (0-1 range)
-  if (inputs.fitToStandard < INPUT_CONSTRAINTS.fitToStandard.min || inputs.fitToStandard > INPUT_CONSTRAINTS.fitToStandard.max) {
+  if (
+    inputs.fitToStandard < INPUT_CONSTRAINTS.fitToStandard.min ||
+    inputs.fitToStandard > INPUT_CONSTRAINTS.fitToStandard.max
+  ) {
     errors.push({
-      field: 'fitToStandard',
+      field: "fitToStandard",
       message: `Fit-to-standard must be between ${INPUT_CONSTRAINTS.fitToStandard.min * 100}% and ${INPUT_CONSTRAINTS.fitToStandard.max * 100}%`,
-      constraint: { min: INPUT_CONSTRAINTS.fitToStandard.min * 100, max: INPUT_CONSTRAINTS.fitToStandard.max * 100 },
+      constraint: {
+        min: INPUT_CONSTRAINTS.fitToStandard.min * 100,
+        max: INPUT_CONSTRAINTS.fitToStandard.max * 100,
+      },
     });
   }
 

@@ -5,7 +5,8 @@
 When building pages for Keystone, ALWAYS reference this UI toolkit.
 
 ## Import Pattern
-```tsx
+
+````tsx
 // Standard imports
 import { Container, Section, Header, Footer } from '@/components';
 import { StatCard, Card, Badge } from '@/components';
@@ -74,3 +75,4 @@ npx shadcn-ui@latest add checkbox
 npx shadcn-ui@latest add radio-group
 npx shadcn-ui@latest add progress
 npx shadcn-ui@latest add label
+````

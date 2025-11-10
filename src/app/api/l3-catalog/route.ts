@@ -17,9 +17,9 @@
  *   - Stale-while-revalidate for zero downtime
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { withCache, CacheKeys, CACHE_CONFIG, cache } from '@/lib/cache/redis-cache';
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import { withCache, CacheKeys, CACHE_CONFIG, cache } from "@/lib/cache/redis-cache";
 
 const prisma = new PrismaClient();
 
@@ -33,39 +33,42 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
 
     // Parse query parameters
-    const lobName = searchParams.get('lobName');
-    const moduleFilter = searchParams.get('module');
-    const tier = searchParams.get('tier');
-    const search = searchParams.get('search');
-    const includeMetrics = searchParams.get('includeMetrics') !== 'false';
-    const includeIntegration = searchParams.get('includeIntegration') === 'true';
-    const forceRefresh = searchParams.get('forceRefresh') === 'true';
+    const lobName = searchParams.get("lobName");
+    const moduleFilter = searchParams.get("module");
+    const tier = searchParams.get("tier");
+    const search = searchParams.get("search");
+    const includeMetrics = searchParams.get("includeMetrics") !== "false";
+    const includeIntegration = searchParams.get("includeIntegration") === "true";
+    const forceRefresh = searchParams.get("forceRefresh") === "true";
 
-    console.log('[L3 Catalog API] Query params:', {
-      lobName,
-      module: moduleFilter,
-      tier,
-      search,
-      includeMetrics,
-      includeIntegration,
-      forceRefresh,
-    });
+    // Query params logged for debugging (development only)
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[L3 Catalog API] Query params:", {
+        lobName,
+        module: moduleFilter,
+        tier,
+        search,
+        includeMetrics,
+        includeIntegration,
+        forceRefresh,
+      });
+    }
 
     // Generate cache key based on query params
-    const cacheKeyParts = ['l3', 'catalog'];
+    const cacheKeyParts = ["l3", "catalog"];
     if (lobName) cacheKeyParts.push(`lob=${lobName}`);
     if (moduleFilter) cacheKeyParts.push(`module=${moduleFilter}`);
     if (tier) cacheKeyParts.push(`tier=${tier}`);
     if (search) cacheKeyParts.push(`search=${search}`);
-    if (includeMetrics) cacheKeyParts.push('metrics');
-    if (includeIntegration) cacheKeyParts.push('integration');
-    const cacheKey = cacheKeyParts.join(':');
+    if (includeMetrics) cacheKeyParts.push("metrics");
+    if (includeIntegration) cacheKeyParts.push("integration");
+    const cacheKey = cacheKeyParts.join(":");
 
     // Fetch with caching
     const result = await withCache(
       cacheKey,
       async () => {
-        console.log('[L3 Catalog API] 🔄 Cache MISS - fetching from database');
+        console.warn("[L3 Catalog API] 🔄 Cache MISS - fetching from database");
 
         // Build where clause
         const where: any = {};
@@ -86,8 +89,8 @@ export async function GET(request: NextRequest) {
 
         if (search) {
           where.OR = [
-            { l3Code: { contains: search, mode: 'insensitive' } },
-            { l3Name: { contains: search, mode: 'insensitive' } },
+            { l3Code: { contains: search, mode: "insensitive" } },
+            { l3Name: { contains: search, mode: "insensitive" } },
           ];
         }
 
@@ -103,11 +106,7 @@ export async function GET(request: NextRequest) {
               integrationDetails: true,
             }),
           },
-          orderBy: [
-            { lob: { lobName: 'asc' } },
-            { module: 'asc' },
-            { l3Code: 'asc' },
-          ],
+          orderBy: [{ lob: { lobName: "asc" } }, { module: "asc" }, { l3Code: "asc" }],
         });
 
         // Transform to match frontend types
@@ -133,8 +132,7 @@ export async function GET(request: NextRequest) {
           ...(includeIntegration &&
             item.integrationDetails && {
               integrationDetails: {
-                integrationPackageAvailable:
-                  item.integrationDetails.integrationPackageAvailable,
+                integrationPackageAvailable: item.integrationDetails.integrationPackageAvailable,
                 testScriptExists: item.integrationDetails.testScriptExists,
               },
             }),
@@ -157,9 +155,7 @@ export async function GET(request: NextRequest) {
 
     const duration = performance.now() - startTime;
 
-    console.log(
-      `[L3 Catalog API] ✅ Returned ${result.count} items in ${duration.toFixed(2)}ms`
-    );
+    console.warn(`[L3 Catalog API] ✅ Returned ${result.count} items in ${duration.toFixed(2)}ms`);
 
     // Add cache hit indicator
     return NextResponse.json({
@@ -174,7 +170,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
         items: [],
         cached: false,
       },
@@ -190,35 +186,34 @@ export async function POST(request: NextRequest) {
   try {
     const { action } = await request.json();
 
-    if (action === 'invalidate') {
+    if (action === "invalidate") {
       // Invalidate all L3 catalog cache
-      await cache.deletePattern('l3:catalog:*');
+      await cache.deletePattern("l3:catalog:*");
 
-      console.log('[L3 Catalog API] 🗑️  Cache invalidated');
+      console.warn("[L3 Catalog API] 🗑️  Cache invalidated");
 
       return NextResponse.json({
         success: true,
-        message: 'L3 catalog cache invalidated',
+        message: "L3 catalog cache invalidated",
       });
     }
 
     return NextResponse.json(
       {
         success: false,
-        error: 'Invalid action',
+        error: "Invalid action",
       },
       { status: 400 }
     );
   } catch (error) {
-    console.error('[L3 Catalog API] ❌ POST Error:', error);
+    console.error("[L3 Catalog API] ❌ POST Error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
   }
 }
-

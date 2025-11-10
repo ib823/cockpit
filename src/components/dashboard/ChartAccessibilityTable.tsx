@@ -4,11 +4,11 @@
  * WCAG 2.1 Level AA compliant
  */
 
-'use client';
+"use client";
 
-import React from 'react';
-import { Table, Typography } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import React from "react";
+import { Table, Typography } from "antd";
+import type { ColumnsType } from "antd/es/table";
 
 const { Text } = Typography;
 
@@ -42,15 +42,15 @@ export function ChartAccessibilityTable({
   // Default columns if not provided
   const defaultColumns: ColumnsType<ChartDataPoint> = [
     {
-      title: 'Category',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Category",
+      dataIndex: "name",
+      key: "name",
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
-      title: 'Value',
-      dataIndex: 'value',
-      key: 'value',
+      title: "Value",
+      dataIndex: "value",
+      key: "value",
       render: (value: number) => valueFormatter(value),
       sorter: (a, b) => a.value - b.value,
     },
@@ -62,22 +62,22 @@ export function ChartAccessibilityTable({
     ? {}
     : {
         // Screen reader only styles
-        position: 'absolute',
-        left: '-10000px',
-        top: 'auto',
-        width: '1px',
-        height: '1px',
-        overflow: 'hidden',
+        position: "absolute",
+        left: "-10000px",
+        top: "auto",
+        width: "1px",
+        height: "1px",
+        overflow: "hidden",
       };
 
   return (
     <div style={tableStyle} aria-label={`Data table for ${title}`}>
-      <div style={{ marginBottom: '12px' }}>
-        <Text strong id={`table-title-${title.replace(/\s/g, '-')}`}>
+      <div style={{ marginBottom: "12px" }}>
+        <Text strong id={`table-title-${title.replace(/\s/g, "-")}`}>
           {title} - Data Table
         </Text>
         {description && (
-          <Text type="secondary" style={{ display: 'block' }} className="text-xs">
+          <Text type="secondary" style={{ display: "block" }} className="text-xs">
             {description}
           </Text>
         )}
@@ -88,7 +88,7 @@ export function ChartAccessibilityTable({
         pagination={false}
         size="small"
         rowKey={(record) => record.name}
-        aria-labelledby={`table-title-${title.replace(/\s/g, '-')}`}
+        aria-labelledby={`table-title-${title.replace(/\s/g, "-")}`}
         summary={() => {
           const total = data.reduce((sum, item) => sum + item.value, 0);
           return (
@@ -125,31 +125,31 @@ export function MarginWaterfallTable({
   showVisually?: boolean;
 }) {
   const data = [
-    { name: 'Total Revenue', value: revenue, type: 'positive' },
-    { name: 'Total Cost', value: -cost, type: 'negative' },
-    { name: 'Gross Margin', value: margin, type: margin >= 0 ? 'positive' : 'negative' },
+    { name: "Total Revenue", value: revenue, type: "positive" },
+    { name: "Total Cost", value: -cost, type: "negative" },
+    { name: "Gross Margin", value: margin, type: margin >= 0 ? "positive" : "negative" },
   ];
 
   const columns: ColumnsType<any> = [
     {
-      title: 'Item',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Item",
+      dataIndex: "name",
+      key: "name",
     },
     {
-      title: 'Amount (MYR)',
-      dataIndex: 'value',
-      key: 'value',
+      title: "Amount (MYR)",
+      dataIndex: "value",
+      key: "value",
       render: (value: number) => {
         const formatted = `RM ${Math.abs(value).toLocaleString()}`;
         return value < 0 ? `(${formatted})` : formatted;
       },
     },
     {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type: string) => (type === 'positive' ? 'Credit' : 'Debit'),
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+      render: (type: string) => (type === "positive" ? "Credit" : "Debit"),
     },
   ];
 
@@ -185,22 +185,22 @@ export function CostByPhaseTable({
 
   const columns: ColumnsType<any> = [
     {
-      title: 'Phase',
-      dataIndex: 'name',
-      key: 'name',
-      width: '40%',
+      title: "Phase",
+      dataIndex: "name",
+      key: "name",
+      width: "40%",
     },
     {
-      title: 'Cost (MYR)',
-      dataIndex: 'value',
-      key: 'value',
+      title: "Cost (MYR)",
+      dataIndex: "value",
+      key: "value",
       render: (value: number) => `RM ${value.toLocaleString()}`,
       sorter: (a, b) => a.value - b.value,
     },
     {
-      title: '% of Total',
-      dataIndex: 'percentage',
-      key: 'percentage',
+      title: "% of Total",
+      dataIndex: "percentage",
+      key: "percentage",
       render: (pct: string) => `${pct}%`,
     },
   ];
@@ -228,38 +228,38 @@ export function ResourceUtilizationTable({
     name: string;
     utilization: number;
     allocation: number;
-    status: 'optimal' | 'underutilized' | 'overallocated';
+    status: "optimal" | "underutilized" | "overallocated";
   }>;
   showVisually?: boolean;
 }) {
   const columns: ColumnsType<any> = [
     {
-      title: 'Resource',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Resource",
+      dataIndex: "name",
+      key: "name",
     },
     {
-      title: 'Utilization %',
-      dataIndex: 'utilization',
-      key: 'utilization',
+      title: "Utilization %",
+      dataIndex: "utilization",
+      key: "utilization",
       render: (value: number) => `${value.toFixed(0)}%`,
       sorter: (a, b) => a.utilization - b.utilization,
     },
     {
-      title: 'Allocated Days',
-      dataIndex: 'allocation',
-      key: 'allocation',
+      title: "Allocated Days",
+      dataIndex: "allocation",
+      key: "allocation",
       render: (value: number) => value.toFixed(1),
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
       render: (status: string) => {
         const labels = {
-          optimal: 'Optimal (50-100%)',
-          underutilized: 'Under-utilized (<50%)',
-          overallocated: 'Over-allocated (>100%)',
+          optimal: "Optimal (50-100%)",
+          underutilized: "Under-utilized (<50%)",
+          overallocated: "Over-allocated (>100%)",
         };
         return labels[status as keyof typeof labels] || status;
       },
@@ -268,7 +268,7 @@ export function ResourceUtilizationTable({
 
   return (
     <ChartAccessibilityTable
-      data={resources.map(r => ({ ...r, value: r.utilization }))}
+      data={resources.map((r) => ({ ...r, value: r.utilization }))}
       title="Resource Utilization"
       description="Team member allocation and utilization percentages"
       columns={columns}
@@ -295,38 +295,38 @@ export function RiskAssessmentTable({
 }) {
   const columns: ColumnsType<any> = [
     {
-      title: 'Risk Factor',
-      dataIndex: 'name',
-      key: 'name',
-      width: '25%',
+      title: "Risk Factor",
+      dataIndex: "name",
+      key: "name",
+      width: "25%",
     },
     {
-      title: 'Score (0-100)',
-      dataIndex: 'score',
-      key: 'score',
+      title: "Score (0-100)",
+      dataIndex: "score",
+      key: "score",
       render: (value: number) => value.toFixed(0),
       sorter: (a, b) => a.score - b.score,
     },
     {
-      title: 'Weight',
-      dataIndex: 'weight',
-      key: 'weight',
+      title: "Weight",
+      dataIndex: "weight",
+      key: "weight",
       render: (value: number) => `${(value * 100).toFixed(0)}%`,
     },
     {
-      title: 'Risk Level',
-      key: 'level',
+      title: "Risk Level",
+      key: "level",
       render: (_: any, record: any) => {
-        if (record.score >= 70) return 'Low Risk';
-        if (record.score >= 50) return 'Medium Risk';
-        return 'High Risk';
+        if (record.score >= 70) return "Low Risk";
+        if (record.score >= 50) return "Medium Risk";
+        return "High Risk";
       },
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      width: '35%',
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      width: "35%",
     },
   ];
 
@@ -336,12 +336,12 @@ export function RiskAssessmentTable({
         showVisually
           ? {}
           : {
-              position: 'absolute',
-              left: '-10000px',
-              top: 'auto',
-              width: '1px',
-              height: '1px',
-              overflow: 'hidden',
+              position: "absolute",
+              left: "-10000px",
+              top: "auto",
+              width: "1px",
+              height: "1px",
+              overflow: "hidden",
             }
       }
     >
@@ -376,40 +376,40 @@ export function RecommendationsTable({
 }) {
   const columns: ColumnsType<any> = [
     {
-      title: 'Recommendation',
-      dataIndex: 'title',
-      key: 'title',
-      width: '35%',
+      title: "Recommendation",
+      dataIndex: "title",
+      key: "title",
+      width: "35%",
     },
     {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type: string) => type.replace(/_/g, ' ').toUpperCase(),
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+      render: (type: string) => type.replace(/_/g, " ").toUpperCase(),
     },
     {
-      title: 'Confidence',
-      dataIndex: 'confidence',
-      key: 'confidence',
+      title: "Confidence",
+      dataIndex: "confidence",
+      key: "confidence",
       render: (value: number) => `${value.toFixed(0)}%`,
       sorter: (a, b) => a.confidence - b.confidence,
     },
     {
-      title: 'Priority',
-      dataIndex: 'priority',
-      key: 'priority',
+      title: "Priority",
+      dataIndex: "priority",
+      key: "priority",
       render: (priority: string) => priority.toUpperCase(),
     },
     {
-      title: 'Expected Impact',
-      dataIndex: 'impact',
-      key: 'impact',
-      width: '30%',
+      title: "Expected Impact",
+      dataIndex: "impact",
+      key: "impact",
+      width: "30%",
     },
   ];
 
   return (
-    <div style={showVisually ? {} : { position: 'absolute', left: '-10000px' }}>
+    <div style={showVisually ? {} : { position: "absolute", left: "-10000px" }}>
       <Table
         dataSource={recommendations}
         columns={columns}

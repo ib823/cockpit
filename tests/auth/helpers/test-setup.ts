@@ -3,15 +3,15 @@
  * Provides test database setup, cleanup, and fixture management
  */
 
-import { PrismaClient } from '@prisma/client';
-import { hash } from 'bcryptjs';
-import { randomUUID } from 'crypto';
+import { PrismaClient } from "@prisma/client";
+import { hash } from "bcryptjs";
+import { randomUUID } from "crypto";
 
 // Use separate test database
 const DATABASE_URL = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
-  throw new Error('TEST_DATABASE_URL or DATABASE_URL must be set');
+  throw new Error("TEST_DATABASE_URL or DATABASE_URL must be set");
 }
 
 export const testPrisma = new PrismaClient({
@@ -34,36 +34,28 @@ export const testPrisma = new PrismaClient({
     testPrisma.sessions.deleteMany({ where: { userId: { startsWith: 'test-' } } }),
     testPrisma.users.deleteMany({ where: { id: { startsWith: 'test-' } } }),
   ]);*/
-  export async function cleanupTestData() {
-  await testPrisma.$transaction([
-    testPrisma.auditEvent.deleteMany({ where: { meta: { path: ['test_marker'], equals: true } } }),
-    testPrisma.authenticator.deleteMany({ where: { userId: { startsWith: 'test-' } } }),
-    testPrisma.emailApproval.deleteMany({ 
-      where: { 
-        OR: [
-          { email: { contains: 'test-' } },
-          { email: { contains: '@example.com' } }
-        ]
-      } 
-    }),
-    testPrisma.magic_tokens.deleteMany({ 
-      where: { 
-        OR: [
-          { email: { contains: 'test-' } },
-          { email: { contains: '@example.com' } }
-        ]
-      } 
-    }),
-    testPrisma.sessions.deleteMany({ where: { userId: { startsWith: 'test-' } } }),
-    testPrisma.users.deleteMany({ 
-      where: { 
-        OR: [
-          { id: { startsWith: 'test-' } },
-          { email: { contains: '@example.com' } }
-        ]
-      } 
-    }),
-  ]);
+export async function cleanupTestData() {
+  // Delete child records first (in order of foreign key dependencies)
+  // Run sequentially to avoid foreign key constraint violations
+  await testPrisma.auditEvent.deleteMany({ where: { meta: { path: ["test_marker"], equals: true } } });
+  await testPrisma.authenticator.deleteMany({ where: { userId: { startsWith: "test-" } } });
+  await testPrisma.sessions.deleteMany({ where: { userId: { startsWith: "test-" } } });
+  await testPrisma.emailApproval.deleteMany({
+    where: {
+      OR: [{ email: { contains: "test-" } }, { email: { contains: "@example.com" } }],
+    },
+  });
+  await testPrisma.magic_tokens.deleteMany({
+    where: {
+      OR: [{ email: { contains: "test-" } }, { email: { contains: "@example.com" } }],
+    },
+  });
+  // Delete parent records last
+  await testPrisma.users.deleteMany({
+    where: {
+      OR: [{ id: { startsWith: "test-" } }, { email: { contains: "@example.com" } }],
+    },
+  });
 }
 
 /**
@@ -86,7 +78,7 @@ export async function teardownTestDatabase() {
  */
 export async function createTestUserWithPasskey(options: {
   email: string;
-  role?: 'USER' | 'ADMIN' | 'MANAGER';
+  role?: "USER" | "ADMIN" | "MANAGER";
   accessExpiresAt?: Date;
   exception?: boolean;
   name?: string;
@@ -98,8 +90,8 @@ export async function createTestUserWithPasskey(options: {
     data: {
       id: userId,
       email: options.email,
-      name: options.name || options.email.split('@')[0],
-      role: options.role || 'USER',
+      name: options.name || options.email.split("@")[0],
+      role: options.role || "USER",
       accessExpiresAt: options.accessExpiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
       exception: options.exception || false,
       updatedAt: new Date(),
@@ -110,10 +102,10 @@ export async function createTestUserWithPasskey(options: {
     data: {
       id: authenticatorId,
       userId: user.id,
-      publicKey: Buffer.from('test-public-key'),
+      publicKey: Buffer.from("test-public-key"),
       counter: 0,
-      transports: ['internal'],
-      deviceType: 'platform',
+      transports: ["internal"],
+      deviceType: "platform",
       backedUp: false,
     },
   });
@@ -126,7 +118,7 @@ export async function createTestUserWithPasskey(options: {
  */
 export async function createTestUserWithoutPasskey(options: {
   email: string;
-  role?: 'USER' | 'ADMIN' | 'MANAGER';
+  role?: "USER" | "ADMIN" | "MANAGER";
   hasApproval?: boolean;
 }) {
   const userId = `test-${randomUUID()}`;
@@ -135,8 +127,8 @@ export async function createTestUserWithoutPasskey(options: {
     data: {
       id: userId,
       email: options.email,
-      name: options.email.split('@')[0],
-      role: options.role || 'USER',
+      name: options.email.split("@")[0],
+      role: options.role || "USER",
       accessExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       exception: false,
       updatedAt: new Date(),
@@ -152,7 +144,7 @@ export async function createTestUserWithoutPasskey(options: {
         email: options.email,
         tokenHash,
         tokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-        approvedByUserId: 'test-admin',
+        approvedByUserId: "test-admin",
       },
     });
   }
@@ -177,8 +169,8 @@ export async function createTestAdmin(options: {
     data: {
       id: userId,
       email: options.email,
-      name: 'Test Admin',
-      role: 'ADMIN',
+      name: "Test Admin",
+      role: "ADMIN",
       accessExpiresAt: options.accessExpired
         ? new Date(Date.now() - 1000)
         : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
@@ -194,7 +186,7 @@ export async function createTestAdmin(options: {
       tokenExpiresAt: options.codeExpired
         ? new Date(Date.now() - 1000)
         : new Date(Date.now() + 24 * 60 * 60 * 1000),
-      approvedByUserId: 'system',
+      approvedByUserId: "system",
       usedAt: options.codeUsed ? new Date() : null,
     },
   });

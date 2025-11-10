@@ -15,19 +15,19 @@ export interface VersionInfo {
  */
 export async function getVersionInfo(): Promise<VersionInfo> {
   try {
-    const response = await fetch('/version.json');
+    const response = await fetch("/version.json");
     if (response.ok) {
       return await response.json();
     }
   } catch (error) {
-    console.warn('Could not fetch version.json, using fallback');
+    console.warn("Could not fetch version.json, using fallback");
   }
 
   // Fallback: read from package.json (won't have git info)
   return {
-    version: process.env.npm_package_version || '0.1.0',
-    gitCommit: 'dev',
-    gitBranch: 'dev',
+    version: process.env.npm_package_version || "0.1.0",
+    gitCommit: "dev",
+    gitBranch: "dev",
     buildTime: new Date().toISOString(),
   };
 }

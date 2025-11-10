@@ -9,6 +9,7 @@ This document summarizes the security monitoring and maintenance systems impleme
 ### 1. Authentication Success Rate Tracking ✅
 
 **What was implemented:**
+
 - Comprehensive authentication event logging system
 - Real-time metrics tracking for all auth methods (Passkey, OTP, Magic Link, Admin)
 - Success/failure rate calculation APIs
@@ -16,11 +17,13 @@ This document summarizes the security monitoring and maintenance systems impleme
 - Integration with PostHog for analytics
 
 **Key Files:**
+
 - `src/lib/monitoring/auth-metrics.ts` - Core metrics tracking
 - `src/app/api/admin/auth-metrics/route.ts` - Admin API endpoints
 - `docs/AUTH_METRICS_USAGE.md` - Complete usage guide
 
 **Tracked Events:**
+
 - `webauthn_success` / `webauthn_failure`
 - `otp_success` / `otp_failure`
 - `magic_link_success` / `magic_link_failure`
@@ -30,11 +33,13 @@ This document summarizes the security monitoring and maintenance systems impleme
 - `session_expired`
 
 **Updated Endpoints:**
+
 - `/api/auth/finish-login` - Now logs all login attempts
 - `/api/auth/verify-otp` - Now logs all OTP verifications
 - Additional endpoints updated for comprehensive coverage
 
 **API Endpoints:**
+
 ```bash
 # Get metrics summary
 GET /api/admin/auth-metrics?action=summary
@@ -50,6 +55,7 @@ GET /api/admin/auth-metrics?action=alerts
 ```
 
 **Alert Types:**
+
 - **High Failure Rate**: Success rate < 50% with 10+ attempts in 15 min
 - **Repeated Failures**: 5+ failures from same IP or 3+ from same email in 15 min
 - **Distributed Attack**: 50+ failures from 20+ unique IPs in 15 min
@@ -57,12 +63,14 @@ GET /api/admin/auth-metrics?action=alerts
 ### 2. Rate Limiting Verification ✅
 
 **What was verified:**
+
 - Server-side rate limiting (Upstash Redis with in-memory fallback)
 - Edge middleware rate limiting (100 req/min per IP)
 - Per-endpoint rate limiting
 - Pre-configured limiters for auth endpoints
 
 **Verified Limiters:**
+
 - **OTP Verification**: 5 attempts per 15 minutes
 - **OTP Sending**: 3 attempts per 15 minutes
 - **Login**: 10 attempts per hour
@@ -70,6 +78,7 @@ GET /api/admin/auth-metrics?action=alerts
 - **Edge Middleware**: 100 requests per minute per IP
 
 **Test Results:**
+
 ```
 ✅ Rate limiter enforces limits correctly
 ✅ Window expiry and reset functionality
@@ -80,12 +89,14 @@ GET /api/admin/auth-metrics?action=alerts
 ```
 
 **Key Files:**
+
 - `src/lib/server-rate-limiter.ts` - Core rate limiter
 - `src/middleware.ts` - Edge rate limiting
 - `scripts/verify-rate-limiting.ts` - Verification script
 - `docs/RATE_LIMITING_VERIFICATION.md` - Complete guide
 
 **NPM Commands:**
+
 ```bash
 npm run security:verify-rate-limiting  # Run verification tests
 ```
@@ -93,41 +104,48 @@ npm run security:verify-rate-limiting  # Run verification tests
 ### 3. Secret Rotation System ✅
 
 **What was implemented:**
+
 - Automated 90-day secret rotation tracking
 - Rotation script with check/rotate/force modes
 - GitHub Actions workflow for weekly checks
 - Comprehensive documentation and procedures
 
 **Rotated Secrets:**
+
 - `NEXTAUTH_SECRET` - Session encryption (auto-generated)
 - `ADMIN_PASSWORD_HASH` - Admin password (manual bcrypt)
 - `VAPID_PRIVATE_KEY` - Push notifications (manual generation)
 - `UPSTASH_REDIS_REST_TOKEN` - Redis auth (manual in Upstash Console)
 
 **Rotation Schedule:**
+
 - **Interval**: 90 days
 - **Warning Period**: 30 days before expiration
 - **Automated Checks**: Weekly via GitHub Actions (Mondays 9 AM UTC)
 
 **Key Files:**
+
 - `scripts/rotate-secrets.ts` - Rotation script
 - `.github/workflows/secret-rotation-check.yml` - Automated checks
 - `docs/SECRET_ROTATION_GUIDE.md` - Complete procedures
 - `.secret-rotation.json` - Rotation tracking (gitignored)
 
 **NPM Commands:**
+
 ```bash
 npm run secrets:check    # Check rotation status
 npm run secrets:rotate   # Perform rotation
 ```
 
 **GitHub Actions Workflow:**
+
 - Runs every Monday at 9:00 AM UTC
 - Creates GitHub Issue if secrets overdue
 - Sends Slack notification (if configured)
 - Uploads rotation status artifact
 
 **Current Status:**
+
 ```
 ✅ All secrets up to date
 Next rotation: January 20, 2026 (90 days from now)
@@ -138,6 +156,7 @@ Next rotation: January 20, 2026 (90 days from now)
 ### Daily Operations
 
 **Monitor Authentication:**
+
 ```bash
 # Check recent failed attempts
 curl http://localhost:3000/api/admin/auth-metrics?action=failures \
@@ -148,6 +167,7 @@ curl http://localhost:3000/api/admin/auth-metrics?action=alerts
 ```
 
 **Verify Rate Limiting:**
+
 ```bash
 npm run security:verify-rate-limiting
 ```
@@ -155,6 +175,7 @@ npm run security:verify-rate-limiting
 ### Weekly Tasks
 
 **Check Secret Rotation Status:**
+
 ```bash
 npm run secrets:check
 ```
@@ -164,12 +185,14 @@ Expected output: "All secrets are up to date"
 ### Monthly Tasks
 
 **Review Authentication Metrics:**
+
 ```bash
 # Get 30-day summary
 curl http://localhost:3000/api/admin/auth-metrics?action=summary
 ```
 
 **Audit Security Events:**
+
 ```sql
 -- Query audit events
 SELECT type, COUNT(*) as count
@@ -181,6 +204,7 @@ GROUP BY type;
 ### Quarterly Tasks (Every 90 Days)
 
 **Rotate Secrets:**
+
 ```bash
 # Check rotation status (should show "NEEDS ROTATION")
 npm run secrets:check
@@ -197,16 +221,19 @@ npm run secrets:rotate
 ### Recommended Metrics to Track
 
 **Authentication Health:**
+
 - Success rate (last 24h): Target >95%
 - Failed attempts (last hour): Alert if >20
 - Rate limit hits: Alert if >5% of requests
 
 **Security Events:**
+
 - Suspicious activity alerts: Review immediately
 - Distributed attacks: Activate DDoS protection
 - Account lockouts: Investigate patterns
 
 **System Health:**
+
 - Rate limiter performance: <10ms latency
 - Redis connection: 99.9% uptime
 - Auth endpoint response time: <200ms p95
@@ -238,6 +265,7 @@ alerts:
 ### PostHog Analytics
 
 Authentication events are automatically sent to PostHog:
+
 - Configure: `NEXT_PUBLIC_POSTHOG_KEY` in environment
 - View events: PostHog Dashboard → Events → "auth_event"
 - Create funnels: Login attempts → Success
@@ -245,6 +273,7 @@ Authentication events are automatically sent to PostHog:
 ### Sentry Error Tracking
 
 Integration placeholder exists in `src/lib/monitoring/sentry.ts`:
+
 - Install: `npm install @sentry/nextjs`
 - Configure: `NEXT_PUBLIC_SENTRY_DSN` in environment
 - Automatic error capture for auth failures
@@ -252,30 +281,35 @@ Integration placeholder exists in `src/lib/monitoring/sentry.ts`:
 ### Slack Notifications
 
 Secret rotation workflow supports Slack:
+
 - Configure: Add `SLACK_WEBHOOK_URL` to GitHub Secrets
 - Notifications sent on overdue secrets
 
 ## Security Best Practices
 
 ### Authentication
+
 - ✅ All auth attempts logged with IP and user agent
 - ✅ Rate limiting prevents brute force attacks
 - ✅ Failed attempts trigger security monitoring
 - ✅ Success rates monitored for anomalies
 
 ### Rate Limiting
+
 - ✅ Multi-layer defense (edge + endpoint + application)
 - ✅ Per-user and per-IP limits
 - ✅ Graceful degradation with retry-after headers
 - ✅ Distributed state via Redis (production)
 
 ### Secret Management
+
 - ✅ 90-day rotation cycle
 - ✅ Automated tracking and reminders
 - ✅ Audit trail in `.secret-rotation.json`
 - ✅ Rollback procedures documented
 
 ### Access Control
+
 - ✅ Admin-only access to metrics API
 - ✅ Session validation on all protected routes
 - ✅ Role-based authorization (ADMIN, MANAGER, USER)
@@ -285,18 +319,21 @@ Secret rotation workflow supports Slack:
 ### Supported Standards
 
 **SOC 2 Type II:**
+
 - ✅ Authentication logging and monitoring
 - ✅ Regular credential rotation (90-day cycle)
 - ✅ Access control and authorization
 - ✅ Audit trail maintenance
 
 **PCI DSS:**
+
 - ✅ Password/credential rotation
 - ✅ Failed login attempt monitoring
 - ✅ Rate limiting and brute force protection
 - ✅ Access logging and audit trails
 
 **ISO 27001:**
+
 - ✅ Cryptographic key management
 - ✅ Access control measures
 - ✅ Security monitoring and alerting
@@ -305,6 +342,7 @@ Secret rotation workflow supports Slack:
 ### Audit Queries
 
 **Authentication Events (Last 30 Days):**
+
 ```sql
 SELECT
   type,
@@ -318,11 +356,13 @@ GROUP BY type;
 ```
 
 **Secret Rotation History:**
+
 ```bash
 cat .secret-rotation.json | jq '.[] | {secretName, lastRotated, nextRotation}'
 ```
 
 **Rate Limit Events:**
+
 ```sql
 SELECT
   DATE(created_at) as date,
@@ -338,11 +378,13 @@ ORDER BY date DESC;
 ### Authentication Metrics Not Updating
 
 **Check:**
+
 1. Database connection (audit events stored in PostgreSQL)
 2. PostHog configuration (client-side analytics)
 3. API endpoint permissions (requires ADMIN role)
 
 **Debug:**
+
 ```bash
 # Check recent audit events
 npx prisma studio
@@ -356,11 +398,13 @@ curl http://localhost:3000/api/admin/auth-metrics?action=summary \
 ### Rate Limiting Not Working
 
 **Check:**
+
 1. Upstash Redis configuration (fallback to in-memory if missing)
 2. Middleware configuration (check matcher patterns)
 3. Rate limiter called in endpoints
 
 **Debug:**
+
 ```bash
 # Run verification
 npm run security:verify-rate-limiting
@@ -373,11 +417,13 @@ echo $UPSTASH_REDIS_REST_TOKEN
 ### Secret Rotation Reminders Not Received
 
 **Check:**
+
 1. GitHub Actions workflow enabled
 2. Email notifications configured for repository
 3. Slack webhook configured (optional)
 
 **Debug:**
+
 ```bash
 # Check workflow runs
 gh run list --workflow=secret-rotation-check.yml
@@ -389,18 +435,21 @@ gh workflow run secret-rotation-check.yml
 ## Next Steps
 
 ### Short-term (Next 30 Days)
+
 - [ ] Set up Upstash Redis for production rate limiting
 - [ ] Configure PostHog for analytics tracking
 - [ ] Create admin dashboard for metrics visualization
 - [ ] Set up automated alerting (email/Slack)
 
 ### Medium-term (Next 90 Days)
+
 - [ ] Perform first scheduled secret rotation
 - [ ] Implement automated IP blocking for repeat offenders
 - [ ] Add geographic analysis of failed attempts
 - [ ] Create security incident playbook
 
 ### Long-term (6+ Months)
+
 - [ ] Machine learning anomaly detection for auth patterns
 - [ ] Automated response to distributed attacks
 - [ ] Integration with SIEM (Security Information and Event Management)
@@ -409,16 +458,19 @@ gh workflow run secret-rotation-check.yml
 ## Support and Documentation
 
 ### Documentation
+
 - [Auth Metrics Usage](./AUTH_METRICS_USAGE.md)
 - [Rate Limiting Verification](./RATE_LIMITING_VERIFICATION.md)
 - [Secret Rotation Guide](./SECRET_ROTATION_GUIDE.md)
 
 ### Support Channels
+
 - **Security Issues**: Create issue with `security` label
 - **Questions**: Team chat or email security team
 - **Incidents**: Follow incident response procedures
 
 ### Regular Reviews
+
 - **Weekly**: Check GitHub Actions for rotation reminders
 - **Monthly**: Review auth metrics and failed attempts
 - **Quarterly**: Audit security logs and rotate secrets

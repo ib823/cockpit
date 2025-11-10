@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AccessCodeModal from '@/components/admin/AccessCodeModal';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AccessCodeModal from "@/components/admin/AccessCodeModal";
 
 interface User {
   id: string;
   email: string;
   name: string | null;
-  status: 'active' | 'pending' | 'expired';
+  status: "active" | "pending" | "expired";
   exception: boolean;
   accessExpiresAt: string;
   firstLoginAt: string | null;
@@ -23,18 +23,20 @@ export default function AdminPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [generatedCode, setGeneratedCode] = useState('');
-  const [generatedEmail, setGeneratedEmail] = useState('');
-  const [generatedMagicUrl, setGeneratedMagicUrl] = useState('');
+  const [generatedCode, setGeneratedCode] = useState("");
+  const [generatedEmail, setGeneratedEmail] = useState("");
+  const [generatedMagicUrl, setGeneratedMagicUrl] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ email: string; name: string | null } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ email: string; name: string | null } | null>(
+    null
+  );
 
   useEffect(() => {
     fetchUsers();
@@ -43,25 +45,25 @@ export default function AdminPage() {
 
   async function fetchCurrentUser() {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch("/api/auth/me");
       const data = await res.json();
       if (data.ok && data.user) {
         setCurrentUser({ email: data.user.email, name: data.user.name });
       }
     } catch (e) {
-      console.error('Failed to fetch current user', e);
+      console.error("Failed to fetch current user", e);
     }
   }
 
   async function fetchUsers() {
     try {
-      const res = await fetch('/api/admin/users');
+      const res = await fetch("/api/admin/users");
       const data = await res.json();
       if (data.users) {
         setUsers(data.users);
       }
     } catch (e) {
-      console.error('Failed to fetch users', e);
+      console.error("Failed to fetch users", e);
     } finally {
       setLoading(false);
     }
@@ -71,10 +73,10 @@ export default function AdminPage() {
     setLoggingOut(true);
     setShowLogoutModal(false);
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
     } catch (e) {
-      console.error('Logout failed', e);
+      console.error("Logout failed", e);
       setLoggingOut(false);
     }
   }
@@ -85,25 +87,25 @@ export default function AdminPage() {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
+      setError("Please enter a valid email address");
       return;
     }
 
     // Check if email already exists
-    const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const existingUser = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
     if (existingUser) {
-      setError('This email is already in the system');
+      setError("This email is already in the system");
       return;
     }
 
     setSending(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
-      const res = await fetch('/api/admin/approve-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/approve-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name }),
       });
 
@@ -113,16 +115,16 @@ export default function AdminPage() {
         // Show modal with magic link and code
         setGeneratedCode(data.code);
         setGeneratedEmail(data.email);
-        setGeneratedMagicUrl(data.magicUrl || '');
+        setGeneratedMagicUrl(data.magicUrl || "");
         setModalOpen(true);
-        setEmail('');
-        setName('');
+        setEmail("");
+        setName("");
         fetchUsers();
       } else {
-        setError(data.error || 'Failed to approve email');
+        setError(data.error || "Failed to approve email");
       }
-    } catch (e) {
-      setError('Network error');
+    } catch {
+      setError("Network error");
     } finally {
       setSending(false);
     }
@@ -133,57 +135,57 @@ export default function AdminPage() {
 
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (res.ok) {
         setSuccess(`User ${userEmail} deleted`);
         fetchUsers();
       } else {
-        setError('Failed to delete user');
+        setError("Failed to delete user");
       }
-    } catch (e) {
-      setError('Network error');
+    } catch {
+      setError("Network error");
     }
   }
 
   async function extendAccess(userId: string, userEmail: string) {
     try {
       const res = await fetch(`/api/admin/users/${userId}/extend`, {
-        method: 'POST',
+        method: "POST",
       });
 
       if (res.ok) {
         setSuccess(`Access extended for ${userEmail}`);
         fetchUsers();
       } else {
-        setError('Failed to extend access');
+        setError("Failed to extend access");
       }
-    } catch (e) {
-      setError('Network error');
+    } catch {
+      setError("Network error");
     }
   }
 
   async function toggleException(userId: string, currentException: boolean) {
     try {
       const res = await fetch(`/api/admin/users/${userId}/exception`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ exception: !currentException }),
       });
 
       if (res.ok) {
         fetchUsers();
       } else {
-        setError('Failed to update exception');
+        setError("Failed to update exception");
       }
-    } catch (e) {
-      setError('Network error');
+    } catch {
+      setError("Network error");
     }
   }
 
   function getStatusBadge(user: User) {
-    if (user.status === 'active') {
+    if (user.status === "active") {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
           <span className="h-1.5 w-1.5 rounded-full bg-green-600"></span>
@@ -191,7 +193,7 @@ export default function AdminPage() {
         </span>
       );
     }
-    if (user.status === 'expired') {
+    if (user.status === "expired") {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
           <span className="h-1.5 w-1.5 rounded-full bg-red-600"></span>
@@ -208,18 +210,18 @@ export default function AdminPage() {
   }
 
   function formatDate(date: string | null) {
-    if (!date) return '—';
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    if (!date) return "—";
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 
   function formatRelative(date: string | null) {
-    if (!date) return '—';
+    if (!date) return "—";
     const now = new Date();
     const then = new Date(date);
     const diff = now.getTime() - then.getTime();
@@ -230,15 +232,20 @@ export default function AdminPage() {
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     if (minutes > 0) return `${minutes}m ago`;
-    return 'Just now';
+    return "Just now";
   }
 
   return (
     <div className="min-h-screen bg-white">
       <style jsx>{`
         @keyframes subtle-pulse {
-          0%, 100% { opacity: 0.05; }
-          50% { opacity: 0.1; }
+          0%,
+          100% {
+            opacity: 0.05;
+          }
+          50% {
+            opacity: 0.1;
+          }
         }
         .subtle-pulse {
           animation: subtle-pulse 3s ease-in-out infinite;
@@ -248,7 +255,10 @@ export default function AdminPage() {
       {/* Subtle ambient background - matches login theme */}
       <div className="fixed inset-0  overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full blur-3xl subtle-pulse" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100 rounded-full blur-3xl subtle-pulse" style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100 rounded-full blur-3xl subtle-pulse"
+          
+        />
       </div>
 
       {/* Header - Minimal and clean */}
@@ -264,21 +274,29 @@ export default function AdminPage() {
               {currentUser && (
                 <div className="text-right">
                   <p className="text-sm font-medium text-slate-900">
-                    {currentUser.name || 'Admin'}
+                    {currentUser.name || "Admin"}
                   </p>
-                  <p className="text-xs text-slate-600">
-                    {currentUser.email}
-                  </p>
+                  <p className="text-xs text-slate-600">{currentUser.email}</p>
                 </div>
               )}
 
               {/* Go to App */}
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push("/")}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-all"
               >
-                <svg className="w-4 h-4 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                <svg
+                  className="w-4 h-4 align-middle"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  />
                 </svg>
                 Go to App
               </button>
@@ -297,7 +315,12 @@ export default function AdminPage() {
                 ) : (
                   <>
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                      />
                     </svg>
                     Logout
                   </>
@@ -319,7 +342,7 @@ export default function AdminPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && createAccess()}
+                onKeyDown={(e) => e.key === "Enter" && createAccess()}
                 placeholder="Full Name"
                 className="flex-1 px-4 py-3 border-b-2 border-slate-200 focus:border-slate-900 focus:outline-none transition-colors bg-transparent"
               />
@@ -327,7 +350,7 @@ export default function AdminPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && createAccess()}
+                onKeyDown={(e) => e.key === "Enter" && createAccess()}
                 placeholder="user@company.com"
                 className="flex-1 px-4 py-3 border-b-2 border-slate-200 focus:border-slate-900 focus:outline-none transition-colors bg-transparent"
               />
@@ -337,15 +360,25 @@ export default function AdminPage() {
               disabled={sending || !email}
               className="w-full px-6 py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-2 rounded-md px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              {sending ? 'Approving...' : 'Approve User'}
+              {sending ? "Approving..." : "Approve User"}
             </button>
           </div>
 
           {success && (
             <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-xl flex items-start gap-3">
               <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-3 h-3 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
               <p className="text-sm text-green-900 font-medium">{success}</p>
@@ -355,8 +388,18 @@ export default function AdminPage() {
           {error && (
             <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl flex items-start gap-3">
               <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-3 h-3 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </div>
               <p className="text-sm text-red-900 font-medium">{error}</p>
@@ -369,13 +412,23 @@ export default function AdminPage() {
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-5">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
               <div>
                 <p className="text-3xl font-light text-slate-900">
-                  {users.filter(u => u.status === 'active').length}
+                  {users.filter((u) => u.status === "active").length}
                 </p>
                 <p className="text-sm text-slate-600">Active</p>
               </div>
@@ -385,13 +438,23 @@ export default function AdminPage() {
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-5">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
               <div>
                 <p className="text-3xl font-light text-slate-900">
-                  {users.filter(u => u.status === 'pending').length}
+                  {users.filter((u) => u.status === "pending").length}
                 </p>
                 <p className="text-sm text-slate-600">Pending</p>
               </div>
@@ -401,8 +464,18 @@ export default function AdminPage() {
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-5">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
                 </svg>
               </div>
               <div>
@@ -440,7 +513,9 @@ export default function AdminPage() {
                         {user.name && (
                           <p className="text-sm font-medium text-slate-900">{user.name}</p>
                         )}
-                        <p className={`text-sm ${user.name ? 'text-slate-600' : 'font-medium text-slate-900'}`}>
+                        <p
+                          className={`text-sm ${user.name ? "text-slate-600" : "font-medium text-slate-900"}`}
+                        >
                           {user.email}
                         </p>
                       </div>
@@ -450,11 +525,15 @@ export default function AdminPage() {
                     <div className="grid grid-cols-2 gap-3 text-sm mb-3">
                       <div>
                         <p className="text-xs text-slate-500 mb-1">First Login</p>
-                        <p className="text-slate-900">{user.firstLoginAt ? formatRelative(user.firstLoginAt) : '—'}</p>
+                        <p className="text-slate-900">
+                          {user.firstLoginAt ? formatRelative(user.firstLoginAt) : "—"}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-slate-500 mb-1">Last Active</p>
-                        <p className="text-slate-900">{user.lastLoginAt ? formatRelative(user.lastLoginAt) : '—'}</p>
+                        <p className="text-slate-900">
+                          {user.lastLoginAt ? formatRelative(user.lastLoginAt) : "—"}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-slate-500 mb-1">Timelines</p>
@@ -463,11 +542,11 @@ export default function AdminPage() {
                       <div>
                         <p className="text-xs text-slate-500 mb-1">Access Expires</p>
                         <p className="text-slate-900">
-                          {user.exception ? 'Never' : (
-                            new Date(user.accessExpiresAt) > new Date()
+                          {user.exception
+                            ? "Never"
+                            : new Date(user.accessExpiresAt) > new Date()
                               ? `${Math.ceil((new Date(user.accessExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))}d`
-                              : 'Expired'
-                          )}
+                              : "Expired"}
                         </p>
                       </div>
                     </div>
@@ -477,8 +556,8 @@ export default function AdminPage() {
                         onClick={() => toggleException(user.id, user.exception)}
                         className={`flex-1 min-h-[44px] p-2 rounded-lg transition-colors ${
                           user.exception
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-slate-100 text-slate-600'
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-slate-100 text-slate-600"
                         }`}
                       >
                         <span className="text-lg font-bold">∞</span>
@@ -487,16 +566,36 @@ export default function AdminPage() {
                         onClick={() => extendAccess(user.id, user.email)}
                         className="flex-1 min-h-[44px] p-2 bg-green-50 text-green-600 rounded-lg"
                       >
-                        <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        <svg
+                          className="w-5 h-5 mx-auto"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                          />
                         </svg>
                       </button>
                       <button
                         onClick={() => deleteUser(user.id, user.email)}
                         className="flex-1 min-h-[44px] p-2 bg-red-50 text-red-600 rounded-lg"
                       >
-                        <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        <svg
+                          className="w-5 h-5 mx-auto"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -539,7 +638,9 @@ export default function AdminPage() {
                           {user.name && (
                             <p className="text-sm font-medium text-slate-900">{user.name}</p>
                           )}
-                          <p className={`text-sm ${user.name ? 'text-slate-600' : 'font-medium text-slate-900'}`}>
+                          <p
+                            className={`text-sm ${user.name ? "text-slate-600" : "font-medium text-slate-900"}`}
+                          >
                             {user.email}
                           </p>
                           {user.exception && (
@@ -549,12 +650,10 @@ export default function AdminPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        {getStatusBadge(user)}
-                      </td>
+                      <td className="px-6 py-4">{getStatusBadge(user)}</td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-slate-900">
-                          {user.firstLoginAt ? formatDate(user.firstLoginAt) : '—'}
+                          {user.firstLoginAt ? formatDate(user.firstLoginAt) : "—"}
                         </div>
                         {user.firstLoginAt && (
                           <div className="text-xs text-slate-500">
@@ -564,7 +663,7 @@ export default function AdminPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-slate-900">
-                          {user.lastLoginAt ? formatDate(user.lastLoginAt) : '—'}
+                          {user.lastLoginAt ? formatDate(user.lastLoginAt) : "—"}
                         </div>
                         {user.lastLoginAt && (
                           <div className="text-xs text-slate-500">
@@ -592,7 +691,11 @@ export default function AdminPage() {
                             </div>
                             {new Date(user.accessExpiresAt) > new Date() && (
                               <div className="text-xs text-slate-500">
-                                {Math.ceil((new Date(user.accessExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days left
+                                {Math.ceil(
+                                  (new Date(user.accessExpiresAt).getTime() - Date.now()) /
+                                    (1000 * 60 * 60 * 24)
+                                )}{" "}
+                                days left
                               </div>
                             )}
                           </div>
@@ -603,11 +706,15 @@ export default function AdminPage() {
                           {/* Toggle Exception */}
                           <button
                             onClick={() => toggleException(user.id, user.exception)}
-                            title={user.exception ? 'Disable exception (re-enable expiry)' : 'Enable exception (never expires)'}
+                            title={
+                              user.exception
+                                ? "Disable exception (re-enable expiry)"
+                                : "Enable exception (never expires)"
+                            }
                             className={`min-h-[44px] min-w-[44px] p-2 rounded-lg transition-colors ${
                               user.exception
-                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                                ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                             }`}
                           >
                             <span className="text-lg font-bold">∞</span>
@@ -619,8 +726,18 @@ export default function AdminPage() {
                             title="Extend access by 7 days"
                             className="min-h-[44px] min-w-[44px] p-2 text-slate-400 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
                           >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                              />
                             </svg>
                           </button>
 
@@ -630,8 +747,18 @@ export default function AdminPage() {
                             title="Delete user"
                             className="min-h-[44px] min-w-[44px] p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
                           >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
                             </svg>
                           </button>
                         </div>
@@ -661,19 +788,27 @@ export default function AdminPage() {
             <div className="text-center">
               {/* Icon */}
               <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                <svg
+                  className="w-8 h-8 text-amber-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
                 </svg>
               </div>
 
               {/* Title */}
-              <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                Logout
-              </h3>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">Logout</h3>
 
               {/* Personalized Message */}
               <p className="text-slate-600 mb-6">
-                Are you sure you want to logout{currentUser?.name ? `, ${currentUser.name}` : ''}?
+                Are you sure you want to logout{currentUser?.name ? `, ${currentUser.name}` : ""}?
               </p>
 
               {/* Actions */}
@@ -689,7 +824,7 @@ export default function AdminPage() {
                   disabled={loggingOut}
                   className="flex-1 px-4 py-3 text-sm font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
                 >
-                  {loggingOut ? 'Logging out...' : 'Logout'}
+                  {loggingOut ? "Logging out..." : "Logout"}
                 </button>
               </div>
             </div>

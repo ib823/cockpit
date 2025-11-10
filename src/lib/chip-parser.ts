@@ -553,9 +553,10 @@ function createChip(
       evidence: {
         snippet: safeSnippet(context, match.index ?? 0, raw.length),
       },
-      note: kind === "integration" && /peppol/i.test(rawTrim)
-        ? 'Peppol can be "compliance" or "integration" depending on context.'
-        : undefined,
+      note:
+        kind === "integration" && /peppol/i.test(rawTrim)
+          ? 'Peppol can be "compliance" or "integration" depending on context.'
+          : undefined,
     },
   } as any;
 }
@@ -575,7 +576,8 @@ function parseValue(kind: ChipKind, raw: string, match: RegExpMatchArray): Parse
 
     case "employees": {
       // Try to extract from capture group first, then from raw
-      const token = match[1] || raw.match(/\d{1,3}(?:[.,]\d{3})+|\d+(?:\.\d+)?\s*[kK]?|\d+/)?.[0] || "";
+      const token =
+        match[1] || raw.match(/\d{1,3}(?:[.,]\d{3})+|\d+(?:\.\d+)?\s*[kK]?|\d+/)?.[0] || "";
       return { value: toNumberWithFlexibleMultiplier(token), unit: "employees" };
     }
 

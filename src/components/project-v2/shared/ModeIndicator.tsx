@@ -1,7 +1,14 @@
 "use client";
 
 import { type ProjectMode } from "@/stores/project-store";
-import { FileText, CheckCircle, LayoutGrid, Presentation, Sparkles, type LucideIcon } from "lucide-react";
+import {
+  FileText,
+  CheckCircle,
+  LayoutGrid,
+  Presentation,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { ResetButton } from "./ResetButton";
 

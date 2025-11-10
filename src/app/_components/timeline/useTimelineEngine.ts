@@ -3,22 +3,11 @@
  * Headless logic: business-days, layout, dependencies
  */
 
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import {
-  TimelinePhase,
-  TimelineRow,
-  TimelineLink,
-  ViewMode,
-  TimelineConfig,
-} from './types';
-import {
-  addBusinessDays,
-  diffBusinessDays,
-  formatISODate,
-  parseISODate,
-} from './utils/date';
+import { useMemo } from "react";
+import { TimelinePhase, TimelineRow, TimelineLink, ViewMode, TimelineConfig } from "./types";
+import { addBusinessDays } from "./utils/date";
 
 interface UseTimelineEngineProps {
   startDateISO: string;
@@ -68,11 +57,7 @@ export function useTimelineEngine({
     // Calculate rows with pixel positions
     const rows: TimelineRow[] = phases.map((phase) => {
       const startDate = addBusinessDays(startDateISO, phase.startBD, holidays);
-      const endDate = addBusinessDays(
-        startDateISO,
-        phase.startBD + phase.durationBD,
-        holidays
-      );
+      const endDate = addBusinessDays(startDateISO, phase.startBD + phase.durationBD, holidays);
 
       const startX = config.paddingLeft + phase.startBD * config.pixelsPerDay;
       const width = phase.durationBD * config.pixelsPerDay;
@@ -92,9 +77,7 @@ export function useTimelineEngine({
       // Baseline if exists
       if (phase.baseline) {
         row.baseline = {
-          startX:
-            config.paddingLeft +
-            phase.baseline.startBD * config.pixelsPerDay,
+          startX: config.paddingLeft + phase.baseline.startBD * config.pixelsPerDay,
           width: phase.baseline.durationBD * config.pixelsPerDay,
         };
       }
@@ -118,8 +101,7 @@ export function useTimelineEngine({
           const fromIndex = phases.findIndex((p) => p.id === dependencyId);
           const toIndex = phases.findIndex((p) => p.id === phase.id);
 
-          const fromY =
-            fromIndex * config.rowHeight + config.rowHeight / 2;
+          const fromY = fromIndex * config.rowHeight + config.rowHeight / 2;
           const toY = toIndex * config.rowHeight + config.rowHeight / 2;
 
           const fromX = fromRow.startX + fromRow.width;
@@ -133,7 +115,7 @@ export function useTimelineEngine({
             id: `${dependencyId}-${phase.id}`,
             fromPhaseId: dependencyId,
             toPhaseId: phase.id,
-            type: 'FS',
+            type: "FS",
             path,
           });
         });
@@ -141,10 +123,7 @@ export function useTimelineEngine({
     });
 
     // Calculate total dimensions
-    const totalWidth =
-      config.paddingLeft +
-      maxEndBD * config.pixelsPerDay +
-      config.paddingRight;
+    const totalWidth = config.paddingLeft + maxEndBD * config.pixelsPerDay + config.paddingRight;
     const totalHeight = phases.length * config.rowHeight;
 
     return {

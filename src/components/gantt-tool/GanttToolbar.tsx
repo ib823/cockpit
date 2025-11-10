@@ -9,9 +9,9 @@
  * 5. Settings (everything else)
  */
 
-'use client';
+"use client";
 
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import {
   Plus,
   Users,
@@ -28,7 +28,7 @@ import {
   BarChart3,
   Network,
   AlertTriangle,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   FileImageOutlined,
   FilePdfOutlined,
@@ -46,31 +46,21 @@ import {
   SettingOutlined,
   DashboardOutlined,
   CrownOutlined,
-} from '@ant-design/icons';
-import {
-  Button,
-  Dropdown,
-  Input,
-  Modal,
-  Form,
-  DatePicker,
-  Tooltip,
-  Badge,
-  App,
-} from 'antd';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
-import { exportToPNG, exportToPDF, exportToExcel } from '@/lib/gantt-tool/export-utils';
-import { ResourceManagementModal } from './ResourceManagementModal';
-import { ImportModalV2 } from './ImportModalV2';
-import { ProposalGenerationModal } from './ProposalGenerationModal';
-import { TemplateLibraryModal } from './TemplateLibraryModal';
-import { DuplicateCleanupModal } from './DuplicateCleanupModal';
-import ExportConfigModal from './ExportConfigModal';
-import type { MenuProps } from 'antd';
-import dayjs from 'dayjs';
-import { colorValues, getColoredShadow, spacing } from '@/lib/design-system';
+} from "@ant-design/icons";
+import { Button, Dropdown, Input, Modal, Form, DatePicker, Tooltip, Badge, App } from "antd";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import { exportToPNG, exportToPDF, exportToExcel } from "@/lib/gantt-tool/export-utils";
+import { ResourceManagementModal } from "./ResourceManagementModal";
+import { ImportModalV2 } from "./ImportModalV2";
+import { ProposalGenerationModal } from "./ProposalGenerationModal";
+import { TemplateLibraryModal } from "./TemplateLibraryModal";
+import { DuplicateCleanupModal } from "./DuplicateCleanupModal";
+import ExportConfigModal from "./ExportConfigModal";
+import type { MenuProps } from "antd";
+import dayjs from "dayjs";
+import { colorValues, getColoredShadow, spacing } from "@/lib/design-system";
 
 interface GanttToolbarProps {
   showContextPanel?: boolean;
@@ -111,9 +101,9 @@ export function GanttToolbar({
 
     // Update via API
     const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName })
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newName }),
     });
 
     if (response.ok) {
@@ -124,7 +114,7 @@ export function GanttToolbar({
       // Duplicate name error
       const error = await response.json();
       modal.error({
-        title: 'Duplicate Project Name',
+        title: "Duplicate Project Name",
         content: error.error,
       });
       // Revert the name
@@ -132,8 +122,8 @@ export function GanttToolbar({
     } else {
       // Other error
       modal.error({
-        title: 'Error',
-        content: 'Failed to update project name. Please try again.',
+        title: "Error",
+        content: "Failed to update project name. Please try again.",
       });
     }
   };
@@ -142,9 +132,9 @@ export function GanttToolbar({
   const exportProject = (format: string) => {
     if (!currentProject) return;
     const dataStr = JSON.stringify(currentProject, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = `${currentProject.name}.json`;
     link.click();
@@ -157,7 +147,7 @@ export function GanttToolbar({
   const [showDuplicateCleanup, setShowDuplicateCleanup] = useState(false);
   const [showExportConfigModal, setShowExportConfigModal] = useState(false);
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
-  const [editedProjectName, setEditedProjectName] = useState('');
+  const [editedProjectName, setEditedProjectName] = useState("");
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
   const [createProjectForm] = Form.useForm();
 
@@ -168,16 +158,18 @@ export function GanttToolbar({
 
   const handleCreateProjectSubmit = async (values: { projectName: string; startDate: any }) => {
     // Check for duplicate name
-    const isDuplicate = projects.some(p => p.name.toLowerCase() === values.projectName.toLowerCase());
+    const isDuplicate = projects.some(
+      (p) => p.name.toLowerCase() === values.projectName.toLowerCase()
+    );
     if (isDuplicate) {
       modal.error({
-        title: 'Duplicate Project Name',
+        title: "Duplicate Project Name",
         content: `A project named "${values.projectName}" already exists. Please choose a different name.`,
       });
       return;
     }
 
-    const startDate = values.startDate.format('YYYY-MM-DD');
+    const startDate = values.startDate.format("YYYY-MM-DD");
     await createProject(values.projectName, startDate);
     setShowCreateProjectModal(false);
     createProjectForm.resetFields();
@@ -199,25 +191,26 @@ export function GanttToolbar({
   };
 
   const handleExportJSON = () => {
-    exportProject('json');
+    exportProject("json");
   };
 
   const handleStartEditingProjectName = () => {
-    setEditedProjectName(currentProject?.name || '');
+    setEditedProjectName(currentProject?.name || "");
     setIsEditingProjectName(true);
   };
 
   const handleSaveProjectName = () => {
     if (editedProjectName.trim() && editedProjectName !== currentProject?.name) {
       // Check for duplicate name
-      const isDuplicate = projects.some(p =>
-        p.id !== currentProject?.id &&
-        p.name.toLowerCase() === editedProjectName.trim().toLowerCase()
+      const isDuplicate = projects.some(
+        (p) =>
+          p.id !== currentProject?.id &&
+          p.name.toLowerCase() === editedProjectName.trim().toLowerCase()
       );
 
       if (isDuplicate) {
         modal.error({
-          title: 'Duplicate Project Name',
+          title: "Duplicate Project Name",
           content: `A project named "${editedProjectName}" already exists. Please choose a different name.`,
         });
         return;
@@ -230,21 +223,21 @@ export function GanttToolbar({
 
   const handleCancelEditProjectName = () => {
     setIsEditingProjectName(false);
-    setEditedProjectName('');
+    setEditedProjectName("");
   };
 
   const handleProjectNameKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSaveProjectName();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       handleCancelEditProjectName();
     }
   };
 
   // Share/Export Menu - Smart defaults with Proposal Generation as hero
-  const shareMenuItems: MenuProps['items'] = [
+  const shareMenuItems: MenuProps["items"] = [
     {
-      key: 'proposal',
+      key: "proposal",
       label: (
         <div className="py-1">
           <div className="font-semibold text-purple-600 flex items-center gap-2">
@@ -255,71 +248,73 @@ export function GanttToolbar({
         </div>
       ),
       onClick: () => setShowProposalModal(true),
-      style: { backgroundColor: '#faf5ff' },
+      style: { backgroundColor: "#faf5ff" },
     },
-    { type: 'divider' },
+    { type: "divider" },
     {
-      key: 'export-optimized',
+      key: "export-optimized",
       label: (
         <div className="py-1">
           <div className="font-semibold text-blue-600 flex items-center gap-2">
             <FileImage className="w-4 h-4" />
             Optimized Export
           </div>
-          <div className="text-xs text-gray-500 mt-0.5">Professional snapshots for presentations</div>
+          <div className="text-xs text-gray-500 mt-0.5">
+            Professional snapshots for presentations
+          </div>
         </div>
       ),
       onClick: () => setShowExportConfigModal(true),
-      style: { backgroundColor: '#f0f7ff' },
+      style: { backgroundColor: "#f0f7ff" },
     },
-    { type: 'divider' },
+    { type: "divider" },
     {
-      key: 'export-group',
-      type: 'group',
-      label: 'Quick Export',
+      key: "export-group",
+      type: "group",
+      label: "Quick Export",
     },
     {
-      key: 'png',
-      label: 'Export as PNG',
-      icon: <FileImageOutlined style={{ color: '#52c41a' }} />,
+      key: "png",
+      label: "Export as PNG",
+      icon: <FileImageOutlined style={{ color: "#52c41a" }} />,
       onClick: handleExportPNG,
     },
     {
-      key: 'pdf',
-      label: 'Export as PDF',
-      icon: <FilePdfOutlined style={{ color: '#ff4d4f' }} />,
+      key: "pdf",
+      label: "Export as PDF",
+      icon: <FilePdfOutlined style={{ color: "#ff4d4f" }} />,
       onClick: handleExportPDF,
     },
     {
-      key: 'excel',
-      label: 'Export to Excel',
-      icon: <FileExcelOutlined style={{ color: '#1890ff' }} />,
+      key: "excel",
+      label: "Export to Excel",
+      icon: <FileExcelOutlined style={{ color: "#1890ff" }} />,
       onClick: handleExportExcel,
     },
-    { type: 'divider' },
+    { type: "divider" },
     {
-      key: 'json',
-      label: 'Export Project (JSON)',
+      key: "json",
+      label: "Export Project (JSON)",
       icon: <FileTextOutlined />,
       onClick: handleExportJSON,
     },
   ];
 
   // Settings Menu - Everything else lives here
-  const settingsMenuItems: MenuProps['items'] = [
+  const settingsMenuItems: MenuProps["items"] = [
     {
-      key: 'project-group',
-      type: 'group',
-      label: 'Project',
+      key: "project-group",
+      type: "group",
+      label: "Project",
     },
     {
-      key: 'new',
-      label: 'New Project',
+      key: "new",
+      label: "New Project",
       icon: <PlusOutlined />,
       onClick: handleCreateNewProject,
     },
     {
-      key: 'cleanup-duplicates',
+      key: "cleanup-duplicates",
       label: (
         <div className="py-1">
           <div className="font-semibold text-orange-600 flex items-center gap-2">
@@ -330,10 +325,10 @@ export function GanttToolbar({
         </div>
       ),
       onClick: () => setShowDuplicateCleanup(true),
-      style: { backgroundColor: '#fff7ed' },
+      style: { backgroundColor: "#fff7ed" },
     },
     {
-      key: 'templates',
+      key: "templates",
       label: (
         <div className="py-1">
           <div className="font-semibold text-purple-600 flex items-center gap-2">
@@ -344,16 +339,16 @@ export function GanttToolbar({
         </div>
       ),
       onClick: () => setShowTemplateLibrary(true),
-      style: { backgroundColor: '#faf5ff' },
+      style: { backgroundColor: "#faf5ff" },
     },
     {
-      key: 'import',
-      label: 'Import from Excel',
+      key: "import",
+      label: "Import from Excel",
       icon: <UploadOutlined />,
       onClick: () => setShowImportModal(true),
     },
     {
-      key: 'switch',
+      key: "switch",
       label: (
         <div className="flex items-center justify-between">
           <span>Switch Project</span>
@@ -367,23 +362,22 @@ export function GanttToolbar({
             <div className="flex-1" onClick={() => loadProject(project.id)}>
               <div className="font-medium text-sm">
                 {project.name}
-                {project.id === currentProject?.id && (
-                  <span className="ml-2 text-blue-500">●</span>
-                )}
+                {project.id === currentProject?.id && <span className="ml-2 text-blue-500">●</span>}
               </div>
               <div className="text-xs text-gray-500">
-                {project.phases.length} phases · {project.phases.reduce((sum, p) => sum + p.tasks.length, 0)} tasks
+                {project.phases.length} phases ·{" "}
+                {project.phases.reduce((sum, p) => sum + p.tasks.length, 0)} tasks
               </div>
             </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 modal.confirm({
-                  title: 'Delete Project',
+                  title: "Delete Project",
                   content: `Are you sure you want to delete "${project.name}"? This action cannot be undone.`,
-                  okText: 'Delete',
-                  okType: 'danger',
-                  cancelText: 'Cancel',
+                  okText: "Delete",
+                  okType: "danger",
+                  cancelText: "Cancel",
                   onOk: () => {
                     deleteProject(project.id);
                     if (currentProject?.id === project.id) {
@@ -401,7 +395,7 @@ export function GanttToolbar({
       })),
     },
     {
-      key: 'org-chart',
+      key: "org-chart",
       label: (
         <div className="py-1">
           <div className="font-semibold text-blue-600 flex items-center gap-2">
@@ -411,68 +405,72 @@ export function GanttToolbar({
           <div className="text-xs text-gray-500 mt-0.5">View team structure & hierarchy</div>
         </div>
       ),
-      onClick: () => router.push('/organization-chart'),
-      style: { backgroundColor: '#f0f7ff' },
+      onClick: () => router.push("/organization-chart"),
+      style: { backgroundColor: "#f0f7ff" },
     },
     {
-      key: 'home',
-      label: 'Back to Home',
+      key: "home",
+      label: "Back to Home",
       icon: <HomeOutlined />,
       onClick: () => unloadCurrentProject(),
     },
-    { type: 'divider' },
+    { type: "divider" },
     {
-      key: 'add-group',
-      type: 'group',
-      label: 'Add Items',
+      key: "add-group",
+      type: "group",
+      label: "Add Items",
     },
     {
-      key: 'add-task',
-      label: 'Add Task',
+      key: "add-task",
+      label: "Add Task",
       icon: <PlusOutlined />,
-      onClick: () => openSidePanel('add', 'task'),
+      onClick: () => openSidePanel("add", "task"),
     },
     {
-      key: 'add-milestone',
-      label: 'Add Milestone',
+      key: "add-milestone",
+      label: "Add Milestone",
       icon: <FlagOutlined />,
-      onClick: () => openSidePanel('add', 'milestone'),
+      onClick: () => openSidePanel("add", "milestone"),
     },
     {
-      key: 'add-holiday',
-      label: 'Add Holiday',
+      key: "add-holiday",
+      label: "Add Holiday",
       icon: <CalendarOutlined />,
-      onClick: () => openSidePanel('add', 'holiday'),
+      onClick: () => openSidePanel("add", "holiday"),
     },
   ];
 
   // User Menu - Account, Dashboard, Logout
-  const isAdmin = session?.user?.role === 'ADMIN';
-  const userMenuItems: MenuProps['items'] = [
+  const isAdmin = session?.user?.role === "ADMIN";
+  const userMenuItems: MenuProps["items"] = [
     {
-      key: 'dashboard',
-      label: 'Dashboard',
+      key: "dashboard",
+      label: "Dashboard",
       icon: <DashboardOutlined />,
-      onClick: () => router.push('/dashboard'),
+      onClick: () => router.push("/dashboard"),
     },
     {
-      key: 'account',
-      label: 'Account Settings',
+      key: "account",
+      label: "Account Settings",
       icon: <SettingOutlined />,
-      onClick: () => router.push('/account'),
+      onClick: () => router.push("/account"),
     },
-    ...(isAdmin ? [{
-      key: 'admin',
-      label: 'Admin Dashboard',
-      icon: <CrownOutlined />,
-      onClick: () => router.push('/admin'),
-    }] : []),
-    { type: 'divider' as const },
+    ...(isAdmin
+      ? [
+          {
+            key: "admin",
+            label: "Admin Dashboard",
+            icon: <CrownOutlined />,
+            onClick: () => router.push("/admin"),
+          },
+        ]
+      : []),
+    { type: "divider" as const },
     {
-      key: 'logout',
-      label: 'Logout',
+      key: "logout",
+      label: "Logout",
       icon: <LogoutOutlined />,
-      onClick: () => signOut({ callbackUrl: '/login' }),
+      onClick: () => signOut({ callbackUrl: "/login" }),
       danger: true,
     },
   ];
@@ -529,17 +527,17 @@ export function GanttToolbar({
             <Form.Item
               name="projectName"
               label="Project Name"
-              rules={[{ required: true, message: 'Please enter project name' }]}
+              rules={[{ required: true, message: "Please enter project name" }]}
             >
               <Input placeholder="Enterprise CRM Implementation" size="large" />
             </Form.Item>
             <Form.Item
               name="startDate"
               label="Start Date"
-              rules={[{ required: true, message: 'Please select start date' }]}
+              rules={[{ required: true, message: "Please select start date" }]}
               initialValue={dayjs()}
             >
-              <DatePicker style={{ width: '100%' }} size="large" />
+              <DatePicker style={{ width: "100%" }} size="large" />
             </Form.Item>
           </Form>
         </Modal>
@@ -557,10 +555,10 @@ export function GanttToolbar({
   return (
     <div
       className="bg-white border-b border-gray-200 shadow-sm"
-      style={{ width: '100%', maxWidth: '100vw', overflow: 'hidden' }}
+      style={{ width: "100%", maxWidth: "100vw", overflow: "hidden" }}
     >
-      <div className="px-6 py-3" style={{ maxWidth: '100%' }}>
-        <div className="flex items-center justify-between" style={{ width: '100%' }}>
+      <div className="px-6 py-3" style={{ maxWidth: "100%" }}>
+        <div className="flex items-center justify-between" style={{ width: "100%" }}>
           {/* Left: Project Name (Editable) + Quick Stats */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
             {/* Project Name - Revolutionary inline editing */}
@@ -595,7 +593,7 @@ export function GanttToolbar({
                   menu={{
                     items: [
                       {
-                        key: 'current',
+                        key: "current",
                         label: (
                           <div className="font-semibold text-blue-600 flex items-center gap-2">
                             <Check className="w-4 h-4 flex-shrink-0" />
@@ -605,53 +603,64 @@ export function GanttToolbar({
                         disabled: true,
                       },
                       {
-                        type: 'divider',
+                        type: "divider",
                       },
                       {
-                        key: 'rename',
-                        label: 'Rename Project',
+                        key: "rename",
+                        label: "Rename Project",
                         onClick: handleStartEditingProjectName,
                       },
-                      projects.length > 1 ? {
-                        type: 'divider',
-                      } : null,
-                      projects.length > 1 ? {
-                        key: 'switch-header',
-                        label: <div className="font-semibold text-gray-500">Switch to:</div>,
-                        disabled: true,
-                      } : null,
+                      projects.length > 1
+                        ? {
+                            type: "divider",
+                          }
+                        : null,
+                      projects.length > 1
+                        ? {
+                            key: "switch-header",
+                            label: <div className="font-semibold text-gray-500">Switch to:</div>,
+                            disabled: true,
+                          }
+                        : null,
                       ...projects
-                        .filter(p => p.id !== currentProject.id)
-                        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-                        .map(project => ({
+                        .filter((p) => p.id !== currentProject.id)
+                        .sort(
+                          (a, b) =>
+                            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                        )
+                        .map((project) => ({
                           key: project.id,
                           label: (
                             <div>
                               <div className="font-medium">{project.name}</div>
                               <div className="text-xs text-gray-500">
-                                {project.phases.length} phases · Updated {new Date(project.updatedAt).toLocaleDateString()}
+                                {project.phases.length} phases · Updated{" "}
+                                {new Date(project.updatedAt).toLocaleDateString()}
                               </div>
                             </div>
                           ),
                           onClick: () => loadProject(project.id),
                         })),
                       {
-                        type: 'divider',
+                        type: "divider",
                       },
                       {
-                        key: 'view-all',
-                        label: 'View All Projects',
+                        key: "view-all",
+                        label: "View All Projects",
                         onClick: unloadCurrentProject,
                       },
-                    ].filter(Boolean) as MenuProps['items'],
+                    ].filter(Boolean) as MenuProps["items"],
                   }}
-                  trigger={['click']}
+                  trigger={["click"]}
                 >
-                  <Tooltip title={currentProject.name.length > 50 ? currentProject.name : null} placement="bottom">
-                    <button
-                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group"
-                    >
-                      <h1 className="text-base lg:text-lg font-bold text-gray-900">{currentProject.name}</h1>
+                  <Tooltip
+                    title={currentProject.name.length > 50 ? currentProject.name : null}
+                    placement="bottom"
+                  >
+                    <button className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group">
+                      <h1 className="text-base lg:text-lg font-bold text-gray-900">
+                        {currentProject.name}
+                      </h1>
                       <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors flex-shrink-0" />
                     </button>
                   </Tooltip>
@@ -682,8 +691,8 @@ export function GanttToolbar({
                   disabled={!canUndo()}
                   className={`p-2 rounded-lg transition-all ${
                     canUndo()
-                      ? 'hover:bg-gray-100 text-gray-700'
-                      : 'text-gray-300 cursor-not-allowed'
+                      ? "hover:bg-gray-100 text-gray-700"
+                      : "text-gray-300 cursor-not-allowed"
                   }`}
                 >
                   <Undo2 className="w-4 h-4" />
@@ -695,15 +704,14 @@ export function GanttToolbar({
                   disabled={!canRedo()}
                   className={`p-2 rounded-lg transition-all ${
                     canRedo()
-                      ? 'hover:bg-gray-100 text-gray-700'
-                      : 'text-gray-300 cursor-not-allowed'
+                      ? "hover:bg-gray-100 text-gray-700"
+                      : "text-gray-300 cursor-not-allowed"
                   }`}
                 >
                   <Redo2 className="w-4 h-4" />
                 </button>
               </Tooltip>
             </div>
-
           </div>
 
           {/* Right: The Revolutionary 5 Actions */}
@@ -713,13 +721,13 @@ export function GanttToolbar({
               type="primary"
               size="large"
               icon={<Plus className="w-4 h-4 lg:w-5 lg:h-5" />}
-              onClick={() => openSidePanel('add', 'phase')}
+              onClick={() => openSidePanel("add", "phase")}
               className="font-semibold"
               style={{
                 backgroundColor: colorValues.primary[600],
                 borderColor: colorValues.primary[600],
-                color: '#ffffff',
-                boxShadow: getColoredShadow(colorValues.primary[600], 'md'),
+                color: "#ffffff",
+                boxShadow: getColoredShadow(colorValues.primary[600], "md"),
                 paddingLeft: spacing[4],
                 paddingRight: spacing[4],
               }}
@@ -745,18 +753,26 @@ export function GanttToolbar({
 
             {/* 3A. Quick Assign Panel Toggle - Hide on small screens */}
             {onToggleQuickResourcePanel && (
-              <Tooltip title={showQuickResourcePanel ? "Hide Quick Assign Panel" : "Show Quick Assign Panel"}>
+              <Tooltip
+                title={
+                  showQuickResourcePanel ? "Hide Quick Assign Panel" : "Show Quick Assign Panel"
+                }
+              >
                 <Button
                   type={showQuickResourcePanel ? "primary" : "default"}
                   size="large"
                   icon={<Users className="w-4 h-4" />}
                   onClick={onToggleQuickResourcePanel}
                   className="hidden lg:flex items-center gap-2"
-                  style={showQuickResourcePanel ? {
-                    backgroundColor: colorValues.accent[600],
-                    borderColor: colorValues.accent[600],
-                    boxShadow: getColoredShadow(colorValues.accent[600], 'sm'),
-                  } : undefined}
+                  style={
+                    showQuickResourcePanel
+                      ? {
+                          backgroundColor: colorValues.accent[600],
+                          borderColor: colorValues.accent[600],
+                          boxShadow: getColoredShadow(colorValues.accent[600], "sm"),
+                        }
+                      : undefined
+                  }
                 >
                   <span className="hidden xl:inline">Quick Assign</span>
                 </Button>
@@ -778,7 +794,7 @@ export function GanttToolbar({
             </Tooltip>
 
             {/* 4. Share - Export & Collaboration - Hide text on small */}
-            <Dropdown menu={{ items: shareMenuItems }} trigger={['click']} placement="bottomRight">
+            <Dropdown menu={{ items: shareMenuItems }} trigger={["click"]} placement="bottomRight">
               <Button
                 icon={<Share2 className="w-4 h-4" />}
                 size="large"
@@ -790,7 +806,11 @@ export function GanttToolbar({
             </Dropdown>
 
             {/* 5. Settings - Everything Else - Icon only on small */}
-            <Dropdown menu={{ items: settingsMenuItems }} trigger={['click']} placement="bottomRight">
+            <Dropdown
+              menu={{ items: settingsMenuItems }}
+              trigger={["click"]}
+              placement="bottomRight"
+            >
               <Button
                 icon={<Settings className="w-4 h-4" />}
                 size="large"
@@ -802,13 +822,11 @@ export function GanttToolbar({
             </Dropdown>
 
             {/* 6. User Menu - Account & Logout - Icon only on small */}
-            <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
-              <Button
-                icon={<UserOutlined />}
-                size="large"
-                className="flex items-center gap-2"
-              >
-                <span className="hidden lg:inline">{session?.user?.name || session?.user?.email || 'User'}</span>
+            <Dropdown menu={{ items: userMenuItems }} trigger={["click"]} placement="bottomRight">
+              <Button icon={<UserOutlined />} size="large" className="flex items-center gap-2">
+                <span className="hidden lg:inline">
+                  {session?.user?.name || session?.user?.email || "User"}
+                </span>
                 <ChevronDown className="w-3 h-3 hidden lg:inline" />
               </Button>
             </Dropdown>
@@ -822,31 +840,31 @@ export function GanttToolbar({
             <div className="flex items-center gap-2">
               <span className="text-gray-400">Zoom:</span>
               <button
-                onClick={() => setZoomLevel('week')}
+                onClick={() => setZoomLevel("week")}
                 className={`px-2 py-1 rounded ${
-                  viewSettings.zoomLevel === 'week'
-                    ? 'bg-blue-100 text-blue-700 font-medium'
-                    : 'hover:bg-gray-100'
+                  viewSettings.zoomLevel === "week"
+                    ? "bg-blue-100 text-blue-700 font-medium"
+                    : "hover:bg-gray-100"
                 }`}
               >
                 Week
               </button>
               <button
-                onClick={() => setZoomLevel('month')}
+                onClick={() => setZoomLevel("month")}
                 className={`px-2 py-1 rounded ${
-                  viewSettings.zoomLevel === 'month'
-                    ? 'bg-blue-100 text-blue-700 font-medium'
-                    : 'hover:bg-gray-100'
+                  viewSettings.zoomLevel === "month"
+                    ? "bg-blue-100 text-blue-700 font-medium"
+                    : "hover:bg-gray-100"
                 }`}
               >
                 Month
               </button>
               <button
-                onClick={() => setZoomLevel('quarter')}
+                onClick={() => setZoomLevel("quarter")}
                 className={`px-2 py-1 rounded ${
-                  viewSettings.zoomLevel === 'quarter'
-                    ? 'bg-blue-100 text-blue-700 font-medium'
-                    : 'hover:bg-gray-100'
+                  viewSettings.zoomLevel === "quarter"
+                    ? "bg-blue-100 text-blue-700 font-medium"
+                    : "hover:bg-gray-100"
                 }`}
               >
                 Quarter
@@ -854,12 +872,16 @@ export function GanttToolbar({
               <Dropdown
                 menu={{
                   items: [
-                    { key: 'day', label: 'Day View', onClick: () => setZoomLevel('day') },
-                    { key: 'half-year', label: 'Half-Year View', onClick: () => setZoomLevel('half-year') },
-                    { key: 'year', label: 'Year View', onClick: () => setZoomLevel('year') },
+                    { key: "day", label: "Day View", onClick: () => setZoomLevel("day") },
+                    {
+                      key: "half-year",
+                      label: "Half-Year View",
+                      onClick: () => setZoomLevel("half-year"),
+                    },
+                    { key: "year", label: "Year View", onClick: () => setZoomLevel("year") },
                   ],
                 }}
-                trigger={['click']}
+                trigger={["click"]}
               >
                 <button className="px-2 py-1 rounded hover:bg-gray-100 flex items-center gap-1">
                   More <ChevronDown className="w-3 h-3" />
@@ -873,12 +895,12 @@ export function GanttToolbar({
                 <button
                   onClick={toggleTitles}
                   className={`px-2 py-1 rounded transition-all ${
-                    viewSettings.showTitles ?? true
-                      ? 'bg-green-100 text-green-700 font-medium'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    (viewSettings.showTitles ?? true)
+                      ? "bg-green-100 text-green-700 font-medium"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
                 >
-                  <span className={viewSettings.showTitles ?? true ? '' : 'line-through'}>
+                  <span className={(viewSettings.showTitles ?? true) ? "" : "line-through"}>
                     📝 Titles
                   </span>
                 </button>
@@ -890,11 +912,11 @@ export function GanttToolbar({
               <span className="text-gray-400">Bars:</span>
               <Tooltip title="Show working days only">
                 <button
-                  onClick={() => setBarDurationDisplay('wd')}
+                  onClick={() => setBarDurationDisplay("wd")}
                   className={`px-2 py-1 rounded text-xs ${
-                    (viewSettings.barDurationDisplay ?? 'all') === 'wd'
-                      ? 'bg-purple-100 text-purple-700 font-medium'
-                      : 'hover:bg-gray-100'
+                    (viewSettings.barDurationDisplay ?? "all") === "wd"
+                      ? "bg-purple-100 text-purple-700 font-medium"
+                      : "hover:bg-gray-100"
                   }`}
                 >
                   WD
@@ -902,11 +924,11 @@ export function GanttToolbar({
               </Tooltip>
               <Tooltip title="Show calendar days only">
                 <button
-                  onClick={() => setBarDurationDisplay('cd')}
+                  onClick={() => setBarDurationDisplay("cd")}
                   className={`px-2 py-1 rounded text-xs ${
-                    (viewSettings.barDurationDisplay ?? 'all') === 'cd'
-                      ? 'bg-purple-100 text-purple-700 font-medium'
-                      : 'hover:bg-gray-100'
+                    (viewSettings.barDurationDisplay ?? "all") === "cd"
+                      ? "bg-purple-100 text-purple-700 font-medium"
+                      : "hover:bg-gray-100"
                   }`}
                 >
                   CD
@@ -914,11 +936,11 @@ export function GanttToolbar({
               </Tooltip>
               <Tooltip title="Show resource assignments only">
                 <button
-                  onClick={() => setBarDurationDisplay('resource')}
+                  onClick={() => setBarDurationDisplay("resource")}
                   className={`px-2 py-1 rounded text-xs ${
-                    (viewSettings.barDurationDisplay ?? 'all') === 'resource'
-                      ? 'bg-purple-100 text-purple-700 font-medium'
-                      : 'hover:bg-gray-100'
+                    (viewSettings.barDurationDisplay ?? "all") === "resource"
+                      ? "bg-purple-100 text-purple-700 font-medium"
+                      : "hover:bg-gray-100"
                   }`}
                 >
                   Resource
@@ -926,11 +948,11 @@ export function GanttToolbar({
               </Tooltip>
               <Tooltip title="Show start and end dates only">
                 <button
-                  onClick={() => setBarDurationDisplay('dates')}
+                  onClick={() => setBarDurationDisplay("dates")}
                   className={`px-2 py-1 rounded text-xs ${
-                    (viewSettings.barDurationDisplay ?? 'all') === 'dates'
-                      ? 'bg-purple-100 text-purple-700 font-medium'
-                      : 'hover:bg-gray-100'
+                    (viewSettings.barDurationDisplay ?? "all") === "dates"
+                      ? "bg-purple-100 text-purple-700 font-medium"
+                      : "hover:bg-gray-100"
                   }`}
                 >
                   Dates
@@ -938,11 +960,11 @@ export function GanttToolbar({
               </Tooltip>
               <Tooltip title="Show all information (WD, CD, resources, dates)">
                 <button
-                  onClick={() => setBarDurationDisplay('all')}
+                  onClick={() => setBarDurationDisplay("all")}
                   className={`px-2 py-1 rounded text-xs ${
-                    (viewSettings.barDurationDisplay ?? 'all') === 'all'
-                      ? 'bg-purple-100 text-purple-700 font-medium'
-                      : 'hover:bg-gray-100'
+                    (viewSettings.barDurationDisplay ?? "all") === "all"
+                      ? "bg-purple-100 text-purple-700 font-medium"
+                      : "hover:bg-gray-100"
                   }`}
                 >
                   All
@@ -950,11 +972,11 @@ export function GanttToolbar({
               </Tooltip>
               <Tooltip title="Clean bars with no badges (minimal presentation)">
                 <button
-                  onClick={() => setBarDurationDisplay('clean')}
+                  onClick={() => setBarDurationDisplay("clean")}
                   className={`px-2 py-1 rounded text-xs ${
-                    (viewSettings.barDurationDisplay ?? 'all') === 'clean'
-                      ? 'bg-purple-100 text-purple-700 font-medium'
-                      : 'hover:bg-gray-100'
+                    (viewSettings.barDurationDisplay ?? "all") === "clean"
+                      ? "bg-purple-100 text-purple-700 font-medium"
+                      : "hover:bg-gray-100"
                   }`}
                 >
                   Clean
@@ -963,15 +985,14 @@ export function GanttToolbar({
             </div>
           </div>
           <div className="text-gray-400">
-            Press <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-xs font-mono">⌘Z</kbd> to undo
+            Press <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-xs font-mono">⌘Z</kbd> to
+            undo
           </div>
         </div>
       </div>
 
       {/* Modals */}
-      {showResourceModal && (
-        <ResourceManagementModal onClose={() => setShowResourceModal(false)} />
-      )}
+      {showResourceModal && <ResourceManagementModal onClose={() => setShowResourceModal(false)} />}
 
       {showImportModal && <ImportModalV2 onClose={() => setShowImportModal(false)} />}
 
@@ -1018,17 +1039,17 @@ export function GanttToolbar({
           <Form.Item
             name="projectName"
             label="Project Name"
-            rules={[{ required: true, message: 'Please enter project name' }]}
+            rules={[{ required: true, message: "Please enter project name" }]}
           >
             <Input placeholder="Enterprise CRM Implementation" size="large" />
           </Form.Item>
           <Form.Item
             name="startDate"
             label="Start Date"
-            rules={[{ required: true, message: 'Please select start date' }]}
+            rules={[{ required: true, message: "Please select start date" }]}
             initialValue={dayjs()}
           >
-            <DatePicker style={{ width: '100%' }} size="large" />
+            <DatePicker style={{ width: "100%" }} size="large" />
           </Form.Item>
         </Form>
       </Modal>
@@ -1040,7 +1061,12 @@ export function GanttToolbar({
 function Calendar({ className }: { className: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+      />
     </svg>
   );
 }

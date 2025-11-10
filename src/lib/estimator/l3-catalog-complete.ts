@@ -5,7 +5,14 @@
  * Maintains backward compatibility with existing code.
  */
 
-import { L3_SCOPE_ITEMS, type L3ScopeItem, getL3ItemByCode, getL3ItemsByModule, getL3ItemsByTier, L3_MODULES } from '@/data/l3-catalog';
+import {
+  L3_SCOPE_ITEMS,
+  type L3ScopeItem,
+  getL3ItemByCode,
+  getL3ItemsByModule,
+  getL3ItemsByTier,
+  L3_MODULES,
+} from "@/data/l3-catalog";
 
 /**
  * L3 Item in formula engine format
@@ -15,7 +22,7 @@ export interface L3Item {
   code: string;
   name: string;
   module: string;
-  tier: 'A' | 'B' | 'C';
+  tier: "A" | "B" | "C";
   coefficient: number;
   description: string;
 }
@@ -29,22 +36,25 @@ function convertToL3Item(item: L3ScopeItem): L3Item {
     code: item.code,
     name: item.name,
     module: item.module,
-    tier: item.tier as 'A' | 'B' | 'C',
+    tier: item.tier as "A" | "B" | "C",
     coefficient: item.coefficient,
-    description: item.description
+    description: item.description,
   };
 }
 
 /**
  * Complete L3 catalog organized by module (158 items)
  */
-export const L3_CATALOG_COMPLETE: Record<string, L3Item[]> = L3_MODULES.reduce((acc, module) => {
-  const items = getL3ItemsByModule(module);
-  acc[module] = items
-    .filter(item => item.tier !== 'D') // Exclude Tier D (extensions)
-    .map(convertToL3Item);
-  return acc;
-}, {} as Record<string, L3Item[]>);
+export const L3_CATALOG_COMPLETE: Record<string, L3Item[]> = L3_MODULES.reduce(
+  (acc, module) => {
+    const items = getL3ItemsByModule(module);
+    acc[module] = items
+      .filter((item) => item.tier !== "D") // Exclude Tier D (extensions)
+      .map(convertToL3Item);
+    return acc;
+  },
+  {} as Record<string, L3Item[]>
+);
 
 /**
  * Enhanced L3 Catalog with complete dataset
@@ -54,9 +64,7 @@ export class L3CatalogComplete {
    * Get all L3 items (149 items, excluding Tier D)
    */
   getAllItems(): L3Item[] {
-    return L3_SCOPE_ITEMS
-      .filter(item => item.tier !== 'D')
-      .map(convertToL3Item);
+    return L3_SCOPE_ITEMS.filter((item) => item.tier !== "D").map(convertToL3Item);
   }
 
   /**
@@ -69,7 +77,7 @@ export class L3CatalogComplete {
   /**
    * Get L3 items by tier
    */
-  getByTier(tier: 'A' | 'B' | 'C'): L3Item[] {
+  getByTier(tier: "A" | "B" | "C"): L3Item[] {
     return getL3ItemsByTier(tier).map(convertToL3Item);
   }
 
@@ -77,8 +85,8 @@ export class L3CatalogComplete {
    * Get L3 item by ID
    */
   getById(id: string): L3Item | undefined {
-    const item = L3_SCOPE_ITEMS.find(item => item.id === id);
-    return item && item.tier !== 'D' ? convertToL3Item(item) : undefined;
+    const item = L3_SCOPE_ITEMS.find((item) => item.id === id);
+    return item && item.tier !== "D" ? convertToL3Item(item) : undefined;
   }
 
   /**
@@ -86,7 +94,7 @@ export class L3CatalogComplete {
    */
   getByCode(code: string): L3Item | undefined {
     const item = getL3ItemByCode(code);
-    return item && item.tier !== 'D' ? convertToL3Item(item) : undefined;
+    return item && item.tier !== "D" ? convertToL3Item(item) : undefined;
   }
 
   /**
@@ -104,13 +112,13 @@ export class L3CatalogComplete {
     return {
       total: allItems.length,
       byModule: Object.fromEntries(
-        L3_MODULES.map(module => [module, this.getByModule(module).length])
+        L3_MODULES.map((module) => [module, this.getByModule(module).length])
       ),
       byTier: {
-        A: this.getByTier('A').length,
-        B: this.getByTier('B').length,
-        C: this.getByTier('C').length
-      }
+        A: this.getByTier("A").length,
+        B: this.getByTier("B").length,
+        C: this.getByTier("C").length,
+      },
     };
   }
 
@@ -120,7 +128,7 @@ export class L3CatalogComplete {
   search(query: string): L3Item[] {
     const lowerQuery = query.toLowerCase();
     return this.getAllItems().filter(
-      item =>
+      (item) =>
         item.name.toLowerCase().includes(lowerQuery) ||
         item.description.toLowerCase().includes(lowerQuery) ||
         item.code.toLowerCase().includes(lowerQuery) ||
@@ -132,10 +140,10 @@ export class L3CatalogComplete {
    * Get recommended L3 items for a profile
    */
   getRecommendedForProfile(modules: string[]): L3Item[] {
-    return modules.flatMap(module => {
+    return modules.flatMap((module) => {
       const items = this.getByModule(module);
       // Return top 5-10 most common items per module
-      return items.filter(item => item.tier === 'A' || item.tier === 'B').slice(0, 8);
+      return items.filter((item) => item.tier === "A" || item.tier === "B").slice(0, 8);
     });
   }
 }

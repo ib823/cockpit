@@ -7,7 +7,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { usePresalesStore } from "./presales-store";
 import { useTimelineStore } from "./timeline-store";
 
-export type ProjectMode = 'capture' | 'decide' | 'plan' | 'present';
+export type ProjectMode = "capture" | "decide" | "plan" | "present";
 
 interface ManualOverride {
   phaseId: string;
@@ -131,7 +131,9 @@ export const useProjectStore = create<ProjectState>()(
           timelineStore.setSelectedPackages(result.selectedPackages);
           timelineStore.setProfile(result.profile);
 
-          console.log(`[ProjectStore] ✅ Timeline store updated with ${result.phases.length} phases`);
+          console.log(
+            `[ProjectStore] ✅ Timeline store updated with ${result.phases.length} phases`
+          );
 
           // Track timeline generation
           track("timeline_generated", {

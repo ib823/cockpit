@@ -24,8 +24,8 @@ interface SentryConfig {
  */
 export const sentryConfig: SentryConfig = {
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  environment: process.env.NODE_ENV || 'development',
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  environment: process.env.NODE_ENV || "development",
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
 };
@@ -35,7 +35,7 @@ export const sentryConfig: SentryConfig = {
  * Placeholder for Sentry.captureException
  */
 export function captureException(error: Error, context?: Record<string, any>) {
-  console.error('[Sentry Placeholder] Error captured:', error, context);
+  console.error("[Sentry Placeholder] Error captured:", error, context);
 
   // In production with Sentry installed:
   // import * as Sentry from '@sentry/nextjs';
@@ -46,7 +46,11 @@ export function captureException(error: Error, context?: Record<string, any>) {
  * Capture message manually
  * Placeholder for Sentry.captureMessage
  */
-export function captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info', context?: Record<string, any>) {
+export function captureMessage(
+  message: string,
+  level: "info" | "warning" | "error" = "info",
+  context?: Record<string, any>
+) {
   console.log(`[Sentry Placeholder] Message (${level}):`, message, context);
 
   // In production with Sentry installed:
@@ -58,7 +62,7 @@ export function captureMessage(message: string, level: 'info' | 'warning' | 'err
  * Set user context for error reports
  */
 export function setUser(user: { id: string; email?: string; username?: string }) {
-  console.log('[Sentry Placeholder] User context set:', user);
+  console.log("[Sentry Placeholder] User context set:", user);
 
   // In production with Sentry installed:
   // import * as Sentry from '@sentry/nextjs';
@@ -69,7 +73,7 @@ export function setUser(user: { id: string; email?: string; username?: string })
  * Clear user context (on logout)
  */
 export function clearUser() {
-  console.log('[Sentry Placeholder] User context cleared');
+  console.log("[Sentry Placeholder] User context cleared");
 
   // In production with Sentry installed:
   // import * as Sentry from '@sentry/nextjs';
@@ -113,7 +117,8 @@ export function startTransaction(name: string, op: string) {
 
   return {
     finish: () => console.log(`[Sentry Placeholder] Transaction finished: ${name}`),
-    setStatus: (status: string) => console.log(`[Sentry Placeholder] Transaction status: ${status}`),
+    setStatus: (status: string) =>
+      console.log(`[Sentry Placeholder] Transaction status: ${status}`),
   };
 }
 
@@ -136,7 +141,7 @@ To enable Sentry monitoring:
 `;
 
 export function logSentryInstructions() {
-  if (!process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.NODE_ENV === 'development') {
+  if (!process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.NODE_ENV === "development") {
     console.log(SENTRY_INSTALL_INSTRUCTIONS);
   }
 }

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface EmailApproval {
   email: string;
@@ -18,14 +18,14 @@ export default function EmailApprovalsPage() {
 
   const [approvals, setApprovals] = useState<EmailApproval[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   // New approval form
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newEmail, setNewEmail] = useState('');
+  const [newEmail, setNewEmail] = useState("");
   const [creating, setCreating] = useState(false);
-  const [generatedCode, setGeneratedCode] = useState('');
+  const [generatedCode, setGeneratedCode] = useState("");
 
   useEffect(() => {
     loadApprovals();
@@ -33,26 +33,26 @@ export default function EmailApprovalsPage() {
 
   const loadApprovals = async () => {
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       // TODO: Replace with actual API call
       const mockApprovals: EmailApproval[] = [
         {
-          email: 'test@example.com',
-          tokenHash: '$2a$12$...',
+          email: "test@example.com",
+          tokenHash: "$2a$12$...",
           tokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          approvedByUserId: 'admin123',
+          approvedByUserId: "admin123",
           usedAt: null,
           createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          codeSent: true
-        }
+          codeSent: true,
+        },
       ];
 
       setApprovals(mockApprovals);
-    } catch (err: any) {
-      console.error('[EmailApprovals] Failed to load:', err);
-      setError('Failed to load email approvals');
+    } catch (err: unknown) {
+      console.error("[EmailApprovals] Failed to load:", err);
+      setError("Failed to load email approvals");
     } finally {
       setLoading(false);
     }
@@ -60,19 +60,19 @@ export default function EmailApprovalsPage() {
 
   const handleCreateApproval = async () => {
     if (!newEmail) {
-      setError('Email is required');
+      setError("Email is required");
       return;
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(newEmail)) {
-      setError('Invalid email format');
+      setError("Invalid email format");
       return;
     }
 
     setCreating(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       // Generate 6-digit code
@@ -89,14 +89,18 @@ export default function EmailApprovalsPage() {
       // });
 
       // For now, simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setGeneratedCode(code);
       setSuccess(`Email approval created successfully! Code: ${code}`);
-      setNewEmail('');
+      setNewEmail("");
       loadApprovals();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create email approval');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to create email approval");
+      }
     } finally {
       setCreating(false);
     }
@@ -105,14 +109,14 @@ export default function EmailApprovalsPage() {
   const handleCopyCode = () => {
     if (generatedCode) {
       navigator.clipboard.writeText(generatedCode);
-      setSuccess('Code copied to clipboard!');
+      setSuccess("Code copied to clipboard!");
     }
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short'
+    return new Date(date).toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
     });
   };
 
@@ -144,7 +148,7 @@ export default function EmailApprovalsPage() {
               + Create Approval
             </button>
             <button
-              onClick={() => router.push('/admin')}
+              onClick={() => router.push("/admin")}
               className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
             >
               ← Back to Admin
@@ -171,7 +175,9 @@ export default function EmailApprovalsPage() {
             <div className="p-12 text-center">
               <div className="text-6xl mb-4">📧</div>
               <h3 className="text-xl font-bold text-slate-900 mb-2">No Email Approvals</h3>
-              <p className="text-slate-600 mb-6">Create an email approval to allow a user to register</p>
+              <p className="text-slate-600 mb-6">
+                Create an email approval to allow a user to register
+              </p>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm"
@@ -202,24 +208,26 @@ export default function EmailApprovalsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {approvals.map(approval => (
+                  {approvals.map((approval) => (
                     <tr key={approval.email} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-slate-900">{approval.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          approval.usedAt
-                            ? 'bg-gray-100 text-gray-700'
-                            : new Date(approval.tokenExpiresAt) < new Date()
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-green-100 text-green-700'
-                        }`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            approval.usedAt
+                              ? "bg-gray-100 text-gray-700"
+                              : new Date(approval.tokenExpiresAt) < new Date()
+                                ? "bg-red-100 text-red-700"
+                                : "bg-green-100 text-green-700"
+                          }`}
+                        >
                           {approval.usedAt
-                            ? 'Used'
+                            ? "Used"
                             : new Date(approval.tokenExpiresAt) < new Date()
-                            ? 'Expired'
-                            : 'Active'}
+                              ? "Expired"
+                              : "Active"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
@@ -229,12 +237,14 @@ export default function EmailApprovalsPage() {
                         {formatDate(approval.tokenExpiresAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          approval.codeSent
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-700'
-                        }`}>
-                          {approval.codeSent ? 'Yes' : 'No'}
+                        <span
+                          className={`px-2 py-1 rounded text-xs ${
+                            approval.codeSent
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {approval.codeSent ? "Yes" : "No"}
                         </span>
                       </td>
                     </tr>
@@ -252,12 +262,15 @@ export default function EmailApprovalsPage() {
           <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-4">Create Email Approval</h2>
             <p className="text-slate-600 mb-6">
-              Enter the email address of the user you want to allow to register. They will receive a 6-digit code.
+              Enter the email address of the user you want to allow to register. They will receive a
+              6-digit code.
             </p>
 
             {generatedCode ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-bold text-green-900 mb-2">✓ Approval Created Successfully</h3>
+                <h3 className="text-lg font-bold text-green-900 mb-2">
+                  ✓ Approval Created Successfully
+                </h3>
                 <p className="text-sm text-green-800 mb-4">
                   Share this 6-digit code with the user. They will need it to complete registration.
                 </p>
@@ -287,7 +300,7 @@ export default function EmailApprovalsPage() {
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !creating && handleCreateApproval()}
+                  onKeyDown={(e) => e.key === "Enter" && !creating && handleCreateApproval()}
                   placeholder="user@example.com"
                   autoFocus
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
@@ -302,14 +315,14 @@ export default function EmailApprovalsPage() {
               <button
                 onClick={() => {
                   setShowCreateModal(false);
-                  setNewEmail('');
-                  setGeneratedCode('');
-                  setError('');
+                  setNewEmail("");
+                  setGeneratedCode("");
+                  setError("");
                 }}
                 disabled={creating}
                 className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
               >
-                {generatedCode ? 'Done' : 'Cancel'}
+                {generatedCode ? "Done" : "Cancel"}
               </button>
               {!generatedCode && (
                 <button
@@ -317,7 +330,7 @@ export default function EmailApprovalsPage() {
                   disabled={creating || !newEmail}
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  {creating ? 'Creating...' : 'Generate Code'}
+                  {creating ? "Creating..." : "Generate Code"}
                 </button>
               )}
             </div>

@@ -9,10 +9,10 @@
  * - overlay: Overlay loading state
  */
 
-import { Spin, Skeleton, Space } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
+import { Spin, Skeleton, Space } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 
-export type LoadingType = 'page' | 'inline' | 'skeleton' | 'overlay';
+export type LoadingType = "page" | "inline" | "skeleton" | "overlay";
 
 interface LoadingStateProps {
   type?: LoadingType;
@@ -22,14 +22,14 @@ interface LoadingStateProps {
 }
 
 export function LoadingState({
-  type = 'inline',
+  type = "inline",
   message,
   rows = 3,
-  className = ''
+  className = "",
 }: LoadingStateProps) {
-  const loadingIcon = <LoadingOutlined style={{ fontSize: 24, color: '#2563eb' }} spin />;
+  const loadingIcon = <LoadingOutlined style={{ fontSize: 24, color: "#2563eb" }} spin />;
 
-  if (type === 'skeleton') {
+  if (type === "skeleton") {
     return (
       <div className={className}>
         <Skeleton active paragraph={{ rows }} />
@@ -37,27 +37,29 @@ export function LoadingState({
     );
   }
 
-  if (type === 'page') {
+  if (type === "page") {
     return (
       <div
         className={className}
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          gap: '16px'
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "60vh",
+          gap: "16px",
         }}
       >
         <Spin indicator={loadingIcon} size="large" />
         {message && (
-          <p style={{
-            color: '#64748b',
-            className="text-sm",
-            marginTop: '8px',
-            fontWeight: 500
-          }}>
+          <p
+            className="text-sm"
+            style={{
+              color: "#64748b",
+              marginTop: "8px",
+              fontWeight: 500,
+            }}
+          >
             {message}
           </p>
         )}
@@ -65,33 +67,35 @@ export function LoadingState({
     );
   }
 
-  if (type === 'overlay') {
+  if (type === "overlay") {
     return (
       <div
         className={className}
         style={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(4px)',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(255, 255, 255, 0.9)",
+          backdropFilter: "blur(4px)",
           zIndex: 1000,
-          gap: '16px'
+          gap: "16px",
         }}
       >
         <Spin indicator={loadingIcon} size="large" />
         {message && (
-          <p style={{
-            color: '#64748b',
-            className="text-sm",
-            fontWeight: 500
-          }}>
+          <p
+            className="text-sm"
+            style={{
+              color: "#64748b",
+              fontWeight: 500,
+            }}
+          >
             {message}
           </p>
         )}
@@ -101,12 +105,10 @@ export function LoadingState({
 
   // Default: inline
   return (
-    <Space className={className} size="middle" style={{ display: 'flex', alignItems: 'center' }}>
+    <Space className={className} size="middle" style={{ display: "flex", alignItems: "center" }}>
       <Spin indicator={loadingIcon} />
       {message && (
-        <span style={{ color: '#64748b', className="text-sm", fontWeight: 500 }}>
-          {message}
-        </span>
+        <span className="text-sm" style={{ color: "#64748b", fontWeight: 500 }}>{message}</span>
       )}
     </Space>
   );
@@ -117,12 +119,14 @@ export function LoadingState({
  */
 export function SkeletonCard({ rows = 3 }: { rows?: number }) {
   return (
-    <div style={{
-      padding: '24px',
-      background: '#ffffff',
-      borderRadius: '12px',
-      border: '1px solid #e5e7eb'
-    }}>
+    <div
+      style={{
+        padding: "24px",
+        background: "#ffffff",
+        borderRadius: "12px",
+        border: "1px solid #e5e7eb",
+      }}
+    >
       <Skeleton active paragraph={{ rows }} />
     </div>
   );
@@ -133,7 +137,7 @@ export function SkeletonCard({ rows = 3 }: { rows?: number }) {
  */
 export function SkeletonTable({ rows = 5 }: { rows?: number }) {
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: "24px" }}>
       <Skeleton active title paragraph={{ rows }} />
     </div>
   );

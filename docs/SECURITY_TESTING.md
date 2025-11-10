@@ -15,7 +15,7 @@ This checklist must be completed before every production deployment. All items m
   - Expected: 403 Forbidden or redirect to home
   - Command: `curl -H "Cookie: session=<user-token>" https://app.com/admin`
 
-- [ ] **Horizontal privilege escalation**  
+- [ ] **Horizontal privilege escalation**
   - User A attempts to access User B's projects
   - Expected: 403 or empty response
   - Test: Modify project IDs in API calls
@@ -27,12 +27,12 @@ This checklist must be completed before every production deployment. All items m
 
 - [ ] **Role-based access control (RBAC)**
   - USER: Can CRUD own projects only
-  - MANAGER: Can view team projects  
+  - MANAGER: Can view team projects
   - ADMIN: Can access all + admin panel
 
 ### A02: Cryptographic Failures
 
-- [ ] **HTTPS enforcement**  
+- [ ] **HTTPS enforcement**
   - HTTP requests redirect to HTTPS in production
   - Command: `curl -I http://app.com | grep -i location`
   - Expected: Redirects to `https://app.com`
@@ -71,7 +71,7 @@ This checklist must be completed before every production deployment. All items m
     ```
   - Expected: All HTML/JS stripped or encoded
 
-- [ ] **Command injection**  
+- [ ] **Command injection**
   - Test file operations with inputs like `; rm -rf /`
   - Verify input sanitization on file imports
 
@@ -96,9 +96,11 @@ This checklist must be completed before every production deployment. All items m
 ### A05: Security Misconfiguration ⚠️ **CRITICAL**
 
 - [ ] **Security headers present**
+
   ```bash
   curl -I https://app.com | grep -E "(X-Frame-Options|Content-Security-Policy|X-Content-Type-Options)"
   ```
+
   - X-Frame-Options: DENY
   - X-Content-Type-Options: nosniff
   - Content-Security-Policy: (check CSP is set)
@@ -117,9 +119,11 @@ This checklist must be completed before every production deployment. All items m
 ### A06: Vulnerable and Outdated Components
 
 - [ ] **Dependency audit**
+
   ```bash
   pnpm audit --audit-level=moderate
   ```
+
   - Expected: 0 moderate+ vulnerabilities
   - If any found: Update or document exceptions
 
@@ -137,7 +141,7 @@ This checklist must be completed before every production deployment. All items m
   - Expected: Blocked after 20
 
 - [ ] **Session handling**
-  - Sessions invalidated on logout  
+  - Sessions invalidated on logout
   - No concurrent session reuse
   - Test: Logout in tab 1, use session token in tab 2
   - Expected: 401 Unauthorized
@@ -150,9 +154,11 @@ This checklist must be completed before every production deployment. All items m
 ### A08: Software and Data Integrity Failures
 
 - [ ] **Package integrity**
+
   ```bash
   pnpm install --frozen-lockfile
   ```
+
   - Expected: Installs without warnings
   - package-lock.json committed to Git
 
@@ -163,6 +169,7 @@ This checklist must be completed before every production deployment. All items m
 ### A09: Security Logging and Monitoring Failures
 
 - [ ] **Audit logging operational**
+
   ```bash
   pnpm tsx -e "import { prisma } from './src/lib/db'; const count = await prisma.audit_logs.count(); console.log('Audit logs:', count > 0 ? 'PASS' : 'FAIL'); await prisma.\$disconnect();"
   ```
@@ -203,6 +210,7 @@ Test these payloads in all persistent fields (names, descriptions, comments):
 ```
 
 **Verification:**
+
 - Payload should be HTML-encoded or stripped
 - Alert should NOT execute when viewing the page
 - Check browser DevTools console for errors
@@ -210,6 +218,7 @@ Test these payloads in all persistent fields (names, descriptions, comments):
 ### Reflected XSS
 
 Test query parameters:
+
 ```bash
 curl "https://app.com/search?q=<script>alert('reflected')</script>"
 ```
@@ -219,8 +228,9 @@ Expected: Script tags escaped in response
 ### DOM-based XSS
 
 Check client-side code for unsafe DOM manipulation:
+
 - `innerHTML` usage (prefer `textContent`)
-- `eval()` calls  
+- `eval()` calls
 - `dangerouslySetInnerHTML` in React
 
 ---
@@ -228,6 +238,7 @@ Check client-side code for unsafe DOM manipulation:
 ## CSRF (Cross-Site Request Forgery) Testing
 
 - [ ] **CSRF token validation**
+
   ```bash
   # POST without CSRF token
   curl -X POST https://app.com/api/projects \
@@ -235,12 +246,15 @@ Check client-side code for unsafe DOM manipulation:
     -H "Cookie: session=<token>" \
     -d '{"name":"test"}'
   ```
+
   - Expected: 403 Forbidden with "Invalid CSRF" message
 
 - [ ] **SameSite cookie attribute**
+
   ```bash
   curl -I https://app.com | grep -i set-cookie
   ```
+
   - Verify cookies have `SameSite=Strict` or `SameSite=Lax`
 
 ---
@@ -250,7 +264,7 @@ Check client-side code for unsafe DOM manipulation:
 ### Password Security
 
 - [ ] **Password strength requirements enforced**
-  - Min 12 characters  
+  - Min 12 characters
   - 1 uppercase, 1 lowercase, 1 number, 1 symbol
   - Test: Try weak password "Password123"
   - Expected: Rejected
@@ -278,6 +292,7 @@ Check client-side code for unsafe DOM manipulation:
 ### Boundary Value Testing
 
 Test with edge cases:
+
 - Empty strings
 - Very long strings (10,000+ chars)
 - NULL values
@@ -363,6 +378,7 @@ Expected: Blocked after 20 attempts
 ### Automated Scanners
 
 **OWASP ZAP (Baseline Scan)**
+
 ```bash
 docker run -t owasp/zap2docker-stable zap-baseline.py \
   -t https://app.com \
@@ -370,11 +386,13 @@ docker run -t owasp/zap2docker-stable zap-baseline.py \
 ```
 
 **Nikto (Web Server Scan)**
+
 ```bash
 nikto -h https://app.com -o nikto-report.txt
 ```
 
 **npm audit (Dependency Scan)**
+
 ```bash
 pnpm audit --json > audit-report.json
 ```
@@ -404,6 +422,7 @@ Document in this format:
 [What could an attacker do?]
 
 **Steps to Reproduce:**
+
 1. [Step 1]
 2. [Step 2]
 
@@ -428,12 +447,14 @@ Document in this format:
 ## Compliance Checks
 
 ### GDPR (if applicable)
+
 - [ ] User data exportable
 - [ ] User data deletable ("right to be forgotten")
 - [ ] Consent tracked for data collection
 - [ ] Privacy policy accessible
 
 ### SOC 2 Type II
+
 - [ ] All requirements in this checklist
 - [ ] Audit logs demonstrate compliance
 - [ ] Access controls documented
@@ -442,15 +463,16 @@ Document in this format:
 
 ## Sign-Off
 
-**Security Testing Completed By:** __________________  
-**Date:** __________  
+**Security Testing Completed By:** **\*\*\*\***\_\_**\*\*\*\***  
+**Date:** \***\*\_\_\*\***  
 **Deployment Approved:** [ ] Yes [ ] No
 
-**Critical Issues Found:** ______  
-**High Issues Found:** ______  
+**Critical Issues Found:** **\_\_**  
+**High Issues Found:** **\_\_**  
 **All Critical Issues Resolved:** [ ] Yes [ ] No
 
 **Notes:**
+
 ```
 [Add any additional notes or exceptions here]
 ```

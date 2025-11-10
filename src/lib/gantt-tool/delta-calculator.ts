@@ -13,7 +13,7 @@ import type {
   GanttHoliday,
   Resource,
   ProjectDelta,
-} from '@/types/gantt-tool';
+} from "@/types/gantt-tool";
 
 /**
  * Deep equality check for objects
@@ -21,7 +21,7 @@ import type {
 function deepEqual(obj1: any, obj2: any): boolean {
   if (obj1 === obj2) return true;
   if (obj1 == null || obj2 == null) return false;
-  if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return false;
+  if (typeof obj1 !== "object" || typeof obj2 !== "object") return false;
 
   const keys1 = Object.keys(obj1);
   const keys2 = Object.keys(obj2);
@@ -47,8 +47,8 @@ function compareArrays<T extends { id: string }>(
   const updated: T[] = [];
   const deleted: string[] = [];
 
-  const previousMap = new Map(previous.map(item => [item.id, item]));
-  const currentMap = new Map(current.map(item => [item.id, item]));
+  const previousMap = new Map(previous.map((item) => [item.id, item]));
+  const currentMap = new Map(current.map((item) => [item.id, item]));
 
   // Find created and updated
   for (const item of current) {
@@ -139,7 +139,11 @@ export function calculateProjectDelta(
 
   // Compare phases
   const phaseChanges = compareArrays(current.phases, lastSaved.phases);
-  if (phaseChanges.created.length > 0 || phaseChanges.updated.length > 0 || phaseChanges.deleted.length > 0) {
+  if (
+    phaseChanges.created.length > 0 ||
+    phaseChanges.updated.length > 0 ||
+    phaseChanges.deleted.length > 0
+  ) {
     delta.phases = {};
     if (phaseChanges.created.length > 0) delta.phases.created = phaseChanges.created;
     if (phaseChanges.updated.length > 0) delta.phases.updated = phaseChanges.updated;
@@ -147,10 +151,14 @@ export function calculateProjectDelta(
   }
 
   // Compare tasks (flatten from all phases)
-  const currentTasks = current.phases.flatMap(p => p.tasks);
-  const previousTasks = lastSaved.phases.flatMap(p => p.tasks);
+  const currentTasks = current.phases.flatMap((p) => p.tasks);
+  const previousTasks = lastSaved.phases.flatMap((p) => p.tasks);
   const taskChanges = compareArrays(currentTasks, previousTasks);
-  if (taskChanges.created.length > 0 || taskChanges.updated.length > 0 || taskChanges.deleted.length > 0) {
+  if (
+    taskChanges.created.length > 0 ||
+    taskChanges.updated.length > 0 ||
+    taskChanges.deleted.length > 0
+  ) {
     delta.tasks = {};
     if (taskChanges.created.length > 0) delta.tasks.created = taskChanges.created;
     if (taskChanges.updated.length > 0) delta.tasks.updated = taskChanges.updated;
@@ -159,7 +167,11 @@ export function calculateProjectDelta(
 
   // Compare resources
   const resourceChanges = compareArrays(current.resources, lastSaved.resources);
-  if (resourceChanges.created.length > 0 || resourceChanges.updated.length > 0 || resourceChanges.deleted.length > 0) {
+  if (
+    resourceChanges.created.length > 0 ||
+    resourceChanges.updated.length > 0 ||
+    resourceChanges.deleted.length > 0
+  ) {
     delta.resources = {};
     if (resourceChanges.created.length > 0) delta.resources.created = resourceChanges.created;
     if (resourceChanges.updated.length > 0) delta.resources.updated = resourceChanges.updated;
@@ -168,7 +180,11 @@ export function calculateProjectDelta(
 
   // Compare milestones
   const milestoneChanges = compareArrays(current.milestones, lastSaved.milestones);
-  if (milestoneChanges.created.length > 0 || milestoneChanges.updated.length > 0 || milestoneChanges.deleted.length > 0) {
+  if (
+    milestoneChanges.created.length > 0 ||
+    milestoneChanges.updated.length > 0 ||
+    milestoneChanges.deleted.length > 0
+  ) {
     delta.milestones = {};
     if (milestoneChanges.created.length > 0) delta.milestones.created = milestoneChanges.created;
     if (milestoneChanges.updated.length > 0) delta.milestones.updated = milestoneChanges.updated;
@@ -177,7 +193,11 @@ export function calculateProjectDelta(
 
   // Compare holidays
   const holidayChanges = compareArrays(current.holidays, lastSaved.holidays);
-  if (holidayChanges.created.length > 0 || holidayChanges.updated.length > 0 || holidayChanges.deleted.length > 0) {
+  if (
+    holidayChanges.created.length > 0 ||
+    holidayChanges.updated.length > 0 ||
+    holidayChanges.deleted.length > 0
+  ) {
     delta.holidays = {};
     if (holidayChanges.created.length > 0) delta.holidays.created = holidayChanges.created;
     if (holidayChanges.updated.length > 0) delta.holidays.updated = holidayChanges.updated;
@@ -208,7 +228,7 @@ export function getDeltaSummary(delta: ProjectDelta): string {
   const parts: string[] = [];
 
   if (delta.projectUpdates) {
-    parts.push(`project fields: ${Object.keys(delta.projectUpdates).join(', ')}`);
+    parts.push(`project fields: ${Object.keys(delta.projectUpdates).join(", ")}`);
   }
 
   if (delta.phases) {
@@ -216,7 +236,7 @@ export function getDeltaSummary(delta: ProjectDelta): string {
     if (delta.phases.created?.length) counts.push(`${delta.phases.created.length} created`);
     if (delta.phases.updated?.length) counts.push(`${delta.phases.updated.length} updated`);
     if (delta.phases.deleted?.length) counts.push(`${delta.phases.deleted.length} deleted`);
-    if (counts.length > 0) parts.push(`phases: ${counts.join(', ')}`);
+    if (counts.length > 0) parts.push(`phases: ${counts.join(", ")}`);
   }
 
   if (delta.tasks) {
@@ -224,7 +244,7 @@ export function getDeltaSummary(delta: ProjectDelta): string {
     if (delta.tasks.created?.length) counts.push(`${delta.tasks.created.length} created`);
     if (delta.tasks.updated?.length) counts.push(`${delta.tasks.updated.length} updated`);
     if (delta.tasks.deleted?.length) counts.push(`${delta.tasks.deleted.length} deleted`);
-    if (counts.length > 0) parts.push(`tasks: ${counts.join(', ')}`);
+    if (counts.length > 0) parts.push(`tasks: ${counts.join(", ")}`);
   }
 
   if (delta.resources) {
@@ -232,7 +252,7 @@ export function getDeltaSummary(delta: ProjectDelta): string {
     if (delta.resources.created?.length) counts.push(`${delta.resources.created.length} created`);
     if (delta.resources.updated?.length) counts.push(`${delta.resources.updated.length} updated`);
     if (delta.resources.deleted?.length) counts.push(`${delta.resources.deleted.length} deleted`);
-    if (counts.length > 0) parts.push(`resources: ${counts.join(', ')}`);
+    if (counts.length > 0) parts.push(`resources: ${counts.join(", ")}`);
   }
 
   if (delta.milestones) {
@@ -240,7 +260,7 @@ export function getDeltaSummary(delta: ProjectDelta): string {
     if (delta.milestones.created?.length) counts.push(`${delta.milestones.created.length} created`);
     if (delta.milestones.updated?.length) counts.push(`${delta.milestones.updated.length} updated`);
     if (delta.milestones.deleted?.length) counts.push(`${delta.milestones.deleted.length} deleted`);
-    if (counts.length > 0) parts.push(`milestones: ${counts.join(', ')}`);
+    if (counts.length > 0) parts.push(`milestones: ${counts.join(", ")}`);
   }
 
   if (delta.holidays) {
@@ -248,10 +268,10 @@ export function getDeltaSummary(delta: ProjectDelta): string {
     if (delta.holidays.created?.length) counts.push(`${delta.holidays.created.length} created`);
     if (delta.holidays.updated?.length) counts.push(`${delta.holidays.updated.length} updated`);
     if (delta.holidays.deleted?.length) counts.push(`${delta.holidays.deleted.length} deleted`);
-    if (counts.length > 0) parts.push(`holidays: ${counts.join(', ')}`);
+    if (counts.length > 0) parts.push(`holidays: ${counts.join(", ")}`);
   }
 
-  return parts.length > 0 ? parts.join('; ') : 'no changes';
+  return parts.length > 0 ? parts.join("; ") : "no changes";
 }
 
 /**
@@ -263,16 +283,18 @@ export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
 
   // Deduplicate phase resource assignments
   if (sanitized.phases?.created) {
-    sanitized.phases.created = sanitized.phases.created.map(phase => {
+    sanitized.phases.created = sanitized.phases.created.map((phase) => {
       if (!phase.phaseResourceAssignments || phase.phaseResourceAssignments.length === 0) {
         return phase;
       }
 
       // Deduplicate by resourceId
       const seen = new Set<string>();
-      const deduplicated = phase.phaseResourceAssignments.filter(assignment => {
+      const deduplicated = phase.phaseResourceAssignments.filter((assignment) => {
         if (seen.has(assignment.resourceId)) {
-          console.warn(`[Delta Sanitizer] Removing duplicate PM resource assignment: phaseId=${phase.id}, resourceId=${assignment.resourceId}`);
+          console.warn(
+            `[Delta Sanitizer] Removing duplicate PM resource assignment: phaseId=${phase.id}, resourceId=${assignment.resourceId}`
+          );
           return false;
         }
         seen.add(assignment.resourceId);
@@ -284,16 +306,18 @@ export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
   }
 
   if (sanitized.phases?.updated) {
-    sanitized.phases.updated = sanitized.phases.updated.map(phase => {
+    sanitized.phases.updated = sanitized.phases.updated.map((phase) => {
       if (!phase.phaseResourceAssignments || phase.phaseResourceAssignments.length === 0) {
         return phase;
       }
 
       // Deduplicate by resourceId
       const seen = new Set<string>();
-      const deduplicated = phase.phaseResourceAssignments.filter(assignment => {
+      const deduplicated = phase.phaseResourceAssignments.filter((assignment) => {
         if (seen.has(assignment.resourceId)) {
-          console.warn(`[Delta Sanitizer] Removing duplicate PM resource assignment: phaseId=${phase.id}, resourceId=${assignment.resourceId}`);
+          console.warn(
+            `[Delta Sanitizer] Removing duplicate PM resource assignment: phaseId=${phase.id}, resourceId=${assignment.resourceId}`
+          );
           return false;
         }
         seen.add(assignment.resourceId);
@@ -306,49 +330,53 @@ export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
 
   // Deduplicate task resource assignments in phases
   if (sanitized.phases?.created) {
-    sanitized.phases.created = sanitized.phases.created.map(phase => ({
+    sanitized.phases.created = sanitized.phases.created.map((phase) => ({
       ...phase,
-      tasks: phase.tasks.map(task => {
-        if (!task.taskResourceAssignments || task.taskResourceAssignments.length === 0) {
+      tasks: phase.tasks.map((task) => {
+        if (!task.resourceAssignments || task.resourceAssignments.length === 0) {
           return task;
         }
 
         // Deduplicate by resourceId
         const seen = new Set<string>();
-        const deduplicated = task.taskResourceAssignments.filter(assignment => {
+        const deduplicated = task.resourceAssignments.filter((assignment) => {
           if (seen.has(assignment.resourceId)) {
-            console.warn(`[Delta Sanitizer] Removing duplicate task resource assignment: taskId=${task.id}, resourceId=${assignment.resourceId}`);
+            console.warn(
+              `[Delta Sanitizer] Removing duplicate task resource assignment: taskId=${task.id}, resourceId=${assignment.resourceId}`
+            );
             return false;
           }
           seen.add(assignment.resourceId);
           return true;
         });
 
-        return { ...task, taskResourceAssignments: deduplicated };
+        return { ...task, resourceAssignments: deduplicated };
       }),
     }));
   }
 
   if (sanitized.phases?.updated) {
-    sanitized.phases.updated = sanitized.phases.updated.map(phase => ({
+    sanitized.phases.updated = sanitized.phases.updated.map((phase) => ({
       ...phase,
-      tasks: phase.tasks.map(task => {
-        if (!task.taskResourceAssignments || task.taskResourceAssignments.length === 0) {
+      tasks: phase.tasks.map((task) => {
+        if (!task.resourceAssignments || task.resourceAssignments.length === 0) {
           return task;
         }
 
         // Deduplicate by resourceId
         const seen = new Set<string>();
-        const deduplicated = task.taskResourceAssignments.filter(assignment => {
+        const deduplicated = task.resourceAssignments.filter((assignment) => {
           if (seen.has(assignment.resourceId)) {
-            console.warn(`[Delta Sanitizer] Removing duplicate task resource assignment: taskId=${task.id}, resourceId=${assignment.resourceId}`);
+            console.warn(
+              `[Delta Sanitizer] Removing duplicate task resource assignment: taskId=${task.id}, resourceId=${assignment.resourceId}`
+            );
             return false;
           }
           seen.add(assignment.resourceId);
           return true;
         });
 
-        return { ...task, taskResourceAssignments: deduplicated };
+        return { ...task, resourceAssignments: deduplicated };
       }),
     }));
   }

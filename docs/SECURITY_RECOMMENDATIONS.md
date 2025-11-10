@@ -41,6 +41,7 @@
 ### Traditional CAPTCHA Issues
 
 ❌ **Problems with reCAPTCHA v2/hCaptcha:**
+
 - Poor user experience (solving puzzles)
 - Accessibility issues (visual challenges)
 - Privacy concerns (Google tracking)
@@ -52,6 +53,7 @@
 ## 1. **Cloudflare Turnstile** (RECOMMENDED)
 
 **Why it's the best choice:**
+
 - ✅ **Invisible/minimal friction** - Works without user interaction 99% of the time
 - ✅ **Privacy-focused** - No tracking, GDPR compliant
 - ✅ **Free tier** - 1 million verifications/month
@@ -63,9 +65,9 @@
 
 ```tsx
 // app/components/TurnstileWidget.tsx
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 interface TurnstileWidgetProps {
   onVerify: (token: string) => void;
@@ -79,8 +81,8 @@ export function TurnstileWidget({ onVerify, siteKey }: TurnstileWidgetProps) {
     if (!containerRef.current) return;
 
     // Load Turnstile script
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
     script.async = true;
     document.body.appendChild(script);
 
@@ -89,8 +91,8 @@ export function TurnstileWidget({ onVerify, siteKey }: TurnstileWidgetProps) {
         window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           callback: (token: string) => onVerify(token),
-          theme: 'light', // or 'dark'
-          size: 'normal', // or 'compact'
+          theme: "light", // or 'dark'
+          size: "normal", // or 'compact'
         });
       }
     };
@@ -111,23 +113,20 @@ export function TurnstileWidget({ onVerify, siteKey }: TurnstileWidgetProps) {
 export async function POST(request: Request) {
   const { token } = await request.json();
 
-  const response = await fetch(
-    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        secret: process.env.TURNSTILE_SECRET_KEY,
-        response: token,
-      }),
-    }
-  );
+  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      secret: process.env.TURNSTILE_SECRET_KEY,
+      response: token,
+    }),
+  });
 
   const data = await response.json();
 
   return Response.json({
     success: data.success,
-    error: data['error-codes']?.[0],
+    error: data["error-codes"]?.[0],
   });
 }
 ```
@@ -139,6 +138,7 @@ export async function POST(request: Request) {
 ## 2. **Fingerprinting + Behavioral Analysis** (Passive Protection)
 
 **Libraries:**
+
 - **FingerprintJS** - Browser fingerprinting
 - **ProtectPlus** - Advanced bot detection
 
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
 
 ```typescript
 // lib/bot-detection.ts
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 export async function detectBot(request: Request): Promise<{
   isBot: boolean;
@@ -154,37 +154,43 @@ export async function detectBot(request: Request): Promise<{
   reason?: string;
 }> {
   const headers = request.headers;
-  const userAgent = headers.get('user-agent') || '';
+  const userAgent = headers.get("user-agent") || "";
 
   // 1. Known bot user agents
   const botPatterns = [
-    /bot/i, /crawler/i, /spider/i, /scraper/i,
-    /curl/i, /wget/i, /python/i, /java/i
+    /bot/i,
+    /crawler/i,
+    /spider/i,
+    /scraper/i,
+    /curl/i,
+    /wget/i,
+    /python/i,
+    /java/i,
   ];
 
-  if (botPatterns.some(pattern => pattern.test(userAgent))) {
-    return { isBot: true, confidence: 0.9, reason: 'Bot user agent' };
+  if (botPatterns.some((pattern) => pattern.test(userAgent))) {
+    return { isBot: true, confidence: 0.9, reason: "Bot user agent" };
   }
 
   // 2. Missing browser headers
-  const requiredHeaders = ['accept', 'accept-language', 'accept-encoding'];
-  const missingHeaders = requiredHeaders.filter(h => !headers.get(h));
+  const requiredHeaders = ["accept", "accept-language", "accept-encoding"];
+  const missingHeaders = requiredHeaders.filter((h) => !headers.get(h));
 
   if (missingHeaders.length > 0) {
     return {
       isBot: true,
       confidence: 0.7,
-      reason: `Missing headers: ${missingHeaders.join(', ')}`
+      reason: `Missing headers: ${missingHeaders.join(", ")}`,
     };
   }
 
   // 3. Suspicious header order (browsers have consistent order)
   const headerOrder = Array.from(headers.keys());
-  const suspiciousOrder = !headerOrder.includes('user-agent') ||
-                          headerOrder.indexOf('user-agent') > 10;
+  const suspiciousOrder =
+    !headerOrder.includes("user-agent") || headerOrder.indexOf("user-agent") > 10;
 
   if (suspiciousOrder) {
-    return { isBot: true, confidence: 0.6, reason: 'Suspicious header order' };
+    return { isBot: true, confidence: 0.6, reason: "Suspicious header order" };
   }
 
   // 4. Request rate analysis (in middleware)
@@ -198,8 +204,8 @@ export async function detectBot(request: Request): Promise<{
 
 ```typescript
 // app/hooks/useFingerprint.ts
-import { useEffect, useState } from 'react';
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import { useEffect, useState } from "react";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 export function useFingerprint() {
   const [fingerprint, setFingerprint] = useState<string | null>(null);
@@ -225,6 +231,7 @@ export function useFingerprint() {
 ## 3. **Multi-Factor Authentication (MFA)**
 
 **Best practices:**
+
 - ✅ Already have: Passkey (WebAuthn) - strongest MFA
 - ✅ Already have: Magic link (email-based)
 - ⭐ Add: TOTP (Time-based One-Time Password)
@@ -238,13 +245,13 @@ npm install @levminer/speakeasy qrcode
 
 ```typescript
 // lib/totp.ts
-import speakeasy from '@levminer/speakeasy';
-import QRCode from 'qrcode';
+import speakeasy from "@levminer/speakeasy";
+import QRCode from "qrcode";
 
 export async function generateTOTP(userId: string, email: string) {
   const secret = speakeasy.generateSecret({
     name: `Keystone (${email})`,
-    issuer: 'Keystone',
+    issuer: "Keystone",
     length: 32,
   });
 
@@ -263,7 +270,7 @@ export async function generateTOTP(userId: string, email: string) {
 export function verifyTOTP(token: string, secret: string): boolean {
   return speakeasy.totp.verify({
     secret,
-    encoding: 'base32',
+    encoding: "base32",
     token,
     window: 2, // Allow 2 time steps (60 seconds)
   });
@@ -275,6 +282,7 @@ export function verifyTOTP(token: string, secret: string): boolean {
 ## 4. **Device Fingerprinting + Trust Score**
 
 **Approach:**
+
 - Track device fingerprints on successful login
 - Build trust score based on:
   - Known device (fingerprint match)
@@ -294,32 +302,32 @@ export async function calculateTrustScore(
   // Get user's historical data
   const history = await prisma.loginHistory.findMany({
     where: { userId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     take: 20,
   });
 
   let score = 0;
 
   // Known device (+40 points)
-  if (history.some(h => h.fingerprint === fingerprint)) {
+  if (history.some((h) => h.fingerprint === fingerprint)) {
     score += 40;
   }
 
   // Known IP (+30 points)
-  if (history.some(h => h.ip === ip)) {
+  if (history.some((h) => h.ip === ip)) {
     score += 30;
   }
 
   // Typical login time (+20 points)
   const hour = new Date().getHours();
-  const typicalHours = history.map(h => new Date(h.createdAt).getHours());
-  if (typicalHours.some(h => Math.abs(h - hour) < 2)) {
+  const typicalHours = history.map((h) => new Date(h.createdAt).getHours());
+  if (typicalHours.some((h) => Math.abs(h - hour) < 2)) {
     score += 20;
   }
 
   // Login frequency (+10 points if not too frequent)
   const recentLogins = history.filter(
-    h => Date.now() - h.createdAt.getTime() < 24 * 60 * 60 * 1000
+    (h) => Date.now() - h.createdAt.getTime() < 24 * 60 * 60 * 1000
   );
   if (recentLogins.length < 10) {
     score += 10;
@@ -343,6 +351,7 @@ export async function requireAdditionalVerification(trustScore: number): Promise
 ## 5. **Honeypot Fields** (Free, Simple)
 
 **How it works:**
+
 - Add hidden fields that humans won't fill (invisible via CSS)
 - Bots often fill all fields
 - Reject submissions with honeypot values
@@ -352,15 +361,15 @@ export async function requireAdditionalVerification(trustScore: number): Promise
 ```tsx
 // app/components/LoginForm.tsx
 export function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [honeypot, setHoneypot] = useState(''); // Hidden field
+  const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState(""); // Hidden field
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     // If honeypot is filled, it's a bot
     if (honeypot) {
-      console.log('Bot detected via honeypot');
+      console.log("Bot detected via honeypot");
       return;
     }
 
@@ -382,7 +391,7 @@ export function LoginForm() {
         name="website" // Common honeypot name
         value={honeypot}
         onChange={(e) => setHoneypot(e.target.value)}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         tabIndex={-1}
         autoComplete="off"
       />
@@ -399,27 +408,29 @@ export function LoginForm() {
 
 ## 📊 Comparison Table
 
-| Solution | User Experience | Security | Privacy | Cost | Implementation |
-|----------|----------------|----------|---------|------|----------------|
-| **Cloudflare Turnstile** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | FREE | ⭐⭐⭐⭐⭐ |
-| **reCAPTCHA v3** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | FREE | ⭐⭐⭐⭐ |
-| **hCaptcha** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | FREE | ⭐⭐⭐⭐ |
-| **FingerprintJS** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | $200/mo | ⭐⭐⭐ |
-| **TOTP/MFA** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | FREE | ⭐⭐⭐⭐ |
-| **Honeypot** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | FREE | ⭐⭐⭐⭐⭐ |
-| **Behavioral Analysis** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | Custom | ⭐⭐ |
+| Solution                 | User Experience | Security   | Privacy    | Cost    | Implementation |
+| ------------------------ | --------------- | ---------- | ---------- | ------- | -------------- |
+| **Cloudflare Turnstile** | ⭐⭐⭐⭐⭐      | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐ | FREE    | ⭐⭐⭐⭐⭐     |
+| **reCAPTCHA v3**         | ⭐⭐⭐⭐        | ⭐⭐⭐⭐   | ⭐⭐       | FREE    | ⭐⭐⭐⭐       |
+| **hCaptcha**             | ⭐⭐⭐          | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | FREE    | ⭐⭐⭐⭐       |
+| **FingerprintJS**        | ⭐⭐⭐⭐⭐      | ⭐⭐⭐⭐   | ⭐⭐⭐     | $200/mo | ⭐⭐⭐         |
+| **TOTP/MFA**             | ⭐⭐⭐          | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | FREE    | ⭐⭐⭐⭐       |
+| **Honeypot**             | ⭐⭐⭐⭐⭐      | ⭐⭐       | ⭐⭐⭐⭐⭐ | FREE    | ⭐⭐⭐⭐⭐     |
+| **Behavioral Analysis**  | ⭐⭐⭐⭐⭐      | ⭐⭐⭐     | ⭐⭐⭐     | Custom  | ⭐⭐           |
 
 ---
 
 ## 🎯 Recommended Implementation Strategy
 
 ### Phase 1: Immediate (Free)
+
 1. ✅ Already done: Rate limiting
 2. ✅ Already done: Security headers
 3. ⭐ **Add: Honeypot fields** (1 hour)
 4. ⭐ **Add: Basic bot detection** (2 hours)
 
 ### Phase 2: Short-term (1-2 weeks)
+
 5. ⭐ **Implement Cloudflare Turnstile** (4 hours)
    - Add on login form
    - Add on admin login
@@ -431,6 +442,7 @@ export function LoginForm() {
    - Verification flow
 
 ### Phase 3: Long-term (1-2 months)
+
 7. ⭐ **Device fingerprinting + trust scores** (16 hours)
 8. ⭐ **Advanced behavioral analysis** (24 hours)
 9. ⭐ **Machine learning bot detection** (40 hours)
@@ -440,6 +452,7 @@ export function LoginForm() {
 ## 💰 Cost Analysis
 
 ### FREE Options
+
 - ✅ Cloudflare Turnstile (1M/month)
 - ✅ Honeypot fields
 - ✅ Basic bot detection
@@ -447,6 +460,7 @@ export function LoginForm() {
 - ✅ Rate limiting (current)
 
 ### Paid Options (if scaling)
+
 - FingerprintJS Pro: $200/month (100K IDs)
 - Cloudflare Bot Management: $10/month + $0.10/1K requests
 - DataDome: $500+/month (enterprise)
@@ -457,6 +471,7 @@ export function LoginForm() {
 ## 🔒 Enhanced Security Checklist
 
 ### Must Have (Current)
+
 - [x] Rate limiting
 - [x] WebAuthn/Passkey support
 - [x] Security headers
@@ -465,6 +480,7 @@ export function LoginForm() {
 - [x] Session management
 
 ### Should Have (Recommended)
+
 - [ ] Cloudflare Turnstile
 - [ ] TOTP/MFA for admins
 - [ ] Honeypot fields
@@ -473,6 +489,7 @@ export function LoginForm() {
 - [ ] Suspicious activity alerts
 
 ### Nice to Have (Advanced)
+
 - [ ] Machine learning bot detection
 - [ ] Behavioral analysis
 - [ ] Real-time threat intelligence

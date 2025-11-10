@@ -22,14 +22,20 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Cleanup old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (entry.resetTime < now && (!entry.blocked || (entry.blockUntil && entry.blockUntil < now))) {
-      rateLimitStore.delete(key);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore.entries()) {
+      if (
+        entry.resetTime < now &&
+        (!entry.blocked || (entry.blockUntil && entry.blockUntil < now))
+      ) {
+        rateLimitStore.delete(key);
+      }
     }
-  }
-}, 5 * 60 * 1000);
+  },
+  5 * 60 * 1000
+);
 
 /**
  * Rate limit configurations for different endpoints
@@ -152,7 +158,10 @@ export function resetRateLimit(identifier: string): void {
 /**
  * Get rate limit info without incrementing
  */
-export function getRateLimitInfo(identifier: string, config: RateLimitConfig): {
+export function getRateLimitInfo(
+  identifier: string,
+  config: RateLimitConfig
+): {
   count: number;
   remaining: number;
   resetTime: number;
@@ -186,7 +195,7 @@ export function withRateLimit(config: RateLimitConfig) {
     const result = checkRateLimit(identifier, config);
 
     if (!result.allowed) {
-      const error = new Error('Rate limit exceeded');
+      const error = new Error("Rate limit exceeded");
       (error as any).statusCode = 429;
       (error as any).retryAfter = result.retryAfter;
       (error as any).resetTime = result.resetTime;
@@ -204,8 +213,8 @@ export function withRateLimit(config: RateLimitConfig) {
  * Get identifier from request (IP + User ID)
  */
 export function getRequestIdentifier(req: Request, userId?: string): string {
-  const forwarded = req.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
+  const forwarded = req.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
 
   // Combine IP and user ID for better tracking
   return userId ? `${userId}:${ip}` : `ip:${ip}`;
@@ -223,38 +232,46 @@ export function detectBot(req: Request): {
   let botScore = 0;
 
   // Check User-Agent
-  const userAgent = req.headers.get('user-agent') || '';
+  const userAgent = req.headers.get("user-agent") || "";
   const botUserAgents = [
-    'bot', 'crawler', 'spider', 'scraper', 'curl', 'wget',
-    'python', 'java', 'Go-http-client', 'okhttp'
+    "bot",
+    "crawler",
+    "spider",
+    "scraper",
+    "curl",
+    "wget",
+    "python",
+    "java",
+    "Go-http-client",
+    "okhttp",
   ];
 
   if (!userAgent) {
     botScore += 0.5;
-    reasons.push('Missing User-Agent');
-  } else if (botUserAgents.some(bot => userAgent.toLowerCase().includes(bot))) {
+    reasons.push("Missing User-Agent");
+  } else if (botUserAgents.some((bot) => userAgent.toLowerCase().includes(bot))) {
     botScore += 0.8;
-    reasons.push('Bot-like User-Agent');
+    reasons.push("Bot-like User-Agent");
   }
 
   // Check for missing common browser headers
-  const acceptHeader = req.headers.get('accept');
-  if (!acceptHeader || !acceptHeader.includes('text/html')) {
+  const acceptHeader = req.headers.get("accept");
+  if (!acceptHeader || !acceptHeader.includes("text/html")) {
     botScore += 0.3;
-    reasons.push('Missing or invalid Accept header');
+    reasons.push("Missing or invalid Accept header");
   }
 
-  const acceptLanguage = req.headers.get('accept-language');
+  const acceptLanguage = req.headers.get("accept-language");
   if (!acceptLanguage) {
     botScore += 0.2;
-    reasons.push('Missing Accept-Language header');
+    reasons.push("Missing Accept-Language header");
   }
 
   // Check for automation tools
-  const referer = req.headers.get('referer') || '';
-  if (referer === '') {
+  const referer = req.headers.get("referer") || "";
+  if (referer === "") {
     botScore += 0.1;
-    reasons.push('Missing Referer (possible direct API access)');
+    reasons.push("Missing Referer (possible direct API access)");
   }
 
   // Normalize score to 0-1
@@ -291,7 +308,7 @@ export function detectAbusePatterns(
   history.push(now);
 
   // Keep only last 1 minute of history
-  const filtered = history.filter(timestamp => timestamp > now - 60000);
+  const filtered = history.filter((timestamp) => timestamp > now - 60000);
   recentActions.set(actionKey, filtered);
 
   // Flag if more than 10 identical actions in 1 minute

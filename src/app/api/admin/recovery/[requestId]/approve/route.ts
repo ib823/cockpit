@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
-import { prisma } from '@/lib/db';
-import { sendSecurityEmail } from '@/lib/email';
-import { SignJWT } from 'jose';
+import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
+import { prisma } from "@/lib/db";
+import { sendSecurityEmail } from "@/lib/email";
+import { SignJWT } from "jose";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 /**
  * Admin Approve Recovery Request
@@ -13,10 +13,7 @@ export const runtime = 'nodejs';
  *
  * Approves a user's account recovery request after identity verification
  */
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ requestId: string }> }
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ requestId: string }> }) {
   try {
     const { requestId } = await params;
     const body = await req.json().catch(() => ({}));
@@ -27,19 +24,16 @@ export async function POST(
     // ============================================
     // TODO: Get adminId from authenticated session
     if (!adminId) {
-      return NextResponse.json(
-        { ok: false, message: 'Admin ID required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ ok: false, message: "Admin ID required" }, { status: 401 });
     }
 
     const admin = await prisma.users.findUnique({
-      where: { id: adminId }
+      where: { id: adminId },
     });
 
-    if (!admin || admin.role !== 'ADMIN') {
+    if (!admin || admin.role !== "ADMIN") {
       return NextResponse.json(
-        { ok: false, message: 'Unauthorized - Admin access required' },
+        { ok: false, message: "Unauthorized - Admin access required" },
         { status: 403 }
       );
     }
@@ -55,22 +49,22 @@ export async function POST(
             sessions: {
               where: {
                 expires: { gt: new Date() },
-                revokedAt: null
-              }
-            }
-          }
-        }
-      }
+                revokedAt: null,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!recoveryRequest) {
       return NextResponse.json(
-        { ok: false, message: 'Recovery request not found' },
+        { ok: false, message: "Recovery request not found" },
         { status: 404 }
       );
     }
 
-    if (recoveryRequest.status !== 'pending') {
+    if (recoveryRequest.status !== "pending") {
       return NextResponse.json(
         { ok: false, message: `Request already ${recoveryRequest.status}` },
         { status: 400 }
@@ -83,17 +77,17 @@ export async function POST(
     // 3. Generate Recovery Token
     // ============================================
     const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET_KEY || 'default-secret-change-in-production'
+      process.env.JWT_SECRET_KEY || "default-secret-change-in-production"
     );
 
     const recoveryToken = await new SignJWT({
       userId: user.id,
-      action: 'account_recovery',
+      action: "account_recovery",
       requestId,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('48h') // 48 hours to complete recovery
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("48h") // 48 hours to complete recovery
       .setIssuedAt()
       .sign(secret);
 
@@ -105,11 +99,11 @@ export async function POST(
       prisma.accountRecoveryRequest.update({
         where: { id: requestId },
         data: {
-          status: 'approved',
+          status: "approved",
           approvedBy: adminId,
           approvedAt: new Date(),
-          notes: notes || null
-        }
+          notes: notes || null,
+        },
       }),
 
       // 4b. Revoke all active sessions
@@ -117,12 +111,12 @@ export async function POST(
         where: {
           userId: user.id,
           expires: { gt: new Date() },
-          revokedAt: null
+          revokedAt: null,
         },
         data: {
           revokedAt: new Date(),
-          revokedReason: 'account_recovery_approved'
-        }
+          revokedReason: "account_recovery_approved",
+        },
       }),
 
       // 4c. Reset TOTP (user will re-enroll)
@@ -134,13 +128,13 @@ export async function POST(
           passwordExpiresAt: new Date(), // Force password change immediately
           accountLockedAt: null, // Unlock account
           accountLockedReason: null,
-          failedLoginAttempts: 0
-        }
+          failedLoginAttempts: 0,
+        },
       }),
 
       // 4d. Delete all passkeys
       prisma.authenticator.deleteMany({
-        where: { userId: user.id }
+        where: { userId: user.id },
       }),
 
       // 4e. Invalidate all unused backup codes (optional - keep them for now)
@@ -151,16 +145,16 @@ export async function POST(
         data: {
           id: randomUUID(),
           userId: user.id,
-          type: 'ACCOUNT_RECOVERY_APPROVED',
+          type: "ACCOUNT_RECOVERY_APPROVED",
           createdAt: new Date(),
           meta: {
             requestId,
             approvedBy: adminId,
             adminEmail: admin.email,
-            sessionsRevoked: user.sessions.length
-          }
-        }
-      })
+            sessionsRevoked: user.sessions.length,
+          },
+        },
+      }),
     ]);
 
     // ============================================
@@ -168,7 +162,7 @@ export async function POST(
     // ============================================
     try {
       const recoveryEmailContent = {
-        subject: 'Account Recovery Approved - Action Required',
+        subject: "Account Recovery Approved - Action Required",
         html: `
 <!DOCTYPE html>
 <html>
@@ -240,29 +234,24 @@ export async function POST(
   </div>
 </body>
 </html>
-        `
+        `,
       };
 
-      await sendSecurityEmail(
-        user.email,
-        recoveryEmailContent.subject,
-        recoveryEmailContent.html
-      );
+      await sendSecurityEmail(user.email, recoveryEmailContent.subject, recoveryEmailContent.html);
     } catch (emailError) {
-      console.error('[RecoveryApprove] Failed to send recovery email:', emailError);
+      console.error("[RecoveryApprove] Failed to send recovery email:", emailError);
       // Don't fail the approval
     }
 
     return NextResponse.json({
       ok: true,
-      message: 'Recovery request approved successfully',
-      recoveryToken // For testing - in production, only send via email
+      message: "Recovery request approved successfully",
+      recoveryToken, // For testing - in production, only send via email
     });
-
-  } catch (error: any) {
-    console.error('[RecoveryApprove] Error:', error);
+  } catch (error: unknown) {
+    console.error("[RecoveryApprove] Error:", error);
     return NextResponse.json(
-      { ok: false, message: 'Failed to approve recovery request' },
+      { ok: false, message: "Failed to approve recovery request" },
       { status: 500 }
     );
   }

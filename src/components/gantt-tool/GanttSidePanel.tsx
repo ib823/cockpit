@@ -4,17 +4,43 @@
  * Slide-in panel for adding/editing phases, tasks, milestones, and holidays.
  */
 
-'use client';
+"use client";
 
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { X, AlertTriangle, Calendar as CalendarIcon, Flag as FlagIcon, Users, Plus, Trash2, AlertCircle, Sliders } from 'lucide-react';
-import { useState, useEffect, useMemo } from 'react';
-import { PHASE_COLOR_PRESETS, MILESTONE_COLOR_PRESETS, RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
-import type { PhaseFormData, TaskFormData, MilestoneFormData, HolidayFormData, Resource, TaskResourceAssignment } from '@/types/gantt-tool';
-import { differenceInDays, addDays } from 'date-fns';
-import { calculateWorkingDaysInclusive, addWorkingDays as addWorkingDaysUtil } from '@/lib/gantt-tool/working-days';
-import { formatGanttDate } from '@/lib/gantt-tool/date-utils';
-import { PhaseTaskResourceAllocationModal } from './PhaseTaskResourceAllocationModal';
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import {
+  X,
+  AlertTriangle,
+  Calendar as CalendarIcon,
+  Flag as FlagIcon,
+  Users,
+  Plus,
+  Trash2,
+  AlertCircle,
+  Sliders,
+} from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import {
+  PHASE_COLOR_PRESETS,
+  MILESTONE_COLOR_PRESETS,
+  RESOURCE_CATEGORIES,
+  RESOURCE_DESIGNATIONS,
+} from "@/types/gantt-tool";
+import type {
+  PhaseFormData,
+  TaskFormData,
+  MilestoneFormData,
+  HolidayFormData,
+  Resource,
+  TaskResourceAssignment,
+  GanttTask,
+} from "@/types/gantt-tool";
+import { differenceInDays, addDays } from "date-fns";
+import {
+  calculateWorkingDaysInclusive,
+  addWorkingDays as addWorkingDaysUtil,
+} from "@/lib/gantt-tool/working-days";
+import { formatGanttDate } from "@/lib/gantt-tool/date-utils";
+import { PhaseTaskResourceAllocationModal } from "./PhaseTaskResourceAllocationModal";
 
 export function GanttSidePanel() {
   const {
@@ -47,34 +73,37 @@ export function GanttSidePanel() {
   // Form components based on item type
   const renderForm = () => {
     switch (itemType) {
-      case 'phase':
+      case "phase":
         return (
           <PhaseForm
             mode={mode}
             itemId={itemId}
-            enableRealTimeUpdate={enableRealTimeUpdate && mode === 'edit'}
+            enableRealTimeUpdate={enableRealTimeUpdate && mode === "edit"}
             onSubmit={async (data) => {
               try {
-                if (mode === 'add') {
+                if (mode === "add") {
                   await addPhase(data);
-                } else if (mode === 'edit' && itemId) {
+                } else if (mode === "edit" && itemId) {
                   await updatePhase(itemId, data);
                 }
                 closeSidePanel();
               } catch (error) {
-                alert((error as Error).message || 'Failed to save phase. Please refresh the page.');
+                alert((error as Error).message || "Failed to save phase. Please refresh the page.");
               }
             }}
             updatePhase={updatePhase}
             onDelete={
-              mode === 'edit' && itemId
+              mode === "edit" && itemId
                 ? async () => {
-                    if (confirm('Delete this phase?')) {
+                    if (confirm("Delete this phase?")) {
                       try {
                         await deletePhase(itemId);
                         closeSidePanel();
                       } catch (error) {
-                        alert((error as Error).message || 'Failed to delete phase. Please refresh the page.');
+                        alert(
+                          (error as Error).message ||
+                            "Failed to delete phase. Please refresh the page."
+                        );
                       }
                     }
                   }
@@ -84,18 +113,18 @@ export function GanttSidePanel() {
           />
         );
 
-      case 'task':
+      case "task":
         return (
           <TaskForm
             mode={mode}
             itemId={itemId}
             phases={currentProject.phases}
-            enableRealTimeUpdate={enableRealTimeUpdate && mode === 'edit'}
+            enableRealTimeUpdate={enableRealTimeUpdate && mode === "edit"}
             onSubmit={async (data) => {
               try {
-                if (mode === 'add') {
+                if (mode === "add") {
                   await addTask(data);
-                } else if (mode === 'edit' && itemId) {
+                } else if (mode === "edit" && itemId) {
                   const result = getTaskById(itemId);
                   if (result) {
                     await updateTask(itemId, result.phase.id, data);
@@ -104,15 +133,15 @@ export function GanttSidePanel() {
                 closeSidePanel();
               } catch (error) {
                 // Handle race condition where phase may have been deleted
-                alert((error as Error).message || 'Failed to save task. Please refresh the page.');
+                alert((error as Error).message || "Failed to save task. Please refresh the page.");
               }
             }}
             updateTask={updateTask}
             getTaskById={getTaskById}
             onDelete={
-              mode === 'edit' && itemId
+              mode === "edit" && itemId
                 ? async () => {
-                    if (confirm('Delete this task?')) {
+                    if (confirm("Delete this task?")) {
                       try {
                         const result = getTaskById(itemId);
                         if (result) {
@@ -120,7 +149,10 @@ export function GanttSidePanel() {
                         }
                         closeSidePanel();
                       } catch (error) {
-                        alert((error as Error).message || 'Failed to delete task. Please refresh the page.');
+                        alert(
+                          (error as Error).message ||
+                            "Failed to delete task. Please refresh the page."
+                        );
                       }
                     }
                   }
@@ -129,32 +161,37 @@ export function GanttSidePanel() {
           />
         );
 
-      case 'milestone':
+      case "milestone":
         return (
           <MilestoneForm
             mode={mode}
             itemId={itemId}
             onSubmit={async (data) => {
               try {
-                if (mode === 'add') {
+                if (mode === "add") {
                   await addMilestone(data);
-                } else if (mode === 'edit' && itemId) {
+                } else if (mode === "edit" && itemId) {
                   await updateMilestone(itemId, data);
                 }
                 closeSidePanel();
               } catch (error) {
-                alert((error as Error).message || 'Failed to save milestone. Please refresh the page.');
+                alert(
+                  (error as Error).message || "Failed to save milestone. Please refresh the page."
+                );
               }
             }}
             onDelete={
-              mode === 'edit' && itemId
+              mode === "edit" && itemId
                 ? async () => {
-                    if (confirm('Delete this milestone?')) {
+                    if (confirm("Delete this milestone?")) {
                       try {
                         await deleteMilestone(itemId);
                         closeSidePanel();
                       } catch (error) {
-                        alert((error as Error).message || 'Failed to delete milestone. Please refresh the page.');
+                        alert(
+                          (error as Error).message ||
+                            "Failed to delete milestone. Please refresh the page."
+                        );
                       }
                     }
                   }
@@ -164,7 +201,7 @@ export function GanttSidePanel() {
           />
         );
 
-      case 'holiday':
+      case "holiday":
         return (
           <HolidayForm
             mode={mode}
@@ -173,7 +210,9 @@ export function GanttSidePanel() {
                 await addHoliday(data);
                 closeSidePanel();
               } catch (error) {
-                alert((error as Error).message || 'Failed to add holiday. Please refresh the page.');
+                alert(
+                  (error as Error).message || "Failed to add holiday. Please refresh the page."
+                );
               }
             }}
           />
@@ -187,17 +226,15 @@ export function GanttSidePanel() {
   return (
     <>
       {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/20 z-40"
-        onClick={closeSidePanel}
-      />
+      <div className="fixed inset-0 bg-black/20 z-40" onClick={closeSidePanel} />
 
       {/* Side Panel */}
       <div className="fixed right-0 top-0 bottom-0 w-96 bg-white shadow-2xl z-50 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">
-            {mode === 'add' ? 'Add' : 'Edit'} {itemType?.charAt(0).toUpperCase()}{itemType?.slice(1)}
+            {mode === "add" ? "Add" : "Edit"} {itemType?.charAt(0).toUpperCase()}
+            {itemType?.slice(1)}
           </h3>
           <button
             onClick={closeSidePanel}
@@ -224,7 +261,7 @@ function PhaseForm({
   enableRealTimeUpdate,
   updatePhase,
 }: {
-  mode: 'add' | 'edit' | 'view';
+  mode: "add" | "edit" | "view";
   itemId?: string;
   onSubmit: (data: PhaseFormData) => void;
   onDelete?: () => void;
@@ -236,15 +273,15 @@ function PhaseForm({
   const existingPhase = itemId ? getPhaseById(itemId) : null;
 
   const [formData, setFormData] = useState<PhaseFormData>({
-    name: existingPhase?.name || '',
-    description: existingPhase?.description || '',
+    name: existingPhase?.name || "",
+    description: existingPhase?.description || "",
     color: existingPhase?.color || PHASE_COLOR_PRESETS[0],
-    startDate: existingPhase?.startDate?.split('T')[0] || new Date().toISOString().split('T')[0],
-    endDate: existingPhase?.endDate?.split('T')[0] || new Date().toISOString().split('T')[0],
+    startDate: existingPhase?.startDate?.split("T")[0] || new Date().toISOString().split("T")[0],
+    endDate: existingPhase?.endDate?.split("T")[0] || new Date().toISOString().split("T")[0],
   });
 
-  const [workingDaysInput, setWorkingDaysInput] = useState<string>('');
-  const [calendarDaysInput, setCalendarDaysInput] = useState<string>('');
+  const [workingDaysInput, setWorkingDaysInput] = useState<string>("");
+  const [calendarDaysInput, setCalendarDaysInput] = useState<string>("");
   const [showResourceModal, setShowResourceModal] = useState(false);
 
   // Calculate working days (excludes weekends and holidays)
@@ -288,12 +325,8 @@ function PhaseForm({
     setWorkingDaysInput(value);
     const days = parseInt(value);
     if (!isNaN(days) && days > 0 && formData.startDate && currentProject) {
-      const newEnd = addWorkingDaysUtil(
-        formData.startDate,
-        days,
-        currentProject.holidays
-      );
-      setFormData({ ...formData, endDate: newEnd.toISOString().split('T')[0] });
+      const newEnd = addWorkingDaysUtil(formData.startDate, days, currentProject.holidays);
+      setFormData({ ...formData, endDate: newEnd.toISOString().split("T")[0] });
     }
   };
 
@@ -303,7 +336,7 @@ function PhaseForm({
     const days = parseInt(value);
     if (!isNaN(days) && days > 0 && formData.startDate) {
       const newEnd = addDays(new Date(formData.startDate), days);
-      setFormData({ ...formData, endDate: newEnd.toISOString().split('T')[0] });
+      setFormData({ ...formData, endDate: newEnd.toISOString().split("T")[0] });
     }
   };
 
@@ -311,7 +344,12 @@ function PhaseForm({
   const handleStartDateChange = (newStartDate: string) => {
     setFormData({ ...formData, startDate: newStartDate });
     // If we have a working days duration, update end date to maintain it
-    if (workingDaysInput && !isNaN(parseInt(workingDaysInput)) && parseInt(workingDaysInput) > 0 && currentProject) {
+    if (
+      workingDaysInput &&
+      !isNaN(parseInt(workingDaysInput)) &&
+      parseInt(workingDaysInput) > 0 &&
+      currentProject
+    ) {
       // Validate the date before processing
       const testDate = new Date(newStartDate);
       if (!newStartDate || isNaN(testDate.getTime())) {
@@ -320,15 +358,15 @@ function PhaseForm({
 
       try {
         const days = parseInt(workingDaysInput);
-        const newEnd = addWorkingDaysUtil(
-          newStartDate,
-          days,
-          currentProject.holidays
-        );
-        setFormData({ ...formData, startDate: newStartDate, endDate: newEnd.toISOString().split('T')[0] });
+        const newEnd = addWorkingDaysUtil(newStartDate, days, currentProject.holidays);
+        setFormData({
+          ...formData,
+          startDate: newStartDate,
+          endDate: newEnd.toISOString().split("T")[0],
+        });
       } catch (error) {
         // Ignore errors from invalid dates during input
-        console.warn('Date calculation skipped:', error);
+        console.warn("Date calculation skipped:", error);
       }
     }
   };
@@ -337,53 +375,53 @@ function PhaseForm({
   const warnings = useMemo(() => {
     if (!formData.startDate || !formData.endDate || !currentProject) return [];
 
-    const warnings: Array<{ type: 'milestone' | 'holiday'; message: string }> = [];
+    const warnings: Array<{ type: "milestone" | "holiday"; message: string }> = [];
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     const oneWeekBefore = addDays(start, -7);
     const oneWeekAfter = addDays(end, 7);
 
     // Check milestones
-    currentProject.milestones.forEach(milestone => {
+    currentProject.milestones.forEach((milestone) => {
       const milestoneDate = new Date(milestone.date);
       if (milestoneDate >= start && milestoneDate <= end) {
         warnings.push({
-          type: 'milestone',
-          message: `Milestone "${milestone.name}" falls within this phase (${formatGanttDate(milestone.date)})`
+          type: "milestone",
+          message: `Milestone "${milestone.name}" falls within this phase (${formatGanttDate(milestone.date)})`,
         });
       } else if (milestoneDate >= oneWeekBefore && milestoneDate < start) {
         warnings.push({
-          type: 'milestone',
-          message: `Milestone "${milestone.name}" is within 1 week before phase start (${formatGanttDate(milestone.date)})`
+          type: "milestone",
+          message: `Milestone "${milestone.name}" is within 1 week before phase start (${formatGanttDate(milestone.date)})`,
         });
       } else if (milestoneDate > end && milestoneDate <= oneWeekAfter) {
         warnings.push({
-          type: 'milestone',
-          message: `Milestone "${milestone.name}" is within 1 week after phase end (${formatGanttDate(milestone.date)})`
+          type: "milestone",
+          message: `Milestone "${milestone.name}" is within 1 week after phase end (${formatGanttDate(milestone.date)})`,
         });
       }
     });
 
     // Check holidays
-    currentProject.holidays.forEach(holiday => {
+    currentProject.holidays.forEach((holiday) => {
       const holidayDate = new Date(holiday.date);
       const dayOfWeek = holidayDate.getDay();
       // Only weekday holidays
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         if (holidayDate >= start && holidayDate <= end) {
           warnings.push({
-            type: 'holiday',
-            message: `Public holiday "${holiday.name}" falls within this phase (${formatGanttDate(holidayDate)})`
+            type: "holiday",
+            message: `Public holiday "${holiday.name}" falls within this phase (${formatGanttDate(holidayDate)})`,
           });
         } else if (holidayDate >= oneWeekBefore && holidayDate < start) {
           warnings.push({
-            type: 'holiday',
-            message: `Public holiday "${holiday.name}" is within 1 week before phase start (${formatGanttDate(holidayDate)})`
+            type: "holiday",
+            message: `Public holiday "${holiday.name}" is within 1 week before phase start (${formatGanttDate(holidayDate)})`,
           });
         } else if (holidayDate > end && holidayDate <= oneWeekAfter) {
           warnings.push({
-            type: 'holiday',
-            message: `Public holiday "${holiday.name}" is within 1 week after phase end (${formatGanttDate(holidayDate)})`
+            type: "holiday",
+            message: `Public holiday "${holiday.name}" is within 1 week after phase end (${formatGanttDate(holidayDate)})`,
           });
         }
       }
@@ -395,7 +433,7 @@ function PhaseForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.startDate || !formData.endDate) {
-      alert('Please fill in all required fields');
+      alert("Please fill in all required fields");
       return;
     }
     onSubmit(formData);
@@ -439,7 +477,7 @@ function PhaseForm({
               type="button"
               onClick={() => setFormData({ ...formData, color })}
               className={`w-10 h-10 rounded-lg border-2 transition-all ${
-                formData.color === color ? 'border-gray-900 scale-110' : 'border-gray-300'
+                formData.color === color ? "border-gray-900 scale-110" : "border-gray-300"
               }`}
               style={{ backgroundColor: color }}
             />
@@ -448,7 +486,7 @@ function PhaseForm({
       </div>
 
       {/* Manage Resources Button - Only in edit mode */}
-      {mode === 'edit' && itemId && (
+      {mode === "edit" && itemId && (
         <div className="pt-4 border-t border-gray-200">
           <button
             type="button"
@@ -495,15 +533,15 @@ function PhaseForm({
                 placeholder="WD"
                 required
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">WD</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">
+                WD
+              </span>
             </div>
             <p className="text-xs text-blue-600 mt-1">Business days only</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Calendar Days
-            </label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Calendar Days</label>
             <div className="relative">
               <input
                 type="number"
@@ -513,7 +551,9 @@ function PhaseForm({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-700"
                 placeholder="CD"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">CD</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">
+                CD
+              </span>
             </div>
             <p className="text-xs text-gray-500 mt-1">All days (incl. weekends)</p>
           </div>
@@ -529,20 +569,19 @@ function PhaseForm({
               onClick={() => {
                 const { openSidePanel, addMilestone } = useGanttToolStoreV2.getState();
                 // Quick add milestone at end date
-                const milestoneName = `${formData.name || 'Phase'} Complete`;
+                const milestoneName = `${formData.name || "Phase"} Complete`;
                 addMilestone({
                   name: milestoneName,
-                  description: `Completion of ${formData.name || 'phase'}`,
+                  description: `Completion of ${formData.name || "phase"}`,
                   date: formData.endDate,
-                  icon: '🎯',
-                  color: formData.color || '#10B981',
+                  icon: "🎯",
+                  color: formData.color || "#10B981",
                 });
               }}
               className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
               title="Create milestone at end date"
             >
-              <FlagIcon className="w-3 h-3" />
-              + Milestone
+              <FlagIcon className="w-3 h-3" />+ Milestone
             </button>
           </div>
           <input
@@ -552,7 +591,9 @@ function PhaseForm({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">💡 Click "+ Milestone" to mark phase completion</p>
+          <p className="text-xs text-gray-500 mt-1">
+            💡 Click "+ Milestone" to mark phase completion
+          </p>
         </div>
       </div>
 
@@ -563,12 +604,12 @@ function PhaseForm({
             <div
               key={idx}
               className={`p-3 rounded-lg border flex items-start gap-2 ${
-                warning.type === 'milestone'
-                  ? 'bg-purple-50 border-purple-200'
-                  : 'bg-orange-50 border-orange-200'
+                warning.type === "milestone"
+                  ? "bg-purple-50 border-purple-200"
+                  : "bg-orange-50 border-orange-200"
               }`}
             >
-              {warning.type === 'milestone' ? (
+              {warning.type === "milestone" ? (
                 <FlagIcon className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
               ) : (
                 <CalendarIcon className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
@@ -577,7 +618,7 @@ function PhaseForm({
                 <div className="flex items-center gap-2 mb-1">
                   <AlertTriangle className="w-3.5 h-3.5 text-yellow-600" />
                   <span className="text-xs font-semibold text-gray-700">
-                    {warning.type === 'milestone' ? 'Milestone Alert' : 'Holiday Alert'}
+                    {warning.type === "milestone" ? "Milestone Alert" : "Holiday Alert"}
                   </span>
                 </div>
                 <p className="text-xs text-gray-600">{warning.message}</p>
@@ -601,12 +642,12 @@ function PhaseForm({
           type="submit"
           className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          {mode === 'add' ? 'Add Phase' : 'Save Changes'}
+          {mode === "add" ? "Add Phase" : "Save Changes"}
         </button>
       </div>
 
       {/* Resource Allocation Modal */}
-      {showResourceModal && mode === 'edit' && itemId && (
+      {showResourceModal && mode === "edit" && itemId && (
         <PhaseTaskResourceAllocationModal
           itemId={itemId}
           itemType="phase"
@@ -628,7 +669,7 @@ function TaskForm({
   enableRealTimeUpdate,
   updateTask,
 }: {
-  mode: 'add' | 'edit' | 'view';
+  mode: "add" | "edit" | "view";
   itemId?: string;
   phases: any[];
   onSubmit: (data: TaskFormData) => void;
@@ -640,25 +681,24 @@ function TaskForm({
   const existingTask = itemId ? getTaskById(itemId) : null;
 
   const [formData, setFormData] = useState<TaskFormData>({
-    name: existingTask?.task.name || '',
-    description: existingTask?.task.description || '',
-    phaseId: existingTask?.phase.id || phases[0]?.id || '',
-    startDate: existingTask?.task.startDate?.split('T')[0] || new Date().toISOString().split('T')[0],
-    endDate: existingTask?.task.endDate?.split('T')[0] || new Date().toISOString().split('T')[0],
-    assignee: existingTask?.task.assignee || '',
+    name: existingTask?.task.name || "",
+    description: existingTask?.task.description || "",
+    phaseId: existingTask?.phase.id || phases[0]?.id || "",
+    startDate:
+      existingTask?.task.startDate?.split("T")[0] || new Date().toISOString().split("T")[0],
+    endDate: existingTask?.task.endDate?.split("T")[0] || new Date().toISOString().split("T")[0],
+    assignee: existingTask?.task.assignee || "",
     parentTaskId: existingTask?.task.parentTaskId || null,
   });
 
-  const [workingDaysInput, setWorkingDaysInput] = useState<string>('');
-  const [calendarDaysInput, setCalendarDaysInput] = useState<string>('');
+  const [workingDaysInput, setWorkingDaysInput] = useState<string>("");
+  const [calendarDaysInput, setCalendarDaysInput] = useState<string>("");
   const [showAllocationModal, setShowAllocationModal] = useState(false);
 
-  const {
-    currentProject,
-  } = useGanttToolStoreV2();
+  const { currentProject } = useGanttToolStoreV2();
 
   // Get selected phase for validation
-  const selectedPhase = phases.find(p => p.id === formData.phaseId);
+  const selectedPhase = phases.find((p) => p.id === formData.phaseId);
 
   // Calculate working days (excludes weekends and holidays)
   const workingDays = useMemo(() => {
@@ -684,7 +724,14 @@ function TaskForm({
 
   // Real-time update in edit mode
   useEffect(() => {
-    if (enableRealTimeUpdate && updateTask && itemId && formData.startDate && formData.endDate && existingTask) {
+    if (
+      enableRealTimeUpdate &&
+      updateTask &&
+      itemId &&
+      formData.startDate &&
+      formData.endDate &&
+      existingTask
+    ) {
       const timer = setTimeout(() => {
         updateTask(itemId, existingTask.phase.id, {
           startDate: formData.startDate,
@@ -694,19 +741,22 @@ function TaskForm({
 
       return () => clearTimeout(timer);
     }
-  }, [formData.startDate, formData.endDate, enableRealTimeUpdate, updateTask, itemId, existingTask]);
+  }, [
+    formData.startDate,
+    formData.endDate,
+    enableRealTimeUpdate,
+    updateTask,
+    itemId,
+    existingTask,
+  ]);
 
   // Handle working days change - update end date
   const handleWorkingDaysChange = (value: string) => {
     setWorkingDaysInput(value);
     const days = parseInt(value);
     if (!isNaN(days) && days > 0 && formData.startDate && currentProject) {
-      const newEnd = addWorkingDaysUtil(
-        formData.startDate,
-        days,
-        currentProject.holidays
-      );
-      setFormData({ ...formData, endDate: newEnd.toISOString().split('T')[0] });
+      const newEnd = addWorkingDaysUtil(formData.startDate, days, currentProject.holidays);
+      setFormData({ ...formData, endDate: newEnd.toISOString().split("T")[0] });
     }
   };
 
@@ -716,7 +766,7 @@ function TaskForm({
     const days = parseInt(value);
     if (!isNaN(days) && days > 0 && formData.startDate) {
       const newEnd = addDays(new Date(formData.startDate), days);
-      setFormData({ ...formData, endDate: newEnd.toISOString().split('T')[0] });
+      setFormData({ ...formData, endDate: newEnd.toISOString().split("T")[0] });
     }
   };
 
@@ -724,7 +774,12 @@ function TaskForm({
   const handleStartDateChange = (newStartDate: string) => {
     setFormData({ ...formData, startDate: newStartDate });
     // If we have a working days duration, update end date to maintain it
-    if (workingDaysInput && !isNaN(parseInt(workingDaysInput)) && parseInt(workingDaysInput) > 0 && currentProject) {
+    if (
+      workingDaysInput &&
+      !isNaN(parseInt(workingDaysInput)) &&
+      parseInt(workingDaysInput) > 0 &&
+      currentProject
+    ) {
       // Validate the date before processing
       const testDate = new Date(newStartDate);
       if (!newStartDate || isNaN(testDate.getTime())) {
@@ -733,15 +788,15 @@ function TaskForm({
 
       try {
         const days = parseInt(workingDaysInput);
-        const newEnd = addWorkingDaysUtil(
-          newStartDate,
-          days,
-          currentProject.holidays
-        );
-        setFormData({ ...formData, startDate: newStartDate, endDate: newEnd.toISOString().split('T')[0] });
+        const newEnd = addWorkingDaysUtil(newStartDate, days, currentProject.holidays);
+        setFormData({
+          ...formData,
+          startDate: newStartDate,
+          endDate: newEnd.toISOString().split("T")[0],
+        });
       } catch (error) {
         // Ignore errors from invalid dates during input
-        console.warn('Date calculation skipped:', error);
+        console.warn("Date calculation skipped:", error);
       }
     }
   };
@@ -750,53 +805,53 @@ function TaskForm({
   const warnings = useMemo(() => {
     if (!formData.startDate || !formData.endDate || !currentProject) return [];
 
-    const warnings: Array<{ type: 'milestone' | 'holiday'; message: string }> = [];
+    const warnings: Array<{ type: "milestone" | "holiday"; message: string }> = [];
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     const oneWeekBefore = addDays(start, -7);
     const oneWeekAfter = addDays(end, 7);
 
     // Check milestones
-    currentProject.milestones.forEach(milestone => {
+    currentProject.milestones.forEach((milestone) => {
       const milestoneDate = new Date(milestone.date);
       if (milestoneDate >= start && milestoneDate <= end) {
         warnings.push({
-          type: 'milestone',
-          message: `Milestone "${milestone.name}" falls within this task (${formatGanttDate(milestone.date)})`
+          type: "milestone",
+          message: `Milestone "${milestone.name}" falls within this task (${formatGanttDate(milestone.date)})`,
         });
       } else if (milestoneDate >= oneWeekBefore && milestoneDate < start) {
         warnings.push({
-          type: 'milestone',
-          message: `Milestone "${milestone.name}" is within 1 week before task start (${formatGanttDate(milestone.date)})`
+          type: "milestone",
+          message: `Milestone "${milestone.name}" is within 1 week before task start (${formatGanttDate(milestone.date)})`,
         });
       } else if (milestoneDate > end && milestoneDate <= oneWeekAfter) {
         warnings.push({
-          type: 'milestone',
-          message: `Milestone "${milestone.name}" is within 1 week after task end (${formatGanttDate(milestone.date)})`
+          type: "milestone",
+          message: `Milestone "${milestone.name}" is within 1 week after task end (${formatGanttDate(milestone.date)})`,
         });
       }
     });
 
     // Check holidays
-    currentProject.holidays.forEach(holiday => {
+    currentProject.holidays.forEach((holiday) => {
       const holidayDate = new Date(holiday.date);
       const dayOfWeek = holidayDate.getDay();
       // Only weekday holidays
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         if (holidayDate >= start && holidayDate <= end) {
           warnings.push({
-            type: 'holiday',
-            message: `Public holiday "${holiday.name}" falls within this task (${formatGanttDate(holidayDate)})`
+            type: "holiday",
+            message: `Public holiday "${holiday.name}" falls within this task (${formatGanttDate(holidayDate)})`,
           });
         } else if (holidayDate >= oneWeekBefore && holidayDate < start) {
           warnings.push({
-            type: 'holiday',
-            message: `Public holiday "${holiday.name}" is within 1 week before task start (${formatGanttDate(holidayDate)})`
+            type: "holiday",
+            message: `Public holiday "${holiday.name}" is within 1 week before task start (${formatGanttDate(holidayDate)})`,
           });
         } else if (holidayDate > end && holidayDate <= oneWeekAfter) {
           warnings.push({
-            type: 'holiday',
-            message: `Public holiday "${holiday.name}" is within 1 week after task end (${formatGanttDate(holidayDate)})`
+            type: "holiday",
+            message: `Public holiday "${holiday.name}" is within 1 week after task end (${formatGanttDate(holidayDate)})`,
           });
         }
       }
@@ -808,7 +863,7 @@ function TaskForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.phaseId || !formData.startDate || !formData.endDate) {
-      alert('Please fill in all required fields');
+      alert("Please fill in all required fields");
       return;
     }
 
@@ -822,14 +877,14 @@ function TaskForm({
       if (taskStart < phaseStart || taskEnd > phaseEnd) {
         alert(
           `Task dates must be within phase boundaries:\n` +
-          `Phase: ${formatGanttDate(phaseStart)} - ${formatGanttDate(phaseEnd)}`
+            `Phase: ${formatGanttDate(phaseStart)} - ${formatGanttDate(phaseEnd)}`
         );
         return;
       }
     }
 
     if (new Date(formData.startDate) > new Date(formData.endDate)) {
-      alert('End date must be after start date');
+      alert("End date must be after start date");
       return;
     }
 
@@ -881,7 +936,8 @@ function TaskForm({
         </select>
         {selectedPhase && (
           <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-            <strong>Phase dates:</strong> {formatGanttDate(selectedPhase.startDate)} - {formatGanttDate(selectedPhase.endDate)}
+            <strong>Phase dates:</strong> {formatGanttDate(selectedPhase.startDate)} -{" "}
+            {formatGanttDate(selectedPhase.endDate)}
             <div className="text-xs mt-0.5 text-blue-600">Task must be within these dates</div>
           </div>
         )}
@@ -893,26 +949,22 @@ function TaskForm({
           Parent Task (Optional)
         </label>
         <select
-          value={formData.parentTaskId || ''}
-          onChange={(e) =>
-            setFormData({ ...formData, parentTaskId: e.target.value || null })
-          }
+          value={formData.parentTaskId || ""}
+          onChange={(e) => setFormData({ ...formData, parentTaskId: e.target.value || null })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
         >
           <option value="">None (Top-level task)</option>
           {selectedPhase?.tasks
-            .filter((t) => t.id !== itemId) // Don't allow selecting self
-            .sort((a, b) => a.order - b.order)
-            .map((t) => (
+            .filter((t: GanttTask) => t.id !== itemId) // Don't allow selecting self
+            .sort((a: GanttTask, b: GanttTask) => a.order - b.order)
+            .map((t: GanttTask) => (
               <option key={t.id} value={t.id}>
-                {'  '.repeat(t.level)}
+                {"  ".repeat(t.level)}
                 {t.name}
               </option>
             ))}
         </select>
-        <p className="mt-1 text-xs text-gray-500">
-          Select a parent task to create a subtask
-        </p>
+        <p className="mt-1 text-xs text-gray-500">Select a parent task to create a subtask</p>
       </div>
 
       <div className="space-y-4">
@@ -945,15 +997,15 @@ function TaskForm({
                 placeholder="WD"
                 required
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-purple-600">WD</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-purple-600">
+                WD
+              </span>
             </div>
             <p className="text-xs text-purple-600 mt-1">Business days only</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Calendar Days
-            </label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Calendar Days</label>
             <div className="relative">
               <input
                 type="number"
@@ -963,7 +1015,9 @@ function TaskForm({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-gray-700"
                 placeholder="CD"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">CD</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">
+                CD
+              </span>
             </div>
             <p className="text-xs text-gray-500 mt-1">All days (incl. weekends)</p>
           </div>
@@ -979,20 +1033,19 @@ function TaskForm({
               onClick={() => {
                 const { addMilestone } = useGanttToolStoreV2.getState();
                 // Quick add milestone at task end date
-                const milestoneName = `${formData.name || 'Task'} Complete`;
+                const milestoneName = `${formData.name || "Task"} Complete`;
                 addMilestone({
                   name: milestoneName,
-                  description: `Completion of ${formData.name || 'task'}`,
+                  description: `Completion of ${formData.name || "task"}`,
                   date: formData.endDate,
-                  icon: '🎯',
-                  color: selectedPhase?.color || '#A855F7', // Use phase color or purple
+                  icon: "🎯",
+                  color: selectedPhase?.color || "#A855F7", // Use phase color or purple
                 });
               }}
               className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
               title="Create milestone at end date"
             >
-              <FlagIcon className="w-3 h-3" />
-              + Milestone
+              <FlagIcon className="w-3 h-3" />+ Milestone
             </button>
           </div>
           <input
@@ -1002,7 +1055,9 @@ function TaskForm({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">💡 Click "+ Milestone" to mark task completion</p>
+          <p className="text-xs text-gray-500 mt-1">
+            💡 Click "+ Milestone" to mark task completion
+          </p>
         </div>
       </div>
 
@@ -1013,12 +1068,12 @@ function TaskForm({
             <div
               key={idx}
               className={`p-3 rounded-lg border flex items-start gap-2 ${
-                warning.type === 'milestone'
-                  ? 'bg-purple-50 border-purple-200'
-                  : 'bg-orange-50 border-orange-200'
+                warning.type === "milestone"
+                  ? "bg-purple-50 border-purple-200"
+                  : "bg-orange-50 border-orange-200"
               }`}
             >
-              {warning.type === 'milestone' ? (
+              {warning.type === "milestone" ? (
                 <FlagIcon className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
               ) : (
                 <CalendarIcon className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
@@ -1027,7 +1082,7 @@ function TaskForm({
                 <div className="flex items-center gap-2 mb-1">
                   <AlertTriangle className="w-3.5 h-3.5 text-yellow-600" />
                   <span className="text-xs font-semibold text-gray-700">
-                    {warning.type === 'milestone' ? 'Milestone Alert' : 'Holiday Alert'}
+                    {warning.type === "milestone" ? "Milestone Alert" : "Holiday Alert"}
                   </span>
                 </div>
                 <p className="text-xs text-gray-600">{warning.message}</p>
@@ -1049,7 +1104,7 @@ function TaskForm({
       </div>
 
       {/* Manage Resources Button - Only in edit mode */}
-      {mode === 'edit' && itemId && existingTask && (
+      {mode === "edit" && itemId && existingTask && (
         <div className="pt-4 border-t border-gray-200">
           <button
             type="button"
@@ -1061,9 +1116,12 @@ function TaskForm({
             <Users className="w-5 h-5" />
           </button>
           <div className="mt-2 text-center">
-            {existingTask.task.resourceAssignments && existingTask.task.resourceAssignments.length > 0 ? (
+            {existingTask.task.resourceAssignments &&
+            existingTask.task.resourceAssignments.length > 0 ? (
               <p className="text-xs text-gray-600">
-                {existingTask.task.resourceAssignments.length} resource{existingTask.task.resourceAssignments.length !== 1 ? 's' : ''} assigned · Click to manage with sliders
+                {existingTask.task.resourceAssignments.length} resource
+                {existingTask.task.resourceAssignments.length !== 1 ? "s" : ""} assigned · Click to
+                manage with sliders
               </p>
             ) : (
               <p className="text-xs text-gray-600">
@@ -1088,12 +1146,12 @@ function TaskForm({
           type="submit"
           className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
         >
-          {mode === 'add' ? 'Add Task' : 'Save Changes'}
+          {mode === "add" ? "Add Task" : "Save Changes"}
         </button>
       </div>
 
       {/* Resource Allocation Modal */}
-      {showAllocationModal && mode === 'edit' && itemId && existingTask && (
+      {showAllocationModal && mode === "edit" && itemId && existingTask && (
         <PhaseTaskResourceAllocationModal
           itemId={itemId}
           itemType="task"
@@ -1112,7 +1170,7 @@ function MilestoneForm({
   onDelete,
   getMilestoneById,
 }: {
-  mode: 'add' | 'edit' | 'view';
+  mode: "add" | "edit" | "view";
   itemId?: string;
   onSubmit: (data: MilestoneFormData) => void;
   onDelete?: () => void;
@@ -1121,10 +1179,10 @@ function MilestoneForm({
   const existingMilestone = itemId ? getMilestoneById(itemId) : null;
 
   const [formData, setFormData] = useState<MilestoneFormData>({
-    name: existingMilestone?.name || '',
-    description: existingMilestone?.description || '',
-    date: existingMilestone?.date?.split('T')[0] || new Date().toISOString().split('T')[0],
-    icon: existingMilestone?.icon || 'flag',
+    name: existingMilestone?.name || "",
+    description: existingMilestone?.description || "",
+    date: existingMilestone?.date?.split("T")[0] || new Date().toISOString().split("T")[0],
+    icon: existingMilestone?.icon || "flag",
     color: existingMilestone?.color || MILESTONE_COLOR_PRESETS[0],
   });
 
@@ -1166,7 +1224,7 @@ function MilestoneForm({
               type="button"
               onClick={() => setFormData({ ...formData, color })}
               className={`w-10 h-10 rounded-lg border-2 ${
-                formData.color === color ? 'border-gray-900' : 'border-gray-300'
+                formData.color === color ? "border-gray-900" : "border-gray-300"
               }`}
               style={{ backgroundColor: color }}
             />
@@ -1176,12 +1234,16 @@ function MilestoneForm({
 
       <div className="flex gap-2 pt-4 border-t border-gray-200">
         {onDelete && (
-          <button type="button" onClick={onDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg">
+          <button
+            type="button"
+            onClick={onDelete}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg"
+          >
             Delete
           </button>
         )}
         <button type="submit" className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg">
-          {mode === 'add' ? 'Add Milestone' : 'Save Changes'}
+          {mode === "add" ? "Add Milestone" : "Save Changes"}
         </button>
       </div>
     </form>
@@ -1189,12 +1251,18 @@ function MilestoneForm({
 }
 
 // --- Holiday Form ---
-function HolidayForm({ mode, onSubmit }: { mode: 'add' | 'edit' | 'view'; onSubmit: (data: HolidayFormData) => void }) {
+function HolidayForm({
+  mode,
+  onSubmit,
+}: {
+  mode: "add" | "edit" | "view";
+  onSubmit: (data: HolidayFormData) => void;
+}) {
   const [formData, setFormData] = useState<HolidayFormData>({
-    name: '',
-    date: new Date().toISOString().split('T')[0],
-    region: 'Global',
-    type: 'public',
+    name: "",
+    date: new Date().toISOString().split("T")[0],
+    region: "Global",
+    type: "public",
   });
 
   const handleSubmit = (e: React.FormEvent) => {

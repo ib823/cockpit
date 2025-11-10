@@ -6,7 +6,7 @@
  * chunks that can be saved sequentially.
  */
 
-import type { ProjectDelta } from '@/types/gantt-tool';
+import type { ProjectDelta } from "@/types/gantt-tool";
 
 export interface DeltaBatch {
   batch: ProjectDelta;
@@ -35,35 +35,35 @@ function countDeltaItems(delta: ProjectDelta): number {
   let count = 0;
 
   if (delta.phases) {
-    count += (delta.phases.created?.length || 0);
-    count += (delta.phases.updated?.length || 0);
-    count += (delta.phases.deleted?.length || 0);
+    count += delta.phases.created?.length || 0;
+    count += delta.phases.updated?.length || 0;
+    count += delta.phases.deleted?.length || 0;
 
     // Count tasks within phases
-    delta.phases.created?.forEach(phase => {
-      count += (phase.tasks?.length || 0);
+    delta.phases.created?.forEach((phase) => {
+      count += phase.tasks?.length || 0;
     });
-    delta.phases.updated?.forEach(phase => {
-      count += (phase.tasks?.length || 0);
+    delta.phases.updated?.forEach((phase) => {
+      count += phase.tasks?.length || 0;
     });
   }
 
   if (delta.resources) {
-    count += (delta.resources.created?.length || 0);
-    count += (delta.resources.updated?.length || 0);
-    count += (delta.resources.deleted?.length || 0);
+    count += delta.resources.created?.length || 0;
+    count += delta.resources.updated?.length || 0;
+    count += delta.resources.deleted?.length || 0;
   }
 
   if (delta.milestones) {
-    count += (delta.milestones.created?.length || 0);
-    count += (delta.milestones.updated?.length || 0);
-    count += (delta.milestones.deleted?.length || 0);
+    count += delta.milestones.created?.length || 0;
+    count += delta.milestones.updated?.length || 0;
+    count += delta.milestones.deleted?.length || 0;
   }
 
   if (delta.holidays) {
-    count += (delta.holidays.created?.length || 0);
-    count += (delta.holidays.updated?.length || 0);
-    count += (delta.holidays.deleted?.length || 0);
+    count += delta.holidays.created?.length || 0;
+    count += delta.holidays.updated?.length || 0;
+    count += delta.holidays.deleted?.length || 0;
   }
 
   return count;
@@ -118,7 +118,7 @@ export function batchDelta(delta: ProjectDelta): DeltaBatch[] {
         batch,
         batchNumber: ++batchNumber,
         totalBatches: 0,
-        description: 'Saving project metadata',
+        description: "Saving project metadata",
       });
     }
   }
@@ -146,13 +146,13 @@ export function batchDelta(delta: ProjectDelta): DeltaBatch[] {
       },
       batchNumber: ++batchNumber,
       totalBatches: 0,
-      description: 'Saving milestones and holidays',
+      description: "Saving milestones and holidays",
     });
   }
 
   // Set total batches count
   const totalBatches = batches.length;
-  batches.forEach(b => b.totalBatches = totalBatches);
+  batches.forEach((b) => (b.totalBatches = totalBatches));
 
   return batches;
 }
@@ -160,12 +160,8 @@ export function batchDelta(delta: ProjectDelta): DeltaBatch[] {
 /**
  * Batch resources into smaller chunks
  */
-function batchResources(resources: {
-  created?: any[];
-  updated?: any[];
-  deleted?: string[];
-}) {
-  const batches: typeof resources[] = [];
+function batchResources(resources: { created?: any[]; updated?: any[]; deleted?: string[] }) {
+  const batches: (typeof resources)[] = [];
   const maxPerBatch = BATCH_THRESHOLDS.maxResourcesPerBatch;
 
   // Calculate how many batches we need
@@ -182,7 +178,10 @@ function batchResources(resources: {
   let currentBatch: typeof resources = {};
   let currentBatchSize = 0;
 
-  const addToBatch = (items: any[] | string[] | undefined, type: 'created' | 'updated' | 'deleted') => {
+  const addToBatch = (
+    items: any[] | string[] | undefined,
+    type: "created" | "updated" | "deleted"
+  ) => {
     if (!items || items.length === 0) return;
 
     for (const item of items) {
@@ -201,9 +200,9 @@ function batchResources(resources: {
   };
 
   // Process in order: created -> updated -> deleted
-  addToBatch(resources.created, 'created');
-  addToBatch(resources.updated, 'updated');
-  addToBatch(resources.deleted, 'deleted');
+  addToBatch(resources.created, "created");
+  addToBatch(resources.updated, "updated");
+  addToBatch(resources.deleted, "deleted");
 
   // Add remaining batch
   if (currentBatchSize > 0) {
@@ -216,12 +215,8 @@ function batchResources(resources: {
 /**
  * Batch phases into smaller chunks
  */
-function batchPhases(phases: {
-  created?: any[];
-  updated?: any[];
-  deleted?: string[];
-}) {
-  const batches: typeof phases[] = [];
+function batchPhases(phases: { created?: any[]; updated?: any[]; deleted?: string[] }) {
+  const batches: (typeof phases)[] = [];
   const maxPerBatch = BATCH_THRESHOLDS.maxPhasesPerBatch;
 
   // For phases, we need to be careful because they include tasks
@@ -243,11 +238,7 @@ function batchPhases(phases: {
     ? [phases.deleted.slice(0, maxPerBatch * 2)] // Deletes are cheap, allow more
     : [];
 
-  const maxBatches = Math.max(
-    createdBatches.length,
-    updatedBatches.length,
-    deletedBatches.length
-  );
+  const maxBatches = Math.max(createdBatches.length, updatedBatches.length, deletedBatches.length);
 
   for (let i = 0; i < maxBatches; i++) {
     const batch: typeof phases = {};

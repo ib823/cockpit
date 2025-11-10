@@ -1,8 +1,8 @@
 /**
  * Manual Chip Entry Modal
- * 
+ *
  * Allows users to manually add missing chips with validation
- * 
+ *
  * SECURITY: Input sanitization, rate limiting, XSS prevention
  * ACCESSIBILITY: Keyboard navigation, ARIA labels, focus management
  * UX: Steve Jobs minimalism - simple, clear, beautiful
@@ -11,12 +11,12 @@
 "use client";
 
 import {
-    checkRateLimit,
-    CHIP_DEFAULTS,
-    CHIP_VALIDATION,
-    getInputType,
-    sanitizeChipValue,
-    validateChipValue,
+  checkRateLimit,
+  CHIP_DEFAULTS,
+  CHIP_VALIDATION,
+  getInputType,
+  sanitizeChipValue,
+  validateChipValue,
 } from "@/lib/chip-defaults";
 import { ChipType } from "@/types/core";
 import { AnimatePresence, motion } from "framer-motion";
@@ -30,17 +30,12 @@ interface ManualChipEntryProps {
   missingGaps: string[];
 }
 
-export function ManualChipEntry({
-  isOpen,
-  onClose,
-  onAddChip,
-  missingGaps,
-}: ManualChipEntryProps) {
+export function ManualChipEntry({ isOpen, onClose, onAddChip, missingGaps }: ManualChipEntryProps) {
   const [selectedType, setSelectedType] = useState<ChipType | "">("");
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  
+
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +52,7 @@ export function ManualChipEntry({
   // Focus first input when modal opens
   useEffect(() => {
     if (isOpen && modalRef.current) {
-      const firstInput = modalRef.current.querySelector('select, input') as HTMLElement;
+      const firstInput = modalRef.current.querySelector("select, input") as HTMLElement;
       firstInput?.focus();
     }
   }, [isOpen]);
@@ -69,7 +64,7 @@ export function ManualChipEntry({
         onClose();
       }
     };
-    
+
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
@@ -85,7 +80,7 @@ export function ManualChipEntry({
     setSelectedType(newType);
     setError(null);
     setSuccess(false);
-    
+
     // Auto-fill with default value
     if (newType && CHIP_DEFAULTS[newType as ChipType]) {
       setValue(CHIP_DEFAULTS[newType as ChipType].value);
@@ -102,7 +97,7 @@ export function ManualChipEntry({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedType) {
       setError("Please select a chip type");
       return;
@@ -116,10 +111,10 @@ export function ManualChipEntry({
 
     // SECURITY: Sanitize input
     const sanitizedValue = sanitizeChipValue(value);
-    
+
     // Validate
     const validation = validateChipValue(selectedType as ChipType, sanitizedValue);
-    
+
     if (!validation.isValid) {
       setError(validation.error || "Invalid value");
       return;
@@ -127,16 +122,16 @@ export function ManualChipEntry({
 
     // Add chip
     onAddChip(selectedType as ChipType, sanitizedValue);
-    
+
     // Show success
     setSuccess(true);
-    
+
     // Reset form after short delay
     setTimeout(() => {
       setSelectedType("");
       setValue("");
       setSuccess(false);
-      
+
       // Keep modal open for adding more chips
       // User can close manually
     }, 1000);
@@ -144,7 +139,7 @@ export function ManualChipEntry({
 
   const currentDefaults = selectedType ? CHIP_DEFAULTS[selectedType as ChipType] : null;
   const currentValidation = selectedType ? CHIP_VALIDATION[selectedType as ChipType] : null;
-  const inputType = selectedType ? getInputType(selectedType as ChipType) : 'text';
+  const inputType = selectedType ? getInputType(selectedType as ChipType) : "text";
 
   if (!isOpen) return null;
 
@@ -182,19 +177,14 @@ export function ManualChipEntry({
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-blue-100 text-sm mt-1">
-              Fill in missing requirements to continue
-            </p>
+            <p className="text-blue-100 text-sm mt-1">Fill in missing requirements to continue</p>
           </div>
 
           {/* Body */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {/* Chip Type Selector */}
             <div>
-              <label
-                htmlFor="chip-type"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="chip-type" className="block text-sm font-medium text-gray-700 mb-2">
                 What information do you want to add?
               </label>
               <select
@@ -207,7 +197,7 @@ export function ManualChipEntry({
                 <option value="">-- Select Type --</option>
                 {missingGaps.map((gap) => (
                   <option key={gap} value={gap}>
-                    {gap.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                    {gap.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
                   </option>
                 ))}
               </select>
@@ -226,8 +216,8 @@ export function ManualChipEntry({
                 >
                   Value
                 </label>
-                
-                {inputType === 'select' && currentValidation?.options ? (
+
+                {inputType === "select" && currentValidation?.options ? (
                   <select
                     id="chip-value"
                     ref={inputRef as React.RefObject<HTMLSelectElement>}
@@ -249,7 +239,7 @@ export function ManualChipEntry({
                   <input
                     id="chip-value"
                     ref={inputRef as React.RefObject<HTMLInputElement>}
-                    type={inputType === 'number' ? 'number' : 'text'}
+                    type={inputType === "number" ? "number" : "text"}
                     value={value}
                     onChange={(e) => handleValueChange(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 interface AccessCodeModalProps {
   isOpen: boolean;
@@ -10,7 +10,13 @@ interface AccessCodeModalProps {
   magicUrl?: string;
 }
 
-export default function AccessCodeModal({ isOpen, onClose, email, code, magicUrl }: AccessCodeModalProps) {
+export default function AccessCodeModal({
+  isOpen,
+  onClose,
+  email,
+  code,
+  magicUrl,
+}: AccessCodeModalProps) {
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -20,7 +26,7 @@ export default function AccessCodeModal({ isOpen, onClose, email, code, magicUrl
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   };
 
@@ -31,12 +37,12 @@ export default function AccessCodeModal({ isOpen, onClose, email, code, magicUrl
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   };
 
   const handleOpenEmail = () => {
-    const subject = 'Welcome to Cockpit - Your Access is Ready!';
+    const subject = "Welcome to Cockpit - Your Access is Ready!";
 
     const bodyText = `Hi there,
 
@@ -47,7 +53,7 @@ Choose your preferred way to login:
 ========================================
 
 MAGIC LINK (Quick Login)
-${magicUrl || 'N/A'}
+${magicUrl || "N/A"}
 Expires in: 2 minutes
 
 ========================================
@@ -89,7 +95,7 @@ This is an automated message from Keystone.`;
     const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
 
     // Try to open in a new window first (more reliable)
-    const opened = window.open(mailtoLink, '_blank');
+    const opened = window.open(mailtoLink, "_blank");
 
     // Fallback to direct location change if popup blocked
     if (!opened) {
@@ -107,16 +113,36 @@ This is an automated message from Keystone.`;
           onClick={onClose}
           className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
         >
-          <svg className="w-5 h-5 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            className="w-5 h-5 align-middle"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
 
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-8 h-8 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Access Approved!</h2>
@@ -137,9 +163,7 @@ This is an automated message from Keystone.`;
             </div>
             <div className="relative">
               <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 overflow-hidden">
-                <p className="text-xs text-blue-900 font-mono truncate text-center">
-                  {magicUrl}
-                </p>
+                <p className="text-xs text-blue-900 font-mono truncate text-center">{magicUrl}</p>
               </div>
               <button
                 onClick={handleCopyLink}
@@ -148,12 +172,17 @@ This is an automated message from Keystone.`;
                 {copiedLink ? (
                   <span className="flex items-center gap-1">
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     Copied
                   </span>
                 ) : (
-                  'Copy'
+                  "Copy"
                 )}
               </button>
             </div>
@@ -179,12 +208,17 @@ This is an automated message from Keystone.`;
               {copiedCode ? (
                 <span className="flex items-center gap-1">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   Copied
                 </span>
               ) : (
-                'Copy'
+                "Copy"
               )}
             </button>
           </div>
@@ -196,7 +230,12 @@ This is an automated message from Keystone.`;
           className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 mb-4"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
           </svg>
           Compose Email (Manual Send)
         </button>

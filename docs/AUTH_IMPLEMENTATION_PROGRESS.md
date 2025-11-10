@@ -11,9 +11,11 @@ We've successfully implemented the **foundational infrastructure** for enterpris
 ## ✅ Completed (Phase 1: Infrastructure)
 
 ### 1. Database Schema Updates
+
 **Files:** `prisma/schema.prisma`
 
 Added comprehensive security models:
+
 - **users table** - Extended with:
   - Password fields (hash, changedAt, expiresAt, history)
   - TOTP fields (encrypted secret, enabledAt)
@@ -36,7 +38,9 @@ Added comprehensive security models:
 ### 2. Core Security Libraries
 
 #### `/src/lib/security/password.ts`
+
 Comprehensive password management:
+
 - ✅ Bcrypt hashing (cost factor 12)
 - ✅ **HIBP (Have I Been Pwned) breach check** using k-anonymity API
 - ✅ Complexity validation (12+ chars, upper, lower, number, symbol)
@@ -47,7 +51,9 @@ Comprehensive password management:
 - ✅ Secure password generation
 
 #### `/src/lib/security/totp.ts`
+
 Google Authenticator-compatible TOTP:
+
 - ✅ Generate TOTP secrets (Base32, 160-bit)
 - ✅ QR code generation (DataURL format, 300x300px)
 - ✅ Verify 6-digit codes with time window (±60 seconds)
@@ -56,7 +62,9 @@ Google Authenticator-compatible TOTP:
 - ✅ Time remaining calculator
 
 #### `/src/lib/security/backup-codes.ts`
+
 Recovery code system:
+
 - ✅ Generate 10 single-use codes (8 characters each)
 - ✅ Bcrypt hashing before storage
 - ✅ Downloadable .txt file generation
@@ -65,7 +73,9 @@ Recovery code system:
 - ✅ Regeneration (invalidates old codes)
 
 #### `/src/lib/security/device-fingerprint.ts`
+
 Trusted device management:
+
 - ✅ Generate device fingerprints (SHA-256 hash)
 - ✅ Server-side fingerprinting from headers
 - ✅ Client-side fingerprint support (ready for FingerprintJS)
@@ -75,7 +85,9 @@ Trusted device management:
 - ✅ Automatic cleanup of inactive devices (90 days)
 
 #### `/src/lib/security/ip-geolocation.ts`
+
 IP intelligence and location tracking:
+
 - ✅ **Dual API support** (ipapi.co primary, ip-api.com fallback)
 - ✅ In-memory caching (1-hour TTL)
 - ✅ VPN/proxy detection
@@ -85,7 +97,9 @@ IP intelligence and location tracking:
 - ✅ Distance calculation (haversine formula)
 
 ### 3. Package Dependencies
+
 **Installed:**
+
 - `bcrypt` + `@types/bcrypt` - Password hashing
 - `speakeasy` + `@types/speakeasy` - TOTP generation/verification
 - `qrcode` + `@types/qrcode` - QR code generation
@@ -97,6 +111,7 @@ IP intelligence and location tracking:
 ## 🔄 In Progress / Next Steps
 
 ### Phase 2: Email & Communication (Tasks 10-11)
+
 - [ ] Create comprehensive email template system (8 new templates)
   - Welcome email (with TOTP setup link)
   - New device login (with "Not me" button)
@@ -112,6 +127,7 @@ IP intelligence and location tracking:
   - Delivery confirmation
 
 ### Phase 3: Account Security (Tasks 12-13)
+
 - [ ] Implement rate limiting and account lockout
   - 5 failures → 15-min lockout
   - 10 failures → 1-hour lockout
@@ -123,6 +139,7 @@ IP intelligence and location tracking:
   - User preference: 1 or 2 concurrent sessions
 
 ### Phase 4: Authentication Flows (Tasks 14-16)
+
 - [ ] Build first-time registration flow
   - Email → OTP validation → TOTP setup → Backup codes → Password creation
 - [ ] Update login flow with PASSWORD + TOTP
@@ -136,6 +153,7 @@ IP intelligence and location tracking:
   - "Having trouble?" link
 
 ### Phase 5: Account Settings UI (Tasks 17-18)
+
 - [ ] Build account settings security tab
   - Authentication methods (TOTP, Password, Passkey)
   - Session management (view active, revoke)
@@ -148,6 +166,7 @@ IP intelligence and location tracking:
   - Delete with confirmation
 
 ### Phase 6: Security Actions & Recovery (Tasks 19-23)
+
 - [ ] Implement new device/location detection
   - Send email with "Not me" button
   - Track login history
@@ -167,6 +186,7 @@ IP intelligence and location tracking:
   - 24-hour grace period
 
 ### Phase 7: Advanced Protection (Tasks 24-25)
+
 - [ ] Add session hijacking protections
   - Token rotation on privilege escalation
   - CSRF tokens
@@ -176,6 +196,7 @@ IP intelligence and location tracking:
   - Queryable history
 
 ### Phase 8: Admin & Testing (Tasks 26-27)
+
 - [ ] Build admin panel for recovery requests
 - [ ] Create security education modal
 - [ ] Write comprehensive tests
@@ -203,6 +224,7 @@ GMAIL_APP_PASSWORD=<your-password>
 ```
 
 **Generate keys now:**
+
 ```bash
 # Generate TOTP encryption key
 node -e "console.log('TOTP_ENCRYPTION_KEY=' + require('crypto').randomBytes(32).toString('hex'))"
@@ -289,17 +311,20 @@ Account Recovery:
 ## 🔐 Security Considerations (Already Implemented)
 
 ✅ **OWASP Top 10 Compliance:**
+
 - A02 (Cryptographic Failures): AES-256 for TOTP, bcrypt cost 12 for passwords
 - A04 (Insecure Design): Multi-factor authentication, device fingerprinting
 - A05 (Security Misconfiguration): Secure defaults, password complexity enforcement
 - A07 (Identification & Authentication Failures): TOTP + Password + Passkey, rate limiting (pending)
 
 ✅ **Privacy (GDPR):**
+
 - Device fingerprints are hashed (not reversible)
 - IP geolocation uses k-anonymity where possible
 - Users can view and delete trusted devices
 
 ✅ **Best Practices:**
+
 - HIBP k-anonymity model (only first 5 chars of SHA-1 hash sent)
 - TOTP secrets encrypted at rest
 - Backup codes bcrypt hashed

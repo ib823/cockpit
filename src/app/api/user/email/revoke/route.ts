@@ -1,9 +1,9 @@
-import { NextResponse, NextRequest } from 'next/server';
-import { randomUUID } from 'crypto';
-import { jwtVerify } from 'jose';
-import { prisma } from '@/lib/db';
+import { NextResponse, NextRequest } from "next/server";
+import { randomUUID } from "crypto";
+import { jwtVerify } from "jose";
+import { prisma } from "@/lib/db";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 /**
  * Email Change Revocation
@@ -15,7 +15,7 @@ export const runtime = 'nodejs';
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
-    const token = searchParams.get('token');
+    const token = searchParams.get("token");
 
     if (!token) {
       return new Response(
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
         `,
         {
           status: 400,
-          headers: { 'Content-Type': 'text/html' }
+          headers: { "Content-Type": "text/html" },
         }
       );
     }
@@ -53,12 +53,12 @@ export async function GET(req: NextRequest) {
     let payload: any;
     try {
       const secret = new TextEncoder().encode(
-        process.env.JWT_SECRET_KEY || 'default-secret-change-in-production'
+        process.env.JWT_SECRET_KEY || "default-secret-change-in-production"
       );
       const { payload: jwtPayload } = await jwtVerify(token, secret);
       payload = jwtPayload;
     } catch (jwtError) {
-      console.error('[EmailRevoke] JWT verification failed:', jwtError);
+      console.error("[EmailRevoke] JWT verification failed:", jwtError);
       return new Response(
         `
 <!DOCTYPE html>
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
         `,
         {
           status: 401,
-          headers: { 'Content-Type': 'text/html' }
+          headers: { "Content-Type": "text/html" },
         }
       );
     }
@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
     const oldEmail = payload.oldEmail as string;
     const newEmail = payload.newEmail as string;
 
-    if (!userId || action !== 'revoke_email_change') {
+    if (!userId || action !== "revoke_email_change") {
       return new Response(
         `
 <!DOCTYPE html>
@@ -118,7 +118,7 @@ export async function GET(req: NextRequest) {
         `,
         {
           status: 400,
-          headers: { 'Content-Type': 'text/html' }
+          headers: { "Content-Type": "text/html" },
         }
       );
     }
@@ -127,7 +127,7 @@ export async function GET(req: NextRequest) {
     // 2. Get User
     // ============================================
     const user = await prisma.users.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     });
 
     if (!user) {
@@ -155,7 +155,7 @@ export async function GET(req: NextRequest) {
         `,
         {
           status: 404,
-          headers: { 'Content-Type': 'text/html' }
+          headers: { "Content-Type": "text/html" },
         }
       );
     }
@@ -188,7 +188,7 @@ export async function GET(req: NextRequest) {
         `,
         {
           status: 404,
-          headers: { 'Content-Type': 'text/html' }
+          headers: { "Content-Type": "text/html" },
         }
       );
     }
@@ -202,34 +202,34 @@ export async function GET(req: NextRequest) {
         data: {
           pendingEmail: null,
           pendingEmailToken: null,
-          pendingEmailExpiresAt: null
-        }
+          pendingEmailExpiresAt: null,
+        },
       }),
 
       prisma.auditEvent.create({
         data: {
           id: randomUUID(),
           userId,
-          type: 'EMAIL_CHANGE_REVOKED',
+          type: "EMAIL_CHANGE_REVOKED",
           createdAt: new Date(),
           meta: {
             oldEmail,
             newEmail,
-            revokedBy: 'user'
-          }
-        }
-      })
+            revokedBy: "user",
+          },
+        },
+      }),
     ]);
 
     // ============================================
     // 5. Send Confirmation Email
     // ============================================
     try {
-      const { sendSecurityEmail } = await import('@/lib/email');
+      const { sendSecurityEmail } = await import("@/lib/email");
 
       await sendSecurityEmail(
         user.email,
-        'Email Change Cancelled',
+        "Email Change Cancelled",
         `
 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px;">
   <h1>✅ Email Change Cancelled</h1>
@@ -240,7 +240,7 @@ export async function GET(req: NextRequest) {
         `
       );
     } catch (emailError) {
-      console.error('[EmailRevoke] Failed to send confirmation:', emailError);
+      console.error("[EmailRevoke] Failed to send confirmation:", emailError);
       // Don't fail the request
     }
 
@@ -335,12 +335,11 @@ export async function GET(req: NextRequest) {
       `,
       {
         status: 200,
-        headers: { 'Content-Type': 'text/html' }
+        headers: { "Content-Type": "text/html" },
       }
     );
-
   } catch (error: any) {
-    console.error('[EmailRevoke] Error:', error);
+    console.error("[EmailRevoke] Error:", error);
     return new Response(
       `
 <!DOCTYPE html>
@@ -365,7 +364,7 @@ export async function GET(req: NextRequest) {
       `,
       {
         status: 500,
-        headers: { 'Content-Type': 'text/html' }
+        headers: { "Content-Type": "text/html" },
       }
     );
   }

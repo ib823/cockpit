@@ -13,11 +13,11 @@
  * });
  */
 
-'use client';
+"use client";
 
-import { Modal } from 'antd';
-import { ExclamationCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
-import { ReactNode } from 'react';
+import { Modal } from "antd";
+import { ExclamationCircleOutlined, QuestionCircleOutlined } from "@ant-design/icons";
+import { ReactNode } from "react";
 
 interface ConfirmDialogProps {
   title: string;
@@ -33,17 +33,17 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({
   title,
   description,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = "Confirm",
+  cancelText = "Cancel",
   danger = false,
   icon,
   onConfirm,
-  onCancel
+  onCancel,
 }: ConfirmDialogProps) {
   const defaultIcon = danger ? (
-    <ExclamationCircleOutlined style={{ color: '#ef4444' }} />
+    <ExclamationCircleOutlined style={{ color: "#ef4444" }} />
   ) : (
-    <QuestionCircleOutlined style={{ color: '#2563eb' }} />
+    <QuestionCircleOutlined style={{ color: "#2563eb" }} />
   );
 
   Modal.confirm({
@@ -55,23 +55,23 @@ export function ConfirmDialog({
     okButtonProps: {
       danger,
       style: {
-        height: '40px',
+        height: "40px",
         fontWeight: 500,
-        minWidth: '80px'
-      }
+        minWidth: "80px",
+      },
     },
     cancelButtonProps: {
       style: {
-        height: '40px',
+        height: "40px",
         fontWeight: 500,
-        minWidth: '80px'
-      }
+        minWidth: "80px",
+      },
     },
     centered: true,
     maskClosable: false,
     keyboard: true,
     onOk: onConfirm,
-    onCancel
+    onCancel,
   });
 }
 
@@ -79,7 +79,7 @@ export function ConfirmDialog({
  * Hook for easier confirm dialog usage
  */
 export function useConfirmDialog() {
-  const showConfirm = (options: Omit<ConfirmDialogProps, 'onConfirm' | 'onCancel'>) => {
+  const showConfirm = (options: Omit<ConfirmDialogProps, "onConfirm" | "onCancel">) => {
     return new Promise<boolean>((resolve) => {
       ConfirmDialog({
         ...options,
@@ -88,7 +88,7 @@ export function useConfirmDialog() {
         },
         onCancel: () => {
           resolve(false);
-        }
+        },
       });
     });
   };
@@ -99,28 +99,26 @@ export function useConfirmDialog() {
 /**
  * Pre-configured destructive action confirm
  */
-export function confirmDelete(
-  itemName: string,
-  additionalInfo?: string
-): Promise<boolean> {
+export function confirmDelete(itemName: string, additionalInfo?: string): Promise<boolean> {
   const confirm = useConfirmDialog();
   return confirm({
     title: `Delete ${itemName}?`,
     description: (
-      <div style={{ marginTop: '8px'>
-        <p style={{ marginBottom: '8px'>
-          This action cannot be undone. All data associated with this {itemName.toLowerCase()} will be permanently removed.
+      <div style={{ marginTop: "8px" }}>
+        <p style={{ marginBottom: "8px" }}>
+          This action cannot be undone. All data associated with this {itemName.toLowerCase()} will
+          be permanently removed.
         </p>
         {additionalInfo && (
-          <p className="text-sm", color: '#64748b', marginBottom: 0>
+          <p className="text-sm" style={{ color: "#64748b", marginBottom: 0 }}>
             {additionalInfo}
           </p>
         )}
       </div>
     ),
-    confirmText: 'Delete',
-    cancelText: 'Keep it',
-    danger: true
+    confirmText: "Delete",
+    cancelText: "Keep it",
+    danger: true,
   });
 }
 
@@ -130,11 +128,11 @@ export function confirmDelete(
 export function confirmDiscardChanges(): Promise<boolean> {
   const confirm = useConfirmDialog();
   return confirm({
-    title: 'Discard unsaved changes?',
-    description: 'You have unsaved changes. If you leave now, your changes will be lost.',
-    confirmText: 'Discard',
-    cancelText: 'Keep editing',
-    danger: true
+    title: "Discard unsaved changes?",
+    description: "You have unsaved changes. If you leave now, your changes will be lost.",
+    confirmText: "Discard",
+    cancelText: "Keep editing",
+    danger: true,
   });
 }
 
@@ -144,19 +142,19 @@ export function confirmDiscardChanges(): Promise<boolean> {
 export function confirmNavigation(destination: string): Promise<boolean> {
   const confirm = useConfirmDialog();
   return confirm({
-    title: 'Leave without saving?',
+    title: "Leave without saving?",
     description: (
       <div>
-        <p style={{ marginBottom: '8px'>
+        <p style={{ marginBottom: "8px" }}>
           You have unsaved changes. Do you want to save before leaving?
         </p>
-        <p className="text-sm", color: '#64748b', marginBottom: 0>
+        <p className="text-sm" style={{ color: "#64748b", marginBottom: 0 }}>
           Destination: {destination}
         </p>
       </div>
     ),
-    confirmText: 'Leave without saving',
-    cancelText: 'Stay and save',
-    danger: true
+    confirmText: "Leave without saving",
+    cancelText: "Stay and save",
+    danger: true,
   });
 }

@@ -1,17 +1,17 @@
-import React from 'react';
-import { Table, TableProps } from 'antd';
-import clsx from 'clsx';
-import './ant-table.css';
+import React from "react";
+import { Table, TableProps } from "antd";
+import clsx from "clsx";
+import "./ant-table.css";
 
 export interface AntDataGridProps<T> extends TableProps<T> {
-  density?: 'compact' | 'default' | 'cozy';
+  density?: "compact" | "default" | "cozy";
   zebra?: boolean;
   stickyHeader?: boolean;
   rowAccentOnHover?: boolean;
 }
 
 export function AntDataGrid<T extends object>({
-  density = 'default',
+  density = "default",
   zebra = true,
   stickyHeader = true,
   rowAccentOnHover = true,
@@ -21,11 +21,11 @@ export function AntDataGrid<T extends object>({
   return (
     <Table<T>
       className={clsx(
-        'cockpit-ant-table',
+        "cockpit-ant-table",
         `dg-density-${density}`,
-        zebra && 'dg-zebra',
-        stickyHeader && 'dg-sticky',
-        rowAccentOnHover && 'dg-hover',
+        zebra && "dg-zebra",
+        stickyHeader && "dg-sticky",
+        rowAccentOnHover && "dg-hover",
         className
       )}
       {...props}

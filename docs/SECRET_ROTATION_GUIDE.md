@@ -7,17 +7,20 @@ This guide covers the process of rotating sensitive secrets on a 90-day cycle to
 ## Rotation Policy
 
 ### Rotation Schedule
+
 - **Interval**: Every 90 days
 - **Warning Period**: 30 days before expiration
 - **Grace Period**: None - rotation should happen immediately when due
 
 ### Secrets Included in Rotation
+
 1. `NEXTAUTH_SECRET` - Session encryption key
 2. `ADMIN_PASSWORD_HASH` - Emergency admin account password
 3. `VAPID_PRIVATE_KEY` - Push notification signing key
 4. `UPSTASH_REDIS_REST_TOKEN` - Redis authentication token
 
 ### Secrets NOT Rotated Automatically
+
 - `DATABASE_URL` - Managed by database provider
 - `WEBAUTHN_RP_ID` - Fixed to domain, cannot change
 - `RESEND_API_KEY` - Managed in Resend dashboard
@@ -34,6 +37,7 @@ npx tsx scripts/rotate-secrets.ts --check
 ```
 
 **Sample Output:**
+
 ```
 🔍 SECRET ROTATION STATUS
 
@@ -62,11 +66,13 @@ npx tsx scripts/rotate-secrets.ts --check
 ### 2. Plan Rotation Window
 
 **Recommended Times:**
+
 - **Low Traffic**: Early morning or late evening
 - **Maintenance Window**: During scheduled maintenance
 - **Avoid**: Peak business hours, holidays, critical releases
 
 **Preparation Checklist:**
+
 - [ ] Notify team of planned rotation
 - [ ] Ensure backup systems are functional
 - [ ] Have rollback plan ready
@@ -81,6 +87,7 @@ npx tsx scripts/rotate-secrets.ts --rotate
 ```
 
 **Output Example:**
+
 ```
 🔐 SECRET ROTATION COMPLETE
 
@@ -117,6 +124,7 @@ UPSTASH_REDIS_REST_TOKEN:
 ### 4. Update Secrets in Environments
 
 #### Development
+
 ```bash
 # Edit .env file
 nano .env
@@ -131,6 +139,7 @@ npm run dev
 #### Staging/Production
 
 **Using Environment Variables:**
+
 ```bash
 # Vercel
 vercel env add NEXTAUTH_SECRET production
@@ -143,6 +152,7 @@ railway variables set NEXTAUTH_SECRET=<new-value>
 ```
 
 **Using Secrets Manager:**
+
 ```bash
 # AWS Secrets Manager
 aws secretsmanager update-secret \
@@ -219,6 +229,7 @@ tail -f /var/log/app.log
 If issues occur after rotation:
 
 1. **Immediate Rollback:**
+
    ```bash
    # Restore previous secrets from backup
    cp .secret-rotation.backup.TIMESTAMP.json .secret-rotation.json
@@ -247,10 +258,11 @@ A weekly workflow checks rotation status:
 name: Secret Rotation Check
 on:
   schedule:
-    - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
+    - cron: "0 9 * * 1" # Every Monday at 9 AM UTC
 ```
 
 **Actions Taken:**
+
 - ✅ Creates GitHub Issue if secrets are overdue
 - ✅ Sends Slack notification (if configured)
 - ✅ Uploads rotation status as artifact
@@ -282,12 +294,14 @@ Set up calendar reminders for rotation:
 ## Best Practices
 
 ### 1. Never Commit Secrets
+
 - ❌ Never commit `.env` files
 - ❌ Never hardcode secrets in code
 - ✅ Use environment variables
 - ✅ Use secrets managers (Vault, AWS Secrets Manager, etc.)
 
 ### 2. Rotation Hygiene
+
 - Rotate during low-traffic periods
 - Test in staging first
 - Have rollback plan ready
@@ -295,18 +309,21 @@ Set up calendar reminders for rotation:
 - Update all environments simultaneously
 
 ### 3. Secret Storage
+
 - Use different secrets per environment (dev/staging/prod)
 - Store in secure password manager (1Password, LastPass, etc.)
 - Limit access to secrets on need-to-know basis
 - Audit who has access to secrets regularly
 
 ### 4. Documentation
+
 - Document rotation in change log
 - Update runbooks with new procedures
 - Notify team of completed rotation
 - Keep rotation records backed up
 
 ### 5. Monitoring
+
 - Set up alerts for failed authentication after rotation
 - Monitor application errors post-rotation
 - Check rate limiting functionality
@@ -319,6 +336,7 @@ Set up calendar reminders for rotation:
 **Symptoms:** 500 errors, "Invalid secret" messages
 
 **Solutions:**
+
 1. Check secret format (base64, hex, etc.)
 2. Verify no extra whitespace in `.env`
 3. Ensure secrets are properly escaped
@@ -332,6 +350,7 @@ Set up calendar reminders for rotation:
 **Expected Behavior:** This is normal. All users will need to re-login.
 
 **Solutions:**
+
 1. Notify users in advance of rotation
 2. Add banner: "You will be logged out for maintenance"
 3. Consider gradual rollout if using multiple instances
@@ -341,6 +360,7 @@ Set up calendar reminders for rotation:
 **Symptoms:** Rate limiting not working, Redis errors in logs
 
 **Solutions:**
+
 1. Verify new token in Upstash console
 2. Check URL hasn't changed
 3. Test connection:
@@ -355,13 +375,15 @@ Set up calendar reminders for rotation:
 **Symptoms:** Push subscription errors, "Invalid VAPID key"
 
 **Solutions:**
+
 1. Verify both public AND private keys updated
 2. Update service worker with new public key
 3. Users need to re-subscribe to notifications
 4. Clear service worker cache:
    ```javascript
-   navigator.serviceWorker.getRegistrations()
-     .then(regs => regs.forEach(reg => reg.unregister()));
+   navigator.serviceWorker
+     .getRegistrations()
+     .then((regs) => regs.forEach((reg) => reg.unregister()));
    ```
 
 ## Compliance and Auditing
@@ -369,6 +391,7 @@ Set up calendar reminders for rotation:
 ### Security Standards
 
 This rotation policy helps meet:
+
 - **SOC 2**: Regular credential rotation requirement
 - **PCI DSS**: 90-day password rotation (for admin accounts)
 - **ISO 27001**: Access control and key management
@@ -388,12 +411,14 @@ The rotation script maintains an audit trail:
 ```
 
 **Audit Questions:**
+
 - When was each secret last rotated?
 - Are any secrets overdue?
 - Who performed the rotation?
 - Were any issues encountered?
 
 **Export audit log:**
+
 ```bash
 cat .secret-rotation.json | jq '.' > audit-report.json
 ```
@@ -403,6 +428,7 @@ cat .secret-rotation.json | jq '.' > audit-report.json
 If a secret is compromised:
 
 1. **Immediate Action:**
+
    ```bash
    # Force immediate rotation
    npx tsx scripts/rotate-secrets.ts --force

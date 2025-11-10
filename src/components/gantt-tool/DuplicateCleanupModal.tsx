@@ -4,12 +4,12 @@
  * Detects and removes duplicate phases in the current project
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Modal, Button, Checkbox, Alert, List, Typography, Empty, App } from 'antd';
-import { AlertTriangle, Trash2, CheckCircle, XCircle } from 'lucide-react';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
+import { useState, useEffect } from "react";
+import { Modal, Button, Checkbox, Alert, List, Typography, Empty, App } from "antd";
+import { AlertTriangle, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 
 const { Text, Title } = Typography;
 
@@ -62,7 +62,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
       if (phases.length > 1) {
         duplicates.push({
           phaseName: phases[0].name, // Use original name
-          phases: phases.map(p => ({
+          phases: phases.map((p) => ({
             id: p.id,
             name: p.name,
             taskCount: p.tasks.length,
@@ -77,9 +77,9 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
 
     // Auto-select all duplicates except the first one in each group
     const autoSelected = new Set<string>();
-    duplicates.forEach(group => {
+    duplicates.forEach((group) => {
       // Skip the first phase in each group (keep it), select the rest for deletion
-      group.phases.slice(1).forEach(phase => {
+      group.phases.slice(1).forEach((phase) => {
         autoSelected.add(phase.id);
       });
     });
@@ -100,24 +100,24 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
     if (!currentProject || selectedPhaseIds.size === 0) return;
 
     modal.confirm({
-      title: 'Remove Duplicate Phases?',
+      title: "Remove Duplicate Phases?",
       content: `This will permanently delete ${selectedPhaseIds.size} duplicate phase(s) and all their tasks. This action cannot be undone.`,
-      okText: 'Remove Duplicates',
-      okType: 'danger',
-      cancelText: 'Cancel',
+      okText: "Remove Duplicates",
+      okType: "danger",
+      cancelText: "Cancel",
       onOk: async () => {
         setIsRemoving(true);
 
         try {
           // Filter out selected phases
           const remainingPhases = currentProject.phases.filter(
-            phase => !selectedPhaseIds.has(phase.id)
+            (phase) => !selectedPhaseIds.has(phase.id)
           );
 
           // Update project via API
           const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               phases: remainingPhases,
             }),
@@ -135,8 +135,8 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
           message.success(`Successfully removed ${selectedPhaseIds.size} duplicate phase(s)!`);
           onClose();
         } catch (error) {
-          console.error('[DuplicateCleanup] Failed to remove duplicates:', error);
-          message.error('Failed to remove duplicates. Please try again.');
+          console.error("[DuplicateCleanup] Failed to remove duplicates:", error);
+          message.error("Failed to remove duplicates. Please try again.");
         } finally {
           setIsRemoving(false);
         }
@@ -158,9 +158,9 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
       onCancel={onClose}
       afterClose={() => {
         // PERMANENT FIX: Force cleanup of modal side effects
-        if (document.body.style.overflow === 'hidden') document.body.style.overflow = '';
-        if (document.body.style.paddingRight) document.body.style.paddingRight = '';
-        document.body.style.pointerEvents = '';
+        if (document.body.style.overflow === "hidden") document.body.style.overflow = "";
+        if (document.body.style.paddingRight) document.body.style.paddingRight = "";
+        document.body.style.pointerEvents = "";
       }}
       destroyOnHidden={true}
       footer={[
@@ -176,7 +176,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
           disabled={selectedPhaseIds.size === 0 || isRemoving}
           loading={isRemoving}
         >
-          Remove {selectedPhaseIds.size > 0 ? `${selectedPhaseIds.size} ` : ''}Selected
+          Remove {selectedPhaseIds.size > 0 ? `${selectedPhaseIds.size} ` : ""}Selected
         </Button>,
       ]}
       width={700}
@@ -205,10 +205,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
         {duplicateGroups.length > 0 && (
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {duplicateGroups.map((group, groupIndex) => (
-              <div
-                key={groupIndex}
-                className="border border-gray-200 rounded-lg p-4 bg-gray-50"
-              >
+              <div key={groupIndex} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <div className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <span className="text-orange-600">⚠️</span>
                   Duplicate: &quot;{group.phaseName}&quot;
@@ -223,9 +220,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
                   renderItem={(phase, index) => (
                     <List.Item
                       className={`${
-                        selectedPhaseIds.has(phase.id)
-                          ? 'bg-red-50 border-red-200'
-                          : 'bg-white'
+                        selectedPhaseIds.has(phase.id) ? "bg-red-50 border-red-200" : "bg-white"
                       } border rounded mb-2 px-3 transition-colors`}
                     >
                       <div className="flex items-center justify-between w-full">
@@ -269,10 +264,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
 
         {/* No duplicates state */}
         {duplicateGroups.length === 0 && (
-          <Empty
-            description="No duplicate phases found"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-          />
+          <Empty description="No duplicate phases found" image={Empty.PRESENTED_IMAGE_SIMPLE} />
         )}
       </div>
     </Modal>

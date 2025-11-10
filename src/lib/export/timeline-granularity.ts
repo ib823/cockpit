@@ -5,19 +5,25 @@
  * Extracted from v1.6 export wiring specification.
  */
 
-export type TimelineGranularity = 'W' | '2W' | 'M' | 'Q' | 'H';
+export type TimelineGranularity = "W" | "2W" | "M" | "Q" | "H";
 
 /**
  * Get bucket size in weeks for a given granularity
  */
 export function bucketSizeWeeks(granularity: TimelineGranularity): number {
   switch (granularity) {
-    case 'W': return 1;   // Weekly
-    case '2W': return 2;  // Bi-weekly
-    case 'M': return 4;   // Monthly (4 weeks)
-    case 'Q': return 13;  // Quarterly (13 weeks)
-    case 'H': return 26;  // Half-yearly (26 weeks)
-    default: return 1;
+    case "W":
+      return 1; // Weekly
+    case "2W":
+      return 2; // Bi-weekly
+    case "M":
+      return 4; // Monthly (4 weeks)
+    case "Q":
+      return 13; // Quarterly (13 weeks)
+    case "H":
+      return 26; // Half-yearly (26 weeks)
+    default:
+      return 1;
   }
 }
 
@@ -32,11 +38,11 @@ export function bucketSizeWeeks(granularity: TimelineGranularity): number {
  * - >260 weeks → H (half-yearly)
  */
 export function chooseTimelineGranularity(totalWeeks: number): TimelineGranularity {
-  if (totalWeeks <= 52) return 'W';
-  if (totalWeeks <= 104) return '2W';
-  if (totalWeeks <= 156) return 'M';
-  if (totalWeeks <= 260) return 'Q';
-  return 'H';
+  if (totalWeeks <= 52) return "W";
+  if (totalWeeks <= 104) return "2W";
+  if (totalWeeks <= 156) return "M";
+  if (totalWeeks <= 260) return "Q";
+  return "H";
 }
 
 /**
@@ -54,8 +60,8 @@ export function timelineLabels(granularity: TimelineGranularity, totalWeeks: num
   const buckets = Math.ceil(totalWeeks / size);
 
   return Array.from({ length: buckets }, (_, i) => {
-    const bucketNum = String(i + 1).padStart(2, '0');
-    return granularity === 'W' ? `W${bucketNum}` : `${granularity}-${bucketNum}`;
+    const bucketNum = String(i + 1).padStart(2, "0");
+    return granularity === "W" ? `W${bucketNum}` : `${granularity}-${bucketNum}`;
   });
 }
 
@@ -73,7 +79,7 @@ export function timelineLabels(granularity: TimelineGranularity, totalWeeks: num
 export function weekSpanToExcelColumns(
   startWeek: number,
   durationWeeks: number,
-  granularity: TimelineGranularity = 'W'
+  granularity: TimelineGranularity = "W"
 ): [number, number] {
   // Base columns A..G reserved → start at H (index 8)
   const baseCol = 8;
@@ -102,7 +108,7 @@ export function calculateTotalWeeks(startDate: Date, endDate: Date): number {
  * Format column number to Excel letter notation (1=A, 2=B, ..., 27=AA)
  */
 export function columnNumberToLetter(colNum: number): string {
-  let letter = '';
+  let letter = "";
   let num = colNum;
 
   while (num > 0) {

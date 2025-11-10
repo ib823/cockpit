@@ -9,13 +9,13 @@
  * TODO: Rewrite to use proper token hashing or remove if no longer needed
  */
 
-import { prisma } from '../src/lib/db';
-import { randomBytes, createHash } from 'crypto';
+import { prisma } from "../src/lib/db";
+import { randomBytes, createHash } from "crypto";
 
 async function main() {
-  console.log('⚠️  This script is deprecated and needs to be rewritten.');
-  console.log('The EmailApproval schema has changed.');
-  console.log('\n💡 To create an admin user, use the admin panel or API instead.');
+  console.log("⚠️  This script is deprecated and needs to be rewritten.");
+  console.log("The EmailApproval schema has changed.");
+  console.log("\n💡 To create an admin user, use the admin panel or API instead.");
 
   // Temporarily disabled - needs schema update
   /*

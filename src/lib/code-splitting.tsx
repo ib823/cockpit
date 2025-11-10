@@ -11,18 +11,21 @@
  * - Preloading strategies
  */
 
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { ComponentType, lazy, Suspense, ReactNode } from 'react';
+import dynamic from "next/dynamic";
+import { ComponentType, lazy, Suspense, ReactNode } from "react";
 
 /**
  * Loading component
  */
-export function LoadingSpinner({ message = 'Loading...' }: { message?: string }) {
+export function LoadingSpinner({ message = "Loading..." }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center" style={{ minHeight: '200px' }}>
-      <div className="animate-spin rounded-full border-b-2 border-blue-600" style={{ height: '48px', width: '48px' }} />
+    <div className="flex flex-col items-center justify-center" style={{ minHeight: "200px" }}>
+      <div
+        className="animate-spin rounded-full border-b-2 border-blue-600"
+        style={{ height: "48px", width: "48px" }}
+      />
       <p className="text-sm text-gray-600">{message}</p>
     </div>
   );
@@ -33,7 +36,7 @@ export function LoadingSpinner({ message = 'Loading...' }: { message?: string })
  */
 export function ErrorFallback({ error }: { error: Error }) {
   return (
-    <div className="flex flex-col items-center justify-center p-6" style={{ minHeight: '200px' }}>
+    <div className="flex flex-col items-center justify-center p-6" style={{ minHeight: "200px" }}>
       <div className="text-red-600 text-4xl">⚠️</div>
       <h3 className="text-lg font-semibold text-gray-900">Failed to load component</h3>
       <p className="text-sm text-gray-600">{error.message}</p>
@@ -58,7 +61,7 @@ export function lazyLoad<T extends ComponentType<any>>(
   }
 ): T {
   return dynamic(importFn, {
-    loading: () => ((options?.loading || <LoadingSpinner />) as JSX.Element),
+    loading: () => (options?.loading || <LoadingSpinner />) as JSX.Element,
     ssr: false, // Disable SSR for code-split components
   }) as T;
 }
@@ -83,12 +86,10 @@ export function lazyLoadWithRetry<T extends ComponentType<any>>(
         throw error;
       }
 
-      console.warn(
-        `[Code Splitting] Import failed, retrying... (${retriesLeft} attempts left)`
-      );
+      console.warn(`[Code Splitting] Import failed, retrying... (${retriesLeft} attempts left)`);
 
       // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
 
       return retryImport(retriesLeft - 1);
     }
@@ -103,14 +104,12 @@ export function lazyLoadWithRetry<T extends ComponentType<any>>(
 /**
  * Preload a dynamic component
  */
-export async function preloadComponent(
-  importFn: () => Promise<any>
-): Promise<void> {
+export async function preloadComponent(importFn: () => Promise<any>): Promise<void> {
   try {
     await importFn();
-    console.log('[Code Splitting] ✅ Component preloaded');
+    console.log("[Code Splitting] ✅ Component preloaded");
   } catch (error) {
-    console.error('[Code Splitting] ❌ Failed to preload component:', error);
+    console.error("[Code Splitting] ❌ Failed to preload component:", error);
   }
 }
 
@@ -120,38 +119,38 @@ export async function preloadComponent(
  */
 
 // Gantt Chart (1,453 lines)
-export const GanttCanvas = lazyLoadWithRetry<any>(
-  () => import('@/components/gantt-tool/GanttCanvas').then(m => ({ default: m.GanttCanvas }))
+export const GanttCanvas = lazyLoadWithRetry<any>(() =>
+  import("@/components/gantt-tool/GanttCanvas").then((m) => ({ default: m.GanttCanvas }))
 );
 
 // Gantt Side Panel (1,193 lines)
-export const GanttSidePanel = lazyLoadWithRetry<any>(
-  () => import('@/components/gantt-tool/GanttSidePanel').then(m => ({ default: m.GanttSidePanel }))
+export const GanttSidePanel = lazyLoadWithRetry<any>(() =>
+  import("@/components/gantt-tool/GanttSidePanel").then((m) => ({ default: m.GanttSidePanel }))
 );
 
 // Import Modal (1,319 lines)
-export const ImportModalV2 = lazyLoadWithRetry<any>(
-  () => import('@/components/gantt-tool/ImportModalV2').then(m => ({ default: m.ImportModalV2 }))
+export const ImportModalV2 = lazyLoadWithRetry<any>(() =>
+  import("@/components/gantt-tool/ImportModalV2").then((m) => ({ default: m.ImportModalV2 }))
 );
 
 // Plan Mode (1,137 lines)
-export const PlanMode = lazyLoadWithRetry<any>(
-  () => import('@/components/project-v2/modes/PlanMode').then(m => ({ default: m.PlanMode }))
+export const PlanMode = lazyLoadWithRetry<any>(() =>
+  import("@/components/project-v2/modes/PlanMode").then((m) => ({ default: m.PlanMode }))
 );
 
 // Organization Chart (1,553 lines)
 export const OrganizationChart = lazyLoad<any>(
-  () => import('@/app/organization-chart/page').then(m => ({ default: m.default || m })) as any
+  () => import("@/app/organization-chart/page").then((m) => ({ default: m.default || m })) as any
 );
 
 // Dashboard Content
-export const DashboardContent = lazyLoad<any>(
-  () => import('@/components/dashboard/DashboardContent').then(m => ({ default: m.DashboardContent }))
+export const DashboardContent = lazyLoad<any>(() =>
+  import("@/components/dashboard/DashboardContent").then((m) => ({ default: m.DashboardContent }))
 );
 
 // Export components
-export const ExportButton = lazyLoad<any>(
-  () => import('@/components/export/ExportButton').then(m => ({ default: m.ExportButton }))
+export const ExportButton = lazyLoad<any>(() =>
+  import("@/components/export/ExportButton").then((m) => ({ default: m.ExportButton }))
 );
 
 /**
@@ -159,21 +158,21 @@ export const ExportButton = lazyLoad<any>(
  * Preload components when user hovers over navigation links
  */
 export const PRELOAD_MAP: Record<string, () => void> = {
-  '/dashboard': () => {
-    preloadComponent(() => import('@/components/dashboard/DashboardContent'));
+  "/dashboard": () => {
+    preloadComponent(() => import("@/components/dashboard/DashboardContent"));
   },
-  '/gantt-tool': () => {
+  "/gantt-tool": () => {
     // Preload multiple components for gantt tool
     Promise.all([
-      preloadComponent(() => import('@/components/gantt-tool/GanttCanvas')),
-      preloadComponent(() => import('@/components/gantt-tool/GanttSidePanel')),
-      preloadComponent(() => import('@/components/gantt-tool/GanttToolbar')),
+      preloadComponent(() => import("@/components/gantt-tool/GanttCanvas")),
+      preloadComponent(() => import("@/components/gantt-tool/GanttSidePanel")),
+      preloadComponent(() => import("@/components/gantt-tool/GanttToolbar")),
     ]);
   },
-  '/project': () => {
+  "/project": () => {
     Promise.all([
-      preloadComponent(() => import('@/components/project-v2/modes/PlanMode')),
-      preloadComponent(() => import('@/components/project-v2/ProjectLayout')),
+      preloadComponent(() => import("@/components/project-v2/modes/PlanMode")),
+      preloadComponent(() => import("@/components/project-v2/ProjectLayout")),
     ]);
   },
 };
@@ -197,7 +196,7 @@ export function useLazyLoadOnScroll(
   callback: () => void,
   options?: IntersectionObserverInit
 ) {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {

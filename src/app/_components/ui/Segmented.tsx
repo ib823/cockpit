@@ -3,10 +3,10 @@
  * Equal width segments, subtle active state with inner shadow
  */
 
-'use client';
+"use client";
 
-import React from 'react';
-import { clsx } from 'clsx';
+import React from "react";
+import { clsx } from "clsx";
 
 export interface SegmentedOption {
   label: string;
@@ -19,7 +19,7 @@ export interface SegmentedProps {
   options: SegmentedOption[];
   value: string;
   onChange: (value: string) => void;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
   className?: string;
 }
@@ -28,21 +28,21 @@ export const Segmented: React.FC<SegmentedProps> = ({
   options,
   value,
   onChange,
-  size = 'md',
+  size = "md",
   fullWidth = false,
   className,
 }) => {
   const sizeClasses = {
-    sm: 'h-8 text-xs',
-    md: 'h-10 text-sm',
-    lg: 'h-12 text-base',
+    sm: "h-8 text-xs",
+    md: "h-10 text-sm",
+    lg: "h-12 text-base",
   };
 
   return (
     <div
       className={clsx(
-        'inline-flex items-center p-1 rounded-[var(--r-full)] border border-[color-mix(in_oklab,var(--ink)_10%,transparent)] bg-[var(--surface-sub)]',
-        fullWidth && 'flex w-full',
+        "inline-flex items-center p-1 rounded-[var(--r-full)] border border-[color-mix(in_oklab,var(--ink)_10%,transparent)] bg-[var(--surface-sub)]",
+        fullWidth && "flex w-full",
         className
       )}
       role="tablist"
@@ -60,21 +60,21 @@ export const Segmented: React.FC<SegmentedProps> = ({
             aria-disabled={isDisabled}
             disabled={isDisabled}
             className={clsx(
-              'flex-1 inline-flex items-center justify-center gap-2 font-medium rounded-[var(--r-full)] transition-all duration-[var(--dur)] ease-[var(--ease)]',
+              "flex-1 inline-flex items-center justify-center gap-2 font-medium rounded-[var(--r-full)] transition-all duration-[var(--dur)] ease-[var(--ease)]",
               sizeClasses[size],
-              'px-4 min-w-[80px]',
+              "px-4 min-w-[80px]",
               isActive &&
-                'bg-[var(--surface)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] text-[var(--ink)]',
-              !isActive && 'text-[var(--ink-dim)] hover:text-[var(--ink)]',
-              isDisabled && 'opacity-50 cursor-not-allowed',
-              !isDisabled && 'cursor-pointer'
+                "bg-[var(--surface)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] text-[var(--ink)]",
+              !isActive && "text-[var(--ink-dim)] hover:text-[var(--ink)]",
+              isDisabled && "opacity-50 cursor-not-allowed",
+              !isDisabled && "cursor-pointer"
             )}
             onClick={() => !isDisabled && onChange(option.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
+              if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 if (!isDisabled) onChange(option.value);
-              } else if (e.key === 'ArrowRight') {
+              } else if (e.key === "ArrowRight") {
                 e.preventDefault();
                 const currentIndex = options.findIndex((o) => o.value === value);
                 const nextIndex = (currentIndex + 1) % options.length;
@@ -82,7 +82,7 @@ export const Segmented: React.FC<SegmentedProps> = ({
                 if (!nextOption.disabled) {
                   onChange(nextOption.value);
                 }
-              } else if (e.key === 'ArrowLeft') {
+              } else if (e.key === "ArrowLeft") {
                 e.preventDefault();
                 const currentIndex = options.findIndex((o) => o.value === value);
                 const prevIndex = (currentIndex - 1 + options.length) % options.length;

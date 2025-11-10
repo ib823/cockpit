@@ -5,18 +5,18 @@
  * while data is being fetched. Much better UX than spinners.
  */
 
-'use client';
+"use client";
 
-import { Skeleton } from 'antd';
-import { colorValues } from '@/lib/design-system';
+import { Skeleton } from "antd";
+import { colorValues } from "@/lib/design-system";
 
 /**
  * Base Skeleton Line - Reusable building block
  */
 function SkeletonLine({
-  width = '100%',
-  height = '16px',
-  className = '',
+  width = "100%",
+  height = "16px",
+  className = "",
 }: {
   width?: string;
   height?: string;
@@ -28,8 +28,8 @@ function SkeletonLine({
       style={{
         width,
         height,
-        backgroundSize: '200% 100%',
-        animation: 'shimmer 1.5s infinite',
+        backgroundSize: "200% 100%",
+        animation: "shimmer 1.5s infinite",
       }}
     />
   );
@@ -188,7 +188,7 @@ export function TableRowSkeleton({ columns = 5 }: { columns?: number }) {
     <div className="flex items-center gap-4 p-4 border-b border-gray-100">
       {[...Array(columns)].map((_, i) => (
         <div key={i} className="flex-1">
-          <SkeletonLine height="16px" width={i === 0 ? '80%' : '60%'} />
+          <SkeletonLine height="16px" width={i === 0 ? "80%" : "60%"} />
         </div>
       ))}
     </div>
@@ -247,11 +247,7 @@ export function DashboardCardSkeleton() {
       {/* Mini chart */}
       <div className="h-24 flex items-end gap-1">
         {[...Array(12)].map((_, i) => (
-          <SkeletonLine
-            key={i}
-            width="100%"
-            height={`${Math.random() * 60 + 40}%`}
-          />
+          <SkeletonLine key={i} width="100%" height={`${Math.random() * 60 + 40}%`} />
         ))}
       </div>
     </div>

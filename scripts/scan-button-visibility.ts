@@ -3,16 +3,16 @@
  * Scans the codebase for buttons with potential visibility issues
  */
 
-import { execSync } from 'child_process';
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
-import { join } from 'path';
+import { execSync } from "child_process";
+import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
+import { join } from "path";
 
 interface ButtonIssue {
   file: string;
   line: number;
-  type: 'ghost-button' | 'opacity-override' | 'hover-only-visible' | 'transparent-bg' | 'ant-ghost';
+  type: "ghost-button" | "opacity-override" | "hover-only-visible" | "transparent-bg" | "ant-ghost";
   context: string;
-  severity: 'high' | 'medium' | 'low';
+  severity: "high" | "medium" | "low";
 }
 
 const issues: ButtonIssue[] = [];
@@ -37,8 +37,8 @@ const PATTERNS = {
 
 function scanFile(filePath: string): void {
   try {
-    const content = readFileSync(filePath, 'utf-8');
-    const lines = content.split('\n');
+    const content = readFileSync(filePath, "utf-8");
+    const lines = content.split("\n");
 
     lines.forEach((line, index) => {
       const lineNumber = index + 1;
@@ -53,9 +53,9 @@ function scanFile(filePath: string): void {
           issues.push({
             file: filePath,
             line: lineNumber,
-            type: 'ghost-button',
+            type: "ghost-button",
             context: line.trim().substring(0, 100),
-            severity: 'medium',
+            severity: "medium",
           });
         }
       }
@@ -67,9 +67,9 @@ function scanFile(filePath: string): void {
           issues.push({
             file: filePath,
             line: lineNumber,
-            type: 'opacity-override',
+            type: "opacity-override",
             context: line.trim().substring(0, 100),
-            severity: 'high',
+            severity: "high",
           });
         }
       }
@@ -79,9 +79,9 @@ function scanFile(filePath: string): void {
         issues.push({
           file: filePath,
           line: lineNumber,
-          type: 'hover-only-visible',
+          type: "hover-only-visible",
           context: line.trim().substring(0, 100),
-          severity: 'high',
+          severity: "high",
         });
       }
 
@@ -90,9 +90,9 @@ function scanFile(filePath: string): void {
         issues.push({
           file: filePath,
           line: lineNumber,
-          type: 'transparent-bg',
+          type: "transparent-bg",
           context: line.trim().substring(0, 100),
-          severity: 'low',
+          severity: "low",
         });
       }
 
@@ -101,9 +101,9 @@ function scanFile(filePath: string): void {
         issues.push({
           file: filePath,
           line: lineNumber,
-          type: 'ant-ghost',
+          type: "ant-ghost",
           context: line.trim().substring(0, 100),
-          severity: 'medium',
+          severity: "medium",
         });
       }
     });
@@ -116,7 +116,7 @@ function walkDirectory(dir: string, filePattern: RegExp): string[] {
   const files: string[] = [];
 
   // Skip these directories
-  const skipDirs = ['node_modules', '.next', '.git', 'dist', 'build', '.gpt-backup'];
+  const skipDirs = ["node_modules", ".next", ".git", "dist", "build", ".gpt-backup"];
 
   try {
     const items = readdirSync(dir);
@@ -141,9 +141,9 @@ function walkDirectory(dir: string, filePattern: RegExp): string[] {
 }
 
 // Main scan
-console.log('🔍 Scanning codebase for button visibility issues...\n');
+console.log("🔍 Scanning codebase for button visibility issues...\n");
 
-const srcDir = join(process.cwd(), 'src');
+const srcDir = join(process.cwd(), "src");
 const componentFiles = walkDirectory(srcDir, /\.(tsx|jsx|ts|js)$/);
 
 console.log(`📁 Found ${componentFiles.length} files to scan\n`);
@@ -161,9 +161,9 @@ for (const file of componentFiles) {
 console.log(`\n✅ Scanned ${scannedCount} files\n`);
 
 // Categorize issues
-const highSeverity = issues.filter(i => i.severity === 'high');
-const mediumSeverity = issues.filter(i => i.severity === 'medium');
-const lowSeverity = issues.filter(i => i.severity === 'low');
+const highSeverity = issues.filter((i) => i.severity === "high");
+const mediumSeverity = issues.filter((i) => i.severity === "medium");
+const lowSeverity = issues.filter((i) => i.severity === "low");
 
 // Generate report
 const report = {
@@ -175,27 +175,27 @@ const report = {
     lowSeverity: lowSeverity.length,
   },
   issuesByType: {
-    ghostButton: issues.filter(i => i.type === 'ghost-button').length,
-    opacityOverride: issues.filter(i => i.type === 'opacity-override').length,
-    hoverOnlyVisible: issues.filter(i => i.type === 'hover-only-visible').length,
-    transparentBg: issues.filter(i => i.type === 'transparent-bg').length,
-    antGhost: issues.filter(i => i.type === 'ant-ghost').length,
+    ghostButton: issues.filter((i) => i.type === "ghost-button").length,
+    opacityOverride: issues.filter((i) => i.type === "opacity-override").length,
+    hoverOnlyVisible: issues.filter((i) => i.type === "hover-only-visible").length,
+    transparentBg: issues.filter((i) => i.type === "transparent-bg").length,
+    antGhost: issues.filter((i) => i.type === "ant-ghost").length,
   },
-  issues: issues.map(issue => ({
+  issues: issues.map((issue) => ({
     ...issue,
-    file: issue.file.replace(process.cwd(), ''),
+    file: issue.file.replace(process.cwd(), ""),
   })),
   timestamp: new Date().toISOString(),
 };
 
 // Save report
-const reportPath = join(process.cwd(), '_audit', 'button_visibility_report.json');
+const reportPath = join(process.cwd(), "_audit", "button_visibility_report.json");
 writeFileSync(reportPath, JSON.stringify(report, null, 2));
 
 // Console output
-console.log('═══════════════════════════════════════════════════════');
-console.log('  BUTTON VISIBILITY SCAN REPORT');
-console.log('═══════════════════════════════════════════════════════\n');
+console.log("═══════════════════════════════════════════════════════");
+console.log("  BUTTON VISIBILITY SCAN REPORT");
+console.log("═══════════════════════════════════════════════════════\n");
 console.log(`📊 Summary:`);
 console.log(`   Total files scanned:    ${report.summary.totalFiles}`);
 console.log(`   Total issues found:     ${report.summary.totalIssues}`);
@@ -212,7 +212,7 @@ console.log(`   Ant Design ghost:       ${report.issuesByType.antGhost}\n`);
 
 if (highSeverity.length > 0) {
   console.log(`⚠️  HIGH SEVERITY ISSUES (${highSeverity.length}):\n`);
-  highSeverity.slice(0, 10).forEach(issue => {
+  highSeverity.slice(0, 10).forEach((issue) => {
     console.log(`   ${issue.file}:${issue.line}`);
     console.log(`   Type: ${issue.type}`);
     console.log(`   ${issue.context}\n`);
@@ -224,4 +224,4 @@ if (highSeverity.length > 0) {
 }
 
 console.log(`📄 Full report saved to: ${reportPath}\n`);
-console.log('═══════════════════════════════════════════════════════\n');
+console.log("═══════════════════════════════════════════════════════\n");

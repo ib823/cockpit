@@ -4,10 +4,10 @@
  * Displays critical path analysis with visualizations and insights
  */
 
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { Modal, Tabs, Progress, Alert, Empty } from 'antd';
+import { useMemo, useState } from "react";
+import { Modal, Tabs, Progress, Alert, Empty } from "antd";
 import {
   TrendingUp,
   AlertTriangle,
@@ -18,15 +18,15 @@ import {
   ArrowRight,
   Info,
   ChevronRight,
-} from 'lucide-react';
-import type { GanttProject } from '@/types/gantt-tool';
+} from "lucide-react";
+import type { GanttProject } from "@/types/gantt-tool";
 import {
   calculateCriticalPath,
   getTaskDelayImpact,
   getScheduleCompressionSuggestions,
   type CriticalPathTask,
-} from '@/lib/project-analytics/critical-path';
-import { colorValues, getElevationShadow, withOpacity, spacing } from '@/lib/design-system';
+} from "@/lib/project-analytics/critical-path";
+import { colorValues, getElevationShadow, withOpacity, spacing } from "@/lib/design-system";
 
 interface CriticalPathPanelProps {
   open: boolean;
@@ -41,7 +41,7 @@ export function CriticalPathPanel({
   project,
   onHighlightTask,
 }: CriticalPathPanelProps) {
-  const [selectedTab, setSelectedTab] = useState('overview');
+  const [selectedTab, setSelectedTab] = useState("overview");
   const [selectedTaskForImpact, setSelectedTaskForImpact] = useState<string | null>(null);
 
   // Calculate critical path analysis
@@ -64,7 +64,13 @@ export function CriticalPathPanel({
 
   if (!project || !analysis) {
     return (
-      <Modal open={open} onCancel={onClose} footer={null} width={900} title="Critical Path Analysis">
+      <Modal
+        open={open}
+        onCancel={onClose}
+        footer={null}
+        width={900}
+        title="Critical Path Analysis"
+      >
         <Empty description="No project loaded" />
       </Modal>
     );
@@ -88,7 +94,7 @@ export function CriticalPathPanel({
         </div>
       }
       styles={{
-        body: { maxHeight: '75vh', overflowY: 'auto' },
+        body: { maxHeight: "75vh", overflowY: "auto" },
       }}
     >
       <Tabs
@@ -96,7 +102,7 @@ export function CriticalPathPanel({
         onChange={setSelectedTab}
         items={[
           {
-            key: 'overview',
+            key: "overview",
             label: (
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4" />
@@ -106,7 +112,7 @@ export function CriticalPathPanel({
             children: <OverviewTab analysis={analysis} />,
           },
           {
-            key: 'critical-tasks',
+            key: "critical-tasks",
             label: (
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
@@ -122,7 +128,7 @@ export function CriticalPathPanel({
             ),
           },
           {
-            key: 'all-tasks',
+            key: "all-tasks",
             label: (
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
@@ -139,7 +145,7 @@ export function CriticalPathPanel({
             ),
           },
           {
-            key: 'optimization',
+            key: "optimization",
             label: (
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4" />
@@ -197,7 +203,7 @@ function OverviewTab({ analysis }: { analysis: ReturnType<typeof calculateCritic
       <div
         className="p-4 rounded-xl border"
         style={{
-          backgroundColor: '#FAFAFA',
+          backgroundColor: "#FAFAFA",
           borderColor: colorValues.neutral[200],
         }}
       >
@@ -215,7 +221,7 @@ function OverviewTab({ analysis }: { analysis: ReturnType<typeof calculateCritic
                 Schedule Flexibility
               </span>
               <span className="text-sm font-semibold" style={{ color: colorValues.neutral[900] }}>
-                {criticalPercentage < 40 ? 'High' : criticalPercentage < 60 ? 'Medium' : 'Low'}
+                {criticalPercentage < 40 ? "High" : criticalPercentage < 60 ? "Medium" : "Low"}
               </span>
             </div>
             <Progress
@@ -224,8 +230,8 @@ function OverviewTab({ analysis }: { analysis: ReturnType<typeof calculateCritic
                 criticalPercentage < 40
                   ? colorValues.success[600]
                   : criticalPercentage < 60
-                  ? colorValues.warning[600]
-                  : colorValues.error[500]
+                    ? colorValues.warning[600]
+                    : colorValues.error[500]
               }
               showInfo={false}
             />
@@ -275,7 +281,7 @@ function OverviewTab({ analysis }: { analysis: ReturnType<typeof calculateCritic
                     className="text-sm font-semibold"
                     style={{ color: colorValues.warning[700] }}
                   >
-                    {task.slack} day{task.slack !== 1 ? 's' : ''} slack
+                    {task.slack} day{task.slack !== 1 ? "s" : ""} slack
                   </div>
                   <div className="text-xs" style={{ color: colorValues.neutral[500] }}>
                     {task.duration} days duration
@@ -352,7 +358,7 @@ function CriticalTasksTab({
                 style={{
                   backgroundColor: isInLongestChain
                     ? withOpacity(colorValues.error[500], 0.08)
-                    : '#fff',
+                    : "#fff",
                   borderColor: isInLongestChain ? colorValues.error[300] : colorValues.neutral[200],
                 }}
                 onClick={() => onHighlightTask?.(task.id)}
@@ -365,20 +371,26 @@ function CriticalTasksTab({
                           className="px-2 py-0.5 rounded text-xs font-semibold"
                           style={{
                             backgroundColor: colorValues.error[500],
-                            color: '#fff',
+                            color: "#fff",
                           }}
                         >
                           Longest Chain
                         </div>
                       )}
-                      <span className="text-sm font-semibold" style={{ color: colorValues.neutral[900] }}>
+                      <span
+                        className="text-sm font-semibold"
+                        style={{ color: colorValues.neutral[900] }}
+                      >
                         {task.name}
                       </span>
                     </div>
                     <div className="text-xs mb-2" style={{ color: colorValues.neutral[500] }}>
                       {task.phaseName}
                     </div>
-                    <div className="flex items-center gap-4 text-xs" style={{ color: colorValues.neutral[600] }}>
+                    <div
+                      className="flex items-center gap-4 text-xs"
+                      style={{ color: colorValues.neutral[600] }}
+                    >
                       <span>Duration: {task.duration} days</span>
                       <span>•</span>
                       <span>ES: Day {task.earlyStart}</span>
@@ -386,7 +398,10 @@ function CriticalTasksTab({
                       <span>EF: Day {task.earlyFinish}</span>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: colorValues.neutral[400] }} />
+                  <ChevronRight
+                    className="w-4 h-4 flex-shrink-0"
+                    style={{ color: colorValues.neutral[400] }}
+                  />
                 </div>
               </div>
             );
@@ -417,9 +432,7 @@ function AllTasksTab({
             key={task.id}
             className="p-3 rounded-lg border transition-all duration-200 cursor-pointer hover:shadow-sm"
             style={{
-              backgroundColor: task.isCritical
-                ? withOpacity(colorValues.error[500], 0.05)
-                : '#fff',
+              backgroundColor: task.isCritical ? withOpacity(colorValues.error[500], 0.05) : "#fff",
               borderColor: task.isCritical ? colorValues.error[200] : colorValues.neutral[200],
             }}
             onClick={() => {
@@ -431,9 +444,15 @@ function AllTasksTab({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   {task.isCritical && (
-                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: colorValues.error[500] }} />
+                    <AlertTriangle
+                      className="w-3.5 h-3.5 flex-shrink-0"
+                      style={{ color: colorValues.error[500] }}
+                    />
                   )}
-                  <span className="text-sm font-medium truncate" style={{ color: colorValues.neutral[900] }}>
+                  <span
+                    className="text-sm font-medium truncate"
+                    style={{ color: colorValues.neutral[900] }}
+                  >
                     {task.name}
                   </span>
                 </div>
@@ -452,8 +471,8 @@ function AllTasksTab({
                       color: task.isCritical
                         ? colorValues.error[600]
                         : task.slack <= 2
-                        ? colorValues.warning[600]
-                        : colorValues.success[600],
+                          ? colorValues.warning[600]
+                          : colorValues.success[600],
                     }}
                   >
                     {task.slack} days
@@ -463,7 +482,10 @@ function AllTasksTab({
                   <div className="text-xs" style={{ color: colorValues.neutral[500] }}>
                     Duration
                   </div>
-                  <div className="text-sm font-semibold" style={{ color: colorValues.neutral[900] }}>
+                  <div
+                    className="text-sm font-semibold"
+                    style={{ color: colorValues.neutral[900] }}
+                  >
                     {task.duration} days
                   </div>
                 </div>
@@ -506,7 +528,10 @@ function OptimizationTab({
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <div className="text-sm font-semibold mb-1" style={{ color: colorValues.neutral[900] }}>
+                  <div
+                    className="text-sm font-semibold mb-1"
+                    style={{ color: colorValues.neutral[900] }}
+                  >
                     {opp.taskName}
                   </div>
                   <div className="text-xs mb-2" style={{ color: colorValues.neutral[500] }}>
@@ -516,17 +541,17 @@ function OptimizationTab({
                     className="text-xs px-2 py-1 rounded inline-block"
                     style={{
                       backgroundColor:
-                        opp.effort === 'low'
+                        opp.effort === "low"
                           ? withOpacity(colorValues.success[600], 0.1)
-                          : opp.effort === 'medium'
-                          ? withOpacity(colorValues.warning[600], 0.1)
-                          : withOpacity(colorValues.error[500], 0.1),
+                          : opp.effort === "medium"
+                            ? withOpacity(colorValues.warning[600], 0.1)
+                            : withOpacity(colorValues.error[500], 0.1),
                       color:
-                        opp.effort === 'low'
+                        opp.effort === "low"
                           ? colorValues.success[700]
-                          : opp.effort === 'medium'
-                          ? colorValues.warning[700]
-                          : colorValues.error[600],
+                          : opp.effort === "medium"
+                            ? colorValues.warning[700]
+                            : colorValues.error[600],
                     }}
                   >
                     {opp.effort} effort
@@ -553,7 +578,8 @@ function OptimizationTab({
           <span style={{ color: colorValues.neutral[900] }}>Fast-tracking Opportunities</span>
         </h4>
         <p className="text-sm mb-4" style={{ color: colorValues.neutral[600] }}>
-          Run these tasks in parallel to compress the schedule. Higher risk but significant time savings.
+          Run these tasks in parallel to compress the schedule. Higher risk but significant time
+          savings.
         </p>
         <div className="space-y-2">
           {suggestions.fastTrackingOpportunities.map((opp, idx) => (
@@ -569,7 +595,10 @@ function OptimizationTab({
                 <div className="text-sm font-medium" style={{ color: colorValues.neutral[900] }}>
                   {opp.task1Name}
                 </div>
-                <ArrowRight className="w-4 h-4 flex-shrink-0" style={{ color: colorValues.neutral[400] }} />
+                <ArrowRight
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{ color: colorValues.neutral[400] }}
+                />
                 <div className="text-sm font-medium" style={{ color: colorValues.neutral[900] }}>
                   {opp.task2Name}
                 </div>
@@ -582,17 +611,17 @@ function OptimizationTab({
                   className="text-xs px-2 py-1 rounded"
                   style={{
                     backgroundColor:
-                      opp.risk === 'low'
+                      opp.risk === "low"
                         ? withOpacity(colorValues.success[600], 0.1)
-                        : opp.risk === 'medium'
-                        ? withOpacity(colorValues.warning[600], 0.1)
-                        : withOpacity(colorValues.error[500], 0.1),
+                        : opp.risk === "medium"
+                          ? withOpacity(colorValues.warning[600], 0.1)
+                          : withOpacity(colorValues.error[500], 0.1),
                     color:
-                      opp.risk === 'low'
+                      opp.risk === "low"
                         ? colorValues.success[700]
-                        : opp.risk === 'medium'
-                        ? colorValues.warning[700]
-                        : colorValues.error[600],
+                        : opp.risk === "medium"
+                          ? colorValues.warning[700]
+                          : colorValues.error[600],
                   }}
                 >
                   {opp.risk} risk

@@ -1,17 +1,17 @@
-'use client';
-import { Layout, Menu, Avatar, Dropdown, Space, Badge, Drawer, Button } from 'antd';
+"use client";
+import { Layout, Menu, Avatar, Dropdown, Space, Badge, Drawer, Button } from "antd";
 import {
   CalculatorOutlined,
   ProjectOutlined,
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
-  MenuOutlined
-} from '@ant-design/icons';
-import { useRouter, usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { LogoutButton } from '@/components/common/LogoutButton';
-import { useState } from 'react';
+  MenuOutlined,
+} from "@ant-design/icons";
+import { useRouter, usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { LogoutButton } from "@/components/common/LogoutButton";
+import { useState } from "react";
 
 const { Header, Content } = Layout;
 
@@ -21,32 +21,38 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const currentPath = pathname?.split('/')[1] || 'project';
+  const currentPath = pathname?.split("/")[1] || "project";
 
   const menuItems = [
     {
-      key: 'project',
+      key: "project",
       icon: <ProjectOutlined />,
-      label: 'Project Builder',
-      onClick: () => router.push('/project/capture'),
+      label: "Project Builder",
+      onClick: () => router.push("/project/capture"),
     },
   ];
 
-  if (session?.user?.role === 'ADMIN') {
+  if (session?.user?.role === "ADMIN") {
     menuItems.push({
-      key: 'admin',
+      key: "admin",
       icon: <SettingOutlined />,
-      label: 'Admin',
-      onClick: () => router.push('/admin'),
+      label: "Admin",
+      onClick: () => router.push("/admin"),
     });
   }
 
   return (
     <Layout className="min-h-screen w-full">
-      <Header className="bg-white border-b flex items-center justify-between px-4 sm:px-6 sticky top-0 z-50" style={{ width: '100%' }}>
+      <Header
+        className="bg-white border-b flex items-center justify-between px-4 sm:px-6 sticky top-0 z-50"
+        style={{ width: "100%" }}
+      >
         <div className="flex items-center gap-4 sm:gap-8 flex-1 min-w-0">
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => router.push('/')}>
+          <div
+            className="flex items-center gap-2 cursor-pointer flex-shrink-0"
+            onClick={() => router.push("/")}
+          >
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg" />
             <span className="text-lg font-semibold">Keystone</span>
           </div>
@@ -105,7 +111,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         )}
       </Drawer>
 
-      <Content className="bg-gray-50" style={{ width: '100%' }}>
+      <Content className="bg-gray-50" style={{ width: "100%" }}>
         {children}
       </Content>
     </Layout>

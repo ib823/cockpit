@@ -1,10 +1,11 @@
-import React from 'react';
+import React from "react";
 
-export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange' | 'checked'> {
+export interface CheckboxProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "onChange" | "checked"> {
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: string;
-  'aria-describedby'?: string;
+  "aria-describedby"?: string;
 }
 
 export const Checkbox: React.FC<CheckboxProps> = ({
@@ -15,7 +16,9 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   className,
   ...rest
 }) => (
-  <label className={`inline-flex items-center gap-2 select-none ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className || ''}`}>
+  <label
+    className={`inline-flex items-center gap-2 select-none ${disabled ? "cursor-not-allowed" : "cursor-pointer"} ${className || ""}`}
+  >
     <input
       type="checkbox"
       className="sr-only"
@@ -27,9 +30,9 @@ export const Checkbox: React.FC<CheckboxProps> = ({
     <span
       className={`grid place-items-center w-5 h-5 rounded-[8px] border transition ${
         checked
-          ? 'bg-[var(--accent)] border-transparent text-white'
-          : 'bg-[var(--surface)] border-[var(--line)] text-transparent'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          ? "bg-[var(--accent)] border-transparent text-white"
+          : "bg-[var(--surface)] border-[var(--line)] text-transparent"
+      } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
     >
       <svg width="14" height="14" viewBox="0 0 24 24">
         <path

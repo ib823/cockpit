@@ -1,9 +1,11 @@
 # Keystone - Codebase Overview
 
 ## Project Summary
+
 Enterprise SAP presales estimation system that converts RFP requirements into timeline estimates and cost projections.
 
 ## Tech Stack
+
 - **Framework**: Next.js 15 (App Router)
 - **Language**: TypeScript (strict mode)
 - **Database**: PostgreSQL + Prisma ORM
@@ -16,11 +18,13 @@ Enterprise SAP presales estimation system that converts RFP requirements into ti
 ## Architecture
 
 ### Data Layer (`src/data/`)
+
 - `dal.ts` - Data Access Layer interface + Zod schemas (single source of truth)
 - `prisma-adapter.ts` - Concrete DAL implementation (938 lines)
 - `holidays.ts` - Business day calculations with regional holidays
 
 ### Business Logic (`src/lib/`)
+
 - `scenario-generator.ts` - Core: Generates SAP implementation scenarios (918 lines)
 - `estimation-engine.ts` - Calculates effort using SAP Activate methodology
 - `estimation-constants.ts` - SAP estimation constants (282 lines)
@@ -29,27 +33,33 @@ Enterprise SAP presales estimation system that converts RFP requirements into ti
 - `critical-patterns.ts` - Multi-entity/branch detection (Bahasa Malaysia support)
 
 ### State Management (`src/stores/`)
+
 - `presales-store.ts` - Chips, decisions (with persistence)
 - `timeline-store.ts` - Phases, resources (with persistence)
 - `project-store.ts` - Orchestrates presales → timeline conversion
 
 ### Security (`src/lib/security/`)
+
 - `validation.ts` - Input sanitization, XSS prevention
 - `src/middleware.ts` - Route protection, RBAC, rate limiting, CVE protection
 
 ### Types (`src/types/`)
+
 - `core.ts` - All TypeScript interfaces (Chip, Phase, Resource, Project, etc.)
 
 ### Components (`src/components/`)
+
 - `project-v2/modes/PlanMode.tsx` - Main project planning UI
 - `timeline/ActivateGanttChart.tsx` - SAP Activate Gantt visualization
 
 ### Database (`prisma/`)
+
 - `schema.prisma` - 13 tables: User, Project, Phase, Resource, Chip, RicefwItem, FormItem, IntegrationItem, AuditLog, Share, Comment, Snapshot, Authenticator
 
 ## Key Features Implemented
 
 ### ✅ Complete
+
 1. **Schema Validation** - Single source of truth in dal.ts
 2. **Stub Functions** - All 3 implemented:
    - `applyRateRegionImpact` - Regional cost multipliers (ABMY 1.0x, ABSG 1.2x, ABVN 0.6x)
@@ -63,6 +73,7 @@ Enterprise SAP presales estimation system that converts RFP requirements into ti
 ### 📊 Production Readiness: ~97%
 
 ## Data Flow
+
 ```
 RFP Text Input
   ↓
@@ -80,6 +91,7 @@ ActivateGanttChart.tsx (visualize)
 ```
 
 ## Critical Business Rules
+
 - **SAP Activate Phases**: Prepare, Explore, Realize, Deploy, Run
 - **Effort Multipliers**:
   - Legal entities: 1-3 entities (1.5x), 3-5 (2.0x), 5+ (3.0x)
@@ -89,6 +101,7 @@ ActivateGanttChart.tsx (visualize)
 - **Working Days**: Excludes weekends + regional holidays (Malaysia, Singapore, Vietnam)
 
 ## Recent Changes (Commit 4f1eaf77)
+
 - Consolidated duplicate Zod schemas
 - Implemented 3 critical stub functions
 - Added state persistence to 2 stores
@@ -96,6 +109,7 @@ ActivateGanttChart.tsx (visualize)
 - All tests passing, TypeScript clean
 
 ## Assessment Questions for Claude
+
 1. Are there any architectural anti-patterns?
 2. Security vulnerabilities beyond what's already implemented?
 3. Performance bottlenecks in scenario generation?
@@ -106,6 +120,7 @@ ActivateGanttChart.tsx (visualize)
 8. Accessibility (a11y) gaps in UI components?
 
 ## Metrics
+
 - **Files**: ~150 TypeScript files
 - **Tests**: 428 passing
 - **Database Tables**: 13

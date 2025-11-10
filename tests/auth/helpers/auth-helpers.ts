@@ -3,7 +3,7 @@
  * Utility functions for testing auth endpoints
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Create mock Next.js request
@@ -16,10 +16,10 @@ export function createMockRequest(options: {
   cookies?: Record<string, string>;
 }): Request {
   const headers = new Headers(options.headers || {});
-  headers.set('content-type', 'application/json');
+  headers.set("content-type", "application/json");
 
   const request = new Request(options.url, {
-    method: options.method || 'GET',
+    method: options.method || "GET",
     headers,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
@@ -47,16 +47,18 @@ export function createMockPasskeyResponse(authenticatorId: string) {
     id: authenticatorId,
     rawId: authenticatorId,
     response: {
-      clientDataJSON: Buffer.from(JSON.stringify({
-        type: 'webauthn.get',
-        challenge: 'mock-challenge',
-        origin: 'http://localhost:3000',
-      })).toString('base64'),
-      authenticatorData: Buffer.from('mock-auth-data').toString('base64'),
-      signature: Buffer.from('mock-signature').toString('base64'),
-      userHandle: Buffer.from('mock-user-handle').toString('base64'),
+      clientDataJSON: Buffer.from(
+        JSON.stringify({
+          type: "webauthn.get",
+          challenge: "mock-challenge",
+          origin: "http://localhost:3000",
+        })
+      ).toString("base64"),
+      authenticatorData: Buffer.from("mock-auth-data").toString("base64"),
+      signature: Buffer.from("mock-signature").toString("base64"),
+      userHandle: Buffer.from("mock-user-handle").toString("base64"),
     },
-    type: 'public-key',
+    type: "public-key",
   };
 }
 
@@ -64,7 +66,7 @@ export function createMockPasskeyResponse(authenticatorId: string) {
  * Wait for specified milliseconds
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -78,7 +80,7 @@ export function randomTestEmail(): string {
  * Extract session cookie from response
  */
 export function extractSessionCookie(response: Response | NextResponse): string | null {
-  const setCookie = response.headers.get('set-cookie');
+  const setCookie = response.headers.get("set-cookie");
   if (!setCookie) return null;
 
   const match = setCookie.match(/next-auth\.session-token=([^;]+)/);
@@ -90,10 +92,10 @@ export function extractSessionCookie(response: Response | NextResponse): string 
  */
 export function getRateLimitHeaders(response: Response | NextResponse) {
   return {
-    limit: response.headers.get('X-RateLimit-Limit'),
-    remaining: response.headers.get('X-RateLimit-Remaining'),
-    reset: response.headers.get('X-RateLimit-Reset'),
-    retryAfter: response.headers.get('Retry-After'),
+    limit: response.headers.get("X-RateLimit-Limit"),
+    remaining: response.headers.get("X-RateLimit-Remaining"),
+    reset: response.headers.get("X-RateLimit-Reset"),
+    retryAfter: response.headers.get("Retry-After"),
   };
 }
 
@@ -109,10 +111,7 @@ export function assertStatus(response: Response | NextResponse, expected: number
 /**
  * Assert response JSON matches
  */
-export async function assertJsonMatch(
-  response: Response | NextResponse,
-  expected: Partial<any>
-) {
+export async function assertJsonMatch(response: Response | NextResponse, expected: Partial<any>) {
   const json = await parseJsonResponse(response);
 
   for (const [key, value] of Object.entries(expected)) {

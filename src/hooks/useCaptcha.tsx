@@ -4,10 +4,10 @@
  * Provides easy-to-use CAPTCHA functionality for React components
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { loadCaptchaScript, executeCaptcha, CaptchaProvider } from '@/lib/security/captcha';
+import { useState, useEffect, useCallback } from "react";
+import { loadCaptchaScript, executeCaptcha, CaptchaProvider } from "@/lib/security/captcha";
 
 interface UseCaptchaOptions {
   provider?: CaptchaProvider;
@@ -49,10 +49,10 @@ interface UseCaptchaReturn {
  */
 export function useCaptcha(options: UseCaptchaOptions = {}): UseCaptchaReturn {
   const {
-    provider = 'hcaptcha' as CaptchaProvider,
-    siteKey = process.env.NEXT_PUBLIC_CAPTCHA_SITE_KEY || '',
+    provider = "hcaptcha" as CaptchaProvider,
+    siteKey = process.env.NEXT_PUBLIC_CAPTCHA_SITE_KEY || "",
     enabled = true,
-    action = 'submit',
+    action = "submit",
   } = options;
 
   const [isLoaded, setIsLoaded] = useState(false);
@@ -62,7 +62,7 @@ export function useCaptcha(options: UseCaptchaOptions = {}): UseCaptchaReturn {
   // Load CAPTCHA script on mount
   useEffect(() => {
     if (!enabled || !siteKey) {
-      setError('CAPTCHA not configured');
+      setError("CAPTCHA not configured");
       return;
     }
 
@@ -85,15 +85,15 @@ export function useCaptcha(options: UseCaptchaOptions = {}): UseCaptchaReturn {
    */
   const execute = useCallback(async (): Promise<string> => {
     if (!enabled) {
-      throw new Error('CAPTCHA is not enabled');
+      throw new Error("CAPTCHA is not enabled");
     }
 
     if (!isLoaded) {
-      throw new Error('CAPTCHA not loaded yet');
+      throw new Error("CAPTCHA not loaded yet");
     }
 
     if (!siteKey) {
-      throw new Error('CAPTCHA site key not configured');
+      throw new Error("CAPTCHA site key not configured");
     }
 
     try {
@@ -101,7 +101,7 @@ export function useCaptcha(options: UseCaptchaOptions = {}): UseCaptchaReturn {
       const token = await executeCaptcha(provider, siteKey, action);
       return token;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'CAPTCHA execution failed';
+      const errorMessage = err instanceof Error ? err.message : "CAPTCHA execution failed";
       setError(errorMessage);
       throw err;
     }
@@ -139,11 +139,11 @@ export function useCaptcha(options: UseCaptchaOptions = {}): UseCaptchaReturn {
  * ```
  */
 export function useHoneypot() {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
 
   return {
     honeypotValue: value,
-    isBot: value !== '',
+    isBot: value !== "",
     renderHoneypot: () => {
       return (
         <input
@@ -154,10 +154,10 @@ export function useHoneypot() {
           autoComplete="off"
           tabIndex={-1}
           style={{
-            position: 'absolute',
-            left: '-9999px',
-            width: '1px',
-            height: '1px',
+            position: "absolute",
+            left: "-9999px",
+            width: "1px",
+            height: "1px",
             opacity: 0,
           }}
           aria-hidden="true"

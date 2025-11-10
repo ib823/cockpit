@@ -1,22 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useMemo } from 'react';
-import { Command } from 'cmdk';
-import Fuse from 'fuse.js';
-import {
-  Search,
-  User,
-  Users,
-  Calendar,
-  Target,
-  Zap,
-  ChevronRight,
-  Hash
-} from 'lucide-react';
-import type { Resource, Phase, Task } from '@/types/gantt-tool';
+import { useEffect, useState, useMemo } from "react";
+import { Command } from "cmdk";
+import Fuse from "fuse.js";
+import { Search, User, Users, Calendar, Target, Zap, ChevronRight, Hash } from "lucide-react";
+import type { Resource, GanttPhase, GanttTask } from "@/types/gantt-tool";
 
 interface SearchResult {
-  type: 'resource' | 'team' | 'phase' | 'task' | 'action';
+  type: "resource" | "team" | "phase" | "task" | "action";
   id: string;
   title: string;
   subtitle?: string;
@@ -28,7 +19,7 @@ interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
   resources: Resource[];
-  phases: Phase[];
+  phases: GanttPhase[];
   onSelectResource?: (resourceId: string) => void;
   onSelectPhase?: (phaseId: string) => void;
   onSelectTask?: (phaseId: string, taskId: string) => void;
@@ -47,7 +38,7 @@ export function CommandPalette({
   onJumpToLevel,
   onToggleFilters,
 }: CommandPaletteProps) {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Build searchable items
@@ -55,30 +46,33 @@ export function CommandPalette({
     const items: SearchResult[] = [];
 
     // Add resources
-    resources.forEach(resource => {
+    resources.forEach((resource) => {
       items.push({
-        type: 'resource',
+        type: "resource",
         id: resource.id,
         title: resource.name,
-        subtitle: resource.category || 'Team Member',
+        subtitle: resource.category || "Team Member",
         icon: User,
         data: resource,
       });
     });
 
     // Group resources by category for team search
-    const categoryGroups = resources.reduce((acc, resource) => {
-      const category = resource.category || 'Uncategorized';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(resource);
-      return acc;
-    }, {} as Record<string, Resource[]>);
+    const categoryGroups = resources.reduce(
+      (acc, resource) => {
+        const category = resource.category || "Uncategorized";
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push(resource);
+        return acc;
+      },
+      {} as Record<string, Resource[]>
+    );
 
     Object.entries(categoryGroups).forEach(([category, teamResources]) => {
       items.push({
-        type: 'team',
+        type: "team",
         id: `team-${category}`,
         title: `${category} Team`,
         subtitle: `${teamResources.length} members`,
@@ -88,9 +82,9 @@ export function CommandPalette({
     });
 
     // Add phases
-    phases.forEach(phase => {
+    phases.forEach((phase) => {
       items.push({
-        type: 'phase',
+        type: "phase",
         id: phase.id,
         title: phase.name,
         subtitle: `Phase · ${phase.tasks?.length || 0} tasks`,
@@ -99,9 +93,9 @@ export function CommandPalette({
       });
 
       // Add tasks
-      phase.tasks?.forEach(task => {
+      phase.tasks?.forEach((task: GanttTask) => {
         items.push({
-          type: 'task',
+          type: "task",
           id: task.id,
           title: task.name,
           subtitle: `${phase.name} → Task`,
@@ -114,44 +108,44 @@ export function CommandPalette({
     // Add quick actions
     items.push(
       {
-        type: 'action',
-        id: 'jump-level-1',
-        title: 'Jump to Leadership Level',
-        subtitle: 'Navigate to Level 1',
+        type: "action",
+        id: "jump-level-1",
+        title: "Jump to Leadership Level",
+        subtitle: "Navigate to Level 1",
         icon: Zap,
         data: { level: 1 },
       },
       {
-        type: 'action',
-        id: 'jump-level-2',
-        title: 'Jump to Project Management',
-        subtitle: 'Navigate to Level 2',
+        type: "action",
+        id: "jump-level-2",
+        title: "Jump to Project Management",
+        subtitle: "Navigate to Level 2",
         icon: Zap,
         data: { level: 2 },
       },
       {
-        type: 'action',
-        id: 'jump-level-3',
-        title: 'Jump to Delivery Level',
-        subtitle: 'Navigate to Level 3',
+        type: "action",
+        id: "jump-level-3",
+        title: "Jump to Delivery Level",
+        subtitle: "Navigate to Level 3",
         icon: Zap,
         data: { level: 3 },
       },
       {
-        type: 'action',
-        id: 'jump-level-4',
-        title: 'Jump to Support Level',
-        subtitle: 'Navigate to Level 4',
+        type: "action",
+        id: "jump-level-4",
+        title: "Jump to Support Level",
+        subtitle: "Navigate to Level 4",
         icon: Zap,
         data: { level: 4 },
       },
       {
-        type: 'action',
-        id: 'toggle-filters',
-        title: 'Toggle Filters Panel',
-        subtitle: 'Show/hide filter options',
+        type: "action",
+        id: "toggle-filters",
+        title: "Toggle Filters Panel",
+        subtitle: "Show/hide filter options",
         icon: Hash,
-        data: { action: 'toggle-filters' },
+        data: { action: "toggle-filters" },
       }
     );
 
@@ -161,7 +155,7 @@ export function CommandPalette({
   // Fuzzy search with Fuse.js
   const fuse = useMemo(() => {
     return new Fuse(searchableItems, {
-      keys: ['title', 'subtitle', 'data.name', 'data.category'],
+      keys: ["title", "subtitle", "data.name", "data.category"],
       threshold: 0.3,
       includeScore: true,
     });
@@ -174,31 +168,31 @@ export function CommandPalette({
       return searchableItems.slice(0, 8);
     }
 
-    return fuse.search(search).map(result => result.item);
+    return fuse.search(search).map((result) => result.item);
   }, [search, fuse, searchableItems]);
 
   // Handle selection
   const handleSelect = (result: SearchResult) => {
     switch (result.type) {
-      case 'resource':
+      case "resource":
         onSelectResource?.(result.id);
         break;
-      case 'team':
+      case "team":
         // Select first resource in team
         if (result.data.resources?.length > 0) {
           onSelectResource?.(result.data.resources[0].id);
         }
         break;
-      case 'phase':
+      case "phase":
         onSelectPhase?.(result.id);
         break;
-      case 'task':
+      case "task":
         onSelectTask?.(result.data.phase.id, result.data.task.id);
         break;
-      case 'action':
+      case "action":
         if (result.data.level) {
           onJumpToLevel?.(result.data.level);
-        } else if (result.data.action === 'toggle-filters') {
+        } else if (result.data.action === "toggle-filters") {
           onToggleFilters?.();
         }
         break;
@@ -211,31 +205,31 @@ export function CommandPalette({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
 
-      if (e.key === 'ArrowDown') {
+      if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex(prev => Math.min(prev + 1, filteredResults.length - 1));
-      } else if (e.key === 'ArrowUp') {
+        setSelectedIndex((prev) => Math.min(prev + 1, filteredResults.length - 1));
+      } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedIndex(prev => Math.max(prev - 1, 0));
-      } else if (e.key === 'Enter') {
+        setSelectedIndex((prev) => Math.max(prev - 1, 0));
+      } else if (e.key === "Enter") {
         e.preventDefault();
         if (filteredResults[selectedIndex]) {
           handleSelect(filteredResults[selectedIndex]);
         }
-      } else if (e.key === 'Escape') {
+      } else if (e.key === "Escape") {
         e.preventDefault();
         onClose();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, filteredResults, selectedIndex, onClose]);
 
   // Reset on open/close
   useEffect(() => {
     if (isOpen) {
-      setSearch('');
+      setSearch("");
       setSelectedIndex(0);
     }
   }, [isOpen]);
@@ -282,30 +276,26 @@ export function CommandPalette({
                   onSelect={() => handleSelect(result)}
                   className={`
                     flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors
-                    ${isSelected ? 'bg-blue-50 border-l-2 border-blue-500' : 'hover:bg-gray-50'}
+                    ${isSelected ? "bg-blue-50 border-l-2 border-blue-500" : "hover:bg-gray-50"}
                   `}
                 >
-                  <div className={`
+                  <div
+                    className={`
                     p-2 rounded-lg
-                    ${isSelected ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}
-                  `}>
+                    ${isSelected ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}
+                  `}
+                  >
                     <Icon className="w-4 h-4" />
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate">
-                      {result.title}
-                    </div>
+                    <div className="font-medium text-gray-900 truncate">{result.title}</div>
                     {result.subtitle && (
-                      <div className="text-sm text-gray-500 truncate">
-                        {result.subtitle}
-                      </div>
+                      <div className="text-sm text-gray-500 truncate">{result.subtitle}</div>
                     )}
                   </div>
 
-                  {isSelected && (
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                  )}
+                  {isSelected && <ChevronRight className="w-4 h-4 text-gray-400" />}
                 </Command.Item>
               );
             })
@@ -316,12 +306,18 @@ export function CommandPalette({
         <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded font-mono">↑</kbd>
-              <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded font-mono">↓</kbd>
+              <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded font-mono">
+                ↑
+              </kbd>
+              <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded font-mono">
+                ↓
+              </kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded font-mono">↵</kbd>
+              <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded font-mono">
+                ↵
+              </kbd>
               Select
             </span>
           </div>

@@ -63,8 +63,8 @@ async function checkUsersAndApprovals() {
         const isUsed = !!token.usedAt;
         console.log(
           `   ${idx + 1}. Created: ${token.createdAt.toISOString()}, ` +
-          `Expires: ${token.expiresAt.toISOString()}, ` +
-          `Status: ${isExpired ? "❌ EXPIRED" : isUsed ? "✅ Used" : "✅ Valid"}`
+            `Expires: ${token.expiresAt.toISOString()}, ` +
+            `Status: ${isExpired ? "❌ EXPIRED" : isUsed ? "✅ Used" : "✅ Valid"}`
         );
       });
     } else {

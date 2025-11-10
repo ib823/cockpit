@@ -48,6 +48,7 @@ EMAIL_FROM="noreply@keystone-app.com"   # Can be anything!
 ```
 
 **Important:**
+
 - `SMTP_USER` = The email you used to sign up for Brevo
 - `SMTP_PASS` = The SMTP key from the dashboard (starts with `xkeysib-`)
 - `EMAIL_FROM` = Can be ANY email address (e.g., `noreply@keystone.com`, `admin@myapp.io`)
@@ -77,13 +78,13 @@ After setup, test the magic link:
 
 ## Benefits Over Previous Setup
 
-| Feature | Resend | Brevo |
-|---------|--------|-------|
-| Send to any email | ❌ Only verified | ✅ Yes |
-| Daily limit | 100 emails | 300 emails |
-| Email override needed | ✅ Yes | ❌ No |
-| Setup time | 5 min | 2 min |
-| Credit card required | No | No |
+| Feature               | Resend           | Brevo      |
+| --------------------- | ---------------- | ---------- |
+| Send to any email     | ❌ Only verified | ✅ Yes     |
+| Daily limit           | 100 emails       | 300 emails |
+| Email override needed | ✅ Yes           | ❌ No      |
+| Setup time            | 5 min            | 2 min      |
+| Credit card required  | No               | No         |
 
 ---
 
@@ -128,6 +129,7 @@ For production, you can:
 ---
 
 **Need help?** Check server logs for detailed error messages:
+
 ```bash
 npm run dev
 ```

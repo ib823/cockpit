@@ -3,11 +3,16 @@
  * React context for managing real-time collaboration
  */
 
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { Avatar, Badge, Tooltip } from 'antd';
-import { CollaborationClient, User, CollaborationMessage, generateUserColor } from '@/lib/collaboration/websocket-client';
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { Avatar, Badge, Tooltip } from "antd";
+import {
+  CollaborationClient,
+  User,
+  CollaborationMessage,
+  generateUserColor,
+} from "@/lib/collaboration/websocket-client";
 
 interface CollaborationContextType {
   isConnected: boolean;
@@ -22,7 +27,7 @@ const CollaborationContext = createContext<CollaborationContextType | null>(null
 export function useCollaboration() {
   const context = useContext(CollaborationContext);
   if (!context) {
-    throw new Error('useCollaboration must be used within CollaborationProvider');
+    throw new Error("useCollaboration must be used within CollaborationProvider");
   }
   return context;
 }
@@ -62,10 +67,10 @@ export function CollaborationProvider({
       .connect()
       .then(() => {
         setIsConnected(true);
-        console.log('[Collaboration] Provider connected');
+        console.log("[Collaboration] Provider connected");
       })
       .catch((error) => {
-        console.error('[Collaboration] Provider connection failed:', error);
+        console.error("[Collaboration] Provider connection failed:", error);
       });
 
     // Handle user joined
@@ -93,10 +98,10 @@ export function CollaborationProvider({
     // Handle data changes
     const handleDataChanged = (message: CollaborationMessage) => {
       if (message.userId !== userId) {
-        console.log('[Collaboration] Remote data change:', message.data);
+        console.log("[Collaboration] Remote data change:", message.data);
         // Trigger re-render or update local state
         window.dispatchEvent(
-          new CustomEvent('collaboration-change', {
+          new CustomEvent("collaboration-change", {
             detail: message.data,
           })
         );
@@ -104,14 +109,14 @@ export function CollaborationProvider({
     };
 
     // Register handlers
-    client.on('user_joined', handleUserJoined);
-    client.on('user_left', handleUserLeft);
-    client.on('data_changed', handleDataChanged);
+    client.on("user_joined", handleUserJoined);
+    client.on("user_left", handleUserLeft);
+    client.on("data_changed", handleDataChanged);
 
     return () => {
-      client.off('user_joined', handleUserJoined);
-      client.off('user_left', handleUserLeft);
-      client.off('data_changed', handleDataChanged);
+      client.off("user_joined", handleUserJoined);
+      client.off("user_left", handleUserLeft);
+      client.off("data_changed", handleDataChanged);
       client.disconnect();
       setIsConnected(false);
     };
@@ -165,27 +170,24 @@ function ActiveUsersIndicator({ users, currentUser }: { users: User[]; currentUs
   return (
     <div
       style={{
-        position: 'fixed',
-        top: '20px',
-        right: '20px',
+        position: "fixed",
+        top: "20px",
+        right: "20px",
         zIndex: 1000,
-        background: 'white',
-        padding: '12px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        background: "white",
+        padding: "12px",
+        borderRadius: "8px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
       }}
     >
-      <div style={{ marginBottom: '8px', className="text-xs", fontWeight: 600, color: '#666' }}>
+      <div className="text-xs" style={{ marginBottom: "8px", fontWeight: 600, color: "#666" }}>
         Active Users ({users.length + 1})
       </div>
       <Avatar.Group maxCount={5}>
         {/* Current user */}
         <Tooltip title={`${currentUser.name} (You)`}>
           <Badge dot color="green">
-            <Avatar
-              style={{ backgroundColor: currentUser.color }}
-              size="small"
-            >
+            <Avatar style={{ backgroundColor: currentUser.color }} size="small">
               {currentUser.name.charAt(0).toUpperCase()}
             </Avatar>
           </Badge>
@@ -195,10 +197,7 @@ function ActiveUsersIndicator({ users, currentUser }: { users: User[]; currentUs
         {users.map((user) => (
           <Tooltip key={user.id} title={user.name}>
             <Badge dot color="green">
-              <Avatar
-                style={{ backgroundColor: user.color }}
-                size="small"
-              >
+              <Avatar style={{ backgroundColor: user.color }} size="small">
                 {user.name.charAt(0).toUpperCase()}
               </Avatar>
             </Badge>
@@ -212,18 +211,16 @@ function ActiveUsersIndicator({ users, currentUser }: { users: User[]; currentUs
 /**
  * Hook to listen for collaboration changes
  */
-export function useCollaborationListener(
-  callback: (data: any) => void
-): void {
+export function useCollaborationListener(callback: (data: any) => void): void {
   useEffect(() => {
     const handler = (event: CustomEvent) => {
       callback(event.detail);
     };
 
-    window.addEventListener('collaboration-change' as any, handler);
+    window.addEventListener("collaboration-change" as any, handler);
 
     return () => {
-      window.removeEventListener('collaboration-change' as any, handler);
+      window.removeEventListener("collaboration-change" as any, handler);
     };
   }, [callback]);
 }

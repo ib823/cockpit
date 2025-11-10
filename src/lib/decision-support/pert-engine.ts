@@ -23,7 +23,7 @@ export interface PERTResults {
   };
 }
 
-export type ConfidenceLevel = 'low' | 'medium' | 'high';
+export type ConfidenceLevel = "low" | "medium" | "high";
 
 export class PERTEngine {
   /**
@@ -34,7 +34,7 @@ export class PERTEngine {
 
     // Validate inputs
     if (O > M || M > P) {
-      throw new Error('Invalid PERT inputs: must satisfy O ≤ M ≤ P');
+      throw new Error("Invalid PERT inputs: must satisfy O ≤ M ≤ P");
     }
 
     // PERT Expected Value: E = (O + 4M + P) / 6
@@ -67,14 +67,11 @@ export class PERTEngine {
   /**
    * Add uncertainty to a baseline estimate based on confidence level
    */
-  addUncertainty(
-    baselineMonths: number,
-    confidenceLevel: ConfidenceLevel
-  ): PERTResults {
+  addUncertainty(baselineMonths: number, confidenceLevel: ConfidenceLevel): PERTResults {
     const multipliers = {
       low: { O: 0.85, M: 1.0, P: 1.15 }, // ±15% variation
-      medium: { O: 0.80, M: 1.0, P: 1.30 }, // -20%/+30% variation
-      high: { O: 0.70, M: 1.0, P: 1.50 }, // -30%/+50% variation
+      medium: { O: 0.8, M: 1.0, P: 1.3 }, // -20%/+30% variation
+      high: { O: 0.7, M: 1.0, P: 1.5 }, // -30%/+50% variation
     };
 
     const mult = multipliers[confidenceLevel];
@@ -95,12 +92,9 @@ export class PERTEngine {
 
     // Approximation of standard normal CDF
     const t = 1 / (1 + 0.2316419 * Math.abs(z));
-    const d = 0.3989423 * Math.exp(-z * z / 2);
+    const d = 0.3989423 * Math.exp((-z * z) / 2);
     const p =
-      d *
-      t *
-      (0.3193815 +
-        t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+      d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
 
     return z >= 0 ? 1 - p : p;
   }

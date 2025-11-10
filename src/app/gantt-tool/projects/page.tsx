@@ -4,16 +4,17 @@
  * Shows all stored projects and allows quick access
  */
 
-'use client';
+"use client";
 
-import { useGanttToolStore } from '@/stores/gantt-tool-store-v2';
-import { Calendar, Trash2, Eye } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { Calendar, Trash2, Eye } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function GanttProjectsPage() {
   const router = useRouter();
-  const { projects, loadProject, deleteProject, unloadCurrentProject, currentProject } = useGanttToolStore();
+  const { projects, loadProject, deleteProject, unloadCurrentProject, currentProject } =
+    useGanttToolStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -34,7 +35,7 @@ export default function GanttProjectsPage() {
 
   const handleLoadProject = (projectId: string) => {
     loadProject(projectId);
-    router.push('/gantt-tool');
+    router.push("/gantt-tool");
   };
 
   const handleDeleteProject = (projectId: string, projectName: string) => {
@@ -53,7 +54,8 @@ export default function GanttProjectsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Your Gantt Projects</h1>
           </div>
           <p className="text-gray-600">
-            Found {projects.length} project{projects.length !== 1 ? 's' : ''} in your browser storage
+            Found {projects.length} project{projects.length !== 1 ? "s" : ""} in your browser
+            storage
           </p>
         </div>
 
@@ -64,7 +66,7 @@ export default function GanttProjectsPage() {
             <h2 className="text-xl font-semibold text-gray-700 mb-2">No Projects Found</h2>
             <p className="text-gray-500 mb-6">You haven&apos;t created any projects yet.</p>
             <button
-              onClick={() => router.push('/gantt-tool')}
+              onClick={() => router.push("/gantt-tool")}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Create Your First Project
@@ -102,7 +104,9 @@ export default function GanttProjectsPage() {
                     <div className="p-5 bg-gray-50">
                       <div className="grid grid-cols-3 gap-3 mb-4">
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600">{project.phases.length}</div>
+                          <div className="text-2xl font-bold text-blue-600">
+                            {project.phases.length}
+                          </div>
                           <div className="text-xs text-gray-600 mt-1">Phases</div>
                         </div>
                         <div className="text-center">
@@ -116,7 +120,7 @@ export default function GanttProjectsPage() {
                       </div>
 
                       <div className="text-xs text-gray-500 mb-4">
-                        Last updated: {new Date(project.updatedAt).toLocaleDateString()} at{' '}
+                        Last updated: {new Date(project.updatedAt).toLocaleDateString()} at{" "}
                         {new Date(project.updatedAt).toLocaleTimeString()}
                       </div>
 
@@ -147,7 +151,7 @@ export default function GanttProjectsPage() {
         {/* Back to Main Page */}
         <div className="mt-8 text-center">
           <button
-            onClick={() => router.push('/gantt-tool')}
+            onClick={() => router.push("/gantt-tool")}
             className="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
           >
             ← Back to Gantt Tool

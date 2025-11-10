@@ -1,38 +1,37 @@
-import { prisma } from '@/lib/db';
-import { createSessionToken } from '@/lib/nextauth-helpers';
-import { compare } from 'bcryptjs';
-import { randomUUID } from 'crypto';
-import { NextResponse } from 'next/server';
-export const runtime = 'nodejs';
-
+import { prisma } from "@/lib/db";
+import { createSessionToken } from "@/lib/nextauth-helpers";
+import { compare } from "bcryptjs";
+import { randomUUID } from "crypto";
+import { NextResponse } from "next/server";
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  if (process.env.ENABLE_MAGIC_LINKS !== 'true') {
-    return NextResponse.json({ ok: false, message: 'Disabled' }, { status: 404 });
+  if (process.env.ENABLE_MAGIC_LINKS !== "true") {
+    return NextResponse.json({ ok: false, message: "Disabled" }, { status: 404 });
   }
   try {
     const { email, code } = await req.json().catch(() => ({}));
     if (!email || !code) {
       return NextResponse.json(
-        { ok: false, message: 'Email and code required' },
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { ok: false, message: "Email and code required" },
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // Check if user exists and is admin
     const user = await prisma.users.findUnique({ where: { email } });
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || user.role !== "ADMIN") {
       return NextResponse.json(
-        { ok: false, message: 'Invalid credentials' },
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { ok: false, message: "Invalid credentials" },
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // Check access expiry (unless exception)
     if (!user.exception && user.accessExpiresAt <= new Date()) {
       return NextResponse.json(
-        { ok: false, message: 'Access expired' },
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { ok: false, message: "Access expired" },
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -40,16 +39,16 @@ export async function POST(req: Request) {
     const approval = await prisma.emailApproval.findUnique({ where: { email } });
     if (!approval || approval.usedAt || approval.tokenExpiresAt < new Date()) {
       return NextResponse.json(
-        { ok: false, message: 'Invalid or expired code' },
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { ok: false, message: "Invalid or expired code" },
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
     const codeValid = await compare(code, approval.tokenHash);
     if (!codeValid) {
       return NextResponse.json(
-        { ok: false, message: 'Invalid code' },
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { ok: false, message: "Invalid code" },
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -69,12 +68,12 @@ export async function POST(req: Request) {
         },
       }),
       prisma.auditEvent.create({
-        data: { id: randomUUID(), userId: user.id, type: 'admin_login' },
+        data: { id: randomUUID(), userId: user.id, type: "admin_login" },
       }),
     ]);
 
     // Map MANAGER to USER for session purposes
-    const sessionRole = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
+    const sessionRole = user.role === "ADMIN" ? "ADMIN" : "USER";
     //await createAuthSession(user.id, user.email, sessionRole);
     const token = await createSessionToken(user.id, user.email, sessionRole);
 
@@ -82,21 +81,18 @@ export async function POST(req: Request) {
       { ok: true },
       {
         headers: {
-          'Content-Type': 'application/json',
-          'Set-Cookie': `next-auth.session-token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`
-        }
+          "Content-Type": "application/json",
+          "Set-Cookie": `next-auth.session-token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+        },
       }
     );
 
-    return NextResponse.json(
-      { ok: true },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    return NextResponse.json({ ok: true }, { headers: { "Content-Type": "application/json" } });
   } catch (e) {
-    console.error('admin-login error', e);
+    console.error("admin-login error", e);
     return NextResponse.json(
-      { ok: false, message: 'Internal error' },
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { ok: false, message: "Internal error" },
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

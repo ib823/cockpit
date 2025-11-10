@@ -3,11 +3,11 @@ import {
   generateAuthenticationOptions,
   verifyRegistrationResponse,
   verifyAuthenticationResponse,
-} from '@simplewebauthn/server';
-import { Redis } from '@upstash/redis';
+} from "@simplewebauthn/server";
+import { Redis } from "@upstash/redis";
 
-export const rpName = 'Cockpit';
-const dev = process.env.NODE_ENV !== 'production';
+export const rpName = "Cockpit";
+const dev = process.env.NODE_ENV !== "production";
 
 function getWebAuthnConfig() {
   const rpID = process.env.WEBAUTHN_RP_ID;
@@ -16,14 +16,14 @@ function getWebAuthnConfig() {
   if (!dev) {
     if (!rpID || !origin) {
       throw new Error(
-        'WEBAUTHN_RP_ID and WEBAUTHN_ORIGIN environment variables are required in production'
+        "WEBAUTHN_RP_ID and WEBAUTHN_ORIGIN environment variables are required in production"
       );
     }
   }
 
   return {
-    rpID: rpID ?? 'localhost',
-    origin: origin ?? 'http://localhost:3001',
+    rpID: rpID ?? "localhost",
+    origin: origin ?? "http://localhost:3001",
   };
 }
 
@@ -37,7 +37,9 @@ const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 let redis: Redis | null = null;
 try {
   if (url && token && /^https:\/\//i.test(url)) redis = new Redis({ url, token });
-} catch { redis = null; }
+} catch {
+  redis = null;
+}
 
 // Use global to survive HMR in development
 const globalForChallenges = global as typeof globalThis & {

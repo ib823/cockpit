@@ -5,11 +5,19 @@
  * Shows expected duration with confidence bands (50%, 80%, 90%, 95%).
  */
 
-'use client';
+"use client";
 
-import { Card, Typography } from 'antd';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import type { PERTResults } from '@/lib/decision-support/pert-engine';
+import { Card, Typography } from "antd";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import type { PERTResults } from "@/lib/decision-support/pert-engine";
 
 const { Text, Title } = Typography;
 
@@ -23,8 +31,8 @@ interface ConfidenceRibbonProps {
 export function ConfidenceRibbon({
   baseline,
   pertResults,
-  title = 'Duration Uncertainty',
-  unit = 'months'
+  title = "Duration Uncertainty",
+  unit = "months",
 }: ConfidenceRibbonProps) {
   // Generate data points for visualization
   const generateDataPoints = () => {
@@ -61,7 +69,8 @@ export function ConfidenceRibbon({
       <div className="mb-4">
         <Title level={5}>{title}</Title>
         <Text type="secondary">
-          Expected: {pertResults.expected.toFixed(1)} {unit} | Baseline: {baseline.toFixed(1)} {unit}
+          Expected: {pertResults.expected.toFixed(1)} {unit} | Baseline: {baseline.toFixed(1)}{" "}
+          {unit}
         </Text>
       </div>
 
@@ -70,7 +79,7 @@ export function ConfidenceRibbon({
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="duration"
-            label={{ value: `Duration (${unit})`, position: 'insideBottom', offset: -5 }}
+            label={{ value: `Duration (${unit})`, position: "insideBottom", offset: -5 }}
             tickFormatter={(value) => value.toFixed(1)}
           />
           <YAxis hide />
@@ -139,20 +148,36 @@ export function ConfidenceRibbon({
       {/* Key Metrics */}
       <div className="mt-4 p-3 bg-gray-50 rounded grid grid-cols-2 md:grid-cols-4 gap-3">
         <div>
-          <Text type="secondary" className="block text-xs">Expected (P50)</Text>
-          <Text strong className="text-base">{pertResults.confidenceInterval.p50.toFixed(1)} {unit}</Text>
+          <Text type="secondary" className="block text-xs">
+            Expected (P50)
+          </Text>
+          <Text strong className="text-base">
+            {pertResults.confidenceInterval.p50.toFixed(1)} {unit}
+          </Text>
         </div>
         <div>
-          <Text type="secondary" className="block text-xs">80% Confidence</Text>
-          <Text strong className="text-base">{pertResults.confidenceInterval.p80.toFixed(1)} {unit}</Text>
+          <Text type="secondary" className="block text-xs">
+            80% Confidence
+          </Text>
+          <Text strong className="text-base">
+            {pertResults.confidenceInterval.p80.toFixed(1)} {unit}
+          </Text>
         </div>
         <div>
-          <Text type="secondary" className="block text-xs">90% Confidence</Text>
-          <Text strong className="text-base">{pertResults.confidenceInterval.p90.toFixed(1)} {unit}</Text>
+          <Text type="secondary" className="block text-xs">
+            90% Confidence
+          </Text>
+          <Text strong className="text-base">
+            {pertResults.confidenceInterval.p90.toFixed(1)} {unit}
+          </Text>
         </div>
         <div>
-          <Text type="secondary" className="block text-xs">Std Deviation</Text>
-          <Text strong className="text-base">{pertResults.standardDeviation.toFixed(2)} {unit}</Text>
+          <Text type="secondary" className="block text-xs">
+            Std Deviation
+          </Text>
+          <Text strong className="text-base">
+            {pertResults.standardDeviation.toFixed(2)} {unit}
+          </Text>
         </div>
       </div>
     </Card>

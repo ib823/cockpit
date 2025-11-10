@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { startRegistration } from '@simplewebauthn/browser';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { startRegistration } from "@simplewebauthn/browser";
 
 export default function AddPasskeyPage() {
   const router = useRouter();
-  const [nickname, setNickname] = useState('');
+  const [nickname, setNickname] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreatePasskey = async () => {
     if (!nickname.trim()) {
-      setError('Please enter a nickname for this passkey');
+      setError("Please enter a nickname for this passkey");
       return;
     }
 
@@ -21,12 +21,12 @@ export default function AddPasskeyPage() {
       setError(null);
 
       // Step 1: Get registration options from server
-      const beginRes = await fetch('/api/auth/passkey/register/begin', {
-        method: 'POST',
+      const beginRes = await fetch("/api/auth/passkey/register/begin", {
+        method: "POST",
       });
 
       if (!beginRes.ok) {
-        throw new Error('Failed to start passkey registration');
+        throw new Error("Failed to start passkey registration");
       }
 
       const options = await beginRes.json();
@@ -36,16 +36,16 @@ export default function AddPasskeyPage() {
       try {
         attResp = await startRegistration(options);
       } catch (err) {
-        if (err instanceof Error && err.name === 'NotAllowedError') {
-          throw new Error('Passkey setup was cancelled');
+        if (err instanceof Error && err.name === "NotAllowedError") {
+          throw new Error("Passkey setup was cancelled");
         }
         throw err;
       }
 
       // Step 3: Send response to server with nickname
-      const finishRes = await fetch('/api/auth/passkey/register/finish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const finishRes = await fetch("/api/auth/passkey/register/finish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           credential: attResp,
           nickname: nickname.trim(),
@@ -54,13 +54,13 @@ export default function AddPasskeyPage() {
 
       if (!finishRes.ok) {
         const data = await finishRes.json();
-        throw new Error(data.error || 'Failed to register passkey');
+        throw new Error(data.error || "Failed to register passkey");
       }
 
       // Success! Redirect back to account page
-      router.push('/account');
+      router.push("/account");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
       setLoading(false);
     }
   };
@@ -130,12 +130,12 @@ export default function AddPasskeyPage() {
                   Creating...
                 </span>
               ) : (
-                'Create Passkey'
+                "Create Passkey"
               )}
             </button>
 
             <button
-              onClick={() => router.push('/account')}
+              onClick={() => router.push("/account")}
               disabled={loading}
               className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
@@ -147,8 +147,9 @@ export default function AddPasskeyPage() {
         {/* Info */}
         <div className="mt-6 p-4 bg-blue-50 rounded-md">
           <p className="text-xs text-blue-900">
-            <strong>What&apos;s a passkey?</strong> Passkeys are a secure, passwordless way to sign in using
-            your device&apos;s biometric authentication (fingerprint, face recognition) or device PIN.
+            <strong>What&apos;s a passkey?</strong> Passkeys are a secure, passwordless way to sign
+            in using your device&apos;s biometric authentication (fingerprint, face recognition) or
+            device PIN.
           </p>
         </div>
       </div>

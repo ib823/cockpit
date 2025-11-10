@@ -8,24 +8,32 @@
  * - Timeline: Full Gantt chart
  */
 
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Calculator, Info, ArrowLeft, Package, BarChart3, CheckCircle2, Calendar } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { l3CatalogComplete } from '@/lib/estimator/l3-catalog-complete';
+import { motion } from "framer-motion";
+import {
+  Calculator,
+  Info,
+  ArrowLeft,
+  Package,
+  BarChart3,
+  CheckCircle2,
+  Calendar,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { l3CatalogComplete } from "@/lib/estimator/l3-catalog-complete";
 
 // Base effort for Malaysia
 const BASE_EFFORT_MY = 520;
 const FIXED_WORK = 97;
 const WEEKS_PER_MD = 0.05;
 
-type Tab = 'scope' | 'pareto' | 'validation' | 'timeline';
+type Tab = "scope" | "pareto" | "validation" | "timeline";
 
 export default function WhiteboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<Tab>('scope');
+  const [activeTab, setActiveTab] = useState<Tab>("scope");
 
   // Parameters
   const [scopeBreadth, setScopeBreadth] = useState(0.06);
@@ -43,15 +51,15 @@ export default function WhiteboardPage() {
   // Calculations
   const calculatePC = () => {
     const intMult = integrations * 0.005;
-    const extMult = (inAppExt * 0.003) + (btpExt * 0.002);
-    return Math.min(intMult + extMult, 0.30);
+    const extMult = inAppExt * 0.003 + btpExt * 0.002;
+    return Math.min(intMult + extMult, 0.3);
   };
 
   const calculateOSG = () => {
     const countryMult = (countries - 1) * 0.05;
     const entityMult = (entities - 1) * 0.03;
-    const userMult = peakUsers > 500 ? 0.10 : peakUsers > 200 ? 0.05 : 0;
-    return Math.min(countryMult + entityMult + userMult, 0.50);
+    const userMult = peakUsers > 500 ? 0.1 : peakUsers > 200 ? 0.05 : 0;
+    return Math.min(countryMult + entityMult + userMult, 0.5);
   };
 
   const pc = calculatePC();
@@ -66,18 +74,18 @@ export default function WhiteboardPage() {
   const estimatedFTE = Math.ceil(totalMD / totalWeeks);
 
   const phases = [
-    { name: 'Prepare', percent: 12, color: 'bg-blue-500' },
-    { name: 'Explore', percent: 18, color: 'bg-purple-500' },
-    { name: 'Realize', percent: 45, color: 'bg-green-500' },
-    { name: 'Deploy', percent: 15, color: 'bg-orange-500' },
-    { name: 'Run', percent: 10, color: 'bg-gray-500' }
-  ].map(p => ({ ...p, weeks: Math.ceil(totalWeeks * p.percent / 100) }));
+    { name: "Prepare", percent: 12, color: "bg-blue-500" },
+    { name: "Explore", percent: 18, color: "bg-purple-500" },
+    { name: "Realize", percent: 45, color: "bg-green-500" },
+    { name: "Deploy", percent: 15, color: "bg-orange-500" },
+    { name: "Run", percent: 10, color: "bg-gray-500" },
+  ].map((p) => ({ ...p, weeks: Math.ceil((totalWeeks * p.percent) / 100) }));
 
   const tabs = [
-    { id: 'scope' as Tab, label: 'Scope Items', icon: Package },
-    { id: 'pareto' as Tab, label: 'Pareto Analysis', icon: BarChart3 },
-    { id: 'validation' as Tab, label: 'Validation', icon: CheckCircle2 },
-    { id: 'timeline' as Tab, label: 'Timeline', icon: Calendar }
+    { id: "scope" as Tab, label: "Scope Items", icon: Package },
+    { id: "pareto" as Tab, label: "Pareto Analysis", icon: BarChart3 },
+    { id: "validation" as Tab, label: "Validation", icon: CheckCircle2 },
+    { id: "timeline" as Tab, label: "Timeline", icon: Calendar },
   ];
 
   return (
@@ -86,7 +94,7 @@ export default function WhiteboardPage() {
       <div className="w-[400px] bg-white border-r border-gray-200 overflow-y-auto">
         <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
           <button
-            onClick={() => router.push('/estimator')}
+            onClick={() => router.push("/estimator")}
             className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -101,7 +109,9 @@ export default function WhiteboardPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="text-sm font-medium text-gray-900">Scope Breadth (SB)</label>
-              <span className="text-sm font-mono text-blue-600">+{(scopeBreadth * 100).toFixed(0)}%</span>
+              <span className="text-sm font-mono text-blue-600">
+                +{(scopeBreadth * 100).toFixed(0)}%
+              </span>
             </div>
             <input
               type="range"
@@ -227,7 +237,7 @@ export default function WhiteboardPage() {
         {/* Tabs */}
         <div className="bg-white border-b border-gray-200">
           <div className="flex gap-1 p-2">
-            {tabs.map(tab => {
+            {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
@@ -235,8 +245,8 @@ export default function WhiteboardPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === tab.id
-                      ? 'bg-gray-900 text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -250,31 +260,33 @@ export default function WhiteboardPage() {
         {/* Tab Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto p-8">
-            {activeTab === 'scope' && (
+            {activeTab === "scope" && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-light text-gray-900">L3 Scope Items</h2>
                 <p className="text-gray-600">Select SAP process navigator items (158 available)</p>
 
-                {modules.map(module => {
+                {modules.map((module) => {
                   const items = l3CatalogComplete.getByModule(module);
                   return (
                     <div key={module} className="bg-white rounded-lg border border-gray-200 p-6">
-                      <h3 className="font-medium text-gray-900 mb-4">{module} ({items.length})</h3>
+                      <h3 className="font-medium text-gray-900 mb-4">
+                        {module} ({items.length})
+                      </h3>
                       <div className="grid grid-cols-2 gap-3">
-                        {items.slice(0, 10).map(item => (
+                        {items.slice(0, 10).map((item) => (
                           <button
                             key={item.id}
                             onClick={() => {
-                              setSelectedL3Items(prev =>
+                              setSelectedL3Items((prev) =>
                                 prev.includes(item.id)
-                                  ? prev.filter(id => id !== item.id)
+                                  ? prev.filter((id) => id !== item.id)
                                   : [...prev, item.id]
                               );
                             }}
                             className={`text-left px-3 py-2 rounded-lg border text-sm transition-colors ${
                               selectedL3Items.includes(item.id)
-                                ? 'bg-blue-50 border-blue-300 text-blue-900'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
+                                ? "bg-blue-50 border-blue-300 text-blue-900"
+                                : "bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300"
                             }`}
                           >
                             <div className="font-mono text-xs text-gray-500">{item.code}</div>
@@ -284,7 +296,9 @@ export default function WhiteboardPage() {
                         ))}
                       </div>
                       {items.length > 10 && (
-                        <p className="text-xs text-gray-500 mt-3">+ {items.length - 10} more items...</p>
+                        <p className="text-xs text-gray-500 mt-3">
+                          + {items.length - 10} more items...
+                        </p>
                       )}
                     </div>
                   );
@@ -292,36 +306,40 @@ export default function WhiteboardPage() {
               </div>
             )}
 
-            {activeTab === 'pareto' && (
+            {activeTab === "pareto" && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-light text-gray-900">Pareto Analysis (80/20 Rule)</h2>
                 <div className="bg-white rounded-lg border border-gray-200 p-8">
                   <p className="text-gray-600 mb-6">20% of features drive 80% of effort</p>
                   <div className="space-y-4">
                     {[
-                      { driver: 'Scope Breadth', impact: scopeBreadth * 100, color: 'bg-blue-500' },
-                      { driver: 'Project Complexity', impact: pc * 100, color: 'bg-purple-500' },
-                      { driver: 'Org/Scale/Geo', impact: osg * 100, color: 'bg-orange-500' }
-                    ].sort((a, b) => b.impact - a.impact).map(item => (
-                      <div key={item.driver}>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">{item.driver}</span>
-                          <span className="text-sm text-gray-600">+{item.impact.toFixed(0)}%</span>
+                      { driver: "Scope Breadth", impact: scopeBreadth * 100, color: "bg-blue-500" },
+                      { driver: "Project Complexity", impact: pc * 100, color: "bg-purple-500" },
+                      { driver: "Org/Scale/Geo", impact: osg * 100, color: "bg-orange-500" },
+                    ]
+                      .sort((a, b) => b.impact - a.impact)
+                      .map((item) => (
+                        <div key={item.driver}>
+                          <div className="flex justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">{item.driver}</span>
+                            <span className="text-sm text-gray-600">
+                              +{item.impact.toFixed(0)}%
+                            </span>
+                          </div>
+                          <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${item.color}`}
+                              style={{ width: `${Math.min(item.impact * 2, 100)}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${item.color}`}
-                            style={{ width: `${Math.min(item.impact * 2, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               </div>
             )}
 
-            {activeTab === 'validation' && (
+            {activeTab === "validation" && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-light text-gray-900">Statistical Validation</h2>
                 <div className="bg-white rounded-lg border border-gray-200 p-8 space-y-6">
@@ -348,7 +366,8 @@ export default function WhiteboardPage() {
                     <div className="font-mono text-sm bg-gray-50 rounded-lg p-4">
                       <div>Total = BCE × (1 + SB) × (1 + PC) × (1 + OSG) + FW</div>
                       <div className="text-gray-600 mt-2">
-                        = {BASE_EFFORT_MY} × {sbMultiplier.toFixed(2)} × {pcMultiplier.toFixed(2)} × {osgMultiplier.toFixed(2)} + {FIXED_WORK}
+                        = {BASE_EFFORT_MY} × {sbMultiplier.toFixed(2)} × {pcMultiplier.toFixed(2)} ×{" "}
+                        {osgMultiplier.toFixed(2)} + {FIXED_WORK}
                       </div>
                       <div className="text-green-600 font-semibold mt-2">= {totalMD} MD</div>
                     </div>
@@ -357,16 +376,20 @@ export default function WhiteboardPage() {
               </div>
             )}
 
-            {activeTab === 'timeline' && (
+            {activeTab === "timeline" && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-light text-gray-900">Project Timeline (SAP Activate)</h2>
+                <h2 className="text-2xl font-light text-gray-900">
+                  Project Timeline (SAP Activate)
+                </h2>
                 <div className="bg-white rounded-lg border border-gray-200 p-8">
                   <div className="space-y-4">
                     {phases.map((phase, idx) => (
                       <div key={phase.name}>
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium text-gray-900">{phase.name}</span>
-                          <span className="text-sm text-gray-600">{phase.weeks} weeks ({phase.percent}%)</span>
+                          <span className="text-sm text-gray-600">
+                            {phase.weeks} weeks ({phase.percent}%)
+                          </span>
                         </div>
                         <div className="h-12 bg-gray-100 rounded-lg overflow-hidden">
                           <motion.div
@@ -376,7 +399,7 @@ export default function WhiteboardPage() {
                             transition={{ duration: 0.8, delay: idx * 0.1 }}
                           >
                             <span className="text-white font-medium text-sm">
-                              {Math.round(totalMD * phase.percent / 100)} MD
+                              {Math.round((totalMD * phase.percent) / 100)} MD
                             </span>
                           </motion.div>
                         </div>
@@ -385,7 +408,9 @@ export default function WhiteboardPage() {
                   </div>
 
                   <div className="mt-6 pt-6 border-t border-gray-200 text-sm text-gray-600">
-                    <p>Total duration: {totalWeeks} weeks ({totalMonths} months)</p>
+                    <p>
+                      Total duration: {totalWeeks} weeks ({totalMonths} months)
+                    </p>
                     <p>Estimated team: ~{estimatedFTE} FTE</p>
                   </div>
                 </div>

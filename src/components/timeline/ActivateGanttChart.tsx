@@ -4,14 +4,7 @@ import { useTimelineStore } from "@/stores/timeline-store";
 import type { Phase } from "@/types/core";
 import { addWorkingDays, calculateWorkingDays } from "@/data/holidays";
 import { format, differenceInDays, addDays } from "date-fns";
-import {
-  ChevronDown,
-  ChevronRight,
-  Calendar,
-  Flag,
-  Maximize2,
-  Minimize2,
-} from "lucide-react";
+import { ChevronDown, ChevronRight, Calendar, Flag, Maximize2, Minimize2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Heading3 } from "@/components/common/Typography";
@@ -24,34 +17,34 @@ const PROJECT_BASE_DATE = new Date(new Date().getFullYear(), 0, 1);
 // SAP Activate Phases
 const SAP_ACTIVATE_PHASES = [
   {
-    id: 'prepare',
-    name: 'Prepare',
-    description: 'Project kickoff, planning, and team setup',
-    color: 'bg-blue-500',
+    id: "prepare",
+    name: "Prepare",
+    description: "Project kickoff, planning, and team setup",
+    color: "bg-blue-500",
   },
   {
-    id: 'explore',
-    name: 'Explore',
-    description: 'Requirements gathering, fit-gap analysis, and solution design',
-    color: 'bg-purple-500',
+    id: "explore",
+    name: "Explore",
+    description: "Requirements gathering, fit-gap analysis, and solution design",
+    color: "bg-purple-500",
   },
   {
-    id: 'realize',
-    name: 'Realize',
-    description: 'Configuration, customization, and development',
-    color: 'bg-green-500',
+    id: "realize",
+    name: "Realize",
+    description: "Configuration, customization, and development",
+    color: "bg-green-500",
   },
   {
-    id: 'deploy',
-    name: 'Deploy',
-    description: 'Testing, training, cutover, and go-live',
-    color: 'bg-amber-500',
+    id: "deploy",
+    name: "Deploy",
+    description: "Testing, training, cutover, and go-live",
+    color: "bg-amber-500",
   },
   {
-    id: 'run',
-    name: 'Run',
-    description: 'Hypercare, optimization, and continuous improvement',
-    color: 'bg-red-500',
+    id: "run",
+    name: "Run",
+    description: "Hypercare, optimization, and continuous improvement",
+    color: "bg-red-500",
   },
 ] as const;
 
@@ -77,7 +70,7 @@ interface ActivatePhaseData {
 
 export function ActivateGanttChart({
   phases: phasesProp,
-  onPhaseClick
+  onPhaseClick,
 }: {
   phases?: Phase[];
   onPhaseClick?: (phase: Phase) => void;
@@ -88,23 +81,25 @@ export function ActivateGanttChart({
   const rawPhases = Array.isArray(phasesProp)
     ? phasesProp
     : Array.isArray(storePhases)
-    ? storePhases
-    : [];
+      ? storePhases
+      : [];
 
   // State
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
-  const [selectedRegion, setSelectedRegion] = useState<'ABMY' | 'ABSG' | 'ABVN'>('ABMY');
+  const [selectedRegion, setSelectedRegion] = useState<"ABMY" | "ABSG" | "ABVN">("ABMY");
   const [showHolidayModal, setShowHolidayModal] = useState(false);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
-  const [milestones, setMilestones] = useState<Array<{ id: string; name: string; date: Date; color: string }>>([]);
+  const [milestones, setMilestones] = useState<
+    Array<{ id: string; name: string; date: Date; color: string }>
+  >([]);
 
   // Group phases by SAP Activate methodology
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const activatePhases = useMemo((): ActivatePhaseData[] => {
     return SAP_ACTIVATE_PHASES.map((activatePhase, index) => {
       // Get phases that belong to this activate phase
-      const phasesInActivate = rawPhases.filter(p => {
-        const category = p.category?.toLowerCase() || '';
+      const phasesInActivate = rawPhases.filter((p) => {
+        const category = p.category?.toLowerCase() || "";
         return category.includes(activatePhase.id);
       });
 
@@ -118,9 +113,27 @@ export function ActivateGanttChart({
           description: activatePhase.description,
           phases: [],
           tasks: [
-            { id: `${activatePhase.id}-task-1`, name: 'Planning & Setup', workingDays: 10, effort: 10, defaultRole: 'Consultant' },
-            { id: `${activatePhase.id}-task-2`, name: 'Execution', workingDays: 15, effort: 15, defaultRole: 'Consultant' },
-            { id: `${activatePhase.id}-task-3`, name: 'Review & Handover', workingDays: 5, effort: 5, defaultRole: 'Consultant' },
+            {
+              id: `${activatePhase.id}-task-1`,
+              name: "Planning & Setup",
+              workingDays: 10,
+              effort: 10,
+              defaultRole: "Consultant",
+            },
+            {
+              id: `${activatePhase.id}-task-2`,
+              name: "Execution",
+              workingDays: 15,
+              effort: 15,
+              defaultRole: "Consultant",
+            },
+            {
+              id: `${activatePhase.id}-task-3`,
+              name: "Review & Handover",
+              workingDays: 5,
+              effort: 5,
+              defaultRole: "Consultant",
+            },
           ],
           startBusinessDay: startDay,
           endBusinessDay: startDay + 30,
@@ -131,13 +144,15 @@ export function ActivateGanttChart({
       }
 
       // Calculate aggregate data
-      const startBusinessDay = Math.min(...phasesInActivate.map(p => p.startBusinessDay || 0));
-      const endBusinessDay = Math.max(...phasesInActivate.map(p => (p.startBusinessDay || 0) + (p.workingDays || 0)));
+      const startBusinessDay = Math.min(...phasesInActivate.map((p) => p.startBusinessDay || 0));
+      const endBusinessDay = Math.max(
+        ...phasesInActivate.map((p) => (p.startBusinessDay || 0) + (p.workingDays || 0))
+      );
       const workingDays = endBusinessDay - startBusinessDay;
       const effort = phasesInActivate.reduce((sum, p) => sum + (p.effort || 0), 0);
 
       // Get all resources across phases
-      const allResources = phasesInActivate.flatMap(p => p.resources || []);
+      const allResources = phasesInActivate.flatMap((p) => p.resources || []);
 
       // Create 3 key tasks from the phases
       const tasks = phasesInActivate.slice(0, 3).map((p, idx) => ({
@@ -145,7 +160,7 @@ export function ActivateGanttChart({
         name: p.name,
         workingDays: p.workingDays || 0,
         effort: p.effort || 0,
-        defaultRole: p.resources?.[0]?.role || 'Consultant',
+        defaultRole: p.resources?.[0]?.role || "Consultant",
       }));
 
       // Fill to ensure 3 tasks
@@ -155,7 +170,7 @@ export function ActivateGanttChart({
           name: `Task ${tasks.length + 1}`,
           workingDays: Math.floor(workingDays / 3),
           effort: Math.floor(effort / 3),
-          defaultRole: 'Consultant',
+          defaultRole: "Consultant",
         });
       }
 
@@ -187,8 +202,8 @@ export function ActivateGanttChart({
       };
     }
 
-    const start = Math.min(...activatePhases.map(p => p.startBusinessDay));
-    const end = Math.max(...activatePhases.map(p => p.endBusinessDay));
+    const start = Math.min(...activatePhases.map((p) => p.startBusinessDay));
+    const end = Math.max(...activatePhases.map((p) => p.endBusinessDay));
 
     const minD = addWorkingDays(PROJECT_BASE_DATE, start, selectedRegion);
     const maxD = addWorkingDays(PROJECT_BASE_DATE, end, selectedRegion);
@@ -220,7 +235,7 @@ export function ActivateGanttChart({
   };
 
   const handleExpandAll = () => {
-    setExpandedPhases(new Set(activatePhases.map(p => p.id)));
+    setExpandedPhases(new Set(activatePhases.map((p) => p.id)));
   };
 
   const handleCollapseAll = () => {
@@ -276,11 +291,7 @@ export function ActivateGanttChart({
       resources.reduce((sum, r) => sum + (r.allocation || 0), 0) / resources.length;
 
     const barColor =
-      avgAllocation > 100
-        ? "bg-red-400"
-        : avgAllocation >= 80
-        ? "bg-orange-400"
-        : "bg-green-400";
+      avgAllocation > 100 ? "bg-red-400" : avgAllocation >= 80 ? "bg-orange-400" : "bg-green-400";
 
     return (
       <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/20 rounded-b-lg overflow-hidden">
@@ -364,11 +375,11 @@ export function ActivateGanttChart({
       <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
         <div>
           <div className="text-xs text-gray-600 mb-1">Start Date</div>
-          <div className="font-semibold text-gray-900">{format(minDate, 'MMM dd, yyyy')}</div>
+          <div className="font-semibold text-gray-900">{format(minDate, "MMM dd, yyyy")}</div>
         </div>
         <div>
           <div className="text-xs text-gray-600 mb-1">End Date</div>
-          <div className="font-semibold text-gray-900">{format(maxDate, 'MMM dd, yyyy')}</div>
+          <div className="font-semibold text-gray-900">{format(maxDate, "MMM dd, yyyy")}</div>
         </div>
         <div>
           <div className="text-xs text-gray-600 mb-1">Total Duration</div>
@@ -421,8 +432,12 @@ export function ActivateGanttChart({
                       )}
                     </button>
                     <div className="flex-1">
-                      <div className="text-sm font-semibold text-gray-900">{activatePhase.name}</div>
-                      <div className="text-xs text-gray-500">{activatePhase.workingDays}d • {activatePhase.effort}md</div>
+                      <div className="text-sm font-semibold text-gray-900">
+                        {activatePhase.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {activatePhase.workingDays}d • {activatePhase.effort}md
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -442,10 +457,24 @@ export function ActivateGanttChart({
                       {/* Dates */}
                       <div className="flex justify-between text-[10px] text-white/80 font-medium gap-1">
                         <span>
-                          {format(addWorkingDays(PROJECT_BASE_DATE, activatePhase.startBusinessDay, selectedRegion), 'MMM dd')}
+                          {format(
+                            addWorkingDays(
+                              PROJECT_BASE_DATE,
+                              activatePhase.startBusinessDay,
+                              selectedRegion
+                            ),
+                            "MMM dd"
+                          )}
                         </span>
                         <span>
-                          {format(addWorkingDays(PROJECT_BASE_DATE, activatePhase.endBusinessDay, selectedRegion), 'MMM dd')}
+                          {format(
+                            addWorkingDays(
+                              PROJECT_BASE_DATE,
+                              activatePhase.endBusinessDay,
+                              selectedRegion
+                            ),
+                            "MMM dd"
+                          )}
                         </span>
                       </div>
 
@@ -470,8 +499,15 @@ export function ActivateGanttChart({
               {isExpanded && activatePhase.tasks.length > 0 && (
                 <div className="ml-12 space-y-1 mb-2">
                   {activatePhase.tasks.map((task, idx) => {
-                    const taskStartPercent = startPercent + (widthPercent * (activatePhase.tasks.slice(0, idx).reduce((sum, t) => sum + t.workingDays, 0) / activatePhase.workingDays));
-                    const taskWidthPercent = widthPercent * (task.workingDays / activatePhase.workingDays);
+                    const taskStartPercent =
+                      startPercent +
+                      widthPercent *
+                        (activatePhase.tasks
+                          .slice(0, idx)
+                          .reduce((sum, t) => sum + t.workingDays, 0) /
+                          activatePhase.workingDays);
+                    const taskWidthPercent =
+                      widthPercent * (task.workingDays / activatePhase.workingDays);
 
                     return (
                       <div key={task.id} className="flex items-center text-xs">
@@ -506,10 +542,7 @@ export function ActivateGanttChart({
 
       {/* Modals */}
       {showHolidayModal && (
-        <HolidayManagerModal
-          region={selectedRegion}
-          onClose={() => setShowHolidayModal(false)}
-        />
+        <HolidayManagerModal region={selectedRegion} onClose={() => setShowHolidayModal(false)} />
       )}
 
       {showMilestoneModal && (
@@ -527,7 +560,11 @@ export function ActivateGanttChart({
 }
 
 // Helper: Generate month markers
-function generateMonthMarkers(startDate: Date, endDate: Date, totalDays: number): Array<{ position: number; label: string }> {
+function generateMonthMarkers(
+  startDate: Date,
+  endDate: Date,
+  totalDays: number
+): Array<{ position: number; label: string }> {
   const markers: Array<{ position: number; label: string }> = [];
 
   let current = new Date(startDate);
@@ -539,7 +576,7 @@ function generateMonthMarkers(startDate: Date, endDate: Date, totalDays: number)
 
     markers.push({
       position: Math.max(0, position),
-      label: format(current, 'MMM yyyy'),
+      label: format(current, "MMM yyyy"),
     });
 
     current = new Date(current.getFullYear(), current.getMonth() + 1, 1);

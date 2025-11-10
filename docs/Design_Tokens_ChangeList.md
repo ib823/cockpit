@@ -27,16 +27,16 @@ export const colors = {
   // Light mode (primary)
   light: {
     primary: {
-      50: '#eff6ff',
-      100: '#dbeafe',
-      200: '#bfdbfe',
-      300: '#93c5fd',
-      400: '#60a5fa',
-      500: '#3b82f6',
-      600: '#2563eb',  // Main brand
-      700: '#1d4ed8',
-      800: '#1e40af',
-      900: '#1e3a8a',
+      50: "#eff6ff",
+      100: "#dbeafe",
+      200: "#bfdbfe",
+      300: "#93c5fd",
+      400: "#60a5fa",
+      500: "#3b82f6",
+      600: "#2563eb", // Main brand
+      700: "#1d4ed8",
+      800: "#1e40af",
+      900: "#1e3a8a",
     },
     // ... other colors
   },
@@ -44,8 +44,8 @@ export const colors = {
   // Dark mode (inverted)
   dark: {
     primary: {
-      50: '#1e3a8a',
-      100: '#1e40af',
+      50: "#1e3a8a",
+      100: "#1e40af",
       // ... inverted scale
     },
   },
@@ -107,15 +107,15 @@ animation: {
 
 ```javascript
 module.exports = {
-  darkMode: 'class', // Use data-theme attribute
+  darkMode: "class", // Use data-theme attribute
   theme: {
     extend: {
       colors: {
         primary: {
-          600: 'var(--color-primary-600)',
+          600: "var(--color-primary-600)",
         },
-        background: 'var(--color-bg)',
-        foreground: 'var(--color-text-primary)',
+        background: "var(--color-bg)",
+        foreground: "var(--color-text-primary)",
       },
     },
   },

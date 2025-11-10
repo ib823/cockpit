@@ -7,12 +7,14 @@ The UI toolkit has been successfully integrated into your Keystone application. 
 ## 🚀 Getting Started (3 Steps)
 
 ### 1. View the Demo
+
 ```bash
 npm run dev
 # Visit: http://localhost:3000/ui-demo
 ```
 
 You'll see a live showcase of all 20+ components with:
+
 - Interactive examples
 - Light/Dark theme switching
 - Toast notifications in action
@@ -24,17 +26,21 @@ You'll see a live showcase of all 20+ components with:
 
 ```tsx
 // In any component file
-import { Button, useToast } from '@/ui';
+import { Button, useToast } from "@/ui";
 
 function MyComponent() {
   const { push } = useToast();
 
   return (
-    <Button onClick={() => push({
-      kind: 'success',
-      title: 'Welcome!',
-      desc: 'You just used the UI toolkit'
-    })}>
+    <Button
+      onClick={() =>
+        push({
+          kind: "success",
+          title: "Welcome!",
+          desc: "You just used the UI toolkit",
+        })
+      }
+    >
       Click Me
     </Button>
   );
@@ -44,6 +50,7 @@ function MyComponent() {
 ### 3. Explore the Components
 
 Open `/src/ui/README.md` for:
+
 - Complete API reference
 - All component props
 - Usage examples
@@ -52,6 +59,7 @@ Open `/src/ui/README.md` for:
 ## 📦 What's Available
 
 ### Form Components
+
 ```tsx
 import { Button, Input, Checkbox, Toggle, Select } from '@/ui';
 
@@ -63,6 +71,7 @@ import { Button, Input, Checkbox, Toggle, Select } from '@/ui';
 ```
 
 ### Feedback Components
+
 ```tsx
 import { Alert, Modal, Tooltip, useToast } from '@/ui';
 
@@ -85,6 +94,7 @@ push({ kind: 'success', title: 'Saved!', desc: 'Changes saved' });
 ```
 
 ### Navigation Components
+
 ```tsx
 import { Tabs, Breadcrumb, Pagination } from '@/ui';
 
@@ -106,6 +116,7 @@ import { Tabs, Breadcrumb, Pagination } from '@/ui';
 ```
 
 ### Loading States
+
 ```tsx
 import { Progress, SkeletonText, SkeletonRect } from '@/ui';
 
@@ -116,61 +127,60 @@ import { Progress, SkeletonText, SkeletonRect } from '@/ui';
 ```
 
 ### Layout Components
+
 ```tsx
-import { AppShell, PageHeader } from '@/ui';
+import { AppShell, PageHeader } from "@/ui";
 
 <AppShell
-  nav={[{ key: 'home', label: 'Home', active: true }]}
-  pageHeader={
-    <PageHeader
-      title="Dashboard"
-      subtitle="Overview"
-      actions={<Button>New</Button>}
-    />
-  }
+  nav={[{ key: "home", label: "Home", active: true }]}
+  pageHeader={<PageHeader title="Dashboard" subtitle="Overview" actions={<Button>New</Button>} />}
 >
   <YourContent />
-</AppShell>
+</AppShell>;
 ```
 
 ### Data Display
+
 ```tsx
-import { AntDataGrid } from '@/ui';
+import { AntDataGrid } from "@/ui";
 
 <AntDataGrid
   columns={columns}
   dataSource={data}
-  density="compact"  // 'default' | 'cozy'
-  zebra              // Alternating row colors
-  stickyHeader       // Fixed header on scroll
-  rowAccentOnHover   // Highlight on hover
-/>
+  density="compact" // 'default' | 'cozy'
+  zebra // Alternating row colors
+  stickyHeader // Fixed header on scroll
+  rowAccentOnHover // Highlight on hover
+/>;
 ```
 
 ## 🎨 Theming
 
 ### Change Accent Color
+
 ```tsx
 // In any component or useEffect
-document.documentElement.style.setProperty('--accent', '#0a6ed1');
+document.documentElement.style.setProperty("--accent", "#0a6ed1");
 ```
 
 ### Toggle Dark Mode
+
 ```tsx
-import { useTheme } from '@/components/theme/ThemeProvider';
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-      {theme === 'light' ? '🌙' : '☀️'}
+    <button onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
+      {theme === "light" ? "🌙" : "☀️"}
     </button>
   );
 }
 ```
 
 ### Available Tokens
+
 ```css
 /* Colors */
 --accent      /* Primary brand color */
@@ -213,30 +223,40 @@ import { Button, Table, Modal } from 'antd';
 ## 📝 Migration Examples
 
 ### Before (AntD)
+
 ```tsx
-import { Button, message } from 'antd';
+import { Button, message } from "antd";
 
 function MyComponent() {
   const handleClick = () => {
-    message.success('Saved!');
+    message.success("Saved!");
   };
 
-  return <Button type="primary" onClick={handleClick}>Save</Button>;
+  return (
+    <Button type="primary" onClick={handleClick}>
+      Save
+    </Button>
+  );
 }
 ```
 
 ### After (Toolkit)
+
 ```tsx
-import { Button, useToast } from '@/ui';
+import { Button, useToast } from "@/ui";
 
 function MyComponent() {
   const { push } = useToast();
 
   const handleClick = () => {
-    push({ kind: 'success', title: 'Saved!' });
+    push({ kind: "success", title: "Saved!" });
   };
 
-  return <Button variant="primary" onClick={handleClick}>Save</Button>;
+  return (
+    <Button variant="primary" onClick={handleClick}>
+      Save
+    </Button>
+  );
 }
 ```
 
@@ -245,59 +265,69 @@ function MyComponent() {
 ## 🐛 Troubleshooting
 
 ### Import Error
+
 ```
 Module '"@/ui"' has no exported member 'Button'
 ```
+
 **Fix**: Make sure you're importing from `@/ui`, not `@/ui/components/Button`
 
 ### TypeScript Error
+
 ```
 Property 'variant' does not exist on type 'ButtonProps'
 ```
+
 **Fix**: Update imports - you might be importing AntD's Button instead of toolkit Button
 
 ### Toast Not Showing
+
 **Fix**: Ensure `ToastProvider` is in your app root (already added to `providers.tsx`)
 
 ### Modal Not Closing
+
 **Fix**: Make sure you're calling `onClose` when clicking backdrop or escape key
 
 ## 🎯 Best Practices
 
 ### 1. Import from Root
+
 ```tsx
 // ✅ Good
-import { Button, Input, Modal } from '@/ui';
+import { Button, Input, Modal } from "@/ui";
 
 // ❌ Avoid
-import { Button } from '@/ui/components/Button';
+import { Button } from "@/ui/components/Button";
 ```
 
 ### 2. Use Tokens for Colors
+
 ```tsx
 // ✅ Good
-className="text-[var(--ink)] bg-[var(--surface)]"
+className = "text-[var(--ink)] bg-[var(--surface)]";
 
 // ❌ Avoid
-className="text-gray-900 bg-white"
+className = "text-gray-900 bg-white";
 ```
 
 ### 3. Prefer Toolkit for New Code
+
 ```tsx
 // ✅ Good - New features use toolkit
-import { Button } from '@/ui';
+import { Button } from "@/ui";
 
 // ⚠️ OK - Existing code can stay on AntD
-import { Button } from 'antd';
+import { Button } from "antd";
 ```
 
 ### 4. Keep Complex Components on AntD
+
 ```tsx
 // ✅ Good - Use AntD for complex needs
-import { Form, DatePicker, Upload } from 'antd';
+import { Form, DatePicker, Upload } from "antd";
 
 // ✅ Also Good - Wrap AntD Table for token styling
-import { AntDataGrid } from '@/ui';
+import { AntDataGrid } from "@/ui";
 ```
 
 ## 📚 Resources

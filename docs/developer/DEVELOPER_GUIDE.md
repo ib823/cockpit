@@ -41,6 +41,7 @@ npm run test:coverage       # Generate coverage report
 ```
 
 **Example: Run single test file:**
+
 ```bash
 npm test -- input-sanitizer.test.ts --run
 npm test -- production-readiness.test.ts
@@ -126,6 +127,7 @@ The new UX follows Steve Jobs principles (see COMPLETE_UX_TRANSFORMATION.md):
 ### Security & Performance
 
 **Security measures** (see next.config.js):
+
 - CSP headers with strict content policy (no unsafe-eval in production)
 - Input sanitization on all user data (input-sanitizer.ts)
 - Rate limiting on computation-heavy operations (100 chips per 60s)
@@ -134,6 +136,7 @@ The new UX follows Steve Jobs principles (see COMPLETE_UX_TRANSFORMATION.md):
 - Prototype pollution prevention in estimation-engine.ts
 
 **Performance optimizations:**
+
 - Lazy loading: PlanMode & PresentMode components (25% bundle reduction)
 - React memoization: useMemo/useCallback in heavy components
 - Early returns in computed values (timeline-store.ts)
@@ -153,6 +156,7 @@ Configured in tsconfig.json: `"@/*": ["./src/*"]`
 ## Testing Strategy
 
 **Test organization:**
+
 - Unit tests: `src/__tests__/` (chip-parser, input-sanitizer, estimation-guardrails)
 - Integration tests: `tests/integration/` (presales-to-timeline, timeline-generation-flow)
 - Production tests: `tests/production/production-readiness.test.ts`
@@ -160,11 +164,13 @@ Configured in tsconfig.json: `"@/*": ["./src/*"]`
 - Setup file: `tests/setup.ts`
 
 **Key test files:**
+
 - `production-readiness.test.ts` - Must-pass tests before deployment (security, performance, data integrity)
 - `input-sanitizer.test.ts` - XSS/DoS prevention tests
 - `presales-chip-extraction.test.ts` - Chip parsing regression tests
 
 **Running specific tests:**
+
 ```bash
 # Run all tests
 npm test -- --run
@@ -180,6 +186,7 @@ npm run test:coverage
 ```
 
 **Known test failures (as of current state - 8/244 tests failing):**
+
 - Presales-timeline flow: Compliance multiplier calculation - test expects different calculation
 - Presales-timeline flow: Total multiplier cap at 5.0x - not implemented
 - Presales-timeline flow: Negative employee count handling - not implemented
@@ -229,19 +236,23 @@ Users can manually edit generated timelines:
 ### Critical Methods (Already Implemented)
 
 **timeline-store.ts:**
+
 - ✅ `setPhases(phases: Phase[])` - Bulk update phases (line 290)
 - ✅ `setSelectedPackages(packages: string[])` - Bulk update packages (line 47)
 - ✅ Early return optimization in `getProjectCost()` (line 589)
 
 **project-store.ts:**
+
 - ✅ `regenerateTimeline(force)` - Uses bulk `setPhases()` (line 122-125)
 - ✅ Proper logging and error handling
 
 **PlanMode.tsx:**
+
 - ✅ useEffect includes `regenerateTimeline` in dependencies (line 63)
 - ✅ useMemo/useCallback for performance (lines 66-74)
 
 **presales-to-timeline-bridge.ts:**
+
 - ✅ XSS sanitization with `sanitizeChipValue()` (line 11-19)
 - ✅ Phase sanitization with `sanitizePhase()` (line 25-43)
 

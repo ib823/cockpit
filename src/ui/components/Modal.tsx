@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
 export interface ModalProps {
   open: boolean;
@@ -15,7 +15,7 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   footer,
   width = 560,
-  children
+  children,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const prevFocus = useRef<HTMLElement | null>(null);
@@ -31,13 +31,13 @@ export const Modal: React.FC<ModalProps> = ({
     focusable?.focus();
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
 
-      if (e.key === 'Tab') {
+      if (e.key === "Tab") {
         const nodes = ref.current?.querySelectorAll<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
-        const list = nodes ? Array.from(nodes).filter((n) => !n.hasAttribute('disabled')) : [];
+        const list = nodes ? Array.from(nodes).filter((n) => !n.hasAttribute("disabled")) : [];
 
         if (list.length === 0) {
           e.preventDefault();
@@ -58,9 +58,9 @@ export const Modal: React.FC<ModalProps> = ({
       }
     };
 
-    document.addEventListener('keydown', onKey);
+    document.addEventListener("keydown", onKey);
     return () => {
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener("keydown", onKey);
       prevFocus.current?.focus();
     };
   }, [open, onClose]);

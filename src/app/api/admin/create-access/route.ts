@@ -1,11 +1,11 @@
-import { prisma } from '@/lib/db';
-import { randomUUID, randomInt } from 'crypto';
-import { requireAdmin } from '@/lib/nextauth-helpers';
-import { sendAccessCode } from '@/lib/email';
-import { hash } from 'bcryptjs';
-import { NextResponse } from 'next/server';
-import { sanitizeHtml } from '@/lib/input-sanitizer';
-export const runtime = 'nodejs';
+import { prisma } from "@/lib/db";
+import { randomUUID, randomInt } from "crypto";
+import { requireAdmin } from "@/lib/nextauth-helpers";
+import { sendAccessCode } from "@/lib/email";
+import { hash } from "bcryptjs";
+import { NextResponse } from "next/server";
+import { sanitizeHtml } from "@/lib/input-sanitizer";
+export const runtime = "nodejs";
 
 // SECURITY FIX: DEFECT-20251027-006
 // Replaced Math.random() with crypto.randomInt() for cryptographically secure random code generation
@@ -22,13 +22,15 @@ export async function POST(req: Request) {
 
     // SECURITY FIX: DEFECT-20251027-002
     // Sanitize email input to prevent XSS attacks
-    const email = sanitizeHtml(rawEmail || '').trim().toLowerCase();
+    const email = sanitizeHtml(rawEmail || "")
+      .trim()
+      .toLowerCase();
 
     // Validate email format and length
     if (!email || email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
-        { ok: false, error: 'Valid email required' },
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { ok: false, error: "Valid email required" },
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -46,9 +48,9 @@ export async function POST(req: Request) {
         accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
       create: {
-      id: randomUUID(),
+        id: randomUUID(),
         email,
-        role: 'USER',
+        role: "USER",
         exception: false,
         accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         updatedAt: new Date(),
@@ -82,19 +84,19 @@ export async function POST(req: Request) {
         emailSent: emailResult.success,
         devMode: emailResult.devMode || false,
       },
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { "Content-Type": "application/json" } }
     );
-  } catch (e: any) {
-    if (e.message === 'forbidden') {
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === "forbidden") {
       return NextResponse.json(
-        { ok: false, error: 'Admin access required' },
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
+        { ok: false, error: "Admin access required" },
+        { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error('create-access error', e);
+    console.error("create-access error", e);
     return NextResponse.json(
-      { ok: false, error: 'Internal error' },
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { ok: false, error: "Internal error" },
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

@@ -4,14 +4,14 @@
  * Displays a project template with preview information
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Clock, DollarSign, FolderKanban, CheckCircle2, ChevronRight, Star } from 'lucide-react';
-import type { ProjectTemplate } from '@/lib/templates/template-types';
-import { getCategoryInfo } from '@/lib/templates/template-types';
-import { getTemplateStats } from '@/lib/templates/template-engine';
-import { colorValues, getElevationShadow, withOpacity } from '@/lib/design-system';
+import { useState } from "react";
+import { Clock, DollarSign, FolderKanban, CheckCircle2, ChevronRight, Star } from "lucide-react";
+import type { ProjectTemplate } from "@/lib/templates/template-types";
+import { getCategoryInfo } from "@/lib/templates/template-types";
+import { getTemplateStats } from "@/lib/templates/template-engine";
+import { colorValues, getElevationShadow, withOpacity } from "@/lib/design-system";
 
 interface TemplateCardProps {
   template: ProjectTemplate;
@@ -26,9 +26,9 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
 
   // Complexity badge colors
   const complexityColors = {
-    beginner: { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' },
-    intermediate: { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' },
-    advanced: { bg: '#FEE2E2', text: '#DC2626', border: '#FECACA' },
+    beginner: { bg: "#ECFDF5", text: "#059669", border: "#A7F3D0" },
+    intermediate: { bg: "#FEF3C7", text: "#D97706", border: "#FDE68A" },
+    advanced: { bg: "#FEE2E2", text: "#DC2626", border: "#FECACA" },
   };
 
   const complexityColor = complexityColors[template.complexity];
@@ -38,7 +38,7 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
       className="relative bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-300 cursor-pointer"
       style={{
         boxShadow: isHovered ? getElevationShadow(3) : getElevationShadow(1),
-        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+        transform: isHovered ? "translateY(-4px)" : "translateY(0)",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -53,7 +53,10 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
             border: `1px solid ${colorValues.warning[200]}`,
           }}
         >
-          <Star className="w-3 h-3" style={{ color: colorValues.warning[600], fill: colorValues.warning[600] }} />
+          <Star
+            className="w-3 h-3"
+            style={{ color: colorValues.warning[600], fill: colorValues.warning[600] }}
+          />
           <span className="text-xs font-medium" style={{ color: colorValues.warning[700] }}>
             Featured
           </span>
@@ -99,8 +102,12 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
               </div>
             </div>
 
-            <h3 className="text-lg font-semibold text-gray-900 leading-tight mb-1">{template.name}</h3>
-            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">{template.description}</p>
+            <h3 className="text-lg font-semibold text-gray-900 leading-tight mb-1">
+              {template.name}
+            </h3>
+            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+              {template.description}
+            </p>
           </div>
         </div>
       </div>
@@ -118,7 +125,9 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
             </div>
             <div>
               <div className="text-xs text-gray-500 font-medium">Duration</div>
-              <div className="text-sm font-semibold text-gray-900">{template.estimatedDuration}</div>
+              <div className="text-sm font-semibold text-gray-900">
+                {template.estimatedDuration}
+              </div>
             </div>
           </div>
 
@@ -187,9 +196,11 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
           className="w-full px-4 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200"
           style={{
             backgroundColor: isHovered ? colorValues.primary[600] : colorValues.primary[500],
-            color: '#ffffff',
-            boxShadow: isHovered ? `0 4px 12px ${withOpacity(colorValues.primary[600], 0.3)}` : 'none',
-            transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+            color: "#ffffff",
+            boxShadow: isHovered
+              ? `0 4px 12px ${withOpacity(colorValues.primary[600], 0.3)}`
+              : "none",
+            transform: isHovered ? "scale(1.02)" : "scale(1)",
           }}
           onClick={(e) => {
             e.stopPropagation();

@@ -12,8 +12,28 @@
  */
 
 import { useState } from "react";
-import { Form, Select, Slider, InputNumber, Button, Card, Tag, Space, Divider, Modal, Row, Col, Statistic } from "antd";
-import { UserAddOutlined, DeleteOutlined, TeamOutlined, DollarOutlined, ThunderboltOutlined } from "@ant-design/icons";
+import {
+  Form,
+  Select,
+  Slider,
+  InputNumber,
+  Button,
+  Card,
+  Tag,
+  Space,
+  Divider,
+  Modal,
+  Row,
+  Col,
+  Statistic,
+} from "antd";
+import {
+  UserAddOutlined,
+  DeleteOutlined,
+  TeamOutlined,
+  DollarOutlined,
+  ThunderboltOutlined,
+} from "@ant-design/icons";
 import type { Phase } from "@/types/core";
 
 interface ResourcePanelProps {
@@ -32,7 +52,7 @@ const TEAM_TEMPLATES = [
       { role: "consultant", allocation: 100, rate: 140 },
       { role: "developer", allocation: 100, rate: 120 },
       { role: "projectManager", allocation: 50, rate: 160 },
-    ]
+    ],
   },
   {
     key: "standard",
@@ -46,7 +66,7 @@ const TEAM_TEMPLATES = [
       { role: "developer", allocation: 100, rate: 120 },
       { role: "developer", allocation: 100, rate: 120 },
       { role: "projectManager", allocation: 75, rate: 160 },
-    ]
+    ],
   },
   {
     key: "enterprise",
@@ -64,8 +84,8 @@ const TEAM_TEMPLATES = [
       { role: "developer", allocation: 100, rate: 120 },
       { role: "projectManager", allocation: 100, rate: 160 },
       { role: "basis", allocation: 50, rate: 155 },
-    ]
-  }
+    ],
+  },
 ];
 
 const ROLE_OPTIONS = [
@@ -91,19 +111,19 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
   // Calculate total cost
   const totalCost = resources.reduce((sum, r) => {
     const hours = (phase.workingDays || 0) * 8 * (r.allocation / 100);
-    return sum + (hours * r.hourlyRate);
+    return sum + hours * r.hourlyRate;
   }, 0);
 
   // Apply template
   const applyTemplate = (templateKey: string) => {
-    const template = TEAM_TEMPLATES.find(t => t.key === templateKey);
+    const template = TEAM_TEMPLATES.find((t) => t.key === templateKey);
     if (!template) return;
 
     const newResources = template.members.map((member, idx) => {
-      const roleInfo = ROLE_OPTIONS.find(r => r.value === member.role);
+      const roleInfo = ROLE_OPTIONS.find((r) => r.value === member.role);
       return {
         id: `resource-${Date.now()}-${idx}`,
-        name: `${roleInfo?.label.split(' ').slice(1).join(' ')} ${idx + 1}`,
+        name: `${roleInfo?.label.split(" ").slice(1).join(" ")} ${idx + 1}`,
         role: member.role,
         allocation: member.allocation,
         region: "ABMY",
@@ -116,12 +136,12 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
 
   // Add individual resource
   const handleAddResource = (values: any) => {
-    const roleInfo = ROLE_OPTIONS.find(r => r.value === values.role);
-    const regionInfo = REGION_OPTIONS.find(r => r.value === values.region);
+    const roleInfo = ROLE_OPTIONS.find((r) => r.value === values.role);
+    const regionInfo = REGION_OPTIONS.find((r) => r.value === values.region);
 
     const newResource = {
       id: `resource-${Date.now()}`,
-      name: `${roleInfo?.label.split(' ').slice(1).join(' ')} ${resources.length + 1}`,
+      name: `${roleInfo?.label.split(" ").slice(1).join(" ")} ${resources.length + 1}`,
       role: values.role,
       allocation: values.allocation,
       region: values.region,
@@ -151,11 +171,7 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={16}>
           <Col span={8}>
-            <Statistic
-              title="Team Size"
-              value={resources.length}
-              prefix={<TeamOutlined />}
-            />
+            <Statistic title="Team Size" value={resources.length} prefix={<TeamOutlined />} />
           </Col>
           <Col span={16}>
             <Statistic
@@ -181,12 +197,8 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
         style={{ marginBottom: 16 }}
       >
         <Space wrap>
-          {TEAM_TEMPLATES.map(template => (
-            <Button
-              key={template.key}
-              onClick={() => applyTemplate(template.key)}
-              type="dashed"
-            >
+          {TEAM_TEMPLATES.map((template) => (
+            <Button key={template.key} onClick={() => applyTemplate(template.key)} type="dashed">
               {template.icon} {template.name}
               <Tag color="blue" style={{ marginLeft: 8 }}>
                 {template.members.length} people
@@ -212,36 +224,31 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
         }
       >
         {resources.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
+          <div style={{ textAlign: "center", padding: "40px 0", color: "#999" }}>
             <TeamOutlined style={{ fontSize: 48, marginBottom: 16 }} />
             <div>No team members assigned</div>
             <div style={{ fontSize: 12 }}>Use quick templates or add manually</div>
           </div>
         ) : (
-          <Space direction="vertical" style={{ width: '100%' }} size="small">
+          <Space direction="vertical" style={{ width: "100%" }} size="small">
             {resources.map((resource, idx) => {
-              const roleInfo = ROLE_OPTIONS.find(r => r.value === resource.role);
+              const roleInfo = ROLE_OPTIONS.find((r) => r.value === resource.role);
               const hours = (phase.workingDays || 0) * 8 * (resource.allocation / 100);
               const cost = hours * resource.hourlyRate;
 
               return (
-                <Card
-                  key={idx}
-                  size="small"
-                  style={{ background: '#fafafa' }}
-                >
+                <Card key={idx} size="small" style={{ background: "#fafafa" }}>
                   <Row gutter={16} align="middle">
                     <Col span={8}>
-                      <div style={{ fontSize: 16 }}>
-                        {roleInfo?.label || resource.role}
-                      </div>
-                      <div style={{ fontSize: 12, color: '#666' }}>
+                      <div style={{ fontSize: 16 }}>{roleInfo?.label || resource.role}</div>
+                      <div style={{ fontSize: 12, color: "#666" }}>
                         {resource.region} • ${resource.hourlyRate}/hr
                       </div>
                     </Col>
                     <Col span={12}>
                       <div style={{ marginBottom: 4, fontSize: 12 }}>
-                        Allocation: <strong>{resource.allocation}%</strong> • Cost: <strong>${cost.toFixed(0)}</strong>
+                        Allocation: <strong>{resource.allocation}%</strong> • Cost:{" "}
+                        <strong>${cost.toFixed(0)}</strong>
                       </div>
                       <Slider
                         min={0}
@@ -249,10 +256,10 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
                         step={25}
                         value={resource.allocation}
                         onChange={(value) => updateAllocation(idx, value)}
-                        marks={{ 0: '0%', 25: '25%', 50: '50%', 75: '75%', 100: '100%' }}
+                        marks={{ 0: "0%", 25: "25%", 50: "50%", 75: "75%", 100: "100%" }}
                       />
                     </Col>
-                    <Col span={4} style={{ textAlign: 'right' }}>
+                    <Col span={4} style={{ textAlign: "right" }}>
                       <Button
                         type="text"
                         danger
@@ -291,41 +298,29 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
           <Form.Item
             name="role"
             label="Role"
-            rules={[{ required: true, message: 'Please select a role' }]}
+            rules={[{ required: true, message: "Please select a role" }]}
           >
-            <Select
-              options={ROLE_OPTIONS}
-              size="large"
-              placeholder="Select role"
-            />
+            <Select options={ROLE_OPTIONS} size="large" placeholder="Select role" />
           </Form.Item>
 
-          <Form.Item
-            name="region"
-            label="Region"
-          >
+          <Form.Item name="region" label="Region">
             <Select options={REGION_OPTIONS} size="large" />
           </Form.Item>
 
-          <Form.Item
-            name="allocation"
-            label="Allocation (%)"
-          >
+          <Form.Item name="allocation" label="Allocation (%)">
             <Slider
               min={0}
               max={100}
               step={25}
-              marks={{ 0: '0%', 25: '25%', 50: '50%', 75: '75%', 100: '100%' }}
+              marks={{ 0: "0%", 25: "25%", 50: "50%", 75: "75%", 100: "100%" }}
             />
           </Form.Item>
 
           <Divider />
 
           <Form.Item>
-            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-              <Button onClick={() => setIsModalOpen(false)}>
-                Cancel
-              </Button>
+            <Space style={{ width: "100%", justifyContent: "flex-end" }}>
+              <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
               <Button type="primary" htmlType="submit">
                 Add to Team
               </Button>

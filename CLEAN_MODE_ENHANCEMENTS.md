@@ -9,6 +9,7 @@
 ## 🎯 OBJECTIVE
 
 Enhance the "clean" bar display mode to leverage available space better by adding:
+
 1. **Status indicators** - Visual semantic status using the design system color palette
 2. **Progress bars** - Visual progress tracking for tasks and phases
 3. **Owner/assignee badges** - Show who's responsible for each item
@@ -20,10 +21,12 @@ Enhance the "clean" bar display mode to leverage available space better by addin
 ### 1. Status Calculation Logic
 
 Added `calculateItemStatus()` helper function that derives semantic status from:
+
 - **Date range** (start, end relative to current date)
 - **Progress percentage** (0-100)
 
 **Status States:**
+
 - `notStarted` (Gray) - Future start date
 - `inProgress` (Blue) - Active, on schedule
 - `atRisk` (Amber) - >70% time elapsed, <70% progress
@@ -36,17 +39,20 @@ Added `calculateItemStatus()` helper function that derives semantic status from:
 When `viewSettings.barDurationDisplay === 'clean'`:
 
 **Status Indicator:**
+
 - Small colored dot (8px) in top-right corner
 - Color reflects current status using `GANTT_STATUS_COLORS`
 - Tooltip shows status label on hover
 
 **Progress Bar:**
+
 - Thin horizontal bar (4px) at bottom edge
 - White overlay showing percentage completion
 - Only visible when progress is 1-99%
 - Smooth transition animation (300ms)
 
 **Owner/Assignee Badge:**
+
 - Centered badge with assignee initials or count
 - Single resource: Shows initials (e.g., "JD" for John Doe)
 - Multiple resources: Shows count (e.g., "3 PPL")
@@ -56,31 +62,33 @@ When `viewSettings.barDurationDisplay === 'clean'`:
 **Code Location:** `src/components/gantt-tool/GanttCanvas.tsx:1538-1579`
 
 ```tsx
-{/* Clean Mode Enhancements - Status, Progress, Owner */}
-{(viewSettings?.barDurationDisplay ?? 'all') === 'clean' && (
-  <>
-    {/* Status Indicator Dot - Top Right Corner */}
-    <Tooltip title={GANTT_STATUS_LABELS[taskStatus]}>
-      <div className="absolute top-1 right-1 w-2 h-2 rounded-full..." />
-    </Tooltip>
+{
+  /* Clean Mode Enhancements - Status, Progress, Owner */
+}
+{
+  (viewSettings?.barDurationDisplay ?? "all") === "clean" && (
+    <>
+      {/* Status Indicator Dot - Top Right Corner */}
+      <Tooltip title={GANTT_STATUS_LABELS[taskStatus]}>
+        <div className="absolute top-1 right-1 w-2 h-2 rounded-full..." />
+      </Tooltip>
 
-    {/* Progress Bar - Bottom Edge */}
-    {task.progress > 0 && task.progress < 100 && (
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20...">
-        <div style={{ width: `${task.progress}%` }} />
-      </div>
-    )}
-
-    {/* Owner/Assignee Badge - Center */}
-    {task.resourceAssignments && task.resourceAssignments.length > 0 && (
-      <div className="absolute inset-0 flex items-center justify-center...">
-        <div className="bg-black/30 backdrop-blur-sm...">
-          {assigneeInitials}
+      {/* Progress Bar - Bottom Edge */}
+      {task.progress > 0 && task.progress < 100 && (
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20...">
+          <div style={{ width: `${task.progress}%` }} />
         </div>
-      </div>
-    )}
-  </>
-)}
+      )}
+
+      {/* Owner/Assignee Badge - Center */}
+      {task.resourceAssignments && task.resourceAssignments.length > 0 && (
+        <div className="absolute inset-0 flex items-center justify-center...">
+          <div className="bg-black/30 backdrop-blur-sm...">{assigneeInitials}</div>
+        </div>
+      )}
+    </>
+  );
+}
 ```
 
 ### 3. Phase Bar Enhancements (Clean Mode)
@@ -88,17 +96,20 @@ When `viewSettings.barDurationDisplay === 'clean'`:
 When `viewSettings.barDurationDisplay === 'clean'` AND `phase.collapsed`:
 
 **Phase Status Indicator:**
+
 - Larger colored dot (12px) in top-right corner
 - Status calculated from average task progress
 - Tooltip shows both status and completion percentage
 
 **Phase Progress Bar:**
+
 - Thicker bar (6px) at bottom edge
 - Calculated as average of all task progress values
 - More prominent than task progress bars
 - Only visible for collapsed phases
 
 **PM Resource Badge:**
+
 - Positioned in top-left corner
 - Purple badge with PM icon
 - Shows PM initials or count (e.g., "JD" or "2PM")
@@ -108,31 +119,35 @@ When `viewSettings.barDurationDisplay === 'clean'` AND `phase.collapsed`:
 **Code Location:** `src/components/gantt-tool/GanttCanvas.tsx:1055-1115`
 
 ```tsx
-{/* Clean Mode Enhancements for Phases - Status, Progress, PM */}
-{(viewSettings?.barDurationDisplay ?? 'all') === 'clean' && phase.collapsed && (
-  <>
-    {/* Phase Status Indicator - Top Right */}
-    <Tooltip title={`Phase ${statusLabel} (${progress}% complete)`}>
-      <div className="absolute top-2 right-12 w-3 h-3 rounded-full..." />
-    </Tooltip>
-
-    {/* Phase Progress Bar - Bottom Edge */}
-    {phaseProgress > 0 && phaseProgress < 100 && (
-      <div className="absolute bottom-0 left-0 right-0 h-1.5...">
-        <div style={{ width: `${phaseProgress}%` }} />
-      </div>
-    )}
-
-    {/* PM Resource Badge - Top Left */}
-    {phase.phaseResourceAssignments && (
-      <Tooltip title={`PM: ${pmNames}`}>
-        <div className="bg-purple-700/90 backdrop-blur-sm...">
-          <Users /> {pmInitials}
-        </div>
+{
+  /* Clean Mode Enhancements for Phases - Status, Progress, PM */
+}
+{
+  (viewSettings?.barDurationDisplay ?? "all") === "clean" && phase.collapsed && (
+    <>
+      {/* Phase Status Indicator - Top Right */}
+      <Tooltip title={`Phase ${statusLabel} (${progress}% complete)`}>
+        <div className="absolute top-2 right-12 w-3 h-3 rounded-full..." />
       </Tooltip>
-    )}
-  </>
-)}
+
+      {/* Phase Progress Bar - Bottom Edge */}
+      {phaseProgress > 0 && phaseProgress < 100 && (
+        <div className="absolute bottom-0 left-0 right-0 h-1.5...">
+          <div style={{ width: `${phaseProgress}%` }} />
+        </div>
+      )}
+
+      {/* PM Resource Badge - Top Left */}
+      {phase.phaseResourceAssignments && (
+        <Tooltip title={`PM: ${pmNames}`}>
+          <div className="bg-purple-700/90 backdrop-blur-sm...">
+            <Users /> {pmInitials}
+          </div>
+        </Tooltip>
+      )}
+    </>
+  );
+}
 ```
 
 ---
@@ -142,12 +157,14 @@ When `viewSettings.barDurationDisplay === 'clean'` AND `phase.collapsed`:
 ### Information Density in Clean Mode
 
 **Before (Clean Mode):**
+
 - Minimal clutter
 - Only phase/task names visible
 - No status or progress indication
 - No owner information
 
 **After (Clean Mode):**
+
 - **Retained** clean, uncluttered appearance
 - **Added** subtle status dots for quick scanning
 - **Added** progress bars for completion tracking
@@ -306,12 +323,15 @@ Transition: 300ms ease-in-out
 ## 📝 RELATED FILES
 
 **Modified:**
+
 - `src/components/gantt-tool/GanttCanvas.tsx` - Main implementation
 
 **Used Design System:**
+
 - `src/lib/design-system.ts` - GANTT_STATUS_COLORS, GANTT_STATUS_LABELS
 
 **Related Documentation:**
+
 - `IMPLEMENTATION_SUMMARY.md` - Overall UI/UX implementation
 - `INTERACTION_PATTERNS.md` - Tooltip and interaction standards
 
@@ -322,6 +342,7 @@ Transition: 300ms ease-in-out
 The cleaner layout enhancement successfully adds critical project tracking information (status, progress, ownership) to the Gantt chart's clean mode without sacrificing its minimalist aesthetic.
 
 **Key Achievements:**
+
 - ✅ Subtle status indicators using semantic color system
 - ✅ Animated progress bars for visual feedback
 - ✅ Owner badges for accountability

@@ -5,12 +5,12 @@
  * Usage: npx tsx scripts/test-email.ts
  */
 
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 // Note: Environment variables are loaded from .env automatically by tsx
 
 async function testEmailConfig() {
-  console.log('🧪 Testing Email Configuration...\n');
+  console.log("🧪 Testing Email Configuration...\n");
 
   // Check if SMTP variables are set
   const smtpHost = process.env.SMTP_HOST;
@@ -19,28 +19,28 @@ async function testEmailConfig() {
   const smtpPass = process.env.SMTP_PASS;
   const emailFrom = process.env.EMAIL_FROM;
 
-  console.log('📋 Configuration Check:');
-  console.log(`  SMTP_HOST: ${smtpHost ? '✅ Set' : '❌ Missing'}`);
-  console.log(`  SMTP_PORT: ${smtpPort ? '✅ Set' : '❌ Missing'}`);
-  console.log(`  SMTP_USER: ${smtpUser ? '✅ Set' : '❌ Missing'}`);
-  console.log(`  SMTP_PASS: ${smtpPass ? '✅ Set' : '❌ Missing'}`);
-  console.log(`  EMAIL_FROM: ${emailFrom || 'noreply@keystone-app.com'}\n`);
+  console.log("📋 Configuration Check:");
+  console.log(`  SMTP_HOST: ${smtpHost ? "✅ Set" : "❌ Missing"}`);
+  console.log(`  SMTP_PORT: ${smtpPort ? "✅ Set" : "❌ Missing"}`);
+  console.log(`  SMTP_USER: ${smtpUser ? "✅ Set" : "❌ Missing"}`);
+  console.log(`  SMTP_PASS: ${smtpPass ? "✅ Set" : "❌ Missing"}`);
+  console.log(`  EMAIL_FROM: ${emailFrom || "noreply@keystone-app.com"}\n`);
 
   if (!smtpHost || !smtpUser || !smtpPass) {
-    console.log('❌ Error: Missing SMTP configuration!');
-    console.log('\nPlease set the following in your .env file:');
+    console.log("❌ Error: Missing SMTP configuration!");
+    console.log("\nPlease set the following in your .env file:");
     console.log('  SMTP_HOST="smtp-relay.brevo.com"');
     console.log('  SMTP_PORT="587"');
     console.log('  SMTP_USER="your-email@gmail.com"');
     console.log('  SMTP_PASS="your-smtp-key"');
-    console.log('\nSee BREVO_SETUP_GUIDE.md for detailed instructions.');
+    console.log("\nSee BREVO_SETUP_GUIDE.md for detailed instructions.");
     process.exit(1);
   }
 
   // Create transporter
   const transporter = nodemailer.createTransport({
     host: smtpHost,
-    port: parseInt(smtpPort || '587'),
+    port: parseInt(smtpPort || "587"),
     secure: false,
     auth: {
       user: smtpUser,
@@ -49,17 +49,17 @@ async function testEmailConfig() {
   });
 
   // Test connection
-  console.log('🔌 Testing SMTP connection...');
+  console.log("🔌 Testing SMTP connection...");
   try {
     await transporter.verify();
-    console.log('✅ SMTP connection successful!\n');
+    console.log("✅ SMTP connection successful!\n");
   } catch (error: any) {
-    console.log('❌ SMTP connection failed!');
-    console.log('\nError details:', error.message);
-    console.log('\nCommon fixes:');
-    console.log('  1. Double-check SMTP_USER matches your Brevo account email');
-    console.log('  2. Copy SMTP_PASS exactly from Brevo dashboard (starts with xkeysib-)');
-    console.log('  3. Ensure no extra spaces in .env file');
+    console.log("❌ SMTP connection failed!");
+    console.log("\nError details:", error.message);
+    console.log("\nCommon fixes:");
+    console.log("  1. Double-check SMTP_USER matches your Brevo account email");
+    console.log("  2. Copy SMTP_PASS exactly from Brevo dashboard (starts with xkeysib-)");
+    console.log("  3. Ensure no extra spaces in .env file");
     process.exit(1);
   }
 
@@ -69,9 +69,9 @@ async function testEmailConfig() {
 
   try {
     const info = await transporter.sendMail({
-      from: `"Keystone Test" <${emailFrom || 'noreply@keystone-app.com'}>`,
+      from: `"Keystone Test" <${emailFrom || "noreply@keystone-app.com"}>`,
       to: testEmail,
-      subject: '✅ Email Configuration Test - Success!',
+      subject: "✅ Email Configuration Test - Success!",
       html: `
         <!DOCTYPE html>
         <html>
@@ -89,7 +89,7 @@ async function testEmailConfig() {
                   <strong>Test Details:</strong><br>
                   Provider: Brevo (Sendinblue)<br>
                   Server: ${smtpHost}<br>
-                  From: ${emailFrom || 'noreply@keystone-app.com'}
+                  From: ${emailFrom || "noreply@keystone-app.com"}
                 </p>
               </div>
               <p style="color: #64748b; font-size: 14px;">
@@ -101,27 +101,26 @@ async function testEmailConfig() {
       `,
     });
 
-    console.log('✅ Test email sent successfully!');
+    console.log("✅ Test email sent successfully!");
     console.log(`   Message ID: ${info.messageId}\n`);
-    console.log('🎉 All tests passed! Your email configuration is ready to use.\n');
-    console.log('Next steps:');
-    console.log('  1. Check your inbox at:', testEmail);
-    console.log('  2. Try the magic link flow at: http://localhost:3000/login');
+    console.log("🎉 All tests passed! Your email configuration is ready to use.\n");
+    console.log("Next steps:");
+    console.log("  1. Check your inbox at:", testEmail);
+    console.log("  2. Try the magic link flow at: http://localhost:3000/login");
     console.log('  3. Enter any email and click "Send Magic Link"');
-
   } catch (error: any) {
-    console.log('❌ Failed to send test email!');
-    console.log('\nError details:', error.message);
-    console.log('\nThis might mean:');
-    console.log('  1. The recipient email is invalid');
-    console.log('  2. Your Brevo account needs verification');
-    console.log('  3. You\'ve hit the daily sending limit (300 emails/day)');
+    console.log("❌ Failed to send test email!");
+    console.log("\nError details:", error.message);
+    console.log("\nThis might mean:");
+    console.log("  1. The recipient email is invalid");
+    console.log("  2. Your Brevo account needs verification");
+    console.log("  3. You've hit the daily sending limit (300 emails/day)");
     process.exit(1);
   }
 }
 
 // Run the test
 testEmailConfig().catch((error) => {
-  console.error('Unexpected error:', error);
+  console.error("Unexpected error:", error);
   process.exit(1);
 });

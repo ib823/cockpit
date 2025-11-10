@@ -4,15 +4,15 @@
  * A text input with smooth hover and focus animations
  */
 
-'use client';
+"use client";
 
-import { InputHTMLAttributes } from 'react';
+import { InputHTMLAttributes } from "react";
 
 interface AnimatedInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
 }
 
-export function AnimatedInput({ label, className = '', id, ...props }: AnimatedInputProps) {
+export function AnimatedInput({ label, className = "", id, ...props }: AnimatedInputProps) {
   const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
@@ -38,14 +38,14 @@ export function AnimatedInput({ label, className = '', id, ...props }: AnimatedI
           padding-right: 0.8em;
           outline: none;
           overflow: hidden;
-          background-color: #F3F3F3;
+          background-color: #f3f3f3;
           border-radius: 10px;
           transition: all 0.5s;
         }
 
         .animated-input:hover,
         .animated-input:focus {
-          border: 2px solid #4A9DEC;
+          border: 2px solid #4a9dec;
           box-shadow: 0px 0px 0px 7px rgba(74, 157, 236, 0.2);
           background-color: white;
         }

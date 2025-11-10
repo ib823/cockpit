@@ -10,7 +10,7 @@
  * - Cost breakdown by phase, resource, category
  */
 
-import { differenceInBusinessDays, addBusinessDays } from 'date-fns';
+import { differenceInBusinessDays, addBusinessDays } from "date-fns";
 import type {
   GanttProject,
   GanttPhase,
@@ -21,7 +21,7 @@ import type {
   WhatIfScenario,
   ResourceCategory,
   BudgetAlert,
-} from '@/types/gantt-tool';
+} from "@/types/gantt-tool";
 
 // Constants
 const HOURS_PER_DAY = 8;
@@ -144,7 +144,8 @@ export function calculateProjectCost(project: GanttProject): CostCalculation {
       const allocationDecimal = assignment.allocationPercentage / 100;
 
       // Calculate cost using standardized hourly rate
-      const assignmentCost = phaseDays * HOURS_PER_DAY * allocationDecimal * resource.chargeRatePerHour;
+      const assignmentCost =
+        phaseDays * HOURS_PER_DAY * allocationDecimal * resource.chargeRatePerHour;
 
       const currentResourceCost = costByResource.get(resource.id) || 0;
       costByResource.set(resource.id, currentResourceCost + assignmentCost);
@@ -217,7 +218,7 @@ function calculateWorkingDays(
   let currentDate = new Date(start);
 
   while (currentDate <= end) {
-    const dateStr = currentDate.toISOString().split('T')[0];
+    const dateStr = currentDate.toISOString().split("T")[0];
     const dayOfWeek = currentDate.getDay();
 
     // If it's a holiday and NOT a weekend, subtract it
@@ -255,7 +256,7 @@ export function checkBudgetAlerts(
         ...alert,
         triggered: true,
         triggeredAt: now,
-        message: `Budget ${alert.type === 'warning' ? 'warning' : 'critical alert'}: ${costCalculation.budgetUtilization.toFixed(1)}% of budget used (threshold: ${alert.threshold}%)`,
+        message: `Budget ${alert.type === "warning" ? "warning" : "critical alert"}: ${costCalculation.budgetUtilization.toFixed(1)}% of budget used (threshold: ${alert.threshold}%)`,
       });
     } else if (isNowTriggered) {
       // Still triggered
@@ -331,7 +332,7 @@ export const DEFAULT_RESOURCE_RATES: Record<string, number> = {
   senior_consultant: 0.4443,
   consultant: 0.2817,
   analyst: 0.2601,
-  subcontractor: 0.2000,
+  subcontractor: 0.2,
 };
 
 /**

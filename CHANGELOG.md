@@ -5,6 +5,7 @@
 ### 🔥 Critical Fixes
 
 #### Fixed
+
 - **Issue #13: Race Condition in Concurrent Phase Deletion** (Data Corruption Risk)
   - Added explicit error throwing when phases don't exist during task operations
   - Prevents orphaned tasks in database from concurrent user edits
@@ -26,6 +27,7 @@
 ### 🛡️ Security Features (NEW)
 
 #### Added
+
 - **Rate Limiting Engine**
   - Per-user and per-IP rate limiting (100 req/min, 10 projects/hour)
   - Configurable time windows and thresholds
@@ -59,6 +61,7 @@
   - Files: `src/lib/security/config.ts`
 
 #### Documentation
+
 - Comprehensive testing report simulating 100 concurrent users
 - Security implementation guide with examples
 - Critical issues action plan with code fixes
@@ -66,6 +69,7 @@
 - Files: `test-results/*.md`, `SECURITY.md`
 
 #### Tests
+
 - Unit tests for rate limiter
 - Unit tests for date validation
 - Integration test examples
@@ -83,6 +87,7 @@
 See `test-results/DEPLOYMENT_READY.md` for deployment instructions.
 
 **Environment Variables:**
+
 ```env
 # Optional - CAPTCHA (recommended)
 ENABLE_CAPTCHA=true

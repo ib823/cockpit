@@ -8,17 +8,17 @@
  * 4. Modal interactions on mobile
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Mobile Navigation Journey', () => {
+test.describe("Mobile Navigation Journey", () => {
   test.beforeEach(async ({ page }) => {
     // Set mobile viewport (iPhone SE - minimum width)
     await page.setViewportSize({ width: 375, height: 667 });
   });
 
-  test('user navigates entire app via hamburger menu', async ({ page }) => {
+  test("user navigates entire app via hamburger menu", async ({ page }) => {
     // Step 1: Navigate to app
-    await page.goto('/');
+    await page.goto("/");
 
     // Step 2: Verify hamburger menu visible
     const hamburger = page.locator('button[aria-label*="menu"], [class*="hamburger"]');
@@ -34,8 +34,12 @@ test.describe('Mobile Navigation Journey', () => {
     await expect(drawer).toBeVisible();
 
     // Step 5: Verify menu items visible
-    await expect(page.locator('text=Projects').or(page.locator('a[href*="project"]'))).toBeVisible();
-    await expect(page.locator('text=Dashboard').or(page.locator('a[href*="dashboard"]'))).toBeVisible();
+    await expect(
+      page.locator("text=Projects").or(page.locator('a[href*="project"]'))
+    ).toBeVisible();
+    await expect(
+      page.locator("text=Dashboard").or(page.locator('a[href*="dashboard"]'))
+    ).toBeVisible();
 
     // Step 6: Navigate to Projects
     await page.click('text=Projects, a[href*="project"]');
@@ -44,37 +48,37 @@ test.describe('Mobile Navigation Journey', () => {
     await page.waitForURL(/.*projects.*/);
 
     // Step 7: Verify projects page loaded
-    await expect(page.locator('h1, h2')).toContainText(/project/i);
+    await expect(page.locator("h1, h2")).toContainText(/project/i);
 
     // Step 8: Open drawer again
     await hamburger.first().click();
 
     // Step 9: Navigate to another page
     const dashboardLink = page.locator('text=Dashboard, a[href*="dashboard"]');
-    if (await dashboardLink.count() > 0) {
+    if ((await dashboardLink.count()) > 0) {
       await dashboardLink.first().click();
       await page.waitForURL(/.*dashboard.*/);
     }
 
     await page.screenshot({
-      path: 'test-results/e2e/mobile-nav-drawer.png',
+      path: "test-results/e2e/mobile-nav-drawer.png",
     });
   });
 
-  test('user can expand/collapse phases in mobile list view', async ({ page }) => {
+  test("user can expand/collapse phases in mobile list view", async ({ page }) => {
     // Navigate to project with phases
-    await page.goto('/projects');
+    await page.goto("/projects");
 
     // Click on a project (assumes at least one exists)
     const projectLink = page.locator('[data-testid^="project-"], a[href*="gantt"]');
-    if (await projectLink.count() > 0) {
+    if ((await projectLink.count()) > 0) {
       await projectLink.first().click();
     } else {
       // Create quick test project
-      await page.click('text=New Project');
-      await page.fill('input[name="name"]', 'Mobile Nav Test');
-      await page.fill('input[name="startDate"]', '2025-01-01');
-      await page.fill('input[name="endDate"]', '2025-03-31');
+      await page.click("text=New Project");
+      await page.fill('input[name="name"]', "Mobile Nav Test");
+      await page.fill('input[name="startDate"]', "2025-01-01");
+      await page.fill('input[name="endDate"]', "2025-03-31");
       await page.click('button[type="submit"]');
     }
 
@@ -88,7 +92,7 @@ test.describe('Mobile Navigation Journey', () => {
     // Find phase card
     const phaseCard = page.locator('[data-testid^="phase-card-"], [class*="phase-card"]').first();
 
-    if (await phaseCard.count() > 0) {
+    if ((await phaseCard.count()) > 0) {
       // Find expand/collapse button (chevron icon)
       const chevron = phaseCard.locator('button, [role="button"]').first();
       await chevron.click();
@@ -110,24 +114,24 @@ test.describe('Mobile Navigation Journey', () => {
     }
 
     await page.screenshot({
-      path: 'test-results/e2e/mobile-list-expand-collapse.png',
+      path: "test-results/e2e/mobile-list-expand-collapse.png",
       fullPage: true,
     });
   });
 
-  test('user can access mission control on mobile', async ({ page }) => {
-    await page.goto('/projects');
+  test("user can access mission control on mobile", async ({ page }) => {
+    await page.goto("/projects");
 
     // Navigate to project
     const projectLink = page.locator('[data-testid^="project-"], a[href*="gantt"]');
-    if (await projectLink.count() > 0) {
+    if ((await projectLink.count()) > 0) {
       await projectLink.first().click();
       await page.waitForSelector('[data-testid="gantt-mobile-list"]');
 
       // Find and click Mission Control button
-      const mcButton = page.locator('button', { hasText: /mission.*control|dashboard/i });
+      const mcButton = page.locator("button", { hasText: /mission.*control|dashboard/i });
 
-      if (await mcButton.count() > 0) {
+      if ((await mcButton.count()) > 0) {
         await mcButton.first().click();
 
         // Wait for modal
@@ -141,26 +145,26 @@ test.describe('Mobile Navigation Journey', () => {
         expect(modalWidth).toBeGreaterThan(350);
 
         // Verify content visible
-        await expect(page.locator('text=/health|budget|schedule/i')).toBeVisible();
+        await expect(page.locator("text=/health|budget|schedule/i")).toBeVisible();
 
         // Close modal
         await page.click('button[aria-label*="close"], button:has-text("Close")');
 
         await page.screenshot({
-          path: 'test-results/e2e/mobile-mission-control.png',
+          path: "test-results/e2e/mobile-mission-control.png",
           fullPage: true,
         });
       }
     }
   });
 
-  test('user can scroll through long mobile list', async ({ page }) => {
-    await page.goto('/projects');
+  test("user can scroll through long mobile list", async ({ page }) => {
+    await page.goto("/projects");
 
     // Navigate to project with many phases/tasks
     const projectLink = page.locator('[data-testid^="project-"]').first();
 
-    if (await projectLink.count() > 0) {
+    if ((await projectLink.count()) > 0) {
       await projectLink.click();
       await page.waitForSelector('[data-testid="gantt-mobile-list"]');
 
@@ -177,26 +181,26 @@ test.describe('Mobile Navigation Journey', () => {
 
       // Scroll should be smooth (no janky performance)
       await page.screenshot({
-        path: 'test-results/e2e/mobile-scroll.png',
+        path: "test-results/e2e/mobile-scroll.png",
         fullPage: true,
       });
     }
   });
 
-  test('mobile: PlanMode panel is full-width', async ({ page }) => {
-    await page.goto('/projects');
+  test("mobile: PlanMode panel is full-width", async ({ page }) => {
+    await page.goto("/projects");
 
     // Navigate to project
     const projectLink = page.locator('[data-testid^="project-"]').first();
 
-    if (await projectLink.count() > 0) {
+    if ((await projectLink.count()) > 0) {
       await projectLink.click();
       await page.waitForSelector('[data-testid="gantt-mobile-list"]');
 
       // Click to enter PlanMode
-      const planModeButton = page.locator('button', { hasText: /plan.*mode|edit/i });
+      const planModeButton = page.locator("button", { hasText: /plan.*mode|edit/i });
 
-      if (await planModeButton.count() > 0) {
+      if ((await planModeButton.count()) > 0) {
         await planModeButton.first().click();
 
         // Wait for PlanMode panel
@@ -211,27 +215,27 @@ test.describe('Mobile Navigation Journey', () => {
         expect(panelWidth).toBeGreaterThan(350);
 
         await page.screenshot({
-          path: 'test-results/e2e/mobile-planmode-fullwidth.png',
+          path: "test-results/e2e/mobile-planmode-fullwidth.png",
           fullPage: true,
         });
       }
     }
   });
 
-  test('mobile: PresentMode controls are visible and sized correctly', async ({ page }) => {
-    await page.goto('/projects');
+  test("mobile: PresentMode controls are visible and sized correctly", async ({ page }) => {
+    await page.goto("/projects");
 
     // Navigate to project
     const projectLink = page.locator('[data-testid^="project-"]').first();
 
-    if (await projectLink.count() > 0) {
+    if ((await projectLink.count()) > 0) {
       await projectLink.click();
       await page.waitForTimeout(1000);
 
       // Click to enter PresentMode
-      const presentModeButton = page.locator('button', { hasText: /present.*mode|presentation/i });
+      const presentModeButton = page.locator("button", { hasText: /present.*mode|presentation/i });
 
-      if (await presentModeButton.count() > 0) {
+      if ((await presentModeButton.count()) > 0) {
         await presentModeButton.first().click();
 
         // Wait for PresentMode
@@ -254,16 +258,19 @@ test.describe('Mobile Navigation Journey', () => {
         expect(buttonSize.height).toBeGreaterThanOrEqual(40);
 
         // Verify text is scaled down (not overflowing)
-        const headingSize = await page.locator('h1, h2').first().evaluate((el) => {
-          const style = window.getComputedStyle(el);
-          return parseFloat(style.fontSize);
-        });
+        const headingSize = await page
+          .locator("h1, h2")
+          .first()
+          .evaluate((el) => {
+            const style = window.getComputedStyle(el);
+            return parseFloat(style.fontSize);
+          });
 
         // Mobile text should be smaller (text-3xl = 30px, not text-7xl = 72px)
         expect(headingSize).toBeLessThan(50);
 
         await page.screenshot({
-          path: 'test-results/e2e/mobile-presentmode.png',
+          path: "test-results/e2e/mobile-presentmode.png",
           fullPage: true,
         });
       }

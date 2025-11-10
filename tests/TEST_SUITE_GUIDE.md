@@ -297,12 +297,12 @@ TURNSTILE_SECRET_KEY=your-secret
 
 ### Cost Comparison
 
-| Solution | Cost | UX | Security |
-|----------|------|-------|----------|
-| Cloudflare Turnstile | FREE | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| Honeypot | FREE | ⭐⭐⭐⭐⭐ | ⭐⭐ |
-| TOTP/MFA | FREE | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| FingerprintJS | $200/mo | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| Solution             | Cost    | UX         | Security   |
+| -------------------- | ------- | ---------- | ---------- |
+| Cloudflare Turnstile | FREE    | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   |
+| Honeypot             | FREE    | ⭐⭐⭐⭐⭐ | ⭐⭐       |
+| TOTP/MFA             | FREE    | ⭐⭐⭐     | ⭐⭐⭐⭐⭐ |
+| FingerprintJS        | $200/mo | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   |
 
 **Recommendation: Start with Cloudflare Turnstile (FREE) + Honeypot (FREE)**
 
@@ -312,16 +312,16 @@ TURNSTILE_SECRET_KEY=your-secret
 
 ### Total Test Count: 60+ tests
 
-| Category | Tests | Files | Status |
-|----------|-------|-------|--------|
-| **Passkey Login** | 9 | 1 | ✅ Passing |
-| **Admin Login** | 10 | 1 | ✅ Passing |
-| **Magic Link** | 11 | 1 | ✅ Passing |
-| **Rate Limiting** | 10 | 1 | ✅ Passing |
-| **Security Tests** | 10 | 1 | ✅ NEW |
-| **E2E Tests** | 12 | 1 | ✅ Passing |
-| **Load Tests** | 2 | 1 | ✅ Passing |
-| **Manual CLI** | 6 | 1 | ✅ Interactive |
+| Category           | Tests | Files | Status         |
+| ------------------ | ----- | ----- | -------------- |
+| **Passkey Login**  | 9     | 1     | ✅ Passing     |
+| **Admin Login**    | 10    | 1     | ✅ Passing     |
+| **Magic Link**     | 11    | 1     | ✅ Passing     |
+| **Rate Limiting**  | 10    | 1     | ✅ Passing     |
+| **Security Tests** | 10    | 1     | ✅ NEW         |
+| **E2E Tests**      | 12    | 1     | ✅ Passing     |
+| **Load Tests**     | 2     | 1     | ✅ Passing     |
+| **Manual CLI**     | 6     | 1     | ✅ Interactive |
 
 ### Security Coverage
 
@@ -348,6 +348,7 @@ TURNSTILE_SECRET_KEY=your-secret
 ```
 
 **Solution:**
+
 ```bash
 # Terminal 1
 npm run dev
@@ -364,6 +365,7 @@ npm run test:all
 ```
 
 **Solution:**
+
 ```bash
 npx playwright install --with-deps
 ```
@@ -383,6 +385,7 @@ Can't reach database server at localhost:5432
 ```
 
 **Solution:**
+
 ```bash
 # Start PostgreSQL
 # Check DATABASE_URL in .env
@@ -392,11 +395,13 @@ npx prisma migrate dev
 ### Test Output Too Verbose
 
 Redirect stderr to file:
+
 ```bash
 npm run test:all 2>errors.log
 ```
 
 View only summary:
+
 ```bash
 npm run test:all | grep -E "(✓|✗|Summary)"
 ```
@@ -431,7 +436,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install dependencies
         run: npm ci
@@ -475,11 +480,13 @@ jobs:
 ### 🎯 Recommended Next Steps
 
 1. **Run full test suite**
+
    ```bash
    npm run test:all
    ```
 
 2. **Review test results**
+
    ```bash
    cat test-results-$(ls -t test-results-*.log | head -1)
    ```
@@ -521,6 +528,7 @@ jobs:
 ✅ **Complete documentation** for all test categories
 
 **Run everything:**
+
 ```bash
 npm run test:all
 ```

@@ -5,6 +5,7 @@
 ### 1. **One-Click Instant Login via Push Notifications**
 
 **User Experience:**
+
 ```
 Admin approves email
    ↓
@@ -23,21 +24,25 @@ User clicks "🔓 Login Securely"
 ## 🔐 Security Features Implemented
 
 ### 1. **Secure Token Generation**
+
 - 64-character cryptographically secure tokens
 - 2^256 possible combinations (vs 1M for 6-digit codes)
 - Impossible to guess or brute force
 
 ### 2. **Short Expiration**
+
 - Magic links expire in **5 minutes**
 - 6-digit codes still available (7 days) as fallback
 - Encourages immediate use
 
 ### 3. **One-Time Use Enforcement**
+
 - Token marked as "used" immediately after login
 - Subsequent attempts automatically rejected
 - Prevents replay attacks
 
 ### 4. **Device Fingerprinting**
+
 - Captures device info on each login:
   - User agent
   - Platform
@@ -46,10 +51,12 @@ User clicks "🔓 Login Securely"
 - Stored for audit trail
 
 ### 5. **IP Address Logging**
+
 - IP address logged with each magic link use
 - Enables security review and anomaly detection
 
 ### 6. **Full Audit Trail**
+
 - Every magic link login logged to database
 - Includes: timestamp, IP, device info, success/failure
 - Queryable for security investigations
@@ -63,39 +70,46 @@ User clicks "🔓 Login Securely"
 Before users can enable push notifications, they must read and accept a detailed modal explaining:
 
 **What You're Enabling:**
+
 - Browser push notifications for instant login
 - One-click login (no code typing)
 - 5-minute link expiration
 
 **How to Verify It's Legitimate:**
+
 - ✅ Title: "🔐 Keystone Access Ready"
 - ✅ Domain verification
 - ✅ Timing (just requested access)
 - ✅ Button: "🔓 Login Securely"
 
 **When NOT to Use** (Highlighted in RED):
+
 - ❌ Public/shared computers
 - ❌ Work/school shared devices
 - ❌ Someone else's device
 - ❌ Testing/demo devices
 
 **When It's SAFE** (Highlighted in GREEN):
+
 - ✅ Your personal device
 - ✅ Company-issued device (yours only)
 - ✅ Secure home/office
 
 **User Consent:**
+
 - Checkbox: "I understand I should only enable this on my personal/assigned device"
 - Cannot proceed without checking
 
 ### 2. **Public Computer Detection**
 
 Automatic detection and warnings for:
+
 - Incognito/private browsing mode
 - Kiosk mode browsers
 - Public computer indicators in user agent
 
 **UI Changes:**
+
 ```
 Normal Device:
 ┌────────────────────────────────────┐
@@ -115,6 +129,7 @@ Public Computer Detected:
 ### 3. **Visual Trust Indicators**
 
 **Push Notification Design:**
+
 ```
 ╔══════════════════════════════════╗
 ║ 🔐 Keystone Access Ready          ║  ← Official lock emoji
@@ -128,6 +143,7 @@ Public Computer Detected:
 ```
 
 **Trust Metadata (visible in browser):**
+
 - Approved domain: `localhost` (or your domain)
 - Expires in: `5 minutes`
 - Security: `isSecure: true`
@@ -137,6 +153,7 @@ Public Computer Detected:
 ## 📦 Files Created/Modified
 
 ### New Files:
+
 1. **src/app/api/auth/magic-login/route.ts**
    - Magic link validation endpoint
    - Security checks (expiry, one-time use, user access)
@@ -162,6 +179,7 @@ Public Computer Detected:
    - UX flows
 
 ### Modified Files:
+
 1. **prisma/schema.prisma**
    - Added `MagicToken` model with fields:
      - token (64-char unique)
@@ -373,32 +391,34 @@ LIMIT 1;
 
 ## 📊 Security Comparison
 
-| Feature | Magic Link | 6-Digit Code |
-|---------|-----------|--------------|
-| **Security Level** | ★★★★★ | ★★★☆☆ |
-| **Strength** | 2^256 combinations | 1M combinations |
-| **Expiry** | 5 minutes | 7 days |
-| **One-time use** | Yes | Yes |
-| **Phishing resistant** | Yes | No |
-| **Shoulder-surf proof** | Yes | No |
-| **Public computer safe** | No* | Yes |
-| **Cross-device** | No | Yes |
-| **UX** | One click | Manual typing |
-| **Speed** | Instant | ~10 seconds |
+| Feature                  | Magic Link         | 6-Digit Code    |
+| ------------------------ | ------------------ | --------------- |
+| **Security Level**       | ★★★★★              | ★★★☆☆           |
+| **Strength**             | 2^256 combinations | 1M combinations |
+| **Expiry**               | 5 minutes          | 7 days          |
+| **One-time use**         | Yes                | Yes             |
+| **Phishing resistant**   | Yes                | No              |
+| **Shoulder-surf proof**  | Yes                | No              |
+| **Public computer safe** | No\*               | Yes             |
+| **Cross-device**         | No                 | Yes             |
+| **UX**                   | One click          | Manual typing   |
+| **Speed**                | Instant            | ~10 seconds     |
 
-*Not recommended for public computers, but safe on personal devices
+\*Not recommended for public computers, but safe on personal devices
 
 ---
 
 ## 🎯 When to Use What
 
 ### Magic Link (Recommended):
+
 - ✅ Personal devices
 - ✅ Best security
 - ✅ Best UX (one click)
 - ✅ Fastest login
 
 ### 6-Digit Code (Fallback):
+
 - ✅ Public/shared computers
 - ✅ Cross-device access
 - ✅ Manual sharing (Slack, phone call)
@@ -406,6 +426,7 @@ LIMIT 1;
 - ✅ QR code scanning
 
 ### Both Work Together:
+
 - Users can have push enabled
 - Still receive 6-digit code via email
 - Can use whichever method they prefer
@@ -427,6 +448,7 @@ Created comprehensive docs:
 ## ✅ Summary
 
 **What Changed:**
+
 - ✅ Magic link instant login (most secure)
 - ✅ Comprehensive user education
 - ✅ Public computer detection & warnings
@@ -434,6 +456,7 @@ Created comprehensive docs:
 - ✅ Trust indicators throughout UX
 
 **Security:**
+
 - 🔒 64-character secure tokens
 - ⏱️ 5-minute expiration
 - 🔐 One-time use enforcement
@@ -441,6 +464,7 @@ Created comprehensive docs:
 - 🛡️ Device & IP tracking
 
 **Trust & Education:**
+
 - 📚 Mandatory education modal
 - ⚠️ Public computer warnings
 - ✅ Visual trust indicators
@@ -448,12 +472,14 @@ Created comprehensive docs:
 - 👤 User consent required
 
 **UX:**
+
 - 🚀 One-click login (no typing!)
 - ⚡ Instant access
 - 🎯 Clear trust signals
 - 🛡️ Safety warnings when needed
 
 **Backward Compatible:**
+
 - 6-digit codes still work everywhere
 - Email delivery unchanged
 - QR codes unchanged

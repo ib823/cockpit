@@ -1,8 +1,8 @@
 // src/lib/export-reference.ts
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { Wrapper, WrapperCalculation, SAP_ACTIVATE_PHASES } from '@/types/wrappers';
-import { formatCurrency } from '@/lib/utils';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Wrapper, WrapperCalculation, SAP_ACTIVATE_PHASES } from "@/types/wrappers";
+import { formatCurrency } from "@/lib/utils";
 
 interface ExportData {
   wrappers: Wrapper[];
@@ -24,13 +24,13 @@ export function exportReferenceToPDF(data: ExportData) {
 
   // Title
   doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.text('SAP Activate Reference Architecture', 14, 20);
+  doc.setFont("helvetica", "bold");
+  doc.text("SAP Activate Reference Architecture", 14, 20);
 
   // Project name
   if (projectName) {
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont("helvetica", "normal");
     doc.text(projectName, 14, 28);
   }
 
@@ -40,11 +40,11 @@ export function exportReferenceToPDF(data: ExportData) {
 
   // SAP Activate Phases Overview
   doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('SAP Activate Methodology', 14, 50);
+  doc.setFont("helvetica", "bold");
+  doc.text("SAP Activate Methodology", 14, 50);
 
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont("helvetica", "normal");
   let yPos = 58;
 
   SAP_ACTIVATE_PHASES.forEach((phase) => {
@@ -55,8 +55,8 @@ export function exportReferenceToPDF(data: ExportData) {
   // Wrapper Configuration Table
   yPos += 10;
   doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Wrapper Configuration', 14, yPos);
+  doc.setFont("helvetica", "bold");
+  doc.text("Wrapper Configuration", 14, yPos);
 
   yPos += 8;
 
@@ -65,21 +65,21 @@ export function exportReferenceToPDF(data: ExportData) {
     return [
       wrapper.name,
       `${wrapper.currentPercentage.toFixed(0)}%`,
-      `${calc?.wrapperEffort.toFixed(1) || '0.0'} PD`,
-      formatCurrency(calc?.wrapperCost || 0, 'MYR'),
+      `${calc?.wrapperEffort.toFixed(1) || "0.0"} PD`,
+      formatCurrency(calc?.wrapperCost || 0, "MYR"),
       wrapper.sapActivatePhase,
     ];
   });
 
   autoTable(doc, {
     startY: yPos,
-    head: [['Wrapper', '% of Core', 'Effort', 'Cost', 'Phase']],
+    head: [["Wrapper", "% of Core", "Effort", "Cost", "Phase"]],
     body: tableData,
-    theme: 'grid',
+    theme: "grid",
     headStyles: {
       fillColor: [59, 130, 246], // blue-500
       textColor: 255,
-      fontStyle: 'bold',
+      fontStyle: "bold",
     },
     styles: {
       fontSize: 9,
@@ -87,10 +87,10 @@ export function exportReferenceToPDF(data: ExportData) {
     },
     columnStyles: {
       0: { cellWidth: 50 },
-      1: { cellWidth: 25, halign: 'center' },
-      2: { cellWidth: 30, halign: 'right' },
-      3: { cellWidth: 40, halign: 'right' },
-      4: { cellWidth: 30, halign: 'center' },
+      1: { cellWidth: 25, halign: "center" },
+      2: { cellWidth: 30, halign: "right" },
+      3: { cellWidth: 40, halign: "right" },
+      4: { cellWidth: 30, halign: "center" },
     },
   });
 
@@ -99,41 +99,45 @@ export function exportReferenceToPDF(data: ExportData) {
   yPos = finalY + 15;
 
   doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Project Summary', 14, yPos);
+  doc.setFont("helvetica", "bold");
+  doc.text("Project Summary", 14, yPos);
 
   yPos += 8;
 
   const summaryData = [
-    ['Core Effort', `${coreEffort.toFixed(0)} PD`, formatCurrency(coreEffortCost, 'MYR')],
-    ['Total Wrapper Effort', `${totalWrapperEffort.toFixed(0)} PD`, formatCurrency(totalWrapperCost, 'MYR')],
-    ['Grand Total', `${grandTotalEffort.toFixed(0)} PD`, formatCurrency(grandTotalCost, 'MYR')],
+    ["Core Effort", `${coreEffort.toFixed(0)} PD`, formatCurrency(coreEffortCost, "MYR")],
+    [
+      "Total Wrapper Effort",
+      `${totalWrapperEffort.toFixed(0)} PD`,
+      formatCurrency(totalWrapperCost, "MYR"),
+    ],
+    ["Grand Total", `${grandTotalEffort.toFixed(0)} PD`, formatCurrency(grandTotalCost, "MYR")],
   ];
 
   autoTable(doc, {
     startY: yPos,
-    head: [['Category', 'Effort', 'Cost']],
+    head: [["Category", "Effort", "Cost"]],
     body: summaryData,
-    theme: 'plain',
+    theme: "plain",
     headStyles: {
       fillColor: [229, 231, 235], // gray-200
       textColor: 0,
-      fontStyle: 'bold',
+      fontStyle: "bold",
     },
     bodyStyles: {
       fontSize: 10,
     },
     columnStyles: {
-      0: { cellWidth: 70, fontStyle: 'bold' },
-      1: { cellWidth: 40, halign: 'right' },
-      2: { cellWidth: 60, halign: 'right' },
+      0: { cellWidth: 70, fontStyle: "bold" },
+      1: { cellWidth: 40, halign: "right" },
+      2: { cellWidth: 60, halign: "right" },
     },
     didParseCell: (data) => {
       // Highlight grand total row
-      if (data.row.index === 2 && data.section === 'body') {
+      if (data.row.index === 2 && data.section === "body") {
         data.cell.styles.fillColor = [220, 252, 231]; // green-100
         data.cell.styles.textColor = [22, 163, 74]; // green-600
-        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fontStyle = "bold";
       }
     },
   });
@@ -141,7 +145,7 @@ export function exportReferenceToPDF(data: ExportData) {
   // Footer
   const pageCount = doc.getNumberOfPages();
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont("helvetica", "normal");
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.text(
@@ -153,7 +157,7 @@ export function exportReferenceToPDF(data: ExportData) {
 
   // Save
   const filename = projectName
-    ? `${projectName.replace(/\s+/g, '_')}_SAP_Activate_Reference.pdf`
+    ? `${projectName.replace(/\s+/g, "_")}_SAP_Activate_Reference.pdf`
     : `SAP_Activate_Reference_${new Date().getTime()}.pdf`;
 
   doc.save(filename);

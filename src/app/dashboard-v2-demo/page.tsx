@@ -3,15 +3,15 @@
  * Next-generation three-panel dashboard with real-time validation and AI recommendations
  */
 
-'use client';
+"use client";
 
-import { useEffect, useState, useMemo } from 'react';
-import { Card, Typography, Alert, Modal, Radio, Space } from 'antd';
-import { FileText, FileSpreadsheet, Download } from 'lucide-react';
-import { ComprehensiveDashboard } from '@/components/dashboard-v2';
-import { GanttProject } from '@/types/gantt-tool';
-import { calculateTotalCost, calculateMargins } from '@/lib/dashboard/calculation-engine';
-import { exportDashboard, ExportData } from '@/lib/dashboard/export-engine';
+import { useEffect, useState, useMemo } from "react";
+import { Card, Typography, Alert, Modal, Radio, Space } from "antd";
+import { FileText, FileSpreadsheet, Download } from "lucide-react";
+import { ComprehensiveDashboard } from "@/components/dashboard-v2";
+import { GanttProject } from "@/types/gantt-tool";
+import { calculateTotalCost, calculateMargins } from "@/lib/dashboard/calculation-engine";
+import { exportDashboard, ExportData } from "@/lib/dashboard/export-engine";
 
 const { Title, Text } = Typography;
 
@@ -19,17 +19,17 @@ export default function DashboardV2DemoPage() {
   const [project, setProject] = useState<GanttProject | null>(null);
   const [proposedRevenue, setProposedRevenue] = useState(0);
   const [exportModalVisible, setExportModalVisible] = useState(false);
-  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('pdf');
+  const [exportFormat, setExportFormat] = useState<"csv" | "excel" | "pdf">("pdf");
 
   useEffect(() => {
     // Try to load project from localStorage (from gantt-tool)
-    const storedProject = localStorage.getItem('gantt-project');
+    const storedProject = localStorage.getItem("gantt-project");
     if (storedProject) {
       try {
         const parsed = JSON.parse(storedProject);
         setProject(parsed);
       } catch (error) {
-        console.error('Failed to parse project:', error);
+        console.error("Failed to parse project:", error);
       }
     }
   }, []);
@@ -53,7 +53,7 @@ export default function DashboardV2DemoPage() {
 
   if (!project) {
     return (
-      <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ padding: "40px", maxWidth: "800px", margin: "0 auto" }}>
         <Card>
           <Title level={2}>📊 Comprehensive Dashboard v2</Title>
           <Alert
@@ -61,20 +61,30 @@ export default function DashboardV2DemoPage() {
             description={
               <div>
                 <Text>
-                  Please create or load a project first using the <a href="/gantt-tool">Gantt Tool</a>.
+                  Please create or load a project first using the{" "}
+                  <a href="/gantt-tool">Gantt Tool</a>.
                 </Text>
                 <br />
                 <br />
                 <Text type="secondary">
                   The Comprehensive Dashboard v2 provides a next-generation three-panel view with:
                 </Text>
-                <ul style={{ marginTop: '12px' }}>
-                  <li>🎯 <strong>Operational Panel:</strong> Real-time resource allocation and capacity planning</li>
-                  <li>💰 <strong>Financial Intelligence:</strong> Live cost calculations and margin analysis</li>
-                  <li>🚀 <strong>Strategic Insights:</strong> AI recommendations and risk assessment</li>
+                <ul style={{ marginTop: "12px" }}>
+                  <li>
+                    🎯 <strong>Operational Panel:</strong> Real-time resource allocation and
+                    capacity planning
+                  </li>
+                  <li>
+                    💰 <strong>Financial Intelligence:</strong> Live cost calculations and margin
+                    analysis
+                  </li>
+                  <li>
+                    🚀 <strong>Strategic Insights:</strong> AI recommendations and risk assessment
+                  </li>
                 </ul>
                 <Text type="secondary">
-                  Features include real-time validation, auto-save status, scenario management, and animated transitions.
+                  Features include real-time validation, auto-save status, scenario management, and
+                  animated transitions.
                 </Text>
               </div>
             }
@@ -104,13 +114,13 @@ export default function DashboardV2DemoPage() {
         proposedRevenue={proposedRevenue}
         onRevenueChange={setProposedRevenue}
         onSave={() => {
-          localStorage.setItem('gantt-project', JSON.stringify(project));
-          localStorage.setItem('proposed-revenue', proposedRevenue.toString());
+          localStorage.setItem("gantt-project", JSON.stringify(project));
+          localStorage.setItem("proposed-revenue", proposedRevenue.toString());
         }}
         onExport={handleExport}
         onShare={() => {
           // TODO: Implement share functionality
-          console.log('Share dashboard');
+          console.log("Share dashboard");
         }}
       />
 
@@ -123,15 +133,15 @@ export default function DashboardV2DemoPage() {
         okText="Export"
         width={500}
       >
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
           <Text>Choose export format:</Text>
 
           <Radio.Group
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value)}
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
           >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
               <Radio value="pdf">
                 <Space>
                   <FileText size={20} />

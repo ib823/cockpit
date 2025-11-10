@@ -5,36 +5,36 @@
  * Built on design system with proper shadows, hover states, and accessibility
  */
 
-'use client';
+"use client";
 
-import { ReactNode, ButtonHTMLAttributes, forwardRef } from 'react';
-import { colorValues, getColoredShadow, withOpacity, spacing } from '@/lib/design-system';
-import { HexLoader } from '@/components/ui/HexLoader';
+import { ReactNode, ButtonHTMLAttributes, forwardRef } from "react";
+import { colorValues, getColoredShadow, withOpacity, spacing } from "@/lib/design-system";
+import { HexLoader } from "@/components/ui/HexLoader";
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
+type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
   icon?: ReactNode;
-  iconPosition?: 'left' | 'right';
+  iconPosition?: "left" | "right";
   fullWidth?: boolean;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
-      variant = 'primary',
-      size = 'md',
+      variant = "primary",
+      size = "md",
       loading = false,
       icon,
-      iconPosition = 'left',
+      iconPosition = "left",
       fullWidth = false,
       disabled,
       children,
-      className = '',
+      className = "",
       style,
       ...props
     },
@@ -43,22 +43,25 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // Size configurations
     const sizeConfig = {
       sm: {
-        height: '32px',
+        height: "32px",
         padding: `0 ${spacing[3]}`,
-        className="text-sm",
-        iconSize: 'w-3.5 h-3.5',
+        className: "text-sm",
+        iconSize: "w-3.5 h-3.5",
+        fontSize: "14px",
       },
       md: {
-        height: '40px',
+        height: "40px",
         padding: `0 ${spacing[4]}`,
-        className="text-sm",
-        iconSize: 'w-4 h-4',
+        className: "text-sm",
+        iconSize: "w-4 h-4",
+        fontSize: "14px",
       },
       lg: {
-        height: '48px',
+        height: "48px",
         padding: `0 ${spacing[6]}`,
-        className="text-base",
-        iconSize: 'w-5 h-5',
+        className: "text-base",
+        iconSize: "w-5 h-5",
+        fontSize: "16px",
       },
     };
 
@@ -69,37 +72,37 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       primary: {
         bg: colorValues.primary[600],
         hover: colorValues.primary[700],
-        text: '#ffffff',
-        shadow: getColoredShadow(colorValues.primary[600], 'md'),
-        hoverShadow: getColoredShadow(colorValues.primary[600], 'lg'),
+        text: "#ffffff",
+        shadow: getColoredShadow(colorValues.primary[600], "md"),
+        hoverShadow: getColoredShadow(colorValues.primary[600], "lg"),
       },
       secondary: {
         bg: colorValues.accent[600],
         hover: colorValues.accent[700],
-        text: '#ffffff',
-        shadow: getColoredShadow(colorValues.accent[600], 'md'),
-        hoverShadow: getColoredShadow(colorValues.accent[600], 'lg'),
+        text: "#ffffff",
+        shadow: getColoredShadow(colorValues.accent[600], "md"),
+        hoverShadow: getColoredShadow(colorValues.accent[600], "lg"),
       },
       ghost: {
-        bg: 'transparent',
+        bg: "transparent",
         hover: colorValues.gray[100],
         text: colorValues.gray[700],
-        shadow: 'none',
-        hoverShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        shadow: "none",
+        hoverShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
       },
       danger: {
         bg: colorValues.error[600],
         hover: colorValues.error[700],
-        text: '#ffffff',
-        shadow: getColoredShadow(colorValues.error[600], 'md'),
-        hoverShadow: getColoredShadow(colorValues.error[600], 'lg'),
+        text: "#ffffff",
+        shadow: getColoredShadow(colorValues.error[600], "md"),
+        hoverShadow: getColoredShadow(colorValues.error[600], "lg"),
       },
       success: {
         bg: colorValues.success[600],
         hover: colorValues.success[700],
-        text: '#ffffff',
-        shadow: getColoredShadow(colorValues.success[600], 'md'),
-        hoverShadow: getColoredShadow(colorValues.success[600], 'lg'),
+        text: "#ffffff",
+        shadow: getColoredShadow(colorValues.success[600], "md"),
+        hoverShadow: getColoredShadow(colorValues.success[600], "lg"),
       },
     };
 
@@ -116,10 +119,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           font-medium rounded-lg
           transition-all duration-200
           focus:outline-none focus:ring-2 focus:ring-offset-2
-          ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95 cursor-pointer'}
-          ${fullWidth ? 'w-full' : ''}
-          ${variant === 'primary' ? 'focus:ring-blue-500' : ''}
-          ${variant === 'danger' ? 'focus:ring-red-500' : ''}
+          ${isDisabled ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95 cursor-pointer"}
+          ${fullWidth ? "w-full" : ""}
+          ${variant === "primary" ? "focus:ring-blue-500" : ""}
+          ${variant === "danger" ? "focus:ring-red-500" : ""}
           ${className}
         `}
         style={{
@@ -128,12 +131,12 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           fontSize: config.fontSize,
           backgroundColor: colors.bg,
           color: colors.text,
-          border: variant === 'ghost' ? `1px solid ${colorValues.gray[300]}` : 'none',
-          boxShadow: isDisabled ? 'none' : colors.shadow,
+          border: variant === "ghost" ? `1px solid ${colorValues.gray[300]}` : "none",
+          boxShadow: isDisabled ? "none" : colors.shadow,
           ...style,
         }}
         onMouseEnter={(e) => {
-          if (!isDisabled && variant !== 'ghost') {
+          if (!isDisabled && variant !== "ghost") {
             e.currentTarget.style.boxShadow = colors.hoverShadow;
             e.currentTarget.style.backgroundColor = colors.hover;
           }
@@ -147,11 +150,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading && <HexLoader size="sm" />}
-        {!loading && icon && iconPosition === 'left' && (
+        {!loading && icon && iconPosition === "left" && (
           <span className={config.iconSize}>{icon}</span>
         )}
         {children}
-        {!loading && icon && iconPosition === 'right' && (
+        {!loading && icon && iconPosition === "right" && (
           <span className={config.iconSize}>{icon}</span>
         )}
       </button>
@@ -159,7 +162,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 
-Button.displayName = 'Button';
+Button.displayName = "Button";
 
 export default Button;
 
@@ -168,14 +171,14 @@ export default Button;
  */
 export function IconButton({
   icon,
-  variant = 'ghost',
-  size = 'md',
+  variant = "ghost",
+  size = "md",
   ...props
-}: Omit<ButtonProps, 'children'> & { icon: ReactNode }) {
+}: Omit<ButtonProps, "children"> & { icon: ReactNode }) {
   const sizeMap = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
-    lg: 'w-12 h-12',
+    sm: "w-8 h-8",
+    md: "w-10 h-10",
+    lg: "w-12 h-12",
   };
 
   return (

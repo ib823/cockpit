@@ -29,6 +29,7 @@ You now have **5 professional ways** to deliver 6-digit access codes to users!
 ## 🎯 Choose Your Method
 
 ### Option 1: Zero Setup (Start Now)
+
 ```bash
 # No configuration needed!
 1. Go to /admin
@@ -41,6 +42,7 @@ You now have **5 professional ways** to deliver 6-digit access codes to users!
 ---
 
 ### Option 2: Gmail Email (2 minutes)
+
 ```bash
 # Add to .env.local:
 GMAIL_USER=your@gmail.com
@@ -54,6 +56,7 @@ GMAIL_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
 ---
 
 ### Option 3: Push Notifications (5 minutes)
+
 ```bash
 # Generate keys:
 npx web-push generate-vapid-keys
@@ -72,6 +75,7 @@ npx prisma db push
 ---
 
 ### Option 4: Resend API (5 minutes)
+
 ```bash
 # Sign up: https://resend.com/signup
 # Get API key from dashboard
@@ -88,6 +92,7 @@ FROM_EMAIL=noreply@yourdomain.com
 ## 📱 How It Works
 
 ### Admin Dashboard (`/admin`)
+
 1. Enter user email
 2. Click "Approve Email"
 3. **New Modal Shows:**
@@ -97,6 +102,7 @@ FROM_EMAIL=noreply@yourdomain.com
 4. Email/Push sent automatically (if configured)
 
 ### User Login (`/login`)
+
 1. **Option A:** Scan QR code → auto-login
 2. **Option B:** Enter email + 6-digit code
 3. **Option C:** Enable push → get instant notifications
@@ -106,22 +112,26 @@ FROM_EMAIL=noreply@yourdomain.com
 ## 🔥 Features
 
 ### QR Code
+
 - ✅ Scan with phone camera
 - ✅ Auto-fills email + code
 - ✅ Download as image
 - ✅ Works offline
 
 ### Copy-to-Clipboard
+
 - ✅ One-click copy
 - ✅ Share via any method
 - ✅ Always available
 
 ### Push Notifications
+
 - ✅ Instant browser alerts
 - ✅ Click to open login
 - ✅ Works cross-device
 
 ### Email (Gmail/Resend)
+
 - ✅ Beautiful HTML template
 - ✅ Professional branding
 - ✅ Auto-sent on approval
@@ -131,6 +141,7 @@ FROM_EMAIL=noreply@yourdomain.com
 ## 📊 What Changed?
 
 ### New Files:
+
 ```
 src/components/admin/AccessCodeModal.tsx       # QR + Copy UI
 src/components/admin/PushNotificationToggle.tsx # Push toggle
@@ -143,6 +154,7 @@ public/sw.js                                   # Service worker
 ```
 
 ### Updated Files:
+
 ```
 src/app/admin/page.tsx                         # Shows modal
 src/app/login/page.tsx                         # Push toggle
@@ -156,6 +168,7 @@ package.json                                   # qrcode, web-push
 ## 🎨 UI Preview
 
 ### Admin Modal
+
 ```
 ┌──────────────────────────────────┐
 │   ✓  Access Approved!            │
@@ -185,6 +198,7 @@ package.json                                   # qrcode, web-push
 ```
 
 ### Login Page
+
 ```
 ┌──────────────────────────────────┐
 │   Welcome Back                   │
@@ -211,6 +225,7 @@ package.json                                   # qrcode, web-push
 ## 🔒 Security
 
 All methods include:
+
 - ✅ 7-day expiration
 - ✅ One-time use only
 - ✅ Bcrypt hashed storage
@@ -240,12 +255,14 @@ npx tsx scripts/set-admin-code.ts
 ## 📚 Full Documentation
 
 See `ACCESS_CODE_DELIVERY.md` for:
+
 - Detailed setup guides
 - Troubleshooting
 - Production deployment
 - Advanced configuration
 
 See `EMAIL_SETUP.md` for:
+
 - Gmail SMTP setup
 - Resend API setup
 - Email configuration
@@ -255,11 +272,13 @@ See `EMAIL_SETUP.md` for:
 ## ✨ Summary
 
 **Zero Setup (Available Now):**
+
 - ✅ QR Code generation
 - ✅ Copy-to-clipboard
 - ✅ Manual sharing
 
 **Quick Setup (2-5 min):**
+
 - ✅ Gmail SMTP (free email)
 - ✅ Resend API (best delivery)
 - ✅ Push Notifications (instant)

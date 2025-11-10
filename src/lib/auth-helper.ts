@@ -105,9 +105,7 @@ function getSessionSecret(): string {
     );
   }
   if (secret.length < 32) {
-    throw new Error(
-      "SESSION_SECRET must be at least 32 characters long for security."
-    );
+    throw new Error("SESSION_SECRET must be at least 32 characters long for security.");
   }
   return secret;
 }

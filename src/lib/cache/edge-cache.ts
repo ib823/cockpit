@@ -20,35 +20,35 @@ export const EDGE_CACHE_CONFIG = {
   STATIC_ASSETS: {
     maxAge: 31536000, // 1 year
     staleWhileRevalidate: 31536000,
-    tags: ['static'],
+    tags: ["static"],
   },
 
   // L3 Catalog - rarely changes
   L3_CATALOG: {
     maxAge: 86400, // 24 hours
     staleWhileRevalidate: 604800, // 7 days
-    tags: ['l3-catalog', 'data'],
+    tags: ["l3-catalog", "data"],
   },
 
   // API responses - moderate caching
   API_RESPONSES: {
     maxAge: 300, // 5 minutes
     staleWhileRevalidate: 3600, // 1 hour
-    tags: ['api'],
+    tags: ["api"],
   },
 
   // User data - short cache
   USER_DATA: {
     maxAge: 60, // 1 minute
     staleWhileRevalidate: 300, // 5 minutes
-    tags: ['user'],
+    tags: ["user"],
   },
 
   // Dashboard data - short cache
   DASHBOARD: {
     maxAge: 300, // 5 minutes
     staleWhileRevalidate: 900, // 15 minutes
-    tags: ['dashboard'],
+    tags: ["dashboard"],
   },
 } as const;
 
@@ -64,17 +64,17 @@ export function buildCacheHeaders(config: {
 
   // Cache-Control header
   headers.set(
-    'Cache-Control',
+    "Cache-Control",
     `public, max-age=${config.maxAge}, stale-while-revalidate=${config.staleWhileRevalidate}`
   );
 
   // Cache tags (for purging)
   if (config.tags.length > 0) {
-    headers.set('Cache-Tag', config.tags.join(', '));
+    headers.set("Cache-Tag", config.tags.join(", "));
   }
 
   // Vary header (important for personalized content)
-  headers.set('Vary', 'Accept-Encoding, Authorization');
+  headers.set("Vary", "Accept-Encoding, Authorization");
 
   return headers;
 }
@@ -85,7 +85,7 @@ export function buildCacheHeaders(config: {
 export async function edgeFetch<T = any>(
   url: string,
   options?: RequestInit & {
-    cacheConfig?: typeof EDGE_CACHE_CONFIG[keyof typeof EDGE_CACHE_CONFIG];
+    cacheConfig?: (typeof EDGE_CACHE_CONFIG)[keyof typeof EDGE_CACHE_CONFIG];
     revalidate?: number;
   }
 ): Promise<T> {
@@ -96,7 +96,7 @@ export async function edgeFetch<T = any>(
     ...fetchOptions,
     next: {
       revalidate: revalidate || cacheConfig?.maxAge,
-      tags: cacheConfig?.tags,
+      tags: cacheConfig?.tags ? [...cacheConfig.tags] : undefined,
     },
   };
 
@@ -115,15 +115,12 @@ export async function edgeFetch<T = any>(
 export async function purgeCacheByTag(tag: string): Promise<void> {
   if (process.env.VERCEL_TOKEN && process.env.VERCEL_PROJECT_ID) {
     try {
-      const response = await fetch(
-        `https://api.vercel.com/v1/purge?tag=${tag}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.VERCEL_TOKEN}`,
-          },
-        }
-      );
+      const response = await fetch(`https://api.vercel.com/v1/purge?tag=${tag}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.VERCEL_TOKEN}`,
+        },
+      });
 
       if (response.ok) {
         console.log(`[Edge Cache] ✅ Purged tag: ${tag}`);
@@ -134,7 +131,7 @@ export async function purgeCacheByTag(tag: string): Promise<void> {
       console.error(`[Edge Cache] ❌ Error purging tag:`, error);
     }
   } else {
-    console.warn('[Edge Cache] ⚠️  Vercel token not configured, skipping purge');
+    console.warn("[Edge Cache] ⚠️  Vercel token not configured, skipping purge");
   }
 }
 
@@ -142,7 +139,7 @@ export async function purgeCacheByTag(tag: string): Promise<void> {
  * Purge multiple cache tags
  */
 export async function purgeCacheTags(tags: string[]): Promise<void> {
-  await Promise.all(tags.map(tag => purgeCacheTag(tag)));
+  await Promise.all(tags.map((tag) => purgeCacheByTag(tag)));
 }
 
 /**
@@ -151,7 +148,7 @@ export async function purgeCacheTags(tags: string[]): Promise<void> {
  */
 export function addEdgeCacheHeaders(
   response: Response,
-  config: typeof EDGE_CACHE_CONFIG[keyof typeof EDGE_CACHE_CONFIG]
+  config: { maxAge: number; staleWhileRevalidate: number; tags: string[] }
 ): Response {
   const headers = buildCacheHeaders(config);
 
@@ -174,15 +171,15 @@ export function addEdgeCacheHeaders(
  * Check if response is from edge cache
  */
 export function isEdgeCached(response: Response): boolean {
-  const cacheStatus = response.headers.get('x-vercel-cache');
-  return cacheStatus === 'HIT';
+  const cacheStatus = response.headers.get("x-vercel-cache");
+  return cacheStatus === "HIT";
 }
 
 /**
  * Get cache age from response
  */
 export function getCacheAge(response: Response): number | null {
-  const age = response.headers.get('age');
+  const age = response.headers.get("age");
   return age ? parseInt(age, 10) : null;
 }
 
@@ -203,7 +200,7 @@ export interface EdgeCacheStats {
 export async function edgeFetchWithStats<T = any>(
   url: string,
   options?: RequestInit & {
-    cacheConfig?: typeof EDGE_CACHE_CONFIG[keyof typeof EDGE_CACHE_CONFIG];
+    cacheConfig?: (typeof EDGE_CACHE_CONFIG)[keyof typeof EDGE_CACHE_CONFIG];
   }
 ): Promise<{ data: T; stats: EdgeCacheStats }> {
   const startTime = performance.now();
@@ -217,12 +214,12 @@ export async function edgeFetchWithStats<T = any>(
     url,
     cached: isEdgeCached(response),
     age: getCacheAge(response),
-    cacheStatus: response.headers.get('x-vercel-cache'),
+    cacheStatus: response.headers.get("x-vercel-cache"),
     responseTime,
   };
 
   console.log(
-    `[Edge Cache] ${stats.cached ? '✅ HIT' : '❌ MISS'} ${url} (${responseTime.toFixed(2)}ms)`
+    `[Edge Cache] ${stats.cached ? "✅ HIT" : "❌ MISS"} ${url} (${responseTime.toFixed(2)}ms)`
   );
 
   return { data, stats };
@@ -234,11 +231,11 @@ export async function edgeFetchWithStats<T = any>(
 export async function preloadEdgeResources(urls: string[]): Promise<void> {
   console.log(`[Edge Cache] 🔥 Preloading ${urls.length} resources...`);
 
-  const promises = urls.map(url =>
+  const promises = urls.map((url) =>
     fetch(url, {
-      method: 'HEAD',
+      method: "HEAD",
       next: { revalidate: 86400 }, // Cache for 24 hours
-    }).catch(err => console.warn(`[Edge Cache] ⚠️  Failed to preload ${url}:`, err))
+    }).catch((err) => console.warn(`[Edge Cache] ⚠️  Failed to preload ${url}:`, err))
   );
 
   await Promise.all(promises);
@@ -250,7 +247,7 @@ export async function preloadEdgeResources(urls: string[]): Promise<void> {
  * Critical resources to preload
  */
 export const CRITICAL_RESOURCES = [
-  '/api/l3-catalog',
-  '/api/lobs',
+  "/api/l3-catalog",
+  "/api/lobs",
   // Add more critical resources here
 ] as const;

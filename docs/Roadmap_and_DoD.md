@@ -19,12 +19,14 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Why:** Critical gap - 70% of users need this bridge (Tier 1 → Tier 2 handoff).
 
 **Tasks:**
+
 1. Create `src/lib/estimator/to-chips-converter.ts`
 2. Add `handleBuildFullPlan()` to `/estimator/page.tsx`
 3. Update `/project/page.tsx` to handle `?source=estimator` param
 4. Show banner "Timeline from Quick Estimate"
 
 **Definition of Done:**
+
 - [ ] User clicks "Build Full Plan" in Estimator
 - [ ] Data converts to chips (all fields mapped)
 - [ ] Navigates to `/project?mode=plan` with data pre-filled
@@ -42,6 +44,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Why:** Incomplete implementation confuses users. Merge into PlanMode as tabs.
 
 **Tasks:**
+
 1. Add tab navigation to `PlanMode.tsx`
 2. Move ResourcePanel into "Resources" tab
 3. Move RicefwPanel into "RICEFW" tab
@@ -50,6 +53,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 6. Update mobile nav (5 → 4 buttons)
 
 **Definition of Done:**
+
 - [ ] PlanMode has 3 tabs: Timeline | Resources | RICEFW
 - [ ] All tabs functional (no placeholder text)
 - [ ] OptimizeMode file deleted
@@ -69,6 +73,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Why:** Replaces console.log and alerts with professional feedback.
 
 **Tasks:**
+
 1. Install `react-hot-toast`
 2. Add `<Toaster />` to layout
 3. Replace all `console.log` in CaptureMode
@@ -76,6 +81,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 5. Create toast helper: `src/lib/toast.ts`
 
 **Definition of Done:**
+
 - [ ] react-hot-toast installed
 - [ ] Toaster component in layout
 - [ ] All console.log replaced (grep confirms)
@@ -95,6 +101,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Why:** Prevents data loss on timeline regeneration (90% of users need this).
 
 **Tasks:**
+
 1. Create `src/components/project-v2/modes/RegenerateModal.tsx`
 2. Show diff (phases added/removed, duration change)
 3. Warn about manual edits
@@ -102,6 +109,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 5. Hook into `regenerateTimeline()` call
 
 **Definition of Done:**
+
 - [ ] Modal appears before regeneration
 - [ ] Shows count of manual edits at risk
 - [ ] Shows diff (phases, duration, cost)
@@ -119,6 +127,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Why:** **Critical** - 60% of sessions need export to complete workflow.
 
 **Tasks:**
+
 1. Install `jspdf` and `html2canvas`
 2. Create `src/lib/presentation/pdf-exporter.ts`
 3. Add "Export PDF" button to PresentMode
@@ -127,6 +136,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 6. Track export completion analytics
 
 **Definition of Done:**
+
 - [ ] "Export PDF" button visible in PresentMode
 - [ ] Clicking shows loading state
 - [ ] PDF downloads with all slides
@@ -147,12 +157,14 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Why:** 200+ items unusable without search.
 
 **Tasks:**
+
 1. Add search input to L3SelectorModal
 2. Filter items by name/code
 3. Add tier filter buttons
 4. Add industry presets
 
 **Definition of Done:**
+
 - [ ] Search input filters items in real-time
 - [ ] Tier buttons filter (All/1/2/3/4)
 - [ ] Industry presets add multiple items
@@ -171,6 +183,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Why:** Foundation for data continuity across tiers.
 
 **Tasks:**
+
 1. Create `src/stores/unified-project-store.ts`
 2. Define `UnifiedProject` interface
 3. Add migration from legacy stores
@@ -179,6 +192,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 6. Add localStorage versioning
 
 **Definition of Done:**
+
 - [ ] Unified store created with full interface
 - [ ] Migration utility converts old data
 - [ ] Estimator saves estimates to store
@@ -190,6 +204,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Risk:** High - Data migration can corrupt projects
 
 **Mitigation:**
+
 - Phase 1: Create store, keep old stores (dual-write)
 - Phase 2: Migrate components one by one
 - Phase 3: Deprecate old stores after validation
@@ -201,12 +216,14 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Why:** Hardcoded 5 slides don't adapt to project data.
 
 **Tasks:**
+
 1. Create `src/lib/presentation/slide-generator.ts`
 2. Conditional slide logic (if RICEFW, if >3 phases, etc.)
 3. Update PresentMode to use generated slides
 4. Add slide reordering UI
 
 **Definition of Done:**
+
 - [ ] Slides generated based on project data
 - [ ] RICEFW slide only if items exist
 - [ ] Phase breakdown only if >3 phases
@@ -225,6 +242,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Completion Date:** 2025-10-07
 **PR:** #33 (Sprint 4 Complete)
 **Implementation:**
+
 - `src/components/benchmarks/BenchmarkPanel.tsx` - Interactive benchmark UI
 - `src/lib/benchmarks/` - Benchmark data engine
 - Industry-specific benchmarks (Manufacturing, Finance, Retail, Healthcare, etc.)
@@ -232,6 +250,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 - Variance analysis (Green/Yellow/Red scoring)
 
 **Definition of Done:**
+
 - [x] Industry average comparison integrated in PlanMode
 - [x] Benchmark tab added to PlanMode navigation
 - [x] Timeline validation shows variance from benchmarks
@@ -250,12 +269,14 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Completion Date:** 2025-10-07
 **PR:** #33 (Sprint 4 Complete)
 **Implementation:**
+
 - `src/components/theme/ThemeProvider.tsx` - Theme context with localStorage
 - `src/components/theme/ThemeToggle.tsx` - Compact theme toggle
 - `src/app/globals.css` - Comprehensive CSS variable system
 - `tailwind.config.js` - Dark mode class strategy
 
 **Definition of Done:**
+
 - [x] CSS variables setup ([data-theme="dark"])
 - [x] Tailwind dark mode config (class strategy)
 - [x] Theme toggle in ProjectShell header
@@ -274,11 +295,13 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 **Completion Date:** 2025-10-07
 **PR:** #33 (Sprint 4 Complete)
 **Implementation:**
+
 - `src/components/onboarding/OnboardingProvider.tsx` - Tour state management
 - `src/components/onboarding/OnboardingTour.tsx` - Interactive tour component
 - Multi-step guided tour across all 4 modes
 
 **Definition of Done:**
+
 - [x] Interactive tour across Capture → Decide → Plan → Present
 - [x] Context-aware tour steps for each mode
 - [x] "Start Tour" button with HelpCircle icon in mode indicator
@@ -294,6 +317,7 @@ Re-baselined priority list from audit with **Definition of Done** per item.
 ## 🧪 TESTING STRATEGY
 
 ### Unit Tests
+
 ```bash
 # Run all tests
 npm test
@@ -305,6 +329,7 @@ npm test -- pdf-exporter.test.ts
 ```
 
 ### Integration Tests
+
 ```bash
 # E2E flow
 npm test -- estimator-to-project-flow.test.ts
@@ -313,21 +338,25 @@ npm test -- estimator-to-project-flow.test.ts
 ### Manual QA Checklist (Per Sprint)
 
 **Sprint 1:**
+
 - [ ] Estimator → Project bridge works
 - [ ] OptimizeMode removed, no broken links
 - [ ] Toasts show for all actions
 
 **Sprint 2:**
+
 - [ ] Regenerate modal shows diff
 - [ ] PDF export downloads correctly
 - [ ] L3 search filters items
 
 **Sprint 3:**
+
 - [x] Unified store persists data
 - [x] Slides generate dynamically
 - [x] No data corruption
 
 **Sprint 4:**
+
 - [x] Benchmark comparison shows variance
 - [x] Dark mode toggle works (Light/Dark/System)
 - [x] Onboarding tour completes successfully
@@ -338,21 +367,25 @@ npm test -- estimator-to-project-flow.test.ts
 ## 📊 SUCCESS METRICS (Per Sprint)
 
 ### Sprint 1 Metrics
+
 - Bridge adoption rate: > 50% (target: 70%)
 - Toast engagement: > 80% users see at least 1 toast
 - OptimizeMode errors: 0 (down from current state)
 
 ### Sprint 2 Metrics
+
 - Export rate: > 40% (target: 60%)
 - Regenerate preview views: > 70% (target: 90%)
 - L3 search usage: > 60% of estimator sessions
 
 ### Sprint 3 Metrics
+
 - State migration success: 100% (no data loss)
 - Dynamic slide satisfaction: User survey > 8/10
 - End-to-end time: < 10 min (from estimate to export)
 
 ### Sprint 4 Metrics ✅
+
 - **Tests:** 428/428 passing (100%)
 - **Build:** Production-ready with no errors
 - **TypeScript:** No type errors after fixes
@@ -364,12 +397,12 @@ npm test -- estimator-to-project-flow.test.ts
 
 ## 🚨 RISK LOG
 
-| Risk | Probability | Impact | Mitigation | Owner |
-|------|-------------|--------|------------|-------|
-| PDF export fails on Safari | Medium | High | Add fallback HTML export | Engineering |
-| Unified store migration corrupts data | Low | Critical | Dual-write phase, extensive testing | Engineering |
-| OptimizeMode users complain | Low | Medium | Keep as hidden tab, add "legacy mode" | Product |
-| ResourcePanel blocked on backend | Medium | Medium | Mock data for demo, API later | Engineering |
+| Risk                                  | Probability | Impact   | Mitigation                            | Owner       |
+| ------------------------------------- | ----------- | -------- | ------------------------------------- | ----------- |
+| PDF export fails on Safari            | Medium      | High     | Add fallback HTML export              | Engineering |
+| Unified store migration corrupts data | Low         | Critical | Dual-write phase, extensive testing   | Engineering |
+| OptimizeMode users complain           | Low         | Medium   | Keep as hidden tab, add "legacy mode" | Product     |
+| ResourcePanel blocked on backend      | Medium      | Medium   | Mock data for demo, API later         | Engineering |
 
 ---
 
@@ -393,11 +426,13 @@ npm test -- estimator-to-project-flow.test.ts
 ## 📞 STAKEHOLDER CHECKPOINTS
 
 **Weekly:**
+
 - Sprint progress update (Slack/email)
 - Metrics dashboard review
 - Blocker escalation
 
 **End of Sprint:**
+
 - Demo to stakeholders (live walkthrough)
 - Retrospective (what worked, what didn't)
 - Next sprint planning
@@ -409,6 +444,7 @@ npm test -- estimator-to-project-flow.test.ts
 **This completes all 9 deliverables from the mission brief.**
 
 **Cross-references:**
+
 - Holistic_Redesign_V2.md (Overall strategy)
 - Measurement_and_Experiments.md (Metrics)
 - All other specs (Implementation details)

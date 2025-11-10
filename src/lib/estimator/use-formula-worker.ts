@@ -9,12 +9,12 @@
  *   const result = await calculate(inputs);
  */
 
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { wrap, Remote } from 'comlink';
-import type { FormulaWorkerAPI } from './formula-worker';
-import type { EstimatorInputs, EstimatorResults, PhaseBreakdown } from './types';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { wrap, Remote } from "comlink";
+import type { FormulaWorkerAPI } from "./formula-worker";
+import type { EstimatorInputs, EstimatorResults, PhaseBreakdown } from "./types";
 
 /**
  * Hook return type
@@ -71,14 +71,13 @@ export function useFormulaWorker(): UseFormulaWorkerReturn {
 
   // Initialize worker on mount
   useEffect(() => {
-    console.log('[useFormulaWorker] Initializing Web Worker...');
+    console.log("[useFormulaWorker] Initializing Web Worker...");
 
     try {
       // Create worker with module type
-      const worker = new Worker(
-        new URL('./formula-worker.ts', import.meta.url),
-        { type: 'module' }
-      );
+      const worker = new Worker(new URL("./formula-worker.ts", import.meta.url), {
+        type: "module",
+      });
 
       // Wrap with Comlink
       const api = wrap<FormulaWorkerAPI>(worker);
@@ -87,10 +86,10 @@ export function useFormulaWorker(): UseFormulaWorkerReturn {
       apiRef.current = api;
       setReady(true);
 
-      console.log('[useFormulaWorker] ✅ Web Worker ready');
+      console.log("[useFormulaWorker] ✅ Web Worker ready");
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to initialize worker');
-      console.error('[useFormulaWorker] ❌ Worker initialization failed:', error);
+      const error = err instanceof Error ? err : new Error("Failed to initialize worker");
+      console.error("[useFormulaWorker] ❌ Worker initialization failed:", error);
       setError(error);
       setReady(false);
     }
@@ -98,7 +97,7 @@ export function useFormulaWorker(): UseFormulaWorkerReturn {
     // Cleanup on unmount
     return () => {
       if (workerRef.current) {
-        console.log('[useFormulaWorker] Terminating Web Worker');
+        console.log("[useFormulaWorker] Terminating Web Worker");
         workerRef.current.terminate();
         workerRef.current = null;
         apiRef.current = null;
@@ -112,14 +111,14 @@ export function useFormulaWorker(): UseFormulaWorkerReturn {
   const calculate = useCallback(
     async (inputs: EstimatorInputs): Promise<{ results: EstimatorResults; warnings: string[] }> => {
       if (!apiRef.current) {
-        throw new Error('Worker not initialized');
+        throw new Error("Worker not initialized");
       }
 
       setCalculating(true);
       setError(null);
 
       try {
-        console.log('[useFormulaWorker] Starting calculation...');
+        console.log("[useFormulaWorker] Starting calculation...");
         const startTime = performance.now();
 
         const result = await apiRef.current.calculateEstimate(inputs);
@@ -129,8 +128,8 @@ export function useFormulaWorker(): UseFormulaWorkerReturn {
 
         return result;
       } catch (err) {
-        const error = err instanceof Error ? err : new Error('Calculation failed');
-        console.error('[useFormulaWorker] ❌ Calculation error:', error);
+        const error = err instanceof Error ? err : new Error("Calculation failed");
+        console.error("[useFormulaWorker] ❌ Calculation error:", error);
         setError(error);
         throw error;
       } finally {
@@ -143,28 +142,25 @@ export function useFormulaWorker(): UseFormulaWorkerReturn {
   /**
    * Calculate total only
    */
-  const calculateTotal = useCallback(
-    async (inputs: EstimatorInputs): Promise<EstimatorResults> => {
-      if (!apiRef.current) {
-        throw new Error('Worker not initialized');
-      }
+  const calculateTotal = useCallback(async (inputs: EstimatorInputs): Promise<EstimatorResults> => {
+    if (!apiRef.current) {
+      throw new Error("Worker not initialized");
+    }
 
-      setCalculating(true);
-      setError(null);
+    setCalculating(true);
+    setError(null);
 
-      try {
-        const results = await apiRef.current.calculateTotal(inputs);
-        return results;
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Calculation failed');
-        setError(error);
-        throw error;
-      } finally {
-        setCalculating(false);
-      }
-    },
-    []
-  );
+    try {
+      const results = await apiRef.current.calculateTotal(inputs);
+      return results;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Calculation failed");
+      setError(error);
+      throw error;
+    } finally {
+      setCalculating(false);
+    }
+  }, []);
 
   /**
    * Calculate phase dates
@@ -172,13 +168,13 @@ export function useFormulaWorker(): UseFormulaWorkerReturn {
   const calculatePhaseDates = useCallback(
     async (phases: PhaseBreakdown[], startDate: Date): Promise<PhaseBreakdown[]> => {
       if (!apiRef.current) {
-        throw new Error('Worker not initialized');
+        throw new Error("Worker not initialized");
       }
 
       try {
         return await apiRef.current.calculatePhaseDates(phases, startDate);
       } catch (err) {
-        const error = err instanceof Error ? err : new Error('Phase date calculation failed');
+        const error = err instanceof Error ? err : new Error("Phase date calculation failed");
         setError(error);
         throw error;
       }
@@ -220,15 +216,14 @@ export function useSharedFormulaWorker(): UseFormulaWorkerReturn {
   useEffect(() => {
     if (!sharedWorker) {
       try {
-        sharedWorker = new Worker(
-          new URL('./formula-worker.ts', import.meta.url),
-          { type: 'module' }
-        );
+        sharedWorker = new Worker(new URL("./formula-worker.ts", import.meta.url), {
+          type: "module",
+        });
         sharedApi = wrap<FormulaWorkerAPI>(sharedWorker);
-        console.log('[useSharedFormulaWorker] ✅ Shared worker initialized');
+        console.log("[useSharedFormulaWorker] ✅ Shared worker initialized");
       } catch (err) {
-        const error = err instanceof Error ? err : new Error('Failed to initialize shared worker');
-        console.error('[useSharedFormulaWorker] ❌ Shared worker initialization failed:', error);
+        const error = err instanceof Error ? err : new Error("Failed to initialize shared worker");
+        console.error("[useSharedFormulaWorker] ❌ Shared worker initialization failed:", error);
         setError(error);
       }
     }
@@ -241,67 +236,58 @@ export function useSharedFormulaWorker(): UseFormulaWorkerReturn {
     // It persists across component lifecycles
   }, []);
 
-  const calculate = useCallback(
-    async (inputs: EstimatorInputs) => {
-      if (!sharedApi) {
-        throw new Error('Shared worker not initialized');
-      }
+  const calculate = useCallback(async (inputs: EstimatorInputs) => {
+    if (!sharedApi) {
+      throw new Error("Shared worker not initialized");
+    }
 
-      setCalculating(true);
-      setError(null);
+    setCalculating(true);
+    setError(null);
 
-      try {
-        const result = await sharedApi.calculateEstimate(inputs);
-        return result;
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Calculation failed');
-        setError(error);
-        throw error;
-      } finally {
-        setCalculating(false);
-      }
-    },
-    []
-  );
+    try {
+      const result = await sharedApi.calculateEstimate(inputs);
+      return result;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Calculation failed");
+      setError(error);
+      throw error;
+    } finally {
+      setCalculating(false);
+    }
+  }, []);
 
-  const calculateTotal = useCallback(
-    async (inputs: EstimatorInputs) => {
-      if (!sharedApi) {
-        throw new Error('Shared worker not initialized');
-      }
+  const calculateTotal = useCallback(async (inputs: EstimatorInputs) => {
+    if (!sharedApi) {
+      throw new Error("Shared worker not initialized");
+    }
 
-      setCalculating(true);
-      setError(null);
+    setCalculating(true);
+    setError(null);
 
-      try {
-        return await sharedApi.calculateTotal(inputs);
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Calculation failed');
-        setError(error);
-        throw error;
-      } finally {
-        setCalculating(false);
-      }
-    },
-    []
-  );
+    try {
+      return await sharedApi.calculateTotal(inputs);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Calculation failed");
+      setError(error);
+      throw error;
+    } finally {
+      setCalculating(false);
+    }
+  }, []);
 
-  const calculatePhaseDates = useCallback(
-    async (phases: PhaseBreakdown[], startDate: Date) => {
-      if (!sharedApi) {
-        throw new Error('Shared worker not initialized');
-      }
+  const calculatePhaseDates = useCallback(async (phases: PhaseBreakdown[], startDate: Date) => {
+    if (!sharedApi) {
+      throw new Error("Shared worker not initialized");
+    }
 
-      try {
-        return await sharedApi.calculatePhaseDates(phases, startDate);
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Phase date calculation failed');
-        setError(error);
-        throw error;
-      }
-    },
-    []
-  );
+    try {
+      return await sharedApi.calculatePhaseDates(phases, startDate);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Phase date calculation failed");
+      setError(error);
+      throw error;
+    }
+  }, []);
 
   const clearError = useCallback(() => {
     setError(null);

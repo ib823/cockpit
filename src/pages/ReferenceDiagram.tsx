@@ -5,77 +5,77 @@
  * (Renamed from "SAP Activate" button)
  */
 
-'use client';
+"use client";
 
-import React from 'react';
-import { ResponsiveShell, ResponsiveStack, ResponsiveCard } from '@/components/ui/ResponsiveShell';
-import { Heading, Text } from '@/components/ui/Typography';
-import { Container } from '@/components/ui/Container';
-import { ArrowLeft, Download, ExternalLink } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import React from "react";
+import { ResponsiveShell, ResponsiveStack, ResponsiveCard } from "@/components/ui/ResponsiveShell";
+import { Heading, Text } from "@/components/ui/Typography";
+import { Container } from "@/components/ui/Container";
+import { ArrowLeft, Download, ExternalLink } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ReferenceDiagram() {
   const router = useRouter();
 
   const phases = [
     {
-      name: 'Prepare',
-      duration: '2-4 weeks',
-      color: 'bg-blue-500',
-      description: 'Project kickoff, team formation, infrastructure setup, and planning.',
+      name: "Prepare",
+      duration: "2-4 weeks",
+      color: "bg-blue-500",
+      description: "Project kickoff, team formation, infrastructure setup, and planning.",
       keyActivities: [
-        'Project charter creation',
-        'Team onboarding',
-        'Environment provisioning',
-        'Initial planning workshops',
+        "Project charter creation",
+        "Team onboarding",
+        "Environment provisioning",
+        "Initial planning workshops",
       ],
     },
     {
-      name: 'Explore',
-      duration: '4-8 weeks',
-      color: 'bg-green-500',
-      description: 'Fit-to-standard workshops, gap analysis, and solution design.',
+      name: "Explore",
+      duration: "4-8 weeks",
+      color: "bg-green-500",
+      description: "Fit-to-standard workshops, gap analysis, and solution design.",
       keyActivities: [
-        'Business process workshops',
-        'Fit-gap analysis',
-        'Solution architecture design',
-        'Data migration strategy',
+        "Business process workshops",
+        "Fit-gap analysis",
+        "Solution architecture design",
+        "Data migration strategy",
       ],
     },
     {
-      name: 'Realize',
-      duration: '8-16 weeks',
-      color: 'bg-yellow-500',
-      description: 'System configuration, development, and integration.',
+      name: "Realize",
+      duration: "8-16 weeks",
+      color: "bg-yellow-500",
+      description: "System configuration, development, and integration.",
       keyActivities: [
-        'System configuration',
-        'Custom development (RICEFW)',
-        'Integration setup',
-        'Unit testing',
+        "System configuration",
+        "Custom development (RICEFW)",
+        "Integration setup",
+        "Unit testing",
       ],
     },
     {
-      name: 'Deploy',
-      duration: '4-8 weeks',
-      color: 'bg-orange-500',
-      description: 'User acceptance testing, training, cutover, and go-live.',
+      name: "Deploy",
+      duration: "4-8 weeks",
+      color: "bg-orange-500",
+      description: "User acceptance testing, training, cutover, and go-live.",
       keyActivities: [
-        'UAT execution',
-        'End-user training',
-        'Data migration execution',
-        'Go-live cutover',
+        "UAT execution",
+        "End-user training",
+        "Data migration execution",
+        "Go-live cutover",
       ],
     },
     {
-      name: 'Run',
-      duration: '4-8 weeks',
-      color: 'bg-purple-500',
-      description: 'Hypercare support, stabilization, and continuous improvement.',
+      name: "Run",
+      duration: "4-8 weeks",
+      color: "bg-purple-500",
+      description: "Hypercare support, stabilization, and continuous improvement.",
       keyActivities: [
-        'Hypercare support (24/7)',
-        'Issue resolution',
-        'Performance optimization',
-        'Knowledge transfer',
+        "Hypercare support (24/7)",
+        "Issue resolution",
+        "Performance optimization",
+        "Knowledge transfer",
       ],
     },
   ];
@@ -197,19 +197,23 @@ export default function ReferenceDiagram() {
             </Heading>
             <ResponsiveStack spacing="sm">
               <Text>
-                • <strong>Fit-to-Standard First:</strong> Minimize customizations by adopting SAP best practices
+                • <strong>Fit-to-Standard First:</strong> Minimize customizations by adopting SAP
+                best practices
               </Text>
               <Text>
-                • <strong>Agile Iterations:</strong> Use iterative sprints within each phase for continuous feedback
+                • <strong>Agile Iterations:</strong> Use iterative sprints within each phase for
+                continuous feedback
               </Text>
               <Text>
-                • <strong>Change Management:</strong> Engage stakeholders early and maintain communication throughout
+                • <strong>Change Management:</strong> Engage stakeholders early and maintain
+                communication throughout
               </Text>
               <Text>
                 • <strong>Data Quality:</strong> Cleanse and validate data before migration
               </Text>
               <Text>
-                • <strong>Testing Rigor:</strong> Conduct thorough testing at every stage to catch issues early
+                • <strong>Testing Rigor:</strong> Conduct thorough testing at every stage to catch
+                issues early
               </Text>
             </ResponsiveStack>
           </ResponsiveCard>
@@ -217,8 +221,8 @@ export default function ReferenceDiagram() {
           {/* Footer Note */}
           <div className="border-t border-border pt-6 print:hidden">
             <Text size="sm" color="muted" className="text-center">
-              This reference diagram is based on the official SAP Activate methodology.
-              For the latest updates, visit{' '}
+              This reference diagram is based on the official SAP Activate methodology. For the
+              latest updates, visit{" "}
               <a
                 href="https://support.sap.com"
                 target="_blank"

@@ -2,32 +2,32 @@
  * Create Email Approvals for Production Users
  */
 
-import { PrismaClient } from '@prisma/client';
-import { createId } from '@paralleldrive/cuid2';
-import crypto from 'crypto';
+import { PrismaClient } from "@prisma/client";
+import { createId } from "@paralleldrive/cuid2";
+import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🔧 Creating email approvals for production users...\n');
+  console.log("🔧 Creating email approvals for production users...\n");
 
   const users = [
-    { email: 'ikmls@hotmail.com', role: 'ADMIN' },
-    { email: 'ibaharudin@abeam.com', role: 'USER' },
+    { email: "ikmls@hotmail.com", role: "ADMIN" },
+    { email: "ibaharudin@abeam.com", role: "USER" },
   ];
 
   // Get or create system admin user for approvedByUserId
   let systemAdmin = await prisma.users.findFirst({
-    where: { role: 'ADMIN' },
+    where: { role: "ADMIN" },
   });
 
   if (!systemAdmin) {
     systemAdmin = await prisma.users.create({
       data: {
         id: createId(),
-        email: 'system@keystone.local',
-        role: 'ADMIN',
-        name: 'System',
+        email: "system@keystone.local",
+        role: "ADMIN",
+        name: "System",
         updatedAt: new Date(),
       },
     });
@@ -35,10 +35,10 @@ async function main() {
 
   for (const user of users) {
     // Generate magic link token
-    const token = crypto.randomBytes(32).toString('hex');
+    const token = crypto.randomBytes(32).toString("hex");
 
     // Hash the token for storage (security best practice)
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
 
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
@@ -82,7 +82,7 @@ async function main() {
     }
   }
 
-  console.log('✅ Email approvals created successfully!\n');
+  console.log("✅ Email approvals created successfully!\n");
 }
 
 main()

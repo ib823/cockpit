@@ -1,17 +1,18 @@
 # 🚀 Claude.ai Sync - Quick Reference Card
 
 ## One-Command Sync
+
 ```bash
 ./sync-with-claude.sh
 ```
 
 ## ✅ What You Get
 
-| Metric | Value |
-|--------|-------|
-| **Files** | ~339 files |
-| **Size** | ~836 KB |
-| **Folders** | ~108 folders |
+| Metric      | Value         |
+| ----------- | ------------- |
+| **Files**   | ~339 files    |
+| **Size**    | ~836 KB       |
+| **Folders** | ~108 folders  |
 | **Secrets** | 0 (excluded!) |
 
 ## 📂 Included (VS Code Order)
@@ -61,6 +62,7 @@
 **COMPREHENSIVE_SOLUTION_OVERVIEW.md** - Read this first in Claude.ai!
 
 This 16-section document provides:
+
 - Complete solution explanation
 - Current state & capabilities
 - Challenges & opportunities
@@ -71,6 +73,7 @@ This 16-section document provides:
 ## 🎯 Assessment Prompts
 
 ### Security
+
 ```
 Read COMPREHENSIVE_SOLUTION_OVERVIEW.md first, then analyze:
 - Authentication & authorization security
@@ -82,6 +85,7 @@ Provide file locations and severity ratings.
 ```
 
 ### UX
+
 ```
 Read COMPREHENSIVE_SOLUTION_OVERVIEW.md for context, then review:
 - User experience across 4 modes (Capture, Decide, Plan, Present)
@@ -95,6 +99,7 @@ Suggest specific improvements with file references.
 ```
 
 ### Architecture
+
 ```
 Read COMPREHENSIVE_SOLUTION_OVERVIEW.md for architecture details, then evaluate:
 - Code organization & folder structure
@@ -108,6 +113,7 @@ Identify refactoring opportunities and architecture improvements.
 ```
 
 ### Flow
+
 ```
 Read COMPREHENSIVE_SOLUTION_OVERVIEW.md for business context, then map:
 - Critical user flows (Estimator → Project bridge, 4-mode workflow)
@@ -122,6 +128,7 @@ Identify logic gaps, edge cases, and opportunities for improvement.
 ## 📋 Verification Checklist
 
 After upload, confirm these exist in Claude.ai:
+
 - [ ] ⭐ `COMPREHENSIVE_SOLUTION_OVERVIEW.md` - **READ THIS FIRST**
 - [ ] `src/app/` - Pages & routing
 - [ ] `src/components/` - UI components
@@ -145,12 +152,12 @@ After upload, confirm these exist in Claude.ai:
 
 ## 📚 Full Documentation
 
-| Document | Purpose |
-|----------|---------|
+| Document                     | Purpose                            |
+| ---------------------------- | ---------------------------------- |
 | `CLAUDE_AI_SYNC_STRATEGY.md` | Detailed inclusion/exclusion rules |
-| `SYNC_USAGE_GUIDE.md` | Complete usage instructions |
-| `SYNC_FOLDER_STRUCTURE.md` | Visual structure reference |
-| `CLAUDE_AI_UPLOAD_GUIDE.md` | Upload instructions & prompts |
+| `SYNC_USAGE_GUIDE.md`        | Complete usage instructions        |
+| `SYNC_FOLDER_STRUCTURE.md`   | Visual structure reference         |
+| `CLAUDE_AI_UPLOAD_GUIDE.md`  | Upload instructions & prompts      |
 
 ## ⚡ Key Features
 
@@ -192,6 +199,6 @@ ls claude-project-knowledge/.env.example
 
 **Ready for comprehensive codebase assessment!** 🚀
 
-*Last Updated: 2025-10-08*
-*Script: ./sync-with-claude.sh*
-*Archive: claude-assessment-YYYYMMDD_HHMMSS.zip*
+_Last Updated: 2025-10-08_
+_Script: ./sync-with-claude.sh_
+_Archive: claude-assessment-YYYYMMDD_HHMMSS.zip_

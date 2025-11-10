@@ -5,15 +5,15 @@
  * Features rotating hex cube with brand colors and smooth animations
  */
 
-'use client';
+"use client";
 
-import { HexCubeLoader } from './HexCubeLoader';
+import { HexCubeLoader } from "./HexCubeLoader";
 
 interface CubeSpinnerProps {
   size?: number;
   className?: string;
 }
 
-export function CubeSpinner({ size = 44, className = '' }: CubeSpinnerProps) {
+export function CubeSpinner({ size = 44, className = "" }: CubeSpinnerProps) {
   return <HexCubeLoader size={size} className={className} />;
 }

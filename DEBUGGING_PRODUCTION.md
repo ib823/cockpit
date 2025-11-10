@@ -4,7 +4,7 @@
 
 ✅ Local save operation works perfectly
 ❌ Production save operation returns 500 errors
-⏱️  Added detailed performance logging to identify the issue
+⏱️ Added detailed performance logging to identify the issue
 
 ## How to Check Vercel Logs
 
@@ -51,6 +51,7 @@ vercel logs --limit 100
 The new logging will show **exactly where the operation fails**:
 
 ### 1. Before Transaction
+
 ```
 [API] ===== PATCH Request Started =====
 [API] Project ID: xxx
@@ -60,6 +61,7 @@ The new logging will show **exactly where the operation fails**:
 ```
 
 ### 2. During Transaction
+
 ```
 [API] Starting database transaction...
 [API] Updating main project fields...
@@ -74,6 +76,7 @@ The new logging will show **exactly where the operation fails**:
 ```
 
 ### 3. After Transaction
+
 ```
 [API] Fetching updated project for response...
 [API] Project retrieved successfully, serializing...
@@ -85,50 +88,59 @@ The new logging will show **exactly where the operation fails**:
 ### 1. Timeout (Most Likely)
 
 **Symptoms:**
+
 - No error message in logs
 - Request just stops midway
 - "504 Gateway Timeout" errors
 
 **Vercel Limits:**
+
 - Hobby plan: **10 seconds**
 - Pro plan: **60 seconds**
 
 **Solution:**
+
 - Check transaction duration in logs
 - If > 10s, upgrade to Pro plan or optimize the save operation
 
 ### 2. Database Connection Pool Exhaustion
 
 **Symptoms:**
+
 ```
 Error: Can't reach database server
 P1001: Can't reach database server at `xxx`
 ```
 
 **Solution:**
+
 - Check Prisma connection pool settings
 - Ensure `prisma.$disconnect()` is called properly
 
 ### 3. Memory Limit
 
 **Symptoms:**
+
 ```
 Error: JavaScript heap out of memory
 ```
 
 **Solution:**
+
 - Reduce data size
 - Optimize serialization
 
 ### 4. Foreign Key Constraint Violations
 
 **Symptoms:**
+
 ```
 Prisma error code: P2003
 Foreign key constraint violation
 ```
 
 **Solution:**
+
 - Check resource assignments reference valid resource IDs
 - Ensure resources are created before phases
 

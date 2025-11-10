@@ -5,25 +5,20 @@
  * Calculates and displays the Scope Breadth coefficient (Sb).
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, Button, Slider, Space, Typography, Statistic } from 'antd';
-import { AppstoreAddOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { useEstimatorStore } from '@/stores/estimator-store';
-import { L3CatalogModal } from './L3CatalogModal';
+import { useState } from "react";
+import { Card, Button, Slider, Space, Typography, Statistic } from "antd";
+import { AppstoreAddOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { useEstimatorStore } from "@/stores/estimator-store";
+import { L3CatalogModal } from "./L3CatalogModal";
 
 const { Text, Title } = Typography;
 
 export function ScopeBreadth() {
   const [modalOpen, setModalOpen] = useState(false);
 
-  const {
-    inputs,
-    setSelectedL3Items,
-    setIntegrations,
-    results
-  } = useEstimatorStore();
+  const { inputs, setSelectedL3Items, setIntegrations, results } = useEstimatorStore();
 
   const selectedCount = inputs.selectedL3Items.length;
   const scopeBreadth = results?.coefficients?.Sb || 0;
@@ -47,7 +42,7 @@ export function ScopeBreadth() {
           </Text>
         }
       >
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+        <Space direction="vertical" style={{ width: "100%" }} size="middle">
           {/* L3 Items Selection */}
           <div>
             <Text strong>L3 Scope Items</Text>
@@ -58,9 +53,7 @@ export function ScopeBreadth() {
                 icon={<AppstoreAddOutlined />}
                 onClick={() => setModalOpen(true)}
               >
-                {selectedCount > 0
-                  ? `${selectedCount} items selected`
-                  : 'Select from Catalog...'}
+                {selectedCount > 0 ? `${selectedCount} items selected` : "Select from Catalog..."}
               </Button>
             </div>
           </div>
@@ -77,9 +70,9 @@ export function ScopeBreadth() {
               value={inputs.integrations}
               onChange={setIntegrations}
               marks={{
-                0: '0',
-                5: '5',
-                10: '10',
+                0: "0",
+                5: "5",
+                10: "10",
               }}
               tooltip={{ formatter: (val) => `${val} systems` }}
             />
@@ -87,18 +80,20 @@ export function ScopeBreadth() {
 
           {/* Current Coefficient Display */}
           <div className="p-3 bg-gray-50 rounded">
-            <Space direction="vertical" style={{ width: '100%'>
+            <Space direction="vertical" style={{ width: "100%" }}>
               <div className="flex justify-between">
                 <Text type="secondary">Current Sb:</Text>
-                <Text strong className="text-base" style={{ color: scopeBreadth > 0.2 ? '#ff4d4f' : '#1890ff'>
+                <Text
+                  strong
+                  className="text-base"
+                  style={{ color: scopeBreadth > 0.2 ? "#ff4d4f" : "#1890ff" }}
+                >
                   {scopeBreadth.toFixed(3)}
                 </Text>
               </div>
               <div className="flex justify-between">
                 <Text type="secondary">Impact:</Text>
-                <Text type={impact > 100 ? 'danger' : 'secondary'}>
-                  +{impact} MD
-                </Text>
+                <Text type={impact > 100 ? "danger" : "secondary"}>+{impact} MD</Text>
               </div>
             </Space>
           </div>

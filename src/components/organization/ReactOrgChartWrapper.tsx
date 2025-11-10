@@ -5,9 +5,9 @@
  * while preserving all existing project data and functionality
  */
 
-'use client';
+"use client";
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from "react";
 import ReactFlow, {
   Node,
   Edge,
@@ -19,13 +19,13 @@ import ReactFlow, {
   MiniMap,
   ConnectionLineType,
   MarkerType,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
-import type { Resource } from '@/types/gantt-tool';
-import { Tag, Tooltip } from 'antd';
-import { CalendarOutlined, CheckSquareOutlined } from '@ant-design/icons';
+} from "reactflow";
+import "reactflow/dist/style.css";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
+import type { Resource } from "@/types/gantt-tool";
+import { Tag, Tooltip } from "antd";
+import { CalendarOutlined, CheckSquareOutlined } from "@ant-design/icons";
 
 // Types for org chart data
 export interface OrgChartTreeNode {
@@ -50,7 +50,7 @@ export interface OrgChartTreeNode {
 
 interface ReactOrgChartWrapperProps {
   orgChart: SimpleOrgChart;
-  viewMode?: 'overall' | 'by-phase' | 'by-task';
+  viewMode?: "overall" | "by-phase" | "by-task";
   selectedPhaseId?: string | null;
   selectedTaskId?: string | null;
   onNodeClick?: (nodeId: string) => void;
@@ -130,7 +130,8 @@ function ResourceNode({ data }: { data: any }) {
   if (!resource) return null;
 
   const categoryInfo = RESOURCE_CATEGORIES[resource.category as keyof typeof RESOURCE_CATEGORIES];
-  const isActivelyWorking = assignments && (assignments.phases.length > 0 || assignments.tasks.length > 0);
+  const isActivelyWorking =
+    assignments && (assignments.phases.length > 0 || assignments.tasks.length > 0);
   const totalWorkload = assignments ? assignments.phases.length + assignments.tasks.length : 0;
 
   return (
@@ -138,15 +139,15 @@ function ResourceNode({ data }: { data: any }) {
       data-resource-id={resource.id}
       className={`
         bg-white rounded-lg shadow-md border-2 transition-all duration-300
-        ${isActivelyWorking ? 'border-green-400 hover:border-green-500' : 'border-gray-200 hover:border-gray-300'}
-        ${isSpotlighted ? 'ring-4 ring-blue-400 ring-offset-2 scale-105 shadow-2xl z-50' : ''}
-        ${isDimmed ? 'opacity-30' : 'opacity-100'}
+        ${isActivelyWorking ? "border-green-400 hover:border-green-500" : "border-gray-200 hover:border-gray-300"}
+        ${isSpotlighted ? "ring-4 ring-blue-400 ring-offset-2 scale-105 shadow-2xl z-50" : ""}
+        ${isDimmed ? "opacity-30" : "opacity-100"}
         w-[280px] h-[160px] relative cursor-pointer hover:shadow-lg
       `}
       style={{
-        borderLeftWidth: assignments?.primaryPhase ? '6px' : '2px',
+        borderLeftWidth: assignments?.primaryPhase ? "6px" : "2px",
         borderLeftColor: assignments?.primaryPhase?.phaseColor || undefined,
-        transform: isSpotlighted ? 'scale(1.05)' : undefined,
+        transform: isSpotlighted ? "scale(1.05)" : undefined,
       }}
     >
       {/* Header */}
@@ -155,7 +156,7 @@ function ResourceNode({ data }: { data: any }) {
           <div className="flex items-center gap-1.5">
             <span className="text-lg">{categoryInfo.icon}</span>
             <span className="text-xs font-medium text-gray-500 uppercase">
-              {categoryInfo.label.split(' ')[0]}
+              {categoryInfo.label.split(" ")[0]}
             </span>
           </div>
         </div>
@@ -170,9 +171,7 @@ function ResourceNode({ data }: { data: any }) {
 
         {/* Project Role if present */}
         {person.projectRole && (
-          <div className="text-xs text-gray-600 italic mb-2 truncate">
-            {person.projectRole}
-          </div>
+          <div className="text-xs text-gray-600 italic mb-2 truncate">{person.projectRole}</div>
         )}
       </div>
 
@@ -181,7 +180,9 @@ function ResourceNode({ data }: { data: any }) {
         <div
           className="px-3 py-2 border-t border-gray-100"
           style={{
-            backgroundColor: assignments.primaryPhase?.phaseColor ? `${assignments.primaryPhase.phaseColor}10` : '#f0fdf4',
+            backgroundColor: assignments.primaryPhase?.phaseColor
+              ? `${assignments.primaryPhase.phaseColor}10`
+              : "#f0fdf4",
           }}
         >
           {/* Primary Phase Tag */}
@@ -190,11 +191,11 @@ function ResourceNode({ data }: { data: any }) {
               <Tag
                 style={{
                   margin: 0,
-                  padding: '1px 6px',
-                  borderRadius: '4px',
+                  padding: "1px 6px",
+                  borderRadius: "4px",
                   backgroundColor: assignments.primaryPhase.phaseColor,
-                  color: 'white',
-                  border: 'none',
+                  color: "white",
+                  border: "none",
                 }}
               >
                 {assignments.primaryPhase.phaseName}
@@ -208,15 +209,20 @@ function ResourceNode({ data }: { data: any }) {
               <Tooltip
                 title={
                   <div>
-                    <div className="font-semibold mb-1">Managing {assignments.phases.length} Phase{assignments.phases.length > 1 ? 's' : ''}:</div>
+                    <div className="font-semibold mb-1">
+                      Managing {assignments.phases.length} Phase
+                      {assignments.phases.length > 1 ? "s" : ""}:
+                    </div>
                     {assignments.phases.map((p: any) => (
-                      <div key={p.phaseId} className="text-xs">• {p.phaseName}</div>
+                      <div key={p.phaseId} className="text-xs">
+                        • {p.phaseName}
+                      </div>
                     ))}
                   </div>
                 }
               >
                 <div className="flex items-center gap-1 text-xs">
-                  <CalendarOutlined style={{ color: '#1890ff', className="text-xs" }} />
+                  <CalendarOutlined className="text-xs" style={{ color: "#1890ff" }} />
                   <span className="font-semibold text-blue-600">{assignments.phases.length}</span>
                 </div>
               </Tooltip>
@@ -226,20 +232,27 @@ function ResourceNode({ data }: { data: any }) {
               <Tooltip
                 title={
                   <div>
-                    <div className="font-semibold mb-1">{assignments.tasks.length} Assigned Task{assignments.tasks.length > 1 ? 's' : ''}:</div>
-                    <div style={{ maxHeight: '150px', overflowY: 'auto'>
+                    <div className="font-semibold mb-1">
+                      {assignments.tasks.length} Assigned Task
+                      {assignments.tasks.length > 1 ? "s" : ""}:
+                    </div>
+                    <div style={{ maxHeight: "150px", overflowY: "auto" }}>
                       {assignments.tasks.slice(0, 10).map((t: any) => (
-                        <div key={t.taskId} className="text-xs">• {t.taskName}</div>
+                        <div key={t.taskId} className="text-xs">
+                          • {t.taskName}
+                        </div>
                       ))}
                       {assignments.tasks.length > 10 && (
-                        <div className="text-xs text-gray-400 mt-1">+ {assignments.tasks.length - 10} more...</div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          + {assignments.tasks.length - 10} more...
+                        </div>
                       )}
                     </div>
                   </div>
                 }
               >
                 <div className="flex items-center gap-1 text-xs">
-                  <CheckSquareOutlined style={{ color: '#722ed1', className="text-xs" }} />
+                  <CheckSquareOutlined className="text-xs" style={{ color: "#722ed1" }} />
                   <span className="font-semibold text-purple-600">{assignments.tasks.length}</span>
                 </div>
               </Tooltip>
@@ -272,7 +285,7 @@ const nodeTypes = {
 
 function OrgChartFlow({
   orgChart,
-  viewMode = 'overall',
+  viewMode = "overall",
   selectedPhaseId,
   selectedTaskId,
   onNodeClick,
@@ -288,7 +301,7 @@ function OrgChartFlow({
 
     const nodes: Node[] = [];
     const edges: Edge[] = [];
-    const resourceMap = new Map(currentProject.resources.map(r => [r.id, r]));
+    const resourceMap = new Map(currentProject.resources.map((r) => [r.id, r]));
 
     // Calculate assignments for each resource
     const getResourceAssignments = (resource: Resource) => {
@@ -301,7 +314,7 @@ function OrgChartFlow({
           phases.push({
             phaseId: phase.id,
             phaseName: phase.name,
-            phaseColor: phase.color || '#94a3b8',
+            phaseColor: phase.color || "#94a3b8",
           });
         }
 
@@ -321,17 +334,18 @@ function OrgChartFlow({
       let primaryPhase = phases[0] || null;
       if (!primaryPhase && tasks.length > 0) {
         const tasksByPhase = new Map<string, number>();
-        tasks.forEach(t => {
+        tasks.forEach((t) => {
           tasksByPhase.set(t.phaseId, (tasksByPhase.get(t.phaseId) || 0) + 1);
         });
-        const [primaryPhaseId] = Array.from(tasksByPhase.entries()).sort((a, b) => b[1] - a[1])[0] || [];
+        const [primaryPhaseId] =
+          Array.from(tasksByPhase.entries()).sort((a, b) => b[1] - a[1])[0] || [];
         if (primaryPhaseId) {
-          const phase = currentProject.phases.find(p => p.id === primaryPhaseId);
+          const phase = currentProject.phases.find((p) => p.id === primaryPhaseId);
           if (phase) {
             primaryPhase = {
               phaseId: phase.id,
               phaseName: phase.name,
-              phaseColor: phase.color || '#94a3b8',
+              phaseColor: phase.color || "#94a3b8",
             };
           }
         }
@@ -342,10 +356,10 @@ function OrgChartFlow({
 
     // Create root project node
     nodes.push({
-      id: 'root',
-      type: 'projectNode',
+      id: "root",
+      type: "projectNode",
       position: { x: 0, y: 0 },
-      data: { label: currentProject.name || 'Project Organization' },
+      data: { label: currentProject.name || "Project Organization" },
     });
 
     let yOffset = 150;
@@ -379,11 +393,12 @@ function OrgChartFlow({
 
               // Filter by view mode
               let shouldShow = true;
-              if (viewMode === 'by-phase' && selectedPhaseId) {
-                shouldShow = assignments.phases.some(p => p.phaseId === selectedPhaseId) ||
-                  assignments.tasks.some(t => t.phaseId === selectedPhaseId);
-              } else if (viewMode === 'by-task' && selectedTaskId) {
-                shouldShow = assignments.tasks.some(t => t.taskId === selectedTaskId);
+              if (viewMode === "by-phase" && selectedPhaseId) {
+                shouldShow =
+                  assignments.phases.some((p) => p.phaseId === selectedPhaseId) ||
+                  assignments.tasks.some((t) => t.phaseId === selectedPhaseId);
+              } else if (viewMode === "by-task" && selectedTaskId) {
+                shouldShow = assignments.tasks.some((t) => t.taskId === selectedTaskId);
               }
 
               if (shouldShow) {
@@ -410,11 +425,12 @@ function OrgChartFlow({
 
                   // Filter by view mode
                   let shouldShow = true;
-                  if (viewMode === 'by-phase' && selectedPhaseId) {
-                    shouldShow = assignments.phases.some(p => p.phaseId === selectedPhaseId) ||
-                      assignments.tasks.some(t => t.phaseId === selectedPhaseId);
-                  } else if (viewMode === 'by-task' && selectedTaskId) {
-                    shouldShow = assignments.tasks.some(t => t.taskId === selectedTaskId);
+                  if (viewMode === "by-phase" && selectedPhaseId) {
+                    shouldShow =
+                      assignments.phases.some((p) => p.phaseId === selectedPhaseId) ||
+                      assignments.tasks.some((t) => t.phaseId === selectedPhaseId);
+                  } else if (viewMode === "by-task" && selectedTaskId) {
+                    shouldShow = assignments.tasks.some((t) => t.taskId === selectedTaskId);
                   }
 
                   if (shouldShow) {
@@ -440,7 +456,8 @@ function OrgChartFlow({
         }
 
         // Only add group if it has resources at group level, sub-groups, or is level 0
-        const hasContent = groupResources.length > 0 || groupSubGroups.length > 0 || levelIndex === 0;
+        const hasContent =
+          groupResources.length > 0 || groupSubGroups.length > 0 || levelIndex === 0;
         if (hasContent) {
           levelGroups.push({
             groupId: group.id,
@@ -459,12 +476,12 @@ function OrgChartFlow({
           // If group has sub-groups, calculate based on sub-groups
           if (lg.subGroups && lg.subGroups.length > 0) {
             const subGroupsWidth = lg.subGroups.reduce((sgSum: number, sg: any) => {
-              return sgSum + (sg.resources.length * (nodeWidth + nodeSpacing));
+              return sgSum + sg.resources.length * (nodeWidth + nodeSpacing);
             }, 0);
             return sum + subGroupsWidth + 200; // Extra spacing for sub-groups
           }
           // Otherwise calculate based on group-level resources
-          return sum + (lg.resources.length * (nodeWidth + nodeSpacing)) + 100;
+          return sum + lg.resources.length * (nodeWidth + nodeSpacing) + 100;
         }, 0);
 
         let xOffset = -totalWidth / 2;
@@ -477,7 +494,7 @@ function OrgChartFlow({
           let groupWidth = 0;
           if (lg.subGroups && lg.subGroups.length > 0) {
             groupWidth = lg.subGroups.reduce((sgSum: number, sg: any) => {
-              return sgSum + (sg.resources.length * (nodeWidth + nodeSpacing));
+              return sgSum + sg.resources.length * (nodeWidth + nodeSpacing);
             }, 0);
           } else {
             groupWidth = lg.resources.length * (nodeWidth + nodeSpacing);
@@ -486,7 +503,7 @@ function OrgChartFlow({
 
           nodes.push({
             id: groupNodeId,
-            type: 'groupNode',
+            type: "groupNode",
             position: { x: groupX, y: yOffset },
             data: {
               label: lg.groupName,
@@ -497,12 +514,12 @@ function OrgChartFlow({
           // Connect group to root
           edges.push({
             id: `e-root-${groupNodeId}`,
-            source: 'root',
+            source: "root",
             target: groupNodeId,
             type: ConnectionLineType.SmoothStep,
             animated: false,
-            style: { stroke: '#94a3b8', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#94a3b8' },
+            style: { stroke: "#94a3b8", strokeWidth: 2 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
           });
 
           // Check if group has sub-groups
@@ -518,7 +535,7 @@ function OrgChartFlow({
               // Add sub-group node
               nodes.push({
                 id: subGroupNodeId,
-                type: 'subGroupNode',
+                type: "subGroupNode",
                 position: { x: subGroupX, y: yOffset + levelSpacing },
                 data: {
                   label: sg.subGroupName,
@@ -533,8 +550,8 @@ function OrgChartFlow({
                 target: subGroupNodeId,
                 type: ConnectionLineType.SmoothStep,
                 animated: false,
-                style: { stroke: '#a5b4fc', strokeWidth: 2 },
-                markerEnd: { type: MarkerType.ArrowClosed, color: '#a5b4fc' },
+                style: { stroke: "#a5b4fc", strokeWidth: 2 },
+                markerEnd: { type: MarkerType.ArrowClosed, color: "#a5b4fc" },
               });
 
               // Add resource nodes under this sub-group
@@ -543,18 +560,19 @@ function OrgChartFlow({
                 const resourceX = subGroupXOffset + idx * (nodeWidth + nodeSpacing);
 
                 // Spotlight mode: highlight selected resource, dim others
-                const isSpotlighted = spotlightResourceId && resData.resource.id === spotlightResourceId;
+                const isSpotlighted =
+                  spotlightResourceId && resData.resource.id === spotlightResourceId;
                 const isDimmed = spotlightResourceId && resData.resource.id !== spotlightResourceId;
 
                 nodes.push({
                   id: resourceNodeId,
-                  type: 'resourceNode',
-                  position: { x: resourceX, y: yOffset + (levelSpacing * 2) },
+                  type: "resourceNode",
+                  position: { x: resourceX, y: yOffset + levelSpacing * 2 },
                   data: {
                     person: {
                       id: resData.resource.id,
                       name: resData.resource.name,
-                      designation: RESOURCE_DESIGNATIONS[resData.resource.designation],
+                      designation: RESOURCE_DESIGNATIONS[resData.resource.designation as keyof typeof RESOURCE_DESIGNATIONS] || resData.resource.designation,
                       category: resData.resource.category,
                       projectRole: resData.resource.projectRole,
                       department: resData.resource.department,
@@ -573,8 +591,8 @@ function OrgChartFlow({
                   target: resourceNodeId,
                   type: ConnectionLineType.SmoothStep,
                   animated: false,
-                  style: { stroke: '#cbd5e1', strokeWidth: 1.5 },
-                  markerEnd: { type: MarkerType.ArrowClosed, color: '#cbd5e1' },
+                  style: { stroke: "#cbd5e1", strokeWidth: 1.5 },
+                  markerEnd: { type: MarkerType.ArrowClosed, color: "#cbd5e1" },
                 });
               });
 
@@ -589,18 +607,19 @@ function OrgChartFlow({
               const resourceX = xOffset + idx * (nodeWidth + nodeSpacing);
 
               // Spotlight mode: highlight selected resource, dim others
-              const isSpotlighted = spotlightResourceId && resData.resource.id === spotlightResourceId;
+              const isSpotlighted =
+                spotlightResourceId && resData.resource.id === spotlightResourceId;
               const isDimmed = spotlightResourceId && resData.resource.id !== spotlightResourceId;
 
               nodes.push({
                 id: resourceNodeId,
-                type: 'resourceNode',
+                type: "resourceNode",
                 position: { x: resourceX, y: yOffset + levelSpacing },
                 data: {
                   person: {
                     id: resData.resource.id,
                     name: resData.resource.name,
-                    designation: RESOURCE_DESIGNATIONS[resData.resource.designation],
+                    designation: RESOURCE_DESIGNATIONS[resData.resource.designation as keyof typeof RESOURCE_DESIGNATIONS] || resData.resource.designation,
                     category: resData.resource.category,
                     projectRole: resData.resource.projectRole,
                     department: resData.resource.department,
@@ -619,8 +638,8 @@ function OrgChartFlow({
                 target: resourceNodeId,
                 type: ConnectionLineType.SmoothStep,
                 animated: false,
-                style: { stroke: '#cbd5e1', strokeWidth: 1.5 },
-                markerEnd: { type: MarkerType.ArrowClosed, color: '#cbd5e1' },
+                style: { stroke: "#cbd5e1", strokeWidth: 1.5 },
+                markerEnd: { type: MarkerType.ArrowClosed, color: "#cbd5e1" },
               });
             });
 
@@ -638,11 +657,14 @@ function OrgChartFlow({
   const [nodes, , onNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState(initialEdges);
 
-  const onNodeClickHandler = useCallback((event: React.MouseEvent, node: Node) => {
-    if (onNodeClick) {
-      onNodeClick(node.id);
-    }
-  }, [onNodeClick]);
+  const onNodeClickHandler = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      if (onNodeClick) {
+        onNodeClick(node.id);
+      }
+    },
+    [onNodeClick]
+  );
 
   if (!currentProject) {
     return (
@@ -653,7 +675,7 @@ function OrgChartFlow({
   }
 
   return (
-    <div className="w-full h-full" style={{ minHeight: '600px'>
+    <div className="w-full h-full" style={{ minHeight: "600px" }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -674,35 +696,35 @@ function OrgChartFlow({
         <Controls showInteractive={false} />
         <MiniMap
           nodeStrokeColor={(node) => {
-            if (node.type === 'resourceNode') {
+            if (node.type === "resourceNode") {
               // Highlight spotlighted resource
-              if (node.data?.isSpotlighted) return '#3b82f6';
+              if (node.data?.isSpotlighted) return "#3b82f6";
               // Dim non-spotlighted when in spotlight mode
-              if (node.data?.isDimmed) return '#d1d5db';
-              return '#10b981'; // Active resource
+              if (node.data?.isDimmed) return "#d1d5db";
+              return "#10b981"; // Active resource
             }
-            if (node.type === 'groupNode') return '#6b7280';
-            if (node.type === 'subGroupNode') return '#818cf8';
-            return '#2563eb'; // Default (project node)
+            if (node.type === "groupNode") return "#6b7280";
+            if (node.type === "subGroupNode") return "#818cf8";
+            return "#2563eb"; // Default (project node)
           }}
           nodeColor={(node) => {
-            if (node.type === 'resourceNode') {
-              if (node.data?.isSpotlighted) return '#dbeafe';
-              if (node.data?.isDimmed) return '#f3f4f6';
-              return '#d1fae5';
+            if (node.type === "resourceNode") {
+              if (node.data?.isSpotlighted) return "#dbeafe";
+              if (node.data?.isDimmed) return "#f3f4f6";
+              return "#d1fae5";
             }
-            if (node.type === 'groupNode') return '#e5e7eb';
-            if (node.type === 'subGroupNode') return '#e0e7ff';
-            return '#dbeafe';
+            if (node.type === "groupNode") return "#e5e7eb";
+            if (node.type === "subGroupNode") return "#e0e7ff";
+            return "#dbeafe";
           }}
           zoomable
           pannable
           position="bottom-right"
           style={{
-            backgroundColor: '#ffffff',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+            backgroundColor: "#ffffff",
+            border: "2px solid #e5e7eb",
+            borderRadius: "8px",
+            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
           }}
         />
       </ReactFlow>

@@ -13,6 +13,7 @@ prisma:error Error in PostgreSQL connection: Error { kind: Closed, cause: None }
 ```
 
 **Root causes identified:**
+
 1. No connection pool configuration (using Prisma defaults)
 2. No retry logic for transient connection failures
 3. Missing connection lifecycle management
@@ -30,8 +31,8 @@ The Prisma client is now configured with proper pooling settings:
 new PrismaClient({
   connectionLimit: 5, // Conservative default for serverless
   pool: {
-    timeout: 20,      // 20 seconds
-    idleTimeout: 30,  // Close idle connections after 30s
+    timeout: 20, // 20 seconds
+    idleTimeout: 30, // Close idle connections after 30s
   },
 });
 ```
@@ -54,6 +55,7 @@ await withRetry(() => prisma.user.findMany());
 ```
 
 **Features:**
+
 - Exponential backoff with jitter (100ms → 200ms → 400ms)
 - Max 3 retries by default (configurable)
 - Connection health check before retry
@@ -68,9 +70,9 @@ await withRetry(() => prisma.user.findMany());
 The Prisma client now properly disconnects on process exit:
 
 ```typescript
-process.on('beforeExit', () => prisma.$disconnect());
-process.on('SIGINT', () => prisma.$disconnect());
-process.on('SIGTERM', () => prisma.$disconnect());
+process.on("beforeExit", () => prisma.$disconnect());
+process.on("SIGINT", () => prisma.$disconnect());
+process.on("SIGTERM", () => prisma.$disconnect());
 ```
 
 ### 4. Health Check Endpoint
@@ -96,12 +98,10 @@ Monitor database connectivity:
 ### Basic Query with Retry
 
 ```typescript
-import { prisma, withRetry } from '@/lib/db';
+import { prisma, withRetry } from "@/lib/db";
 
 // Simple query
-const users = await withRetry(() =>
-  prisma.user.findMany()
-);
+const users = await withRetry(() => prisma.user.findMany());
 
 // Complex query with includes
 const project = await withRetry(() =>
@@ -130,20 +130,15 @@ const result = await withRetry(() =>
 ### API Route with Retry (Recommended)
 
 ```typescript
-import { withRetry } from '@/lib/db';
+import { withRetry } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
-    const data = await withRetry(() =>
-      prisma.resource.findMany()
-    );
+    const data = await withRetry(() => prisma.resource.findMany());
     return NextResponse.json({ data });
   } catch (error) {
     // Error after 3 retries
-    return NextResponse.json(
-      { error: 'Database unavailable' },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
   }
 }
 ```
@@ -151,11 +146,11 @@ export async function GET(request: NextRequest) {
 ### Health Check in Code
 
 ```typescript
-import { checkDatabaseHealth } from '@/lib/db';
+import { checkDatabaseHealth } from "@/lib/db";
 
 const isHealthy = await checkDatabaseHealth();
 if (!isHealthy) {
-  console.error('Database connection issues detected');
+  console.error("Database connection issues detected");
 }
 ```
 
@@ -176,12 +171,12 @@ DATABASE_CONNECTION_LIMIT=5
 
 ### Recommended Settings by Environment
 
-| Environment | Connection Limit | Notes |
-|-------------|------------------|-------|
-| **Development** | 5-10 | Small pool, faster restarts |
-| **Serverless** (Vercel) | 5-10 | Prevent pool exhaustion |
-| **Traditional Server** | 20-50 | More concurrent requests |
-| **High Traffic** | 50-100 | May need database tuning |
+| Environment             | Connection Limit | Notes                       |
+| ----------------------- | ---------------- | --------------------------- |
+| **Development**         | 5-10             | Small pool, faster restarts |
+| **Serverless** (Vercel) | 5-10             | Prevent pool exhaustion     |
+| **Traditional Server**  | 20-50            | More concurrent requests    |
+| **High Traffic**        | 50-100           | May need database tuning    |
 
 ### PostgreSQL Configuration
 
@@ -196,6 +191,7 @@ SELECT count(*) FROM pg_stat_activity;
 ```
 
 **Formula:** `max_connections` should be at least:
+
 ```
 (number_of_app_instances × DATABASE_CONNECTION_LIMIT) + 20
 ```
@@ -229,7 +225,7 @@ curl http://localhost:3000/api/health
 Connection errors are logged with context:
 
 ```typescript
-console.error('[API] Database operation failed after retries:', error);
+console.error("[API] Database operation failed after retries:", error);
 ```
 
 Integrate with Sentry or similar for alerts.
@@ -241,6 +237,7 @@ Integrate with Sentry or similar for alerts.
 **Symptoms:** Requests hang or timeout after 20 seconds
 
 **Solutions:**
+
 1. Increase `DATABASE_CONNECTION_LIMIT`
 2. Check for long-running queries blocking the pool
 3. Review query optimization
@@ -250,6 +247,7 @@ Integrate with Sentry or similar for alerts.
 **Symptoms:** Database rejects new connections
 
 **Solutions:**
+
 1. Reduce `DATABASE_CONNECTION_LIMIT`
 2. Increase PostgreSQL `max_connections`
 3. Use connection pooler (PgBouncer, Supavisor)
@@ -259,6 +257,7 @@ Integrate with Sentry or similar for alerts.
 **Symptoms:** Still seeing connection closed errors
 
 **Solutions:**
+
 1. Check database server health
 2. Verify network stability
 3. Check firewall/security group rules
@@ -269,6 +268,7 @@ Integrate with Sentry or similar for alerts.
 **Symptoms:** All retries fail immediately
 
 **Solutions:**
+
 1. Verify `DATABASE_URL` is correct
 2. Check database is running
 3. Verify network connectivity
@@ -297,6 +297,7 @@ Integrate with Sentry or similar for alerts.
 ### Updating Existing API Routes
 
 **Before:**
+
 ```typescript
 export async function GET() {
   const data = await prisma.model.findMany();
@@ -305,13 +306,12 @@ export async function GET() {
 ```
 
 **After:**
+
 ```typescript
-import { withRetry } from '@/lib/db';
+import { withRetry } from "@/lib/db";
 
 export async function GET() {
-  const data = await withRetry(() =>
-    prisma.model.findMany()
-  );
+  const data = await withRetry(() => prisma.model.findMany());
   return NextResponse.json({ data });
 }
 ```
@@ -332,6 +332,7 @@ export async function GET() {
 ## Support
 
 For issues or questions:
+
 1. Check logs for error details
 2. Review this guide's troubleshooting section
 3. Test with `/api/health` endpoint

@@ -10,14 +10,14 @@
  * - Performance optimized with RAF
  */
 
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { CheckCircleOutlined } from '@ant-design/icons';
+import { useEffect, useRef, useState, useCallback } from "react";
+import { CheckCircleOutlined } from "@ant-design/icons";
 
 interface SuccessCelebrationProps {
   /** Type of celebration animation */
-  type?: 'confetti' | 'fireworks' | 'subtle';
+  type?: "confetti" | "fireworks" | "subtle";
   /** Duration in milliseconds */
   duration?: number;
   /** Custom message to display */
@@ -39,16 +39,16 @@ interface Particle {
 }
 
 const COLORS = [
-  '#3b82f6', // blue
-  '#8b5cf6', // purple
-  '#f59e0b', // amber
-  '#10b981', // green
-  '#ef4444', // red
-  '#ec4899', // pink
+  "#3b82f6", // blue
+  "#8b5cf6", // purple
+  "#f59e0b", // amber
+  "#10b981", // green
+  "#ef4444", // red
+  "#ec4899", // pink
 ];
 
 export function SuccessCelebration({
-  type = 'confetti',
+  type = "confetti",
   duration = 3000,
   message,
   onComplete,
@@ -59,14 +59,15 @@ export function SuccessCelebration({
   const animationFrameRef = useRef<number>();
 
   // Check for reduced motion preference
-  const prefersReducedMotion = typeof window !== 'undefined'
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    : false;
+  const prefersReducedMotion =
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false;
 
   // Create particles
   const createParticles = useCallback(() => {
     const particles: Particle[] = [];
-    const particleCount = type === 'subtle' ? 30 : type === 'fireworks' ? 50 : 80;
+    const particleCount = type === "subtle" ? 30 : type === "fireworks" ? 50 : 80;
 
     if (!canvasRef.current) return particles;
 
@@ -76,15 +77,15 @@ export function SuccessCelebration({
 
     for (let i = 0; i < particleCount; i++) {
       const angle = (Math.PI * 2 * i) / particleCount;
-      const velocity = type === 'subtle' ? 2 + Math.random() * 2 : 3 + Math.random() * 4;
+      const velocity = type === "subtle" ? 2 + Math.random() * 2 : 3 + Math.random() * 4;
 
       particles.push({
         x: centerX,
         y: centerY,
         vx: Math.cos(angle) * velocity,
-        vy: Math.sin(angle) * velocity - (type === 'confetti' ? 2 : 0),
+        vy: Math.sin(angle) * velocity - (type === "confetti" ? 2 : 0),
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        size: type === 'subtle' ? 3 + Math.random() * 3 : 5 + Math.random() * 5,
+        size: type === "subtle" ? 3 + Math.random() * 3 : 5 + Math.random() * 5,
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.3,
         life: 1,
@@ -99,7 +100,7 @@ export function SuccessCelebration({
     if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     // Clear canvas
@@ -134,15 +135,10 @@ export function SuccessCelebration({
         ctx.translate(particle.x, particle.y);
         ctx.rotate(particle.rotation);
 
-        if (type === 'confetti') {
+        if (type === "confetti") {
           // Draw rectangular confetti
           ctx.fillStyle = particle.color;
-          ctx.fillRect(
-            -particle.size / 2,
-            -particle.size,
-            particle.size,
-            particle.size * 2
-          );
+          ctx.fillRect(-particle.size / 2, -particle.size, particle.size, particle.size * 2);
         } else {
           // Draw circular particles for other types
           ctx.fillStyle = particle.color;
@@ -204,13 +200,13 @@ export function SuccessCelebration({
   return (
     <div
       style={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
         zIndex: 9999,
-        pointerEvents: 'none',
+        pointerEvents: "none",
       }}
     >
       {/* Canvas for particles */}
@@ -218,11 +214,11 @@ export function SuccessCelebration({
         <canvas
           ref={canvasRef}
           style={{
-            position: 'absolute',
+            position: "absolute",
             top: 0,
             left: 0,
-            width: '100%',
-            height: '100%',
+            width: "100%",
+            height: "100%",
           }}
         />
       )}
@@ -231,38 +227,38 @@ export function SuccessCelebration({
       {message && (
         <div
           style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            textAlign: 'center',
-            animation: prefersReducedMotion ? 'none' : 'successPulse 0.5s ease-out',
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            textAlign: "center",
+            animation: prefersReducedMotion ? "none" : "successPulse 0.5s ease-out",
           }}
         >
           <div
             style={{
-              display: 'inline-flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '24px 32px',
-              background: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: '16px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-              backdropFilter: 'blur(10px)',
+              display: "inline-flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "12px",
+              padding: "24px 32px",
+              background: "rgba(255, 255, 255, 0.95)",
+              borderRadius: "16px",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+              backdropFilter: "blur(10px)",
             }}
           >
             <CheckCircleOutlined
               style={{
-                fontSize: '48px',
-                color: '#10b981',
+                fontSize: "48px",
+                color: "#10b981",
               }}
             />
             <div
+              className="text-lg"
               style={{
-                className="text-lg",
                 fontWeight: 600,
-                color: '#111827',
+                color: "#111827",
               }}
             >
               {message}
@@ -297,12 +293,12 @@ export function SuccessCelebration({
  */
 export function useSuccessCelebration() {
   const [celebration, setCelebration] = useState<{
-    type: 'confetti' | 'fireworks' | 'subtle';
+    type: "confetti" | "fireworks" | "subtle";
     message?: string;
   } | null>(null);
 
   const celebrate = useCallback(
-    (message?: string, type: 'confetti' | 'fireworks' | 'subtle' = 'confetti') => {
+    (message?: string, type: "confetti" | "fireworks" | "subtle" = "confetti") => {
       setCelebration({ type, message });
     },
     []
@@ -331,27 +327,27 @@ export function useSuccessCelebration() {
  */
 export const celebrations = {
   /** Celebrate saving a scenario/project */
-  saved: (celebrate: ReturnType<typeof useSuccessCelebration>['celebrate']) => {
-    celebrate('Saved successfully!', 'subtle');
+  saved: (celebrate: ReturnType<typeof useSuccessCelebration>["celebrate"]) => {
+    celebrate("Saved successfully!", "subtle");
   },
 
   /** Celebrate generating a timeline */
-  timelineGenerated: (celebrate: ReturnType<typeof useSuccessCelebration>['celebrate']) => {
-    celebrate('Timeline generated!', 'confetti');
+  timelineGenerated: (celebrate: ReturnType<typeof useSuccessCelebration>["celebrate"]) => {
+    celebrate("Timeline generated!", "confetti");
   },
 
   /** Celebrate completing onboarding */
-  onboardingComplete: (celebrate: ReturnType<typeof useSuccessCelebration>['celebrate']) => {
-    celebrate('Welcome to Keystone!', 'fireworks');
+  onboardingComplete: (celebrate: ReturnType<typeof useSuccessCelebration>["celebrate"]) => {
+    celebrate("Welcome to Keystone!", "fireworks");
   },
 
   /** Celebrate project creation */
-  projectCreated: (celebrate: ReturnType<typeof useSuccessCelebration>['celebrate']) => {
-    celebrate('Project created!', 'confetti');
+  projectCreated: (celebrate: ReturnType<typeof useSuccessCelebration>["celebrate"]) => {
+    celebrate("Project created!", "confetti");
   },
 
   /** Celebrate export success */
-  exported: (celebrate: ReturnType<typeof useSuccessCelebration>['celebrate']) => {
-    celebrate('Exported successfully!', 'subtle');
+  exported: (celebrate: ReturnType<typeof useSuccessCelebration>["celebrate"]) => {
+    celebrate("Exported successfully!", "subtle");
   },
 };

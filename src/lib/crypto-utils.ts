@@ -2,7 +2,7 @@
 // Cryptographic utilities for secure data handling
 // Fixed: V-003 - OTP hashing to prevent plaintext storage
 
-import { createHash, timingSafeEqual } from 'crypto';
+import { createHash, timingSafeEqual } from "crypto";
 
 /**
  * Hash an OTP using SHA-256
@@ -10,7 +10,7 @@ import { createHash, timingSafeEqual } from 'crypto';
  * @returns Hex-encoded hash
  */
 export function hashOTP(otp: string): string {
-  return createHash('sha256').update(otp).digest('hex');
+  return createHash("sha256").update(otp).digest("hex");
 }
 
 /**
@@ -25,8 +25,8 @@ export function hashOTP(otp: string): string {
 export function timingSafeCompare(a: string, b: string): boolean {
   try {
     // Convert strings to buffers
-    const bufA = Buffer.from(a, 'utf-8');
-    const bufB = Buffer.from(b, 'utf-8');
+    const bufA = Buffer.from(a, "utf-8");
+    const bufB = Buffer.from(b, "utf-8");
 
     // If lengths differ, compare against dummy buffer to prevent timing leak
     if (bufA.length !== bufB.length) {

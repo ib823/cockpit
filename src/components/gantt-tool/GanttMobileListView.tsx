@@ -6,36 +6,48 @@
  * Features: Task hierarchy, progress indicators, date ranges, touch-friendly
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useGanttToolStoreV2 as useGanttToolStore } from '@/stores/gantt-tool-store-v2';
-import { ChevronDown, ChevronRight, Flag, Calendar, Users, Clock, AlertTriangle } from 'lucide-react';
-import type { GanttPhase, GanttTask } from '@/types/gantt-tool';
-import { formatGanttDate, formatDuration } from '@/lib/gantt-tool/date-utils';
-import { Progress, Tag, Badge } from 'antd';
-import { calculateWorkingDaysInclusive } from '@/lib/gantt-tool/working-days';
-import { GANTT_STATUS_COLORS, GANTT_STATUS_LABELS, type GanttStatus } from '@/lib/design-system';
-import { differenceInDays } from 'date-fns';
+import { useState } from "react";
+import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import {
+  ChevronDown,
+  ChevronRight,
+  Flag,
+  Calendar,
+  Users,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
+import type { GanttPhase, GanttTask } from "@/types/gantt-tool";
+import { formatGanttDate, formatDuration } from "@/lib/gantt-tool/date-utils";
+import { Progress, Tag, Badge } from "antd";
+import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
+import { GANTT_STATUS_COLORS, GANTT_STATUS_LABELS, type GanttStatus } from "@/lib/design-system";
+import { differenceInDays } from "date-fns";
 
 /**
  * Calculate status based on dates and progress
  */
-const calculateItemStatus = (startDate: string, endDate: string, progress: number = 0): GanttStatus => {
+const calculateItemStatus = (
+  startDate: string,
+  endDate: string,
+  progress: number = 0
+): GanttStatus => {
   const now = new Date();
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  if (now < start) return 'notStarted';
-  if (progress === 100) return 'completed';
-  if (now > end && progress < 100) return 'blocked';
+  if (now < start) return "notStarted";
+  if (progress === 100) return "completed";
+  if (now > end && progress < 100) return "blocked";
 
   const totalDays = differenceInDays(end, start);
   const elapsedDays = differenceInDays(now, start);
   const expectedProgress = (elapsedDays / totalDays) * 100;
 
-  if (progress < expectedProgress - 20) return 'atRisk';
-  return 'inProgress';
+  if (progress < expectedProgress - 20) return "atRisk";
+  return "inProgress";
 };
 
 /**
@@ -51,7 +63,7 @@ function PhaseCard({ phase }: { phase: GanttPhase }) {
     currentProject?.holidays || []
   );
 
-  const completedTasks = phase.tasks.filter(t => t.progress === 100).length;
+  const completedTasks = phase.tasks.filter((t) => t.progress === 100).length;
   const totalTasks = phase.tasks.length;
   const phaseProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   const status = calculateItemStatus(phase.startDate, phase.endDate, phaseProgress);
@@ -73,9 +85,7 @@ function PhaseCard({ phase }: { phase: GanttPhase }) {
               )}
             </button>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-900 text-base truncate">
-                {phase.name}
-              </h3>
+              <h3 className="font-semibold text-gray-900 text-base truncate">{phase.name}</h3>
             </div>
           </div>
           <Tag color={GANTT_STATUS_COLORS[status]} className="flex-shrink-0 ml-2">
@@ -98,13 +108,17 @@ function PhaseCard({ phase }: { phase: GanttPhase }) {
         {/* Progress Bar */}
         <div className="space-y-1">
           <div className="flex items-center justify-between text-xs text-gray-600">
-            <span>{completedTasks} of {totalTasks} tasks</span>
+            <span>
+              {completedTasks} of {totalTasks} tasks
+            </span>
             <span>{Math.round(phaseProgress)}%</span>
           </div>
           <Progress
             percent={phaseProgress}
             size="small"
-            status={status === 'blocked' ? 'exception' : status === 'completed' ? 'success' : 'active'}
+            status={
+              status === "blocked" ? "exception" : status === "completed" ? "success" : "active"
+            }
             showInfo={false}
           />
         </div>
@@ -141,24 +155,22 @@ function TaskItem({ task, phaseColor }: { task: GanttTask; phaseColor: string })
   const resourceCount = task.resourceAssignments?.length || 0;
 
   // Indentation for hierarchy
-  const indentClass = task.level > 0 ? `ml-${task.level * 4}` : '';
+  const indentClass = task.level > 0 ? `ml-${task.level * 4}` : "";
 
   return (
     <div
       className={`p-3 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 active:bg-gray-100 transition-colors ${indentClass}`}
       style={{
         borderLeft: task.level === 0 ? `3px solid ${phaseColor}` : undefined,
-        paddingLeft: task.level > 0 ? `${task.level * 16 + 12}px` : undefined
+        paddingLeft: task.level > 0 ? `${task.level * 16 + 12}px` : undefined,
       }}
     >
       {/* Task Header */}
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-medium text-gray-900 text-sm truncate">
-              {task.name}
-            </h4>
-            {status === 'atRisk' && (
+            <h4 className="font-medium text-gray-900 text-sm truncate">{task.name}</h4>
+            {status === "atRisk" && (
               <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
             )}
           </div>
@@ -179,10 +191,7 @@ function TaskItem({ task, phaseColor }: { task: GanttTask; phaseColor: string })
             )}
           </div>
         </div>
-        <Tag
-          color={GANTT_STATUS_COLORS[status]}
-          className="flex-shrink-0 ml-2 text-xs"
-        >
+        <Tag color={GANTT_STATUS_COLORS[status]} className="flex-shrink-0 ml-2 text-xs">
           {task.progress}%
         </Tag>
       </div>
@@ -191,16 +200,14 @@ function TaskItem({ task, phaseColor }: { task: GanttTask; phaseColor: string })
       <Progress
         percent={task.progress}
         size="small"
-        status={status === 'blocked' ? 'exception' : status === 'completed' ? 'success' : 'active'}
+        status={status === "blocked" ? "exception" : status === "completed" ? "success" : "active"}
         showInfo={false}
-        strokeColor={status === 'atRisk' ? '#f59e0b' : undefined}
+        strokeColor={status === "atRisk" ? "#f59e0b" : undefined}
       />
 
       {/* Description if present */}
       {task.description && (
-        <p className="text-xs text-gray-500 mt-2 line-clamp-2">
-          {task.description}
-        </p>
+        <p className="text-xs text-gray-500 mt-2 line-clamp-2">{task.description}</p>
       )}
     </div>
   );
@@ -232,9 +239,7 @@ function MilestonesSection() {
             >
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <Flag className="w-4 h-4 flex-shrink-0" style={{ color: milestone.color }} />
-                <span className="text-sm font-medium text-gray-900 truncate">
-                  {milestone.name}
-                </span>
+                <span className="text-sm font-medium text-gray-900 truncate">{milestone.name}</span>
               </div>
               <span className="text-xs text-gray-600 flex-shrink-0 ml-2">
                 {formatGanttDate(milestone.date)}
@@ -254,7 +259,7 @@ export function GanttMobileListView() {
 
   if (!currentProject) {
     return (
-      <div className="flex items-center justify-center min-h-[400px] text-gray-400">
+      <div data-testid="gantt-mobile-list" className="flex items-center justify-center min-h-[400px] text-gray-400">
         <div className="text-center">
           <Flag className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p className="text-sm">No project loaded</p>
@@ -266,16 +271,12 @@ export function GanttMobileListView() {
   const sortedPhases = [...currentProject.phases].sort((a, b) => a.order - b.order);
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
+    <div data-testid="gantt-mobile-list" className="p-4 bg-gray-50 min-h-screen">
       {/* Project Header */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-        <h2 className="text-lg font-bold text-gray-900 mb-2">
-          {currentProject.name}
-        </h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-2">{currentProject.name}</h2>
         {currentProject.description && (
-          <p className="text-sm text-gray-600 line-clamp-2">
-            {currentProject.description}
-          </p>
+          <p className="text-sm text-gray-600 line-clamp-2">{currentProject.description}</p>
         )}
         <div className="flex items-center gap-4 mt-3 text-xs text-gray-600">
           <span className="flex items-center gap-1">
@@ -292,9 +293,7 @@ export function GanttMobileListView() {
 
       {/* Phases & Tasks */}
       {sortedPhases.length > 0 ? (
-        sortedPhases.map((phase) => (
-          <PhaseCard key={phase.id} phase={phase} />
-        ))
+        sortedPhases.map((phase) => <PhaseCard key={phase.id} phase={phase} />)
       ) : (
         <div className="text-center py-12 text-gray-400">
           <p className="text-sm">No phases added yet</p>

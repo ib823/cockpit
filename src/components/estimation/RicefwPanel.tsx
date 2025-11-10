@@ -4,30 +4,30 @@
  * UI for managing RICEFW objects with CRUD operations
  */
 
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { ResponsiveCard, ResponsiveStack } from '@/components/ui/ResponsiveShell';
-import { Heading, Text } from '@/components/ui/Typography';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { NativeSelect } from '@/components/ui/select';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import React, { useState } from "react";
+import { ResponsiveCard, ResponsiveStack } from "@/components/ui/ResponsiveShell";
+import { Heading, Text } from "@/components/ui/Typography";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/select";
+import { Plus, Trash2, Edit } from "lucide-react";
 import {
   RicefwItem,
   RicefwType,
   Complexity,
   Phase,
   calculateRicefwSummary,
-} from '@/lib/ricefw/model';
+} from "@/lib/ricefw/model";
 import {
   createRicefwItem,
   updateRicefwItem,
   calculateRicefwPhaseImpact,
-} from '@/lib/ricefw/calculator';
+} from "@/lib/ricefw/calculator";
 
 export interface RicefwPanelProps {
   projectId: string;
@@ -54,12 +54,12 @@ export function RicefwPanel({
     count: number;
     phase: Phase;
   }>({
-    type: 'report',
-    name: '',
-    description: '',
-    complexity: 'M',
+    type: "report",
+    name: "",
+    description: "",
+    complexity: "M",
     count: 1,
-    phase: 'realize',
+    phase: "realize",
   });
 
   const summary = calculateRicefwSummary(items, averageHourlyRate);
@@ -91,12 +91,12 @@ export function RicefwPanel({
 
     // Reset form
     setFormData({
-      type: 'report',
-      name: '',
-      description: '',
-      complexity: 'M',
+      type: "report",
+      name: "",
+      description: "",
+      complexity: "M",
       count: 1,
-      phase: 'realize',
+      phase: "realize",
     });
     setShowForm(false);
   };
@@ -105,7 +105,7 @@ export function RicefwPanel({
     setFormData({
       type: item.type,
       name: item.name,
-      description: item.description || '',
+      description: item.description || "",
       complexity: item.complexity,
       count: item.count,
       phase: item.phase,
@@ -145,14 +145,14 @@ export function RicefwPanel({
         {/* Summary Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
-            { key: 'reports', label: 'Reports', color: 'blue' },
-            { key: 'interfaces', label: 'Interfaces', color: 'green' },
-            { key: 'conversions', label: 'Conversions', color: 'yellow' },
-            { key: 'enhancements', label: 'Enhancements', color: 'purple' },
-            { key: 'forms', label: 'Forms', color: 'orange' },
-            { key: 'workflows', label: 'Workflows', color: 'red' },
+            { key: "reports", label: "Reports", color: "blue" },
+            { key: "interfaces", label: "Interfaces", color: "green" },
+            { key: "conversions", label: "Conversions", color: "yellow" },
+            { key: "enhancements", label: "Enhancements", color: "purple" },
+            { key: "forms", label: "Forms", color: "orange" },
+            { key: "workflows", label: "Workflows", color: "red" },
           ].map(({ key, label, color }) => {
-            const data = summary[key as keyof Omit<typeof summary, 'totals'>];
+            const data = summary[key as keyof Omit<typeof summary, "totals">];
             return (
               <ResponsiveCard key={key} padding="sm" border>
                 <div className="text-center space-y-1">
@@ -184,7 +184,7 @@ export function RicefwPanel({
           <ResponsiveCard padding="md" border className="bg-gray-50 dark:bg-gray-900">
             <ResponsiveStack spacing="sm">
               <Heading as="h3" size="lg">
-                {editingId ? 'Edit' : 'Add'} RICEFW Item
+                {editingId ? "Edit" : "Add"} RICEFW Item
               </Heading>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -260,9 +260,7 @@ export function RicefwPanel({
                   <NativeSelect
                     id="ricefw-phase"
                     value={formData.phase}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phase: e.target.value as Phase })
-                    }
+                    onChange={(e) => setFormData({ ...formData, phase: e.target.value as Phase })}
                   >
                     <option value="explore">Explore</option>
                     <option value="realize">Realize</option>
@@ -284,7 +282,7 @@ export function RicefwPanel({
 
               <div className="flex gap-2">
                 <Button onClick={handleSubmit} disabled={!formData.name.trim()}>
-                  {editingId ? 'Update' : 'Add'}
+                  {editingId ? "Update" : "Add"}
                 </Button>
                 <Button
                   variant="outline"
@@ -292,12 +290,12 @@ export function RicefwPanel({
                     setShowForm(false);
                     setEditingId(null);
                     setFormData({
-                      type: 'report',
-                      name: '',
-                      description: '',
-                      complexity: 'M',
+                      type: "report",
+                      name: "",
+                      description: "",
+                      complexity: "M",
                       count: 1,
-                      phase: 'realize',
+                      phase: "realize",
                     });
                   }}
                 >

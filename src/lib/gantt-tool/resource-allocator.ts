@@ -5,10 +5,17 @@
  * based on date overlaps and proportional distribution.
  */
 
-import { parse, addDays, isWithinInterval, differenceInDays, startOfWeek, endOfWeek } from 'date-fns';
-import type { ParsedResource } from './resource-parser';
-import type { ParsedSchedule } from './schedule-parser';
-import type { TaskResourceAssignment } from '@/types/gantt-tool';
+import {
+  parse,
+  addDays,
+  isWithinInterval,
+  differenceInDays,
+  startOfWeek,
+  endOfWeek,
+} from "date-fns";
+import type { ParsedResource } from "./resource-parser";
+import type { ParsedSchedule } from "./schedule-parser";
+import type { TaskResourceAssignment } from "@/types/gantt-tool";
 
 export interface AllocatedResource {
   resourceId: string;
@@ -50,7 +57,7 @@ export function allocateResourcesToTasks(
       continue;
     }
 
-    const taskAllocations: AllocatedResource['taskAllocations'] = [];
+    const taskAllocations: AllocatedResource["taskAllocations"] = [];
 
     // For each week of effort
     for (const weekEffort of resource.weeklyEffort) {
@@ -62,7 +69,7 @@ export function allocateResourcesToTasks(
         phaseIndex: number;
         phaseName: string;
         taskIndex: number;
-        task: typeof schedule.phases[0]['tasks'][0];
+        task: (typeof schedule.phases)[0]["tasks"][0];
         overlapDays: number;
       }> = [];
 
@@ -108,7 +115,7 @@ export function allocateResourcesToTasks(
 
         // Check if this task already has an allocation for this resource
         const existingAlloc = taskAllocations.find(
-          a => a.taskName === overlap.task.name && a.phaseName === overlap.phaseName
+          (a) => a.taskName === overlap.task.name && a.phaseName === overlap.phaseName
         );
 
         if (existingAlloc) {
@@ -117,7 +124,7 @@ export function allocateResourcesToTasks(
         } else {
           // Create new allocation
           taskAllocations.push({
-            taskId: '', // Will be set during import
+            taskId: "", // Will be set during import
             taskName: overlap.task.name,
             phaseName: overlap.phaseName,
             allocation: allocationPercentage,

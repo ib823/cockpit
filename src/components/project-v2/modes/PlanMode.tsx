@@ -27,7 +27,7 @@ import {
   Trash2,
   CheckCircle2,
   Layers,
-  BarChart3
+  BarChart3,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
@@ -40,7 +40,7 @@ import type { Task } from "@/types/core";
 const PROJECT_BASE_DATE = new Date(new Date().getFullYear(), 0, 1);
 
 // Tab types for PlanMode (merged from OptimizeMode per spec: Holistic_Redesign_V2.md)
-type PlanTab = 'timeline' | 'resources' | 'ricefw' | 'benchmarks';
+type PlanTab = "timeline" | "resources" | "ricefw" | "benchmarks";
 
 export function PlanMode() {
   const { phases, selectedPackages, getProjectCost, updatePhase } = useTimelineStore();
@@ -49,7 +49,7 @@ export function PlanMode() {
   const totalCost = getProjectCost();
 
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
-  const [activeTab, setActiveTab] = useState<PlanTab>('timeline');
+  const [activeTab, setActiveTab] = useState<PlanTab>("timeline");
 
   // Auto-generate timeline if empty and we have requirements
   useEffect(() => {
@@ -130,11 +130,7 @@ export function PlanMode() {
 
             <div className="w-px h-6 bg-gray-300" />
 
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleRegenerate}
-            >
+            <Button variant="secondary" size="sm" onClick={handleRegenerate}>
               Regenerate
             </Button>
           </div>
@@ -144,7 +140,7 @@ export function PlanMode() {
             <Button
               variant="primary"
               size="sm"
-              onClick={() => setMode('present')}
+              onClick={() => setMode("present")}
               leftIcon={<Presentation className="w-4 h-4" />}
               className="bg-gray-900 hover:bg-gray-800"
             >
@@ -157,11 +153,15 @@ export function PlanMode() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
             <Calendar className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-900">{formatDuration(totalDuration)}</span>
+            <span className="text-sm font-semibold text-blue-900">
+              {formatDuration(totalDuration)}
+            </span>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg">
             <DollarSign className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-semibold text-green-900">{formatCurrency(totalCost, "MYR")}</span>
+            <span className="text-sm font-semibold text-green-900">
+              {formatCurrency(totalCost, "MYR")}
+            </span>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-lg">
             <Flag className="w-4 h-4 text-purple-600" />
@@ -174,10 +174,10 @@ export function PlanMode() {
       <div className="shrink-0 bg-white border-b border-gray-200 px-6">
         <div className="flex gap-1">
           <button
-            onClick={() => setActiveTab('timeline')}
+            onClick={() => setActiveTab("timeline")}
             className={cn(
               "px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-px",
-              activeTab === 'timeline'
+              activeTab === "timeline"
                 ? "border-blue-600 text-blue-700"
                 : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
             )}
@@ -186,10 +186,10 @@ export function PlanMode() {
             Timeline
           </button>
           <button
-            onClick={() => setActiveTab('benchmarks')}
+            onClick={() => setActiveTab("benchmarks")}
             className={cn(
               "px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-px",
-              activeTab === 'benchmarks'
+              activeTab === "benchmarks"
                 ? "border-blue-600 text-blue-700"
                 : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
             )}
@@ -198,10 +198,10 @@ export function PlanMode() {
             Benchmarks
           </button>
           <button
-            onClick={() => setActiveTab('resources')}
+            onClick={() => setActiveTab("resources")}
             className={cn(
               "px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-px",
-              activeTab === 'resources'
+              activeTab === "resources"
                 ? "border-blue-600 text-blue-700"
                 : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
             )}
@@ -210,10 +210,10 @@ export function PlanMode() {
             Resources
           </button>
           <button
-            onClick={() => setActiveTab('ricefw')}
+            onClick={() => setActiveTab("ricefw")}
             className={cn(
               "px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-px",
-              activeTab === 'ricefw'
+              activeTab === "ricefw"
                 ? "border-blue-600 text-blue-700"
                 : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
             )}
@@ -246,46 +246,37 @@ export function PlanMode() {
 
       {/* Tab Content - Fills remaining space, internal scrolling */}
       <div className="flex-1 min-h-0 overflow-auto bg-gray-50">
-        {activeTab === 'timeline' && (
+        {activeTab === "timeline" && (
           <div className="p-6">
             <JobsGanttChart onPhaseClick={(phase) => setSelectedPhase(phase)} />
           </div>
         )}
 
-        {activeTab === 'benchmarks' && (
-          <BenchmarkPanel />
-        )}
+        {activeTab === "benchmarks" && <BenchmarkPanel />}
 
-        {activeTab === 'resources' && (
+        {activeTab === "resources" && (
           <div className="p-6">
             <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
               <UsersIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Resource Planning
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Resource Planning</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Allocate team members to phases and optimize resource utilization
               </p>
-              <p className="text-xs text-gray-500">
-                {phases.length} phases • Coming soon
-              </p>
+              <p className="text-xs text-gray-500">{phases.length} phases • Coming soon</p>
             </div>
           </div>
         )}
 
-        {activeTab === 'ricefw' && (
+        {activeTab === "ricefw" && (
           <div className="p-6">
             <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
               <Layers className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                RICEFW Objects
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">RICEFW Objects</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Estimate custom development objects (Reports, Interfaces, Conversions, Enhancements, Forms, Workflows)
+                Estimate custom development objects (Reports, Interfaces, Conversions, Enhancements,
+                Forms, Workflows)
               </p>
-              <p className="text-xs text-gray-500">
-                Feature available in dedicated RICEFW module
-              </p>
+              <p className="text-xs text-gray-500">Feature available in dedicated RICEFW module</p>
             </div>
           </div>
         )}
@@ -317,9 +308,7 @@ export function PlanMode() {
                     <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight truncate">
                       {selectedPhase.name}
                     </h2>
-                    <p className="text-sm text-gray-500 mt-1 truncate">
-                      {selectedPhase.category}
-                    </p>
+                    <p className="text-sm text-gray-500 mt-1 truncate">{selectedPhase.category}</p>
                   </div>
                   <button
                     onClick={() => setSelectedPhase(null)}
@@ -332,11 +321,15 @@ export function PlanMode() {
                 {/* Quick Stats */}
                 <div className="grid grid-cols-3 gap-3 sm:gap-4">
                   <div className="bg-blue-50 rounded-xl p-2.5 sm:p-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-blue-900">{selectedPhase.workingDays}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-blue-900">
+                      {selectedPhase.workingDays}
+                    </div>
                     <div className="text-xs sm:text-sm text-blue-600 mt-1">Days</div>
                   </div>
                   <div className="bg-purple-50 rounded-xl p-2.5 sm:p-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-purple-900">{selectedPhase.effort}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-purple-900">
+                      {selectedPhase.effort}
+                    </div>
                     <div className="text-xs sm:text-sm text-purple-600 mt-1">Effort</div>
                   </div>
                   <div className="bg-green-50 rounded-xl p-2.5 sm:p-3 text-center">
@@ -384,43 +377,50 @@ export function PlanMode() {
 
 // Phase Edit Section Component
 function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: any }) {
-  const [editMode, setEditMode] = useState<'start' | 'end' | 'duration' | null>(null);
+  const [editMode, setEditMode] = useState<"start" | "end" | "duration" | null>(null);
   const [tempValue, setTempValue] = useState("");
 
-  const startDate = phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, 'ABMY');
-  const endDate = phase.endDate || addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), 'ABMY');
+  const startDate =
+    phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, "ABMY");
+  const endDate =
+    phase.endDate ||
+    addWorkingDays(
+      PROJECT_BASE_DATE,
+      (phase.startBusinessDay || 0) + (phase.workingDays || 0),
+      "ABMY"
+    );
 
-  const handleSave = (field: 'start' | 'end' | 'duration') => {
+  const handleSave = (field: "start" | "end" | "duration") => {
     if (!updatePhase) return;
 
     let updatedData: Partial<Phase> = {};
 
-    if (field === 'duration') {
+    if (field === "duration") {
       const newDuration = parseInt(tempValue, 10);
       if (isNaN(newDuration) || newDuration <= 0) return;
 
-      const newEndDate = addWorkingDays(startDate, newDuration, 'ABMY');
+      const newEndDate = addWorkingDays(startDate, newDuration, "ABMY");
       updatedData = {
         workingDays: newDuration,
         endDate: newEndDate,
       };
-    } else if (field === 'start') {
-      const newStartDate = parse(tempValue, 'yyyy-MM-dd', new Date());
+    } else if (field === "start") {
+      const newStartDate = parse(tempValue, "yyyy-MM-dd", new Date());
       if (!isValid(newStartDate)) return;
 
-      const newStartBusinessDay = calculateWorkingDays(PROJECT_BASE_DATE, newStartDate, 'ABMY');
-      const newEndDate = addWorkingDays(newStartDate, phase.workingDays || 0, 'ABMY');
+      const newStartBusinessDay = calculateWorkingDays(PROJECT_BASE_DATE, newStartDate, "ABMY");
+      const newEndDate = addWorkingDays(newStartDate, phase.workingDays || 0, "ABMY");
 
       updatedData = {
         startDate: newStartDate,
         startBusinessDay: newStartBusinessDay,
         endDate: newEndDate,
       };
-    } else if (field === 'end') {
-      const newEndDate = parse(tempValue, 'yyyy-MM-dd', new Date());
+    } else if (field === "end") {
+      const newEndDate = parse(tempValue, "yyyy-MM-dd", new Date());
       if (!isValid(newEndDate)) return;
 
-      const newDuration = calculateWorkingDays(startDate, newEndDate, 'ABMY');
+      const newDuration = calculateWorkingDays(startDate, newEndDate, "ABMY");
       if (newDuration <= 0) return;
 
       updatedData = {
@@ -443,27 +443,27 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
           <div className="flex-1">
             <div className="text-xs text-gray-500 mb-1">Start Date</div>
-            {editMode === 'start' ? (
+            {editMode === "start" ? (
               <input
                 type="date"
                 value={tempValue}
                 onChange={(e) => setTempValue(e.target.value)}
-                onBlur={() => handleSave('start')}
+                onBlur={() => handleSave("start")}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSave('start');
-                  if (e.key === 'Escape') setEditMode(null);
+                  if (e.key === "Enter") handleSave("start");
+                  if (e.key === "Escape") setEditMode(null);
                 }}
                 autoFocus
                 className="w-full px-3 py-2.5 border border-blue-500 rounded text-sm"
               />
             ) : (
-              <div className="font-semibold text-gray-900">{format(startDate, 'MMM dd, yyyy')}</div>
+              <div className="font-semibold text-gray-900">{format(startDate, "MMM dd, yyyy")}</div>
             )}
           </div>
           <button
             onClick={() => {
-              setEditMode('start');
-              setTempValue(format(startDate, 'yyyy-MM-dd'));
+              setEditMode("start");
+              setTempValue(format(startDate, "yyyy-MM-dd"));
             }}
             className="ml-4 p-2.5 hover:bg-white rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
@@ -475,27 +475,27 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
           <div className="flex-1">
             <div className="text-xs text-gray-500 mb-1">End Date</div>
-            {editMode === 'end' ? (
+            {editMode === "end" ? (
               <input
                 type="date"
                 value={tempValue}
                 onChange={(e) => setTempValue(e.target.value)}
-                onBlur={() => handleSave('end')}
+                onBlur={() => handleSave("end")}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSave('end');
-                  if (e.key === 'Escape') setEditMode(null);
+                  if (e.key === "Enter") handleSave("end");
+                  if (e.key === "Escape") setEditMode(null);
                 }}
                 autoFocus
                 className="w-full px-3 py-2.5 border border-blue-500 rounded text-sm"
               />
             ) : (
-              <div className="font-semibold text-gray-900">{format(endDate, 'MMM dd, yyyy')}</div>
+              <div className="font-semibold text-gray-900">{format(endDate, "MMM dd, yyyy")}</div>
             )}
           </div>
           <button
             onClick={() => {
-              setEditMode('end');
-              setTempValue(format(endDate, 'yyyy-MM-dd'));
+              setEditMode("end");
+              setTempValue(format(endDate, "yyyy-MM-dd"));
             }}
             className="ml-4 p-2.5 hover:bg-white rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
@@ -507,15 +507,15 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
           <div className="flex-1">
             <div className="text-xs text-gray-500 mb-1">Duration (Business Days)</div>
-            {editMode === 'duration' ? (
+            {editMode === "duration" ? (
               <input
                 type="number"
                 value={tempValue}
                 onChange={(e) => setTempValue(e.target.value)}
-                onBlur={() => handleSave('duration')}
+                onBlur={() => handleSave("duration")}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSave('duration');
-                  if (e.key === 'Escape') setEditMode(null);
+                  if (e.key === "Enter") handleSave("duration");
+                  if (e.key === "Escape") setEditMode(null);
                 }}
                 autoFocus
                 className="w-24 px-3 py-2.5 border border-blue-500 rounded text-sm"
@@ -526,7 +526,7 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
           </div>
           <button
             onClick={() => {
-              setEditMode('duration');
+              setEditMode("duration");
               setTempValue(String(phase.workingDays || 0));
             }}
             className="ml-4 p-2.5 hover:bg-white rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
@@ -548,7 +548,7 @@ const TEAM_TEMPLATES = {
       { role: "consultant", count: 1, allocation: 100 },
       { role: "developer", count: 1, allocation: 100 },
       { role: "projectManager", count: 1, allocation: 50 },
-    ]
+    ],
   },
   standard: {
     name: "Standard Team",
@@ -558,7 +558,7 @@ const TEAM_TEMPLATES = {
       { role: "consultant", count: 2, allocation: 100 },
       { role: "developer", count: 2, allocation: 100 },
       { role: "projectManager", count: 1, allocation: 75 },
-    ]
+    ],
   },
   enterprise: {
     name: "Enterprise Team",
@@ -569,18 +569,19 @@ const TEAM_TEMPLATES = {
       { role: "developer", count: 4, allocation: 100 },
       { role: "projectManager", count: 1, allocation: 100 },
       { role: "basis", count: 1, allocation: 50 },
-    ]
-  }
+    ],
+  },
 };
 
-const ROLE_CONFIG: Record<string, { name: string; icon: string; baseRate: number; color: string }> = {
-  architect: { name: "Solution Architect", icon: "🏗️", baseRate: 180, color: "blue" },
-  consultant: { name: "Functional Consultant", icon: "💼", baseRate: 140, color: "purple" },
-  developer: { name: "Developer", icon: "💻", baseRate: 120, color: "green" },
-  projectManager: { name: "Project Manager", icon: "📊", baseRate: 160, color: "orange" },
-  basis: { name: "Basis Admin", icon: "⚙️", baseRate: 155, color: "gray" },
-  security: { name: "Security Specialist", icon: "🔒", baseRate: 150, color: "red" },
-};
+const ROLE_CONFIG: Record<string, { name: string; icon: string; baseRate: number; color: string }> =
+  {
+    architect: { name: "Solution Architect", icon: "🏗️", baseRate: 180, color: "blue" },
+    consultant: { name: "Functional Consultant", icon: "💼", baseRate: 140, color: "purple" },
+    developer: { name: "Developer", icon: "💻", baseRate: 120, color: "green" },
+    projectManager: { name: "Project Manager", icon: "📊", baseRate: 160, color: "orange" },
+    basis: { name: "Basis Admin", icon: "⚙️", baseRate: 155, color: "gray" },
+    security: { name: "Security Specialist", icon: "🔒", baseRate: 150, color: "red" },
+  };
 
 // Resource Section Component - Redesigned for speed and efficiency
 function ResourceSection({
@@ -599,7 +600,7 @@ function ResourceSection({
 
   const applyTemplate = (templateKey: keyof typeof TEAM_TEMPLATES) => {
     const template = TEAM_TEMPLATES[templateKey];
-    const newResources = template.members.flatMap(member => {
+    const newResources = template.members.flatMap((member) => {
       const roleConfig = ROLE_CONFIG[member.role];
       return Array.from({ length: member.count }, (_, i) => ({
         id: `resource-${Date.now()}-${member.role}-${i}`,
@@ -626,7 +627,7 @@ function ResourceSection({
 
   const totalCost = resources.reduce((sum, r) => {
     const hours = (phase.workingDays || 0) * 8 * (r.allocation / 100);
-    return sum + (hours * r.hourlyRate);
+    return sum + hours * r.hourlyRate;
   }, 0);
 
   return (
@@ -637,9 +638,7 @@ function ResourceSection({
             Team ({resources.length})
           </h3>
           {totalCost > 0 && (
-            <p className="text-sm text-gray-500 mt-0.5">
-              Cost: {formatCurrency(totalCost, "MYR")}
-            </p>
+            <p className="text-sm text-gray-500 mt-0.5">Cost: {formatCurrency(totalCost, "MYR")}</p>
           )}
         </div>
         <Button
@@ -682,18 +681,29 @@ function ResourceSection({
       {resources.length > 0 ? (
         <div className="space-y-3">
           {resources.map((resource, idx) => {
-            const roleConfig = ROLE_CONFIG[resource.role] || { name: resource.role, icon: "👤", color: "gray" };
+            const roleConfig = ROLE_CONFIG[resource.role] || {
+              name: resource.role,
+              icon: "👤",
+              color: "gray",
+            };
             const hours = (phase.workingDays || 0) * 8 * (resource.allocation / 100);
             const cost = hours * resource.hourlyRate;
 
             return (
-              <div key={idx} className="p-3 bg-gray-50 rounded-xl border border-gray-200 group hover:border-gray-300 transition-colors">
+              <div
+                key={idx}
+                className="p-3 bg-gray-50 rounded-xl border border-gray-200 group hover:border-gray-300 transition-colors"
+              >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <span className="text-lg flex-shrink-0">{roleConfig.icon}</span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-gray-900 truncate">{roleConfig.name}</div>
-                      <div className="text-sm text-gray-500 truncate">{formatCurrency(cost, "MYR")}</div>
+                      <div className="text-sm font-medium text-gray-900 truncate">
+                        {roleConfig.name}
+                      </div>
+                      <div className="text-sm text-gray-500 truncate">
+                        {formatCurrency(cost, "MYR")}
+                      </div>
                     </div>
                   </div>
                   <button
@@ -742,7 +752,6 @@ function ResourceSection({
   );
 }
 
-
 // Task Section Component
 function TaskSection({
   phase,
@@ -750,7 +759,7 @@ function TaskSection({
   onTaskUpdate,
 }: {
   phase: Phase;
-  updatePhase:unknown;
+  updatePhase: unknown;
   onTaskUpdate: (tasks: Task[]) => void;
 }) {
   const tasks = phase.tasks || [];
@@ -761,15 +770,23 @@ function TaskSection({
     description: "",
   });
 
-  const phaseStartDate = phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, 'ABMY');
-  const phaseEndDate = phase.endDate || addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), 'ABMY');
+  const phaseStartDate =
+    phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, "ABMY");
+  const phaseEndDate =
+    phase.endDate ||
+    addWorkingDays(
+      PROJECT_BASE_DATE,
+      (phase.startBusinessDay || 0) + (phase.workingDays || 0),
+      "ABMY"
+    );
 
   const handleAddTask = () => {
     if (!newTask.name || !newTask.workingDays) return;
 
     // Default task dates to phase start
     const taskStartDate = newTask.startDate || phaseStartDate;
-    const taskEndDate = newTask.endDate || addWorkingDays(taskStartDate, newTask.workingDays, 'ABMY');
+    const taskEndDate =
+      newTask.endDate || addWorkingDays(taskStartDate, newTask.workingDays, "ABMY");
 
     // Validate dates are within phase boundaries
     if (isBefore(taskStartDate, phaseStartDate) || isAfter(taskEndDate, phaseEndDate)) {
@@ -817,7 +834,7 @@ function TaskSection({
 
       // Recalculate working days if dates changed
       if (merged.startDate && merged.endDate) {
-        merged.workingDays = calculateWorkingDays(merged.startDate, merged.endDate, 'ABMY');
+        merged.workingDays = calculateWorkingDays(merged.startDate, merged.endDate, "ABMY");
       }
 
       return merged;
@@ -859,11 +876,15 @@ function TaskSection({
               <label className="text-xs text-gray-600 mb-1 block">Start Date</label>
               <input
                 type="date"
-                value={newTask.startDate ? format(newTask.startDate, 'yyyy-MM-dd') : format(phaseStartDate, 'yyyy-MM-dd')}
-                min={format(phaseStartDate, 'yyyy-MM-dd')}
-                max={format(phaseEndDate, 'yyyy-MM-dd')}
+                value={
+                  newTask.startDate
+                    ? format(newTask.startDate, "yyyy-MM-dd")
+                    : format(phaseStartDate, "yyyy-MM-dd")
+                }
+                min={format(phaseStartDate, "yyyy-MM-dd")}
+                max={format(phaseEndDate, "yyyy-MM-dd")}
                 onChange={(e) => {
-                  const date = parse(e.target.value, 'yyyy-MM-dd', new Date());
+                  const date = parse(e.target.value, "yyyy-MM-dd", new Date());
                   if (isValid(date)) {
                     setNewTask({ ...newTask, startDate: date });
                   }
@@ -881,7 +902,7 @@ function TaskSection({
                 onChange={(e) => {
                   const days = parseInt(e.target.value, 10);
                   const startDate = newTask.startDate || phaseStartDate;
-                  const endDate = addWorkingDays(startDate, days, 'ABMY');
+                  const endDate = addWorkingDays(startDate, days, "ABMY");
                   setNewTask({ ...newTask, workingDays: days, endDate });
                 }}
                 className="w-full px-3 py-2.5 border border-blue-300 rounded-lg text-sm"
@@ -935,7 +956,9 @@ function TaskSection({
         <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-300">
           <Flag className="w-8 h-8 text-gray-400 mx-auto mb-2" />
           <p className="text-sm text-gray-500">No tasks added yet</p>
-          <p className="text-xs text-gray-400 mt-1">Break down this phase into smaller milestones</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Break down this phase into smaller milestones
+          </p>
         </div>
       )}
     </div>
@@ -956,29 +979,53 @@ function TaskRow({
 }) {
   const [isEditing, setIsEditing] = useState(false);
 
-  const phaseStartDate = phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, 'ABMY');
-  const phaseEndDate = phase.endDate || addWorkingDays(PROJECT_BASE_DATE, (phase.startBusinessDay || 0) + (phase.workingDays || 0), 'ABMY');
+  const phaseStartDate =
+    phase.startDate || addWorkingDays(PROJECT_BASE_DATE, phase.startBusinessDay || 0, "ABMY");
+  const phaseEndDate =
+    phase.endDate ||
+    addWorkingDays(
+      PROJECT_BASE_DATE,
+      (phase.startBusinessDay || 0) + (phase.workingDays || 0),
+      "ABMY"
+    );
 
   // Calculate task position within phase (for visual bar)
   const taskStart = task.startDate || phaseStartDate;
-  const taskEnd = task.endDate || addWorkingDays(taskStart, task.workingDays || 1, 'ABMY');
-  const phaseDuration = calculateWorkingDays(phaseStartDate, phaseEndDate, 'ABMY');
-  const taskOffsetDays = calculateWorkingDays(phaseStartDate, taskStart, 'ABMY');
+  const taskEnd = task.endDate || addWorkingDays(taskStart, task.workingDays || 1, "ABMY");
+  const phaseDuration = calculateWorkingDays(phaseStartDate, phaseEndDate, "ABMY");
+  const taskOffsetDays = calculateWorkingDays(phaseStartDate, taskStart, "ABMY");
   const taskPositionPercent = (taskOffsetDays / phaseDuration) * 100;
   const taskWidthPercent = ((task.workingDays || 1) / phaseDuration) * 100;
 
   // Status color mapping
   const statusConfig = {
-    not_started: { bg: 'bg-gray-100', border: 'border-gray-300', text: 'text-gray-600', dot: 'bg-gray-400' },
-    in_progress: { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', dot: 'bg-blue-500' },
-    completed: { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-700', dot: 'bg-green-500' },
+    not_started: {
+      bg: "bg-gray-100",
+      border: "border-gray-300",
+      text: "text-gray-600",
+      dot: "bg-gray-400",
+    },
+    in_progress: {
+      bg: "bg-blue-50",
+      border: "border-blue-300",
+      text: "text-blue-700",
+      dot: "bg-blue-500",
+    },
+    completed: {
+      bg: "bg-green-50",
+      border: "border-green-300",
+      text: "text-green-700",
+      dot: "bg-green-500",
+    },
   };
 
-  const status = task.status || 'not_started';
+  const status = task.status || "not_started";
   const config = statusConfig[status];
 
   return (
-    <div className={`p-3 rounded-xl border ${config.border} ${config.bg} hover:shadow-md transition-all`}>
+    <div
+      className={`p-3 rounded-xl border ${config.border} ${config.bg} hover:shadow-md transition-all`}
+    >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -988,11 +1035,11 @@ function TaskRow({
           <div className="text-sm text-gray-500 ml-4">
             {task.startDate && task.endDate ? (
               <>
-                {format(task.startDate, 'MMM dd')} → {format(task.endDate, 'MMM dd')}
+                {format(task.startDate, "MMM dd")} → {format(task.endDate, "MMM dd")}
               </>
             ) : (
               <>
-                {task.workingDays || 1} day{(task.workingDays || 1) > 1 ? 's' : ''}
+                {task.workingDays || 1} day{(task.workingDays || 1) > 1 ? "s" : ""}
               </>
             )}
           </div>
@@ -1025,9 +1072,9 @@ function TaskRow({
       <div className="space-y-1.5">
         {/* Timeline ruler */}
         <div className="flex items-center justify-between text-sm text-gray-400 px-1">
-          <span className="truncate">{format(phaseStartDate, 'MMM dd')}</span>
+          <span className="truncate">{format(phaseStartDate, "MMM dd")}</span>
           <span className="text-xs text-gray-300 px-2">Duration: {phase.workingDays}d</span>
-          <span className="truncate">{format(phaseEndDate, 'MMM dd')}</span>
+          <span className="truncate">{format(phaseEndDate, "MMM dd")}</span>
         </div>
 
         {/* Task bar on timeline */}
@@ -1035,9 +1082,9 @@ function TaskRow({
           <div
             className={cn(
               "absolute top-0 h-full rounded-lg shadow-sm flex items-center justify-center",
-              status === 'not_started' && "bg-gradient-to-r from-gray-400 to-gray-600",
-              status === 'in_progress' && "bg-gradient-to-r from-blue-500 to-blue-700",
-              status === 'completed' && "bg-gradient-to-r from-green-500 to-green-700"
+              status === "not_started" && "bg-gradient-to-r from-gray-400 to-gray-600",
+              status === "in_progress" && "bg-gradient-to-r from-blue-500 to-blue-700",
+              status === "completed" && "bg-gradient-to-r from-green-500 to-green-700"
             )}
             style={{
               left: `${Math.max(0, taskPositionPercent)}%`,
@@ -1045,7 +1092,7 @@ function TaskRow({
             }}
           >
             <div className="text-xs font-semibold text-white px-2 truncate">
-              {task.workingDays || 1} day{(task.workingDays || 1) > 1 ? 's' : ''}
+              {task.workingDays || 1} day{(task.workingDays || 1) > 1 ? "s" : ""}
             </div>
           </div>
         </div>
@@ -1059,13 +1106,13 @@ function TaskRow({
               <label className="text-xs text-gray-600 mb-1 block">Start Date</label>
               <input
                 type="date"
-                value={task.startDate ? format(task.startDate, 'yyyy-MM-dd') : ''}
-                min={format(phaseStartDate, 'yyyy-MM-dd')}
-                max={format(phaseEndDate, 'yyyy-MM-dd')}
+                value={task.startDate ? format(task.startDate, "yyyy-MM-dd") : ""}
+                min={format(phaseStartDate, "yyyy-MM-dd")}
+                max={format(phaseEndDate, "yyyy-MM-dd")}
                 onChange={(e) => {
-                  const date = parse(e.target.value, 'yyyy-MM-dd', new Date());
+                  const date = parse(e.target.value, "yyyy-MM-dd", new Date());
                   if (isValid(date)) {
-                    const newEndDate = addWorkingDays(date, task.workingDays || 1, 'ABMY');
+                    const newEndDate = addWorkingDays(date, task.workingDays || 1, "ABMY");
                     onUpdate({ startDate: date, endDate: newEndDate });
                   }
                 }}
@@ -1082,7 +1129,7 @@ function TaskRow({
                 onChange={(e) => {
                   const days = parseInt(e.target.value, 10);
                   const startDate = task.startDate || phaseStartDate;
-                  const endDate = addWorkingDays(startDate, days, 'ABMY');
+                  const endDate = addWorkingDays(startDate, days, "ABMY");
                   onUpdate({ workingDays: days, endDate });
                 }}
                 className="w-full px-3 py-2.5 border border-gray-300 rounded text-xs"

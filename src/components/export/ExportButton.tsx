@@ -16,7 +16,12 @@ interface ExportButtonProps {
   fullWidth?: boolean;
 }
 
-export function ExportButton({ variant = "secondary", size = "sm", className, fullWidth }: ExportButtonProps) {
+export function ExportButton({
+  variant = "secondary",
+  size = "sm",
+  className,
+  fullWidth,
+}: ExportButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
   const { phases, getProjectCost } = useTimelineStore();
   const { chips, decisions } = usePresalesStore();
@@ -42,17 +47,19 @@ export function ExportButton({ variant = "secondary", size = "sm", className, fu
         totalDuration,
         metadata: {
           generatedAt: new Date(),
-          generatedBy: 'Keystone',
-          version: '1.0.0',
+          generatedBy: "Keystone",
+          version: "1.0.0",
         },
       };
 
       await exportToExcel(exportData);
 
-      showSuccess(`Excel file downloaded successfully! Contains ${phases.length} phases and ${chips.length} requirements.`);
+      showSuccess(
+        `Excel file downloaded successfully! Contains ${phases.length} phases and ${chips.length} requirements.`
+      );
     } catch (error) {
-      console.error('[ExportButton] Export failed:', error);
-      showError('Failed to export to Excel. Please try again.');
+      console.error("[ExportButton] Export failed:", error);
+      showError("Failed to export to Excel. Please try again.");
     } finally {
       setIsExporting(false);
     }
@@ -64,7 +71,13 @@ export function ExportButton({ variant = "secondary", size = "sm", className, fu
       size={size}
       onClick={handleExport}
       disabled={isExporting || phases.length === 0}
-      leftIcon={isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />}
+      leftIcon={
+        isExporting ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <FileSpreadsheet className="w-4 h-4" />
+        )
+      }
       className={cn(fullWidth && "w-full", className)}
     >
       {isExporting ? "Exporting..." : "Export to Excel"}
@@ -101,16 +114,16 @@ export function ExportIconButton({ className }: { className?: string }) {
         totalDuration,
         metadata: {
           generatedAt: new Date(),
-          generatedBy: 'Keystone',
-          version: '1.0.0',
+          generatedBy: "Keystone",
+          version: "1.0.0",
         },
       };
 
       await exportToExcel(exportData);
       showSuccess("Excel exported!");
     } catch (error) {
-      console.error('[ExportIconButton] Export failed:', error);
-      showError('Export failed');
+      console.error("[ExportIconButton] Export failed:", error);
+      showError("Export failed");
     } finally {
       setIsExporting(false);
     }

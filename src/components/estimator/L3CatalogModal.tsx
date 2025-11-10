@@ -10,16 +10,16 @@
  * - Selected count and coefficient impact preview
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo, useCallback } from 'react';
-import { Modal, Input, Select, Checkbox, Button, Typography, Space, Divider } from 'antd';
-import { SearchOutlined, FilterOutlined } from '@ant-design/icons';
-import { List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
-import { useQuery } from '@tanstack/react-query';
-import { TierBadge } from './TierBadge';
-import type { L3ScopeItem } from '@/lib/estimator/types';
+import { useState, useMemo, useCallback } from "react";
+import { Modal, Input, Select, Checkbox, Button, Typography, Space, Divider } from "antd";
+import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
+import { List } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { useQuery } from "@tanstack/react-query";
+import { TierBadge } from "./TierBadge";
+import type { L3ScopeItem } from "@/lib/estimator/types";
 
 const { Text } = Typography;
 
@@ -35,19 +35,19 @@ interface L3ItemWithLob extends L3ScopeItem {
 }
 
 export function L3CatalogModal({ open, onClose, selectedItems, onApply }: L3CatalogModalProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterLob, setFilterLob] = useState<string>('all');
-  const [filterTier, setFilterTier] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterLob, setFilterLob] = useState<string>("all");
+  const [filterTier, setFilterTier] = useState<string>("all");
   const [tempSelected, setTempSelected] = useState<Set<string>>(
     new Set(selectedItems.map((item) => item.id))
   );
 
   // Fetch L3 catalog from API
   const { data: catalogData, isLoading } = useQuery({
-    queryKey: ['l3-catalog'],
+    queryKey: ["l3-catalog"],
     queryFn: async () => {
-      const res = await fetch('/api/l3-catalog?includeMetrics=true');
-      if (!res.ok) throw new Error('Failed to fetch L3 catalog');
+      const res = await fetch("/api/l3-catalog?includeMetrics=true");
+      if (!res.ok) throw new Error("Failed to fetch L3 catalog");
       return res.json() as Promise<{ items: L3ItemWithLob[] }>;
     },
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
@@ -73,10 +73,10 @@ export function L3CatalogModal({ open, onClose, selectedItems, onApply }: L3Cata
       }
 
       // LOB filter
-      if (filterLob !== 'all' && item.lobName !== filterLob) return false;
+      if (filterLob !== "all" && item.lobName !== filterLob) return false;
 
       // Tier filter
-      if (filterTier !== 'all' && item.complexityMetrics?.defaultTier !== filterTier) {
+      if (filterTier !== "all" && item.complexityMetrics?.defaultTier !== filterTier) {
         return false;
       }
 
@@ -88,12 +88,12 @@ export function L3CatalogModal({ open, onClose, selectedItems, onApply }: L3Cata
   const impactPreview = useMemo(() => {
     const selectedItemsFromCatalog = items.filter((item) => tempSelected.has(item.id));
     const totalCoefficient = selectedItemsFromCatalog.reduce((sum, item) => {
-      if (item.complexityMetrics?.defaultTier === 'D') return sum;
+      if (item.complexityMetrics?.defaultTier === "D") return sum;
       return sum + (item.complexityMetrics?.coefficient || 0);
     }, 0);
 
     const tierDCount = selectedItemsFromCatalog.filter(
-      (item) => item.complexityMetrics?.defaultTier === 'D'
+      (item) => item.complexityMetrics?.defaultTier === "D"
     ).length;
 
     return {
@@ -132,7 +132,11 @@ export function L3CatalogModal({ open, onClose, selectedItems, onApply }: L3Cata
 
   // Row renderer for virtual list
   const Row = useCallback(
-    ({ index, style, ariaAttributes }: {
+    ({
+      index,
+      style,
+      ariaAttributes,
+    }: {
       index: number;
       style: React.CSSProperties;
       ariaAttributes?: { [key: string]: any };
@@ -148,15 +152,21 @@ export function L3CatalogModal({ open, onClose, selectedItems, onApply }: L3Cata
           onClick={() => toggleItem(item.id)}
         >
           <Checkbox checked={isSelected} onChange={() => toggleItem(item.id)} />
-          <Text className="ml-2 font-mono text-xs text-gray-600" style={{ width: '80px' }}>
+          <Text className="ml-2 font-mono text-xs text-gray-600" style={{ width: "80px" }}>
             {item.l3Code}
           </Text>
           <Text className="ml-2 flex-1" ellipsis={{ tooltip: item.l3Name }}>
             {item.l3Name}
           </Text>
-          <TierBadge tier={item.complexityMetrics?.defaultTier as 'A' | 'B' | 'C' | 'D'} showTooltip />
-          <Text className="ml-2 text-gray-500 text-xs" style={{ width: '60px', textAlign: 'right' }}>
-            {item.complexityMetrics?.coefficient?.toFixed(3) || 'N/A'}
+          <TierBadge
+            tier={item.complexityMetrics?.defaultTier as "A" | "B" | "C" | "D"}
+            showTooltip
+          />
+          <Text
+            className="ml-2 text-gray-500 text-xs"
+            style={{ width: "60px", textAlign: "right" }}
+          >
+            {item.complexityMetrics?.coefficient?.toFixed(3) || "N/A"}
           </Text>
         </div>
       );
@@ -180,11 +190,11 @@ export function L3CatalogModal({ open, onClose, selectedItems, onApply }: L3Cata
         </Button>,
       ]}
       styles={{
-        body: { height: '600px', display: 'flex', flexDirection: 'column' },
+        body: { height: "600px", display: "flex", flexDirection: "column" },
       }}
     >
       {/* Search and Filters */}
-      <Space className="mb-4" style={{ width: '100%' }}>
+      <Space className="mb-4" style={{ width: "100%" }}>
         <Input
           placeholder="Search by code or name..."
           prefix={<SearchOutlined />}

@@ -10,17 +10,21 @@
  * - Save and export functionality
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, DatePicker, Button, Space, Typography, Alert } from 'antd';
-import { SaveOutlined, ExportOutlined, CalendarOutlined } from '@ant-design/icons';
-import { VisGanttChart } from '@/components/timeline/VisGanttChart';
-import { ResourceTable, DEFAULT_RESOURCES, type ResourceAllocation } from '@/components/timeline/ResourceTable';
-import { SyncControls } from '@/components/timeline/SyncControls';
-import { useEstimatorStore } from '@/stores/estimator-store';
-import type { PhaseBreakdown } from '@/lib/estimator/types';
-import dayjs, { Dayjs } from 'dayjs';
+import { useState, useEffect } from "react";
+import { Card, DatePicker, Button, Space, Typography, Alert } from "antd";
+import { SaveOutlined, ExportOutlined, CalendarOutlined } from "@ant-design/icons";
+import { VisGanttChart } from "@/components/timeline/VisGanttChart";
+import {
+  ResourceTable,
+  DEFAULT_RESOURCES,
+  type ResourceAllocation,
+} from "@/components/timeline/ResourceTable";
+import { SyncControls } from "@/components/timeline/SyncControls";
+import { useEstimatorStore } from "@/stores/estimator-store";
+import type { PhaseBreakdown } from "@/lib/estimator/types";
+import dayjs, { Dayjs } from "dayjs";
 
 const { Title, Text } = Typography;
 
@@ -32,19 +36,19 @@ export default function TimelinePage() {
   const [syncInProgress, setSyncInProgress] = useState(false);
 
   // Get estimator results
-  const estimatorResults = useEstimatorStore(state => state.results);
-  const hasEstimatorResults = useEstimatorStore(state => state.results !== null);
+  const estimatorResults = useEstimatorStore((state) => state.results);
+  const hasEstimatorResults = useEstimatorStore((state) => state.results !== null);
 
   // Sync phases from estimator when results change (if not locked)
   useEffect(() => {
     if (estimatorResults?.phases && !isLocked) {
-      console.log('[Timeline] Syncing phases from estimator:', estimatorResults.phases.length);
+      console.warn("[Timeline] Syncing phases from estimator:", estimatorResults.phases.length);
       setPhases(estimatorResults.phases);
 
       // Recalculate resource costs based on new phases
-      const updatedResources = resources.map(r => ({
+      const updatedResources = resources.map((r) => ({
         ...r,
-        totalCost: calculateResourceCost(r, estimatorResults.phases)
+        totalCost: calculateResourceCost(r, estimatorResults.phases),
       }));
       setResources(updatedResources);
     }
@@ -55,9 +59,7 @@ export default function TimelinePage() {
     resource: ResourceAllocation,
     phaseData: PhaseBreakdown[]
   ): number => {
-    const relevantPhases = phaseData.filter(p =>
-      resource.phases.includes(p.phaseName)
-    );
+    const relevantPhases = phaseData.filter((p) => resource.phases.includes(p.phaseName));
     const totalMonths = relevantPhases.reduce((sum, p) => sum + p.durationMonths, 0);
     return resource.fte * resource.ratePerDay * 22 * totalMonths;
   };
@@ -86,9 +88,9 @@ export default function TimelinePage() {
     setPhases(updatedPhases);
 
     // Recalculate resource costs
-    const updatedResources = resources.map(r => ({
+    const updatedResources = resources.map((r) => ({
       ...r,
-      totalCost: calculateResourceCost(r, updatedPhases)
+      totalCost: calculateResourceCost(r, updatedPhases),
     }));
     setResources(updatedResources);
   };
@@ -99,16 +101,16 @@ export default function TimelinePage() {
 
   // Calculate project end date
   const getProjectEndDate = (): string => {
-    if (phases.length === 0) return 'N/A';
+    if (phases.length === 0) return "N/A";
 
     const totalMonths = phases.reduce((sum, p) => sum + p.durationMonths, 0);
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + totalMonths);
 
-    return endDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return endDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -147,13 +149,9 @@ export default function TimelinePage() {
           </Space>
         }
         className="mb-4"
-        extra={
-          <Text type="secondary">
-            End Date: {getProjectEndDate()}
-          </Text>
-        }
+        extra={<Text type="secondary">End Date: {getProjectEndDate()}</Text>}
       >
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+        <Space direction="vertical" style={{ width: "100%" }} size="middle">
           {/* Controls Row */}
           <div className="flex items-center justify-between">
             <DatePicker
@@ -182,8 +180,8 @@ export default function TimelinePage() {
             <div className="text-center py-12 border rounded bg-white">
               <Text type="secondary">
                 {hasEstimatorResults
-                  ? 'No phases available. Please run the estimator calculation.'
-                  : 'Configure the estimator to generate timeline phases.'}
+                  ? "No phases available. Please run the estimator calculation."
+                  : "Configure the estimator to generate timeline phases."}
               </Text>
             </div>
           )}
@@ -191,10 +189,7 @@ export default function TimelinePage() {
       </Card>
 
       {/* Resource Allocation Card */}
-      <Card
-        title="Resource Allocation"
-        className="mb-4"
-      >
+      <Card title="Resource Allocation" className="mb-4">
         <ResourceTable
           resources={resources}
           onResourcesChange={handleResourcesChange}
@@ -204,19 +199,10 @@ export default function TimelinePage() {
 
       {/* Action Buttons */}
       <div className="flex gap-2">
-        <Button
-          type="primary"
-          size="large"
-          icon={<SaveOutlined />}
-          disabled={phases.length === 0}
-        >
+        <Button type="primary" size="large" icon={<SaveOutlined />} disabled={phases.length === 0}>
           Save Timeline
         </Button>
-        <Button
-          size="large"
-          icon={<ExportOutlined />}
-          disabled={phases.length === 0}
-        >
+        <Button size="large" icon={<ExportOutlined />} disabled={phases.length === 0}>
           Export Schedule
         </Button>
       </div>

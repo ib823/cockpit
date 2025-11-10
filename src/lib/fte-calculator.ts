@@ -10,7 +10,7 @@ import { RATE_CARDS } from "@/data/resource-catalog";
 export interface FTECalculation {
   phaseId: string;
   phaseName: string;
-  sapActivatePhase: 'Prepare' | 'Explore' | 'Realize' | 'Deploy' | 'Run';
+  sapActivatePhase: "Prepare" | "Explore" | "Realize" | "Deploy" | "Run";
 
   // Input
   totalEffort: number; // mandays
@@ -36,7 +36,7 @@ export interface FTECalculation {
 export interface ResourceBooking {
   role: string;
   skillsets: string[];
-  criticality: 'must-have' | 'recommended' | 'optional';
+  criticality: "must-have" | "recommended" | "optional";
 
   // Effort
   effortDays: number; // mandays required
@@ -60,7 +60,7 @@ export interface ResourceBooking {
   totalCost: number;
 
   // Booking Status
-  status: 'planned' | 'booking_required' | 'booked' | 'confirmed';
+  status: "planned" | "booking_required" | "booked" | "confirmed";
 }
 
 interface CalculatorConfig {
@@ -72,16 +72,13 @@ interface CalculatorConfig {
 const DEFAULT_CONFIG: CalculatorConfig = {
   standardUtilization: 85,
   workingHoursPerDay: 8,
-  region: 'ABMY'
+  region: "ABMY",
 };
 
 /**
  * Calculate FTE requirements for a phase
  */
-export function calculateFTE(
-  phase: Phase,
-  config: Partial<CalculatorConfig> = {}
-): FTECalculation {
+export function calculateFTE(phase: Phase, config: Partial<CalculatorConfig> = {}): FTECalculation {
   const fullConfig = { ...DEFAULT_CONFIG, ...config };
 
   const totalEffort = phase.effort || 0;
@@ -118,7 +115,8 @@ export function calculateFTE(
 
   // 7. Calculate totals
   const totalHeadcount = resourceBookings.reduce((sum, rb) => sum + rb.headcount, 0);
-  const avgUtilization = resourceBookings.reduce((sum, rb) => sum + rb.utilizationPercent, 0) / resourceBookings.length;
+  const avgUtilization =
+    resourceBookings.reduce((sum, rb) => sum + rb.utilizationPercent, 0) / resourceBookings.length;
   const totalCost = resourceBookings.reduce((sum, rb) => sum + rb.totalCost, 0);
 
   // 8. Generate warnings and recommendations
@@ -155,7 +153,7 @@ function buildResourceBookings(
 ): ResourceBooking[] {
   const rateCard = RATE_CARDS[config.region as keyof typeof RATE_CARDS] || RATE_CARDS.ABMY;
 
-  return skillsetReqs.map(req => {
+  return skillsetReqs.map((req) => {
     // Calculate effort for this role
     const effortDays = (totalEffort * req.effortPercent) / 100;
 
@@ -169,7 +167,7 @@ function buildResourceBookings(
     const utilizationPercent = (fte / headcount) * 100;
 
     // Get hourly rate
-    const roleKey = req.role.toLowerCase().replace(/\s+/g, '_') as keyof typeof rateCard;
+    const roleKey = req.role.toLowerCase().replace(/\s+/g, "_") as keyof typeof rateCard;
     const hourlyRate = (rateCard[roleKey as keyof typeof rateCard] as number) || 100;
 
     // Calculate total cost
@@ -190,7 +188,7 @@ function buildResourceBookings(
       utilizationPercent,
       hourlyRate,
       totalCost,
-      status: 'planned' as const,
+      status: "planned" as const,
     };
   });
 }
@@ -221,8 +219,8 @@ function generateWarnings(
   }
 
   // Check individual resource utilization
-  resourceBookings.forEach(rb => {
-    if (rb.utilizationPercent < 40 && rb.criticality === 'must-have') {
+  resourceBookings.forEach((rb) => {
+    if (rb.utilizationPercent < 40 && rb.criticality === "must-have") {
       warnings.push(
         `${rb.role} is under-utilized (${rb.utilizationPercent.toFixed(0)}%) - consider part-time allocation or combining with other phases`
       );
@@ -236,7 +234,7 @@ function generateWarnings(
   });
 
   // Check for missing critical resources
-  const hasMustHave = resourceBookings.some(rb => rb.criticality === 'must-have');
+  const hasMustHave = resourceBookings.some((rb) => rb.criticality === "must-have");
   if (!hasMustHave) {
     warnings.push(`No must-have roles identified - verify skillset requirements`);
   }
@@ -255,17 +253,17 @@ function generateRecommendations(
 
   // Check for optimization opportunities
   const underutilized = resourceBookings.filter(
-    rb => rb.utilizationPercent < 50 && rb.criticality !== 'must-have'
+    (rb) => rb.utilizationPercent < 50 && rb.criticality !== "must-have"
   );
 
   if (underutilized.length > 0) {
     recommendations.push(
-      `Consider making these roles part-time: ${underutilized.map(r => r.role).join(', ')}`
+      `Consider making these roles part-time: ${underutilized.map((r) => r.role).join(", ")}`
     );
   }
 
   // Check for team composition balance
-  const mustHaveCount = resourceBookings.filter(rb => rb.criticality === 'must-have').length;
+  const mustHaveCount = resourceBookings.filter((rb) => rb.criticality === "must-have").length;
   const totalCount = resourceBookings.length;
 
   if (mustHaveCount < totalCount * 0.5) {
@@ -275,10 +273,10 @@ function generateRecommendations(
   }
 
   // Duration recommendations
-  if (warnings.some(w => w.includes('over-allocated'))) {
-    const overallocated = resourceBookings.filter(rb => rb.utilizationPercent > 95);
+  if (warnings.some((w) => w.includes("over-allocated"))) {
+    const overallocated = resourceBookings.filter((rb) => rb.utilizationPercent > 95);
     const additionalDays = Math.ceil(
-      Math.max(...overallocated.map(rb => (rb.effortDays / 0.85) - rb.workingDays))
+      Math.max(...overallocated.map((rb) => rb.effortDays / 0.85 - rb.workingDays))
     );
     recommendations.push(
       `Consider extending phase by ${additionalDays} days to reduce over-allocation`
@@ -286,7 +284,7 @@ function generateRecommendations(
   }
 
   // Parallel work recommendations
-  if (warnings.some(w => w.includes('parallel workstreams'))) {
+  if (warnings.some((w) => w.includes("parallel workstreams"))) {
     recommendations.push(
       `Split into 2-3 parallel workstreams with clear dependencies to accelerate delivery`
     );
@@ -299,8 +297,10 @@ function generateRecommendations(
  * Extract SAP Activate phase from category
  * Examples: "Finance - Prepare", "SCM - Explore" → "Prepare", "Explore"
  */
-function extractSAPActivatePhase(category: string): 'Prepare' | 'Explore' | 'Realize' | 'Deploy' | 'Run' {
-  const phases = ['Prepare', 'Explore', 'Realize', 'Deploy', 'Run'] as const;
+function extractSAPActivatePhase(
+  category: string
+): "Prepare" | "Explore" | "Realize" | "Deploy" | "Run" {
+  const phases = ["Prepare", "Explore", "Realize", "Deploy", "Run"] as const;
 
   for (const phase of phases) {
     if (category.includes(phase)) {
@@ -308,7 +308,7 @@ function extractSAPActivatePhase(category: string): 'Prepare' | 'Explore' | 'Rea
     }
   }
 
-  return 'Realize'; // Default fallback
+  return "Realize"; // Default fallback
 }
 
 /**
@@ -324,12 +324,12 @@ function extractModuleId(phaseId: string, category: string): string {
 
   // Map category to module ID
   const categoryMap: Record<string, string> = {
-    'Finance': 'sap-fico',
-    'Procurement': 'sap-mm',
-    'SCM': 'sap-mm',
-    'Sales': 'sap-sd',
-    'Technical': 'sap-basis',
-    'HCM': 'sap-hcm',
+    Finance: "sap-fico",
+    Procurement: "sap-mm",
+    SCM: "sap-mm",
+    Sales: "sap-sd",
+    Technical: "sap-basis",
+    HCM: "sap-hcm",
   };
 
   for (const [key, moduleId] of Object.entries(categoryMap)) {
@@ -338,7 +338,7 @@ function extractModuleId(phaseId: string, category: string): string {
     }
   }
 
-  return 'sap-fico'; // Default fallback
+  return "sap-fico"; // Default fallback
 }
 
 /**
@@ -348,7 +348,7 @@ function createEmptyCalculation(phase: Phase): FTECalculation {
   return {
     phaseId: phase.id,
     phaseName: phase.name,
-    sapActivatePhase: 'Prepare',
+    sapActivatePhase: "Prepare",
     totalEffort: 0,
     phaseDuration: 0,
     rawFTE: 0,
@@ -357,8 +357,8 @@ function createEmptyCalculation(phase: Phase): FTECalculation {
     totalHeadcount: 0,
     avgUtilization: 0,
     totalCost: 0,
-    warnings: ['Phase has no duration - cannot calculate FTE'],
-    recommendations: ['Add working days to phase to enable FTE calculation'],
+    warnings: ["Phase has no duration - cannot calculate FTE"],
+    recommendations: ["Add working days to phase to enable FTE calculation"],
   };
 }
 
@@ -369,7 +369,7 @@ export function calculateTimelineFTE(
   phases: Phase[],
   config: Partial<CalculatorConfig> = {}
 ): FTECalculation[] {
-  return phases.map(phase => calculateFTE(phase, config));
+  return phases.map((phase) => calculateFTE(phase, config));
 }
 
 /**
@@ -385,21 +385,19 @@ export interface TimelineFTESummary {
   warningCount: number;
 }
 
-export function calculateTimelineFTESummary(
-  calculations: FTECalculation[]
-): TimelineFTESummary {
+export function calculateTimelineFTESummary(calculations: FTECalculation[]): TimelineFTESummary {
   const totalEffort = calculations.reduce((sum, c) => sum + c.totalEffort, 0);
 
   // Duration is NOT sum (phases may overlap), use max end date
-  const maxDuration = Math.max(...calculations.map(c => c.phaseDuration), 0);
+  const maxDuration = Math.max(...calculations.map((c) => c.phaseDuration), 0);
 
   const avgFTE = calculations.reduce((sum, c) => sum + c.adjustedFTE, 0) / calculations.length;
-  const peakFTE = Math.max(...calculations.map(c => c.adjustedFTE), 0);
+  const peakFTE = Math.max(...calculations.map((c) => c.adjustedFTE), 0);
 
   // Deduplicate headcount by role
   const allRoles = new Set<string>();
-  calculations.forEach(c => {
-    c.resourceBookings.forEach(rb => {
+  calculations.forEach((c) => {
+    c.resourceBookings.forEach((rb) => {
       allRoles.add(rb.role);
     });
   });

@@ -1,15 +1,15 @@
-'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Modal, Button } from 'antd';
-import { LogoutOutlined } from '@ant-design/icons';
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Modal, Button } from "antd";
+import { LogoutOutlined } from "@ant-design/icons";
 
-export function LogoutButton({ 
-  variant = 'button',
-  theme = 'light' 
-}: { 
-  variant?: 'button' | 'menu-item';
-  theme?: 'light' | 'dark';
+export function LogoutButton({
+  variant = "button",
+  theme = "light",
+}: {
+  variant?: "button" | "menu-item";
+  theme?: "light" | "dark";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -19,27 +19,27 @@ export function LogoutButton({
     setLoading(true);
     try {
       // Call logout endpoint
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch("/api/auth/logout", { method: "POST" });
 
       // SECURITY: Clear all local storage and session storage
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.clear();
         sessionStorage.clear();
       }
 
       // SECURITY: Use replace instead of push to prevent back button from returning
       // Also add timestamp to prevent caching
-      router.replace('/login?logged_out=' + Date.now());
+      router.replace("/login?logged_out=" + Date.now());
 
       // SECURITY: Reload to clear any in-memory state
-      window.location.href = '/login';
+      window.location.href = "/login";
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
       setLoading(false);
     }
   };
 
-  if (variant === 'menu-item') {
+  if (variant === "menu-item") {
     return <a onClick={() => setOpen(true)}>Logout</a>;
   }
 
@@ -48,7 +48,7 @@ export function LogoutButton({
       <Button icon={<LogoutOutlined />} onClick={() => setOpen(true)}>
         Logout
       </Button>
-      
+
       <Modal
         title="Logout?"
         open={open}
@@ -58,14 +58,9 @@ export function LogoutButton({
           <Button key="cancel" onClick={() => setOpen(false)}>
             Cancel
           </Button>,
-          <Button 
-            key="logout" 
-            type="primary" 
-            loading={loading}
-            onClick={handleLogout}
-          >
+          <Button key="logout" type="primary" loading={loading} onClick={handleLogout}>
             Logout
-          </Button>
+          </Button>,
         ]}
       >
         <p>Are you sure you want to logout?</p>

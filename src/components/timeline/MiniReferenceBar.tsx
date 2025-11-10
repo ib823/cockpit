@@ -1,12 +1,12 @@
 "use client";
 
-import { SAP_ACTIVATE_PHASES } from '@/types/wrappers';
-import { useWrappersStore } from '@/stores/wrappers-store';
-import { useTimelineStore } from '@/stores/timeline-store';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
-import { useEffect } from 'react';
+import { SAP_ACTIVATE_PHASES } from "@/types/wrappers";
+import { useWrappersStore } from "@/stores/wrappers-store";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import { useEffect } from "react";
 
 export function MiniReferenceBar() {
   const {
@@ -83,10 +83,7 @@ export function MiniReferenceBar() {
 
             return (
               <div key={wrapper.id} className="flex items-center gap-2">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: wrapper.color }}
-                />
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: wrapper.color }} />
                 <span className="text-xs text-gray-600">{wrapper.name}:</span>
                 <span className="text-xs font-semibold text-gray-900">
                   {calc.wrapperEffort.toFixed(0)} PD
@@ -109,7 +106,7 @@ export function MiniReferenceBar() {
             <div>
               <div className="text-xs text-gray-500">Total Cost</div>
               <div className="text-sm font-bold text-green-600">
-                {formatCurrency(grandTotalCost, 'MYR')}
+                {formatCurrency(grandTotalCost, "MYR")}
               </div>
             </div>
           </div>
@@ -133,7 +130,7 @@ export function MiniReferenceBar() {
         {showReference && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
@@ -155,9 +152,7 @@ export function MiniReferenceBar() {
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: wrapper.color }}
                         />
-                        <span className="text-xs font-medium text-gray-900">
-                          {wrapper.name}
-                        </span>
+                        <span className="text-xs font-medium text-gray-900">{wrapper.name}</span>
                       </div>
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500">
@@ -167,7 +162,7 @@ export function MiniReferenceBar() {
                           {calc.wrapperEffort.toFixed(0)} PD
                         </div>
                         <div className="text-xs text-gray-600">
-                          {formatCurrency(calc.wrapperCost, 'MYR')}
+                          {formatCurrency(calc.wrapperCost, "MYR")}
                         </div>
                       </div>
                     </div>

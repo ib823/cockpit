@@ -7,20 +7,20 @@
  * Per spec: Roadmap_and_DoD.md lines 117-142
  */
 
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export interface ExportOptions {
   fileName?: string;
   quality?: number; // 0-1, default 0.95
-  format?: 'a4' | 'letter' | '16:9';
+  format?: "a4" | "letter" | "16:9";
   includeMetadata?: boolean;
 }
 
 export interface ExportProgress {
   currentSlide: number;
   totalSlides: number;
-  status: 'preparing' | 'rendering' | 'generating' | 'complete' | 'error';
+  status: "preparing" | "rendering" | "generating" | "complete" | "error";
   message: string;
 }
 
@@ -33,34 +33,34 @@ export async function exportToPDF(
   onProgress?: (progress: ExportProgress) => void
 ): Promise<void> {
   const {
-    fileName = `presentation-${new Date().toISOString().split('T')[0]}.pdf`,
+    fileName = `presentation-${new Date().toISOString().split("T")[0]}.pdf`,
     quality = 0.95,
-    format = '16:9',
-    includeMetadata = true
+    format = "16:9",
+    includeMetadata = true,
   } = options;
 
   const totalSlides = slideElements.length;
 
   if (totalSlides === 0) {
-    throw new Error('No slides to export');
+    throw new Error("No slides to export");
   }
 
   try {
     onProgress?.({
       currentSlide: 0,
       totalSlides,
-      status: 'preparing',
-      message: 'Preparing PDF document...'
+      status: "preparing",
+      message: "Preparing PDF document...",
     });
 
     // Determine PDF dimensions
     let pdfWidth: number, pdfHeight: number;
-    let orientation: 'landscape' | 'portrait' = 'landscape';
+    let orientation: "landscape" | "portrait" = "landscape";
 
-    if (format === '16:9') {
+    if (format === "16:9") {
       pdfWidth = 297;
       pdfHeight = 167;
-    } else if (format === 'letter') {
+    } else if (format === "letter") {
       pdfWidth = 279.4;
       pdfHeight = 215.9;
     } else {
@@ -70,17 +70,17 @@ export async function exportToPDF(
 
     const pdf = new jsPDF({
       orientation,
-      unit: 'mm',
-      format: [pdfWidth, pdfHeight]
+      unit: "mm",
+      format: [pdfWidth, pdfHeight],
     });
 
     if (includeMetadata) {
       pdf.setProperties({
-        title: 'SAP Implementation Timeline',
-        subject: 'Project Timeline Presentation',
-        author: 'Keystone',
-        keywords: 'SAP, Timeline, Implementation',
-        creator: 'Keystone'
+        title: "SAP Implementation Timeline",
+        subject: "Project Timeline Presentation",
+        author: "Keystone",
+        keywords: "SAP, Timeline, Implementation",
+        creator: "Keystone",
       });
     }
 
@@ -89,8 +89,8 @@ export async function exportToPDF(
       onProgress?.({
         currentSlide: i + 1,
         totalSlides,
-        status: 'rendering',
-        message: `Rendering slide ${i + 1} of ${totalSlides}...`
+        status: "rendering",
+        message: `Rendering slide ${i + 1} of ${totalSlides}...`,
       });
 
       const slideElement = slideElements[i];
@@ -99,12 +99,12 @@ export async function exportToPDF(
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff',
+        backgroundColor: "#ffffff",
         windowWidth: slideElement.scrollWidth,
-        windowHeight: slideElement.scrollHeight
+        windowHeight: slideElement.scrollHeight,
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', quality);
+      const imgData = canvas.toDataURL("image/jpeg", quality);
       const imgWidth = pdfWidth;
       const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
@@ -112,14 +112,14 @@ export async function exportToPDF(
         pdf.addPage();
       }
 
-      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
     }
 
     onProgress?.({
       currentSlide: totalSlides,
       totalSlides,
-      status: 'generating',
-      message: 'Generating PDF file...'
+      status: "generating",
+      message: "Generating PDF file...",
     });
 
     pdf.save(fileName);
@@ -127,18 +127,17 @@ export async function exportToPDF(
     onProgress?.({
       currentSlide: totalSlides,
       totalSlides,
-      status: 'complete',
-      message: 'PDF exported successfully!'
+      status: "complete",
+      message: "PDF exported successfully!",
     });
-
   } catch (error) {
-    console.error('[PDFExporter] Export failed:', error);
+    console.error("[PDFExporter] Export failed:", error);
 
     onProgress?.({
       currentSlide: 0,
       totalSlides,
-      status: 'error',
-      message: error instanceof Error ? error.message : 'Failed to export PDF'
+      status: "error",
+      message: error instanceof Error ? error.message : "Failed to export PDF",
     });
 
     throw error;
@@ -146,10 +145,10 @@ export async function exportToPDF(
 }
 
 export function generatePDFFileName(projectName?: string, date = new Date()): string {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = date.toISOString().split("T")[0];
   const baseName = projectName
-    ? `${projectName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`
-    : 'sap-timeline';
+    ? `${projectName.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`
+    : "sap-timeline";
 
   return `${baseName}-${dateStr}.pdf`;
 }

@@ -1,14 +1,14 @@
-import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/nextauth-helpers';
-import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
+import { prisma } from "@/lib/db";
+import { getSession } from "@/lib/nextauth-helpers";
+import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function GET() {
   const session = await getSession();
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const user = await prisma.users.findUnique({
@@ -16,13 +16,13 @@ export async function GET() {
   });
 
   if (!user) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
   const projects = await prisma.projects.findMany({
     where: { ownerId: user.id },
     include: { chips: true, phases: true },
-    orderBy: { updatedAt: 'desc' },
+    orderBy: { updatedAt: "desc" },
   });
 
   return NextResponse.json(projects);
@@ -31,7 +31,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await getSession();
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const user = await prisma.users.findUnique({
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   });
 
   if (!user) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
   const data = await req.json();
@@ -47,9 +47,9 @@ export async function POST(req: Request) {
   const project = await prisma.projects.create({
     data: {
       id: randomUUID(),
-      name: data.name || 'Untitled Project',
+      name: data.name || "Untitled Project",
       ownerId: user.id,
-      status: 'DRAFT',
+      status: "DRAFT",
       updatedAt: new Date(),
     },
   });

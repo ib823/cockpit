@@ -12,6 +12,7 @@ openssl rand -base64 64
 ```
 
 **Set in production environment**:
+
 - Vercel: Settings → Environment Variables → Add `SESSION_SECRET`
 - Other platforms: Add to environment variables
 
@@ -32,18 +33,22 @@ openssl rand -base64 64
 ## 3. Configure Upstash Redis (15 minutes)
 
 ### Create Upstash Account
+
 1. Go to https://upstash.com/
 2. Create free account
 3. Create new Redis database
 4. Region: Choose closest to your app (e.g., `us-east-1`)
 
 ### Get Credentials
+
 1. Click your database
 2. Copy `UPSTASH_REDIS_REST_URL`
 3. Copy `UPSTASH_REDIS_REST_TOKEN`
 
 ### Set Environment Variables
+
 Add to production:
+
 ```
 UPSTASH_REDIS_REST_URL=https://your-db.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your-token-here
@@ -56,6 +61,7 @@ UPSTASH_REDIS_REST_TOKEN=your-token-here
 ## 4. Security Testing (30 minutes)
 
 ### Test Authentication Flow
+
 ```bash
 # 1. Login as regular user
 curl -X POST https://yourapp.com/api/auth/login \
@@ -70,6 +76,7 @@ curl https://yourapp.com/admin \
 ```
 
 ### Test Rate Limiting
+
 ```bash
 # Make 6 login attempts in 5 minutes (should get rate limited)
 for i in {1..6}; do
@@ -83,6 +90,7 @@ done
 ```
 
 ### Test Session Timeout
+
 ```bash
 # 1. Login
 # 2. Wait 11 minutes
@@ -91,6 +99,7 @@ done
 ```
 
 ### Test Session Revocation
+
 ```bash
 # 1. Login from browser
 # 2. Call revoke-all-sessions endpoint
@@ -102,6 +111,7 @@ curl -X POST https://yourapp.com/api/auth/revoke-all-sessions \
 ```
 
 ### Test Admin Protection
+
 ```bash
 # 1. Login as admin
 curl -X POST https://yourapp.com/api/auth/login \
@@ -124,6 +134,7 @@ LIMIT 10;
 ## 5. Environment Variables Checklist
 
 ### Required for Production
+
 - ✅ `SESSION_SECRET` (64+ characters)
 - ✅ `DATABASE_URL` (PostgreSQL connection string)
 - ✅ `UPSTASH_REDIS_REST_URL`
@@ -131,10 +142,12 @@ LIMIT 10;
 - ✅ `NEXT_PUBLIC_APP_URL` (your production URL)
 
 ### Optional (Email)
+
 - ⚪ `RESEND_API_KEY` (for magic link emails)
 - ⚪ `EMAIL_FROM` (sender email address)
 
 ### Check All Set
+
 ```bash
 # Vercel
 vercel env ls
@@ -148,12 +161,15 @@ printenv | grep -E "(SESSION_SECRET|DATABASE_URL|UPSTASH|APP_URL)"
 ## 6. Monitoring Setup (Post-Deployment)
 
 ### Set Up Logging
+
 Monitor these security events:
+
 - `[SECURITY] Unauthorized admin access attempt`
 - `[Session] Revoked session`
 - `[RateLimit] Too many requests`
 
 ### Database Queries for Monitoring
+
 ```sql
 -- Unauthorized admin access attempts (last 24h)
 SELECT * FROM "AuditEvent"
@@ -177,7 +193,9 @@ ORDER BY login_count DESC;
 ```
 
 ### Set Up Alerts
+
 Configure alerts for:
+
 1. **> 10 unauthorized admin access attempts in 1 hour**
 2. **> 100 rate limit violations in 1 hour**
 3. **> 5 session revocations for same user in 1 day**
@@ -228,20 +246,24 @@ du -sh .next/
 After deploying, verify:
 
 ### Public Routes (No Auth Required)
+
 - ✅ `GET /login` → Returns login page
 - ✅ `GET /banner-demo` → Returns banner demo
 
 ### Protected Routes (Auth Required)
+
 - ✅ `GET /` → Redirects to /login if not authenticated
 - ✅ `GET /admin` → Redirects to /login if not authenticated
 - ✅ `GET /project` → Redirects to /login if not authenticated
 
 ### Admin Routes (Admin Role Required)
+
 - ✅ `GET /admin` → Returns admin page for admin user
 - ✅ `GET /admin` → Redirects to / for regular user
 - ✅ `POST /api/admin/approve-email` → 403 for non-admin
 
 ### API Security
+
 - ✅ Rate limiting works (429 after 5 login attempts)
 - ✅ Session timeout works (invalid after 10 minutes)
 - ✅ Logout revokes session (cannot reuse token)
@@ -254,13 +276,16 @@ After deploying, verify:
 If a security incident occurs:
 
 ### Immediate Actions (< 5 minutes)
+
 1. **Revoke all sessions for affected user(s)**:
+
    ```bash
    curl -X POST https://yourapp.com/api/admin/users/{userId}/revoke-sessions \
      -H "Cookie: sb=admin-session-token"
    ```
 
 2. **Check audit logs**:
+
    ```sql
    SELECT * FROM "AuditEvent"
    WHERE "userId" = 'affected-user-id'
@@ -270,12 +295,14 @@ If a security incident occurs:
 3. **Block IP if needed** (add to firewall/WAF)
 
 ### Short-term Actions (< 1 hour)
+
 1. Rotate SESSION_SECRET (invalidates all sessions)
 2. Rotate database credentials
 3. Review recent login activity
 4. Notify affected users
 
 ### Long-term Actions (< 24 hours)
+
 1. Root cause analysis
 2. Implement additional controls if needed
 3. Update security documentation
@@ -286,6 +313,7 @@ If a security incident occurs:
 ## 11. Compliance Checklist
 
 ### Banking/Financial Services Requirements
+
 - ✅ Session timeout ≤ 10 minutes
 - ✅ Strong password hashing (bcrypt ≥ 12 rounds)
 - ✅ Rate limiting on authentication endpoints
@@ -296,6 +324,7 @@ If a security incident occurs:
 - ✅ Immediate session revocation capability
 
 ### PCI-DSS Requirements
+
 - ✅ Encryption in transit (HTTPS)
 - ✅ Strong cryptography (HS256, bcrypt)
 - ✅ Audit trails maintained
@@ -303,6 +332,7 @@ If a security incident occurs:
 - ✅ Access control implemented
 
 ### SOC 2 Requirements
+
 - ✅ Security controls documented
 - ✅ Audit logging implemented
 - ✅ Session management secure
@@ -334,13 +364,15 @@ Before going live, confirm:
 ## Emergency Contacts
 
 **Security Incident**:
-- [ ] Security Team Email: ___________
-- [ ] On-Call Engineer: ___________
-- [ ] Database Admin: ___________
+
+- [ ] Security Team Email: \***\*\_\_\_\*\***
+- [ ] On-Call Engineer: \***\*\_\_\_\*\***
+- [ ] Database Admin: \***\*\_\_\_\*\***
 
 **Production Issues**:
-- [ ] DevOps Team: ___________
-- [ ] Infrastructure: ___________
+
+- [ ] DevOps Team: \***\*\_\_\_\*\***
+- [ ] Infrastructure: \***\*\_\_\_\*\***
 
 ---
 

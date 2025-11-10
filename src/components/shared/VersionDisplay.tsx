@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { getVersionInfo, formatVersionDisplay, type VersionInfo } from '@/lib/version';
+import { useEffect, useState } from "react";
+import { getVersionInfo, formatVersionDisplay, type VersionInfo } from "@/lib/version";
 
 interface VersionDisplayProps {
   /**
    * Position of the version display
    * @default 'bottom-right'
    */
-  position?: 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
+  position?: "bottom-left" | "bottom-right" | "top-left" | "top-right";
 
   /**
    * Whether to show on hover only
@@ -18,8 +18,8 @@ interface VersionDisplayProps {
 }
 
 export default function VersionDisplay({
-  position = 'bottom-right',
-  showOnHover = false
+  position = "bottom-right",
+  showOnHover = false,
 }: VersionDisplayProps) {
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -31,14 +31,14 @@ export default function VersionDisplay({
   if (!versionInfo) return null;
 
   const positionClasses = {
-    'bottom-left': 'bottom-2 left-2',
-    'bottom-right': 'bottom-2 right-2',
-    'top-left': 'top-2 left-2',
-    'top-right': 'top-2 right-2',
+    "bottom-left": "bottom-2 left-2",
+    "bottom-right": "bottom-2 right-2",
+    "top-left": "top-2 left-2",
+    "top-right": "top-2 right-2",
   };
 
-  const baseOpacity = showOnHover ? 'opacity-0 hover:opacity-30' : 'opacity-20';
-  const hoverOpacity = isHovered ? 'opacity-50' : '';
+  const baseOpacity = showOnHover ? "opacity-0 hover:opacity-30" : "opacity-20";
+  const hoverOpacity = isHovered ? "opacity-50" : "";
 
   return (
     <div

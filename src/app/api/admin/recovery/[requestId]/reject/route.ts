@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
-import { prisma } from '@/lib/db';
-import { sendSecurityEmail } from '@/lib/email';
+import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
+import { prisma } from "@/lib/db";
+import { sendSecurityEmail } from "@/lib/email";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 /**
  * Admin Reject Recovery Request
@@ -12,10 +12,7 @@ export const runtime = 'nodejs';
  *
  * Rejects a user's account recovery request
  */
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ requestId: string }> }
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ requestId: string }> }) {
   try {
     const { requestId } = await params;
     const body = await req.json().catch(() => ({}));
@@ -25,19 +22,16 @@ export async function POST(
     // 1. Verify Admin
     // ============================================
     if (!adminId) {
-      return NextResponse.json(
-        { ok: false, message: 'Admin ID required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ ok: false, message: "Admin ID required" }, { status: 401 });
     }
 
     const admin = await prisma.users.findUnique({
-      where: { id: adminId }
+      where: { id: adminId },
     });
 
-    if (!admin || admin.role !== 'ADMIN') {
+    if (!admin || admin.role !== "ADMIN") {
       return NextResponse.json(
-        { ok: false, message: 'Unauthorized - Admin access required' },
+        { ok: false, message: "Unauthorized - Admin access required" },
         { status: 403 }
       );
     }
@@ -48,18 +42,18 @@ export async function POST(
     const recoveryRequest = await prisma.accountRecoveryRequest.findUnique({
       where: { id: requestId },
       include: {
-        user: true
-      }
+        user: true,
+      },
     });
 
     if (!recoveryRequest) {
       return NextResponse.json(
-        { ok: false, message: 'Recovery request not found' },
+        { ok: false, message: "Recovery request not found" },
         { status: 404 }
       );
     }
 
-    if (recoveryRequest.status !== 'pending') {
+    if (recoveryRequest.status !== "pending") {
       return NextResponse.json(
         { ok: false, message: `Request already ${recoveryRequest.status}` },
         { status: 400 }
@@ -75,28 +69,28 @@ export async function POST(
       prisma.accountRecoveryRequest.update({
         where: { id: requestId },
         data: {
-          status: 'rejected',
+          status: "rejected",
           rejectedBy: adminId,
           rejectedAt: new Date(),
-          rejectionReason: rejectionReason || 'Unable to verify identity',
-          notes: notes || null
-        }
+          rejectionReason: rejectionReason || "Unable to verify identity",
+          notes: notes || null,
+        },
       }),
 
       prisma.auditEvent.create({
         data: {
           id: randomUUID(),
           userId: user.id,
-          type: 'ACCOUNT_RECOVERY_REJECTED',
+          type: "ACCOUNT_RECOVERY_REJECTED",
           createdAt: new Date(),
           meta: {
             requestId,
             rejectedBy: adminId,
             adminEmail: admin.email,
-            reason: rejectionReason || 'Unable to verify identity'
-          }
-        }
-      })
+            reason: rejectionReason || "Unable to verify identity",
+          },
+        },
+      }),
     ]);
 
     // ============================================
@@ -104,7 +98,7 @@ export async function POST(
     // ============================================
     try {
       const rejectionEmailContent = {
-        subject: 'Account Recovery Request - Update',
+        subject: "Account Recovery Request - Update",
         html: `
 <!DOCTYPE html>
 <html>
@@ -128,7 +122,7 @@ export async function POST(
       <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; border-radius: 8px; margin: 24px 0;">
         <h4 style="margin: 0 0 8px 0; color: #991b1b; font-size: 16px; font-weight: 600;">Reason:</h4>
         <p style="margin: 0; color: #991b1b; font-size: 14px; line-height: 1.6;">
-          ${rejectionReason || 'Unable to verify identity'}
+          ${rejectionReason || "Unable to verify identity"}
         </p>
       </div>
 
@@ -160,7 +154,7 @@ export async function POST(
   </div>
 </body>
 </html>
-        `
+        `,
       };
 
       await sendSecurityEmail(
@@ -169,19 +163,18 @@ export async function POST(
         rejectionEmailContent.html
       );
     } catch (emailError) {
-      console.error('[RecoveryReject] Failed to send rejection email:', emailError);
+      console.error("[RecoveryReject] Failed to send rejection email:", emailError);
       // Don't fail the rejection
     }
 
     return NextResponse.json({
       ok: true,
-      message: 'Recovery request rejected successfully'
+      message: "Recovery request rejected successfully",
     });
-
-  } catch (error: any) {
-    console.error('[RecoveryReject] Error:', error);
+  } catch (error: unknown) {
+    console.error("[RecoveryReject] Error:", error);
     return NextResponse.json(
-      { ok: false, message: 'Failed to reject recovery request' },
+      { ok: false, message: "Failed to reject recovery request" },
       { status: 500 }
     );
   }

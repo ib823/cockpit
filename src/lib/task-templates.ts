@@ -14,7 +14,7 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 25,
       daysPercent: 30,
       defaultRole: "Project Manager",
-      description: "Assemble project team, assign roles, and establish communication channels"
+      description: "Assemble project team, assign roles, and establish communication channels",
     },
     {
       id: "prepare-2",
@@ -22,7 +22,7 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 40,
       daysPercent: 40,
       defaultRole: "Project Manager",
-      description: "Define governance structure, create project charter, and detailed planning"
+      description: "Define governance structure, create project charter, and detailed planning",
     },
     {
       id: "prepare-3",
@@ -30,8 +30,8 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 35,
       daysPercent: 30,
       defaultRole: "Basis Consultant",
-      description: "Configure SAP landscape (DEV, QAS, PRD) and system access"
-    }
+      description: "Configure SAP landscape (DEV, QAS, PRD) and system access",
+    },
   ],
 
   // EXPLORE Phase
@@ -42,7 +42,8 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 45,
       daysPercent: 40,
       defaultRole: "Functional + Technical Team",
-      description: "Conduct workshops to gather requirements and design solution (configurable days based on modules)"
+      description:
+        "Conduct workshops to gather requirements and design solution (configurable days based on modules)",
     },
     {
       id: "explore-2",
@@ -50,7 +51,8 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 35,
       daysPercent: 35,
       defaultRole: "Functional + Technical Team",
-      description: "Document business processes, configuration specifications, and technical design"
+      description:
+        "Document business processes, configuration specifications, and technical design",
     },
     {
       id: "explore-3",
@@ -58,8 +60,8 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 20,
       daysPercent: 25,
       defaultRole: "Functional + Technical Team",
-      description: "Define test scenarios, acceptance criteria, and validation approach"
-    }
+      description: "Define test scenarios, acceptance criteria, and validation approach",
+    },
   ],
 
   // REALIZE Phase
@@ -70,7 +72,7 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 50,
       daysPercent: 45,
       defaultRole: "Functional + Technical Team",
-      description: "System configuration, custom development, and enhancements"
+      description: "System configuration, custom development, and enhancements",
     },
     {
       id: "realize-2",
@@ -78,7 +80,7 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 30,
       daysPercent: 30,
       defaultRole: "Functional + Technical Team",
-      description: "Unit testing and System Integration Testing"
+      description: "Unit testing and System Integration Testing",
     },
     {
       id: "realize-3",
@@ -86,8 +88,8 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 20,
       daysPercent: 25,
       defaultRole: "Functional + Technical Team",
-      description: "End-to-end mock cutover and data migration testing"
-    }
+      description: "End-to-end mock cutover and data migration testing",
+    },
   ],
 
   // DEPLOY Phase
@@ -98,7 +100,7 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 30,
       daysPercent: 35,
       defaultRole: "Functional Team",
-      description: "End-user training and training material preparation"
+      description: "End-user training and training material preparation",
     },
     {
       id: "deploy-2",
@@ -106,7 +108,7 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 35,
       daysPercent: 40,
       defaultRole: "Functional Team + Business Users",
-      description: "User Acceptance Testing with business users"
+      description: "User Acceptance Testing with business users",
     },
     {
       id: "deploy-3",
@@ -114,8 +116,8 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 35,
       daysPercent: 25,
       defaultRole: "Technical Team + Basis",
-      description: "Production cutover, data migration, and go-live activities"
-    }
+      description: "Production cutover, data migration, and go-live activities",
+    },
   ],
 
   // RUN Phase (Hypercare)
@@ -126,7 +128,7 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 60,
       daysPercent: 100,
       defaultRole: "Full Team",
-      description: "Intensive post-go-live support and issue resolution"
+      description: "Intensive post-go-live support and issue resolution",
     },
     {
       id: "run-2",
@@ -134,7 +136,7 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 25,
       daysPercent: 80,
       defaultRole: "Functional + Technical Team",
-      description: "Transfer knowledge to internal support team"
+      description: "Transfer knowledge to internal support team",
     },
     {
       id: "run-3",
@@ -142,9 +144,9 @@ export const TASK_TEMPLATES: Record<string, Task[]> = {
       effortPercent: 15,
       daysPercent: 60,
       defaultRole: "Technical Team",
-      description: "System tuning, performance optimization, and minor fixes"
-    }
-  ]
+      description: "System tuning, performance optimization, and minor fixes",
+    },
+  ],
 };
 
 /**
@@ -168,7 +170,13 @@ export function getTaskTemplatesForPhase(phaseName: string, phaseCategory?: stri
   if (name.includes("deploy") || category.includes("- deploy") || category.endsWith("deploy")) {
     return TASK_TEMPLATES.deploy;
   }
-  if (name.includes("run") || name.includes("hypercare") || category.includes("- run") || category.endsWith("run") || name.includes("support")) {
+  if (
+    name.includes("run") ||
+    name.includes("hypercare") ||
+    category.includes("- run") ||
+    category.endsWith("run") ||
+    name.includes("support")
+  ) {
     return TASK_TEMPLATES.run;
   }
 
@@ -178,11 +186,15 @@ export function getTaskTemplatesForPhase(phaseName: string, phaseCategory?: stri
 /**
  * Calculate task effort and duration from phase totals
  */
-export function calculateTaskMetrics(tasks: Task[], phaseEffort: number, phaseWorkingDays: number): Task[] {
-  return tasks.map(task => ({
+export function calculateTaskMetrics(
+  tasks: Task[],
+  phaseEffort: number,
+  phaseWorkingDays: number
+): Task[] {
+  return tasks.map((task) => ({
     ...task,
     effort: Math.round(((task.effortPercent || 0) / 100) * phaseEffort * 10) / 10,
-    workingDays: Math.round(((task.daysPercent || 0) / 100) * phaseWorkingDays)
+    workingDays: Math.round(((task.daysPercent || 0) / 100) * phaseWorkingDays),
   }));
 }
 

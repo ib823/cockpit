@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, DatePicker, Switch, Button, App, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, CopyOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
+import { useState, useEffect } from "react";
+import { Modal, Form, Input, Select, DatePicker, Switch, Button, App, Popconfirm } from "antd";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  KeyOutlined,
+  CopyOutlined,
+} from "@ant-design/icons";
+import dayjs from "dayjs";
 
 interface User {
   id: string;
   email: string;
   name: string | null;
-  role: 'USER' | 'MANAGER' | 'ADMIN';
+  role: "USER" | "MANAGER" | "ADMIN";
   createdAt: Date;
   accessExpiresAt: Date;
   exception: boolean;
@@ -18,7 +24,7 @@ interface User {
 interface UserFormValues {
   email: string;
   name?: string;
-  role: 'USER' | 'MANAGER' | 'ADMIN';
+  role: "USER" | "MANAGER" | "ADMIN";
   accessExpiresAt: string;
   exception: boolean;
 }
@@ -46,13 +52,13 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
   // Reload users from API
   const reloadUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await fetch("/api/admin/users");
       if (response.ok) {
         const data = await response.json();
         setUsers(data.users);
       }
     } catch (error) {
-      console.error('Failed to reload users:', error);
+      console.error("Failed to reload users:", error);
     }
   };
 
@@ -61,9 +67,9 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
     setEditingUser(null);
     form.resetFields();
     form.setFieldsValue({
-      role: 'USER',
+      role: "USER",
       exception: false,
-      accessExpiresAt: dayjs().add(90, 'days').format('YYYY-MM-DD'),
+      accessExpiresAt: dayjs().add(90, "days").format("YYYY-MM-DD"),
     });
     setIsModalOpen(true);
   };
@@ -76,7 +82,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
       name: user.name,
       role: user.role,
       exception: user.exception,
-      accessExpiresAt: dayjs(user.accessExpiresAt).format('YYYY-MM-DD'),
+      accessExpiresAt: dayjs(user.accessExpiresAt).format("YYYY-MM-DD"),
     });
     setIsModalOpen(true);
   };
@@ -90,38 +96,38 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
       if (editingUser) {
         // Update existing user
         const response = await fetch(`/api/admin/users/${editingUser.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
         });
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || 'Failed to update user');
+          throw new Error(error.error || "Failed to update user");
         }
 
-        message.success('User updated successfully');
+        message.success("User updated successfully");
       } else {
         // Create new user
-        const response = await fetch('/api/admin/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/admin/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
         });
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || 'Failed to create user');
+          throw new Error(error.error || "Failed to create user");
         }
 
-        message.success('User created successfully');
+        message.success("User created successfully");
       }
 
       setIsModalOpen(false);
       form.resetFields();
       await reloadUsers();
     } catch (error: any) {
-      message.error(error.message || 'An error occurred');
+      message.error(error.message || "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -132,18 +138,18 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
     try {
       setLoading(true);
       const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to delete user');
+        throw new Error(error.error || "Failed to delete user");
       }
 
-      message.success('User deleted successfully');
+      message.success("User deleted successfully");
       await reloadUsers();
     } catch (error: any) {
-      message.error(error.message || 'An error occurred');
+      message.error(error.message || "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -154,20 +160,20 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
     try {
       setLoading(true);
       const response = await fetch(`/api/admin/users/${userId}/generate-code`, {
-        method: 'POST',
+        method: "POST",
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to generate code');
+        throw new Error(error.error || "Failed to generate code");
       }
 
       const data = await response.json();
       setGeneratedCode(data);
       setIsCodeModalOpen(true);
-      message.success('Access code generated successfully');
+      message.success("Access code generated successfully");
     } catch (error: any) {
-      message.error(error.message || 'Failed to generate access code');
+      message.error(error.message || "Failed to generate access code");
     } finally {
       setLoading(false);
     }
@@ -187,12 +193,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
           <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
           <p className="text-gray-600 mt-1">Manage system users and permissions</p>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAddUser}
-          size="large"
-        >
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddUser} size="large">
           Add User
         </Button>
       </div>
@@ -201,8 +202,18 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {users.length === 0 ? (
           <div className="px-6 py-12 text-center">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+              />
             </svg>
             <h3 className="mt-2 text-sm font-medium text-gray-900">No users</h3>
             <p className="mt-1 text-sm text-gray-500">Get started by creating a new user.</p>
@@ -239,7 +250,10 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {users.map((user) => {
-                  const isExpired = user.accessExpiresAt && new Date(user.accessExpiresAt) <= new Date() && !user.exception;
+                  const isExpired =
+                    user.accessExpiresAt &&
+                    new Date(user.accessExpiresAt) <= new Date() &&
+                    !user.exception;
                   return (
                     <tr key={user.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -247,24 +261,30 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
                           <div className="flex-shrink-0 h-10 w-10">
                             <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                               <span className="text-blue-600 font-medium text-sm">
-                                {user.name ? user.name[0].toUpperCase() : user.email[0].toUpperCase()}
+                                {user.name
+                                  ? user.name[0].toUpperCase()
+                                  : user.email[0].toUpperCase()}
                               </span>
                             </div>
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {user.name || 'No name'}
+                              {user.name || "No name"}
                             </div>
                             <div className="text-sm text-gray-500">{user.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' :
-                          user.role === 'MANAGER' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            user.role === "ADMIN"
+                              ? "bg-purple-100 text-purple-800"
+                              : user.role === "MANAGER"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
                           {user.role}
                         </span>
                       </td>
@@ -283,14 +303,20 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" suppressHydrationWarning>
-                        {dayjs(user.createdAt).format('MMM D, YYYY')}
+                      <td
+                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                        suppressHydrationWarning
+                      >
+                        {dayjs(user.createdAt).format("MMM D, YYYY")}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" suppressHydrationWarning>
+                      <td
+                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                        suppressHydrationWarning
+                      >
                         {user.exception ? (
                           <span className="text-green-600 font-medium">Never</span>
                         ) : user.accessExpiresAt ? (
-                          dayjs(user.accessExpiresAt).format('MMM D, YYYY')
+                          dayjs(user.accessExpiresAt).format("MMM D, YYYY")
                         ) : (
                           <span className="text-gray-400">Not set</span>
                         )}
@@ -342,7 +368,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
 
       {/* Create/Edit User Modal */}
       <Modal
-        title={editingUser ? 'Edit User' : 'Add New User'}
+        title={editingUser ? "Edit User" : "Add New User"}
         open={isModalOpen}
         onOk={handleSubmit}
         onCancel={() => {
@@ -352,33 +378,26 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
         confirmLoading={loading}
         width={600}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          className="mt-4"
-        >
+        <Form form={form} layout="vertical" className="mt-4">
           <Form.Item
             name="email"
             label="Email"
             rules={[
-              { required: true, message: 'Please enter email' },
-              { type: 'email', message: 'Please enter a valid email' },
+              { required: true, message: "Please enter email" },
+              { type: "email", message: "Please enter a valid email" },
             ]}
           >
             <Input placeholder="user@example.com" disabled={!!editingUser} />
           </Form.Item>
 
-          <Form.Item
-            name="name"
-            label="Name"
-          >
+          <Form.Item name="name" label="Name">
             <Input placeholder="John Doe" />
           </Form.Item>
 
           <Form.Item
             name="role"
             label="Role"
-            rules={[{ required: true, message: 'Please select a role' }]}
+            rules={[{ required: true, message: "Please select a role" }]}
           >
             <Select>
               <Select.Option value="USER">User</Select.Option>
@@ -387,24 +406,22 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="exception"
-            label="Permanent Access"
-            valuePropName="checked"
-          >
+          <Form.Item name="exception" label="Permanent Access" valuePropName="checked">
             <Switch />
           </Form.Item>
 
           <Form.Item
             noStyle
-            shouldUpdate={(prevValues, currentValues) => prevValues.exception !== currentValues.exception}
+            shouldUpdate={(prevValues, currentValues) =>
+              prevValues.exception !== currentValues.exception
+            }
           >
             {({ getFieldValue }) =>
-              !getFieldValue('exception') && (
+              !getFieldValue("exception") && (
                 <Form.Item
                   name="accessExpiresAt"
                   label="Access Expires At"
-                  rules={[{ required: true, message: 'Please select expiration date' }]}
+                  rules={[{ required: true, message: "Please select expiration date" }]}
                 >
                   <Input type="date" />
                 </Form.Item>
@@ -454,11 +471,11 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
                   value={generatedCode.code}
                   readOnly
                   className="font-mono text-2xl font-bold text-center tracking-wider"
-                  style={{ fontSize: '24px', letterSpacing: '0.5em' }}
+                  style={{ fontSize: "24px", letterSpacing: "0.5em" }}
                 />
                 <Button
                   icon={<CopyOutlined />}
-                  onClick={() => copyToClipboard(generatedCode.code, 'Access code')}
+                  onClick={() => copyToClipboard(generatedCode.code, "Access code")}
                 >
                   Copy
                 </Button>
@@ -468,8 +485,12 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
             {/* Magic Link */}
             <div className="bg-white border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700">Magic Link (Direct Login)</label>
-                <span className="text-xs text-gray-500">Valid for {generatedCode.magicLinkExpiry}</span>
+                <label className="text-sm font-medium text-gray-700">
+                  Magic Link (Direct Login)
+                </label>
+                <span className="text-xs text-gray-500">
+                  Valid for {generatedCode.magicLinkExpiry}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Input.TextArea
@@ -480,7 +501,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
                 />
                 <Button
                   icon={<CopyOutlined />}
-                  onClick={() => copyToClipboard(generatedCode.magicUrl, 'Magic link')}
+                  onClick={() => copyToClipboard(generatedCode.magicUrl, "Magic link")}
                 >
                   Copy
                 </Button>
@@ -501,7 +522,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
                 />
                 <Button
                   icon={<CopyOutlined />}
-                  onClick={() => copyToClipboard(generatedCode.registrationUrl, 'Registration URL')}
+                  onClick={() => copyToClipboard(generatedCode.registrationUrl, "Registration URL")}
                 >
                   Copy
                 </Button>
@@ -512,9 +533,18 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <h4 className="text-sm font-semibold text-gray-800 mb-2">📋 Instructions for User</h4>
               <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
-                <li>Send the user either the <strong>6-digit code</strong> OR the <strong>magic link</strong></li>
-                <li>If using the code: User visits the registration page and enters their email and the 6-digit code</li>
-                <li>If using magic link: User clicks the link for instant access (expires in {generatedCode.magicLinkExpiry})</li>
+                <li>
+                  Send the user either the <strong>6-digit code</strong> OR the{" "}
+                  <strong>magic link</strong>
+                </li>
+                <li>
+                  If using the code: User visits the registration page and enters their email and
+                  the 6-digit code
+                </li>
+                <li>
+                  If using magic link: User clicks the link for instant access (expires in{" "}
+                  {generatedCode.magicLinkExpiry})
+                </li>
                 <li>User will be prompted to set up passkey authentication for future logins</li>
               </ol>
             </div>

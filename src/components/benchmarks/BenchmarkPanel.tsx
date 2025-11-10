@@ -31,13 +31,13 @@ import { cn } from "@/lib/utils";
  */
 function VarianceIcon({ status }: { status: VarianceStatus }) {
   switch (status) {
-    case 'under':
+    case "under":
       return <TrendingDown className="w-4 h-4" />;
-    case 'on-track':
+    case "on-track":
       return <CheckCircle className="w-4 h-4" />;
-    case 'over':
+    case "over":
       return <TrendingUp className="w-4 h-4" />;
-    case 'significantly-over':
+    case "significantly-over":
       return <AlertTriangle className="w-4 h-4" />;
   }
 }
@@ -51,15 +51,15 @@ function MetricCard({ comparison }: { comparison: BenchmarkComparison }) {
   // Format values based on unit
   const formatValue = (value: number) => {
     switch (unit) {
-      case 'days':
+      case "days":
         return `${Math.round(value)}d`;
-      case 'months':
+      case "months":
         return `${value.toFixed(1)}mo`;
-      case 'fte':
+      case "fte":
         return `${Math.round(value)} FTE`;
-      case 'ratio':
+      case "ratio":
         return value.toFixed(2);
-      case 'percentage':
+      case "percentage":
         return `${Math.round(value)}%`;
       default:
         return value.toFixed(1);
@@ -105,15 +105,15 @@ function MetricCard({ comparison }: { comparison: BenchmarkComparison }) {
           <div
             className="absolute h-full bg-green-200 dark:bg-green-800"
             style={{
-              left: '0%',
-              width: '100%',
+              left: "0%",
+              width: "100%",
             }}
           />
           {/* Median marker */}
           <div
             className="absolute h-full w-0.5 bg-green-600 dark:bg-green-400"
             style={{
-              left: '50%',
+              left: "50%",
             }}
           />
           {/* Actual value marker */}
@@ -148,9 +148,9 @@ function StatusSummary({ report }: { report: ProjectBenchmarkReport }) {
   const { overallStatus, summary, complexity, recommendations } = report;
 
   const statusIcon =
-    overallStatus === 'on-track' ? (
+    overallStatus === "on-track" ? (
       <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-    ) : overallStatus === 'significantly-over' ? (
+    ) : overallStatus === "significantly-over" ? (
       <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
     ) : (
       <Info className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
@@ -165,7 +165,7 @@ function StatusSummary({ report }: { report: ProjectBenchmarkReport }) {
             {getStatusLabel(overallStatus)}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Project Complexity: <span className="font-medium capitalize">{complexity}</span> •{' '}
+            Project Complexity: <span className="font-medium capitalize">{complexity}</span> •{" "}
             {summary.onTrack} of {summary.totalMetrics} metrics on track
           </p>
         </div>
@@ -225,10 +225,10 @@ export function BenchmarkPanel() {
 
   // Extract project characteristics from chips and decisions
   const projectChars: ProjectCharacteristics = useMemo(() => {
-    const moduleChips = chips.filter((c) => c.type === 'MODULES');
-    const legalEntityChips = chips.filter((c) => c.type === 'LEGAL_ENTITIES');
-    const userChips = chips.filter((c) => c.type === 'USERS' || c.type === 'EMPLOYEES');
-    const integrationChips = chips.filter((c) => c.type === 'INTEGRATION');
+    const moduleChips = chips.filter((c) => c.type === "MODULES");
+    const legalEntityChips = chips.filter((c) => c.type === "LEGAL_ENTITIES");
+    const userChips = chips.filter((c) => c.type === "USERS" || c.type === "EMPLOYEES");
+    const integrationChips = chips.filter((c) => c.type === "INTEGRATION");
 
     // Extract counts
     const moduleCount = decisions.modules?.length || moduleChips.length || 1;
@@ -238,10 +238,10 @@ export function BenchmarkPanel() {
     let userCount = 100; // Default
     if (userChips.length > 0) {
       const userValue = userChips[0].value;
-      const match = typeof userValue === 'string' ? userValue.match(/\d+/) : null;
+      const match = typeof userValue === "string" ? userValue.match(/\d+/) : null;
       if (match) {
         userCount = parseInt(match[0], 10);
-      } else if (typeof userValue === 'number') {
+      } else if (typeof userValue === "number") {
         userCount = userValue;
       }
     }
@@ -250,19 +250,21 @@ export function BenchmarkPanel() {
 
     // Determine customization level
     const customizationLevel =
-      decisions.complexity === 'high' ? 'high' :
-      decisions.complexity === 'medium' ? 'medium' : 'low';
+      decisions.complexity === "high"
+        ? "high"
+        : decisions.complexity === "medium"
+          ? "medium"
+          : "low";
 
     // Check for global rollout
-    const countryChips = chips.filter((c) => c.type === 'COUNTRY');
+    const countryChips = chips.filter((c) => c.type === "COUNTRY");
     const hasGlobalRollout = countryChips.length > 2;
 
     // Check for legacy migration
-    const migrationChips = chips.filter((c) =>
-      typeof c.value === 'string' && (
-        c.value.toLowerCase().includes('migration') ||
-        c.value.toLowerCase().includes('legacy')
-      )
+    const migrationChips = chips.filter(
+      (c) =>
+        typeof c.value === "string" &&
+        (c.value.toLowerCase().includes("migration") || c.value.toLowerCase().includes("legacy"))
     );
     const hasLegacyMigration = migrationChips.length > 0;
 
@@ -278,19 +280,26 @@ export function BenchmarkPanel() {
   }, [chips, decisions]);
 
   // Get industry and country from chips
-  const industry = chips.find((c) => c.type === 'INDUSTRY')?.value;
-  const country = chips.find((c) => c.type === 'COUNTRY')?.value;
+  const industry = chips.find((c) => c.type === "INDUSTRY")?.value;
+  const country = chips.find((c) => c.type === "COUNTRY")?.value;
 
   // Generate benchmark report
   const report = useMemo(() => {
-    const industryStr = typeof industry === 'string' ? industry : undefined;
-    const countryStr = typeof country === 'string' ? country : undefined;
+    const industryStr = typeof industry === "string" ? industry : undefined;
+    const countryStr = typeof country === "string" ? country : undefined;
     return compareToBenchmarks(phases, projectChars, industryStr, countryStr);
   }, [phases, projectChars, industry, country]);
 
   // Filter to show only important metrics
   const importantComparisons = report.comparisons.filter((c) =>
-    ['total_duration', 'design_phase', 'build_phase', 'test_phase', 'team_size', 'peak_team_size'].includes(c.metricId)
+    [
+      "total_duration",
+      "design_phase",
+      "build_phase",
+      "test_phase",
+      "team_size",
+      "peak_team_size",
+    ].includes(c.metricId)
   );
 
   if (phases.length === 0) {
@@ -338,16 +347,28 @@ export function BenchmarkPanel() {
           <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
             {industry && report.industryFactor !== 1.0 && (
               <div>
-                <span className="font-medium">{industry}:</span>{' '}
-                <span className={report.industryFactor > 1 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}>
+                <span className="font-medium">{industry}:</span>{" "}
+                <span
+                  className={
+                    report.industryFactor > 1
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-green-600 dark:text-green-400"
+                  }
+                >
                   {report.industryFactor}x
                 </span>
               </div>
             )}
             {country && report.geographicFactor !== 1.0 && (
               <div>
-                <span className="font-medium">{country}:</span>{' '}
-                <span className={report.geographicFactor > 1 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}>
+                <span className="font-medium">{country}:</span>{" "}
+                <span
+                  className={
+                    report.geographicFactor > 1
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-green-600 dark:text-green-400"
+                  }
+                >
                   {report.geographicFactor}x
                 </span>
               </div>

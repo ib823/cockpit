@@ -1,6 +1,6 @@
 // Test suite for ErrorBoundary component
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import React from "react";
 
@@ -22,6 +22,7 @@ describe("ErrorBoundary", () => {
 
   afterEach(() => {
     consoleErrorSpy.mockRestore();
+    cleanup();
   });
 
   describe("Error Catching", () => {

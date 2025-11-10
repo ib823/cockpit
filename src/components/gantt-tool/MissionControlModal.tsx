@@ -8,10 +8,10 @@
  * and executive presentations. This is where the real work happens.
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Modal, Tabs, Card, Row, Col, Statistic, Progress, Tag, Table, Empty } from 'antd';
+import React, { useState, useMemo } from "react";
+import { Modal, Tabs, Card, Row, Col, Statistic, Progress, Tag, Table, Empty } from "antd";
 import {
   BarChart3,
   DollarSign,
@@ -23,12 +23,12 @@ import {
   Target,
   Zap,
   Calendar,
-} from 'lucide-react';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
-import { calculateProjectCost, checkBudgetAlerts } from '@/lib/gantt-tool/cost-calculator';
-import { RESOURCE_CATEGORIES, type ResourceCategory } from '@/types/gantt-tool';
-import { differenceInBusinessDays } from 'date-fns';
-import { OrgChart } from './OrgChart';
+} from "lucide-react";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { calculateProjectCost, checkBudgetAlerts } from "@/lib/gantt-tool/cost-calculator";
+import { RESOURCE_CATEGORIES, type ResourceCategory } from "@/types/gantt-tool";
+import { differenceInBusinessDays } from "date-fns";
+import { OrgChart } from "./OrgChart";
 
 interface Props {
   isOpen: boolean;
@@ -37,7 +37,7 @@ interface Props {
 
 export function MissionControlModal({ isOpen, onClose }: Props) {
   const { currentProject } = useGanttToolStoreV2();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
 
   const projectAnalytics = useMemo(() => {
     if (!currentProject) return null;
@@ -56,9 +56,8 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
     const totalDays = differenceInBusinessDays(projectEnd, projectStart);
 
     // Handle not-yet-started projects - prevent negative elapsed days
-    const elapsedDays = now < projectStart
-      ? 0
-      : Math.min(differenceInBusinessDays(now, projectStart), totalDays);
+    const elapsedDays =
+      now < projectStart ? 0 : Math.min(differenceInBusinessDays(now, projectStart), totalDays);
 
     const timeProgress = Math.max(0, Math.min(100, (elapsedDays / totalDays) * 100));
 
@@ -79,9 +78,10 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
       phase.phaseResourceAssignments?.forEach((a) => assignedResources.add(a.resourceId));
     });
 
-    const resourceUtilization = currentProject.resources.length > 0
-      ? (assignedResources.size / currentProject.resources.length) * 100
-      : 0;
+    const resourceUtilization =
+      currentProject.resources.length > 0
+        ? (assignedResources.size / currentProject.resources.length) * 100
+        : 0;
 
     return {
       costData,
@@ -102,10 +102,11 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
     return null;
   }
 
-  const { costData, budgetAlerts, timeProgress, taskProgress, resourceUtilization } = projectAnalytics;
+  const { costData, budgetAlerts, timeProgress, taskProgress, resourceUtilization } =
+    projectAnalytics;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount);
@@ -123,11 +124,13 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
     }
 
     // Schedule health (30 points)
-    if (timeProgress > taskProgress + 20) score -= 30; // Significantly behind schedule
+    if (timeProgress > taskProgress + 20)
+      score -= 30; // Significantly behind schedule
     else if (timeProgress > taskProgress + 10) score -= 15;
 
     // Resource health (20 points)
-    if (resourceUtilization < 50) score -= 20; // Under-utilizing resources
+    if (resourceUtilization < 50)
+      score -= 20; // Under-utilizing resources
     else if (resourceUtilization > 90) score -= 10; // Over-allocation risk
 
     // Active alerts (20 points)
@@ -135,10 +138,17 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
     score -= activeAlerts * 10;
 
     return Math.max(0, Math.min(100, score));
-  }, [currentProject.budget, costData, timeProgress, taskProgress, resourceUtilization, budgetAlerts]);
+  }, [
+    currentProject.budget,
+    costData,
+    timeProgress,
+    taskProgress,
+    resourceUtilization,
+    budgetAlerts,
+  ]);
 
-  const healthColor = healthScore >= 80 ? '#52c41a' : healthScore >= 60 ? '#faad14' : '#ff4d4f';
-  const healthStatus = healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Good' : 'At Risk';
+  const healthColor = healthScore >= 80 ? "#52c41a" : healthScore >= 60 ? "#faad14" : "#ff4d4f";
+  const healthStatus = healthScore >= 80 ? "Excellent" : healthScore >= 60 ? "Good" : "At Risk";
 
   // Phase breakdown for table
   const phaseData = currentProject.phases.map((phase) => {
@@ -162,9 +172,9 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
 
   const phaseColumns = [
     {
-      title: 'Phase',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Phase",
+      dataIndex: "name",
+      key: "name",
       render: (text: string, record: any) => (
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded" style={{ backgroundColor: record.color }} />
@@ -173,17 +183,18 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
       ),
     },
     {
-      title: 'Timeline',
-      key: 'timeline',
+      title: "Timeline",
+      key: "timeline",
       render: (_: any, record: any) => (
         <span className="text-sm text-gray-600">
-          {new Date(record.startDate).toLocaleDateString()} - {new Date(record.endDate).toLocaleDateString()}
+          {new Date(record.startDate).toLocaleDateString()} -{" "}
+          {new Date(record.endDate).toLocaleDateString()}
         </span>
       ),
     },
     {
-      title: 'Tasks',
-      key: 'tasks',
+      title: "Tasks",
+      key: "tasks",
       render: (_: any, record: any) => (
         <span className="text-sm">
           {record.completed}/{record.tasks}
@@ -191,17 +202,21 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
       ),
     },
     {
-      title: 'Progress',
-      dataIndex: 'progress',
-      key: 'progress',
+      title: "Progress",
+      dataIndex: "progress",
+      key: "progress",
       render: (progress: number) => (
-        <Progress percent={progress} size="small" status={progress === 100 ? 'success' : 'active'} />
+        <Progress
+          percent={progress}
+          size="small"
+          status={progress === 100 ? "success" : "active"}
+        />
       ),
     },
     {
-      title: 'Cost',
-      dataIndex: 'cost',
-      key: 'cost',
+      title: "Cost",
+      dataIndex: "cost",
+      key: "cost",
       render: (cost: number) => <span className="font-semibold">{formatCurrency(cost)}</span>,
     },
   ];
@@ -212,18 +227,18 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
       onCancel={onClose}
       afterClose={() => {
         // PERMANENT FIX: Force cleanup of modal side effects
-        if (document.body.style.overflow === 'hidden') {
-          document.body.style.overflow = '';
+        if (document.body.style.overflow === "hidden") {
+          document.body.style.overflow = "";
         }
         if (document.body.style.paddingRight) {
-          document.body.style.paddingRight = '';
+          document.body.style.paddingRight = "";
         }
-        document.body.style.pointerEvents = '';
+        document.body.style.pointerEvents = "";
       }}
       destroyOnHidden={true}
       width="90vw"
-      style={{ top: 20, maxWidth: 1600, maxHeight: '90vh' }}
-      styles={{ body: { maxHeight: 'calc(90vh - 120px)', overflowY: 'auto' } }}
+      style={{ top: 20, maxWidth: 1600, maxHeight: "90vh" }}
+      styles={{ body: { maxHeight: "calc(90vh - 120px)", overflowY: "auto" } }}
       footer={null}
       title={
         <div className="flex items-center justify-between">
@@ -239,11 +254,11 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
           <div className="flex items-center gap-4">
             <div className="text-right">
               <div className="text-xs text-gray-500">Project Health</div>
-              <div className="text-2xl font-bold" style={{ color: healthColor }}>
+              <div className="text-2xl font-bold" style={{ color: healthColor }} data-testid="health-score">
                 {healthScore}
                 <span className="text-sm font-normal text-gray-500 ml-1">/ 100</span>
               </div>
-              <Tag color={healthScore >= 80 ? 'success' : healthScore >= 60 ? 'warning' : 'error'}>
+              <Tag color={healthScore >= 80 ? "success" : healthScore >= 60 ? "warning" : "error"}>
                 {healthStatus}
               </Tag>
             </div>
@@ -257,7 +272,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
         size="large"
         items={[
           {
-            key: 'overview',
+            key: "overview",
             label: (
               <span className="flex items-center gap-2">
                 <Target className="w-4 h-4" />
@@ -277,18 +292,23 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                         suffix="%"
                         prefix={<DollarSign className="w-5 h-5" />}
                         valueStyle={{
-                          color: costData.isOverBudget ? '#cf1322' : costData.budgetUtilization > 90 ? '#faad14' : '#3f8600',
+                          color: costData.isOverBudget
+                            ? "#cf1322"
+                            : costData.budgetUtilization > 90
+                              ? "#faad14"
+                              : "#3f8600",
                         }}
                       />
                       <Progress
                         percent={Math.min(costData.budgetUtilization, 100)}
-                        status={costData.isOverBudget ? 'exception' : 'normal'}
+                        status={costData.isOverBudget ? "exception" : "normal"}
                         size="small"
                         showInfo={false}
                         className="mt-2"
                       />
                       <div className="text-xs text-gray-500 mt-2">
-                        {formatCurrency(costData.totalCost)} of {formatCurrency(currentProject.budget?.totalBudget || 0)}
+                        {formatCurrency(costData.totalCost)} of{" "}
+                        {formatCurrency(currentProject.budget?.totalBudget || 0)}
                       </div>
                     </Card>
                   </Col>
@@ -301,9 +321,14 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                         precision={1}
                         suffix="%"
                         prefix={<Clock className="w-5 h-5" />}
-                        valueStyle={{ color: '#1890ff' }}
+                        valueStyle={{ color: "#1890ff" }}
                       />
-                      <Progress percent={timeProgress} size="small" showInfo={false} className="mt-2" />
+                      <Progress
+                        percent={timeProgress}
+                        size="small"
+                        showInfo={false}
+                        className="mt-2"
+                      />
                       <div className="text-xs text-gray-500 mt-2">
                         {projectAnalytics.elapsedDays} of {projectAnalytics.totalDays} business days
                       </div>
@@ -318,9 +343,15 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                         precision={1}
                         suffix="%"
                         prefix={<CheckCircle className="w-5 h-5" />}
-                        valueStyle={{ color: '#52c41a' }}
+                        valueStyle={{ color: "#52c41a" }}
                       />
-                      <Progress percent={taskProgress} size="small" showInfo={false} className="mt-2" status="success" />
+                      <Progress
+                        percent={taskProgress}
+                        size="small"
+                        showInfo={false}
+                        className="mt-2"
+                        status="success"
+                      />
                       <div className="text-xs text-gray-500 mt-2">
                         {projectAnalytics.completedTasks} of {projectAnalytics.totalTasks} tasks
                       </div>
@@ -335,11 +366,18 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                         precision={1}
                         suffix="%"
                         prefix={<Users className="w-5 h-5" />}
-                        valueStyle={{ color: '#722ed1' }}
+                        valueStyle={{ color: "#722ed1" }}
                       />
-                      <Progress percent={resourceUtilization} size="small" showInfo={false} className="mt-2" strokeColor="#722ed1" />
+                      <Progress
+                        percent={resourceUtilization}
+                        size="small"
+                        showInfo={false}
+                        className="mt-2"
+                        strokeColor="#722ed1"
+                      />
                       <div className="text-xs text-gray-500 mt-2">
-                        {projectAnalytics.assignedResources} of {projectAnalytics.totalResources} resources assigned
+                        {projectAnalytics.assignedResources} of {projectAnalytics.totalResources}{" "}
+                        resources assigned
                       </div>
                     </Card>
                   </Col>
@@ -347,12 +385,24 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
 
                 {/* Active Alerts */}
                 {budgetAlerts.filter((a) => a.triggered).length > 0 && (
-                  <Card title={<span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-orange-500" />Active Alerts</span>} className="shadow-sm">
+                  <Card
+                    title={
+                      <span className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-orange-500" />
+                        Active Alerts
+                      </span>
+                    }
+                    className="shadow-sm"
+                  >
                     <div className="space-y-2">
                       {budgetAlerts
                         .filter((a) => a.triggered)
                         .map((alert) => (
-                          <div key={alert.id} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                          <div
+                            key={alert.id}
+                            role="alert"
+                            className="p-3 bg-orange-50 border border-orange-200 rounded-lg"
+                          >
                             <div className="flex items-start gap-2">
                               <AlertTriangle className="w-4 h-4 text-orange-600 mt-0.5" />
                               <div className="flex-1">
@@ -383,7 +433,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
             ),
           },
           {
-            key: 'cost',
+            key: "cost",
             label: (
               <span className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
@@ -398,17 +448,28 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                       <div className="space-y-3">
                         {Array.from(costData.costByPhase.entries()).map(([phaseId, cost]) => {
                           const phase = currentProject.phases.find((p) => p.id === phaseId);
-                          const percentage = costData.laborCost > 0 ? (cost / costData.laborCost) * 100 : 0;
+                          const percentage =
+                            costData.laborCost > 0 ? (cost / costData.laborCost) * 100 : 0;
                           return (
                             <div key={phaseId}>
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 rounded" style={{ backgroundColor: phase?.color }} />
+                                  <div
+                                    className="w-3 h-3 rounded"
+                                    style={{ backgroundColor: phase?.color }}
+                                  />
                                   <span className="text-sm font-medium">{phase?.name}</span>
                                 </div>
-                                <span className="text-sm font-semibold">{formatCurrency(cost)}</span>
+                                <span className="text-sm font-semibold">
+                                  {formatCurrency(cost)}
+                                </span>
                               </div>
-                              <Progress percent={percentage} size="small" showInfo={false} strokeColor={phase?.color} />
+                              <Progress
+                                percent={percentage}
+                                size="small"
+                                showInfo={false}
+                                strokeColor={phase?.color}
+                              />
                             </div>
                           );
                         })}
@@ -420,18 +481,26 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                     <Card title="Cost by Category" className="shadow-sm">
                       <div className="space-y-3">
                         {Array.from(costData.costByCategory.entries()).map(([category, cost]) => {
-                          const percentage = costData.laborCost > 0 ? (cost / costData.laborCost) * 100 : 0;
-                          const categoryInfo = RESOURCE_CATEGORIES[category];
+                          const percentage =
+                            costData.laborCost > 0 ? (cost / costData.laborCost) * 100 : 0;
+                          const categoryInfo = RESOURCE_CATEGORIES[category] || RESOURCE_CATEGORIES["other"];
                           return (
-                            <div key={category}>
+                            <div key={category || "unknown"}>
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-2">
                                   <span>{categoryInfo.icon}</span>
                                   <span className="text-sm font-medium">{categoryInfo.label}</span>
                                 </div>
-                                <span className="text-sm font-semibold">{formatCurrency(cost)}</span>
+                                <span className="text-sm font-semibold">
+                                  {formatCurrency(cost)}
+                                </span>
                               </div>
-                              <Progress percent={percentage} size="small" showInfo={false} strokeColor={categoryInfo.color} />
+                              <Progress
+                                percent={percentage}
+                                size="small"
+                                showInfo={false}
+                                strokeColor={categoryInfo.color}
+                              />
                             </div>
                           );
                         })}
@@ -444,23 +513,35 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                       <div className="space-y-4">
                         <div className="flex justify-between items-center pb-3 border-b">
                           <span className="text-gray-600">Total Budget</span>
-                          <span className="font-bold text-lg">{formatCurrency(currentProject.budget?.totalBudget || 0)}</span>
+                          <span className="font-bold text-lg">
+                            {formatCurrency(currentProject.budget?.totalBudget || 0)}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Labor Cost</span>
-                          <span className="font-semibold">{formatCurrency(costData.laborCost)}</span>
+                          <span className="font-semibold">
+                            {formatCurrency(costData.laborCost)}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Contingency ({currentProject.budget?.contingencyPercentage}%)</span>
-                          <span className="font-semibold">{formatCurrency(costData.contingency)}</span>
+                          <span className="text-gray-600">
+                            Contingency ({currentProject.budget?.contingencyPercentage}%)
+                          </span>
+                          <span className="font-semibold">
+                            {formatCurrency(costData.contingency)}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center pt-3 border-t">
                           <span className="text-gray-600">Total Cost</span>
-                          <span className="font-bold text-lg">{formatCurrency(costData.totalCost)}</span>
+                          <span className="font-bold text-lg">
+                            {formatCurrency(costData.totalCost)}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center pb-3">
                           <span className="text-gray-600">Remaining</span>
-                          <span className={`font-bold text-lg ${costData.isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
+                          <span
+                            className={`font-bold text-lg ${costData.isOverBudget ? "text-red-600" : "text-green-600"}`}
+                          >
                             {formatCurrency(costData.remainingBudget)}
                           </span>
                         </div>
@@ -472,7 +553,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
             ),
           },
           {
-            key: 'resources',
+            key: "resources",
             label: (
               <span className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
@@ -487,29 +568,36 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                     <Card title="Resources by Category" className="shadow-sm">
                       <div className="space-y-3">
                         {Object.entries(RESOURCE_CATEGORIES).map(([categoryKey, categoryInfo]) => {
-                          const categoryResources = currentProject.resources.filter(r => r.category === categoryKey);
+                          const categoryResources = currentProject.resources.filter(
+                            (r) => r.category === categoryKey
+                          );
                           const assignedInCategory = new Set<string>();
 
                           currentProject.phases.forEach((phase) => {
                             phase.tasks.forEach((task) => {
                               task.resourceAssignments?.forEach((a) => {
-                                const resource = currentProject.resources.find(r => r.id === a.resourceId);
+                                const resource = currentProject.resources.find(
+                                  (r) => r.id === a.resourceId
+                                );
                                 if (resource && resource.category === categoryKey) {
                                   assignedInCategory.add(a.resourceId);
                                 }
                               });
                             });
                             phase.phaseResourceAssignments?.forEach((a) => {
-                              const resource = currentProject.resources.find(r => r.id === a.resourceId);
+                              const resource = currentProject.resources.find(
+                                (r) => r.id === a.resourceId
+                              );
                               if (resource && resource.category === categoryKey) {
                                 assignedInCategory.add(a.resourceId);
                               }
                             });
                           });
 
-                          const utilization = categoryResources.length > 0
-                            ? (assignedInCategory.size / categoryResources.length) * 100
-                            : 0;
+                          const utilization =
+                            categoryResources.length > 0
+                              ? (assignedInCategory.size / categoryResources.length) * 100
+                              : 0;
 
                           return (
                             <div key={categoryKey}>
@@ -541,11 +629,15 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                       <div className="space-y-4">
                         <div className="flex justify-between items-center pb-3 border-b">
                           <span className="text-gray-600">Total Resources</span>
-                          <span className="font-bold text-lg">{projectAnalytics.totalResources}</span>
+                          <span className="font-bold text-lg">
+                            {projectAnalytics.totalResources}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Assigned to Tasks/Phases</span>
-                          <span className="font-semibold text-green-600">{projectAnalytics.assignedResources}</span>
+                          <span className="font-semibold text-green-600">
+                            {projectAnalytics.assignedResources}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Unassigned</span>
@@ -563,7 +655,13 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                           percent={resourceUtilization}
                           size="default"
                           strokeColor="#722ed1"
-                          status={resourceUtilization < 50 ? 'exception' : resourceUtilization > 90 ? 'normal' : 'success'}
+                          status={
+                            resourceUtilization < 50
+                              ? "exception"
+                              : resourceUtilization > 90
+                                ? "normal"
+                                : "success"
+                          }
                         />
                         {resourceUtilization < 50 && (
                           <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded border border-orange-200">
@@ -580,16 +678,22 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                   <Col span={24}>
                     <Card title="All Resources" className="shadow-sm">
                       <Table
-                        dataSource={currentProject.resources.map(resource => {
+                        dataSource={currentProject.resources.map((resource) => {
                           // Count assignments
                           let assignmentCount = 0;
                           currentProject.phases.forEach((phase) => {
                             phase.tasks.forEach((task) => {
-                              if (task.resourceAssignments?.some(a => a.resourceId === resource.id)) {
+                              if (
+                                task.resourceAssignments?.some((a) => a.resourceId === resource.id)
+                              ) {
                                 assignmentCount++;
                               }
                             });
-                            if (phase.phaseResourceAssignments?.some(a => a.resourceId === resource.id)) {
+                            if (
+                              phase.phaseResourceAssignments?.some(
+                                (a) => a.resourceId === resource.id
+                              )
+                            ) {
                               assignmentCount++;
                             }
                           });
@@ -605,20 +709,23 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                         })}
                         columns={[
                           {
-                            title: 'Resource Name',
-                            dataIndex: 'name',
-                            key: 'name',
+                            title: "Resource Name",
+                            dataIndex: "name",
+                            key: "name",
                             render: (text: string, record: any) => (
                               <div className="flex items-center gap-2">
-                                <span className="text-lg">{RESOURCE_CATEGORIES[record.category as ResourceCategory]?.icon || ''}</span>
+                                <span className="text-lg">
+                                  {RESOURCE_CATEGORIES[record.category as ResourceCategory]?.icon ||
+                                    ""}
+                                </span>
                                 <span className="font-medium">{text}</span>
                               </div>
                             ),
                           },
                           {
-                            title: 'Category',
-                            dataIndex: 'category',
-                            key: 'category',
+                            title: "Category",
+                            dataIndex: "category",
+                            key: "category",
                             render: (category: string) => (
                               <Tag color={RESOURCE_CATEGORIES[category as ResourceCategory]?.color}>
                                 {RESOURCE_CATEGORIES[category as ResourceCategory]?.label}
@@ -626,37 +733,37 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                             ),
                           },
                           {
-                            title: 'Designation',
-                            dataIndex: 'designation',
-                            key: 'designation',
+                            title: "Designation",
+                            dataIndex: "designation",
+                            key: "designation",
                             render: (designation: string) => (
                               <span className="text-sm text-gray-600 capitalize">
-                                {designation.replace(/_/g, ' ')}
+                                {designation.replace(/_/g, " ")}
                               </span>
                             ),
                           },
                           {
-                            title: 'Assignments',
-                            dataIndex: 'assignments',
-                            key: 'assignments',
+                            title: "Assignments",
+                            dataIndex: "assignments",
+                            key: "assignments",
                             sorter: (a: any, b: any) => b.assignments - a.assignments,
                             render: (count: number, record: any) => (
                               <div className="flex items-center gap-2">
-                                <span className={`font-semibold ${count > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                                <span
+                                  className={`font-semibold ${count > 0 ? "text-green-600" : "text-gray-400"}`}
+                                >
                                   {count}
                                 </span>
-                                {count === 0 && (
-                                  <Tag color="orange">Unassigned</Tag>
-                                )}
+                                {count === 0 && <Tag color="orange">Unassigned</Tag>}
                               </div>
                             ),
                           },
                           {
-                            title: 'Status',
-                            key: 'status',
+                            title: "Status",
+                            key: "status",
                             render: (_: any, record: any) => (
-                              <Tag color={record.isAssigned ? 'success' : 'default'}>
-                                {record.isAssigned ? 'Active' : 'Available'}
+                              <Tag color={record.isAssigned ? "success" : "default"}>
+                                {record.isAssigned ? "Active" : "Available"}
                               </Tag>
                             ),
                           },
@@ -671,7 +778,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
             ),
           },
           {
-            key: 'organization',
+            key: "organization",
             label: (
               <span className="flex items-center gap-2">
                 <Users className="w-4 h-4" />

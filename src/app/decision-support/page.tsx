@@ -8,22 +8,33 @@
  * - What-if analysis
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Typography, Alert, Tabs, Button, Space } from 'antd';
-import { ExperimentOutlined, BarChartOutlined, SwapOutlined, LineChartOutlined } from '@ant-design/icons';
-import { useEstimatorStore } from '@/stores/estimator-store';
-import { pertEngine, type PERTResults } from '@/lib/decision-support/pert-engine';
-import { ConfidenceRibbon } from '@/components/decision-support/ConfidenceRibbon';
-import { ScenarioComparison, type Scenario } from '@/components/decision-support/ScenarioComparison';
-import { WhatIfControls, type WhatIfParameters } from '@/components/decision-support/WhatIfControls';
+import { useState, useEffect } from "react";
+import { Typography, Alert, Tabs, Button, Space } from "antd";
+import {
+  ExperimentOutlined,
+  BarChartOutlined,
+  SwapOutlined,
+  LineChartOutlined,
+} from "@ant-design/icons";
+import { useEstimatorStore } from "@/stores/estimator-store";
+import { pertEngine, type PERTResults } from "@/lib/decision-support/pert-engine";
+import { ConfidenceRibbon } from "@/components/decision-support/ConfidenceRibbon";
+import {
+  ScenarioComparison,
+  type Scenario,
+} from "@/components/decision-support/ScenarioComparison";
+import {
+  WhatIfControls,
+  type WhatIfParameters,
+} from "@/components/decision-support/WhatIfControls";
 
 const { Title, Text } = Typography;
 
 export default function DecisionSupportPage() {
-  const estimatorResults = useEstimatorStore(state => state.results);
-  const inputs = useEstimatorStore(state => state.inputs);
+  const estimatorResults = useEstimatorStore((state) => state.results);
+  const inputs = useEstimatorStore((state) => state.inputs);
   const hasResults = estimatorResults !== null;
 
   const [pertResults, setPertResults] = useState<PERTResults | null>(null);
@@ -31,7 +42,7 @@ export default function DecisionSupportPage() {
     fteMultiplier: 1.0,
     utilizationMultiplier: 1.0,
     scopeMultiplier: 1.0,
-    confidenceLevel: 'medium',
+    confidenceLevel: "medium",
   });
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [baselineScenario, setBaselineScenario] = useState<Scenario | undefined>(undefined);
@@ -48,9 +59,9 @@ export default function DecisionSupportPage() {
       // Create baseline scenario if not exists
       if (!baselineScenario) {
         const baseline: Scenario = {
-          id: 'baseline',
-          name: 'Baseline',
-          description: 'Current estimator configuration',
+          id: "baseline",
+          name: "Baseline",
+          description: "Current estimator configuration",
           totalMD: estimatorResults.totalMD,
           durationMonths: estimatorResults.durationMonths,
           pmoMD: estimatorResults.pmoMD,
@@ -75,13 +86,11 @@ export default function DecisionSupportPage() {
         params.scopeMultiplier;
 
       const whatIfEffort =
-        estimatorResults.totalMD *
-        params.scopeMultiplier *
-        (1 / params.utilizationMultiplier);
+        estimatorResults.totalMD * params.scopeMultiplier * (1 / params.utilizationMultiplier);
 
       const whatIfScenario: Scenario = {
         id: `whatif-${Date.now()}`,
-        name: 'What-If Analysis',
+        name: "What-If Analysis",
         description: `Team: ${(params.fteMultiplier * 100).toFixed(0)}%, Productivity: ${(params.utilizationMultiplier * 100).toFixed(0)}%, Scope: ${(params.scopeMultiplier * 100).toFixed(0)}%`,
         totalMD: whatIfEffort,
         durationMonths: whatIfDuration,
@@ -92,8 +101,8 @@ export default function DecisionSupportPage() {
       };
 
       // Replace or add what-if scenario
-      setScenarios(prev => {
-        const filtered = prev.filter(s => s.id === 'baseline' || !s.name.includes('What-If'));
+      setScenarios((prev) => {
+        const filtered = prev.filter((s) => s.id === "baseline" || !s.name.includes("What-If"));
         return [...filtered, whatIfScenario];
       });
     }
@@ -104,16 +113,16 @@ export default function DecisionSupportPage() {
       fteMultiplier: 1.0,
       utilizationMultiplier: 1.0,
       scopeMultiplier: 1.0,
-      confidenceLevel: 'medium',
+      confidenceLevel: "medium",
     });
 
     // Remove what-if scenarios
-    setScenarios(prev => prev.filter(s => s.id === 'baseline'));
+    setScenarios((prev) => prev.filter((s) => s.id === "baseline"));
   };
 
   const tabItems = [
     {
-      key: 'uncertainty',
+      key: "uncertainty",
       label: (
         <span>
           <LineChartOutlined /> Uncertainty Analysis
@@ -139,7 +148,7 @@ export default function DecisionSupportPage() {
       ),
     },
     {
-      key: 'whatif',
+      key: "whatif",
       label: (
         <span>
           <ExperimentOutlined /> What-If Analysis
@@ -148,22 +157,16 @@ export default function DecisionSupportPage() {
       children: (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-1">
-            <WhatIfControls
-              onParametersChange={handleWhatIfChange}
-              onReset={handleResetWhatIf}
-            />
+            <WhatIfControls onParametersChange={handleWhatIfChange} onReset={handleResetWhatIf} />
           </div>
           <div className="lg:col-span-2">
-            <ScenarioComparison
-              scenarios={scenarios}
-              baselineScenario={baselineScenario}
-            />
+            <ScenarioComparison scenarios={scenarios} baselineScenario={baselineScenario} />
           </div>
         </div>
       ),
     },
     {
-      key: 'scenarios',
+      key: "scenarios",
       label: (
         <span>
           <SwapOutlined /> Scenario Comparison
@@ -171,10 +174,7 @@ export default function DecisionSupportPage() {
       ),
       children: (
         <div className="space-y-4">
-          <ScenarioComparison
-            scenarios={scenarios}
-            baselineScenario={baselineScenario}
-          />
+          <ScenarioComparison scenarios={scenarios} baselineScenario={baselineScenario} />
           <Alert
             message="Save Scenarios"
             description="Currently showing baseline and what-if scenarios. Future enhancement: Save multiple named scenarios for comparison."

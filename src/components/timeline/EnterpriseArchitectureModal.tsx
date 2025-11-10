@@ -14,11 +14,22 @@
 
 "use client";
 
-import { AnimatePresence, motion } from 'framer-motion';
-import {  X, Download, Target, Users, Boxes, Code, BarChart3, Database,
-  CheckCircle, Clock, Zap } from 'lucide-react';
-import { animation } from '@/lib/design-system';
-import { useState } from 'react';
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  X,
+  Download,
+  Target,
+  Users,
+  Boxes,
+  Code,
+  BarChart3,
+  Database,
+  CheckCircle,
+  Clock,
+  Zap,
+} from "lucide-react";
+import { animation } from "@/lib/design-system";
+import { useState } from "react";
 
 interface EnterpriseArchitectureModalProps {
   isOpen: boolean;
@@ -26,10 +37,14 @@ interface EnterpriseArchitectureModalProps {
   projectName?: string;
 }
 
-type ViewMode = 'ea' | 'activate';
+type ViewMode = "ea" | "activate";
 
-export function EnterpriseArchitectureModal({ isOpen, onClose, projectName = 'SAP Implementation' }: EnterpriseArchitectureModalProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('ea');
+export function EnterpriseArchitectureModal({
+  isOpen,
+  onClose,
+  projectName = "SAP Implementation",
+}: EnterpriseArchitectureModalProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>("ea");
 
   if (!isOpen) return null;
 
@@ -57,21 +72,21 @@ export function EnterpriseArchitectureModal({ isOpen, onClose, projectName = 'SA
               {/* View Mode Toggle */}
               <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
                 <button
-                  onClick={() => setViewMode('ea')}
+                  onClick={() => setViewMode("ea")}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    viewMode === 'ea'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                    viewMode === "ea"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Architecture
                 </button>
                 <button
-                  onClick={() => setViewMode('activate')}
+                  onClick={() => setViewMode("activate")}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    viewMode === 'activate'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                    viewMode === "activate"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   SAP Activate
@@ -97,7 +112,7 @@ export function EnterpriseArchitectureModal({ isOpen, onClose, projectName = 'SA
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
-            {viewMode === 'ea' ? <EnterpriseArchitectureView /> : <SAPActivateView />}
+            {viewMode === "ea" ? <EnterpriseArchitectureView /> : <SAPActivateView />}
           </div>
         </motion.div>
       </div>
@@ -115,10 +130,10 @@ function EnterpriseArchitectureView() {
         icon={<Target className="w-6 h-6" />}
         color="from-purple-600 to-purple-700"
         items={[
-          'Strategic Objectives & KPIs',
-          'Business Process Model (BPMN)',
-          'Value Chain Analysis',
-          'Stakeholder Requirements'
+          "Strategic Objectives & KPIs",
+          "Business Process Model (BPMN)",
+          "Value Chain Analysis",
+          "Stakeholder Requirements",
         ]}
       />
 
@@ -129,10 +144,10 @@ function EnterpriseArchitectureView() {
         icon={<Users className="w-6 h-6" />}
         color="from-blue-600 to-blue-700"
         items={[
-          'CRM Platform (Salesforce, etc.)',
-          'Marketing Automation',
-          'Legacy ERP System',
-          'Custom Applications'
+          "CRM Platform (Salesforce, etc.)",
+          "Marketing Automation",
+          "Legacy ERP System",
+          "Custom Applications",
         ]}
       />
 
@@ -143,10 +158,10 @@ function EnterpriseArchitectureView() {
         icon={<Boxes className="w-6 h-6" />}
         color="from-green-600 to-green-700"
         items={[
-          'SAP S/4HANA Finance',
-          'SAP Materials Management',
-          'SAP Sales & Distribution',
-          'SAP HCM / SuccessFactors'
+          "SAP S/4HANA Finance",
+          "SAP Materials Management",
+          "SAP Sales & Distribution",
+          "SAP HCM / SuccessFactors",
         ]}
       />
 
@@ -157,10 +172,10 @@ function EnterpriseArchitectureView() {
         icon={<Code className="w-6 h-6" />}
         color="from-orange-600 to-orange-700"
         items={[
-          'ABAP Programs & Function Modules',
-          'Fiori/UI5 Custom Apps',
-          'Integration Middleware',
-          'Custom Reports & Forms'
+          "ABAP Programs & Function Modules",
+          "Fiori/UI5 Custom Apps",
+          "Integration Middleware",
+          "Custom Reports & Forms",
         ]}
       />
 
@@ -171,10 +186,10 @@ function EnterpriseArchitectureView() {
         icon={<BarChart3 className="w-6 h-6" />}
         color="from-indigo-600 to-indigo-700"
         items={[
-          'SAP Analytics Cloud',
-          'BTP Integration Suite',
-          'AI/ML Services',
-          'Workflow Automation'
+          "SAP Analytics Cloud",
+          "BTP Integration Suite",
+          "AI/ML Services",
+          "Workflow Automation",
         ]}
       />
 
@@ -185,10 +200,10 @@ function EnterpriseArchitectureView() {
         icon={<Database className="w-6 h-6" />}
         color="from-gray-700 to-gray-800"
         items={[
-          'HANA Database',
-          'Cloud Infrastructure (AWS/Azure/GCP)',
-          'Data Migration & Archiving',
-          'Security & Compliance'
+          "HANA Database",
+          "Cloud Infrastructure (AWS/Azure/GCP)",
+          "Data Migration & Archiving",
+          "Security & Compliance",
         ]}
       />
     </div>
@@ -205,10 +220,10 @@ function SAPActivateView() {
         icon={<CheckCircle className="w-6 h-6" />}
         color="from-blue-600 to-blue-700"
         deliverables={[
-          'Project Charter',
-          'Project Team Mobilization',
-          'Infrastructure Setup',
-          'Initial Backlog Creation'
+          "Project Charter",
+          "Project Team Mobilization",
+          "Infrastructure Setup",
+          "Initial Backlog Creation",
         ]}
       />
 
@@ -219,10 +234,10 @@ function SAPActivateView() {
         icon={<Target className="w-6 h-6" />}
         color="from-purple-600 to-purple-700"
         deliverables={[
-          'Fit-to-Standard Workshops',
-          'Process Design Documentation',
-          'Solution Validation',
-          'Organizational Change Management Plan'
+          "Fit-to-Standard Workshops",
+          "Process Design Documentation",
+          "Solution Validation",
+          "Organizational Change Management Plan",
         ]}
       />
 
@@ -233,10 +248,10 @@ function SAPActivateView() {
         icon={<Code className="w-6 h-6" />}
         color="from-green-600 to-green-700"
         deliverables={[
-          'System Configuration',
-          'Custom Development (RICEFW)',
-          'Data Migration',
-          'Integration Testing'
+          "System Configuration",
+          "Custom Development (RICEFW)",
+          "Data Migration",
+          "Integration Testing",
         ]}
       />
 
@@ -247,10 +262,10 @@ function SAPActivateView() {
         icon={<Zap className="w-6 h-6" />}
         color="from-orange-600 to-orange-700"
         deliverables={[
-          'User Training',
-          'Cutover Execution',
-          'Go-Live Support',
-          'Production Stabilization'
+          "User Training",
+          "Cutover Execution",
+          "Go-Live Support",
+          "Production Stabilization",
         ]}
       />
 
@@ -261,17 +276,23 @@ function SAPActivateView() {
         icon={<Clock className="w-6 h-6" />}
         color="from-gray-700 to-gray-800"
         deliverables={[
-          'Hypercare Support (4-8 weeks)',
-          'Continuous Improvement',
-          'User Adoption Monitoring',
-          'Knowledge Transfer'
+          "Hypercare Support (4-8 weeks)",
+          "Continuous Improvement",
+          "User Adoption Monitoring",
+          "Knowledge Transfer",
         ]}
       />
     </div>
   );
 }
 
-function Layer({ number, title, icon, color, items }: {
+function Layer({
+  number,
+  title,
+  icon,
+  color,
+  items,
+}: {
   number: number;
   title: string;
   icon: React.ReactNode;
@@ -285,7 +306,9 @@ function Layer({ number, title, icon, color, items }: {
       transition={{ delay: number * 0.1 }}
       className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
     >
-      <div className={`bg-gradient-to-r ${color} px-6 py-4 text-white flex items-center justify-between`}>
+      <div
+        className={`bg-gradient-to-r ${color} px-6 py-4 text-white flex items-center justify-between`}
+      >
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-lg">
             {icon}
@@ -310,7 +333,13 @@ function Layer({ number, title, icon, color, items }: {
   );
 }
 
-function PhaseCard({ title, duration, icon, color, deliverables }: {
+function PhaseCard({
+  title,
+  duration,
+  icon,
+  color,
+  deliverables,
+}: {
   title: string;
   duration: string;
   icon: React.ReactNode;
@@ -323,7 +352,9 @@ function PhaseCard({ title, duration, icon, color, deliverables }: {
       animate={{ opacity: 1, x: 0 }}
       className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
     >
-      <div className={`bg-gradient-to-r ${color} px-6 py-4 text-white flex items-center justify-between`}>
+      <div
+        className={`bg-gradient-to-r ${color} px-6 py-4 text-white flex items-center justify-between`}
+      >
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-lg">
             {icon}

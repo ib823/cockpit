@@ -5,7 +5,7 @@
  * Validates data and provides detailed error messages.
  */
 
-import ExcelJS from 'exceljs';
+import ExcelJS from "exceljs";
 import type {
   GanttProject,
   GanttPhase,
@@ -15,7 +15,7 @@ import type {
   Resource,
   ResourceCategory,
   ResourceDesignation,
-} from '@/types/gantt-tool';
+} from "@/types/gantt-tool";
 
 export interface ImportValidationError {
   sheet: string;
@@ -31,17 +31,32 @@ export interface ImportResult {
   warnings: string[];
 }
 
-const VALID_CATEGORIES: ResourceCategory[] = ['functional', 'technical', 'basis', 'security', 'pm', 'change'];
-const VALID_DESIGNATIONS: ResourceDesignation[] = ['principal', 'senior_manager', 'manager', 'senior_consultant', 'consultant', 'analyst', 'subcontractor'];
-const VALID_HOLIDAY_TYPES: Array<'public' | 'company' | 'custom'> = ['public', 'company', 'custom'];
+const VALID_CATEGORIES: ResourceCategory[] = [
+  "functional",
+  "technical",
+  "basis",
+  "security",
+  "pm",
+  "change",
+];
+const VALID_DESIGNATIONS: ResourceDesignation[] = [
+  "principal",
+  "senior_manager",
+  "manager",
+  "senior_consultant",
+  "consultant",
+  "analyst",
+  "subcontractor",
+];
+const VALID_HOLIDAY_TYPES: Array<"public" | "company" | "custom"> = ["public", "company", "custom"];
 
 function getCellValue(row: ExcelJS.Row, columnKey: string): string {
   const cell = row.getCell(columnKey);
-  if (!cell || cell.value === null || cell.value === undefined) return '';
+  if (!cell || cell.value === null || cell.value === undefined) return "";
 
   // Handle date cells
   if (cell.type === ExcelJS.ValueType.Date && cell.value instanceof Date) {
-    return cell.value.toISOString().split('T')[0];
+    return cell.value.toISOString().split("T")[0];
   }
 
   return String(cell.value).trim();
@@ -66,44 +81,44 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
     await workbook.xlsx.load(arrayBuffer);
 
     // Parse Project Info
-    const projectSheet = workbook.getWorksheet('Project Info');
+    const projectSheet = workbook.getWorksheet("Project Info");
     if (!projectSheet) {
       errors.push({
-        sheet: 'Project Info',
+        sheet: "Project Info",
         row: 0,
-        column: '',
+        column: "",
         message: 'Missing "Project Info" sheet',
       });
       return { success: false, errors, warnings };
     }
 
     const projectRow = projectSheet.getRow(2); // Row 2 (after header)
-    const projectName = getCellValue(projectRow, 'A');
-    const projectStartDate = getCellValue(projectRow, 'B');
-    const projectDescription = getCellValue(projectRow, 'C');
+    const projectName = getCellValue(projectRow, "A");
+    const projectStartDate = getCellValue(projectRow, "B");
+    const projectDescription = getCellValue(projectRow, "C");
 
     if (!projectName) {
       errors.push({
-        sheet: 'Project Info',
+        sheet: "Project Info",
         row: 2,
-        column: 'A',
-        message: 'Project Name is required',
+        column: "A",
+        message: "Project Name is required",
       });
     }
 
     if (!projectStartDate) {
       errors.push({
-        sheet: 'Project Info',
+        sheet: "Project Info",
         row: 2,
-        column: 'B',
-        message: 'Start Date is required',
+        column: "B",
+        message: "Start Date is required",
       });
     } else if (!validateDate(projectStartDate)) {
       errors.push({
-        sheet: 'Project Info',
+        sheet: "Project Info",
         row: 2,
-        column: 'B',
-        message: 'Start Date must be in YYYY-MM-DD format',
+        column: "B",
+        message: "Start Date must be in YYYY-MM-DD format",
       });
     }
 
@@ -112,7 +127,7 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
     }
 
     // Parse Phases
-    const phasesSheet = workbook.getWorksheet('Phases');
+    const phasesSheet = workbook.getWorksheet("Phases");
     const phases: GanttPhase[] = [];
     const phaseNames = new Set<string>();
 
@@ -120,32 +135,57 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
       let rowNum = 2; // Start after header
       let row = phasesSheet.getRow(rowNum);
 
-      while (getCellValue(row, 'A')) {
-        const phaseName = getCellValue(row, 'A');
-        const startDate = getCellValue(row, 'B');
-        const endDate = getCellValue(row, 'C');
-        const description = getCellValue(row, 'D');
-        const color = getCellValue(row, 'E') || '#3B82F6';
+      while (getCellValue(row, "A")) {
+        const phaseName = getCellValue(row, "A");
+        const startDate = getCellValue(row, "B");
+        const endDate = getCellValue(row, "C");
+        const description = getCellValue(row, "D");
+        const color = getCellValue(row, "E") || "#3B82F6";
 
         // Validate
         if (!phaseName) {
-          errors.push({ sheet: 'Phases', row: rowNum, column: 'A', message: 'Phase Name is required' });
+          errors.push({
+            sheet: "Phases",
+            row: rowNum,
+            column: "A",
+            message: "Phase Name is required",
+          });
         } else if (phaseNames.has(phaseName)) {
-          errors.push({ sheet: 'Phases', row: rowNum, column: 'A', message: `Duplicate phase name: ${phaseName}` });
+          errors.push({
+            sheet: "Phases",
+            row: rowNum,
+            column: "A",
+            message: `Duplicate phase name: ${phaseName}`,
+          });
         } else {
           phaseNames.add(phaseName);
         }
 
         if (!validateDate(startDate)) {
-          errors.push({ sheet: 'Phases', row: rowNum, column: 'B', message: 'Invalid date format (use YYYY-MM-DD)' });
+          errors.push({
+            sheet: "Phases",
+            row: rowNum,
+            column: "B",
+            message: "Invalid date format (use YYYY-MM-DD)",
+          });
         }
 
         if (!validateDate(endDate)) {
-          errors.push({ sheet: 'Phases', row: rowNum, column: 'C', message: 'Invalid date format (use YYYY-MM-DD)' });
+          errors.push({
+            sheet: "Phases",
+            row: rowNum,
+            column: "C",
+            message: "Invalid date format (use YYYY-MM-DD)",
+          });
         }
 
         if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-          errors.push({ sheet: 'Phases', row: rowNum, column: 'C', message: 'End date must be after start date' });
+          errors.push({
+            sheet: "Phases",
+            row: rowNum,
+            column: "C",
+            message: "End date must be after start date",
+          });
         }
 
         phases.push({
@@ -158,6 +198,7 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
           tasks: [],
           collapsed: false,
           dependencies: [],
+          order: phases.length,
         });
 
         rowNum++;
@@ -166,53 +207,80 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
     }
 
     if (phases.length === 0) {
-      warnings.push('No phases found. Project will be created with tasks only.');
+      warnings.push("No phases found. Project will be created with tasks only.");
     }
 
     // Parse Tasks
-    const tasksSheet = workbook.getWorksheet('Tasks');
+    const tasksSheet = workbook.getWorksheet("Tasks");
     const tasksByPhase = new Map<string, GanttTask[]>();
 
     if (tasksSheet) {
       let rowNum = 2;
       let row = tasksSheet.getRow(rowNum);
 
-      while (getCellValue(row, 'A')) {
-        const taskName = getCellValue(row, 'A');
-        const phaseName = getCellValue(row, 'B');
-        const startDate = getCellValue(row, 'C');
-        const endDate = getCellValue(row, 'D');
-        const description = getCellValue(row, 'E');
-        const progressStr = getCellValue(row, 'F');
-        const assignee = getCellValue(row, 'G');
+      while (getCellValue(row, "A")) {
+        const taskName = getCellValue(row, "A");
+        const phaseName = getCellValue(row, "B");
+        const startDate = getCellValue(row, "C");
+        const endDate = getCellValue(row, "D");
+        const description = getCellValue(row, "E");
+        const progressStr = getCellValue(row, "F");
+        const assignee = getCellValue(row, "G");
 
         // Validate
         if (!taskName) {
-          errors.push({ sheet: 'Tasks', row: rowNum, column: 'A', message: 'Task Name is required' });
+          errors.push({
+            sheet: "Tasks",
+            row: rowNum,
+            column: "A",
+            message: "Task Name is required",
+          });
         }
 
         if (!phaseName) {
-          errors.push({ sheet: 'Tasks', row: rowNum, column: 'B', message: 'Phase Name is required' });
+          errors.push({
+            sheet: "Tasks",
+            row: rowNum,
+            column: "B",
+            message: "Phase Name is required",
+          });
         } else if (!phaseNames.has(phaseName)) {
-          errors.push({ sheet: 'Tasks', row: rowNum, column: 'B', message: `Phase "${phaseName}" not found in Phases sheet` });
+          errors.push({
+            sheet: "Tasks",
+            row: rowNum,
+            column: "B",
+            message: `Phase "${phaseName}" not found in Phases sheet`,
+          });
         }
 
         if (!validateDate(startDate)) {
-          errors.push({ sheet: 'Tasks', row: rowNum, column: 'C', message: 'Invalid date format (use YYYY-MM-DD)' });
+          errors.push({
+            sheet: "Tasks",
+            row: rowNum,
+            column: "C",
+            message: "Invalid date format (use YYYY-MM-DD)",
+          });
         }
 
         if (!validateDate(endDate)) {
-          errors.push({ sheet: 'Tasks', row: rowNum, column: 'D', message: 'Invalid date format (use YYYY-MM-DD)' });
+          errors.push({
+            sheet: "Tasks",
+            row: rowNum,
+            column: "D",
+            message: "Invalid date format (use YYYY-MM-DD)",
+          });
         }
 
         const progress = progressStr ? parseInt(progressStr, 10) : 0;
         if (progress < 0 || progress > 100) {
-          warnings.push(`Task "${taskName}" (row ${rowNum}): Progress value ${progress} out of range, using 0`);
+          warnings.push(
+            `Task "${taskName}" (row ${rowNum}): Progress value ${progress} out of range, using 0`
+          );
         }
 
         const task: GanttTask = {
           id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          phaseId: '', // Will be set when adding to phase
+          phaseId: "", // Will be set when adding to phase
           name: taskName,
           description,
           startDate,
@@ -221,6 +289,10 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
           assignee,
           progress: Math.max(0, Math.min(100, progress)),
           resourceAssignments: [],
+          order: 0, // Will be updated when adding to phase
+          level: 0,
+          collapsed: false,
+          isParent: false,
         };
 
         if (!tasksByPhase.has(phaseName)) {
@@ -243,7 +315,7 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
     });
 
     // Parse Resources
-    const resourcesSheet = workbook.getWorksheet('Resources');
+    const resourcesSheet = workbook.getWorksheet("Resources");
     const resources: Resource[] = [];
     const resourceNameToId = new Map<string, string>();
 
@@ -251,32 +323,57 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
       let rowNum = 2;
       let row = resourcesSheet.getRow(rowNum);
 
-      while (getCellValue(row, 'A')) {
-        const resourceName = getCellValue(row, 'A');
-        const category = getCellValue(row, 'B') as ResourceCategory;
-        const designation = getCellValue(row, 'C') as ResourceDesignation;
-        const description = getCellValue(row, 'D');
-        const managerName = getCellValue(row, 'E');
-        const email = getCellValue(row, 'F');
-        const department = getCellValue(row, 'G');
-        const location = getCellValue(row, 'H');
-        const projectRole = getCellValue(row, 'I');
+      while (getCellValue(row, "A")) {
+        const resourceName = getCellValue(row, "A");
+        const category = getCellValue(row, "B") as ResourceCategory;
+        const designation = getCellValue(row, "C") as ResourceDesignation;
+        const description = getCellValue(row, "D");
+        const managerName = getCellValue(row, "E");
+        const email = getCellValue(row, "F");
+        const department = getCellValue(row, "G");
+        const location = getCellValue(row, "H");
+        const projectRole = getCellValue(row, "I");
 
         // Validate
         if (!resourceName) {
-          errors.push({ sheet: 'Resources', row: rowNum, column: 'A', message: 'Resource Name is required' });
+          errors.push({
+            sheet: "Resources",
+            row: rowNum,
+            column: "A",
+            message: "Resource Name is required",
+          });
         }
 
         if (!category) {
-          errors.push({ sheet: 'Resources', row: rowNum, column: 'B', message: 'Category is required' });
+          errors.push({
+            sheet: "Resources",
+            row: rowNum,
+            column: "B",
+            message: "Category is required",
+          });
         } else if (!VALID_CATEGORIES.includes(category)) {
-          errors.push({ sheet: 'Resources', row: rowNum, column: 'B', message: `Invalid category: ${category}` });
+          errors.push({
+            sheet: "Resources",
+            row: rowNum,
+            column: "B",
+            message: `Invalid category: ${category}`,
+          });
         }
 
         if (!designation) {
-          errors.push({ sheet: 'Resources', row: rowNum, column: 'C', message: 'Designation is required' });
+          errors.push({
+            sheet: "Resources",
+            row: rowNum,
+            column: "C",
+            message: "Designation is required",
+          });
         } else if (!VALID_DESIGNATIONS.includes(designation)) {
-          errors.push({ sheet: 'Resources', row: rowNum, column: 'C', message: `Invalid designation: ${designation}` });
+          errors.push({
+            sheet: "Resources",
+            row: rowNum,
+            column: "C",
+            message: `Invalid designation: ${designation}`,
+          });
         }
 
         const resourceId = `resource-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -287,14 +384,14 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
           name: resourceName,
           category,
           designation,
-          description: description || '',
+          description: description || "",
           createdAt: new Date().toISOString(),
           managerResourceId: null, // Will be set in second pass
           email: email || undefined,
           department: department || undefined,
           location: location || undefined,
           projectRole: projectRole || undefined,
-          assignmentLevel: 'both',
+          assignmentLevel: "both",
           isBillable: true,
           chargeRatePerHour: 150, // Default rate
         });
@@ -308,14 +405,16 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
       row = resourcesSheet.getRow(rowNum);
       let resourceIndex = 0;
 
-      while (getCellValue(row, 'A') && resourceIndex < resources.length) {
-        const managerName = getCellValue(row, 'E');
+      while (getCellValue(row, "A") && resourceIndex < resources.length) {
+        const managerName = getCellValue(row, "E");
         if (managerName) {
           const managerId = resourceNameToId.get(managerName);
           if (managerId) {
             resources[resourceIndex].managerResourceId = managerId;
           } else {
-            warnings.push(`Resource "${resources[resourceIndex].name}" has manager "${managerName}" which was not found`);
+            warnings.push(
+              `Resource "${resources[resourceIndex].name}" has manager "${managerName}" which was not found`
+            );
           }
         }
         rowNum++;
@@ -325,26 +424,36 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
     }
 
     // Parse Milestones
-    const milestonesSheet = workbook.getWorksheet('Milestones');
+    const milestonesSheet = workbook.getWorksheet("Milestones");
     const milestones: GanttMilestone[] = [];
 
     if (milestonesSheet) {
       let rowNum = 2;
       let row = milestonesSheet.getRow(rowNum);
 
-      while (getCellValue(row, 'A')) {
-        const name = getCellValue(row, 'A');
-        const date = getCellValue(row, 'B');
-        const description = getCellValue(row, 'C');
-        const icon = getCellValue(row, 'D') || '🏁';
-        const color = getCellValue(row, 'E') || '#10B981';
+      while (getCellValue(row, "A")) {
+        const name = getCellValue(row, "A");
+        const date = getCellValue(row, "B");
+        const description = getCellValue(row, "C");
+        const icon = getCellValue(row, "D") || "🏁";
+        const color = getCellValue(row, "E") || "#10B981";
 
         if (!name) {
-          errors.push({ sheet: 'Milestones', row: rowNum, column: 'A', message: 'Milestone Name is required' });
+          errors.push({
+            sheet: "Milestones",
+            row: rowNum,
+            column: "A",
+            message: "Milestone Name is required",
+          });
         }
 
         if (!validateDate(date)) {
-          errors.push({ sheet: 'Milestones', row: rowNum, column: 'B', message: 'Invalid date format (use YYYY-MM-DD)' });
+          errors.push({
+            sheet: "Milestones",
+            row: rowNum,
+            column: "B",
+            message: "Invalid date format (use YYYY-MM-DD)",
+          });
         }
 
         milestones.push({
@@ -362,25 +471,35 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
     }
 
     // Parse Holidays
-    const holidaysSheet = workbook.getWorksheet('Holidays');
+    const holidaysSheet = workbook.getWorksheet("Holidays");
     const holidays: GanttHoliday[] = [];
 
     if (holidaysSheet) {
       let rowNum = 2;
       let row = holidaysSheet.getRow(rowNum);
 
-      while (getCellValue(row, 'A')) {
-        const name = getCellValue(row, 'A');
-        const date = getCellValue(row, 'B');
-        const region = getCellValue(row, 'C') || 'Global';
-        const type = (getCellValue(row, 'D') || 'public') as 'public' | 'company' | 'custom';
+      while (getCellValue(row, "A")) {
+        const name = getCellValue(row, "A");
+        const date = getCellValue(row, "B");
+        const region = getCellValue(row, "C") || "Global";
+        const type = (getCellValue(row, "D") || "public") as "public" | "company" | "custom";
 
         if (!name) {
-          errors.push({ sheet: 'Holidays', row: rowNum, column: 'A', message: 'Holiday Name is required' });
+          errors.push({
+            sheet: "Holidays",
+            row: rowNum,
+            column: "A",
+            message: "Holiday Name is required",
+          });
         }
 
         if (!validateDate(date)) {
-          errors.push({ sheet: 'Holidays', row: rowNum, column: 'B', message: 'Invalid date format (use YYYY-MM-DD)' });
+          errors.push({
+            sheet: "Holidays",
+            row: rowNum,
+            column: "B",
+            message: "Invalid date format (use YYYY-MM-DD)",
+          });
         }
 
         if (!VALID_HOLIDAY_TYPES.includes(type)) {
@@ -392,7 +511,7 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
           name,
           date,
           region,
-          type: VALID_HOLIDAY_TYPES.includes(type) ? type : 'public',
+          type: VALID_HOLIDAY_TYPES.includes(type) ? type : "public",
         });
 
         rowNum++;
@@ -416,7 +535,7 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
       holidays,
       resources,
       viewSettings: {
-        zoomLevel: 'week',
+        zoomLevel: "week",
         showWeekends: true,
         showHolidays: true,
         showMilestones: true,
@@ -436,12 +555,14 @@ export async function parseImportFile(file: File): Promise<ImportResult> {
   } catch (error) {
     return {
       success: false,
-      errors: [{
-        sheet: 'File',
-        row: 0,
-        column: '',
-        message: `Failed to parse file: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      }],
+      errors: [
+        {
+          sheet: "File",
+          row: 0,
+          column: "",
+          message: `Failed to parse file: ${error instanceof Error ? error.message : "Unknown error"}`,
+        },
+      ],
       warnings,
     };
   }

@@ -8,11 +8,13 @@
 ## 🚀 **CLICK THESE MAGIC LINKS TO LOGIN:**
 
 ### **Admin Account (Full Access):**
+
 ```
 http://localhost:3001/login?token=30685502f50b950117acc1a60948eb9a5a2f2b6ebba1c300e074ea3317f35c10
 ```
 
 ### **Regular User Account:**
+
 ```
 http://localhost:3001/login?token=2730d4f67d7f596e60176cdabe3926b06e65a60d03e777611c753afefef25e20
 ```
@@ -31,12 +33,14 @@ http://localhost:3001/login?token=2730d4f67d7f596e60176cdabe3926b06e65a60d03e777
 ## ✅ **ACCOUNT DETAILS**
 
 ### Admin Account
+
 - **Email:** admin@test.com
 - **Role:** ADMIN
 - **Access Expires:** October 27, 2026
 - **Capabilities:** Full system access, user management, admin panel
 
 ### Regular User Account
+
 - **Email:** user@test.com
 - **Role:** USER
 - **Access Expires:** October 27, 2026
@@ -54,6 +58,7 @@ Keystone uses **WebAuthn Passkeys** instead of passwords:
 - ✅ **Modern standard** - Industry best practice
 
 **Supported on:**
+
 - 📱 iPhone/iPad (Touch ID / Face ID)
 - 💻 MacBook (Touch ID)
 - 🖥️ Windows Hello (Fingerprint / Face / PIN)
@@ -64,12 +69,12 @@ Keystone uses **WebAuthn Passkeys** instead of passwords:
 
 ## 🎯 **SERVER STATUS**
 
-| Component | Status | URL |
-|-----------|--------|-----|
-| Main Server | ✅ Running | http://localhost:3001 |
-| Database | ✅ Connected | SQLite |
+| Component     | Status       | URL                   |
+| ------------- | ------------ | --------------------- |
+| Main Server   | ✅ Running   | http://localhost:3001 |
+| Database      | ✅ Connected | SQLite                |
 | Prisma Studio | ✅ Available | http://localhost:5555 |
-| Performance | ✅ Optimized | 22x cache speedup |
+| Performance   | ✅ Optimized | 22x cache speedup     |
 
 ---
 
@@ -86,16 +91,20 @@ Keystone uses **WebAuthn Passkeys** instead of passwords:
 ## 🔧 **TROUBLESHOOTING**
 
 **❌ "Invalid. Contact Admin"**
+
 - Make sure you're using the correct port (3001, not 3000)
 - Try clicking the magic link again
 
 **❌ "Access expired"**
+
 - Already fixed! Both accounts expire October 27, 2026
 
 **❌ "Magic link disabled"**
+
 - This shouldn't happen - approvals are created
 
 **❌ Passkey creation failed**
+
 - Ensure your device/browser supports WebAuthn
 - Try Chrome, Edge, or Safari (best compatibility)
 - Check browser permissions
@@ -118,11 +127,13 @@ If magic links don't work, try manual registration:
 ## 🎉 **START TESTING NOW!**
 
 **Click this link to login as admin:**
+
 ```
 http://localhost:3001/login?token=30685502f50b950117acc1a60948eb9a5a2f2b6ebba1c300e074ea3317f35c10
 ```
 
 **Or this link to login as regular user:**
+
 ```
 http://localhost:3001/login?token=2730d4f67d7f596e60176cdabe3926b06e65a60d03e777611c753afefef25e20
 ```

@@ -12,10 +12,10 @@
  * - Bulk operations
  */
 
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { useGanttToolStoreV2 } from '@/stores/gantt-tool-store-v2';
+import { useState, useMemo } from "react";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import {
   Users,
   ChevronRight,
@@ -26,10 +26,10 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
-  X
-} from 'lucide-react';
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from '@/types/gantt-tool';
-import type { Resource } from '@/types/gantt-tool';
+  X,
+} from "lucide-react";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
+import type { Resource } from "@/types/gantt-tool";
 
 interface QuickResourcePanelProps {
   isOpen: boolean;
@@ -39,13 +39,13 @@ interface QuickResourcePanelProps {
 export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps) {
   const { currentProject, assignResourceToTask } = useGanttToolStoreV2();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
   const [quickAssignMode, setQuickAssignMode] = useState(false);
   const [showTutorial, setShowTutorial] = useState(() => {
     // Show tutorial only on first visit
-    if (typeof window !== 'undefined') {
-      return !localStorage.getItem('quickResourcePanelTutorialSeen');
+    if (typeof window !== "undefined") {
+      return !localStorage.getItem("quickResourcePanelTutorialSeen");
     }
     return false;
   });
@@ -56,17 +56,18 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
     if (!currentProject) return [];
     const resources = currentProject.resources || [];
     if (!searchQuery) return resources;
-    return resources.filter(r =>
-      r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.description.toLowerCase().includes(searchQuery.toLowerCase())
+    return resources.filter(
+      (r) =>
+        r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [currentProject, searchQuery]);
 
   // Dismiss tutorial
   const dismissTutorial = () => {
     setShowTutorial(false);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('quickResourcePanelTutorialSeen', 'true');
+    if (typeof window !== "undefined") {
+      localStorage.setItem("quickResourcePanelTutorialSeen", "true");
     }
   };
 
@@ -77,9 +78,9 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
   // Calculate resource utilization
   const getResourceUtilization = (resourceId: string) => {
     let assignmentCount = 0;
-    currentProject.phases.forEach(phase => {
-      phase.tasks.forEach(task => {
-        if (task.resourceAssignments?.some(a => a.resourceId === resourceId)) {
+    currentProject.phases.forEach((phase) => {
+      phase.tasks.forEach((task) => {
+        if (task.resourceAssignments?.some((a) => a.resourceId === resourceId)) {
           assignmentCount++;
         }
       });
@@ -89,12 +90,15 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
 
   // Handle drag start
   const handleDragStart = (e: React.DragEvent, resource: Resource) => {
-    e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('application/json', JSON.stringify({
-      type: 'resource',
-      resourceId: resource.id,
-      resourceName: resource.name,
-    }));
+    e.dataTransfer.effectAllowed = "copy";
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({
+        type: "resource",
+        resourceId: resource.id,
+        resourceName: resource.name,
+      })
+    );
     setSelectedResourceId(resource.id);
   };
 
@@ -164,7 +168,9 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-gray-900">Quick Mode</div>
-                  <div className="text-xs text-gray-600">Enable Quick Assign for click-to-assign</div>
+                  <div className="text-xs text-gray-600">
+                    Enable Quick Assign for click-to-assign
+                  </div>
                 </div>
               </div>
             </div>
@@ -243,9 +249,8 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-sm text-gray-600">
               {currentProject.resources?.length === 0
-                ? 'No resources yet'
-                : 'No matching resources'
-              }
+                ? "No resources yet"
+                : "No matching resources"}
             </p>
             {currentProject.resources?.length === 0 && (
               <button className="mt-3 px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-1 mx-auto">
@@ -273,13 +278,18 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
                 }}
                 className={`
                   p-3 rounded-lg border-2 transition-all cursor-move
-                  ${isSelected
-                    ? 'bg-purple-50 border-purple-500 shadow-md scale-105'
-                    : 'bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm'
+                  ${
+                    isSelected
+                      ? "bg-purple-50 border-purple-500 shadow-md scale-105"
+                      : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm"
                   }
-                  ${quickAssignMode ? 'cursor-pointer' : 'cursor-move'}
+                  ${quickAssignMode ? "cursor-pointer" : "cursor-move"}
                 `}
-                title={quickAssignMode ? 'Click to select, then click tasks to assign' : 'Drag onto task bars to assign'}
+                title={
+                  quickAssignMode
+                    ? "Click to select, then click tasks to assign"
+                    : "Drag onto task bars to assign"
+                }
               >
                 {/* Resource Header */}
                 <div className="flex items-start gap-2 mb-2">
@@ -297,7 +307,7 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
                       <div className="text-xs text-gray-600">
                         {RESOURCE_DESIGNATIONS[resource.designation]}
                       </div>
-                      {resource.category === 'pm' && (
+                      {resource.category === "pm" && (
                         <div className="px-1.5 py-0.5 bg-orange-100 text-orange-700 text-xs font-semibold rounded flex items-center gap-0.5 border border-orange-200">
                           <span className="text-[0.625rem]">📊</span>
                           <span>Phase-level</span>
@@ -317,7 +327,9 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
                   ) : utilization <= 3 ? (
                     <div className="flex items-center gap-1 text-green-600">
                       <CheckCircle2 className="w-3 h-3" />
-                      <span>{utilization} task{utilization > 1 ? 's' : ''}</span>
+                      <span>
+                        {utilization} task{utilization > 1 ? "s" : ""}
+                      </span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1 text-orange-600">
@@ -329,9 +341,7 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
 
                 {/* Quick Info */}
                 {resource.description && (
-                  <p className="text-xs text-gray-500 mt-2 line-clamp-1">
-                    {resource.description}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-2 line-clamp-1">{resource.description}</p>
                 )}
               </div>
             );

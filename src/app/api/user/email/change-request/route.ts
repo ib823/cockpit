@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { randomUUID, randomInt } from 'crypto';
-import { hash } from 'bcryptjs';
-import { prisma } from '@/lib/db';
-import { sendSecurityEmail } from '@/lib/email';
-import { SignJWT } from 'jose';
+import { NextResponse } from "next/server";
+import { randomUUID, randomInt } from "crypto";
+import { hash } from "bcryptjs";
+import { prisma } from "@/lib/db";
+import { sendSecurityEmail } from "@/lib/email";
+import { SignJWT } from "jose";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 /**
  * Email Change Request
@@ -28,54 +28,45 @@ export async function POST(req: Request) {
     // ============================================
     if (!userId || !newEmail || !password) {
       return NextResponse.json(
-        { ok: false, message: 'User ID, new email, and password are required' },
+        { ok: false, message: "User ID, new email, and password are required" },
         { status: 400 }
       );
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(newEmail)) {
-      return NextResponse.json(
-        { ok: false, message: 'Invalid email format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, message: "Invalid email format" }, { status: 400 });
     }
 
     // ============================================
     // 2. Get User & Verify Password
     // ============================================
     const user = await prisma.users.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { ok: false, message: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
     }
 
     // Verify password (security requirement)
-    const { verifyPassword } = await import('@/lib/security/password');
-    const passwordValid = await verifyPassword(password, user.passwordHash || '');
+    const { verifyPassword } = await import("@/lib/security/password");
+    const passwordValid = await verifyPassword(password, user.passwordHash || "");
 
     if (!passwordValid) {
-      return NextResponse.json(
-        { ok: false, message: 'Invalid password' },
-        { status: 401 }
-      );
+      return NextResponse.json({ ok: false, message: "Invalid password" }, { status: 401 });
     }
 
     // ============================================
     // 3. Check if New Email Already Exists
     // ============================================
     const existingUser = await prisma.users.findUnique({
-      where: { email: newEmail.trim().toLowerCase() }
+      where: { email: newEmail.trim().toLowerCase() },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { ok: false, message: 'This email is already in use' },
+        { ok: false, message: "This email is already in use" },
         { status: 409 }
       );
     }
@@ -88,16 +79,18 @@ export async function POST(req: Request) {
     const codeHash = await hash(verificationCode, 12);
 
     // Generate revoke token (JWT)
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY || 'default-secret-change-in-production');
+    const secret = new TextEncoder().encode(
+      process.env.JWT_SECRET_KEY || "default-secret-change-in-production"
+    );
     const revokeToken = await new SignJWT({
       userId: user.id,
-      action: 'revoke_email_change',
+      action: "revoke_email_change",
       oldEmail: user.email,
       newEmail: newEmail.trim().toLowerCase(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('24h')
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("24h")
       .setIssuedAt()
       .sign(secret);
 
@@ -111,15 +104,15 @@ export async function POST(req: Request) {
       data: {
         pendingEmail: newEmail.trim().toLowerCase(),
         pendingEmailToken: codeHash,
-        pendingEmailExpiresAt: expiresAt
-      }
+        pendingEmailExpiresAt: expiresAt,
+      },
     });
 
     // ============================================
     // 6. Send Verification Email to NEW Address
     // ============================================
     const verificationEmailContent = {
-      subject: 'Verify Your New Email Address',
+      subject: "Verify Your New Email Address",
       html: `
 <!DOCTYPE html>
 <html>
@@ -160,7 +153,7 @@ export async function POST(req: Request) {
   </div>
 </body>
 </html>
-      `
+      `,
     };
 
     await sendSecurityEmail(
@@ -173,7 +166,7 @@ export async function POST(req: Request) {
     // 7. Send Notification to OLD Address
     // ============================================
     const notificationEmailContent = {
-      subject: 'Email Change Request - Action Required',
+      subject: "Email Change Request - Action Required",
       html: `
 <!DOCTYPE html>
 <html>
@@ -221,7 +214,7 @@ export async function POST(req: Request) {
   </div>
 </body>
 </html>
-      `
+      `,
     };
 
     await sendSecurityEmail(
@@ -237,26 +230,25 @@ export async function POST(req: Request) {
       data: {
         id: randomUUID(),
         userId: user.id,
-        type: 'EMAIL_CHANGE_REQUESTED',
+        type: "EMAIL_CHANGE_REQUESTED",
         createdAt: new Date(),
         meta: {
           oldEmail: user.email,
           newEmail: newEmail.trim().toLowerCase(),
-          expiresAt
-        }
-      }
+          expiresAt,
+        },
+      },
     });
 
     return NextResponse.json({
       ok: true,
-      message: 'Verification code sent to new email address',
-      expiresIn: '24 hours'
+      message: "Verification code sent to new email address",
+      expiresIn: "24 hours",
     });
-
   } catch (error: any) {
-    console.error('[EmailChange] Request error:', error);
+    console.error("[EmailChange] Request error:", error);
     return NextResponse.json(
-      { ok: false, message: 'Failed to process email change request' },
+      { ok: false, message: "Failed to process email change request" },
       { status: 500 }
     );
   }

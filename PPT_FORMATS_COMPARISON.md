@@ -3,12 +3,14 @@
 ## Generated Files
 
 ### 1. **YTL_Cement_Native_PPT.pptx** ⭐ RECOMMENDED
+
 - **Size:** 38 KB
 - **Format:** Native PowerPoint shapes, text boxes, and connectors
 - **Fully Editable:** ✅ Yes - every element can be edited
 - **Slides:** 5 key diagrams
 
 #### Advantages:
+
 ✅ **Fully editable** - Click any box to change text, colors, size, position
 ✅ **Tiny file size** - 38KB vs 1.1MB (97% smaller!)
 ✅ **Professional quality** - Native PowerPoint rendering
@@ -17,6 +19,7 @@
 ✅ **Works offline** - No external dependencies
 
 #### What's Editable:
+
 - All text content (click to edit)
 - All colors (fill and border)
 - All positions (drag to move)
@@ -25,6 +28,7 @@
 - Add/remove shapes easily
 
 #### Included Slides:
+
 1. **Title Slide** - YTL Cement SAP S/4HANA Transformation
 2. **Capability Map AS-IS** - Current state with RED indicators
 3. **Capability Map TO-BE** - Target state with GREEN indicators
@@ -34,12 +38,14 @@
 ---
 
 ### 2. **YTL_Cement_Presentation.pptx**
+
 - **Size:** 1.1 MB
 - **Format:** Embedded PNG images
 - **Fully Editable:** ❌ No - images only, can't edit content
 - **Slides:** 11 slides (all diagrams)
 
 #### Use When:
+
 - You need all 10 diagrams quickly
 - You don't need to edit diagram content
 - You want reference diagrams for other slides
@@ -51,6 +57,7 @@
 ### For Presentations: Use **YTL_Cement_Native_PPT.pptx**
 
 **Why?**
+
 1. Fully customizable for different audiences
 2. Easy to update numbers, costs, timelines
 3. Recolor for different themes
@@ -114,6 +121,7 @@ All files are in `/workspaces/cockpit/`:
 ## Technical Details
 
 ### Native PPT Built With:
+
 - Python library: `python-pptx`
 - Elements: Rounded rectangles, text boxes, shapes
 - Colors: RGB values matching PlantUML theme
@@ -121,6 +129,7 @@ All files are in `/workspaces/cockpit/`:
 - Layout: 16:9 widescreen format
 
 ### Color Scheme:
+
 - **RED (255, 107, 107)**: Manual/Error-prone processes
 - **GREEN (102, 187, 106)**: Automated/Optimized processes
 - **YELLOW (255, 255, 153)**: Solutions/Transition state

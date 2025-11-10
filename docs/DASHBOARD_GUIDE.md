@@ -36,8 +36,8 @@ pnpm dev
 ### 2. Integrate into Your Page
 
 ```tsx
-import { ThreeLayerDashboard } from '@/components/dashboard';
-import { GanttProject } from '@/types/gantt-tool';
+import { ThreeLayerDashboard } from "@/components/dashboard";
+import { GanttProject } from "@/types/gantt-tool";
 
 export default function MyProposalPage() {
   const project: GanttProject = {
@@ -47,8 +47,8 @@ export default function MyProposalPage() {
   return (
     <ThreeLayerDashboard
       project={project}
-      onRefresh={() => console.log('Refresh')}
-      onExport={() => console.log('Export')}
+      onRefresh={() => console.log("Refresh")}
+      onExport={() => console.log("Export")}
     />
   );
 }
@@ -60,32 +60,32 @@ export default function MyProposalPage() {
 
 The system includes default daily rates for Malaysian market:
 
-| Designation | Daily Rate (MYR) |
-|------------|------------------|
-| Principal | 8,000 |
-| Director | 7,000 |
-| Senior Manager | 5,500 |
-| Manager | 4,000 |
-| Senior Consultant | 3,000 |
-| Consultant | 2,200 |
-| Analyst | 1,500 |
-| SubContractor | 1,800 |
+| Designation       | Daily Rate (MYR) |
+| ----------------- | ---------------- |
+| Principal         | 8,000            |
+| Director          | 7,000            |
+| Senior Manager    | 5,500            |
+| Manager           | 4,000            |
+| Senior Consultant | 3,000            |
+| Consultant        | 2,200            |
+| Analyst           | 1,500            |
+| SubContractor     | 1,800            |
 
 ### Customize Rates
 
 ```typescript
-import { DEFAULT_RATE_CARD, getDailyRate } from '@/lib/rate-card';
+import { DEFAULT_RATE_CARD, getDailyRate } from "@/lib/rate-card";
 
 // Get rate for a designation
-const rate = getDailyRate('senior_consultant'); // 3000
+const rate = getDailyRate("senior_consultant"); // 3000
 
 // Calculate assignment cost
-import { calculateAssignmentCost } from '@/lib/rate-card';
+import { calculateAssignmentCost } from "@/lib/rate-card";
 
 const cost = calculateAssignmentCost(
-  'consultant',  // designation
-  20,           // duration in days
-  100           // allocation percentage
+  "consultant", // designation
+  20, // duration in days
+  100 // allocation percentage
 );
 // Returns: 44,000 MYR
 ```
@@ -95,15 +95,15 @@ const cost = calculateAssignmentCost(
 Users can view and edit rates through the Rate Card Manager modal:
 
 ```tsx
-import { RateCardManager } from '@/components/dashboard';
+import { RateCardManager } from "@/components/dashboard";
 
 <RateCardManager
   isOpen={showModal}
   onClose={() => setShowModal(false)}
   onSave={(newRates) => {
-    console.log('Updated rates:', newRates);
+    console.log("Updated rates:", newRates);
   }}
-/>
+/>;
 ```
 
 ## Component Details
@@ -113,11 +113,12 @@ import { RateCardManager } from '@/components/dashboard';
 Main container component that orchestrates all views.
 
 **Props:**
+
 ```typescript
 interface ThreeLayerDashboardProps {
-  project: GanttProject;      // Required: Project data
-  onRefresh?: () => void;      // Optional: Refresh callback
-  onExport?: () => void;       // Optional: Export callback
+  project: GanttProject; // Required: Project data
+  onRefresh?: () => void; // Optional: Refresh callback
+  onExport?: () => void; // Optional: Export callback
 }
 ```
 
@@ -126,6 +127,7 @@ interface ThreeLayerDashboardProps {
 Shows project timeline, resource metrics, and allocation heatmap.
 
 **Features:**
+
 - Project duration and dates
 - Total resources and tasks
 - Progress tracking
@@ -141,6 +143,7 @@ Shows project timeline, resource metrics, and allocation heatmap.
 Financial analysis with KPIs and visualizations.
 
 **Features:**
+
 - Editable proposed price
 - Total cost calculation from resource assignments
 - Gross margin calculation and color coding:
@@ -153,6 +156,7 @@ Financial analysis with KPIs and visualizations.
 - Financial insights and recommendations
 
 **Margin Calculation:**
+
 ```typescript
 // Default suggested revenue (30% margin)
 suggestedRevenue = totalCost / 0.7;
@@ -166,6 +170,7 @@ marginPercent = ((revenue - cost) / revenue) * 100;
 Scenario comparison and what-if analysis.
 
 **Features:**
+
 - Create optimized scenarios
 - Side-by-side comparison
 - Delta analysis (margin, cost, duration, effort)
@@ -173,6 +178,7 @@ Scenario comparison and what-if analysis.
 - Strategic recommendations
 
 **Pre-built Scenarios:**
+
 - **Cost-Optimized**: -15% cost, +1 month duration
 - **Premium Fast-Track**: +25% cost, -1 month, +40% price
 
@@ -181,6 +187,7 @@ Scenario comparison and what-if analysis.
 Weekly resource allocation visualization.
 
 **Algorithm:**
+
 ```
 For each resource:
   For each week:
@@ -201,29 +208,29 @@ Color cell based on total:
 
 ```typescript
 const project: GanttProject = {
-  id: 'project-1',
-  name: 'SAP S/4HANA Implementation',
-  startDate: '2024-01-01',
+  id: "project-1",
+  name: "SAP S/4HANA Implementation",
+  startDate: "2024-01-01",
   phases: [
     {
-      id: 'phase-1',
-      name: 'Prepare',
-      startDate: '2024-01-01',
-      endDate: '2024-02-29',
+      id: "phase-1",
+      name: "Prepare",
+      startDate: "2024-01-01",
+      endDate: "2024-02-29",
       tasks: [
         {
-          id: 'task-1',
-          name: 'Project Planning',
-          startDate: '2024-01-01',
-          endDate: '2024-01-31',
+          id: "task-1",
+          name: "Project Planning",
+          startDate: "2024-01-01",
+          endDate: "2024-01-31",
           progress: 0,
           resourceAssignments: [
             {
-              id: 'assign-1',
-              resourceId: 'resource-1',
-              assignmentNotes: 'Lead project setup',
+              id: "assign-1",
+              resourceId: "resource-1",
+              assignmentNotes: "Lead project setup",
               allocationPercentage: 100,
-              assignedAt: '2024-01-01',
+              assignedAt: "2024-01-01",
             },
           ],
         },
@@ -233,18 +240,18 @@ const project: GanttProject = {
   ],
   resources: [
     {
-      id: 'resource-1',
-      name: 'Project Manager',
-      category: 'pm',
-      designation: 'manager',
-      description: 'Leads project delivery',
-      createdAt: '2024-01-01',
+      id: "resource-1",
+      name: "Project Manager",
+      category: "pm",
+      designation: "manager",
+      description: "Leads project delivery",
+      createdAt: "2024-01-01",
     },
   ],
   milestones: [],
   holidays: [],
   viewSettings: {
-    zoomLevel: 'week',
+    zoomLevel: "week",
     showWeekends: false,
     showHolidays: true,
     showMilestones: true,
@@ -300,7 +307,7 @@ Create your own rate card:
 
 ```typescript
 // src/lib/custom-rates.ts
-import { ResourceDesignation } from '@/types/gantt-tool';
+import { ResourceDesignation } from "@/types/gantt-tool";
 
 export const CUSTOM_RATE_CARD: Record<ResourceDesignation, number> = {
   principal: 10000,
@@ -321,10 +328,10 @@ Modify margin color thresholds:
 ```typescript
 // src/lib/rate-card.ts
 export function getMarginColor(marginPercent: number): string {
-  if (marginPercent >= 35) return '#10B981'; // Excellent
-  if (marginPercent >= 25) return '#3B82F6'; // Good
-  if (marginPercent >= 15) return '#F59E0B'; // Warning
-  return '#EF4444'; // Critical
+  if (marginPercent >= 35) return "#10B981"; // Excellent
+  if (marginPercent >= 25) return "#3B82F6"; // Good
+  if (marginPercent >= 15) return "#F59E0B"; // Warning
+  return "#EF4444"; // Critical
 }
 ```
 
@@ -335,17 +342,14 @@ The dashboard supports export (hooks provided):
 ```tsx
 const handleExport = async () => {
   // Export to PDF
-  const element = document.getElementById('dashboard-content');
-  await html2canvas(element).then(canvas => {
-    const imgData = canvas.toDataURL('image/png');
+  const element = document.getElementById("dashboard-content");
+  await html2canvas(element).then((canvas) => {
+    const imgData = canvas.toDataURL("image/png");
     // Generate PDF with jspdf
   });
 };
 
-<ThreeLayerDashboard
-  project={project}
-  onExport={handleExport}
-/>
+<ThreeLayerDashboard project={project} onExport={handleExport} />;
 ```
 
 ## Best Practices
@@ -357,12 +361,12 @@ Always validate project data before passing to dashboard:
 ```typescript
 const validateProject = (project: GanttProject): boolean => {
   if (!project.phases || project.phases.length === 0) {
-    console.error('Project must have at least one phase');
+    console.error("Project must have at least one phase");
     return false;
   }
 
   if (!project.resources || project.resources.length === 0) {
-    console.warn('No resources assigned');
+    console.warn("No resources assigned");
   }
 
   return true;
@@ -372,6 +376,7 @@ const validateProject = (project: GanttProject): boolean => {
 ### 2. Performance
 
 For large projects (>50 phases):
+
 - Use React.memo for sub-components
 - Implement virtualization for heatmap rows
 - Debounce user inputs (e.g., revenue editor)
@@ -389,6 +394,7 @@ For large projects (>50 phases):
 **Cause**: Project has no resources or no resource assignments
 
 **Solution**:
+
 ```typescript
 // Add resources to project
 project.resources = [
@@ -406,9 +412,10 @@ phase.tasks[0].resourceAssignments = [
 **Cause**: No date overlap between assignments and weeks
 
 **Solution**: Verify date formats are ISO 8601 strings:
+
 ```typescript
-startDate: '2024-01-01' // ✅ Correct
-startDate: new Date()    // ❌ Wrong - must be string
+startDate: "2024-01-01"; // ✅ Correct
+startDate: new Date(); // ❌ Wrong - must be string
 ```
 
 ### Issue: "Margin calculation seems wrong"
@@ -416,9 +423,10 @@ startDate: new Date()    // ❌ Wrong - must be string
 **Cause**: Resources missing designation or invalid designation
 
 **Solution**:
+
 ```typescript
 // Ensure all resources have valid designation
-resource.designation = 'consultant'; // Must be ResourceDesignation enum value
+resource.designation = "consultant"; // Must be ResourceDesignation enum value
 ```
 
 ## Next Steps
@@ -476,6 +484,7 @@ getMarginColor(marginPercent: number): string // Hex color
 ## Support
 
 For questions or issues:
+
 1. Check console for error messages
 2. Verify project data structure matches `GanttProject` type
 3. Review this guide's troubleshooting section

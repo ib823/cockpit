@@ -16,7 +16,7 @@
  *   const slides = generateSlides(chips, phases, ricefwItems);
  */
 
-import type { Chip, Phase } from '@/types/core';
+import type { Chip, Phase } from "@/types/core";
 
 export interface Slide {
   id: string;
@@ -27,9 +27,9 @@ export interface Slide {
 
 export interface RicefwItem {
   id: string;
-  type: 'report' | 'interface' | 'conversion' | 'enhancement' | 'form' | 'workflow';
+  type: "report" | "interface" | "conversion" | "enhancement" | "form" | "workflow";
   name: string;
-  complexity: 'low' | 'medium' | 'high';
+  complexity: "low" | "medium" | "high";
   effort: number;
 }
 
@@ -46,8 +46,8 @@ export function generateSlides(
 
   // ALWAYS: Cover slide
   slides.push({
-    id: 'cover',
-    title: 'Cover',
+    id: "cover",
+    title: "Cover",
     component: null, // Will be rendered by PresentMode
     notes: `
 Introduction talking points:
@@ -62,8 +62,8 @@ Introduction talking points:
   // CONDITIONAL: Requirements slide (if chips exist)
   if (chips.length > 0) {
     slides.push({
-      id: 'requirements',
-      title: 'Requirements Overview',
+      id: "requirements",
+      title: "Requirements Overview",
       component: null,
       notes: `
 Talk about the requirements gathering process:
@@ -77,8 +77,8 @@ Talk about the requirements gathering process:
 
   // ALWAYS: Timeline slide
   slides.push({
-    id: 'timeline',
-    title: 'Project Timeline',
+    id: "timeline",
+    title: "Project Timeline",
     component: null,
     notes: `
 Walk through the timeline:
@@ -93,13 +93,13 @@ Walk through the timeline:
   // CONDITIONAL: Phase breakdown (if >3 phases)
   if (phases.length > 3) {
     slides.push({
-      id: 'phase-breakdown',
-      title: 'Detailed Phase Breakdown',
+      id: "phase-breakdown",
+      title: "Detailed Phase Breakdown",
       component: null,
       notes: `
 Deep dive into each phase:
-- Phase 1: ${phases[0]?.name || 'N/A'} - ${phases[0]?.workingDays || 0} days
-- Phase 2: ${phases[1]?.name || 'N/A'} - ${phases[1]?.workingDays || 0} days
+- Phase 1: ${phases[0]?.name || "N/A"} - ${phases[0]?.workingDays || 0} days
+- Phase 2: ${phases[1]?.name || "N/A"} - ${phases[1]?.workingDays || 0} days
 - Explain deliverables for each phase
 - Discuss quality gates and approval points
       `.trim(),
@@ -109,8 +109,8 @@ Deep dive into each phase:
   // CONDITIONAL: RICEFW slide (if custom objects exist)
   if (ricefwItems.length > 0) {
     slides.push({
-      id: 'ricefw',
-      title: 'Custom Development',
+      id: "ricefw",
+      title: "Custom Development",
       component: null,
       notes: `
 Discuss custom development scope:
@@ -127,13 +127,13 @@ Discuss custom development scope:
   const teamMembers = getUniqueTeamMembers(phases);
   if (teamMembers.length > 0) {
     slides.push({
-      id: 'team',
-      title: 'Project Team',
+      id: "team",
+      title: "Project Team",
       component: null,
       notes: `
 Introduce the team structure:
 - Team size: ${teamMembers.length} resources
-- Key roles: ${teamMembers.slice(0, 5).join(', ')}
+- Key roles: ${teamMembers.slice(0, 5).join(", ")}
 - Mention experience and expertise
 - Highlight dedicated vs. shared resources
 - Discuss escalation and governance
@@ -143,8 +143,8 @@ Introduce the team structure:
 
   // ALWAYS: Summary slide
   slides.push({
-    id: 'summary',
-    title: 'Summary & Next Steps',
+    id: "summary",
+    title: "Summary & Next Steps",
     component: null,
     notes: `
 Wrap up the presentation:
@@ -171,7 +171,7 @@ function calculateTotalDuration(phases: Phase[]): string {
   if (months >= 12) {
     const years = Math.floor(months / 12);
     const remainingMonths = months % 12;
-    return `${years}year${years > 1 ? 's' : ''}${remainingMonths > 0 ? ` ${remainingMonths}mo` : ''}`;
+    return `${years}year${years > 1 ? "s" : ""}${remainingMonths > 0 ? ` ${remainingMonths}mo` : ""}`;
   } else if (months >= 2) {
     return `${months} months`;
   } else {
@@ -186,24 +186,24 @@ function getTopChipCategories(chips: Chip[], count: number): string {
   const typeCounts: Record<string, number> = {};
 
   chips.forEach((chip) => {
-    const type = chip.type || 'OTHER';
+    const type = chip.type || "OTHER";
     typeCounts[type] = (typeCounts[type] || 0) + 1;
   });
 
   const sorted = Object.entries(typeCounts)
     .sort(([, a], [, b]) => b - a)
     .slice(0, count)
-    .map(([type]) => type.replace(/_/g, ' ').toLowerCase());
+    .map(([type]) => type.replace(/_/g, " ").toLowerCase());
 
-  return sorted.join(', ');
+  return sorted.join(", ");
 }
 
 /**
  * Helper: Get chip sources
  */
 function getChipSources(chips: Chip[]): string {
-  const sources = new Set(chips.map((c) => c.source || 'manual'));
-  return Array.from(sources).join(', ');
+  const sources = new Set(chips.map((c) => c.source || "manual"));
+  return Array.from(sources).join(", ");
 }
 
 /**
@@ -219,7 +219,7 @@ function getRicefwBreakdown(items: RicefwItem[]): string {
 
   return Object.entries(counts)
     .map(([type, count]) => `${count} ${type}`)
-    .join(', ');
+    .join(", ");
 }
 
 /**
@@ -238,9 +238,9 @@ function getUniqueTeamMembers(phases: Phase[]): string[] {
   phases.forEach((phase) => {
     if (phase.resources) {
       phase.resources.forEach((resource) => {
-        if (typeof resource === 'string') {
+        if (typeof resource === "string") {
           members.add(resource);
-        } else if (resource && typeof resource === 'object' && 'role' in resource) {
+        } else if (resource && typeof resource === "object" && "role" in resource) {
           members.add((resource as any).role);
         }
       });
@@ -264,9 +264,5 @@ export function reorderSlides(slides: Slide[], fromIndex: number, toIndex: numbe
  * Hide a slide (mark as hidden, don't remove)
  */
 export function toggleSlideVisibility(slides: Slide[], slideId: string, hidden: boolean): Slide[] {
-  return slides.map((slide) =>
-    slide.id === slideId
-      ? { ...slide, hidden }
-      : slide
-  ) as Slide[];
+  return slides.map((slide) => (slide.id === slideId ? { ...slide, hidden } : slide)) as Slide[];
 }

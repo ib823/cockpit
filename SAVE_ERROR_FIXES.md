@@ -5,6 +5,7 @@
 **Issue:** Gantt project saves work perfectly locally but fail with 500 errors in production.
 
 **Root Cause Analysis:**
+
 1. ✅ Data validation passes - project data is valid
 2. ✅ Local save operations work - database operations are correct
 3. ❌ Production fails - environment-specific issue
@@ -13,18 +14,21 @@
 ## 🔧 Fixes Deployed (3 commits)
 
 ### Fix #1: Error Handling & Logging (commit 32c806d4)
+
 - Wrapped audit log in try-catch (non-critical operation)
 - Enhanced error logging with Prisma error codes
 - User-friendly error messages
 - **Status:** Deployed ✅
 
 ### Fix #2: Performance Logging (commit ab4d0996)
+
 - Added detailed step-by-step logging
 - Transaction duration tracking
 - Identifies exactly where failures occur
 - **Status:** Deployed ✅
 
 ### Fix #3: Timeout Configuration (commit cc3427bb)
+
 - Explicit `maxDuration = 10` seconds
 - Added to both route.ts and vercel.json
 - Ensures full timeout allowance
@@ -33,7 +37,9 @@
 ## 📊 Expected Behavior Now
 
 ### If It Works ✅
+
 You should see in Vercel logs:
+
 ```
 [API] ===== PATCH Request Started =====
 [API] Starting database transaction...
@@ -44,33 +50,41 @@ You should see in Vercel logs:
 ```
 
 ### If It Still Fails ❌
+
 The logs will show **exactly where** it fails:
 
 **Scenario A: Timeout**
+
 ```
 [API] Starting database transaction...
 [API] Creating 4 phases with tasks...
 [logs stop here - timeout at 10s]
 ```
+
 **Solution:** Upgrade to Vercel Pro plan for 60-second timeout
 
 **Scenario B: Database Connection**
+
 ```
 Error: Can't reach database server
 P1001: Can't reach database server
 ```
+
 **Solution:** Check database connection pool settings
 
 **Scenario C: Constraint Violation**
+
 ```
 Prisma error code: P2003
 Foreign key constraint violation
 ```
+
 **Solution:** Data integrity issue - run diagnostic script
 
 ## 🧪 Testing Steps
 
 1. **Wait for Vercel deployment** (~2-3 minutes)
+
    ```bash
    # Check deployment status
    vercel ls
@@ -82,6 +96,7 @@ Foreign key constraint violation
    - Note the exact time of the attempt
 
 3. **Check Vercel logs** immediately
+
    ```bash
    # View live logs
    vercel logs --follow
@@ -97,16 +112,17 @@ Foreign key constraint violation
 
 ## 📈 Vercel Plan Limits
 
-| Plan | Timeout | Memory | Cost |
-|------|---------|--------|------|
-| Hobby | **10s** | 1024 MB | Free |
-| Pro | **60s** | 3008 MB | $20/month |
+| Plan  | Timeout | Memory  | Cost      |
+| ----- | ------- | ------- | --------- |
+| Hobby | **10s** | 1024 MB | Free      |
+| Pro   | **60s** | 3008 MB | $20/month |
 
 **If your save operation takes >10 seconds, you need Pro plan.**
 
 ## 🔍 Quick Diagnostic
 
 Run locally to verify data integrity:
+
 ```bash
 # Test the exact save flow
 npx tsx scripts/test-save-operation.ts cmhdareks000512ussi08yu78
@@ -128,6 +144,7 @@ If it still fails, share:
 5. **Project size** (number of phases, tasks, resources)
 
 Example:
+
 ```
 Last log: [API] Creating 4 phases with tasks...
 Error: None (just stops)
@@ -139,6 +156,7 @@ Size: 4 phases, 127 tasks, 0 resources
 ## 🎯 Most Likely Next Step
 
 Based on the fact that:
+
 - ✅ Your project has 4 phases with tasks
 - ✅ Local save works in <1 second
 - ✅ All diagnostics pass

@@ -4,15 +4,15 @@
  * A toggle switch with emoji indicators (✖️/✔️)
  */
 
-'use client';
+"use client";
 
-import { InputHTMLAttributes } from 'react';
+import { InputHTMLAttributes } from "react";
 
-interface EmojiToggleProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface EmojiToggleProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   label?: string;
 }
 
-export function EmojiToggle({ label, className = '', id, ...props }: EmojiToggleProps) {
+export function EmojiToggle({ label, className = "", id, ...props }: EmojiToggleProps) {
   const toggleId = id || `toggle-${Math.random().toString(36).substr(2, 9)}`;
 
   return (

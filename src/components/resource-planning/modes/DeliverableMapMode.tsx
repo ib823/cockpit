@@ -1,10 +1,10 @@
 "use client";
 
 import {
-    SAP_DELIVERABLES_CATALOG,
-    getTasksForModules,
-    type DeliverableTree,
-    type SubModule
+  SAP_DELIVERABLES_CATALOG,
+  getTasksForModules,
+  type DeliverableTree,
+  type SubModule,
 } from "@/data/sap-deliverables";
 import { usePresalesStore } from "@/stores/presales-store";
 import type { TaskWithState } from "@/stores/resource-planning-store";
@@ -13,7 +13,7 @@ import { ChevronDown, ChevronRight, Package } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function DeliverableMapMode() {
-  const presalesDecisions = usePresalesStore(state => state.decisions);
+  const presalesDecisions = usePresalesStore((state) => state.decisions);
   const { setSelectedModules, setTasks, tasks } = useResourcePlanningStore();
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [expandedSubModules, setExpandedSubModules] = useState<Set<string>>(new Set());
@@ -30,19 +30,19 @@ export function DeliverableMapMode() {
     // Try presales decisions first (since that's what we know works)
     if (presalesDecisions.moduleCombo) {
       const presalesMapping: Record<string, string[]> = {
-        'FinanceOnly': ['Finance_1'],
-        'Finance+P2P': ['Finance_1', 'Finance_2'],
-        'Finance+OTC': ['Finance_1', 'Finance_3'],
-        'Finance+P2P+OTC': ['Finance_1', 'Finance_2', 'Finance_3'],
-        'Core+HCM': ['Finance_1', 'HCM_1'],
+        FinanceOnly: ["Finance_1"],
+        "Finance+P2P": ["Finance_1", "Finance_2"],
+        "Finance+OTC": ["Finance_1", "Finance_3"],
+        "Finance+P2P+OTC": ["Finance_1", "Finance_2", "Finance_3"],
+        "Core+HCM": ["Finance_1", "HCM_1"],
       };
 
-      modulesToLoad = presalesMapping[presalesDecisions.moduleCombo] || ['Finance_1'];
+      modulesToLoad = presalesMapping[presalesDecisions.moduleCombo] || ["Finance_1"];
     }
 
     // Default fallback
     if (modulesToLoad.length === 0) {
-      modulesToLoad = ['Finance_1']; // Always show Finance at minimum
+      modulesToLoad = ["Finance_1"]; // Always show Finance at minimum
     }
 
     // Remove duplicates
@@ -53,7 +53,7 @@ export function DeliverableMapMode() {
 
     // Load tasks for selected modules
     const loadedTasks = getTasksForModules(modulesToLoad);
-    const tasksWithState: TaskWithState[] = loadedTasks.map(task => ({
+    const tasksWithState: TaskWithState[] = loadedTasks.map((task) => ({
       ...task,
       completed: 0,
       delta: 100,
@@ -62,9 +62,8 @@ export function DeliverableMapMode() {
 
     setTasks(tasksWithState);
 
-    console.log('[ResourcePlanning] Loaded modules:', modulesToLoad);
-    console.log('[ResourcePlanning] Loaded tasks:', tasksWithState.length);
-
+    console.log("[ResourcePlanning] Loaded modules:", modulesToLoad);
+    console.log("[ResourcePlanning] Loaded tasks:", tasksWithState.length);
   }, [presalesDecisions.moduleCombo, setSelectedModules, setTasks]);
 
   const toggleModule = (moduleId: string) => {
@@ -87,19 +86,25 @@ export function DeliverableMapMode() {
     setExpandedSubModules(newExpanded);
   };
 
-  const getRiskColor = (risk: 'low' | 'medium' | 'high') => {
+  const getRiskColor = (risk: "low" | "medium" | "high") => {
     switch (risk) {
-      case 'low': return 'text-green-600 bg-green-50';
-      case 'medium': return 'text-yellow-600 bg-yellow-50';
-      case 'high': return 'text-red-600 bg-red-50';
+      case "low":
+        return "text-green-600 bg-green-50";
+      case "medium":
+        return "text-yellow-600 bg-yellow-50";
+      case "high":
+        return "text-red-600 bg-red-50";
     }
   };
 
-  const getRiskIcon = (risk: 'low' | 'medium' | 'high') => {
+  const getRiskIcon = (risk: "low" | "medium" | "high") => {
     switch (risk) {
-      case 'low': return '🟢';
-      case 'medium': return '🟡';
-      case 'high': return '🔴';
+      case "low":
+        return "🟢";
+      case "medium":
+        return "🟡";
+      case "high":
+        return "🔴";
     }
   };
 
@@ -114,7 +119,8 @@ export function DeliverableMapMode() {
         <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-b border-purple-200 px-6 py-4">
           <h2 className="text-xl font-semibold text-purple-900">Deliverable Tree</h2>
           <p className="text-sm text-purple-600 mt-1">
-            {tasks.length} configuration tasks across {SAP_DELIVERABLES_CATALOG.modules.length} modules
+            {tasks.length} configuration tasks across {SAP_DELIVERABLES_CATALOG.modules.length}{" "}
+            modules
           </p>
         </div>
 
@@ -141,19 +147,19 @@ export function DeliverableMapMode() {
               <div className="flex items-center gap-2">
                 <span className="text-gray-600">Total Effort:</span>
                 <span className="font-semibold text-gray-900">
-                  {tasks.reduce((sum, t) => sum + (t.baseEffort * t.delta / 100), 0).toFixed(1)} PD
+                  {tasks.reduce((sum, t) => sum + (t.baseEffort * t.delta) / 100, 0).toFixed(1)} PD
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-gray-600">High Risk:</span>
                 <span className="font-semibold text-red-600">
-                  {tasks.filter(t => t.riskLevel === 'high').length}
+                  {tasks.filter((t) => t.riskLevel === "high").length}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-gray-600">Sharable:</span>
                 <span className="font-semibold text-green-600">
-                  {tasks.filter(t => t.sharable).length}
+                  {tasks.filter((t) => t.sharable).length}
                 </span>
               </div>
             </div>
@@ -178,8 +184,8 @@ function ModuleNode({
   onToggle: () => void;
   expandedSubModules: Set<string>;
   onToggleSubModule: (id: string) => void;
-  getRiskColor: (risk: 'low' | 'medium' | 'high') => string;
-  getRiskIcon: (risk: 'low' | 'medium' | 'high') => string;
+  getRiskColor: (risk: "low" | "medium" | "high") => string;
+  getRiskIcon: (risk: "low" | "medium" | "high") => string;
 }) {
   const totalEffort = module.subModules.reduce((sum, sm) => sum + sm.estimatedEffort, 0);
 
@@ -233,8 +239,8 @@ function SubModuleNode({
   subModule: SubModule;
   isExpanded: boolean;
   onToggle: () => void;
-  getRiskColor: (risk: 'low' | 'medium' | 'high') => string;
-  getRiskIcon: (risk: 'low' | 'medium' | 'high') => string;
+  getRiskColor: (risk: "low" | "medium" | "high") => string;
+  getRiskIcon: (risk: "low" | "medium" | "high") => string;
 }) {
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -251,8 +257,8 @@ function SubModuleNode({
         <div className="flex-1 text-left">
           <div className="font-medium text-gray-800 text-sm">{subModule.name}</div>
           <div className="text-xs text-gray-500 mt-0.5">
-            {subModule.configurations.length} tasks · {subModule.estimatedEffort} PD · 
-            Complexity: {subModule.complexity}x
+            {subModule.configurations.length} tasks · {subModule.estimatedEffort} PD · Complexity:{" "}
+            {subModule.complexity}x
           </div>
         </div>
       </button>
@@ -282,10 +288,12 @@ function SubModuleNode({
                   )}
                 </div>
                 <div className="text-xs text-gray-400 mt-1">
-                  Skills: {config.skillRequired.join(', ')}
+                  Skills: {config.skillRequired.join(", ")}
                 </div>
               </div>
-              <div className={`px-2 py-1 rounded text-xs font-medium ${getRiskColor(config.riskLevel)}`}>
+              <div
+                className={`px-2 py-1 rounded text-xs font-medium ${getRiskColor(config.riskLevel)}`}
+              >
                 {config.riskLevel.toUpperCase()}
               </div>
             </div>
@@ -303,14 +311,12 @@ function EmptyState() {
         <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Package className="w-8 h-8 text-purple-600" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          No Modules Selected
-        </h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">No Modules Selected</h3>
         <p className="text-gray-600 mb-6">
           Select SAP modules in the Plan mode to see configuration-level deliverables
         </p>
         <button
-          onClick={() => window.location.href = '/project'}
+          onClick={() => (window.location.href = "/project")}
           className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
         >
           Go to Plan Mode

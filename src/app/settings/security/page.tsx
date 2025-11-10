@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface SecurityOverview {
   passwordChangedAt: string | null;
@@ -36,23 +36,25 @@ interface TrustedDevice {
 }
 
 export default function SecuritySettingsPage() {
-  const router = useRouter();
+  const _router = useRouter(); // Reserved for future use
 
   // Data state
   const [overview, setOverview] = useState<SecurityOverview | null>(null);
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [devices, setDevices] = useState<TrustedDevice[]>([]);
+  const [_sessions, _setSessions] = useState<Session[]>([]); // Reserved for future use
+  const [_devices, _setDevices] = useState<TrustedDevice[]>([]); // Reserved for future use
 
   // UI state
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'password' | 'totp' | 'sessions' | 'devices'>('overview');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "password" | "totp" | "sessions" | "devices"
+  >("overview");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   // Password change state
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
   // ============================================
@@ -64,7 +66,7 @@ export default function SecuritySettingsPage() {
 
   const loadSecurityData = async () => {
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       // TODO: Replace with actual API endpoints
@@ -80,13 +82,13 @@ export default function SecuritySettingsPage() {
         trustedDevices: 3,
         maxConcurrentSessions: 1,
         accountLocked: false,
-        failedLoginAttempts: 0
+        failedLoginAttempts: 0,
       };
 
       setOverview(mockOverview);
     } catch (err: any) {
-      console.error('[Security] Failed to load data:', err);
-      setError('Failed to load security settings. Please try again.');
+      console.error("[Security] Failed to load data:", err);
+      setError("Failed to load security settings. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -97,16 +99,16 @@ export default function SecuritySettingsPage() {
   // ============================================
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match');
+      setError("New passwords do not match");
       return;
     }
 
     if (newPassword.length < 12) {
-      setError('Password must be at least 12 characters');
+      setError("Password must be at least 12 characters");
       return;
     }
 
@@ -114,14 +116,14 @@ export default function SecuritySettingsPage() {
 
     try {
       // TODO: Implement password change API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      setSuccess('Password changed successfully');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      setSuccess("Password changed successfully");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (err: any) {
-      setError(err.message || 'Failed to change password');
+      setError(err.message || "Failed to change password");
     } finally {
       setChangingPassword(false);
     }
@@ -131,10 +133,10 @@ export default function SecuritySettingsPage() {
   // Format Dates
   // ============================================
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -143,8 +145,8 @@ export default function SecuritySettingsPage() {
     const then = new Date(date).getTime();
     const diffDays = Math.floor((now - then) / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
     if (diffDays < 30) return `${diffDays} days ago`;
     if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
     return `${Math.floor(diffDays / 365)} years ago`;
@@ -188,19 +190,19 @@ export default function SecuritySettingsPage() {
           <div className="border-b border-slate-200">
             <nav className="flex overflow-x-auto">
               {[
-                { id: 'overview', label: 'Overview', icon: '🔒' },
-                { id: 'password', label: 'Password', icon: '🔑' },
-                { id: 'totp', label: '2FA', icon: '📱' },
-                { id: 'sessions', label: 'Sessions', icon: '💻' },
-                { id: 'devices', label: 'Devices', icon: '🖥️' }
-              ].map(tab => (
+                { id: "overview", label: "Overview", icon: "🔒" },
+                { id: "password", label: "Password", icon: "🔑" },
+                { id: "totp", label: "2FA", icon: "📱" },
+                { id: "sessions", label: "Sessions", icon: "💻" },
+                { id: "devices", label: "Devices", icon: "🖥️" },
+              ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`px-6 py-4 text-sm font-medium whitespace-nowrap transition-colors ${
                     activeTab === tab.id
-                      ? 'border-b-2 border-blue-600 text-blue-600'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? "border-b-2 border-blue-600 text-blue-600"
+                      : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <span className="mr-2">{tab.icon}</span>
@@ -212,23 +214,25 @@ export default function SecuritySettingsPage() {
 
           <div className="p-8">
             {/* Overview Tab */}
-            {activeTab === 'overview' && overview && (
+            {activeTab === "overview" && overview && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-slate-900">Security Overview</h2>
 
                 {/* Password Expiry Alert */}
                 {overview.passwordExpiresIn !== null && overview.passwordExpiresIn <= 15 && (
-                  <div className={`p-4 rounded-lg border ${
-                    overview.passwordExpiresIn <= 5
-                      ? 'bg-red-50 border-red-200 text-red-700'
-                      : 'bg-yellow-50 border-yellow-200 text-yellow-700'
-                  }`}>
+                  <div
+                    className={`p-4 rounded-lg border ${
+                      overview.passwordExpiresIn <= 5
+                        ? "bg-red-50 border-red-200 text-red-700"
+                        : "bg-yellow-50 border-yellow-200 text-yellow-700"
+                    }`}
+                  >
                     <h3 className="font-bold mb-1">⚠️ Password Expiring Soon</h3>
                     <p className="text-sm">
-                      Your password expires in {overview.passwordExpiresIn} day(s) on{' '}
-                      {formatDate(overview.passwordExpiresAt!)}.{' '}
+                      Your password expires in {overview.passwordExpiresIn} day(s) on{" "}
+                      {formatDate(overview.passwordExpiresAt!)}.{" "}
                       <button
-                        onClick={() => setActiveTab('password')}
+                        onClick={() => setActiveTab("password")}
                         className="underline font-medium"
                       >
                         Change it now
@@ -245,7 +249,10 @@ export default function SecuritySettingsPage() {
                       <div>
                         <h3 className="font-bold text-slate-900 mb-1">🔑 Password</h3>
                         <p className="text-sm text-slate-600">
-                          Last changed {overview.passwordChangedAt ? formatRelativeTime(overview.passwordChangedAt) : 'Never'}
+                          Last changed{" "}
+                          {overview.passwordChangedAt
+                            ? formatRelativeTime(overview.passwordChangedAt)
+                            : "Never"}
                         </p>
                       </div>
                       <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
@@ -267,7 +274,7 @@ export default function SecuritySettingsPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => setActiveTab('password')}
+                      onClick={() => setActiveTab("password")}
                       className="mt-4 w-full py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
                     >
                       Change Password
@@ -278,26 +285,33 @@ export default function SecuritySettingsPage() {
                   <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="font-bold text-slate-900 mb-1">📱 Two-Factor Authentication</h3>
+                        <h3 className="font-bold text-slate-900 mb-1">
+                          📱 Two-Factor Authentication
+                        </h3>
                         <p className="text-sm text-slate-600">
-                          {overview.totpEnabled ? 'Enabled' : 'Disabled'}
-                          {overview.totpEnabledAt && ` ${formatRelativeTime(overview.totpEnabledAt)}`}
+                          {overview.totpEnabled ? "Enabled" : "Disabled"}
+                          {overview.totpEnabledAt &&
+                            ` ${formatRelativeTime(overview.totpEnabledAt)}`}
                         </p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        overview.totpEnabled
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}>
-                        {overview.totpEnabled ? 'Enabled' : 'Disabled'}
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          overview.totpEnabled
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {overview.totpEnabled ? "Enabled" : "Disabled"}
                       </span>
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-slate-600">Backup codes:</span>
-                        <span className={`font-medium ${
-                          overview.backupCodesRemaining <= 2 ? 'text-red-600' : 'text-slate-900'
-                        }`}>
+                        <span
+                          className={`font-medium ${
+                            overview.backupCodesRemaining <= 2 ? "text-red-600" : "text-slate-900"
+                          }`}
+                        >
                           {overview.backupCodesRemaining} remaining
                         </span>
                       </div>
@@ -307,7 +321,7 @@ export default function SecuritySettingsPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => setActiveTab('totp')}
+                      onClick={() => setActiveTab("totp")}
                       className="mt-4 w-full py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
                     >
                       Manage 2FA
@@ -342,7 +356,7 @@ export default function SecuritySettingsPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => setActiveTab('sessions')}
+                      onClick={() => setActiveTab("sessions")}
                       className="mt-4 w-full py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
                     >
                       Manage Sessions
@@ -373,7 +387,7 @@ export default function SecuritySettingsPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => setActiveTab('devices')}
+                      onClick={() => setActiveTab("devices")}
                       className="mt-4 w-full py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
                     >
                       Manage Devices
@@ -384,13 +398,24 @@ export default function SecuritySettingsPage() {
                 {/* Account Status */}
                 <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                   <div className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    <svg
+                      className="w-6 h-6 text-green-600 mt-0.5 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                      />
                     </svg>
                     <div>
                       <h3 className="font-bold text-green-900 mb-1">Account Secure</h3>
                       <p className="text-sm text-green-800">
-                        Your account is protected with strong password, two-factor authentication, and active session monitoring.
+                        Your account is protected with strong password, two-factor authentication,
+                        and active session monitoring.
                       </p>
                     </div>
                   </div>
@@ -399,12 +424,13 @@ export default function SecuritySettingsPage() {
             )}
 
             {/* Password Tab */}
-            {activeTab === 'password' && (
+            {activeTab === "password" && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Change Password</h2>
                   <p className="text-slate-600">
-                    Your password must be at least 12 characters and include uppercase, lowercase, numbers, and special characters.
+                    Your password must be at least 12 characters and include uppercase, lowercase,
+                    numbers, and special characters.
                   </p>
                 </div>
 
@@ -447,10 +473,12 @@ export default function SecuritySettingsPage() {
 
                   <button
                     type="submit"
-                    disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
+                    disabled={
+                      changingPassword || !currentPassword || !newPassword || !confirmPassword
+                    }
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {changingPassword ? 'Changing Password...' : 'Change Password'}
+                    {changingPassword ? "Changing Password..." : "Change Password"}
                   </button>
                 </form>
 
@@ -469,10 +497,12 @@ export default function SecuritySettingsPage() {
             )}
 
             {/* TOTP Tab */}
-            {activeTab === 'totp' && (
+            {activeTab === "totp" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900 mb-2">Two-Factor Authentication</h2>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                    Two-Factor Authentication
+                  </h2>
                   <p className="text-slate-600">
                     Manage your TOTP settings and backup recovery codes.
                   </p>
@@ -481,14 +511,15 @@ export default function SecuritySettingsPage() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                   <h3 className="font-bold text-blue-900 mb-2">Coming Soon</h3>
                   <p className="text-sm text-blue-800">
-                    TOTP management features are under development. Contact support if you need to reset your authenticator.
+                    TOTP management features are under development. Contact support if you need to
+                    reset your authenticator.
                   </p>
                 </div>
               </div>
             )}
 
             {/* Sessions Tab */}
-            {activeTab === 'sessions' && (
+            {activeTab === "sessions" && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Active Sessions</h2>
@@ -507,7 +538,7 @@ export default function SecuritySettingsPage() {
             )}
 
             {/* Devices Tab */}
-            {activeTab === 'devices' && (
+            {activeTab === "devices" && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Trusted Devices</h2>

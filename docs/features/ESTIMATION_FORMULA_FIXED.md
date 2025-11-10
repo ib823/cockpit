@@ -10,47 +10,47 @@
 ```typescript
 export const DEFAULT_WRAPPERS: Wrapper[] = [
   {
-    id: 'pmo',
-    name: 'PMO (Project Management Office)',
+    id: "pmo",
+    name: "PMO (Project Management Office)",
     defaultPercentage: 15,
-    category: 'support'
+    category: "support",
   },
   {
-    id: 'basis',
-    name: 'Basis (SAP Technical Foundation)',
+    id: "basis",
+    name: "Basis (SAP Technical Foundation)",
     defaultPercentage: 10,
-    category: 'infrastructure'
+    category: "infrastructure",
   },
   {
-    id: 'security-authorization',
-    name: 'Security & Authorization',
+    id: "security-authorization",
+    name: "Security & Authorization",
     defaultPercentage: 8,
-    category: 'infrastructure'
+    category: "infrastructure",
   },
   {
-    id: 'change-management',
-    name: 'Change Management',
+    id: "change-management",
+    name: "Change Management",
     defaultPercentage: 12,
-    category: 'support'
+    category: "support",
   },
   {
-    id: 'data-migration',
-    name: 'Data Migration',
+    id: "data-migration",
+    name: "Data Migration",
     defaultPercentage: 25,
-    category: 'implementation'
+    category: "implementation",
   },
   {
-    id: 'testing',
-    name: 'Testing',
+    id: "testing",
+    name: "Testing",
     defaultPercentage: 30,
-    category: 'implementation'
+    category: "implementation",
   },
   {
-    id: 'cutover-hypercare',
-    name: 'Cutover & Hypercare',
+    id: "cutover-hypercare",
+    name: "Cutover & Hypercare",
     defaultPercentage: 12,
-    category: 'support'
-  }
+    category: "support",
+  },
 ];
 ```
 
@@ -69,7 +69,7 @@ export const RATE_CARDS = {
     consultant: 120,
     projectManager: 140,
     basis: 130,
-    security: 125
+    security: 125,
   },
   ABSG: {
     currency: "SGD",
@@ -79,9 +79,10 @@ export const RATE_CARDS = {
     consultant: 140,
     projectManager: 160,
     basis: 155,
-    security: 150
+    security: 150,
   },
-  ABVN: {  // ✅ NEW - Vietnam
+  ABVN: {
+    // ✅ NEW - Vietnam
     currency: "USD",
     costIndex: 0.6,
     architect: 120,
@@ -89,7 +90,7 @@ export const RATE_CARDS = {
     consultant: 95,
     projectManager: 110,
     basis: 100,
-    security: 95
+    security: 95,
   },
   // ... NA, EU regions
 };
@@ -104,11 +105,11 @@ export const RATE_CARDS = {
 ```typescript
 // Base effort should ALWAYS include basic Finance configuration
 const BASE_FINANCE_EFFORT = {
-  'FI-GL': 40,        // General Ledger (always included)
-  'FI-AP': 30,        // Accounts Payable (always included)
-  'FI-AR': 30,        // Accounts Receivable (always included)
-  'FI-AA': 25,        // Asset Accounting (usually included)
-  'FI-BL': 20,        // Bank Ledger (always included)
+  "FI-GL": 40, // General Ledger (always included)
+  "FI-AP": 30, // Accounts Payable (always included)
+  "FI-AR": 30, // Accounts Receivable (always included)
+  "FI-AA": 25, // Asset Accounting (usually included)
+  "FI-BL": 20, // Bank Ledger (always included)
   // TOTAL: 145 person-days as minimum base effort
 };
 
@@ -139,6 +140,7 @@ Example:
 ## Implementation Locations
 
 ### Files Modified:
+
 1. ✅ `/src/types/wrappers.ts` - Separated wrappers (PMO, Basis, Security)
 2. ✅ `/src/data/resource-catalog.ts` - Added ABVN, cost indices
 3. ⚠️ TODO: `/src/lib/scenario-generator.ts` - Add BASE_FINANCE_EFFORT constant
@@ -147,6 +149,7 @@ Example:
 ## Validation
 
 **Test Cases:**
+
 ```typescript
 // Test 1: Minimum project (Finance only)
 expect(calculateEffort({modules: ['FI']})).toBe(145 + wrapper overhead);

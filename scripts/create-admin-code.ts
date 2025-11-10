@@ -2,14 +2,14 @@
  * Create Admin Access Code
  */
 
-import { PrismaClient } from '@prisma/client';
-import { hash } from 'bcryptjs';
+import { PrismaClient } from "@prisma/client";
+import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function createAdminCode() {
-  const adminEmail = 'ikmls@hotmail.com';
-  const accessCode = '123456'; // Simple code for testing
+  const adminEmail = "ikmls@hotmail.com";
+  const accessCode = "123456"; // Simple code for testing
 
   try {
     // Get admin user
@@ -18,7 +18,7 @@ async function createAdminCode() {
     });
 
     if (!adminUser) {
-      console.error('❌ Admin user not found');
+      console.error("❌ Admin user not found");
       return;
     }
 
@@ -41,16 +41,15 @@ async function createAdminCode() {
       },
     });
 
-    console.log('\n✅ Admin access code created!');
-    console.log('\n=== LOGIN INSTRUCTIONS ===');
-    console.log('1. Go to: http://localhost:3000/login');
-    console.log('2. Enter email: ikmls@hotmail.com');
-    console.log('3. Enter code: 123456');
-    console.log('4. Complete passkey registration');
-    console.log('\nCode expires:', approval.tokenExpiresAt);
-
+    console.log("\n✅ Admin access code created!");
+    console.log("\n=== LOGIN INSTRUCTIONS ===");
+    console.log("1. Go to: http://localhost:3000/login");
+    console.log("2. Enter email: ikmls@hotmail.com");
+    console.log("3. Enter code: 123456");
+    console.log("4. Complete passkey registration");
+    console.log("\nCode expires:", approval.tokenExpiresAt);
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error("❌ Error:", error);
   } finally {
     await prisma.$disconnect();
   }

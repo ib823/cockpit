@@ -4,7 +4,7 @@
  * Handles task hierarchy rendering, flattening, and visibility calculations
  */
 
-import type { GanttTask } from '@/types/gantt-tool';
+import type { GanttTask } from "@/types/gantt-tool";
 
 /**
  * Get all visible tasks in hierarchical render order
@@ -13,7 +13,9 @@ import type { GanttTask } from '@/types/gantt-tool';
  * @param tasks - Flat array of all tasks in a phase
  * @returns Array of tasks in render order with metadata
  */
-export function getVisibleTasksInOrder(tasks: GanttTask[]): Array<GanttTask & { renderIndex: number }> {
+export function getVisibleTasksInOrder(
+  tasks: GanttTask[]
+): Array<GanttTask & { renderIndex: number }> {
   const result: Array<GanttTask & { renderIndex: number }> = [];
   let renderIndex = 0;
 
@@ -44,9 +46,7 @@ export function getVisibleTasksInOrder(tasks: GanttTask[]): Array<GanttTask & { 
   };
 
   // Get top-level tasks (no parent) and sort by order
-  const topLevelTasks = tasks
-    .filter((t) => !t.parentTaskId)
-    .sort((a, b) => a.order - b.order);
+  const topLevelTasks = tasks.filter((t) => !t.parentTaskId).sort((a, b) => a.order - b.order);
 
   // Add each top-level task and its visible children
   topLevelTasks.forEach(addTaskAndChildren);

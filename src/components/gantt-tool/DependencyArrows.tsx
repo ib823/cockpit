@@ -5,17 +5,17 @@
  * Supports Finish-to-Start (FS), Start-to-Start (SS), Finish-to-Finish (FF), and Start-to-Finish (SF) relationships.
  */
 
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import type { GanttTask, GanttPhase } from '@/types/gantt-tool';
-import { differenceInDays } from 'date-fns';
+import { useMemo } from "react";
+import type { GanttTask, GanttPhase } from "@/types/gantt-tool";
+import { differenceInDays } from "date-fns";
 
 interface TaskPosition {
   id: string;
-  x: number;      // Left edge position (%)
-  y: number;      // Top position (px)
-  width: number;  // Width (%)
+  x: number; // Left edge position (%)
+  y: number; // Top position (px)
+  width: number; // Width (%)
   height: number; // Height (px)
   phaseId: string;
 }
@@ -30,7 +30,7 @@ interface DependencyArrowsProps {
   viewportTop?: number;
 }
 
-type DependencyType = 'FS' | 'SS' | 'FF' | 'SF';
+type DependencyType = "FS" | "SS" | "FF" | "SF";
 
 interface Dependency {
   id: string;
@@ -79,7 +79,7 @@ export function DependencyArrows({
           const taskWidth = (taskDurationDays / durationDays) * 100;
 
           // Calculate Y position (approximate)
-          const taskY = currentY + phaseHeight + (taskIdx * 70); // ~70px per task row
+          const taskY = currentY + phaseHeight + taskIdx * 70; // ~70px per task row
 
           positions.set(task.id, {
             id: task.id,
@@ -91,7 +91,7 @@ export function DependencyArrows({
           });
         });
 
-        currentY += phaseHeight + (phase.tasks.length * 70);
+        currentY += phaseHeight + phase.tasks.length * 70;
       } else {
         currentY += phaseHeight;
       }
@@ -118,7 +118,7 @@ export function DependencyArrows({
                   id: `${depId}-${task.id}`,
                   sourceTaskId: depId,
                   targetTaskId: task.id,
-                  type: 'FS',
+                  type: "FS",
                   sourceTask: sourcePos,
                   targetTask: targetPos,
                 });
@@ -146,28 +146,28 @@ export function DependencyArrows({
 
     // Determine start and end points based on dependency type
     switch (type) {
-      case 'FS': // Finish-to-Start (default)
+      case "FS": // Finish-to-Start (default)
         startX = sourceX + sourceWidth; // Right edge of source
         startY = sourceTask.y + sourceTask.height / 2;
         endX = targetX; // Left edge of target
         endY = targetTask.y + targetTask.height / 2;
         break;
 
-      case 'SS': // Start-to-Start
+      case "SS": // Start-to-Start
         startX = sourceX; // Left edge of source
         startY = sourceTask.y + sourceTask.height / 2;
         endX = targetX; // Left edge of target
         endY = targetTask.y + targetTask.height / 2;
         break;
 
-      case 'FF': // Finish-to-Finish
+      case "FF": // Finish-to-Finish
         startX = sourceX + sourceWidth; // Right edge of source
         startY = sourceTask.y + sourceTask.height / 2;
         endX = targetX + targetWidth; // Right edge of target
         endY = targetTask.y + targetTask.height / 2;
         break;
 
-      case 'SF': // Start-to-Finish (rare)
+      case "SF": // Start-to-Finish (rare)
         startX = sourceX; // Left edge of source
         startY = sourceTask.y + sourceTask.height / 2;
         endX = targetX + targetWidth; // Right edge of target
@@ -191,32 +191,32 @@ export function DependencyArrows({
   // Arrow color based on dependency type
   const getArrowColor = (type: DependencyType): string => {
     switch (type) {
-      case 'FS':
-        return '#3B82F6'; // Blue (most common)
-      case 'SS':
-        return '#10B981'; // Green
-      case 'FF':
-        return '#F59E0B'; // Amber
-      case 'SF':
-        return '#8B5CF6'; // Purple (rare)
+      case "FS":
+        return "#3B82F6"; // Blue (most common)
+      case "SS":
+        return "#10B981"; // Green
+      case "FF":
+        return "#F59E0B"; // Amber
+      case "SF":
+        return "#8B5CF6"; // Purple (rare)
       default:
-        return '#3B82F6';
+        return "#3B82F6";
     }
   };
 
   // Get dependency type label
   const getDependencyLabel = (type: DependencyType): string => {
     switch (type) {
-      case 'FS':
-        return 'Finish-to-Start';
-      case 'SS':
-        return 'Start-to-Start';
-      case 'FF':
-        return 'Finish-to-Finish';
-      case 'SF':
-        return 'Start-to-Finish';
+      case "FS":
+        return "Finish-to-Start";
+      case "SS":
+        return "Start-to-Start";
+      case "FF":
+        return "Finish-to-Finish";
+      case "SF":
+        return "Start-to-Finish";
       default:
-        return 'Finish-to-Start';
+        return "Finish-to-Start";
     }
   };
 
@@ -235,7 +235,7 @@ export function DependencyArrows({
     >
       {/* Arrow marker definitions */}
       <defs>
-        {['FS', 'SS', 'FF', 'SF'].map((type) => (
+        {["FS", "SS", "FF", "SF"].map((type) => (
           <marker
             key={`arrowhead-${type}`}
             id={`arrowhead-${type}`}
@@ -246,10 +246,7 @@ export function DependencyArrows({
             orient="auto"
             markerUnits="strokeWidth"
           >
-            <polygon
-              points="0 0, 10 3, 0 6"
-              fill={getArrowColor(type as DependencyType)}
-            />
+            <polygon points="0 0, 10 3, 0 6" fill={getArrowColor(type as DependencyType)} />
           </marker>
         ))}
       </defs>
@@ -272,8 +269,8 @@ export function DependencyArrows({
             >
               <title>
                 Dependency: {label}
-                {'\n'}From: Task {dep.sourceTaskId.slice(-6)}
-                {'\n'}To: Task {dep.targetTaskId.slice(-6)}
+                {"\n"}From: Task {dep.sourceTaskId.slice(-6)}
+                {"\n"}To: Task {dep.targetTaskId.slice(-6)}
               </title>
             </path>
 
@@ -285,7 +282,7 @@ export function DependencyArrows({
               fill="none"
               markerEnd={`url(#arrowhead-${dep.type})`}
               className="transition-all duration-200 group-hover:stroke-[3px] pointer-events-none"
-              strokeDasharray={dep.type === 'FS' ? 'none' : '4,4'} // Dashed for non-FS types
+              strokeDasharray={dep.type === "FS" ? "none" : "4,4"} // Dashed for non-FS types
             />
           </g>
         );

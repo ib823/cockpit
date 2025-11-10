@@ -4,12 +4,12 @@
  * This feature is currently disabled and not available for use.
  */
 
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, Typography, Button } from 'antd';
-import { LockOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, Typography, Button } from "antd";
+import { LockOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
@@ -24,13 +24,14 @@ export default function EstimatorPage() {
         </div>
         <Title level={2}>Estimator Feature Disabled</Title>
         <Text className="text-gray-600 block mb-6">
-          The estimator feature is currently not available. Please use the Gantt Tool for project planning.
+          The estimator feature is currently not available. Please use the Gantt Tool for project
+          planning.
         </Text>
         <Button
           type="primary"
           size="large"
           icon={<ArrowLeftOutlined />}
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push("/dashboard")}
         >
           Return to Dashboard
         </Button>

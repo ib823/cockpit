@@ -13,52 +13,64 @@ This runs **EVERY. SINGLE. TEST.** and exits on first critical failure.
 ## 📊 What Gets Tested
 
 ### Phase 1: Unit & Integration Tests (40 tests)
+
 - ✅ Passkey login (9 tests)
 - ✅ Admin login (10 tests)
 - ✅ Magic link (11 tests)
 - ✅ Rate limiting (10 tests)
 
 ### Phase 2: Ultimate Security Tests (21 tests - OWASP Top 10++)
+
 #### Injection Attacks (4 tests)
+
 - SQL Injection (10 payloads)
 - NoSQL Injection (5 payloads)
 - Command Injection (5 payloads)
 - LDAP Injection (4 payloads)
 
 #### Authentication & Sessions (3 tests)
+
 - Session Fixation
 - Weak Password Policy
 - JWT Manipulation
 
 #### Data Exposure (2 tests)
+
 - Error Message Leakage
 - Data Leakage in Responses
 
 #### Access Control (3 tests)
+
 - Insecure Direct Object Reference (IDOR)
 - Privilege Escalation
 - Path Traversal
 
 #### Security Misconfiguration (2 tests)
+
 - Security Headers
 - HTTP Methods Allowed
 
 #### XSS (2 tests)
+
 - Stored XSS (5 payloads)
 - DOM-based XSS
 
 #### CSRF & SSRF (2 tests)
+
 - Cross-Site Request Forgery
 - Server-Side Request Forgery (4 payloads)
 
 #### Rate Limiting & DoS (2 tests)
+
 - Rate Limit Bypass (4 techniques)
 - Regular Expression DoS (ReDoS)
 
 #### Business Logic (1 test)
+
 - Race Conditions
 
 ### Phase 3: Database Integrity Tests (8 tests)
+
 - Unique Constraints
 - Foreign Key Constraints
 - Cascade Delete
@@ -69,11 +81,13 @@ This runs **EVERY. SINGLE. TEST.** and exits on first critical failure.
 - Mass Assignment Vulnerabilities
 
 ### Phase 4: Load & Performance Tests
+
 - Login endpoint load test (20 concurrent users, 30 seconds)
 - Response time percentiles
 - Rate limiting verification
 
 ### Phase 5: End-to-End Tests (12 tests)
+
 - UI/UX validation
 - Login flows
 - Protected routes
@@ -85,6 +99,7 @@ This runs **EVERY. SINGLE. TEST.** and exits on first critical failure.
 ## 🎯 Quick Commands
 
 ### The Nuclear Option (Run Everything)
+
 ```bash
 npm run test:ultimate
 # Output: ultimate-test-results-{timestamp}.log
@@ -93,12 +108,14 @@ npm run test:ultimate
 ### Individual Test Suites
 
 #### Basic Tests
+
 ```bash
 npm run test:auth              # All auth tests (40 tests)
 npm run test:e2e              # E2E tests (12 tests)
 ```
 
 #### Security Tests
+
 ```bash
 npm run test:security         # Basic security (10 tests)
 npm run test:security:ultimate # Ultimate security (21 tests)
@@ -106,11 +123,13 @@ npm run test:database         # Database integrity (8 tests)
 ```
 
 #### Performance Tests
+
 ```bash
 npm run test:login:load       # Load test
 ```
 
 #### The Works
+
 ```bash
 npm run test:all             # Basic + security + load + E2E
 npm run test:ultimate        # EVERYTHING (nuclear option)
@@ -120,31 +139,34 @@ npm run test:ultimate        # EVERYTHING (nuclear option)
 
 ## 📋 Test Coverage Breakdown
 
-| Category | Tests | Coverage |
-|----------|-------|----------|
-| **Unit/Integration** | 40 | Authentication flows, rate limiting |
-| **OWASP Security** | 21 | Top 10 + advanced attacks |
-| **Database** | 8 | Integrity, constraints, transactions |
-| **Load/Performance** | 2 | Stress testing, benchmarks |
-| **E2E** | 12 | Full user flows, UI/UX |
-| **TOTAL** | **83 tests** | **Complete coverage** |
+| Category             | Tests        | Coverage                             |
+| -------------------- | ------------ | ------------------------------------ |
+| **Unit/Integration** | 40           | Authentication flows, rate limiting  |
+| **OWASP Security**   | 21           | Top 10 + advanced attacks            |
+| **Database**         | 8            | Integrity, constraints, transactions |
+| **Load/Performance** | 2            | Stress testing, benchmarks           |
+| **E2E**              | 12           | Full user flows, UI/UX               |
+| **TOTAL**            | **83 tests** | **Complete coverage**                |
 
 ---
 
 ## 🔒 Security Test Matrix (OWASP Top 10 Coverage)
 
 ### A01:2021 - Broken Access Control ✅
+
 - [x] IDOR (Insecure Direct Object Reference)
 - [x] Privilege Escalation
 - [x] Path Traversal
 - [x] CSRF (Cross-Site Request Forgery)
 
 ### A02:2021 - Cryptographic Failures ✅
+
 - [x] Error Message Leakage
 - [x] Data Leakage in Responses
 - [x] Sensitive Data Exposure
 
 ### A03:2021 - Injection ✅
+
 - [x] SQL Injection
 - [x] NoSQL Injection
 - [x] Command Injection
@@ -152,23 +174,27 @@ npm run test:ultimate        # EVERYTHING (nuclear option)
 - [x] XSS (Stored & DOM-based)
 
 ### A04:2021 - Insecure Design ✅
+
 - [x] Rate Limiting Bypass
 - [x] ReDoS (Regular Expression DoS)
 - [x] Race Conditions
 - [x] Business Logic Flaws
 
 ### A05:2021 - Security Misconfiguration ✅
+
 - [x] Security Headers
 - [x] HTTP Methods Configuration
 - [x] Default Credentials (N/A - passwordless)
 
 ### A07:2021 - Identification/Authentication Failures ✅
+
 - [x] Session Fixation
 - [x] Weak Credentials
 - [x] JWT Manipulation
 - [x] Brute Force Protection
 
 ### A10:2021 - Server-Side Request Forgery (SSRF) ✅
+
 - [x] SSRF Prevention
 - [x] Metadata Service Protection
 - [x] File Protocol Blocking
@@ -178,6 +204,7 @@ npm run test:ultimate        # EVERYTHING (nuclear option)
 ## 🗄️ Database Security Matrix
 
 ### Data Integrity ✅
+
 - [x] Unique Constraints (email, etc.)
 - [x] Foreign Key Constraints
 - [x] Cascade Delete Operations
@@ -185,11 +212,13 @@ npm run test:ultimate        # EVERYTHING (nuclear option)
 - [x] Date/Time Validation
 
 ### Transaction Safety ✅
+
 - [x] Atomicity (all-or-nothing)
 - [x] Rollback on Error
 - [x] Concurrent Access Handling
 
 ### Security ✅
+
 - [x] Mass Assignment Prevention
 - [x] Role Escalation Prevention
 
@@ -281,6 +310,7 @@ npm run test:security:ultimate
 ```
 
 **Tests:**
+
 - ✓ SQL Injection Protection (CRITICAL)
 - ✓ NoSQL Injection Protection (CRITICAL)
 - ✓ Command Injection Prevention (CRITICAL)
@@ -304,6 +334,7 @@ npm run test:security:ultimate
 - ✓ Race Condition Handling (MEDIUM)
 
 **Output includes:**
+
 - CWE (Common Weakness Enumeration) codes
 - OWASP Top 10 categories
 - Severity levels (INFO, LOW, MEDIUM, HIGH, CRITICAL)
@@ -316,6 +347,7 @@ npm run test:database
 ```
 
 **Tests:**
+
 - ✓ Unique Constraints Enforcement (HIGH)
 - ✓ Foreign Key Constraints (CRITICAL)
 - ✓ Cascade Delete Operations (HIGH)
@@ -330,6 +362,7 @@ npm run test:database
 ## 🚨 Failure Scenarios
 
 ### Critical Failure (Exits Immediately)
+
 ```
 ✗ CRITICAL TEST FAILED: [SECURITY] Ultimate Security Tests (OWASP Top 10)
 
@@ -346,6 +379,7 @@ Full logs: ultimate-test-results-2025-10-10T00-00-00-000Z.log
 ```
 
 ### Non-Critical Failure (Continues)
+
 ```
 ⚠️  MEDIUM Vulnerabilities (1):
   - Security Headers: Missing or weak security headers
@@ -359,26 +393,33 @@ Test suite continues...
 ## 🛠️ Troubleshooting
 
 ### Server Not Running
+
 ```
 ✗ Server is NOT running
   Please start the server: npm run dev
 ```
+
 **Solution:** Start dev server in another terminal
 
 ### Database Connection Failed
+
 ```
 ⚠ Database connection issue (some tests may fail)
 ```
+
 **Solution:** Check `DATABASE_URL` in `.env` and ensure PostgreSQL is running
 
 ### Rate Limited During Tests
+
 **Solution:** Tests use unique user-agents with timestamps to avoid conflicts
 
 ### Playwright Not Installed
+
 ```
 ⚠ Playwright not installed (E2E tests will fail)
   Install with: npx playwright install
 ```
+
 **Solution:** Run `npx playwright install --with-deps`
 
 ---
@@ -386,7 +427,9 @@ Test suite continues...
 ## 📊 Attack Vectors Tested
 
 ### Injection Attacks (24 payloads total)
+
 #### SQL Injection (10 payloads)
+
 ```
 admin'--
 admin' OR '1'='1
@@ -401,6 +444,7 @@ admin'/*
 ```
 
 #### NoSQL Injection (5 payloads)
+
 ```json
 { "email": { "$ne": null } }
 { "email": { "$gt": "" } }
@@ -410,6 +454,7 @@ admin'/*
 ```
 
 #### Command Injection (5 payloads)
+
 ```
 test@example.com; ls -la
 test@example.com && whoami
@@ -419,6 +464,7 @@ test@example.com$(whoami)
 ```
 
 #### LDAP Injection (4 payloads)
+
 ```
 admin*
 *)(uid=*))(|(uid=*
@@ -427,15 +473,20 @@ admin)(&(password=*))
 ```
 
 ### XSS Attacks (5 payloads)
+
 ```html
-<script>alert(document.cookie)</script>
-<img src=x onerror=alert(1)>
-<svg onload=alert(1)>
-javascript:alert(1)
-<iframe src="javascript:alert(1)">
+<script>
+  alert(document.cookie);
+</script>
+<img src="x" onerror="alert(1)" />
+<svg onload="alert(1)">
+  javascript:alert(1)
+  <iframe src="javascript:alert(1)"></iframe>
+</svg>
 ```
 
 ### SSRF Attacks (4 payloads)
+
 ```
 http://localhost/admin
 http://169.254.169.254/latest/meta-data/
@@ -448,6 +499,7 @@ file:///etc/passwd
 ## 🎯 Performance Benchmarks
 
 ### Load Test Results (Example)
+
 ```
 Total Requests:      600
 Successful:          520 (86.67%)
@@ -472,6 +524,7 @@ Response Time Percentiles:
 ## 🔐 Security Compliance
 
 ### ✅ Compliant With:
+
 - OWASP Top 10 (2021)
 - CWE Top 25 Most Dangerous Software Weaknesses
 - NIST Cybersecurity Framework
@@ -479,6 +532,7 @@ Response Time Percentiles:
 - GDPR (data protection)
 
 ### ✅ Attack Vectors Covered:
+
 - 24 Injection payloads
 - 5 XSS vectors
 - 4 SSRF vectors
@@ -505,6 +559,7 @@ Response Time Percentiles:
 ## 🎉 Summary
 
 **What you get:**
+
 - ✅ **83 comprehensive tests**
 - ✅ **OWASP Top 10 coverage** (100%)
 - ✅ **40+ attack vectors** tested
@@ -515,11 +570,13 @@ Response Time Percentiles:
 - ✅ **Detailed logging** to file
 
 **Run the ultimate test suite:**
+
 ```bash
 npm run test:ultimate
 ```
 
 **Check results:**
+
 ```bash
 cat ultimate-test-results-$(ls -t ultimate-test-results-*.log | head -1)
 ```

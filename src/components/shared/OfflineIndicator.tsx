@@ -3,55 +3,55 @@
  * Shows offline/online status and sync progress
  */
 
-'use client';
+"use client";
 
-import { Alert, Badge, Button, Popover, Progress, Space, Typography } from 'antd';
+import { Alert, Badge, Button, Popover, Progress, Space, Typography } from "antd";
 import {
   WifiOutlined,
   DisconnectOutlined,
   SyncOutlined,
   CloudUploadOutlined,
   CheckCircleOutlined,
-} from '@ant-design/icons';
-import { useOnlineStatus, useSyncStatus } from '@/lib/offline/use-offline';
+} from "@ant-design/icons";
+import { useOnlineStatus, useSyncStatus } from "@/lib/offline/use-offline";
 
 const { Text } = Typography;
 
 interface OfflineIndicatorProps {
-  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   showPopover?: boolean;
 }
 
 export function OfflineIndicator({
-  position = 'bottom-right',
+  position = "bottom-right",
   showPopover = true,
 }: OfflineIndicatorProps) {
   const isOnline = useOnlineStatus();
   const { isSyncing, pendingCount, triggerSync } = useSyncStatus();
 
   const positionStyles: Record<string, React.CSSProperties> = {
-    'top-left': { position: 'fixed', top: 80, left: 16, zIndex: 1000 },
-    'top-right': { position: 'fixed', top: 80, right: 16, zIndex: 1000 },
-    'bottom-left': { position: 'fixed', bottom: 16, left: 16, zIndex: 1000 },
-    'bottom-right': { position: 'fixed', bottom: 16, right: 16, zIndex: 1000 },
+    "top-left": { position: "fixed", top: 80, left: 16, zIndex: 1000 },
+    "top-right": { position: "fixed", top: 80, right: 16, zIndex: 1000 },
+    "bottom-left": { position: "fixed", bottom: 16, left: 16, zIndex: 1000 },
+    "bottom-right": { position: "fixed", bottom: 16, right: 16, zIndex: 1000 },
   };
 
   const content = (
     <Space direction="vertical" style={{ width: 280 }}>
       <div>
-        <Text strong style={{ display: 'block', marginBottom: 8 }}>
+        <Text strong style={{ display: "block", marginBottom: 8 }}>
           Connection Status
         </Text>
         <Space>
           {isOnline ? (
             <>
-              <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 18 }} />
-              <Text style={{ color: '#52c41a' }}>Online</Text>
+              <CheckCircleOutlined style={{ color: "#52c41a", fontSize: 18 }} />
+              <Text style={{ color: "#52c41a" }}>Online</Text>
             </>
           ) : (
             <>
-              <DisconnectOutlined style={{ color: '#ff4d4f', fontSize: 18 }} />
-              <Text style={{ color: '#ff4d4f' }}>Offline</Text>
+              <DisconnectOutlined style={{ color: "#ff4d4f", fontSize: 18 }} />
+              <Text style={{ color: "#ff4d4f" }}>Offline</Text>
             </>
           )}
         </Space>
@@ -59,19 +59,14 @@ export function OfflineIndicator({
 
       {pendingCount > 0 && (
         <div>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>
+          <Text strong style={{ display: "block", marginBottom: 8 }}>
             Pending Sync
           </Text>
           <Text type="secondary" style={{ fontSize: 13 }}>
-            {pendingCount} {pendingCount === 1 ? 'item' : 'items'} waiting to sync
+            {pendingCount} {pendingCount === 1 ? "item" : "items"} waiting to sync
           </Text>
           {isSyncing && (
-            <Progress
-              percent={100}
-              status="active"
-              showInfo={false}
-              style={{ marginTop: 8 }}
-            />
+            <Progress percent={100} status="active" showInfo={false} style={{ marginTop: 8 }} />
           )}
         </div>
       )}
@@ -111,22 +106,22 @@ export function OfflineIndicator({
         style={{
           width: 48,
           height: 48,
-          borderRadius: '50%',
-          background: isOnline ? '#ffffff' : '#ff4d4f',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: showPopover ? 'pointer' : 'default',
-          border: isOnline ? '2px solid #52c41a' : '2px solid #ffffff',
+          borderRadius: "50%",
+          background: isOnline ? "#ffffff" : "#ff4d4f",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: showPopover ? "pointer" : "default",
+          border: isOnline ? "2px solid #52c41a" : "2px solid #ffffff",
         }}
       >
         {isSyncing ? (
-          <SyncOutlined spin style={{ fontSize: 20, color: '#1890ff' }} />
+          <SyncOutlined spin style={{ fontSize: 20, color: "#1890ff" }} />
         ) : isOnline ? (
-          <WifiOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+          <WifiOutlined style={{ fontSize: 20, color: "#52c41a" }} />
         ) : (
-          <DisconnectOutlined style={{ fontSize: 20, color: '#ffffff' }} />
+          <DisconnectOutlined style={{ fontSize: 20, color: "#ffffff" }} />
         )}
       </div>
     </Badge>
@@ -163,17 +158,17 @@ export function OfflineBanner() {
           {!isOnline && <DisconnectOutlined />}
           <Text strong>
             {isOnline
-              ? `Syncing ${pendingCount} ${pendingCount === 1 ? 'item' : 'items'}...`
-              : 'Working Offline'}
+              ? `Syncing ${pendingCount} ${pendingCount === 1 ? "item" : "items"}...`
+              : "Working Offline"}
           </Text>
         </Space>
       }
       description={
         isOnline
-          ? 'Your offline changes are being synced to the server.'
-          : 'Your changes are being saved locally and will sync when you reconnect.'
+          ? "Your offline changes are being synced to the server."
+          : "Your changes are being saved locally and will sync when you reconnect."
       }
-      type={isOnline ? 'info' : 'warning'}
+      type={isOnline ? "info" : "warning"}
       banner
       closable
     />
