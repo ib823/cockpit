@@ -277,9 +277,9 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
             ),
             children: (
               <div className="space-y-6">
-                {/* Key Metrics */}
+                {/* Key Metrics - Responsive: 4 cols desktop, 2x2 tablet, stack mobile */}
                 <Row gutter={[16, 16]}>
-                  <Col span={6}>
+                  <Col xs={24} md={12} xl={6}>
                     <Card className="shadow-sm" style={{ height: "96px", background: "rgb(242, 242, 247)", borderRadius: "12px", padding: "16px" }}>
                       <Statistic
                         title="Budget Utilization"
@@ -305,7 +305,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                     </Card>
                   </Col>
 
-                  <Col span={6}>
+                  <Col xs={24} md={12} xl={6}>
                     <Card className="shadow-sm" style={{ height: "96px", background: "rgb(242, 242, 247)", borderRadius: "12px", padding: "16px" }}>
                       <Statistic
                         title="Schedule Progress"
@@ -329,7 +329,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                     </Card>
                   </Col>
 
-                  <Col span={6}>
+                  <Col xs={24} md={12} xl={6}>
                     <Card className="shadow-sm" style={{ height: "96px", background: "rgb(242, 242, 247)", borderRadius: "12px", padding: "16px" }}>
                       <Statistic
                         title="Task Completion"
@@ -353,7 +353,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                     </Card>
                   </Col>
 
-                  <Col span={6}>
+                  <Col xs={24} md={12} xl={6}>
                     <Card className="shadow-sm" style={{ height: "96px", background: "rgb(242, 242, 247)", borderRadius: "12px", padding: "16px" }}>
                       <Statistic
                         title="Resource Utilization"

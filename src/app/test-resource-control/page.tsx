@@ -723,7 +723,7 @@ export default function TestResourceControlPage() {
                   <ul className="ml-6 mt-1 list-disc">
                     <li>Only 5 metrics show (not 7): Resources, Active Assignments, Conflicts, Unassigned, Utilization</li>
                     <li>Dividers visible between metrics (1px gray lines)</li>
-                    <li>Conflicts/Unassigned show orange when >0</li>
+                    <li>Conflicts/Unassigned show orange when {'>'}0</li>
                   </ul>
                 </div>
                 <div>

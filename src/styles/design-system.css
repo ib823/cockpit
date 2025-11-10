@@ -389,3 +389,422 @@
   .bg-gray-6 {
     background-color: var(--color-gray-6);
   }
+
+/* ═══════════════════════════════════════════════════════
+   FOCUS STATES - Apple HIG Section 8 (Interaction Patterns)
+   ═══════════════════════════════════════════════════════ */
+
+/* Global focus styles for all interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Remove default focus outline (replaced with focus-visible) */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Focus utility classes */
+.focus-ring {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+.focus-ring-inset {
+  outline: 2px solid var(--color-blue);
+  outline-offset: -2px;
+}
+
+/* For elements that need visible focus on click (not just keyboard) */
+.focus-always:focus {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+/* Table row focus states */
+tr:focus-visible,
+[role="row"]:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: -2px; /* Inset for table rows */
+  position: relative;
+  z-index: 1;
+}
+
+/* Card/panel focus states */
+.card:focus-visible,
+[role="article"]:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════
+   LOADING STATES - SF Spinner Animation
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes sf-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ENHANCED ANIMATIONS - Section 8: Interaction Patterns
+   ═══════════════════════════════════════════════════════ */
+
+/* Chevron rotation for expand/collapse */
+.chevron-rotate {
+  transition: transform var(--duration-default) var(--easing-default);
+}
+
+.chevron-rotate.expanded {
+  transform: rotate(180deg);
+}
+
+/* Modal entrance/exit animations */
+@keyframes modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-backdrop-fade-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+.modal-enter {
+  animation: modal-slide-up var(--duration-slow) var(--easing-default),
+             modal-fade-in var(--duration-slow) var(--easing-default);
+}
+
+.modal-backdrop-enter {
+  animation: modal-backdrop-fade-in var(--duration-default) var(--easing-default);
+}
+
+/* Smooth hover transitions */
+.transition-all {
+  transition: all var(--duration-default) var(--easing-default);
+}
+
+.transition-colors {
+  transition: color var(--duration-default) var(--easing-default),
+              background-color var(--duration-default) var(--easing-default),
+              border-color var(--duration-default) var(--easing-default);
+}
+
+.transition-opacity {
+  transition: opacity var(--duration-default) var(--easing-default);
+}
+
+.transition-transform {
+  transition: transform var(--duration-default) var(--easing-default);
+}
+
+/* Pulse animation for loading states */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fade in animation for content */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in var(--duration-default) var(--easing-default);
+}
+
+/* Slide in animations */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-right {
+  animation: slide-in-right var(--duration-default) var(--easing-default);
+}
+
+.slide-in-left {
+  animation: slide-in-left var(--duration-default) var(--easing-default);
+}
+
+/* Scale animations for buttons and interactive elements */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scale-in {
+  animation: scale-in var(--duration-quick) var(--easing-default);
+}
+
+/* Button press animation */
+.button-press:active {
+  transform: scale(0.98);
+  transition: transform var(--duration-quick) var(--easing-default);
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOUCH TARGET UTILITIES - WCAG 2.1 AA Compliance
+   Minimum 44x44px touch targets per Apple HIG
+   ═══════════════════════════════════════════════════════ */
+
+/* Touch target utility class - ensures minimum 44x44px */
+.touch-target {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Touch target with padding expansion - for smaller visible elements */
+.touch-target-expand {
+  position: relative;
+}
+
+.touch-target-expand::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  z-index: -1;
+}
+
+/* Icon button touch targets - 44x44px minimum */
+.icon-button {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-default) var(--easing-default);
+}
+
+.icon-button:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.icon-button:active {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Small button override - ensure 44px height */
+button[size="small"],
+.ant-btn-sm {
+  min-height: var(--touch-target-min) !important;
+  padding: 0 var(--space-base) !important;
+}
+
+/* Checkbox and radio button touch targets */
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  cursor: pointer;
+}
+
+/* Link touch targets - ensure adequate spacing */
+a {
+  min-height: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Table action buttons - ensure 44x44px */
+table button,
+[role="table"] button {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+}
+
+/* Pill/chip touch targets */
+.pill,
+.chip,
+.tag {
+  min-height: var(--button-height-lg);
+  padding: 0 var(--space-base);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS - Section 9: Responsive Behavior
+   Desktop-first approach per Apple HIG
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  /* Breakpoint values */
+  --breakpoint-mobile: 768px;
+  --breakpoint-tablet: 1200px;
+}
+
+/* Desktop: >1200px (default styles) */
+/* Tablet: 768-1199px */
+@media (max-width: 1199px) {
+  /* Tablet-specific overrides */
+  :root {
+    --modal-padding: 32px;
+  }
+
+  .hide-on-tablet {
+    display: none !important;
+  }
+
+  .show-on-tablet {
+    display: block !important;
+  }
+}
+
+/* Mobile: <768px */
+@media (max-width: 767px) {
+  /* Mobile-specific overrides */
+  :root {
+    --modal-padding: 24px;
+    --space-3xl: 2rem; /* Reduce large spacing on mobile */
+  }
+
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .show-on-mobile {
+    display: block !important;
+  }
+
+  /* Stack flex layouts on mobile */
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+
+  /* Full width on mobile */
+  .mobile-full-width {
+    width: 100% !important;
+  }
+}
+
+/* Responsive grid utilities */
+.responsive-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Desktop: 4 columns */
+.responsive-grid-4 {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Tablet: 2 columns */
+@media (max-width: 1199px) {
+  .responsive-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile: 1 column */
+@media (max-width: 767px) {
+  .responsive-grid-4,
+  .responsive-grid {
+    grid-template-columns: 1fr;
+  }
+}

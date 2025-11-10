@@ -726,7 +726,7 @@ function MatrixView({
                   </span>
                 </div>
 
-                {/* Name/Title - 240px width */}
+                {/* Name/Title - 240px width - Always visible */}
                 <div style={{ width: "240px", minWidth: "240px" }}>
                   <h3 className="text-[var(--text-body)] font-medium text-[var(--ink)] truncate">{resource.name}</h3>
                   <p className="text-[var(--text-caption)] text-[var(--ink)] truncate" style={{ opacity: 0.6 }}>
@@ -734,29 +734,29 @@ function MatrixView({
                   </p>
                 </div>
 
-                {/* Category - 120px width */}
-                <div style={{ width: "120px", minWidth: "120px" }}>
+                {/* Category - 120px width - Hide on tablet and mobile */}
+                <div className="hide-on-tablet" style={{ width: "120px", minWidth: "120px" }}>
                   <span className="text-[var(--text-caption)] text-[var(--ink)]" style={{ opacity: 0.6 }}>
                     {category.label}
                   </span>
                 </div>
 
-                {/* Assignments - Number only with small icon */}
+                {/* Assignments - Number only with small icon - Always visible */}
                 <div className="flex items-center gap-1" style={{ width: "80px" }}>
                   <Target className="w-3 h-3 text-[var(--ink)]" style={{ opacity: 0.4 }} />
                   <span className="text-[var(--text-body)] text-[var(--ink)]">{stats?.assignmentCount || 0}</span>
                 </div>
 
-                {/* Hours */}
-                <div style={{ width: "60px" }}>
+                {/* Hours - Hide on tablet and mobile */}
+                <div className="hide-on-tablet" style={{ width: "60px" }}>
                   <span className="text-[var(--text-body)] text-[var(--ink)]" style={{ opacity: 0.6 }}>
                     {(Number(stats?.totalHours) || 0).toFixed(0)}h
                   </span>
                 </div>
 
-                {/* Cost */}
+                {/* Cost - Hide on mobile */}
                 {resource.isBillable && (
-                  <div style={{ width: "80px" }}>
+                  <div className="hide-on-mobile" style={{ width: "80px" }}>
                     <span className="text-[var(--text-body)] font-medium text-[var(--ink)]">
                       ${stats?.totalCost.toFixed(0) || 0}
                     </span>
