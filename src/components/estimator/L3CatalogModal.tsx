@@ -237,7 +237,7 @@ export function L3CatalogModal({ open, onClose, selectedItems, onApply }: L3Cata
           <Text strong>Selected: {impactPreview.count} items</Text>
           <Text>Scope Breadth: +{impactPreview.coefficient.toFixed(3)}</Text>
           {impactPreview.tierDCount > 0 && (
-            <Text type="danger">⚠️ {impactPreview.tierDCount} Tier D items (custom pricing)</Text>
+            <Text type="danger"> {impactPreview.tierDCount} Tier D items (custom pricing)</Text>
           )}
         </Space>
       </div>

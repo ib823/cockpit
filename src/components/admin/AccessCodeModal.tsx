@@ -150,7 +150,7 @@ This is an automated message from Keystone.`;
             Access code ready for <span className="font-medium text-slate-900">{email}</span>
           </p>
           <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 inline-block">
-            📋 No email sent - Share manually with user
+             No email sent - Share manually with user
           </p>
         </div>
 

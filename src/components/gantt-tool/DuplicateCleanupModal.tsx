@@ -207,7 +207,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
             {duplicateGroups.map((group, groupIndex) => (
               <div key={groupIndex} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <div className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <span className="text-orange-600">⚠️</span>
+                  <span className="text-orange-600"></span>
                   Duplicate: &quot;{group.phaseName}&quot;
                   <span className="text-xs text-gray-500 font-normal">
                     ({group.phases.length} occurrences)

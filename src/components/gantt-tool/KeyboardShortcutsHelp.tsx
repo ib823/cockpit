@@ -98,7 +98,7 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
 
         {/* Pro Tips */}
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h3 className="text-sm font-bold text-blue-900 mb-2">💡 Pro Tips</h3>
+          <h3 className="text-sm font-bold text-blue-900 mb-2"> Pro Tips</h3>
           <ul className="space-y-1.5 text-sm text-blue-800">
             <li>• Use arrow keys to quickly navigate through your project timeline</li>
             <li>

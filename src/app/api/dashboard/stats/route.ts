@@ -28,20 +28,32 @@ export async function GET() {
     // Performance: Track query start time
     const queryStartTime = performance.now();
 
-    // Count Gantt projects created by user
-    const ganttProjects = await prisma.ganttProject.count({
+    // Count timeline projects (Gantt) created by user
+    const timelineProjects = await prisma.ganttProject.count({
       where: {
         userId: user.id,
         deletedAt: null, // Exclude soft-deleted projects
       },
     });
 
-    // Count saved estimator scenarios
-    const estimates = await prisma.scenario.count({
+    // Count architecture diagrams (placeholder - update when architecture DB exists)
+    // TODO: Replace with actual architecture diagram count when implemented
+    const architectureDiagrams = 0;
+
+    // Count total unique resources across all projects
+    const projectsWithResources = await prisma.ganttProject.findMany({
       where: {
         userId: user.id,
+        deletedAt: null,
+      },
+      select: {
+        resources: true,
       },
     });
+
+    // Calculate total unique resources
+    const allResources = projectsWithResources.flatMap((project) => project.resources || []);
+    const totalResources = allResources.length;
 
     const queryDuration = performance.now() - queryStartTime;
 
@@ -53,8 +65,9 @@ export async function GET() {
           userId: user.id,
           type: "DASHBOARD_STATS_VIEW",
           meta: {
-            ganttProjects,
-            estimates,
+            timelineProjects,
+            architectureDiagrams,
+            totalResources,
             queryDurationMs: Math.round(queryDuration),
           },
         },
@@ -63,15 +76,6 @@ export async function GET() {
         console.warn("[Dashboard Stats] Analytics logging failed:", err);
         // Don't fail the request if analytics fails
       });
-
-    // Calculate approximate time saved
-    // Assumption: Each estimate saves ~4 hours of manual calculation
-    // Each Gantt project saves ~8 hours of manual timeline planning
-    const timeSaved = estimates * 4 + ganttProjects * 8;
-
-    // Calculate accuracy (placeholder - would need actual vs estimated tracking)
-    // For now, use a reasonable default based on usage
-    const accuracy = estimates > 0 ? 85 + Math.min(estimates * 2, 10) : 0;
 
     const totalDuration = performance.now() - startTime;
 
@@ -83,10 +87,9 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      projects: ganttProjects,
-      estimates,
-      accuracy: Math.min(accuracy, 98), // Cap at 98%
-      timeSaved,
+      timelineProjects,
+      architectureDiagrams,
+      totalResources,
       // Include performance metrics in response (for monitoring)
       _meta: {
         queryDurationMs: Math.round(queryDuration),

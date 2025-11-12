@@ -332,7 +332,7 @@ export function FinancialView({ project }: FinancialViewProps) {
 
       {/* Margin Waterfall Chart */}
       <Card bordered={false} style={{ borderRadius: "8px" }}>
-        <Title level={5}>💧 Margin Waterfall Analysis</Title>
+        <Title level={5}> Margin Waterfall Analysis</Title>
         <Text type="secondary" className="text-sm">
           How revenue flows to margin after subtracting costs
         </Text>
@@ -363,7 +363,7 @@ export function FinancialView({ project }: FinancialViewProps) {
 
       {/* Cost by Phase */}
       <Card bordered={false} style={{ borderRadius: "8px" }}>
-        <Title level={5}>📊 Cost Breakdown by Phase</Title>
+        <Title level={5}> Cost Breakdown by Phase</Title>
         <Text type="secondary" className="text-sm">
           Which phases consume the most resources?
         </Text>
@@ -416,26 +416,26 @@ export function FinancialView({ project }: FinancialViewProps) {
                     : "#7F1D1D",
             }}
           >
-            💡 Financial Insights
+             Financial Insights
           </Title>
           {financialData.marginPercent >= 30 ? (
             <Text style={{ color: "#065F46" }}>
-              ✅ <strong>Excellent margin!</strong> This proposal offers strong profitability (
+               <strong>Excellent margin!</strong> This proposal offers strong profitability (
               {financialData.marginPercent.toFixed(1)}%).
             </Text>
           ) : financialData.marginPercent >= 20 ? (
             <Text style={{ color: "#065F46" }}>
-              ✅ <strong>Healthy margin.</strong> This proposal meets profit targets (
+               <strong>Healthy margin.</strong> This proposal meets profit targets (
               {financialData.marginPercent.toFixed(1)}%).
             </Text>
           ) : financialData.marginPercent >= 10 ? (
             <Text style={{ color: "#92400E" }}>
-              ⚠️ <strong>Marginal profitability.</strong> Consider optimizing resources or
+               <strong>Marginal profitability.</strong> Consider optimizing resources or
               increasing price ({financialData.marginPercent.toFixed(1)}%).
             </Text>
           ) : (
             <Text style={{ color: "#7F1D1D" }}>
-              ⛔ <strong>Low margin alert!</strong> This proposal may not be profitable. Review
+               <strong>Low margin alert!</strong> This proposal may not be profitable. Review
               resource mix or increase price ({financialData.marginPercent.toFixed(1)}%).
             </Text>
           )}

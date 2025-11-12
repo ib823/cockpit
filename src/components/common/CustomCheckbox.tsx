@@ -53,7 +53,7 @@ export function CustomCheckbox({ label, className = "", id, ...props }: CustomCh
         }
 
         .custom-checkbox .checkmark::before {
-          content: "✓";
+          content: "";
           font-size: 16px;
           color: transparent;
           transition:

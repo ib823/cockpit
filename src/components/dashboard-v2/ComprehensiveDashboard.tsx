@@ -152,7 +152,7 @@ export function ComprehensiveDashboard({
             {/* Project Metadata */}
             <Space direction="vertical" size={0}>
               <Title level={3} style={{ margin: 0, color: "white" }}>
-                📊 {activeScenario.project.name}
+                 {activeScenario.project.name}
               </Title>
               <Space size="large" style={{ marginTop: "8px" }}>
                 <Text style={{ color: "rgba(255,255,255,0.9)" }} className="text-sm">
@@ -267,7 +267,7 @@ export function ComprehensiveDashboard({
             title={
               <Space>
                 <span style={{ fontWeight: 600 }} className="text-base">
-                  🎯 Operational Reality
+                   Operational Reality
                 </span>
                 <Badge
                   count={
@@ -298,7 +298,7 @@ export function ComprehensiveDashboard({
             title={
               <Space>
                 <span style={{ fontWeight: 600 }} className="text-base">
-                  💰 Financial Intelligence
+                   Financial Intelligence
                 </span>
                 {isCalculating && <Spin size="small" />}
               </Space>
@@ -331,7 +331,7 @@ export function ComprehensiveDashboard({
             title={
               <Space>
                 <span style={{ fontWeight: 600 }} className="text-base">
-                  🚀 Strategic Insights
+                  Rocket Strategic Insights
                 </span>
                 <Badge count={recommendations.length} style={{ background: "#52c41a" }} />
               </Space>

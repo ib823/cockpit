@@ -901,7 +901,7 @@ export function GanttToolbar({
                   }`}
                 >
                   <span className={(viewSettings.showTitles ?? true) ? "" : "line-through"}>
-                    📝 Titles
+                     Titles
                   </span>
                 </button>
               </Tooltip>

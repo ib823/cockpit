@@ -52,7 +52,7 @@ export function ChipsSidebar() {
 }
 
 function ChipCard({ chip, onRemove }: { chip: Chip; onRemove: () => void }) {
-  const icon = CHIP_ICONS[chip.type] || "📌";
+  const icon = CHIP_ICONS[chip.type] || "";
 
   return (
     <div className="chip-card bg-white p-3 hover:border-blue-300 group">

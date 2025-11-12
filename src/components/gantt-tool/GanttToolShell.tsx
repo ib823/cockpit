@@ -248,7 +248,7 @@ export function GanttToolShell() {
             {syncStatus === "saving-local" && (
               <>
                 <HexLoader size="sm" />
-                <span>💾 Saving locally...</span>
+                <span> Saving locally...</span>
               </>
             )}
             {syncStatus === "saved-local" && (
@@ -260,16 +260,16 @@ export function GanttToolShell() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>✓ Saved locally{!navigator.onLine && " (will sync when online)"}</span>
+                <span> Saved locally{!navigator.onLine && " (will sync when online)"}</span>
               </>
             )}
             {syncStatus === "syncing-cloud" && (
               <>
                 <HexLoader size="sm" />
                 {saveProgress ? (
-                  <span style={{ color: morphColor }}>☁️ {saveProgress.description}</span>
+                  <span style={{ color: morphColor }}> {saveProgress.description}</span>
                 ) : (
-                  <span style={{ color: morphColor }}>☁️ Syncing to cloud...</span>
+                  <span style={{ color: morphColor }}> Syncing to cloud...</span>
                 )}
               </>
             )}
@@ -286,14 +286,14 @@ export function GanttToolShell() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>✓ Synced to cloud</span>
+                <span> Synced to cloud</span>
               </>
             )}
             {syncStatus === "error" && (
               <div className="relative group">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                  <span>⚠️ Sync error - changes saved locally</span>
+                  <span> Sync error - changes saved locally</span>
                 </div>
                 {/* Error detail tooltip */}
                 {syncError && (
@@ -304,7 +304,7 @@ export function GanttToolShell() {
                         {syncError}
                       </div>
                       <div className="text-xs mt-2 pt-2 border-t border-red-400/30 text-red-100 italic">
-                        💡 Your changes are saved locally and will sync when the issue is resolved
+                         Your changes are saved locally and will sync when the issue is resolved
                       </div>
                     </div>
                   </div>
@@ -312,7 +312,7 @@ export function GanttToolShell() {
               </div>
             )}
             {!navigator.onLine && syncStatus !== "error" && (
-              <span className="ml-1 text-xs opacity-75">📡 Offline</span>
+              <span className="ml-1 text-xs opacity-75"> Offline</span>
             )}
           </div>
         </div>

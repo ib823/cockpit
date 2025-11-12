@@ -1,14 +1,30 @@
 /**
- * Gantt Tool - Main Page
+ * Gantt Tool - Redirect to V3
  *
- * Standalone route for creating professional timeline visualizations.
- * No authentication required - fully client-side with localStorage persistence.
+ * This route has been replaced by Timeline V3.
+ * Automatically redirects to /gantt-tool/v3
  */
 
 "use client";
 
-import { GanttToolShell } from "@/components/gantt-tool/GanttToolShell";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { HexLoader } from "@/components/ui/HexLoader";
 
-export default function GanttToolPage() {
-  return <GanttToolShell />;
+export default function GanttToolRedirect() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to V3
+    router.replace("/gantt-tool/v3");
+  }, [router]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <HexLoader size="xl" />
+        <p className="mt-4 text-gray-600">Redirecting to Timeline V3...</p>
+      </div>
+    </div>
+  );
 }

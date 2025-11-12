@@ -1,0 +1,160 @@
+/**
+ * Milestone Marker Styles
+ * Apple HIG Specification - Jobs/Ive Design
+ */
+
+.milestone-marker {
+  /* Reset button styles */
+  all: unset;
+
+  /* Layout */
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* Interaction */
+  cursor: pointer;
+  user-select: none;
+
+  /* Z-index */
+  z-index: 10;
+
+  /* Smooth transitions */
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.milestone-marker:hover {
+  transform: scale(1.15);
+}
+
+.milestone-marker:focus-visible {
+  outline: 2px solid #FF3B30;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.milestone-diamond {
+  width: 16px;
+  height: 16px;
+
+  /* Smooth shadow transitions */
+  transition: filter 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.milestone-label {
+  /* Positioning */
+  margin-top: 4px;
+
+  /* Typography (SF Pro) */
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+
+  /* Colors */
+  color: #6B7280;
+  background: rgba(255, 255, 255, 0.95);
+
+  /* Apple frosted glass effect */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  /* Spacing */
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+
+  /* Shadow */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  /* Smooth transitions */
+  transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dragging state */
+.milestone-marker--dragging {
+  opacity: 0.5;
+  cursor: grabbing !important;
+  z-index: 20;
+}
+
+.milestone-marker--dragging .milestone-label {
+  opacity: 0.7;
+}
+
+/* Animation for new milestones */
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.milestone-marker--new {
+  animation: popIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Mobile responsive */
+@media (max-width: 767px) {
+  .milestone-label {
+    display: none;
+  }
+
+  /* Show label on hover/active for mobile */
+  .milestone-marker:hover .milestone-label,
+  .milestone-marker:active .milestone-label {
+    display: block;
+  }
+
+  /* Larger touch target on mobile */
+  .milestone-marker {
+    padding: 8px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .milestone-label {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .milestone-label {
+    background: rgba(28, 28, 30, 0.95);
+    color: #FFFFFF;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .milestone-marker:focus-visible {
+    outline-width: 3px;
+  }
+
+  .milestone-label {
+    border: 1px solid #000;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .milestone-marker {
+    transition: none;
+  }
+
+  .milestone-marker:hover {
+    transform: none;
+  }
+
+  .milestone-marker--new {
+    animation: none;
+  }
+}

@@ -246,7 +246,7 @@ export function StrategicView({ project }: StrategicViewProps) {
 
       {/* Scenario Comparison */}
       <Card bordered={false} style={{ borderRadius: "8px" }}>
-        <Title level={5}>🔄 Scenario Comparison</Title>
+        <Title level={5}> Scenario Comparison</Title>
         <Text type="secondary" className="text-sm">
           Compare different approaches side-by-side
         </Text>
@@ -479,7 +479,7 @@ export function StrategicView({ project }: StrategicViewProps) {
 
       {/* Risk & Feasibility Gauges */}
       <Card bordered={false} style={{ borderRadius: "8px" }}>
-        <Title level={5}>⚠️ Risk & Feasibility Assessment</Title>
+        <Title level={5}> Risk & Feasibility Assessment</Title>
         <Text type="secondary" className="text-sm">
           Qualitative health check beyond the numbers
         </Text>
@@ -581,7 +581,7 @@ export function StrategicView({ project }: StrategicViewProps) {
       >
         <Space direction="vertical" size={8}>
           <Title level={5} style={{ margin: 0, color: "#1E3A8A" }}>
-            🎯 Strategic Recommendation
+             Strategic Recommendation
           </Title>
           <Text style={{ color: "#1E3A8A" }}>
             Based on the analysis, consider creating scenarios that balance cost, margin, and

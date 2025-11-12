@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 
 type Option = { value: string; label: string; disabled?: boolean };
@@ -32,7 +32,7 @@ export const Select: React.FC<SelectProps> = ({
   const [activeIdx, setActiveIdx] = useState<number>(-1);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const id = useMemo(() => `sel-${Math.random().toString(36).slice(2)}`, []);
+  const id = useId();
 
   const filtered = useMemo(
     () => options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase())),

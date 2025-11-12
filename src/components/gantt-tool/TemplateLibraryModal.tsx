@@ -76,13 +76,13 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
   };
 
   const categoryTabs = [
-    { key: "all", label: "🌟 All Templates", icon: <Rocket className="w-4 h-4" /> },
-    { key: "sap-activate", label: "⚡ SAP Activate", icon: <TrendingUp className="w-4 h-4" /> },
-    { key: "greenfield", label: "🌱 Greenfield", icon: <Rocket className="w-4 h-4" /> },
-    { key: "brownfield", label: "🔄 Brownfield", icon: <Building className="w-4 h-4" /> },
-    { key: "migration", label: "🎯 Migration", icon: <TrendingUp className="w-4 h-4" /> },
-    { key: "rapid", label: "⚡ Rapid Deploy", icon: <Rocket className="w-4 h-4" /> },
-    { key: "industry", label: "🏢 Industry", icon: <Building className="w-4 h-4" /> },
+    { key: "all", label: " All Templates", icon: <Rocket className="w-4 h-4" /> },
+    { key: "sap-activate", label: " SAP Activate", icon: <TrendingUp className="w-4 h-4" /> },
+    { key: "greenfield", label: " Greenfield", icon: <Rocket className="w-4 h-4" /> },
+    { key: "brownfield", label: " Brownfield", icon: <Building className="w-4 h-4" /> },
+    { key: "migration", label: " Migration", icon: <TrendingUp className="w-4 h-4" /> },
+    { key: "rapid", label: " Rapid Deploy", icon: <Rocket className="w-4 h-4" /> },
+    { key: "industry", label: " Industry", icon: <Building className="w-4 h-4" /> },
   ];
 
   return (
@@ -233,7 +233,7 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
               onClick={() => setSelectedTemplate(null)}
               className="text-gray-400 hover:text-gray-600"
             >
-              ✕
+              
             </button>
           </div>
 
@@ -271,7 +271,7 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
 
       {/* Footer Note */}
       <div className="mt-4 text-center text-xs text-gray-500">
-        💡 Tip: All templates are fully customizable after import. Dates will be adjusted to start
+         Tip: All templates are fully customizable after import. Dates will be adjusted to start
         from today.
       </div>
     </Modal>

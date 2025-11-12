@@ -148,7 +148,7 @@ export function FirstTimeOnboarding({ pathname: propPathname }: FirstTimeOnboard
           }}
         >
           <div style={{ display: "flex", gap: "12px" }}>
-            <div style={{ flexShrink: 0, fontSize: "24px" }}>👋</div>
+            <div style={{ flexShrink: 0, fontSize: "24px" }}></div>
             <div style={{ flex: 1 }}>
               <h4
                 style={{

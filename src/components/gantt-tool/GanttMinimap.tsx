@@ -16,17 +16,22 @@
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { differenceInDays } from "date-fns";
 import { X, Maximize2, GripVertical } from "lucide-react";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 export function GanttMinimap() {
   const { currentProject, focusedPhaseId, exitFocusMode, getProjectDuration } =
     useGanttToolStoreV2();
 
-  // Draggable state
-  const [position, setPosition] = useState({ x: window.innerWidth - 310, y: 24 }); // Default top-right
+  // Draggable state - use default values, set correct values in useEffect to avoid SSR issues
+  const [position, setPosition] = useState({ x: 0, y: 24 }); // Default top-right (x set in useEffect)
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const minimapRef = useRef<HTMLDivElement>(null);
+
+  // Initialize position after hydration to avoid SSR mismatch
+  useEffect(() => {
+    setPosition({ x: window.innerWidth - 310, y: 24 });
+  }, []);
 
   // Drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {

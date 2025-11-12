@@ -101,7 +101,7 @@ export function ScopeBreadth() {
           {/* Warning for high complexity */}
           {scopeBreadth > 0.3 && (
             <Text type="warning" className="text-xs">
-              ⚠️ High scope breadth. Consider phased rollout.
+               High scope breadth. Consider phased rollout.
             </Text>
           )}
         </Space>

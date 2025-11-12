@@ -54,7 +54,7 @@ export function ThreeLayerDashboard({ project, onRefresh, onExport }: ThreeLayer
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Space direction="vertical" size={4}>
             <Title level={2} style={{ margin: 0, color: "white" }}>
-              📊 Proposal Dashboard
+               Proposal Dashboard
             </Title>
             <Text style={{ color: "rgba(255,255,255,0.85)" }} className="text-base">
               {project.name}

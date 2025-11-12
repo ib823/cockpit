@@ -47,7 +47,6 @@ const TEAM_TEMPLATES = [
     key: "lite",
     name: "Lite Team",
     description: "Small project, 2-3 people",
-    icon: "⚡",
     members: [
       { role: "consultant", allocation: 100, rate: 140 },
       { role: "developer", allocation: 100, rate: 120 },
@@ -58,7 +57,6 @@ const TEAM_TEMPLATES = [
     key: "standard",
     name: "Standard Team",
     description: "Medium project, 4-6 people",
-    icon: "🎯",
     members: [
       { role: "architect", allocation: 50, rate: 180 },
       { role: "consultant", allocation: 100, rate: 140 },
@@ -72,7 +70,6 @@ const TEAM_TEMPLATES = [
     key: "enterprise",
     name: "Enterprise Team",
     description: "Large project, 8+ people",
-    icon: "🏢",
     members: [
       { role: "architect", allocation: 100, rate: 180 },
       { role: "consultant", allocation: 100, rate: 140 },
@@ -89,18 +86,18 @@ const TEAM_TEMPLATES = [
 ];
 
 const ROLE_OPTIONS = [
-  { label: "🏗️ Solution Architect", value: "architect", rate: 180 },
-  { label: "💼 Functional Consultant", value: "consultant", rate: 140 },
-  { label: "💻 Developer", value: "developer", rate: 120 },
-  { label: "📊 Project Manager", value: "projectManager", rate: 160 },
-  { label: "⚙️ Basis Admin", value: "basis", rate: 155 },
-  { label: "🔒 Security Specialist", value: "security", rate: 150 },
+  { label: "Solution Architect", value: "architect", rate: 180 },
+  { label: "Functional Consultant", value: "consultant", rate: 140 },
+  { label: "Developer", value: "developer", rate: 120 },
+  { label: "Project Manager", value: "projectManager", rate: 160 },
+  { label: "Basis Admin", value: "basis", rate: 155 },
+  { label: "Security Specialist", value: "security", rate: 150 },
 ];
 
 const REGION_OPTIONS = [
-  { label: "🇲🇾 Malaysia", value: "ABMY", multiplier: 1.0 },
-  { label: "🇸🇬 Singapore", value: "ABSG", multiplier: 1.2 },
-  { label: "🇻🇳 Vietnam", value: "ABVN", multiplier: 0.6 },
+  { label: "Malaysia", value: "ABMY", multiplier: 1.0 },
+  { label: "Singapore", value: "ABSG", multiplier: 1.2 },
+  { label: "Vietnam", value: "ABVN", multiplier: 0.6 },
 ];
 
 export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProps) {
@@ -199,7 +196,7 @@ export function ResourcePanelAntD({ phase, onResourceUpdate }: ResourcePanelProp
         <Space wrap>
           {TEAM_TEMPLATES.map((template) => (
             <Button key={template.key} onClick={() => applyTemplate(template.key)} type="dashed">
-              {template.icon} {template.name}
+              {template.name}
               <Tag color="blue" style={{ marginLeft: 8 }}>
                 {template.members.length} people
               </Tag>

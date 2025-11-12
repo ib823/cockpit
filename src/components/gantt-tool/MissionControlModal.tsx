@@ -241,26 +241,82 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
       styles={{ body: { maxHeight: "calc(90vh - 120px)", overflowY: "auto" } }}
       footer={null}
       title={
-        <div className="flex items-center justify-between">
+        <div
+          className="flex items-center justify-between"
+          style={{
+            height: "80px",
+            paddingLeft: "12px",
+            paddingRight: "16px",
+          }}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <div
+              className="rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"
+              style={{ width: "48px", height: "48px" }}
+            >
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 m-0">Mission Control</h2>
-              <p className="text-sm text-gray-600 m-0">{currentProject.name}</p>
+              <h2
+                className="m-0"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "1.0625rem", // 17px
+                  fontWeight: "var(--weight-semibold)",
+                  color: "#000",
+                  lineHeight: "1.2",
+                }}
+              >
+                {currentProject.name}
+              </h2>
+              <p
+                className="m-0"
+                style={{
+                  fontFamily: "var(--font-text)",
+                  fontSize: "var(--text-body)",
+                  opacity: "var(--opacity-tertiary)",
+                  lineHeight: "1.5",
+                }}
+              >
+                Mission Control
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <div className="text-xs text-gray-500">Project Health</div>
-              <div className="text-2xl font-bold" style={{ color: healthColor }} data-testid="health-score">
+              <div
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "1.75rem", // 28px
+                  fontWeight: "var(--weight-semibold)",
+                  color: healthColor,
+                  lineHeight: "1",
+                }}
+                data-testid="health-score"
+              >
                 {healthScore}
-                <span className="text-sm font-normal text-gray-500 ml-1">/ 100</span>
+                <span
+                  style={{
+                    fontSize: "var(--text-detail)",
+                    fontWeight: "var(--weight-regular)",
+                    color: "var(--color-gray-1)",
+                    marginLeft: "4px",
+                  }}
+                >
+                  / 100
+                </span>
               </div>
-              <Tag color={healthScore >= 80 ? "success" : healthScore >= 60 ? "warning" : "error"}>
+              <div
+                style={{
+                  fontFamily: "var(--font-text)",
+                  fontSize: "var(--text-detail)",
+                  fontWeight: "var(--weight-medium)",
+                  color: healthColor,
+                  marginTop: "4px",
+                }}
+              >
                 {healthStatus}
-              </Tag>
+              </div>
             </div>
           </div>
         </div>
@@ -281,107 +337,297 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
             ),
             children: (
               <div className="space-y-6">
-                {/* Key Metrics */}
-                <Row gutter={[16, 16]}>
-                  <Col span={6}>
-                    <Card className="shadow-sm">
-                      <Statistic
-                        title="Budget Utilization"
-                        value={costData.budgetUtilization}
-                        precision={1}
-                        suffix="%"
-                        prefix={<DollarSign className="w-5 h-5" />}
-                        valueStyle={{
-                          color: costData.isOverBudget
-                            ? "#cf1322"
-                            : costData.budgetUtilization > 90
-                              ? "#faad14"
-                              : "#3f8600",
+                {/* Key Metrics - Apple HIG Spec */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
+                  {/* Budget Utilization Card */}
+                  <div
+                    style={{
+                      height: "96px",
+                      backgroundColor: "var(--color-gray-6)",
+                      borderRadius: "12px",
+                      padding: "16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                      <DollarSign style={{ width: "20px", height: "20px", opacity: 0.4 }} />
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "var(--text-detail)",
+                            fontWeight: "var(--weight-regular)",
+                            opacity: 0.6,
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Budget Utilization
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: "var(--text-display-large)",
+                            fontWeight: "var(--weight-semibold)",
+                            color: "#000",
+                            lineHeight: "1",
+                          }}
+                        >
+                          {costData.budgetUtilization.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-text)",
+                          fontSize: "var(--text-detail)",
+                          fontWeight: "var(--weight-regular)",
+                          opacity: 0.4,
+                          marginBottom: "4px",
                         }}
-                      />
-                      <Progress
-                        percent={Math.min(costData.budgetUtilization, 100)}
-                        status={costData.isOverBudget ? "exception" : "normal"}
-                        size="small"
-                        showInfo={false}
-                        className="mt-2"
-                      />
-                      <div className="text-xs text-gray-500 mt-2">
+                      >
                         {formatCurrency(costData.totalCost)} of{" "}
                         {formatCurrency(currentProject.budget?.totalBudget || 0)}
                       </div>
-                    </Card>
-                  </Col>
+                      <div
+                        style={{
+                          height: "4px",
+                          backgroundColor: "var(--color-gray-5)",
+                          borderRadius: "2px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${Math.min(costData.budgetUtilization, 100)}%`,
+                            height: "100%",
+                            backgroundColor: costData.isOverBudget
+                              ? "var(--color-red)"
+                              : costData.budgetUtilization > 90
+                                ? "var(--color-orange)"
+                                : "var(--color-blue)",
+                            transition: "width 0.3s ease",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-                  <Col span={6}>
-                    <Card className="shadow-sm">
-                      <Statistic
-                        title="Schedule Progress"
-                        value={timeProgress}
-                        precision={1}
-                        suffix="%"
-                        prefix={<Clock className="w-5 h-5" />}
-                        valueStyle={{ color: "#1890ff" }}
-                      />
-                      <Progress
-                        percent={timeProgress}
-                        size="small"
-                        showInfo={false}
-                        className="mt-2"
-                      />
-                      <div className="text-xs text-gray-500 mt-2">
+                  {/* Schedule Progress Card */}
+                  <div
+                    style={{
+                      height: "96px",
+                      backgroundColor: "var(--color-gray-6)",
+                      borderRadius: "12px",
+                      padding: "16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                      <Clock style={{ width: "20px", height: "20px", opacity: 0.4 }} />
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "var(--text-detail)",
+                            fontWeight: "var(--weight-regular)",
+                            opacity: 0.6,
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Schedule Progress
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: "var(--text-display-large)",
+                            fontWeight: "var(--weight-semibold)",
+                            color: "#000",
+                            lineHeight: "1",
+                          }}
+                        >
+                          {timeProgress.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-text)",
+                          fontSize: "var(--text-detail)",
+                          fontWeight: "var(--weight-regular)",
+                          opacity: 0.4,
+                          marginBottom: "4px",
+                        }}
+                      >
                         {projectAnalytics.elapsedDays} of {projectAnalytics.totalDays} business days
                       </div>
-                    </Card>
-                  </Col>
+                      <div
+                        style={{
+                          height: "4px",
+                          backgroundColor: "var(--color-gray-5)",
+                          borderRadius: "2px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${Math.min(timeProgress, 100)}%`,
+                            height: "100%",
+                            backgroundColor: "var(--color-blue)",
+                            transition: "width 0.3s ease",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-                  <Col span={6}>
-                    <Card className="shadow-sm">
-                      <Statistic
-                        title="Task Completion"
-                        value={taskProgress}
-                        precision={1}
-                        suffix="%"
-                        prefix={<CheckCircle className="w-5 h-5" />}
-                        valueStyle={{ color: "#52c41a" }}
-                      />
-                      <Progress
-                        percent={taskProgress}
-                        size="small"
-                        showInfo={false}
-                        className="mt-2"
-                        status="success"
-                      />
-                      <div className="text-xs text-gray-500 mt-2">
+                  {/* Task Completion Card */}
+                  <div
+                    style={{
+                      height: "96px",
+                      backgroundColor: "var(--color-gray-6)",
+                      borderRadius: "12px",
+                      padding: "16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                      <CheckCircle style={{ width: "20px", height: "20px", opacity: 0.4 }} />
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "var(--text-detail)",
+                            fontWeight: "var(--weight-regular)",
+                            opacity: 0.6,
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Task Completion
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: "var(--text-display-large)",
+                            fontWeight: "var(--weight-semibold)",
+                            color: "#000",
+                            lineHeight: "1",
+                          }}
+                        >
+                          {taskProgress.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-text)",
+                          fontSize: "var(--text-detail)",
+                          fontWeight: "var(--weight-regular)",
+                          opacity: 0.4,
+                          marginBottom: "4px",
+                        }}
+                      >
                         {projectAnalytics.completedTasks} of {projectAnalytics.totalTasks} tasks
                       </div>
-                    </Card>
-                  </Col>
-
-                  <Col span={6}>
-                    <Card className="shadow-sm">
-                      <Statistic
-                        title="Resource Utilization"
-                        value={resourceUtilization}
-                        precision={1}
-                        suffix="%"
-                        prefix={<Users className="w-5 h-5" />}
-                        valueStyle={{ color: "#722ed1" }}
-                      />
-                      <Progress
-                        percent={resourceUtilization}
-                        size="small"
-                        showInfo={false}
-                        className="mt-2"
-                        strokeColor="#722ed1"
-                      />
-                      <div className="text-xs text-gray-500 mt-2">
-                        {projectAnalytics.assignedResources} of {projectAnalytics.totalResources}{" "}
-                        resources assigned
+                      <div
+                        style={{
+                          height: "4px",
+                          backgroundColor: "var(--color-gray-5)",
+                          borderRadius: "2px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${Math.min(taskProgress, 100)}%`,
+                            height: "100%",
+                            backgroundColor: taskProgress === 100 ? "var(--color-green)" : "var(--color-blue)",
+                            transition: "width 0.3s ease",
+                          }}
+                        />
                       </div>
-                    </Card>
-                  </Col>
-                </Row>
+                    </div>
+                  </div>
+
+                  {/* Resource Utilization Card */}
+                  <div
+                    style={{
+                      height: "96px",
+                      backgroundColor: "var(--color-gray-6)",
+                      borderRadius: "12px",
+                      padding: "16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                      <Users style={{ width: "20px", height: "20px", opacity: 0.4 }} />
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "var(--text-detail)",
+                            fontWeight: "var(--weight-regular)",
+                            opacity: 0.6,
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Resource Utilization
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: "var(--text-display-large)",
+                            fontWeight: "var(--weight-semibold)",
+                            color: "#000",
+                            lineHeight: "1",
+                          }}
+                        >
+                          {resourceUtilization.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-text)",
+                          fontSize: "var(--text-detail)",
+                          fontWeight: "var(--weight-regular)",
+                          opacity: 0.4,
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {projectAnalytics.assignedResources} of {projectAnalytics.totalResources} assigned
+                      </div>
+                      <div
+                        style={{
+                          height: "4px",
+                          backgroundColor: "var(--color-gray-5)",
+                          borderRadius: "2px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${Math.min(resourceUtilization, 100)}%`,
+                            height: "100%",
+                            backgroundColor: "var(--color-blue)",
+                            transition: "width 0.3s ease",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Active Alerts */}
                 {budgetAlerts.filter((a) => a.triggered).length > 0 && (
@@ -665,7 +911,7 @@ export function MissionControlModal({ isOpen, onClose }: Props) {
                         />
                         {resourceUtilization < 50 && (
                           <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded border border-orange-200">
-                            ⚠️ Low resource utilization - consider assigning more resources to tasks
+                             Low resource utilization - consider assigning more resources to tasks
                           </div>
                         )}
                       </div>

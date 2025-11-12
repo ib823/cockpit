@@ -104,7 +104,7 @@ export function ProcessComplexity() {
         {/* Warning for low fit-to-standard */}
         {inputs.fitToStandard < 0.7 && (
           <Text type="warning" className="text-xs">
-            ⚠️ Low fit-to-standard increases effort significantly.
+             Low fit-to-standard increases effort significantly.
           </Text>
         )}
       </Space>

@@ -1,0 +1,78 @@
+/**
+ * Tier 2 Header Styles
+ * Standardized tool-specific navigation header
+ * Apple HIG-compliant design using design system tokens
+ */
+
+/* ============================================================================
+   HEADER LAYOUT
+   ============================================================================ */
+
+.header {
+  min-height: 48px;
+  border-bottom: 1px solid var(--line);
+  background-color: var(--color-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 200px;
+  flex-wrap: wrap;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================================
+   METADATA
+   ============================================================================ */
+
+.metadata {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.metadataDivider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--line);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+  .metadata {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .metadataDivider {
+    display: none;
+  }
+
+  .header {
+    padding: 8px 12px;
+  }
+}

@@ -69,7 +69,7 @@ export function ResultsPanel() {
   return (
     <Space direction="vertical" style={{ width: "100%" }} size="middle">
       {/* Total Summary Card */}
-      <Card title="🎯 Estimate Summary">
+      <Card title=" Estimate Summary">
         <div className="grid grid-cols-3 gap-4">
           <Statistic
             title="Total Effort"
@@ -127,7 +127,7 @@ export function ResultsPanel() {
       )}
 
       {/* Phase Breakdown */}
-      <Card title="📈 SAP Activate Phases">
+      <Card title=" SAP Activate Phases">
         <Table
           dataSource={results.phases}
           columns={phaseColumns}
@@ -167,7 +167,7 @@ export function ResultsPanel() {
             label: (
               <Space>
                 <CalculatorOutlined />
-                <Text strong>🔢 Formula Transparency</Text>
+                <Text strong> Formula Transparency</Text>
               </Space>
             ),
             children: (

@@ -1,0 +1,474 @@
+/**
+ * Current Landscape Tab Styles (AS-IS Architecture)
+ * Apple HIG-compliant design using design system tokens
+ */
+
+/* ============================================================================
+   LAYOUT
+   ============================================================================ */
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 32px;
+}
+
+/* ============================================================================
+   INFO BANNER
+   ============================================================================ */
+
+.infoBanner {
+  background-color: var(--color-blue-light);
+  border-left: 4px solid var(--color-blue);
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 32px;
+}
+
+.infoBannerTitle {
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  font-weight: var(--font-semibold);
+  color: var(--color-blue);
+  margin-bottom: 8px;
+}
+
+.infoBannerText {
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   SECTION
+   ============================================================================ */
+
+.section {
+  margin-bottom: 48px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sectionTitle {
+  font-family: var(--font-text);
+  font-size: 20px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.sectionCount {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-medium);
+}
+
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============================================================================
+   TEMPLATE LOADER
+   ============================================================================ */
+
+.templateLoader {
+  margin-bottom: 24px;
+}
+
+.templateLabel {
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.templateButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.templateButton {
+  padding: 8px 16px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--duration-default) var(--easing-default);
+}
+
+.templateButton:hover {
+  background-color: var(--color-gray-6);
+  border-color: var(--color-blue);
+}
+
+.templateButton:active {
+  transform: scale(0.98);
+}
+
+.templateButton:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   SYSTEM CARDS
+   ============================================================================ */
+
+.systemsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 16px;
+}
+
+.systemCard {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: all var(--duration-default) var(--easing-default);
+}
+
+.systemCard:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-gray-4);
+}
+
+.systemCard:focus-within {
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.systemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.systemTitle {
+  flex: 1;
+}
+
+.systemMetadata {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.systemModules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.moduleTag {
+  padding: 4px 8px;
+  background-color: var(--color-gray-6);
+  border-radius: 12px;
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   STATUS BADGES
+   ============================================================================ */
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusActive {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #2E7D32;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.statusRetiring {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #C62828;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.statusKeep {
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #1565C0;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+/* ============================================================================
+   FORM INPUTS
+   ============================================================================ */
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  transition: all var(--duration-default) var(--easing-default);
+}
+
+.input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+.input:hover {
+  border-color: var(--color-gray-4);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input:disabled {
+  background-color: var(--color-gray-6);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.inputSmall {
+  font-size: var(--text-body);
+  padding: 6px 8px;
+}
+
+.select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  cursor: pointer;
+  transition: all var(--duration-default) var(--easing-default);
+}
+
+.select:hover {
+  border-color: var(--color-gray-4);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.label {
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all var(--duration-default) var(--easing-default);
+  border: none;
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.buttonPrimary {
+  background-color: var(--color-blue);
+  color: var(--color-bg-primary);
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.buttonSecondary {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--line);
+}
+
+.buttonSecondary:hover:not(:disabled) {
+  background-color: var(--color-gray-6);
+  border-color: var(--color-gray-4);
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-default) var(--easing-default);
+  color: var(--color-text-secondary);
+}
+
+.iconButton:hover:not(:disabled) {
+  background-color: var(--color-gray-6);
+  color: var(--color-text-primary);
+}
+
+.iconButton:active {
+  transform: scale(0.95);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   EMPTY STATE
+   ============================================================================ */
+
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--color-text-secondary);
+}
+
+.emptyStateTitle {
+  font-family: var(--font-text);
+  font-size: 18px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.emptyStateText {
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  color: var(--color-text-secondary);
+  margin-bottom: 24px;
+}
+
+/* ============================================================================
+   GENERATE BUTTON
+   ============================================================================ */
+
+.generateButtonContainer {
+  display: flex;
+  justify-content: center;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+  margin-top: 32px;
+}
+
+.generateButton {
+  padding: 12px 32px;
+  font-size: var(--text-body-large);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+  .systemsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 32px 16px;
+  }
+
+  .section {
+    margin-bottom: 32px;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .systemsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 24px 12px;
+  }
+
+  .sectionTitle {
+    font-size: 18px;
+  }
+
+  .templateButtons {
+    flex-direction: column;
+  }
+
+  .templateButton {
+    width: 100%;
+  }
+}

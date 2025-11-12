@@ -6,8 +6,8 @@
 
 :root {
   /* ═══ Brand ═══ */
-  --accent: #2563eb;
-  --accent-strong: #1d4ed8;
+  --accent: rgb(0, 122, 255); /* System Blue - Apple HIG */
+  --accent-strong: rgb(0, 112, 235); /* Darker blue for hover */
   --accent-subtle: #dbeafe;
 
   /* ═══ Greys (neutral, not blue-tinted) ═══ */
@@ -20,15 +20,15 @@
   --line: #e5e7eb;
 
   /* ═══ States ═══ */
-  --success: #16a34a;
+  --success: rgb(52, 199, 89); /* System Green - Apple HIG */
   --success-bg: #dcfce7;
-  --warn: #f59e0b;
+  --warn: rgb(255, 149, 0); /* System Orange - Apple HIG */
   --warn-bg: #fef3c7;
-  --danger: #ef4444;
+  --danger: rgb(255, 59, 48); /* System Red - Apple HIG */
   --danger-bg: #fee2e2;
 
   /* ═══ Focus ═══ */
-  --focus: #3b82f6;
+  --focus: rgb(0, 122, 255); /* System Blue - Apple HIG */
   --focus-ring: 0 0 0 2px var(--focus);
 
   /* ═══ Radii ═══ */
@@ -71,7 +71,7 @@
   --g-holiday: rgba(244, 63, 94, 0.06);
   --g-bar: #111827; /* dark charcoal bars, not blue */
   --g-bar-accent: var(--accent);
-  --g-bar-critical: #ef4444;
+  --g-bar-critical: rgb(255, 59, 48); /* System Red - Apple HIG */
   --g-bar-progress: #10b981;
   --g-baseline: #9ca3af;
   --g-today: #fb923c;

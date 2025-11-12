@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { prisma, withRetry } from "@/lib/db";
 
 /**
  * GET /api/admin/stats
@@ -20,27 +20,29 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 403 });
     }
 
-    // Fetch statistics in parallel for better performance
-    const [totalUsers, activeProjects, proposals] = await Promise.all([
-      // Total users count
-      prisma.users.count(),
+    // Fetch statistics in parallel with retry logic for connection errors
+    const [totalUsers, activeProjects, proposals] = await withRetry(() =>
+      Promise.all([
+        // Total users count
+        prisma.users.count(),
 
-      // Active projects (APPROVED status)
-      prisma.projects.count({
-        where: {
-          status: "APPROVED",
-        },
-      }),
-
-      // Proposals (DRAFT or IN_REVIEW status)
-      prisma.projects.count({
-        where: {
-          status: {
-            in: ["DRAFT", "IN_REVIEW"],
+        // Active projects (APPROVED status)
+        prisma.projects.count({
+          where: {
+            status: "APPROVED",
           },
-        },
-      }),
-    ]);
+        }),
+
+        // Proposals (DRAFT or IN_REVIEW status)
+        prisma.projects.count({
+          where: {
+            status: {
+              in: ["DRAFT", "IN_REVIEW"],
+            },
+          },
+        }),
+      ])
+    );
 
     return NextResponse.json({
       totalUsers,

@@ -3,77 +3,26 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LogoutButton } from "@/components/common/LogoutButton";
-import { prisma } from "@/lib/db";
+import { prisma, withRetry } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 
 // Cache admin stats with smart error handling and retry logic
 const getCachedAdminStats = unstable_cache(
   async () => {
-    const startTime = Date.now();
-    
-
-    // Retry logic for transient connection errors
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        // First, verify database connectivity with a simple query
-        if (attempt > 0) {
-          
-          await prisma.$queryRaw`SELECT 1`;
-        }
-
-        // Add timeout to prevent hanging queries
-        const queryPromise = Promise.all([
+    try {
+      const [totalUsers, activeProjects, proposals] = await withRetry(() =>
+        Promise.all([
           prisma.users.count(),
           prisma.projects.count({ where: { status: "APPROVED" } }),
           prisma.projects.count({ where: { status: { in: ["DRAFT", "IN_REVIEW"] } } }),
-        ]);
+        ])
+      );
 
-        // 15 second timeout (increased from 10s to handle cold starts)
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Query timeout")), 15000)
-        );
-
-        const [totalUsers, activeProjects, proposals] = await Promise.race([
-          queryPromise,
-          timeoutPromise,
-        ]);
-
-        const duration = Date.now() - startTime;
-
-        return { totalUsers, activeProjects, proposals, dbError: false };
-      } catch (error: unknown) {
-
-        const duration = Date.now() - startTime;
-        const err = error as { message?: string; code?: string };
-
-        // Check if it's a connection error worth retrying
-        const isConnectionError =
-          err?.message?.includes("connection") ||
-          err?.message?.includes("Connection") ||
-          err?.message?.includes("timeout") ||
-          err?.code === "P1001" || // Can't reach database
-          err?.code === "P1002" || // Database timeout
-          err?.code === "P1008" || // Operations timed out
-          err?.code === "P1017"; // Server closed connection
-
-        if (!isConnectionError || attempt === 2) {
-          // Not a connection error or final attempt - give up
-          console.error(
-            `[Admin Dashboard] Failed to fetch statistics after ${duration}ms (attempt ${attempt + 1}/3):`,
-            error
-          );
-          break;
-        }
-
-        // Wait before retry with exponential backoff
-        const delay = Math.min(1000 * Math.pow(2, attempt), 3000);
-        console.warn(`[Admin Stats] Connection error, retrying in ${delay}ms...`);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
+      return { totalUsers, activeProjects, proposals, dbError: false };
+    } catch (error) {
+      console.error("[Admin Dashboard] Failed to fetch statistics:", error);
+      return { totalUsers: 0, activeProjects: 0, proposals: 0, dbError: true };
     }
-
-    // All retries failed
-    return { totalUsers: 0, activeProjects: 0, proposals: 0, dbError: true };
   },
   ["admin-stats"],
   { revalidate: 10, tags: ["admin-stats"] } // Cache for 10 seconds (balanced for responsiveness)

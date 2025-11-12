@@ -169,7 +169,7 @@ export function ComprehensiveReferenceArchitecture() {
                   <div className="text-xs text-gray-600 space-y-1">
                     {driver.kpis.map((kpi, idx) => (
                       <div key={idx} className="flex items-center gap-1">
-                        <span className="text-green-600">✓</span>
+                        <span className="text-green-600"></span>
                         <span>{kpi}</span>
                       </div>
                     ))}
@@ -323,31 +323,31 @@ export function ComprehensiveReferenceArchitecture() {
           {[
             {
               name: "Prepare",
-              icon: "🎯",
+              icon: "",
               range: "5-10 PD",
               activities: ["Kickoff", "Planning", "Team Setup"],
             },
             {
               name: "Explore",
-              icon: "🔍",
+              icon: "",
               range: "20-30 PD",
               activities: ["Fit-Gap", "Design", "Prototypes"],
             },
             {
               name: "Realize",
-              icon: "⚙️",
+              icon: "",
               range: "60-80 PD",
               activities: ["Config", "Development", "Unit Test"],
             },
             {
               name: "Deploy",
-              icon: "🚀",
+              icon: "Rocket",
               range: "15-25 PD",
               activities: ["Cutover", "Go-Live", "Training"],
             },
             {
               name: "Run",
-              icon: "📈",
+              icon: "",
               range: "10-15 PD",
               activities: ["Hypercare", "Operations", "Support"],
             },
@@ -530,10 +530,10 @@ function getFlagEmoji(countryCode: string): string {
 
 function getCategoryIcon(category: string): string {
   const icons: Record<string, string> = {
-    efficiency: "⚡",
-    compliance: "📋",
-    growth: "📈",
-    modernization: "🔄",
+    efficiency: "",
+    compliance: "",
+    growth: "",
+    modernization: "",
   };
-  return icons[category] || "🎯";
+  return icons[category] || "";
 }

@@ -129,17 +129,17 @@ export function Capacity() {
         {/* Warnings */}
         {inputs.utilization < 0.7 && (
           <Text type="warning" className="text-xs">
-            ⚠️ Low utilization may indicate resource availability issues.
+             Low utilization may indicate resource availability issues.
           </Text>
         )}
         {inputs.overlapFactor < 0.65 && (
           <Text type="warning" className="text-xs">
-            ⚠️ Aggressive overlap increases risk of quality issues.
+             Aggressive overlap increases risk of quality issues.
           </Text>
         )}
         {inputs.fte > 15 && (
           <Text type="warning" className="text-xs">
-            ⚠️ Large team size may increase coordination overhead.
+             Large team size may increase coordination overhead.
           </Text>
         )}
       </Space>

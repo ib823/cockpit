@@ -100,11 +100,11 @@ export function DeliverableMapMode() {
   const getRiskIcon = (risk: "low" | "medium" | "high") => {
     switch (risk) {
       case "low":
-        return "🟢";
+        return "";
       case "medium":
-        return "🟡";
+        return "";
       case "high":
-        return "🔴";
+        return "";
     }
   };
 

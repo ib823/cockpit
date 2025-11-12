@@ -26,7 +26,7 @@ export function OptimizationModal({ targetDate, open, onClose, onApply }: Optimi
 
   if (!store.results) {
     return (
-      <Modal title="⚡ Optimization Suggestions" open={open} onCancel={onClose} footer={null}>
+      <Modal title=" Optimization Suggestions" open={open} onCancel={onClose} footer={null}>
         <p>No estimate available. Please configure inputs first.</p>
       </Modal>
     );
@@ -67,7 +67,7 @@ export function OptimizationModal({ targetDate, open, onClose, onApply }: Optimi
     <Modal
       title={
         <div className="flex items-center gap-2">
-          <span>⚡ Achieve Target: {targetDate.toLocaleDateString()}</span>
+          <span> Achieve Target: {targetDate.toLocaleDateString()}</span>
           {needsAcceleration && (
             <Badge count={`${gapMonths.toFixed(1)}mo gap`} style={{ backgroundColor: "#faad14" }} />
           )}
@@ -98,7 +98,7 @@ export function OptimizationModal({ targetDate, open, onClose, onApply }: Optimi
         />
 
         {/* Optimization Suggestions */}
-        <div className="text-base font-semibold">💡 Optimization Strategies</div>
+        <div className="text-base font-semibold"> Optimization Strategies</div>
 
         <List
           dataSource={suggestions}
@@ -232,7 +232,7 @@ export function OptimizationModal({ targetDate, open, onClose, onApply }: Optimi
 
         {/* Guidance */}
         <Alert
-          message="💡 How to Choose"
+          message=" How to Choose"
           description={
             <ul className="text-sm space-y-1 mt-2 list-disc list-inside">
               <li>

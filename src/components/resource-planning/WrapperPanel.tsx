@@ -21,12 +21,12 @@ const WRAPPER_COLORS: Record<WrapperType, string> = {
 };
 
 const WRAPPER_ICONS: Record<WrapperType, string> = {
-  projectManagement: "📊",
-  basis: "⚙️",
-  security: "🔒",
-  testing: "🧪",
-  training: "📚",
-  changeManagement: "🔄",
+  projectManagement: "",
+  basis: "",
+  security: "",
+  testing: "",
+  training: "",
+  changeManagement: "",
 };
 
 export function WrapperPanel({

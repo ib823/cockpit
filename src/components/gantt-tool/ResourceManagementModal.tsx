@@ -1,5 +1,5 @@
 /**
- * 🚀 REVOLUTIONARY RESOURCE CONTROL CENTER
+ * Rocket REVOLUTIONARY RESOURCE CONTROL CENTER
  *
  * The most advanced resource management interface ever built for Gantt planning.
  *
@@ -895,7 +895,7 @@ function TimelineView({
                   </div>
                   {stats?.isOverallocated && (
                     <div className="mt-1 text-xs text-red-600 font-semibold">
-                      ⚠️ {stats.utilization.toFixed(0)}% allocated
+                       {stats.utilization.toFixed(0)}% allocated
                     </div>
                   )}
                 </div>

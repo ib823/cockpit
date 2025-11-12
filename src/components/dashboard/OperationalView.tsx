@@ -205,7 +205,7 @@ export function OperationalView({ project }: OperationalViewProps) {
       <Card bordered={false} style={{ borderRadius: "8px" }}>
         <Space direction="vertical" size={8} style={{ width: "100%" }}>
           <Title level={5} style={{ margin: 0 }}>
-            📅 Project Timeline
+             Project Timeline
           </Title>
           <Row gutter={16}>
             <Col span={12}>
@@ -233,7 +233,7 @@ export function OperationalView({ project }: OperationalViewProps) {
         <Space direction="vertical" size={12} style={{ width: "100%" }}>
           <div>
             <Title level={5} style={{ margin: 0 }}>
-              🔥 Resource Allocation Heatmap
+               Resource Allocation Heatmap
             </Title>
             <Text type="secondary" className="text-sm">
               Weekly capacity planning - Identify bottlenecks and over-allocation
@@ -257,12 +257,12 @@ export function OperationalView({ project }: OperationalViewProps) {
             level={5}
             style={{ margin: 0, color: metrics.overallocatedResources > 0 ? "#92400E" : "#065F46" }}
           >
-            💡 Operational Insights
+             Operational Insights
           </Title>
           {metrics.overallocatedResources > 0 ? (
             <>
               <Text style={{ color: "#92400E" }}>
-                ⚠️ <strong>{metrics.overallocatedResources}</strong> resource(s) are over-allocated.
+                 <strong>{metrics.overallocatedResources}</strong> resource(s) are over-allocated.
                 Consider redistributing work or adding team members.
               </Text>
               <Text style={{ color: "#92400E" }} className="text-sm">
@@ -273,7 +273,7 @@ export function OperationalView({ project }: OperationalViewProps) {
           ) : (
             <>
               <Text style={{ color: "#065F46" }}>
-                ✅ Resource allocation looks healthy! All team members have manageable workloads.
+                 Resource allocation looks healthy! All team members have manageable workloads.
               </Text>
               <Text style={{ color: "#065F46" }} className="text-sm">
                 Tip: Monitor utilization to ensure resources remain productive throughout the
