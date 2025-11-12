@@ -137,7 +137,7 @@ export function Inspector() {
 
         {mode === "capture" && (
           <div className="text-center py-12 text-gray-400">
-            <div className="text-3xl mb-2">📝</div>
+            <div className="text-3xl mb-2"></div>
             <div className="text-sm">Capture requirements to see details</div>
           </div>
         )}

@@ -133,7 +133,7 @@ export default function CriticalGapsAlert() {
                     : "text-blue-900"
             }`}
           >
-            ⚠️ Critical Information Gaps Detected
+            Critical Information Gaps Detected
           </h3>
           <p className="text-sm mt-1 text-gray-700">
             Missing {gaps.filter((g) => g.severity === "critical").length} critical,{" "}
@@ -174,13 +174,13 @@ export default function CriticalGapsAlert() {
                   <strong>Impact:</strong> {gap.impactRange}
                 </p>
 
-                <p className="text-sm font-medium text-blue-700">❓ {gap.question}</p>
+                <p className="text-sm font-medium text-blue-700">{gap.question}</p>
 
                 {showAssumptions && (
                   <div className="mt-2 text-xs bg-gray-50 rounded p-2">
                     <strong>Assumption:</strong> {gap.assumedValue}
                     {gap.severity === "critical" && (
-                      <span className="text-red-600 ml-2">⚠️ High risk assumption</span>
+                      <span className="text-red-600 ml-2">High risk assumption</span>
                     )}
                   </div>
                 )}
@@ -193,7 +193,7 @@ export default function CriticalGapsAlert() {
       {riskLevel === "extreme" && (
         <div className="mt-4 p-3 bg-red-100 rounded-lg">
           <p className="text-sm font-bold text-red-900">
-            🚨 EXTREME RISK: Multiple critical unknowns could cause 2-3x effort variance
+            EXTREME RISK: Multiple critical unknowns could cause 2-3x effort variance
           </p>
           <p className="text-xs text-red-700 mt-1">
             Recommend: Conduct detailed scoping workshop before providing estimates

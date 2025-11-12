@@ -24,7 +24,7 @@ const ROLE_PROFILES = [
   {
     id: "lead",
     name: "Project Lead",
-    icon: "👔",
+    icon: "",
     baseRate: 250,
     expertise: "Strategic oversight, stakeholder management",
     impact: "critical",
@@ -32,7 +32,7 @@ const ROLE_PROFILES = [
   {
     id: "architect",
     name: "Solution Architect",
-    icon: "🏗️",
+    icon: "",
     baseRate: 220,
     expertise: "Technical design, integration strategy",
     impact: "critical",
@@ -40,7 +40,7 @@ const ROLE_PROFILES = [
   {
     id: "consultant",
     name: "Functional Consultant",
-    icon: "💼",
+    icon: "",
     baseRate: 180,
     expertise: "Process design, configuration",
     impact: "high",
@@ -48,7 +48,7 @@ const ROLE_PROFILES = [
   {
     id: "developer",
     name: "Developer",
-    icon: "💻",
+    icon: "",
     baseRate: 150,
     expertise: "Custom code, enhancements",
     impact: "high",
@@ -56,7 +56,7 @@ const ROLE_PROFILES = [
   {
     id: "analyst",
     name: "Business Analyst",
-    icon: "📊",
+    icon: "",
     baseRate: 140,
     expertise: "Requirements, testing",
     impact: "medium",
@@ -64,7 +64,7 @@ const ROLE_PROFILES = [
   {
     id: "tester",
     name: "QA Specialist",
-    icon: "🔍",
+    icon: "",
     baseRate: 120,
     expertise: "Quality assurance, UAT",
     impact: "medium",

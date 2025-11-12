@@ -11,7 +11,7 @@ export function ConfidenceRibbon() {
 
   if (!results) {
     return (
-      <Card title="📊 Uncertainty Analysis">
+      <Card title=" Uncertainty Analysis">
         <p className="text-gray-500">Configure inputs to see uncertainty analysis</p>
       </Card>
     );
@@ -26,7 +26,7 @@ export function ConfidenceRibbon() {
 
   return (
     <Card
-      title="📊 Uncertainty Analysis"
+      title=" Uncertainty Analysis"
       className="shadow-sm"
       extra={
         <Select
@@ -34,9 +34,9 @@ export function ConfidenceRibbon() {
           onChange={setConfidence}
           className="w-40"
           options={[
-            { value: "low", label: "✅ Low Uncertainty" },
-            { value: "medium", label: "⚠️ Medium Uncertainty" },
-            { value: "high", label: "🚨 High Uncertainty" },
+            { value: "low", label: " Low Uncertainty" },
+            { value: "medium", label: " Medium Uncertainty" },
+            { value: "high", label: " High Uncertainty" },
           ]}
         />
       }

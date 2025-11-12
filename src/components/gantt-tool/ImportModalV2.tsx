@@ -264,7 +264,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       const allParsedResources: ParsedResource[] = [];
 
       if (parsedResources && !skipResources) {
-        console.warn("📥 Collecting resources...");
+        console.warn(" Collecting resources...");
         console.warn("  - Mapped resources:", parsedResources.resources.length);
         console.warn("  - Unmapped resources:", parsedResources.unmappedResources?.length || 0);
 
@@ -282,7 +282,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             }
 
             console.warn(
-              `  ✏️ Applying mapping for row ${unmapped.rowNumber}: ${unmapped.originalDesignation} → ${mapping.designation}, ${mapping.category}`
+              `   Applying mapping for row ${unmapped.rowNumber}: ${unmapped.originalDesignation} → ${mapping.designation}, ${mapping.category}`
             );
 
             allParsedResources.push({
@@ -297,7 +297,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           }
         }
 
-        console.warn(`✅ Total resources to process: ${allParsedResources.length}`);
+        console.warn(` Total resources to process: ${allParsedResources.length}`);
       } else {
         console.warn(
           "⏭️ Skipping resources (skipResources:",
@@ -332,7 +332,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       targetProject.resources = [...(targetProject.resources || []), ...newResources] as any;
 
       // Step 3: Allocate resources to tasks based on weekly effort
-      console.warn("🔍 Starting resource allocation...");
+      console.warn(" Starting resource allocation...");
       console.warn("Parsed resources:", allParsedResources);
       console.warn("Resource ID map:", Array.from(resourceIdMap.entries()));
 
@@ -342,7 +342,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
         resourceIdMap
       );
 
-      console.warn("🎯 Allocation result:", allocationResult);
+      console.warn(" Allocation result:", allocationResult);
 
       if (!allocationResult.success) {
         console.error("Resource allocation errors:", allocationResult.errors);
@@ -355,7 +355,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
         console.warn("Resource allocation warnings:", allocationResult.warnings);
       }
 
-      console.warn("✅ Resource allocations created:", allocationResult.allocations.length);
+      console.warn(" Resource allocations created:", allocationResult.allocations.length);
 
       // Step 4: Create phases with tasks that have resource assignments
       const newPhases = parsedSchedule.phases.map((phase, phaseIndex) => {
@@ -385,7 +385,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           }
 
           console.warn(
-            `📋 Task "${task.name}" in phase "${phase.name}": ${taskResourceAssignments.length} resource assignments`,
+            ` Task "${task.name}" in phase "${phase.name}": ${taskResourceAssignments.length} resource assignments`,
             taskResourceAssignments
           );
 
@@ -450,7 +450,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       targetProject.updatedAt = new Date().toISOString();
 
       // Log what we're about to save
-      console.warn("\n💾 About to save to database...");
+      console.warn("\n About to save to database...");
       console.warn("Total phases:", targetProject.phases.length);
       const totalTasksWithResources = targetProject.phases.reduce(
         (sum, phase) =>
@@ -528,7 +528,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
         holidays: targetProject.holidays || [],
       };
 
-      console.warn("📤 Sending project payload with", {
+      console.warn(" Sending project payload with", {
         mode: importMode,
         phases: projectPayload.phases.length,
         resources: projectPayload.resources.length,
@@ -546,7 +546,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       try {
         if (isNewProject) {
           // Create new project via importProject
-          console.warn("🌐 Fetching: POST /api/gantt-tool/projects");
+          console.warn(" Fetching: POST /api/gantt-tool/projects");
           response = await fetch("/api/gantt-tool/projects", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -554,7 +554,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           });
         } else {
           // Update existing project
-          console.warn(`🌐 Fetching: PATCH /api/gantt-tool/projects/${selectedProjectId}`);
+          console.warn(` Fetching: PATCH /api/gantt-tool/projects/${selectedProjectId}`);
           response = await fetch(`/api/gantt-tool/projects/${selectedProjectId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -562,7 +562,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           });
         }
       } catch (fetchError) {
-        console.error("❌ Network error during fetch:", fetchError);
+        console.error(" Network error during fetch:", fetchError);
         throw new Error(
           "Network error: Cannot connect to the server. Make sure the development server is running."
         );
@@ -572,12 +572,12 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error("❌ API Error Response:", errorData);
+        console.error(" API Error Response:", errorData);
 
         // Log the payload that caused the error for debugging
         if (errorData.error?.includes("Validation failed")) {
           console.error(
-            "📤 Payload that failed validation:",
+            " Payload that failed validation:",
             JSON.stringify(projectPayload, null, 2)
           );
         }
@@ -606,23 +606,23 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       // Update local state - fetch all projects and load the created/updated one
       const store = useGanttToolStoreV2.getState();
       await store.fetchProjects(); // Refresh project list
-      await store.fetchProject(projectId); // Load the project
+      await store.loadProject(projectId); // Load the project (use loadProject instead of fetchProject)
 
       // Verify resources were persisted (only if resources were not skipped)
       if (!skipResources) {
         const updatedState = useGanttToolStoreV2.getState();
         const fetchedProject = updatedState.currentProject;
         if (fetchedProject) {
-          console.warn("\n🔍 Verifying persisted data...");
+          console.warn("\n Verifying persisted data...");
           const tasksWithResources = fetchedProject.phases
             .flatMap((p) => p.tasks)
             .filter((t) => t.resourceAssignments && t.resourceAssignments.length > 0);
           console.warn("Tasks with resources after fetch:", tasksWithResources.length);
           if (tasksWithResources.length > 0) {
-            console.warn("✅ Sample persisted task:", tasksWithResources[0]);
+            console.warn(" Sample persisted task:", tasksWithResources[0]);
           } else {
             console.warn(
-              "⚠️ No resource assignments found after fetch (resources were imported but not assigned)"
+              " No resource assignments found after fetch (resources were imported but not assigned)"
             );
           }
         }

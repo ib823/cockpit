@@ -156,7 +156,7 @@ export function ResourceDetailPanel({ resourceId, onClose, onUpdate }: ResourceD
               showSearch
               optionFilterProp="label"
               options={[
-                { value: undefined, label: "🎯 No Manager (Top Level)" },
+                { value: undefined, label: " No Manager (Top Level)" },
                 ...availableManagers.map((manager) => ({
                   value: manager.id,
                   label: `${RESOURCE_CATEGORIES[manager.category].icon} ${manager.name} - ${RESOURCE_DESIGNATIONS[manager.designation]}`,

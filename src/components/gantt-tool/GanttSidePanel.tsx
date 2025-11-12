@@ -574,7 +574,7 @@ function PhaseForm({
                   name: milestoneName,
                   description: `Completion of ${formData.name || "phase"}`,
                   date: formData.endDate,
-                  icon: "🎯",
+                  icon: "",
                   color: formData.color || "#10B981",
                 });
               }}
@@ -592,7 +592,7 @@ function PhaseForm({
             required
           />
           <p className="text-xs text-gray-500 mt-1">
-            💡 Click "+ Milestone" to mark phase completion
+             Click "+ Milestone" to mark phase completion
           </p>
         </div>
       </div>
@@ -1038,7 +1038,7 @@ function TaskForm({
                   name: milestoneName,
                   description: `Completion of ${formData.name || "task"}`,
                   date: formData.endDate,
-                  icon: "🎯",
+                  icon: "",
                   color: selectedPhase?.color || "#A855F7", // Use phase color or purple
                 });
               }}
@@ -1056,7 +1056,7 @@ function TaskForm({
             required
           />
           <p className="text-xs text-gray-500 mt-1">
-            💡 Click "+ Milestone" to mark task completion
+             Click "+ Milestone" to mark task completion
           </p>
         </div>
       </div>

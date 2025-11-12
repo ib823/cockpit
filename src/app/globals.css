@@ -3,6 +3,7 @@
  * Minimalist, Steve Jobs-inspired design system
  */
 
+@import "../styles/design-system.css";
 @import "../styles/tokens.css";
 @import "../styles/motion.css";
 @import "../styles/button-normalize.css";

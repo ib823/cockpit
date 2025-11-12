@@ -223,6 +223,10 @@ model projects {
   startDate          DateTime?
   totalCost          Decimal?            @db.Decimal(15, 2)
   totalEffort        Decimal?            @db.Decimal(10, 2)
+  dashboardComments  DashboardComment[]
+  dashboardExports   DashboardExport[]
+  dashboardScenarios DashboardScenario[]
+  dashboardSnapshots DashboardSnapshot[]
   chips              chips[]
   comments           comments[]
   form_items         form_items[]
@@ -233,10 +237,6 @@ model projects {
   ricefw_items       ricefw_items[]
   shares             shares[]
   snapshots          snapshots[]
-  dashboardSnapshots DashboardSnapshot[]
-  dashboardScenarios DashboardScenario[]
-  dashboardComments  DashboardComment[]
-  dashboardExports   DashboardExport[]
 
   @@index([createdAt])
   @@index([ownerId])
@@ -290,24 +290,21 @@ model ricefw_items {
 }
 
 model sessions {
-  id           String   @id
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  deviceInfo   Json?
-  ipAddress    String?
-  lastActivity DateTime @default(now())
-
-  // Enhanced session tracking
+  id                String    @id
+  sessionToken      String    @unique
+  userId            String
+  expires           DateTime
+  deviceInfo        Json?
+  ipAddress         String?
+  lastActivity      DateTime  @default(now())
   deviceFingerprint String?
   userAgent         String?
   country           String?
   city              String?
   createdAt         DateTime  @default(now())
   revokedAt         DateTime?
-  revokedReason     String? // 'user_action', 'concurrent_limit', 'security_breach', 'expired'
-
-  users users @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revokedReason     String?
+  users             users     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([lastActivity])
@@ -344,65 +341,53 @@ model snapshots {
 }
 
 model users {
-  id                 String    @id
-  email              String    @unique
-  name               String?
-  createdAt          DateTime  @default(now())
-  emailVerified      DateTime?
-  image              String?
-  role               Role      @default(USER)
-  updatedAt          DateTime
-  accessExpiresAt    DateTime  @default(now())
-  exception          Boolean   @default(false)
-  firstLoginAt       DateTime?
-  lastLoginAt        DateTime?
-  lastTimelineAt     DateTime?
-  timelinesGenerated Int       @default(0)
-  lastSeenAt         DateTime?
-
-  // Password & Security Fields
-  passwordHash      String?
-  passwordChangedAt DateTime?
-  passwordExpiresAt DateTime?
-  passwordHistory   String[] // Last 5 hashed passwords
-
-  // TOTP Fields
-  totpSecret    String? // Encrypted TOTP secret
-  totpEnabledAt DateTime?
-
-  // Session Management
-  maxConcurrentSessions Int @default(1)
-
-  // Account Security
-  accountLockedAt     DateTime?
-  accountLockedReason String?
-  failedLoginAttempts Int       @default(0)
-  lastFailedLoginAt   DateTime?
-
-  // Pending Email Change
+  id                    String                   @id
+  email                 String                   @unique
+  name                  String?
+  createdAt             DateTime                 @default(now())
+  emailVerified         DateTime?
+  image                 String?
+  role                  Role                     @default(USER)
+  updatedAt             DateTime
+  accessExpiresAt       DateTime                 @default(now())
+  exception             Boolean                  @default(false)
+  firstLoginAt          DateTime?
+  lastLoginAt           DateTime?
+  lastTimelineAt        DateTime?
+  timelinesGenerated    Int                      @default(0)
+  lastSeenAt            DateTime?
+  passwordHash          String?
+  passwordChangedAt     DateTime?
+  passwordExpiresAt     DateTime?
+  passwordHistory       String[]
+  totpSecret            String?
+  totpEnabledAt         DateTime?
+  maxConcurrentSessions Int                      @default(1)
+  accountLockedAt       DateTime?
+  accountLockedReason   String?
+  failedLoginAttempts   Int                      @default(0)
+  lastFailedLoginAt     DateTime?
   pendingEmail          String?
   pendingEmailToken     String?
   pendingEmailExpiresAt DateTime?
-
-  // Relationships
-  AuditEvent       AuditEvent[]
-  Authenticator    Authenticator[]
-  accounts         accounts[]
-  audit_logs       audit_logs[]
-  comments         comments[]
-  projects         projects[]
-  sessions         sessions[]
-  ganttProjects    GanttProject[]
-  trustedDevices   TrustedDevice[]
-  loginHistory     LoginHistory[]
-  recoveryCodes      RecoveryCode[]
-  securityActions    SecurityAction[]
-  recoveryRequests   AccountRecoveryRequest[]
-  dashboardSnapshots DashboardSnapshot[]
-  dashboardScenarios DashboardScenario[]
-  dashboardComments  DashboardComment[]
-  dashboardSettings  DashboardSettings?
-  dashboardExports   DashboardExport[]
+  recoveryRequests      AccountRecoveryRequest[]
+  AuditEvent            AuditEvent[]
+  Authenticator         Authenticator[]
+  dashboardComments     DashboardComment[]
+  dashboardExports      DashboardExport[]
+  dashboardScenarios    DashboardScenario[]
+  dashboardSettings     DashboardSettings?
+  dashboardSnapshots    DashboardSnapshot[]
+  ganttProjects         GanttProject[]
+  loginHistory          LoginHistory[]
+  recoveryCodes         RecoveryCode[]
+  securityActions       SecurityAction[]
+  trustedDevices        TrustedDevice[]
+  accounts              accounts[]
+  audit_logs            audit_logs[]
+  comments              comments[]
+  projects              projects[]
+  sessions              sessions[]
 
   @@index([email])
   @@index([lastSeenAt])
@@ -416,6 +401,596 @@ model verification_tokens {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+/// Organization for multi-tenancy support
+model Organization {
+  id              String           @id @default(cuid())
+  name            String
+  settings        Json
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  rateCards       RateCard[]
+  savedSelections SavedSelection[]
+  scenarios       Scenario[]
+  members         TeamMember[]
+
+  @@index([name])
+}
+
+/// Team member with role-based access control
+model TeamMember {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           UserRole     @default(VIEWER)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+/// Line of Business (12 LOBs)
+model Lob {
+  id                  String        @id @default(cuid())
+  lobName             String        @unique
+  l3Count             Int
+  releaseTag          String
+  navigatorSectionUrl String
+  createdAt           DateTime      @default(now())
+  l3ScopeItems        L3ScopeItem[]
+
+  @@index([lobName])
+}
+
+/// L3 Scope Item (293 items from SAP Process Navigator)
+model L3ScopeItem {
+  id                  String              @id @default(cuid())
+  lobId               String
+  module              String?
+  l3Code              String              @unique
+  l3Name              String
+  processNavigatorUrl String
+  formerCode          String?
+  releaseTag          String
+  createdAt           DateTime            @default(now())
+  complexityMetrics   ComplexityMetrics?
+  integrationDetails  IntegrationDetails?
+  lob                 Lob                 @relation(fields: [lobId], references: [id], onDelete: Cascade)
+
+  @@index([lobId])
+  @@index([l3Code])
+  @@index([module])
+}
+
+/// Complexity metrics for each L3 item
+model ComplexityMetrics {
+  id                 String      @id @default(cuid())
+  l3Id               String      @unique
+  defaultTier        String
+  coefficient        Float?
+  tierRationale      String
+  crossModuleTouches String?
+  localizationFlag   Boolean     @default(false)
+  extensionRisk      String
+  createdAt          DateTime    @default(now())
+  l3ScopeItem        L3ScopeItem @relation(fields: [l3Id], references: [id], onDelete: Cascade)
+
+  @@index([defaultTier])
+  @@index([extensionRisk])
+}
+
+/// Integration details for each L3 item
+model IntegrationDetails {
+  id                          String      @id @default(cuid())
+  l3Id                        String      @unique
+  integrationPackageAvailable String
+  testScriptExists            Boolean     @default(true)
+  createdAt                   DateTime    @default(now())
+  l3ScopeItem                 L3ScopeItem @relation(fields: [l3Id], references: [id], onDelete: Cascade)
+}
+
+/// Saved L3 selection bundles for reuse
+model SavedSelection {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  l3ItemIds      String[]
+  organizationId String
+  createdBy      String
+  isPublic       Boolean      @default(false)
+  usageCount     Int          @default(0)
+  tags           String[]
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([createdBy])
+  @@index([isPublic])
+}
+
+/// Rate card for resource costing
+model RateCard {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  country        String
+  currency       String
+  rates          Json
+  effectiveFrom  DateTime
+  effectiveTo    DateTime?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, isActive])
+  @@index([country])
+}
+
+/// Scenario (saved estimate with results)
+model Scenario {
+  id             String            @id @default(cuid())
+  userId         String
+  organizationId String?
+  name           String
+  inputs         Json
+  totalMD        Float
+  durationMonths Float
+  pmoMD          Float
+  phases         Json
+  startDate      DateTime?
+  resources      Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  organization   Organization?     @relation(fields: [organizationId], references: [id])
+  versions       ScenarioVersion[]
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([createdAt])
+}
+
+/// Scenario version history for audit trail
+model ScenarioVersion {
+  id            String   @id @default(cuid())
+  scenarioId    String
+  versionNumber Int
+  label         String?
+  snapshot      Json
+  changes       Json?
+  changeReason  String?
+  createdBy     String
+  createdAt     DateTime @default(now())
+  scenario      Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@unique([scenarioId, versionNumber])
+  @@index([scenarioId])
+  @@index([createdAt])
+}
+
+/// Gantt Project - Main project container
+model GanttProject {
+  id           String              @id @default(cuid())
+  userId       String
+  name         String
+  description  String?
+  startDate    DateTime            @db.Date
+  viewSettings Json
+  budget       Json?
+  orgChart     Json?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  deletedAt    DateTime?
+  holidays     GanttHoliday[]
+  milestones   GanttMilestone[]
+  phases       GanttPhase[]
+  user         users               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shares       GanttProjectShare[]
+  resources    GanttResource[]
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([deletedAt])
+}
+
+/// Gantt Phase - Major project phases
+model GanttPhase {
+  id                       String                         @id @default(cuid())
+  projectId                String
+  name                     String
+  description              String?
+  color                    String
+  startDate                DateTime                       @db.Date
+  endDate                  DateTime                       @db.Date
+  collapsed                Boolean                        @default(false)
+  order                    Int                            @default(0)
+  dependencies             String[]
+  project                  GanttProject                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseResourceAssignments GanttPhaseResourceAssignment[]
+  tasks                    GanttTask[]
+
+  @@index([projectId])
+  @@index([order])
+}
+
+/// Gantt Task - Individual tasks within phases
+model GanttTask {
+  id                  String                        @id @default(cuid())
+  phaseId             String
+  name                String
+  description         String?
+  startDate           DateTime                      @db.Date
+  endDate             DateTime                      @db.Date
+  progress            Int                           @default(0)
+  assignee            String?
+  order               Int                           @default(0)
+  dependencies        String[]
+  collapsed           Boolean                       @default(false)
+  isParent            Boolean                       @default(false)
+  level               Int                           @default(0)
+  parentTaskId        String?
+  parentTask          GanttTask?                    @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  childTasks          GanttTask[]                   @relation("TaskHierarchy")
+  phase               GanttPhase                    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  resourceAssignments GanttTaskResourceAssignment[]
+
+  @@index([phaseId])
+  @@index([order])
+  @@index([parentTaskId])
+  @@index([level])
+}
+
+/// Gantt Milestone - Key project milestones
+model GanttMilestone {
+  id          String       @id @default(cuid())
+  projectId   String
+  name        String
+  description String?
+  date        DateTime     @db.Date
+  icon        String
+  color       String
+  project     GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([date])
+}
+
+/// Gantt Holiday - Project holidays/non-working days
+model GanttHoliday {
+  id        String       @id @default(cuid())
+  projectId String
+  name      String
+  date      DateTime     @db.Date
+  region    String
+  type      String
+  project   GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([date])
+}
+
+/// Gantt Resource - Team members and their roles
+model GanttResource {
+  id                String                         @id @default(cuid())
+  projectId         String
+  name              String
+  category          String
+  description       String
+  designation       String
+  managerResourceId String?
+  email             String?
+  department        String?
+  location          String?
+  projectRole       String?
+  rateType          String?
+  hourlyRate        Decimal?                       @db.Decimal(10, 2)
+  dailyRate         Decimal?                       @db.Decimal(10, 2)
+  currency          String?
+  utilizationTarget Int?
+  createdAt         DateTime                       @default(now())
+  phaseAssignments  GanttPhaseResourceAssignment[]
+  project           GanttProject                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskAssignments   GanttTaskResourceAssignment[]
+
+  @@index([projectId])
+  @@index([category])
+}
+
+/// Task Resource Assignment - Links resources to tasks
+model GanttTaskResourceAssignment {
+  id                   String        @id @default(cuid())
+  taskId               String
+  resourceId           String
+  assignmentNotes      String
+  allocationPercentage Int
+  assignedAt           DateTime      @default(now())
+  resource             GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  task                 GanttTask     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, resourceId])
+  @@index([taskId])
+  @@index([resourceId])
+}
+
+/// Phase Resource Assignment - Links PM resources to phases
+model GanttPhaseResourceAssignment {
+  id                   String        @id @default(cuid())
+  phaseId              String
+  resourceId           String
+  assignmentNotes      String
+  allocationPercentage Int
+  assignedAt           DateTime      @default(now())
+  phase                GanttPhase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  resource             GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@unique([phaseId, resourceId])
+  @@index([phaseId])
+  @@index([resourceId])
+}
+
+/// Gantt Project Share - Share projects with view-only access
+model GanttProjectShare {
+  id           String       @id @default(cuid())
+  projectId    String
+  token        String       @unique
+  expiresAt    DateTime?
+  viewCount    Int          @default(0)
+  lastViewedAt DateTime?
+  createdAt    DateTime     @default(now())
+  createdBy    String
+  project      GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([token])
+}
+
+/// Trusted devices for device fingerprinting
+model TrustedDevice {
+  id          String   @id @default(cuid())
+  userId      String
+  fingerprint String
+  lastSeenIp  String
+  lastSeenAt  DateTime @default(now())
+  nickname    String?
+  userAgent   String
+  country     String?
+  city        String?
+  createdAt   DateTime @default(now())
+  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fingerprint])
+  @@index([userId])
+  @@index([fingerprint])
+  @@index([lastSeenAt])
+}
+
+/// Login history with IP intelligence
+model LoginHistory {
+  id                String   @id @default(cuid())
+  userId            String
+  ipAddress         String
+  country           String?
+  city              String?
+  region            String?
+  timezone          String?
+  deviceId          String?
+  deviceFingerprint String?
+  userAgent         String?
+  success           Boolean
+  failureReason     String?
+  authMethod        String?
+  timestamp         DateTime @default(now())
+  user              users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([ipAddress])
+  @@index([timestamp])
+  @@index([success])
+  @@index([deviceFingerprint])
+}
+
+/// Recovery codes for account recovery
+model RecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  usedAt    DateTime?
+  usedFrom  String?
+  createdAt DateTime  @default(now())
+  user      users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([usedAt])
+}
+
+/// Security actions (e.g., "Not me" button responses)
+model SecurityAction {
+  id        String    @id @default(cuid())
+  userId    String
+  action    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime  @default(now())
+  user      users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([usedAt])
+}
+
+/// Account recovery requests (admin-assisted)
+model AccountRecoveryRequest {
+  id              String    @id @default(cuid())
+  userId          String
+  reason          String
+  status          String    @default("pending")
+  submittedAt     DateTime  @default(now())
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectedBy      String?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  notes           String?
+  user            users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([submittedAt])
+}
+
+/// Email delivery tracking
+model EmailLog {
+  id         String    @id @default(cuid())
+  to         String
+  subject    String
+  template   String
+  status     String    @default("pending")
+  provider   String?
+  error      String?
+  metadata   Json?
+  sentAt     DateTime?
+  failedAt   DateTime?
+  retryCount Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  @@index([to])
+  @@index([status])
+  @@index([template])
+  @@index([createdAt])
+}
+
+/// Dashboard Snapshot - Stores saved dashboard states for later recall
+model DashboardSnapshot {
+  id            String   @id @default(cuid())
+  projectId     String
+  userId        String
+  name          String
+  description   String?
+  costBreakdown Json
+  margins       Json
+  revenue       Decimal  @db.Decimal(12, 2)
+  metrics       Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  isDefault     Boolean  @default(false)
+  project       projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user          users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, userId])
+  @@index([userId, createdAt])
+}
+
+/// Dashboard Scenario - For what-if analysis and scenario planning
+model DashboardScenario {
+  id          String   @id @default(cuid())
+  projectId   String
+  userId      String
+  name        String
+  description String?
+  projectData Json
+  revenue     Decimal  @db.Decimal(12, 2)
+  assumptions Json?
+  costDelta   Decimal? @db.Decimal(12, 2)
+  marginDelta Decimal? @db.Decimal(6, 3)
+  timeDelta   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isBaseline  Boolean  @default(false)
+  project     projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId, projectId])
+}
+
+/// Dashboard Comment - Collaborative comments on dashboard elements
+model DashboardComment {
+  id          String             @id @default(cuid())
+  projectId   String
+  userId      String
+  elementId   String?
+  elementType String?
+  content     String
+  resolved    Boolean            @default(false)
+  parentId    String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  parent      DashboardComment?  @relation("CommentThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     DashboardComment[] @relation("CommentThread")
+  project     projects           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        users              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, elementId])
+  @@index([userId, projectId])
+  @@index([parentId])
+}
+
+/// Dashboard Settings - User-specific dashboard preferences
+model DashboardSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  defaultView     String   @default("all")
+  showChartTables Boolean  @default(false)
+  autoRefresh     Boolean  @default(false)
+  refreshInterval Int      @default(300000)
+  customRateCard  Json?
+  notifyOnChange  Boolean  @default(true)
+  notifyOnComment Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Dashboard Share - Share dashboard snapshots with others
+model DashboardShare {
+  id            String    @id @default(cuid())
+  snapshotId    String
+  sharedBy      String
+  sharedWith    String?
+  accessLevel   String    @default("view")
+  expiresAt     DateTime?
+  password      String?
+  allowDownload Boolean   @default(true)
+  viewCount     Int       @default(0)
+  lastViewed    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([snapshotId])
+  @@index([sharedBy])
+  @@index([sharedWith])
+}
+
+/// Dashboard Export History - Track dashboard exports for audit purposes
+model DashboardExport {
+  id           String    @id @default(cuid())
+  projectId    String
+  userId       String
+  format       String
+  filename     String
+  fileSize     Int?
+  status       String    @default("pending")
+  errorMessage String?
+  storageUrl   String?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+  project      projects  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user         users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId, createdAt])
+  @@index([status])
 }
 
 enum AuditAction {
@@ -461,712 +1036,9 @@ enum Role {
   ADMIN
 }
 
-// ============================================
-// SAP Cockpit - Phase 1: L3-Based Estimator Models
-// ============================================
-
-/// Organization for multi-tenancy support
-model Organization {
-  id              String           @id @default(cuid())
-  name            String
-  settings        Json // { defaultRateCard, holidayCalendars, allowTierD }
-  members         TeamMember[]
-  scenarios       Scenario[]
-  savedSelections SavedSelection[]
-  rateCards       RateCard[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-
-  @@index([name])
-}
-
-/// Team member with role-based access control
-model TeamMember {
-  id             String       @id @default(cuid())
-  userId         String
-  organizationId String
-  role           UserRole     @default(VIEWER)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime     @default(now())
-
-  @@unique([userId, organizationId])
-  @@index([organizationId])
-  @@index([userId])
-}
-
 enum UserRole {
   ADMIN
   OWNER
   EDITOR
   VIEWER
-}
-
-/// Line of Business (12 LOBs)
-model Lob {
-  id                  String        @id @default(cuid())
-  lobName             String        @unique
-  l3Count             Int
-  releaseTag          String
-  navigatorSectionUrl String
-  l3ScopeItems        L3ScopeItem[]
-  createdAt           DateTime      @default(now())
-
-  @@index([lobName])
-}
-
-/// L3 Scope Item (293 items from SAP Process Navigator)
-model L3ScopeItem {
-  id                  String              @id @default(cuid())
-  lobId               String
-  lob                 Lob                 @relation(fields: [lobId], references: [id], onDelete: Cascade)
-  module              String?
-  l3Code              String              @unique
-  l3Name              String
-  processNavigatorUrl String
-  formerCode          String?
-  releaseTag          String
-  complexityMetrics   ComplexityMetrics?
-  integrationDetails  IntegrationDetails?
-  createdAt           DateTime            @default(now())
-
-  @@index([lobId])
-  @@index([l3Code])
-  @@index([module])
-}
-
-/// Complexity metrics for each L3 item
-model ComplexityMetrics {
-  id                 String      @id @default(cuid())
-  l3Id               String      @unique
-  l3ScopeItem        L3ScopeItem @relation(fields: [l3Id], references: [id], onDelete: Cascade)
-  defaultTier        String // A, B, C, D
-  coefficient        Float? // NULL for Tier D
-  tierRationale      String
-  crossModuleTouches String? // e.g., "FI↔CO"
-  localizationFlag   Boolean     @default(false)
-  extensionRisk      String // Low, Med, High
-  createdAt          DateTime    @default(now())
-
-  @@index([defaultTier])
-  @@index([extensionRisk])
-}
-
-/// Integration details for each L3 item
-model IntegrationDetails {
-  id                          String      @id @default(cuid())
-  l3Id                        String      @unique
-  l3ScopeItem                 L3ScopeItem @relation(fields: [l3Id], references: [id], onDelete: Cascade)
-  integrationPackageAvailable String // Yes, No, NA
-  testScriptExists            Boolean     @default(true)
-  createdAt                   DateTime    @default(now())
-}
-
-/// Saved L3 selection bundles for reuse
-model SavedSelection {
-  id             String       @id @default(cuid())
-  name           String
-  description    String?
-  l3ItemIds      String[] // Array of L3 codes
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdBy      String
-  isPublic       Boolean      @default(false)
-  usageCount     Int          @default(0)
-  tags           String[]
-  createdAt      DateTime     @default(now())
-
-  @@index([organizationId])
-  @@index([createdBy])
-  @@index([isPublic])
-}
-
-/// Rate card for resource costing
-model RateCard {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name           String
-  country        String
-  currency       String
-  rates          Json // { role: dailyRate }
-  effectiveFrom  DateTime
-  effectiveTo    DateTime?
-  isActive       Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-
-  @@index([organizationId, isActive])
-  @@index([country])
-}
-
-/// Scenario (saved estimate with results)
-model Scenario {
-  id             String            @id @default(cuid())
-  userId         String
-  organizationId String?
-  organization   Organization?     @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  name           String
-  inputs         Json // EstimatorInputs
-  totalMD        Float
-  durationMonths Float
-  pmoMD          Float
-  phases         Json // PhaseBreakdown[]
-  startDate      DateTime?
-  resources      Json? // ResourceAllocation[]
-  versions       ScenarioVersion[]
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-
-  @@index([userId])
-  @@index([organizationId])
-  @@index([createdAt])
-}
-
-/// Scenario version history for audit trail
-model ScenarioVersion {
-  id            String   @id @default(cuid())
-  scenarioId    String
-  scenario      Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
-  versionNumber Int
-  label         String?
-  snapshot      Json // Complete scenario state
-  changes       Json? // Diff from previous version
-  changeReason  String?
-  createdBy     String
-  createdAt     DateTime @default(now())
-
-  @@unique([scenarioId, versionNumber])
-  @@index([scenarioId])
-  @@index([createdAt])
-}
-
-// ============================================
-// Gantt Tool - Database Models
-// ============================================
-
-/// Gantt Project - Main project container
-model GanttProject {
-  id          String   @id @default(cuid())
-  userId      String // Owner of the project
-  name        String
-  description String?  @db.Text
-  startDate   DateTime @db.Date
-
-  // View settings stored as JSON for flexibility
-  viewSettings Json // GanttViewSettings type
-
-  // Relationships
-  phases     GanttPhase[]
-  milestones GanttMilestone[]
-  holidays   GanttHoliday[]
-  resources  GanttResource[]
-
-  // Sharing and collaboration
-  shares GanttProjectShare[]
-
-  // Budget (stored as JSON for flexibility)
-  budget Json? // ProjectBudget type
-
-  // Organization Chart (stored as JSON for flexibility)
-  orgChart Json? // Organization chart structure with levels and groups
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Soft delete support
-  deletedAt DateTime?
-
-  // User relationship
-  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([createdAt])
-  @@index([updatedAt])
-  @@index([deletedAt])
-}
-
-/// Gantt Phase - Major project phases
-model GanttPhase {
-  id          String   @id @default(cuid())
-  projectId   String
-  name        String
-  description String?  @db.Text
-  color       String // Hex color code
-  startDate   DateTime @db.Date
-  endDate     DateTime @db.Date
-  collapsed   Boolean  @default(false)
-  order       Int      @default(0) // Display order
-
-  // Dependencies stored as array of phase IDs
-  dependencies String[] // Array of GanttPhase IDs
-
-  // Relationships
-  project                  GanttProject                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tasks                    GanttTask[]
-  phaseResourceAssignments GanttPhaseResourceAssignment[]
-
-  @@index([projectId])
-  @@index([order])
-}
-
-/// Gantt Task - Individual tasks within phases
-model GanttTask {
-  id          String   @id @default(cuid())
-  phaseId     String
-  name        String
-  description String?  @db.Text
-  startDate   DateTime @db.Date
-  endDate     DateTime @db.Date
-  progress    Int      @default(0) // 0-100
-  assignee    String? // Legacy field, use resourceAssignments instead
-  order       Int      @default(0) // Display order within phase
-
-  // Dependencies stored as array of task IDs
-  dependencies String[] // Array of GanttTask IDs
-
-  // Task Hierarchy - Parent-child relationships (Work Breakdown Structure)
-  parentTaskId String?  // ID of parent task (null for top-level tasks)
-  level        Int      @default(0) // Nesting level (0 = top-level, 1 = first level subtask, etc.)
-  collapsed    Boolean  @default(false) // UI state: if true, children are hidden
-  isParent     Boolean  @default(false) // True if this task has child tasks
-
-  // Relationships
-  phase               GanttPhase                    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
-  resourceAssignments GanttTaskResourceAssignment[]
-
-  // Self-referential relationship for hierarchy
-  parentTask GanttTask?  @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: Cascade)
-  childTasks GanttTask[] @relation("TaskHierarchy")
-
-  @@index([phaseId])
-  @@index([order])
-  @@index([parentTaskId])
-  @@index([level])
-}
-
-/// Gantt Milestone - Key project milestones
-model GanttMilestone {
-  id          String   @id @default(cuid())
-  projectId   String
-  name        String
-  description String?  @db.Text
-  date        DateTime @db.Date
-  icon        String // Lucide icon name
-  color       String // Hex color code
-
-  // Relationships
-  project GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@index([date])
-}
-
-/// Gantt Holiday - Project holidays/non-working days
-model GanttHoliday {
-  id        String   @id @default(cuid())
-  projectId String
-  name      String
-  date      DateTime @db.Date
-  region    String // e.g., "US", "MY", "Global"
-  type      String // "public" | "company" | "custom"
-
-  // Relationships
-  project GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@index([date])
-}
-
-/// Gantt Resource - Team members and their roles
-model GanttResource {
-  id          String @id @default(cuid())
-  projectId   String
-  name        String // Role name (not person name)
-  category    String // ResourceCategory enum value
-  description String @db.Text
-  designation String // ResourceDesignation enum value
-
-  // Organization hierarchy
-  managerResourceId String? // ID of manager resource
-  email             String?
-  department        String?
-  location          String?
-  projectRole       String?
-
-  // Cost tracking
-  rateType          String? // "hourly" | "daily" | "fixed"
-  hourlyRate        Decimal? @db.Decimal(10, 2)
-  dailyRate         Decimal? @db.Decimal(10, 2)
-  currency          String? // e.g., "USD", "MYR"
-  utilizationTarget Int? // 0-100
-
-  // Metadata
-  createdAt DateTime @default(now())
-
-  // Relationships
-  project          GanttProject                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  taskAssignments  GanttTaskResourceAssignment[]
-  phaseAssignments GanttPhaseResourceAssignment[]
-
-  @@index([projectId])
-  @@index([category])
-}
-
-/// Task Resource Assignment - Links resources to tasks
-model GanttTaskResourceAssignment {
-  id                   String   @id @default(cuid())
-  taskId               String
-  resourceId           String
-  assignmentNotes      String   @db.Text // What they do on this task
-  allocationPercentage Int // 0-100
-  assignedAt           DateTime @default(now())
-
-  // Relationships
-  task     GanttTask     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  resource GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-
-  @@unique([taskId, resourceId]) // Prevent duplicate assignments
-  @@index([taskId])
-  @@index([resourceId])
-}
-
-/// Phase Resource Assignment - Links PM resources to phases
-model GanttPhaseResourceAssignment {
-  id                   String   @id @default(cuid())
-  phaseId              String
-  resourceId           String
-  assignmentNotes      String   @db.Text
-  allocationPercentage Int // 0-100
-  assignedAt           DateTime @default(now())
-
-  // Relationships
-  phase    GanttPhase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
-  resource GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-
-  @@unique([phaseId, resourceId]) // Prevent duplicate assignments
-  @@index([phaseId])
-  @@index([resourceId])
-}
-
-/// Gantt Project Share - Share projects with view-only access
-model GanttProjectShare {
-  id           String    @id @default(cuid())
-  projectId    String
-  token        String    @unique // Public share token
-  expiresAt    DateTime?
-  viewCount    Int       @default(0)
-  lastViewedAt DateTime?
-  createdAt    DateTime  @default(now())
-  createdBy    String // User ID who created the share
-
-  // Relationships
-  project GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@index([token])
-}
-
-// ============================================
-// Advanced Authentication & Security Models
-// ============================================
-
-/// Trusted devices for device fingerprinting
-model TrustedDevice {
-  id          String   @id @default(cuid())
-  userId      String
-  fingerprint String // Hashed device signature
-  lastSeenIp  String
-  lastSeenAt  DateTime @default(now())
-  nickname    String? // "My MacBook", "iPhone"
-  userAgent   String
-  country     String?
-  city        String?
-  createdAt   DateTime @default(now())
-
-  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, fingerprint])
-  @@index([userId])
-  @@index([fingerprint])
-  @@index([lastSeenAt])
-}
-
-/// Login history with IP intelligence
-model LoginHistory {
-  id                String   @id @default(cuid())
-  userId            String
-  ipAddress         String
-  country           String?
-  city              String?
-  region            String?
-  timezone          String?
-  deviceId          String? // FK to TrustedDevice (optional)
-  deviceFingerprint String?
-  userAgent         String?
-  success           Boolean
-  failureReason     String? // 'invalid_password', 'invalid_totp', 'account_locked', etc.
-  authMethod        String? // 'passkey', 'password_totp', 'magic_link'
-  timestamp         DateTime @default(now())
-
-  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([ipAddress])
-  @@index([timestamp])
-  @@index([success])
-  @@index([deviceFingerprint])
-}
-
-/// Recovery codes for account recovery
-model RecoveryCode {
-  id        String    @id @default(cuid())
-  userId    String
-  codeHash  String // Bcrypt hash
-  usedAt    DateTime?
-  usedFrom  String? // IP address where used
-  createdAt DateTime  @default(now())
-
-  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([usedAt])
-}
-
-/// Security actions (e.g., "Not me" button responses)
-model SecurityAction {
-  id        String    @id @default(cuid())
-  userId    String
-  action    String // 'revoke_all', 'confirm_login', 'unlock_account'
-  token     String    @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  ipAddress String?
-  userAgent String?
-  metadata  Json? // Additional context (e.g., loginId, deviceId)
-  createdAt DateTime  @default(now())
-
-  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([token])
-  @@index([userId])
-  @@index([expiresAt])
-  @@index([usedAt])
-}
-
-/// Account recovery requests (admin-assisted)
-model AccountRecoveryRequest {
-  id              String    @id @default(cuid())
-  userId          String
-  reason          String // 'lost_totp', 'lost_all', 'lost_passkey'
-  status          String    @default("pending") // 'pending', 'approved', 'rejected'
-  submittedAt     DateTime  @default(now())
-  approvedBy      String? // Admin user ID
-  approvedAt      DateTime?
-  rejectedBy      String?
-  rejectedAt      DateTime?
-  rejectionReason String?
-  notes           String?   @db.Text
-
-  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-  @@index([submittedAt])
-}
-
-/// Email delivery tracking
-model EmailLog {
-  id         String    @id @default(cuid())
-  to         String
-  subject    String
-  template   String // 'new_device_login', 'password_expiry', etc.
-  status     String    @default("pending") // 'pending', 'sent', 'failed', 'bounced'
-  provider   String? // 'resend', 'gmail'
-  error      String?   @db.Text
-  metadata   Json? // Template variables, token, etc.
-  sentAt     DateTime?
-  failedAt   DateTime?
-  retryCount Int       @default(0)
-  createdAt  DateTime  @default(now())
-
-  @@index([to])
-  @@index([status])
-  @@index([template])
-  @@index([createdAt])
-}
-
-// ============================================================================
-// Dashboard Persistence Models
-// ============================================================================
-
-/// Dashboard Snapshot - Stores saved dashboard states for later recall
-model DashboardSnapshot {
-  id          String   @id @default(cuid())
-  projectId   String
-  userId      String
-  name        String
-  description String?
-
-  // Dashboard data
-  costBreakdown Json    // CostBreakdown interface
-  margins       Json    // MarginAnalysis interface
-  revenue       Decimal @db.Decimal(12, 2)
-  metrics       Json?   // Additional metrics
-
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isDefault   Boolean  @default(false)
-
-  // Relations
-  project     projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([projectId, userId])
-  @@index([userId, createdAt])
-}
-
-/// Dashboard Scenario - For what-if analysis and scenario planning
-model DashboardScenario {
-  id          String   @id @default(cuid())
-  projectId   String
-  userId      String
-  name        String
-  description String?
-
-  // Scenario data
-  projectData   Json     // Modified GanttProject data
-  revenue       Decimal  @db.Decimal(12, 2)
-  assumptions   Json?    // Scenario assumptions/changes
-
-  // Comparison metrics
-  costDelta     Decimal? @db.Decimal(12, 2)
-  marginDelta   Decimal? @db.Decimal(6, 3)
-  timeDelta     Int?     // Days
-
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isBaseline  Boolean  @default(false)
-
-  // Relations
-  project     projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@index([userId, projectId])
-}
-
-/// Dashboard Comment - Collaborative comments on dashboard elements
-model DashboardComment {
-  id          String   @id @default(cuid())
-  projectId   String
-  userId      String
-  elementId   String?  // Target element (e.g., "phase-123", "resource-456")
-  elementType String?  // Type of element (phase, resource, metric, etc.)
-
-  // Comment data
-  content     String
-  resolved    Boolean  @default(false)
-
-  // Threading
-  parentId    String?
-  parent      DashboardComment?  @relation("CommentThread", fields: [parentId], references: [id], onDelete: Cascade)
-  replies     DashboardComment[] @relation("CommentThread")
-
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  project     projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([projectId, elementId])
-  @@index([userId, projectId])
-  @@index([parentId])
-}
-
-/// Dashboard Settings - User-specific dashboard preferences
-model DashboardSettings {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-
-  // Preferences
-  defaultView       String @default("all") // "all", "operational", "financial", "strategic"
-  showChartTables   Boolean @default(false) // Show accessibility tables
-  autoRefresh       Boolean @default(false)
-  refreshInterval   Int @default(300000) // milliseconds
-
-  // Rate card customization
-  customRateCard    Json?   // Custom rate card by designation
-
-  // Notification preferences
-  notifyOnChange    Boolean @default(true)
-  notifyOnComment   Boolean @default(true)
-
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-/// Dashboard Share - Share dashboard snapshots with others
-model DashboardShare {
-  id          String   @id @default(cuid())
-  snapshotId  String
-  sharedBy    String
-  sharedWith  String?  // Null for public shares
-  accessLevel String   @default("view") // "view", "comment", "edit"
-
-  // Share settings
-  expiresAt   DateTime?
-  password    String?  // Hashed password for protected shares
-  allowDownload Boolean @default(true)
-
-  // Analytics
-  viewCount   Int      @default(0)
-  lastViewed  DateTime?
-
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([snapshotId])
-  @@index([sharedBy])
-  @@index([sharedWith])
-}
-
-/// Dashboard Export History - Track dashboard exports for audit purposes
-model DashboardExport {
-  id          String   @id @default(cuid())
-  projectId   String
-  userId      String
-  format      String   // "pdf", "excel", "csv"
-
-  // Export metadata
-  filename    String
-  fileSize    Int?     // bytes
-  status      String   @default("pending") // "pending", "completed", "failed"
-  errorMessage String?
-
-  // S3/storage URL (if applicable)
-  storageUrl  String?
-  expiresAt   DateTime?
-
-  // Metadata
-  createdAt   DateTime @default(now())
-  completedAt DateTime?
-
-  // Relations
-  project     projects @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@index([userId, createdAt])
-  @@index([status])
 }

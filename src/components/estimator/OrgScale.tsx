@@ -109,7 +109,7 @@ export function OrgScale() {
         {/* Warning for high org scale */}
         {orgScale > 0.2 && (
           <Text type="warning" className="text-xs">
-            ⚠️ High organizational complexity. Consider phased deployment by region.
+             High organizational complexity. Consider phased deployment by region.
           </Text>
         )}
       </Space>

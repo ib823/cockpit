@@ -50,7 +50,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
     // FIX ISSUE #16: Check paste size before processing
     if (tsvData.length > MAX_PASTE_SIZE) {
       setError(
-        `⚠️ Data size too large (${(tsvData.length / 1024).toFixed(0)}KB)\n\n` +
+        ` Data size too large (${(tsvData.length / 1024).toFixed(0)}KB)\n\n` +
           `Maximum allowed: ${(MAX_PASTE_SIZE / 1024).toFixed(0)}KB\n\n` +
           `Your data is too large to import. Please:\n` +
           `• Reduce the number of rows\n` +
@@ -72,7 +72,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       const totalRows = result.tasks.length + result.resources.length;
       if (totalRows > MAX_ROWS) {
         setError(
-          `⚠️ Too many rows to import (${totalRows} rows)\n\n` +
+          ` Too many rows to import (${totalRows} rows)\n\n` +
             `Maximum allowed: ${MAX_ROWS} total rows (tasks + resources)\n\n` +
             `Your import contains:\n` +
             `• ${result.tasks.length} tasks\n` +
@@ -97,7 +97,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
     // FIX ISSUE #16: Check paste size before processing
     if (pastedData.length > MAX_PASTE_SIZE) {
       setError(
-        `⚠️ Data size too large (${(pastedData.length / 1024).toFixed(0)}KB)\n\n` +
+        ` Data size too large (${(pastedData.length / 1024).toFixed(0)}KB)\n\n` +
           `Maximum allowed: ${(MAX_PASTE_SIZE / 1024).toFixed(0)}KB\n\n` +
           `Please reduce the amount of data and try again.`
       );
@@ -112,7 +112,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       const totalRows = result.tasks.length + result.resources.length;
       if (totalRows > MAX_ROWS) {
         setError(
-          `⚠️ Too many rows to import (${totalRows} rows)\n\n` +
+          ` Too many rows to import (${totalRows} rows)\n\n` +
             `Maximum allowed: ${MAX_ROWS} total rows\n\n` +
             `Please reduce the number of rows and try again.`
         );
@@ -420,7 +420,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
       {/* Instructions */}
       <div className="p-6 bg-blue-50 border-b border-blue-200">
-        <h3 className="font-semibold text-blue-900 mb-2">📋 How to Import:</h3>
+        <h3 className="font-semibold text-blue-900 mb-2"> How to Import:</h3>
         <ol className="text-sm text-blue-800 space-y-1 ml-4 list-decimal">
           <li>
             <strong>Download the template</strong> using the button below
@@ -440,7 +440,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           </li>
         </ol>
         <div className="mt-2 p-2 bg-blue-100 rounded text-xs text-blue-900">
-          <strong>💡 Tip:</strong> The template shows the exact format needed. Keep the weekly date
+          <strong> Tip:</strong> The template shows the exact format needed. Keep the weekly date
           headers (e.g., 2-Feb-26, 9-Feb-26), enter phase names and task names in separate columns
           (tasks with the same phase name will be grouped together), and use standard designations
           (Senior Manager, Manager, Senior Consultant, Consultant, Analyst) for resources.
@@ -584,9 +584,9 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
                 <ul className="space-y-2 text-sm">
                   {parsed.tasks.slice(0, 10).map((task, i) => (
                     <li key={i} className="flex items-center gap-2">
-                      <span className="font-medium text-blue-600">📁 {task.phaseName}</span>
+                      <span className="font-medium text-blue-600"> {task.phaseName}</span>
                       <span className="text-gray-400">→</span>
-                      <span className="font-medium text-gray-700">📄 {task.name}</span>
+                      <span className="font-medium text-gray-700"> {task.name}</span>
                       <span className="text-gray-500 text-xs">
                         ({task.startDate} → {task.endDate})
                       </span>

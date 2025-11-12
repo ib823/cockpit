@@ -309,7 +309,7 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
                       </div>
                       {resource.category === "pm" && (
                         <div className="px-1.5 py-0.5 bg-orange-100 text-orange-700 text-xs font-semibold rounded flex items-center gap-0.5 border border-orange-200">
-                          <span className="text-[0.625rem]">📊</span>
+                          <span className="text-[0.625rem]"></span>
                           <span>Phase-level</span>
                         </div>
                       )}

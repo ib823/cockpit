@@ -104,13 +104,13 @@ export default function GapCards({ gaps, onFixAction, className = "" }: GapCards
   const severityStyles = {
     block: {
       container: "border-red-200 bg-red-50",
-      icon: "🚫",
+      icon: "",
       text: "text-red-800",
       button: "bg-red-600 hover:bg-red-700 text-white",
     },
     warn: {
       container: "border-amber-200 bg-amber-50",
-      icon: "⚠️",
+      icon: "",
       text: "text-amber-800",
       button: "bg-amber-600 hover:bg-amber-700 text-white",
     },
@@ -163,7 +163,7 @@ export default function GapCards({ gaps, onFixAction, className = "" }: GapCards
     return (
       <div className={`p-4 border border-green-200 bg-green-50 rounded-lg ${className}`}>
         <div className="flex items-center gap-2">
-          <span className="text-green-600">✅</span>
+          <span className="text-green-600"></span>
           <div>
             <div className="font-medium text-green-800">All requirements captured</div>
             <div className="text-sm text-green-600">Ready to proceed with planning</div>

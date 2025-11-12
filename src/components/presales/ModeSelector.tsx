@@ -160,7 +160,7 @@ export default function ModuleSelector() {
         {requiredDependencies.some((dep) => !selectedPackages.includes(dep)) && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
             <p className="text-sm text-yellow-800">
-              ⚠️ Missing required dependencies. Enable auto-select or add manually.
+              Missing required dependencies. Enable auto-select or add manually.
             </p>
           </div>
         )}

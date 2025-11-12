@@ -111,7 +111,7 @@ export function PhaseCard({ phase }: PhaseCardProps) {
             onClick={() => setIsEditing(true)}
             className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:border-gray-400"
           >
-            ✏️ Edit
+             Edit
           </button>
         ) : (
           <>

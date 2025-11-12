@@ -70,11 +70,11 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
 
   // Category labels
   const categoryLabels: Record<string, string> = {
-    navigation: "🧭 Navigation",
-    actions: "⚡ Actions",
-    editing: "✏️ Editing",
-    view: "👁️ View",
-    help: "❓ Help",
+    navigation: " Navigation",
+    actions: " Actions",
+    editing: " Editing",
+    view: " View",
+    help: " Help",
   };
 
   // Render shortcut row
@@ -200,7 +200,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
           }}
         >
           <Text type="secondary" className="text-sm">
-            💡 <strong>Tip:</strong> Most shortcuts work globally. Some are context-specific and
+             <strong>Tip:</strong> Most shortcuts work globally. Some are context-specific and
             only active on certain pages.
           </Text>
         </div>

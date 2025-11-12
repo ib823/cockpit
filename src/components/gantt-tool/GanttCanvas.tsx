@@ -619,7 +619,7 @@ export function GanttCanvas() {
           assignResourceToTask(taskId, phaseId, data.resourceId, smartNotes, defaultAllocation);
 
           // Success feedback - brief console log for debugging
-          console.warn(`✅ ${data.resourceName} → ${task.name} (${defaultAllocation}%)`);
+          console.warn(` ${data.resourceName} → ${task.name} (${defaultAllocation}%)`);
         }
       }
     } catch (error) {
@@ -696,7 +696,7 @@ export function GanttCanvas() {
           assignResourceToPhase(phaseId, data.resourceId, smartNotes, smartAllocation);
 
           // Success feedback
-          console.warn(`✅ ${data.resourceName} → ${phase.name} (${smartAllocation}% allocation)`);
+          console.warn(` ${data.resourceName} → ${phase.name} (${smartAllocation}% allocation)`);
         }
       }
     } catch (error) {
@@ -1379,8 +1379,8 @@ export function GanttCanvas() {
                                       </div>
                                       <div className="text-xs mt-2 pt-1.5 border-t border-red-400/30 text-red-100 italic">
                                         {phase.collapsed
-                                          ? "💡 Expand phase to see which tasks need adjustment"
-                                          : "💡 Check tasks with red borders below"}
+                                          ? " Expand phase to see which tasks need adjustment"
+                                          : " Check tasks with red borders below"}
                                       </div>
                                     </div>
                                   </div>
@@ -2078,7 +2078,7 @@ export function GanttCanvas() {
                                                 </div>
                                               </div>
                                               <div className="text-xs mt-2 pt-1.5 border-t border-red-400/30 text-red-100 italic">
-                                                💡 Adjust task or phase dates to fix this issue
+                                                 Adjust task or phase dates to fix this issue
                                               </div>
                                             </div>
                                           </div>

@@ -54,7 +54,14 @@ function getIdentifier(request: NextRequest): string {
 
 const publicPaths = ["/", "/login", "/api/auth"];
 const adminPaths = ["/admin"];
-const protectedPaths = ["/gantt-tool", "/project", "/estimator", "/dashboard", "/account"]; // Require authentication
+const protectedPaths = [
+  "/gantt-tool",
+  "/project",
+  "/estimator",
+  "/dashboard",
+  "/account",
+  "/architecture",
+]; // Require authentication
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -68,10 +75,27 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/") {
     const token = await getToken({ req: request });
     const url = new URL(
-      token ? (token.role === "ADMIN" ? "/admin" : "/dashboard") : "/login",
+      token ? "/dashboard" : "/login",
       request.url
     );
     return NextResponse.redirect(url);
+  }
+
+  // Redirect old routes to V3 versions
+  if (pathname === "/gantt-tool" || pathname === "/gantt-tool/") {
+    return NextResponse.redirect(new URL("/gantt-tool/v3", request.url));
+  }
+  if (pathname === "/organization-chart" || pathname === "/organization-chart/") {
+    return NextResponse.redirect(new URL("/architecture/v3", request.url));
+  }
+
+  // Block non-admin users from accessing admin panel
+  if (pathname.startsWith("/admin")) {
+    const token = await getToken({ req: request });
+    if (token && token.role !== "ADMIN") {
+      // Redirect non-admin users to dashboard
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
   }
 
   // Granular rate limiting based on endpoint type

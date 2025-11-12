@@ -50,9 +50,9 @@ export function ProjectCanvas() {
         {mode === "plan" && (
           <div className="flex items-center gap-2 text-sm">
             {timelineIsStale ? (
-              <span className="text-amber-600">⚠️ Timeline outdated</span>
+              <span className="text-amber-600"> Timeline outdated</span>
             ) : lastGeneratedAt ? (
-              <span className="text-green-600">✓ Up to date</span>
+              <span className="text-green-600"> Up to date</span>
             ) : (
               <span className="text-gray-500">Not generated</span>
             )}

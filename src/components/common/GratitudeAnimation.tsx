@@ -65,7 +65,7 @@ export function GratitudeAnimation({ show, onComplete }: GratitudeAnimationProps
           transition={{ delay: 0.3 }}
         >
           <h2 className="text-2xl text-gray-900 font-semibold mb-2">Your Estimate is Ready!</h2>
-          <p className="text-lg text-gray-900 font-medium">Thanks for trying us out! 🎉</p>
+          <p className="text-lg text-gray-900 font-medium">Thanks for trying us out! </p>
         </motion.div>
       </motion.div>
     </motion.div>

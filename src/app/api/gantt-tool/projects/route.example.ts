@@ -6,7 +6,7 @@
  * To use this, rename to route.ts and update your existing route
  */
 
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { protectAPIRoute } from "@/lib/security/api-protection";
 import { RATE_LIMITS } from "@/lib/security/rate-limiter";

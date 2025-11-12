@@ -1,6 +1,7 @@
 import type { ConfigTask } from "@/data/sap-deliverables";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { nanoid } from "nanoid";
 
 // ========== TYPES ==========
 export interface ResourceProfile {
@@ -193,7 +194,7 @@ export const useResourcePlanningStore = create<ResourcePlanningStore>()(
       addResource: (resource) => {
         const newResource: ResourceProfile = {
           ...resource,
-          id: `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: `res_${Date.now()}_${nanoid()}`,
           tasks: [],
           utilization: 0,
           cost: 0,

@@ -267,7 +267,7 @@ function OpportunityCard({ opportunity }: { opportunity: any }) {
         <div className="flex-1">
           <div className="font-medium text-gray-900 mb-1">{opportunity.description}</div>
           <div className="text-sm text-green-700 font-semibold mb-2">
-            💰 Save MYR{" "}
+             Save MYR{" "}
             {opportunity.savingsPotential.toLocaleString("en-MY", { maximumFractionDigits: 0 })}
           </div>
           <div className="text-xs text-gray-600">

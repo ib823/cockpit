@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import clsx from "clsx";
+import { nanoid } from "nanoid";
 
 export type ToastKind = "info" | "success" | "warning" | "error";
 export type Toast = {
@@ -23,7 +24,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const push: (t: Omit<Toast, "id">) => string = (t) => {
-    const id = Math.random().toString(36).slice(2);
+    const id = nanoid();
     setToasts((arr) => [...arr, { id, duration: 3500, ...t }]);
     return id;
   };

@@ -294,8 +294,8 @@ export async function PATCH(
                       id: ra.id,
                       taskId: task.id,
                       resourceId: ra.resourceId,
-                      assignmentNotes: ra.assignmentNotes,
-                      allocationPercentage: ra.allocationPercentage,
+                      assignmentNotes: ra.assignmentNotes || '',
+                      allocationPercentage: ra.allocationPercentage || 100,
                       assignedAt: new Date(ra.assignedAt || Date.now()),
                     })),
                     skipDuplicates: true, // Skip if assignment already exists
@@ -371,8 +371,8 @@ export async function PATCH(
                         id: ra.id,
                         taskId: task.id,
                         resourceId: ra.resourceId,
-                        assignmentNotes: ra.assignmentNotes,
-                        allocationPercentage: ra.allocationPercentage,
+                        assignmentNotes: ra.assignmentNotes || '',
+                        allocationPercentage: ra.allocationPercentage || 100,
                         assignedAt: new Date(ra.assignedAt || Date.now()),
                       })),
                       skipDuplicates: true, // Skip if assignment already exists

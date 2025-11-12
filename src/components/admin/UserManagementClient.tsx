@@ -531,7 +531,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
 
             {/* Instructions */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-gray-800 mb-2">📋 Instructions for User</h4>
+              <h4 className="text-sm font-semibold text-gray-800 mb-2"> Instructions for User</h4>
               <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
                 <li>
                   Send the user either the <strong>6-digit code</strong> OR the{" "}

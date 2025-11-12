@@ -177,7 +177,7 @@ export function RateCardManager({ isOpen, onClose, onSave }: RateCardManagerProp
         >
           <Space direction="vertical" size={4}>
             <Text strong style={{ color: "#0050B3" }}>
-              💡 Rate Card Information
+               Rate Card Information
             </Text>
             <Text style={{ color: "#0050B3" }} className="text-sm">
               These daily rates are used to calculate project costs. All rates are in Malaysian
@@ -208,7 +208,7 @@ export function RateCardManager({ isOpen, onClose, onSave }: RateCardManagerProp
           }}
         >
           <Title level={5} style={{ marginTop: 0, color: "#389E0D" }}>
-            📊 Example Team Calculation (Monthly)
+             Example Team Calculation (Monthly)
           </Title>
           <Space direction="vertical" size={8} style={{ width: "100%" }}>
             {hypotheticalTeam.map((member) => (

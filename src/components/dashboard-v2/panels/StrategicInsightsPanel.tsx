@@ -89,17 +89,17 @@ export function StrategicInsightsPanel({
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "cost_optimization":
-        return "💰";
+        return "";
       case "skill_optimization":
-        return "🎯";
+        return "";
       case "risk_mitigation":
-        return "🛡️";
+        return "";
       case "timeline_optimization":
         return "⏱️";
       case "resource_balancing":
-        return "⚖️";
+        return "";
       default:
-        return "💡";
+        return "";
     }
   };
 
@@ -241,7 +241,7 @@ export function StrategicInsightsPanel({
                       <Space direction="vertical" size={2} style={{ width: "100%" }}>
                         {rec.impact.costSaving && (
                           <Text style={{ fontSize: "11px", color: "#10B981" }}>
-                            💰 Save: RM {rec.impact.costSaving.toLocaleString()}
+                             Save: RM {rec.impact.costSaving.toLocaleString()}
                           </Text>
                         )}
                         {rec.impact.timeReduction && (
@@ -251,7 +251,7 @@ export function StrategicInsightsPanel({
                         )}
                         {rec.impact.riskReduction && (
                           <Text style={{ fontSize: "11px", color: "#8B5CF6" }}>
-                            🛡️ Risk: -{rec.impact.riskReduction}%
+                             Risk: -{rec.impact.riskReduction}%
                           </Text>
                         )}
                       </Space>

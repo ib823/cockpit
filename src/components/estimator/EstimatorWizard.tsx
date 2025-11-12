@@ -177,7 +177,7 @@ export function EstimatorWizard() {
             style={{ marginTop: 16, background: "#e6f7ff", borderColor: "#1890ff" }}
           >
             <Text className="text-sm">
-              💡 <strong>Tip:</strong> You can skip this step and use default values. Advanced
+               <strong>Tip:</strong> You can skip this step and use default values. Advanced
               options can always be adjusted later.
             </Text>
           </Card>
@@ -331,7 +331,7 @@ export function EstimatorWizard() {
           pointerEvents: "none",
         }}
       >
-        💡 Swipe left/right or use buttons to navigate
+         Swipe left/right or use buttons to navigate
       </div>
     </div>
   );

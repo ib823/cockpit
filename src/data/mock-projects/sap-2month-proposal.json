@@ -1,0 +1,551 @@
+{
+  "id": "sap-cloud-2month-demo",
+  "name": "SAP S/4HANA Cloud - Fast Track Implementation",
+  "description": "2-month accelerated SAP S/4HANA Cloud implementation for mid-market manufacturing client",
+  "startDate": "2025-12-01",
+  "createdAt": "2025-11-11T00:00:00.000Z",
+  "updatedAt": "2025-11-11T00:00:00.000Z",
+  "viewSettings": {
+    "zoomLevel": "week",
+    "showWeekends": true,
+    "showHolidays": true,
+    "showMilestones": true,
+    "showTaskDependencies": false,
+    "showCriticalPath": false,
+    "showTitles": true,
+    "barDurationDisplay": "wd"
+  },
+  "resources": [
+    {
+      "id": "r-pm-001",
+      "name": "Project Director",
+      "category": "pm",
+      "designation": "director",
+      "description": "Overall project oversight and client stakeholder management",
+      "assignmentLevel": "both",
+      "isBillable": true,
+      "chargeRatePerHour": 2.5,
+      "currency": "USD",
+      "createdAt": "2025-11-11T00:00:00.000Z"
+    },
+    {
+      "id": "r-func-001",
+      "name": "Finance Lead Consultant",
+      "category": "functional",
+      "designation": "senior_consultant",
+      "description": "FICO module lead and configuration",
+      "assignmentLevel": "task",
+      "isBillable": true,
+      "chargeRatePerHour": 2.0,
+      "currency": "USD",
+      "createdAt": "2025-11-11T00:00:00.000Z"
+    },
+    {
+      "id": "r-func-002",
+      "name": "MM/SD Lead Consultant",
+      "category": "functional",
+      "designation": "senior_consultant",
+      "description": "Materials Management and Sales & Distribution lead",
+      "assignmentLevel": "task",
+      "isBillable": true,
+      "chargeRatePerHour": 2.0,
+      "currency": "USD",
+      "createdAt": "2025-11-11T00:00:00.000Z"
+    },
+    {
+      "id": "r-tech-001",
+      "name": "Integration Architect",
+      "category": "technical",
+      "designation": "senior_consultant",
+      "description": "API and integration design",
+      "assignmentLevel": "task",
+      "isBillable": true,
+      "chargeRatePerHour": 2.2,
+      "currency": "USD",
+      "createdAt": "2025-11-11T00:00:00.000Z"
+    },
+    {
+      "id": "r-tech-002",
+      "name": "Data Migration Specialist",
+      "category": "technical",
+      "designation": "consultant",
+      "description": "Legacy data extraction and migration",
+      "assignmentLevel": "task",
+      "isBillable": true,
+      "chargeRatePerHour": 1.8,
+      "currency": "USD",
+      "createdAt": "2025-11-11T00:00:00.000Z"
+    },
+    {
+      "id": "r-change-001",
+      "name": "Change Management Lead",
+      "category": "change",
+      "designation": "manager",
+      "description": "Training and adoption strategy",
+      "assignmentLevel": "both",
+      "isBillable": true,
+      "chargeRatePerHour": 1.7,
+      "currency": "USD",
+      "createdAt": "2025-11-11T00:00:00.000Z"
+    }
+  ],
+  "phases": [
+    {
+      "id": "phase-prep",
+      "name": "Preparation & Blueprint",
+      "description": "Project kickoff, requirements gathering, and solution blueprint",
+      "color": "#3B82F6",
+      "startDate": "2025-12-01",
+      "endDate": "2025-12-20",
+      "collapsed": false,
+      "dependencies": [],
+      "order": 0,
+      "phaseResourceAssignments": [
+        {
+          "id": "pra-001",
+          "resourceId": "r-pm-001",
+          "assignmentNotes": "Phase oversight and governance",
+          "allocationPercentage": 50,
+          "assignedAt": "2025-11-11T00:00:00.000Z"
+        },
+        {
+          "id": "pra-002",
+          "resourceId": "r-change-001",
+          "assignmentNotes": "Change readiness assessment",
+          "allocationPercentage": 30,
+          "assignedAt": "2025-11-11T00:00:00.000Z"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "task-prep-001",
+          "phaseId": "phase-prep",
+          "name": "Project Kickoff & Team Mobilization",
+          "description": "Initial project setup and team onboarding",
+          "startDate": "2025-12-01",
+          "endDate": "2025-12-05",
+          "dependencies": [],
+          "progress": 0,
+          "order": 0,
+          "level": 0,
+          "collapsed": false,
+          "isParent": false,
+          "resourceAssignments": [
+            {
+              "id": "tra-001",
+              "resourceId": "r-pm-001",
+              "assignmentNotes": "Project governance setup",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-002",
+              "resourceId": "r-func-001",
+              "assignmentNotes": "Finance scope definition",
+              "allocationPercentage": 50,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-003",
+              "resourceId": "r-func-002",
+              "assignmentNotes": "MM/SD scope definition",
+              "allocationPercentage": 50,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "id": "task-prep-002",
+          "phaseId": "phase-prep",
+          "name": "Requirements Workshops (Finance)",
+          "description": "FICO requirements gathering with finance team",
+          "startDate": "2025-12-06",
+          "endDate": "2025-12-13",
+          "dependencies": ["task-prep-001"],
+          "progress": 0,
+          "order": 1,
+          "level": 0,
+          "collapsed": false,
+          "isParent": false,
+          "resourceAssignments": [
+            {
+              "id": "tra-004",
+              "resourceId": "r-func-001",
+              "assignmentNotes": "Lead workshops and document requirements",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-005",
+              "resourceId": "r-pm-001",
+              "assignmentNotes": "Workshop facilitation support",
+              "allocationPercentage": 25,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "id": "task-prep-003",
+          "phaseId": "phase-prep",
+          "name": "Requirements Workshops (MM/SD)",
+          "description": "Materials and sales process requirements",
+          "startDate": "2025-12-06",
+          "endDate": "2025-12-13",
+          "dependencies": ["task-prep-001"],
+          "progress": 0,
+          "order": 2,
+          "level": 0,
+          "collapsed": false,
+          "isParent": false,
+          "resourceAssignments": [
+            {
+              "id": "tra-006",
+              "resourceId": "r-func-002",
+              "assignmentNotes": "Lead workshops and process mapping",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "id": "task-prep-004",
+          "phaseId": "phase-prep",
+          "name": "Solution Blueprint & Sign-off",
+          "description": "Finalize solution design and get client approval",
+          "startDate": "2025-12-14",
+          "endDate": "2025-12-20",
+          "dependencies": ["task-prep-002", "task-prep-003"],
+          "progress": 0,
+          "order": 3,
+          "level": 0,
+          "collapsed": false,
+          "isParent": false,
+          "resourceAssignments": [
+            {
+              "id": "tra-007",
+              "resourceId": "r-pm-001",
+              "assignmentNotes": "Blueprint review and client presentation",
+              "allocationPercentage": 75,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-008",
+              "resourceId": "r-func-001",
+              "assignmentNotes": "Finance blueprint documentation",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-009",
+              "resourceId": "r-func-002",
+              "assignmentNotes": "MM/SD blueprint documentation",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-010",
+              "resourceId": "r-tech-001",
+              "assignmentNotes": "Integration architecture design",
+              "allocationPercentage": 50,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-config",
+      "name": "Configuration & Build",
+      "description": "System configuration, data migration, and integration development",
+      "color": "#10B981",
+      "startDate": "2026-01-06",
+      "endDate": "2026-01-24",
+      "collapsed": false,
+      "dependencies": ["phase-prep"],
+      "order": 1,
+      "phaseResourceAssignments": [
+        {
+          "id": "pra-003",
+          "resourceId": "r-pm-001",
+          "assignmentNotes": "Build phase management",
+          "allocationPercentage": 40,
+          "assignedAt": "2025-11-11T00:00:00.000Z"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "task-config-001",
+          "phaseId": "phase-config",
+          "name": "Finance Module Configuration",
+          "description": "Configure FICO settings, chart of accounts, cost centers",
+          "startDate": "2026-01-06",
+          "endDate": "2026-01-17",
+          "dependencies": [],
+          "progress": 0,
+          "order": 0,
+          "level": 0,
+          "collapsed": false,
+          "isParent": false,
+          "resourceAssignments": [
+            {
+              "id": "tra-011",
+              "resourceId": "r-func-001",
+              "assignmentNotes": "System configuration and testing",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "id": "task-config-002",
+          "phaseId": "phase-config",
+          "name": "MM/SD Configuration",
+          "description": "Configure material master, pricing, delivery",
+          "startDate": "2026-01-06",
+          "endDate": "2026-01-17",
+          "dependencies": [],
+          "progress": 0,
+          "order": 1,
+          "level": 0,
+          "collapsed": false,
+          "isParent": false,
+          "resourceAssignments": [
+            {
+              "id": "tra-012",
+              "resourceId": "r-func-002",
+              "assignmentNotes": "MM/SD configuration",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "id": "task-config-003",
+          "phaseId": "phase-config",
+          "name": "Data Migration Execution",
+          "description": "Extract, transform, and load legacy data",
+          "startDate": "2026-01-13",
+          "endDate": "2026-01-24",
+          "dependencies": ["task-config-001", "task-config-002"],
+          "progress": 0,
+          "order": 2,
+          "level": 0,
+          "collapsed": false,
+          "isParent": false,
+          "resourceAssignments": [
+            {
+              "id": "tra-013",
+              "resourceId": "r-tech-002",
+              "assignmentNotes": "Data migration scripts and execution",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-014",
+              "resourceId": "r-func-001",
+              "assignmentNotes": "Finance data validation",
+              "allocationPercentage": 50,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-015",
+              "resourceId": "r-func-002",
+              "assignmentNotes": "MM master data validation",
+              "allocationPercentage": 50,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "id": "task-config-004",
+          "phaseId": "phase-config",
+          "name": "Integration Development",
+          "description": "Build APIs for CRM and warehouse systems",
+          "startDate": "2026-01-08",
+          "endDate": "2026-01-22",
+          "dependencies": [],
+          "progress": 0,
+          "order": 3,
+          "level": 0,
+          "collapsed": false,
+          "isParent": false,
+          "resourceAssignments": [
+            {
+              "id": "tra-016",
+              "resourceId": "r-tech-001",
+              "assignmentNotes": "API development and testing",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-test",
+      "name": "Testing & Training",
+      "description": "UAT, training delivery, and go-live preparation",
+      "color": "#F59E0B",
+      "startDate": "2026-01-25",
+      "endDate": "2026-01-31",
+      "collapsed": false,
+      "dependencies": ["phase-config"],
+      "order": 2,
+      "phaseResourceAssignments": [
+        {
+          "id": "pra-004",
+          "resourceId": "r-change-001",
+          "assignmentNotes": "Training coordination",
+          "allocationPercentage": 100,
+          "assignedAt": "2025-11-11T00:00:00.000Z"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "task-test-001",
+          "phaseId": "phase-test",
+          "name": "User Acceptance Testing",
+          "description": "Client UAT execution and issue resolution",
+          "startDate": "2026-01-25",
+          "endDate": "2026-01-29",
+          "dependencies": [],
+          "progress": 0,
+          "order": 0,
+          "level": 0,
+          "collapsed": false,
+          "isParent": false,
+          "resourceAssignments": [
+            {
+              "id": "tra-017",
+              "resourceId": "r-func-001",
+              "assignmentNotes": "Finance UAT support",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-018",
+              "resourceId": "r-func-002",
+              "assignmentNotes": "MM/SD UAT support",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-019",
+              "resourceId": "r-tech-001",
+              "assignmentNotes": "Integration testing support",
+              "allocationPercentage": 50,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "id": "task-test-002",
+          "phaseId": "phase-test",
+          "name": "End User Training",
+          "description": "Train finance and operations teams",
+          "startDate": "2026-01-27",
+          "endDate": "2026-01-31",
+          "dependencies": [],
+          "progress": 0,
+          "order": 1,
+          "level": 0,
+          "collapsed": false,
+          "isParent": false,
+          "resourceAssignments": [
+            {
+              "id": "tra-020",
+              "resourceId": "r-change-001",
+              "assignmentNotes": "Training facilitation",
+              "allocationPercentage": 100,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-021",
+              "resourceId": "r-func-001",
+              "assignmentNotes": "Finance module training",
+              "allocationPercentage": 75,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            },
+            {
+              "id": "tra-022",
+              "resourceId": "r-func-002",
+              "assignmentNotes": "MM/SD training",
+              "allocationPercentage": 75,
+              "assignedAt": "2025-11-11T00:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "ms-001",
+      "name": "Blueprint Approval",
+      "description": "Client sign-off on solution design",
+      "date": "2025-12-20",
+      "icon": "✓",
+      "color": "#10B981"
+    },
+    {
+      "id": "ms-002",
+      "name": "Configuration Complete",
+      "description": "System build finished",
+      "date": "2026-01-17",
+      "icon": "⚙",
+      "color": "#3B82F6"
+    },
+    {
+      "id": "ms-003",
+      "name": "Go-Live Ready",
+      "description": "UAT passed, ready for production",
+      "date": "2026-01-31",
+      "icon": "🚀",
+      "color": "#F59E0B"
+    }
+  ],
+  "holidays": [
+    {
+      "id": "h-xmas-eve",
+      "name": "Christmas Eve",
+      "date": "2025-12-24",
+      "region": "US",
+      "type": "public"
+    },
+    {
+      "id": "h-xmas",
+      "name": "Christmas Day",
+      "date": "2025-12-25",
+      "region": "US",
+      "type": "public"
+    },
+    {
+      "id": "h-boxing",
+      "name": "Day After Christmas",
+      "date": "2025-12-26",
+      "region": "US",
+      "type": "company"
+    },
+    {
+      "id": "h-nye",
+      "name": "New Year's Eve",
+      "date": "2025-12-31",
+      "region": "US",
+      "type": "company"
+    },
+    {
+      "id": "h-newyear",
+      "name": "New Year's Day",
+      "date": "2026-01-01",
+      "region": "US",
+      "type": "public"
+    },
+    {
+      "id": "h-newyear2",
+      "name": "New Year's Day (Observed)",
+      "date": "2026-01-02",
+      "region": "US",
+      "type": "company"
+    }
+  ]
+}

@@ -24,7 +24,7 @@ export function TornadoChart() {
 
   if (!store.results) {
     return (
-      <Card title="🌪️ Sensitivity Analysis">
+      <Card title=" Sensitivity Analysis">
         <p className="text-gray-500">Configure inputs to see sensitivity analysis</p>
       </Card>
     );
@@ -38,7 +38,7 @@ export function TornadoChart() {
   const criticalVars = getCriticalVariables(durationSensitivity);
 
   return (
-    <Card title="🌪️ Sensitivity Analysis: What Moves the Estimate?" className="shadow-sm">
+    <Card title=" Sensitivity Analysis: What Moves the Estimate?" className="shadow-sm">
       <Tabs
         items={[
           {
@@ -67,7 +67,7 @@ export function TornadoChart() {
       </div>
 
       <div className="mt-4 pt-4 border-t">
-        <div className="text-sm font-medium mb-2">💡 Key Findings</div>
+        <div className="text-sm font-medium mb-2"> Key Findings</div>
         <ul className="text-sm text-gray-600 space-y-1">
           <li>
             <strong>Focus areas:</strong> {criticalVars.join(", ")} have the highest impact

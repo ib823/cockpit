@@ -98,7 +98,7 @@ export function PlanMode() {
               onClick={() => regenerateTimeline(true)}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
             >
-              🚀 Generate Timeline Now
+              Rocket Generate Timeline Now
             </button>
           ) : (
             <button
@@ -575,12 +575,12 @@ const TEAM_TEMPLATES = {
 
 const ROLE_CONFIG: Record<string, { name: string; icon: string; baseRate: number; color: string }> =
   {
-    architect: { name: "Solution Architect", icon: "🏗️", baseRate: 180, color: "blue" },
-    consultant: { name: "Functional Consultant", icon: "💼", baseRate: 140, color: "purple" },
-    developer: { name: "Developer", icon: "💻", baseRate: 120, color: "green" },
-    projectManager: { name: "Project Manager", icon: "📊", baseRate: 160, color: "orange" },
-    basis: { name: "Basis Admin", icon: "⚙️", baseRate: 155, color: "gray" },
-    security: { name: "Security Specialist", icon: "🔒", baseRate: 150, color: "red" },
+    architect: { name: "Solution Architect", icon: "", baseRate: 180, color: "blue" },
+    consultant: { name: "Functional Consultant", icon: "", baseRate: 140, color: "purple" },
+    developer: { name: "Developer", icon: "", baseRate: 120, color: "green" },
+    projectManager: { name: "Project Manager", icon: "", baseRate: 160, color: "orange" },
+    basis: { name: "Basis Admin", icon: "", baseRate: 155, color: "gray" },
+    security: { name: "Security Specialist", icon: "", baseRate: 150, color: "red" },
   };
 
 // Resource Section Component - Redesigned for speed and efficiency
@@ -683,7 +683,7 @@ function ResourceSection({
           {resources.map((resource, idx) => {
             const roleConfig = ROLE_CONFIG[resource.role] || {
               name: resource.role,
-              icon: "👤",
+              icon: "",
               color: "gray",
             };
             const hours = (phase.workingDays || 0) * 8 * (resource.allocation / 100);

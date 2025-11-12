@@ -69,13 +69,14 @@ const prismaClientSingleton = () => {
   // Build connection URL with pooling parameters
   const connectionLimit = process.env.DATABASE_CONNECTION_LIMIT
     ? parseInt(process.env.DATABASE_CONNECTION_LIMIT)
-    : 5; // Conservative default for serverless
+    : process.env.NODE_ENV === "development" ? 10 : 5; // More connections in dev for hot-reload
 
   // Add connection pooling parameters to URL if DATABASE_URL doesn't already have them
   let databaseUrl = process.env.DATABASE_URL || "";
   if (!databaseUrl.includes("connection_limit")) {
     const separator = databaseUrl.includes("?") ? "&" : "?";
-    databaseUrl += `${separator}connection_limit=${connectionLimit}&pool_timeout=20`;
+    // Increased pool_timeout for Neon pooler and added pgbouncer=true
+    databaseUrl += `${separator}connection_limit=${connectionLimit}&pool_timeout=60&connect_timeout=30&pgbouncer=true`;
   }
 
   const client = new PrismaClient({
@@ -176,9 +177,14 @@ export async function withRetry<T>(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      // Test connection health before operation
+      // Test connection health before retry (skip first attempt to avoid extra query)
       if (attempt > 0) {
-        await prisma.$queryRaw`SELECT 1`;
+        try {
+          await prisma.$queryRaw`SELECT 1`;
+        } catch (healthError) {
+          console.warn(`[DB] Connection health check failed on attempt ${attempt + 1}`);
+          // Continue to retry even if health check fails
+        }
       }
 
       return await operation();
@@ -186,23 +192,30 @@ export async function withRetry<T>(
       lastError = error;
 
       // Check if it's a connection error worth retrying
+      const errorString = String(error?.message || error || "").toLowerCase();
       const isConnectionError =
-        error?.message?.includes("connection") ||
-        error?.message?.includes("Connection") ||
-        error?.message?.includes("Closed") ||
+        errorString.includes("connection") ||
+        errorString.includes("closed") ||
+        errorString.includes("timeout") ||
+        errorString.includes("econnrefused") ||
+        errorString.includes("enotfound") ||
         error?.code === "P1001" || // Can't reach database
         error?.code === "P1002" || // Database timeout
         error?.code === "P1008" || // Operations timed out
-        error?.code === "P1017"; // Server closed connection
+        error?.code === "P1017" || // Server closed connection
+        error?.code === "P2024"; // Timed out fetching
 
       if (!isConnectionError || attempt === maxRetries - 1) {
+        if (attempt > 0) {
+          console.error(`[DB] Operation failed after ${attempt + 1} attempts:`, error?.message || error);
+        }
         throw error;
       }
 
       // Exponential backoff with jitter
       const delay = delayMs * Math.pow(2, attempt) + Math.random() * 100;
       console.warn(
-        `[DB] Connection error, retrying in ${delay.toFixed(0)}ms... (attempt ${attempt + 1}/${maxRetries})`
+        `[DB] Connection error (${error?.message || error}), retrying in ${delay.toFixed(0)}ms... (attempt ${attempt + 1}/${maxRetries})`
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
     }

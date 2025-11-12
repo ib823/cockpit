@@ -1,0 +1,288 @@
+/**
+ * Global Navigation - Tier 1
+ * Persistent navigation across all tools
+ * Apple HIG compliant
+ */
+
+.globalNav {
+  height: var(--header-height);
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-24);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  gap: var(--space-24);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LEFT ZONE - BRAND
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--duration-default) var(--easing-default);
+  flex-shrink: 0;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+}
+
+.brand:hover {
+  background-color: var(--color-gray-6);
+}
+
+.logoWrapper {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  transition: transform var(--duration-default) var(--easing-default);
+}
+
+.brand:hover .logoWrapper {
+  transform: scale(1.05);
+}
+
+.brandLogo {
+  font-family: var(--font-display);
+  font-size: var(--text-display-small);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-tight);
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CENTER ZONE - GLOBAL TABS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.tabsContainer {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-gray-6);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.tab {
+  padding: var(--space-8) var(--space-20);
+  border-radius: 4px;
+  border: none;
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: all var(--duration-quick) var(--easing-default);
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tab:hover {
+  color: var(--color-text-primary);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.tab.active {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-weight: var(--weight-semibold);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RIGHT ZONE - USER ACTIONS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.userActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  flex-shrink: 0;
+}
+
+.adminBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-12);
+  background-color: var(--color-orange-light);
+  color: var(--color-orange);
+  border-radius: var(--radius-full);
+  font-family: var(--font-text);
+  font-size: var(--text-detail);
+  font-weight: var(--weight-semibold);
+  border: 1px solid var(--color-orange);
+  white-space: nowrap;
+}
+
+.adminBadge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.userEmail {
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--button-height-md);
+  height: var(--button-height-md);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border-default);
+  background-color: var(--color-gray-6);
+  cursor: pointer;
+  transition: all var(--duration-default) var(--easing-default);
+  position: relative;
+}
+
+.userButton:hover {
+  border-color: var(--color-blue);
+}
+
+.userButton svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-secondary);
+}
+
+/* User Menu Dropdown */
+.userMenu {
+  position: absolute;
+  top: calc(100% + var(--space-8));
+  right: 0;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-8);
+  min-width: 200px;
+  z-index: var(--z-dropdown);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all var(--duration-default) var(--easing-default);
+}
+
+.userMenu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--duration-quick) var(--easing-default);
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.menuItem:hover {
+  background-color: var(--color-gray-6);
+}
+
+.menuItem svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-secondary);
+}
+
+.menuItem.danger {
+  color: var(--color-red);
+}
+
+.menuItem.danger svg {
+  color: var(--color-red);
+}
+
+.menuDivider {
+  height: 1px;
+  background-color: var(--color-border-subtle);
+  margin: var(--space-8) 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .globalNav {
+    padding: 0 var(--space-16);
+    gap: var(--space-12);
+  }
+
+  .brandLogo {
+    font-size: var(--text-body-large);
+  }
+
+  .tab {
+    padding: var(--space-6) var(--space-12);
+    font-size: var(--text-detail);
+  }
+
+  .userEmail {
+    display: none;
+  }
+
+  .adminBadge {
+    padding: var(--space-4) var(--space-8);
+    font-size: var(--text-detail-small);
+  }
+
+  .adminBadge svg {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .tabsContainer {
+    gap: 1px;
+    padding: 1px;
+  }
+
+  .tab {
+    padding: var(--space-6) var(--space-8);
+    font-size: var(--text-detail-small);
+  }
+}

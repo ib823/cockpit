@@ -32,12 +32,13 @@ export function PageTransition({
   const pathname = usePathname();
   const [isAnimating, setIsAnimating] = useState(true);
   const [displayChildren, setDisplayChildren] = useState(children);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
-  // Check for reduced motion preference
-  const prefersReducedMotion =
-    typeof window !== "undefined"
-      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false;
+  // Check for reduced motion preference (on client only)
+  useEffect(() => {
+    const matches = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setPrefersReducedMotion(matches);
+  }, []);
 
   // Trigger animation on pathname change
   useEffect(() => {

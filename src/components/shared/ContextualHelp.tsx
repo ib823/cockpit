@@ -279,7 +279,7 @@ export function HelpPanel({ context }: { context: string }) {
                     }}
                   >
                     <p className="text-sm" style={{ color: colorValues.neutral[700] }}>
-                      💡 {tip}
+                       {tip}
                     </p>
                   </div>
                 ))}
@@ -425,7 +425,7 @@ export function FeatureHighlight({
             color: "#fff",
           }}
         >
-          ✨
+          
         </div>
         <div className="flex-1">
           <h4 className="font-semibold mb-1" style={{ color: colorValues.neutral[900] }}>

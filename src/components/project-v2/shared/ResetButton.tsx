@@ -92,7 +92,7 @@ export function ResetButton() {
               </ul>
 
               <p className="text-xs text-gray-500 text-center mb-6">
-                ⚠️ This action cannot be undone
+                This action cannot be undone
               </p>
 
               {/* Actions */}

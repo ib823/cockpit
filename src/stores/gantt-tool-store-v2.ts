@@ -7,6 +7,7 @@
 
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { nanoid } from "nanoid";
 import type {
   GanttProject,
   GanttPhase,
@@ -185,6 +186,7 @@ interface GanttToolStateV2 {
 
   // Budget Management (with auto-save)
   updateProjectBudget: (budget: ProjectBudget) => void;
+  updateProjectName: (name: string) => Promise<void>;
 
   // View Settings (with auto-save)
   updateViewSettings: (updates: Partial<GanttViewSettings>) => void;
@@ -994,7 +996,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           state.currentProject.holidays
         );
 
-        const phaseId = `phase-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const phaseId = `phase-${Date.now()}-${nanoid()}`;
         const colorIndex = state.currentProject.phases.length % PHASE_COLOR_PRESETS.length;
 
         const newPhase: GanttPhase = {
@@ -1232,7 +1234,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           state.currentProject.holidays
         );
 
-        const taskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const taskId = `task-${Date.now()}-${nanoid()}`;
 
         const newTask: GanttTask = {
           id: taskId,
@@ -1530,7 +1532,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       set((state) => {
         if (!state.currentProject) return;
 
-        const milestoneId = `milestone-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const milestoneId = `milestone-${Date.now()}-${nanoid()}`;
 
         const newMilestone: GanttMilestone = {
           id: milestoneId,
@@ -1585,7 +1587,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       set((state) => {
         if (!state.currentProject) return;
 
-        const holidayId = `holiday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const holidayId = `holiday-${Date.now()}-${nanoid()}`;
 
         const newHoliday: GanttHoliday = {
           id: holidayId,
@@ -1620,7 +1622,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       set((state) => {
         if (!state.currentProject) return;
 
-        const resourceId = `resource-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const resourceId = `resource-${Date.now()}-${nanoid()}`;
 
         const newResource: Resource = {
           id: resourceId,
@@ -1707,7 +1709,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           return;
         }
 
-        const assignmentId = `assignment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const assignmentId = `assignment-${Date.now()}-${nanoid()}`;
 
         const newAssignment: TaskResourceAssignment = {
           id: assignmentId,
@@ -1791,7 +1793,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           return;
         }
 
-        const assignmentId = `phase-assignment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const assignmentId = `phase-assignment-${Date.now()}-${nanoid()}`;
 
         const newAssignment: PhaseResourceAssignment = {
           id: assignmentId,
@@ -1862,6 +1864,18 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       });
 
       get().saveProject();
+    },
+
+    // --- Project Name Update ---
+    updateProjectName: async (name: string) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        state.currentProject.name = name;
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
     },
 
     // --- View Settings ---

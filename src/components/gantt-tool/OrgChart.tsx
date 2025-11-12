@@ -90,7 +90,7 @@ export function OrgChart({ className = "" }: OrgChartProps) {
       <div className={`w-full h-full overflow-auto bg-gray-50 p-8 ${className}`}>
         <div className="max-w-4xl mx-auto">
           <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-8 text-center">
-            <div className="text-5xl mb-4">📊</div>
+            <div className="text-5xl mb-4"></div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Custom Organization Chart Available
             </h2>
@@ -169,7 +169,7 @@ export function OrgChart({ className = "" }: OrgChartProps) {
               subtitle="Leadership, Principal, Director & Senior Manager"
               resources={organizedResources.executive}
               color="#4F46E5"
-              icon="👔"
+              icon=""
             />
           </div>
 
@@ -185,7 +185,7 @@ export function OrgChart({ className = "" }: OrgChartProps) {
               subtitle="Project Management & Change Management"
               resources={organizedResources.management}
               color="#F59E0B"
-              icon="📊"
+              icon=""
             />
           </div>
 
@@ -206,7 +206,7 @@ export function OrgChart({ className = "" }: OrgChartProps) {
                 title="Functional"
                 resources={organizedResources.functional}
                 color="#3B82F6"
-                icon="📘"
+                icon=""
               />
 
               {/* Technical Box */}
@@ -215,7 +215,7 @@ export function OrgChart({ className = "" }: OrgChartProps) {
                 subtitle="Includes QA"
                 resources={organizedResources.technical}
                 color="#8B5CF6"
-                icon="🔧"
+                icon=""
               />
 
               {/* Infra Box */}
@@ -224,7 +224,7 @@ export function OrgChart({ className = "" }: OrgChartProps) {
                 subtitle="Basis + Security"
                 resources={organizedResources.infra}
                 color="#10B981"
-                icon="🏗️"
+                icon=""
               />
             </div>
           </div>

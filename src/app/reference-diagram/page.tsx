@@ -1,4 +1,4 @@
-import ReferenceDiagram from "@/pages/ReferenceDiagram";
+import ReferenceDiagram from "@/components/pages/ReferenceDiagram";
 
 export default ReferenceDiagram;
 

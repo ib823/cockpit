@@ -170,7 +170,7 @@ export function OperationalPanel({ project, validation }: OperationalPanelProps)
           Weekly Resource Allocation
         </Text>
         <Text type="secondary" style={{ fontSize: "12px", marginBottom: "16px", display: "block" }}>
-          Color coding: 🟢 Optimal (0-5 days) | 🟡 Full (6 days) | 🔴 Over-allocated (7+ days) | ⚪
+          Color coding:  Optimal (0-5 days) |  Full (6 days) |  Over-allocated (7+ days) | 
           Bench (0 days)
         </Text>
         <ResourceHeatmap project={project} />
