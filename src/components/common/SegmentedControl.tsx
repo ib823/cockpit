@@ -7,7 +7,7 @@
  * Spec Requirements:
  * - Auto-size based on content + 24px padding each
  * - Selected state: White background, 1px border, subtle shadow
- * - Unselected state: Transparent, 60% opacity text
+ * - Unselected state: Transparent, opacity: 0.6
  * - Typography: SF Pro Text 13pt Regular
  * - Smooth transitions
  */

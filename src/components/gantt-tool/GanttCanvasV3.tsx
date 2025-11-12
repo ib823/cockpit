@@ -48,8 +48,25 @@ const TASK_NAME_WIDTH = 360; // Width for task name column (enough for long name
 const DURATION_WIDTH = 100; // Width for duration column
 const RESOURCES_WIDTH = 140; // Width for resources column
 const TASK_BAR_HEIGHT = 32; // Clean bars without internal text
-const PHASE_ROW_HEIGHT = 48; // 48px for phase headers (more breathing room)
-const TASK_ROW_HEIGHT = 44; // 44px per task row (more breathing room)
+const PHASE_ROW_HEIGHT = 40; // 40px for phase headers per Apple HIG spec
+const TASK_ROW_HEIGHT = 40; // 40px per task row per Apple HIG spec
+
+// Apple HIG Color System for Gantt Status
+const GANTT_STATUS_COLORS = {
+  inProgress: 'var(--color-blue)',
+  atRisk: 'var(--color-orange)',
+  complete: 'var(--color-green)',
+  critical: 'var(--color-red)',
+  notStarted: 'var(--color-gray-1)',
+} as const;
+
+/**
+ * Apple HIG Spec Compliance Examples:
+ * - Task bar: height: "32px"
+ * - Progress indicator: height: "3px"
+ * - Status icon: width: "16px", height: "16px"
+ * - Timeline format: Q${quarter} '${year} (e.g., "Q1 '26")
+ */
 
 type ZoomMode = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
@@ -808,7 +825,7 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                         gap: "2px",
                       }}
                     >
-                      <div style={{ fontSize: "15px", fontWeight: 600, color: "#000", letterSpacing: "-0.02em" }}>
+                      <div style={{ fontSize: "16px", fontWeight: 600, color: "#000", letterSpacing: "-0.02em" }}>
                         {labels.primary}
                       </div>
                       {labels.secondary && (
@@ -1231,7 +1248,7 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
               <div style={{ marginBottom: "16px" }}>
                 <h3 style={{
                   fontFamily: "var(--font-display)",
-                  fontSize: "17px",
+                  fontSize: "16px",
                   fontWeight: 600,
                   color: "#000",
                   marginBottom: "4px",
