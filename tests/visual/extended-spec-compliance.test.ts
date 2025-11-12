@@ -251,8 +251,8 @@ describe('Extended Specification Compliance - 100k+ Tests', () => {
     if (fs.existsSync(ganttV3Path)) {
       const ganttV3Code = fs.readFileSync(ganttV3Path, 'utf-8');
 
-      // Test all spacing values in V3 Gantt
-      const spacingValues = ['0', '4', '6', '8', '12', '16', '24', '32', '40', '48'];
+      // Test all spacing values in V3 Gantt (4px grid system)
+      const spacingValues = ['0', '4', '8', '12', '16', '24', '32', '40', '48', '64'];
       spacingValues.forEach(value => {
         it(`should use ${value}px spacing (4px/8px grid compliant) in V3 Gantt`, () => {
           const numValue = parseInt(value);
