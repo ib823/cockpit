@@ -11,16 +11,21 @@
 
 import { GanttCanvasV3 } from "@/components/gantt-tool/GanttCanvasV3";
 import { NewProjectModal } from "@/components/gantt-tool/NewProjectModal";
-import { OrgChartBuilder } from "@/components/gantt-tool/OrgChartBuilder";
+import { OrgChartBuilderV2 } from "@/components/gantt-tool/OrgChartBuilderV2";
 import { ImportModalV2 } from "@/components/gantt-tool/ImportModalV2";
+import { AddPhaseModal } from "@/components/gantt-tool/AddPhaseModal";
+import { AddTaskModal } from "@/components/gantt-tool/AddTaskModal";
+import { LogoLibraryModal } from "@/components/gantt-tool/LogoLibraryModal";
 import { ViewModeSelector, type ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
 import { GlobalNav } from "@/components/navigation/GlobalNav";
 import { Tier2Header } from "@/components/navigation/Tier2Header";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
-import { Share2, Users, GripHorizontal, GripVertical, Briefcase, FileSpreadsheet } from "lucide-react";
+import { Share2, Users, GripHorizontal, GripVertical, Briefcase, FileSpreadsheet, Flag, Layers, CheckSquare, Image as ImageIcon } from "lucide-react";
+import { ResourceIcon } from "@/lib/resource-icons";
 import { HexLoader } from "@/components/ui/HexLoader";
+import { format } from "date-fns";
 
 export default function GanttToolV3Page() {
   // ⚠️ IMPORTANT: All hooks must be called before any conditional returns
@@ -35,17 +40,26 @@ export default function GanttToolV3Page() {
     updateProjectName,
     deleteProject,
     unloadCurrentProject,
-    isLoading
+    isLoading,
+    lastSyncAt,
+    syncStatus
   } = useGanttToolStore();
 
   const [initializing, setInitializing] = useState(true);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showResourcePlanning, setShowResourcePlanning] = useState(false);
+  const [showLogoLibrary, setShowLogoLibrary] = useState(false);
   const [showOrgChart, setShowOrgChart] = useState(false);
   const [orgChartHeight, setOrgChartHeight] = useState(400); // Default 400px (also used for sidebar width)
+  const [showAddPhaseModal, setShowAddPhaseModal] = useState(false);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [isResizingOrgChart, setIsResizingOrgChart] = useState(false);
   const [resourcePanelLayout, setResourcePanelLayout] = useState<'sidebar' | 'bottom'>('sidebar'); // User preference
+  const [resourcePanelView, setResourcePanelView] = useState<'category' | 'orgchart'>('orgchart'); // View mode - always org chart
+
+  // Milestone modal state
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
 
   // Intelligent zoom levels - semantic, not arbitrary percentages
   const [zoomMode, setZoomMode] = useState<ZoomMode>('auto');
@@ -206,6 +220,30 @@ export default function GanttToolV3Page() {
     }
   };
 
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + P for Add Phase
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'p' && !e.shiftKey) {
+        if (currentProject && !showAddPhaseModal && !showAddTaskModal) {
+          e.preventDefault();
+          setShowAddPhaseModal(true);
+        }
+      }
+
+      // Cmd/Ctrl + T for Add Task
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 't' && !e.shiftKey) {
+        if (currentProject && currentProject.phases.length > 0 && !showAddPhaseModal && !showAddTaskModal) {
+          e.preventDefault();
+          setShowAddTaskModal(true);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentProject, showAddPhaseModal, showAddTaskModal]);
+
   return showLoading ? (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <HexLoader size="xl" />
@@ -226,6 +264,8 @@ export default function GanttToolV3Page() {
           onDeleteProject={handleDeleteProject}
           isLoading={isLoading}
           version="v1.0"
+          lastSyncAt={lastSyncAt}
+          syncStatus={syncStatus}
           rightContent={
             <>
               {/* Timeline View Selector */}
@@ -235,16 +275,118 @@ export default function GanttToolV3Page() {
                 onZoomModeChange={setZoomMode}
               />
 
-              {/* Import Excel Button */}
+              {/* Add Phase Button */}
               <button
                 type="button"
-                onClick={() => setShowImportModal(true)}
+                onClick={() => setShowAddPhaseModal(true)}
+                disabled={!currentProject}
+                aria-label="Add phase (⌘P)"
+                title="Add Phase (⌘P)"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: "36px",
-                  height: "36px",
+                  gap: "6px",
+                  padding: "0 12px",
+                  minWidth: "44px",
+                  minHeight: "44px",
+                  borderRadius: "6px",
+                  border: "1px solid var(--line)",
+                  backgroundColor: "transparent",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: currentProject ? "var(--color-text-secondary)" : "var(--color-gray-3)",
+                  cursor: currentProject ? "pointer" : "not-allowed",
+                  opacity: currentProject ? 1 : 0.5,
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => { if (currentProject) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
+              >
+                {/* Desktop: Text only, Mobile: Icon only */}
+                <Layers className="w-4 h-4 inline md:hidden" aria-hidden="true" />
+                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Phase</span>
+              </button>
+
+              {/* Add Task Button */}
+              <button
+                type="button"
+                onClick={() => setShowAddTaskModal(true)}
+                disabled={!currentProject || currentProject.phases.length === 0}
+                aria-label="Add task (⌘T)"
+                title={currentProject && currentProject.phases.length === 0 ? "Add a phase first" : "Add Task (⌘T)"}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  padding: "0 12px",
+                  minWidth: "44px",
+                  minHeight: "44px",
+                  borderRadius: "6px",
+                  border: "1px solid var(--line)",
+                  backgroundColor: "transparent",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: currentProject && currentProject.phases.length > 0 ? "var(--color-text-secondary)" : "var(--color-gray-3)",
+                  cursor: currentProject && currentProject.phases.length > 0 ? "pointer" : "not-allowed",
+                  opacity: currentProject && currentProject.phases.length > 0 ? 1 : 0.5,
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => { if (currentProject && currentProject.phases.length > 0) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
+              >
+                {/* Desktop: Text only, Mobile: Icon only */}
+                <CheckSquare className="w-4 h-4 inline md:hidden" aria-hidden="true" />
+                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Task</span>
+              </button>
+
+              {/* Add Milestone Button */}
+              <button
+                type="button"
+                onClick={() => setShowMilestoneModal(true)}
+                aria-label="Add milestone to timeline"
+                title="Add Milestone"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  padding: "0 12px",
+                  minWidth: "44px",
+                  minHeight: "44px",
+                  borderRadius: "6px",
+                  border: "1px solid var(--line)",
+                  backgroundColor: "transparent",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "var(--color-text-secondary)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
+              >
+                {/* Desktop: Text only, Mobile: Icon only */}
+                <Flag className="w-4 h-4 inline md:hidden" aria-hidden="true" />
+                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Milestone</span>
+              </button>
+
+              {/* Import Excel Button */}
+              <button
+                type="button"
+                onClick={() => setShowImportModal(true)}
+                aria-label="Import project from Excel"
+                title="Import from Excel"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minWidth: "44px",
+                  minHeight: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
@@ -253,9 +395,44 @@ export default function GanttToolV3Page() {
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-                title="Import from Excel"
               >
-                <FileSpreadsheet className="w-4 h-4" style={{ color: "var(--color-text-secondary)" }} />
+                <FileSpreadsheet className="w-4 h-4" style={{ color: "var(--color-text-secondary)" }} aria-hidden="true" />
+              </button>
+
+              {/* Manage Logos Button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowLogoLibrary(true);
+                }}
+                className="manage-logos-btn"
+                title="Upload and manage company logos"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  padding: "0 12px",
+                  minWidth: "44px",
+                  height: "44px",
+                  borderRadius: "6px",
+                  border: "1px solid var(--line)",
+                  backgroundColor: "transparent",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 400,
+                  color: "var(--color-text-primary)",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
+              >
+                {/* Desktop: Text only, Mobile: Icon only */}
+                <ImageIcon className="w-4 h-4 inline md:hidden" style={{ color: "var(--color-text-secondary)" }} aria-hidden="true" />
+                <span className="hidden md:inline">Manage Logos</span>
               </button>
 
               {/* Plan Resources Button */}
@@ -264,60 +441,81 @@ export default function GanttToolV3Page() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Plan Resources clicked');
                   setShowResourcePlanning(true);
                 }}
                 className="plan-resources-btn"
                 title="Design team structure and calculate costs"
               >
-                <span className="plan-resources-icon">
+                {/* Desktop: Text only, Mobile: Icon only */}
+                <span className="plan-resources-icon inline md:hidden">
                   <Briefcase className="w-4 h-4" />
                 </span>
-                <span className="plan-resources-text">Plan Resources</span>
+                <span className="plan-resources-text hidden md:inline">Plan Resources</span>
               </button>
 
               {/* Resource Panel Toggle */}
               <button
                 type="button"
-                onClick={() => setShowOrgChart(!showOrgChart)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Resource Panel Toggle clicked');
+                  setShowOrgChart(!showOrgChart);
+                }}
+                aria-label={showOrgChart ? "Hide resource panel" : "Show resource panel"}
+                aria-pressed={showOrgChart}
+                title="Toggle Resource Panel"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: "36px",
-                  height: "36px",
+                  minWidth: "44px",
+                  minHeight: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: showOrgChart ? "var(--color-blue-light)" : "transparent",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
+                  position: "relative",
+                  zIndex: 1025,
+                  pointerEvents: "auto",
                 }}
                 onMouseEnter={(e) => { if (!showOrgChart) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { if (!showOrgChart) e.currentTarget.style.backgroundColor = "transparent" }}
-                title="Toggle Resource Panel"
               >
-                <Users className="w-4 h-4" style={{ color: showOrgChart ? "var(--color-blue)" : "var(--color-text-secondary)" }} />
+                <Users className="w-4 h-4" style={{ color: showOrgChart ? "var(--color-blue)" : "var(--color-text-secondary)" }} aria-hidden="true" />
               </button>
 
               {/* Share */}
               <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Share button clicked - Export functionality coming soon');
+                  alert('Share & Export functionality coming soon!\n\nThis will allow you to:\n• Export to PNG/PDF\n• Share project link\n• Export to Excel');
+                }}
+                aria-label="Share and export project"
+                title="Share & Export"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: "36px",
-                  height: "36px",
+                  minWidth: "44px",
+                  minHeight: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
+                  position: "relative",
+                  zIndex: 1025,
+                  pointerEvents: "auto",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-                title="Share & Export"
               >
-                <Share2 className="w-4 h-4" style={{ color: "var(--color-text-secondary)" }} />
+                <Share2 className="w-4 h-4" style={{ color: "var(--color-text-secondary)" }} aria-hidden="true" />
               </button>
             </>
           }
@@ -327,7 +525,11 @@ export default function GanttToolV3Page() {
       <div className="flex-1 overflow-hidden flex" style={{ flexDirection: resourcePanelLayout === 'sidebar' ? 'row' : 'column' }}>
         {/* Timeline Area */}
         <div className="flex-1 overflow-hidden">
-          <GanttCanvasV3 zoomMode={activeZoomMode} />
+          <GanttCanvasV3
+            zoomMode={activeZoomMode}
+            showMilestoneModal={showMilestoneModal}
+            onShowMilestoneModalChange={setShowMilestoneModal}
+          />
         </div>
 
         {/* Resource Panel - Sidebar or Bottom based on user choice */}
@@ -425,7 +627,7 @@ export default function GanttToolV3Page() {
                       color: "#666",
                       lineHeight: "1.4",
                     }}>
-                      {currentProject.resources?.length || 0} people • {resourcePanelLayout === 'sidebar' ? 'Click or drag' : 'Tap or drag'} to assign
+                      {currentProject.resources?.length || 0} people • Organizational hierarchy
                     </p>
                   </div>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -438,6 +640,9 @@ export default function GanttToolV3Page() {
                     }}>
                       <button
                         onClick={() => setResourcePanelLayout('sidebar')}
+                        aria-label="Display resource panel on the side"
+                        aria-pressed={resourcePanelLayout === 'sidebar'}
+                        title="Side panel layout"
                         style={{
                           padding: "6px 12px",
                           borderRadius: "4px",
@@ -451,12 +656,14 @@ export default function GanttToolV3Page() {
                           boxShadow: resourcePanelLayout === 'sidebar' ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
                           color: resourcePanelLayout === 'sidebar' ? "#000" : "#666",
                         }}
-                        title="Side panel layout"
                       >
                         Side
                       </button>
                       <button
                         onClick={() => setResourcePanelLayout('bottom')}
+                        aria-label="Display resource panel at the bottom"
+                        aria-pressed={resourcePanelLayout === 'bottom'}
+                        title="Bottom panel layout"
                         style={{
                           padding: "6px 12px",
                           borderRadius: "4px",
@@ -470,7 +677,6 @@ export default function GanttToolV3Page() {
                           boxShadow: resourcePanelLayout === 'bottom' ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
                           color: resourcePanelLayout === 'bottom' ? "#000" : "#666",
                         }}
-                        title="Bottom panel layout"
                       >
                         Bottom
                       </button>
@@ -479,6 +685,8 @@ export default function GanttToolV3Page() {
                     {/* Hide Button */}
                     <button
                       onClick={() => setShowOrgChart(false)}
+                      aria-label="Hide resource panel"
+                      title="Hide panel"
                       style={{
                         padding: "8px 16px",
                         borderRadius: "6px",
@@ -502,266 +710,348 @@ export default function GanttToolV3Page() {
                   </div>
                 </div>
 
-                {/* Quick Stats - Jobs/Ive: Glanceable Information */}
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "8px",
-                }}>
-                  <div style={{
-                    padding: "8px 10px",
-                    backgroundColor: "var(--color-gray-6)",
-                    borderRadius: "6px",
-                    fontFamily: "var(--font-text)",
-                    fontSize: "11px",
-                    fontWeight: 500,
-                    textAlign: "center",
-                  }}>
-                    <div style={{ color: "#666", marginBottom: "2px" }}>PM</div>
-                    <div style={{ color: "#000", fontWeight: 600, fontSize: "14px" }}>
-                      {currentProject.resources?.filter(r => r.category === 'manager').length || 0}
+                {/* Three-Tier Resource Breakdown - Apple UX: Clear categorization */}
+                {(() => {
+                  const resources = currentProject.resources || [];
+
+                  // Tier 1: In Org Chart (resources with manager relationships)
+                  const orgChartResources = resources.filter(r => r.managerResourceId !== undefined && r.managerResourceId !== null);
+
+                  // Tier 2: Resource Pool (resources without manager assigned)
+                  const poolResources = resources.filter(r => !r.managerResourceId);
+
+                  // Tier 3: Calculate assigned resources (in tasks/phases)
+                  const assignedResourceIds = new Set<string>();
+                  currentProject.phases?.forEach(phase => {
+                    phase.phaseResourceAssignments?.forEach(assignment => {
+                      assignedResourceIds.add(assignment.resourceId);
+                    });
+                    phase.tasks?.forEach(task => {
+                      task.resourceAssignments?.forEach(assignment => {
+                        assignedResourceIds.add(assignment.resourceId);
+                      });
+                    });
+                  });
+
+                  const assignedCount = assignedResourceIds.size;
+                  const utilization = resources.length > 0
+                    ? Math.round((assignedCount / resources.length) * 100)
+                    : 0;
+
+                  // Determine utilization color (Apple HIG)
+                  const getUtilizationColor = (util: number) => {
+                    if (util >= 80) return '#34C759'; // Green - high utilization
+                    if (util >= 50) return '#FF9500'; // Orange - medium utilization
+                    return '#8E8E93'; // Gray - low utilization
+                  };
+
+                  return (
+                    <div style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "12px",
+                    }}>
+                      {/* Tier 1: In Org Chart */}
+                      <div style={{
+                        padding: "12px 16px",
+                        backgroundColor: "#F5F5F7",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(0, 0, 0, 0.06)",
+                      }}>
+                        <div style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "8px",
+                        }}>
+                          <div style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            color: "#1D1D1F",
+                          }}>
+                            In Org Chart
+                          </div>
+                          <div style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "18px",
+                            fontWeight: 600,
+                            color: "#007AFF",
+                          }}>
+                            {orgChartResources.length}
+                          </div>
+                        </div>
+                        <div style={{
+                          fontFamily: "var(--font-text)",
+                          fontSize: "11px",
+                          color: "#86868B",
+                          lineHeight: "1.4",
+                        }}>
+                          Resources with reporting structure
+                        </div>
+
+                        {/* Category breakdown for org chart resources */}
+                        <div style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: "6px",
+                          marginTop: "12px",
+                        }}>
+                          {(['leadership', 'pm', 'technical', 'functional', 'change', 'qa', 'basis', 'security'] as const).map(category => {
+                            const count = orgChartResources.filter(r => r.category === category).length;
+                            if (count === 0) return null;
+                            return (
+                              <div key={category} style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                fontSize: "11px",
+                                color: "#666",
+                              }}>
+                                <ResourceIcon category={category} className="w-3 h-3" color="#007AFF" />
+                                <span style={{ flex: 1, textTransform: "capitalize" }}>
+                                  {category === 'pm' ? 'PM' : category}
+                                </span>
+                                <span style={{ fontWeight: 600, color: "#000" }}>{count}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Tier 2: Resource Pool */}
+                      <div style={{
+                        padding: "12px 16px",
+                        backgroundColor: "#FAFAFA",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(0, 0, 0, 0.06)",
+                      }}>
+                        <div style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "8px",
+                        }}>
+                          <div style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            color: "#1D1D1F",
+                          }}>
+                            Resource Pool
+                          </div>
+                          <div style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "18px",
+                            fontWeight: 600,
+                            color: "#8E8E93",
+                          }}>
+                            {poolResources.length}
+                          </div>
+                        </div>
+                        <div style={{
+                          fontFamily: "var(--font-text)",
+                          fontSize: "11px",
+                          color: "#86868B",
+                          lineHeight: "1.4",
+                        }}>
+                          Unassigned to org structure
+                        </div>
+                      </div>
+
+                      {/* Tier 3: Assignment & Utilization */}
+                      <div style={{
+                        padding: "12px 16px",
+                        backgroundColor: "rgba(0, 122, 255, 0.08)",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(0, 122, 255, 0.15)",
+                      }}>
+                        <div style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "8px",
+                        }}>
+                          <div style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            color: "#1D1D1F",
+                          }}>
+                            In Tasks/Phases
+                          </div>
+                          <div style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "18px",
+                            fontWeight: 600,
+                            color: getUtilizationColor(utilization),
+                          }}>
+                            {assignedCount}
+                          </div>
+                        </div>
+                        <div style={{
+                          fontFamily: "var(--font-text)",
+                          fontSize: "11px",
+                          color: "#86868B",
+                          lineHeight: "1.4",
+                          marginBottom: "10px",
+                        }}>
+                          Currently assigned resources
+                        </div>
+
+                        {/* Utilization bar */}
+                        <div style={{
+                          width: "100%",
+                          height: "6px",
+                          backgroundColor: "#E5E5EA",
+                          borderRadius: "3px",
+                          overflow: "hidden",
+                          marginBottom: "6px",
+                        }}>
+                          <div style={{
+                            width: `${utilization}%`,
+                            height: "100%",
+                            backgroundColor: getUtilizationColor(utilization),
+                            borderRadius: "3px",
+                            transition: "width 0.5s cubic-bezier(0.16, 1, 0.3, 1)", // Apple easing
+                          }} />
+                        </div>
+                        <div style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontFamily: "var(--font-text)",
+                          fontSize: "11px",
+                        }}>
+                          <span style={{ color: "#86868B" }}>Utilization</span>
+                          <span style={{
+                            fontWeight: 600,
+                            color: getUtilizationColor(utilization),
+                          }}>
+                            {utilization}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Total - Summary */}
+                      <div style={{
+                        padding: "12px 16px",
+                        backgroundColor: "#FFFFFF",
+                        borderRadius: "8px",
+                        border: "2px solid #007AFF",
+                        marginTop: "4px",
+                      }}>
+                        <div style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}>
+                          <div style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "#1D1D1F",
+                          }}>
+                            Total Resources
+                          </div>
+                          <div style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "24px",
+                            fontWeight: 700,
+                            color: "#007AFF",
+                          }}>
+                            {resources.length}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{
-                    padding: "8px 10px",
-                    backgroundColor: "var(--color-gray-6)",
-                    borderRadius: "6px",
-                    fontFamily: "var(--font-text)",
-                    fontSize: "11px",
-                    fontWeight: 500,
-                    textAlign: "center",
-                  }}>
-                    <div style={{ color: "#666", marginBottom: "2px" }}>Consultants</div>
-                    <div style={{ color: "#000", fontWeight: 600, fontSize: "14px" }}>
-                      {currentProject.resources?.filter(r => r.category === 'technical' || r.category === 'functional').length || 0}
-                    </div>
-                  </div>
-                  <div style={{
-                    padding: "8px 10px",
-                    backgroundColor: "var(--color-gray-6)",
-                    borderRadius: "6px",
-                    fontFamily: "var(--font-text)",
-                    fontSize: "11px",
-                    fontWeight: 500,
-                    textAlign: "center",
-                  }}>
-                    <div style={{ color: "#666", marginBottom: "2px" }}>QA</div>
-                    <div style={{ color: "#000", fontWeight: 600, fontSize: "14px" }}>
-                      {currentProject.resources?.filter(r => r.category === 'qa').length || 0}
-                    </div>
-                  </div>
-                  <div style={{
-                    padding: "8px 10px",
-                    backgroundColor: "rgba(0, 122, 255, 0.1)",
-                    borderRadius: "6px",
-                    fontFamily: "var(--font-text)",
-                    fontSize: "11px",
-                    fontWeight: 500,
-                    textAlign: "center",
-                  }}>
-                    <div style={{ color: "#666", marginBottom: "2px" }}>Total</div>
-                    <div style={{ color: "var(--color-blue)", fontWeight: 600, fontSize: "14px" }}>
-                      {currentProject.resources?.length || 0}
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
 
-              {/* Resource Cards - Grouped by Role */}
+              {/* Resource Content Area */}
               <div style={{
                 flex: 1,
                 padding: "24px",
                 overflow: "auto",
               }}>
-                {currentProject.resources && currentProject.resources.length > 0 ? (
-                  <>
-                    {/* Group resources by category */}
-                    {['manager', 'technical', 'functional', 'qa'].map((category) => {
-                      const categoryResources = currentProject.resources.filter(r => r.category === category);
-                      if (categoryResources.length === 0) return null;
-
-                      const categoryLabel = {
-                        'manager': 'Project Managers',
-                        'technical': 'Technical Consultants',
-                        'functional': 'Functional Consultants',
-                        'qa': 'Quality Assurance'
-                      }[category] || category;
-
-                      return (
-                        <div key={category} style={{ marginBottom: "32px" }}>
-                          {/* Category Header */}
-                          <div style={{
-                            fontFamily: "var(--font-text)",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            color: "#000",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.5px",
-                            marginBottom: "12px",
-                            opacity: 0.6,
-                          }}>
-                            {categoryLabel} ({categoryResources.length})
-                          </div>
-
-                          {/* Resource Cards - Responsive grid */}
-                          <div style={{
-                            display: resourcePanelLayout === 'sidebar' ? "flex" : "grid",
-                            flexDirection: resourcePanelLayout === 'sidebar' ? "column" : undefined,
-                            gridTemplateColumns: resourcePanelLayout === 'bottom' ? "repeat(auto-fill, minmax(280px, 1fr))" : undefined,
-                            gap: resourcePanelLayout === 'sidebar' ? "10px" : "12px",
-                          }}>
-                            {categoryResources.map((resource) => {
-                              // Calculate utilization (mock for now - will be real data later)
-                              const utilization = Math.floor(Math.random() * 100);
-                              const isOverloaded = utilization > 80;
-                              const isAvailable = utilization < 50;
-
-                              return (
-                                <div
-                                  key={resource.id}
-                                  draggable
-                                  style={{
-                                    padding: "12px",
-                                    borderRadius: "6px",
-                                    border: `2px solid ${isOverloaded ? '#FF3B30' : isAvailable ? '#34C759' : 'var(--color-gray-4)'}`,
-                                    backgroundColor: "#fff",
-                                    cursor: "pointer",
-                                    transition: "all 0.15s ease",
-                                    position: "relative",
-                                    touchAction: "none", // Enable touch handling
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 122, 255, 0.15)";
-                                    e.currentTarget.style.transform = "translateY(-2px)";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.boxShadow = "none";
-                                    e.currentTarget.style.transform = "translateY(0)";
-                                  }}
-                                  onDragStart={(e) => {
-                                    e.currentTarget.style.opacity = "0.5";
-                                    e.dataTransfer.effectAllowed = "copy";
-                                    e.dataTransfer.setData("resourceId", resource.id);
-                                    e.dataTransfer.setData("resourceName", resource.name);
-                                  }}
-                                  onDragEnd={(e) => {
-                                    e.currentTarget.style.opacity = "1";
-                                  }}
-                                  onClick={() => {
-                                    // Future: Open resource details or quick-assign modal
-                                    console.log(`Selected resource: ${resource.name} (${resource.id})`);
-                                  }}
-                                  onTouchStart={(e) => {
-                                    // Touch support for mobile
-                                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 122, 255, 0.15)";
-                                  }}
-                                  onTouchEnd={(e) => {
-                                    e.currentTarget.style.boxShadow = "none";
-                                  }}
-                                  title={`${resource.name} - ${isAvailable ? "Available" : isOverloaded ? "Over capacity" : "Partially allocated"} (${utilization}%)`}
-                                >
-                                  {/* Status Badge */}
-                                  <div style={{
-                                    position: "absolute",
-                                    top: "10px",
-                                    right: "10px",
-                                    width: "8px",
-                                    height: "8px",
-                                    borderRadius: "50%",
-                                    backgroundColor: isOverloaded ? '#FF3B30' : isAvailable ? '#34C759' : '#FF9500',
-                                  }} title={isOverloaded ? "Overloaded" : isAvailable ? "Available" : "Partially allocated"} />
-
-                                  {/* Name & Role */}
-                                  <div style={{
-                                    fontFamily: "var(--font-text)",
-                                    fontSize: "14px",
-                                    fontWeight: 600,
-                                    color: "#000",
-                                    marginBottom: "2px",
-                                    paddingRight: "20px",
-                                  }}>
-                                    {resource.name}
-                                  </div>
-                                  <div style={{
-                                    fontFamily: "var(--font-text)",
-                                    fontSize: "12px",
-                                    color: "#666",
-                                    marginBottom: "10px",
-                                  }}>
-                                    {resource.designation}
-                                  </div>
-
-                                  {/* Capacity Bar */}
-                                  <div style={{
-                                    marginBottom: "8px",
-                                  }}>
-                                    <div style={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      alignItems: "center",
-                                      marginBottom: "4px",
-                                    }}>
-                                      <span style={{
-                                        fontFamily: "var(--font-text)",
-                                        fontSize: "11px",
-                                        color: "#999",
-                                        fontWeight: 500,
-                                      }}>
-                                        Capacity
-                                      </span>
-                                      <span style={{
-                                        fontFamily: "var(--font-text)",
-                                        fontSize: "11px",
-                                        color: isOverloaded ? '#FF3B30' : isAvailable ? '#34C759' : '#000',
-                                        fontWeight: 600,
-                                      }}>
-                                        {utilization}%
-                                      </span>
-                                    </div>
-                                    <div style={{
-                                      width: "100%",
-                                      height: "4px",
-                                      backgroundColor: "var(--color-gray-6)",
-                                      borderRadius: "2px",
-                                      overflow: "hidden",
-                                    }}>
-                                      <div style={{
-                                        width: `${utilization}%`,
-                                        height: "100%",
-                                        backgroundColor: isOverloaded ? '#FF3B30' : isAvailable ? '#34C759' : '#FF9500',
-                                        transition: "width 0.3s ease",
-                                      }} />
-                                    </div>
-                                  </div>
-
-                                  {/* Quick Info */}
-                                  <div style={{
-                                    fontFamily: "var(--font-text)",
-                                    fontSize: "11px",
-                                    color: "#999",
-                                    fontStyle: "italic",
-                                  }}>
-                                    {isAvailable ? "Available now" : isOverloaded ? "Over capacity" : "Partially allocated"}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </>
-                ) : (
+                {/* Org Chart View - Visual hierarchy */}
+                <div style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "100%",
+                  gap: "24px",
+                }}>
                   <div style={{
-                    padding: "48px",
                     textAlign: "center",
-                    fontFamily: "var(--font-text)",
-                    fontSize: "14px",
-                    color: "#999",
+                    maxWidth: "400px",
                   }}>
-                    No resources found. Add resources to start planning your team.
+                    <div style={{
+                      fontSize: "48px",
+                      marginBottom: "16px",
+                    }}>🏢</div>
+                    <h3 style={{
+                      fontFamily: "var(--font-text)",
+                      fontSize: "20px",
+                      fontWeight: 600,
+                      color: "#1d1d1f",
+                      marginBottom: "12px",
+                    }}>
+                      {currentProject.resources && currentProject.resources.length > 0
+                        ? "Build Your Org Chart"
+                        : "No Team Structure Yet"}
+                    </h3>
+                    <p style={{
+                      fontFamily: "var(--font-text)",
+                      fontSize: "14px",
+                      color: "#666",
+                      lineHeight: "1.6",
+                      marginBottom: "24px",
+                    }}>
+                      {currentProject.resources && currentProject.resources.length > 0
+                        ? "Click 'Plan Resources' to create your organizational hierarchy with reporting relationships."
+                        : "Add resources first, then use 'Plan Resources' to define your team structure with managers and reporting lines."}
+                    </p>
+                    <button
+                      onClick={() => setShowResourcePlanning(true)}
+                      aria-label={currentProject.resources && currentProject.resources.length > 0
+                        ? "Open organizational chart builder to define team hierarchy"
+                        : "Add resources before building organizational chart"}
+                      disabled={!currentProject.resources || currentProject.resources.length === 0}
+                      title={currentProject.resources && currentProject.resources.length > 0
+                        ? "Plan Resources"
+                        : "Add resources first"}
+                      style={{
+                        padding: "12px 24px",
+                        borderRadius: "8px",
+                        border: "none",
+                        backgroundColor: "#007AFF",
+                        color: "#fff",
+                        fontFamily: "var(--font-text)",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                        boxShadow: "0 2px 8px rgba(0, 122, 255, 0.3)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#0051D5";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 122, 255, 0.4)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#007AFF";
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 122, 255, 0.3)";
+                      }}
+                    >
+                      {currentProject.resources && currentProject.resources.length > 0
+                        ? "Open Org Chart Builder"
+                        : "Add Resources First"}
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </>
@@ -800,7 +1090,7 @@ export default function GanttToolV3Page() {
           justify-content: center;
           gap: 6px;
           padding: 0 12px;
-          height: 36px;
+          min-height: 44px;
           border-radius: 6px;
           border: 1px solid var(--color-blue);
           background-color: var(--color-blue-light);
@@ -838,29 +1128,176 @@ export default function GanttToolV3Page() {
           align-items: center;
         }
 
-        /* Responsive styles handled by Tier2Header and ViewModeSelector components */
+        /* ============================================================================
+           RESPONSIVE DESIGN - GANTT TOOL V3
+           Mobile-first optimizations following Apple HIG
+           ============================================================================ */
+
+        /* Tablet and below (1024px) */
+        @media (max-width: 1024px) {
+          /* Force resource panel to bottom on tablets */
+          .flex-1.overflow-hidden.flex {
+            flex-direction: column !important;
+          }
+        }
+
+        /* Mobile devices (768px) */
+        @media (max-width: 768px) {
+          /* Compact button sizes */
+          .plan-resources-btn {
+            min-width: 44px;
+            min-height: 44px;
+            padding: 0 10px;
+            font-size: 12px;
+          }
+
+          /* Resource panel adjustments */
+          .flex-1.overflow-hidden.flex > div:last-child {
+            max-height: 50vh; /* Limit bottom panel height on mobile */
+          }
+
+          /* Compact stats grid on mobile */
+          div[style*="gridTemplateColumns: '1fr 1fr'"] {
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
+            gap: 6px !important;
+          }
+        }
+
+        /* Small mobile devices (640px) */
+        @media (max-width: 640px) {
+          /* Even more compact buttons */
+          .plan-resources-btn {
+            padding: 0 8px;
+            gap: 4px;
+          }
+
+          /* Single column for very small screens */
+          div[style*="gridTemplateColumns: '1fr 1fr'"] {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* Reduce font sizes in resource cards */
+          div[style*="fontSize: '14px'"][style*="fontWeight: 600"] {
+            font-size: 13px !important;
+          }
+
+          div[style*="fontSize: '12px'"] {
+            font-size: 11px !important;
+          }
+
+          /* Compact resource panel header */
+          div[style*="padding: '20px 24px'"] {
+            padding: 16px 12px !important;
+          }
+
+          /* Reduce panel padding */
+          div[style*="padding: '24px'"][style*="flex: 1"] {
+            padding: 16px !important;
+          }
+        }
+
+        /* Touch device optimizations */
+        @media (pointer: coarse) {
+          /* Ensure minimum touch target size */
+          button, a[role="button"] {
+            min-height: 44px;
+            min-width: 44px;
+          }
+
+          /* Larger tap areas for resource cards */
+          div[draggable="true"] {
+            padding: 14px !important;
+          }
+
+          /* Increase interactive element spacing */
+          .plan-resources-btn,
+          button[aria-label*="Toggle"],
+          button[aria-label*="Import"] {
+            margin: 2px;
+          }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+          .plan-resources-btn {
+            border-width: 2px;
+          }
+
+          /* Enhance resource card borders */
+          div[draggable="true"] {
+            border-width: 2px !important;
+          }
+        }
+
+        /* Landscape orientation optimizations for mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+          /* Reduce vertical padding in landscape */
+          div[style*="height: '100%'"] {
+            max-height: 80vh;
+          }
+
+          /* More compact resource panel header in landscape */
+          div[style*="padding: '20px 24px'"] {
+            padding: 12px 16px !important;
+          }
+        }
+
+        /* Print styles */
+        @media print {
+          /* Hide interactive elements when printing */
+          .plan-resources-btn,
+          button[aria-label*="Toggle"],
+          button[aria-label*="Share"] {
+            display: none !important;
+          }
+
+          /* Expand all content for printing */
+          .flex-1.overflow-hidden {
+            overflow: visible !important;
+          }
+        }
       `}</style>
 
       {/* New Project Modal */}
       <NewProjectModal
         isOpen={isNewProjectModalOpen}
         onClose={() => setIsNewProjectModalOpen(false)}
-        onCreateProject={createProject}
+        onCreateProject={(name, startDate, companyLogos) => createProject(name, startDate, undefined, companyLogos)}
       />
 
       {/* Excel Import Modal */}
       {showImportModal && (
         <ImportModalV2
+          isOpen={showImportModal}
           onClose={() => setShowImportModal(false)}
         />
       )}
 
+      {/* Add Phase Modal */}
+      <AddPhaseModal
+        isOpen={showAddPhaseModal}
+        onClose={() => setShowAddPhaseModal(false)}
+      />
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        isOpen={showAddTaskModal}
+        onClose={() => setShowAddTaskModal(false)}
+      />
+
       {/* Org Chart Builder Modal */}
       {showResourcePlanning && (
-        <OrgChartBuilder
+        <OrgChartBuilderV2
           onClose={() => setShowResourcePlanning(false)}
+          project={currentProject}
         />
       )}
+
+      {/* Logo Library Modal */}
+      <LogoLibraryModal
+        isOpen={showLogoLibrary}
+        onClose={() => setShowLogoLibrary(false)}
+      />
     </>
   );
 }
