@@ -22,13 +22,24 @@ export interface GanttProject {
   budget?: ProjectBudget;
 
   // Organization chart data
-  orgChartPro?: any;
+  orgChartPro?: {
+    companyLogos?: Record<string, string>; // company name -> base64 logo URL
+    selectedLogoCompanyName?: string; // Currently selected logo to display
+    [key: string]: any; // Other org chart data
+  };
+}
+
+export interface RACIAssignment {
+  id: string;
+  resourceId: string;
+  role: "responsible" | "accountable" | "consulted" | "informed";
 }
 
 export interface GanttPhase {
   id: string;
   name: string;
   description?: string;
+  deliverables?: string; // Optional deliverables description
   color: string;
   startDate: string; // ISO 8601 format
   endDate: string; // ISO 8601 format
@@ -36,6 +47,7 @@ export interface GanttPhase {
   collapsed: boolean;
   dependencies: string[]; // Phase IDs that this phase depends on
   phaseResourceAssignments?: PhaseResourceAssignment[]; // PM resources assigned at phase level
+  raciAssignments?: RACIAssignment[]; // RACI matrix assignments for this phase
   order: number; // Display order of phases
 }
 
@@ -44,12 +56,14 @@ export interface GanttTask {
   phaseId: string;
   name: string;
   description?: string;
+  deliverables?: string; // Optional deliverables description
   startDate: string; // ISO 8601 format
   endDate: string; // ISO 8601 format
   dependencies: string[]; // Task IDs that this task depends on
   assignee?: string;
   progress: number; // 0-100
   resourceAssignments?: TaskResourceAssignment[]; // Assigned resources
+  raciAssignments?: RACIAssignment[]; // RACI matrix assignments for this task
   order: number; // Display order of tasks within phase
 
   // Task Hierarchy (Work Breakdown Structure)
@@ -58,7 +72,21 @@ export interface GanttTask {
   collapsed: boolean; // UI state: if true, children are hidden
   isParent: boolean; // True if this task has child tasks
   childTasks?: GanttTask[]; // Child tasks (populated when needed)
+
+  // AMS (Application Maintenance & Support) Configuration
+  isAMS?: boolean; // Flag indicating this is an AMS task
+  amsConfig?: {
+    rateType: "daily" | "manda"; // Costing rate type
+    fixedRate: number; // Fixed rate amount
+    isOngoing: true; // AMS tasks are always ongoing
+    minimumDuration?: number; // Minimum subscription duration in months (e.g., 12)
+    notes?: string; // Additional AMS-specific notes
+  };
 }
+
+// Type aliases for convenience
+export type Phase = GanttPhase;
+export type Task = GanttTask;
 
 export interface GanttMilestone {
   id: string;
@@ -121,6 +149,7 @@ export interface SidePanelState {
 export interface PhaseFormData {
   name: string;
   description?: string;
+  deliverables?: string;
   color: string;
   startDate: string;
   endDate: string;
@@ -129,12 +158,20 @@ export interface PhaseFormData {
 export interface TaskFormData {
   name: string;
   description?: string;
+  deliverables?: string;
   phaseId: string;
   startDate: string;
   endDate: string;
   assignee?: string;
   dependencies?: string[];
   parentTaskId?: string | null;
+
+  // AMS Configuration
+  isAMS?: boolean;
+  amsRateType?: "daily" | "manda";
+  amsFixedRate?: number;
+  amsMinimumDuration?: number;
+  amsNotes?: string;
 }
 
 export interface MilestoneFormData {
@@ -316,6 +353,7 @@ export interface Resource {
   department?: string; // Department or team name
   location?: string; // Physical or virtual location
   projectRole?: string; // Specific role on this project (optional override)
+  companyName?: string; // Company/organization affiliation (for multi-stakeholder projects)
 
   // Assignment level control
   assignmentLevel: "phase" | "task" | "both"; // Where this resource can be assigned
@@ -368,6 +406,7 @@ export interface ResourceFormData {
   department?: string;
   location?: string;
   projectRole?: string;
+  companyName?: string; // Company/organization affiliation (for multi-stakeholder projects)
 
   // Assignment and billing configuration
   assignmentLevel: "phase" | "task" | "both";

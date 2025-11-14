@@ -142,6 +142,48 @@ export function GanttToolbar({
     link.click();
   };
 
+  // Helper function to select which logo to display
+  const selectDisplayLogo = async (companyName: string) => {
+    if (!currentProject) return;
+
+    const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orgChartPro: {
+          ...currentProject.orgChartPro,
+          selectedLogoCompanyName: companyName,
+        },
+      }),
+    });
+
+    if (response.ok) {
+      const store = useGanttToolStoreV2.getState();
+      store.fetchProject(currentProject.id);
+    }
+  };
+
+  // Get the logo to display (selected or first available)
+  const getDisplayLogo = () => {
+    if (!currentProject.orgChartPro?.companyLogos) return null;
+
+    const logos = currentProject.orgChartPro.companyLogos;
+    const selected = currentProject.orgChartPro.selectedLogoCompanyName;
+
+    // Return selected logo if it exists
+    if (selected && logos[selected]) {
+      return { companyName: selected, logoUrl: logos[selected] };
+    }
+
+    // Otherwise return first logo
+    const firstCompanyName = Object.keys(logos)[0];
+    if (firstCompanyName) {
+      return { companyName: firstCompanyName, logoUrl: logos[firstCompanyName] };
+    }
+
+    return null;
+  };
+
   const [showResourceModal, setShowResourceModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showProposalModal, setShowProposalModal] = useState(false);
@@ -579,22 +621,53 @@ export function GanttToolbar({
         <div className="flex items-center justify-between" style={{ width: "100%" }}>
           {/* Left: Project Name (Editable) + Quick Stats */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            {/* Project Name with Logo - Static display */}
+            {/* Project Name with Logo - Clickable to select */}
             <div className="flex items-center gap-3">
-              {/* Logo - Static display (not clickable) */}
-              <div className="w-12 h-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 flex items-center justify-center shadow-sm overflow-hidden">
-                {currentProject.orgChartPro?.companyLogos && Object.keys(currentProject.orgChartPro.companyLogos).length > 0 ? (
-                  <img
-                    src={Object.values(currentProject.orgChartPro.companyLogos)[0] as string}
-                    alt="Project Logo"
-                    className="w-10 h-10 object-contain p-1"
-                  />
-                ) : (
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white font-bold text-xs">
-                    {currentProject.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
+              {/* Logo - Clickable to select from available logos */}
+              <Dropdown
+                menu={{
+                  items: currentProject.orgChartPro?.companyLogos
+                    ? Object.entries(currentProject.orgChartPro.companyLogos).map(([companyName, logoUrl]) => ({
+                        key: companyName,
+                        label: (
+                          <div className="flex items-center gap-2 py-1">
+                            <img
+                              src={logoUrl as string}
+                              alt={companyName}
+                              className="w-6 h-6 object-contain"
+                            />
+                            <span>{companyName}</span>
+                          </div>
+                        ),
+                        onClick: () => selectDisplayLogo(companyName),
+                      }))
+                    : [],
+                }}
+                trigger={["click"]}
+              >
+                <button
+                  className="w-12 h-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 flex items-center justify-center shadow-sm overflow-hidden hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
+                  title="Click to select logo"
+                >
+                  {(() => {
+                    const displayLogo = getDisplayLogo();
+                    if (displayLogo) {
+                      return (
+                        <img
+                          src={displayLogo.logoUrl}
+                          alt={displayLogo.companyName}
+                          className="w-10 h-10 object-contain p-1"
+                        />
+                      );
+                    }
+                    return (
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white font-bold text-xs">
+                        {currentProject.name.charAt(0).toUpperCase()}
+                      </div>
+                    );
+                  })()}
+                </button>
+              </Dropdown>
 
               {/* Project Name - Revolutionary inline editing */}
               <div className="flex items-center gap-2 flex-1 min-w-0">
