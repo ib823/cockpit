@@ -10,6 +10,7 @@ import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Plus, Check, Folder, Calendar, Edit2, Trash2, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import type { GanttProject } from "@/types/gantt-tool";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 
 interface UnifiedProjectSelectorProps {
   currentProject: GanttProject;
@@ -32,6 +33,7 @@ export function UnifiedProjectSelector({
   onSelectLogo,
   isLoading = false,
 }: UnifiedProjectSelectorProps) {
+  const store = useGanttToolStoreV2();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(currentProject.name);
@@ -39,6 +41,13 @@ export function UnifiedProjectSelector({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const logoMenuRef = useRef<HTMLDivElement>(null);
+
+  // Handle logo selection - use store directly
+  const handleSelectLogo = async (companyName: string) => {
+    await store.selectDisplayLogo(companyName);
+    onSelectLogo?.(companyName);
+    setShowLogoMenu(false);
+  };
 
   // Get the logo to display (selected or first available)
   const getDisplayLogo = () => {
@@ -186,10 +195,7 @@ export function UnifiedProjectSelector({
               return (
                 <button
                   key={companyName}
-                  onClick={() => {
-                    onSelectLogo?.(companyName);
-                    setShowLogoMenu(false);
-                  }}
+                  onClick={() => handleSelectLogo(companyName)}
                   style={{
                     width: "100%",
                     display: "flex",

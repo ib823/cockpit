@@ -27,6 +27,7 @@ import type {
   PhaseResourceAssignment,
   ProjectBudget,
   ProjectDelta,
+  RACIAssignment,
 } from "@/types/gantt-tool";
 import { PHASE_COLOR_PRESETS } from "@/types/gantt-tool";
 import { differenceInDays, addDays, format } from "date-fns";
@@ -101,7 +102,7 @@ interface GanttToolStateV2 {
   // API Actions
   fetchProjects: () => Promise<void>;
   fetchProject: (projectId: string) => Promise<void>;
-  createProject: (name: string, startDate: string, description?: string) => Promise<void>;
+  createProject: (name: string, startDate: string, description?: string, companyLogos?: Record<string, string>) => Promise<void>;
   importProject: (data: GanttProject) => Promise<void>;
   createProjectFromTemplate: (template: GanttProject) => Promise<void>;
   saveProject: () => Promise<void>; // Auto-save current project to API
@@ -183,6 +184,18 @@ interface GanttToolStateV2 {
     assignmentNotes: string,
     allocationPercentage: number
   ) => void;
+
+  // RACI Matrix Management (with auto-save)
+  updatePhaseRaci: (phaseId: string, assignments: RACIAssignment[]) => Promise<void>;
+  updateTaskRaci: (taskId: string, phaseId: string, assignments: RACIAssignment[]) => Promise<void>;
+
+  // Logo Management (with auto-save)
+  uploadProjectLogo: (companyName: string, logoDataUrl: string) => Promise<void>;
+  deleteProjectLogo: (companyName: string) => Promise<void>;
+  updateProjectLogos: (logos: Record<string, string>) => Promise<void>;
+  selectDisplayLogo: (companyName: string) => Promise<void>;
+  getProjectLogos: () => Record<string, string>;
+  getCustomProjectLogos: () => Record<string, string>;
 
   // Budget Management (with auto-save)
   updateProjectBudget: (budget: ProjectBudget) => void;
@@ -388,7 +401,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       }
     },
 
-    createProject: async (name: string, startDate: string, description?: string) => {
+    createProject: async (name: string, startDate: string, description?: string, companyLogos?: Record<string, string>) => {
       set((state) => {
         state.isSyncing = true;
         state.syncError = null;
@@ -403,6 +416,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
             startDate,
             description,
             viewSettings: { ...DEFAULT_VIEW_SETTINGS },
+            orgChartPro: companyLogos ? { companyLogos } : undefined,
           }),
         });
 
@@ -1003,6 +1017,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           id: phaseId,
           name: data.name,
           description: data.description,
+          deliverables: data.deliverables,
           color: data.color || PHASE_COLOR_PRESETS[colorIndex],
           startDate: adjustedDates.startDate,
           endDate: adjustedDates.endDate,
@@ -1241,6 +1256,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           phaseId: data.phaseId,
           name: data.name,
           description: data.description,
+          deliverables: data.deliverables,
           startDate: adjustedDates.startDate,
           endDate: adjustedDates.endDate,
           dependencies: data.dependencies || [],
@@ -1256,6 +1272,18 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
             : 0,
           collapsed: false,
           isParent: false,
+
+          // AMS Configuration
+          isAMS: data.isAMS,
+          amsConfig: data.isAMS && data.amsRateType && data.amsFixedRate
+            ? {
+                rateType: data.amsRateType,
+                fixedRate: data.amsFixedRate,
+                isOngoing: true,
+                minimumDuration: data.amsMinimumDuration,
+                notes: data.amsNotes,
+              }
+            : undefined,
         };
 
         phase.tasks.push(newTask);
@@ -1854,6 +1882,93 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       get().saveProject();
     },
 
+    // --- Logo Management ---
+    uploadProjectLogo: async (companyName, logoDataUrl) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        // Initialize orgChartPro if needed
+        if (!state.currentProject.orgChartPro) {
+          state.currentProject.orgChartPro = {};
+        }
+        if (!state.currentProject.orgChartPro.companyLogos) {
+          state.currentProject.orgChartPro.companyLogos = {};
+        }
+
+        // Add/update logo
+        state.currentProject.orgChartPro.companyLogos[companyName] = logoDataUrl;
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    deleteProjectLogo: async (companyName) => {
+      set((state) => {
+        if (!state.currentProject?.orgChartPro?.companyLogos) return;
+
+        delete state.currentProject.orgChartPro.companyLogos[companyName];
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    updateProjectLogos: async (logos) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        if (!state.currentProject.orgChartPro) {
+          state.currentProject.orgChartPro = {};
+        }
+
+        state.currentProject.orgChartPro.companyLogos = logos;
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    selectDisplayLogo: async (companyName: string) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        if (!state.currentProject.orgChartPro) {
+          state.currentProject.orgChartPro = {};
+        }
+
+        state.currentProject.orgChartPro.selectedLogoCompanyName = companyName;
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    getProjectLogos: () => {
+      const { currentProject } = get();
+      if (!currentProject?.orgChartPro?.companyLogos) {
+        return {};
+      }
+      return currentProject.orgChartPro.companyLogos;
+    },
+
+    getCustomProjectLogos: () => {
+      // Returns only custom logos (excludes defaults)
+      const { currentProject } = get();
+      if (!currentProject?.orgChartPro?.companyLogos) {
+        return {};
+      }
+      // Default logos are: "ABeam Consulting", "ABeam", "SAP", "SAP SE"
+      const defaultKeys = ["ABeam Consulting", "ABeam", "SAP", "SAP SE"];
+      const customLogos: Record<string, string> = {};
+      Object.entries(currentProject.orgChartPro.companyLogos).forEach(([key, value]) => {
+        if (!defaultKeys.includes(key)) {
+          customLogos[key] = value;
+        }
+      });
+      return customLogos;
+    },
+
     // --- Budget Management ---
     updateProjectBudget: (budget) => {
       set((state) => {
@@ -2116,6 +2231,52 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       set((state) => {
         state.validationWarnings = [];
       });
+    },
+
+    // --- RACI Matrix Management ---
+    updatePhaseRaci: async (phaseId, assignments) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const snapshot = cloneProject(state.currentProject);
+        if (snapshot) {
+          state.history.past.push(snapshot);
+          state.history.future = [];
+          if (state.history.past.length > 50) state.history.past = state.history.past.slice(-50);
+        }
+
+        const phase = state.currentProject.phases.find((p) => p.id === phaseId);
+        if (phase) {
+          phase.raciAssignments = assignments;
+          state.currentProject.updatedAt = new Date().toISOString();
+        }
+      });
+
+      await get().saveProject();
+    },
+
+    updateTaskRaci: async (taskId, phaseId, assignments) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const snapshot = cloneProject(state.currentProject);
+        if (snapshot) {
+          state.history.past.push(snapshot);
+          state.history.future = [];
+          if (state.history.past.length > 50) state.history.past = state.history.past.slice(-50);
+        }
+
+        const phase = state.currentProject.phases.find((p) => p.id === phaseId);
+        if (!phase) return;
+
+        const task = phase.tasks.find((t) => t.id === taskId);
+        if (task) {
+          task.raciAssignments = assignments;
+          state.currentProject.updatedAt = new Date().toISOString();
+        }
+      });
+
+      await get().saveProject();
     },
   }))
 );

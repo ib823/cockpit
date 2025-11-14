@@ -143,24 +143,9 @@ export function GanttToolbar({
   };
 
   // Helper function to select which logo to display
-  const selectDisplayLogo = async (companyName: string) => {
-    if (!currentProject) return;
-
-    const response = await fetch(`/api/gantt-tool/projects/${currentProject.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orgChartPro: {
-          ...currentProject.orgChartPro,
-          selectedLogoCompanyName: companyName,
-        },
-      }),
-    });
-
-    if (response.ok) {
-      const store = useGanttToolStoreV2.getState();
-      store.fetchProject(currentProject.id);
-    }
+  const handleSelectDisplayLogo = async (companyName: string) => {
+    const store = useGanttToolStoreV2.getState();
+    await store.selectDisplayLogo(companyName);
   };
 
   // Get the logo to display (selected or first available)
@@ -637,9 +622,12 @@ export function GanttToolbar({
                               className="w-6 h-6 object-contain"
                             />
                             <span>{companyName}</span>
+                            {currentProject.orgChartPro?.selectedLogoCompanyName === companyName && (
+                              <Check className="w-4 h-4 ml-2 text-blue-500" />
+                            )}
                           </div>
                         ),
-                        onClick: () => selectDisplayLogo(companyName),
+                        onClick: () => handleSelectDisplayLogo(companyName),
                       }))
                     : [],
                 }}
