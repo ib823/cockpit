@@ -828,9 +828,9 @@ export function GanttToolbar({
                 paddingRight: spacing[4],
               }}
             >
-              {/* Desktop: Text, Mobile: Icon */}
+              {/* Desktop: Text only, Mobile: Icon only */}
               <span className="hidden sm:inline">Add Phase</span>
-              <Plus className="w-4 h-4 sm:hidden" />
+              <Plus className="w-4 h-4 inline sm:hidden" />
             </Button>
 
             {/* 2. Context Panel Toggle - Hide on small screens */}
@@ -883,9 +883,9 @@ export function GanttToolbar({
                   onClick={() => setShowResourceModal(true)}
                   size="large"
                 >
-                  {/* Desktop: Text, Mobile: Icon */}
+                  {/* Desktop: Text only, Mobile: Icon only */}
                   <span className="hidden lg:inline">Team</span>
-                  <Users className="w-4 h-4 lg:hidden" />
+                  <Users className="w-4 h-4 inline lg:hidden" />
                 </Button>
               </Badge>
             </Tooltip>
@@ -893,9 +893,9 @@ export function GanttToolbar({
             {/* 4. Share - Export & Collaboration */}
             <Dropdown menu={{ items: shareMenuItems }} trigger={["click"]} placement="bottomRight">
               <Button size="large">
-                {/* Desktop: Text, Mobile: Icon */}
+                {/* Desktop: Text only, Mobile: Icon only */}
                 <span className="hidden lg:inline">Share</span>
-                <Share2 className="w-4 h-4 lg:hidden" />
+                <Share2 className="w-4 h-4 inline lg:hidden" />
               </Button>
             </Dropdown>
 
@@ -906,20 +906,20 @@ export function GanttToolbar({
               placement="bottomRight"
             >
               <Button size="large">
-                {/* Desktop: Text, Mobile: Icon */}
+                {/* Desktop: Text only, Mobile: Icon only */}
                 <span className="hidden lg:inline">Settings</span>
-                <Settings className="w-4 h-4 lg:hidden" />
+                <Settings className="w-4 h-4 inline lg:hidden" />
               </Button>
             </Dropdown>
 
             {/* 6. User Menu */}
             <Dropdown menu={{ items: userMenuItems }} trigger={["click"]} placement="bottomRight">
               <Button size="large">
-                {/* Desktop: Text, Mobile: Icon */}
+                {/* Desktop: Text only, Mobile: Icon only */}
                 <span className="hidden lg:inline truncate max-w-[120px]">
                   {session?.user?.name || session?.user?.email || "User"}
                 </span>
-                <UserOutlined className="lg:hidden" />
+                <UserOutlined className="inline lg:hidden" />
               </Button>
             </Dropdown>
           </div>
