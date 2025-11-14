@@ -46,6 +46,7 @@ import {
   SettingOutlined,
   DashboardOutlined,
   CrownOutlined,
+  PictureOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Input, Modal, Form, DatePicker, Tooltip, Badge, App } from "antd";
 import { useState } from "react";
@@ -57,6 +58,7 @@ import { ImportModalV2 } from "./ImportModalV2";
 import { ProposalGenerationModal } from "./ProposalGenerationModal";
 import { TemplateLibraryModal } from "./TemplateLibraryModal";
 import { DuplicateCleanupModal } from "./DuplicateCleanupModal";
+import { LogoLibraryModal } from "./LogoLibraryModal";
 import ExportConfigModal from "./ExportConfigModal";
 import type { MenuProps } from "antd";
 import dayjs from "dayjs";
@@ -146,6 +148,7 @@ export function GanttToolbar({
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
   const [showDuplicateCleanup, setShowDuplicateCleanup] = useState(false);
   const [showExportConfigModal, setShowExportConfigModal] = useState(false);
+  const [showLogoModal, setShowLogoModal] = useState(false);
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
   const [editedProjectName, setEditedProjectName] = useState("");
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
@@ -346,6 +349,20 @@ export function GanttToolbar({
       label: "Import from Excel",
       icon: <UploadOutlined />,
       onClick: () => setShowImportModal(true),
+    },
+    {
+      key: "manage-logo",
+      label: (
+        <div className="py-1">
+          <div className="font-semibold text-blue-600 flex items-center gap-2">
+            <PictureOutlined />
+            Manage Logo
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5">Upload or select company logo</div>
+        </div>
+      ),
+      onClick: () => setShowLogoModal(true),
+      style: { backgroundColor: "#f0f7ff" },
     },
     {
       key: "switch",
@@ -1028,6 +1045,13 @@ export function GanttToolbar({
         <DuplicateCleanupModal
           isOpen={showDuplicateCleanup}
           onClose={() => setShowDuplicateCleanup(false)}
+        />
+      )}
+
+      {showLogoModal && (
+        <LogoLibraryModal
+          isOpen={showLogoModal}
+          onClose={() => setShowLogoModal(false)}
         />
       )}
 
