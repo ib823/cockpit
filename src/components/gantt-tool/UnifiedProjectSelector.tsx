@@ -76,6 +76,49 @@ export function UnifiedProjectSelector({
 
   return (
     <div ref={dropdownRef} style={{ position: "relative", display: "flex", alignItems: "center", gap: "12px" }}>
+      {/* Logo Display - Static, not clickable */}
+      <div style={{
+        width: "40px",
+        height: "40px",
+        backgroundColor: "var(--color-gray-5)",
+        borderRadius: "8px",
+        border: "1px solid var(--color-gray-4)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+      }}>
+        {currentProject.orgChartPro?.companyLogos && Object.keys(currentProject.orgChartPro.companyLogos).length > 0 ? (
+          <img
+            src={Object.values(currentProject.orgChartPro.companyLogos)[0] as string}
+            alt="Project Logo"
+            style={{
+              width: "32px",
+              height: "32px",
+              objectFit: "contain",
+              padding: "4px",
+            }}
+          />
+        ) : (
+          <div style={{
+            width: "32px",
+            height: "32px",
+            background: "linear-gradient(135deg, #007AFF, #5856D6)",
+            borderRadius: "4px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "14px",
+            fontWeight: 700,
+            color: "#ffffff",
+            fontFamily: "var(--font-display)",
+          }}>
+            {currentProject.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+      </div>
+
       {/* Unified Component: Dropdown Button + Editable Title */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         {/* Dropdown Chevron Button */}
@@ -288,6 +331,48 @@ export function UnifiedProjectSelector({
                       }
                     }}
                   >
+                    {/* Project Logo */}
+                    <div style={{
+                      width: "32px",
+                      height: "32px",
+                      minWidth: "32px",
+                      backgroundColor: "var(--color-gray-5)",
+                      borderRadius: "6px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                    }}>
+                      {project.orgChartPro?.companyLogos && Object.keys(project.orgChartPro.companyLogos).length > 0 ? (
+                        <img
+                          src={Object.values(project.orgChartPro.companyLogos)[0] as string}
+                          alt="Project Logo"
+                          style={{
+                            width: "28px",
+                            height: "28px",
+                            objectFit: "contain",
+                            padding: "2px",
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: "28px",
+                          height: "28px",
+                          background: "linear-gradient(135deg, #007AFF, #5856D6)",
+                          borderRadius: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          color: "#ffffff",
+                          fontFamily: "var(--font-display)",
+                        }}>
+                          {project.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+
                     {/* Clickable area for selecting project */}
                     <div
                       onClick={() => {
@@ -338,7 +423,7 @@ export function UnifiedProjectSelector({
                           }}
                         >
                           <Calendar className="w-3.5 h-3.5" />
-                          <span>Updated {format(new Date(project.updatedAt), "dd-MMM-yy")}</span>
+                          <span>Updated {format(new Date(project.updatedAt), "dd-MMM-yy (EEE)")}</span>
                         </div>
                       </div>
 
