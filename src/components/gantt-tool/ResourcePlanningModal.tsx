@@ -15,8 +15,9 @@
 "use client";
 
 import { useState } from "react";
-import { X, Plus, Trash2, Users, DollarSign, Briefcase, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Users, DollarSign, Briefcase, ChevronDown, ChevronRight } from "lucide-react";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 interface ResourcePlanningModalProps {
   onClose: () => void;
@@ -108,124 +109,79 @@ export function ResourcePlanningModal({ onClose }: ResourcePlanningModalProps) {
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        backdropFilter: "blur(4px)",
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-      }}
-      onClick={onClose}
+    <BaseModal
+      isOpen={true}
+      onClose={onClose}
+      title="Resource Planning"
+      subtitle="Design your team structure, define roles, and calculate costs before timeline work"
+      icon={<Users className="w-5 h-5" />}
+      size="xlarge"
+      footer={
+        <>
+          <div style={{
+            fontFamily: "var(--font-text)",
+            fontSize: "13px",
+            color: "#666",
+            marginRight: "auto",
+          }}>
+            {placeholders.length} team {placeholders.length === 1 ? 'member' : 'members'} • EUR {calculateTotalDailyCost().toLocaleString()}/day
+          </div>
+          <ModalButton onClick={onClose} variant="secondary">
+            Cancel
+          </ModalButton>
+          <ModalButton
+            onClick={() => {
+              // TODO: Save to store
+              console.log("Saving resource plan:", { roleTemplates, placeholders });
+              onClose();
+            }}
+            variant="primary"
+          >
+            Save Resource Plan
+          </ModalButton>
+        </>
+      }
     >
-      <div
-        style={{
-          backgroundColor: "#fff",
-          borderRadius: "12px",
-          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
-          maxWidth: "1000px",
-          width: "100%",
-          maxHeight: "90vh",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div style={{
-          padding: "24px",
-          borderBottom: "1px solid var(--color-gray-4)",
-        }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-            <div style={{ flex: 1 }}>
-              <h2 style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "24px",
-                fontWeight: 600,
-                color: "#000",
-                marginBottom: "8px",
-              }}>
-                Resource Planning
-              </h2>
-              <p style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "14px",
-                color: "#666",
-              }}>
-                Design your team structure, define roles, and calculate costs before timeline work
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "6px",
-                border: "none",
-                backgroundColor: "transparent",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "background-color 0.15s ease",
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--color-gray-6)"}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-            >
-              <X className="w-5 h-5" style={{ color: "#666" }} />
-            </button>
-          </div>
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
+        {[
+          { key: "roles" as const, label: "Role Templates", icon: Briefcase },
+          { key: "structure" as const, label: "Team Structure", icon: Users },
+          { key: "costs" as const, label: "Cost Planning", icon: DollarSign },
+        ].map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            style={{
+              padding: "10px 16px",
+              borderRadius: "6px",
+              border: "none",
+              backgroundColor: activeTab === key ? "var(--color-blue)" : "transparent",
+              color: activeTab === key ? "#fff" : "#666",
+              fontFamily: "var(--font-text)",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== key) e.currentTarget.style.backgroundColor = "var(--color-gray-6)";
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== key) e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <Icon className="w-4 h-4" />
+            {label}
+          </button>
+        ))}
+      </div>
 
-          {/* Tabs */}
-          <div style={{ display: "flex", gap: "8px", marginTop: "20px" }}>
-            {[
-              { key: "roles" as const, label: "Role Templates", icon: Briefcase },
-              { key: "structure" as const, label: "Team Structure", icon: Users },
-              { key: "costs" as const, label: "Cost Planning", icon: DollarSign },
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: "6px",
-                  border: "none",
-                  backgroundColor: activeTab === key ? "var(--color-blue)" : "transparent",
-                  color: activeTab === key ? "#fff" : "#666",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  if (activeTab !== key) e.currentTarget.style.backgroundColor = "var(--color-gray-6)";
-                }}
-                onMouseLeave={(e) => {
-                  if (activeTab !== key) e.currentTarget.style.backgroundColor = "transparent";
-                }}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div style={{
-          flex: 1,
-          overflow: "auto",
-          padding: "24px",
-        }}>
+      {/* Content */}
+      <div>
           {/* Tab: Role Templates */}
           {activeTab === "roles" && (
             <div>
@@ -604,62 +560,7 @@ export function ResourcePlanningModal({ onClose }: ResourcePlanningModalProps) {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Footer */}
-        <div style={{
-          padding: "20px 24px",
-          borderTop: "1px solid var(--color-gray-4)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}>
-          <div style={{
-            fontFamily: "var(--font-text)",
-            fontSize: "13px",
-            color: "#666",
-          }}>
-            {placeholders.length} team {placeholders.length === 1 ? 'member' : 'members'} • EUR {calculateTotalDailyCost().toLocaleString()}/day
-          </div>
-          <div style={{ display: "flex", gap: "12px" }}>
-            <button
-              onClick={onClose}
-              style={{
-                padding: "10px 20px",
-                borderRadius: "6px",
-                border: "1px solid var(--color-gray-4)",
-                backgroundColor: "#fff",
-                fontFamily: "var(--font-text)",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                // TODO: Save to store
-                console.log("Saving resource plan:", { roleTemplates, placeholders });
-                onClose();
-              }}
-              style={{
-                padding: "10px 20px",
-                borderRadius: "6px",
-                border: "none",
-                backgroundColor: "var(--color-blue)",
-                color: "#fff",
-                fontFamily: "var(--font-text)",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              Save Resource Plan
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }

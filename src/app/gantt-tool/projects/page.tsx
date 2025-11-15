@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { Calendar, Trash2, Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

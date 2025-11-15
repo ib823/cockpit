@@ -13,7 +13,7 @@ import { FormPanel } from "@/components/estimation/FormPanel";
 import { IntegrationPanel } from "@/components/estimation/IntegrationPanel";
 import { ResponsiveCard, ResponsiveStack } from "@/components/ui/ResponsiveShell";
 import { Heading, Text } from "@/components/ui/Typography";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/badge";
 import { RicefwItem, FormItem, IntegrationItem } from "@/lib/ricefw/model";
 import { getRicefwRecommendations } from "@/lib/ricefw/calculator";
@@ -76,10 +76,10 @@ export default function TestRicefwPage() {
               </div>
 
               <div className="flex gap-2">
-                <Button onClick={loadSampleScenario} variant="default">
+                <Button onClick={loadSampleScenario} variant="primary">
                   Load Sample Scenario
                 </Button>
-                <Button onClick={clearAll} variant="outline">
+                <Button onClick={clearAll} variant="secondary">
                   Clear All
                 </Button>
               </div>

@@ -36,6 +36,7 @@ import { ExportButton } from "@/components/export/ExportButton";
 import { BenchmarkPanel } from "@/components/benchmarks/BenchmarkPanel";
 // ResourcePanel and RicefwPanel imports removed - using placeholders for now
 import type { Task } from "@/types/core";
+import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
 
 const PROJECT_BASE_DATE = new Date(new Date().getFullYear(), 0, 1);
 
@@ -442,65 +443,95 @@ function PhaseEditSection({ phase, updatePhase }: { phase: Phase; updatePhase: a
         {/* Start Date */}
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
           <div className="flex-1">
-            <div className="text-xs text-gray-500 mb-1">Start Date</div>
             {editMode === "start" ? (
-              <input
-                type="date"
-                value={tempValue}
-                onChange={(e) => setTempValue(e.target.value)}
-                onBlur={() => handleSave("start")}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSave("start");
-                  if (e.key === "Escape") setEditMode(null);
-                }}
-                autoFocus
-                className="w-full px-3 py-2.5 border border-blue-500 rounded text-sm"
-              />
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <HolidayAwareDatePicker
+                    label="Start Date"
+                    value={tempValue}
+                    onChange={(value) => setTempValue(value)}
+                    region="ABMY"
+                    size="small"
+                  />
+                </div>
+                <button
+                  onClick={() => handleSave("start")}
+                  className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setEditMode(null)}
+                  className="p-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             ) : (
-              <div className="font-semibold text-gray-900">{format(startDate, "MMM dd, yyyy")}</div>
+              <>
+                <div className="text-xs text-gray-500 mb-1">Start Date</div>
+                <div className="font-semibold text-gray-900">{format(startDate, "MMM dd, yyyy")}</div>
+              </>
             )}
           </div>
-          <button
-            onClick={() => {
-              setEditMode("start");
-              setTempValue(format(startDate, "yyyy-MM-dd"));
-            }}
-            className="ml-4 p-2.5 hover:bg-white rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-          >
-            <Edit2 className="w-4 h-4 text-gray-400" />
-          </button>
+          {!editMode && (
+            <button
+              onClick={() => {
+                setEditMode("start");
+                setTempValue(format(startDate, "yyyy-MM-dd"));
+              }}
+              className="ml-4 p-2.5 hover:bg-white rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
+              <Edit2 className="w-4 h-4 text-gray-400" />
+            </button>
+          )}
         </div>
 
         {/* End Date */}
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
           <div className="flex-1">
-            <div className="text-xs text-gray-500 mb-1">End Date</div>
             {editMode === "end" ? (
-              <input
-                type="date"
-                value={tempValue}
-                onChange={(e) => setTempValue(e.target.value)}
-                onBlur={() => handleSave("end")}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSave("end");
-                  if (e.key === "Escape") setEditMode(null);
-                }}
-                autoFocus
-                className="w-full px-3 py-2.5 border border-blue-500 rounded text-sm"
-              />
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <HolidayAwareDatePicker
+                    label="End Date"
+                    value={tempValue}
+                    onChange={(value) => setTempValue(value)}
+                    region="ABMY"
+                    size="small"
+                  />
+                </div>
+                <button
+                  onClick={() => handleSave("end")}
+                  className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setEditMode(null)}
+                  className="p-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             ) : (
-              <div className="font-semibold text-gray-900">{format(endDate, "MMM dd, yyyy")}</div>
+              <>
+                <div className="text-xs text-gray-500 mb-1">End Date</div>
+                <div className="font-semibold text-gray-900">{format(endDate, "MMM dd, yyyy")}</div>
+              </>
             )}
           </div>
-          <button
-            onClick={() => {
-              setEditMode("end");
-              setTempValue(format(endDate, "yyyy-MM-dd"));
-            }}
-            className="ml-4 p-2.5 hover:bg-white rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-          >
-            <Edit2 className="w-4 h-4 text-gray-400" />
-          </button>
+          {!editMode && (
+            <button
+              onClick={() => {
+                setEditMode("end");
+                setTempValue(format(endDate, "yyyy-MM-dd"));
+              }}
+              className="ml-4 p-2.5 hover:bg-white rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
+              <Edit2 className="w-4 h-4 text-gray-400" />
+            </button>
+          )}
         </div>
 
         {/* Duration */}
@@ -873,23 +904,23 @@ function TaskSection({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">Start Date</label>
-              <input
-                type="date"
+              <HolidayAwareDatePicker
+                label="Start Date"
                 value={
                   newTask.startDate
                     ? format(newTask.startDate, "yyyy-MM-dd")
                     : format(phaseStartDate, "yyyy-MM-dd")
                 }
-                min={format(phaseStartDate, "yyyy-MM-dd")}
-                max={format(phaseEndDate, "yyyy-MM-dd")}
-                onChange={(e) => {
-                  const date = parse(e.target.value, "yyyy-MM-dd", new Date());
+                onChange={(value) => {
+                  const date = parse(value, "yyyy-MM-dd", new Date());
                   if (isValid(date)) {
                     setNewTask({ ...newTask, startDate: date });
                   }
                 }}
-                className="w-full px-3 py-2.5 border border-blue-300 rounded-lg text-sm"
+                region="ABMY"
+                minDate={format(phaseStartDate, "yyyy-MM-dd")}
+                maxDate={format(phaseEndDate, "yyyy-MM-dd")}
+                size="small"
               />
             </div>
 
@@ -1103,20 +1134,20 @@ function TaskRow({
         <div className="mt-4 pt-3 border-t border-gray-200 space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">Start Date</label>
-              <input
-                type="date"
+              <HolidayAwareDatePicker
+                label="Start Date"
                 value={task.startDate ? format(task.startDate, "yyyy-MM-dd") : ""}
-                min={format(phaseStartDate, "yyyy-MM-dd")}
-                max={format(phaseEndDate, "yyyy-MM-dd")}
-                onChange={(e) => {
-                  const date = parse(e.target.value, "yyyy-MM-dd", new Date());
+                onChange={(value) => {
+                  const date = parse(value, "yyyy-MM-dd", new Date());
                   if (isValid(date)) {
                     const newEndDate = addWorkingDays(date, task.workingDays || 1, "ABMY");
                     onUpdate({ startDate: date, endDate: newEndDate });
                   }
                 }}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded text-xs"
+                region="ABMY"
+                minDate={format(phaseStartDate, "yyyy-MM-dd")}
+                maxDate={format(phaseEndDate, "yyyy-MM-dd")}
+                size="small"
               />
             </div>
 

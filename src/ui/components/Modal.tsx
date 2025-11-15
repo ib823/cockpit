@@ -72,14 +72,14 @@ export const Modal: React.FC<ModalProps> = ({
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div
         ref={ref}
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[var(--r-xl)] border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow-lg)]"
-        style={{ width }}
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[var(--r-xl)] border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow-lg)] flex flex-col"
+        style={{ width, maxHeight: 'calc(100vh - 64px)' }}
       >
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           {title && <h3 className="text-lg font-semibold mb-2 text-[var(--ink)]">{title}</h3>}
           <div className="text-sm text-[var(--ink)]">{children}</div>
         </div>
-        {footer && <div className="px-6 pb-6 flex justify-end gap-2">{footer}</div>}
+        {footer && <div className="px-6 pb-6 flex justify-end gap-2 border-t border-[var(--line)] bg-[var(--surface)]">{footer}</div>}
       </div>
     </div>
   );

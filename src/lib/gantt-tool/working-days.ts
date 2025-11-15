@@ -184,3 +184,37 @@ export function adjustDatesToWorkingDays(
 export function formatWorkingDaysDuration(workingDays: number): string {
   return `${workingDays}d`;
 }
+
+/**
+ * Calculate calendar days between two dates (inclusive)
+ * Includes weekends and holidays
+ */
+export function calculateCalendarDaysInclusive(
+  startDate: Date | string,
+  endDate: Date | string
+): number {
+  const start = typeof startDate === "string" ? parseISO(startDate) : startDate;
+  const end = typeof endDate === "string" ? parseISO(endDate) : endDate;
+
+  // Add 1 to include both start and end dates
+  return differenceInDays(end, start) + 1;
+}
+
+/**
+ * Convert calendar days to months
+ * Using 30 days as 1 month standard
+ * Returns formatted string like "2 m", "3.5 m", etc.
+ */
+export function formatCalendarDaysAsMonths(calendarDays: number): string {
+  const months = calendarDays / 30;
+
+  // Round to 1 decimal place
+  const roundedMonths = Math.round(months * 10) / 10;
+
+  // If it's a whole number, don't show decimal
+  if (roundedMonths % 1 === 0) {
+    return `${roundedMonths} m`;
+  }
+
+  return `${roundedMonths} m`;
+}

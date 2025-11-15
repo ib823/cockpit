@@ -3,26 +3,71 @@
  *
  * Apple-inspired minimal modal for creating new projects
  * "Focus and simplicity... that's been one of my mantras." - Steve Jobs
+ *
+ * Refactored to use BaseModal with Apple HIG quality
  */
 
 "use client";
 
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useState, useRef } from "react";
+import { Upload, FolderPlus } from "lucide-react";
 import { format } from "date-fns";
+import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 interface NewProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateProject: (name: string, startDate: string) => Promise<void>;
+  onCreateProject: (name: string, startDate: string, companyLogos?: Record<string, string>) => Promise<void>;
 }
 
 export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProjectModalProps) {
   const [projectName, setProjectName] = useState("");
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [isCreating, setIsCreating] = useState(false);
+  const [companyLogos, setCompanyLogos] = useState<Record<string, string>>({});
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  if (!isOpen) return null;
+  // Company presets that users can upload logos for
+  const COMPANY_PRESETS = [
+    { name: "ABeam Consulting", key: "abeam", color: "#007AFF" },
+    { name: "Client", key: "client", color: "#34C759" },
+    { name: "SAP", key: "sap", color: "#FF9500" },
+    { name: "Partner", key: "partner", color: "#AF52DE" },
+    { name: "Vendor", key: "vendor", color: "#8E8E93" },
+  ];
+
+  // Handle logo upload for a specific company
+  const handleLogoUpload = (companyKey: string, companyName: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload an image file (PNG, JPG, SVG, etc.)");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image must be smaller than 2MB");
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Url = event.target?.result as string;
+      setCompanyLogos(prev => ({
+        ...prev,
+        [companyName]: base64Url
+      }));
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input
+    e.target.value = "";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,10 +76,11 @@ export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProject
 
     setIsCreating(true);
     try {
-      await onCreateProject(projectName.trim(), startDate);
+      await onCreateProject(projectName.trim(), startDate, companyLogos);
       // Reset form
       setProjectName("");
       setStartDate(format(new Date(), "yyyy-MM-dd"));
+      setCompanyLogos({});
       onClose();
     } catch (error) {
       console.error("Failed to create project:", error);
@@ -44,276 +90,210 @@ export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProject
   };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        style={{
-          position: "fixed",
-          inset: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.4)",
-          backdropFilter: "blur(8px)",
-          zIndex: 9998,
-          animation: "fadeIn 0.2s ease",
-        }}
-      />
-
-      {/* Modal */}
-      <div
-        style={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "90%",
-          maxWidth: "480px",
-          backgroundColor: "#ffffff",
-          borderRadius: "16px",
-          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
-          zIndex: 9999,
-          overflow: "hidden",
-          animation: "scaleIn 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "24px 24px 16px",
-            borderBottom: "1px solid var(--color-gray-4)",
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontFamily: "var(--font-display)",
-              fontSize: "22px",
-              fontWeight: 700,
-              color: "#000",
-            }}
-          >
-            New Project
-          </h2>
-          <button
-            onClick={onClose}
-            disabled={isCreating}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "32px",
-              height: "32px",
-              backgroundColor: "var(--color-gray-5)",
-              border: "none",
-              borderRadius: "8px",
-              cursor: isCreating ? "not-allowed" : "pointer",
-              transition: "all 0.15s ease",
-              opacity: isCreating ? 0.5 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!isCreating) {
-                e.currentTarget.style.backgroundColor = "var(--color-gray-4)";
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="New Project"
+      subtitle="Create a new project with optional company logos"
+      icon={<FolderPlus className="w-5 h-5" />}
+      size="medium"
+      preventClose={isCreating}
+      preventEscapeClose={isCreating}
+      footer={
+        <>
+          <ModalButton onClick={onClose} disabled={isCreating}>
+            Cancel
+          </ModalButton>
+          <ModalButton
+            onClick={() => {
+              const form = document.querySelector('form');
+              if (form) {
+                form.requestSubmit();
               }
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "var(--color-gray-5)";
-            }}
+            variant="primary"
+            disabled={isCreating || !projectName.trim()}
           >
-            <X className="w-5 h-5" style={{ color: "var(--color-gray-1)" }} />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <div style={{ padding: "24px" }}>
-            {/* Project Name */}
-            <div style={{ marginBottom: "20px" }}>
-              <label
-                htmlFor="project-name"
-                style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  color: "#000",
-                }}
-              >
-                Project Name
-              </label>
-              <input
-                id="project-name"
-                type="text"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                placeholder="e.g., Q1 2025 Roadmap"
-                autoFocus
-                required
-                disabled={isCreating}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  backgroundColor: "var(--color-gray-6)",
-                  border: "2px solid transparent",
-                  borderRadius: "10px",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "17px",
-                  color: "#000",
-                  outline: "none",
-                  transition: "all 0.15s ease",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "var(--color-blue)";
-                  e.currentTarget.style.backgroundColor = "#ffffff";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "transparent";
-                  e.currentTarget.style.backgroundColor = "var(--color-gray-6)";
-                }}
-              />
-            </div>
-
-            {/* Start Date */}
-            <div>
-              <label
-                htmlFor="start-date"
-                style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  color: "#000",
-                }}
-              >
-                Start Date
-              </label>
-              <input
-                id="start-date"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                required
-                disabled={isCreating}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  backgroundColor: "var(--color-gray-6)",
-                  border: "2px solid transparent",
-                  borderRadius: "10px",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "17px",
-                  color: "#000",
-                  outline: "none",
-                  transition: "all 0.15s ease",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "var(--color-blue)";
-                  e.currentTarget.style.backgroundColor = "#ffffff";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "transparent";
-                  e.currentTarget.style.backgroundColor = "var(--color-gray-6)";
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              padding: "16px 24px 24px",
-            }}
-          >
-            <button
-              type="button"
-              onClick={onClose}
+            {isCreating ? "Creating..." : "Create Project"}
+          </ModalButton>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          {/* Project Name */}
+          <div>
+            <label
+              htmlFor="project-name"
+              style={{
+                display: "block",
+                marginBottom: "8px",
+                fontFamily: "var(--font-text)",
+                fontSize: "15px",
+                fontWeight: 600,
+                color: "#1D1D1F",
+              }}
+            >
+              Project Name <span style={{ color: "#FF3B30" }}>*</span>
+            </label>
+            <input
+              id="project-name"
+              type="text"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              placeholder="e.g., Q1 2025 Roadmap"
+              autoFocus
+              required
               disabled={isCreating}
               style={{
-                flex: 1,
-                padding: "12px 24px",
-                backgroundColor: "var(--color-gray-5)",
-                border: "none",
-                borderRadius: "10px",
+                width: "100%",
+                padding: "12px 16px",
+                backgroundColor: "#F5F5F7",
+                border: "2px solid transparent",
+                borderRadius: "8px",
                 fontFamily: "var(--font-text)",
-                fontSize: "17px",
-                fontWeight: 600,
-                color: "#000",
-                cursor: isCreating ? "not-allowed" : "pointer",
-                transition: "all 0.15s ease",
-                opacity: isCreating ? 0.5 : 1,
-              }}
-              onMouseEnter={(e) => {
-                if (!isCreating) {
-                  e.currentTarget.style.backgroundColor = "var(--color-gray-4)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--color-gray-5)";
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isCreating || !projectName.trim()}
-              style={{
-                flex: 1,
-                padding: "12px 24px",
-                backgroundColor:
-                  isCreating || !projectName.trim() ? "var(--color-gray-4)" : "var(--color-blue)",
-                border: "none",
-                borderRadius: "10px",
-                fontFamily: "var(--font-text)",
-                fontSize: "17px",
-                fontWeight: 600,
-                color: "#ffffff",
-                cursor: isCreating || !projectName.trim() ? "not-allowed" : "pointer",
+                fontSize: "15px",
+                color: "#1D1D1F",
+                outline: "none",
                 transition: "all 0.15s ease",
               }}
-              onMouseEnter={(e) => {
-                if (!isCreating && projectName.trim()) {
-                  e.currentTarget.style.backgroundColor = "var(--color-blue-dark)";
-                  e.currentTarget.style.transform = "scale(1.02)";
-                }
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "#007AFF";
+                e.currentTarget.style.backgroundColor = "#FFFFFF";
               }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  isCreating || !projectName.trim() ? "var(--color-gray-4)" : "var(--color-blue)";
-                e.currentTarget.style.transform = "scale(1)";
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "transparent";
+                e.currentTarget.style.backgroundColor = "#F5F5F7";
               }}
-            >
-              {isCreating ? "Creating..." : "Create Project"}
-            </button>
+            />
           </div>
-        </form>
-      </div>
 
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
+          {/* Start Date */}
+          <div>
+            <HolidayAwareDatePicker
+              label="Start Date"
+              value={startDate}
+              onChange={(value) => setStartDate(value)}
+              region="ABMY"
+              disabled={isCreating}
+              required={true}
+              size="large"
+            />
+          </div>
 
-        @keyframes scaleIn {
-          from {
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-          }
-        }
-      `}</style>
-    </>
+          {/* Company Logos (Optional) */}
+          <div>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "12px",
+                fontFamily: "var(--font-text)",
+                fontSize: "15px",
+                fontWeight: 600,
+                color: "#1D1D1F",
+              }}
+            >
+              Company Logos{" "}
+              <span style={{ color: "#86868B", fontWeight: 400, fontSize: "13px" }}>
+                (Optional)
+              </span>
+            </label>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(5, 1fr)",
+                gap: "12px",
+              }}
+            >
+              {COMPANY_PRESETS.map((company) => (
+                <div
+                  key={company.key}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  {/* Hidden file input */}
+                  <input
+                    ref={(el) => {
+                      fileInputRefs.current[company.key] = el;
+                    }}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload(company.key, company.name)}
+                    style={{ display: "none" }}
+                    disabled={isCreating}
+                  />
+
+                  {/* Logo preview/upload button */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRefs.current[company.key]?.click()}
+                    disabled={isCreating}
+                    style={{
+                      width: "56px",
+                      height: "56px",
+                      borderRadius: "12px",
+                      backgroundColor: companyLogos[company.name] ? "#FFFFFF" : "#F5F5F7",
+                      border: `2px solid ${
+                        companyLogos[company.name] ? company.color : "rgba(0, 0, 0, 0.08)"
+                      }`,
+                      cursor: isCreating ? "not-allowed" : "pointer",
+                      transition: "all 0.15s ease",
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 0,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isCreating) {
+                        e.currentTarget.style.transform = "scale(1.05)";
+                        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                    {companyLogos[company.name] ? (
+                      <img
+                        src={companyLogos[company.name]}
+                        alt={company.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                          padding: "8px",
+                        }}
+                      />
+                    ) : (
+                      <Upload className="w-5 h-5" style={{ color: "#86868B" }} />
+                    )}
+                  </button>
+
+                  {/* Company name */}
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontFamily: "var(--font-text)",
+                      color: "#86868B",
+                      textAlign: "center",
+                      lineHeight: "1.3",
+                      maxWidth: "64px",
+                    }}
+                  >
+                    {company.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </form>
+    </BaseModal>
   );
 }

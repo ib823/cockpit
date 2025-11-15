@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { X, Users, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Award } from "lucide-react";
+import { motion } from "framer-motion";
+import { Users, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Award, X } from "lucide-react";
 import type { Phase, Resource } from "@/types/core";
-import { Button } from "@/components/common/Button";
-import { Heading2, BodySM } from "@/components/common/Typography";
-import { animation } from "@/lib/design-system";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 interface ResourceManagerModalProps {
   phase: Phase;
@@ -175,100 +173,105 @@ export function ResourceManagerModal({ phase, onClose, onSave }: ResourceManager
   };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          transition={{ duration: animation.duration.normal }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] flex flex-col overflow-hidden"
-        >
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-6 text-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <Users className="w-7 h-7" />
-                </div>
-                <div>
-                  <Heading2 className="text-white text-2xl">Resource Strategy</Heading2>
-                  <BodySM className="text-blue-100 mt-1">
-                    {phase.name} | {phase.workingDays} days
-                  </BodySM>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="text-white hover:bg-white/20"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-
-            {/* Strategic Metrics Bar */}
-            <div className="grid grid-cols-4 gap-4 mt-6">
-              <MetricCard
-                icon={<Users className="w-5 h-5" />}
-                label="Team Size"
-                value={metrics.teamSize.toString()}
-                status={metrics.teamSize >= 3 ? "good" : "warning"}
-              />
-              <MetricCard
-                icon={<DollarSign className="w-5 h-5" />}
-                label="Phase Cost"
-                value={`$${(metrics.totalCost / 1000).toFixed(0)}k`}
-                status="neutral"
-              />
-              <MetricCard
-                icon={<Award className="w-5 h-5" />}
-                label="Quality Score"
-                value={`${Math.min(100, metrics.qualityScore)}%`}
-                status={
-                  metrics.qualityScore >= 90
-                    ? "good"
-                    : metrics.qualityScore >= 70
-                      ? "warning"
-                      : "critical"
-                }
-              />
-              <MetricCard
-                icon={<TrendingUp className="w-5 h-5" />}
-                label="Critical Roles"
-                value={`${metrics.criticalRoles}/${resources.length}`}
-                status={metrics.hasArchitect && metrics.hasLead ? "good" : "warning"}
-              />
-            </div>
+    <BaseModal
+      isOpen={true}
+      onClose={onClose}
+      title="Resource Strategy"
+      subtitle={`${phase.name} | ${phase.workingDays} days`}
+      icon={<Users className="w-5 h-5" />}
+      size="xlarge"
+      footer={
+        <>
+          <div style={{
+            fontFamily: "var(--font-text)",
+            fontSize: "14px",
+            color: "#666",
+            marginRight: "auto",
+          }}>
+            {resources.length} resources • ${(metrics.totalCost / 1000).toFixed(0)}k total cost
           </div>
+          <ModalButton onClick={onClose} variant="secondary">
+            Cancel
+          </ModalButton>
+          <ModalButton onClick={handleSave} variant="primary">
+            Save Team
+          </ModalButton>
+        </>
+      }
+    >
+      {/* Strategic Metrics Bar */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(4, 1fr)",
+        gap: "16px",
+        marginBottom: "24px",
+        padding: "24px",
+        background: "linear-gradient(to right, #2563EB, #4F46E5)",
+        borderRadius: "12px",
+      }}>
+        <MetricCard
+          icon={<Users className="w-5 h-5" />}
+          label="Team Size"
+          value={metrics.teamSize.toString()}
+          status={metrics.teamSize >= 3 ? "good" : "warning"}
+        />
+        <MetricCard
+          icon={<DollarSign className="w-5 h-5" />}
+          label="Phase Cost"
+          value={`$${(metrics.totalCost / 1000).toFixed(0)}k`}
+          status="neutral"
+        />
+        <MetricCard
+          icon={<Award className="w-5 h-5" />}
+          label="Quality Score"
+          value={`${Math.min(100, metrics.qualityScore)}%`}
+          status={
+            metrics.qualityScore >= 90
+              ? "good"
+              : metrics.qualityScore >= 70
+                ? "warning"
+                : "critical"
+          }
+        />
+        <MetricCard
+          icon={<TrendingUp className="w-5 h-5" />}
+          label="Critical Roles"
+          value={`${metrics.criticalRoles}/${resources.length}`}
+          status={metrics.hasArchitect && metrics.hasLead ? "good" : "warning"}
+        />
+      </div>
 
-          {/* Recommendations */}
-          <div className="px-8 py-4 bg-gray-50 border-b border-gray-200">
-            <div className="flex items-start gap-3">
-              {!metrics.hasArchitect && (
-                <Alert
-                  type="warning"
-                  message="Consider adding a Solution Architect for technical governance"
-                />
-              )}
-              {!metrics.hasLead && (
-                <Alert
-                  type="warning"
-                  message="Project Lead recommended for stakeholder management"
-                />
-              )}
-              {metrics.isOverAllocated && (
-                <Alert type="critical" message="Team is over-allocated. Review allocations." />
-              )}
-              {metrics.qualityScore >= 90 && (
-                <Alert type="success" message="Excellent team composition for this phase" />
-              )}
-            </div>
-          </div>
+      {/* Recommendations */}
+      <div style={{
+        padding: "16px 24px",
+        backgroundColor: "#F9FAFB",
+        borderRadius: "8px",
+        marginBottom: "24px",
+      }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {!metrics.hasArchitect && (
+            <Alert
+              type="warning"
+              message="Consider adding a Solution Architect for technical governance"
+            />
+          )}
+          {!metrics.hasLead && (
+            <Alert
+              type="warning"
+              message="Project Lead recommended for stakeholder management"
+            />
+          )}
+          {metrics.isOverAllocated && (
+            <Alert type="critical" message="Team is over-allocated. Review allocations." />
+          )}
+          {metrics.qualityScore >= 90 && (
+            <Alert type="success" message="Excellent team composition for this phase" />
+          )}
+        </div>
+      </div>
 
-          {/* Content - Two Columns */}
-          <div className="flex-1 overflow-y-auto p-8 bg-white">
+      {/* Content - Two Columns */}
+      <div>
             <div className="grid grid-cols-2 gap-8">
               {/* Left: Role Selector */}
               <div>
@@ -417,25 +420,8 @@ export function ResourceManagerModal({ phase, onClose, onSave }: ResourceManager
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between px-8 py-4 border-t border-gray-200 bg-gray-50">
-            <div className="text-sm text-gray-600">
-              {resources.length} resources • ${(metrics.totalCost / 1000).toFixed(0)}k total cost
-            </div>
-            <div className="flex gap-3">
-              <Button variant="secondary" size="md" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button variant="primary" size="md" onClick={handleSave}>
-                Save Team
-              </Button>
-            </div>
-          </div>
-        </motion.div>
       </div>
-    </AnimatePresence>
+    </BaseModal>
   );
 }
 

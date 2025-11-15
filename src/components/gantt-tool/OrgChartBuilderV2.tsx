@@ -13,25 +13,31 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { X, Plus, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { X, Plus, ZoomIn, ZoomOut, Maximize2, Save, Check } from "lucide-react";
 import { useOrgChartDragDrop } from "@/hooks/useOrgChartDragDrop";
-import type { OrgNode, Designation } from "@/hooks/useOrgChartDragDrop";
+import type { OrgNode, Designation, ResourceCategory } from "@/hooks/useOrgChartDragDrop";
 import { DraggableOrgCardV4 } from "./DraggableOrgCardV4";
 import {
   calculateTreeLayout,
   calculateAllConnectionPaths,
+  calculatePeerConnectionPaths,
   type LayoutNode,
   CARD_WIDTH,
   CARD_HEIGHT,
   CANVAS_MARGIN,
   LEVEL_GAP
 } from "@/lib/org-chart/spacing-algorithm";
+import type { GanttProject } from "@/types/gantt-tool";
+import type { ResourceDesignation } from "@/types/gantt-tool";
+import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { getAllCompanyLogos } from "@/lib/default-company-logos";
 import "../../styles/org-chart-drag-drop.css";
 
 interface OrgChartBuilderV2Props {
   onClose: () => void;
+  project?: GanttProject | null; // Project for accessing company logos
 }
 
 type Direction = "vertical" | "horizontal";
@@ -45,56 +51,101 @@ type TreeNode = {
 
 type ZoomMode = "auto-fit" | "scrollable";
 
-export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
+export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) {
+  // Merge default logos with custom project logos
+  const customLogos = project?.orgChartPro?.companyLogos || {};
+  const companyLogos = getAllCompanyLogos(customLogos);
+  const { addResource, updateResource, currentProject, addPeerLink, getPeerLinks } = useGanttToolStoreV2();
   const [direction, setDirection] = useState<Direction>("vertical");
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: "", visible: false });
   const [successNodeId, setSuccessNodeId] = useState<string | null>(null);
-  const [nodes, setNodes] = useState<OrgNode[]>([
-    {
-      id: "node-1",
-      roleTitle: "Project Manager",
-      designation: "senior-manager",
-      companyName: "ABeam Consulting",
-    },
-    {
-      id: "node-2",
-      roleTitle: "SAP FI Lead",
-      designation: "manager",
-      companyName: "ABeam Consulting",
-      reportsTo: "node-1",
-    },
-    {
-      id: "node-3",
-      roleTitle: "Finance Director",
-      designation: "director",
-      companyName: "Client Co.",
-      reportsTo: "node-1",
-    },
-    {
-      id: "node-4",
-      roleTitle: "FI Consultant",
-      designation: "consultant",
-      companyName: "ABeam Consulting",
-      reportsTo: "node-2",
-    },
-    {
-      id: "node-5",
-      roleTitle: "SAP MM Lead",
-      designation: "manager",
-      companyName: "ABeam Consulting",
-      reportsTo: "node-1",
-    },
-  ]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Map resource designation to org chart designation
+  const mapToOrgDesignation = (designation: ResourceDesignation): Designation => {
+    const mapping: Record<ResourceDesignation, Designation> = {
+      "principal": "principal",
+      "director": "director",
+      "senior_manager": "senior-manager",
+      "manager": "manager",
+      "senior_consultant": "senior-consultant",
+      "consultant": "consultant",
+      "analyst": "analyst",
+      "subcontractor": "subcontractor"
+    };
+    return mapping[designation] || "consultant";
+  };
+
+  // Load existing resources from project or use default sample data
+  const getInitialNodes = (): OrgNode[] => {
+    if (currentProject?.resources && currentProject.resources.length > 0) {
+      // Convert existing resources to OrgNodes
+      return currentProject.resources.map(resource => ({
+        id: resource.id,
+        roleTitle: resource.name,
+        designation: mapToOrgDesignation(resource.designation),
+        category: resource.category,
+        companyName: resource.description || "Company",
+        reportsTo: resource.managerResourceId || undefined,
+        dailyRate: resource.chargeRatePerHour ? resource.chargeRatePerHour * 8 : undefined,
+      }));
+    }
+
+    // Default sample data when no resources exist
+    return [
+      {
+        id: "node-1",
+        roleTitle: "Project Manager",
+        designation: "senior-manager",
+        companyName: "ABeam Consulting",
+      },
+      {
+        id: "node-2",
+        roleTitle: "SAP FI Lead",
+        designation: "manager",
+        companyName: "ABeam Consulting",
+        reportsTo: "node-1",
+      },
+      {
+        id: "node-3",
+        roleTitle: "Finance Director",
+        designation: "director",
+        companyName: "Client Co.",
+        reportsTo: "node-1",
+      },
+      {
+        id: "node-4",
+        roleTitle: "FI Consultant",
+        designation: "consultant",
+        companyName: "ABeam Consulting",
+        reportsTo: "node-2",
+      },
+      {
+        id: "node-5",
+        roleTitle: "SAP MM Lead",
+        designation: "manager",
+        companyName: "ABeam Consulting",
+        reportsTo: "node-1",
+      },
+    ];
+  };
+
+  const [nodes, setNodes] = useState<OrgNode[]>(getInitialNodes());
 
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [editingNode, setEditingNode] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [editingDesignation, setEditingDesignation] = useState<Designation>("consultant");
+  const [multiSelectedNodes, setMultiSelectedNodes] = useState<Set<string>>(new Set());
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
   const [zoomMode, setZoomMode] = useState<ZoomMode>("auto-fit");
   const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [isPanMode, setIsPanMode] = useState(false); // Space key held = pan mode
+  const [invalidNodeId, setInvalidNodeId] = useState<string | null>(null); // Invalid drop target
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -110,22 +161,50 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
     setTimeout(() => setSuccessNodeId(null), 600);
   };
 
+  // Invalid drop handler
+  const handleInvalidDrop = useCallback((targetId: string, reason: string) => {
+    setInvalidNodeId(targetId);
+    showToast(reason);
+
+    // Clear invalid state after animation
+    setTimeout(() => {
+      setInvalidNodeId(null);
+    }, 600);
+  }, []);
+
+  // Handle peer link creation when user drops on left/right zone
+  const handlePeerLinkCreated = useCallback(
+    (node1Id: string, node2Id: string) => {
+      // Call store method to persist peer link
+      addPeerLink(node1Id, node2Id);
+      showToast("Peer link created");
+    },
+    [addPeerLink]
+  );
+
   // Drag-and-drop hook
   const {
     activeId,
     overId,
     dropZone,
+    invalidTargetId,
     handleDragStart,
     handleDragEnd,
     handleDragOver,
     handleDragCancel,
-  } = useOrgChartDragDrop(nodes, setNodes);
+  } = useOrgChartDragDrop(nodes, setNodes, handleInvalidDrop, handlePeerLinkCreated);
 
   // Sensors for drag-and-drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Prevents accidental drags
+        distance: 12, // 12px threshold for better disambiguation with pan
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,      // 200ms long-press for touch devices
+        tolerance: 8,    // 8px tolerance during long-press
       },
     }),
     useSensor(KeyboardSensor)
@@ -211,9 +290,11 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
   };
 
   // Add peer (creates a new node at same level)
-  const addPeer = (nodeId: string) => {
-    const currentNode = nodes.find(n => n.id === nodeId);
-    if (!currentNode) return;
+  const addPeer = (nodeId: string, direction: "left" | "right" = "right") => {
+    const currentNodeIndex = nodes.findIndex(n => n.id === nodeId);
+    if (currentNodeIndex === -1) return;
+
+    const currentNode = nodes[currentNodeIndex];
 
     const newPeerNode: OrgNode = {
       id: `node-${Date.now()}`,
@@ -223,13 +304,23 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
       reportsTo: currentNode.reportsTo,
     };
 
-    setNodes([...nodes, newPeerNode]);
+    // Insert the new peer at the correct position
+    const newNodes = [...nodes];
+    if (direction === "left") {
+      // Insert before current node (on the left)
+      newNodes.splice(currentNodeIndex, 0, newPeerNode);
+    } else {
+      // Insert after current node (on the right)
+      newNodes.splice(currentNodeIndex + 1, 0, newPeerNode);
+    }
+
+    setNodes(newNodes);
     setSelectedNode(newPeerNode.id);
     setEditingNode(newPeerNode.id);
     setEditingTitle("New Peer");
     setEditingDesignation(currentNode.designation);
 
-    showToast(`Added same-level role as peer to ${currentNode.roleTitle}`);
+    showToast(`Added same-level role as peer to ${currentNode.roleTitle} (${direction})`);
     triggerSuccessAnimation(newPeerNode.id);
   };
 
@@ -246,9 +337,136 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
     setSelectedNode(null);
   };
 
-  // Update node
+  // Update node with validation (Jobs/Ive: anticipate user needs, prevent errors)
   const updateNode = (nodeId: string, updates: Partial<OrgNode>) => {
+    // If updating roleTitle, check for duplicates and auto-increment
+    if (updates.roleTitle !== undefined) {
+      let newTitle = updates.roleTitle.trim();
+
+      // Check if this title already exists (excluding current node)
+      const existingTitles = nodes
+        .filter(n => n.id !== nodeId)
+        .map(n => n.roleTitle);
+
+      if (existingTitles.includes(newTitle)) {
+        // Find the next available increment
+        let increment = 2;
+        let candidateTitle = `${newTitle}_${increment}`;
+
+        while (existingTitles.includes(candidateTitle)) {
+          increment++;
+          candidateTitle = `${newTitle}_${increment}`;
+        }
+
+        newTitle = candidateTitle;
+        showToast(`Name already exists, renamed to "${newTitle}"`);
+      }
+
+      updates = { ...updates, roleTitle: newTitle };
+    }
+
     setNodes(nodes.map(n => (n.id === nodeId ? { ...n, ...updates } : n)));
+  };
+
+  // Multi-select toggle
+  const toggleNodeSelection = (nodeId: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    setMultiSelectedNodes(prev => {
+      const newSelection = new Set(prev);
+      if (newSelection.has(nodeId)) {
+        newSelection.delete(nodeId);
+      } else {
+        newSelection.add(nodeId);
+      }
+      return newSelection;
+    });
+  };
+
+  // Clear multi-selection
+  const clearMultiSelection = () => {
+    setMultiSelectedNodes(new Set());
+    setShowCategoryPicker(false);
+  };
+
+  // Assign category to selected nodes
+  const assignCategoryToSelected = (category: ResourceCategory) => {
+    if (multiSelectedNodes.size === 0) return;
+
+    const updatedNodes = nodes.map(node =>
+      multiSelectedNodes.has(node.id) ? { ...node, category } : node
+    );
+
+    setNodes(updatedNodes);
+    showToast(`Assigned ${multiSelectedNodes.size} resource(s) to ${category}`);
+    clearMultiSelection();
+  };
+
+  // Map org chart designation to resource designation
+  const mapDesignation = (designation: Designation): ResourceDesignation => {
+    const mapping: Record<Designation, ResourceDesignation> = {
+      "principal": "principal",
+      "director": "director",
+      "senior-manager": "senior_manager",
+      "manager": "manager",
+      "senior-consultant": "senior_consultant",
+      "consultant": "consultant",
+      "analyst": "analyst",
+      "subcontractor": "subcontractor"
+    };
+    return mapping[designation] || "consultant";
+  };
+
+  // Save org chart as project resources
+  const saveToProject = async () => {
+    if (nodes.length === 0) {
+      showToast("No resources to save");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const existingResources = currentProject?.resources || [];
+
+      // Convert each OrgNode to a Resource and add/update in project
+      for (const node of nodes) {
+        const resourceData = {
+          name: node.roleTitle,
+          category: node.category || "other",
+          description: `${node.companyName || ""}`,
+          designation: mapDesignation(node.designation),
+          managerResourceId: node.reportsTo || null,
+          assignmentLevel: "both" as const,
+          isBillable: true,
+          chargeRatePerHour: node.dailyRate ? node.dailyRate / 8 : 0,
+        };
+
+        // Check if resource already exists (by ID)
+        const existingResource = existingResources.find(r => r.id === node.id);
+
+        if (existingResource) {
+          // Update existing resource
+          await updateResource(node.id, resourceData);
+        } else {
+          // Add new resource
+          await addResource(resourceData);
+        }
+      }
+
+      setSaveSuccess(true);
+      showToast(`Successfully saved ${nodes.length} resource(s) to project!`);
+
+      // Auto-close after success
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (error) {
+      console.error("Error saving resources:", error);
+      showToast("Failed to save resources. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Start editing
@@ -325,10 +543,17 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
       const isDragging = activeId === node.id;
       const isDropTarget = overId === node.id;
 
+      // Determine CSS class for feedback
+      const cardClassName = successNodeId === node.id
+        ? "org-card-drop-success"
+        : (invalidNodeId === node.id || invalidTargetId === node.id
+          ? "org-card-invalid-drop"
+          : "");
+
       elements.push(
         <div
           key={node.id}
-          className={successNodeId === node.id ? "org-card-drop-success" : ""}
+          className={cardClassName}
           style={{
             position: "absolute",
             left: `${nodePos.x}px`,
@@ -337,20 +562,30 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
           }}
         >
           <DraggableOrgCardV4
-            node={node}
+            node={{
+              ...node,
+              companyLogoUrl: node.companyName ? companyLogos[node.companyName] : undefined
+            }}
             isSelected={selectedNode === node.id}
             isDragging={isDragging}
             isOver={isDropTarget}
             dropZone={dropZone}
             hasChildren={hasChildren}
+            isMultiSelected={multiSelectedNodes.has(node.id)}
+            companyLogos={companyLogos}
             onSelect={() => setSelectedNode(node.id)}
+            onToggleMultiSelect={(e) => toggleNodeSelection(node.id, e)}
             onUpdateTitle={(newTitle) => updateNode(node.id, { roleTitle: newTitle })}
             onUpdateDesignation={(newDesignation) => updateNode(node.id, { designation: newDesignation })}
+            onUpdateCompany={(companyName) => {
+              const logoUrl = companyLogos[companyName];
+              updateNode(node.id, { companyName, companyLogoUrl: logoUrl });
+            }}
             onDelete={() => deleteNode(node.id)}
             onAddTop={() => addManager(node.id)}
             onAddBottom={() => addNode(node.id)}
-            onAddLeft={() => addPeer(node.id)}
-            onAddRight={() => addPeer(node.id)}
+            onAddLeft={() => addPeer(node.id, "left")}
+            onAddRight={() => addPeer(node.id, "right")}
           />
         </div>
       );
@@ -439,8 +674,9 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
   };
 
   // Pan handlers (for manual panning in scrollable mode)
+  // FIX: Only allow panning when Space is held AND not currently dragging
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (zoomMode === "scrollable" && e.button === 0) {
+    if (zoomMode === "scrollable" && isPanMode && !activeId && e.button === 0) {
       setIsPanning(true);
       setPanStart({ x: e.clientX - panPosition.x, y: e.clientY - panPosition.y });
       e.preventDefault();
@@ -460,9 +696,16 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
     setIsPanning(false);
   };
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts + Pan mode (Space key)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Pan mode: Space key (Apple/Adobe/Figma standard)
+      if (e.code === 'Space' && !e.repeat && zoomMode === "scrollable") {
+        e.preventDefault();
+        setIsPanMode(true);
+        return;
+      }
+
       // Zoom shortcuts: Cmd/Ctrl + Plus/Minus
       if ((e.metaKey || e.ctrlKey) && e.key === '+') {
         e.preventDefault();
@@ -476,9 +719,22 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
       }
     };
 
+    const handleKeyUp = (e: KeyboardEvent) => {
+      // Exit pan mode when Space released
+      if (e.code === 'Space') {
+        setIsPanMode(false);
+        setIsPanning(false); // Also stop any active panning
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nodes.length]); // Re-bind when node count changes
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [nodes.length, zoomMode]); // Re-bind when node count or zoom mode changes
 
   // Render connection lines using new algorithm (Apple 40% control point ratio)
   const connectionPaths = calculateAllConnectionPaths(layout.positions, layoutNodes);
@@ -501,6 +757,38 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
         strokeWidth="2"
         fill="none"
         strokeLinecap="round"
+        style={{
+          transition: "all 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+        }}
+      />
+    </svg>
+  ));
+
+  // Render peer connection lines (ONLY for explicitly linked peers)
+  const explicitPeerLinks = project?.orgChartPro?.peerLinks || [];
+  const peerConnectionPaths = calculatePeerConnectionPaths(layout.positions, explicitPeerLinks);
+  const peerConnectionLines: JSX.Element[] = peerConnectionPaths.map(({ peer1Id, peer2Id, path }) => (
+    <svg
+      key={`peer-line-${peer1Id}-${peer2Id}`}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        zIndex: 0,
+        opacity: 1, // Always visible (peer lines only created when user explicitly links resources)
+        transition: "opacity 300ms ease-out",
+      }}
+    >
+      <path
+        d={path}
+        stroke="rgba(0, 0, 0, 0.1)"
+        strokeWidth="1.5"
+        fill="none"
+        strokeLinecap="round"
+        strokeDasharray="4 4" // Dotted line style
         style={{
           transition: "all 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
         }}
@@ -576,7 +864,7 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
                   margin: "4px 0 0 0",
                 }}
               >
-                Drag cards to rearrange • Zoom with ⌘+/⌘- • {zoomMode === "scrollable" ? "Click & drag to pan" : "Auto-fit enabled"}
+                {nodes.length} {nodes.length === 1 ? "resource" : "resources"} • Drag to rearrange • {zoomMode === "scrollable" ? "Pan & zoom" : "Auto-fit"}
               </p>
             </div>
 
@@ -666,6 +954,8 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
                 >
                   <Maximize2 className="w-4 h-4" style={{ color: "#1d1d1f" }} />
                 </button>
+
+                {/* Peer lines toggle removed - peer lines now appear only when explicitly created via drag-drop */}
               </div>
 
               {/* Mode indicator */}
@@ -681,6 +971,50 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
               >
                 {zoomMode === "auto-fit" ? "Auto-Fit" : "Manual"}
               </div>
+
+              {/* Save to Project Button */}
+              <button
+                onClick={saveToProject}
+                disabled={isSaving || saveSuccess || nodes.length === 0}
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: saveSuccess ? "#34C759" : "#007AFF",
+                  border: "none",
+                  cursor: (isSaving || saveSuccess || nodes.length === 0) ? "not-allowed" : "pointer",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  transition: "all 150ms",
+                  opacity: (isSaving || nodes.length === 0) ? 0.6 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSaving && !saveSuccess && nodes.length > 0) {
+                    e.currentTarget.style.backgroundColor = "#0051D5";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!saveSuccess) {
+                    e.currentTarget.style.backgroundColor = "#007AFF";
+                  }
+                }}
+                title={nodes.length === 0 ? "Add resources before saving" : "Save resources to project"}
+              >
+                {saveSuccess ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Saved!
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    {isSaving ? "Saving..." : "Save to Project"}
+                  </>
+                )}
+              </button>
 
               <button
                 onClick={onClose}
@@ -700,18 +1034,137 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
             </div>
           </div>
 
+          {/* Multi-Select Toolbar (Apple HIG: appears when needed) */}
+          {multiSelectedNodes.size > 0 && (
+            <div
+              style={{
+                padding: "12px 24px",
+                backgroundColor: "#007AFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                boxShadow: "0 2px 8px rgba(0, 122, 255, 0.3)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <span style={{ color: "#FFFFFF", fontSize: "14px", fontWeight: 600 }}>
+                  {multiSelectedNodes.size} resource{multiSelectedNodes.size > 1 ? "s" : ""} selected
+                </span>
+                <button
+                  onClick={clearMultiSelection}
+                  style={{
+                    padding: "6px 12px",
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                    border: "1px solid rgba(255, 255, 255, 0.3)",
+                    borderRadius: "6px",
+                    color: "#FFFFFF",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 150ms",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)"}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)"}
+                >
+                  Clear Selection
+                </button>
+              </div>
+
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowCategoryPicker(!showCategoryPicker)}
+                  style={{
+                    padding: "8px 16px",
+                    backgroundColor: "#FFFFFF",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#007AFF",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    transition: "all 150ms",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+                  }}
+                >
+                  Assign Category
+                </button>
+
+                {/* Category Picker Dropdown */}
+                {showCategoryPicker && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 8px)",
+                      right: 0,
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: "12px",
+                      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+                      border: "1px solid #e0e0e0",
+                      padding: "8px",
+                      zIndex: 10000,
+                      minWidth: "200px",
+                    }}
+                  >
+                    {([
+                      { value: "leadership", label: "Leadership" },
+                      { value: "pm", label: "Project Management" },
+                      { value: "technical", label: "Technical" },
+                      { value: "functional", label: "Functional" },
+                      { value: "change", label: "Change Management" },
+                      { value: "qa", label: "Quality Assurance" },
+                      { value: "basis", label: "Basis/Infrastructure" },
+                      { value: "security", label: "Security & Authorization" }
+                    ] as { value: ResourceCategory; label: string }[]).map(({ value, label }) => (
+                      <button
+                        key={value}
+                        onClick={() => assignCategoryToSelected(value)}
+                        style={{
+                          width: "100%",
+                          padding: "10px 16px",
+                          textAlign: "left",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          color: "#1d1d1f",
+                          transition: "all 100ms",
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f5f5f7"}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Content Area */}
           <div
             ref={contentAreaRef}
             style={{
               flex: 1,
-              overflow: zoomMode === "scrollable" ? "auto" : "hidden",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              overflow: "auto", // Always allow scrolling to prevent clipping
               backgroundColor: "#fafafa",
-              cursor: isPanning ? "grabbing" : (zoomMode === "scrollable" ? "grab" : "default"),
+              cursor: isPanning
+                ? "grabbing"
+                : (isPanMode && zoomMode === "scrollable"
+                  ? "grab"
+                  : (activeId ? "default" : "default")),
               position: "relative",
+              padding: "40px", // Add padding for breathing room
             }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -727,6 +1180,7 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
                 backgroundColor: "#ffffff",
                 borderRadius: "12px",
                 border: "1px solid #e0e0e0",
+                margin: "0 auto", // Center horizontally when smaller than parent
                 transform: zoomMode === "scrollable"
                   ? `scale(${zoomScale}) translate(${panPosition.x / zoomScale}px, ${panPosition.y / zoomScale}px)`
                   : `scale(${zoomScale})`,
@@ -736,11 +1190,41 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
               }}
             >
               {connectionLines}
+              {peerConnectionLines}
               {treeResult.elements}
             </div>
 
+            {/* Pan mode indicator (Space key held) */}
+            {isPanMode && zoomMode === "scrollable" && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "20px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  padding: "10px 20px",
+                  backgroundColor: "#007AFF",
+                  color: "#ffffff",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  borderRadius: "24px",
+                  pointerEvents: "none",
+                  boxShadow: "0 4px 12px rgba(0, 122, 255, 0.4)",
+                  animation: "fade-in 200ms ease-out",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 2L6 4h4L8 2zM8 14l2-2H6l2 2zM2 8l2-2v4L2 8zM14 8l-2 2V6l2 2z"/>
+                </svg>
+                <span>Pan Mode (Space)</span>
+              </div>
+            )}
+
             {/* Hint text for panning (scrollable mode only) */}
-            {zoomMode === "scrollable" && !isPanning && nodes.length > 6 && (
+            {zoomMode === "scrollable" && !isPanning && !isPanMode && nodes.length > 6 && (
               <div
                 style={{
                   position: "absolute",
@@ -758,7 +1242,7 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
                   transition: "opacity 200ms",
                 }}
               >
-                Click and drag to pan • Use scroll to navigate
+                Hold Space + drag to pan • Drag cards to rearrange
               </div>
             )}
           </div>
@@ -826,6 +1310,16 @@ export function OrgChartBuilderV2({ onClose }: OrgChartBuilderV2Props) {
           from {
             opacity: 0;
             transform: translateX(-50%) translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+          }
+        }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-10px);
           }
           to {
             opacity: 1;

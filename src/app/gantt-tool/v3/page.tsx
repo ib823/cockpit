@@ -286,16 +286,11 @@ export default function GanttToolV3Page() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px",
-                  padding: "0 12px",
-                  minWidth: "44px",
-                  minHeight: "44px",
+                  width: "44px",
+                  height: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  fontWeight: 500,
                   color: currentProject ? "var(--color-text-secondary)" : "var(--color-gray-3)",
                   cursor: currentProject ? "pointer" : "not-allowed",
                   opacity: currentProject ? 1 : 0.5,
@@ -304,9 +299,7 @@ export default function GanttToolV3Page() {
                 onMouseEnter={(e) => { if (currentProject) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                {/* Desktop: Text only, Mobile: Icon only */}
-                <Layers className="w-4 h-4 inline md:hidden" aria-hidden="true" />
-                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Phase</span>
+                <Layers className="w-4 h-4" aria-hidden="true" />
               </button>
 
               {/* Add Task Button */}
@@ -320,16 +313,11 @@ export default function GanttToolV3Page() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px",
-                  padding: "0 12px",
-                  minWidth: "44px",
-                  minHeight: "44px",
+                  width: "44px",
+                  height: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  fontWeight: 500,
                   color: currentProject && currentProject.phases.length > 0 ? "var(--color-text-secondary)" : "var(--color-gray-3)",
                   cursor: currentProject && currentProject.phases.length > 0 ? "pointer" : "not-allowed",
                   opacity: currentProject && currentProject.phases.length > 0 ? 1 : 0.5,
@@ -338,9 +326,7 @@ export default function GanttToolV3Page() {
                 onMouseEnter={(e) => { if (currentProject && currentProject.phases.length > 0) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                {/* Desktop: Text only, Mobile: Icon only */}
-                <CheckSquare className="w-4 h-4 inline md:hidden" aria-hidden="true" />
-                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Task</span>
+                <CheckSquare className="w-4 h-4" aria-hidden="true" />
               </button>
 
               {/* Add Milestone Button */}
@@ -353,16 +339,11 @@ export default function GanttToolV3Page() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px",
-                  padding: "0 12px",
-                  minWidth: "44px",
-                  minHeight: "44px",
+                  width: "44px",
+                  height: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  fontWeight: 500,
                   color: "var(--color-text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -370,9 +351,7 @@ export default function GanttToolV3Page() {
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                {/* Desktop: Text only, Mobile: Icon only */}
-                <Flag className="w-4 h-4 inline md:hidden" aria-hidden="true" />
-                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Milestone</span>
+                <Flag className="w-4 h-4" aria-hidden="true" />
               </button>
 
               {/* Import Excel Button */}
@@ -385,16 +364,11 @@ export default function GanttToolV3Page() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px",
-                  padding: "0 12px",
-                  minWidth: "44px",
-                  minHeight: "44px",
+                  width: "44px",
+                  height: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  fontWeight: 500,
                   color: "var(--color-text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -402,9 +376,7 @@ export default function GanttToolV3Page() {
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                {/* Desktop: Text only, Mobile: Icon only */}
-                <FileSpreadsheet className="w-4 h-4 inline md:hidden" aria-hidden="true" />
-                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Import</span>
+                <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
               </button>
 
               {/* Manage Logos Button */}
@@ -420,16 +392,11 @@ export default function GanttToolV3Page() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px",
-                  padding: "0 12px",
-                  minWidth: "44px",
-                  minHeight: "44px",
+                  width: "44px",
+                  height: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  fontWeight: 500,
                   color: "var(--color-text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -437,9 +404,7 @@ export default function GanttToolV3Page() {
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                {/* Desktop: Text only, Mobile: Icon only */}
-                <ImageIcon className="w-4 h-4 inline md:hidden" aria-hidden="true" />
-                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Manage Logos</span>
+                <ImageIcon className="w-4 h-4" aria-hidden="true" />
               </button>
 
               {/* Plan Resources Button */}
@@ -455,16 +420,11 @@ export default function GanttToolV3Page() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px",
-                  padding: "0 12px",
-                  minWidth: "44px",
-                  minHeight: "44px",
+                  width: "44px",
+                  height: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  fontWeight: 500,
                   color: "var(--color-text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -472,9 +432,7 @@ export default function GanttToolV3Page() {
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                {/* Desktop: Text only, Mobile: Icon only */}
-                <Briefcase className="w-4 h-4 inline md:hidden" aria-hidden="true" />
-                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Plan Resources</span>
+                <Briefcase className="w-4 h-4" aria-hidden="true" />
               </button>
 
               {/* Resource Allocation Panel Toggle */}
@@ -492,16 +450,11 @@ export default function GanttToolV3Page() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px",
-                  padding: "0 12px",
-                  minWidth: "44px",
-                  minHeight: "44px",
+                  width: "44px",
+                  height: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: showOrgChart ? "var(--color-blue-light)" : "transparent",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  fontWeight: 500,
                   color: showOrgChart ? "var(--color-blue)" : "var(--color-text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -512,9 +465,7 @@ export default function GanttToolV3Page() {
                 onMouseEnter={(e) => { if (!showOrgChart) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { if (!showOrgChart) e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                {/* Desktop: Text only, Mobile: Icon only */}
-                <Users className="w-4 h-4 inline md:hidden" aria-hidden="true" />
-                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Resource Alloc</span>
+                <Users className="w-4 h-4" aria-hidden="true" />
               </button>
 
               {/* Share Button */}
@@ -531,16 +482,11 @@ export default function GanttToolV3Page() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px",
-                  padding: "0 12px",
-                  minWidth: "44px",
-                  minHeight: "44px",
+                  width: "44px",
+                  height: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  fontWeight: 500,
                   color: "var(--color-text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -548,12 +494,11 @@ export default function GanttToolV3Page() {
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                {/* Desktop: Text only, Mobile: Icon only */}
-                <Share2 className="w-4 h-4 inline md:hidden" aria-hidden="true" />
-                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Share</span>
+                <Share2 className="w-4 h-4" aria-hidden="true" />
               </button>
             </>
           }
+          showMetrics={true}
         />
 
       {/* Main Gantt Canvas - Dynamic layout based on user preference */}

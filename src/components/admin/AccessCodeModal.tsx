@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { CheckCircle, Mail, Copy, Check } from "lucide-react";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 interface AccessCodeModalProps {
   isOpen: boolean;
@@ -103,84 +105,132 @@ This is an automated message from Keystone.`;
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative">
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
-        >
-          <svg
-            className="w-5 h-5 align-middle"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Access Approved!"
+      subtitle={
+        <>
+          Access code ready for <span style={{ fontWeight: 600, color: "#1D1D1F" }}>{email}</span>
+        </>
+      }
+      icon={<CheckCircle className="w-6 h-6" style={{ color: "#34C759" }} />}
+      size="medium"
+      footer={
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+          <button
+            onClick={handleOpenEmail}
+            style={{
+              width: "100%",
+              padding: "12px 20px",
+              fontFamily: "var(--font-text)",
+              fontSize: "14px",
+              fontWeight: 600,
+              backgroundColor: "#007AFF",
+              color: "#FFFFFF",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              transition: "background-color 0.15s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0051D5")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#007AFF")}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-            <svg
-              className="w-8 h-8 text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Access Approved!</h2>
-          <p className="text-sm text-slate-600 mb-2">
-            Access code ready for <span className="font-medium text-slate-900">{email}</span>
-          </p>
-          <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 inline-block">
-             No email sent - Share manually with user
-          </p>
+            <Mail className="w-5 h-5" />
+            Compose Email (Manual Send)
+          </button>
+          <ModalButton variant="secondary" onClick={onClose}>
+            Done
+          </ModalButton>
+        </div>
+      }
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+        {/* Warning Banner */}
+        <div
+          style={{
+            padding: "12px 16px",
+            backgroundColor: "rgba(255, 149, 0, 0.1)",
+            border: "1px solid rgba(255, 149, 0, 0.2)",
+            borderRadius: "8px",
+            fontFamily: "var(--font-text)",
+            fontSize: "13px",
+            color: "#D97706",
+            textAlign: "center",
+          }}
+        >
+          No email sent - Share manually with user
         </div>
 
         {/* Magic Link Section */}
         {magicUrl && (
-          <div className="mb-6">
-            <div className="text-center mb-4">
-              <h3 className="text-sm font-semibold text-slate-700 mb-1">Magic Link</h3>
-              <p className="text-xs text-slate-500">Expires in 2 minutes</p>
+          <div>
+            <div style={{ textAlign: "center", marginBottom: "12px" }}>
+              <h3 style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 600, color: "#1D1D1F", margin: "0 0 4px 0" }}>
+                Magic Link
+              </h3>
+              <p style={{ fontFamily: "var(--font-text)", fontSize: "12px", color: "#86868B", margin: 0 }}>
+                Expires in 2 minutes
+              </p>
             </div>
-            <div className="relative">
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 overflow-hidden">
-                <p className="text-xs text-blue-900 font-mono truncate text-center">{magicUrl}</p>
+            <div style={{ position: "relative" }}>
+              <div
+                style={{
+                  backgroundColor: "rgba(0, 122, 255, 0.05)",
+                  border: "2px solid rgba(0, 122, 255, 0.2)",
+                  borderRadius: "8px",
+                  padding: "16px",
+                  overflow: "hidden",
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "12px",
+                    color: "#007AFF",
+                    textAlign: "center",
+                    margin: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {magicUrl}
+                </p>
               </div>
               <button
                 onClick={handleCopyLink}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
+                style={{
+                  position: "absolute",
+                  right: "8px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  padding: "6px 12px",
+                  backgroundColor: "#007AFF",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  transition: "background-color 0.15s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0051D5")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#007AFF")}
               >
                 {copiedLink ? (
-                  <span className="flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                  <>
+                    <Check className="w-3 h-3" />
                     Copied
-                  </span>
+                  </>
                 ) : (
                   "Copy"
                 )}
@@ -190,64 +240,73 @@ This is an automated message from Keystone.`;
         )}
 
         {/* 6-Digit Code Section */}
-        <div className="mb-8">
-          <div className="text-center mb-4">
-            <h3 className="text-sm font-semibold text-slate-700 mb-1">6-Digit Code</h3>
-            <p className="text-xs text-slate-500">Expires in 7 days</p>
+        <div>
+          <div style={{ textAlign: "center", marginBottom: "12px" }}>
+            <h3 style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 600, color: "#1D1D1F", margin: "0 0 4px 0" }}>
+              6-Digit Code
+            </h3>
+            <p style={{ fontFamily: "var(--font-text)", fontSize: "12px", color: "#86868B", margin: 0 }}>
+              Expires in 7 days
+            </p>
           </div>
-          <div className="relative">
-            <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-6">
-              <p className="text-4xl font-bold text-slate-900 font-mono tracking-widest text-center">
+          <div style={{ position: "relative" }}>
+            <div
+              style={{
+                backgroundColor: "#F5F5F7",
+                border: "2px solid #D1D1D6",
+                borderRadius: "8px",
+                padding: "24px",
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: "36px",
+                  fontWeight: 700,
+                  color: "#1D1D1F",
+                  textAlign: "center",
+                  margin: 0,
+                  letterSpacing: "0.1em",
+                }}
+              >
                 {code}
               </p>
             </div>
             <button
               onClick={handleCopyCode}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-medium hover:bg-slate-800 transition-colors"
+              style={{
+                position: "absolute",
+                right: "8px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                padding: "6px 12px",
+                backgroundColor: "#1D1D1F",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "6px",
+                fontSize: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                transition: "background-color 0.15s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#000000")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1D1D1F")}
             >
               {copiedCode ? (
-                <span className="flex items-center gap-1">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                <>
+                  <Check className="w-3 h-3" />
                   Copied
-                </span>
+                </>
               ) : (
                 "Copy"
               )}
             </button>
           </div>
         </div>
-
-        {/* Email Button */}
-        <button
-          onClick={handleOpenEmail}
-          className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 mb-4"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-            />
-          </svg>
-          Compose Email (Manual Send)
-        </button>
-
-        {/* Done Button */}
-        <button
-          onClick={onClose}
-          className="w-full px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
-        >
-          Done
-        </button>
       </div>
-    </div>
+    </BaseModal>
   );
 }

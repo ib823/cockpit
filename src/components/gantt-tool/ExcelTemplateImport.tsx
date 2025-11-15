@@ -656,6 +656,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       {/* Conflict Resolution Modal */}
       {showConflictModal && conflictResult && currentProject && ganttData && (
         <ConflictResolutionModal
+          isOpen={showConflictModal}
           conflictResult={conflictResult}
           existingProject={currentProject}
           importedPhaseCount={ganttData.phases.length}

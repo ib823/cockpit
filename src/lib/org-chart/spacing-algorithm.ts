@@ -304,6 +304,10 @@ function calculateTreePositions(
   function calculateWidths(node: LayoutNode): number {
     const width = calculateSubtreeWidth(node);
     subtreeWidths.set(node.id, width);
+    // Recursively populate map for all descendants
+    for (const child of node.children) {
+      calculateWidths(child);
+    }
     return width;
   }
   calculateWidths(root);
@@ -569,5 +573,84 @@ export function calculateAllConnectionPaths(
   }
 
   tree.forEach(traverse);
+  return paths;
+}
+
+/**
+ * PeerLink interface (MUST match types/gantt-tool.ts)
+ */
+export interface PeerLink {
+  id: string;
+  resource1Id: string;
+  resource2Id: string;
+  createdAt: string;
+}
+
+/**
+ * Calculate peer connection paths (EXPLICIT PEER LINKS ONLY)
+ *
+ * Creates horizontal lines ONLY for explicitly linked peers (user-created via drag-drop).
+ * NO automatic connections - peer links are created when user drags a card and drops it on LEFT/RIGHT zone.
+ *
+ * Design Philosophy:
+ * - Peer lines = explicit user intent, not automatic assumptions
+ * - User controls which resources are linked as peers
+ * - Dotted line style (1.5px, subtle appearance)
+ * - Gentle bezier curve (10% control point ratio for Apple aesthetic)
+ *
+ * @param positions - Map of node positions
+ * @param explicitPeerLinks - Array of explicit peer link objects created by user
+ * @returns Array of peer connection path data (only for explicitly linked pairs)
+ */
+export function calculatePeerConnectionPaths(
+  positions: Map<string, NodePosition>,
+  explicitPeerLinks: PeerLink[]
+): Array<{
+  peer1Id: string;
+  peer2Id: string;
+  path: string;
+}> {
+  const paths: Array<{ peer1Id: string; peer2Id: string; path: string }> = [];
+
+  // Process ONLY explicit peer links (no automatic connections)
+  for (const peerLink of explicitPeerLinks) {
+    const leftPos = positions.get(peerLink.resource1Id);
+    const rightPos = positions.get(peerLink.resource2Id);
+
+    if (!leftPos || !rightPos) continue; // Skip if either node position not found
+
+    // Determine which node is on the left (for proper line direction)
+    const isLeftToRight = leftPos.x < rightPos.x;
+    const startPos = isLeftToRight ? leftPos : rightPos;
+    const endPos = isLeftToRight ? rightPos : leftPos;
+    const peer1Id = isLeftToRight ? peerLink.resource1Id : peerLink.resource2Id;
+    const peer2Id = isLeftToRight ? peerLink.resource2Id : peerLink.resource1Id;
+
+    // Calculate connection points (center-right of left card, center-left of right card)
+    const startX = startPos.x + CARD_WIDTH; // Right edge of left card
+    const startY = startPos.y + (CARD_HEIGHT / 2); // Vertical center
+
+    const endX = endPos.x; // Left edge of right card
+    const endY = endPos.y + (CARD_HEIGHT / 2); // Vertical center
+
+    // Create gentle horizontal bezier curve (10% control point ratio for subtle curve)
+    const horizontalDistance = endX - startX;
+    const controlPointOffset = horizontalDistance * 0.1; // 10% curve (Apple aesthetic)
+
+    const controlX1 = startX + controlPointOffset;
+    const controlY1 = startY;
+
+    const controlX2 = endX - controlPointOffset;
+    const controlY2 = endY;
+
+    const path = `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`;
+
+    paths.push({
+      peer1Id,
+      peer2Id,
+      path,
+    });
+  }
+
   return paths;
 }

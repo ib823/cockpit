@@ -17,10 +17,10 @@ import {
   ChevronDown,
   ChevronRight,
   Edit2,
-  X,
   RefreshCw,
   GitMerge,
 } from "lucide-react";
+import BaseModal from "@/components/ui/BaseModal";
 import type {
   ConflictDetectionResult,
   ImportConflict,
@@ -42,6 +42,7 @@ export interface ConflictResolution {
 }
 
 interface ConflictResolutionModalProps {
+  isOpen: boolean;
   conflictResult: ConflictDetectionResult;
   existingProject: GanttProject;
   importedPhaseCount: number;
@@ -56,6 +57,7 @@ interface ConflictResolutionModalProps {
 // ============================================================================
 
 export function ConflictResolutionModal({
+  isOpen,
   conflictResult,
   existingProject,
   importedPhaseCount,
@@ -109,324 +111,284 @@ export function ConflictResolutionModal({
   };
 
   return (
-    <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onCancel} />
-
-      {/* Modal */}
-      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-amber-50">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Import Conflicts Detected</h2>
-                <p className="text-sm text-gray-600 mt-0.5">
-                  {summary.totalErrors} error{summary.totalErrors !== 1 ? "s" : ""} ·{" "}
-                  {summary.totalWarnings} warning{summary.totalWarnings !== 1 ? "s" : ""}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={onCancel}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            {/* Conflict Summary */}
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    {conflicts.length} conflict{conflicts.length !== 1 ? "s" : ""} found between
-                    imported and existing data
-                  </h3>
-                  <div className="flex gap-4 text-sm">
-                    {summary.resourceConflicts > 0 && (
-                      <div className="flex items-center gap-1.5">
-                        <Users className="w-4 h-4 text-amber-600" />
-                        <span className="text-gray-700">
-                          {summary.resourceConflicts} Resource
-                          {summary.resourceConflicts !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                    )}
-                    {summary.phaseConflicts > 0 && (
-                      <div className="flex items-center gap-1.5">
-                        <FileText className="w-4 h-4 text-amber-600" />
-                        <span className="text-gray-700">
-                          {summary.phaseConflicts} Phase{summary.phaseConflicts !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                    )}
-                    {summary.taskConflicts > 0 && (
-                      <div className="flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-amber-600" />
-                        <span className="text-gray-700">
-                          {summary.taskConflicts} Task{summary.taskConflicts !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onCancel}
+      title="Import Conflicts Detected"
+      icon={<AlertTriangle />}
+      size="large"
+      footerActions={[
+        {
+          label: "Cancel Import",
+          onClick: onCancel,
+          variant: "secondary",
+        },
+        {
+          label:
+            selectedStrategy === "refresh"
+              ? "Continue with Refresh"
+              : "Continue with Merge",
+          onClick: handleResolve,
+          variant: "primary",
+          icon: selectedStrategy === "refresh" ? RefreshCw : GitMerge,
+        },
+      ]}
+    >
+      {/* Conflict Summary */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 mb-2">
+              {conflicts.length} conflict{conflicts.length !== 1 ? "s" : ""} found between
+              imported and existing data
+            </h3>
+            <div className="flex gap-4 text-sm">
+              {summary.resourceConflicts > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-amber-600" />
+                  <span className="text-gray-700">
+                    {summary.resourceConflicts} Resource
+                    {summary.resourceConflicts !== 1 ? "s" : ""}
+                  </span>
                 </div>
-              </div>
-            </div>
-
-            {/* Conflict List */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Conflict Details</h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {conflicts.map((conflict) => (
-                  <ConflictItem
-                    key={conflict.id}
-                    conflict={conflict}
-                    isExpanded={expandedConflicts.has(conflict.id)}
-                    onToggle={() => toggleConflict(conflict.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Resolution Strategy */}
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Choose Resolution Strategy
-              </h3>
-
-              <div className="space-y-3">
-                {/* Total Refresh Option */}
-                <label
-                  className={`block border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedStrategy === "refresh"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      name="strategy"
-                      value="refresh"
-                      checked={selectedStrategy === "refresh"}
-                      onChange={() => setSelectedStrategy("refresh")}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <RefreshCw className="w-5 h-5 text-red-600" />
-                        <span className="font-semibold text-gray-900">Total Refresh</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Replace all existing data with imported data. This will completely refresh
-                        your project.
-                      </p>
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                        <div className="flex items-start gap-2">
-                          <XCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                          <div className="text-sm">
-                            <p className="font-medium text-red-900 mb-1">This will delete:</p>
-                            <ul className="text-red-700 space-y-0.5">
-                              <li>
-                                • {existingCounts.phases} existing phase
-                                {existingCounts.phases !== 1 ? "s" : ""}
-                              </li>
-                              <li>
-                                • {existingCounts.tasks} existing task
-                                {existingCounts.tasks !== 1 ? "s" : ""}
-                              </li>
-                              <li>
-                                • {existingCounts.resources} existing resource
-                                {existingCounts.resources !== 1 ? "s" : ""}
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </label>
-
-                {/* Smart Merge Option */}
-                <label
-                  className={`block border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedStrategy === "merge"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      name="strategy"
-                      value="merge"
-                      checked={selectedStrategy === "merge"}
-                      onChange={() => setSelectedStrategy("merge")}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <GitMerge className="w-5 h-5 text-green-600" />
-                        <span className="font-semibold text-gray-900">Smart Merge</span>
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-                          Recommended
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Add imported data alongside existing data. Conflicting items will be renamed
-                        automatically.
-                      </p>
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <div className="flex items-start gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                          <div className="text-sm">
-                            <p className="font-medium text-green-900 mb-1">Suggested renames:</p>
-                            <ul className="text-green-700 space-y-0.5">
-                              {conflictsByType.phase.slice(0, 3).map((conflict) => {
-                                const detail = conflict.detail as PhaseConflictDetail;
-                                return (
-                                  <li key={conflict.id} className="font-mono text-xs">
-                                    • "{detail.phaseName}" → "{detail.phaseName} (2)"
-                                  </li>
-                                );
-                              })}
-                              {conflictsByType.resource.slice(0, 3).map((conflict) => {
-                                const detail = conflict.detail as ResourceConflictDetail;
-                                return (
-                                  <li key={conflict.id} className="font-mono text-xs">
-                                    • "{detail.resourceName}" → "{detail.resourceName} (2)"
-                                  </li>
-                                );
-                              })}
-                              {conflictsByType.phase.length + conflictsByType.resource.length >
-                                6 && (
-                                <li className="text-green-600 italic">
-                                  ...and{" "}
-                                  {conflictsByType.phase.length +
-                                    conflictsByType.resource.length -
-                                    6}{" "}
-                                  more
-                                </li>
-                              )}
-                            </ul>
-                            {/* Edit Names Button */}
-                            {conflicts.length > 0 && (
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setShowNameEditor(!showNameEditor);
-                                }}
-                                className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                              >
-                                <Edit2 className="w-3 h-3" />
-                                Edit suggested names
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            {/* Name Editor (shown when "Edit Names" is clicked) */}
-            {showNameEditor && selectedStrategy === "merge" && (
-              <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">
-                  Customize Renamed Items
-                </h4>
-                <p className="text-xs text-gray-600 mb-3">
-                  You can edit the suggested names below. Leave blank to use the default suggestion.
-                </p>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {conflicts.map((conflict) => {
-                    const detail = conflict.detail;
-                    let itemName = "";
-                    let suggestedName = "";
-
-                    if (conflict.type === "resource") {
-                      const resourceDetail = detail as ResourceConflictDetail;
-                      itemName = resourceDetail.resourceName;
-                      suggestedName = `${resourceDetail.resourceName} (2)`;
-                    } else if (conflict.type === "phase") {
-                      const phaseDetail = detail as PhaseConflictDetail;
-                      itemName = phaseDetail.phaseName;
-                      suggestedName = `${phaseDetail.phaseName} (2)`;
-                    } else {
-                      const taskDetail = detail as TaskConflictDetail;
-                      itemName = taskDetail.taskName;
-                      suggestedName = `${taskDetail.taskName} (2)`;
-                    }
-
-                    return (
-                      <div key={conflict.id} className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-600 w-32 truncate" title={itemName}>
-                          {itemName}
-                        </span>
-                        <span className="text-gray-400">→</span>
-                        <input
-                          type="text"
-                          placeholder={suggestedName}
-                          value={customNames.get(conflict.id) || ""}
-                          onChange={(e) => {
-                            const newNames = new Map(customNames);
-                            if (e.target.value) {
-                              newNames.set(conflict.id, e.target.value);
-                            } else {
-                              newNames.delete(conflict.id);
-                            }
-                            setCustomNames(newNames);
-                          }}
-                          className="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs"
-                        />
-                      </div>
-                    );
-                  })}
+              )}
+              {summary.phaseConflicts > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-amber-600" />
+                  <span className="text-gray-700">
+                    {summary.phaseConflicts} Phase{summary.phaseConflicts !== 1 ? "s" : ""}
+                  </span>
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <div className="text-sm text-gray-600">You must choose a strategy to continue</div>
-            <div className="flex gap-3">
-              <button
-                onClick={onCancel}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
-              >
-                Cancel Import
-              </button>
-              <button
-                onClick={handleResolve}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
-              >
-                {selectedStrategy === "refresh" ? (
-                  <>
-                    <RefreshCw className="w-4 h-4" />
-                    Continue with Refresh
-                  </>
-                ) : (
-                  <>
-                    <GitMerge className="w-4 h-4" />
-                    Continue with Merge
-                  </>
-                )}
-              </button>
+              )}
+              {summary.taskConflicts > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-amber-600" />
+                  <span className="text-gray-700">
+                    {summary.taskConflicts} Task{summary.taskConflicts !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-    </>
+
+      {/* Conflict List */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Conflict Details</h3>
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {conflicts.map((conflict) => (
+            <ConflictItem
+              key={conflict.id}
+              conflict={conflict}
+              isExpanded={expandedConflicts.has(conflict.id)}
+              onToggle={() => toggleConflict(conflict.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Resolution Strategy */}
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Choose Resolution Strategy
+        </h3>
+
+        <div className="space-y-3">
+          {/* Total Refresh Option */}
+          <label
+            className={`block border-2 rounded-lg p-4 cursor-pointer transition-all ${
+              selectedStrategy === "refresh"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <input
+                type="radio"
+                name="strategy"
+                value="refresh"
+                checked={selectedStrategy === "refresh"}
+                onChange={() => setSelectedStrategy("refresh")}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <RefreshCw className="w-5 h-5 text-red-600" />
+                  <span className="font-semibold text-gray-900">Total Refresh</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">
+                  Replace all existing data with imported data. This will completely refresh
+                  your project.
+                </p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <XCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium text-red-900 mb-1">This will delete:</p>
+                      <ul className="text-red-700 space-y-0.5">
+                        <li>
+                          • {existingCounts.phases} existing phase
+                          {existingCounts.phases !== 1 ? "s" : ""}
+                        </li>
+                        <li>
+                          • {existingCounts.tasks} existing task
+                          {existingCounts.tasks !== 1 ? "s" : ""}
+                        </li>
+                        <li>
+                          • {existingCounts.resources} existing resource
+                          {existingCounts.resources !== 1 ? "s" : ""}
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </label>
+
+          {/* Smart Merge Option */}
+          <label
+            className={`block border-2 rounded-lg p-4 cursor-pointer transition-all ${
+              selectedStrategy === "merge"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <input
+                type="radio"
+                name="strategy"
+                value="merge"
+                checked={selectedStrategy === "merge"}
+                onChange={() => setSelectedStrategy("merge")}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <GitMerge className="w-5 h-5 text-green-600" />
+                  <span className="font-semibold text-gray-900">Smart Merge</span>
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                    Recommended
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">
+                  Add imported data alongside existing data. Conflicting items will be renamed
+                  automatically.
+                </p>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium text-green-900 mb-1">Suggested renames:</p>
+                      <ul className="text-green-700 space-y-0.5">
+                        {conflictsByType.phase.slice(0, 3).map((conflict) => {
+                          const detail = conflict.detail as PhaseConflictDetail;
+                          return (
+                            <li key={conflict.id} className="font-mono text-xs">
+                              • "{detail.phaseName}" → "{detail.phaseName} (2)"
+                            </li>
+                          );
+                        })}
+                        {conflictsByType.resource.slice(0, 3).map((conflict) => {
+                          const detail = conflict.detail as ResourceConflictDetail;
+                          return (
+                            <li key={conflict.id} className="font-mono text-xs">
+                              • "{detail.resourceName}" → "{detail.resourceName} (2)"
+                            </li>
+                          );
+                        })}
+                        {conflictsByType.phase.length + conflictsByType.resource.length >
+                          6 && (
+                          <li className="text-green-600 italic">
+                            ...and{" "}
+                            {conflictsByType.phase.length +
+                              conflictsByType.resource.length -
+                              6}{" "}
+                            more
+                          </li>
+                        )}
+                      </ul>
+                      {/* Edit Names Button */}
+                      {conflicts.length > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowNameEditor(!showNameEditor);
+                          }}
+                          className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          Edit suggested names
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      {/* Name Editor (shown when "Edit Names" is clicked) */}
+      {showNameEditor && selectedStrategy === "merge" && (
+        <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
+          <h4 className="font-semibold text-gray-900 mb-3 text-sm">
+            Customize Renamed Items
+          </h4>
+          <p className="text-xs text-gray-600 mb-3">
+            You can edit the suggested names below. Leave blank to use the default suggestion.
+          </p>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {conflicts.map((conflict) => {
+              const detail = conflict.detail;
+              let itemName = "";
+              let suggestedName = "";
+
+              if (conflict.type === "resource") {
+                const resourceDetail = detail as ResourceConflictDetail;
+                itemName = resourceDetail.resourceName;
+                suggestedName = `${resourceDetail.resourceName} (2)`;
+              } else if (conflict.type === "phase") {
+                const phaseDetail = detail as PhaseConflictDetail;
+                itemName = phaseDetail.phaseName;
+                suggestedName = `${phaseDetail.phaseName} (2)`;
+              } else {
+                const taskDetail = detail as TaskConflictDetail;
+                itemName = taskDetail.taskName;
+                suggestedName = `${taskDetail.taskName} (2)`;
+              }
+
+              return (
+                <div key={conflict.id} className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-600 w-32 truncate" title={itemName}>
+                    {itemName}
+                  </span>
+                  <span className="text-gray-400">→</span>
+                  <input
+                    type="text"
+                    placeholder={suggestedName}
+                    value={customNames.get(conflict.id) || ""}
+                    onChange={(e) => {
+                      const newNames = new Map(customNames);
+                      if (e.target.value) {
+                        newNames.set(conflict.id, e.target.value);
+                      } else {
+                        newNames.delete(conflict.id);
+                      }
+                      setCustomNames(newNames);
+                    }}
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </BaseModal>
   );
 }
 

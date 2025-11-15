@@ -10,7 +10,7 @@ import React, { useState } from "react";
 import { ResponsiveCard, ResponsiveStack } from "@/components/ui/ResponsiveShell";
 import { Heading, Text } from "@/components/ui/Typography";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -285,7 +285,7 @@ export function RicefwPanel({
                   {editingId ? "Update" : "Add"}
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => {
                     setShowForm(false);
                     setEditingId(null);

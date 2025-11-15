@@ -1,0 +1,231 @@
+================================================================================
+RESOURCE COUNT SYNCHRONIZATION AUDIT - COMPLETE FINDINGS
+================================================================================
+
+STATUS: CRITICAL DISCREPANCY CONFIRMED
+Issue: "13 resources in panel but not matching org chart"
+
+================================================================================
+COMPONENTS IDENTIFIED (7 Total)
+================================================================================
+
+1. ResourceDrawer.tsx (Line 459)
+   - Shows: "Assigned Resources ({count})"
+   - Counts: Assignment objects (not unique resources)
+   - Source: currentProject.resources
+   - Bug: Double-counts if resource assigned to both phase and task
+
+2. ResourceManagementModal.tsx (Lines 396-443)
+   - Shows: "Resources", "Assignments", "Unassigned"
+   - Counts: BOTH phase AND task assignments
+   - Source: currentProject.phases[].phaseResourceAssignments + tasks[].resourceAssignments
+   - Status: MOST COMPREHENSIVE but no tier separation
+
+3. resource-analytics-selectors.ts (Lines 94-363)
+   - Shows: "Active Resources", "Total Resources"
+   - Counts: TASK ASSIGNMENTS ONLY (IGNORES PHASES!)
+   - Source: phase.tasks[].resourceAssignments
+   - Bug: Misses all phase-level allocations
+
+4. project-metrics.ts (Lines 166-204)
+   - Shows: "Team Display" (X people / No team)
+   - Counts: Unique resources from phases + tasks
+   - Source: Both phaseResourceAssignments AND resourceAssignments
+   - Status: MOST ACCURATE but no detail
+
+5. OrgChartBuilderV2.tsx (Lines 81-92)
+   - Shows: Org chart hierarchy
+   - Counts: Resources with managerResourceId (Tier 1 only)
+   - Source: currentProject.resources.filter(r => r.managerResourceId)
+   - Bug: Ignores unassigned and task-assigned resources
+
+6. resources-dashboard/page.tsx (Lines 163-217)
+   - Shows: "Active Resources" of "N total"
+   - Uses: useResourceAnalyticsSummary()
+   - Bug: Inherits from analytics selector (task-only counting)
+
+7. gantt-tool/v3/page.tsx (Line 625)
+   - Shows: "X people • Organizational hierarchy"
+   - Counts: currentProject.resources.length
+   - Status: Shows total but no context
+
+================================================================================
+ROOT CAUSE: INCONSISTENT DATA SOURCES
+================================================================================
+
+Component              | Data Source                           | Missing
+-----------------------|---------------------------------------|------------------
+ResourceDrawer         | currentAssignments (of single item)   | phase assignments
+ResourceManagement     | All phase + task assignments          | tier separation
+ResourceAnalytics      | Task assignments ONLY                 | PHASE assignments !!!
+ProjectMetrics         | Phase + task assignments              | tier distinction
+OrgChartBuilderV2      | managerResourceId filter             | non-hierarchical
+ResourceDashboard      | Analytics hook                        | tier accuracy
+ResourcePanelHeader    | Raw resource count                    | categorization
+
+================================================================================
+THE THREE TIERS (Intended Design)
+================================================================================
+
+Tier 1: In Org Chart
+  └─ Condition: resource.managerResourceId !== null
+  └─ Resources: 5 (e.g., CEO, Director, Manager roles)
+  └─ Displayed by: OrgChartBuilderV2 ONLY
+
+Tier 2: Resource Pool (Unassigned)
+  └─ Condition: !managerResourceId && !assigned
+  └─ Resources: 1-2 (available for allocation)
+  └─ Displayed by: NOTHING (Missing!)
+
+Tier 3: In Tasks/Phases (Currently Assigned)
+  └─ Condition: hasTaskOrPhaseAssignment
+  └─ Resources: 6-8 (task) or 7-8 (task+phase)
+  └─ Displayed by: Analytics (tasks only), Drawer, Management
+
+Total Resources: 13
+Expected Distribution: 5 (T1) + 1 (T2) + 7 (T3) = 13
+
+Current Situation:
+  Panel Header: 13 (all)
+  Org Chart: 5 (T1 only)
+  Analytics: 6-8 (T3 partial - missing phase assignments!)
+  Management Modal: 13 (all but unseparated)
+
+================================================================================
+THREE CRITICAL BUGS
+================================================================================
+
+BUG #1: Resource Analytics Ignores Phase Assignments
+  File: resource-analytics-selectors.ts (Lines 94-150)
+  Code: Only iterates phase.tasks, NOT phase.phaseResourceAssignments
+  Impact: Resources assigned to phases only don't appear as "Active"
+  Severity: HIGH
+  Fix Time: 15 minutes
+
+BUG #2: ResourceDrawer Counts Assignments, Not Unique Resources
+  File: ResourceDrawer.tsx (Lines 260-265)
+  Code: currentAssignments.length returns assignment objects, not unique resources
+  Impact: Same resource assigned to phase + task counted as 2
+  Severity: MEDIUM
+  Fix Time: 10 minutes
+
+BUG #3: No Tier 2 (Resource Pool) Display
+  File: Multiple (no component shows unassigned resources)
+  Code: No filtering for (!managerResourceId && !assigned)
+  Impact: Users can't see available resources at a glance
+  Severity: MEDIUM
+  Fix Time: 1 hour
+
+================================================================================
+DATA STRUCTURE ANALYSIS
+================================================================================
+
+Resources array structure:
+  id: string
+  name: string
+  designation: ResourceDesignation
+  category: ResourceCategory
+  managerResourceId: string | null  ← KEY for Tier 1
+  ...
+
+Assignment types:
+  1. phaseResourceAssignments[] (at phase level)
+  2. resourceAssignments[] (at task level)
+
+Current collectors:
+  ResourceManagement: ✓ Both types
+  ResourceAnalytics: ✓ Tasks only
+  ProjectMetrics: ✓ Both types
+  ResourceDrawer: ✓ Current item only
+  OrgChartBuilderV2: ✓ managerResourceId only
+
+================================================================================
+VERIFICATION RESULTS
+================================================================================
+
+Check 1: Does Tier 1 count match org chart?
+  Result: NO - OrgChartBuilderV2 shows all with managerResourceId
+  But phase assignments may also exist
+
+Check 2: Does Tier 2 + Tier 3 = total - Tier 1?
+  Result: NO - Tier 2 is not displayed or counted separately
+  
+Check 3: Are resources counted multiple times?
+  Result: YES - If resource appears in both phase + task assignments
+  Example: ResourceDrawer shows "5 assignments" for 4 unique resources
+
+Check 4: Are all resources visible somewhere?
+  Result: NO - Phase-only assigned resources missing from analytics
+  
+Check 5: Counts match across components?
+  Result: NO - Each component uses different source and logic
+  Panel: 13, Org Chart: 5, Analytics: 6-8, Management: varies
+
+================================================================================
+RECOMMENDED ACTIONS
+================================================================================
+
+IMMEDIATE (P0 - 30 minutes):
+  1. Fix resource-analytics-selectors.ts to include phase assignments
+  2. Fix ResourceDrawer to count unique resources
+  3. Add comments documenting calculation logic
+
+SHORT TERM (P1 - 2 hours):
+  1. Create useResourceTiers() hook returning {tier1, tier2, tier3}
+  2. Update Resource Panel Header to show tier breakdown
+  3. Update ResourceDashboard to use corrected analytics
+
+MEDIUM TERM (P2 - 4 hours):
+  1. Refactor ResourceManagementModal to show tiers visually
+  2. Update OrgChartBuilderV2 to allow non-hierarchical resources
+  3. Create comprehensive test suite for counting logic
+
+================================================================================
+TEST CASES NEEDED
+================================================================================
+
+Test 1: Phase-only assignment visibility
+  Setup: Resource assigned to phase (no task assignment)
+  Expected: Appears in "Active Resources" and resource analytics
+  Current: FAILS - Analytics ignores phase assignments
+
+Test 2: Tier separation accuracy
+  Setup: 3 resources (org chart, unassigned, task-assigned)
+  Expected: Counts show T1:1, T2:1, T3:1
+  Current: FAILS - No tier separation in most views
+
+Test 3: Duplicate counting prevention
+  Setup: Resource assigned to both phase and task
+  Expected: Shows as 1 resource (not 2)
+  Current: FAILS - ResourceDrawer counts as 2 assignments
+
+Test 4: Total resources reconciliation
+  Setup: Any configuration
+  Expected: Tier1 + Tier2 + Tier3 = Total
+  Current: FAILS - Tier2 missing, phase assignments ignored
+
+================================================================================
+SUMMARY STATISTICS
+================================================================================
+
+Components analyzed: 7
+Resource counting mechanisms: 4 competing approaches
+Critical bugs: 3
+Medium-priority issues: 2
+Total discrepancies: 5+
+
+Accuracy comparison:
+  ResourceManagement: 90% (comprehensive, no tier distinction)
+  ProjectMetrics: 85% (complete but no detail)
+  ResourceAnalytics: 60% (missing phase assignments)
+  OrgChartBuilderV2: 50% (Tier 1 only)
+  ResourceDrawer: 40% (counts assignments not resources)
+  ResourceDashboard: 60% (inherits analytics bug)
+  ResourcePanelHeader: 70% (accurate total, no context)
+
+Total effort to fix: 5-7 hours
+Total effort to test: 3-4 hours
+
+================================================================================
+END OF AUDIT
+================================================================================

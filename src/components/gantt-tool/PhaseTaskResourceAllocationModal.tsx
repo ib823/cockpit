@@ -15,7 +15,7 @@
 
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { useState, useMemo, useEffect } from "react";
-import { X, Users, ChevronDown, ChevronRight, Plus, Trash2, Calendar, Clock } from "lucide-react";
+import { Users, ChevronDown, ChevronRight, Plus, Trash2, Calendar } from "lucide-react";
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_DESIGNATIONS,
@@ -24,6 +24,7 @@ import {
   type Resource,
   type ResourceCategory,
 } from "@/types/gantt-tool";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 interface Props {
   itemId: string;
@@ -353,63 +354,50 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
 
   if (!currentProject || !item) return null;
 
+  const modalTitle = `Allocating Resources to ${itemType === "phase" ? "Phase" : "Task"}`;
+  const subtitle = itemType === "task" && "phaseName" in item
+    ? `${item.name} (Phase: ${item.phaseName})`
+    : item.name;
+
   return (
-    <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/50 z-[80]" onClick={onClose} />
+    <BaseModal
+      isOpen={true}
+      onClose={onClose}
+      title={modalTitle}
+      subtitle={subtitle}
+      icon={<Users className="w-5 h-5" />}
+      size="xlarge"
+      footer={
+        <ModalButton onClick={onClose} variant="primary">
+          Done
+        </ModalButton>
+      }
+    >
+      {/* Info Banner */}
+      {itemType === "phase" && (
+        <div style={{
+          padding: "12px 16px",
+          backgroundColor: "#EFF6FF",
+          border: "1px solid #BFDBFE",
+          borderRadius: "8px",
+          marginBottom: "24px",
+        }}>
+          <p style={{
+            fontFamily: "var(--font-text)",
+            fontSize: "14px",
+            color: "#1E40AF",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}>
+            <span style={{ fontWeight: 600 }}>ℹ️ Phase-Level Assignment:</span>
+            Only resources configured for "Phase" or "Both" assignment levels can be assigned here.
+          </p>
+        </div>
+      )}
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
-          {/* Header - FIXED, NOT SCROLLABLE */}
-          <div className="flex-shrink-0">
-            <div className="flex items-center justify-between px-6 py-4 border-b-2 border-blue-200 bg-gradient-to-r from-blue-600 to-purple-600">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
-                    <h2 className="text-lg font-semibold text-white/80">
-                      Allocating Resources to
-                    </h2>
-                    <span className="px-2 py-0.5 bg-white/20 rounded text-xs font-medium text-white backdrop-blur-sm">
-                      {itemType === "phase" ? "PHASE" : "TASK"}
-                    </span>
-                  </div>
-                  <p className="text-xl font-bold text-white mt-1 truncate">
-                    {item.name}
-                  </p>
-                  {itemType === "task" && "phaseName" in item && (
-                    <p className="text-sm text-white/70 flex items-center gap-1 mt-0.5">
-                      <Calendar className="w-3 h-3" />
-                      Phase: {item.phaseName}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={onClose}
-                className="text-white/80 hover:text-white hover:bg-white/20 transition-colors p-2 rounded-lg flex-shrink-0"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Info Banner */}
-            {itemType === "phase" && (
-              <div className="px-6 py-3 bg-blue-50 border-b border-blue-100">
-                <p className="text-sm text-blue-900 flex items-center gap-2">
-                  <span className="font-semibold">ℹ️ Phase-Level Assignment:</span>
-                  Only resources configured for "Phase" or "Both" assignment levels can be assigned
-                  here.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* SCROLLABLE CONTENT AREA */}
-          <div className="flex-1 overflow-y-auto">
+      {/* CONTENT AREA */}
+      <div>
             {/* Currently Assigned Resources */}
             {currentAssignments.length > 0 && (
               <div className="px-6 py-4 border-b-2 border-gray-200 bg-gray-50">
@@ -555,19 +543,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
               </div>
             )}
             </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <button
-              onClick={onClose}
-              className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm"
-            >
-              Done
-            </button>
-          </div>
-        </div>
       </div>
-    </>
+    </BaseModal>
   );
 }

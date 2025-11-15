@@ -28,6 +28,7 @@ import type {
   ProjectBudget,
   ProjectDelta,
   RACIAssignment,
+  PeerLink,
 } from "@/types/gantt-tool";
 import { PHASE_COLOR_PRESETS } from "@/types/gantt-tool";
 import { differenceInDays, addDays, format } from "date-fns";
@@ -154,6 +155,12 @@ interface GanttToolStateV2 {
   updateResource: (resourceId: string, updates: Partial<Resource>) => Promise<void>;
   deleteResource: (resourceId: string) => Promise<void>;
   getResourceById: (resourceId: string) => Resource | undefined;
+
+  // Org Chart Peer Links (explicit peer relationships created via drag-drop)
+  addPeerLink: (resource1Id: string, resource2Id: string) => Promise<void>;
+  removePeerLink: (peerLinkId: string) => Promise<void>;
+  getPeerLinks: () => PeerLink[];
+  isPeerLinked: (resource1Id: string, resource2Id: string) => boolean;
 
   // Resource Assignment (with auto-save)
   assignResourceToTask: (
@@ -1709,6 +1716,14 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           });
         });
 
+        // Remove peer links involving this resource
+        if (state.currentProject.orgChartPro?.peerLinks) {
+          state.currentProject.orgChartPro.peerLinks =
+            state.currentProject.orgChartPro.peerLinks.filter(
+              (link) => link.resource1Id !== resourceId && link.resource2Id !== resourceId
+            );
+        }
+
         state.currentProject.updatedAt = new Date().toISOString();
       });
 
@@ -1719,6 +1734,76 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       const { currentProject } = get();
       if (!currentProject) return undefined;
       return currentProject.resources.find((r) => r.id === resourceId);
+    },
+
+    // --- Org Chart Peer Links ---
+    addPeerLink: async (resource1Id, resource2Id) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        // Initialize orgChartPro if needed
+        if (!state.currentProject.orgChartPro) {
+          state.currentProject.orgChartPro = {};
+        }
+        if (!state.currentProject.orgChartPro.peerLinks) {
+          state.currentProject.orgChartPro.peerLinks = [];
+        }
+
+        // Check if link already exists (in either direction)
+        const linkExists = state.currentProject.orgChartPro.peerLinks.some(
+          (link) =>
+            (link.resource1Id === resource1Id && link.resource2Id === resource2Id) ||
+            (link.resource1Id === resource2Id && link.resource2Id === resource1Id)
+        );
+
+        if (linkExists) {
+          console.warn("Peer link already exists");
+          return;
+        }
+
+        // Create new peer link
+        const newLink: PeerLink = {
+          id: `peer-link-${nanoid()}`,
+          resource1Id,
+          resource2Id,
+          createdAt: new Date().toISOString(),
+        };
+
+        state.currentProject.orgChartPro.peerLinks.push(newLink);
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    removePeerLink: async (peerLinkId) => {
+      set((state) => {
+        if (!state.currentProject?.orgChartPro?.peerLinks) return;
+
+        state.currentProject.orgChartPro.peerLinks =
+          state.currentProject.orgChartPro.peerLinks.filter((link) => link.id !== peerLinkId);
+
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    getPeerLinks: () => {
+      const { currentProject } = get();
+      if (!currentProject?.orgChartPro?.peerLinks) return [];
+      return currentProject.orgChartPro.peerLinks;
+    },
+
+    isPeerLinked: (resource1Id, resource2Id) => {
+      const { currentProject } = get();
+      if (!currentProject?.orgChartPro?.peerLinks) return false;
+
+      return currentProject.orgChartPro.peerLinks.some(
+        (link) =>
+          (link.resource1Id === resource1Id && link.resource2Id === resource2Id) ||
+          (link.resource1Id === resource2Id && link.resource2Id === resource1Id)
+      );
     },
 
     // --- Resource Assignment ---

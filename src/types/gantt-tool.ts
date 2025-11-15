@@ -5,6 +5,15 @@
  * Features: Phases, Tasks, Milestones, Holidays, Drag-and-drop, Export to PNG/Excel/PDF
  */
 
+// Explicit peer relationship in org chart
+// Created when user drags a resource and drops it on LEFT/RIGHT zone of another resource
+export interface PeerLink {
+  id: string; // Unique ID for the link
+  resource1Id: string; // First resource ID
+  resource2Id: string; // Second resource ID (order doesn't matter)
+  createdAt: string; // When this peer link was created
+}
+
 export interface GanttProject {
   id: string;
   name: string;
@@ -25,6 +34,7 @@ export interface GanttProject {
   orgChartPro?: {
     companyLogos?: Record<string, string>; // company name -> base64 logo URL
     selectedLogoCompanyName?: string; // Currently selected logo to display
+    peerLinks?: PeerLink[]; // Explicit peer relationships (only appear when user creates them via drag-drop)
     [key: string]: any; // Other org chart data
   };
 }

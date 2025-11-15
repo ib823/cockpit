@@ -814,7 +814,7 @@ export function GanttCanvas() {
                               <div>
                                 <div className="font-semibold">{milestone.name}</div>
                                 <div className="text-xs opacity-90 mt-2">
-                                  {format(milestoneDate, "dd MMM yy")} (
+                                  {format(milestoneDate, "dd-MMM-yy (EEE)")} (
                                   {format(milestoneDate, "EEE")})
                                 </div>
                               </div>
@@ -1066,8 +1066,8 @@ export function GanttCanvas() {
                                 <div className="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-2">
                                   <div className="flex items-center gap-2 mb-1">
                                     <span>
-                                      {format(new Date(phase.startDate), "dd MMM yy")} →{" "}
-                                      {format(new Date(phase.endDate), "dd MMM yy")}
+                                      {format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} →{" "}
+                                      {format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-3 text-xs lg:text-sm">
@@ -1313,8 +1313,8 @@ export function GanttCanvas() {
                                           </div>
                                           <div className="text-xs text-gray-300 mt-2">
                                             {formatWorkingDays(taskWorkingDays)} ·{" "}
-                                            {format(taskStart, "dd MMM yy")} →{" "}
-                                            {format(taskEnd, "dd MMM yy")}
+                                            {format(taskStart, "dd-MMM-yy (EEE)")} →{" "}
+                                            {format(taskEnd, "dd-MMM-yy (EEE)")}
                                           </div>
                                         </div>
                                       </div>
@@ -1372,8 +1372,8 @@ export function GanttCanvas() {
                                         <div>
                                           Phase:{" "}
                                           <span className="font-semibold">
-                                            {format(phaseStartDate, "dd MMM yy")} →{" "}
-                                            {format(phaseEndDate, "dd MMM yy")}
+                                            {format(phaseStartDate, "dd-MMM-yy (EEE)")} →{" "}
+                                            {format(phaseEndDate, "dd-MMM-yy (EEE)")}
                                           </span>
                                         </div>
                                       </div>
@@ -1564,17 +1564,17 @@ export function GanttCanvas() {
                                   {(viewSettings?.barDurationDisplay ?? "all") === "dates" && (
                                     <>
                                       <span className="hidden lg:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {format(new Date(phase.startDate), "dd MMM yy")} →{" "}
-                                        {format(new Date(phase.endDate), "dd MMM yy")}
+                                        {format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} →{" "}
+                                        {format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}
                                       </span>
                                       {/* Tablet: Shorter dates */}
                                       <span className="hidden sm:inline-flex lg:hidden text-[11px] font-bold bg-black/40 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {format(new Date(phase.startDate), "dd/MM")} →{" "}
-                                        {format(new Date(phase.endDate), "dd/MM")}
+                                        {format(new Date(phase.startDate), "dd-MMM-yy")} →{" "}
+                                        {format(new Date(phase.endDate), "dd-MMM-yy")}
                                       </span>
                                       {/* Mobile: Minimal dates */}
                                       <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-0.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {format(new Date(phase.startDate), "dd/MM")}
+                                        {format(new Date(phase.startDate), "dd-MMM-yy")}
                                       </span>
                                       {/* Resource badge in Dates mode */}
                                       {totalPhaseResourceCount > 0 && (
@@ -1631,13 +1631,13 @@ export function GanttCanvas() {
                                     <>
                                       {/* Desktop: Full dates badge */}
                                       <span className="hidden xl:inline-flex text-xs sm:text-sm font-semibold bg-blue-600/90 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {format(new Date(phase.startDate), "dd MMM yy")} →{" "}
-                                        {format(new Date(phase.endDate), "dd MMM yy")}
+                                        {format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} →{" "}
+                                        {format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}
                                       </span>
                                       {/* Tablet: Condensed dates */}
                                       <span className="hidden md:inline-flex xl:hidden text-[11px] font-semibold bg-blue-600/90 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {format(new Date(phase.startDate), "dd/MM")} →{" "}
-                                        {format(new Date(phase.endDate), "dd/MM")}
+                                        {format(new Date(phase.startDate), "dd-MMM-yy")} →{" "}
+                                        {format(new Date(phase.endDate), "dd-MMM-yy")}
                                       </span>
 
                                       {/* Desktop/Tablet: Duration badge - Single format (Jobs/Ive principle) */}
@@ -2065,15 +2065,15 @@ export function GanttCanvas() {
                                                 <div>
                                                   Task:{" "}
                                                   <span className="font-semibold">
-                                                    {format(taskStart, "dd MMM yy")} →{" "}
-                                                    {format(taskEnd, "dd MMM yy")}
+                                                    {format(taskStart, "dd-MMM-yy (EEE)")} →{" "}
+                                                    {format(taskEnd, "dd-MMM-yy (EEE)")}
                                                   </span>
                                                 </div>
                                                 <div>
                                                   Phase:{" "}
                                                   <span className="font-semibold">
-                                                    {format(phaseStartDate, "dd MMM yy")} →{" "}
-                                                    {format(phaseEndDate, "dd MMM yy")}
+                                                    {format(phaseStartDate, "dd-MMM-yy (EEE)")} →{" "}
+                                                    {format(phaseEndDate, "dd-MMM-yy (EEE)")}
                                                   </span>
                                                 </div>
                                               </div>
@@ -2292,8 +2292,8 @@ export function GanttCanvas() {
                                       )}
                                       <div className="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-1.5">
                                         <div className="mb-1">
-                                          {format(taskStart, "dd MMM yy")} →{" "}
-                                          {format(taskEnd, "dd MMM yy")}
+                                          {format(taskStart, "dd-MMM-yy (EEE)")} →{" "}
+                                          {format(taskEnd, "dd-MMM-yy (EEE)")}
                                         </div>
                                         <div className="flex items-center gap-2">
                                           <span className="text-purple-400 font-semibold">

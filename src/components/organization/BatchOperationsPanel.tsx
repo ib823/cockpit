@@ -15,7 +15,7 @@ import {
   DeleteOutlined,
   ClearOutlined,
 } from "@ant-design/icons";
-import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 
 const { Title, Text } = Typography;

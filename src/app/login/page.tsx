@@ -105,10 +105,9 @@ function LoginContent() {
 
       setStage("success");
       setSuccessMessage("Passkey registered successfully!");
-      const role = finish?.user?.role;
       setTimeout(() => {
         // Use window.location to force full page reload and update SessionProvider
-        window.location.href = role === "ADMIN" ? "/admin" : "/dashboard";
+        window.location.href = "/dashboard";
       }, 1500);
     } catch (e: any) {
       if (e.name === "NotAllowedError") {
@@ -186,10 +185,9 @@ function LoginContent() {
 
       setStage("success");
       setSuccessMessage("Login successful!");
-      const role = finish?.user?.role;
       setTimeout(() => {
         // Use window.location to force full page reload and update SessionProvider
-        window.location.href = role === "ADMIN" ? "/admin" : "/dashboard";
+        window.location.href = "/dashboard";
       }, 1500);
     } catch (e: any) {
       setErr("Passkey authentication was cancelled or failed. Please try again.");
@@ -239,10 +237,9 @@ function LoginContent() {
 
       setStage("success");
       setSuccessMessage("Passkey registered successfully!");
-      const role = finish?.user?.role;
       setTimeout(() => {
         // Use window.location to force full page reload and update SessionProvider
-        window.location.href = role === "ADMIN" ? "/admin" : "/dashboard";
+        window.location.href = "/dashboard";
       }, 1500);
     } catch (e: any) {
       if (e.name === "NotAllowedError") {

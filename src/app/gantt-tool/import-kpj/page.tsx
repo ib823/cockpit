@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 
 export default function ImportKPJPage() {
   const [status, setStatus] = useState<"loading" | "importing" | "success" | "error">("loading");

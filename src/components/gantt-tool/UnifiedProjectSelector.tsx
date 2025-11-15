@@ -562,7 +562,7 @@ export function UnifiedProjectSelector({
                           color: isSelected ? "#ffffff" : "var(--color-gray-2)",
                         }}
                       >
-                        {project.phases.length} {project.phases.length === 1 ? "phase" : "phases"}
+                        {('phases' in project && project.phases) ? `${project.phases.length} ${project.phases.length === 1 ? "phase" : "phases"}` : "No phases"}
                       </div>
                     </div>
 

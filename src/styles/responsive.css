@@ -1,0 +1,463 @@
+/**
+ * Responsive Utilities
+ * Mobile-first responsive design utilities following Apple HIG
+ * Provides consistent breakpoints, utilities, and mobile optimizations
+ *
+ * Breakpoints:
+ * - xs: 375px (iPhone SE)
+ * - sm: 640px (Large phones)
+ * - md: 768px (Tablets portrait)
+ * - lg: 1024px (Tablets landscape)
+ * - xl: 1280px (Laptops)
+ * - 2xl: 1536px (Desktops)
+ */
+
+/* ============================================================================
+   RESPONSIVE VISIBILITY UTILITIES
+   ============================================================================ */
+
+/* Hide on mobile, show on tablet+ */
+.hide-mobile {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    display: initial !important;
+  }
+}
+
+/* Show only on mobile */
+.show-mobile {
+  display: initial !important;
+}
+
+@media (min-width: 768px) {
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide on tablet, show on mobile and desktop */
+.hide-tablet {
+  display: initial !important;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hide-tablet {
+    display: none !important;
+  }
+}
+
+/* Show only on tablet */
+.show-tablet {
+  display: none !important;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .show-tablet {
+    display: initial !important;
+  }
+}
+
+/* Hide on desktop */
+.hide-desktop {
+  display: initial !important;
+}
+
+@media (min-width: 1024px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Show only on desktop */
+.show-desktop {
+  display: none !important;
+}
+
+@media (min-width: 1024px) {
+  .show-desktop {
+    display: initial !important;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE CONTAINER
+   ============================================================================ */
+
+.container-responsive {
+  width: 100%;
+  max-width: var(--container-xl, 1280px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-container, 16px);
+  padding-right: var(--space-container, 16px);
+}
+
+/* ============================================================================
+   RESPONSIVE FLEX UTILITIES
+   ============================================================================ */
+
+/* Stack on mobile, row on desktop */
+.flex-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 24px);
+}
+
+@media (min-width: 768px) {
+  .flex-responsive {
+    flex-direction: row;
+  }
+}
+
+/* Reverse: Row on mobile, stack on desktop */
+.flex-responsive-reverse {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-2, 16px);
+}
+
+@media (min-width: 768px) {
+  .flex-responsive-reverse {
+    flex-direction: column;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE GRID UTILITIES
+   ============================================================================ */
+
+/* Responsive grid - 1 col mobile, 2 cols tablet, 3+ cols desktop */
+.grid-responsive {
+  display: grid;
+  gap: var(--space-3, 24px);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid-responsive {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Auto-fit responsive grid */
+.grid-auto-responsive {
+  display: grid;
+  gap: var(--space-3, 24px);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+@media (max-width: 640px) {
+  .grid-auto-responsive {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE SPACING UTILITIES
+   ============================================================================ */
+
+/* Responsive padding */
+.p-responsive {
+  padding: var(--space-2, 16px);
+}
+
+@media (min-width: 768px) {
+  .p-responsive {
+    padding: var(--space-3, 24px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .p-responsive {
+    padding: var(--space-4, 32px);
+  }
+}
+
+/* Responsive gap for flex/grid */
+.gap-responsive {
+  gap: var(--space-2, 16px);
+}
+
+@media (min-width: 768px) {
+  .gap-responsive {
+    gap: var(--space-3, 24px);
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE TEXT UTILITIES
+   ============================================================================ */
+
+/* Responsive text alignment */
+.text-center-mobile {
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .text-center-mobile {
+    text-align: left;
+  }
+}
+
+/* Responsive text sizes */
+.text-responsive {
+  font-size: var(--text-sm, 13px);
+}
+
+@media (min-width: 768px) {
+  .text-responsive {
+    font-size: var(--text-base, 15px);
+  }
+}
+
+/* Responsive headings */
+.heading-responsive {
+  font-size: var(--text-xl, 20px);
+}
+
+@media (min-width: 768px) {
+  .heading-responsive {
+    font-size: var(--text-2xl, 24px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .heading-responsive {
+    font-size: var(--text-3xl, 28px);
+  }
+}
+
+/* ============================================================================
+   MOBILE TOUCH OPTIMIZATIONS
+   ============================================================================ */
+
+/* Touch-friendly button sizes on mobile */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .touch-target {
+    min-height: 36px;
+    min-width: auto;
+  }
+}
+
+/* Larger tap areas on mobile */
+.tap-area-mobile {
+  padding: var(--space-3, 24px) var(--space-2, 16px);
+}
+
+@media (min-width: 768px) {
+  .tap-area-mobile {
+    padding: var(--space-2, 16px) var(--space-3, 24px);
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE OVERFLOW HANDLING
+   ============================================================================ */
+
+/* Horizontal scroll on mobile for tables */
+.scroll-mobile {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+  .scroll-mobile {
+    overflow-x: visible;
+  }
+}
+
+/* ============================================================================
+   MOBILE NAVIGATION UTILITIES
+   ============================================================================ */
+
+/* Mobile menu (hamburger pattern) */
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-bg-primary);
+  z-index: var(--z-modal, 1050);
+  transform: translateX(-100%);
+  transition: transform var(--duration-normal, 250ms) var(--easing-standard);
+}
+
+.mobile-menu.open {
+  transform: translateX(0);
+}
+
+@media (min-width: 768px) {
+  .mobile-menu {
+    position: static;
+    transform: none;
+    background-color: transparent;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE SIDEBAR/PANEL LAYOUTS
+   ============================================================================ */
+
+/* Sidebar that becomes bottom sheet on mobile */
+.sidebar-responsive {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60vh;
+  max-height: 500px;
+  background-color: var(--color-bg-primary);
+  border-top: 1px solid var(--color-border-medium);
+  border-radius: 16px 16px 0 0;
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-modal, 1050);
+  transform: translateY(100%);
+  transition: transform var(--duration-normal, 250ms) var(--easing-standard);
+}
+
+.sidebar-responsive.open {
+  transform: translateY(0);
+}
+
+@media (min-width: 768px) {
+  .sidebar-responsive {
+    position: static;
+    height: auto;
+    max-height: none;
+    border-radius: 0;
+    border-top: none;
+    border-left: 1px solid var(--color-border-medium);
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE GANTT-SPECIFIC UTILITIES
+   ============================================================================ */
+
+/* Gantt sidebar collapses on mobile */
+.gantt-sidebar-responsive {
+  width: 100%;
+  min-width: auto;
+  border-right: none;
+  border-bottom: 1px solid var(--color-border-medium);
+}
+
+@media (min-width: 768px) {
+  .gantt-sidebar-responsive {
+    width: var(--gantt-sidebar-width-default, 620px);
+    min-width: var(--gantt-sidebar-width-min, 300px);
+    border-right: 1px solid var(--color-border-medium);
+    border-bottom: none;
+  }
+}
+
+/* Gantt timeline scrolls horizontally on mobile */
+.gantt-timeline-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================================
+   RESPONSIVE MODAL/DIALOG ADAPTATIONS
+   ============================================================================ */
+
+/* Full-screen modals on mobile */
+.modal-responsive {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg-primary);
+  z-index: var(--z-modal, 1050);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+  .modal-responsive {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 600px;
+    max-height: 90vh;
+    width: 90%;
+    inset: auto;
+    border-radius: var(--radius-lg, 8px);
+    box-shadow: var(--shadow-2xl);
+  }
+}
+
+/* ============================================================================
+   SAFE AREA INSETS (for notched devices)
+   ============================================================================ */
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+.safe-area-all {
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
+
+/* ============================================================================
+   RESPONSIVE PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure proper page breaks */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+}

@@ -1,10 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { Flag, Plus, Trash2, X } from "lucide-react";
+import { Flag, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/common/Button";
-import { Heading2, BodySM } from "@/components/common/Typography";
+import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 interface Milestone {
   id: string;
@@ -60,45 +61,89 @@ export function MilestoneManagerModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-8 border-b border-gray-200">
-          <div className="flex items-center gap-4">
-            <Flag className="w-6 h-6 text-green-600" />
-            <div>
-              <Heading2>Milestone Manager</Heading2>
-              <BodySM className="text-gray-600">{localMilestones.length} milestones</BodySM>
-            </div>
-          </div>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-
+    <BaseModal
+      isOpen={true}
+      onClose={onClose}
+      title="Milestone Manager"
+      subtitle={`${localMilestones.length} milestones`}
+      icon={<Flag className="w-6 h-6" />}
+      size="medium"
+      footer={
+        <>
+          <ModalButton variant="secondary" onClick={onClose}>
+            Cancel
+          </ModalButton>
+          <ModalButton variant="primary" onClick={handleSave}>
+            Save Changes
+          </ModalButton>
+        </>
+      }
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
         {/* Add New */}
-        <div className="p-8 border-b border-gray-200 bg-green-50">
-          <div className="space-y-4">
+        <div
+          style={{
+            padding: "24px",
+            backgroundColor: "rgba(52, 199, 89, 0.05)",
+            borderRadius: "8px",
+            border: "1px solid rgba(52, 199, 89, 0.1)",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <input
               type="text"
               value={newMilestone.name}
               onChange={(e) => setNewMilestone({ ...newMilestone, name: e.target.value })}
               placeholder="Milestone name (e.g., UAT Complete)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              style={{
+                width: "100%",
+                fontFamily: "var(--font-text)",
+                fontSize: "14px",
+                padding: "10px 12px",
+                border: "1px solid #D1D1D6",
+                borderRadius: "8px",
+                outline: "none",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "#34C759";
+                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(52, 199, 89, 0.1)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "#D1D1D6";
+                e.currentTarget.style.boxShadow = "none";
+              }}
               aria-label="Milestone name"
             />
-            <div className="flex gap-4">
-              <input
-                type="date"
-                value={newMilestone.date}
-                onChange={(e) => setNewMilestone({ ...newMilestone, date: e.target.value })}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                aria-label="Milestone date"
-              />
+            <div style={{ display: "flex", gap: "16px" }}>
+              <div style={{ flex: 1 }}>
+                <HolidayAwareDatePicker
+                  value={newMilestone.date}
+                  onChange={(value) => setNewMilestone({ ...newMilestone, date: value })}
+                  region="ABMY"
+                  placeholder="Select date"
+                  size="medium"
+                />
+              </div>
               <select
                 value={newMilestone.color}
                 onChange={(e) => setNewMilestone({ ...newMilestone, color: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                style={{
+                  fontFamily: "var(--font-text)",
+                  fontSize: "14px",
+                  padding: "10px 12px",
+                  border: "1px solid #D1D1D6",
+                  borderRadius: "8px",
+                  outline: "none",
+                  backgroundColor: "#FFFFFF",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "#34C759";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(52, 199, 89, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "#D1D1D6";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
                 aria-label="Milestone color"
               >
                 {COLORS.map((c) => (
@@ -121,45 +166,45 @@ export function MilestoneManagerModal({
         </div>
 
         {/* Milestone List */}
-        <div className="flex-1 overflow-y-auto p-8">
-          <div className="space-y-2">
-            {localMilestones.map((milestone) => (
-              <div
-                key={milestone.id}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-3 h-3 ${milestone.color} rotate-45`} />
-                  <div>
-                    <div className="font-medium text-gray-900">{milestone.name}</div>
-                    <div className="text-sm text-gray-600">
-                      {format(milestone.date, "EEEE, MMMM dd, yyyy")}
-                    </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "400px", overflowY: "auto" }}>
+          {localMilestones.map((milestone) => (
+            <div
+              key={milestone.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "16px",
+                backgroundColor: "#F5F5F7",
+                borderRadius: "8px",
+                transition: "background-color 0.15s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#E8E8ED")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#F5F5F7")}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <div className={`w-3 h-3 ${milestone.color} rotate-45`} />
+                <div>
+                  <div style={{ fontFamily: "var(--font-text)", fontSize: "14px", fontWeight: 600, color: "#1D1D1F" }}>
+                    {milestone.name}
+                  </div>
+                  <div style={{ fontFamily: "var(--font-text)", fontSize: "13px", color: "#86868B" }}>
+                    {format(milestone.date, "EEEE, MMMM dd, yyyy")}
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(milestone.id)}
-                  aria-label={`Delete ${milestone.name}`}
-                >
-                  <Trash2 className="w-4 h-4 text-red-600" />
-                </Button>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-4 p-8 border-t border-gray-200 bg-gray-50">
-          <Button variant="secondary" size="md" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" size="md" onClick={handleSave}>
-            Save Changes
-          </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDelete(milestone.id)}
+                aria-label={`Delete ${milestone.name}`}
+              >
+                <Trash2 className="w-4 h-4 text-red-600" />
+              </Button>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }
