@@ -1,10 +1,12 @@
 /**
- * New Project Modal
+ * NewProjectModal - Apple Minimalist Design System
  *
- * Apple-inspired minimal modal for creating new projects
- * "Focus and simplicity... that's been one of my mantras." - Steve Jobs
+ * Features:
+ * - AppleMinimalistModal integration with unified UX
+ * - Project creation with smart defaults
+ * - Optional company logo uploads
  *
- * Refactored to use BaseModal with Apple HIG quality
+ * Migration: Converted from BaseModal to AppleMinimalistModal (2025-11-15)
  */
 
 "use client";
@@ -12,8 +14,7 @@
 import { useState, useRef } from "react";
 import { Upload, FolderPlus } from "lucide-react";
 import { format } from "date-fns";
-import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, type FormField } from "@/components/ui/AppleMinimalistModal";
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -89,99 +90,30 @@ export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProject
     }
   };
 
-  return (
-    <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="New Project"
-      subtitle="Create a new project with optional company logos"
-      icon={<FolderPlus className="w-5 h-5" />}
-      size="medium"
-      preventClose={isCreating}
-      preventEscapeClose={isCreating}
-      footer={
-        <>
-          <ModalButton onClick={onClose} disabled={isCreating}>
-            Cancel
-          </ModalButton>
-          <ModalButton
-            onClick={() => {
-              const form = document.querySelector('form');
-              if (form) {
-                form.requestSubmit();
-              }
-            }}
-            variant="primary"
-            disabled={isCreating || !projectName.trim()}
-          >
-            {isCreating ? "Creating..." : "Create Project"}
-          </ModalButton>
-        </>
-      }
-    >
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-          {/* Project Name */}
-          <div>
-            <label
-              htmlFor="project-name"
-              style={{
-                display: "block",
-                marginBottom: "8px",
-                fontFamily: "var(--font-text)",
-                fontSize: "15px",
-                fontWeight: 600,
-                color: "#1D1D1F",
-              }}
-            >
-              Project Name <span style={{ color: "#FF3B30" }}>*</span>
-            </label>
-            <input
-              id="project-name"
-              type="text"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              placeholder="e.g., Q1 2025 Roadmap"
-              autoFocus
-              required
-              disabled={isCreating}
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                backgroundColor: "#F5F5F7",
-                border: "2px solid transparent",
-                borderRadius: "8px",
-                fontFamily: "var(--font-text)",
-                fontSize: "15px",
-                color: "#1D1D1F",
-                outline: "none",
-                transition: "all 0.15s ease",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "#007AFF";
-                e.currentTarget.style.backgroundColor = "#FFFFFF";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "transparent";
-                e.currentTarget.style.backgroundColor = "#F5F5F7";
-              }}
-            />
-          </div>
+  // Form fields for AppleMinimalistModal
+  const fields: FormField[] = [
+    {
+      id: "projectName",
+      type: "text",
+      label: "Project Name",
+      placeholder: "e.g., Q1 2025 Roadmap",
+      required: true,
+      disabled: isCreating,
+    },
+    {
+      id: "startDate",
+      type: "date",
+      label: "Start Date",
+      required: true,
+      disabled: isCreating,      region: "ABMY", // Default region
+      milestones: [], // New project, no milestones yet
+    },
+  ];
 
-          {/* Start Date */}
-          <div>
-            <HolidayAwareDatePicker
-              label="Start Date"
-              value={startDate}
-              onChange={(value) => setStartDate(value)}
-              region="ABMY"
-              disabled={isCreating}
-              required={true}
-              size="large"
-            />
-          </div>
-
-          {/* Company Logos (Optional) */}
+  // Custom content for company logos
+  const companyLogosContent = (
+    <>
+      {/* Company Logos (Optional) */}
           <div>
             <label
               style={{
@@ -292,8 +224,36 @@ export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProject
               ))}
             </div>
           </div>
-        </div>
-      </form>
-    </BaseModal>
+    </>
+  );
+
+  return (
+    <AppleMinimalistModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="New Project"
+      subtitle="Create a new project with optional company logos"
+      icon={<FolderPlus className="w-5 h-5" />}
+      size="medium"
+      formLayout="vertical"
+      fields={fields}
+      formValues={{ projectName, startDate }}
+      onFieldChange={(fieldId, value) => {
+        if (fieldId === "projectName") setProjectName(value);
+        if (fieldId === "startDate") setStartDate(value);
+      }}
+      primaryAction={{
+        label: isCreating ? "Creating..." : "Create Project",
+        onClick: () => { void handleSubmit(new Event('submit') as any); },
+        loading: isCreating,
+      }}
+      secondaryAction={{
+        label: "Cancel",
+        onClick: onClose,
+      }}
+      preventClose={isCreating}
+    >
+      {companyLogosContent}
+    </AppleMinimalistModal>
   );
 }

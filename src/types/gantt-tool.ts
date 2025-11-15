@@ -92,6 +92,12 @@ export interface GanttTask {
     minimumDuration?: number; // Minimum subscription duration in months (e.g., 12)
     notes?: string; // Additional AMS-specific notes
   };
+
+  // Strategic Planning Metadata (for RACI context and governance)
+  priority?: "high" | "medium" | "low"; // Timeline priority level
+  isCritical?: boolean; // Critical path - blocks go-live if delayed
+  estimatedEffort?: number; // Estimated working days (for resource planning and cost estimation)
+  requiredSkillCategories?: ResourceCategory[]; // Skills needed for this task (for skill matching in RACI)
 }
 
 // Type aliases for convenience
@@ -182,6 +188,12 @@ export interface TaskFormData {
   amsFixedRate?: number;
   amsMinimumDuration?: number;
   amsNotes?: string;
+
+  // Strategic Planning
+  priority?: "high" | "medium" | "low";
+  isCritical?: boolean;
+  estimatedEffort?: number;
+  requiredSkillCategories?: ResourceCategory[];
 }
 
 export interface MilestoneFormData {

@@ -1,8 +1,8 @@
 /**
- * AddTaskModal - Apple HIG-compliant modal for creating new tasks
+ * AddTaskModal - Apple Minimalist Design System
  *
  * Features:
- * - BaseModal integration with consistent UX
+ * - AppleMinimalistModal integration with unified UX
  * - Phase selector with smart filtering
  * - Auto-fill dates based on selected phase
  * - Smart task naming (Task 1, Task 2, etc.)
@@ -10,19 +10,19 @@
  * - Keyboard shortcuts (Cmd+Enter to save)
  * - Working days calculation
  * - AMS configuration (full parity with EditTaskModal)
- * - HolidayAwareDatePicker with phase boundary constraints
+ *
+ * Migration: Converted from BaseModal to AppleMinimalistModal (2025-11-15)
  */
 
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { format, addDays } from "date-fns";
-import { Calendar, Layers, PlusSquare, DollarSign } from "lucide-react";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { Calendar, PlusSquare, DollarSign } from "lucide-react";
+import { AppleMinimalistModal, type FormField } from "@/components/ui/AppleMinimalistModal";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
 import type { TaskFormData } from "@/types/gantt-tool";
-import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -258,309 +258,128 @@ export function AddTaskModal({ isOpen, onClose, preselectedPhaseId }: AddTaskMod
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, formData]);
 
-  return (
-    <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Add New Task"
-      subtitle={selectedPhase ? `Phase: ${selectedPhase.name}` : "Create a new task within a phase"}
-      icon={<PlusSquare className="w-5 h-5" />}
-      size="large"
-      footer={
-        <>
-          <ModalButton variant="secondary" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </ModalButton>
-          <ModalButton
-            variant="primary"
-            onClick={() => { void handleSubmit(new Event('submit') as any); }}
-            disabled={isSubmitting || !currentProject || currentProject.phases.length === 0}
-            type="submit"
-          >
-            {isSubmitting ? "Creating..." : "Create Task"}
-          </ModalButton>
-        </>
-      }
-    >
-      <form onSubmit={(e) => { void handleSubmit(e); }} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-        {/* Phase Selector */}
-        <div>
-          <label
-            htmlFor="task-phase"
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Phase
-          </label>
-          <select
-            id="task-phase"
-            value={formData.phaseId}
-            onChange={(e) => handlePhaseChange(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontFamily: "var(--font-text)",
-              fontSize: "15px",
-              color: "#1D1D1F",
-              backgroundColor: errors.phaseId ? "#FFF5F5" : "#F5F5F7",
-              border: errors.phaseId ? "2px solid #FF3B30" : "2px solid transparent",
-              borderRadius: "8px",
-              outline: "none",
-              transition: "all 0.15s ease",
-              cursor: "pointer",
-            }}
-            onFocus={(e) => {
-              if (!errors.phaseId) {
-                e.target.style.backgroundColor = "#FFFFFF";
-                e.target.style.borderColor = "#007AFF";
-              }
-            }}
-            onBlur={(e) => {
-              if (!errors.phaseId) {
-                e.target.style.backgroundColor = "#F5F5F7";
-                e.target.style.borderColor = "transparent";
-              }
-            }}
-          >
-            {!currentProject || currentProject.phases.length === 0 ? (
-              <option value="">No phases available - create a phase first</option>
-            ) : (
-              <>
-                <option value="">Select a phase...</option>
-                {currentProject.phases.map((phase) => (
-                  <option key={phase.id} value={phase.id}>
-                    {phase.name} ({format(new Date(phase.startDate), "MMM d")} - {format(new Date(phase.endDate), "MMM d, yyyy")})
-                  </option>
-                ))}
-              </>
-            )}
-          </select>
-          {errors.phaseId && (
-            <p style={{
-              fontFamily: "var(--font-text)",
-              fontSize: "12px",
-              color: "#FF3B30",
-              marginTop: "6px",
-            }}>
-              {errors.phaseId}
-            </p>
-          )}
-        </div>
 
-        {/* Task Name */}
-        <div>
-          <label
-            htmlFor="task-name"
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Task Name
-          </label>
-          <input
-            ref={nameInputRef}
-            id="task-name"
-            type="text"
-            value={formData.name}
-            onChange={(e) => handleChange("name", e.target.value)}
-            placeholder="e.g., Create Business Requirements Document"
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontFamily: "var(--font-text)",
-              fontSize: "15px",
-              color: "#1D1D1F",
-              backgroundColor: errors.name ? "#FFF5F5" : "#F5F5F7",
-              border: errors.name ? "2px solid #FF3B30" : "2px solid transparent",
-              borderRadius: "8px",
-              outline: "none",
-              transition: "all 0.15s ease",
-            }}
-            onFocus={(e) => {
-              if (!errors.name) {
-                e.target.style.backgroundColor = "#FFFFFF";
-                e.target.style.borderColor = "#007AFF";
-              }
-            }}
-            onBlur={(e) => {
-              if (!errors.name) {
-                e.target.style.backgroundColor = "#F5F5F7";
-                e.target.style.borderColor = "transparent";
-              }
-            }}
-          />
-          {errors.name && (
-            <p style={{
-              fontFamily: "var(--font-text)",
-              fontSize: "12px",
-              color: "#FF3B30",
-              marginTop: "6px",
-            }}>
-              {errors.name}
-            </p>
-          )}
-        </div>
+  // Form fields for AppleMinimalistModal
+  const fields: FormField[] = [
+    {
+      id: "name",
+      type: "text",
+      label: "Task Name",
+      placeholder: "e.g., Create Business Requirements Document",
+      required: true,
+      error: errors.name,
+    },
+    {
+      id: "description",
+      type: "textarea",
+      label: "Description",
+      placeholder: "What needs to be done?",
+      helperText: "Optional - describe the task",
+    },
+    {
+      id: "deliverables",
+      type: "textarea",
+      label: "Deliverables",
+      placeholder: "Expected outputs",
+      helperText: "Optional - list the key deliverables",
+    },
+    {
+      id: "startDate",
+      type: "date",
+      label: "Start Date",
+      required: true,
+      error: errors.startDate,
+      minDate: selectedPhase ? format(new Date(selectedPhase.startDate), "yyyy-MM-dd") : undefined,
+      maxDate: selectedPhase ? format(new Date(selectedPhase.endDate), "yyyy-MM-dd") : undefined,
+      region: currentProject?.orgChartPro?.location || "ABMY",    },
+    {
+      id: "endDate",
+      type: "date",
+      label: "End Date",
+      required: true,
+      error: errors.endDate,
+      minDate: selectedPhase ? format(new Date(selectedPhase.startDate), "yyyy-MM-dd") : undefined,
+      maxDate: selectedPhase ? format(new Date(selectedPhase.endDate), "yyyy-MM-dd") : undefined,
+      region: currentProject?.orgChartPro?.location || "ABMY",    },
+  ];
 
-        {/* Description */}
-        <div>
-          <label
-            htmlFor="task-description"
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Description <span style={{ color: "#86868B", fontWeight: 400 }}>(optional)</span>
-          </label>
-          <textarea
-            id="task-description"
-            value={formData.description}
-            onChange={(e) => handleChange("description", e.target.value)}
-            placeholder="What needs to be done?"
-            rows={3}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontFamily: "var(--font-text)",
-              fontSize: "15px",
-              color: "#1D1D1F",
-              backgroundColor: "#F5F5F7",
-              border: "2px solid transparent",
-              borderRadius: "8px",
-              outline: "none",
-              transition: "all 0.15s ease",
-              resize: "vertical",
-            }}
-            onFocus={(e) => {
+  // Custom content for phase selector, working days, and AMS config
+  const customContent = (
+    <>
+      {/* Phase Selector */}
+      <div>
+        <label
+          htmlFor="task-phase"
+          style={{
+            display: "block",
+            fontFamily: "var(--font-text)",
+            fontSize: "13px",
+            fontWeight: 500,
+            color: "#1D1D1F",
+            marginBottom: "8px",
+          }}
+        >
+          Phase
+        </label>
+        <select
+          id="task-phase"
+          value={formData.phaseId}
+          onChange={(e) => handlePhaseChange(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "10px 20px",
+            fontFamily: "var(--font-text)",
+            fontSize: "15px",
+            color: "#1D1D1F",
+            backgroundColor: errors.phaseId ? "#FFF5F5" : "#F5F5F7",
+            border: errors.phaseId ? "2px solid #FF3B30" : "2px solid transparent",
+            borderRadius: "8px",
+            outline: "none",
+            transition: "all 0.15s ease",
+            cursor: "pointer",
+          }}
+          onFocus={(e) => {
+            if (!errors.phaseId) {
               e.target.style.backgroundColor = "#FFFFFF";
               e.target.style.borderColor = "#007AFF";
-            }}
-            onBlur={(e) => {
+            }
+          }}
+          onBlur={(e) => {
+            if (!errors.phaseId) {
               e.target.style.backgroundColor = "#F5F5F7";
               e.target.style.borderColor = "transparent";
-            }}
-          />
-        </div>
+            }
+          }}
+        >
+          {!currentProject || currentProject.phases.length === 0 ? (
+            <option value="">No phases available - create a phase first</option>
+          ) : (
+            <>
+              <option value="">Select a phase...</option>
+              {currentProject.phases.map((phase) => (
+                <option key={phase.id} value={phase.id}>
+                  {phase.name} ({format(new Date(phase.startDate), "MMM d")} - {format(new Date(phase.endDate), "MMM d, yyyy")})
+                </option>
+              ))}
+            </>
+          )}
+        </select>
+        {errors.phaseId && (
+          <p style={{
+            fontFamily: "var(--font-text)",
+            fontSize: "12px",
+            color: "#FF3B30",
+            marginTop: "6px",
+          }}>
+            {errors.phaseId}
+          </p>
+        )}
+      </div>
 
-        {/* Deliverables */}
-        <div>
-          <label
-            htmlFor="task-deliverables"
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Deliverables <span style={{ color: "#86868B", fontWeight: 400 }}>(optional)</span>
-          </label>
-          <textarea
-            id="task-deliverables"
-            value={formData.deliverables}
-            onChange={(e) => handleChange("deliverables", e.target.value)}
-            placeholder="Expected outputs"
-            rows={2}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontFamily: "var(--font-text)",
-              fontSize: "15px",
-              color: "#1D1D1F",
-              backgroundColor: "#F5F5F7",
-              border: "2px solid transparent",
-              borderRadius: "8px",
-              outline: "none",
-              transition: "all 0.15s ease",
-              resize: "vertical",
-            }}
-            onFocus={(e) => {
-              e.target.style.backgroundColor = "#FFFFFF";
-              e.target.style.borderColor = "#007AFF";
-            }}
-            onBlur={(e) => {
-              e.target.style.backgroundColor = "#F5F5F7";
-              e.target.style.borderColor = "transparent";
-            }}
-          />
-        </div>
-
-        {/* Date Range */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-          {/* Start Date */}
-          <div>
-            <label
-              htmlFor="task-start-date"
-              style={{
-                display: "block",
-                fontFamily: "var(--font-text)",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#1D1D1F",
-                marginBottom: "8px",
-              }}
-            >
-              Start Date
-            </label>
-            <HolidayAwareDatePicker
-              value={formData.startDate}
-              onChange={(date) => handleChange("startDate", date)}
-              region={currentProject?.orgChartPro?.location || "ABMY"}
-              error={errors.startDate}
-              minDate={selectedPhase ? format(new Date(selectedPhase.startDate), "yyyy-MM-dd") : undefined}
-              maxDate={selectedPhase ? format(new Date(selectedPhase.endDate), "yyyy-MM-dd") : undefined}
-              size="medium"
-            />
-          </div>
-
-          {/* End Date */}
-          <div>
-            <label
-              htmlFor="task-end-date"
-              style={{
-                display: "block",
-                fontFamily: "var(--font-text)",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#1D1D1F",
-                marginBottom: "8px",
-              }}
-            >
-              End Date
-            </label>
-            <HolidayAwareDatePicker
-              value={formData.endDate}
-              onChange={(date) => handleChange("endDate", date)}
-              region={currentProject?.orgChartPro?.location || "ABMY"}
-              error={errors.endDate}
-              minDate={selectedPhase ? format(new Date(selectedPhase.startDate), "yyyy-MM-dd") : undefined}
-              maxDate={selectedPhase ? format(new Date(selectedPhase.endDate), "yyyy-MM-dd") : undefined}
-              size="medium"
-            />
-          </div>
-        </div>
-
-        {/* Working Days Display */}
+      {/* Working Days Display */}
         {workingDays > 0 && (
           <div style={{
-            padding: "12px 16px",
+            padding: "16px",
             backgroundColor: "#F5F5F7",
             borderRadius: "8px",
             display: "flex",
@@ -627,7 +446,7 @@ export function AddTaskModal({ isOpen, onClose, preselectedPhaseId }: AddTaskMod
                   <label style={{
                     display: "block",
                     fontFamily: "var(--font-text)",
-                    fontSize: "12px",
+                    fontSize: "13px",
                     fontWeight: 500,
                     color: "#1D1D1F",
                     marginBottom: "6px",
@@ -657,7 +476,7 @@ export function AddTaskModal({ isOpen, onClose, preselectedPhaseId }: AddTaskMod
                   <label style={{
                     display: "block",
                     fontFamily: "var(--font-text)",
-                    fontSize: "12px",
+                    fontSize: "13px",
                     fontWeight: 500,
                     color: "#1D1D1F",
                     marginBottom: "6px",
@@ -689,7 +508,7 @@ export function AddTaskModal({ isOpen, onClose, preselectedPhaseId }: AddTaskMod
                 <label style={{
                   display: "block",
                   fontFamily: "var(--font-text)",
-                  fontSize: "12px",
+                  fontSize: "13px",
                   fontWeight: 500,
                   color: "#1D1D1F",
                   marginBottom: "6px",
@@ -719,7 +538,7 @@ export function AddTaskModal({ isOpen, onClose, preselectedPhaseId }: AddTaskMod
                 <label style={{
                   display: "block",
                   fontFamily: "var(--font-text)",
-                  fontSize: "12px",
+                  fontSize: "13px",
                   fontWeight: 500,
                   color: "#1D1D1F",
                   marginBottom: "6px",
@@ -748,17 +567,32 @@ export function AddTaskModal({ isOpen, onClose, preselectedPhaseId }: AddTaskMod
           )}
         </div>
 
-        {/* Keyboard Shortcut Hint */}
-        <div style={{
-          fontFamily: "var(--font-text)",
-          fontSize: "12px",
-          color: "#86868B",
-          textAlign: "center",
-          paddingTop: "8px",
-        }}>
-          Press <kbd style={{ padding: "2px 6px", backgroundColor: "#F5F5F7", borderRadius: "4px", fontWeight: 600 }}>⌘</kbd> + <kbd style={{ padding: "2px 6px", backgroundColor: "#F5F5F7", borderRadius: "4px", fontWeight: 600 }}>Enter</kbd> to create
-        </div>
-      </form>
-    </BaseModal>
+    </>
+  );
+
+  return (
+    <AppleMinimalistModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Add New Task"
+      subtitle={selectedPhase ? `Phase: ${selectedPhase.name}` : "Create a new task within a phase"}
+      icon={<PlusSquare className="w-5 h-5" />}
+      size="large"
+      formLayout="vertical"
+      fields={fields}
+      formValues={formData as any}
+      onFieldChange={(fieldId, value) => handleChange(fieldId as keyof TaskFormData, value)}
+      primaryAction={{
+        label: isSubmitting ? "Creating..." : "Create Task",
+        onClick: () => { void handleSubmit(new Event('submit') as any); },
+        loading: isSubmitting,
+      }}
+      secondaryAction={{
+        label: "Cancel",
+        onClick: onClose,
+      }}
+    >
+      {customContent}
+    </AppleMinimalistModal>
   );
 }

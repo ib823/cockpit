@@ -705,7 +705,9 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
+          const errorData = await response.json().catch(() => ({
+            error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
+          }));
           const errorMessage = errorData.error || `Failed to save project (${response.status})`;
 
           // Enhanced error logging to debug validation issues

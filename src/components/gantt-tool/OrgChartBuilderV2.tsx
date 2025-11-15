@@ -55,7 +55,7 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
   // Merge default logos with custom project logos
   const customLogos = project?.orgChartPro?.companyLogos || {};
   const companyLogos = getAllCompanyLogos(customLogos);
-  const { addResource, updateResource, currentProject, addPeerLink, getPeerLinks } = useGanttToolStoreV2();
+  const { addResource, updateResource, currentProject, addPeerLink, getPeerLinks, removePeerLink } = useGanttToolStoreV2();
   const [direction, setDirection] = useState<Direction>("vertical");
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: "", visible: false });
   const [successNodeId, setSuccessNodeId] = useState<string | null>(null);
@@ -77,7 +77,7 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
     return mapping[designation] || "consultant";
   };
 
-  // Load existing resources from project or use default sample data
+  // Load existing resources from project or start with empty state
   const getInitialNodes = (): OrgNode[] => {
     if (currentProject?.resources && currentProject.resources.length > 0) {
       // Convert existing resources to OrgNodes
@@ -92,43 +92,8 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
       }));
     }
 
-    // Default sample data when no resources exist
-    return [
-      {
-        id: "node-1",
-        roleTitle: "Project Manager",
-        designation: "senior-manager",
-        companyName: "ABeam Consulting",
-      },
-      {
-        id: "node-2",
-        roleTitle: "SAP FI Lead",
-        designation: "manager",
-        companyName: "ABeam Consulting",
-        reportsTo: "node-1",
-      },
-      {
-        id: "node-3",
-        roleTitle: "Finance Director",
-        designation: "director",
-        companyName: "Client Co.",
-        reportsTo: "node-1",
-      },
-      {
-        id: "node-4",
-        roleTitle: "FI Consultant",
-        designation: "consultant",
-        companyName: "ABeam Consulting",
-        reportsTo: "node-2",
-      },
-      {
-        id: "node-5",
-        roleTitle: "SAP MM Lead",
-        designation: "manager",
-        companyName: "ABeam Consulting",
-        reportsTo: "node-1",
-      },
-    ];
+    // Empty state - user can add resources from scratch
+    return [];
   };
 
   const [nodes, setNodes] = useState<OrgNode[]>(getInitialNodes());
@@ -172,14 +137,28 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
     }, 600);
   }, []);
 
-  // Handle peer link creation when user drops on left/right zone
+  // Handle peer link creation/removal when user drops on left/right zone
+  // Toggle behavior: create if doesn't exist, remove if it does
   const handlePeerLinkCreated = useCallback(
     (node1Id: string, node2Id: string) => {
-      // Call store method to persist peer link
-      addPeerLink(node1Id, node2Id);
-      showToast("Peer link created");
+      const peerLinks = getPeerLinks();
+      const existingLink = peerLinks.find(
+        (link) =>
+          (link.resource1Id === node1Id && link.resource2Id === node2Id) ||
+          (link.resource1Id === node2Id && link.resource2Id === node1Id)
+      );
+
+      if (existingLink) {
+        // Remove existing peer link
+        removePeerLink(existingLink.id);
+        showToast("Peer link removed");
+      } else {
+        // Create new peer link
+        addPeerLink(node1Id, node2Id);
+        showToast("Peer link created");
+      }
     },
-    [addPeerLink]
+    [addPeerLink, getPeerLinks, removePeerLink]
   );
 
   // Drag-and-drop hook

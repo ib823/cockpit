@@ -575,7 +575,9 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
       console.warn("API Response status:", response.status);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({
+          error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
+        }));
         console.error(" API Error Response:", errorData);
 
         // Log the payload that caused the error for debugging
@@ -778,7 +780,9 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({
+        error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
+      }));
       const errorMessage = errorData.error || `Failed to import data (${response.status})`;
       throw new Error(errorMessage);
     }

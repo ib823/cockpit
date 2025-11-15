@@ -66,6 +66,10 @@ export async function GET(request: NextRequest) {
             orderBy: { date: "asc" },
           },
           resources: {
+            where: {
+              isActive: true,
+              deletedAt: null,
+            },
             orderBy: { createdAt: "asc" },
           },
         },

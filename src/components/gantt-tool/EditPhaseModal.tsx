@@ -1,8 +1,8 @@
 /**
- * EditPhaseModal - Apple HIG-compliant modal for editing phases
+ * EditPhaseModal - Apple Minimalist Design System
  *
  * Full feature parity with AddPhaseModal:
- * - HolidayAwareDatePicker (not basic HTML input)
+ * - AppleMinimalistModal integration with unified UX
  * - Description, deliverables, color picker
  * - Working days calculation
  * - Real-time validation with impact preview
@@ -14,19 +14,20 @@
  * - Intelligence: Shows impact of changes
  * - Safety: Validates against business rules
  * - Forgiveness: Clear error messages
+ *
+ * Migration: Converted from BaseModal to AppleMinimalistModal (2025-11-15)
  */
 
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
-import { Calendar, Palette, AlertCircle, Edit3, Trash2, Users } from "lucide-react";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { Calendar, AlertCircle, Edit3, Trash2, Users } from "lucide-react";
+import { AppleMinimalistModal } from "@/components/ui/AppleMinimalistModal";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { PHASE_COLOR_PRESETS } from "@/types/gantt-tool";
 import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
 import type { PhaseFormData, Phase } from "@/types/gantt-tool";
-import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
 import { PhaseDeletionImpactModal } from "./PhaseDeletionImpactModal";
 import { RACIEditorModal } from "./RACIEditorModal";
 
@@ -191,466 +192,295 @@ export function EditPhaseModal({ isOpen, onClose, phase, phaseId }: EditPhaseMod
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, formData]);
 
-  return (
+
+  // Form fields for AppleMinimalistModal
+  const fields = [
+    {
+      id: "name",
+      type: "text" as const,
+      label: "Phase Name",
+      placeholder: "e.g., Requirements Gathering",
+      value: formData.name,
+      required: true,
+      error: errors.name,
+    },
+    {
+      id: "description",
+      type: "textarea" as const,
+      label: "Description",
+      placeholder: "What happens during this phase?",
+      value: formData.description,
+      helperText: "Optional - describe the phase in detail",
+    },
+    {
+      id: "deliverables",
+      type: "textarea" as const,
+      label: "Deliverables",
+      placeholder: "Key outputs and artifacts",
+      value: formData.deliverables,
+      helperText: "Optional - list the key deliverables",
+    },
+    {
+      id: "startDate",
+      type: "date" as const,
+      label: "Start Date",
+      value: formData.startDate,
+      required: true,
+      error: errors.startDate,    },
+    {
+      id: "endDate",
+      type: "date" as const,
+      label: "End Date",
+      value: formData.endDate,
+      required: true,
+      error: errors.endDate,    },
+  ];
+
+  // Render custom content for impact warning, working days, color picker, and RACI
+  const customContent = (
     <>
-    <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Edit Phase"
-      subtitle={`Modify phase details and settings`}
-      icon={<Edit3 className="w-5 h-5" />}
-      size="medium"
-      footer={
-        <div style={{ display: "flex", width: "100%", alignItems: "center", gap: "12px" }}>
-          {/* Delete button - left aligned */}
-          <ModalButton
-            variant="destructive"
-            onClick={() => setShowDeleteModal(true)}
-            disabled={isSubmitting}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete Phase
-          </ModalButton>
-
-          {/* Spacer */}
-          <div style={{ flex: 1 }} />
-
-          {/* Action buttons - right aligned */}
-          <ModalButton variant="secondary" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </ModalButton>
-          <ModalButton
-            variant="primary"
-            onClick={() => { void handleSubmit(new Event('submit') as any); }}
-            disabled={isSubmitting}
-            type="submit"
-          >
-            {isSubmitting ? "Saving..." : "Save Changes"}
-          </ModalButton>
-        </div>
-      }
-    >
-      <form onSubmit={(e) => { void handleSubmit(e); }} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-        {/* Impact Warning */}
-        {impactWarning && (
+      {/* Impact Warning */}
+      {impactWarning && (
+        <div style={{
+          padding: "16px",
+          backgroundColor: "rgba(255, 149, 0, 0.1)",
+          border: "1px solid rgba(255, 149, 0, 0.3)",
+          borderRadius: "8px",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "12px",
+          marginBottom: "16px",
+        }}>
+          <AlertCircle className="w-5 h-5" style={{ color: "#FF9500", flexShrink: 0, marginTop: "2px" }} />
           <div style={{
-            padding: "12px 16px",
-            backgroundColor: "rgba(255, 149, 0, 0.1)",
-            border: "1px solid rgba(255, 149, 0, 0.3)",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: "12px",
+            fontFamily: "var(--font-text)",
+            fontSize: "13px",
+            color: "#1D1D1F",
+            lineHeight: "1.5",
           }}>
-            <AlertCircle className="w-5 h-5" style={{ color: "#FF9500", flexShrink: 0, marginTop: "2px" }} />
-            <div style={{
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              color: "#1D1D1F",
-              lineHeight: "1.5",
-            }}>
-              {impactWarning}
-            </div>
-          </div>
-        )}
-
-        {/* Phase Name */}
-        <div>
-          <label
-            htmlFor="edit-phase-name"
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Phase Name
-          </label>
-          <input
-            ref={nameInputRef}
-            id="edit-phase-name"
-            type="text"
-            value={formData.name}
-            onChange={(e) => handleChange("name", e.target.value)}
-            placeholder="e.g., Requirements Gathering"
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontFamily: "var(--font-text)",
-              fontSize: "15px",
-              color: "#1D1D1F",
-              backgroundColor: errors.name ? "#FFF5F5" : "#F5F5F7",
-              border: errors.name ? "2px solid #FF3B30" : "2px solid transparent",
-              borderRadius: "8px",
-              outline: "none",
-              transition: "all 0.15s ease",
-            }}
-            onFocus={(e) => {
-              if (!errors.name) {
-                e.target.style.backgroundColor = "#FFFFFF";
-                e.target.style.borderColor = "#007AFF";
-              }
-            }}
-            onBlur={(e) => {
-              if (!errors.name) {
-                e.target.style.backgroundColor = "#F5F5F7";
-                e.target.style.borderColor = "transparent";
-              }
-            }}
-          />
-          {errors.name && (
-            <p style={{
-              fontFamily: "var(--font-text)",
-              fontSize: "12px",
-              color: "#FF3B30",
-              marginTop: "6px",
-            }}>
-              {errors.name}
-            </p>
-          )}
-        </div>
-
-        {/* Description */}
-        <div>
-          <label
-            htmlFor="edit-phase-description"
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Description <span style={{ color: "#86868B", fontWeight: 400 }}>(optional)</span>
-          </label>
-          <textarea
-            id="edit-phase-description"
-            value={formData.description}
-            onChange={(e) => handleChange("description", e.target.value)}
-            placeholder="What happens during this phase?"
-            rows={3}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontFamily: "var(--font-text)",
-              fontSize: "15px",
-              color: "#1D1D1F",
-              backgroundColor: "#F5F5F7",
-              border: "2px solid transparent",
-              borderRadius: "8px",
-              outline: "none",
-              transition: "all 0.15s ease",
-              resize: "vertical",
-            }}
-            onFocus={(e) => {
-              e.target.style.backgroundColor = "#FFFFFF";
-              e.target.style.borderColor = "#007AFF";
-            }}
-            onBlur={(e) => {
-              e.target.style.backgroundColor = "#F5F5F7";
-              e.target.style.borderColor = "transparent";
-            }}
-          />
-        </div>
-
-        {/* Deliverables */}
-        <div>
-          <label
-            htmlFor="edit-phase-deliverables"
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Deliverables <span style={{ color: "#86868B", fontWeight: 400 }}>(optional)</span>
-          </label>
-          <textarea
-            id="edit-phase-deliverables"
-            value={formData.deliverables}
-            onChange={(e) => handleChange("deliverables", e.target.value)}
-            placeholder="Key outputs and artifacts"
-            rows={3}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontFamily: "var(--font-text)",
-              fontSize: "15px",
-              color: "#1D1D1F",
-              backgroundColor: "#F5F5F7",
-              border: "2px solid transparent",
-              borderRadius: "8px",
-              outline: "none",
-              transition: "all 0.15s ease",
-              resize: "vertical",
-            }}
-            onFocus={(e) => {
-              e.target.style.backgroundColor = "#FFFFFF";
-              e.target.style.borderColor = "#007AFF";
-            }}
-            onBlur={(e) => {
-              e.target.style.backgroundColor = "#F5F5F7";
-              e.target.style.borderColor = "transparent";
-            }}
-          />
-        </div>
-
-        {/* Date Range */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-          {/* Start Date */}
-          <div>
-            <label
-              htmlFor="edit-phase-start-date"
-              style={{
-                display: "block",
-                fontFamily: "var(--font-text)",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#1D1D1F",
-                marginBottom: "8px",
-              }}
-            >
-              Start Date
-            </label>
-            <HolidayAwareDatePicker
-              value={formData.startDate}
-              onChange={(date) => handleChange("startDate", date)}
-              region={currentProject?.orgChartPro?.location || "ABMY"}
-              error={errors.startDate}
-              size="medium"
-            />
-          </div>
-
-          {/* End Date */}
-          <div>
-            <label
-              htmlFor="edit-phase-end-date"
-              style={{
-                display: "block",
-                fontFamily: "var(--font-text)",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#1D1D1F",
-                marginBottom: "8px",
-              }}
-            >
-              End Date
-            </label>
-            <HolidayAwareDatePicker
-              value={formData.endDate}
-              onChange={(date) => handleChange("endDate", date)}
-              region={currentProject?.orgChartPro?.location || "ABMY"}
-              error={errors.endDate}
-              size="medium"
-            />
+            {impactWarning}
           </div>
         </div>
+      )}
 
-        {/* Working Days Display */}
-        {workingDays > 0 && (
-          <div style={{
-            padding: "12px 16px",
-            backgroundColor: "#F5F5F7",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
+      {/* Working Days Display */}
+      {workingDays > 0 && (
+        <div style={{
+          padding: "16px",
+          backgroundColor: "#F5F5F7",
+          borderRadius: "8px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          marginBottom: "16px",
+        }}>
+          <Calendar className="w-4 h-4" style={{ color: "#007AFF" }} />
+          <span style={{
+            fontFamily: "var(--font-text)",
+            fontSize: "13px",
+            color: "#1D1D1F",
           }}>
-            <Calendar className="w-4 h-4" style={{ color: "#007AFF" }} />
-            <span style={{
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              color: "#1D1D1F",
-            }}>
-              <strong>{workingDays}</strong> working days (excluding weekends & holidays)
-            </span>
-          </div>
-        )}
-
-        {/* Color Picker */}
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Phase Color
-          </label>
-          <div style={{
-            display: "flex",
-            gap: "8px",
-            flexWrap: "wrap",
-          }}>
-            {PHASE_COLOR_PRESETS.map((color) => (
-              <button
-                key={color}
-                type="button"
-                onClick={() => handleChange("color", color)}
-                aria-label={`Select color ${color}`}
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  backgroundColor: color,
-                  border: formData.color === color ? "3px solid #007AFF" : "2px solid transparent",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                  boxShadow: formData.color === color ? "0 0 0 2px #FFFFFF, 0 0 0 5px #007AFF" : "none",
-                }}
-                onMouseEnter={(e) => {
-                  if (formData.color !== color) {
-                    e.currentTarget.style.transform = "scale(1.1)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                }}
-              />
-            ))}
-          </div>
+            <strong>{workingDays}</strong> working days (excluding weekends & holidays)
+          </span>
         </div>
+      )}
 
-        {/* RACI Matrix Section */}
-        <div
+      {/* Color Picker */}
+      <div style={{ marginBottom: "16px" }}>
+        <label
           style={{
-            padding: "16px",
-            backgroundColor: "#FAFAFA",
-            borderRadius: "8px",
-            border: "1px solid rgba(0, 0, 0, 0.06)",
+            display: "block",
+            fontFamily: "var(--font-text)",
+            fontSize: "13px",
+            fontWeight: 500,
+            color: "#1D1D1F",
+            marginBottom: "8px",
           }}
         >
-          <div style={{ marginBottom: "12px" }}>
-            <div
+          Phase Color
+        </label>
+        <div style={{
+          display: "flex",
+          gap: "8px",
+          flexWrap: "wrap",
+        }}>
+          {PHASE_COLOR_PRESETS.map((color) => (
+            <button
+              key={color}
+              type="button"
+              onClick={() => handleChange("color", color)}
+              aria-label={`Select color ${color}`}
               style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#1D1D1F",
-                marginBottom: "4px",
+                width: "40px",
+                height: "40px",
+                backgroundColor: color,
+                border: formData.color === color ? "3px solid #007AFF" : "2px solid transparent",
+                borderRadius: "8px",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                boxShadow: formData.color === color ? "0 0 0 2px #FFFFFF, 0 0 0 5px #007AFF" : "none",
               }}
-            >
-              RACI Matrix
-            </div>
-            <div
-              style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "12px",
-                color: "#86868B",
+              onMouseEnter={(e) => {
+                if (formData.color !== color) {
+                  e.currentTarget.style.transform = "scale(1.1)";
+                }
               }}
-            >
-              Define who is Responsible, Accountable, Consulted, and Informed
-            </div>
-          </div>
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+            />
+          ))}
+        </div>
+      </div>
 
-          {/* RACI Summary */}
-          {phase.raciAssignments && phase.raciAssignments.length > 0 ? (
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                marginBottom: "12px",
-                fontFamily: "var(--font-text)",
-                fontSize: "12px",
-              }}
-            >
-              <span>
-                <strong style={{ color: "#007AFF" }}>
-                  {phase.raciAssignments.filter((a) => a.role === "responsible").length}
-                </strong>{" "}
-                Responsible
-              </span>
-              <span>
-                <strong style={{ color: "#FF3B30" }}>
-                  {phase.raciAssignments.filter((a) => a.role === "accountable").length}
-                </strong>{" "}
-                Accountable
-              </span>
-              <span>
-                <strong style={{ color: "#FF9500" }}>
-                  {phase.raciAssignments.filter((a) => a.role === "consulted").length}
-                </strong>{" "}
-                Consulted
-              </span>
-              <span>
-                <strong style={{ color: "#8E8E93" }}>
-                  {phase.raciAssignments.filter((a) => a.role === "informed").length}
-                </strong>{" "}
-                Informed
-              </span>
-            </div>
-          ) : (
-            <div
-              style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "12px",
-                color: "#86868B",
-                marginBottom: "12px",
-              }}
-            >
-              No RACI assignments yet
-            </div>
-          )}
-
-          {/* Edit RACI Button */}
-          <button
-            type="button"
-            onClick={() => setShowRACIModal(true)}
+      {/* RACI Matrix Section */}
+      <div
+        style={{
+          padding: "16px",
+          backgroundColor: "#FAFAFA",
+          borderRadius: "8px",
+          border: "1px solid rgba(0, 0, 0, 0.06)",
+        }}
+      >
+        <div style={{ marginBottom: "12px" }}>
+          <div
             style={{
-              width: "100%",
-              padding: "10px 14px",
               fontFamily: "var(--font-text)",
               fontSize: "14px",
               fontWeight: 600,
-              backgroundColor: "#FFFFFF",
-              color: "#007AFF",
-              border: "2px solid #007AFF",
-              borderRadius: "8px",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#007AFF";
-              e.currentTarget.style.color = "#FFFFFF";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#FFFFFF";
-              e.currentTarget.style.color = "#007AFF";
+              color: "#1D1D1F",
+              marginBottom: "4px",
             }}
           >
-            <Users className="w-4 h-4" />
-            Edit RACI Matrix
-          </button>
+            RACI Matrix
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--font-text)",
+              fontSize: "12px",
+              color: "#86868B",
+            }}
+          >
+            Define who is Responsible, Accountable, Consulted, and Informed
+          </div>
         </div>
 
-        {/* Keyboard Shortcut Hint */}
-        <div style={{
-          fontFamily: "var(--font-text)",
-          fontSize: "12px",
-          color: "#86868B",
-          textAlign: "center",
-          paddingTop: "8px",
-        }}>
-          Press <kbd style={{ padding: "2px 6px", backgroundColor: "#F5F5F7", borderRadius: "4px", fontWeight: 600 }}>⌘</kbd> + <kbd style={{ padding: "2px 6px", backgroundColor: "#F5F5F7", borderRadius: "4px", fontWeight: 600 }}>Enter</kbd> to save
-        </div>
-      </form>
-    </BaseModal>
+        {/* RACI Summary */}
+        {phase.raciAssignments && phase.raciAssignments.length > 0 ? (
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              marginBottom: "12px",
+              fontFamily: "var(--font-text)",
+              fontSize: "12px",
+            }}
+          >
+            <span>
+              <strong style={{ color: "#007AFF" }}>
+                {phase.raciAssignments.filter((a) => a.role === "responsible").length}
+              </strong>{" "}
+              Responsible
+            </span>
+            <span>
+              <strong style={{ color: "#FF3B30" }}>
+                {phase.raciAssignments.filter((a) => a.role === "accountable").length}
+              </strong>{" "}
+              Accountable
+            </span>
+            <span>
+              <strong style={{ color: "#FF9500" }}>
+                {phase.raciAssignments.filter((a) => a.role === "consulted").length}
+              </strong>{" "}
+              Consulted
+            </span>
+            <span>
+              <strong style={{ color: "#8E8E93" }}>
+                {phase.raciAssignments.filter((a) => a.role === "informed").length}
+              </strong>{" "}
+              Informed
+            </span>
+          </div>
+        ) : (
+          <div
+            style={{
+              fontFamily: "var(--font-text)",
+              fontSize: "12px",
+              color: "#86868B",
+              marginBottom: "12px",
+            }}
+          >
+            No RACI assignments yet
+          </div>
+        )}
+
+        {/* Edit RACI Button */}
+        <button
+          type="button"
+          onClick={() => setShowRACIModal(true)}
+          style={{
+            width: "100%",
+            padding: "10px 20px",
+            fontFamily: "var(--font-text)",
+            fontSize: "14px",
+            fontWeight: 600,
+            backgroundColor: "#FFFFFF",
+            color: "#007AFF",
+            border: "2px solid #007AFF",
+            borderRadius: "8px",
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#007AFF";
+            e.currentTarget.style.color = "#FFFFFF";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#FFFFFF";
+            e.currentTarget.style.color = "#007AFF";
+          }}
+        >
+          <Users className="w-4 h-4" />
+          Edit RACI Matrix
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <>
+    <AppleMinimalistModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Edit Phase"
+      subtitle="Modify phase details and settings"
+      icon={<Edit3 className="w-5 h-5" />}
+      size="medium"
+      formLayout="vertical"
+      fields={fields}
+      formValues={formData}
+      onFieldChange={(fieldId, value) => handleChange(fieldId as keyof PhaseFormData, value)}
+      primaryAction={{
+        label: isSubmitting ? "Saving..." : "Save Changes",
+        onClick: () => { void handleSubmit(new Event('submit') as any); },
+        loading: isSubmitting,
+      }}
+      secondaryAction={{
+        label: "Cancel",
+        onClick: onClose,
+      }}
+      destructiveAction={{
+        label: "Delete Phase",
+        onClick: () => setShowDeleteModal(true),
+        icon: <Trash2 className="w-4 h-4" />,
+      }}
+    >
+      {customContent}
+    </AppleMinimalistModal>
 
     {/* RACI Editor Modal */}
     {showRACIModal && (

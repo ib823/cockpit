@@ -230,28 +230,7 @@ export default async function AdminDashboard() {
               </div>
             </Link>
 
-            <Link
-              href="/estimator"
-              className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:shadow-md transition-all"
-            >
-              <svg
-                className="w-6 h-6 text-purple-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
-              </svg>
-              <div>
-                <p className="font-medium text-gray-900">Estimator</p>
-                <p className="text-sm text-gray-500">Project cost estimation</p>
-              </div>
-            </Link>
+            {/* Estimator archived - removed link */}
 
             <a
               href="https://github.com/anthropics/claude-code/issues"

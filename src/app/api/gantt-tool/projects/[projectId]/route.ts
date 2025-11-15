@@ -11,6 +11,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { validateResourceBatch } from "@/lib/gantt-tool/resource-import-validator";
 
 // Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
 export const maxDuration = 10; // seconds
@@ -117,6 +118,10 @@ export async function GET(
               orderBy: { date: "asc" },
             },
             resources: {
+              where: {
+                isActive: true,
+                deletedAt: null,
+              },
               orderBy: { createdAt: "asc" },
             },
           },
@@ -217,6 +222,45 @@ export async function PATCH(
     }
 
     const validatedData = UpdateProjectSchema.parse(body);
+
+    // NEW: Validate resources if included in update
+    if (validatedData.resources && Array.isArray(validatedData.resources)) {
+      const resourceValidation = validateResourceBatch(
+        validatedData.resources,
+        `projects-patch-endpoint-${projectId}`
+      );
+
+      // Check for validation errors
+      if (resourceValidation.invalid.length > 0) {
+        return NextResponse.json(
+          {
+            error: "Resource validation failed",
+            code: "RESOURCE_VALIDATION_ERROR",
+            details: resourceValidation.invalid.map(err => ({
+              row: err.rowOrIndex,
+              field: err.field,
+              code: err.code,
+              message: err.message,
+            })),
+            summary: `${resourceValidation.invalid.length} resource(s) failed validation`,
+          },
+          { status: 400 }
+        );
+      }
+
+      // Log warnings if any (circular references, incomplete resources)
+      if (resourceValidation.warnings.length > 0) {
+        if (isDev) {
+          console.warn(
+            `[API] Resource validation warnings for project ${projectId}:`,
+            resourceValidation.warnings
+          );
+        }
+      }
+
+      // Replace the resources array with validated resources
+      validatedData.resources = resourceValidation.valid;
+    }
 
     // Check for duplicate project name if name is being updated
     if (validatedData.name) {

@@ -1,31 +1,29 @@
 /**
- * EditTaskModal - Apple HIG-compliant modal for editing tasks
+ * EditTaskModal - Apple Minimalist Design System
  *
- * Full feature parity with AddTaskModal:
- * - HolidayAwareDatePicker with phase boundary constraints
+ * Features:
+ * - AppleMinimalistModal integration with unified UX
+ * - Full feature parity with AddTaskModal
  * - Description, deliverables, AMS configuration
  * - Working days calculation
  * - Real-time validation with impact preview
+ * - Strategic Planning fields
+ * - RACI editor integration
+ * - Delete functionality with impact modal
  * - Keyboard shortcuts
- * - Accessibility compliant
  *
- * Design Philosophy:
- * - Consistency: Mirrors create flow UX
- * - Intelligence: Shows impact on resources
- * - Safety: Validates phase boundaries
- * - Forgiveness: Clear error messages
+ * Migration: Converted from BaseModal to AppleMinimalistModal (2025-11-15)
  */
 
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
-import { Calendar, AlertCircle, Edit3, DollarSign, Trash2, Users } from "lucide-react";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { Calendar, AlertCircle, Edit3, DollarSign, Trash2, Users, ChevronDown, TrendingUp } from "lucide-react";
+import { AppleMinimalistModal, type FormField } from "@/components/ui/AppleMinimalistModal";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
-import type { TaskFormData, Task, Phase } from "@/types/gantt-tool";
-import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
+import type { TaskFormData, Task, Phase, ResourceCategory } from "@/types/gantt-tool";
 import { TaskDeletionImpactModal } from "./TaskDeletionImpactModal";
 import { RACIEditorModal } from "./RACIEditorModal";
 
@@ -45,6 +43,7 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
   const [showAMSConfig, setShowAMSConfig] = useState(task.isAMS || false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showRACIModal, setShowRACIModal] = useState(false);
+  const [showStrategicFields, setShowStrategicFields] = useState(false);
 
   // Get the phase this task belongs to
   const phase = currentProject?.phases.find(p => p.id === phaseId);
@@ -63,6 +62,11 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
     amsFixedRate: task.amsConfig?.fixedRate || 0,
     amsMinimumDuration: task.amsConfig?.minimumDuration || 12,
     amsNotes: task.amsConfig?.notes || "",
+    // Strategic planning fields
+    priority: task.priority,
+    isCritical: task.isCritical || false,
+    estimatedEffort: task.estimatedEffort,
+    requiredSkillCategories: task.requiredSkillCategories || [],
   });
 
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -82,8 +86,13 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
         amsFixedRate: task.amsConfig?.fixedRate || 0,
         amsMinimumDuration: task.amsConfig?.minimumDuration || 12,
         amsNotes: task.amsConfig?.notes || "",
+        priority: task.priority,
+        isCritical: task.isCritical || false,
+        estimatedEffort: task.estimatedEffort,
+        requiredSkillCategories: task.requiredSkillCategories || [],
       });
       setShowAMSConfig(task.isAMS || false);
+      setShowStrategicFields(!!(task.priority !== undefined || task.isCritical || task.estimatedEffort !== undefined || (task.requiredSkillCategories && task.requiredSkillCategories.length > 0)));
       setErrors({});
       setImpactWarning(null);
 
@@ -210,50 +219,58 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, formData]);
 
-  return (
+
+  // Form fields for AppleMinimalistModal
+  const fields: FormField[] = [
+    {
+      id: "name",
+      type: "text",
+      label: "Task Name",
+      placeholder: "e.g., Create Business Requirements Document",
+      required: true,
+      error: errors.name,
+    },
+    {
+      id: "description",
+      type: "textarea",
+      label: "Description",
+      placeholder: "What needs to be done?",
+      helperText: "Optional - describe the task",
+    },
+    {
+      id: "deliverables",
+      type: "textarea",
+      label: "Deliverables",
+      placeholder: "Expected outputs",
+      helperText: "Optional - list the key deliverables",
+    },
+    {
+      id: "startDate",
+      type: "date",
+      label: "Start Date",
+      required: true,
+      error: errors.startDate,
+      minDate: phase ? format(new Date(phase.startDate), "yyyy-MM-dd") : undefined,
+      maxDate: phase ? format(new Date(phase.endDate), "yyyy-MM-dd") : undefined,
+      region: currentProject?.orgChartPro?.location || "ABMY",    },
+    {
+      id: "endDate",
+      type: "date",
+      label: "End Date",
+      required: true,
+      error: errors.endDate,
+      minDate: phase ? format(new Date(phase.startDate), "yyyy-MM-dd") : undefined,
+      maxDate: phase ? format(new Date(phase.endDate), "yyyy-MM-dd") : undefined,
+      region: currentProject?.orgChartPro?.location || "ABMY",    },
+  ];
+
+  // Custom content for impact warning, working days, AMS, strategic planning, and RACI
+  const customContent = (
     <>
-    <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Edit Task"
-      subtitle={phase ? `Phase: ${phase.name}` : "Modify task details"}
-      icon={<Edit3 className="w-5 h-5" />}
-      size="large"
-      footer={
-        <div style={{ display: "flex", width: "100%", alignItems: "center", gap: "12px" }}>
-          {/* Delete button - left aligned */}
-          <ModalButton
-            variant="destructive"
-            onClick={() => setShowDeleteModal(true)}
-            disabled={isSubmitting}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete Task
-          </ModalButton>
-
-          {/* Spacer */}
-          <div style={{ flex: 1 }} />
-
-          {/* Action buttons - right aligned */}
-          <ModalButton variant="secondary" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </ModalButton>
-          <ModalButton
-            variant="primary"
-            onClick={() => { void handleSubmit(new Event('submit') as any); }}
-            disabled={isSubmitting}
-            type="submit"
-          >
-            {isSubmitting ? "Saving..." : "Save Changes"}
-          </ModalButton>
-        </div>
-      }
-    >
-      <form onSubmit={(e) => { void handleSubmit(e); }} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-        {/* Impact Warning */}
+      {/* Impact Warning */}
         {impactWarning && (
           <div style={{
-            padding: "12px 16px",
+            padding: "16px",
             backgroundColor: "rgba(255, 149, 0, 0.1)",
             border: "1px solid rgba(255, 149, 0, 0.3)",
             borderRadius: "8px",
@@ -273,214 +290,10 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
           </div>
         )}
 
-        {/* Task Name */}
-        <div>
-          <label
-            htmlFor="edit-task-name"
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Task Name
-          </label>
-          <input
-            ref={nameInputRef}
-            id="edit-task-name"
-            type="text"
-            value={formData.name}
-            onChange={(e) => handleChange("name", e.target.value)}
-            placeholder="e.g., Create Business Requirements Document"
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontFamily: "var(--font-text)",
-              fontSize: "15px",
-              color: "#1D1D1F",
-              backgroundColor: errors.name ? "#FFF5F5" : "#F5F5F7",
-              border: errors.name ? "2px solid #FF3B30" : "2px solid transparent",
-              borderRadius: "8px",
-              outline: "none",
-              transition: "all 0.15s ease",
-            }}
-            onFocus={(e) => {
-              if (!errors.name) {
-                e.target.style.backgroundColor = "#FFFFFF";
-                e.target.style.borderColor = "#007AFF";
-              }
-            }}
-            onBlur={(e) => {
-              if (!errors.name) {
-                e.target.style.backgroundColor = "#F5F5F7";
-                e.target.style.borderColor = "transparent";
-              }
-            }}
-          />
-          {errors.name && (
-            <p style={{
-              fontFamily: "var(--font-text)",
-              fontSize: "12px",
-              color: "#FF3B30",
-              marginTop: "6px",
-            }}>
-              {errors.name}
-            </p>
-          )}
-        </div>
-
-        {/* Description */}
-        <div>
-          <label
-            htmlFor="edit-task-description"
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Description <span style={{ color: "#86868B", fontWeight: 400 }}>(optional)</span>
-          </label>
-          <textarea
-            id="edit-task-description"
-            value={formData.description}
-            onChange={(e) => handleChange("description", e.target.value)}
-            placeholder="What needs to be done?"
-            rows={3}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontFamily: "var(--font-text)",
-              fontSize: "15px",
-              color: "#1D1D1F",
-              backgroundColor: "#F5F5F7",
-              border: "2px solid transparent",
-              borderRadius: "8px",
-              outline: "none",
-              transition: "all 0.15s ease",
-              resize: "vertical",
-            }}
-            onFocus={(e) => {
-              e.target.style.backgroundColor = "#FFFFFF";
-              e.target.style.borderColor = "#007AFF";
-            }}
-            onBlur={(e) => {
-              e.target.style.backgroundColor = "#F5F5F7";
-              e.target.style.borderColor = "transparent";
-            }}
-          />
-        </div>
-
-        {/* Deliverables */}
-        <div>
-          <label
-            htmlFor="edit-task-deliverables"
-            style={{
-              display: "block",
-              fontFamily: "var(--font-text)",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1D1D1F",
-              marginBottom: "8px",
-            }}
-          >
-            Deliverables <span style={{ color: "#86868B", fontWeight: 400 }}>(optional)</span>
-          </label>
-          <textarea
-            id="edit-task-deliverables"
-            value={formData.deliverables}
-            onChange={(e) => handleChange("deliverables", e.target.value)}
-            placeholder="Expected outputs"
-            rows={2}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontFamily: "var(--font-text)",
-              fontSize: "15px",
-              color: "#1D1D1F",
-              backgroundColor: "#F5F5F7",
-              border: "2px solid transparent",
-              borderRadius: "8px",
-              outline: "none",
-              transition: "all 0.15s ease",
-              resize: "vertical",
-            }}
-            onFocus={(e) => {
-              e.target.style.backgroundColor = "#FFFFFF";
-              e.target.style.borderColor = "#007AFF";
-            }}
-            onBlur={(e) => {
-              e.target.style.backgroundColor = "#F5F5F7";
-              e.target.style.borderColor = "transparent";
-            }}
-          />
-        </div>
-
-        {/* Date Range */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-          {/* Start Date */}
-          <div>
-            <label
-              htmlFor="edit-task-start-date"
-              style={{
-                display: "block",
-                fontFamily: "var(--font-text)",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#1D1D1F",
-                marginBottom: "8px",
-              }}
-            >
-              Start Date
-            </label>
-            <HolidayAwareDatePicker
-              value={formData.startDate}
-              onChange={(date) => handleChange("startDate", date)}
-              region={currentProject?.orgChartPro?.location || "ABMY"}
-              error={errors.startDate}
-              minDate={phase ? format(new Date(phase.startDate), "yyyy-MM-dd") : undefined}
-              maxDate={phase ? format(new Date(phase.endDate), "yyyy-MM-dd") : undefined}
-              size="medium"
-            />
-          </div>
-
-          {/* End Date */}
-          <div>
-            <label
-              htmlFor="edit-task-end-date"
-              style={{
-                display: "block",
-                fontFamily: "var(--font-text)",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "#1D1D1F",
-                marginBottom: "8px",
-              }}
-            >
-              End Date
-            </label>
-            <HolidayAwareDatePicker
-              value={formData.endDate}
-              onChange={(date) => handleChange("endDate", date)}
-              region={currentProject?.orgChartPro?.location || "ABMY"}
-              error={errors.endDate}
-              minDate={phase ? format(new Date(phase.startDate), "yyyy-MM-dd") : undefined}
-              maxDate={phase ? format(new Date(phase.endDate), "yyyy-MM-dd") : undefined}
-              size="medium"
-            />
-          </div>
-        </div>
-
-        {/* Working Days Display */}
+      {/* Working Days Display */}
         {workingDays > 0 && (
           <div style={{
-            padding: "12px 16px",
+            padding: "16px",
             backgroundColor: "#F5F5F7",
             borderRadius: "8px",
             display: "flex",
@@ -547,7 +360,7 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
                   <label style={{
                     display: "block",
                     fontFamily: "var(--font-text)",
-                    fontSize: "12px",
+                    fontSize: "13px",
                     fontWeight: 500,
                     color: "#1D1D1F",
                     marginBottom: "6px",
@@ -577,7 +390,7 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
                   <label style={{
                     display: "block",
                     fontFamily: "var(--font-text)",
-                    fontSize: "12px",
+                    fontSize: "13px",
                     fontWeight: 500,
                     color: "#1D1D1F",
                     marginBottom: "6px",
@@ -609,7 +422,7 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
                 <label style={{
                   display: "block",
                   fontFamily: "var(--font-text)",
-                  fontSize: "12px",
+                  fontSize: "13px",
                   fontWeight: 500,
                   color: "#1D1D1F",
                   marginBottom: "6px",
@@ -639,7 +452,7 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
                 <label style={{
                   display: "block",
                   fontFamily: "var(--font-text)",
-                  fontSize: "12px",
+                  fontSize: "13px",
                   fontWeight: 500,
                   color: "#1D1D1F",
                   marginBottom: "6px",
@@ -664,6 +477,279 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
                   }}
                 />
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Strategic Planning Section (Optional - Collapsible) */}
+        <div style={{
+          padding: "16px",
+          backgroundColor: "#FAFAFA",
+          borderRadius: "8px",
+          border: "1px solid rgba(0, 0, 0, 0.06)",
+        }}>
+          <button
+            type="button"
+            onClick={() => setShowStrategicFields(!showStrategicFields)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              width: "100%",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            <ChevronDown
+              className="w-4 h-4"
+              style={{
+                color: "#86868B",
+                transform: showStrategicFields ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s ease",
+              }}
+            />
+            <div style={{ flex: 1, textAlign: "left" }}>
+              <div style={{
+                fontFamily: "var(--font-text)",
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#1D1D1F",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}>
+                <TrendingUp className="w-4 h-4" style={{ color: "#007AFF" }} />
+                Strategic Planning <span style={{ color: "#86868B", fontWeight: 400 }}>(optional)</span>
+              </div>
+              <div style={{
+                fontFamily: "var(--font-text)",
+                fontSize: "12px",
+                color: "#86868B",
+                marginTop: "2px",
+              }}>
+                Priority, criticality, effort estimation, and skill requirements
+              </div>
+            </div>
+          </button>
+
+          {showStrategicFields && (
+            <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "16px", paddingLeft: "30px" }}>
+
+              {/* Priority Level - Segmented Control */}
+              <div>
+                <label style={{
+                  display: "block",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "#1D1D1F",
+                  marginBottom: "8px",
+                }}>
+                  Priority Level
+                </label>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  {(["high", "medium", "low"] as const).map(level => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => handleChange("priority", level)}
+                      style={{
+                        flex: 1,
+                        padding: "8px 12px",
+                        backgroundColor: formData.priority === level
+                          ? (level === "high" ? "#FF3B30" : level === "medium" ? "#FF9500" : "#8E8E93")
+                          : "#FFFFFF",
+                        color: formData.priority === level ? "#FFFFFF" : "#1D1D1F",
+                        border: `2px solid ${level === "high" ? "#FF3B30" : level === "medium" ? "#FF9500" : "#8E8E93"}`,
+                        borderRadius: "6px",
+                        fontWeight: 600,
+                        fontSize: "13px",
+                        fontFamily: "var(--font-text)",
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (formData.priority !== level) {
+                          const color = level === "high" ? "#FF3B30" : level === "medium" ? "#FF9500" : "#8E8E93";
+                          e.currentTarget.style.backgroundColor = `${color}20`;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (formData.priority !== level) {
+                          e.currentTarget.style.backgroundColor = "#FFFFFF";
+                        }
+                      }}
+                    >
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                <div style={{
+                  fontFamily: "var(--font-text)",
+                  fontSize: "11px",
+                  color: "#86868B",
+                  marginTop: "4px",
+                }}>
+                  How urgent is this task for the project timeline?
+                </div>
+              </div>
+
+              {/* Critical Path Flag */}
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <input
+                    id="edit-task-is-critical"
+                    type="checkbox"
+                    checked={formData.isCritical || false}
+                    onChange={(e) => handleChange("isCritical", e.target.checked)}
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      accentColor: "#FF9500",
+                    }}
+                  />
+                  <label
+                    htmlFor="edit-task-is-critical"
+                    style={{
+                      fontFamily: "var(--font-text)",
+                      fontSize: "13px",
+                      fontWeight: 500,
+                      color: "#1D1D1F",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ⚠️ Critical Path Task
+                  </label>
+                </div>
+                {formData.isCritical && (
+                  <div style={{
+                    fontFamily: "var(--font-text)",
+                    fontSize: "11px",
+                    color: "#FF9500",
+                    marginLeft: "30px",
+                    marginTop: "4px",
+                  }}>
+                    Delays to this task will impact the go-live date
+                  </div>
+                )}
+              </div>
+
+              {/* Estimated Effort */}
+              <div>
+                <label
+                  htmlFor="edit-task-estimated-effort"
+                  style={{
+                    display: "block",
+                    fontFamily: "var(--font-text)",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    color: "#1D1D1F",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Estimated Effort (working days)
+                </label>
+                <input
+                  id="edit-task-estimated-effort"
+                  type="number"
+                  value={formData.estimatedEffort || ""}
+                  onChange={(e) => handleChange("estimatedEffort", e.target.value ? parseInt(e.target.value) as any : "" as any)}
+                  placeholder="e.g., 15"
+                  min="1"
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    fontFamily: "var(--font-text)",
+                    fontSize: "14px",
+                    backgroundColor: "#FFFFFF",
+                    border: "2px solid transparent",
+                    borderRadius: "6px",
+                    outline: "none",
+                    transition: "all 0.15s ease",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#007AFF";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "transparent";
+                  }}
+                />
+                <div style={{
+                  fontFamily: "var(--font-text)",
+                  fontSize: "11px",
+                  color: "#86868B",
+                  marginTop: "4px",
+                }}>
+                  Used for resource planning and cost estimation
+                </div>
+              </div>
+
+              {/* Required Skills - Multi-select chips */}
+              <div>
+                <label style={{
+                  display: "block",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "#1D1D1F",
+                  marginBottom: "8px",
+                }}>
+                  Required Skills
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {(["technical", "functional", "pm", "qa", "change", "basis", "security", "leadership"] as ResourceCategory[]).map(skill => {
+                    const isSelected = (formData.requiredSkillCategories || []).includes(skill);
+                    return (
+                      <button
+                        key={skill}
+                        type="button"
+                        onClick={() => {
+                          const current = formData.requiredSkillCategories || [];
+                          const updated = current.includes(skill)
+                            ? current.filter(s => s !== skill)
+                            : [...current, skill];
+                          handleChange("requiredSkillCategories", updated as any);
+                        }}
+                        style={{
+                          padding: "8px 12px",
+                          backgroundColor: isSelected ? "#007AFF" : "#F5F5F7",
+                          color: isSelected ? "#FFFFFF" : "#1D1D1F",
+                          border: "none",
+                          borderRadius: "16px",
+                          fontSize: "13px",
+                          fontWeight: 500,
+                          fontFamily: "var(--font-text)",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.backgroundColor = "#E5E5EA";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.backgroundColor = "#F5F5F7";
+                          }
+                        }}
+                      >
+                        {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{
+                  fontFamily: "var(--font-text)",
+                  fontSize: "11px",
+                  color: "#86868B",
+                  marginTop: "4px",
+                }}>
+                  Helps match tasks with qualified resources in RACI matrix
+                </div>
+              </div>
+
             </div>
           )}
         </div>
@@ -755,7 +841,7 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
             onClick={() => setShowRACIModal(true)}
             style={{
               width: "100%",
-              padding: "10px 14px",
+              padding: "10px 20px",
               fontFamily: "var(--font-text)",
               fontSize: "14px",
               fontWeight: 600,
@@ -783,19 +869,38 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
             Edit RACI Matrix
           </button>
         </div>
+    </>
+  );
 
-        {/* Keyboard Shortcut Hint */}
-        <div style={{
-          fontFamily: "var(--font-text)",
-          fontSize: "12px",
-          color: "#86868B",
-          textAlign: "center",
-          paddingTop: "8px",
-        }}>
-          Press <kbd style={{ padding: "2px 6px", backgroundColor: "#F5F5F7", borderRadius: "4px", fontWeight: 600 }}>⌘</kbd> + <kbd style={{ padding: "2px 6px", backgroundColor: "#F5F5F7", borderRadius: "4px", fontWeight: 600 }}>Enter</kbd> to save
-        </div>
-      </form>
-    </BaseModal>
+  return (
+    <>
+    <AppleMinimalistModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Edit Task"
+      subtitle={phase ? `Phase: ${phase.name}` : "Modify task details"}
+      icon={<Edit3 className="w-5 h-5" />}
+      size="large"
+      formLayout="vertical"
+      fields={fields}
+      formValues={formData as any}
+      onFieldChange={(fieldId, value) => handleChange(fieldId as keyof TaskFormData, value)}
+      primaryAction={{
+        label: isSubmitting ? "Saving..." : "Save Changes",
+        onClick: () => { void handleSubmit(new Event('submit') as any); },
+        loading: isSubmitting,
+      }}
+      secondaryAction={{
+        label: "Cancel",
+        onClick: onClose,
+      }}
+      destructiveAction={{
+        label: "Delete Task",
+        onClick: () => setShowDeleteModal(true),
+      }}
+    >
+      {customContent}
+    </AppleMinimalistModal>
 
     {/* RACI Editor Modal */}
     {showRACIModal && (
