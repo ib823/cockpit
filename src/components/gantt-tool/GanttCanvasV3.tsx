@@ -1613,7 +1613,7 @@ export function GanttCanvasV3({
                         exit="exit"
                         variants={VARIANTS.staggerContainer}
                         transition={getAnimationConfig(SPRING.gentle)}
-                        style={{ overflow: "hidden" }}
+                        style={{ overflow: "visible" }}
                       >
                         {visibleTasks.map((task, taskIndex) => {
                           const taskPos = getBarPosition(
