@@ -1655,9 +1655,10 @@ export function GanttCanvasV3({
                                 },
                               }}
                               style={{
+                                height: `${TASK_ROW_HEIGHT}px`,
                                 borderBottom: "1px solid rgba(0, 0, 0, 0.03)",
                                 position: "relative",
-                                overflow: "hidden",
+                                overflow: "visible",
                               }}
                             >
                           {/* Task Bar with Hover Info + Drop Zone */}
