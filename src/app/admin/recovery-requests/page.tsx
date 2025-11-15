@@ -222,10 +222,10 @@ export default function RecoveryRequestsPage() {
             </p>
           </div>
           <button
-            onClick={() => router.push("/admin")}
+            onClick={() => router.push("/dashboard")}
             className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
           >
-            ← Back to Admin
+            ← Back to Dashboard
           </button>
         </div>
 

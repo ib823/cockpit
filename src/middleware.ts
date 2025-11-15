@@ -86,7 +86,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/architecture/v3", request.url));
   }
 
-  // Block non-admin users from accessing admin panel
+  // Redirect /admin to /dashboard (deprecated route - dashboard shows admin section for admins)
+  if (pathname === "/admin" || pathname === "/admin/") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // Block non-admin users from accessing admin panel subpages
   if (pathname.startsWith("/admin")) {
     const token = await getToken({ req: request });
     if (token && token.role !== "ADMIN") {
