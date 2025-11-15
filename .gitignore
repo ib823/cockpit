@@ -87,6 +87,10 @@ cockpit_*.zip
 deploy-fixes.sh
 setup-ui-toolkit.sh
 
+# Prevent docs folder pollution
+/docs/**/*.md
+!/docs/README.md
+
 # Build artifacts
 tsconfig.tsbuildinfo
 /public/version.json
