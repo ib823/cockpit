@@ -980,7 +980,7 @@ export function GanttCanvasV3({
                                 animate: {
                                   opacity: 1,
                                   y: 0,
-                                  height: "auto",
+                                  height: TASK_ROW_HEIGHT,
                                   scale: 1,
                                   transition: getAnimationConfig({
                                     ...SPRING.gentle,
@@ -1636,7 +1636,7 @@ export function GanttCanvasV3({
                                 animate: {
                                   opacity: 1,
                                   y: 0,
-                                  height: "auto",
+                                  height: TASK_ROW_HEIGHT,
                                   scale: 1,
                                   transition: getAnimationConfig({
                                     ...SPRING.gentle,
