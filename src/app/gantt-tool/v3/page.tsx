@@ -385,18 +385,26 @@ export default function GanttToolV3Page() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: "6px",
+                  padding: "0 12px",
                   minWidth: "44px",
                   minHeight: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "var(--color-text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                <FileSpreadsheet className="w-4 h-4" style={{ color: "var(--color-text-secondary)" }} aria-hidden="true" />
+                {/* Desktop: Text only, Mobile: Icon only */}
+                <FileSpreadsheet className="w-4 h-4 inline md:hidden" aria-hidden="true" />
+                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Import</span>
               </button>
 
               {/* Manage Logos Button */}
@@ -407,32 +415,31 @@ export default function GanttToolV3Page() {
                   e.stopPropagation();
                   setShowLogoLibrary(true);
                 }}
-                className="manage-logos-btn"
                 title="Upload and manage company logos"
                 style={{
-                  display: "inline-flex",
+                  display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "6px",
                   padding: "0 12px",
                   minWidth: "44px",
-                  height: "44px",
+                  minHeight: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
                   fontFamily: "var(--font-text)",
                   fontSize: "13px",
-                  fontWeight: 400,
-                  color: "var(--color-text-primary)",
+                  fontWeight: 500,
+                  color: "var(--color-text-secondary)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
                 {/* Desktop: Text only, Mobile: Icon only */}
-                <ImageIcon className="w-4 h-4 inline md:hidden" style={{ color: "var(--color-text-secondary)" }} aria-hidden="true" />
-                <span className="hidden md:inline">Manage Logos</span>
+                <ImageIcon className="w-4 h-4 inline md:hidden" aria-hidden="true" />
+                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Manage Logos</span>
               </button>
 
               {/* Plan Resources Button */}
@@ -443,37 +450,59 @@ export default function GanttToolV3Page() {
                   e.stopPropagation();
                   setShowResourcePlanning(true);
                 }}
-                className="plan-resources-btn"
                 title="Design team structure and calculate costs"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  padding: "0 12px",
+                  minWidth: "44px",
+                  minHeight: "44px",
+                  borderRadius: "6px",
+                  border: "1px solid var(--line)",
+                  backgroundColor: "transparent",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "var(--color-text-secondary)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
                 {/* Desktop: Text only, Mobile: Icon only */}
-                <span className="plan-resources-icon inline md:hidden">
-                  <Briefcase className="w-4 h-4" />
-                </span>
-                <span className="plan-resources-text hidden md:inline">Plan Resources</span>
+                <Briefcase className="w-4 h-4 inline md:hidden" aria-hidden="true" />
+                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Plan Resources</span>
               </button>
 
-              {/* Resource Panel Toggle */}
+              {/* Resource Allocation Panel Toggle */}
               <button
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Resource Panel Toggle clicked');
                   setShowOrgChart(!showOrgChart);
                 }}
-                aria-label={showOrgChart ? "Hide resource panel" : "Show resource panel"}
+                aria-label={showOrgChart ? "Hide resource allocation panel" : "Show resource allocation panel"}
                 aria-pressed={showOrgChart}
-                title="Toggle Resource Panel"
+                title="Toggle Resource Allocation Panel"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: "6px",
+                  padding: "0 12px",
                   minWidth: "44px",
                   minHeight: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: showOrgChart ? "var(--color-blue-light)" : "transparent",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: showOrgChart ? "var(--color-blue)" : "var(--color-text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
                   position: "relative",
@@ -483,10 +512,12 @@ export default function GanttToolV3Page() {
                 onMouseEnter={(e) => { if (!showOrgChart) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { if (!showOrgChart) e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                <Users className="w-4 h-4" style={{ color: showOrgChart ? "var(--color-blue)" : "var(--color-text-secondary)" }} aria-hidden="true" />
+                {/* Desktop: Text only, Mobile: Icon only */}
+                <Users className="w-4 h-4 inline md:hidden" aria-hidden="true" />
+                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Resource Alloc</span>
               </button>
 
-              {/* Share */}
+              {/* Share Button */}
               <button
                 type="button"
                 onClick={(e) => {
@@ -495,27 +526,31 @@ export default function GanttToolV3Page() {
                   console.log('Share button clicked - Export functionality coming soon');
                   alert('Share & Export functionality coming soon!\n\nThis will allow you to:\n• Export to PNG/PDF\n• Share project link\n• Export to Excel');
                 }}
-                aria-label="Share and export project"
-                title="Share & Export"
+                title="Share & export project"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: "6px",
+                  padding: "0 12px",
                   minWidth: "44px",
                   minHeight: "44px",
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "var(--color-text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
-                  position: "relative",
-                  zIndex: 1025,
-                  pointerEvents: "auto",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
-                <Share2 className="w-4 h-4" style={{ color: "var(--color-text-secondary)" }} aria-hidden="true" />
+                {/* Desktop: Text only, Mobile: Icon only */}
+                <Share2 className="w-4 h-4 inline md:hidden" aria-hidden="true" />
+                <span style={{ whiteSpace: "nowrap" }} className="hidden md:inline">Share</span>
               </button>
             </>
           }
