@@ -11,7 +11,7 @@
  * - Working days calculation
  * - AMS configuration (full parity with EditTaskModal)
  *
- * Migration: Converted from BaseModal to AppleMinimalistModal (2025-11-15)
+ * Migration: Converted from AppleMinimalistModal to AppleMinimalistModal (2025-11-15)
  */
 
 "use client";
@@ -19,7 +19,7 @@
 import { useState, useEffect, useRef } from "react";
 import { format, addDays } from "date-fns";
 import { Calendar, PlusSquare, DollarSign } from "lucide-react";
-import { AppleMinimalistModal, type FormField } from "@/components/ui/AppleMinimalistModal";
+import { AppleMinimalistModal } from "@/components/ui/AppleMinimalistModal";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
 import type { TaskFormData } from "@/types/gantt-tool";

@@ -47,7 +47,6 @@ import { TaskDeletionImpactModal } from "./TaskDeletionImpactModal";
 import { UndoToast } from "@/components/ui/UndoToast";
 import { optimizeColumnWidths, waitForFonts } from "@/lib/gantt-tool/column-optimizer";
 import { CollapsedPhasePreview } from "./CollapsedPhasePreview";
-import { CollapsedPhaseHeatmap } from "./CollapsedPhaseHeatmap";
 import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
 
 // Constants from spec (Jobs/Ive: Breathing room)
@@ -1495,10 +1494,24 @@ export function GanttCanvasV3({
                       backgroundColor: "rgba(0, 0, 0, 0.02)",
                     }}
                   >
-                    {/* Phase Bar - Simple Blue when Expanded, Density Heatmap when Collapsed */}
+                    {/* Phase Bar - Simple Blue (same for both collapsed and expanded) */}
                     {isCollapsed ? (
-                      <CollapsedPhaseHeatmap
-                        phase={phase}
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: `${phasePos.left}%`,
+                          width: `${phasePos.width}%`,
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          height: "24px",
+                          backgroundColor: dragOverPhaseId === phase.id ? "rgb(52, 199, 89)" : "var(--color-blue)",
+                          borderRadius: "6px",
+                          opacity: dragOverPhaseId === phase.id ? 0.6 : (hoveredBar?.id === phase.id && hoveredBar?.type === "phase" ? 0.4 : 0.2),
+                          border: dragOverPhaseId === phase.id ? "2px dashed #34C759" : "none",
+                          boxShadow: dragOverPhaseId === phase.id ? "0 4px 16px rgba(52, 199, 89, 0.6), 0 0 0 3px rgba(52, 199, 89, 0.2)" : "none",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
                         onMouseEnter={() => setHoveredBar({ id: phase.id, type: "phase" })}
                         onMouseLeave={() => setHoveredBar(null)}
                         onClick={(e) => {
@@ -1531,12 +1544,6 @@ export function GanttCanvasV3({
                             console.log(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
                           }
                           setDragOverPhaseId(null);
-                        }}
-                        isDragOver={dragOverPhaseId === phase.id}
-                        isHovered={hoveredBar?.id === phase.id && hoveredBar?.type === "phase"}
-                        style={{
-                          left: `${phasePos.left}%`,
-                          width: `${phasePos.width}%`,
                         }}
                       />
                     ) : (

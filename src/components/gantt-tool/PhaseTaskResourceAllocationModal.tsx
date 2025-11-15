@@ -24,7 +24,7 @@ import {
   type Resource,
   type ResourceCategory,
 } from "@/types/gantt-tool";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 
 interface Props {
   itemId: string;
@@ -360,7 +360,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
     : item.name;
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={true}
       onClose={onClose}
       title={modalTitle}
@@ -544,6 +544,6 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
             )}
             </div>
       </div>
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }

@@ -2,7 +2,6 @@
 import { App } from "antd";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AntDThemeBridge } from "@/ui/compat/AntDThemeBridge";
 import { ToastProvider } from "@/ui/toast/ToastProvider";
@@ -69,7 +68,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <AntDThemeBridge>
             <ToastProvider>
               <App>
-                <OnboardingProvider>{children}</OnboardingProvider>
+                {children}
               </App>
             </ToastProvider>
           </AntDThemeBridge>

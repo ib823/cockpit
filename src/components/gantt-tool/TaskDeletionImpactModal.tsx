@@ -1,5 +1,5 @@
 /**
- * TaskDeletionImpactModal - BaseModal-based deletion confirmation with impact analysis
+ * TaskDeletionImpactModal - AppleMinimalistModal-based deletion confirmation with impact analysis
  *
  * Comprehensive impact analysis for task deletion:
  * - Resource assignments that will be lost
@@ -8,7 +8,7 @@
  * - Timeline and budget impact
  * - AMS task warnings
  *
- * Uses BaseModal with size="large" for detailed impact display
+ * Uses AppleMinimalistModal with size="large" for detailed impact display
  */
 
 "use client";
@@ -16,7 +16,7 @@
 import { useMemo } from "react";
 import { AlertTriangle, Users, Calendar, TrendingDown, Link2, Layers, DollarSign, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 import { GanttTask, GanttPhase, Resource, GanttHoliday } from "@/types/gantt-tool";
 import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
 
@@ -139,7 +139,7 @@ export function TaskDeletionImpactModal({
   const config = severityConfig[impact.severity];
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={true}
       onClose={onCancel}
       title="Confirm Task Deletion"
@@ -697,6 +697,6 @@ export function TaskDeletionImpactModal({
           </div>
         )}
       </div>
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }

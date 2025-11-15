@@ -3,7 +3,7 @@
  *
  * Apple HIG Design: Simple, Clear, Beautiful
  * Purpose: Assign people to this task
- * Refactored to use BaseModal for consistent UX
+ * Refactored to use AppleMinimalistModal for consistent UX
  */
 
 "use client";
@@ -11,7 +11,7 @@
 import { useState } from "react";
 import { Plus, Trash2, Users } from "lucide-react";
 import { nanoid } from "nanoid";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 
 interface TaskResourceModalProps {
@@ -71,7 +71,7 @@ export function TaskResourceModal({ isOpen, taskId, phaseId, onClose }: TaskReso
   };
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={isOpen}
       onClose={onClose}
       title="Assign People"
@@ -331,6 +331,6 @@ export function TaskResourceModal({ isOpen, taskId, phaseId, onClose }: TaskReso
           </div>
         )}
       </div>
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }

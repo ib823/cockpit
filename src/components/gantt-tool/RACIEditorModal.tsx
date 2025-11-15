@@ -18,7 +18,7 @@
 
 import { useState, useEffect } from "react";
 import { Users, AlertCircle, Check } from "lucide-react";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import type { RACIAssignment, Resource, Phase, Task } from "@/types/gantt-tool";
 import { nanoid } from "nanoid";
@@ -149,7 +149,7 @@ export function RACIEditorModal({
   };
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={isOpen}
       onClose={onClose}
       title="Edit RACI Matrix"
@@ -471,7 +471,7 @@ export function RACIEditorModal({
           </ul>
         </div>
       </div>
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }
 

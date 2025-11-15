@@ -152,7 +152,7 @@ export function UnifiedDashboard({ session }: UnifiedDashboardProps) {
               iconColor="blue"
               title="Timeline"
               description="Create and manage project timelines with interactive Gantt charts"
-              onClick={() => router.push('/gantt-tool/v3')}
+              onClick={() => router.push('/gantt-tool')}
             />
 
             <QuickActionCard

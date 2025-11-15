@@ -12,7 +12,7 @@
  * - Delete functionality with impact modal
  * - Keyboard shortcuts
  *
- * Migration: Converted from BaseModal to AppleMinimalistModal (2025-11-15)
+ * Migration: Converted from AppleMinimalistModal to AppleMinimalistModal (2025-11-15)
  */
 
 "use client";
@@ -20,7 +20,7 @@
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { Calendar, AlertCircle, Edit3, DollarSign, Trash2, Users, ChevronDown, TrendingUp } from "lucide-react";
-import { AppleMinimalistModal, type FormField } from "@/components/ui/AppleMinimalistModal";
+import { AppleMinimalistModal } from "@/components/ui/AppleMinimalistModal";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
 import type { TaskFormData, Task, Phase, ResourceCategory } from "@/types/gantt-tool";

@@ -20,7 +20,7 @@ import {
   RefreshCw,
   GitMerge,
 } from "lucide-react";
-import BaseModal from "@/components/ui/BaseModal";
+import AppleMinimalistModal from "@/components/ui/AppleMinimalistModal";
 import type {
   ConflictDetectionResult,
   ImportConflict,
@@ -111,7 +111,7 @@ export function ConflictResolutionModal({
   };
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={isOpen}
       onClose={onCancel}
       title="Import Conflicts Detected"
@@ -388,7 +388,7 @@ export function ConflictResolutionModal({
           </div>
         </div>
       )}
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }
 

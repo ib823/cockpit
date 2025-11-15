@@ -341,20 +341,20 @@ model snapshots {
 }
 
 model users {
-  id                    String                   @id
-  email                 String                   @unique
+  id                    String                     @id
+  email                 String                     @unique
   name                  String?
-  createdAt             DateTime                 @default(now())
+  createdAt             DateTime                   @default(now())
   emailVerified         DateTime?
   image                 String?
-  role                  Role                     @default(USER)
+  role                  Role                       @default(USER)
   updatedAt             DateTime
-  accessExpiresAt       DateTime                 @default(now())
-  exception             Boolean                  @default(false)
+  accessExpiresAt       DateTime                   @default(now())
+  exception             Boolean                    @default(false)
   firstLoginAt          DateTime?
   lastLoginAt           DateTime?
   lastTimelineAt        DateTime?
-  timelinesGenerated    Int                      @default(0)
+  timelinesGenerated    Int                        @default(0)
   lastSeenAt            DateTime?
   passwordHash          String?
   passwordChangedAt     DateTime?
@@ -362,10 +362,10 @@ model users {
   passwordHistory       String[]
   totpSecret            String?
   totpEnabledAt         DateTime?
-  maxConcurrentSessions Int                      @default(1)
+  maxConcurrentSessions Int                        @default(1)
   accountLockedAt       DateTime?
   accountLockedReason   String?
-  failedLoginAttempts   Int                      @default(0)
+  failedLoginAttempts   Int                        @default(0)
   lastFailedLoginAt     DateTime?
   pendingEmail          String?
   pendingEmailToken     String?
@@ -379,6 +379,9 @@ model users {
   dashboardSettings     DashboardSettings?
   dashboardSnapshots    DashboardSnapshot[]
   ganttProjects         GanttProject[]
+  ganttCollaborations   GanttProjectCollaborator[] @relation("GanttCollaborators")
+  ganttInvitesCreated   GanttProjectCollaborator[] @relation("GanttInviters")
+  ganttInvites          GanttProjectInvite[]       @relation("GanttInviteCreators")
   loginHistory          LoginHistory[]
   recoveryCodes         RecoveryCode[]
   securityActions       SecurityAction[]
@@ -388,7 +391,7 @@ model users {
   comments              comments[]
   projects              projects[]
   sessions              sessions[]
-  architectureProjects  ArchitectureProject[]  @relation("ArchitectureProjects")
+  architectureProjects  ArchitectureProject[]      @relation("ArchitectureProjects")
   architectureCollabs   ArchitectureCollaborator[] @relation("ArchitectureCollaborators")
 
   @@index([email])
@@ -574,23 +577,25 @@ model ScenarioVersion {
 
 /// Gantt Project - Main project container
 model GanttProject {
-  id           String              @id @default(cuid())
-  userId       String
-  name         String
-  description  String?
-  startDate    DateTime            @db.Date
-  viewSettings Json
-  budget       Json?
-  orgChart     Json?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  deletedAt    DateTime?
-  holidays     GanttHoliday[]
-  milestones   GanttMilestone[]
-  phases       GanttPhase[]
-  user         users               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  shares       GanttProjectShare[]
-  resources    GanttResource[]
+  id            String                     @id @default(cuid())
+  userId        String
+  name          String
+  description   String?
+  startDate     DateTime                   @db.Date
+  viewSettings  Json
+  budget        Json?
+  orgChart      Json?
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime                   @updatedAt
+  deletedAt     DateTime?
+  holidays      GanttHoliday[]
+  milestones    GanttMilestone[]
+  phases        GanttPhase[]
+  user          users                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shares        GanttProjectShare[]
+  collaborators GanttProjectCollaborator[]
+  invites       GanttProjectInvite[]
+  resources     GanttResource[]
 
   @@index([userId])
   @@index([createdAt])
@@ -677,50 +682,50 @@ model GanttHoliday {
 /// Gantt Resource - Team members and their roles
 /// Enhanced with validation, soft delete, and proper hierarchy constraints
 model GanttResource {
-  id                   String                         @id @default(cuid())
-  projectId            String
-  name                 String
-  category             String
-  description          String
-  designation          String
+  id          String @id @default(cuid())
+  projectId   String
+  name        String
+  category    String
+  description String
+  designation String
 
   // Organization hierarchy - with self-referential FK constraint
-  managerResourceId    String?
-  manager              GanttResource?                 @relation("ResourceManager", fields: [managerResourceId], references: [id], onDelete: SetNull)
-  directReports        GanttResource[]                @relation("ResourceManager")
+  managerResourceId String?
+  manager           GanttResource?  @relation("ResourceManager", fields: [managerResourceId], references: [id], onDelete: SetNull)
+  directReports     GanttResource[] @relation("ResourceManager")
 
   // Contact info
-  email                String?
-  department           String?
-  location             String?
-  projectRole          String?
-  companyName          String?
+  email       String?
+  department  String?
+  location    String?
+  projectRole String?
+  companyName String?
 
   // Assignment control
-  assignmentLevel      String                         @default("both") // "phase" | "task" | "both"
+  assignmentLevel String @default("both") // "phase" | "task" | "both"
 
   // Billing & cost tracking
-  isBillable           Boolean                        @default(false)
-  chargeRatePerHour    Decimal?                       @db.Decimal(10, 2) // New: preferred field
-  currency             String?
-  utilizationTarget    Int?
+  isBillable        Boolean  @default(false)
+  chargeRatePerHour Decimal? @db.Decimal(10, 2) // New: preferred field
+  currency          String?
+  utilizationTarget Int?
 
   // Deprecated billing fields (kept for backward compatibility during migration)
-  rateType             String?
-  hourlyRate           Decimal?                       @db.Decimal(10, 2)
-  dailyRate            Decimal?                       @db.Decimal(10, 2)
+  rateType   String?
+  hourlyRate Decimal? @db.Decimal(10, 2)
+  dailyRate  Decimal? @db.Decimal(10, 2)
 
   // Data integrity & lifecycle
-  isActive             Boolean                        @default(true) // Soft delete flag
-  validationStatus     String                         @default("valid") // "valid" | "orphaned" | "incomplete"
-  createdAt            DateTime                       @default(now())
-  updatedAt            DateTime                       @default(now()) @updatedAt
-  deletedAt            DateTime? // Soft delete timestamp
+  isActive         Boolean   @default(true) // Soft delete flag
+  validationStatus String    @default("valid") // "valid" | "orphaned" | "incomplete"
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+  deletedAt        DateTime? // Soft delete timestamp
 
   // Relations
-  phaseAssignments     GanttPhaseResourceAssignment[]
-  project              GanttProject                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  taskAssignments      GanttTaskResourceAssignment[]
+  phaseAssignments GanttPhaseResourceAssignment[]
+  project          GanttProject                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskAssignments  GanttTaskResourceAssignment[]
 
   @@index([projectId])
   @@index([category])
@@ -762,7 +767,7 @@ model GanttPhaseResourceAssignment {
   @@index([resourceId])
 }
 
-/// Gantt Project Share - Share projects with view-only access
+/// Gantt Project Share - Share projects with view-only access (DEPRECATED - use GanttProjectInvite)
 model GanttProjectShare {
   id           String       @id @default(cuid())
   projectId    String
@@ -776,6 +781,47 @@ model GanttProjectShare {
 
   @@index([projectId])
   @@index([token])
+}
+
+/// Gantt Project Collaborator - Users who have access to a project
+model GanttProjectCollaborator {
+  id           String           @id @default(cuid())
+  projectId    String
+  userId       String
+  role         CollaboratorRole @default(VIEWER)
+  invitedBy    String
+  invitedAt    DateTime         @default(now())
+  acceptedAt   DateTime?
+  lastAccessAt DateTime?
+  project      GanttProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user         users            @relation("GanttCollaborators", fields: [userId], references: [id], onDelete: Cascade)
+  inviter      users            @relation("GanttInviters", fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@index([invitedBy])
+}
+
+/// Gantt Project Invite - Pending invitations to collaborate on a project
+model GanttProjectInvite {
+  id         String           @id @default(cuid())
+  projectId  String
+  email      String
+  token      String           @unique
+  role       CollaboratorRole @default(VIEWER)
+  expiresAt  DateTime?
+  createdBy  String
+  createdAt  DateTime         @default(now())
+  acceptedAt DateTime?
+  acceptedBy String?
+  project    GanttProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator    users            @relation("GanttInviteCreators", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([email])
+  @@index([token])
+  @@index([createdBy])
 }
 
 /// Trusted devices for device fingerprinting
@@ -1079,31 +1125,31 @@ enum UserRole {
 // =============================================================================
 
 model ArchitectureProject {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   userId      String
   name        String
   description String?
-  version     String   @default("1.0")
+  version     String  @default("1.0")
 
   // Architecture data stored as JSON for flexibility
-  businessContext  Json  // BusinessContextData
-  currentLandscape Json  // CurrentLandscapeData
-  proposedSolution Json  // ProposedSolutionData
-  diagramSettings  Json  // DiagramSettings
+  businessContext  Json // BusinessContextData
+  currentLandscape Json // CurrentLandscapeData
+  proposedSolution Json // ProposedSolutionData
+  diagramSettings  Json // DiagramSettings
 
   // Metadata
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  lastEditedAt DateTime  @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastEditedAt DateTime @default(now())
   lastEditedBy String?
 
   // Soft delete
-  deletedAt    DateTime?
+  deletedAt DateTime?
 
   // Relations
-  user              users                          @relation("ArchitectureProjects", fields: [userId], references: [id], onDelete: Cascade)
-  versions          ArchitectureProjectVersion[]
-  collaborators     ArchitectureCollaborator[]
+  user          users                        @relation("ArchitectureProjects", fields: [userId], references: [id], onDelete: Cascade)
+  versions      ArchitectureProjectVersion[]
+  collaborators ArchitectureCollaborator[]
 
   @@index([userId])
   @@index([createdAt])
@@ -1112,11 +1158,11 @@ model ArchitectureProject {
 }
 
 model ArchitectureProjectVersion {
-  id         String   @id @default(cuid())
-  projectId  String
+  id            String  @id @default(cuid())
+  projectId     String
   versionNumber Int
-  name       String
-  description String?
+  name          String
+  description   String?
 
   // Snapshot of data at this version
   businessContext  Json
@@ -1125,11 +1171,11 @@ model ArchitectureProjectVersion {
   diagramSettings  Json
 
   // Metadata
-  createdAt  DateTime @default(now())
-  createdBy  String
+  createdAt DateTime @default(now())
+  createdBy String
 
   // Relations
-  project    ArchitectureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project ArchitectureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, versionNumber])
   @@index([projectId])
@@ -1137,18 +1183,18 @@ model ArchitectureProjectVersion {
 }
 
 model ArchitectureCollaborator {
-  id         String   @id @default(cuid())
-  projectId  String
-  userId     String
-  role       CollaboratorRole @default(VIEWER)
+  id        String           @id @default(cuid())
+  projectId String
+  userId    String
+  role      CollaboratorRole @default(VIEWER)
 
   // Metadata
-  addedAt    DateTime @default(now())
-  addedBy    String
+  addedAt DateTime @default(now())
+  addedBy String
 
   // Relations
-  project    ArchitectureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user       users               @relation("ArchitectureCollaborators", fields: [userId], references: [id], onDelete: Cascade)
+  project ArchitectureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    users               @relation("ArchitectureCollaborators", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId])
   @@index([projectId])

@@ -3,7 +3,7 @@
  *
  * Allows users to configure export settings for optimized, consistent Gantt chart snapshots
  *
- * Refactored to use BaseModal with Apple HIG standards
+ * Refactored to use AppleMinimalistModal with Apple HIG standards
  */
 
 "use client";
@@ -20,7 +20,7 @@ import type {
   EXPORT_QUALITY_SETTINGS,
 } from "@/types/gantt-tool";
 import { exportGanttEnhanced } from "@/lib/gantt-tool/export-utils";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 
 interface ExportConfigModalProps {
   isOpen: boolean;
@@ -139,7 +139,7 @@ export default function ExportConfigModal({ isOpen, onClose, project }: ExportCo
   );
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={isOpen}
       onClose={onClose}
       title="Export Configuration"
@@ -511,6 +511,6 @@ export default function ExportConfigModal({ isOpen, onClose, project }: ExportCo
           </div>
         )}
       </div>
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }

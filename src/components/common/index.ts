@@ -21,7 +21,6 @@ export { CustomTooltip } from "./CustomTooltip";
 // Buttons
 export { Button } from "./Button";
 export { LogoutButton } from "./LogoutButton";
-export { ResetButton } from "./ResetButton";
 
 // Modals
 export { SimpleModal } from "./SimpleModal";

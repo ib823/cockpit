@@ -17,7 +17,7 @@
 import { useState } from "react";
 import { Plus, Trash2, Users, DollarSign, Briefcase, ChevronDown, ChevronRight } from "lucide-react";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 
 interface ResourcePlanningModalProps {
   onClose: () => void;
@@ -109,7 +109,7 @@ export function ResourcePlanningModal({ onClose }: ResourcePlanningModalProps) {
   };
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={true}
       onClose={onClose}
       title="Resource Planning"
@@ -561,6 +561,6 @@ export function ResourcePlanningModal({ onClose }: ResourcePlanningModalProps) {
             </div>
           )}
       </div>
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }

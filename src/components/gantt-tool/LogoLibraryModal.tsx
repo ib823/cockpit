@@ -11,15 +11,15 @@
  * - Image preview and validation
  * - Persistent storage in project
  *
- * Refactored to use BaseModal with Apple HIG quality
- * Note: BaseModal provides its own FocusTrap, so we removed the duplicate
+ * Refactored to use AppleMinimalistModal with Apple HIG quality
+ * Note: AppleMinimalistModal provides its own FocusTrap, so we removed the duplicate
  */
 
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Upload, Trash2, AlertCircle, CheckCircle, Image as ImageIcon } from "lucide-react";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { getAllCompanyLogos, DEFAULT_COMPANY_LOGOS } from "@/lib/default-company-logos";
 import {
@@ -702,7 +702,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
   };
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={isOpen}
       onClose={handleCancel}
       title="Manage Company Logos"
@@ -865,6 +865,6 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
           </div>
         )}
       </div>
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }

@@ -81,10 +81,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect old routes to V3 versions
-  if (pathname === "/gantt-tool" || pathname === "/gantt-tool/") {
-    return NextResponse.redirect(new URL("/gantt-tool/v3", request.url));
-  }
+  // Redirect old routes to current versions
   if (pathname === "/organization-chart" || pathname === "/organization-chart/") {
     return NextResponse.redirect(new URL("/architecture/v3", request.url));
   }

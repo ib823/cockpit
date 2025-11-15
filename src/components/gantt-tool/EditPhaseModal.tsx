@@ -15,7 +15,7 @@
  * - Safety: Validates against business rules
  * - Forgiveness: Clear error messages
  *
- * Migration: Converted from BaseModal to AppleMinimalistModal (2025-11-15)
+ * Migration: Converted from AppleMinimalistModal to AppleMinimalistModal (2025-11-15)
  */
 
 "use client";

@@ -6,7 +6,7 @@
  * - Project creation with smart defaults
  * - Optional company logo uploads
  *
- * Migration: Converted from BaseModal to AppleMinimalistModal (2025-11-15)
+ * Migration: Converted from AppleMinimalistModal to AppleMinimalistModal (2025-11-15)
  */
 
 "use client";
@@ -14,7 +14,7 @@
 import { useState, useRef } from "react";
 import { Upload, FolderPlus } from "lucide-react";
 import { format } from "date-fns";
-import { AppleMinimalistModal, type FormField } from "@/components/ui/AppleMinimalistModal";
+import { AppleMinimalistModal } from "@/components/ui/AppleMinimalistModal";
 
 interface NewProjectModalProps {
   isOpen: boolean;

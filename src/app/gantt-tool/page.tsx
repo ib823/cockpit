@@ -4,7 +4,9 @@
  * This page showcases the revamped Gantt chart following UI_suggestion.md exactly.
  * Uses the same data store as the original Gantt for real-time sync.
  *
- * Access: /gantt-tool
+ * Route: /gantt-tool
+ * Features: Timeline view, Architecture view, Split view mode
+ * Keyboard shortcuts: ⌘1 (Timeline), ⌘2 (Architecture), ⌘\ (Split View)
  */
 
 "use client";
@@ -22,6 +24,7 @@ import { Tier2Header } from "@/components/navigation/Tier2Header";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Share2, Users, GripHorizontal, GripVertical, Briefcase, FileSpreadsheet, Flag, Layers, CheckSquare, Image as ImageIcon, Columns2 } from "lucide-react";
 import { ResourceIcon } from "@/lib/resource-icons";
 import { HexLoader } from "@/components/ui/HexLoader";
@@ -30,6 +33,9 @@ import { format } from "date-fns";
 export default function GanttToolV3Page() {
   // ⚠️ IMPORTANT: All hooks must be called before any conditional returns
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const {
     currentProject,
@@ -60,8 +66,9 @@ export default function GanttToolV3Page() {
   // Milestone modal state
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
 
-  // Main view state: Timeline or Architecture
-  const [mainView, setMainView] = useState<'timeline' | 'architecture'>('timeline');
+  // Main view state: Timeline or Architecture (initialized from URL)
+  const initialView = (searchParams.get('view') === 'architecture' ? 'architecture' : 'timeline') as 'timeline' | 'architecture';
+  const [mainView, setMainView] = useState<'timeline' | 'architecture'>(initialView);
 
   // Selection persistence across views
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
@@ -70,6 +77,19 @@ export default function GanttToolV3Page() {
 
   // Split view mode (power user feature)
   const [splitViewEnabled, setSplitViewEnabled] = useState(false);
+
+  // Helper function to change view and update URL
+  const changeView = useCallback((newView: 'timeline' | 'architecture') => {
+    setMainView(newView);
+    // Update URL without page reload
+    const params = new URLSearchParams(searchParams.toString());
+    if (newView === 'architecture') {
+      params.set('view', 'architecture');
+    } else {
+      params.delete('view'); // Default is timeline, so no param needed
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   // View transition feedback (Apple-style toast)
   const [viewTransitionToast, setViewTransitionToast] = useState<{
@@ -265,14 +285,14 @@ export default function GanttToolV3Page() {
       // ⌘1 - Switch to Timeline view (like Calendar.app ⌘1 for Day view)
       if ((e.metaKey || e.ctrlKey) && e.key === '1') {
         e.preventDefault();
-        setMainView('timeline');
+        changeView('timeline');
         return;
       }
 
       // ⌘2 - Switch to Architecture view (like Calendar.app ⌘2 for Week view)
       if ((e.metaKey || e.ctrlKey) && e.key === '2') {
         e.preventDefault();
-        setMainView('architecture');
+        changeView('architecture');
         return;
       }
 
@@ -302,7 +322,7 @@ export default function GanttToolV3Page() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentProject, showAddPhaseModal, showAddTaskModal, splitViewEnabled]);
+  }, [currentProject, showAddPhaseModal, showAddTaskModal, splitViewEnabled, changeView]);
 
   return showLoading ? (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -337,7 +357,7 @@ export default function GanttToolV3Page() {
                 border: "1px solid var(--line)",
               }}>
                 <button
-                  onClick={() => setMainView('timeline')}
+                  onClick={() => changeView('timeline')}
                   aria-label="Show Timeline view"
                   aria-pressed={mainView === 'timeline'}
                   title="Timeline View (⌘1)"
@@ -358,7 +378,7 @@ export default function GanttToolV3Page() {
                   Timeline
                 </button>
                 <button
-                  onClick={() => setMainView('architecture')}
+                  onClick={() => changeView('architecture')}
                   aria-label="Show Architecture view"
                   aria-pressed={mainView === 'architecture'}
                   title="Architecture View (⌘2)"
@@ -553,7 +573,7 @@ export default function GanttToolV3Page() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setMainView('architecture');
+                  changeView('architecture');
                 }}
                 title="Switch to Architecture view to design team structure"
                 style={{
@@ -688,7 +708,7 @@ export default function GanttToolV3Page() {
                 bottom: 0,
               }}>
                 <OrgChartBuilderV2
-                  onClose={() => splitViewEnabled ? setSplitViewEnabled(false) : setMainView('timeline')}
+                  onClose={() => splitViewEnabled ? setSplitViewEnabled(false) : changeView('timeline')}
                   project={currentProject}
                 />
               </div>
@@ -1178,7 +1198,7 @@ export default function GanttToolV3Page() {
                         : "Add resources first, then use 'Plan Resources' to define your team structure with managers and reporting lines."}
                     </p>
                     <button
-                      onClick={() => setMainView('architecture')}
+                      onClick={() => changeView('architecture')}
                       aria-label={currentProject.resources && currentProject.resources.length > 0
                         ? "Switch to Architecture view to define team hierarchy"
                         : "Add resources before building organizational chart"}

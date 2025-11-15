@@ -1,5 +1,5 @@
 /**
- * PhaseDeletionImpactModal - BaseModal-based phase deletion confirmation with comprehensive impact analysis
+ * PhaseDeletionImpactModal - AppleMinimalistModal-based phase deletion confirmation with comprehensive impact analysis
  *
  * Phase deletion is a CASCADE operation that affects:
  * - All tasks within the phase (permanent deletion)
@@ -9,7 +9,7 @@
  * - Project timeline and budget
  * - AMS commitments
  *
- * Uses BaseModal with size="large" for detailed impact display
+ * Uses AppleMinimalistModal with size="large" for detailed impact display
  * This is a CRITICAL operation - users must understand the full scope
  */
 
@@ -18,7 +18,7 @@
 import { useMemo } from "react";
 import { AlertTriangle, Users, Calendar, TrendingDown, Link2, Layers, DollarSign, Clock, FileText } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 import { GanttPhase, Resource, GanttHoliday } from "@/types/gantt-tool";
 import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
 
@@ -181,7 +181,7 @@ export function PhaseDeletionImpactModal({
   const config = severityConfig[impact.severity];
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={true}
       onClose={onCancel}
       title="Confirm Phase Deletion"
@@ -770,6 +770,6 @@ export function PhaseDeletionImpactModal({
           </div>
         </div>
       </div>
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }

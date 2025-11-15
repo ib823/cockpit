@@ -4,7 +4,7 @@
  * Manage all project milestones in one place
  * Apple HIG specification with clean, focused design
  *
- * Refactored to use BaseModal with Apple HIG quality
+ * Refactored to use AppleMinimalistModal with Apple HIG quality
  */
 
 "use client";
@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import { Flag, Edit2, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
 import type { GanttMilestone } from "@/types/gantt-tool";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
 
 interface MilestoneModalProps {
@@ -121,7 +121,7 @@ export function MilestoneModal({
   };
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={open}
       onClose={() => {
         handleCancel();
@@ -565,6 +565,6 @@ export function MilestoneModal({
           )}
         </div>
       </div>
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }

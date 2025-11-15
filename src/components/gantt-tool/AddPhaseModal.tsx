@@ -11,7 +11,7 @@
  * - EnhancedDatePickerWithMarkers support
  * - Full parity with EditPhaseModal design
  *
- * Migration: Converted from BaseModal to AppleMinimalistModal (2025-11-15)
+ * Migration: Converted from AppleMinimalistModal to AppleMinimalistModal (2025-11-15)
  */
 
 "use client";

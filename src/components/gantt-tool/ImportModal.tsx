@@ -4,7 +4,7 @@
  * Modal for importing project data from Excel templates.
  * Allows users to download template and upload filled data.
  *
- * Refactored to use BaseModal with Apple HIG standards
+ * Refactored to use AppleMinimalistModal with Apple HIG standards
  */
 
 "use client";
@@ -24,7 +24,7 @@ import { generateImportTemplate } from "@/lib/gantt-tool/import-template-generat
 import { parseImportFile, type ImportResult } from "@/lib/gantt-tool/import-parser";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { ExcelTemplateImport } from "./ExcelTemplateImport";
-import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -116,7 +116,7 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
   ) : undefined;
 
   return (
-    <BaseModal
+    <AppleMinimalistModal
       isOpen={isOpen}
       onClose={onClose}
       title="Import Project from Excel"
@@ -467,6 +467,6 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
             </div>
           )}
       </div>
-    </BaseModal>
+    </AppleMinimalistModal>
   );
 }

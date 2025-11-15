@@ -617,8 +617,8 @@ export function ResourceDrawer({ itemId, itemType, onClose }: Props) {
                       <button
                         onClick={() => {
                           handleClose();
-                          // Navigate to resources management (you can add this navigation)
-                          window.location.href = '/gantt-tool/v3#resources';
+                          // Navigate to resources management
+                          window.location.href = '/gantt-tool#resources';
                         }}
                         className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-semibold text-base shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                       >
