@@ -328,7 +328,7 @@ describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
     });
 
     it('should have V3 page route', () => {
-      const exists = fs.existsSync(path.join(process.cwd(), 'src/app/gantt-tool/v3/page.tsx'));
+      const exists = fs.existsSync(path.join(process.cwd(), 'src/app/gantt-tool/page.tsx'));
       expect(exists).toBe(true);
     });
 

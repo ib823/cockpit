@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { ORG_CHART_TEMPLATES, type OrgChartTemplate } from "@/lib/gantt-tool/org-chart-templates";
-import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 
 interface OrgChartTemplateSelectorProps {
   onClose?: () => void;

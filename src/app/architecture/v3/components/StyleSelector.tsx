@@ -8,6 +8,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import type { DiagramSettings, VisualStyle, ActorDisplay, LayoutMode } from "../types";
+import { useModalFocusTrap } from "../hooks/useFocusTrap";
 
 interface StyleSelectorProps {
   currentSettings: DiagramSettings;
@@ -17,6 +18,7 @@ interface StyleSelectorProps {
 
 export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSelectorProps) {
   const [settings, setSettings] = useState<DiagramSettings>(currentSettings);
+  const modalRef = useModalFocusTrap(true, onClose);
 
   const handleGenerate = () => {
     onGenerate(settings);
@@ -39,6 +41,10 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
       onClick={onClose}
     >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="style-selector-title"
         style={{
           backgroundColor: "#fff",
           borderRadius: "12px",
@@ -61,6 +67,7 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
           }}
         >
           <h2
+            id="style-selector-title"
             style={{
               fontFamily: "var(--font-display)",
               fontSize: "24px",
@@ -83,8 +90,9 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
               alignItems: "center",
               justifyContent: "center",
             }}
+            aria-label="Close style selector"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 

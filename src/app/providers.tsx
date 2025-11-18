@@ -2,7 +2,6 @@
 import { App } from "antd";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AntDThemeBridge } from "@/ui/compat/AntDThemeBridge";
 import { ToastProvider } from "@/ui/toast/ToastProvider";
@@ -47,6 +46,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
           (args[0].includes("[BackgroundSync]") && args[0].includes("transaction has finished")) ||
           // Suppress background sync failures - handled gracefully by the app
           (args[0].includes("[BackgroundSync]") && args[0].includes("Sync failed")) ||
+          // Suppress background sync debug errors (old message name and detailed error info)
+          (args[0].includes("[BackgroundSync]") && (args[0].includes("Server error details") || args[0].includes("Error details") || args[0].includes("Max retries exceeded"))) ||
           // Suppress initial loader hydration warnings - loader is created client-side only
           (args[0].includes("Hydration") && args[0].includes("initial-loader")) ||
           // Suppress static message API warnings - we use standalone API for better performance
@@ -54,7 +55,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       ) {
         return;
       }
-      originalError.apply(console, args);
+      if (typeof originalError === "function") {
+        originalError.apply(console, args);
+      }
     };
   }, []);
 
@@ -65,7 +68,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <AntDThemeBridge>
             <ToastProvider>
               <App>
-                <OnboardingProvider>{children}</OnboardingProvider>
+                {children}
               </App>
             </ToastProvider>
           </AntDThemeBridge>

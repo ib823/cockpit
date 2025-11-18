@@ -55,10 +55,13 @@ export interface Integration {
   name: string;
   sourceSystemId: string;
   targetSystemId: string;
+  sourceId?: string; // Alias for sourceSystemId
+  targetId?: string; // Alias for targetSystemId
   method: string; // SFTP, REST API, Manual, etc.
   frequency?: string; // Real-time, Daily, Weekly, etc.
   dataType?: string; // What data is transferred
   direction: "one-way" | "two-way";
+  type?: string; // Integration type/method display
 }
 
 export interface ExternalSystem {
@@ -67,6 +70,8 @@ export interface ExternalSystem {
   type: string; // Banking, Government, Partner, etc.
   purpose: string;
   interface?: string; // How we connect
+  provider?: string; // Provider/vendor name
+  category?: string; // Categorization of external system
 }
 
 export interface CurrentLandscapeData {
@@ -128,6 +133,20 @@ export interface DiagramSettings {
   layoutMode: LayoutMode;
   showLegend: boolean;
   showIcons: boolean;
+}
+
+// ============================================================================
+// DIAGRAM TYPES & EXPORT
+// ============================================================================
+
+export type DiagramType = 'business-context' | 'as-is' | 'to-be';
+
+export type ExportFormat = 'pdf' | 'ppt' | 'png';
+
+export interface ExportOptions {
+  format: ExportFormat;
+  filename: string;
+  includeMetadata?: boolean;
 }
 
 // ============================================================================

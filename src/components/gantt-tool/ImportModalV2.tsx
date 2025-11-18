@@ -10,6 +10,8 @@
  * - Error highlighting
  * - Touch-friendly
  * - Progress indicators
+ *
+ * Refactored to use BaseModal with Apple HIG standards
  */
 
 "use client";
@@ -56,6 +58,7 @@ import {
   ConflictResolutionModal,
   type ConflictResolution,
 } from "@/components/gantt-tool/ConflictResolutionModal";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 // Helper to ensure date is in YYYY-MM-DD format
 function formatDateField(date: string | Date): string {
@@ -67,12 +70,13 @@ function formatDateField(date: string | Date): string {
 }
 
 interface ImportModalV2Props {
+  isOpen: boolean;
   onClose: () => void;
 }
 
 type Stage = "schedule" | "resources" | "mapping" | "review";
 
-export function ImportModalV2({ onClose }: ImportModalV2Props) {
+export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
   const { currentProject, projects } = useGanttToolStoreV2();
 
   // Stage management
@@ -571,7 +575,9 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
       console.warn("API Response status:", response.status);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({
+          error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
+        }));
         console.error(" API Error Response:", errorData);
 
         // Log the payload that caused the error for debugging
@@ -774,7 +780,9 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({
+        error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
+      }));
       const errorMessage = errorData.error || `Failed to import data (${response.status})`;
       throw new Error(errorMessage);
     }
@@ -828,42 +836,140 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
     return true;
   }
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50"
-      onClick={(e) => {
-        // Close modal if clicking the backdrop (not the modal content)
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <div
-        className="bg-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[95vh] flex flex-col"
-        onClick={(e) => {
-          // Prevent backdrop click from closing modal when clicking inside
-          e.stopPropagation();
-        }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Import Project</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {currentStage === "schedule" && "Step 1: Import Schedule"}
-              {currentStage === "resources" && "Step 2: Import Resources (Optional)"}
-              {currentStage === "mapping" && "Step 3: Map Resource Designations"}
-              {currentStage === "review" && "Step 4: Review & Import"}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label="Close"
+  // Get subtitle based on current stage
+  const getSubtitle = () => {
+    switch (currentStage) {
+      case "schedule":
+        return "Step 1: Import Schedule";
+      case "resources":
+        return "Step 2: Import Resources (Optional)";
+      case "mapping":
+        return "Step 3: Map Resource Designations";
+      case "review":
+        return "Step 4: Review & Import";
+      default:
+        return "";
+    }
+  };
+
+  // Build footer based on current stage
+  const renderFooter = () => {
+    if (currentStage === "schedule") {
+      return (
+        <>
+          <ModalButton onClick={onClose} variant="secondary">
+            Cancel
+          </ModalButton>
+          {parsedSchedule && (
+            <ModalButton
+              onClick={() => setCurrentStage("resources")}
+              variant="primary"
+            >
+              Next: Resources <ChevronRight className="w-4 h-4 ml-2 inline" />
+            </ModalButton>
+          )}
+        </>
+      );
+    }
+
+    if (currentStage === "resources") {
+      return (
+        <>
+          <ModalButton
+            onClick={() => setCurrentStage("schedule")}
+            variant="secondary"
           >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
+            <ChevronLeft className="w-4 h-4 mr-2 inline" /> Back
+          </ModalButton>
+          {skipResources && (
+            <ModalButton
+              onClick={() => setCurrentStage("review")}
+              variant="primary"
+            >
+              Skip to Review <ChevronRight className="w-4 h-4 ml-2 inline" />
+            </ModalButton>
+          )}
+          {parsedResources && (
+            <ModalButton
+              onClick={() => {
+                if (resourceResult?.requiresMapping) {
+                  setCurrentStage("mapping");
+                } else {
+                  setCurrentStage("review");
+                }
+              }}
+              variant="primary"
+            >
+              {resourceResult?.requiresMapping ? "Next: Mapping" : "Next: Review"}{" "}
+              <ChevronRight className="w-4 h-4 ml-2 inline" />
+            </ModalButton>
+          )}
+        </>
+      );
+    }
+
+    if (currentStage === "mapping") {
+      return (
+        <>
+          <ModalButton
+            onClick={() => setCurrentStage("resources")}
+            variant="secondary"
+          >
+            <ChevronLeft className="w-4 h-4 mr-2 inline" /> Back
+          </ModalButton>
+          {allResourcesMapped() && (
+            <ModalButton
+              onClick={() => setCurrentStage("review")}
+              variant="primary"
+            >
+              Next: Review <ChevronRight className="w-4 h-4 ml-2 inline" />
+            </ModalButton>
+          )}
+        </>
+      );
+    }
+
+    if (currentStage === "review") {
+      return (
+        <>
+          <ModalButton
+            onClick={() => {
+              if (resourceResult?.requiresMapping) {
+                setCurrentStage("mapping");
+              } else {
+                setCurrentStage("resources");
+              }
+            }}
+            variant="secondary"
+          >
+            <ChevronLeft className="w-4 h-4 mr-2 inline" /> Back
+          </ModalButton>
+          <ModalButton
+            onClick={handleImport}
+            disabled={isImporting}
+            variant="primary"
+          >
+            {isImporting ? "Importing..." : "Import Project"}
+          </ModalButton>
+        </>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <>
+      <BaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Import Project"
+        subtitle={getSubtitle()}
+        icon={<Upload className="w-5 h-5" />}
+        size="fullscreen"
+        footer={renderFooter()}
+        preventClose={isImporting}
+      >
 
         {/* Progress Indicator */}
         <div className="px-4 sm:px-6 py-4 bg-gray-50 border-b border-gray-200">
@@ -950,87 +1056,12 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
             />
           )}
         </div>
-
-        {/* Footer Navigation */}
-        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
-          <div className="flex items-center justify-between gap-3">
-            <button
-              onClick={() => {
-                if (currentStage === "resources") setCurrentStage("schedule");
-                if (currentStage === "mapping") setCurrentStage("resources");
-                if (currentStage === "review") {
-                  // Go back to mapping if needed, otherwise resources
-                  setCurrentStage(needsMapping ? "mapping" : "resources");
-                }
-              }}
-              disabled={currentStage === "schedule"}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Back</span>
-            </button>
-
-            <div className="flex items-center gap-3">
-              {currentStage === "schedule" && (
-                <button
-                  onClick={() => setCurrentStage("resources")}
-                  disabled={!canProceedToResources}
-                  className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  <span>Next: Resources</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              )}
-
-              {currentStage === "resources" && (
-                <button
-                  onClick={() => setCurrentStage(needsMapping ? "mapping" : "review")}
-                  disabled={!canProceedToReview && !canProceedToMapping}
-                  className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  <span>{needsMapping ? "Next: Mapping" : "Next: Review"}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              )}
-
-              {currentStage === "mapping" && (
-                <button
-                  onClick={() => setCurrentStage("review")}
-                  disabled={!canProceedToReview}
-                  className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  <span>Next: Review</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              )}
-
-              {currentStage === "review" && (
-                <button
-                  onClick={handleImport}
-                  disabled={isImporting}
-                  className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  {isImporting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Importing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4" />
-                      <span>Import Project</span>
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      </BaseModal>
 
       {/* Conflict Resolution Modal */}
       {showConflictModal && conflictResult && preparedProjectData && (
         <ConflictResolutionModal
+          isOpen={showConflictModal}
           conflictResult={conflictResult}
           existingProject={preparedProjectData.targetProject}
           importedPhaseCount={preparedProjectData.newPhases.length}
@@ -1043,7 +1074,7 @@ export function ImportModalV2({ onClose }: ImportModalV2Props) {
           onCancel={handleConflictCancel}
         />
       )}
-    </div>
+    </>
   );
 }
 

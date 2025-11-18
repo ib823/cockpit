@@ -15,8 +15,9 @@
 "use client";
 
 import { useState } from "react";
-import { X, Plus, Trash2, Building2, Users2, DollarSign, ChevronDown, ChevronRight, Edit3, GripVertical } from "lucide-react";
+import { Plus, Trash2, Building2, Users2, DollarSign, Edit3 } from "lucide-react";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 interface ResourcePlanningModalV2Props {
   onClose: () => void;
@@ -133,125 +134,111 @@ export function ResourcePlanningModalV2({ onClose }: ResourcePlanningModalV2Prop
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        backdropFilter: "blur(4px)",
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          backgroundColor: "#fff",
-          borderRadius: "12px",
-          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
-          maxWidth: "1400px",
-          width: "100%",
-          maxHeight: "90vh",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div style={{
-          padding: "24px",
-          borderBottom: "1px solid var(--color-gray-4)",
-        }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-            <div style={{ flex: 1 }}>
-              <h2 style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "24px",
-                fontWeight: 600,
-                color: "#000",
-                marginBottom: "8px",
-              }}>
-                Team Structure & Resource Planning
-              </h2>
-              <p style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "14px",
-                color: "#666",
-              }}>
-                Design your team structure aligned with client organization. Drag roles, set reporting lines, calculate costs.
-              </p>
-            </div>
-
-            {/* Cost Summary - Top Right */}
+    <BaseModal
+      isOpen={true}
+      onClose={onClose}
+      title="Team Structure & Resource Planning"
+      subtitle={`Design your team structure aligned with client organization. Drag roles, set reporting lines, calculate costs.`}
+      icon={<Users2 className="w-5 h-5" />}
+      size="xlarge"
+      footer={
+        <>
+          <div>
             <div style={{
-              marginLeft: "32px",
-              padding: "16px 24px",
-              backgroundColor: "var(--color-blue-light)",
-              borderRadius: "8px",
-              textAlign: "right",
+              fontFamily: "var(--font-text)",
+              fontSize: "11px",
+              color: "#999",
+              marginBottom: "2px",
             }}>
-              <div style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "11px",
-                fontWeight: 600,
-                color: "var(--color-blue)",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                marginBottom: "4px",
-              }}>
-                Daily Burn Rate
-              </div>
-              <div style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "28px",
-                fontWeight: 700,
-                color: "var(--color-blue)",
-              }}>
-                EUR {calculateTotalCost().toLocaleString()}
-              </div>
-              <div style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "12px",
-                color: "#666",
-                marginTop: "4px",
-              }}>
-                {teamMembers.length} {teamMembers.length === 1 ? 'person' : 'people'}
-              </div>
+              Total Team
             </div>
-
-            <button
-              onClick={onClose}
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "6px",
-                border: "none",
-                backgroundColor: "transparent",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginLeft: "16px",
-              }}
-            >
-              <X className="w-5 h-5" style={{ color: "#666" }} />
-            </button>
+            <div style={{
+              fontFamily: "var(--font-text)",
+              fontSize: "16px",
+              fontWeight: 700,
+              color: "#000",
+            }}>
+              {teamMembers.length} {teamMembers.length === 1 ? 'person' : 'people'}
+            </div>
           </div>
-        </div>
-
-        {/* Main Content - Two Columns */}
+          <div style={{ marginLeft: "24px" }}>
+            <div style={{
+              fontFamily: "var(--font-text)",
+              fontSize: "11px",
+              color: "#999",
+              marginBottom: "2px",
+            }}>
+              Monthly Cost (20 days)
+            </div>
+            <div style={{
+              fontFamily: "var(--font-text)",
+              fontSize: "16px",
+              fontWeight: 700,
+              color: "var(--color-blue)",
+            }}>
+              EUR {(calculateTotalCost() * 20).toLocaleString()}
+            </div>
+          </div>
+          <div style={{ marginLeft: "auto", display: "flex", gap: "12px" }}>
+            <ModalButton onClick={onClose} variant="secondary">
+              Cancel
+            </ModalButton>
+            <ModalButton
+              onClick={() => {
+                console.log("Saving resource plan:", { teamMembers, clientStructure });
+                onClose();
+              }}
+              variant="primary"
+            >
+              Save Team Structure
+            </ModalButton>
+          </div>
+        </>
+      }
+    >
+      {/* Cost Summary Banner */}
+      <div style={{
+        marginBottom: "24px",
+        padding: "16px 24px",
+        backgroundColor: "var(--color-blue-light)",
+        borderRadius: "8px",
+        textAlign: "center",
+      }}>
         <div style={{
-          flex: 1,
-          overflow: "auto",
-          display: "grid",
-          gridTemplateColumns: "2fr 3fr",
-          gap: "24px",
-          padding: "24px",
+          fontFamily: "var(--font-text)",
+          fontSize: "11px",
+          fontWeight: 600,
+          color: "var(--color-blue)",
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
+          marginBottom: "4px",
         }}>
+          Daily Burn Rate
+        </div>
+        <div style={{
+          fontFamily: "var(--font-text)",
+          fontSize: "28px",
+          fontWeight: 700,
+          color: "var(--color-blue)",
+        }}>
+          EUR {calculateTotalCost().toLocaleString()}
+        </div>
+        <div style={{
+          fontFamily: "var(--font-text)",
+          fontSize: "12px",
+          color: "#666",
+          marginTop: "4px",
+        }}>
+          {teamMembers.length} {teamMembers.length === 1 ? 'person' : 'people'}
+        </div>
+      </div>
+
+      {/* Main Content - Two Columns */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "2fr 3fr",
+        gap: "24px",
+      }}>
           {/* LEFT: Role Library */}
           <div>
             <div style={{
@@ -574,94 +561,7 @@ export function ResourcePlanningModalV2({ onClose }: ResourcePlanningModalV2Prop
               </button>
             )}
           </div>
-        </div>
-
-        {/* Footer */}
-        <div style={{
-          padding: "20px 24px",
-          borderTop: "1px solid var(--color-gray-4)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          backgroundColor: "var(--color-gray-6)",
-        }}>
-          <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-            <div>
-              <div style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "11px",
-                color: "#999",
-                marginBottom: "2px",
-              }}>
-                Total Team
-              </div>
-              <div style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "16px",
-                fontWeight: 700,
-                color: "#000",
-              }}>
-                {teamMembers.length} {teamMembers.length === 1 ? 'person' : 'people'}
-              </div>
-            </div>
-            <div>
-              <div style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "11px",
-                color: "#999",
-                marginBottom: "2px",
-              }}>
-                Monthly Cost (20 days)
-              </div>
-              <div style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "16px",
-                fontWeight: 700,
-                color: "var(--color-blue)",
-              }}>
-                EUR {(calculateTotalCost() * 20).toLocaleString()}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: "12px" }}>
-            <button
-              onClick={onClose}
-              style={{
-                padding: "10px 20px",
-                borderRadius: "6px",
-                border: "1px solid var(--color-gray-4)",
-                backgroundColor: "#fff",
-                fontFamily: "var(--font-text)",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                console.log("Saving resource plan:", { teamMembers, clientStructure });
-                onClose();
-              }}
-              style={{
-                padding: "10px 20px",
-                borderRadius: "6px",
-                border: "none",
-                backgroundColor: "var(--color-blue)",
-                color: "#fff",
-                fontFamily: "var(--font-text)",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              Save Team Structure
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }

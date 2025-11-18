@@ -824,11 +824,13 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
       : renderTreeHorizontal(tree, 40);
 
   const containerWidth =
-    direction === "vertical" ? treeRender.maxWidth + 80 : (maxDepth + 1) * 300 + 200;
+    direction === "vertical"
+      ? ('maxWidth' in treeRender ? treeRender.maxWidth + 80 : 800)
+      : (maxDepth + 1) * 300 + 200;
   const containerHeight =
     direction === "vertical"
       ? (maxDepth + 1) * 200 + 100
-      : (treeRender as any).maxHeight + 80;
+      : ('maxHeight' in treeRender ? treeRender.maxHeight + 80 : 600);
 
   return (
     <div

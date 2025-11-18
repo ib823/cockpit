@@ -1256,6 +1256,9 @@ function ResourceFormInline({
   onClose: () => void;
   onSubmit: (data: ResourceFormData) => void;
 }) {
+  const { getProjectLogos } = useGanttToolStoreV2();
+  const availableLogos = getProjectLogos();
+
   const initialDesignation = resource?.designation || "consultant";
   const [formData, setFormData] = useState<ResourceFormData>({
     name: resource?.name || "",
@@ -1265,6 +1268,7 @@ function ResourceFormInline({
     assignmentLevel: resource?.assignmentLevel || "both",
     isBillable: resource?.isBillable !== undefined ? resource.isBillable : true,
     chargeRatePerHour: resource?.chargeRatePerHour || DESIGNATION_RATE_RATIOS[initialDesignation],
+    companyName: resource?.companyName || undefined,
   });
 
   useEffect(() => {
@@ -1371,6 +1375,30 @@ function ResourceFormInline({
             className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             required
           />
+        </div>
+
+        {/* Company/Organization (Optional) */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Company/Organization <span className="text-gray-500 text-xs">(Optional)</span>
+          </label>
+          <select
+            value={formData.companyName || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, companyName: e.target.value || undefined })
+            }
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+          >
+            <option value="">None (Internal resource)</option>
+            {Object.keys(availableLogos).map((companyName) => (
+              <option key={companyName} value={companyName}>
+                {companyName}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-600 mt-1">
+            For multi-stakeholder projects. Assign to show company logo in org chart.
+          </p>
         </div>
 
         {/* Assignment Level */}

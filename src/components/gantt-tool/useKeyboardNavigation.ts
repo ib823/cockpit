@@ -131,7 +131,7 @@ export function useKeyboardNavigation({
    * Handle keyboard shortcuts
    */
   const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
+    async (event: KeyboardEvent) => {
       // Don't interfere with input fields
       const target = event.target as HTMLElement;
       if (
@@ -195,8 +195,12 @@ export function useKeyboardNavigation({
         if (selection.selectedItemId && selection.selectedItemType) {
           if (selection.selectedItemType === "phase" && deletePhase) {
             if (confirm("Delete this phase and all its tasks?")) {
-              deletePhase(selection.selectedItemId);
-              lastActionRef.current = "delete-phase";
+              try {
+                await deletePhase(selection.selectedItemId);
+                lastActionRef.current = "delete-phase";
+              } catch (error) {
+                console.error("Failed to delete phase:", error);
+              }
             }
           } else if (selection.selectedItemType === "task" && deleteTask) {
             const phase = currentProject?.phases.find((p) =>

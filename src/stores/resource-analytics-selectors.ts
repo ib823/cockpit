@@ -6,7 +6,7 @@
  */
 
 import { useMemo } from "react";
-import { useGanttToolStore } from "./gantt-tool-store-v2";
+import { useGanttToolStoreV2 as useGanttToolStore } from "./gantt-tool-store-v2";
 import { differenceInDays, eachWeekOfInterval, startOfWeek, endOfWeek, format } from "date-fns";
 import type { Resource, ResourceCategory, ResourceDesignation } from "@/types/gantt-tool";
 
@@ -90,8 +90,63 @@ export function useResourceMetrics(): ResourceMetrics[] {
 
     const metricsMap = new Map<string, ResourceMetrics>();
 
-    // First pass: Collect all assignments
+    // First pass: Collect all assignments from BOTH tasks AND phases
     currentProject.phases.forEach((phase) => {
+      // Collect phase-level resource assignments
+      if (phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0) {
+        const phaseStart = new Date(phase.startDate);
+        const phaseEnd = new Date(phase.endDate);
+        const phaseDays = differenceInDays(phaseEnd, phaseStart) + 1;
+
+        phase.phaseResourceAssignments.forEach((assignment) => {
+          const resource = currentProject.resources.find((r) => r.id === assignment.resourceId);
+          if (!resource) return; // Resource was deleted
+
+          const effortDays = phaseDays * (assignment.allocationPercentage / 100);
+
+          // Initialize metrics for this resource if not exists
+          if (!metricsMap.has(resource.id)) {
+            metricsMap.set(resource.id, {
+              resourceId: resource.id,
+              resourceName: resource.name,
+              category: resource.category,
+              designation: resource.designation,
+              description: resource.description,
+              totalEffortDays: 0,
+              taskCount: 0,
+              assignments: [],
+              utilizationScore: 0,
+              peakAllocation: 0,
+              activeFrom: null,
+              activeUntil: null,
+            });
+          }
+
+          const metrics = metricsMap.get(resource.id)!;
+          metrics.totalEffortDays += effortDays;
+          metrics.assignments.push({
+            taskId: `phase-${phase.id}`,
+            taskName: `Phase: ${phase.name}`,
+            phaseName: phase.name,
+            phaseColor: phase.color,
+            effortDays,
+            allocationPercentage: assignment.allocationPercentage,
+            assignmentNotes: assignment.assignmentNotes,
+            startDate: phaseStart,
+            endDate: phaseEnd,
+          });
+
+          // Update active date range
+          if (!metrics.activeFrom || phaseStart < metrics.activeFrom) {
+            metrics.activeFrom = phaseStart;
+          }
+          if (!metrics.activeUntil || phaseEnd > metrics.activeUntil) {
+            metrics.activeUntil = phaseEnd;
+          }
+        });
+      }
+
+      // Collect task-level resource assignments
       phase.tasks.forEach((task) => {
         if (!task.resourceAssignments || task.resourceAssignments.length === 0) return;
 

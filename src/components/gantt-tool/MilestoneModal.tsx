@@ -1,25 +1,27 @@
 /**
- * Milestone Modal
+ * Milestone Manager Modal
  *
- * Modal for creating and editing milestones
+ * Manage all project milestones in one place
  * Apple HIG specification with clean, focused design
+ *
+ * Refactored to use AppleMinimalistModal with Apple HIG quality
  */
 
 "use client";
 
 import { useState, useEffect } from "react";
-import { Flag } from "lucide-react";
+import { Flag, Edit2, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
 import type { GanttMilestone } from "@/types/gantt-tool";
-import { Modal } from "@/ui/components/Modal";
-import { Button } from "@/ui/components/Button";
-import { Input } from "@/ui/components/Input";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
+import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
 
 interface MilestoneModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (data: Partial<GanttMilestone>) => void;
-  milestone?: GanttMilestone | null;
+  onDelete?: (id: string) => void;
+  milestones: GanttMilestone[]; // All project milestones
   defaultDate?: string;
 }
 
@@ -33,44 +35,40 @@ const MILESTONE_COLORS = [
   { name: 'Gray', value: '#8E8E93', label: 'Notes, References' },
 ];
 
-// Common milestone icons
-const MILESTONE_ICONS = ['🚀', '🎯', '✅', '⭐', '🏁', '📅', '🔔', '💡', '🎉', ''];
-
 export function MilestoneModal({
   open,
   onOpenChange,
   onSave,
-  milestone,
+  onDelete,
+  milestones,
   defaultDate,
 }: MilestoneModalProps) {
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [color, setColor] = useState('#FF3B30');
-  const [icon, setIcon] = useState('');
 
-  // Initialize form when modal opens
+  // Initialize form
   useEffect(() => {
-    if (open) {
-      if (milestone) {
-        // Editing existing milestone
-        setName(milestone.name);
-        setDescription(milestone.description || '');
-        setDate(milestone.date.split('T')[0]); // Extract date part
-        setColor(milestone.color || '#FF3B30');
-        setIcon(milestone.icon || '');
-      } else {
-        // Creating new milestone
-        setName('');
-        setDescription('');
-        setDate(defaultDate ? defaultDate.split('T')[0] : format(new Date(), 'yyyy-MM-dd'));
-        setColor('#FF3B30');
-        setIcon('');
-      }
+    if (open && !editingId) {
+      // Reset for new milestone
+      setName('');
+      setDescription('');
+      setDate(defaultDate ? defaultDate.split('T')[0] : format(new Date(), 'yyyy-MM-dd'));
+      setColor('#FF3B30');
     }
-  }, [open, milestone, defaultDate]);
+  }, [open, defaultDate, editingId]);
 
-  const handleSave = () => {
+  const handleEdit = (milestone: GanttMilestone) => {
+    setEditingId(milestone.id);
+    setName(milestone.name);
+    setDescription(milestone.description || '');
+    setDate(milestone.date.split('T')[0]);
+    setColor(milestone.color || '#FF3B30');
+  };
+
+  const handleSave = async () => {
     if (!name.trim() || !date) return;
 
     const milestoneData: Partial<GanttMilestone> = {
@@ -78,187 +76,495 @@ export function MilestoneModal({
       description: description.trim() || undefined,
       date: `${date}T00:00:00.000Z`,
       color,
-      icon,
     };
 
-    if (milestone) {
-      milestoneData.id = milestone.id;
+    if (editingId) {
+      milestoneData.id = editingId;
     }
 
-    onSave(milestoneData);
-    onOpenChange(false);
+    try {
+      await onSave(milestoneData);
+      // Reset form
+      setEditingId(null);
+      setName('');
+      setDescription('');
+      setDate(defaultDate ? defaultDate.split('T')[0] : format(new Date(), 'yyyy-MM-dd'));
+      setColor('#FF3B30');
+    } catch (error) {
+      console.error('Error saving milestone:', error);
+    }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault();
-      handleSave();
+  const handleDelete = async (id: string, milestoneName: string) => {
+    if (confirm(`Delete milestone "${milestoneName}"?`)) {
+      try {
+        await onDelete?.(id);
+        if (editingId === id) {
+          setEditingId(null);
+          setName('');
+          setDescription('');
+          setDate(defaultDate ? defaultDate.split('T')[0] : format(new Date(), 'yyyy-MM-dd'));
+          setColor('#FF3B30');
+        }
+      } catch (error) {
+        console.error('Error deleting milestone:', error);
+      }
     }
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setName('');
+    setDescription('');
+    setDate(defaultDate ? defaultDate.split('T')[0] : format(new Date(), 'yyyy-MM-dd'));
+    setColor('#FF3B30');
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={() => onOpenChange(false)}
-      title={
-        <div className="flex items-center gap-2">
-          <Flag className="w-5 h-5 text-gray-600" />
-          {milestone ? 'Edit Milestone' : 'Add Milestone'}
-        </div>
-      }
+    <AppleMinimalistModal
+      isOpen={open}
+      onClose={() => {
+        handleCancel();
+        onOpenChange(false);
+      }}
+      title="Milestone Manager"
+      subtitle={`Manage ${milestones.length} project milestone${milestones.length !== 1 ? 's' : ''}`}
+      icon={<Flag className="w-5 h-5" />}
+      size="large"
       footer={
-        <>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={!name.trim() || !date}>
-            {milestone ? 'Save Changes' : 'Add Milestone'}
-          </Button>
-        </>
+        <ModalButton
+          onClick={() => {
+            handleCancel();
+            onOpenChange(false);
+          }}
+        >
+          Close
+        </ModalButton>
       }
-      width={500}
     >
-      <div className="space-y-4" onKeyDown={handleKeyDown}>
-        {/* Name */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Name <span className="text-red-500">*</span>
-          </label>
-          <Input
-            placeholder="e.g., Beta Launch, Go-Live, Review"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoFocus
-            required
-          />
-        </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+        {/* Form Section */}
+        <div
+          style={{
+            backgroundColor: "#F5F5F7",
+            padding: "24px",
+            borderRadius: "12px",
+            border: "1px solid rgba(0, 0, 0, 0.08)",
+          }}
+        >
+          <h3
+            style={{
+              fontFamily: "var(--font-text)",
+              fontSize: "15px",
+              fontWeight: 600,
+              color: "#1D1D1F",
+              marginBottom: "16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            {editingId ? (
+              <>
+                <Edit2 className="w-4 h-4" />
+                Edit Milestone
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" />
+                Add New Milestone
+              </>
+            )}
+          </h3>
 
-        {/* Date */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Date <span className="text-red-500">*</span>
-          </label>
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Description (Optional) */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Description <span className="text-gray-400 text-xs">(Optional)</span>
-          </label>
-          <textarea
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-            placeholder="Add details about this milestone..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-          />
-        </div>
-
-        {/* Color Picker */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Color</label>
-          <div className="grid grid-cols-3 gap-2">
-            {MILESTONE_COLORS.map((colorOption) => (
-              <button
-                key={colorOption.value}
-                type="button"
-                onClick={() => setColor(colorOption.value)}
-                className={`
-                  flex items-center gap-2 p-2 rounded-lg border-2 transition-all
-                  ${color === colorOption.value
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                  }
-                `}
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* Name */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#1D1D1F",
+                }}
               >
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: colorOption.value }}
-                />
-                <div className="text-left flex-1">
-                  <div className="text-xs font-medium">{colorOption.name}</div>
-                  <div className="text-[10px] text-gray-500 truncate">
-                    {colorOption.label}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Icon Picker */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Icon <span className="text-gray-400 text-xs">(Optional)</span>
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {MILESTONE_ICONS.map((iconOption, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => setIcon(iconOption)}
-                className={`
-                  w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center text-lg
-                  ${icon === iconOption
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                  }
-                `}
-                title={iconOption || 'No icon'}
-              >
-                {iconOption || '—'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Preview */}
-        <div className="pt-4 border-t border-gray-200">
-          <label className="text-sm font-medium mb-2 block">Preview</label>
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <svg width="16" height="16" viewBox="0 0 16 16">
-              <path
-                d="M8 0 L16 8 L8 16 L0 8 Z"
-                fill={color}
-                stroke="#fff"
-                strokeWidth="2"
+                Name <span style={{ color: "#FF3B30" }}>*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Beta Launch, Go-Live, Review"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid rgba(0, 0, 0, 0.12)",
+                  borderRadius: "8px",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "14px",
+                  color: "#1D1D1F",
+                  outline: "none",
+                  transition: "all 0.15s ease",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "#007AFF";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0, 122, 255, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.12)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               />
-              {icon && (
-                <text
-                  x="8"
-                  y="11"
-                  fontSize="10"
-                  textAnchor="middle"
-                  fill="#fff"
-                >
-                  {icon}
-                </text>
-              )}
-            </svg>
-            <div className="flex-1">
-              <div className="font-semibold text-sm">
-                {name || 'Milestone Name'}
+            </div>
+
+            {/* Date */}
+            <div>
+              <HolidayAwareDatePicker
+                label="Date"
+                value={date}
+                onChange={(value) => setDate(value)}
+                region="ABMY"
+                required={true}
+                size="medium"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#1D1D1F",
+                }}
+              >
+                Description{" "}
+                <span style={{ color: "#86868B", fontWeight: 400 }}>(Optional)</span>
+              </label>
+              <textarea
+                placeholder="Add details about this milestone..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid rgba(0, 0, 0, 0.12)",
+                  borderRadius: "8px",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "14px",
+                  color: "#1D1D1F",
+                  outline: "none",
+                  transition: "all 0.15s ease",
+                  resize: "vertical",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "#007AFF";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0, 122, 255, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.12)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              />
+            </div>
+
+            {/* Color */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontFamily: "var(--font-text)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#1D1D1F",
+                }}
+              >
+                Color
+              </label>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: "8px",
+                }}
+              >
+                {MILESTONE_COLORS.map((colorOption) => (
+                  <button
+                    key={colorOption.value}
+                    type="button"
+                    onClick={() => setColor(colorOption.value)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "10px 12px",
+                      backgroundColor: color === colorOption.value ? "#F0F9FF" : "#FFFFFF",
+                      border: `2px solid ${
+                        color === colorOption.value ? "#007AFF" : "rgba(0, 0, 0, 0.08)"
+                      }`,
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (color !== colorOption.value) {
+                        e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.2)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (color !== colorOption.value) {
+                        e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.08)";
+                      }
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        backgroundColor: colorOption.value,
+                      }}
+                    />
+                    <div style={{ textAlign: "left", flex: 1 }}>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-text)",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          color: "#1D1D1F",
+                        }}
+                      >
+                        {colorOption.name}
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
-              {date && (
-                <div className="text-xs text-gray-600">
-                  {format(new Date(date), 'MMMM d, yyyy')}
-                </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: "flex", gap: "12px", paddingTop: "8px" }}>
+              {editingId && (
+                <ModalButton onClick={handleCancel} variant="secondary">
+                  Cancel
+                </ModalButton>
               )}
+              <ModalButton
+                onClick={handleSave}
+                variant="primary"
+                disabled={!name.trim() || !date}
+              >
+                {editingId ? "Update Milestone" : "Add Milestone"}
+              </ModalButton>
             </div>
           </div>
         </div>
 
-        {/* Keyboard hint */}
-        <div className="text-xs text-gray-400 text-center pt-2">
-          Press <kbd className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-300">Cmd</kbd> + <kbd className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-300">Enter</kbd> to save
+        {/* Milestones List */}
+        <div>
+          <h3
+            style={{
+              fontFamily: "var(--font-text)",
+              fontSize: "15px",
+              fontWeight: 600,
+              color: "#1D1D1F",
+              marginBottom: "16px",
+            }}
+          >
+            Project Milestones ({milestones.length})
+          </h3>
+
+          {milestones.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "48px 24px",
+                color: "#86868B",
+              }}
+            >
+              <Flag
+                className="w-12 h-12"
+                style={{ margin: "0 auto 12px", opacity: 0.3 }}
+              />
+              <p
+                style={{
+                  fontFamily: "var(--font-text)",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                }}
+              >
+                No milestones yet
+              </p>
+              <p
+                style={{
+                  fontFamily: "var(--font-text)",
+                  fontSize: "12px",
+                  marginTop: "4px",
+                }}
+              >
+                Add your first milestone above
+              </p>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                maxHeight: "400px",
+                overflowY: "auto",
+              }}
+            >
+              {[...milestones]
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .map((milestone) => (
+                  <div
+                    key={milestone.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "16px",
+                      backgroundColor:
+                        editingId === milestone.id ? "#F0F9FF" : "#FFFFFF",
+                      border: `2px solid ${
+                        editingId === milestone.id ? "#007AFF" : "rgba(0, 0, 0, 0.08)"
+                      }`,
+                      borderRadius: "12px",
+                      transition: "all 0.15s ease",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (editingId !== milestone.id) {
+                        e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.2)";
+                        e.currentTarget.style.backgroundColor = "#F5F5F7";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (editingId !== milestone.id) {
+                        e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.08)";
+                        e.currentTarget.style.backgroundColor = "#FFFFFF";
+                      }
+                    }}
+                  >
+                    {/* Color indicator */}
+                    <div
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        borderRadius: "50%",
+                        backgroundColor: milestone.color || "#FF3B30",
+                        flexShrink: 0,
+                      }}
+                    />
+
+                    {/* Content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "8px",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "#1D1D1F",
+                          }}
+                        >
+                          {milestone.name}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "12px",
+                            color: "#86868B",
+                          }}
+                        >
+                          {format(new Date(milestone.date), "MMM d, yyyy")}
+                        </span>
+                      </div>
+                      {milestone.description && (
+                        <p
+                          style={{
+                            fontFamily: "var(--font-text)",
+                            fontSize: "12px",
+                            color: "#86868B",
+                            margin: 0,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {milestone.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+                      <button
+                        onClick={() => handleEdit(milestone)}
+                        title="Edit milestone"
+                        style={{
+                          padding: "8px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          color: "#007AFF",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#E5F1FF";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(milestone.id, milestone.name)}
+                        title="Delete milestone"
+                        style={{
+                          padding: "8px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          color: "#FF3B30",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#FFE5E5";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
       </div>
-    </Modal>
+    </AppleMinimalistModal>
   );
 }

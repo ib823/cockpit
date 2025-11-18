@@ -1,0 +1,276 @@
+/**
+ * Accessibility CSS
+ *
+ * Ensures compliance with WCAG 2.1 AA and Apple HIG accessibility standards.
+ * Respects user preferences for reduced motion and high contrast.
+ */
+
+/* ================================
+ * REDUCED MOTION SUPPORT
+ * ================================ */
+
+/**
+ * Respects user's motion preferences
+ * WCAG 2.1 Success Criterion 2.3.3 (Level AAA)
+ * Apple HIG: Always respect system-level accessibility settings
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ================================
+ * FOCUS INDICATORS
+ * ================================ */
+
+/**
+ * Visible focus indicators for keyboard navigation
+ * WCAG 2.1 Success Criterion 2.4.7 (Level AA)
+ * Apple HIG: 2pt minimum focus ring
+ */
+:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove default focus styles for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Button focus states */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+/* ================================
+ * HIGH CONTRAST MODE
+ * ================================ */
+
+/**
+ * Enhanced borders and outlines for high contrast mode
+ * Windows High Contrast Mode support
+ */
+@media (prefers-contrast: high) {
+  button,
+  input,
+  select,
+  textarea {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+
+  a {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+
+  :focus-visible {
+    outline-width: 3px;
+  }
+}
+
+/* ================================
+ * SCREEN READER ONLY UTILITY
+ * ================================ */
+
+/**
+ * Hide element visually but keep it accessible to screen readers
+ * Used for ARIA labels and descriptions
+ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Make it visible when focused (for skip links) */
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* ================================
+ * SKIP TO CONTENT LINK
+ * ================================ */
+
+/**
+ * Skip navigation link for keyboard users
+ * WCAG 2.1 Success Criterion 2.4.1 (Level A)
+ */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-blue);
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 9999;
+  border-radius: 0 0 4px 0;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* ================================
+ * TOUCH TARGET SIZING
+ * ================================ */
+
+/**
+ * Ensure minimum touch target size on mobile
+ * Apple HIG: 44pt minimum
+ * WCAG 2.1 Success Criterion 2.5.5 (Level AAA): 44x44 CSS pixels
+ */
+@media (pointer: coarse) {
+  button,
+  a,
+  input[type="button"],
+  input[type="submit"],
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Increase spacing between interactive elements on touch devices */
+  button + button,
+  a + button,
+  button + a {
+    margin-left: 8px;
+  }
+
+  /* Larger hit areas for dropdowns and selects */
+  select {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+
+  /* Comfortable spacing for form inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  textarea {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* ================================
+ * TOUCH FEEDBACK
+ * ================================ */
+
+/**
+ * Visual feedback for touch interactions
+ * Apple HIG: Provide immediate visual response
+ */
+@media (pointer: coarse) {
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transform: scale(0.97);
+    opacity: 0.8;
+    transition: transform 0.1s ease, opacity 0.1s ease;
+  }
+
+  /* Prevent iOS tap highlight color - use custom instead */
+  button,
+  a,
+  [role="button"] {
+    -webkit-tap-highlight-color: rgba(0, 122, 255, 0.1);
+    tap-highlight-color: rgba(0, 122, 255, 0.1);
+  }
+}
+
+/* ================================
+ * MOBILE GESTURE SUPPORT
+ * ================================ */
+
+/**
+ * Smooth scrolling for touch devices
+ * Enable momentum scrolling on iOS
+ */
+@media (pointer: coarse) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent overscroll bounce on fixed elements */
+  body {
+    overscroll-behavior: none;
+  }
+
+  /* Allow overscroll in scrollable containers */
+  [style*="overflow: auto"],
+  [style*="overflow-y: auto"],
+  [style*="overflow-x: auto"],
+  .overflow-auto {
+    overscroll-behavior: contain;
+  }
+}
+
+/* ================================
+ * FORCED COLORS MODE (Windows)
+ * ================================ */
+
+@media (forced-colors: active) {
+  button,
+  a {
+    border: 1px solid;
+  }
+
+  :focus-visible {
+    outline: 2px solid;
+  }
+}
+
+/* ================================
+ * COLOR CONTRAST UTILITIES
+ * ================================ */
+
+/**
+ * Ensure text meets WCAG AA standards
+ * Normal text: 4.5:1 minimum
+ * Large text (18pt+ or 14pt+ bold): 3:1 minimum
+ */
+
+/* High contrast text for critical information */
+.text-high-contrast {
+  color: #000000;
+  background-color: #ffffff;
+}
+
+/* Dark mode high contrast */
+@media (prefers-color-scheme: dark) {
+  .text-high-contrast {
+    color: #ffffff;
+    background-color: #000000;
+  }
+}

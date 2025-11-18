@@ -388,8 +388,9 @@ function SystemCard({
         onClick={onRemove}
         className={styles.iconButton}
         style={{ position: "absolute", top: "10px", right: "10px" }}
+        aria-label={`Remove current system ${system.name || 'untitled'}`}
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="w-4 h-4" aria-hidden="true" />
       </button>
 
       {/* Status Badge */}
@@ -476,10 +477,11 @@ function ExternalSystemCard({
         onClick={onRemove}
         className={styles.iconButton}
         style={{ position: "absolute", top: "10px", right: "10px" }}
+        aria-label={`Remove external system ${external.name || 'untitled'}`}
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="w-4 h-4" aria-hidden="true" />
       </button>
-      <Cloud className="w-5 h-5" style={{ color: "#F57F17", marginBottom: "8px" }} />
+      <Cloud className="w-5 h-5" style={{ color: "#F57F17", marginBottom: "8px" }} aria-hidden="true" />
       <input
         type="text"
         value={external.name}

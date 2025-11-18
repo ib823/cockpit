@@ -3,13 +3,14 @@
  *
  * Modal for importing project data from Excel templates.
  * Allows users to download template and upload filled data.
+ *
+ * Refactored to use AppleMinimalistModal with Apple HIG standards
  */
 
 "use client";
 
 import { useState, useCallback } from "react";
 import {
-  X,
   Download,
   Upload,
   AlertCircle,
@@ -17,19 +18,22 @@ import {
   FileSpreadsheet,
   Info,
   Copy,
+  X,
 } from "lucide-react";
 import { generateImportTemplate } from "@/lib/gantt-tool/import-template-generator";
 import { parseImportFile, type ImportResult } from "@/lib/gantt-tool/import-parser";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { ExcelTemplateImport } from "./ExcelTemplateImport";
+import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
 
 interface ImportModalProps {
+  isOpen: boolean;
   onClose: () => void;
 }
 
 type TabType = "upload" | "paste";
 
-export function ImportModal({ onClose }: ImportModalProps) {
+export function ImportModal({ isOpen, onClose }: ImportModalProps) {
   const importProject = useGanttToolStoreV2((state) => state.importProject);
 
   const [activeTab, setActiveTab] = useState<TabType>("paste");
@@ -86,60 +90,135 @@ export function ImportModal({ onClose }: ImportModalProps) {
     }
   };
 
+  const footer = activeTab === "upload" ? (
+    <>
+      <ModalButton onClick={onClose} variant="secondary">
+        Cancel
+      </ModalButton>
+      {step === "preview" && (
+        <>
+          <ModalButton
+            onClick={() => {
+              setStep("select");
+              setImportResult(null);
+            }}
+            variant="secondary"
+          >
+            Back
+          </ModalButton>
+          <ModalButton onClick={handleConfirmImport} variant="primary">
+            <CheckCircle className="w-4 h-4 mr-2 inline" />
+            Confirm Import
+          </ModalButton>
+        </>
+      )}
+    </>
+  ) : undefined;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Import Project from Excel</h2>
-            <p className="text-sm text-gray-600 mt-1">Import your existing project planning data</p>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <X className="w-5 h-5 text-gray-500" />
+    <AppleMinimalistModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Import Project from Excel"
+      subtitle="Import your existing project planning data"
+      icon={<Upload className="w-5 h-5" />}
+      size="large"
+      footer={footer}
+    >
+      {/* Tabs */}
+      <div
+        style={{
+          borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
+          marginBottom: "24px",
+          marginLeft: "-32px",
+          marginRight: "-32px",
+          marginTop: "-32px",
+        }}
+      >
+        <div style={{ display: "flex", gap: "4px", paddingLeft: "32px" }}>
+          <button
+            onClick={() => setActiveTab("paste")}
+            style={{
+              padding: "12px 16px",
+              fontSize: "14px",
+              fontWeight: 500,
+              position: "relative",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              color: activeTab === "paste" ? "#007AFF" : "#86868B",
+              transition: "color 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== "paste") e.currentTarget.style.color = "#1D1D1F";
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== "paste") e.currentTarget.style.color = "#86868B";
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Copy className="w-4 h-4" />
+              <span>Copy & Paste</span>
+            </div>
+            {activeTab === "paste" && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: "2px",
+                  backgroundColor: "#007AFF",
+                }}
+              />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("upload")}
+            style={{
+              padding: "12px 16px",
+              fontSize: "14px",
+              fontWeight: 500,
+              position: "relative",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              color: activeTab === "upload" ? "#007AFF" : "#86868B",
+              transition: "color 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== "upload") e.currentTarget.style.color = "#1D1D1F";
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== "upload") e.currentTarget.style.color = "#86868B";
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Upload className="w-4 h-4" />
+              <span>Upload File</span>
+            </div>
+            {activeTab === "upload" && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: "2px",
+                  backgroundColor: "#007AFF",
+                }}
+              />
+            )}
           </button>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200 px-6">
-          <div className="flex gap-1">
-            <button
-              onClick={() => setActiveTab("paste")}
-              className={`px-4 py-3 text-sm font-medium transition-colors relative ${
-                activeTab === "paste" ? "text-blue-600" : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Copy className="w-4 h-4" />
-                <span>Copy & Paste</span>
-              </div>
-              {activeTab === "paste" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("upload")}
-              className={`px-4 py-3 text-sm font-medium transition-colors relative ${
-                activeTab === "upload" ? "text-blue-600" : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Upload className="w-4 h-4" />
-                <span>Upload File</span>
-              </div>
-              {activeTab === "upload" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
-              )}
-            </button>
-          </div>
-        </div>
+      {/* Content */}
+      <div>
+        {activeTab === "paste" && <ExcelTemplateImport onClose={onClose} />}
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          {activeTab === "paste" && <ExcelTemplateImport onClose={onClose} />}
-
-          {activeTab === "upload" && (
-            <div className="px-6 py-6">
+        {activeTab === "upload" && (
+          <div>
               {step === "select" && (
                 <div className="space-y-6">
                   {/* Step 1: Download Template */}
@@ -387,41 +466,7 @@ export function ImportModal({ onClose }: ImportModalProps) {
               )}
             </div>
           )}
-        </div>
-
-        {/* Footer - Only show for upload tab */}
-        {activeTab === "upload" && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors font-medium"
-            >
-              Cancel
-            </button>
-
-            {step === "preview" && (
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    setStep("select");
-                    setImportResult(null);
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={handleConfirmImport}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  Confirm Import
-                </button>
-              </div>
-            )}
-          </div>
-        )}
       </div>
-    </div>
+    </AppleMinimalistModal>
   );
 }

@@ -27,7 +27,17 @@ import type {
   PhaseResourceAssignment,
   ProjectBudget,
   ProjectDelta,
+  RACIAssignment,
+  PeerLink,
 } from "@/types/gantt-tool";
+
+// Architecture types for Unified Project Model (Phase 4)
+import type {
+  BusinessContextData,
+  CurrentLandscapeData,
+  ProposedSolutionData,
+  DiagramSettings,
+} from "@/app/architecture/v3/types";
 import { PHASE_COLOR_PRESETS } from "@/types/gantt-tool";
 import { differenceInDays, addDays, format } from "date-fns";
 import {
@@ -66,6 +76,7 @@ interface GanttToolStateV2 {
   isSyncing: boolean;
   lastSyncAt: Date | null;
   syncError: string | null;
+  syncErrorType: "foreign_key" | "validation" | "conflict" | "network" | "unknown" | null;
   saveProgress: {
     currentBatch: number;
     totalBatches: number;
@@ -101,7 +112,7 @@ interface GanttToolStateV2 {
   // API Actions
   fetchProjects: () => Promise<void>;
   fetchProject: (projectId: string) => Promise<void>;
-  createProject: (name: string, startDate: string, description?: string) => Promise<void>;
+  createProject: (name: string, startDate: string, description?: string, companyLogos?: Record<string, string>) => Promise<void>;
   importProject: (data: GanttProject) => Promise<void>;
   createProjectFromTemplate: (template: GanttProject) => Promise<void>;
   saveProject: () => Promise<void>; // Auto-save current project to API
@@ -154,6 +165,12 @@ interface GanttToolStateV2 {
   deleteResource: (resourceId: string) => Promise<void>;
   getResourceById: (resourceId: string) => Resource | undefined;
 
+  // Org Chart Peer Links (explicit peer relationships created via drag-drop)
+  addPeerLink: (resource1Id: string, resource2Id: string) => Promise<void>;
+  removePeerLink: (peerLinkId: string) => Promise<void>;
+  getPeerLinks: () => PeerLink[];
+  isPeerLinked: (resource1Id: string, resource2Id: string) => boolean;
+
   // Resource Assignment (with auto-save)
   assignResourceToTask: (
     taskId: string,
@@ -184,6 +201,18 @@ interface GanttToolStateV2 {
     allocationPercentage: number
   ) => void;
 
+  // RACI Matrix Management (with auto-save)
+  updatePhaseRaci: (phaseId: string, assignments: RACIAssignment[]) => Promise<void>;
+  updateTaskRaci: (taskId: string, phaseId: string, assignments: RACIAssignment[]) => Promise<void>;
+
+  // Logo Management (with auto-save)
+  uploadProjectLogo: (companyName: string, logoDataUrl: string) => Promise<void>;
+  deleteProjectLogo: (companyName: string) => Promise<void>;
+  updateProjectLogos: (logos: Record<string, string>) => Promise<void>;
+  selectDisplayLogo: (companyName: string) => Promise<void>;
+  getProjectLogos: () => Record<string, string>;
+  getCustomProjectLogos: () => Record<string, string>;
+
   // Budget Management (with auto-save)
   updateProjectBudget: (budget: ProjectBudget) => void;
   updateProjectName: (name: string) => Promise<void>;
@@ -211,6 +240,14 @@ interface GanttToolStateV2 {
   // Focus Mode
   focusPhase: (phaseId: string) => void;
   exitFocusMode: () => void;
+
+  // Architecture Methods (Unified Project Model - Phase 4)
+  // Enable updating architecture data on the same project
+  updateBusinessContext: (data: BusinessContextData) => Promise<void>;
+  updateCurrentLandscape: (data: CurrentLandscapeData) => Promise<void>;
+  updateProposedSolution: (data: ProposedSolutionData) => Promise<void>;
+  updateDiagramSettings: (settings: DiagramSettings) => Promise<void>;
+  updateArchitectureVersion: (version: string) => Promise<void>;
 
   // Getters
   getPhaseById: (phaseId: string) => GanttPhase | undefined;
@@ -275,6 +312,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     isSyncing: false,
     lastSyncAt: null,
     syncError: null,
+    syncErrorType: null,
     saveProgress: null,
     syncStatus: "idle",
     lastLocalSaveAt: null,
@@ -388,7 +426,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       }
     },
 
-    createProject: async (name: string, startDate: string, description?: string) => {
+    createProject: async (name: string, startDate: string, description?: string, companyLogos?: Record<string, string>) => {
       set((state) => {
         state.isSyncing = true;
         state.syncError = null;
@@ -403,6 +441,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
             startDate,
             description,
             viewSettings: { ...DEFAULT_VIEW_SETTINGS },
+            orgChartPro: companyLogos ? { companyLogos } : undefined,
           }),
         });
 
@@ -684,7 +723,9 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
+          const errorData = await response.json().catch(() => ({
+            error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
+          }));
           const errorMessage = errorData.error || `Failed to save project (${response.status})`;
 
           // Enhanced error logging to debug validation issues
@@ -990,11 +1031,28 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           }
         }
 
-        const adjustedDates = adjustDatesToWorkingDays(
-          data.startDate,
-          data.endDate,
-          state.currentProject.holidays
-        );
+        // For AMS phases, calculate end date based on duration
+        let finalStartDate = data.startDate;
+        let finalEndDate = data.endDate;
+
+        if (data.phaseType === "ams" && data.amsDuration) {
+          // AMS end date = start date + years
+          const startDate = new Date(data.startDate);
+          const yearsToAdd = data.amsDuration;
+          const amsEndDate = new Date(startDate);
+          amsEndDate.setFullYear(startDate.getFullYear() + yearsToAdd);
+          finalEndDate = format(amsEndDate, "yyyy-MM-dd");
+          finalStartDate = data.startDate; // AMS doesn't need working day adjustment
+        } else {
+          // Standard phases use working day adjustment
+          const adjustedDates = adjustDatesToWorkingDays(
+            data.startDate,
+            data.endDate,
+            state.currentProject.holidays
+          );
+          finalStartDate = adjustedDates.startDate;
+          finalEndDate = adjustedDates.endDate;
+        }
 
         const phaseId = `phase-${Date.now()}-${nanoid()}`;
         const colorIndex = state.currentProject.phases.length % PHASE_COLOR_PRESETS.length;
@@ -1003,14 +1061,17 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           id: phaseId,
           name: data.name,
           description: data.description,
+          deliverables: data.deliverables,
           color: data.color || PHASE_COLOR_PRESETS[colorIndex],
-          startDate: adjustedDates.startDate,
-          endDate: adjustedDates.endDate,
+          startDate: finalStartDate,
+          endDate: finalEndDate,
           tasks: [],
           collapsed: false,
           dependencies: [],
           phaseResourceAssignments: [],
-          order: state.currentProject.phases.length, // Set order to current array length
+          order: state.currentProject.phases.length,
+          phaseType: data.phaseType || "standard",
+          amsDuration: data.phaseType === "ams" ? data.amsDuration : undefined,
         };
 
         state.currentProject.phases.push(newPhase);
@@ -1234,6 +1295,20 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           state.currentProject.holidays
         );
 
+        // Validate task dates are within phase boundaries
+        const taskStart = new Date(adjustedDates.startDate);
+        const taskEnd = new Date(adjustedDates.endDate);
+        const phaseStart = new Date(phase.startDate);
+        const phaseEnd = new Date(phase.endDate);
+
+        if (taskStart < phaseStart || taskEnd > phaseEnd) {
+          throw new Error(
+            `Task dates must fall within phase boundaries. ` +
+            `Phase: ${format(phaseStart, "MMM d, yyyy")} - ${format(phaseEnd, "MMM d, yyyy")}. ` +
+            `Task: ${format(taskStart, "MMM d, yyyy")} - ${format(taskEnd, "MMM d, yyyy")}.`
+          );
+        }
+
         const taskId = `task-${Date.now()}-${nanoid()}`;
 
         const newTask: GanttTask = {
@@ -1241,6 +1316,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           phaseId: data.phaseId,
           name: data.name,
           description: data.description,
+          deliverables: data.deliverables,
           startDate: adjustedDates.startDate,
           endDate: adjustedDates.endDate,
           dependencies: data.dependencies || [],
@@ -1256,6 +1332,18 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
             : 0,
           collapsed: false,
           isParent: false,
+
+          // AMS Configuration
+          isAMS: data.isAMS,
+          amsConfig: data.isAMS && data.amsRateType && data.amsFixedRate
+            ? {
+                rateType: data.amsRateType,
+                fixedRate: data.amsFixedRate,
+                isOngoing: true,
+                minimumDuration: data.amsMinimumDuration,
+                notes: data.amsNotes,
+              }
+            : undefined,
         };
 
         phase.tasks.push(newTask);
@@ -1298,6 +1386,20 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
             );
             updates.startDate = adjustedDates.startDate;
             updates.endDate = adjustedDates.endDate;
+
+            // Validate task dates are within phase boundaries
+            const taskStart = new Date(updates.startDate);
+            const taskEnd = new Date(updates.endDate);
+            const phaseStart = new Date(phase.startDate);
+            const phaseEnd = new Date(phase.endDate);
+
+            if (taskStart < phaseStart || taskEnd > phaseEnd) {
+              throw new Error(
+                `Task dates must fall within phase boundaries. ` +
+                `Phase: ${format(phaseStart, "MMM d, yyyy")} - ${format(phaseEnd, "MMM d, yyyy")}. ` +
+                `Task: ${format(taskStart, "MMM d, yyyy")} - ${format(taskEnd, "MMM d, yyyy")}.`
+              );
+            }
           }
 
           Object.assign(task, updates);
@@ -1654,6 +1756,19 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
         const resource = state.currentProject.resources.find((r) => r.id === resourceId);
         if (resource) {
+          // PREVENTIVE VALIDATION: Ensure managerResourceId points to existing resource
+          if ('managerResourceId' in updates && updates.managerResourceId) {
+            const managerExists = state.currentProject.resources.some(
+              (r) => r.id === updates.managerResourceId
+            );
+            if (!managerExists) {
+              console.warn(
+                `Cannot set managerResourceId "${updates.managerResourceId}" for resource "${resource.name}" - manager does not exist. Clearing invalid reference.`
+              );
+              updates.managerResourceId = undefined;
+            }
+          }
+
           Object.assign(resource, updates);
           state.currentProject.updatedAt = new Date().toISOString();
         }
@@ -1670,6 +1785,16 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           (r) => r.id !== resourceId
         );
 
+        // PREVENTIVE CLEANUP: Clear any managerResourceId references to deleted resource
+        state.currentProject.resources.forEach((resource) => {
+          if (resource.managerResourceId === resourceId) {
+            console.warn(
+              `Clearing managerResourceId for "${resource.name}" because manager was deleted`
+            );
+            resource.managerResourceId = undefined;
+          }
+        });
+
         // Remove assignments
         state.currentProject.phases.forEach((phase) => {
           phase.tasks.forEach((task) => {
@@ -1681,6 +1806,14 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           });
         });
 
+        // Remove peer links involving this resource
+        if (state.currentProject.orgChartPro?.peerLinks) {
+          state.currentProject.orgChartPro.peerLinks =
+            state.currentProject.orgChartPro.peerLinks.filter(
+              (link) => link.resource1Id !== resourceId && link.resource2Id !== resourceId
+            );
+        }
+
         state.currentProject.updatedAt = new Date().toISOString();
       });
 
@@ -1691,6 +1824,76 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       const { currentProject } = get();
       if (!currentProject) return undefined;
       return currentProject.resources.find((r) => r.id === resourceId);
+    },
+
+    // --- Org Chart Peer Links ---
+    addPeerLink: async (resource1Id, resource2Id) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        // Initialize orgChartPro if needed
+        if (!state.currentProject.orgChartPro) {
+          state.currentProject.orgChartPro = {};
+        }
+        if (!state.currentProject.orgChartPro.peerLinks) {
+          state.currentProject.orgChartPro.peerLinks = [];
+        }
+
+        // Check if link already exists (in either direction)
+        const linkExists = state.currentProject.orgChartPro.peerLinks.some(
+          (link) =>
+            (link.resource1Id === resource1Id && link.resource2Id === resource2Id) ||
+            (link.resource1Id === resource2Id && link.resource2Id === resource1Id)
+        );
+
+        if (linkExists) {
+          console.warn("Peer link already exists");
+          return;
+        }
+
+        // Create new peer link
+        const newLink: PeerLink = {
+          id: `peer-link-${nanoid()}`,
+          resource1Id,
+          resource2Id,
+          createdAt: new Date().toISOString(),
+        };
+
+        state.currentProject.orgChartPro.peerLinks.push(newLink);
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    removePeerLink: async (peerLinkId) => {
+      set((state) => {
+        if (!state.currentProject?.orgChartPro?.peerLinks) return;
+
+        state.currentProject.orgChartPro.peerLinks =
+          state.currentProject.orgChartPro.peerLinks.filter((link) => link.id !== peerLinkId);
+
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    getPeerLinks: () => {
+      const { currentProject } = get();
+      if (!currentProject?.orgChartPro?.peerLinks) return [];
+      return currentProject.orgChartPro.peerLinks;
+    },
+
+    isPeerLinked: (resource1Id, resource2Id) => {
+      const { currentProject } = get();
+      if (!currentProject?.orgChartPro?.peerLinks) return false;
+
+      return currentProject.orgChartPro.peerLinks.some(
+        (link) =>
+          (link.resource1Id === resource1Id && link.resource2Id === resource2Id) ||
+          (link.resource1Id === resource2Id && link.resource2Id === resource1Id)
+      );
     },
 
     // --- Resource Assignment ---
@@ -1854,6 +2057,93 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       get().saveProject();
     },
 
+    // --- Logo Management ---
+    uploadProjectLogo: async (companyName, logoDataUrl) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        // Initialize orgChartPro if needed
+        if (!state.currentProject.orgChartPro) {
+          state.currentProject.orgChartPro = {};
+        }
+        if (!state.currentProject.orgChartPro.companyLogos) {
+          state.currentProject.orgChartPro.companyLogos = {};
+        }
+
+        // Add/update logo
+        state.currentProject.orgChartPro.companyLogos[companyName] = logoDataUrl;
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    deleteProjectLogo: async (companyName) => {
+      set((state) => {
+        if (!state.currentProject?.orgChartPro?.companyLogos) return;
+
+        delete state.currentProject.orgChartPro.companyLogos[companyName];
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    updateProjectLogos: async (logos) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        if (!state.currentProject.orgChartPro) {
+          state.currentProject.orgChartPro = {};
+        }
+
+        state.currentProject.orgChartPro.companyLogos = logos;
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    selectDisplayLogo: async (companyName: string) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        if (!state.currentProject.orgChartPro) {
+          state.currentProject.orgChartPro = {};
+        }
+
+        state.currentProject.orgChartPro.selectedLogoCompanyName = companyName;
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    getProjectLogos: () => {
+      const { currentProject } = get();
+      if (!currentProject?.orgChartPro?.companyLogos) {
+        return {};
+      }
+      return currentProject.orgChartPro.companyLogos;
+    },
+
+    getCustomProjectLogos: () => {
+      // Returns only custom logos (excludes defaults)
+      const { currentProject } = get();
+      if (!currentProject?.orgChartPro?.companyLogos) {
+        return {};
+      }
+      // Default logos are: "ABeam Consulting", "ABeam", "SAP", "SAP SE"
+      const defaultKeys = ["ABeam Consulting", "ABeam", "SAP", "SAP SE"];
+      const customLogos: Record<string, string> = {};
+      Object.entries(currentProject.orgChartPro.companyLogos).forEach(([key, value]) => {
+        if (!defaultKeys.includes(key)) {
+          customLogos[key] = value;
+        }
+      });
+      return customLogos;
+    },
+
     // --- Budget Management ---
     updateProjectBudget: (budget) => {
       set((state) => {
@@ -1978,6 +2268,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
     clearSyncError: () => {
       set((state) => {
         state.syncError = null;
+        state.syncErrorType = null;
         state.syncStatus = "idle";
       });
     },
@@ -2032,7 +2323,8 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
       const startDate = new Date(Math.min(...allDates.map((d) => d.getTime())));
       const endDate = new Date(Math.max(...allDates.map((d) => d.getTime())));
-      const durationDays = differenceInDays(endDate, startDate);
+      // Add 1 to make dates inclusive (project from Jan 5 to Jan 30 is 26 days, not 25)
+      const durationDays = differenceInDays(endDate, startDate) + 1;
 
       return { startDate, endDate, durationDays };
     },
@@ -2117,6 +2409,148 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         state.validationWarnings = [];
       });
     },
+
+    // --- RACI Matrix Management ---
+    updatePhaseRaci: async (phaseId, assignments) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const snapshot = cloneProject(state.currentProject);
+        if (snapshot) {
+          state.history.past.push(snapshot);
+          state.history.future = [];
+          if (state.history.past.length > 50) state.history.past = state.history.past.slice(-50);
+        }
+
+        const phase = state.currentProject.phases.find((p) => p.id === phaseId);
+        if (phase) {
+          phase.raciAssignments = assignments;
+          state.currentProject.updatedAt = new Date().toISOString();
+        }
+      });
+
+      await get().saveProject();
+    },
+
+    updateTaskRaci: async (taskId, phaseId, assignments) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const snapshot = cloneProject(state.currentProject);
+        if (snapshot) {
+          state.history.past.push(snapshot);
+          state.history.future = [];
+          if (state.history.past.length > 50) state.history.past = state.history.past.slice(-50);
+        }
+
+        const phase = state.currentProject.phases.find((p) => p.id === phaseId);
+        if (!phase) return;
+
+        const task = phase.tasks.find((t) => t.id === taskId);
+        if (task) {
+          task.raciAssignments = assignments;
+          state.currentProject.updatedAt = new Date().toISOString();
+        }
+      });
+
+      await get().saveProject();
+    },
+
+    // --- Architecture Methods (Unified Project Model - Phase 4) ---
+    // Enable viewing same project as Timeline OR Architecture
+
+    updateBusinessContext: async (data: BusinessContextData) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const snapshot = cloneProject(state.currentProject);
+        if (snapshot) {
+          state.history.past.push(snapshot);
+          state.history.future = [];
+          if (state.history.past.length > 50) state.history.past = state.history.past.slice(-50);
+        }
+
+        state.currentProject.businessContext = data;
+        state.currentProject.lastArchitectureEdit = new Date().toISOString();
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    updateCurrentLandscape: async (data: CurrentLandscapeData) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const snapshot = cloneProject(state.currentProject);
+        if (snapshot) {
+          state.history.past.push(snapshot);
+          state.history.future = [];
+          if (state.history.past.length > 50) state.history.past = state.history.past.slice(-50);
+        }
+
+        state.currentProject.currentLandscape = data;
+        state.currentProject.lastArchitectureEdit = new Date().toISOString();
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    updateProposedSolution: async (data: ProposedSolutionData) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const snapshot = cloneProject(state.currentProject);
+        if (snapshot) {
+          state.history.past.push(snapshot);
+          state.history.future = [];
+          if (state.history.past.length > 50) state.history.past = state.history.past.slice(-50);
+        }
+
+        state.currentProject.proposedSolution = data;
+        state.currentProject.lastArchitectureEdit = new Date().toISOString();
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    updateDiagramSettings: async (settings: DiagramSettings) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const snapshot = cloneProject(state.currentProject);
+        if (snapshot) {
+          state.history.past.push(snapshot);
+          state.history.future = [];
+          if (state.history.past.length > 50) state.history.past = state.history.past.slice(-50);
+        }
+
+        state.currentProject.diagramSettings = settings;
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
+
+    updateArchitectureVersion: async (version: string) => {
+      set((state) => {
+        if (!state.currentProject) return;
+
+        const snapshot = cloneProject(state.currentProject);
+        if (snapshot) {
+          state.history.past.push(snapshot);
+          state.history.future = [];
+          if (state.history.past.length > 50) state.history.past = state.history.past.slice(-50);
+        }
+
+        state.currentProject.architectureVersion = version;
+        state.currentProject.updatedAt = new Date().toISOString();
+      });
+
+      await get().saveProject();
+    },
   }))
 );
 export { useGanttToolStoreV2 as useGanttToolStore };
@@ -2172,16 +2606,17 @@ if (typeof window !== "undefined") {
       console.log("[BackgroundSync] ✓ Successfully synced project:", projectId);
     },
 
-    onSyncError: (projectId, error) => {
+    onSyncError: (projectId, error, errorType) => {
       const store = useGanttToolStoreV2.getState();
       if (store.currentProject?.id === projectId) {
         useGanttToolStoreV2.setState({
           syncStatus: "error",
           syncError: error,
+          syncErrorType: errorType || "unknown",
           saveProgress: null,
         });
       }
-      console.error("[BackgroundSync] ✗ Sync error for project:", projectId, error);
+      console.error("[BackgroundSync] ✗ Sync error for project:", projectId, error, errorType || "unknown");
     },
   });
 }

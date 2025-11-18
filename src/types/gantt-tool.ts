@@ -1,15 +1,42 @@
 /**
  * Gantt Tool - Type Definitions
  *
- * Standalone Gantt chart tool for creating professional timeline visualizations.
+ * UNIFIED PROJECT MODEL (Phase 1 Complete):
+ * One project entity that can be viewed as Timeline OR Architecture
+ * - Timeline view: Gantt chart with phases, tasks, milestones
+ * - Architecture view: Business context, AS-IS/TO-BE diagrams
+ *
  * Features: Phases, Tasks, Milestones, Holidays, Drag-and-drop, Export to PNG/Excel/PDF
  */
 
+// Architecture type imports for unified project model
+import type {
+  BusinessContextData,
+  CurrentLandscapeData,
+  ProposedSolutionData,
+  DiagramSettings,
+} from '@/app/architecture/v3/types';
+
+// Explicit peer relationship in org chart
+// Created when user drags a resource and drops it on LEFT/RIGHT zone of another resource
+export interface PeerLink {
+  id: string; // Unique ID for the link
+  resource1Id: string; // First resource ID
+  resource2Id: string; // Second resource ID (order doesn't matter)
+  createdAt: string; // When this peer link was created
+}
+
+/**
+ * Unified Project Model - combines Timeline and Architecture data
+ * Apple UX: "One project, multiple perspectives"
+ */
 export interface GanttProject {
   id: string;
   name: string;
   description?: string;
   startDate: string; // ISO 8601 format
+
+  // TIMELINE DATA (existing)
   phases: GanttPhase[];
   milestones: GanttMilestone[];
   holidays: GanttHoliday[];
@@ -22,13 +49,34 @@ export interface GanttProject {
   budget?: ProjectBudget;
 
   // Organization chart data
-  orgChartPro?: any;
+  orgChartPro?: {
+    companyLogos?: Record<string, string>; // company name -> base64 logo URL
+    selectedLogoCompanyName?: string; // Currently selected logo to display
+    peerLinks?: PeerLink[]; // Explicit peer relationships (only appear when user creates them via drag-drop)
+    [key: string]: any; // Other org chart data
+  };
+
+  // ARCHITECTURE DATA (Phase 1: Unified Project Model)
+  // Enable viewing same project as architecture diagrams
+  businessContext?: BusinessContextData; // Business entities, actors, capabilities
+  currentLandscape?: CurrentLandscapeData; // AS-IS systems and integrations
+  proposedSolution?: ProposedSolutionData; // TO-BE solution architecture
+  diagramSettings?: DiagramSettings; // Visual styling for diagrams
+  architectureVersion?: string; // Track architecture version (e.g., "1.0")
+  lastArchitectureEdit?: string; // ISO 8601 timestamp of last architecture update
+}
+
+export interface RACIAssignment {
+  id: string;
+  resourceId: string;
+  role: "responsible" | "accountable" | "consulted" | "informed";
 }
 
 export interface GanttPhase {
   id: string;
   name: string;
   description?: string;
+  deliverables?: string; // Optional deliverables description
   color: string;
   startDate: string; // ISO 8601 format
   endDate: string; // ISO 8601 format
@@ -36,7 +84,10 @@ export interface GanttPhase {
   collapsed: boolean;
   dependencies: string[]; // Phase IDs that this phase depends on
   phaseResourceAssignments?: PhaseResourceAssignment[]; // PM resources assigned at phase level
+  raciAssignments?: RACIAssignment[]; // RACI matrix assignments for this phase
   order: number; // Display order of phases
+  phaseType?: "standard" | "ams"; // Phase type: standard project phase or AMS (Application Management Services)
+  amsDuration?: 1 | 2 | 3; // AMS duration in years (only applicable for AMS phases)
 }
 
 export interface GanttTask {
@@ -44,12 +95,14 @@ export interface GanttTask {
   phaseId: string;
   name: string;
   description?: string;
+  deliverables?: string; // Optional deliverables description
   startDate: string; // ISO 8601 format
   endDate: string; // ISO 8601 format
   dependencies: string[]; // Task IDs that this task depends on
   assignee?: string;
   progress: number; // 0-100
   resourceAssignments?: TaskResourceAssignment[]; // Assigned resources
+  raciAssignments?: RACIAssignment[]; // RACI matrix assignments for this task
   order: number; // Display order of tasks within phase
 
   // Task Hierarchy (Work Breakdown Structure)
@@ -58,7 +111,27 @@ export interface GanttTask {
   collapsed: boolean; // UI state: if true, children are hidden
   isParent: boolean; // True if this task has child tasks
   childTasks?: GanttTask[]; // Child tasks (populated when needed)
+
+  // AMS (Application Maintenance & Support) Configuration
+  isAMS?: boolean; // Flag indicating this is an AMS task
+  amsConfig?: {
+    rateType: "daily" | "manda"; // Costing rate type
+    fixedRate: number; // Fixed rate amount
+    isOngoing: true; // AMS tasks are always ongoing
+    minimumDuration?: number; // Minimum subscription duration in months (e.g., 12)
+    notes?: string; // Additional AMS-specific notes
+  };
+
+  // Strategic Planning Metadata (for RACI context and governance)
+  priority?: "high" | "medium" | "low"; // Timeline priority level
+  isCritical?: boolean; // Critical path - blocks go-live if delayed
+  estimatedEffort?: number; // Estimated working days (for resource planning and cost estimation)
+  requiredSkillCategories?: ResourceCategory[]; // Skills needed for this task (for skill matching in RACI)
 }
+
+// Type aliases for convenience
+export type Phase = GanttPhase;
+export type Task = GanttTask;
 
 export interface GanttMilestone {
   id: string;
@@ -121,20 +194,37 @@ export interface SidePanelState {
 export interface PhaseFormData {
   name: string;
   description?: string;
+  deliverables?: string;
   color: string;
   startDate: string;
   endDate: string;
+  phaseType?: "standard" | "ams";
+  amsDuration?: 1 | 2 | 3;
 }
 
 export interface TaskFormData {
   name: string;
   description?: string;
+  deliverables?: string;
   phaseId: string;
   startDate: string;
   endDate: string;
   assignee?: string;
   dependencies?: string[];
   parentTaskId?: string | null;
+
+  // AMS Configuration
+  isAMS?: boolean;
+  amsRateType?: "daily" | "manda";
+  amsFixedRate?: number;
+  amsMinimumDuration?: number;
+  amsNotes?: string;
+
+  // Strategic Planning
+  priority?: "high" | "medium" | "low";
+  isCritical?: boolean;
+  estimatedEffort?: number;
+  requiredSkillCategories?: ResourceCategory[];
 }
 
 export interface MilestoneFormData {
@@ -316,6 +406,7 @@ export interface Resource {
   department?: string; // Department or team name
   location?: string; // Physical or virtual location
   projectRole?: string; // Specific role on this project (optional override)
+  companyName?: string; // Company/organization affiliation (for multi-stakeholder projects)
 
   // Assignment level control
   assignmentLevel: "phase" | "task" | "both"; // Where this resource can be assigned
@@ -368,6 +459,7 @@ export interface ResourceFormData {
   department?: string;
   location?: string;
   projectRole?: string;
+  companyName?: string; // Company/organization affiliation (for multi-stakeholder projects)
 
   // Assignment and billing configuration
   assignmentLevel: "phase" | "task" | "both";

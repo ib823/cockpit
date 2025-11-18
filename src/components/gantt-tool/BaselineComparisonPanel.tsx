@@ -78,7 +78,7 @@ export function BaselineComparisonPanel({
 
     const baseline = createBaseline(
       project,
-      `Baseline ${format(new Date(), "MMM dd, yyyy")}`,
+      `Baseline ${format(new Date(), "dd-MMM-yy (EEE)")}`,
       "Automatically created baseline"
     );
 
@@ -145,7 +145,7 @@ export function BaselineComparisonPanel({
               style={{ width: 250 }}
               options={baselines.map((b) => ({
                 value: b.id,
-                label: `${b.name} (${format(parseISO(b.createdAt), "MMM dd, yyyy")})`,
+                label: `${b.name} (${format(parseISO(b.createdAt), "dd-MMM-yy (EEE)")})`,
               }))}
             />
             <Button icon={<Save className="w-4 h-4" />} onClick={handleSaveBaseline}>
@@ -350,7 +350,7 @@ function OverviewTab({
                 Forecast End Date
               </div>
               <div className="text-lg font-bold" style={{ color: colorValues.neutral[900] }}>
-                {format(parseISO(forecast.forecastEndDate), "MMM dd, yyyy")}
+                {format(parseISO(forecast.forecastEndDate), "dd-MMM-yy (EEE)")}
               </div>
             </div>
             <div>

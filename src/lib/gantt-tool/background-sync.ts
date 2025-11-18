@@ -201,16 +201,17 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch(() => ({
+      error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
+    }));
     const errorMessage =
       errorData.error || errorData.message || `Sync failed with status ${response.status}`;
 
-    // Enhanced error logging
-    console.error("[BackgroundSync] Server error details:", {
+    // Log sync failure (suppressed in console filter but useful for debugging)
+    console.error("[BackgroundSync] Sync failed:", {
       status: response.status,
       statusText: response.statusText,
       error: errorMessage,
-      details: errorData.details,
       projectId,
     });
 

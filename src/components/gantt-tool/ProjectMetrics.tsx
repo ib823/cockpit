@@ -55,7 +55,7 @@ export function ProjectMetrics({ project, compact = false }: ProjectMetricsProps
 
   // Format duration: months for calendar, days for working
   const durationText = showWorkingDays
-    ? `${metrics.workingDays} days (working)`
+    ? `${metrics.workingDays} d`
     : metrics.durationDisplay;
 
   return (

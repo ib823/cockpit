@@ -189,6 +189,7 @@
   z-index: var(--z-dropdown);
   opacity: 0;
   visibility: hidden;
+  pointer-events: none; /* ✅ FIX: Prevent invisible menu from capturing clicks */
   transform: translateY(-8px);
   transition: all var(--duration-default) var(--easing-default);
 }
@@ -196,6 +197,7 @@
 .userMenu.open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto; /* ✅ FIX: Re-enable clicks when menu is open */
   transform: translateY(0);
 }
 

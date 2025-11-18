@@ -118,8 +118,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
   background-color: transparent;
@@ -239,6 +239,27 @@
   background-color: var(--color-bg-primary);
 }
 
+.twoColumnLayout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  height: calc(100vh - 56px - 56px); /* Full height minus headers */
+  overflow: hidden;
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+}
+
+.rightColumn {
+  overflow-y: auto;
+  background-color: var(--color-gray-6);
+  padding: 24px;
+  border-left: 1px solid var(--line);
+}
+
 .contentContainer {
   max-width: 1400px;
   margin: 0 auto;
@@ -274,15 +295,30 @@
 }
 
 /* ============================================================================
-   RESPONSIVE
+   RESPONSIVE - Mobile-first optimizations
    ============================================================================ */
 
+/* Tablet and below (1024px) */
 @media (max-width: 1024px) {
   .metadata {
     display: none;
   }
+
+  .contentContainer {
+    padding: 32px 24px;
+  }
+
+  .tabsContainer {
+    padding: 0 24px;
+  }
+
+  .tabButton {
+    padding: 10px 20px;
+    font-size: var(--text-body);
+  }
 }
 
+/* Mobile devices (768px) */
 @media (max-width: 768px) {
   .metadataDivider {
     display: none;
@@ -292,15 +328,139 @@
     padding: 8px 12px;
   }
 
+  .headerRight {
+    gap: 6px;
+  }
+
   .viewSelectorButton {
     padding: 6px 8px;
     font-size: var(--text-detail);
   }
+
+  .iconButton {
+    width: 44px;
+    height: 44px;
+  }
+
+  .contentContainer {
+    padding: 24px 16px;
+  }
+
+  .tabsContainer {
+    height: auto;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .tabButton {
+    padding: 8px 16px;
+    font-size: var(--text-detail);
+  }
 }
 
+/* Small mobile devices (640px) */
 @media (max-width: 640px) {
+  .container {
+    height: 100vh; /* Full viewport on small screens */
+  }
+
   .viewSelector {
     flex-wrap: wrap;
     max-width: 200px;
+  }
+
+  .contentContainer {
+    padding: 16px 12px;
+  }
+
+  .tabsContainer {
+    padding: 6px 8px;
+    gap: 4px;
+  }
+
+  .tabButton {
+    padding: 6px 12px;
+    font-size: var(--text-detail-small);
+  }
+
+  .iconButton {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Touch device optimizations */
+@media (pointer: coarse) {
+  .iconButton,
+  .tabButton,
+  .viewSelectorButton {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .tabButton {
+    padding: 12px 20px;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .tabsContainer {
+    height: 48px;
+    padding: 4px 12px;
+  }
+
+  .tabButton {
+    padding: 6px 12px;
+  }
+
+  .contentContainer {
+    padding: 16px;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .iconButton,
+  .tabButton {
+    border-width: 2px;
+  }
+
+  .tabButtonActive {
+    border: 2px solid var(--color-blue);
+  }
+}
+
+/* Print styles */
+@media print {
+  .header,
+  .tabsContainer,
+  .footer,
+  .iconButton {
+    display: none !important;
+  }
+
+  .mainContent {
+    overflow: visible !important;
+  }
+
+  .container {
+    height: auto;
+  }
+}
+
+/* Responsive for two-column layout */
+@media (max-width: 1200px) {
+  .twoColumnLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .rightColumn {
+    display: none; /* Hide diagram on smaller screens for now */
+  }
+
+  .leftColumn {
+    border-right: none;
   }
 }

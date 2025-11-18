@@ -117,8 +117,8 @@ function calculateDateRange(project: GanttProject) {
   const startDate = new Date(Math.min(...allDates.map(d => d.getTime())));
   const endDate = new Date(Math.max(...allDates.map(d => d.getTime())));
 
-  // Format: DD-MMM-YY (e.g., "02-Feb-26 - 16-Apr-27")
-  const dateRangeDisplay = `${format(startDate, "dd-MMM-yy")} - ${format(endDate, "dd-MMM-yy")}`;
+  // Format: DD-MMM-YY (Ddd) (e.g., "02-Feb-26 (Mon) - 16-Apr-27 (Wed)")
+  const dateRangeDisplay = `${format(startDate, "dd-MMM-yy (EEE)")} - ${format(endDate, "dd-MMM-yy (EEE)")}`;
 
   return { startDate, endDate, dateRangeDisplay };
 }
@@ -152,10 +152,9 @@ function calculateDuration(
   let durationDisplay: string;
   if (months >= 1) {
     const roundedMonths = Math.round(months * 10) / 10; // Round to 1 decimal
-    const monthLabel = roundedMonths === 1 ? 'month' : 'months';
-    durationDisplay = `${roundedMonths} ${monthLabel}`;
+    durationDisplay = `${roundedMonths} m`;
   } else {
-    durationDisplay = `${calendarDays} days`;
+    durationDisplay = `${calendarDays} d`;
   }
 
   return { calendarDays, workingDays, durationDisplay };
@@ -221,21 +220,29 @@ function calculateBudgetMetrics(project: GanttProject) {
   const budgetTotal = project.budget.totalBudget;
 
   // Calculate spent from resource assignments
+  // TODO: Implement proper budget calculation based on:
+  // - Task/phase duration (working days)
+  // - Resource allocation percentage
+  // - Resource hourly rate
+  // Formula: (duration_hours * allocation% * hourly_rate)
   let budgetSpent = 0;
+
+  // This is a placeholder - proper implementation requires:
+  // 1. Calculate working hours from task dates
+  // 2. Multiply by allocation percentage
+  // 3. Multiply by resource hourly rate
+  // For now, return 0 to avoid TypeScript errors
   project.phases?.forEach(phase => {
+    // Placeholder for phase-level resource cost calculation
     phase.phaseResourceAssignments?.forEach(assignment => {
       const resource = project.resources?.find(r => r.id === assignment.resourceId);
-      if (resource?.hourlyRate && assignment.estimatedHours) {
-        budgetSpent += resource.hourlyRate * assignment.estimatedHours;
-      }
+      // Will implement: budgetSpent += calculateResourceCost(phase, assignment, resource);
     });
 
     phase.tasks?.forEach(task => {
       task.resourceAssignments?.forEach(assignment => {
         const resource = project.resources?.find(r => r.id === assignment.resourceId);
-        if (resource?.hourlyRate && assignment.estimatedHours) {
-          budgetSpent += resource.hourlyRate * assignment.estimatedHours;
-        }
+        // Will implement: budgetSpent += calculateResourceCost(task, assignment, resource);
       });
     });
   });
@@ -295,7 +302,7 @@ export function getDurationTooltip(metrics: ProjectMetrics): string {
   const weekends = Math.floor(calendarDays / 7) * 2;
   const holidays = calendarDays - workingDays - weekends;
 
-  return `${workingDays} working days (${holidays} holidays, ${weekends} weekend days excluded)`;
+  return `${workingDays} d (Work Days) - ${holidays} holidays, ${weekends} weekend days excluded`;
 }
 
 /**

@@ -14,7 +14,7 @@ import { Badge, Tag, Tooltip } from "antd";
 import { TeamOutlined, CalendarOutlined, CheckSquareOutlined } from "@ant-design/icons";
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 import type { OrgChartNode } from "@/lib/organization/layout-calculator";
-import { useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { withOpacity, getElevationShadow } from "@/lib/design-system";
 
 export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChartNode["data"]>) => {

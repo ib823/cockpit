@@ -17,6 +17,10 @@ import {
   Trash2,
   AlertCircle,
   Sliders,
+  ChevronUp,
+  ChevronDown,
+  MoveUp,
+  MoveDown,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import {
@@ -41,6 +45,9 @@ import {
 } from "@/lib/gantt-tool/working-days";
 import { formatGanttDate } from "@/lib/gantt-tool/date-utils";
 import { PhaseTaskResourceAllocationModal } from "./PhaseTaskResourceAllocationModal";
+import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
+import { TaskDeletionImpactModal } from "./TaskDeletionImpactModal";
+import { PhaseDeletionImpactModal } from "./PhaseDeletionImpactModal";
 
 export function GanttSidePanel() {
   const {
@@ -51,10 +58,12 @@ export function GanttSidePanel() {
     updatePhase,
     deletePhase,
     getPhaseById,
+    reorderPhase,
     addTask,
     updateTask,
     deleteTask,
     getTaskById,
+    reorderTask,
     addMilestone,
     updateMilestone,
     deleteMilestone,
@@ -65,6 +74,11 @@ export function GanttSidePanel() {
 
   // Track if we should enable real-time updates
   const [enableRealTimeUpdate] = useState(true);
+
+  // Deletion impact modal states
+  const [showTaskDeletionModal, setShowTaskDeletionModal] = useState(false);
+  const [showPhaseDeletionModal, setShowPhaseDeletionModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; phaseId?: string } | null>(null);
 
   if (!sidePanel.isOpen || !currentProject) return null;
 
@@ -94,17 +108,28 @@ export function GanttSidePanel() {
             updatePhase={updatePhase}
             onDelete={
               mode === "edit" && itemId
-                ? async () => {
-                    if (confirm("Delete this phase?")) {
-                      try {
-                        await deletePhase(itemId);
-                        closeSidePanel();
-                      } catch (error) {
-                        alert(
-                          (error as Error).message ||
-                            "Failed to delete phase. Please refresh the page."
-                        );
-                      }
+                ? () => {
+                    setItemToDelete({ id: itemId });
+                    setShowPhaseDeletionModal(true);
+                  }
+                : undefined
+            }
+            onMoveUp={
+              mode === "edit" && itemId
+                ? () => {
+                    const phase = getPhaseById(itemId);
+                    if (phase && phase.order > 0) {
+                      reorderPhase(itemId, "up");
+                    }
+                  }
+                : undefined
+            }
+            onMoveDown={
+              mode === "edit" && itemId
+                ? () => {
+                    const phase = getPhaseById(itemId);
+                    if (phase && phase.order < currentProject.phases.length - 1) {
+                      reorderPhase(itemId, "down");
                     }
                   }
                 : undefined
@@ -140,19 +165,33 @@ export function GanttSidePanel() {
             getTaskById={getTaskById}
             onDelete={
               mode === "edit" && itemId
-                ? async () => {
-                    if (confirm("Delete this task?")) {
-                      try {
-                        const result = getTaskById(itemId);
-                        if (result) {
-                          await deleteTask(itemId, result.phase.id);
-                        }
-                        closeSidePanel();
-                      } catch (error) {
-                        alert(
-                          (error as Error).message ||
-                            "Failed to delete task. Please refresh the page."
-                        );
+                ? () => {
+                    const result = getTaskById(itemId);
+                    if (result) {
+                      setItemToDelete({ id: itemId, phaseId: result.phase.id });
+                      setShowTaskDeletionModal(true);
+                    }
+                  }
+                : undefined
+            }
+            onMoveUp={
+              mode === "edit" && itemId
+                ? () => {
+                    const result = getTaskById(itemId);
+                    if (result && result.task.order > 0) {
+                      reorderTask(itemId, result.phase.id, "up");
+                    }
+                  }
+                : undefined
+            }
+            onMoveDown={
+              mode === "edit" && itemId
+                ? () => {
+                    const result = getTaskById(itemId);
+                    if (result) {
+                      const phaseTasks = result.phase.tasks;
+                      if (result.task.order < phaseTasks.length - 1) {
+                        reorderTask(itemId, result.phase.id, "down");
                       }
                     }
                   }
@@ -247,6 +286,67 @@ export function GanttSidePanel() {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">{renderForm()}</div>
       </div>
+
+      {/* Task Deletion Impact Modal */}
+      {showTaskDeletionModal && itemToDelete && (() => {
+        const result = getTaskById(itemToDelete.id);
+        if (!result) return null;
+
+        const allTasks = currentProject.phases.flatMap(p => p.tasks);
+
+        return (
+          <TaskDeletionImpactModal
+            task={result.task}
+            phase={result.phase}
+            allTasks={allTasks}
+            allResources={currentProject.resources || []}
+            holidays={currentProject.holidays || []}
+            onConfirm={async () => {
+              try {
+                await deleteTask(itemToDelete.id, itemToDelete.phaseId!);
+                setShowTaskDeletionModal(false);
+                setItemToDelete(null);
+                closeSidePanel();
+              } catch (error) {
+                alert((error as Error).message || "Failed to delete task");
+              }
+            }}
+            onCancel={() => {
+              setShowTaskDeletionModal(false);
+              setItemToDelete(null);
+            }}
+          />
+        );
+      })()}
+
+      {/* Phase Deletion Impact Modal */}
+      {showPhaseDeletionModal && itemToDelete && (() => {
+        const phase = getPhaseById(itemToDelete.id);
+        if (!phase) return null;
+
+        return (
+          <PhaseDeletionImpactModal
+            phase={phase}
+            allPhases={currentProject.phases}
+            allResources={currentProject.resources || []}
+            holidays={currentProject.holidays || []}
+            onConfirm={async () => {
+              try {
+                await deletePhase(itemToDelete.id);
+                setShowPhaseDeletionModal(false);
+                setItemToDelete(null);
+                closeSidePanel();
+              } catch (error) {
+                alert((error as Error).message || "Failed to delete phase");
+              }
+            }}
+            onCancel={() => {
+              setShowPhaseDeletionModal(false);
+              setItemToDelete(null);
+            }}
+          />
+        );
+      })()}
     </>
   );
 }
@@ -257,6 +357,8 @@ function PhaseForm({
   itemId,
   onSubmit,
   onDelete,
+  onMoveUp,
+  onMoveDown,
   getPhaseById,
   enableRealTimeUpdate,
   updatePhase,
@@ -265,6 +367,8 @@ function PhaseForm({
   itemId?: string;
   onSubmit: (data: PhaseFormData) => void;
   onDelete?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   getPhaseById: (id: string) => any;
   enableRealTimeUpdate?: boolean;
   updatePhase?: (id: string, data: Partial<PhaseFormData>) => void;
@@ -275,6 +379,7 @@ function PhaseForm({
   const [formData, setFormData] = useState<PhaseFormData>({
     name: existingPhase?.name || "",
     description: existingPhase?.description || "",
+    deliverables: existingPhase?.deliverables || "",
     color: existingPhase?.color || PHASE_COLOR_PRESETS[0],
     startDate: existingPhase?.startDate?.split("T")[0] || new Date().toISOString().split("T")[0],
     endDate: existingPhase?.endDate?.split("T")[0] || new Date().toISOString().split("T")[0],
@@ -467,6 +572,17 @@ function PhaseForm({
       </div>
 
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Deliverables</label>
+        <textarea
+          value={formData.deliverables}
+          onChange={(e) => setFormData({ ...formData, deliverables: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          rows={3}
+          placeholder="List key deliverables for this phase"
+        />
+      </div>
+
+      <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Color <span className="text-red-500">*</span>
         </label>
@@ -504,18 +620,14 @@ function PhaseForm({
       )}
 
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Start Date <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            value={formData.startDate}
-            onChange={(e) => handleStartDateChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
-        </div>
+        <HolidayAwareDatePicker
+          label="Start Date"
+          value={formData.startDate}
+          onChange={(value) => handleStartDateChange(value)}
+          region={currentProject?.orgChartPro?.location || "ABMY"}
+          required={true}
+          size="medium"
+        />
 
         {/* Dual Duration Inputs */}
         <div className="grid grid-cols-2 gap-3">
@@ -560,10 +672,8 @@ function PhaseForm({
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">
-              End Date <span className="text-red-500">*</span>
-            </label>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">End Date</span>
             <button
               type="button"
               onClick={() => {
@@ -584,12 +694,13 @@ function PhaseForm({
               <FlagIcon className="w-3 h-3" />+ Milestone
             </button>
           </div>
-          <input
-            type="date"
+          <HolidayAwareDatePicker
             value={formData.endDate}
-            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            required
+            onChange={(value) => setFormData({ ...formData, endDate: value })}
+            region={currentProject?.orgChartPro?.location || "ABMY"}
+            required={true}
+            size="medium"
+            placeholder="Select end date"
           />
           <p className="text-xs text-gray-500 mt-1">
              Click "+ Milestone" to mark phase completion
@@ -628,22 +739,55 @@ function PhaseForm({
         </div>
       )}
 
-      <div className="flex gap-2 pt-4 border-t border-gray-200">
-        {onDelete && (
-          <button
-            type="button"
-            onClick={onDelete}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Delete
-          </button>
+      <div className="space-y-3 pt-4 border-t border-gray-200">
+        {/* Reordering buttons */}
+        {mode === "edit" && (onMoveUp || onMoveDown) && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 flex-shrink-0">Reorder Phase:</label>
+            <div className="flex gap-2 flex-1">
+              {onMoveUp && (
+                <button
+                  type="button"
+                  onClick={onMoveUp}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  <MoveUp className="w-4 h-4" />
+                  Move Up
+                </button>
+              )}
+              {onMoveDown && (
+                <button
+                  type="button"
+                  onClick={onMoveDown}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  <MoveDown className="w-4 h-4" />
+                  Move Down
+                </button>
+              )}
+            </div>
+          </div>
         )}
-        <button
+
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Phase
+            </button>
+          )}
+          <button
           type="submit"
           className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           {mode === "add" ? "Add Phase" : "Save Changes"}
         </button>
+        </div>
       </div>
 
       {/* Resource Allocation Modal */}
@@ -665,6 +809,8 @@ function TaskForm({
   phases,
   onSubmit,
   onDelete,
+  onMoveUp,
+  onMoveDown,
   getTaskById,
   enableRealTimeUpdate,
   updateTask,
@@ -674,6 +820,8 @@ function TaskForm({
   phases: any[];
   onSubmit: (data: TaskFormData) => void;
   onDelete?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   getTaskById: (id: string) => any;
   enableRealTimeUpdate?: boolean;
   updateTask?: (taskId: string, phaseId: string, updates: Partial<TaskFormData>) => void;
@@ -683,12 +831,18 @@ function TaskForm({
   const [formData, setFormData] = useState<TaskFormData>({
     name: existingTask?.task.name || "",
     description: existingTask?.task.description || "",
+    deliverables: existingTask?.task.deliverables || "",
     phaseId: existingTask?.phase.id || phases[0]?.id || "",
     startDate:
       existingTask?.task.startDate?.split("T")[0] || new Date().toISOString().split("T")[0],
     endDate: existingTask?.task.endDate?.split("T")[0] || new Date().toISOString().split("T")[0],
     assignee: existingTask?.task.assignee || "",
     parentTaskId: existingTask?.task.parentTaskId || null,
+    isAMS: existingTask?.task.isAMS || false,
+    amsRateType: existingTask?.task.amsConfig?.rateType || "daily",
+    amsFixedRate: existingTask?.task.amsConfig?.fixedRate || 0,
+    amsMinimumDuration: existingTask?.task.amsConfig?.minimumDuration || 12,
+    amsNotes: existingTask?.task.amsConfig?.notes || "",
   });
 
   const [workingDaysInput, setWorkingDaysInput] = useState<string>("");
@@ -919,6 +1073,87 @@ function TaskForm({
       </div>
 
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Deliverables</label>
+        <textarea
+          value={formData.deliverables}
+          onChange={(e) => setFormData({ ...formData, deliverables: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+          rows={2}
+          placeholder="List key deliverables for this task"
+        />
+      </div>
+
+      {/* AMS Configuration */}
+      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="mb-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.isAMS}
+              onChange={(e) => setFormData({ ...formData, isAMS: e.target.checked })}
+              className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+            />
+            <span className="text-sm font-medium text-gray-700">Application Maintenance & Support (AMS) Task</span>
+          </label>
+          <p className="text-xs text-gray-500 ml-6 mt-1">
+            AMS tasks are ongoing support subscriptions with fixed rates
+          </p>
+        </div>
+
+        {formData.isAMS && (
+          <div className="space-y-3 pl-6 border-l-2 border-purple-300">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Rate Type *</label>
+              <select
+                value={formData.amsRateType}
+                onChange={(e) => setFormData({ ...formData, amsRateType: e.target.value as "daily" | "manda" })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              >
+                <option value="daily">Per Day</option>
+                <option value="manda">Manda (MD)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fixed Rate *</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.amsFixedRate}
+                onChange={(e) => setFormData({ ...formData, amsFixedRate: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                placeholder="Enter rate amount"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Duration (months)</label>
+              <input
+                type="number"
+                min="1"
+                value={formData.amsMinimumDuration}
+                onChange={(e) => setFormData({ ...formData, amsMinimumDuration: parseInt(e.target.value) || 12 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                placeholder="e.g., 12"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">AMS Notes</label>
+              <textarea
+                value={formData.amsNotes}
+                onChange={(e) => setFormData({ ...formData, amsNotes: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                rows={2}
+                placeholder="Additional AMS details..."
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Phase <span className="text-red-500">*</span>
         </label>
@@ -968,18 +1203,16 @@ function TaskForm({
       </div>
 
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Start Date <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            value={formData.startDate}
-            onChange={(e) => handleStartDateChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-            required
-          />
-        </div>
+        <HolidayAwareDatePicker
+          label="Start Date"
+          value={formData.startDate}
+          onChange={(value) => handleStartDateChange(value)}
+          region={currentProject?.orgChartPro?.location || "ABMY"}
+          minDate={selectedPhase?.startDate}
+          maxDate={selectedPhase?.endDate}
+          required={true}
+          size="medium"
+        />
 
         {/* Dual Duration Inputs */}
         <div className="grid grid-cols-2 gap-3">
@@ -1024,10 +1257,8 @@ function TaskForm({
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">
-              End Date <span className="text-red-500">*</span>
-            </label>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">End Date</span>
             <button
               type="button"
               onClick={() => {
@@ -1048,12 +1279,15 @@ function TaskForm({
               <FlagIcon className="w-3 h-3" />+ Milestone
             </button>
           </div>
-          <input
-            type="date"
+          <HolidayAwareDatePicker
             value={formData.endDate}
-            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-            required
+            onChange={(value) => setFormData({ ...formData, endDate: value })}
+            region={currentProject?.orgChartPro?.location || "ABMY"}
+            minDate={selectedPhase?.startDate}
+            maxDate={selectedPhase?.endDate}
+            required={true}
+            size="medium"
+            placeholder="Select end date"
           />
           <p className="text-xs text-gray-500 mt-1">
              Click "+ Milestone" to mark task completion
@@ -1132,22 +1366,55 @@ function TaskForm({
         </div>
       )}
 
-      <div className="flex gap-2 pt-4 border-t border-gray-200">
-        {onDelete && (
-          <button
-            type="button"
-            onClick={onDelete}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Delete Task
-          </button>
+      <div className="space-y-3 pt-4 border-t border-gray-200">
+        {/* Reordering buttons */}
+        {mode === "edit" && (onMoveUp || onMoveDown) && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 flex-shrink-0">Reorder Task:</label>
+            <div className="flex gap-2 flex-1">
+              {onMoveUp && (
+                <button
+                  type="button"
+                  onClick={onMoveUp}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  <MoveUp className="w-4 h-4" />
+                  Move Up
+                </button>
+              )}
+              {onMoveDown && (
+                <button
+                  type="button"
+                  onClick={onMoveDown}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  <MoveDown className="w-4 h-4" />
+                  Move Down
+                </button>
+              )}
+            </div>
+          </div>
         )}
-        <button
-          type="submit"
-          className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-        >
-          {mode === "add" ? "Add Task" : "Save Changes"}
-        </button>
+
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Task
+            </button>
+          )}
+          <button
+            type="submit"
+            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+          >
+            {mode === "add" ? "Add Task" : "Save Changes"}
+          </button>
+        </div>
       </div>
 
       {/* Resource Allocation Modal */}
@@ -1205,13 +1472,13 @@ function MilestoneForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-        <input
-          type="date"
+        <HolidayAwareDatePicker
+          label="Date"
           value={formData.date}
-          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          required
+          onChange={(date) => setFormData({ ...formData, date })}
+          region="ABMY"
+          required={true}
+          size="medium"
         />
       </div>
 
@@ -1284,13 +1551,13 @@ function HolidayForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-        <input
-          type="date"
+        <HolidayAwareDatePicker
+          label="Date"
           value={formData.date}
-          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          required
+          onChange={(date) => setFormData({ ...formData, date })}
+          region="ABMY"
+          required={true}
+          size="medium"
         />
       </div>
 

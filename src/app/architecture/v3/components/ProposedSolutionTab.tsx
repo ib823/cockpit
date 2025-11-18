@@ -11,10 +11,12 @@
 
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, Calendar, CheckCircle, Clock, Sparkles, Package } from "lucide-react";
-import type { ProposedSolutionData, Phase, ProposedSystem, CurrentSystem, ExternalSystem } from "../types";
+import { useState, useEffect } from "react";
+import { Plus, Trash2, Calendar, CheckCircle, Clock, Sparkles, Package, X, HelpCircle, Zap, Share2 } from "lucide-react";
+import type { ProposedSolutionData, Phase, ProposedSystem, ProposedIntegration, CurrentSystem, ExternalSystem } from "../types";
 import styles from "./proposed-solution-tab.module.css";
+import { ReuseSystemModal } from "./ReuseSystemModal";
+import { PhaseTimeline } from "./PhaseTimeline";
 
 interface ProposedSolutionTabProps {
   data: ProposedSolutionData;
@@ -24,9 +26,37 @@ interface ProposedSolutionTabProps {
   onGenerate: () => void;
 }
 
-/**
- * TOGAF-Aligned Future System Templates (TO-BE)
- */
+// Status Legend Popover Component
+const StatusLegendPopover = () => (
+  <div style={{
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    backgroundColor: 'white',
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    padding: '12px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    zIndex: 1000,
+    minWidth: '200px',
+    marginTop: '4px'
+  }}>
+    <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>Status Legend</div>
+    <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <CheckCircle className="w-4 h-4" style={{ color: '#10b981' }} />
+        <span>In Scope - Current Phase</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Clock className="w-4 h-4" style={{ color: '#f59e0b' }} />
+        <span>Future Phase</span>
+      </div>
+    </div>
+  </div>
+);
+
+// ... (rest of the constants)
+
 const TOGAF_FUTURE_SYSTEMS_TEMPLATES = {
   "Modern ERP - SAP": [
     { name: "SAP S/4HANA Cloud", vendor: "SAP", modules: ["Finance", "Supply Chain", "Manufacturing", "Procurement"], isNew: true },
@@ -98,19 +128,22 @@ export function ProposedSolutionTab({
   const [showSystemTemplates, setShowSystemTemplates] = useState(false);
   const [showPhaseTemplates, setShowPhaseTemplates] = useState(false);
   const [selectedPhaseForSystem, setSelectedPhaseForSystem] = useState<string | null>(null);
+  const [isReuseModalOpen, setIsReuseModalOpen] = useState(false);
+  const [selectedPhaseForReuse, setSelectedPhaseForReuse] = useState<string | null>(null);
+  const [showStatusLegend, setShowStatusLegend] = useState(false);
+  const [selectedPhaseId, setSelectedPhaseId] = useState<string | null>(null);
 
-  // Phases
-  const addPhase = () => {
-    const newPhase: Phase = {
-      id: Date.now().toString(),
-      name: "",
-      order: data.phases.length + 1,
-      scope: "in-scope",
-      timeline: "",
-      description: "",
-    };
-    onChange({ ...data, phases: [...data.phases, newPhase] });
-  };
+  useEffect(() => {
+    if (!selectedPhaseId && data.phases.length > 0) {
+      setSelectedPhaseId(data.phases.sort((a, b) => a.order - b.order)[0].id);
+    }
+    if (data.phases.length === 0) {
+      setSelectedPhaseId(null);
+    }
+  }, [data.phases, selectedPhaseId]);
+
+  // Compute selectedPhase from selectedPhaseId
+  const selectedPhase = selectedPhaseId ? data.phases.find(p => p.id === selectedPhaseId) : null;
 
   const updatePhase = (id: string, updates: Partial<Phase>) => {
     onChange({
@@ -125,6 +158,29 @@ export function ProposedSolutionTab({
       phases: data.phases.filter((p) => p.id !== id),
       systems: data.systems.filter((s) => s.phaseId !== id),
     });
+  };
+
+  const addPhase = () => {
+    const newOrder = data.phases.length > 0
+      ? Math.max(...data.phases.map(p => p.order)) + 1
+      : 1;
+
+    const newPhase: Phase = {
+      id: Date.now().toString(),
+      name: `Phase ${newOrder}`,
+      order: newOrder,
+      scope: "in-scope",
+      timeline: "",
+      description: "",
+    };
+
+    onChange({
+      ...data,
+      phases: [...data.phases, newPhase],
+    });
+
+    // Select the newly created phase
+    setSelectedPhaseId(newPhase.id);
   };
 
   const loadPhaseTemplates = () => {
@@ -247,122 +303,98 @@ export function ProposedSolutionTab({
           </div>
         )}
 
-        {/* Phases Timeline */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          {data.phases
-            .sort((a, b) => a.order - b.order)
-            .map((phase, index) => (
-              <PhaseCard
-                key={phase.id}
-                phase={phase}
-                phaseNumber={index + 1}
-                onUpdate={(updates) => updatePhase(phase.id, updates)}
-                onRemove={() => removePhase(phase.id)}
-              />
-            ))}
-        </div>
+        <PhaseTimeline
+          phases={data.phases}
+          onAddPhase={addPhase}
+          onUpdatePhase={updatePhase}
+          onRemovePhase={removePhase}
+          selectedPhaseId={selectedPhaseId}
+          onSelectPhase={setSelectedPhaseId}
+        />
       </Section>
 
       {/* Systems by Phase */}
-      {data.phases.length > 0 && (
-        <Section title="Future Systems by Phase" subtitle="Assign systems to implementation phases">
-          {data.phases
-            .sort((a, b) => a.order - b.order)
-            .map((phase) => {
-              const phaseSystems = data.systems.filter((s) => s.phaseId === phase.id);
-              const scopeColors = {
-                "in-scope": { bg: "#E8F5E9", border: "#4CAF50", text: "#2E7D32" },
-                future: { bg: "#FFF3E0", border: "#FF9800", text: "#E65100" },
-              };
-              const colors = scopeColors[phase.scope];
+      {selectedPhase && (
+        <div className={styles.section}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <h3 className={styles.sectionTitle}>Details for: {selectedPhase.name}</h3>
+            <div style={{ position: 'relative' }}>
+              <HelpCircle
+                className="w-5 h-5"
+                style={{ color: '#999', cursor: 'pointer' }}
+                onMouseEnter={() => setShowStatusLegend(true)}
+                onMouseLeave={() => setShowStatusLegend(false)}
+              />
+              {showStatusLegend && <StatusLegendPopover />}
+            </div>
+          </div>
+          
+          <PhaseCard
+            key={selectedPhase.id}
+            phase={selectedPhase}
+            phaseNumber={selectedPhase.order}
+            onUpdate={(updates) => updatePhase(selectedPhase.id, updates)}
+            onRemove={() => removePhase(selectedPhase.id)}
+          />
 
-              const scopeClass = phase.scope === "in-scope" ? styles.scopeInScope : styles.scopeFuture;
-
-              return (
-                <div
-                  key={phase.id}
-                  style={{
-                    marginBottom: "32px",
-                    padding: "24px",
-                    backgroundColor: "#fafafa",
-                    borderRadius: "12px",
-                    border: `2px solid ${colors.border}`,
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <h4 className={styles.sectionTitle}>
-                        {phase.name}
-                      </h4>
-                      <div className={`${styles.scopeBadge} ${scopeClass}`}>
-                        {phase.scope.toUpperCase()}
-                      </div>
-                    </div>
-
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        onClick={() => {
-                          setSelectedPhaseForSystem(phase.id);
-                          setShowSystemTemplates(true);
-                        }}
-                        className={`${styles.button} ${styles.buttonSecondary}`}
-                        style={{ fontSize: "13px" }}
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        Add New System
-                      </button>
-                      {systemsToKeep.length > 0 && (
-                        <button
-                          onClick={() => {
-                            // Show reuse menu
-                            const systemName = prompt(
-                              `Available systems to reuse:\n${systemsToKeep.map((s, i) => `${i + 1}. ${s.name}`).join("\n")}\n\nEnter number:`
-                            );
-                            const index = parseInt(systemName || "") - 1;
-                            if (index >= 0 && index < systemsToKeep.length) {
-                              reuseSystemFromAsIs(systemsToKeep[index], phase.id);
-                            }
-                          }}
-                          className={`${styles.button} ${styles.buttonSecondary}`}
-                          style={{ borderColor: "#4CAF50", color: "#4CAF50", fontSize: "13px" }}
-                        >
-                          <Package className="w-4 h-4" />
-                          Reuse from AS-IS ({systemsToKeep.length})
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Systems Grid */}
-                  <div className={styles.systemsGrid}>
-                    {phaseSystems.map((system) => (
-                      <SystemCard
-                        key={system.id}
-                        system={system}
-                        onUpdate={(updates) => updateSystem(system.id, updates)}
-                        onRemove={() => removeSystem(system.id)}
-                      />
-                    ))}
-                    {phaseSystems.length === 0 && (
-                      <div
-                        style={{
-                          padding: "32px",
-                          textAlign: "center",
-                          color: "#999",
-                          fontFamily: "var(--font-text)",
-                          fontSize: "14px",
-                          border: "2px dashed #ddd",
-                          borderRadius: "8px",
-                        }}
-                      >
-                        No systems assigned to this phase yet
-                      </div>
-                    )}
-                  </div>
+          <div style={{ marginTop: '24px' }}>
+             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <h4 className={styles.sectionTitle} style={{fontSize: '18px'}}>Systems in {selectedPhase.name}</h4>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => {
+                      setSelectedPhaseForSystem(selectedPhase.id);
+                      setShowSystemTemplates(true);
+                    }}
+                    className={`${styles.button} ${styles.buttonSecondary}`}
+                    style={{ fontSize: "13px" }}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Add New System
+                  </button>
+                  {systemsToKeep.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setSelectedPhaseForReuse(selectedPhase.id);
+                        setIsReuseModalOpen(true);
+                      }}
+                      className={`${styles.button} ${styles.buttonSecondary}`}
+                      style={{ borderColor: "#4CAF50", color: "#4CAF50", fontSize: "13px" }}
+                    >
+                      <Package className="w-4 h-4" />
+                      Reuse from AS-IS ({systemsToKeep.length})
+                    </button>
+                  )}
                 </div>
-              );
-            })}
-        </Section>
+              </div>
+
+              <div className={styles.systemsGrid}>
+                {data.systems.filter(s => s.phaseId === selectedPhase.id).map((system) => (
+                  <SystemCard
+                    key={system.id}
+                    system={system}
+                    onUpdate={(updates) => updateSystem(system.id, updates)}
+                    onRemove={() => removeSystem(system.id)}
+                  />
+                ))}
+                {data.systems.filter(s => s.phaseId === selectedPhase.id).length === 0 && (
+                  <div
+                    style={{
+                      padding: "32px",
+                      textAlign: "center",
+                      color: "#999",
+                      fontFamily: "var(--font-text)",
+                      fontSize: "14px",
+                      border: "2px dashed #ddd",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    No systems assigned to this phase yet.
+                  </div>
+                )}
+              </div>
+          </div>
+        </div>
       )}
 
       {/* System Templates Modal */}
@@ -462,6 +494,17 @@ export function ProposedSolutionTab({
         </div>
       )}
 
+      <ReuseSystemModal
+        isOpen={isReuseModalOpen}
+        onClose={() => setIsReuseModalOpen(false)}
+        systemsToKeep={systemsToKeep}
+        onReuse={(system) => {
+          if (selectedPhaseForReuse) {
+            reuseSystemFromAsIs(system, selectedPhaseForReuse);
+          }
+        }}
+      />
+
       {/* TO-BE Integration & Architecture Diagram */}
       {data.systems.length > 0 && (
         <Section title="TO-BE Integration Architecture" subtitle="Visualize how future systems integrate with each other and existing systems">
@@ -555,8 +598,9 @@ function PhaseCard({
         onClick={onRemove}
         className={styles.iconButton}
         style={{ position: "absolute", top: "12px", right: "12px" }}
+        aria-label={`Remove phase ${phase.name || 'untitled'}`}
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="w-4 h-4" aria-hidden="true" />
       </button>
 
       <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
@@ -657,8 +701,9 @@ function SystemCard({
         onClick={onRemove}
         className={styles.iconButton}
         style={{ position: "absolute", top: "10px", right: "10px" }}
+        aria-label={`Remove system ${system.name || 'untitled'}`}
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="w-4 h-4" aria-hidden="true" />
       </button>
 
       {/* Badge */}
@@ -676,7 +721,7 @@ function SystemCard({
         style={{
           padding: "8px 0",
           borderTop: "none",
-          borderLeft: "none",
+borderLeft: "none",
           borderRight: "none",
           borderBottom: "2px solid #e0e0e0",
           borderRadius: 0,

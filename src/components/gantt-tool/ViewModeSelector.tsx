@@ -16,20 +16,39 @@ interface ViewModeSelectorProps {
 export function ViewModeSelector({ zoomMode, activeZoomMode, onZoomModeChange }: ViewModeSelectorProps) {
   const modes: ZoomMode[] = ["auto", "week", "month", "quarter", "year"];
 
+  // Abbreviation map for compact display (Apple minimalism)
+  const abbreviations: Record<ZoomMode, string> = {
+    auto: "A",
+    week: "W",
+    month: "M",
+    quarter: "Q",
+    year: "Y",
+  };
+
+  // Full labels for tooltips
+  const fullLabels: Record<ZoomMode, string> = {
+    auto: "Auto",
+    week: "Week",
+    month: "Month",
+    quarter: "Quarter",
+    year: "Year",
+  };
+
   return (
     <div className={styles.viewSelector}>
       {modes.map((mode) => {
         const isActive = zoomMode === mode;
-        const displayLabel = mode.charAt(0).toUpperCase() + mode.slice(1);
+        const abbreviation = abbreviations[mode];
+        const fullLabel = fullLabels[mode];
 
         return (
           <button
             key={mode}
             onClick={() => onZoomModeChange(mode)}
             className={`${styles.viewSelectorButton} ${isActive ? styles.active : ""}`}
-            title={mode === "auto" ? `Auto (${activeZoomMode})` : `${displayLabel} view`}
+            title={mode === "auto" ? `${fullLabel} (${activeZoomMode})` : `${fullLabel} view`}
           >
-            {displayLabel}
+            {abbreviation}
           </button>
         );
       })}

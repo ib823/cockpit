@@ -46,6 +46,7 @@ import {
   SettingOutlined,
   DashboardOutlined,
   CrownOutlined,
+  PictureOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Input, Modal, Form, DatePicker, Tooltip, Badge, App } from "antd";
 import { useState } from "react";
@@ -57,6 +58,7 @@ import { ImportModalV2 } from "./ImportModalV2";
 import { ProposalGenerationModal } from "./ProposalGenerationModal";
 import { TemplateLibraryModal } from "./TemplateLibraryModal";
 import { DuplicateCleanupModal } from "./DuplicateCleanupModal";
+import { LogoLibraryModal } from "./LogoLibraryModal";
 import ExportConfigModal from "./ExportConfigModal";
 import type { MenuProps } from "antd";
 import dayjs from "dayjs";
@@ -140,12 +142,40 @@ export function GanttToolbar({
     link.click();
   };
 
+  // Helper function to select which logo to display
+  const handleSelectDisplayLogo = async (companyName: string) => {
+    const store = useGanttToolStoreV2.getState();
+    await store.selectDisplayLogo(companyName);
+  };
+
+  // Get the logo to display (selected or first available)
+  const getDisplayLogo = () => {
+    if (!currentProject.orgChartPro?.companyLogos) return null;
+
+    const logos = currentProject.orgChartPro.companyLogos;
+    const selected = currentProject.orgChartPro.selectedLogoCompanyName;
+
+    // Return selected logo if it exists
+    if (selected && logos[selected]) {
+      return { companyName: selected, logoUrl: logos[selected] };
+    }
+
+    // Otherwise return first logo
+    const firstCompanyName = Object.keys(logos)[0];
+    if (firstCompanyName) {
+      return { companyName: firstCompanyName, logoUrl: logos[firstCompanyName] };
+    }
+
+    return null;
+  };
+
   const [showResourceModal, setShowResourceModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showProposalModal, setShowProposalModal] = useState(false);
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
   const [showDuplicateCleanup, setShowDuplicateCleanup] = useState(false);
   const [showExportConfigModal, setShowExportConfigModal] = useState(false);
+  const [showLogoModal, setShowLogoModal] = useState(false);
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
   const [editedProjectName, setEditedProjectName] = useState("");
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
@@ -348,6 +378,20 @@ export function GanttToolbar({
       onClick: () => setShowImportModal(true),
     },
     {
+      key: "manage-logo",
+      label: (
+        <div className="py-1">
+          <div className="font-semibold text-blue-600 flex items-center gap-2">
+            <PictureOutlined />
+            Manage Logo
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5">Upload or select company logo</div>
+        </div>
+      ),
+      onClick: () => setShowLogoModal(true),
+      style: { backgroundColor: "#f0f7ff" },
+    },
+    {
       key: "switch",
       label: (
         <div className="flex items-center justify-between">
@@ -492,26 +536,27 @@ export function GanttToolbar({
             </div>
             <div className="flex items-center gap-3">
               <Button
-                icon={<UploadOutlined />}
                 onClick={() => setShowImportModal(true)}
                 size="large"
+                className="flex items-center gap-2"
               >
-                Import
+                <UploadOutlined />
+                <span>Import</span>
               </Button>
               <Button
                 type="primary"
-                icon={<PlusOutlined />}
                 onClick={handleCreateNewProject}
                 size="large"
-                className="shadow-md hover:shadow-lg transition-all"
+                className="shadow-md hover:shadow-lg transition-all flex items-center gap-2"
               >
-                New Project
+                <PlusOutlined />
+                <span>New Project</span>
               </Button>
             </div>
           </div>
         </div>
 
-        {showImportModal && <ImportModalV2 onClose={() => setShowImportModal(false)} />}
+        {showImportModal && <ImportModalV2 isOpen={showImportModal} onClose={() => setShowImportModal(false)} />}
 
         <Modal
           title="Create New Project"
@@ -561,111 +606,163 @@ export function GanttToolbar({
         <div className="flex items-center justify-between" style={{ width: "100%" }}>
           {/* Left: Project Name (Editable) + Quick Stats */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            {/* Project Name - Revolutionary inline editing */}
-            <div className="flex items-center gap-2">
-              {isEditingProjectName ? (
-                <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2 border-2 border-blue-500">
-                  <Input
-                    value={editedProjectName}
-                    onChange={(e) => setEditedProjectName(e.target.value)}
-                    onKeyDown={handleProjectNameKeyDown}
-                    onBlur={handleSaveProjectName}
-                    variant="borderless"
-                    className="font-semibold text-lg"
-                    style={{ width: 300 }}
-                    autoFocus
-                  />
-                  <button
-                    onClick={handleSaveProjectName}
-                    className="p-1 hover:bg-green-100 rounded transition-colors"
-                  >
-                    <Check className="w-4 h-4 text-green-600" />
-                  </button>
-                  <button
-                    onClick={handleCancelEditProjectName}
-                    className="p-1 hover:bg-red-100 rounded transition-colors"
-                  >
-                    <X className="w-4 h-4 text-red-600" />
-                  </button>
-                </div>
-              ) : (
-                <Dropdown
-                  menu={{
-                    items: [
-                      {
-                        key: "current",
+            {/* Project Name with Logo - Clickable to select */}
+            <div className="flex items-center gap-3">
+              {/* Logo - Clickable to select from available logos */}
+              <Dropdown
+                menu={{
+                  items: currentProject.orgChartPro?.companyLogos
+                    ? Object.entries(currentProject.orgChartPro.companyLogos).map(([companyName, logoUrl]) => ({
+                        key: companyName,
                         label: (
-                          <div className="font-semibold text-blue-600 flex items-center gap-2">
-                            <Check className="w-4 h-4 flex-shrink-0" />
-                            <span>{currentProject.name}</span>
+                          <div className="flex items-center gap-2 py-1">
+                            <img
+                              src={logoUrl as string}
+                              alt={companyName}
+                              className="w-6 h-6 object-contain"
+                            />
+                            <span>{companyName}</span>
+                            {currentProject.orgChartPro?.selectedLogoCompanyName === companyName && (
+                              <Check className="w-4 h-4 ml-2 text-blue-500" />
+                            )}
                           </div>
                         ),
-                        disabled: true,
-                      },
-                      {
-                        type: "divider",
-                      },
-                      {
-                        key: "rename",
-                        label: "Rename Project",
-                        onClick: handleStartEditingProjectName,
-                      },
-                      projects.length > 1
-                        ? {
-                            type: "divider",
-                          }
-                        : null,
-                      projects.length > 1
-                        ? {
-                            key: "switch-header",
-                            label: <div className="font-semibold text-gray-500">Switch to:</div>,
-                            disabled: true,
-                          }
-                        : null,
-                      ...projects
-                        .filter((p) => p.id !== currentProject.id)
-                        .sort(
-                          (a, b) =>
-                            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-                        )
-                        .map((project) => ({
-                          key: project.id,
+                        onClick: () => handleSelectDisplayLogo(companyName),
+                      }))
+                    : [],
+                }}
+                trigger={["click"]}
+              >
+                <button
+                  className="w-12 h-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 flex items-center justify-center shadow-sm overflow-hidden hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
+                  title="Click to select logo"
+                >
+                  {(() => {
+                    const displayLogo = getDisplayLogo();
+                    if (displayLogo) {
+                      return (
+                        <img
+                          src={displayLogo.logoUrl}
+                          alt={displayLogo.companyName}
+                          className="w-10 h-10 object-contain p-1"
+                        />
+                      );
+                    }
+                    return (
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white font-bold text-xs">
+                        {currentProject.name.charAt(0).toUpperCase()}
+                      </div>
+                    );
+                  })()}
+                </button>
+              </Dropdown>
+
+              {/* Project Name - Revolutionary inline editing */}
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {isEditingProjectName ? (
+                  <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2 border-2 border-blue-500">
+                    <Input
+                      value={editedProjectName}
+                      onChange={(e) => setEditedProjectName(e.target.value)}
+                      onKeyDown={handleProjectNameKeyDown}
+                      onBlur={handleSaveProjectName}
+                      variant="borderless"
+                      className="font-semibold text-lg"
+                      style={{ width: 300 }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleSaveProjectName}
+                      className="p-1 hover:bg-green-100 rounded transition-colors"
+                    >
+                      <Check className="w-4 h-4 text-green-600" />
+                    </button>
+                    <button
+                      onClick={handleCancelEditProjectName}
+                      className="p-1 hover:bg-red-100 rounded transition-colors"
+                    >
+                      <X className="w-4 h-4 text-red-600" />
+                    </button>
+                  </div>
+                ) : (
+                  <Dropdown
+                    menu={{
+                      items: [
+                        {
+                          key: "current",
                           label: (
-                            <div>
-                              <div className="font-medium">{project.name}</div>
-                              <div className="text-xs text-gray-500">
-                                {project.phases.length} phases · Updated{" "}
-                                {new Date(project.updatedAt).toLocaleDateString()}
-                              </div>
+                            <div className="font-semibold text-blue-600 flex items-center gap-2">
+                              <Check className="w-4 h-4 flex-shrink-0" />
+                              <span>{currentProject.name}</span>
                             </div>
                           ),
-                          onClick: () => loadProject(project.id),
-                        })),
-                      {
-                        type: "divider",
-                      },
-                      {
-                        key: "view-all",
-                        label: "View All Projects",
-                        onClick: unloadCurrentProject,
-                      },
-                    ].filter(Boolean) as MenuProps["items"],
-                  }}
-                  trigger={["click"]}
-                >
-                  <Tooltip
-                    title={currentProject.name.length > 50 ? currentProject.name : null}
-                    placement="bottom"
+                          disabled: true,
+                        },
+                        {
+                          type: "divider",
+                        },
+                        {
+                          key: "rename",
+                          label: "Rename Project",
+                          onClick: handleStartEditingProjectName,
+                        },
+                        projects.length > 1
+                          ? {
+                              type: "divider",
+                            }
+                          : null,
+                        projects.length > 1
+                          ? {
+                              key: "switch-header",
+                              label: <div className="font-semibold text-gray-500">Switch to:</div>,
+                              disabled: true,
+                            }
+                          : null,
+                        ...projects
+                          .filter((p) => p.id !== currentProject.id)
+                          .sort(
+                            (a, b) =>
+                              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                          )
+                          .map((project) => ({
+                            key: project.id,
+                            label: (
+                              <div>
+                                <div className="font-medium">{project.name}</div>
+                                <div className="text-xs text-gray-500">
+                                  {project.phases.length} phases · Updated{" "}
+                                  {new Date(project.updatedAt).toLocaleDateString()}
+                                </div>
+                              </div>
+                            ),
+                            onClick: () => loadProject(project.id),
+                          })),
+                        {
+                          type: "divider",
+                        },
+                        {
+                          key: "view-all",
+                          label: "View All Projects",
+                          onClick: unloadCurrentProject,
+                        },
+                      ].filter(Boolean) as MenuProps["items"],
+                    }}
+                    trigger={["click"]}
                   >
-                    <button className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group">
-                      <h1 className="text-base lg:text-lg font-bold text-gray-900">
-                        {currentProject.name}
-                      </h1>
-                      <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors flex-shrink-0" />
-                    </button>
-                  </Tooltip>
-                </Dropdown>
-              )}
+                    <Tooltip
+                      title={currentProject.name.length > 50 ? currentProject.name : null}
+                      placement="bottom"
+                    >
+                      <button className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group">
+                        <h1 className="text-base lg:text-lg font-bold text-gray-900 truncate">
+                          {currentProject.name}
+                        </h1>
+                        <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors flex-shrink-0" />
+                      </button>
+                    </Tooltip>
+                  </Dropdown>
+                )}
+              </div>
             </div>
 
             {/* Quick Stats - Hide on smaller screens to prevent overlap */}
@@ -714,13 +811,12 @@ export function GanttToolbar({
             </div>
           </div>
 
-          {/* Right: The Revolutionary 5 Actions */}
-          <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+          {/* Right: The Revolutionary 5 Actions - Text labels on desktop, icons on mobile */}
+          <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0">
             {/* 1. Add Phase - Hero Action */}
             <Button
               type="primary"
               size="large"
-              icon={<Plus className="w-4 h-4 lg:w-5 lg:h-5" />}
               onClick={() => openSidePanel("add", "phase")}
               className="font-semibold"
               style={{
@@ -732,8 +828,9 @@ export function GanttToolbar({
                 paddingRight: spacing[4],
               }}
             >
+              {/* Desktop: Text only, Mobile: Icon only */}
               <span className="hidden sm:inline">Add Phase</span>
-              <span className="sm:hidden">Add</span>
+              <Plus className="w-4 h-4 inline sm:hidden" />
             </Button>
 
             {/* 2. Context Panel Toggle - Hide on small screens */}
@@ -742,11 +839,11 @@ export function GanttToolbar({
                 <Button
                   type={showContextPanel ? "primary" : "default"}
                   size="large"
-                  icon={<BarChart3 className="w-4 h-4" />}
                   onClick={onToggleContextPanel}
-                  className="hidden md:flex items-center gap-2"
+                  className="hidden md:inline-flex"
                 >
-                  <span className="hidden xl:inline">Context</span>
+                  {/* Desktop: Text, Hidden on mobile */}
+                  <span>Metrics</span>
                 </Button>
               </Tooltip>
             )}
@@ -761,9 +858,8 @@ export function GanttToolbar({
                 <Button
                   type={showQuickResourcePanel ? "primary" : "default"}
                   size="large"
-                  icon={<Users className="w-4 h-4" />}
                   onClick={onToggleQuickResourcePanel}
-                  className="hidden lg:flex items-center gap-2"
+                  className="hidden lg:inline-flex"
                   style={
                     showQuickResourcePanel
                       ? {
@@ -774,60 +870,56 @@ export function GanttToolbar({
                       : undefined
                   }
                 >
-                  <span className="hidden xl:inline">Quick Assign</span>
+                  {/* Desktop: Text only */}
+                  <span>Quick Assign</span>
                 </Button>
               </Tooltip>
             )}
 
-            {/* 3B. Team Management - Hide text on small screens */}
+            {/* 3B. Team Management */}
             <Tooltip title="Manage Team & Resources">
               <Badge count={totalResources} showZero={false} size="small">
                 <Button
-                  icon={<Users className="w-4 h-4" />}
                   onClick={() => setShowResourceModal(true)}
                   size="large"
-                  className="flex items-center gap-2"
                 >
+                  {/* Desktop: Text only, Mobile: Icon only */}
                   <span className="hidden lg:inline">Team</span>
+                  <Users className="w-4 h-4 inline lg:hidden" />
                 </Button>
               </Badge>
             </Tooltip>
 
-            {/* 4. Share - Export & Collaboration - Hide text on small */}
+            {/* 4. Share - Export & Collaboration */}
             <Dropdown menu={{ items: shareMenuItems }} trigger={["click"]} placement="bottomRight">
-              <Button
-                icon={<Share2 className="w-4 h-4" />}
-                size="large"
-                className="flex items-center gap-2"
-              >
+              <Button size="large">
+                {/* Desktop: Text only, Mobile: Icon only */}
                 <span className="hidden lg:inline">Share</span>
-                <ChevronDown className="w-3 h-3 hidden lg:inline" />
+                <Share2 className="w-4 h-4 inline lg:hidden" />
               </Button>
             </Dropdown>
 
-            {/* 5. Settings - Everything Else - Icon only on small */}
+            {/* 5. Settings */}
             <Dropdown
               menu={{ items: settingsMenuItems }}
               trigger={["click"]}
               placement="bottomRight"
             >
-              <Button
-                icon={<Settings className="w-4 h-4" />}
-                size="large"
-                className="flex items-center gap-2"
-              >
+              <Button size="large">
+                {/* Desktop: Text only, Mobile: Icon only */}
                 <span className="hidden lg:inline">Settings</span>
-                <ChevronDown className="w-3 h-3 hidden lg:inline" />
+                <Settings className="w-4 h-4 inline lg:hidden" />
               </Button>
             </Dropdown>
 
-            {/* 6. User Menu - Account & Logout - Icon only on small */}
+            {/* 6. User Menu */}
             <Dropdown menu={{ items: userMenuItems }} trigger={["click"]} placement="bottomRight">
-              <Button icon={<UserOutlined />} size="large" className="flex items-center gap-2">
-                <span className="hidden lg:inline">
+              <Button size="large">
+                {/* Desktop: Text only, Mobile: Icon only */}
+                <span className="hidden lg:inline truncate max-w-[120px]">
                   {session?.user?.name || session?.user?.email || "User"}
                 </span>
-                <ChevronDown className="w-3 h-3 hidden lg:inline" />
+                <UserOutlined className="inline lg:hidden" />
               </Button>
             </Dropdown>
           </div>
@@ -994,7 +1086,7 @@ export function GanttToolbar({
       {/* Modals */}
       {showResourceModal && <ResourceManagementModal onClose={() => setShowResourceModal(false)} />}
 
-      {showImportModal && <ImportModalV2 onClose={() => setShowImportModal(false)} />}
+      {showImportModal && <ImportModalV2 isOpen={showImportModal} onClose={() => setShowImportModal(false)} />}
 
       {showProposalModal && (
         <ProposalGenerationModal
@@ -1017,9 +1109,16 @@ export function GanttToolbar({
         />
       )}
 
+      {showLogoModal && (
+        <LogoLibraryModal
+          isOpen={showLogoModal}
+          onClose={() => setShowLogoModal(false)}
+        />
+      )}
+
       {showExportConfigModal && currentProject && (
         <ExportConfigModal
-          visible={showExportConfigModal}
+          isOpen={showExportConfigModal}
           onClose={() => setShowExportConfigModal(false)}
           project={currentProject}
         />

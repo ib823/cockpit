@@ -340,6 +340,94 @@ export async function exportToExcel(project: GanttProject): Promise<void> {
     // --- Sheet 5: Visual Timeline (NEW) ---
     createVisualTimelineSheet(workbook, project);
 
+    // --- Sheet 6: RACI Matrix ---
+    const raciSheet = workbook.addWorksheet("RACI Matrix");
+
+    // Collect all items with RACI assignments (phases and tasks)
+    const raciItems: Array<{
+      type: "phase" | "task";
+      name: string;
+      phaseName?: string;
+      raciAssignments: Array<{ resourceId: string; role: string }>;
+    }> = [];
+
+    // Add phases with RACI
+    project.phases.forEach((phase) => {
+      if (phase.raciAssignments && phase.raciAssignments.length > 0) {
+        raciItems.push({
+          type: "phase",
+          name: phase.name,
+          raciAssignments: phase.raciAssignments,
+        });
+      }
+
+      // Add tasks with RACI
+      phase.tasks.forEach((task) => {
+        if (task.raciAssignments && task.raciAssignments.length > 0) {
+          raciItems.push({
+            type: "task",
+            name: task.name,
+            phaseName: phase.name,
+            raciAssignments: task.raciAssignments,
+          });
+        }
+      });
+    });
+
+    // Build RACI matrix if we have items
+    if (raciItems.length > 0 && project.resources && project.resources.length > 0) {
+      // Header row
+      const headerRow = ["Resource/Item", "Type", "Phase"];
+      raciItems.forEach((item) => {
+        headerRow.push(item.type === "task" ? `${item.phaseName} > ${item.name}` : item.name);
+      });
+      raciSheet.addRow(headerRow);
+
+      // Style header
+      raciSheet.getRow(1).font = { bold: true };
+      raciSheet.getRow(1).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF3B82F6" },
+      };
+      raciSheet.getRow(1).font = { color: { argb: "FFFFFFFF" }, bold: true };
+
+      // Resource rows
+      project.resources.forEach((resource) => {
+        const row: any[] = [resource.name, resource.category, resource.description];
+
+        raciItems.forEach((item) => {
+          const assignment = item.raciAssignments.find((a) => a.resourceId === resource.id);
+          if (assignment) {
+            // Map role to letter
+            const roleMap: Record<string, string> = {
+              responsible: "R",
+              accountable: "A",
+              consulted: "C",
+              informed: "I",
+            };
+            row.push(roleMap[assignment.role] || "-");
+          } else {
+            row.push("-");
+          }
+        });
+
+        raciSheet.addRow(row);
+      });
+
+      // Set column widths
+      raciSheet.getColumn(1).width = 30; // Resource name
+      raciSheet.getColumn(2).width = 15; // Type
+      raciSheet.getColumn(3).width = 30; // Description
+      for (let i = 4; i <= raciItems.length + 3; i++) {
+        raciSheet.getColumn(i).width = 15;
+      }
+    } else {
+      // No RACI data
+      raciSheet.addRow(["No RACI assignments defined for this project"]);
+      raciSheet.getRow(1).font = { italic: true, color: { argb: "FF86868B" } };
+    }
+
     // --- Generate file and download ---
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
@@ -432,8 +520,8 @@ function createVisualTimelineSheet(workbook: ExcelJS.Workbook, project: GanttPro
       // Metadata columns
       row.getCell(1).value = phase.name; // Phase
       row.getCell(2).value = task.name; // Task
-      row.getCell(3).value = format(taskStart, "MMM dd, yyyy"); // Start Date
-      row.getCell(4).value = format(taskEnd, "MMM dd, yyyy"); // End Date
+      row.getCell(3).value = format(taskStart, "dd-MMM-yy (EEE)"); // Start Date
+      row.getCell(4).value = format(taskEnd, "dd-MMM-yy (EEE)"); // End Date
       row.getCell(5).value = workingDays; // Days
       row.getCell(6).value = task.assignee || "Unassigned"; // Assignee
       row.getCell(7).value = `${task.progress}%`; // Progress
@@ -568,7 +656,7 @@ function addProfessionalCoverPage(pdf: jsPDF, project: GanttProject): void {
   // Project metadata
   pdf.setFontSize(10);
   pdf.setFont("helvetica", "normal");
-  const startDate = format(new Date(project.startDate), "MMM dd, yyyy");
+  const startDate = format(new Date(project.startDate), "dd-MMM-yy (EEE)");
 
   // Calculate end date from phases
   let endDate = new Date(project.startDate);
@@ -578,7 +666,7 @@ function addProfessionalCoverPage(pdf: jsPDF, project: GanttProject): void {
       endDate = phaseEnd;
     }
   });
-  const endDateStr = format(endDate, "MMM dd, yyyy");
+  const endDateStr = format(endDate, "dd-MMM-yy (EEE)");
 
   const stats = [
     `Start Date: ${startDate}`,
@@ -596,7 +684,7 @@ function addProfessionalCoverPage(pdf: jsPDF, project: GanttProject): void {
   // Footer
   pdf.setFontSize(8);
   pdf.setFont("helvetica", "italic");
-  const exportDate = format(new Date(), "MMM dd, yyyy HH:mm");
+  const exportDate = format(new Date(), "dd-MMM-yy (EEE) HH:mm");
   pdf.text(`Generated on ${exportDate}`, pageWidth / 2, pageHeight - 20, { align: "center" });
 }
 
@@ -629,7 +717,7 @@ function addPDFFooter(pdf: jsPDF, project: GanttProject): void {
     });
 
     // Export date (center)
-    const exportDate = format(new Date(), "MMM dd, yyyy");
+    const exportDate = format(new Date(), "dd-MMM-yy (EEE)");
     pdf.text(exportDate, pageWidth / 2, pageHeight - 8, { align: "center" });
   }
 }
@@ -1098,7 +1186,7 @@ function addExportHeader(
     }
   });
 
-  dateRange.textContent = `${format(startDate, "MMM dd, yyyy")} - ${format(endDate, "MMM dd, yyyy")}`;
+  dateRange.textContent = `${format(startDate, "dd-MMM-yy (EEE)")} - ${format(endDate, "dd-MMM-yy (EEE)")}`;
 
   header.appendChild(title);
   header.appendChild(dateRange);
@@ -1137,7 +1225,7 @@ function addExportFooter(
 
   // Center: Export date
   const exportDate = document.createElement("span");
-  const dateStr = format(new Date(), "MMM dd, yyyy HH:mm");
+  const dateStr = format(new Date(), "dd-MMM-yy (EEE) HH:mm");
   exportDate.textContent = `Exported: ${dateStr}`;
 
   // Right: Branding

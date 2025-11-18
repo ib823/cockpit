@@ -148,10 +148,10 @@ export default function EmailApprovalsPage() {
               + Create Approval
             </button>
             <button
-              onClick={() => router.push("/admin")}
+              onClick={() => router.push("/dashboard")}
               className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
             >
-              ← Back to Admin
+              ← Back to Dashboard
             </button>
           </div>
         </div>

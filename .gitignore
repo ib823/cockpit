@@ -52,7 +52,7 @@ next-env.d.ts
 .env
 .env*.local
 
-# AI/Development artifacts
+# AI/Development artifacts - Claude Code auto-generated docs
 .claude/
 gptdebug/
 env_report_*/
@@ -62,10 +62,34 @@ env_report_*/
 *_INTEGRATION.md
 *_REPORT.md
 *_AUDIT*.md
+*_ASSESSMENT*.md
+*_GUIDE.md
+*_PLAN.md
+*_IMPLEMENTATION*.md
+*_SUMMARY.md
+*_PROGRESS*.md
+*_CHECKLIST.md
+*_FIXES*.md
+*_DIAGNOSIS.md
+*_FRAMEWORK.md
+*_DESIGN*.md
 SESSION_*.md
+PHASE_*.md
+BATCH_*.md
+WEEK_*.md
+TEST_*.md
+QA_*.md
+APPLE_*.md
+TOGAF_*.md
+RACI_*.md
+RFP_*.md
 cockpit_*.zip
 deploy-fixes.sh
 setup-ui-toolkit.sh
+
+# Prevent docs folder pollution
+/docs/**/*.md
+!/docs/README.md
 
 # Build artifacts
 tsconfig.tsbuildinfo
@@ -89,6 +113,16 @@ direct-*.js
 browser-*.js
 import-*.js
 test-gantt-api.js
+/scripts/check-*.ts
+/scripts/check-*.js
+/scripts/cleanup-*.ts
+/scripts/cleanup-*.js
+/scripts/analyze-*.ts
+/scripts/verify-*.ts
+/scripts/test-*.ts
+/scripts/find-*.ts
+/scripts/delete-*.ts
+/scripts/clear-*.ts
 
 # Project data files (temporary/generated)
 kpj-project.json

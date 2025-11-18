@@ -5,8 +5,8 @@
 
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, LayoutGrid, List } from "lucide-react";
+import React, { useState } from "react";
+import { Plus, Trash2, LayoutGrid, List, ChevronDown } from "lucide-react";
 import type { BusinessContextData, BusinessEntity, Actor, Capability } from "../types";
 import styles from "./business-context-tab.module.css";
 
@@ -17,6 +17,44 @@ interface BusinessContextTabProps {
   onChange: (data: BusinessContextData) => void;
   onGenerate: () => void;
 }
+
+// Simple Accordion Component defined locally
+const Accordion = ({ title, subtitle, children }: { title: string, subtitle: string, children: React.ReactNode }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const contentId = `accordion-${title.toLowerCase().replace(/\s+/g, '-')}`;
+
+  return (
+    <div className={styles.accordion}>
+      <button
+        className={styles.accordionHeader}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls={contentId}
+      >
+        <div className={styles.accordionTitleWrapper}>
+          <h3 className={styles.sectionTitle}>{title}</h3>
+          <p className={styles.sectionDescription}>{subtitle}</p>
+        </div>
+        <ChevronDown
+          className={styles.accordionIcon}
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          aria-hidden="true"
+        />
+      </button>
+      {isOpen && (
+        <div
+          className={styles.accordionContent}
+          id={contentId}
+          role="region"
+          aria-labelledby={contentId + '-button'}
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 export function BusinessContextTab({ data, onChange, onGenerate }: BusinessContextTabProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("card");
@@ -87,9 +125,56 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
 
   return (
     <div className={styles.container}>
-      {/* View Toggle */}
+      {/* Pain Points is now the primary, always-visible section */}
+      <Section title="Pain Points & Motivation" subtitle="Start here: Why does your business need to transform?">
+        <textarea
+          value={data.painPoints}
+          onChange={(e) => onChange({ ...data, painPoints: e.target.value })}
+          placeholder="Describe current challenges, business pain points, and the primary motivation for change..."
+          className={styles.textarea}
+          style={{ minHeight: '120px', fontSize: '15px' }}
+        />
+      </Section>
+
+      {/* Collapsible Accordion for other sections */}
+      <Accordion title="Business Entities" subtitle="Companies, divisions, subsidiaries (TOGAF organizational view)">
+        <EntitiesSection
+          entities={data.entities}
+          viewMode={viewMode}
+          onUpdate={updateEntity}
+          onRemove={removeEntity}
+          onAdd={addEntity}
+          onChange={(entities) => onChange({ ...data, entities })}
+        />
+      </Accordion>
+
+      <Accordion title="Key Actors & Activities" subtitle="Stakeholders and what they do (TOGAF ADM-aligned)">
+        <ActorsSection
+          actors={data.actors}
+          viewMode={viewMode}
+          onUpdate={updateActor}
+          onRemove={removeActor}
+          onAdd={addActor}
+          onChange={(actors) => onChange({ ...data, actors })}
+        />
+      </Accordion>
+
+      <Accordion title="Required Capabilities" subtitle="What the business needs to be able to do (TOGAF-aligned)">
+        <CapabilitiesSection
+          capabilities={data.capabilities}
+          onUpdate={updateCapability}
+          onRemove={removeCapability}
+          onAdd={addCapability}
+          onChange={(caps) => onChange({ ...data, capabilities: caps })}
+        />
+      </Accordion>
+
+      {/* View Toggle for sections inside accordions */}
       <div className={styles.viewToggleContainer}>
+        <span className={styles.viewToggleLabel} id="view-mode-label">View mode for details:</span>
         <div
+          role="radiogroup"
+          aria-labelledby="view-mode-label"
           style={{
             display: "flex",
             alignItems: "center",
@@ -100,6 +185,8 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
           }}
         >
           <button
+            role="radio"
+            aria-checked={viewMode === "card"}
             onClick={() => setViewMode("card")}
             style={{
               display: "flex",
@@ -118,10 +205,12 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
               boxShadow: viewMode === "card" ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
             }}
           >
-            <LayoutGrid className="w-4 h-4" />
+            <LayoutGrid className="w-4 h-4" aria-hidden="true" />
             Card View
           </button>
           <button
+            role="radio"
+            aria-checked={viewMode === "list"}
             onClick={() => setViewMode("list")}
             style={{
               display: "flex",
@@ -140,56 +229,11 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
               boxShadow: viewMode === "list" ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
             }}
           >
-            <List className="w-4 h-4" />
+            <List className="w-4 h-4" aria-hidden="true" />
             List View
           </button>
         </div>
       </div>
-
-      {/* Entities */}
-      <Section title="Business Entities" subtitle="Companies, divisions, subsidiaries (TOGAF organizational view)">
-        <EntitiesSection
-          entities={data.entities}
-          viewMode={viewMode}
-          onUpdate={updateEntity}
-          onRemove={removeEntity}
-          onAdd={addEntity}
-          onChange={(entities) => onChange({ ...data, entities })}
-        />
-      </Section>
-
-      {/* Actors */}
-      <Section title="Key Actors & Activities" subtitle="Stakeholders and what they do (TOGAF ADM-aligned)">
-        <ActorsSection
-          actors={data.actors}
-          viewMode={viewMode}
-          onUpdate={updateActor}
-          onRemove={removeActor}
-          onAdd={addActor}
-          onChange={(actors) => onChange({ ...data, actors })}
-        />
-      </Section>
-
-      {/* Capabilities */}
-      <Section title="Required Capabilities" subtitle="What the business needs (TOGAF-aligned)">
-        <CapabilitiesSection
-          capabilities={data.capabilities}
-          onUpdate={updateCapability}
-          onRemove={removeCapability}
-          onAdd={addCapability}
-          onChange={(caps) => onChange({ ...data, capabilities: caps })}
-        />
-      </Section>
-
-      {/* Pain Points */}
-      <Section title="Pain Points & Motivation" subtitle="Why transform?">
-        <textarea
-          value={data.painPoints}
-          onChange={(e) => onChange({ ...data, painPoints: e.target.value })}
-          placeholder="Describe current challenges, pain points, and motivation for change..."
-          className={styles.textarea}
-        />
-      </Section>
 
       {/* Generate Button */}
       {hasData && (
@@ -249,8 +293,9 @@ function EntityCard({
           top: "10px",
           right: "10px",
         }}
+        aria-label={`Remove entity ${entity.name || 'untitled'}`}
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="w-4 h-4" aria-hidden="true" />
       </button>
       <input
         type="text"
@@ -310,8 +355,9 @@ function ActorCard({
           top: "10px",
           right: "10px",
         }}
+        aria-label={`Remove actor ${actor.name || 'untitled'}`}
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="w-4 h-4" aria-hidden="true" />
       </button>
       <input
         type="text"
@@ -731,8 +777,9 @@ function CapabilityTag({
           onRemove();
         }}
         className={styles.removeCapabilityButton}
+        aria-label={`Remove capability ${capability.name || 'untitled'}`}
       >
-        <Trash2 className="w-3 h-3" />
+        <Trash2 className="w-3 h-3" aria-hidden="true" />
       </button>
     </div>
   );
@@ -806,8 +853,9 @@ function EntitiesSection({
             borderColor: "#2563A5",
             color: "#2563A5",
           }}
+          aria-expanded={showTemplates}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" aria-hidden="true" />
           {showTemplates ? "Hide" : "Load"} TOGAF Entity Templates
         </button>
 
@@ -949,8 +997,9 @@ function ActorsSection({
             borderColor: "#2563A5",
             color: "#2563A5",
           }}
+          aria-expanded={showTemplates}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" aria-hidden="true" />
           {showTemplates ? "Hide" : "Load"} TOGAF Stakeholder Templates
         </button>
 
@@ -1129,9 +1178,9 @@ function EntitiesListView({
           <button
             onClick={() => onRemove(entity.id)}
             className={styles.iconButton}
-            title="Remove"
+            aria-label={`Remove entity ${entity.name || 'untitled'}`}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       ))}
@@ -1240,9 +1289,9 @@ function ActorsListView({
           <button
             onClick={() => onRemove(actor.id)}
             className={styles.iconButton}
-            title="Remove"
+            aria-label={`Remove actor ${actor.name || 'untitled'}`}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       ))}

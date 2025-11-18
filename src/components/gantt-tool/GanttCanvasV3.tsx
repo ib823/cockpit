@@ -15,7 +15,8 @@
 "use client";
 
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
-import { useMemo, useState, useCallback, useRef, useEffect } from "react";
+import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
+import { nanoid } from "nanoid";
 import {
   differenceInDays,
   format,
@@ -29,24 +30,36 @@ import {
   getMonth,
   getDay,
 } from "date-fns";
-import { ChevronDown, ChevronRight, ZoomIn, ZoomOut, Edit2, Calendar, Clock, GripVertical, Flag } from "lucide-react";
-import type { GanttPhase } from "@/types/gantt-tool";
-import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
-import { getHolidaysInRange } from "@/data/holidays";
+import { ChevronDown, ChevronRight, ZoomIn, ZoomOut, Edit2, Calendar, Clock, GripVertical, Flag, ChevronUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { VARIANTS, SPRING, STAGGER, DURATION, getAnimationConfig } from "@/lib/design-system/animations";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS, SHADOWS } from "@/lib/design-system/tokens";
+import type { GanttPhase, Task as GanttTask } from "@/types/gantt-tool";
+import { calculateWorkingDaysInclusive, calculateCalendarDaysInclusive, formatCalendarDaysAsMonths } from "@/lib/gantt-tool/working-days";
+import { getHolidaysForTimeline } from "@/lib/gantt-tool/holiday-integration";
 import { ResourceIndicator } from "./ResourceIndicator";
 import { ResourceDrawer } from "./ResourceDrawer";
 import { TaskResourceModal } from "./TaskResourceModal";
-import { MilestoneMarker } from "./MilestoneMarker";
 import { MilestoneModal } from "./MilestoneModal";
-import "./MilestoneMarker.css";
+import { EditPhaseModal } from "./EditPhaseModal";
+import { EditTaskModal } from "./EditTaskModal";
+import { PhaseDeletionImpactModal } from "./PhaseDeletionImpactModal";
+import { TaskDeletionImpactModal } from "./TaskDeletionImpactModal";
+import { UndoToast } from "@/components/ui/UndoToast";
+import { optimizeColumnWidths, waitForFonts } from "@/lib/gantt-tool/column-optimizer";
+import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
+import { MobileGanttView } from "./MobileGanttView";
+import { HeatmapPhaseBar } from "./HeatmapPhaseBar";
 
 // Constants from spec (Jobs/Ive: Breathing room)
-const DEFAULT_SIDEBAR_WIDTH = 620; // Default left sidebar for task details table
-const MIN_SIDEBAR_WIDTH = 300; // Minimum sidebar width
-const MAX_SIDEBAR_WIDTH = 1000; // Maximum sidebar width
-const TASK_NAME_WIDTH = 360; // Width for task name column (enough for long names)
-const DURATION_WIDTH = 100; // Width for duration column
-const RESOURCES_WIDTH = 140; // Width for resources column
+const DEFAULT_SIDEBAR_WIDTH = 750; // Default left sidebar for task details table (optimized for new columns)
+const MIN_SIDEBAR_WIDTH = 550; // Minimum sidebar width
+const MAX_SIDEBAR_WIDTH = 1200; // Maximum sidebar width
+const TASK_NAME_WIDTH = 280; // Width for task name column
+const CALENDAR_DURATION_WIDTH = 90; // Width for calendar duration column (in months)
+const WORKING_DAYS_WIDTH = 90; // Width for working days column
+const START_END_DATE_WIDTH = 180; // Width for start/end date column
+const RESOURCES_WIDTH = 110; // Width for resources column
 const TASK_BAR_HEIGHT = 32; // Clean bars without internal text
 const PHASE_ROW_HEIGHT = 40; // 40px for phase headers per Apple HIG spec
 const TASK_ROW_HEIGHT = 40; // 40px per task row per Apple HIG spec
@@ -72,9 +85,15 @@ type ZoomMode = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
 interface GanttCanvasV3Props {
   zoomMode?: ZoomMode;
+  showMilestoneModal?: boolean;
+  onShowMilestoneModalChange?: (show: boolean) => void;
 }
 
-export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
+export function GanttCanvasV3({
+  zoomMode = 'month',
+  showMilestoneModal: externalShowMilestoneModal,
+  onShowMilestoneModalChange,
+}: GanttCanvasV3Props = {}) {
   const {
     currentProject,
     getProjectDuration,
@@ -85,12 +104,19 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
     unassignResourceFromTask,
     updatePhase,
     updateTask,
+    deletePhase,
+    deleteTask,
+    undo,
+    canUndo,
     addMilestone,
     updateMilestone,
     deleteMilestone,
+    reorderTask,
   } = useGanttToolStore();
 
   const [hoveredTask, setHoveredTask] = useState<string | null>(null);
+  const [hoveredPhase, setHoveredPhase] = useState<string | null>(null);
+  const [hoveredCollapsedPhase, setHoveredCollapsedPhase] = useState<{ phaseId: string; element: HTMLElement } | null>(null);
   const [focusedPhaseId, setFocusedPhaseId] = useState<string | null>(null);
   const [resourceModalTaskId, setResourceModalTaskId] = useState<string | null>(null);
   const [taskResourceModal, setTaskResourceModal] = useState<{ taskId: string; phaseId: string } | null>(null);
@@ -98,15 +124,35 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
   const [editingPhaseId, setEditingPhaseId] = useState<string | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<{ taskId: string; phaseId: string } | null>(null);
   const [hoveredBar, setHoveredBar] = useState<{ id: string; type: "phase" | "task" } | null>(null);
-  const [barEditorState, setBarEditorState] = useState<{ id: string; type: "phase" | "task"; phaseId?: string } | null>(null);
+
+  // Deletion modals state
+  const [deletingPhase, setDeletingPhase] = useState<{
+    phase: GanttPhase;
+    phaseId: string;
+  } | null>(null);
+
+  const [deletingTask, setDeletingTask] = useState<{
+    task: any;
+    taskId: string;
+    phaseId: string;
+  } | null>(null);
+
+  // Undo toast state
+  const [undoToast, setUndoToast] = useState<{
+    isOpen: boolean;
+    message: string;
+    action: () => void;
+  } | null>(null);
 
   // Drag and drop state
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
   const [dragOverPhaseId, setDragOverPhaseId] = useState<string | null>(null);
 
   // Milestone state
-  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
-  const [editingMilestone, setEditingMilestone] = useState<any>(null);
+  const [internalShowMilestoneModal, setInternalShowMilestoneModal] = useState(false);
+  const showMilestoneModal = externalShowMilestoneModal !== undefined ? externalShowMilestoneModal : internalShowMilestoneModal;
+  const setShowMilestoneModal = onShowMilestoneModalChange || setInternalShowMilestoneModal;
+
   const [milestoneDefaultDate, setMilestoneDefaultDate] = useState<string | undefined>();
 
   // Resizable sidebar state
@@ -115,36 +161,204 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Detect mobile viewport
+  // Column widths state
+  const [taskNameWidth, setTaskNameWidth] = useState(TASK_NAME_WIDTH);
+  const [calendarDurationWidth, setCalendarDurationWidth] = useState(CALENDAR_DURATION_WIDTH);
+  const [workingDaysWidth, setWorkingDaysWidth] = useState(WORKING_DAYS_WIDTH);
+  const [startEndDateWidth, setStartEndDateWidth] = useState(START_END_DATE_WIDTH);
+  const [resourcesWidth, setResourcesWidth] = useState(RESOURCES_WIDTH);
+
+  // Column resizing state
+  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
+  const [resizeStartX, setResizeStartX] = useState(0);
+  const [resizeStartWidth, setResizeStartWidth] = useState(0);
+
+  // Auto-optimize column widths on project load/change
+  // Jobs/Ive: Intelligent, non-intrusive, ensures all content visible
+  useEffect(() => {
+    if (!currentProject) return;
+
+    const autoOptimize = async () => {
+      // Wait for fonts to load for accurate measurement
+      await waitForFonts();
+
+      // Calculate optimal widths based on actual content
+      const optimized = optimizeColumnWidths(currentProject);
+
+      // Apply optimized widths (users can still manually resize after)
+      setTaskNameWidth(optimized.taskName);
+      setCalendarDurationWidth(optimized.calendarDuration);
+      setWorkingDaysWidth(optimized.workingDays);
+      setStartEndDateWidth(optimized.startEndDate);
+      setResourcesWidth(optimized.resources);
+    };
+
+    autoOptimize();
+  }, [currentProject?.id]); // Re-run when project changes
+
+  // Detect mobile viewport and manage sidebar state
+  // Fix: Track previous mobile state to restore sidebar on zoom out
   const [isMobile, setIsMobile] = useState(false);
+  const previousMobileRef = useRef(false);
 
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setIsSidebarCollapsed(true); // Collapse sidebar on mobile by default
+      const wasPreviouslyMobile = previousMobileRef.current;
+
+      // Detect transition: desktop ↔ mobile
+      if (mobile && !wasPreviouslyMobile) {
+        // Transitioning TO mobile (or zooming in on desktop)
+        setIsSidebarCollapsed(true);
+      } else if (!mobile && wasPreviouslyMobile) {
+        // Transitioning FROM mobile to desktop (or zooming out)
+        setIsSidebarCollapsed(false);
       }
+
+      // Update states
+      previousMobileRef.current = mobile;
+      setIsMobile(mobile);
     };
 
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, []); // Empty deps - safe because we use ref for previous state
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts and navigation - WCAG 2.1 AA Compliance
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd+M or Ctrl+M = Add milestone
-      if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
+      // Escape key - Close any open modals (WCAG 2.1 2.1.2 - No Keyboard Trap)
+      if (e.key === 'Escape') {
         e.preventDefault();
-        setShowMilestoneModal(true);
+        if (barEditorState) {
+          setBarEditorState(null);
+        } else if (editingPhaseId) {
+          setEditingPhaseId(null);
+        } else if (editingTaskId) {
+          setEditingTaskId(null);
+        } else if (showMilestoneModal) {
+          setShowMilestoneModal(false);
+        } else if (taskResourceModal) {
+          setTaskResourceModal(null);
+        }
+        return;
+      }
+
+      // Arrow key navigation for tasks/phases (only when no modal is open)
+      if (!editingPhaseId && !editingTaskId && !showMilestoneModal && !taskResourceModal && currentProject) {
+        const allItems: Array<{ id: string; type: 'phase' | 'task'; phaseId?: string }> = [];
+
+        // Build flat list of all navigable items
+        currentProject.phases.forEach((phase) => {
+          allItems.push({ id: phase.id, type: 'phase' });
+          // Note: collapsedPhases not implemented yet, show all tasks for now
+          phase.tasks.forEach((task) => {
+            allItems.push({ id: task.id, type: 'task', phaseId: phase.id });
+          });
+        });
+
+        const currentIndex = allItems.findIndex(
+          (item) => item.id === selection?.selectedItemId && item.type === selection?.selectedItemType
+        );
+
+        // Task reordering with Cmd/Ctrl + Arrow Up/Down
+        if ((e.metaKey || e.ctrlKey) && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+          e.preventDefault();
+          if (selection?.selectedItemType === 'task' && selection.selectedItemId) {
+            const phase = currentProject.phases.find((p) =>
+              p.tasks.some((t) => t.id === selection.selectedItemId)
+            );
+            if (phase) {
+              const direction = e.key === 'ArrowUp' ? 'up' : 'down';
+              reorderTask(selection.selectedItemId, phase.id, direction);
+            }
+          }
+          return;
+        }
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const nextIndex = currentIndex < allItems.length - 1 ? currentIndex + 1 : 0;
+          const nextItem = allItems[nextIndex];
+          if (nextItem) {
+            selectItem(nextItem.id, nextItem.type);
+          }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 ? currentIndex - 1 : allItems.length - 1;
+          const prevItem = allItems[prevIndex];
+          if (prevItem) {
+            selectItem(prevItem.id, prevItem.type);
+          }
+        } else if (e.key === 'Enter' && selection) {
+          // Open edit modal for selected item
+          e.preventDefault();
+          if (selection.selectedItemType === 'phase') {
+            setEditingPhaseId(selection.selectedItemId);
+          } else if (selection.selectedItemType === 'task' && selection.selectedItemId) {
+            const phase = currentProject.phases.find((p) =>
+              p.tasks.some((t) => t.id === selection.selectedItemId)
+            );
+            if (phase) {
+              setEditingTaskId({ taskId: selection.selectedItemId, phaseId: phase.id });
+            }
+          }
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [editingPhaseId, editingTaskId, showMilestoneModal, taskResourceModal, selection, currentProject, selectItem]);
+
+
+  // Deletion handlers
+  const handlePhaseDelete = (phase: GanttPhase) => {
+    setDeletingPhase({ phase, phaseId: phase.id });
+  };
+
+  const confirmPhaseDelete = async () => {
+    if (!deletingPhase) return;
+
+    const phaseName = deletingPhase.phase.name;
+    await deletePhase(deletingPhase.phaseId);
+
+    setDeletingPhase(null);
+
+    // Show undo toast
+    setUndoToast({
+      isOpen: true,
+      message: `Deleted phase "${phaseName}"`,
+      action: () => {
+        undo();
+        setUndoToast(null);
+      },
+    });
+  };
+
+  const handleTaskDelete = (task: any, phaseId: string) => {
+    setDeletingTask({ task, taskId: task.id, phaseId });
+  };
+
+  const confirmTaskDelete = async () => {
+    if (!deletingTask) return;
+
+    const taskName = deletingTask.task.name;
+    await deleteTask(deletingTask.taskId, deletingTask.phaseId);
+
+    setDeletingTask(null);
+
+    // Show undo toast
+    setUndoToast({
+      isOpen: true,
+      message: `Deleted task "${taskName}"`,
+      action: () => {
+        undo();
+        setUndoToast(null);
+      },
+    });
+  };
 
   // Handle sidebar resize
   const handleResizeStart = useCallback((e: React.MouseEvent) => {
@@ -152,22 +366,70 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
     setIsResizing(true);
   }, []);
 
+  // Handle column resize start
+  const handleColumnResizeStart = useCallback((e: React.MouseEvent, columnName: string, currentWidth: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizingColumn(columnName);
+    setResizeStartX(e.clientX);
+    setResizeStartWidth(currentWidth);
+  }, []);
+
+  // Update sidebar width dynamically based on column widths
   useEffect(() => {
-    if (!isResizing) return;
+    const totalWidth = taskNameWidth + calendarDurationWidth + workingDaysWidth + startEndDateWidth + resourcesWidth + 48; // 48px for padding
+    setSidebarWidth(totalWidth);
+  }, [taskNameWidth, calendarDurationWidth, workingDaysWidth, startEndDateWidth, resourcesWidth]);
+
+  useEffect(() => {
+    if (!isResizing && !resizingColumn) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
+      if (isResizing && containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const newWidth = e.clientX - containerRect.left;
+        const clampedWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, newWidth));
+        setSidebarWidth(clampedWidth);
+      }
 
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const newWidth = e.clientX - containerRect.left;
+      if (resizingColumn) {
+        const delta = e.clientX - resizeStartX;
+        const newWidth = resizeStartWidth + delta;
 
-      // Clamp between min and max
-      const clampedWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, newWidth));
-      setSidebarWidth(clampedWidth);
+        // Set minimum widths based on content
+        const minWidths: Record<string, number> = {
+          taskName: 120,
+          calendarDuration: 80,
+          workingDays: 80,
+          startEndDate: 150,
+          resources: 80,
+        };
+
+        const clampedWidth = Math.max(minWidths[resizingColumn] || 60, newWidth);
+
+        switch (resizingColumn) {
+          case 'taskName':
+            setTaskNameWidth(clampedWidth);
+            break;
+          case 'calendarDuration':
+            setCalendarDurationWidth(clampedWidth);
+            break;
+          case 'workingDays':
+            setWorkingDaysWidth(clampedWidth);
+            break;
+          case 'startEndDate':
+            setStartEndDateWidth(clampedWidth);
+            break;
+          case 'resources':
+            setResourcesWidth(clampedWidth);
+            break;
+        }
+      }
     };
 
     const handleMouseUp = () => {
       setIsResizing(false);
+      setResizingColumn(null);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -177,9 +439,76 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing]);
+  }, [isResizing, resizingColumn, resizeStartX, resizeStartWidth]);
 
   const duration = getProjectDuration();
+
+  // Smart Timeline Interval Adaptation - Jobs/Ive: "Adaptive intelligence"
+  // Automatically adjust zoom granularity based on available width
+  const [adaptiveZoomMode, setAdaptiveZoomMode] = useState<ZoomMode | null>(null);
+  const timelineContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!timelineContainerRef.current || !duration) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+
+      const availableWidth = entry.contentRect.width;
+      const { durationDays } = duration;
+
+      // Calculate approximate number of time markers for current zoom
+      let estimatedMarkerCount = 0;
+      switch (zoomMode) {
+        case 'week':
+          estimatedMarkerCount = Math.ceil(durationDays / 7);
+          break;
+        case 'month':
+          estimatedMarkerCount = Math.ceil(durationDays / 30);
+          break;
+        case 'quarter':
+          estimatedMarkerCount = Math.ceil(durationDays / 90);
+          break;
+        case 'year':
+          estimatedMarkerCount = Math.ceil(durationDays / 365);
+          break;
+        default:
+          estimatedMarkerCount = Math.ceil(durationDays / 30); // Default to month
+      }
+
+      const pixelsPerMarker = availableWidth / Math.max(estimatedMarkerCount, 1);
+
+      // Auto-adapt zoom level based on available space
+      // Jobs: "Make it obvious what to show"
+      let suggestedZoom: ZoomMode = zoomMode;
+
+      if (pixelsPerMarker < 40) {
+        // Too cramped - go coarser
+        if (zoomMode === 'week') suggestedZoom = 'month';
+        else if (zoomMode === 'month') suggestedZoom = 'quarter';
+        else if (zoomMode === 'quarter') suggestedZoom = 'year';
+      } else if (pixelsPerMarker > 150 && durationDays > 365) {
+        // Too sparse - go finer (only if project is long enough)
+        if (zoomMode === 'year') suggestedZoom = 'quarter';
+        else if (zoomMode === 'quarter' && durationDays > 180) suggestedZoom = 'month';
+      }
+
+      // Only update if suggestion differs from current
+      if (suggestedZoom !== zoomMode) {
+        setAdaptiveZoomMode(suggestedZoom);
+      } else {
+        setAdaptiveZoomMode(null); // Use original zoomMode
+      }
+    });
+
+    observer.observe(timelineContainerRef.current);
+
+    return () => observer.disconnect();
+  }, [zoomMode, duration]);
+
+  // Use adaptive zoom if available, otherwise fall back to provided zoomMode
+  const effectiveZoomMode = adaptiveZoomMode || zoomMode;
 
   // Handle phase toggle with optional auto-zoom
   const handlePhaseToggle = useCallback((phaseId: string) => {
@@ -208,7 +537,8 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
     ? {
         startDate: new Date(focusedPhase.startDate),
         endDate: new Date(focusedPhase.endDate),
-        durationDays: differenceInDays(new Date(focusedPhase.endDate), new Date(focusedPhase.startDate)),
+        // Add 1 to make dates inclusive (phase from Jan 5 to Jan 30 is 26 days, not 25)
+        durationDays: differenceInDays(new Date(focusedPhase.endDate), new Date(focusedPhase.startDate)) + 1,
       }
     : duration;
 
@@ -222,7 +552,8 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
     // For auto-fit modes, we don't add padding as everything should fit on screen
     const paddedEnd = addDays(end, 7); // Small 7-day buffer for visual breathing room
 
-    switch (zoomMode) {
+    // Use effective zoom mode (adapts to available width)
+    switch (effectiveZoomMode) {
       case 'day':
         return eachDayOfInterval({ start, end: paddedEnd });
       case 'week':
@@ -236,11 +567,12 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
       default:
         return eachMonthOfInterval({ start, end: paddedEnd });
     }
-  }, [timelineBounds, zoomMode]);
+  }, [timelineBounds, effectiveZoomMode]);
 
   // Format time marker label based on zoom mode - DD-MMM-YY format policy
+  // Uses effective zoom mode (adapts to available width)
   const formatTimeMarker = (date: Date): { primary: string; secondary?: string } => {
-    switch (zoomMode) {
+    switch (effectiveZoomMode) {
       case 'day':
         return {
           primary: format(date, 'dd'),
@@ -270,27 +602,22 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
     }
   };
 
-  // Calculate holidays to display on timeline
+  // CRITICAL FIX: Calculate holidays to display on timeline using unified source
+  // This ensures markers and working days calculations use the SAME holiday data
   const allHolidays = useMemo(() => {
-    if (!duration) return [];
+    if (!duration || !currentProject) return [];
 
     const { startDate, endDate, durationDays } = duration;
-    const holidays = getHolidaysInRange(startDate, endDate, "ABMY");
 
-    return holidays.map((holiday) => {
-      const holidayDate = new Date(holiday.date);
-      const dayOfWeek = getDay(holidayDate);
-      const offset = differenceInDays(holidayDate, startDate);
-      const position = (offset / durationDays) * 100;
-
-      return {
-        date: holidayDate,
-        name: holiday.name,
-        position,
-        isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-      };
-    });
-  }, [duration]);
+    // Use unified holiday source that merges project holidays + regional holidays
+    return getHolidaysForTimeline(
+      startDate,
+      endDate,
+      durationDays,
+      currentProject.holidays || [],
+      "ABMY" // Can be made configurable per project later
+    );
+  }, [duration, currentProject?.holidays]);
 
   console.log("[GanttCanvasV3] Render - currentProject:", currentProject?.id, "duration:", duration);
 
@@ -325,7 +652,8 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
     const itemStart = new Date(itemStartDate);
     const itemEnd = new Date(itemEndDate);
     const left = getPositionPercent(itemStart);
-    const width = (differenceInDays(itemEnd, itemStart) / durationDays) * 100;
+    // Add 1 to make dates inclusive (a task from Jan 5 to Jan 30 is 26 days, not 25)
+    const width = ((differenceInDays(itemEnd, itemStart) + 1) / durationDays) * 100;
     return { left, width };
   };
 
@@ -341,66 +669,88 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
 
   const effectiveSidebarWidth = isSidebarCollapsed ? 0 : sidebarWidth;
 
-  return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Toolbar */}
-      <div
-        style={{
-          height: "48px",
-          borderBottom: "1px solid rgba(0, 0, 0, 0.06)",
-          display: "flex",
-          alignItems: "center",
-          padding: "0 16px",
-          gap: "8px",
-          backgroundColor: "#fff",
-        }}
-      >
-        <button
-          onClick={() => setShowMilestoneModal(true)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "6px 12px",
-            borderRadius: "6px",
-            border: "1px solid rgba(0, 0, 0, 0.1)",
-            backgroundColor: "#fff",
-            fontFamily: "var(--font-text)",
-            fontSize: "13px",
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "all 0.15s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.05)";
-            e.currentTarget.style.borderColor = "#007AFF";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "#fff";
-            e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.1)";
-          }}
-          title="Add milestone (Cmd+M)"
-        >
-          <Flag className="w-4 h-4" style={{ color: "#007AFF" }} />
-          Add Milestone
-        </button>
-        <span
-          style={{
-            fontSize: "11px",
-            color: "#999",
-            fontFamily: "var(--font-text)",
-          }}
-        >
-          Cmd+M
-        </span>
-      </div>
+  // Mobile View - Jobs/Ive/Cook/Musk approved card layout
+  if (isMobile) {
+    // Guard: Must have a project to show mobile view
+    if (!currentProject) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full bg-[#F2F2F7] p-6">
+          <div className="text-center">
+            <div className="text-6xl mb-4">📱</div>
+            <h2 className="text-xl font-semibold text-black mb-2">No Project Selected</h2>
+            <p className="text-[15px] text-[#8E8E93]">
+              Select a project from the menu to get started.
+            </p>
+          </div>
+        </div>
+      );
+    }
 
-      {/* Main Container: Sidebar + Timeline */}
-      <div className="flex-1 flex overflow-hidden" ref={containerRef}>
+    // Guard: Only show mobile view if project has phases
+    if (!currentProject.phases || currentProject.phases.length === 0) {
+      // Mobile empty state
+      return (
+        <div className="flex flex-col items-center justify-center h-full bg-[#F2F2F7] p-6">
+          <div className="text-center">
+            <div className="text-6xl mb-4">📋</div>
+            <h2 className="text-xl font-semibold text-black mb-2">No Phases Yet</h2>
+            <p className="text-[15px] text-[#8E8E93]">
+              Add phases and tasks on desktop to get started.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <MobileGanttView
+        project={currentProject}
+        onTaskClick={(taskId, phaseId) => {
+          // Open task edit modal to update dates and resources
+          selectItem(taskId, "task");
+          setEditingTaskId({ taskId, phaseId });
+        }}
+        onPhaseClick={(phaseId) => {
+          // Select phase for context
+          selectItem(phaseId, "phase");
+        }}
+        onToggleComplete={(taskId, phaseId, isComplete) => {
+          // DEPRECATED: No longer used - mobile view doesn't have completion checkbox
+          // Kept for interface compatibility only
+        }}
+        onUpdateProgress={(taskId, phaseId, progress) => {
+          // DEPRECATED: No longer used - progress updated via edit modal
+          // Kept for interface compatibility only
+        }}
+        onAddTask={(phaseId) => {
+          // Future: Could open add task modal for this phase
+          console.log('[Mobile] Add task requested for phase:', phaseId);
+        }}
+      />
+    );
+  }
+
+  // Desktop View - Full Gantt with sidebar and timeline
+  // Jobs/Ive: "Design for humans, not screens" - works at any zoom level
+  return (
+    <div className="flex flex-col bg-white" style={{ minHeight: '100%', height: 'auto' }}>
+      {/* Main Container: Sidebar + Timeline - Ive: "Remove all barriers" */}
+      <div
+        className="flex-1 flex"
+        style={{
+          overflowY: "auto", // Allow vertical scrolling
+          overflowX: "auto", // Allow horizontal scrolling at high zoom
+          minHeight: 0, // Flexbox fix for proper scrolling
+        }}
+        ref={containerRef}
+      >
         {/* Sidebar Toggle Button - Mobile */}
         {isMobile && (
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            aria-label={isSidebarCollapsed ? "Show task list sidebar" : "Hide task list sidebar"}
+            aria-pressed={!isSidebarCollapsed}
+            title={isSidebarCollapsed ? "Show task list" : "Hide task list"}
             style={{
               position: "absolute",
               top: "80px",
@@ -419,9 +769,8 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
               cursor: "pointer",
               transition: "all 0.3s ease",
             }}
-            title={isSidebarCollapsed ? "Show task list" : "Hide task list"}
           >
-            {isSidebarCollapsed ? "☰" : "✕"}
+            <span aria-hidden="true">{isSidebarCollapsed ? "☰" : "✕"}</span>
           </button>
         )}
 
@@ -431,7 +780,7 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
             width: `${effectiveSidebarWidth}px`,
             borderRight: isSidebarCollapsed ? "none" : "1px solid rgba(0, 0, 0, 0.06)",
             backgroundColor: "var(--color-bg-primary)",
-            overflow: "auto",
+            overflow: "hidden", // Changed from "auto" - parent will handle scroll
             flexShrink: 0,
             transition: "width 0.3s ease",
             display: isSidebarCollapsed ? "none" : "block",
@@ -458,9 +807,101 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
               opacity: 0.5,
             }}
           >
-            <div style={{ flex: `0 0 ${TASK_NAME_WIDTH}px` }}>Task</div>
-            <div style={{ flex: `0 0 ${DURATION_WIDTH}px`, textAlign: "center" }}>Duration</div>
-            <div style={{ flex: `0 0 ${RESOURCES_WIDTH}px`, textAlign: "center" }}>Resources</div>
+            <div style={{ width: `${taskNameWidth}px`, position: "relative" }}>
+              Phase/Task
+              <div
+                onMouseDown={(e) => handleColumnResizeStart(e, 'taskName', taskNameWidth)}
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "-12px",
+                  bottom: "-12px",
+                  width: "8px",
+                  cursor: "col-resize",
+                  backgroundColor: resizingColumn === 'taskName' ? "var(--color-blue)" : "transparent",
+                  transition: "background-color 0.15s ease",
+                  zIndex: 10,
+                }}
+                onMouseEnter={(e) => {
+                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              />
+            </div>
+            <div style={{ width: `${calendarDurationWidth}px`, textAlign: "center", position: "relative" }}>
+              Duration
+              <div
+                onMouseDown={(e) => handleColumnResizeStart(e, 'calendarDuration', calendarDurationWidth)}
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "-12px",
+                  bottom: "-12px",
+                  width: "8px",
+                  cursor: "col-resize",
+                  backgroundColor: resizingColumn === 'calendarDuration' ? "var(--color-blue)" : "transparent",
+                  transition: "background-color 0.15s ease",
+                  zIndex: 10,
+                }}
+                onMouseEnter={(e) => {
+                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              />
+            </div>
+            <div style={{ width: `${workingDaysWidth}px`, textAlign: "center", position: "relative" }}>
+              Work Days
+              <div
+                onMouseDown={(e) => handleColumnResizeStart(e, 'workingDays', workingDaysWidth)}
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "-12px",
+                  bottom: "-12px",
+                  width: "8px",
+                  cursor: "col-resize",
+                  backgroundColor: resizingColumn === 'workingDays' ? "var(--color-blue)" : "transparent",
+                  transition: "background-color 0.15s ease",
+                  zIndex: 10,
+                }}
+                onMouseEnter={(e) => {
+                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              />
+            </div>
+            <div style={{ width: `${startEndDateWidth}px`, textAlign: "center", position: "relative" }}>
+              Start-End
+              <div
+                onMouseDown={(e) => handleColumnResizeStart(e, 'startEndDate', startEndDateWidth)}
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "-12px",
+                  bottom: "-12px",
+                  width: "8px",
+                  cursor: "col-resize",
+                  backgroundColor: resizingColumn === 'startEndDate' ? "var(--color-blue)" : "transparent",
+                  transition: "background-color 0.15s ease",
+                  zIndex: 10,
+                }}
+                onMouseEnter={(e) => {
+                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              />
+            </div>
+            <div style={{ width: `${resourcesWidth}px`, textAlign: "center", position: "relative" }}>
+              RES
+            </div>
           </div>
 
           {/* Sidebar Content */}
@@ -473,30 +914,50 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                 phase.endDate,
                 currentProject.holidays || []
               );
+              const phaseCalendarDays = calculateCalendarDaysInclusive(
+                phase.startDate,
+                phase.endDate
+              );
+              const phaseCalendarDuration = formatCalendarDaysAsMonths(phaseCalendarDays);
 
               return (
                 <div key={phase.id}>
-                  {/* Phase Row - Jobs/Ive: Subtle borders */}
+                  {/* Phase Row - Jobs/Ive: Enhanced visual hierarchy */}
                   <div
                     style={{
                       height: `${PHASE_ROW_HEIGHT}px`,
-                      borderBottom: "1px solid rgba(0, 0, 0, 0.04)",
+                      borderBottom: "2px solid rgba(0, 0, 0, 0.08)",
                       display: "flex",
                       alignItems: "center",
                       padding: "0 24px",
-                      backgroundColor: "rgba(0, 0, 0, 0.02)",
+                      backgroundColor: "rgba(0, 122, 255, 0.04)",
+                      borderLeft: "4px solid rgba(0, 122, 255, 0.3)",
+                    }}
+                    onMouseEnter={(e) => {
+                      setHoveredPhase(phase.id);
+                      if (isCollapsed) {
+                        setHoveredCollapsedPhase({ phaseId: phase.id, element: e.currentTarget });
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredPhase(null);
+                      setHoveredCollapsedPhase(null);
                     }}
                   >
                     <div
                       style={{
-                        flex: `0 0 ${TASK_NAME_WIDTH}px`,
+                        width: `${taskNameWidth}px`,
                         display: "flex",
                         alignItems: "center",
                         gap: "8px",
+                        position: "relative",
                       }}
                     >
                       <button
                         onClick={() => handlePhaseToggle(phase.id)}
+                        aria-label={isCollapsed ? `Expand ${phase.name} phase` : `Collapse ${phase.name} phase`}
+                        aria-expanded={!isCollapsed}
+                        title={isCollapsed ? "Expand phase" : "Collapse phase"}
                         style={{
                           display: "flex",
                           alignItems: "center",
@@ -504,7 +965,7 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                           fontFamily: "var(--font-text)",
                           fontSize: "var(--text-body)",
                           fontWeight: "var(--weight-semibold)",
-                          color: "#000",
+                          color: "#1d1d1f",
                           cursor: "pointer",
                           border: "none",
                           background: "none",
@@ -514,153 +975,286 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                           minWidth: 0,
                         }}
                       >
-                        {isCollapsed ? (
-                          <ChevronRight className="w-4 h-4 flex-shrink-0" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 flex-shrink-0" />
-                        )}
-                        <span className="truncate">{phase.name}</span>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingPhaseId(phase.id);
-                        }}
-                        style={{
-                          padding: "4px",
-                          backgroundColor: "transparent",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          color: "#007AFF",
-                          transition: "all 0.15s ease",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.1)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
-                        }}
-                        title="Edit phase"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
+                        <motion.div
+                          animate={{ rotate: isCollapsed ? 0 : 90 }}
+                          transition={getAnimationConfig(SPRING.snappy)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <ChevronRight className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                        </motion.div>
+                        <span
+                          style={{
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {phase.name}
+                        </span>
                       </button>
                     </div>
+                    {/* Calendar Duration */}
                     <div
                       style={{
-                        flex: `0 0 ${DURATION_WIDTH}px`,
+                        width: `${calendarDurationWidth}px`,
                         textAlign: "center",
                         fontFamily: "var(--font-text)",
                         fontSize: "var(--text-caption)",
                         opacity: 0.6,
                       }}
                     >
-                      {phaseWorkingDays}d
+                      {phaseCalendarDuration}
                     </div>
-                    <div style={{ flex: `0 0 ${RESOURCES_WIDTH}px` }} />
+                    {/* Working Days */}
+                    <div
+                      style={{
+                        width: `${workingDaysWidth}px`,
+                        textAlign: "center",
+                        fontFamily: "var(--font-text)",
+                        fontSize: "var(--text-caption)",
+                        opacity: 0.6,
+                      }}
+                    >
+                      {phaseWorkingDays} d
+                    </div>
+                    {/* Start/End Date */}
+                    <div
+                      style={{
+                        width: `${startEndDateWidth}px`,
+                        textAlign: "center",
+                        fontFamily: "var(--font-text)",
+                        fontSize: "var(--text-caption)",
+                        opacity: 0.6,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {phase.phaseType === "ams"
+                        ? `AMS Contract - ${phase.amsDuration} Year${phase.amsDuration > 1 ? "s" : ""} (Ongoing)`
+                        : `${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} - ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`
+                      }
+                    </div>
+                    <div style={{ width: `${resourcesWidth}px` }} />
                   </div>
 
                   {/* Tasks */}
-                  {!isCollapsed &&
-                    visibleTasks.map((task) => {
-                      const workingDays = calculateWorkingDaysInclusive(
-                        task.startDate,
-                        task.endDate,
-                        currentProject.holidays || []
-                      );
+                  <AnimatePresence>
+                    {!isCollapsed && (
+                      <motion.div
+                        key={`phase-tasks-${phase.id}`}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        variants={VARIANTS.staggerContainer}
+                        transition={getAnimationConfig(SPRING.gentle)}
+                        style={{ overflow: "hidden" }}
+                      >
+                        {visibleTasks.map((task, taskIndex) => {
+                          const workingDays = calculateWorkingDaysInclusive(
+                            task.startDate,
+                            task.endDate,
+                            currentProject.holidays || []
+                          );
+                          const taskCalendarDays = calculateCalendarDaysInclusive(
+                            task.startDate,
+                            task.endDate
+                          );
+                          const taskCalendarDuration = formatCalendarDaysAsMonths(taskCalendarDays);
 
-                      const isSelected =
-                        selection?.selectedItemType === "task" && selection.selectedItemId === task.id;
+                          const isSelected =
+                            selection?.selectedItemType === "task" && selection.selectedItemId === task.id;
 
-                      return (
-                        <div
-                          key={task.id}
-                          onClick={() => selectItem(task.id, "task")}
-                          style={{
-                            height: `${TASK_ROW_HEIGHT}px`,
-                            borderBottom: "1px solid rgba(0, 0, 0, 0.03)",
-                            display: "flex",
-                            alignItems: "center",
-                            padding: "0 24px",
-                            backgroundColor: isSelected
-                              ? "rgba(0, 122, 255, 0.05)"
-                              : "transparent",
-                            cursor: "pointer",
-                            transition: "background-color 0.15s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!isSelected) {
-                              e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.015)";
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isSelected) {
-                              e.currentTarget.style.backgroundColor = "transparent";
-                            }
-                          }}
-                        >
+                          const isFirstTask = taskIndex === 0;
+                          const isLastTask = taskIndex === visibleTasks.length - 1;
+
+                          return (
+                            <motion.div
+                              key={task.id}
+                              layout
+                              custom={taskIndex}
+                              variants={{
+                                initial: { opacity: 0, y: -10, height: 0, scale: 0.98 },
+                                animate: {
+                                  opacity: 1,
+                                  y: 0,
+                                  height: TASK_ROW_HEIGHT,
+                                  scale: 1,
+                                  transition: getAnimationConfig({
+                                    ...SPRING.gentle,
+                                    delay: taskIndex * STAGGER.normal,
+                                  }),
+                                },
+                                exit: {
+                                  opacity: 0,
+                                  y: -10,
+                                  height: 0,
+                                  scale: 0.98,
+                                  transition: getAnimationConfig({
+                                    duration: DURATION.fast,
+                                    delay: (visibleTasks.length - taskIndex - 1) * STAGGER.fast,
+                                  }),
+                                },
+                              }}
+                              onClick={() => selectItem(task.id, "task")}
+                              style={{
+                                height: `${TASK_ROW_HEIGHT}px`,
+                                borderBottom: "1px solid rgba(0, 0, 0, 0.03)",
+                                display: "flex",
+                                alignItems: "center",
+                                padding: "0 24px",
+                                backgroundColor: isSelected
+                                  ? "rgba(0, 122, 255, 0.05)"
+                                  : "transparent",
+                                cursor: "pointer",
+                                transition: "background-color 0.15s ease",
+                              }}
+                              onMouseEnter={(e) => {
+                                setHoveredTask(task.id);
+                                if (!isSelected) {
+                                  e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.015)";
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                setHoveredTask(null);
+                                if (!isSelected) {
+                                  e.currentTarget.style.backgroundColor = "transparent";
+                                }
+                              }}
+                            >
                           {/* Task Name */}
                           <div
                             style={{
-                              flex: `0 0 ${TASK_NAME_WIDTH}px`,
-                              paddingLeft: "32px",
+                              width: `${taskNameWidth}px`,
+                              paddingLeft: "48px",
                               display: "flex",
                               alignItems: "center",
                               gap: "8px",
+                              position: "relative",
                             }}
                           >
+                            {/* Indentation indicator */}
+                            <div style={{
+                              position: "absolute",
+                              left: "32px",
+                              top: "0",
+                              bottom: "0",
+                              width: "2px",
+                              backgroundColor: "rgba(0, 0, 0, 0.06)",
+                            }} />
                             <span
                               style={{
                                 fontFamily: "var(--font-text)",
                                 fontSize: "var(--text-body)",
                                 fontWeight: "var(--weight-regular)",
-                                color: "#000",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
+                                color: "#1d1d1f",
                                 whiteSpace: "nowrap",
+                                overflow: "hidden",
                                 flex: 1,
                               }}
                               title={task.name}
                             >
                               {task.name}
                             </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingTaskId({ taskId: task.id, phaseId: phase.id });
-                              }}
+                            {/* Reorder Controls - Apple HIG: Minimalist, appear on hover */}
+                            <div
                               style={{
-                                padding: "4px",
-                                backgroundColor: "transparent",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                color: "#007AFF",
-                                transition: "all 0.15s ease",
                                 display: "flex",
                                 alignItems: "center",
-                                justifyContent: "center",
+                                gap: "4px",
+                                opacity: hoveredTask === task.id ? 1 : 0,
+                                transition: "opacity 0.15s ease",
                                 flexShrink: 0,
                               }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.1)";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                              }}
-                              title="Edit task"
                             >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
+                              {/* Move Up Button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  reorderTask(task.id, phase.id, "up");
+                                }}
+                                disabled={isFirstTask}
+                                title={isFirstTask ? "Already first task" : "Move task up (⌘↑)"}
+                                aria-label={`Move task ${task.name} up`}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  width: "16px",
+                                  height: "16px",
+                                  padding: "2px",
+                                  borderRadius: "4px",
+                                  backgroundColor: "transparent",
+                                  border: "none",
+                                  cursor: isFirstTask ? "not-allowed" : "pointer",
+                                  color: isFirstTask ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.5)",
+                                  transition: "all 0.15s ease",
+                                  flexShrink: 0,
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isFirstTask) {
+                                    e.currentTarget.style.color = "#000";
+                                    e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.06)";
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isFirstTask) {
+                                    e.currentTarget.style.color = "rgba(0, 0, 0, 0.5)";
+                                    e.currentTarget.style.backgroundColor = "transparent";
+                                  }
+                                }}
+                              >
+                                <ChevronUp className="w-4 h-4" />
+                              </button>
+
+                              {/* Move Down Button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  reorderTask(task.id, phase.id, "down");
+                                }}
+                                disabled={isLastTask}
+                                title={isLastTask ? "Already last task" : "Move task down (⌘↓)"}
+                                aria-label={`Move task ${task.name} down`}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  width: "16px",
+                                  height: "16px",
+                                  padding: "2px",
+                                  borderRadius: "4px",
+                                  backgroundColor: "transparent",
+                                  border: "none",
+                                  cursor: isLastTask ? "not-allowed" : "pointer",
+                                  color: isLastTask ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.5)",
+                                  transition: "all 0.15s ease",
+                                  flexShrink: 0,
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isLastTask) {
+                                    e.currentTarget.style.color = "#000";
+                                    e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.06)";
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isLastTask) {
+                                    e.currentTarget.style.color = "rgba(0, 0, 0, 0.5)";
+                                    e.currentTarget.style.backgroundColor = "transparent";
+                                  }
+                                }}
+                              >
+                                <ChevronDown className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
 
-                          {/* Duration */}
+                          {/* Calendar Duration */}
                           <div
                             style={{
-                              flex: `0 0 ${DURATION_WIDTH}px`,
+                              width: `${calendarDurationWidth}px`,
                               textAlign: "center",
                               fontFamily: "var(--font-text)",
                               fontSize: "var(--text-body)",
@@ -668,13 +1262,43 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                               color: "#000",
                             }}
                           >
-                            {workingDays}d
+                            {taskCalendarDuration}
+                          </div>
+
+                          {/* Working Days */}
+                          <div
+                            style={{
+                              width: `${workingDaysWidth}px`,
+                              textAlign: "center",
+                              fontFamily: "var(--font-text)",
+                              fontSize: "var(--text-body)",
+                              fontWeight: "var(--weight-regular)",
+                              color: "#000",
+                            }}
+                          >
+                            {workingDays} d
+                          </div>
+
+                          {/* Start/End Date */}
+                          <div
+                            style={{
+                              width: `${startEndDateWidth}px`,
+                              textAlign: "center",
+                              fontFamily: "var(--font-text)",
+                              fontSize: "var(--text-body)",
+                              fontWeight: "var(--weight-regular)",
+                              color: "#000",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {format(new Date(task.startDate), "dd-MMM-yy (EEE)")} - {format(new Date(task.endDate), "dd-MMM-yy (EEE)")}
                           </div>
 
                           {/* Resources */}
                           <div
                             style={{
-                              flex: `0 0 ${RESOURCES_WIDTH}px`,
+                              width: `${resourcesWidth}px`,
                               display: "flex",
                               justifyContent: "center",
                               alignItems: "center",
@@ -722,9 +1346,12 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                               }}
                             />
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
                 </div>
               );
             })}
@@ -772,14 +1399,16 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
           </div>
         )}
 
-        {/* Right Timeline: Visual Bars - Scrollable with zoom */}
-        <div className="flex-1 overflow-auto">
-          {/* Timeline Container with zoom width */}
-          <div style={{
-            width: timelineWidth === '100%' ? '100%' : 'auto',
-            minWidth: timelineWidth === '100%' ? 'auto' : timelineWidth,
-            transition: "all 0.3s ease"
-          }}>
+        {/* Right Timeline: Visual Bars - Horizontal scroll for zoom, vertical handled by parent */}
+        <div className="flex-1" style={{ overflowX: "auto", overflowY: "hidden" }}>
+          {/* Timeline Container with zoom width - Observed for smart zoom adaptation */}
+          <div
+            ref={timelineContainerRef}
+            style={{
+              width: timelineWidth === '100%' ? '100%' : 'auto',
+              minWidth: timelineWidth === '100%' ? 'auto' : timelineWidth,
+              transition: "all 0.3s ease"
+            }}>
             {/* Timeline Header - Jobs/Ive: Simplified */}
             <div
               style={{
@@ -788,12 +1417,13 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                 zIndex: 20,
                 backgroundColor: "var(--color-bg-primary)",
                 borderBottom: "1px solid var(--color-gray-4)",
+                height: "64px", // Match sidebar header height
               }}
             >
             {/* Time Labels - Adaptive to Zoom Mode */}
-            <div className="relative" style={{ height: "64px", display: "flex", flexDirection: "column" }}>
+            <div className="relative" style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
               {/* Time markers */}
-              <div style={{ height: "44px", position: "relative" }}>
+              <div style={{ height: "44px", position: "relative", width: "100%" }}>
                 {timeMarkers.map((markerDate, idx) => {
                   const left = getPositionPercent(markerDate);
 
@@ -808,6 +1438,11 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
 
                   const labels = formatTimeMarker(markerDate);
 
+                  // Calculate if this cell has enough width to show full labels
+                  // Apple HIG: Minimum 11px font size ALWAYS
+                  // If width < 4%, hide secondary text entirely
+                  const isNarrow = width < 4;
+
                   return (
                     <div
                       key={idx}
@@ -816,20 +1451,41 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                         left: `${left}%`,
                         width: `${width}%`,
                         height: "100%",
-                        borderLeft: idx === 0 ? "none" : "1px solid rgba(0, 0, 0, 0.06)",
+                        borderLeft: idx === 0 ? "none" : "2px solid rgba(0, 0, 0, 0.08)",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
                         fontFamily: "var(--font-text)",
                         gap: "2px",
+                        backgroundColor: idx % 2 === 0 ? "rgba(0, 0, 0, 0.015)" : "transparent",
+                        padding: isNarrow ? "0 2px" : "0 8px",
+                        overflow: "hidden",
                       }}
                     >
-                      <div style={{ fontSize: "16px", fontWeight: 600, color: "#000", letterSpacing: "-0.02em" }}>
+                      <div style={{
+                        fontSize: isNarrow ? "13px" : "16px", // Apple HIG: min 11px, using 13px for narrow
+                        fontWeight: 600,
+                        color: "var(--color-text-primary)",
+                        letterSpacing: "var(--tracking-tight)",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "100%",
+                      }}>
                         {labels.primary}
                       </div>
-                      {labels.secondary && (
-                        <div style={{ fontSize: "11px", opacity: 0.35, color: "#000", fontWeight: 500 }}>
+                      {labels.secondary && !isNarrow && (
+                        <div style={{
+                          fontSize: "11px", // Apple HIG: absolute minimum
+                          opacity: 0.5,
+                          color: "var(--color-text-primary)",
+                          fontWeight: 500,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: "100%",
+                        }}>
                           {labels.secondary}
                         </div>
                       )}
@@ -845,7 +1501,7 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                     key={idx}
                     className="absolute top-1/2 -translate-y-1/2 group cursor-help"
                     style={{ left: `${holiday.position}%`, transform: "translate(-50%, -50%)" }}
-                    title={`${holiday.name} - ${format(holiday.date, "dd-MMM-yy")}${holiday.isWeekend ? " (Weekend)" : ""}`}
+                    title={`${holiday.name} - ${format(holiday.date, "dd-MMM-yy (EEE)")}${holiday.isWeekend ? " (Weekend)" : ""}`}
                   >
                     {holiday.isWeekend ? (
                       <div style={{
@@ -907,131 +1563,240 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                       backgroundColor: "rgba(0, 0, 0, 0.02)",
                     }}
                   >
-                    {/* Phase Bar with Hover Info + Drop Zone */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: `${phasePos.left}%`,
-                        width: `${phasePos.width}%`,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        height: "24px",
-                        backgroundColor: dragOverPhaseId === phase.id ? "rgb(52, 199, 89)" : "var(--color-blue)",
-                        borderRadius: "6px",
-                        opacity: dragOverPhaseId === phase.id ? 0.6 : (hoveredBar?.id === phase.id && hoveredBar?.type === "phase" ? 0.4 : 0.2),
-                        border: dragOverPhaseId === phase.id ? "2px dashed #34C759" : "none",
-                        boxShadow: dragOverPhaseId === phase.id ? "0 4px 16px rgba(52, 199, 89, 0.6), 0 0 0 3px rgba(52, 199, 89, 0.2)" : "none",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                      }}
-                      onMouseEnter={() => setHoveredBar({ id: phase.id, type: "phase" })}
-                      onMouseLeave={() => setHoveredBar(null)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setBarEditorState({ id: phase.id, type: "phase" });
-                      }}
-                      // Drop zone handlers for phases
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.dataTransfer.dropEffect = "copy";
-                        setDragOverPhaseId(phase.id);
-                      }}
-                      onDragEnter={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDragOverPhaseId(phase.id);
-                      }}
-                      onDragLeave={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDragOverPhaseId(null);
-                      }}
-                      onDrop={async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const resourceId = e.dataTransfer.getData("resourceId");
-                        const resourceName = e.dataTransfer.getData("resourceName");
+                    {/* Phase Bar - Heatmap when collapsed, simple when expanded */}
+                    {isCollapsed ? (
+                      <HeatmapPhaseBar
+                        phase={phase}
+                        phasePosition={phasePos}
+                        isDragOver={dragOverPhaseId === phase.id}
+                        isHovered={hoveredBar?.id === phase.id && hoveredBar?.type === "phase"}
+                        onMouseEnter={() => setHoveredBar({ id: phase.id, type: "phase" })}
+                        onMouseLeave={() => setHoveredBar(null)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Prevent phase editing on narrow screens (< 1024px)
+                          // Phase editing requires adequate timeline visibility
+                          if (window.innerWidth >= 1024) {
+                            setEditingPhaseId(phase.id);
+                          }
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          e.dataTransfer.dropEffect = "copy";
+                          setDragOverPhaseId(phase.id);
+                        }}
+                        onDragEnter={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDragOverPhaseId(phase.id);
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDragOverPhaseId(null);
+                        }}
+                        onDrop={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const resourceId = e.dataTransfer.getData("resourceId");
+                          const resourceName = e.dataTransfer.getData("resourceName");
 
-                        if (resourceId) {
-                          console.log(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
-                          // TODO: Actually update the phase with the resource assignment
-                          // await updatePhase(phase.id, {
-                          //   resources: [...(phase.resources || []), { resourceId, role: 'assigned' }]
-                          // });
-                        }
-                        setDragOverPhaseId(null);
-                      }}
-                      title={`${format(new Date(phase.startDate), "dd-MMM-yy")} - ${format(new Date(phase.endDate), "dd-MMM-yy")}`}
-                    >
-                      {/* Hover Overlay - Jobs/Ive style */}
-                      {hoveredBar?.id === phase.id && hoveredBar?.type === "phase" && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "-36px",
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            backgroundColor: "rgba(0, 0, 0, 0.85)",
-                            color: "white",
-                            padding: "6px 12px",
-                            borderRadius: "6px",
-                            fontSize: "11px",
-                            fontWeight: 500,
-                            whiteSpace: "nowrap",
-                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
-                            pointerEvents: "none",
-                            zIndex: 100,
-                          }}
-                        >
-                          {format(new Date(phase.startDate), "dd-MMM-yy")} → {format(new Date(phase.endDate), "dd-MMM-yy")} • {calculateWorkingDaysInclusive(phase.startDate, phase.endDate, currentProject.holidays || [])}d
+                          if (resourceId) {
+                            console.log(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
+                          }
+                          setDragOverPhaseId(null);
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: `${phasePos.left}%`,
+                          width: `${phasePos.width}%`,
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          height: "24px",
+                          background: dragOverPhaseId === phase.id
+                            ? "rgb(52, 199, 89)"
+                            : phase.phaseType === "ams"
+                            ? `
+                                url("data:image/svg+xml,%3Csvg width='40' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 8 L8 12 L0 16 Z M12 8 L20 12 L12 16 Z M24 8 L32 12 L24 16 Z' fill='rgba(255,255,255,0.4)'/%3E%3C/svg%3E"),
+                                linear-gradient(90deg, rgba(59, 130, 246, 0.85), rgba(59, 130, 246, 0.95))
+                              `
+                            : "var(--color-blue)",
+                          borderRadius: "6px",
+                          opacity: dragOverPhaseId === phase.id ? 0.6 : (hoveredBar?.id === phase.id && hoveredBar?.type === "phase" ? 0.4 : 0.2),
+                          border: dragOverPhaseId === phase.id
+                            ? "2px dashed #34C759"
+                            : phase.phaseType === "ams"
+                            ? "2px dashed rgba(59, 130, 246, 0.8)"
+                            : "none",
+                          boxShadow: dragOverPhaseId === phase.id ? "0 4px 16px rgba(52, 199, 89, 0.6), 0 0 0 3px rgba(52, 199, 89, 0.2)" : "none",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={() => setHoveredBar({ id: phase.id, type: "phase" })}
+                        onMouseLeave={() => setHoveredBar(null)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Prevent phase editing on narrow screens (< 1024px)
+                          // Phase editing requires adequate timeline visibility
+                          if (window.innerWidth >= 1024) {
+                            setEditingPhaseId(phase.id);
+                          }
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          e.dataTransfer.dropEffect = "copy";
+                          setDragOverPhaseId(phase.id);
+                        }}
+                        onDragEnter={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDragOverPhaseId(phase.id);
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDragOverPhaseId(null);
+                        }}
+                        onDrop={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const resourceId = e.dataTransfer.getData("resourceId");
+                          const resourceName = e.dataTransfer.getData("resourceName");
+
+                          if (resourceId) {
+                            console.log(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
+                          }
+                          setDragOverPhaseId(null);
+                        }}
+                      >
+                        {/* Hover Overlay - Jobs/Ive style with enhanced details */}
+                        {hoveredBar?.id === phase.id && hoveredBar?.type === "phase" && (
                           <div
                             style={{
                               position: "absolute",
-                              bottom: "-4px",
+                              top: "-84px",
                               left: "50%",
                               transform: "translateX(-50%)",
-                              width: 0,
-                              height: 0,
-                              borderLeft: "4px solid transparent",
-                              borderRight: "4px solid transparent",
-                              borderTop: "4px solid rgba(0, 0, 0, 0.85)",
+                              backgroundColor: "rgba(0, 0, 0, 0.92)",
+                              color: "white",
+                              padding: "10px 14px",
+                              borderRadius: "8px",
+                              fontSize: "11px",
+                              fontWeight: 500,
+                              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
+                              pointerEvents: "none",
+                              zIndex: 100,
+                              minWidth: "240px",
                             }}
-                          />
-                        </div>
-                      )}
-                    </div>
+                          >
+                            <div style={{ fontWeight: 600, fontSize: "12px", marginBottom: "6px", color: "#fff" }}>
+                              {phase.name}
+                            </div>
+                            <div style={{ fontSize: "11px", opacity: 0.85, marginBottom: "4px" }}>
+                              {phase.phaseType === "ams"
+                                ? `AMS Support Contract - ${phase.amsDuration} Year${phase.amsDuration > 1 ? "s" : ""}`
+                                : `${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} → ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`
+                              }
+                            </div>
+                            <div style={{ fontSize: "11px", opacity: 0.85 }}>
+                              {phase.phaseType === "ams"
+                                ? `Start: ${format(new Date(phase.startDate), "dd-MMM-yy")} • Status: Ongoing`
+                                : `Duration: ${calculateWorkingDaysInclusive(phase.startDate, phase.endDate, currentProject.holidays || [])} working days`
+                              }
+                            </div>
+                            {phase.tasks && phase.tasks.length > 0 && (
+                              <div style={{ fontSize: "11px", opacity: 0.85, marginTop: "4px", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "4px" }}>
+                                {phase.tasks.length} task{phase.tasks.length > 1 ? 's' : ''}
+                              </div>
+                            )}
+                            <div
+                              style={{
+                                position: "absolute",
+                                bottom: "-4px",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                width: 0,
+                                height: 0,
+                                borderLeft: "4px solid transparent",
+                                borderRight: "4px solid transparent",
+                                borderTop: "4px solid rgba(0, 0, 0, 0.92)",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Task Bars */}
-                  {!isCollapsed &&
-                    visibleTasks.map((task) => {
-                      const taskPos = getBarPosition(
-                        task.startDate,
-                        task.endDate
-                      );
-                      const isSelected =
-                        selection?.selectedItemType === "task" && selection.selectedItemId === task.id;
-                      const isHovered = hoveredTask === task.id;
+                  <AnimatePresence>
+                    {!isCollapsed && (
+                      <motion.div
+                        key={`phase-timeline-${phase.id}`}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        variants={VARIANTS.staggerContainer}
+                        transition={getAnimationConfig(SPRING.gentle)}
+                        style={{ overflow: "visible" }}
+                      >
+                        {visibleTasks.map((task, taskIndex) => {
+                          const taskPos = getBarPosition(
+                            task.startDate,
+                            task.endDate
+                          );
+                          const isSelected =
+                            selection?.selectedItemType === "task" && selection.selectedItemId === task.id;
+                          const isHovered = hoveredTask === task.id;
 
-                      const taskWorkingDays = calculateWorkingDaysInclusive(task.startDate, task.endDate, currentProject.holidays || []);
-                      const isBarHovered = hoveredBar?.id === task.id && hoveredBar?.type === "task";
+                          const taskWorkingDays = calculateWorkingDaysInclusive(task.startDate, task.endDate, currentProject.holidays || []);
+                          const isBarHovered = hoveredBar?.id === task.id && hoveredBar?.type === "task";
 
-                      return (
-                        <div
-                          key={task.id}
-                          style={{
-                            height: `${TASK_ROW_HEIGHT}px`,
-                            borderBottom: "1px solid rgba(0, 0, 0, 0.03)",
-                            position: "relative",
-                          }}
-                        >
+                          return (
+                            <motion.div
+                              key={task.id}
+                              custom={taskIndex}
+                              variants={{
+                                initial: { opacity: 0, y: -10, height: 0, scale: 0.98 },
+                                animate: {
+                                  opacity: 1,
+                                  y: 0,
+                                  height: TASK_ROW_HEIGHT,
+                                  scale: 1,
+                                  transition: getAnimationConfig({
+                                    ...SPRING.gentle,
+                                    delay: taskIndex * STAGGER.normal,
+                                  }),
+                                },
+                                exit: {
+                                  opacity: 0,
+                                  y: -10,
+                                  height: 0,
+                                  scale: 0.98,
+                                  transition: getAnimationConfig({
+                                    duration: DURATION.fast,
+                                    delay: (visibleTasks.length - taskIndex - 1) * STAGGER.fast,
+                                  }),
+                                },
+                              }}
+                              style={{
+                                height: `${TASK_ROW_HEIGHT}px`,
+                                borderBottom: "1px solid rgba(0, 0, 0, 0.03)",
+                                position: "relative",
+                                overflow: "visible",
+                              }}
+                            >
                           {/* Task Bar with Hover Info + Drop Zone */}
                           <div
                             onClick={(e) => {
                               e.stopPropagation();
                               selectItem(task.id, "task");
-                              setBarEditorState({ id: task.id, type: "task", phaseId: phase.id });
+                              setEditingTaskId({ taskId: task.id, phaseId: phase.id });
                             }}
                             onMouseEnter={() => {
                               setHoveredTask(task.id);
@@ -1074,10 +1839,11 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                                     resourceAssignments: [
                                       ...currentAssignments,
                                       {
+                                        id: nanoid(),
                                         resourceId,
-                                        allocationPercent: 100,
-                                        role: 'assigned',
+                                        allocationPercentage: 100,
                                         assignmentNotes: '',
+                                        assignedAt: new Date().toISOString(),
                                       }
                                     ]
                                   });
@@ -1095,13 +1861,25 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                               top: "50%",
                               transform: "translateY(-50%)",
                               height: `${TASK_BAR_HEIGHT}px`,
-                              backgroundColor: dragOverTaskId === task.id ? "rgb(52, 199, 89)" : "rgb(0, 122, 255)",
+                              backgroundColor: dragOverTaskId === task.id
+                                ? "rgb(52, 199, 89)"
+                                : task.isAMS
+                                  ? "rgb(142, 142, 147)" // Gray for AMS tasks
+                                  : "rgb(0, 122, 255)",
                               borderRadius: "6px",
-                              border: isSelected ? "2px solid #000" : dragOverTaskId === task.id ? "2px dashed #34C759" : "none",
+                              border: isSelected
+                                ? "2px solid #000"
+                                : dragOverTaskId === task.id
+                                  ? "2px dashed #34C759"
+                                  : task.isAMS
+                                    ? "2px dashed rgba(142, 142, 147, 0.8)" // Dashed border for AMS
+                                    : "none",
                               boxShadow: isHovered || isBarHovered || dragOverTaskId === task.id
                                 ? dragOverTaskId === task.id
                                   ? "0 4px 16px rgba(52, 199, 89, 0.6), 0 0 0 3px rgba(52, 199, 89, 0.2)"
-                                  : "0 2px 12px rgba(0, 122, 255, 0.4)"
+                                  : task.isAMS
+                                    ? "0 2px 12px rgba(142, 142, 147, 0.4)"
+                                    : "0 2px 12px rgba(0, 122, 255, 0.4)"
                                 : "none",
                               cursor: "pointer",
                               transition: "all 0.2s ease",
@@ -1110,29 +1888,104 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                               padding: "0 8px",
                               gap: "6px",
                               overflow: "hidden",
+                              backgroundImage: task.isAMS
+                                ? "repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255, 255, 255, 0.15) 4px, rgba(255, 255, 255, 0.15) 8px)"
+                                : "none", // Diagonal stripe pattern for AMS
                             }}
                           >
-                            {/* Hover Tooltip - Jobs/Ive style */}
+                            {/* AMS Badge on Task Bar */}
+                            {task.isAMS && (
+                              <span
+                                style={{
+                                  backgroundColor: "rgba(0, 0, 0, 0.3)",
+                                  color: "white",
+                                  padding: "2px 6px",
+                                  borderRadius: "4px",
+                                  fontSize: "10px",
+                                  fontWeight: 700,
+                                  letterSpacing: "0.5px",
+                                  textTransform: "uppercase",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                AMS
+                              </span>
+                            )}
+
+                            {/* Hover Tooltip - Jobs/Ive style with enhanced details */}
                             {isBarHovered && (
                               <div
                                 style={{
                                   position: "absolute",
-                                  top: "-36px",
+                                  top: task.isAMS ? "-120px" : "-84px", // More space for AMS info
                                   left: "50%",
                                   transform: "translateX(-50%)",
-                                  backgroundColor: "rgba(0, 0, 0, 0.85)",
+                                  backgroundColor: "rgba(0, 0, 0, 0.92)",
                                   color: "white",
-                                  padding: "6px 12px",
-                                  borderRadius: "6px",
+                                  padding: "10px 14px",
+                                  borderRadius: "8px",
                                   fontSize: "11px",
                                   fontWeight: 500,
-                                  whiteSpace: "nowrap",
-                                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+                                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
                                   pointerEvents: "none",
                                   zIndex: 100,
+                                  minWidth: "240px",
                                 }}
                               >
-                                {format(new Date(task.startDate), "dd-MMM-yy")} → {format(new Date(task.endDate), "dd-MMM-yy")} • {taskWorkingDays}d
+                                <div style={{ fontWeight: 600, fontSize: "12px", marginBottom: "6px", color: "#fff", display: "flex", alignItems: "center", gap: "6px" }}>
+                                  {task.name}
+                                  {task.isAMS && (
+                                    <span style={{
+                                      backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                      padding: "2px 6px",
+                                      borderRadius: "4px",
+                                      fontSize: "10px",
+                                      fontWeight: 700,
+                                      letterSpacing: "0.5px",
+                                    }}>
+                                      AMS
+                                    </span>
+                                  )}
+                                </div>
+                                {task.isAMS && task.amsConfig ? (
+                                  <>
+                                    <div style={{ fontSize: "11px", opacity: 0.85, marginBottom: "4px", color: "#ffd60a" }}>
+                                      Ongoing Support • {task.amsConfig.rateType === "daily" ? "Per Day" : "Manda"} Rate: {task.amsConfig.fixedRate.toFixed(2)}
+                                    </div>
+                                    {task.amsConfig.minimumDuration && (
+                                      <div style={{ fontSize: "11px", opacity: 0.85, marginBottom: "4px" }}>
+                                        Min Duration: {task.amsConfig.minimumDuration} months
+                                      </div>
+                                    )}
+                                    <div style={{ fontSize: "11px", opacity: 0.85, marginBottom: "4px" }}>
+                                      {format(new Date(task.startDate), "dd-MMM-yy (EEE)")} → Ongoing
+                                    </div>
+                                    {task.amsConfig.notes && (
+                                      <div style={{ fontSize: "10px", opacity: 0.75, marginTop: "4px", fontStyle: "italic" }}>
+                                        {task.amsConfig.notes}
+                                      </div>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <div style={{ fontSize: "11px", opacity: 0.85, marginBottom: "4px" }}>
+                                      {format(new Date(task.startDate), "dd-MMM-yy (EEE)")} → {format(new Date(task.endDate), "dd-MMM-yy (EEE)")}
+                                    </div>
+                                    <div style={{ fontSize: "11px", opacity: 0.85 }}>
+                                      Duration: {taskWorkingDays} working days
+                                    </div>
+                                  </>
+                                )}
+                                {!task.isAMS && task.resourceAssignments && task.resourceAssignments.length > 0 && (
+                                  <div style={{ fontSize: "11px", opacity: 0.85, marginTop: "4px", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "4px" }}>
+                                    {task.resourceAssignments.length} resource{task.resourceAssignments.length > 1 ? 's' : ''} assigned
+                                  </div>
+                                )}
+                                {task.isAMS && (
+                                  <div style={{ fontSize: "10px", opacity: 0.75, marginTop: "6px", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "4px" }}>
+                                    Managed by Shared Services
+                                  </div>
+                                )}
                                 <div
                                   style={{
                                     position: "absolute",
@@ -1143,39 +1996,33 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                                     height: 0,
                                     borderLeft: "4px solid transparent",
                                     borderRight: "4px solid transparent",
-                                    borderTop: "4px solid rgba(0, 0, 0, 0.85)",
+                                    borderTop: "4px solid rgba(0, 0, 0, 0.92)",
                                   }}
                                 />
                               </div>
                             )}
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
                 </div>
               );
             })}
 
             {/* Milestone Markers */}
             {currentProject.milestones && currentProject.milestones.length > 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  pointerEvents: "none",
-                }}
-              >
+              <>
                 {currentProject.milestones.map((milestone) => {
                   const milestoneDate = new Date(milestone.date);
                   const milestonePosition = getPositionPercent(milestoneDate);
 
-                  // Convert percentage to pixels (approximate)
-                  const timelineElement = document.querySelector('.flex-1.overflow-auto');
-                  const timelineWidth = timelineElement?.scrollWidth || 1000;
-                  const xPosition = (milestonePosition / 100) * timelineWidth;
+                  // Check if milestone is within the current timeline bounds
+                  if (milestonePosition < 0 || milestonePosition > 100) {
+                    return null;
+                  }
 
                   return (
                     <div
@@ -1185,215 +2032,113 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
                         left: `${milestonePosition}%`,
                         top: 0,
                         bottom: 0,
-                        pointerEvents: "auto",
+                        width: "2px",
+                        backgroundColor: milestone.color || "#FF3B30",
+                        opacity: 0.5,
+                        pointerEvents: "none",
+                        zIndex: 50,
                       }}
                     >
-                      <MilestoneMarker
-                        milestone={milestone}
-                        xPosition={0} // Relative to container
-                        yPosition={32} // Below timeline header
-                        onEdit={(m) => {
-                          setEditingMilestone(m);
-                          setShowMilestoneModal(true);
+                      {/* Milestone marker - clickable area with diamond shape */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "8px",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          width: "24px",
+                          height: "24px",
+                          cursor: "pointer",
+                          pointerEvents: "auto",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          zIndex: 51,
                         }}
-                        onDelete={async (id) => {
-                          await deleteMilestone(id);
+                        title={`${milestone.icon || ''} ${milestone.name} - ${format(milestoneDate, 'MMM d, yyyy')}\n\nClick to edit`}
+                        onClick={(e) => {
+                          try {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setShowMilestoneModal(true);
+                          } catch (err) {
+                            console.error('Error opening milestone modal:', err);
+                          }
                         }}
-                      />
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "translateX(-50%) scale(1.2)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+                        }}
+                      >
+                        {/* Diamond shape */}
+                        <div
+                          style={{
+                            width: "14px",
+                            height: "14px",
+                            backgroundColor: milestone.color || "#FF3B30",
+                            transform: "rotate(45deg)",
+                            border: "2px solid white",
+                            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                            transition: "all 0.15s ease",
+                          }}
+                        />
+                      </div>
+                      {/* Label - clickable to edit */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "36px",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          whiteSpace: "nowrap",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          color: milestone.color || "#FF3B30",
+                          backgroundColor: "rgba(255, 255, 255, 0.98)",
+                          padding: "3px 8px",
+                          borderRadius: "4px",
+                          border: `1px solid ${milestone.color || "#FF3B30"}`,
+                          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+                          pointerEvents: "auto",
+                          cursor: "pointer",
+                          maxWidth: "120px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          zIndex: 51,
+                        }}
+                        title={`${milestone.icon || ''} ${milestone.name} - ${format(milestoneDate, 'MMM d, yyyy')}\n\nClick to edit`}
+                        onClick={(e) => {
+                          try {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setShowMilestoneModal(true);
+                          } catch (err) {
+                            console.error('Error opening milestone modal:', err);
+                          }
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = milestone.color || "#FF3B30";
+                          e.currentTarget.style.color = "white";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.98)";
+                          e.currentTarget.style.color = milestone.color || "#FF3B30";
+                        }}
+                      >
+                        {milestone.icon} {milestone.name}
+                      </div>
                     </div>
                   );
                 })}
-              </div>
+              </>
             )}
           </div>
           </div>
         </div>
       </div>
 
-      {/* Inline Bar Editor - Jobs/Ive Popover */}
-      {barEditorState && (() => {
-        const item = barEditorState.type === "phase"
-          ? currentProject.phases.find(p => p.id === barEditorState.id)
-          : currentProject.phases
-              .find(p => p.id === barEditorState.phaseId)
-              ?.tasks.find(t => t.id === barEditorState.id);
-
-        if (!item) return null;
-
-        return (
-          <div
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 1000,
-            }}
-            onClick={() => setBarEditorState(null)}
-          >
-            <div
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                backgroundColor: "#fff",
-                borderRadius: "12px",
-                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)",
-                padding: "20px",
-                minWidth: "320px",
-                maxWidth: "400px",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div style={{ marginBottom: "16px" }}>
-                <h3 style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "#000",
-                  marginBottom: "4px",
-                }}>
-                  Edit {barEditorState.type === "phase" ? "Phase" : "Task"}
-                </h3>
-                <p style={{
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  color: "var(--color-text-secondary)",
-                }}>
-                  {item.name}
-                </p>
-              </div>
-
-              {/* Quick Edit Fields */}
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  if (barEditorState.type === "phase") {
-                    await updatePhase(barEditorState.id, {
-                      startDate: formData.get("startDate") as string,
-                      endDate: formData.get("endDate") as string,
-                    });
-                  } else {
-                    await updateTask(barEditorState.id, barEditorState.phaseId!, {
-                      startDate: formData.get("startDate") as string,
-                      endDate: formData.get("endDate") as string,
-                    });
-                  }
-                  setBarEditorState(null);
-                }}
-                style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-              >
-                {/* Start Date */}
-                <div>
-                  <label style={{
-                    display: "block",
-                    fontFamily: "var(--font-text)",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "#000",
-                    marginBottom: "6px",
-                  }}>
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    name="startDate"
-                    defaultValue={item.startDate}
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "8px 12px",
-                      borderRadius: "6px",
-                      border: "1px solid var(--color-gray-4)",
-                      fontFamily: "var(--font-text)",
-                      fontSize: "14px",
-                    }}
-                  />
-                </div>
-
-                {/* End Date */}
-                <div>
-                  <label style={{
-                    display: "block",
-                    fontFamily: "var(--font-text)",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "#000",
-                    marginBottom: "6px",
-                  }}>
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    name="endDate"
-                    defaultValue={item.endDate}
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "8px 12px",
-                      borderRadius: "6px",
-                      border: "1px solid var(--color-gray-4)",
-                      fontFamily: "var(--font-text)",
-                      fontSize: "14px",
-                    }}
-                  />
-                </div>
-
-                {/* Duration Display */}
-                <div style={{
-                  padding: "8px 12px",
-                  backgroundColor: "var(--color-gray-6)",
-                  borderRadius: "6px",
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  color: "var(--color-text-secondary)",
-                }}>
-                  Duration: {calculateWorkingDaysInclusive(item.startDate, item.endDate, currentProject.holidays || [])} working days
-                </div>
-
-                {/* Actions */}
-                <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-                  <button
-                    type="button"
-                    onClick={() => setBarEditorState(null)}
-                    style={{
-                      flex: 1,
-                      padding: "10px",
-                      borderRadius: "6px",
-                      border: "1px solid var(--color-gray-4)",
-                      backgroundColor: "transparent",
-                      fontFamily: "var(--font-text)",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    style={{
-                      flex: 1,
-                      padding: "10px",
-                      borderRadius: "6px",
-                      border: "none",
-                      backgroundColor: "#007AFF",
-                      color: "white",
-                      fontFamily: "var(--font-text)",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Save
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        );
-      })()}
 
       {/* Resource Drawer */}
       {resourceModalTaskId && (
@@ -1407,410 +2152,42 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
       {/* Task Resource Modal - Simple Assignment */}
       {taskResourceModal && (
         <TaskResourceModal
+          isOpen={true}
           taskId={taskResourceModal.taskId}
           phaseId={taskResourceModal.phaseId}
           onClose={() => setTaskResourceModal(null)}
         />
       )}
 
-      {/* Phase Edit Modal */}
+      {/* Phase Edit Modal - Apple HIG Compliant */}
       {editingPhaseId && (() => {
         const phase = currentProject.phases.find(p => p.id === editingPhaseId);
         if (!phase) return null;
 
         return (
-          <div
-            style={{
-              position: "fixed",
-              inset: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.4)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1000,
-            }}
-            onClick={() => setEditingPhaseId(null)}
-          >
-            <div
-              style={{
-                backgroundColor: "#fff",
-                borderRadius: "12px",
-                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
-                width: "480px",
-                maxWidth: "90vw",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div
-                style={{
-                  padding: "20px 24px",
-                  borderBottom: "1px solid var(--color-gray-4)",
-                }}
-              >
-                <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 600, color: "#000" }}>
-                  Edit Phase
-                </h2>
-              </div>
-
-              {/* Form */}
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  await updatePhase(editingPhaseId, {
-                    name: formData.get("name") as string,
-                    startDate: formData.get("startDate") as string,
-                    endDate: formData.get("endDate") as string,
-                  });
-                  setEditingPhaseId(null);
-                }}
-                style={{ padding: "24px" }}
-              >
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {/* Name */}
-                  <div>
-                    <label
-                      htmlFor="phase-name"
-                      style={{
-                        display: "block",
-                        fontFamily: "var(--font-text)",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        color: "#000",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      Phase Name
-                    </label>
-                    <input
-                      type="text"
-                      id="phase-name"
-                      name="name"
-                      defaultValue={phase.name}
-                      required
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        borderRadius: "8px",
-                        border: "1px solid var(--color-gray-4)",
-                        fontFamily: "var(--font-text)",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-
-                  {/* Dates */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                    <div>
-                      <label
-                        htmlFor="phase-start"
-                        style={{
-                          display: "block",
-                          fontFamily: "var(--font-text)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          color: "#000",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        Start Date
-                      </label>
-                      <input
-                        type="date"
-                        id="phase-start"
-                        name="startDate"
-                        defaultValue={phase.startDate}
-                        required
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px",
-                          borderRadius: "8px",
-                          border: "1px solid var(--color-gray-4)",
-                          fontFamily: "var(--font-text)",
-                          fontSize: "14px",
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="phase-end"
-                        style={{
-                          display: "block",
-                          fontFamily: "var(--font-text)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          color: "#000",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        End Date
-                      </label>
-                      <input
-                        type="date"
-                        id="phase-end"
-                        name="endDate"
-                        defaultValue={phase.endDate}
-                        required
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px",
-                          borderRadius: "8px",
-                          border: "1px solid var(--color-gray-4)",
-                          fontFamily: "var(--font-text)",
-                          fontSize: "14px",
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    gap: "12px",
-                    marginTop: "24px",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setEditingPhaseId(null)}
-                    style={{
-                      padding: "10px 20px",
-                      borderRadius: "8px",
-                      border: "1px solid var(--color-gray-4)",
-                      backgroundColor: "#fff",
-                      fontFamily: "var(--font-text)",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    style={{
-                      padding: "10px 20px",
-                      borderRadius: "8px",
-                      border: "none",
-                      backgroundColor: "#007AFF",
-                      color: "#fff",
-                      fontFamily: "var(--font-text)",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+          <EditPhaseModal
+            isOpen={!!editingPhaseId}
+            onClose={() => setEditingPhaseId(null)}
+            phase={phase}
+            phaseId={editingPhaseId}
+          />
         );
       })()}
 
-      {/* Task Edit Modal */}
+      {/* Task Edit Modal - Apple HIG Compliant */}
       {editingTaskId && (() => {
         const phase = currentProject.phases.find(p => p.id === editingTaskId.phaseId);
         const task = phase?.tasks.find(t => t.id === editingTaskId.taskId);
         if (!task) return null;
 
         return (
-          <div
-            style={{
-              position: "fixed",
-              inset: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.4)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1000,
-            }}
-            onClick={() => setEditingTaskId(null)}
-          >
-            <div
-              style={{
-                backgroundColor: "#fff",
-                borderRadius: "12px",
-                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
-                width: "480px",
-                maxWidth: "90vw",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div
-                style={{
-                  padding: "20px 24px",
-                  borderBottom: "1px solid var(--color-gray-4)",
-                }}
-              >
-                <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 600, color: "#000" }}>
-                  Edit Task
-                </h2>
-              </div>
-
-              {/* Form */}
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  await updateTask(editingTaskId.taskId, editingTaskId.phaseId, {
-                    name: formData.get("name") as string,
-                    startDate: formData.get("startDate") as string,
-                    endDate: formData.get("endDate") as string,
-                  });
-                  setEditingTaskId(null);
-                }}
-                style={{ padding: "24px" }}
-              >
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {/* Name */}
-                  <div>
-                    <label
-                      htmlFor="task-name"
-                      style={{
-                        display: "block",
-                        fontFamily: "var(--font-text)",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        color: "#000",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      Task Name
-                    </label>
-                    <input
-                      type="text"
-                      id="task-name"
-                      name="name"
-                      defaultValue={task.name}
-                      required
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        borderRadius: "8px",
-                        border: "1px solid var(--color-gray-4)",
-                        fontFamily: "var(--font-text)",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-
-                  {/* Dates */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                    <div>
-                      <label
-                        htmlFor="task-start"
-                        style={{
-                          display: "block",
-                          fontFamily: "var(--font-text)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          color: "#000",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        Start Date
-                      </label>
-                      <input
-                        type="date"
-                        id="task-start"
-                        name="startDate"
-                        defaultValue={task.startDate}
-                        required
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px",
-                          borderRadius: "8px",
-                          border: "1px solid var(--color-gray-4)",
-                          fontFamily: "var(--font-text)",
-                          fontSize: "14px",
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="task-end"
-                        style={{
-                          display: "block",
-                          fontFamily: "var(--font-text)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          color: "#000",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        End Date
-                      </label>
-                      <input
-                        type="date"
-                        id="task-end"
-                        name="endDate"
-                        defaultValue={task.endDate}
-                        required
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px",
-                          borderRadius: "8px",
-                          border: "1px solid var(--color-gray-4)",
-                          fontFamily: "var(--font-text)",
-                          fontSize: "14px",
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    gap: "12px",
-                    marginTop: "24px",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setEditingTaskId(null)}
-                    style={{
-                      padding: "10px 20px",
-                      borderRadius: "8px",
-                      border: "1px solid var(--color-gray-4)",
-                      backgroundColor: "#fff",
-                      fontFamily: "var(--font-text)",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    style={{
-                      padding: "10px 20px",
-                      borderRadius: "8px",
-                      border: "none",
-                      backgroundColor: "#007AFF",
-                      color: "#fff",
-                      fontFamily: "var(--font-text)",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+          <EditTaskModal
+            isOpen={!!editingTaskId}
+            onClose={() => setEditingTaskId(null)}
+            task={task}
+            taskId={editingTaskId.taskId}
+            phaseId={editingTaskId.phaseId}
+          />
         );
       })()}
 
@@ -1820,22 +2197,75 @@ export function GanttCanvasV3({ zoomMode = 'month' }: GanttCanvasV3Props = {}) {
         onOpenChange={(open) => {
           setShowMilestoneModal(open);
           if (!open) {
-            setEditingMilestone(null);
             setMilestoneDefaultDate(undefined);
           }
         }}
         onSave={async (data) => {
-          if (editingMilestone) {
-            await updateMilestone(editingMilestone.id, data);
-          } else {
-            await addMilestone(data as any);
+          try {
+            if (data.id) {
+              await updateMilestone(data.id, data);
+            } else {
+              await addMilestone(data as any);
+            }
+            setMilestoneDefaultDate(undefined);
+          } catch (error) {
+            console.error('Error saving milestone:', error);
+            alert('Failed to save milestone. Please try again.');
           }
-          setEditingMilestone(null);
-          setMilestoneDefaultDate(undefined);
         }}
-        milestone={editingMilestone}
+        onDelete={async (id) => {
+          try {
+            await deleteMilestone(id);
+          } catch (error) {
+            console.error('Error deleting milestone:', error);
+            alert('Failed to delete milestone. Please try again.');
+          }
+        }}
+        milestones={currentProject.milestones || []}
         defaultDate={milestoneDefaultDate}
       />
+
+      {/* Phase Deletion Impact Modal */}
+      {deletingPhase && (
+        <PhaseDeletionImpactModal
+          phase={deletingPhase.phase}
+          allPhases={currentProject.phases}
+          allResources={currentProject.resources || []}
+          onConfirm={confirmPhaseDelete}
+          onCancel={() => setDeletingPhase(null)}
+          holidays={currentProject.holidays || []}
+        />
+      )}
+
+      {/* Task Deletion Impact Modal */}
+      {deletingTask && (() => {
+        const phase = currentProject.phases.find(p => p.id === deletingTask.phaseId);
+        const allTasks = currentProject.phases.flatMap(p => p.tasks || []);
+
+        return phase ? (
+          <TaskDeletionImpactModal
+            task={deletingTask.task}
+            phase={phase}
+            allTasks={allTasks}
+            allResources={currentProject.resources || []}
+            onConfirm={confirmTaskDelete}
+            onCancel={() => setDeletingTask(null)}
+            holidays={currentProject.holidays || []}
+          />
+        ) : null;
+      })()}
+
+      {/* Undo Toast */}
+      {undoToast && (
+        <UndoToast
+          isOpen={undoToast.isOpen}
+          message={undoToast.message}
+          onUndo={undoToast.action}
+          onClose={() => setUndoToast(null)}
+          duration={5000}
+          variant="destructive"
+        />
+      )}
 
       {/* CSS for divider hover effect and responsive styles */}
       <style jsx>{`

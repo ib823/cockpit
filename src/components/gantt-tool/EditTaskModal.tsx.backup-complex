@@ -1,0 +1,974 @@
+/**
+ * EditTaskModal - BaseModal Pattern
+ *
+ * Features:
+ * - BaseModal integration with unified UX (following modal-design-showcase)
+ * - Full feature parity with AddTaskModal
+ * - Description, deliverables, AMS configuration
+ * - Working days calculation
+ * - Real-time validation with impact preview
+ * - Strategic Planning fields
+ * - RACI editor integration
+ * - Delete functionality with impact modal
+ * - Keyboard shortcuts
+ * - Apple HIG compliance - responsive, accessible, smooth animations
+ *
+ * Migration: Converted from AppleMinimalistModal to BaseModal (2025-11-16)
+ * Following patterns from: /modal-design-showcase
+ * Using: /src/lib/design-system/modal-helpers.tsx for consistency
+ */
+
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { format } from "date-fns";
+import { Calendar, AlertCircle, Edit3, DollarSign, Trash2, Users, ChevronDown, TrendingUp } from "lucide-react";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { ModalFormHelpers } from "@/lib/design-system/modal-helpers";
+import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
+import type { TaskFormData, Task, Phase, ResourceCategory } from "@/types/gantt-tool";
+import { TaskDeletionImpactModal } from "./TaskDeletionImpactModal";
+import { RACIEditorModal } from "./RACIEditorModal";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
+
+interface EditTaskModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  task: Task; // The task being edited
+  taskId: string;
+  phaseId: string;
+}
+
+export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTaskModalProps) {
+  const { currentProject, updateTask, deleteTask } = useGanttToolStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof TaskFormData, string>>>({});
+  const [impactWarning, setImpactWarning] = useState<string | null>(null);
+  const [showAMSConfig, setShowAMSConfig] = useState(task.isAMS || false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showRACIModal, setShowRACIModal] = useState(false);
+  const [showStrategicFields, setShowStrategicFields] = useState(false);
+
+  // Get the phase this task belongs to
+  const phase = currentProject?.phases.find(p => p.id === phaseId);
+
+  // Form state - pre-populated with current task data
+  const [formData, setFormData] = useState<TaskFormData>({
+    name: task.name,
+    description: task.description || "",
+    deliverables: task.deliverables || "",
+    startDate: format(new Date(task.startDate), "yyyy-MM-dd"),
+    endDate: format(new Date(task.endDate), "yyyy-MM-dd"),
+    phaseId: phaseId,
+    // AMS fields
+    isAMS: task.isAMS || false,
+    amsRateType: task.amsConfig?.rateType || "daily",
+    amsFixedRate: task.amsConfig?.fixedRate || 0,
+    amsMinimumDuration: task.amsConfig?.minimumDuration || 12,
+    amsNotes: task.amsConfig?.notes || "",
+    // Strategic planning fields
+    priority: task.priority,
+    isCritical: task.isCritical || false,
+    estimatedEffort: task.estimatedEffort,
+    requiredSkillCategories: task.requiredSkillCategories || [],
+  });
+
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Update form data when task changes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: task.name,
+        description: task.description || "",
+        deliverables: task.deliverables || "",
+        startDate: format(new Date(task.startDate), "yyyy-MM-dd"),
+        endDate: format(new Date(task.endDate), "yyyy-MM-dd"),
+        phaseId: phaseId,
+        isAMS: task.isAMS || false,
+        amsRateType: task.amsConfig?.rateType || "daily",
+        amsFixedRate: task.amsConfig?.fixedRate || 0,
+        amsMinimumDuration: task.amsConfig?.minimumDuration || 12,
+        amsNotes: task.amsConfig?.notes || "",
+        priority: task.priority,
+        isCritical: task.isCritical || false,
+        estimatedEffort: task.estimatedEffort,
+        requiredSkillCategories: task.requiredSkillCategories || [],
+      });
+      setShowAMSConfig(task.isAMS || false);
+      setShowStrategicFields(!!(task.priority !== undefined || task.isCritical || task.estimatedEffort !== undefined || (task.requiredSkillCategories && task.requiredSkillCategories.length > 0)));
+      setErrors({});
+      setImpactWarning(null);
+
+      // Focus name field
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+        nameInputRef.current?.select();
+      }, 100);
+    }
+  }, [isOpen, task, phaseId]);
+
+  // Calculate impact when dates change
+  useEffect(() => {
+    if (!currentProject || !formData.startDate || !formData.endDate) return;
+
+    const newStart = new Date(formData.startDate);
+    const newEnd = new Date(formData.endDate);
+    const oldStart = new Date(task.startDate);
+    const oldEnd = new Date(task.endDate);
+
+    // Check if dates are changing significantly
+    if (newStart.getTime() !== oldStart.getTime() || newEnd.getTime() !== oldEnd.getTime()) {
+      const assignmentCount = task.resourceAssignments?.length || 0;
+      if (assignmentCount > 0) {
+        const workingDays = calculateWorkingDaysInclusive(newStart, newEnd, currentProject.holidays || []);
+        setImpactWarning(
+          `⚠️ ${assignmentCount} resource${assignmentCount > 1 ? 's' : ''} (${workingDays} working days) will be affected`
+        );
+      } else {
+        setImpactWarning(null);
+      }
+    } else {
+      setImpactWarning(null);
+    }
+  }, [formData.startDate, formData.endDate, task, currentProject]);
+
+  // Calculate working days
+  const workingDays = currentProject && formData.startDate && formData.endDate
+    ? calculateWorkingDaysInclusive(
+        new Date(formData.startDate),
+        new Date(formData.endDate),
+        currentProject.holidays || []
+      )
+    : 0;
+
+  // Validation
+  const validate = (): boolean => {
+    const newErrors: Partial<Record<keyof TaskFormData, string>> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Task name is required";
+    }
+
+    if (!formData.startDate) {
+      newErrors.startDate = "Start date is required";
+    }
+
+    if (!formData.endDate) {
+      newErrors.endDate = "End date is required";
+    }
+
+    if (formData.startDate && formData.endDate) {
+      const start = new Date(formData.startDate);
+      const end = new Date(formData.endDate);
+
+      if (end <= start) {
+        newErrors.endDate = "End date must be after start date";
+      }
+
+      // Validate phase boundaries
+      if (phase) {
+        const phaseStart = new Date(phase.startDate);
+        const phaseEnd = new Date(phase.endDate);
+
+        if (start < phaseStart || end > phaseEnd) {
+          newErrors.startDate = "Task dates must fall within phase boundaries";
+          newErrors.endDate = `Phase: ${format(phaseStart, "MMM d")} - ${format(phaseEnd, "MMM d, yyyy")}`;
+        }
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle submit
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validate()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      await updateTask(taskId, phaseId, formData);
+      onClose();
+    } catch (error) {
+      console.error("Failed to update task:", error);
+      setErrors({ name: "Failed to save. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle field changes
+  const handleChange = (field: keyof TaskFormData, value: string | number | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error for this field
+    setErrors(prev => ({ ...prev, [field]: undefined }));
+  };
+
+  // Keyboard shortcut: Cmd/Ctrl + Enter to submit
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleSubmit(e as any);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, formData]);
+  // All form content rendered in BaseModal children
+  const customContent = (
+    <>
+      {/* Prominent Title Editor - Jobs/Ive Principle: Make important things unmissable */}
+      <div style={{
+        padding: SPACING[5],
+        backgroundColor: COLORS.bg.subtle,
+        borderRadius: RADIUS.large,
+        border: `2px solid ${COLORS.blueLight}`,
+        marginBottom: SPACING[5],
+      }}>
+        <label style={{
+          display: "block",
+          fontFamily: TYPOGRAPHY.fontFamily.text,
+          fontSize: TYPOGRAPHY.fontSize.caption,
+          fontWeight: TYPOGRAPHY.fontWeight.semibold,
+          color: COLORS.text.tertiary,
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
+          marginBottom: SPACING[2],
+        }}>
+          📝 Task Name (Required)
+        </label>
+        <input
+          ref={nameInputRef}
+          type="text"
+          value={formData.name}
+          onChange={(e) => handleChange("name", e.target.value)}
+          placeholder="e.g., Create Business Requirements Document"
+          style={{
+            width: "100%",
+            padding: SPACING[4],
+            fontFamily: TYPOGRAPHY.fontFamily.text,
+            fontSize: TYPOGRAPHY.fontSize.heading,
+            fontWeight: TYPOGRAPHY.fontWeight.semibold,
+            color: COLORS.text.primary,
+            backgroundColor: COLORS.bg.primary,
+            border: `1px solid ${errors.name ? COLORS.red : "transparent"}`,
+            borderRadius: RADIUS.default,
+            outline: "none",
+            transition: `all ${TRANSITIONS.duration.normal}`,
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = COLORS.blue;
+            e.target.style.boxShadow = `0 0 0 3px ${COLORS.blueLight}`;
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = errors.name ? COLORS.red : "transparent";
+            e.target.style.boxShadow = "none";
+          }}
+        />
+        {errors.name && (
+          <div style={{
+            marginTop: SPACING[2],
+            fontFamily: TYPOGRAPHY.fontFamily.text,
+            fontSize: TYPOGRAPHY.fontSize.caption,
+            color: COLORS.red,
+            display: "flex",
+            alignItems: "center",
+            gap: SPACING[1],
+          }}>
+            <AlertCircle style={{ width: '16px', height: '16px' }} />
+            {errors.name}
+          </div>
+        )}
+        <div style={{
+          marginTop: SPACING[2],
+          fontFamily: TYPOGRAPHY.fontFamily.text,
+          fontSize: TYPOGRAPHY.fontSize.caption,
+          color: COLORS.text.tertiary,
+        }}>
+          💡 This is what your team will see - make it clear and actionable
+        </div>
+      </div>
+
+      {/* Impact Warning */}
+        {impactWarning && (
+          <div style={{
+            padding: SPACING[4],
+            backgroundColor: "rgba(255, 149, 0, 0.1)",
+            border: `1px solid ${COLORS.orange}50`,
+            borderRadius: RADIUS.default,
+            display: "flex",
+            alignItems: "flex-start",
+            gap: SPACING[3],
+          }}>
+            <AlertCircle style={{ width: '20px', height: '20px', color: COLORS.orange, flexShrink: 0, marginTop: '2px' }} />
+            <div style={{
+              fontFamily: TYPOGRAPHY.fontFamily.text,
+              fontSize: TYPOGRAPHY.fontSize.caption,
+              color: COLORS.text.primary,
+              lineHeight: "1.5",
+            }}>
+              {impactWarning}
+            </div>
+          </div>
+        )}
+
+      {/* Working Days Display */}
+        {workingDays > 0 && (
+          <div style={{
+            padding: SPACING[4],
+            backgroundColor: COLORS.bg.subtle,
+            borderRadius: RADIUS.default,
+            display: "flex",
+            alignItems: "center",
+            gap: SPACING[2],
+          }}>
+            <Calendar style={{ width: '16px', height: '16px', color: COLORS.blue }} />
+            <span style={{
+              fontFamily: TYPOGRAPHY.fontFamily.text,
+              fontSize: TYPOGRAPHY.fontSize.caption,
+              color: COLORS.text.primary,
+            }}>
+              <strong>{workingDays}</strong> working days (excluding weekends & holidays)
+            </span>
+          </div>
+        )}
+
+        {/* AMS Configuration Section */}
+        <div style={{
+          padding: SPACING[4],
+          backgroundColor: COLORS.bg.subtle,
+          borderRadius: RADIUS.default,
+          border: `1px solid ${COLORS.border.default}`,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: SPACING[3], marginBottom: showAMSConfig ? SPACING[4] : 0 }}>
+            <input
+              id="edit-task-is-ams"
+              type="checkbox"
+              checked={formData.isAMS}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                handleChange("isAMS", checked);
+                setShowAMSConfig(checked);
+              }}
+              style={{
+                width: "18px",
+                height: "18px",
+                accentColor: COLORS.blue,
+              }}
+            />
+            <label
+              htmlFor="edit-task-is-ams"
+              style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.body,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: SPACING[2],
+              }}
+            >
+              <DollarSign style={{ width: '16px', height: '16px', color: COLORS.status.success }} />
+              Application Maintenance & Support (AMS)
+            </label>
+          </div>
+
+          {showAMSConfig && (
+            <div style={{ display: "flex", flexDirection: "column", gap: SPACING[4], paddingLeft: "30px" }}>
+              {/* Rate Type */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: SPACING[3] }}>
+                <div>
+                  <label style={{
+                    display: "block",
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                    fontSize: TYPOGRAPHY.fontSize.caption,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: COLORS.text.primary,
+                    marginBottom: SPACING[1],
+                  }}>
+                    Rate Type
+                  </label>
+                  <select
+                    value={formData.amsRateType}
+                    onChange={(e) => handleChange("amsRateType", e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: `${SPACING[2]} ${SPACING[3]}`,
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                      fontSize: TYPOGRAPHY.fontSize.body,
+                      backgroundColor: COLORS.bg.primary,
+                      border: `1px solid ${COLORS.border.default}`,
+                      borderRadius: RADIUS.default,
+                      outline: "none",
+                    }}
+                  >
+                    <option value="daily">Daily Rate</option>
+                    <option value="manda">Man/Day Rate</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: "block",
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                    fontSize: TYPOGRAPHY.fontSize.caption,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: COLORS.text.primary,
+                    marginBottom: SPACING[1],
+                  }}>
+                    Fixed Rate
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.amsFixedRate}
+                    onChange={(e) => handleChange("amsFixedRate", parseFloat(e.target.value) || 0)}
+                    min="0"
+                    step="0.01"
+                    style={{
+                      width: "100%",
+                      padding: `${SPACING[2]} ${SPACING[3]}`,
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                      fontSize: TYPOGRAPHY.fontSize.body,
+                      backgroundColor: COLORS.bg.primary,
+                      border: `1px solid ${COLORS.border.default}`,
+                      borderRadius: RADIUS.default,
+                      outline: "none",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Min Duration */}
+              <div>
+                <label style={{
+                  display: "block",
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  fontSize: TYPOGRAPHY.fontSize.caption,
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  color: COLORS.text.primary,
+                  marginBottom: SPACING[1],
+                }}>
+                  Minimum Duration (months)
+                </label>
+                <input
+                  type="number"
+                  value={formData.amsMinimumDuration}
+                  onChange={(e) => handleChange("amsMinimumDuration", parseInt(e.target.value) || 12)}
+                  min="1"
+                  style={{
+                    width: "100%",
+                    padding: `${SPACING[2]} ${SPACING[3]}`,
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                    fontSize: TYPOGRAPHY.fontSize.body,
+                    backgroundColor: COLORS.bg.primary,
+                    border: `1px solid ${COLORS.border.default}`,
+                    borderRadius: RADIUS.default,
+                    outline: "none",
+                  }}
+                />
+              </div>
+
+              {/* AMS Notes */}
+              <div>
+                <label style={{
+                  display: "block",
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  fontSize: TYPOGRAPHY.fontSize.caption,
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  color: COLORS.text.primary,
+                  marginBottom: SPACING[1],
+                }}>
+                  Notes
+                </label>
+                <textarea
+                  value={formData.amsNotes}
+                  onChange={(e) => handleChange("amsNotes", e.target.value)}
+                  placeholder="Additional AMS details"
+                  rows={2}
+                  style={{
+                    width: "100%",
+                    padding: `${SPACING[2]} ${SPACING[3]}`,
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                    fontSize: TYPOGRAPHY.fontSize.body,
+                    backgroundColor: COLORS.bg.primary,
+                    border: `1px solid ${COLORS.border.default}`,
+                    borderRadius: RADIUS.default,
+                    outline: "none",
+                    resize: "vertical",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Strategic Planning Section (Optional - Collapsible) */}
+        <div style={{
+          padding: SPACING[4],
+          backgroundColor: COLORS.bg.subtle,
+          borderRadius: RADIUS.default,
+          border: `1px solid ${COLORS.border.default}`,
+        }}>
+          <button
+            type="button"
+            onClick={() => setShowStrategicFields(!showStrategicFields)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: SPACING[3],
+              width: "100%",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            <ChevronDown
+              style={{
+                width: '16px',
+                height: '16px',
+                color: COLORS.text.tertiary,
+                transform: showStrategicFields ? "rotate(180deg)" : "rotate(0deg)",
+                transition: `transform ${TRANSITIONS.duration.normal}`,
+              }}
+            />
+            <div style={{ flex: 1, textAlign: "left" }}>
+              <div style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.body,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                display: "flex",
+                alignItems: "center",
+                gap: SPACING[2],
+              }}>
+                <TrendingUp style={{ width: '16px', height: '16px', color: COLORS.blue }} />
+                Strategic Planning <span style={{ color: COLORS.text.tertiary, fontWeight: TYPOGRAPHY.fontWeight.normal }}>(optional)</span>
+              </div>
+              <div style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                color: COLORS.text.tertiary,
+                marginTop: "2px",
+              }}>
+                Priority, criticality, effort estimation, and skill requirements
+              </div>
+            </div>
+          </button>
+
+          {showStrategicFields && (
+            <div style={{ marginTop: SPACING[4], display: "flex", flexDirection: "column", gap: SPACING[4], paddingLeft: "30px" }}>
+
+              {/* Priority Level - Segmented Control */}
+              <div>
+                <label style={{
+                  display: "block",
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  fontSize: TYPOGRAPHY.fontSize.caption,
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  color: COLORS.text.primary,
+                  marginBottom: SPACING[2],
+                }}>
+                  Priority Level
+                </label>
+                <div style={{ display: "flex", gap: SPACING[2] }}>
+                  {(["high", "medium", "low"] as const).map(level => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => handleChange("priority", level)}
+                      style={{
+                        flex: 1,
+                        padding: `${SPACING[2]} ${SPACING[3]}`,
+                        backgroundColor: formData.priority === level
+                          ? (level === "high" ? COLORS.red : level === "medium" ? COLORS.orange : COLORS.text.secondary)
+                          : COLORS.bg.primary,
+                        color: formData.priority === level ? "#FFFFFF" : COLORS.text.primary,
+                        border: `1px solid ${level === "high" ? COLORS.red : level === "medium" ? COLORS.orange : COLORS.text.secondary}`,
+                        borderRadius: RADIUS.default,
+                        fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                        fontSize: TYPOGRAPHY.fontSize.caption,
+                        fontFamily: TYPOGRAPHY.fontFamily.text,
+                        cursor: "pointer",
+                        transition: `all ${TRANSITIONS.duration.fast}`,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (formData.priority !== level) {
+                          const color = level === "high" ? COLORS.red : level === "medium" ? COLORS.orange : COLORS.text.secondary;
+                          e.currentTarget.style.backgroundColor = `${color}20`;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (formData.priority !== level) {
+                          e.currentTarget.style.backgroundColor = COLORS.bg.primary;
+                        }
+                      }}
+                    >
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                <div style={{
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  fontSize: "11px",
+                  color: COLORS.text.tertiary,
+                  marginTop: SPACING[1],
+                }}>
+                  How urgent is this task for the project timeline?
+                </div>
+              </div>
+
+              {/* Critical Path Flag */}
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: SPACING[3] }}>
+                  <input
+                    id="edit-task-is-critical"
+                    type="checkbox"
+                    checked={formData.isCritical || false}
+                    onChange={(e) => handleChange("isCritical", e.target.checked)}
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      accentColor: COLORS.orange,
+                    }}
+                  />
+                  <label
+                    htmlFor="edit-task-is-critical"
+                    style={{
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                      fontSize: TYPOGRAPHY.fontSize.caption,
+                      fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                      color: COLORS.text.primary,
+                      cursor: "pointer",
+                    }}
+                  >
+                    ⚠️ Critical Path Task
+                  </label>
+                </div>
+                {formData.isCritical && (
+                  <div style={{
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                    fontSize: "11px",
+                    color: COLORS.orange,
+                    marginLeft: "30px",
+                    marginTop: SPACING[1],
+                  }}>
+                    Delays to this task will impact the go-live date
+                  </div>
+                )}
+              </div>
+
+              {/* Estimated Effort */}
+              <div>
+                <label
+                  htmlFor="edit-task-estimated-effort"
+                  style={{
+                    display: "block",
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                    fontSize: TYPOGRAPHY.fontSize.caption,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: COLORS.text.primary,
+                    marginBottom: SPACING[2],
+                  }}
+                >
+                  Estimated Effort (working days)
+                </label>
+                <input
+                  id="edit-task-estimated-effort"
+                  type="number"
+                  value={formData.estimatedEffort || ""}
+                  onChange={(e) => handleChange("estimatedEffort", e.target.value ? parseInt(e.target.value) as any : "" as any)}
+                  placeholder="e.g., 15"
+                  min="1"
+                  style={{
+                    width: "100%",
+                    padding: `${SPACING[2]} ${SPACING[3]}`,
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                    fontSize: TYPOGRAPHY.fontSize.body,
+                    backgroundColor: COLORS.bg.primary,
+                    border: `1px solid ${COLORS.border.default}`,
+                    borderRadius: RADIUS.default,
+                    outline: "none",
+                    transition: `all ${TRANSITIONS.duration.fast}`,
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = COLORS.blue;
+                    e.target.style.boxShadow = `0 0 0 3px ${COLORS.blueLight}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = COLORS.border.default;
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+                <div style={{
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  fontSize: "11px",
+                  color: COLORS.text.tertiary,
+                  marginTop: SPACING[1],
+                }}>
+                  Used for resource planning and cost estimation
+                </div>
+              </div>
+
+              {/* Required Skills - Multi-select chips */}
+              <div>
+                <label style={{
+                  display: "block",
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  fontSize: TYPOGRAPHY.fontSize.caption,
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  color: COLORS.text.primary,
+                  marginBottom: SPACING[2],
+                }}>
+                  Required Skills
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: SPACING[2] }}>
+                  {(["technical", "functional", "pm", "qa", "change", "basis", "security", "leadership"] as ResourceCategory[]).map(skill => {
+                    const isSelected = (formData.requiredSkillCategories || []).includes(skill);
+                    return (
+                      <button
+                        key={skill}
+                        type="button"
+                        onClick={() => {
+                          const current = formData.requiredSkillCategories || [];
+                          const updated = current.includes(skill)
+                            ? current.filter(s => s !== skill)
+                            : [...current, skill];
+                          handleChange("requiredSkillCategories", updated as any);
+                        }}
+                        style={{
+                          padding: `${SPACING[2]} ${SPACING[3]}`,
+                          backgroundColor: isSelected ? COLORS.blue : COLORS.bg.subtle,
+                          color: isSelected ? "#FFFFFF" : COLORS.text.primary,
+                          border: "none",
+                          borderRadius: "16px",
+                          fontSize: TYPOGRAPHY.fontSize.caption,
+                          fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                          fontFamily: TYPOGRAPHY.fontFamily.text,
+                          cursor: "pointer",
+                          transition: `all ${TRANSITIONS.duration.fast}`,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.backgroundColor = "#E5E5EA";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.backgroundColor = COLORS.bg.subtle;
+                          }
+                        }}
+                      >
+                        {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  fontSize: "11px",
+                  color: COLORS.text.tertiary,
+                  marginTop: SPACING[1],
+                }}>
+                  Helps match tasks with qualified resources in RACI matrix
+                </div>
+              </div>
+
+            </div>
+          )}
+        </div>
+
+        {/* RACI Matrix Section */}
+        <div
+          style={{
+            padding: SPACING[4],
+            backgroundColor: COLORS.bg.subtle,
+            borderRadius: RADIUS.default,
+            border: `1px solid ${COLORS.border.default}`,
+          }}
+        >
+          <div style={{ marginBottom: SPACING[3] }}>
+            <div
+              style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.body,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                marginBottom: SPACING[1],
+              }}
+            >
+              RACI Matrix
+            </div>
+            <div
+              style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                color: COLORS.text.tertiary,
+              }}
+            >
+              Define who is Responsible, Accountable, Consulted, and Informed
+            </div>
+          </div>
+
+          {/* RACI Summary */}
+          {task.raciAssignments && task.raciAssignments.length > 0 ? (
+            <div
+              style={{
+                display: "flex",
+                gap: SPACING[3],
+                marginBottom: SPACING[3],
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+              }}
+            >
+              <span>
+                <strong style={{ color: COLORS.blue }}>
+                  {task.raciAssignments.filter((a) => a.role === "responsible").length}
+                </strong>{" "}
+                Responsible
+              </span>
+              <span>
+                <strong style={{ color: COLORS.red }}>
+                  {task.raciAssignments.filter((a) => a.role === "accountable").length}
+                </strong>{" "}
+                Accountable
+              </span>
+              <span>
+                <strong style={{ color: COLORS.orange }}>
+                  {task.raciAssignments.filter((a) => a.role === "consulted").length}
+                </strong>{" "}
+                Consulted
+              </span>
+              <span>
+                <strong style={{ color: COLORS.text.secondary }}>
+                  {task.raciAssignments.filter((a) => a.role === "informed").length}
+                </strong>{" "}
+                Informed
+              </span>
+            </div>
+          ) : (
+            <div
+              style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                color: COLORS.text.tertiary,
+                marginBottom: SPACING[3],
+              }}
+            >
+              No RACI assignments yet
+            </div>
+          )}
+
+          {/* Edit RACI Button */}
+          <button
+            type="button"
+            onClick={() => setShowRACIModal(true)}
+            style={{
+              width: "100%",
+              padding: `${SPACING[2]} ${SPACING[4]}`,
+              fontFamily: TYPOGRAPHY.fontFamily.text,
+              fontSize: TYPOGRAPHY.fontSize.body,
+              fontWeight: TYPOGRAPHY.fontWeight.semibold,
+              backgroundColor: COLORS.bg.primary,
+              color: COLORS.blue,
+              border: `1px solid ${COLORS.blue}`,
+              borderRadius: RADIUS.default,
+              cursor: "pointer",
+              transition: `all ${TRANSITIONS.duration.fast}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: SPACING[2],
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = COLORS.blue;
+              e.currentTarget.style.color = "#FFFFFF";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = COLORS.bg.primary;
+              e.currentTarget.style.color = COLORS.blue;
+            }}
+          >
+            <Users style={{ width: '16px', height: '16px' }} />
+            Edit RACI Matrix
+          </button>
+        </div>
+    </>
+  );
+
+  return (
+    <>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Edit Task"
+      subtitle={phase ? `Phase: ${phase.name}` : "Modify task details"}
+      icon={<Edit3 style={{ width: '20px', height: '20px' }} />}
+      size="large"
+      footer={
+        <>
+          <ModalButton onClick={() => setShowDeleteModal(true)} variant="destructive">
+            <Trash2 style={{ width: '16px', height: '16px', marginRight: SPACING[1] }} />
+            Delete Task
+          </ModalButton>
+          <div style={{ flex: 1 }} />
+          <ModalButton onClick={onClose} variant="secondary" disabled={isSubmitting}>
+            Cancel
+          </ModalButton>
+          <ModalButton
+            onClick={(e) => { e.preventDefault(); void handleSubmit(e as any); }}
+            variant="primary"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Saving..." : "Save Changes"}
+          </ModalButton>
+        </>
+      }
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: SPACING[4] }}>
+        {customContent}
+      </div>
+    </BaseModal>
+
+    {/* RACI Editor Modal */}
+    {showRACIModal && (
+      <RACIEditorModal
+        isOpen={showRACIModal}
+        onClose={() => setShowRACIModal(false)}
+        item={task}
+        itemType="task"
+        phaseId={phaseId}
+      />
+    )}
+
+    {/* Task Deletion Impact Modal */}
+    {showDeleteModal && currentProject && phase && (
+      <TaskDeletionImpactModal
+        task={task}
+        phase={phase}
+        allTasks={phase.tasks || []}
+        allResources={currentProject.resources || []}
+        holidays={currentProject.holidays || []}
+        onConfirm={async () => {
+          await deleteTask(taskId, phaseId);
+          setShowDeleteModal(false);
+          onClose();
+        }}
+        onCancel={() => setShowDeleteModal(false)}
+      />
+    )}
+    </>
+  );
+}
+
+export default EditTaskModal;
