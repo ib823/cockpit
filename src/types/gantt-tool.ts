@@ -1,9 +1,21 @@
 /**
  * Gantt Tool - Type Definitions
  *
- * Standalone Gantt chart tool for creating professional timeline visualizations.
+ * UNIFIED PROJECT MODEL (Phase 1 Complete):
+ * One project entity that can be viewed as Timeline OR Architecture
+ * - Timeline view: Gantt chart with phases, tasks, milestones
+ * - Architecture view: Business context, AS-IS/TO-BE diagrams
+ *
  * Features: Phases, Tasks, Milestones, Holidays, Drag-and-drop, Export to PNG/Excel/PDF
  */
+
+// Architecture type imports for unified project model
+import type {
+  BusinessContextData,
+  CurrentLandscapeData,
+  ProposedSolutionData,
+  DiagramSettings,
+} from '@/app/architecture/v3/types';
 
 // Explicit peer relationship in org chart
 // Created when user drags a resource and drops it on LEFT/RIGHT zone of another resource
@@ -14,11 +26,17 @@ export interface PeerLink {
   createdAt: string; // When this peer link was created
 }
 
+/**
+ * Unified Project Model - combines Timeline and Architecture data
+ * Apple UX: "One project, multiple perspectives"
+ */
 export interface GanttProject {
   id: string;
   name: string;
   description?: string;
   startDate: string; // ISO 8601 format
+
+  // TIMELINE DATA (existing)
   phases: GanttPhase[];
   milestones: GanttMilestone[];
   holidays: GanttHoliday[];
@@ -37,6 +55,15 @@ export interface GanttProject {
     peerLinks?: PeerLink[]; // Explicit peer relationships (only appear when user creates them via drag-drop)
     [key: string]: any; // Other org chart data
   };
+
+  // ARCHITECTURE DATA (Phase 1: Unified Project Model)
+  // Enable viewing same project as architecture diagrams
+  businessContext?: BusinessContextData; // Business entities, actors, capabilities
+  currentLandscape?: CurrentLandscapeData; // AS-IS systems and integrations
+  proposedSolution?: ProposedSolutionData; // TO-BE solution architecture
+  diagramSettings?: DiagramSettings; // Visual styling for diagrams
+  architectureVersion?: string; // Track architecture version (e.g., "1.0")
+  lastArchitectureEdit?: string; // ISO 8601 timestamp of last architecture update
 }
 
 export interface RACIAssignment {
@@ -59,6 +86,8 @@ export interface GanttPhase {
   phaseResourceAssignments?: PhaseResourceAssignment[]; // PM resources assigned at phase level
   raciAssignments?: RACIAssignment[]; // RACI matrix assignments for this phase
   order: number; // Display order of phases
+  phaseType?: "standard" | "ams"; // Phase type: standard project phase or AMS (Application Management Services)
+  amsDuration?: 1 | 2 | 3; // AMS duration in years (only applicable for AMS phases)
 }
 
 export interface GanttTask {
@@ -169,6 +198,8 @@ export interface PhaseFormData {
   color: string;
   startDate: string;
   endDate: string;
+  phaseType?: "standard" | "ams";
+  amsDuration?: 1 | 2 | 3;
 }
 
 export interface TaskFormData {
