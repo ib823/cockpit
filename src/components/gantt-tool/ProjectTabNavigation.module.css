@@ -1,0 +1,115 @@
+/**
+ * Project Tab Navigation Styles
+ *
+ * Apple HIG segmented control pattern
+ * - Clean, minimal design
+ * - Clear active state
+ * - Smooth transitions
+ * - Responsive breakpoints
+ */
+
+.container {
+  border-bottom: 1px solid var(--color-gray-4, #e5e5ea);
+  background-color: var(--color-surface, #ffffff);
+}
+
+.tabList {
+  display: flex;
+  gap: 0;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 48px;
+  align-items: center;
+}
+
+.tab {
+  position: relative;
+  flex: 0 0 auto;
+  height: 100%;
+  padding: 0 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-secondary, #8e8e93);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 48px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  white-space: nowrap;
+}
+
+.tab:hover:not(.disabled) {
+  color: var(--color-text-primary, #000000);
+  background-color: var(--color-gray-6, #f2f2f7);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--color-blue, #007aff);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+.tab.active {
+  color: var(--color-blue, #007aff);
+  border-bottom-color: var(--color-blue, #007aff);
+  font-weight: 600;
+}
+
+.tab.disabled {
+  color: var(--color-gray-3, #c7c7cc);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.tabLabelFull {
+  display: inline;
+}
+
+.tabLabelShort {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .tabList {
+    padding: 0 16px;
+    height: 44px;
+    gap: 8px;
+    justify-content: space-between;
+  }
+
+  .tab {
+    flex: 1 1 0;
+    padding: 0 12px;
+    font-size: 14px;
+    line-height: 44px;
+    text-align: center;
+  }
+
+  .tabLabelFull {
+    display: none;
+  }
+
+  .tabLabelShort {
+    display: inline;
+  }
+}
+
+@media (max-width: 380px) {
+  .tab {
+    padding: 0 8px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .tabList {
+    padding: 0 20px;
+  }
+
+  .tab {
+    padding: 0 16px;
+  }
+}
