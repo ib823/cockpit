@@ -190,7 +190,7 @@ export function UnifiedProjectSelector({
           >
             {Object.entries(currentProject.orgChartPro.companyLogos).map(([companyName, logoUrl]) => {
               const isSelected = currentProject.orgChartPro?.selectedLogoCompanyName === companyName ||
-                (!(currentProject.orgChartPro?.selectedLogoCompanyName) && companyName === Object.keys(currentProject.orgChartPro.companyLogos || {})[0]);
+                (!(currentProject.orgChartPro?.selectedLogoCompanyName) && companyName === Object.keys(currentProject.orgChartPro?.companyLogos || {})[0]);
 
               return (
                 <button

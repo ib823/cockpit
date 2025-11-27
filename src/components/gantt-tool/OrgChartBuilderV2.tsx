@@ -15,7 +15,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { X, Plus, ZoomIn, ZoomOut, Maximize2, Save, Check } from "lucide-react";
+import { X, Plus, ZoomIn, ZoomOut, Save, Check } from "lucide-react";
 import { useOrgChartDragDrop } from "@/hooks/useOrgChartDragDrop";
 import type { OrgNode, Designation, ResourceCategory } from "@/hooks/useOrgChartDragDrop";
 import { DraggableOrgCardV4 } from "./DraggableOrgCardV4";
@@ -33,6 +33,8 @@ import type { GanttProject } from "@/types/gantt-tool";
 import type { ResourceDesignation } from "@/types/gantt-tool";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { getAllCompanyLogos } from "@/lib/default-company-logos";
+import { getTotalResourceCount } from "@/lib/gantt-tool/resource-utils";
+import { diagnoseResourceHierarchy, getOrphanedResourceIds } from "@/lib/gantt-tool/resource-diagnostics";
 import "../../styles/org-chart-drag-drop.css";
 
 interface OrgChartBuilderV2Props {
@@ -215,6 +217,30 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
   };
 
   const tree = buildTree(nodes);
+
+  // Diagnostic: Run hierarchy analysis to detect orphaned resources
+  useEffect(() => {
+    if (currentProject && nodes.length > 0) {
+      const diagnostics = diagnoseResourceHierarchy(currentProject);
+
+      if (diagnostics.issues.length > 0 || diagnostics.orphanedResources > 0) {
+        console.warn("⚠️ Org Chart Hierarchy Issues Detected:");
+        console.warn(`Total Resources in Project: ${diagnostics.totalResources}`);
+        console.warn(`Resources Showing in Org Chart: ${diagnostics.validHierarchyResources}`);
+        console.warn(`Orphaned Resources (invisible): ${diagnostics.orphanedResources}`);
+        console.warn("Issues:");
+        diagnostics.issues.forEach((issue, i) => {
+          console.warn(`  ${i + 1}. ${issue}`);
+        });
+        console.warn("\nDetailed Resource Breakdown:");
+        console.table(diagnostics.resourceBreakdown);
+      } else {
+        console.log("✓ Org Chart Hierarchy: All resources have valid hierarchy");
+        console.log(`Total Resources: ${diagnostics.totalResources}`);
+        console.log(`Hierarchy Levels: ${diagnostics.hierarchyLevels}`);
+      }
+    }
+  }, [currentProject, nodes.length]);
 
   // Add node with focus animation
   const addNode = (parentId?: string, designation: Designation = "consultant") => {
@@ -843,112 +869,109 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
                   margin: "4px 0 0 0",
                 }}
               >
-                {nodes.length} {nodes.length === 1 ? "resource" : "resources"} • Drag to rearrange • {zoomMode === "scrollable" ? "Pan & zoom" : "Auto-fit"}
+                {/* GLOBAL POLICY: Use canonical count to match Resource Management Modal */}
+                {getTotalResourceCount(currentProject)} {getTotalResourceCount(currentProject) === 1 ? "resource" : "resources"} in project
+                {nodes.length !== getTotalResourceCount(currentProject) && (
+                  <span style={{ color: "#FF9500", fontWeight: 600 }}>
+                    {" "}• {nodes.length} in org chart (unsaved)
+                  </span>
+                )}
+                {" "}• Drag to rearrange • {zoomMode === "scrollable" ? "Pan & zoom" : "Auto-fit"}
               </p>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              {/* Zoom Controls */}
+              {/* Zoom Controls - Refined toolbar */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "4px",
-                  padding: "4px",
-                  backgroundColor: "#f5f5f7",
+                  border: "1px solid rgba(0, 0, 0, 0.08)",
                   borderRadius: "8px",
+                  overflow: "hidden",
+                  backgroundColor: "#FFFFFF",
                 }}
               >
+                {/* Zoom Out */}
                 <button
                   onClick={handleZoomOut}
                   title="Zoom Out (⌘-)"
                   style={{
-                    padding: "6px 8px",
+                    padding: "8px 12px",
                     backgroundColor: "transparent",
                     border: "none",
-                    borderRadius: "6px",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    transition: "background-color 150ms",
+                    transition: "background-color 100ms",
+                    borderRight: "1px solid rgba(0, 0, 0, 0.08)",
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e5e5e7"}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.04)"}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                 >
-                  <ZoomOut className="w-4 h-4" style={{ color: "#1d1d1f" }} />
+                  <ZoomOut className="w-4 h-4" style={{ color: "rgba(0, 0, 0, 0.6)" }} />
                 </button>
 
+                {/* Percentage Display */}
                 <div
                   style={{
-                    padding: "4px 8px",
-                    fontSize: "12px",
+                    padding: "8px 16px",
+                    fontSize: "13px",
                     fontWeight: 600,
-                    color: "#1d1d1f",
-                    minWidth: "50px",
+                    color: "rgba(0, 0, 0, 1)",
+                    minWidth: "60px",
                     textAlign: "center",
+                    letterSpacing: "-0.01em",
+                    borderRight: "1px solid rgba(0, 0, 0, 0.08)",
                   }}
                 >
                   {Math.round(zoomScale * 100)}%
                 </div>
 
+                {/* Zoom In */}
                 <button
                   onClick={handleZoomIn}
                   title="Zoom In (⌘+)"
                   style={{
-                    padding: "6px 8px",
+                    padding: "8px 12px",
                     backgroundColor: "transparent",
                     border: "none",
-                    borderRadius: "6px",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    transition: "background-color 150ms",
+                    transition: "background-color 100ms",
+                    borderRight: "1px solid rgba(0, 0, 0, 0.08)",
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e5e5e7"}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.04)"}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                 >
-                  <ZoomIn className="w-4 h-4" style={{ color: "#1d1d1f" }} />
+                  <ZoomIn className="w-4 h-4" style={{ color: "rgba(0, 0, 0, 0.6)" }} />
                 </button>
 
-                <div style={{ width: "1px", height: "20px", backgroundColor: "#d0d0d0", margin: "0 4px" }} />
-
+                {/* Fit to Screen */}
                 <button
                   onClick={handleZoomReset}
-                  title="Reset View (⌘0)"
+                  title="Fit to Screen (⌘0)"
                   style={{
-                    padding: "6px 8px",
+                    padding: "8px 16px",
                     backgroundColor: "transparent",
                     border: "none",
-                    borderRadius: "6px",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    transition: "background-color 150ms",
+                    transition: "background-color 100ms",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "rgba(0, 0, 0, 0.6)",
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e5e5e7"}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.04)"}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                 >
-                  <Maximize2 className="w-4 h-4" style={{ color: "#1d1d1f" }} />
+                  Fit
                 </button>
-
-                {/* Peer lines toggle removed - peer lines now appear only when explicitly created via drag-drop */}
-              </div>
-
-              {/* Mode indicator */}
-              <div
-                style={{
-                  padding: "6px 10px",
-                  backgroundColor: zoomMode === "auto-fit" ? "#e3f2fd" : "#fff3e0",
-                  borderRadius: "6px",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  color: zoomMode === "auto-fit" ? "#1976d2" : "#e65100",
-                }}
-              >
-                {zoomMode === "auto-fit" ? "Auto-Fit" : "Manual"}
               </div>
 
               {/* Save to Project Button */}
@@ -997,23 +1020,92 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
 
               <button
                 onClick={onClose}
+                title="Close (Esc)"
                 style={{
                   padding: "8px",
                   backgroundColor: "transparent",
-                  border: "none",
+                  border: "1px solid rgba(0, 0, 0, 0.08)",
                   cursor: "pointer",
-                  borderRadius: "6px",
+                  borderRadius: "8px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  transition: "background-color 100ms",
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.04)"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
               >
-                <X className="w-5 h-5" style={{ color: "#86868b" }} />
+                <X className="w-5 h-5" style={{ color: "rgba(0, 0, 0, 0.6)" }} />
               </button>
             </div>
           </div>
 
           {/* Multi-Select Toolbar (Apple HIG: appears when needed) */}
+          {/* Orphaned Resources Warning Banner */}
+          {(() => {
+            const orphanedIds = getOrphanedResourceIds(currentProject);
+            if (orphanedIds.length === 0) return null;
+
+            const handleFixOrphanedResources = async () => {
+              if (!currentProject) return;
+
+              for (const resourceId of orphanedIds) {
+                await updateResource(resourceId, { managerResourceId: undefined });
+              }
+
+              showToast(`Fixed ${orphanedIds.length} orphaned resource${orphanedIds.length > 1 ? 's' : ''}`);
+              setNodes(getInitialNodes());
+            };
+
+            return (
+              <div
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: "#FF3B30",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  boxShadow: "0 2px 8px rgba(255, 59, 48, 0.3)",
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#FFFFFF", fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>
+                    {orphanedIds.length} resource{orphanedIds.length > 1 ? 's' : ''} not showing in org chart
+                  </div>
+                  <div style={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "12px" }}>
+                    {orphanedIds.length > 1 ? 'These resources reference' : 'This resource references'} non-existent managers. Click "Fix All" to clear invalid references.
+                  </div>
+                </div>
+                <button
+                  onClick={handleFixOrphanedResources}
+                  style={{
+                    padding: "8px 16px",
+                    backgroundColor: "#FFFFFF",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#FF3B30",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    transition: "all 150ms",
+                    flexShrink: 0,
+                    marginLeft: "16px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#F5F5F7";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#FFFFFF";
+                  }}
+                >
+                  Fix All
+                </button>
+              </div>
+            );
+          })()}
+
+          {/* Multi-Select Toolbar */}
           {multiSelectedNodes.size > 0 && (
             <div
               style={{

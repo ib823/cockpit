@@ -128,30 +128,30 @@ export const GanttSidePanel = lazyLoadWithRetry<any>(() =>
   import("@/components/gantt-tool/GanttSidePanel").then((m) => ({ default: m.GanttSidePanel }))
 );
 
-// Import Modal (1,319 lines)
-export const ImportModalV2 = lazyLoadWithRetry<any>(() =>
-  import("@/components/gantt-tool/ImportModalV2").then((m) => ({ default: m.ImportModalV2 }))
+// Import Modal (347 lines - showcase compliant)
+export const ImportModal = lazyLoadWithRetry<any>(() =>
+  import("@/components/gantt-tool/ImportModal").then((m) => ({ default: m.ImportModal }))
 );
 
-// Plan Mode (1,137 lines)
-export const PlanMode = lazyLoadWithRetry<any>(() =>
-  import("@/components/project-v2/modes/PlanMode").then((m) => ({ default: m.PlanMode }))
-);
+// Plan Mode (1,137 lines) - DISABLED: Module removed
+// export const PlanMode = lazyLoadWithRetry<any>(() =>
+//   import("@/components/project-v2/modes/PlanMode").then((m) => ({ default: m.PlanMode }))
+// );
 
-// Organization Chart (1,553 lines)
-export const OrganizationChart = lazyLoad<any>(
-  () => import("@/app/organization-chart/page").then((m) => ({ default: m.default || m })) as any
-);
+// Organization Chart (1,553 lines) - DISABLED: Module removed
+// export const OrganizationChart = lazyLoad<any>(
+//   () => import("@/app/organization-chart/page").then((m) => ({ default: m.default || m })) as any
+// );
 
 // Dashboard Content
 export const DashboardContent = lazyLoad<any>(() =>
   import("@/components/dashboard/DashboardContent").then((m) => ({ default: m.DashboardContent }))
 );
 
-// Export components
-export const ExportButton = lazyLoad<any>(() =>
-  import("@/components/export/ExportButton").then((m) => ({ default: m.ExportButton }))
-);
+// Export components - DISABLED: Module removed
+// export const ExportButton = lazyLoad<any>(() =>
+//   import("@/components/export/ExportButton").then((m) => ({ default: m.ExportButton }))
+// );
 
 /**
  * Route-based preloading
@@ -169,12 +169,12 @@ export const PRELOAD_MAP: Record<string, () => void> = {
       preloadComponent(() => import("@/components/gantt-tool/GanttToolbar")),
     ]);
   },
-  "/project": () => {
-    Promise.all([
-      preloadComponent(() => import("@/components/project-v2/modes/PlanMode")),
-      preloadComponent(() => import("@/components/project-v2/ProjectLayout")),
-    ]);
-  },
+  // "/project": () => {
+  //   Promise.all([
+  //     preloadComponent(() => import("@/components/project-v2/modes/PlanMode")),
+  //     preloadComponent(() => import("@/components/project-v2/ProjectLayout")),
+  //   ]);
+  // },
 };
 
 /**

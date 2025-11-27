@@ -21,7 +21,7 @@
 import { useState, useEffect } from "react";
 import { format, addYears } from "date-fns";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
-import { FormExample, WorkingDaysIndicator, ColorPickerExample } from "@/lib/design-system/showcase-helpers";
+import { FormExample, WorkingDaysIndicator } from "@/lib/design-system/showcase-helpers";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "@/lib/design-system/tokens";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import type { Phase } from "@/types/gantt-tool";
@@ -405,11 +405,6 @@ export function EditPhaseModal({ isOpen, onClose, phase, phaseId }: EditPhaseMod
           </div>
         </div>
       )}
-
-      <ColorPickerExample
-        value={formData.phaseColor}
-        onChange={(color) => setFormData({ ...formData, phaseColor: color })}
-      />
 
       {/* Working Days Indicator - Only shown for standard phases */}
       {!isAMSPhase && (

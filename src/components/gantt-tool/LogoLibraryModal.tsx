@@ -18,8 +18,9 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Upload, Trash2, AlertCircle, CheckCircle, Image as ImageIcon } from "lucide-react";
-import { AppleMinimalistModal, ModalButton } from "@/components/ui/AppleMinimalistModal";
+import { Upload, Trash2, AlertCircle, CheckCircle } from "lucide-react";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { getAllCompanyLogos, DEFAULT_COMPANY_LOGOS } from "@/lib/default-company-logos";
 import {
@@ -362,11 +363,11 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
       <div>
         <h3
           style={{
-            fontFamily: "var(--font-text)",
+            fontFamily: TYPOGRAPHY.fontFamily.text,
             fontSize: "15px",
-            fontWeight: 600,
-            color: "#1D1D1F",
-            marginBottom: "16px",
+            fontWeight: TYPOGRAPHY.fontWeight.semibold,
+            color: COLORS.text.primary,
+            marginBottom: SPACING[4],
           }}
         >
           Default Logos ({defaultLogos.length})
@@ -375,7 +376,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-            gap: "16px",
+            gap: SPACING[4],
           }}
         >
           {defaultLogos.map((logo) => (
@@ -384,7 +385,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
               style={{
                 border: "2px solid #34C759",
                 borderRadius: "12px",
-                padding: "16px",
+                padding: SPACING[4],
                 backgroundColor: "#F5F5F7",
                 position: "relative",
                 transition: "all 0.15s ease",
@@ -418,7 +419,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                   e.currentTarget.style.transform = "scale(1)";
                 }}
               >
-                <Trash2 className="w-3 h-3" style={{ color: "#FFFFFF" }} />
+                <Trash2 style={{ width: "12px", height: "12px", color: "#FFFFFF" }} />
               </button>
 
               <div
@@ -430,9 +431,9 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                   alignItems: "center",
                   justifyContent: "center",
                   backgroundColor: "#FFFFFF",
-                  borderRadius: "8px",
+                  borderRadius: RADIUS.default,
                   overflow: "hidden",
-                  padding: "12px",
+                  padding: SPACING[3],
                 }}
               >
                 <img
@@ -447,10 +448,10 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
               </div>
               <div
                 style={{
-                  fontFamily: "var(--font-text)",
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
                   fontSize: "13px",
-                  fontWeight: 600,
-                  color: "#1D1D1F",
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  color: COLORS.text.primary,
                   textAlign: "center",
                 }}
               >
@@ -471,15 +472,15 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
       <div>
         <h3
           style={{
-            fontFamily: "var(--font-text)",
+            fontFamily: TYPOGRAPHY.fontFamily.text,
             fontSize: "15px",
-            fontWeight: 600,
-            color: "#1D1D1F",
-            marginBottom: "8px",
+            fontWeight: TYPOGRAPHY.fontWeight.semibold,
+            color: COLORS.text.primary,
+            marginBottom: SPACING[2],
           }}
         >
           Custom Logos{" "}
-          <span style={{ color: "#86868B", fontWeight: 400 }}>
+          <span style={{ color: COLORS.text.tertiary, fontWeight: 400 }}>
             ({customLogos.length} of {MAX_CUSTOM_LOGOS} slots used)
           </span>
         </h3>
@@ -487,7 +488,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-            gap: "16px",
+            gap: SPACING[4],
           }}
         >
           {/* Existing custom logos */}
@@ -497,7 +498,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
               style={{
                 border: "2px solid #007AFF",
                 borderRadius: "12px",
-                padding: "16px",
+                padding: SPACING[4],
                 backgroundColor: "#FFFFFF",
                 position: "relative",
                 transition: "all 0.15s ease",
@@ -544,9 +545,9 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                   alignItems: "center",
                   justifyContent: "center",
                   backgroundColor: "#F5F5F7",
-                  borderRadius: "8px",
+                  borderRadius: RADIUS.default,
                   overflow: "hidden",
-                  padding: "12px",
+                  padding: SPACING[3],
                 }}
               >
                 <img
@@ -579,12 +580,12 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                     style={{
                       width: "100%",
                       padding: "8px 12px",
-                      fontFamily: "var(--font-text)",
-                      fontSize: "12px",
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                      fontSize: TYPOGRAPHY.fontSize.caption,
                       border: "2px solid #007AFF",
                       borderRadius: "6px",
                       outline: "none",
-                      marginBottom: "8px",
+                      marginBottom: SPACING[2],
                     }}
                   />
                   <button
@@ -592,9 +593,9 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                     style={{
                       width: "100%",
                       padding: "6px",
-                      fontFamily: "var(--font-text)",
-                      fontSize: "12px",
-                      fontWeight: 600,
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                      fontSize: TYPOGRAPHY.fontSize.caption,
+                      fontWeight: TYPOGRAPHY.fontWeight.semibold,
                       color: "#FFFFFF",
                       backgroundColor: "#007AFF",
                       border: "none",
@@ -616,10 +617,10 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                 <div
                   onClick={() => setEditingCompanyName(logo.id)}
                   style={{
-                    fontFamily: "var(--font-text)",
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
                     fontSize: "13px",
-                    fontWeight: 600,
-                    color: "#1D1D1F",
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: COLORS.text.primary,
                     cursor: "pointer",
                     padding: "6px",
                     borderRadius: "6px",
@@ -642,9 +643,9 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
               {logo.fileSize && (
                 <div
                   style={{
-                    fontFamily: "var(--font-text)",
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
                     fontSize: "11px",
-                    color: "#86868B",
+                    color: COLORS.text.tertiary,
                     textAlign: "center",
                   }}
                 >
@@ -662,7 +663,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
               style={{
                 border: "2px dashed #D1D1D6",
                 borderRadius: "12px",
-                padding: "16px",
+                padding: SPACING[4],
                 backgroundColor: "#F5F5F7",
                 cursor: "pointer",
                 display: "flex",
@@ -686,9 +687,9 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
               <Upload size={40} color="#007AFF" style={{ marginBottom: "12px" }} />
               <div
                 style={{
-                  fontFamily: "var(--font-text)",
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
                   fontSize: "13px",
-                  fontWeight: 600,
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
                   color: "#007AFF",
                 }}
               >
@@ -702,12 +703,11 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
   };
 
   return (
-    <AppleMinimalistModal
+    <BaseModal
       isOpen={isOpen}
       onClose={handleCancel}
       title="Manage Company Logos"
       subtitle="Upload and organize logos for your project stakeholders"
-      icon={<ImageIcon className="w-5 h-5" />}
       size="xlarge"
       preventClose={isSaving}
       preventEscapeClose={isSaving}
@@ -722,25 +722,25 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
         </>
       }
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: SPACING[6] }}>
         {/* Error message */}
         {error && (
           <div
             style={{
-              padding: "16px",
+              padding: SPACING[4],
               backgroundColor: "#FFF2F0",
               border: "1px solid #FFCCC7",
               borderRadius: "12px",
               display: "flex",
               alignItems: "center",
-              gap: "12px",
+              gap: SPACING[3],
             }}
           >
             <AlertCircle size={20} color="#FF3B30" />
             <span
               style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "14px",
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.body,
                 fontWeight: 500,
                 color: "#FF3B30",
               }}
@@ -754,20 +754,20 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
         {success && (
           <div
             style={{
-              padding: "16px",
+              padding: SPACING[4],
               backgroundColor: "#F0FFF4",
               border: "1px solid #B7EB8F",
               borderRadius: "12px",
               display: "flex",
               alignItems: "center",
-              gap: "12px",
+              gap: SPACING[3],
             }}
           >
             <CheckCircle size={20} color="#34C759" />
             <span
               style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "14px",
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.body,
                 fontWeight: 500,
                 color: "#34C759",
               }}
@@ -804,24 +804,24 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
           <Upload
             size={48}
             color={isDragging ? "#007AFF" : "#86868B"}
-            style={{ marginBottom: "16px" }}
+            style={{ marginBottom: SPACING[4] }}
           />
           <div
             style={{
-              fontFamily: "var(--font-text)",
+              fontFamily: TYPOGRAPHY.fontFamily.text,
               fontSize: "16px",
-              fontWeight: 600,
+              fontWeight: TYPOGRAPHY.fontWeight.semibold,
               color: isDragging ? "#007AFF" : "#1D1D1F",
-              marginBottom: "8px",
+              marginBottom: SPACING[2],
             }}
           >
             {isDragging ? "Drop files here" : "Drag & Drop Files Here"}
           </div>
           <div
             style={{
-              fontFamily: "var(--font-text)",
-              fontSize: "14px",
-              color: "#86868B",
+              fontFamily: TYPOGRAPHY.fontFamily.text,
+              fontSize: TYPOGRAPHY.fontSize.body,
+              color: COLORS.text.tertiary,
               marginBottom: "12px",
             }}
           >
@@ -829,9 +829,9 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
           </div>
           <div
             style={{
-              fontFamily: "var(--font-text)",
-              fontSize: "12px",
-              color: "#86868B",
+              fontFamily: TYPOGRAPHY.fontFamily.text,
+              fontSize: TYPOGRAPHY.fontSize.caption,
+              color: COLORS.text.tertiary,
             }}
           >
             Supported: PNG, JPG, SVG • Max size: 2MB per file
@@ -851,12 +851,12 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
         {isUploading && (
           <div
             style={{
-              padding: "16px",
+              padding: SPACING[4],
               backgroundColor: "#F0F9FF",
               borderRadius: "12px",
               textAlign: "center",
-              fontFamily: "var(--font-text)",
-              fontSize: "14px",
+              fontFamily: TYPOGRAPHY.fontFamily.text,
+              fontSize: TYPOGRAPHY.fontSize.body,
               fontWeight: 500,
               color: "#007AFF",
             }}
@@ -865,6 +865,6 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
           </div>
         )}
       </div>
-    </AppleMinimalistModal>
+    </BaseModal>
   );
 }

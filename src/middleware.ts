@@ -52,7 +52,7 @@ function getIdentifier(request: NextRequest): string {
   return Buffer.from(userAgent).toString("base64").substring(0, 16);
 }
 
-const publicPaths = ["/", "/login", "/api/auth"];
+const publicPaths = ["/", "/login", "/api/auth", "/harmony-demo"];
 const adminPaths = ["/admin"];
 const protectedPaths = [
   "/gantt-tool",
@@ -61,6 +61,7 @@ const protectedPaths = [
   "/dashboard",
   "/account",
   "/architecture",
+  "/organization-chart",
 ]; // Require authentication
 
 export async function middleware(request: NextRequest) {
@@ -82,9 +83,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect old routes to current versions
-  if (pathname === "/organization-chart" || pathname === "/organization-chart/") {
-    return NextResponse.redirect(new URL("/architecture/v3", request.url));
-  }
+  // DISABLED: User is building org chart UI/UX, will enable when ready
+  // if (pathname === "/organization-chart" || pathname === "/organization-chart/") {
+  //   return NextResponse.redirect(new URL("/architecture/v3", request.url));
+  // }
 
   // Redirect /admin to /dashboard (deprecated route - dashboard shows admin section for admins)
   if (pathname === "/admin" || pathname === "/admin/") {

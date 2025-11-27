@@ -257,6 +257,41 @@ export async function clearAllLocalData(): Promise<void> {
 }
 
 /**
+ * Clear project and its sync queue items (for conflict resolution)
+ */
+export async function clearProjectLocal(projectId: string): Promise<void> {
+  const db = await openDB();
+
+  // Delete project data
+  await deleteProjectLocal(projectId);
+
+  // Delete all sync queue items for this project
+  const tx = db.transaction([SYNC_QUEUE_STORE], "readwrite");
+  const store = tx.objectStore(SYNC_QUEUE_STORE);
+  const index = store.index("projectId");
+
+  return new Promise((resolve, reject) => {
+    const request = index.openCursor(IDBKeyRange.only(projectId));
+    const itemsToDelete: string[] = [];
+
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest).result;
+      if (cursor) {
+        itemsToDelete.push(cursor.value.id);
+        cursor.continue();
+      } else {
+        // Delete all collected items
+        Promise.all(itemsToDelete.map((id) => removeFromSyncQueue(id)))
+          .then(() => resolve())
+          .catch(reject);
+      }
+    };
+
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
  * Get storage usage statistics
  */
 export async function getStorageStats() {

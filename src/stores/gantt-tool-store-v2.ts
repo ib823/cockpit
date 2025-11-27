@@ -39,7 +39,7 @@ import type {
   DiagramSettings,
 } from "@/app/architecture/v3/types";
 import { PHASE_COLOR_PRESETS } from "@/types/gantt-tool";
-import { differenceInDays, addDays, format } from "date-fns";
+import { differenceInDays, addDays, addMonths, format } from "date-fns";
 import {
   adjustDatesToWorkingDays,
   calculateWorkingDaysInclusive,
@@ -2316,10 +2316,52 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       const { currentProject } = get();
       if (!currentProject || currentProject.phases.length === 0) return null;
 
-      const allDates = [
-        ...currentProject.phases.map((p) => new Date(p.startDate)),
-        ...currentProject.phases.map((p) => new Date(p.endDate)),
-      ];
+      // Timeline calculation for AMS phases:
+      // - Include AMS START dates (so chevrons appear on timeline)
+      // - EXCLUDE AMS END dates (they're ongoing contracts, don't need timeline space)
+      // - EXCLUDE AMS TASK END dates (prevents timeline extension based on AMS duration)
+      // - Use fixed 2-month buffer for AMS chevron display (consistent visual regardless of 1/2/3 year duration)
+      // - This prevents excessive empty timeline space for 1+ year support contracts
+
+      const amsPhases = currentProject.phases.filter((p) => p.phaseType === "ams");
+      const nonAmsPhases = currentProject.phases.filter((p) => p.phaseType !== "ams");
+
+      // Start dates: all phase starts + all task starts
+      const phaseStartDates = currentProject.phases.map((p) => new Date(p.startDate));
+      const taskStartDates = currentProject.phases.flatMap((p) =>
+        (p.tasks || []).map((t) => new Date(t.startDate))
+      );
+      const allStartDates = [...phaseStartDates, ...taskStartDates];
+
+      // End dates:
+      // - Non-AMS phase ends (actual work phases)
+      // - All task ends from non-AMS phases
+      // - Fixed 2-month buffer for AMS chevron display (UX improvement)
+      // - EXCLUDE AMS phase end dates (prevents timeline extension)
+      // - EXCLUDE AMS task end dates (prevents zoom change when switching 1yr → 2yr → 3yr duration)
+      const nonAmsPhaseEndDates = nonAmsPhases.map((p) => new Date(p.endDate));
+      const nonAmsTaskEndDates = nonAmsPhases.flatMap((p) =>
+        (p.tasks || []).map((t) => new Date(t.endDate))
+      );
+
+      const allEndDates = [...nonAmsPhaseEndDates, ...nonAmsTaskEndDates];
+
+      // If we have AMS phases, add a compact buffer to timeline for chevron display
+      // AMS chevrons are a fixed 160px visual indicator (5 chevrons)
+      // Buffer: 3 weeks (21 days) is sufficient for compact display without excessive empty space
+      // This prevents timeline stretching regardless of AMS contract duration (1/2/3 years)
+      if (amsPhases.length > 0 && allEndDates.length > 0) {
+        const maxEndDate = new Date(Math.max(...allEndDates.map((d) => d.getTime())));
+        const amsBufferEndDate = addDays(maxEndDate, 21); // Compact 3-week buffer for chevron display
+        allEndDates.push(amsBufferEndDate);
+      }
+
+      // Combine for timeline bounds
+      const allDates = allEndDates.length > 0
+        ? [...allStartDates, ...allEndDates]
+        : allStartDates;
+
+      if (allDates.length === 0) return null;
 
       const startDate = new Date(Math.min(...allDates.map((d) => d.getTime())));
       const endDate = new Date(Math.max(...allDates.map((d) => d.getTime())));

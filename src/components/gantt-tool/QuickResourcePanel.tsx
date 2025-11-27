@@ -16,6 +16,7 @@
 
 import { useState, useMemo } from "react";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { getTotalResourceCount } from "@/lib/gantt-tool/resource-utils";
 import {
   Users,
   ChevronRight,
@@ -191,7 +192,10 @@ export function QuickResourcePanel({ isOpen, onClose }: QuickResourcePanelProps)
           <Users className="w-5 h-5 text-purple-600" />
           <div>
             <h3 className="text-sm font-bold text-gray-900">Quick Assign</h3>
-            <p className="text-xs text-gray-600">Drag onto tasks</p>
+            <p className="text-xs text-gray-600">
+              {/* GLOBAL POLICY: Show canonical resource count */}
+              {getTotalResourceCount(currentProject)} {getTotalResourceCount(currentProject) === 1 ? "resource" : "resources"} • Drag onto tasks
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-1">

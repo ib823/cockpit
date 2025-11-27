@@ -5,11 +5,32 @@
  */
 
 import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GanttToolbar } from '@/components/gantt-tool/GanttToolbar';
 import { UnifiedProjectSelector } from '@/components/gantt-tool/UnifiedProjectSelector';
 import type { GanttProject } from '@/types/gantt-tool';
+
+// Mock Next.js router
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/gantt-tool',
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+// Mock next-auth
+vi.mock('next-auth/react', () => ({
+  useSession: () => ({
+    data: { user: { id: 'test-user', email: 'test@example.com' } },
+    status: 'authenticated',
+  }),
+  SessionProvider: ({ children }: any) => children,
+}));
 
 // Mock data
 const mockProject: GanttProject = {

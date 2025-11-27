@@ -8,7 +8,7 @@
  * @deprecated Use BaseModal instead
  */
 
-import { BaseModal, type BaseModalProps } from "./BaseModal";
+import { BaseModal, type BaseModalProps, ModalButton } from "./BaseModal";
 
 export type FormField = {
   id: string;
@@ -37,4 +37,4 @@ export function AppleMinimalistModal({ fields, formValues, onFieldChange, formLa
 }
 
 export default AppleMinimalistModal;
-export type { FormField };
+export { ModalButton };

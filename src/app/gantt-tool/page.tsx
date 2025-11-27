@@ -2,40 +2,42 @@
  * Gantt Tool V3 - Apple HIG Specification Page
  *
  * This page showcases the revamped Gantt chart following UI_suggestion.md exactly.
- * Uses the same data store as the original Gantt for real-time sync.
+ * Uses the unified project store for Timeline and Architecture data.
  *
  * Route: /gantt-tool
- * Features: Timeline view, Architecture view, Split view mode
- * Keyboard shortcuts: ⌘1 (Timeline), ⌘2 (Architecture), ⌘\ (Split View)
+ * Features: Timeline Gantt chart view with intelligent zoom modes
+ * Keyboard shortcuts: ⌘P (Add Phase), ⌘T (Add Task)
  */
 
 "use client";
 
 import { GanttCanvasV3 } from "@/components/gantt-tool/GanttCanvasV3";
 import { NewProjectModal } from "@/components/gantt-tool/NewProjectModal";
-import { OrgChartBuilderV2 } from "@/components/gantt-tool/OrgChartBuilderV2";
-import { ImportModalV2 } from "@/components/gantt-tool/ImportModalV2";
+import { ImportModal } from "@/components/gantt-tool/ImportModal";
 import { AddPhaseModal } from "@/components/gantt-tool/AddPhaseModal";
 import { AddTaskModal } from "@/components/gantt-tool/AddTaskModal";
 import { LogoLibraryModal } from "@/components/gantt-tool/LogoLibraryModal";
+import { OrgChartHarmonyV2 } from "@/components/gantt-tool/OrgChartHarmonyV2";
 import { ViewModeSelector, type ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
+import { ProjectTabNavigation, type ProjectTab } from "@/components/gantt-tool/ProjectTabNavigation";
+import { ProjectContextTab } from "@/components/gantt-tool/ProjectContextTab";
+import { TeamCapacityTab } from "@/components/gantt-tool/TeamCapacityTab";
 import { GlobalNav } from "@/components/navigation/GlobalNav";
 import { Tier2Header } from "@/components/navigation/Tier2Header";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Share2, Users, GripHorizontal, GripVertical, Briefcase, FileSpreadsheet, Flag, Layers, CheckSquare, Image as ImageIcon, Columns2 } from "lucide-react";
+import { Share2, Users, GripHorizontal, GripVertical, FileSpreadsheet, Flag, Layers, CheckSquare, Image as ImageIcon } from "lucide-react";
 import { ResourceIcon } from "@/lib/resource-icons";
 import { HexLoader } from "@/components/ui/HexLoader";
 import { format } from "date-fns";
+import { RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
+import { getTotalResourceCount } from "@/lib/gantt-tool/resource-utils";
+import { diagnoseResourceHierarchy, getOrphanedResourceIds } from "@/lib/gantt-tool/resource-diagnostics";
 
 export default function GanttToolV3Page() {
   // ⚠️ IMPORTANT: All hooks must be called before any conditional returns
   const { data: session } = useSession();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
 
   const {
     currentProject,
@@ -45,6 +47,7 @@ export default function GanttToolV3Page() {
     createProject,
     updateProjectName,
     deleteProject,
+    deleteResource,
     unloadCurrentProject,
     isLoading,
     lastSyncAt,
@@ -56,46 +59,22 @@ export default function GanttToolV3Page() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showLogoLibrary, setShowLogoLibrary] = useState(false);
   const [showOrgChart, setShowOrgChart] = useState(false);
+  const [showOrgChartModal, setShowOrgChartModal] = useState(false);
   const [orgChartHeight, setOrgChartHeight] = useState(400); // Default 400px (also used for sidebar width)
   const [showAddPhaseModal, setShowAddPhaseModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [isResizingOrgChart, setIsResizingOrgChart] = useState(false);
   const [resourcePanelLayout, setResourcePanelLayout] = useState<'sidebar' | 'bottom'>('sidebar'); // User preference
   const [resourcePanelView, setResourcePanelView] = useState<'category' | 'orgchart'>('orgchart'); // View mode - always org chart
+  const [activeTab, setActiveTab] = useState<ProjectTab>('timeline'); // Project view tabs
 
   // Milestone modal state
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
 
-  // Main view state: Timeline or Architecture (initialized from URL)
-  const initialView = (searchParams.get('view') === 'architecture' ? 'architecture' : 'timeline') as 'timeline' | 'architecture';
-  const [mainView, setMainView] = useState<'timeline' | 'architecture'>(initialView);
-
-  // Selection persistence across views
+  // Selection state for resources, phases, and tasks
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
   const [selectedPhaseId, setSelectedPhaseId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-
-  // Split view mode (power user feature)
-  const [splitViewEnabled, setSplitViewEnabled] = useState(false);
-
-  // Helper function to change view and update URL
-  const changeView = useCallback((newView: 'timeline' | 'architecture') => {
-    setMainView(newView);
-    // Update URL without page reload
-    const params = new URLSearchParams(searchParams.toString());
-    if (newView === 'architecture') {
-      params.set('view', 'architecture');
-    } else {
-      params.delete('view'); // Default is timeline, so no param needed
-    }
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [pathname, router, searchParams]);
-
-  // View transition feedback (Apple-style toast)
-  const [viewTransitionToast, setViewTransitionToast] = useState<{
-    visible: boolean;
-    message: string;
-  }>({ visible: false, message: "" });
 
   // Intelligent zoom levels - semantic, not arbitrary percentages
   const [zoomMode, setZoomMode] = useState<ZoomMode>('auto');
@@ -180,29 +159,6 @@ export default function GanttToolV3Page() {
     };
   }, [isResizingOrgChart, resourcePanelLayout]);
 
-  // Show view transition feedback (Apple-style)
-  useEffect(() => {
-    if (splitViewEnabled) {
-      setViewTransitionToast({
-        visible: true,
-        message: "Split View Enabled"
-      });
-    } else {
-      const viewName = mainView === 'timeline' ? 'Timeline' : 'Architecture';
-      setViewTransitionToast({
-        visible: true,
-        message: `Switched to ${viewName} View`
-      });
-    }
-
-    // Auto-hide after 1.5 seconds
-    const timer = setTimeout(() => {
-      setViewTransitionToast(prev => ({ ...prev, visible: false }));
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [mainView, splitViewEnabled]);
-
   // Check if project is already loaded on mount
   useEffect(() => {
     console.log("[V3] Mount - currentProject:", currentProject?.id);
@@ -279,30 +235,9 @@ export default function GanttToolV3Page() {
     }
   };
 
-  // Global keyboard shortcuts - Apple pattern: ⌘1-9 for views, ⌘K for command palette
+  // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // ⌘1 - Switch to Timeline view (like Calendar.app ⌘1 for Day view)
-      if ((e.metaKey || e.ctrlKey) && e.key === '1') {
-        e.preventDefault();
-        changeView('timeline');
-        return;
-      }
-
-      // ⌘2 - Switch to Architecture view (like Calendar.app ⌘2 for Week view)
-      if ((e.metaKey || e.ctrlKey) && e.key === '2') {
-        e.preventDefault();
-        changeView('architecture');
-        return;
-      }
-
-      // ⌘\ - Toggle split view (like Xcode ⌘⌥Enter for assistant editor)
-      if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
-        e.preventDefault();
-        setSplitViewEnabled(!splitViewEnabled);
-        return;
-      }
-
       // Cmd/Ctrl + P for Add Phase
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'p' && !e.shiftKey) {
         if (currentProject && !showAddPhaseModal && !showAddTaskModal) {
@@ -322,7 +257,7 @@ export default function GanttToolV3Page() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentProject, showAddPhaseModal, showAddTaskModal, splitViewEnabled, changeView]);
+  }, [currentProject, showAddPhaseModal, showAddTaskModal]);
 
   return showLoading ? (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -333,7 +268,15 @@ export default function GanttToolV3Page() {
       {/* Global Navigation - Tier 1 */}
       <GlobalNav session={session} />
 
-      <div className="h-screen flex flex-col bg-white" style={{ height: "calc(100vh - 56px)" }}>
+      {/* Jobs/Ive: "It just works" - Support any zoom level, any screen size */}
+      {/* WCAG 2.1: Content must be usable at 200% zoom without horizontal scrolling */}
+      <div
+        className="flex flex-col bg-white"
+        style={{
+          minHeight: "calc(100vh - 56px)", // Minimum height, but allows growth
+          maxHeight: "none", // No maximum height restriction
+        }}
+      >
         {/* Tool Navigation Bar - Tier 2 (Tool-specific controls) */}
         <Tier2Header
           currentProject={currentProject}
@@ -348,86 +291,8 @@ export default function GanttToolV3Page() {
           syncStatus={syncStatus}
           rightContent={
             <>
-              {/* Main View Switcher - Timeline vs Architecture */}
-              <div style={{
-                display: "flex",
-                backgroundColor: "var(--color-gray-6)",
-                borderRadius: "6px",
-                padding: "2px",
-                border: "1px solid var(--line)",
-              }}>
-                <button
-                  onClick={() => changeView('timeline')}
-                  aria-label="Show Timeline view"
-                  aria-pressed={mainView === 'timeline'}
-                  title="Timeline View (⌘1)"
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "4px",
-                    border: "none",
-                    backgroundColor: mainView === 'timeline' ? "#fff" : "transparent",
-                    fontFamily: "var(--font-text)",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    boxShadow: mainView === 'timeline' ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
-                    color: mainView === 'timeline' ? "#000" : "#666",
-                  }}
-                >
-                  Timeline
-                </button>
-                <button
-                  onClick={() => changeView('architecture')}
-                  aria-label="Show Architecture view"
-                  aria-pressed={mainView === 'architecture'}
-                  title="Architecture View (⌘2)"
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "4px",
-                    border: "none",
-                    backgroundColor: mainView === 'architecture' ? "#fff" : "transparent",
-                    fontFamily: "var(--font-text)",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    boxShadow: mainView === 'architecture' ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
-                    color: mainView === 'architecture' ? "#000" : "#666",
-                  }}
-                >
-                  Architecture
-                </button>
-              </div>
-
-              {/* Split View Toggle - Xcode-style assistant editor */}
-              <button
-                type="button"
-                onClick={() => setSplitViewEnabled(!splitViewEnabled)}
-                aria-label={splitViewEnabled ? "Exit split view" : "Enable split view"}
-                aria-pressed={splitViewEnabled}
-                title={`Split View (⌘\\) - ${splitViewEnabled ? 'Single view' : 'Timeline + Architecture side-by-side'}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--line)",
-                  backgroundColor: splitViewEnabled ? "var(--color-blue-light)" : "transparent",
-                  color: splitViewEnabled ? "var(--color-blue)" : "var(--color-text-secondary)",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => { if (!splitViewEnabled) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
-                onMouseLeave={(e) => { if (!splitViewEnabled) e.currentTarget.style.backgroundColor = "transparent" }}
-              >
-                <Columns2 className="w-4 h-4" aria-hidden="true" />
-              </button>
-
-              {/* Timeline View Selector - Show in Timeline view OR in split view */}
-              {(mainView === 'timeline' || splitViewEnabled) && (
+              {/* Timeline View Selector - Only show on Timeline tab */}
+              {activeTab === 'timeline' && (
                 <ViewModeSelector
                   zoomMode={zoomMode}
                   activeZoomMode={activeZoomMode}
@@ -435,66 +300,85 @@ export default function GanttToolV3Page() {
                 />
               )}
 
-              {/* Add Phase Button */}
-              <button
-                type="button"
-                onClick={() => setShowAddPhaseModal(true)}
-                disabled={!currentProject}
-                aria-label="Add phase (⌘P)"
-                title="Add Phase (⌘P)"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--line)",
-                  backgroundColor: "transparent",
-                  color: currentProject ? "var(--color-text-secondary)" : "var(--color-gray-3)",
-                  cursor: currentProject ? "pointer" : "not-allowed",
-                  opacity: currentProject ? 1 : 0.5,
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => { if (currentProject) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-              >
-                <Layers className="w-4 h-4" aria-hidden="true" />
-              </button>
+              {/* Add Phase Button - Only show on Timeline tab */}
+              {activeTab === 'timeline' && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddPhaseModal(true)}
+                  disabled={!currentProject}
+                  aria-label="Add phase (⌘P)"
+                  title="Add Phase (⌘P)"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "44px",
+                    height: "44px",
+                    borderRadius: "6px",
+                    border: "1px solid var(--line)",
+                    backgroundColor: "transparent",
+                    color: currentProject ? "var(--color-text-secondary)" : "var(--color-gray-3)",
+                    cursor: currentProject ? "pointer" : "not-allowed",
+                    opacity: currentProject ? 1 : 0.5,
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => { if (currentProject) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
+                >
+                  <Layers className="w-4 h-4" aria-hidden="true" />
+                </button>
+              )}
 
-              {/* Add Task Button */}
-              <button
-                type="button"
-                onClick={() => setShowAddTaskModal(true)}
-                disabled={!currentProject || currentProject.phases.length === 0}
-                aria-label="Add task (⌘T)"
-                title={currentProject && currentProject.phases.length === 0 ? "Add a phase first" : "Add Task (⌘T)"}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--line)",
-                  backgroundColor: "transparent",
-                  color: currentProject && currentProject.phases.length > 0 ? "var(--color-text-secondary)" : "var(--color-gray-3)",
-                  cursor: currentProject && currentProject.phases.length > 0 ? "pointer" : "not-allowed",
-                  opacity: currentProject && currentProject.phases.length > 0 ? 1 : 0.5,
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => { if (currentProject && currentProject.phases.length > 0) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-              >
-                <CheckSquare className="w-4 h-4" aria-hidden="true" />
-              </button>
+              {/* Add Task Button - Only show on Timeline tab */}
+              {activeTab === 'timeline' && (() => {
+                // Check if selected phase is AMS with max tasks (1)
+                const selectedPhase = currentProject?.phases.find(p => p.id === selectedPhaseId);
+                const isAMSPhaseAtLimit = selectedPhase?.phaseType === 'ams' && (selectedPhase?.tasks?.length ?? 0) >= 1;
+                const isDisabled = !currentProject || currentProject.phases.length === 0 || isAMSPhaseAtLimit;
 
-              {/* Add Milestone Button */}
-              <button
-                type="button"
-                onClick={() => setShowMilestoneModal(true)}
-                aria-label="Add milestone to timeline"
-                title="Add Milestone"
+                let tooltipText = "Add Task (⌘T)";
+                if (!currentProject || currentProject.phases.length === 0) {
+                  tooltipText = "Add a phase first";
+                } else if (isAMSPhaseAtLimit) {
+                  tooltipText = "AMS phases can only have one task";
+                }
+
+                return (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddTaskModal(true)}
+                    disabled={isDisabled}
+                    aria-label="Add task (⌘T)"
+                    title={tooltipText}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "44px",
+                      height: "44px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--line)",
+                      backgroundColor: "transparent",
+                      color: !isDisabled ? "var(--color-text-secondary)" : "var(--color-gray-3)",
+                      cursor: !isDisabled ? "pointer" : "not-allowed",
+                      opacity: !isDisabled ? 1 : 0.5,
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => { if (!isDisabled) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
+                  >
+                    <CheckSquare className="w-4 h-4" aria-hidden="true" />
+                  </button>
+                );
+              })()}
+
+              {/* Add Milestone Button - Only show on Timeline tab */}
+              {activeTab === 'timeline' && (
+                <button
+                  type="button"
+                  onClick={() => setShowMilestoneModal(true)}
+                  aria-label="Add milestone to timeline"
+                  title="Add Milestone"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -513,9 +397,11 @@ export default function GanttToolV3Page() {
               >
                 <Flag className="w-4 h-4" aria-hidden="true" />
               </button>
+              )}
 
-              {/* Import Excel Button */}
-              <button
+              {/* Import Excel Button - Only show on Timeline tab */}
+              {activeTab === 'timeline' && (
+                <button
                 type="button"
                 onClick={() => setShowImportModal(true)}
                 aria-label="Import project from Excel"
@@ -538,9 +424,11 @@ export default function GanttToolV3Page() {
               >
                 <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
               </button>
+              )}
 
-              {/* Manage Logos Button */}
-              <button
+              {/* Manage Logos Button - Only show on Timeline tab */}
+              {activeTab === 'timeline' && (
+                <button
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
@@ -566,37 +454,11 @@ export default function GanttToolV3Page() {
               >
                 <ImageIcon className="w-4 h-4" aria-hidden="true" />
               </button>
+              )}
 
-              {/* Plan Resources Button */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  changeView('architecture');
-                }}
-                title="Switch to Architecture view to design team structure"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--line)",
-                  backgroundColor: "transparent",
-                  color: "var(--color-text-secondary)",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-              >
-                <Briefcase className="w-4 h-4" aria-hidden="true" />
-              </button>
-
-              {/* Resource Allocation Panel Toggle */}
-              <button
+              {/* Resource Allocation Panel Toggle - Only show on Timeline tab */}
+              {activeTab === 'timeline' && (
+                <button
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
@@ -627,6 +489,7 @@ export default function GanttToolV3Page() {
               >
                 <Users className="w-4 h-4" aria-hidden="true" />
               </button>
+              )}
 
               {/* Share Button */}
               <button
@@ -661,59 +524,33 @@ export default function GanttToolV3Page() {
           showMetrics={true}
         />
 
-      {/* Main Content Area - Timeline, Architecture, or Split View */}
-      <div className="flex-1 overflow-hidden flex" style={{ flexDirection: resourcePanelLayout === 'sidebar' ? 'row' : 'column' }}>
-        {/* Main View Area */}
-        <div className="flex-1 overflow-hidden" style={{
-          display: "flex",
-          flexDirection: "row",
-          position: "relative",
-        }}>
-          {/* Timeline View */}
-          {(mainView === 'timeline' || splitViewEnabled) && (
-            <div style={{
-              flex: splitViewEnabled ? 1 : "auto",
-              width: splitViewEnabled ? "50%" : "100%",
-              height: "100%",
-              overflow: "hidden",
-              borderRight: splitViewEnabled ? "1px solid var(--color-gray-4)" : "none",
-              transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-              opacity: 1,
-            }}>
-              <GanttCanvasV3
-                zoomMode={activeZoomMode}
-                showMilestoneModal={showMilestoneModal}
-                onShowMilestoneModalChange={setShowMilestoneModal}
-              />
-            </div>
-          )}
+        {/* Project Tab Navigation */}
+        {currentProject && (
+          <ProjectTabNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            disabled={!currentProject}
+          />
+        )}
 
-          {/* Architecture View */}
-          {(mainView === 'architecture' || splitViewEnabled) && (
-            <div style={{
-              flex: splitViewEnabled ? 1 : "auto",
-              width: splitViewEnabled ? "50%" : "100%",
-              height: "100%",
-              position: "relative",
-              overflow: "hidden",
-              transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-              opacity: 1,
-            }}>
-              {/* Wrapper to make modal component work as full-page view */}
-              <div style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}>
-                <OrgChartBuilderV2
-                  onClose={() => splitViewEnabled ? setSplitViewEnabled(false) : changeView('timeline')}
-                  project={currentProject}
-                />
-              </div>
-            </div>
-          )}
+      {/* Main Content Area - Tab Content */}
+      {/* Jobs: "No artificial constraints" - Let content breathe */}
+      {activeTab === 'timeline' && (
+        <div
+        className="flex-1 flex"
+        style={{
+          flexDirection: resourcePanelLayout === 'sidebar' ? 'row' : 'column',
+          overflow: 'visible', // Allow content to be visible at any zoom
+          minHeight: 0, // Flexbox fix for scroll containers
+        }}
+      >
+        {/* Timeline View */}
+        <div className="flex-1" style={{ minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <GanttCanvasV3
+            zoomMode={activeZoomMode}
+            showMilestoneModal={showMilestoneModal}
+            onShowMilestoneModalChange={setShowMilestoneModal}
+          />
         </div>
 
         {/* Resource Panel - Sidebar or Bottom based on user choice */}
@@ -811,7 +648,8 @@ export default function GanttToolV3Page() {
                       color: "#666",
                       lineHeight: "1.4",
                     }}>
-                      {currentProject.resources?.length || 0} people • Organizational hierarchy
+                      {/* GLOBAL POLICY: Use canonical function for consistency */}
+                      {getTotalResourceCount(currentProject)} people • Organizational hierarchy
                     </p>
                   </div>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -894,353 +732,233 @@ export default function GanttToolV3Page() {
                   </div>
                 </div>
 
-                {/* Three-Tier Resource Breakdown - Apple UX: Clear categorization */}
+                {/* Simplified Resource Panel - Jobs/Ive: Ruthless simplicity */}
                 {(() => {
-                  const resources = currentProject.resources || [];
-
-                  // Tier 1: In Org Chart (resources with manager relationships)
-                  const orgChartResources = resources.filter(r => r.managerResourceId !== undefined && r.managerResourceId !== null);
-
-                  // Tier 2: Resource Pool (resources without manager assigned)
-                  const poolResources = resources.filter(r => !r.managerResourceId);
-
-                  // Tier 3: Calculate assigned resources (in tasks/phases)
-                  const assignedResourceIds = new Set<string>();
-                  currentProject.phases?.forEach(phase => {
-                    phase.phaseResourceAssignments?.forEach(assignment => {
-                      assignedResourceIds.add(assignment.resourceId);
-                    });
-                    phase.tasks?.forEach(task => {
-                      task.resourceAssignments?.forEach(assignment => {
-                        assignedResourceIds.add(assignment.resourceId);
-                      });
-                    });
-                  });
-
-                  const assignedCount = assignedResourceIds.size;
-                  const utilization = resources.length > 0
-                    ? Math.round((assignedCount / resources.length) * 100)
-                    : 0;
-
-                  // Determine utilization color (Apple HIG)
-                  const getUtilizationColor = (util: number) => {
-                    if (util >= 80) return '#34C759'; // Green - high utilization
-                    if (util >= 50) return '#FF9500'; // Orange - medium utilization
-                    return '#8E8E93'; // Gray - low utilization
-                  };
+                  const totalResourcesCanonical = getTotalResourceCount(currentProject);
+                  const orphanedIds = getOrphanedResourceIds(currentProject);
 
                   return (
                     <div style={{
                       display: "flex",
                       flexDirection: "column",
-                      gap: "12px",
+                      gap: "16px",
+                      padding: "24px",
                     }}>
-                      {/* Tier 1: In Org Chart */}
+                      {/* Total Resources - Single source of truth */}
                       <div style={{
-                        padding: "12px 16px",
-                        backgroundColor: "#F5F5F7",
-                        borderRadius: "8px",
-                        border: "1px solid rgba(0, 0, 0, 0.06)",
-                      }}>
-                        <div style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "8px",
-                        }}>
-                          <div style={{
-                            fontFamily: "var(--font-text)",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            color: "#1D1D1F",
-                          }}>
-                            In Org Chart
-                          </div>
-                          <div style={{
-                            fontFamily: "var(--font-text)",
-                            fontSize: "18px",
-                            fontWeight: 600,
-                            color: "#007AFF",
-                          }}>
-                            {orgChartResources.length}
-                          </div>
-                        </div>
-                        <div style={{
-                          fontFamily: "var(--font-text)",
-                          fontSize: "11px",
-                          color: "#86868B",
-                          lineHeight: "1.4",
-                        }}>
-                          Resources with reporting structure
-                        </div>
-
-                        {/* Category breakdown for org chart resources */}
-                        <div style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: "6px",
-                          marginTop: "12px",
-                        }}>
-                          {(['leadership', 'pm', 'technical', 'functional', 'change', 'qa', 'basis', 'security'] as const).map(category => {
-                            const count = orgChartResources.filter(r => r.category === category).length;
-                            if (count === 0) return null;
-                            return (
-                              <div key={category} style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                fontSize: "11px",
-                                color: "#666",
-                              }}>
-                                <ResourceIcon category={category} className="w-3 h-3" color="#007AFF" />
-                                <span style={{ flex: 1, textTransform: "capitalize" }}>
-                                  {category === 'pm' ? 'PM' : category}
-                                </span>
-                                <span style={{ fontWeight: 600, color: "#000" }}>{count}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Tier 2: Resource Pool */}
-                      <div style={{
-                        padding: "12px 16px",
-                        backgroundColor: "#FAFAFA",
-                        borderRadius: "8px",
-                        border: "1px solid rgba(0, 0, 0, 0.06)",
-                      }}>
-                        <div style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "8px",
-                        }}>
-                          <div style={{
-                            fontFamily: "var(--font-text)",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            color: "#1D1D1F",
-                          }}>
-                            Resource Pool
-                          </div>
-                          <div style={{
-                            fontFamily: "var(--font-text)",
-                            fontSize: "18px",
-                            fontWeight: 600,
-                            color: "#8E8E93",
-                          }}>
-                            {poolResources.length}
-                          </div>
-                        </div>
-                        <div style={{
-                          fontFamily: "var(--font-text)",
-                          fontSize: "11px",
-                          color: "#86868B",
-                          lineHeight: "1.4",
-                        }}>
-                          Unassigned to org structure
-                        </div>
-                      </div>
-
-                      {/* Tier 3: Assignment & Utilization */}
-                      <div style={{
-                        padding: "12px 16px",
-                        backgroundColor: "rgba(0, 122, 255, 0.08)",
-                        borderRadius: "8px",
-                        border: "1px solid rgba(0, 122, 255, 0.15)",
-                      }}>
-                        <div style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "8px",
-                        }}>
-                          <div style={{
-                            fontFamily: "var(--font-text)",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            color: "#1D1D1F",
-                          }}>
-                            In Tasks/Phases
-                          </div>
-                          <div style={{
-                            fontFamily: "var(--font-text)",
-                            fontSize: "18px",
-                            fontWeight: 600,
-                            color: getUtilizationColor(utilization),
-                          }}>
-                            {assignedCount}
-                          </div>
-                        </div>
-                        <div style={{
-                          fontFamily: "var(--font-text)",
-                          fontSize: "11px",
-                          color: "#86868B",
-                          lineHeight: "1.4",
-                          marginBottom: "10px",
-                        }}>
-                          Currently assigned resources
-                        </div>
-
-                        {/* Utilization bar */}
-                        <div style={{
-                          width: "100%",
-                          height: "6px",
-                          backgroundColor: "#E5E5EA",
-                          borderRadius: "3px",
-                          overflow: "hidden",
-                          marginBottom: "6px",
-                        }}>
-                          <div style={{
-                            width: `${utilization}%`,
-                            height: "100%",
-                            backgroundColor: getUtilizationColor(utilization),
-                            borderRadius: "3px",
-                            transition: "width 0.5s cubic-bezier(0.16, 1, 0.3, 1)", // Apple easing
-                          }} />
-                        </div>
-                        <div style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontFamily: "var(--font-text)",
-                          fontSize: "11px",
-                        }}>
-                          <span style={{ color: "#86868B" }}>Utilization</span>
-                          <span style={{
-                            fontWeight: 600,
-                            color: getUtilizationColor(utilization),
-                          }}>
-                            {utilization}%
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Total - Summary */}
-                      <div style={{
-                        padding: "12px 16px",
+                        textAlign: "center",
+                        padding: "32px 24px",
                         backgroundColor: "#FFFFFF",
-                        borderRadius: "8px",
+                        borderRadius: "12px",
                         border: "2px solid #007AFF",
-                        marginTop: "4px",
                       }}>
                         <div style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
+                          fontFamily: "var(--font-text)",
+                          fontSize: "48px",
+                          fontWeight: 700,
+                          color: "#007AFF",
+                          lineHeight: 1,
+                          marginBottom: "8px",
+                        }}>
+                          {totalResourcesCanonical}
+                        </div>
+                        <div style={{
+                          fontFamily: "var(--font-text)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          color: "#1D1D1F",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        }}>
+                          Total Resources
+                        </div>
+                      </div>
+
+                      {/* Orphaned Resources Warning - Only show if issues exist */}
+                      {orphanedIds.length > 0 && (
+                        <div style={{
+                          padding: "16px",
+                          backgroundColor: "#FFF3E0",
+                          borderRadius: "8px",
+                          border: "1px solid #FF9500",
                         }}>
                           <div style={{
-                            fontFamily: "var(--font-text)",
-                            fontSize: "14px",
-                            fontWeight: 600,
-                            color: "#1D1D1F",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginBottom: "12px",
                           }}>
-                            Total Resources
+                            <div style={{
+                              width: "8px",
+                              height: "8px",
+                              borderRadius: "50%",
+                              backgroundColor: "#FF9500",
+                            }} />
+                            <div style={{
+                              fontFamily: "var(--font-text)",
+                              fontSize: "13px",
+                              fontWeight: 600,
+                              color: "#1D1D1F",
+                            }}>
+                              {orphanedIds.length} {orphanedIds.length === 1 ? 'resource' : 'resources'} need attention
+                            </div>
                           </div>
                           <div style={{
                             fontFamily: "var(--font-text)",
-                            fontSize: "24px",
-                            fontWeight: 700,
-                            color: "#007AFF",
+                            fontSize: "12px",
+                            color: "#E65100",
+                            lineHeight: "1.5",
+                            marginBottom: "12px",
                           }}>
-                            {resources.length}
+                            Not visible in org chart due to invalid manager references
                           </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            <button
+                              onClick={async () => {
+                                const confirmed = window.confirm(
+                                  `Delete ${orphanedIds.length} orphaned resource${orphanedIds.length > 1 ? 's' : ''}?\n\nThis action cannot be undone.`
+                                );
+                                if (confirmed) {
+                                  const resources = currentProject.resources || [];
+                                  for (const id of orphanedIds) {
+                                    await deleteResource(id);
+                                  }
+                                  alert(`Successfully deleted ${orphanedIds.length} orphaned resource${orphanedIds.length > 1 ? 's' : ''}.`);
+                                }
+                              }}
+                              style={{
+                                padding: "10px 16px",
+                                width: "100%",
+                                backgroundColor: "#FF3B30",
+                                border: "none",
+                                borderRadius: "8px",
+                                color: "#FFFFFF",
+                                fontSize: "13px",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                transition: "background-color 100ms",
+                                fontFamily: "var(--font-text)",
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#D70015")}
+                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#FF3B30")}
+                            >
+                              Delete Orphaned Resources
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Primary Actions - Jobs/Ive: Clear hierarchy of actions */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        <button
+                          onClick={() => setShowOrgChartModal(true)}
+                          style={{
+                            padding: "16px 20px",
+                            backgroundColor: "#007AFF",
+                            border: "none",
+                            borderRadius: "12px",
+                            color: "#FFFFFF",
+                            fontFamily: "var(--font-text)",
+                            fontSize: "15px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            transition: "all 150ms cubic-bezier(0.4, 0, 0.2, 1)",
+                            boxShadow: "0 2px 8px rgba(0, 122, 255, 0.3)",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#0051D5";
+                            e.currentTarget.style.transform = "translateY(-2px)";
+                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 122, 255, 0.4)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "#007AFF";
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 122, 255, 0.3)";
+                          }}
+                        >
+                          Open Org Chart
+                        </button>
+
+                        <button
+                          onClick={() => alert("Resource Dashboard coming soon: Professional analytics including utilization, capacity planning, skill matrix, cost analysis, and workload distribution.")}
+                          style={{
+                            padding: "16px 20px",
+                            backgroundColor: "#FFFFFF",
+                            border: "2px solid #E5E5EA",
+                            borderRadius: "12px",
+                            color: "#1D1D1F",
+                            fontFamily: "var(--font-text)",
+                            fontSize: "15px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            transition: "all 150ms cubic-bezier(0.4, 0, 0.2, 1)",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = "#007AFF";
+                            e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.05)";
+                            e.currentTarget.style.transform = "translateY(-2px)";
+                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.08)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = "#E5E5EA";
+                            e.currentTarget.style.backgroundColor = "#FFFFFF";
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "none";
+                          }}
+                        >
+                          Resource Dashboard
+                        </button>
+                      </div>
+
+                      {/* Info Text - Jobs/Ive: Subtle guidance */}
+                      <div style={{
+                        padding: "16px",
+                        backgroundColor: "rgba(0, 0, 0, 0.03)",
+                        borderRadius: "8px",
+                        textAlign: "center",
+                      }}>
+                        <div style={{
+                          fontFamily: "var(--font-text)",
+                          fontSize: "12px",
+                          color: "#86868B",
+                          lineHeight: "1.5",
+                        }}>
+                          Manage your team structure in Org Chart.
+                          <br />
+                          View detailed analytics in Resource Dashboard.
                         </div>
                       </div>
                     </div>
                   );
                 })()}
               </div>
-
-              {/* Resource Content Area */}
-              <div style={{
-                flex: 1,
-                padding: "24px",
-                overflow: "auto",
-              }}>
-                {/* Org Chart View - Visual hierarchy */}
-                <div style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "100%",
-                  gap: "24px",
-                }}>
-                  <div style={{
-                    textAlign: "center",
-                    maxWidth: "400px",
-                  }}>
-                    <div style={{
-                      fontSize: "48px",
-                      marginBottom: "16px",
-                    }}>🏢</div>
-                    <h3 style={{
-                      fontFamily: "var(--font-text)",
-                      fontSize: "20px",
-                      fontWeight: 600,
-                      color: "#1d1d1f",
-                      marginBottom: "12px",
-                    }}>
-                      {currentProject.resources && currentProject.resources.length > 0
-                        ? "Build Your Org Chart"
-                        : "No Team Structure Yet"}
-                    </h3>
-                    <p style={{
-                      fontFamily: "var(--font-text)",
-                      fontSize: "14px",
-                      color: "#666",
-                      lineHeight: "1.6",
-                      marginBottom: "24px",
-                    }}>
-                      {currentProject.resources && currentProject.resources.length > 0
-                        ? "Click 'Plan Resources' to create your organizational hierarchy with reporting relationships."
-                        : "Add resources first, then use 'Plan Resources' to define your team structure with managers and reporting lines."}
-                    </p>
-                    <button
-                      onClick={() => changeView('architecture')}
-                      aria-label={currentProject.resources && currentProject.resources.length > 0
-                        ? "Switch to Architecture view to define team hierarchy"
-                        : "Add resources before building organizational chart"}
-                      disabled={!currentProject.resources || currentProject.resources.length === 0}
-                      title={currentProject.resources && currentProject.resources.length > 0
-                        ? "Switch to Architecture View"
-                        : "Add resources first"}
-                      style={{
-                        padding: "12px 24px",
-                        borderRadius: "8px",
-                        border: "none",
-                        backgroundColor: "#007AFF",
-                        color: "#fff",
-                        fontFamily: "var(--font-text)",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        transition: "all 0.15s ease",
-                        boxShadow: "0 2px 8px rgba(0, 122, 255, 0.3)",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#0051D5";
-                        e.currentTarget.style.transform = "translateY(-2px)";
-                        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 122, 255, 0.4)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#007AFF";
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 122, 255, 0.3)";
-                      }}
-                    >
-                      {currentProject.resources && currentProject.resources.length > 0
-                        ? "Open Org Chart Builder"
-                        : "Add Resources First"}
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
           </>
         )}
-      </div> {/* End main content */}
+        </div>
+      )}
+
+      {/* Context Tab View */}
+      {activeTab === 'context' && currentProject && (
+        <div className="flex-1 overflow-auto bg-gray-50">
+          <ProjectContextTab
+            projectId={currentProject.id}
+            initialContext={currentProject.businessContext as any}
+            onSave={() => {
+              loadProject(currentProject.id);
+            }}
+            onNavigateToTimeline={() => setActiveTab('timeline')}
+          />
+        </div>
+      )}
+
+      {/* Team Capacity Tab View */}
+      {activeTab === 'capacity' && currentProject && (
+        <div className="flex-1 overflow-auto bg-white">
+          <TeamCapacityTab project={currentProject} />
+        </div>
+      )}
+
       </div> {/* End h-screen container */}
 
       {/* Global Styles */}
@@ -1450,12 +1168,10 @@ export default function GanttToolV3Page() {
       />
 
       {/* Excel Import Modal */}
-      {showImportModal && (
-        <ImportModalV2
-          isOpen={showImportModal}
-          onClose={() => setShowImportModal(false)}
-        />
-      )}
+      <ImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+      />
 
       {/* Add Phase Modal */}
       <AddPhaseModal
@@ -1467,6 +1183,7 @@ export default function GanttToolV3Page() {
       <AddTaskModal
         isOpen={showAddTaskModal}
         onClose={() => setShowAddTaskModal(false)}
+        preselectedPhaseId={selectedPhaseId || undefined}
       />
 
       {/* Logo Library Modal */}
@@ -1475,46 +1192,13 @@ export default function GanttToolV3Page() {
         onClose={() => setShowLogoLibrary(false)}
       />
 
-      {/* View Transition Toast - Apple-style feedback */}
-      {viewTransitionToast.visible && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: "24px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            padding: "12px 24px",
-            backgroundColor: "rgba(0, 0, 0, 0.85)",
-            color: "#ffffff",
-            borderRadius: "12px",
-            fontFamily: "var(--font-text)",
-            fontSize: "14px",
-            fontWeight: 500,
-            boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
-            zIndex: 10000,
-            pointerEvents: "none",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            animation: "toast-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-          }}
-        >
-          {viewTransitionToast.message}
-        </div>
+      {/* Org Chart Builder Modal - Apple UX: Instant access, no page navigation */}
+      {showOrgChartModal && currentProject && (
+        <OrgChartHarmonyV2
+          onClose={() => setShowOrgChartModal(false)}
+          project={currentProject}
+        />
       )}
-
-      {/* Toast Animation */}
-      <style jsx>{`
-        @keyframes toast-slide-up {
-          from {
-            opacity: 0;
-            transform: translateX(-50%) translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-          }
-        }
-      `}</style>
     </>
   );
 }

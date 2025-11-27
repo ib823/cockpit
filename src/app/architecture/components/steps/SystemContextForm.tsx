@@ -202,7 +202,7 @@ export function SystemContextForm() {
         {actors.length === 0 ? (
           <div className="text-center text-gray-400 py-8">
             <p className="mb-2">No actors defined yet.</p>
-            <p className="text-sm">Click "Quick Add Teams" to add common roles, or "Add Actor" for custom roles.</p>
+            <p className="text-sm">Click &quot;Quick Add Teams&quot; to add common roles, or &quot;Add Actor&quot; for custom roles.</p>
           </div>
         ) : (
           <Space direction="vertical" className="w-full" size="middle">
@@ -341,7 +341,7 @@ export function SystemContextForm() {
           <div className="text-center text-gray-400 py-8">
             <p className="mb-2">No external systems defined yet.</p>
             <p className="text-sm">
-              Click "Quick Add Systems" for common integrations, or "Add System" for custom systems.
+              Click &quot;Quick Add Systems&quot; for common integrations, or &quot;Add System&quot; for custom systems.
             </p>
           </div>
         ) : (

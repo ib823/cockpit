@@ -562,10 +562,10 @@ export async function PATCH(
         // Provide specific guidance based on constraint
         if (target.includes("taskId") && target.includes("resourceId")) {
           detailedMessage =
-            "Duplicate resource assignment detected: The same resource is already assigned to this task. Please refresh the page to sync with the latest data.";
+            "Duplicate resource assignment detected: The same resource is already assigned to this task.";
         } else if (target.includes("phaseId") && target.includes("resourceId")) {
           detailedMessage =
-            "Duplicate PM resource assignment detected: The same PM resource is already assigned to this phase. Please refresh the page to sync with the latest data.";
+            "Duplicate PM resource assignment detected: The same PM resource is already assigned to this phase.";
         } else if (target.includes("name")) {
           detailedMessage = "A project with this name already exists. Please use a different name.";
         }
@@ -573,22 +573,34 @@ export async function PATCH(
         return NextResponse.json(
           {
             error: "Unique constraint violation",
+            code: "DUPLICATE_RECORD",
             message: detailedMessage,
             conflictField: target,
+            details: meta,
           },
           { status: 409 }
         );
       } else if (prismaCode === "P2003") {
+        const meta = prismaError.meta;
+        const fieldName = meta?.field_name || "unknown";
+
         return NextResponse.json(
           {
             error: "Foreign key constraint violation",
-            message: "Referenced record does not exist",
+            code: "FOREIGN_KEY_VIOLATION",
+            message: `Referenced record does not exist (field: ${fieldName}). The data you're trying to save references a resource, phase, or task that was deleted. Please refresh the page to sync with the latest state.`,
+            details: meta,
           },
           { status: 400 }
         );
       } else if (prismaCode === "P2025") {
         return NextResponse.json(
-          { error: "Record not found", message: "The requested record was not found" },
+          {
+            error: "Record not found",
+            code: "RECORD_NOT_FOUND",
+            message: "The requested record was not found",
+            details: prismaError.meta,
+          },
           { status: 404 }
         );
       }
@@ -597,6 +609,7 @@ export async function PATCH(
     return NextResponse.json(
       {
         error: "Failed to update project",
+        code: "INTERNAL_ERROR",
         message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday, addDays, startOfWeek, endOfWeek } from "date-fns";
-import { Calendar, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle2, X } from "lucide-react";
 import { isHoliday, getHolidayName, getNextWorkingDay } from "@/data/holidays";
+import { COLORS, SPACING, RADIUS, SHADOWS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
 
 interface HolidayAwareDatePickerProps {
   value: string; // ISO format YYYY-MM-DD
@@ -18,6 +18,7 @@ interface HolidayAwareDatePickerProps {
   placeholder?: string;
   size?: "small" | "medium" | "large";
   showWorkingDaysOnly?: boolean; // Prevent selection of weekends/holidays
+  milestones?: Array<{ date: string; label: string; color?: string }>; // Milestone markers
   className?: string;
 }
 
@@ -34,6 +35,7 @@ export function HolidayAwareDatePicker({
   placeholder = "Select date",
   size = "medium",
   showWorkingDaysOnly = false,
+  milestones = [],
   className = "",
 }: HolidayAwareDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -93,6 +95,12 @@ export function HolidayAwareDatePicker({
 
   const validation = getValidationStatus();
 
+  // Check if date has milestone
+  const getMilestoneForDate = (date: Date): { label: string; color?: string } | null => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    return milestones.find(m => m.date === dateStr) || null;
+  };
+
   // Handle date selection
   const handleDateSelect = (date: Date) => {
     if (isDisabledDate(date)) return;
@@ -100,7 +108,7 @@ export function HolidayAwareDatePicker({
     const isoDate = format(date, "yyyy-MM-dd");
     onChange(isoDate);
 
-    // Auto-close if working day, or stay open if weekend/holiday to show warning
+    // Auto-close if working day, or stay open if weekend/holiday to show suggestion
     if (!isWeekend(date) && !isHoliday(date, region)) {
       setIsOpen(false);
     }
@@ -144,20 +152,28 @@ export function HolidayAwareDatePicker({
 
   const calendarDays = generateCalendarDays();
 
-  // Size classes
-  const sizeClasses = {
-    small: "text-sm py-1.5 px-3",
-    medium: "text-base py-2 px-4",
-    large: "text-lg py-3 px-5",
+  // Size configuration
+  const sizeConfig = {
+    small: { fontSize: TYPOGRAPHY.fontSize.caption, height: '32px', padding: `0 ${SPACING[3]}` },
+    medium: { fontSize: TYPOGRAPHY.fontSize.body, height: '40px', padding: `0 ${SPACING[4]}` },
+    large: { fontSize: TYPOGRAPHY.fontSize.subtitle, height: '48px', padding: `0 ${SPACING[5]}` },
   };
 
+  const currentSize = sizeConfig[size];
+
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`} style={{ fontFamily: TYPOGRAPHY.fontFamily.text }}>
       {/* Label */}
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label style={{
+          display: 'block',
+          fontSize: TYPOGRAPHY.fontSize.caption,
+          fontWeight: TYPOGRAPHY.fontWeight.semibold,
+          color: COLORS.text.secondary,
+          marginBottom: SPACING[2],
+        }}>
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span style={{ color: COLORS.red, marginLeft: SPACING[1] }}>*</span>}
         </label>
       )}
 
@@ -167,38 +183,55 @@ export function HolidayAwareDatePicker({
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
-          className={`
-            w-full flex items-center justify-between gap-2
-            bg-white border rounded-lg transition-all
-            ${sizeClasses[size]}
-            ${error ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"}
-            ${isOpen ? "ring-2 ring-blue-500 border-blue-500" : ""}
-            ${disabled ? "bg-gray-50 cursor-not-allowed opacity-60" : "hover:border-gray-400 cursor-pointer"}
-          `}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: SPACING[3],
+            backgroundColor: COLORS.bg.primary,
+            border: `1px solid ${error ? COLORS.red : (isOpen ? COLORS.blue : COLORS.border.default)}`,
+            borderRadius: RADIUS.default,
+            height: currentSize.height,
+            padding: currentSize.padding,
+            fontSize: currentSize.fontSize,
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.4 : 1,
+            transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
+            outline: isOpen ? `2px solid ${COLORS.interactive.focus}` : 'none',
+            outlineOffset: '1px',
+          }}
         >
-          <div className="flex items-center gap-2 flex-1 text-left">
-            <Calendar className={`flex-shrink-0 text-gray-400 ${size === "small" ? "w-4 h-4" : size === "large" ? "w-6 h-6" : "w-5 h-5"}`} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3], flex: 1, textAlign: 'left' }}>
+            {/* Minimalist date indicator - simple dot */}
+            <div style={{
+              width: size === 'small' ? '4px' : size === 'large' ? '6px' : '5px',
+              height: size === 'small' ? '4px' : size === 'large' ? '6px' : '5px',
+              borderRadius: '50%',
+              backgroundColor: selectedDate ? COLORS.blue : COLORS.border.strong,
+              transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
+              flexShrink: 0,
+            }} />
             {selectedDate ? (
-              <div className="flex flex-col">
-                <span className="font-medium text-gray-900">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.primary }}>
                   {format(selectedDate, "MMM dd, yyyy")}
                 </span>
                 {validation && !validation.isValid && (
-                  <span className="text-xs text-amber-600 font-medium">
+                  <span style={{ fontSize: TYPOGRAPHY.fontSize.label, color: COLORS.text.tertiary }}>
                     {validation.isWeekend && "Weekend"}
                     {validation.isHoliday && validation.holidayName}
                   </span>
                 )}
               </div>
             ) : (
-              <span className="text-gray-400">{placeholder}</span>
+              <span style={{ color: COLORS.text.tertiary }}>{placeholder}</span>
             )}
           </div>
-          {/* Spacer for clear button */}
-          {selectedDate && !disabled && <div className="w-8" />}
+          {selectedDate && !disabled && <div style={{ width: SPACING[5] }} />}
         </button>
 
-        {/* Clear button - positioned absolutely to avoid nesting */}
+        {/* Clear button */}
         {selectedDate && !disabled && (
           <button
             type="button"
@@ -207,69 +240,184 @@ export function HolidayAwareDatePicker({
               e.stopPropagation();
               onChange("");
             }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors z-10"
+            style={{
+              position: 'absolute',
+              right: SPACING[2],
+              top: '50%',
+              transform: 'translateY(-50%)',
+              padding: SPACING[1],
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: RADIUS.small,
+              cursor: 'pointer',
+              color: COLORS.text.tertiary,
+              fontSize: '18px',
+              lineHeight: 1,
+              transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
+              zIndex: 10,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = COLORS.interactive.hover;
+              e.currentTarget.style.color = COLORS.text.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = COLORS.text.tertiary;
+            }}
           >
-            <X className="w-4 h-4 text-gray-400" />
+            ×
           </button>
         )}
       </div>
 
       {/* Error Message */}
       {error && (
-        <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-          <AlertTriangle className="w-4 h-4" />
+        <p style={{
+          marginTop: SPACING[2],
+          fontSize: TYPOGRAPHY.fontSize.caption,
+          color: COLORS.red,
+          display: 'flex',
+          alignItems: 'center',
+          gap: SPACING[2],
+        }}>
+          <span style={{ fontWeight: TYPOGRAPHY.fontWeight.semibold }}>!</span>
           {error}
         </p>
       )}
 
       {/* Calendar Dropdown */}
       {isOpen && (
-        <div className="absolute top-full mt-2 left-0 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden min-w-[320px]">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-            <div className="flex items-center justify-between mb-3">
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          marginTop: SPACING[2],
+          left: 0,
+          zIndex: 50,
+          backgroundColor: COLORS.bg.primary,
+          borderRadius: RADIUS.large,
+          boxShadow: SHADOWS.large,
+          border: `1px solid ${COLORS.border.default}`,
+          overflow: 'hidden',
+          minWidth: '368px', // Ensures 44px minimum touch targets for calendar cells
+        }}>
+          {/* Header - No gradient, clean */}
+          <div style={{
+            backgroundColor: COLORS.bg.primary, // Clean white, not gradient
+            borderBottom: `1px solid ${COLORS.border.default}`,
+            padding: SPACING[4],
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: SPACING[3],
+            }}>
               <button
                 type="button"
                 onClick={handlePreviousMonth}
-                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                data-testid="prev-month"
+                aria-label="Previous month"
+                style={{
+                  padding: `${SPACING[2]} ${SPACING[3]}`,
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: RADIUS.default,
+                  cursor: 'pointer',
+                  fontSize: TYPOGRAPHY.fontSize.title,
+                  lineHeight: 1,
+                  color: COLORS.text.primary,
+                  transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.interactive.hover}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <ChevronLeft className="w-5 h-5" />
+                ‹
               </button>
-              <div className="text-center">
-                <div className="font-semibold text-lg">
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  fontSize: TYPOGRAPHY.fontSize.subtitle,
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  color: COLORS.text.primary,
+                }}>
                   {format(viewDate, "MMMM yyyy")}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                data-testid="next-month"
+                aria-label="Next month"
+                style={{
+                  padding: `${SPACING[2]} ${SPACING[3]}`,
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: RADIUS.default,
+                  cursor: 'pointer',
+                  fontSize: TYPOGRAPHY.fontSize.title,
+                  lineHeight: 1,
+                  color: COLORS.text.primary,
+                  transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.interactive.hover}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <ChevronRight className="w-5 h-5" />
+                ›
               </button>
             </div>
             <button
               type="button"
               onClick={handleToday}
-              className="w-full py-1.5 px-3 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
+              data-testid="today-button"
+              aria-label="Go to today"
+              style={{
+                width: '100%',
+                padding: `${SPACING[2]} ${SPACING[3]}`,
+                backgroundColor: COLORS.interactive.hover,
+                border: 'none',
+                borderRadius: RADIUS.default,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                cursor: 'pointer',
+                transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.interactive.pressed}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.interactive.hover}
             >
               Today
             </button>
           </div>
 
           {/* Calendar Grid */}
-          <div className="p-4">
+          <div style={{ padding: SPACING[4] }}>
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: SPACING[1],
+              marginBottom: SPACING[2],
+            }}>
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="text-center text-xs font-semibold text-gray-500 py-1">
+                <div key={day} style={{
+                  textAlign: 'center',
+                  fontSize: TYPOGRAPHY.fontSize.label,
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  color: COLORS.text.tertiary,
+                  padding: SPACING[1],
+                }}>
                   {day}
                 </div>
               ))}
             </div>
 
             {/* Calendar Days */}
-            <div className="grid grid-cols-7 gap-1">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: SPACING[1],
+              minHeight: '290px', // CRITICAL FIX: Reserve space for 6 weeks max to prevent calendar jumping between months
+              alignContent: 'start', // Align rows to top when fewer than 6 weeks
+            }}>
               {calendarDays.map((date, index) => {
                 const isSelected = selectedDate && isSameDay(date, selectedDate);
                 const isCurrentMonth = isSameMonth(date, viewDate);
@@ -277,6 +425,7 @@ export function HolidayAwareDatePicker({
                 const weekend = isWeekend(date);
                 const holiday = isHoliday(date, region);
                 const holidayName = holiday ? getHolidayName(date, region) : null;
+                const milestone = getMilestoneForDate(date);
                 const disabled = isDisabledDate(date);
 
                 return (
@@ -285,25 +434,77 @@ export function HolidayAwareDatePicker({
                     type="button"
                     onClick={() => handleDateSelect(date)}
                     disabled={disabled}
-                    title={holidayName || undefined}
-                    className={`
-                      relative aspect-square flex items-center justify-center text-sm rounded-lg font-medium
-                      transition-all
-                      ${!isCurrentMonth ? "text-gray-300" : "text-gray-900"}
-                      ${isSelected ? "bg-blue-600 text-white shadow-md ring-2 ring-blue-600 ring-offset-2" : ""}
-                      ${!isSelected && isTodayDate ? "bg-blue-50 text-blue-600 font-bold" : ""}
-                      ${!isSelected && !isTodayDate && !disabled ? "hover:bg-gray-100" : ""}
-                      ${disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"}
-                      ${holiday && !isSelected ? "bg-red-50 text-red-700" : ""}
-                      ${weekend && !holiday && !isSelected && isCurrentMonth ? "bg-amber-50 text-amber-700" : ""}
-                    `}
+                    title={milestone?.label || holidayName || undefined}
+                    style={{
+                      position: 'relative',
+                      aspectRatio: '1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: TYPOGRAPHY.fontSize.caption,
+                      fontWeight: TYPOGRAPHY.fontWeight.regular,
+                      borderRadius: RADIUS.default,
+                      border: 'none',
+                      cursor: disabled ? 'not-allowed' : 'pointer',
+                      transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
+
+                      // Color logic - simplified and calm
+                      color: !isCurrentMonth ? COLORS.text.disabled :
+                             isSelected ? COLORS.bg.primary :
+                             weekend || holiday ? COLORS.text.tertiary :
+                             isTodayDate ? COLORS.blue :
+                             COLORS.text.primary,
+
+                      backgroundColor: isSelected ? COLORS.blue :
+                                       !disabled && isTodayDate ? COLORS.interactive.focus :
+                                       'transparent',
+
+                      opacity: disabled ? 0.4 : 1,
+                      fontWeight: isTodayDate && !isSelected ? TYPOGRAPHY.fontWeight.semibold : TYPOGRAPHY.fontWeight.regular,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!disabled && !isSelected) {
+                        e.currentTarget.style.backgroundColor = COLORS.interactive.hover;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!disabled && !isSelected) {
+                        if (isTodayDate) {
+                          e.currentTarget.style.backgroundColor = COLORS.interactive.focus;
+                        } else {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }
+                    }}
                   >
                     {format(date, "d")}
-                    {/* Holiday Indicator */}
+
+                    {/* Minimal indicators - whisper, don't shout */}
+                    {/* Milestone: 2px bar at top */}
+                    {milestone && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '60%',
+                        height: '2px',
+                        backgroundColor: isSelected ? COLORS.bg.primary : (milestone.color || COLORS.status.success),
+                        borderRadius: '2px',
+                      }} />
+                    )}
+
+                    {/* Holiday: 2px dot bottom-right */}
                     {holiday && (
-                      <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2">
-                        <div className={`w-1 h-1 rounded-full ${isSelected ? "bg-white" : "bg-red-500"}`} />
-                      </div>
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '2px',
+                        right: '2px',
+                        width: '2px',
+                        height: '2px',
+                        backgroundColor: isSelected ? COLORS.bg.primary : COLORS.red,
+                        borderRadius: '50%',
+                      }} />
                     )}
                   </button>
                 );
@@ -311,61 +512,59 @@ export function HolidayAwareDatePicker({
             </div>
           </div>
 
-          {/* Validation Warning */}
-          {validation && !validation.isValid && (
-            <div className="px-4 pb-4">
-              <div className="space-y-2">
-                {validation.isWeekend && (
-                  <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-amber-900">Weekend Selected</div>
-                      <div className="text-xs text-amber-700 mt-0.5">
-                        {selectedDate && format(selectedDate, "EEEE")} is not a working day
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {validation.isHoliday && (
-                  <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-red-900">Public Holiday</div>
-                      <div className="text-xs text-red-700 mt-0.5">
-                        {validation.holidayName}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Suggestion Button */}
+          {/* Calm suggestion instead of loud warning - FIXED HEIGHT to prevent jumping */}
+          <div style={{
+            minHeight: validation && !validation.isValid ? 'auto' : '0px',
+            overflow: 'hidden',
+            transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
+          }}>
+            {validation && !validation.isValid && (
+              <div style={{
+                padding: SPACING[4],
+                borderTop: `1px solid ${COLORS.border.default}`,
+              }}>
+                <div style={{
+                  fontSize: TYPOGRAPHY.fontSize.caption,
+                  color: COLORS.text.secondary,
+                  marginBottom: SPACING[3],
+                }}>
+                  {validation.isWeekend && `${format(selectedDate!, "EEEE")} selected. `}
+                  {validation.isHoliday && `${validation.holidayName}. `}
+                  Suggest: {selectedDate && format(getNextWorkingDay(selectedDate, region), "MMM dd")}
+                </div>
                 <button
                   type="button"
                   onClick={handleUseNextWorkingDay}
-                  className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm"
+                  style={{
+                    width: '100%',
+                    padding: `${SPACING[2]} ${SPACING[4]}`,
+                    backgroundColor: COLORS.blue,
+                    color: COLORS.bg.primary,
+                    border: 'none',
+                    borderRadius: RADIUS.default,
+                    fontSize: TYPOGRAPHY.fontSize.caption,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    cursor: 'pointer',
+                    transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.blueHover}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.blue}
                 >
-                  Use Next Working Day → {selectedDate && format(getNextWorkingDay(selectedDate, region), "MMM dd")}
+                  Use Next Working Day →
                 </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Region Indicator */}
-          <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-            <div className="text-xs text-gray-600">
-              {region === "ABMY" ? "🇲🇾 Malaysia" : region === "ABSG" ? "🇸🇬 Singapore" : "🇻🇳 Vietnam"}
-            </div>
-            <div className="flex items-center gap-3 text-xs">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-gray-600">Holiday</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-amber-500" />
-                <span className="text-gray-600">Weekend</span>
-              </div>
-            </div>
+          {/* Simple region indicator - no emoji, no legend */}
+          <div style={{
+            padding: `${SPACING[3]} ${SPACING[4]}`,
+            backgroundColor: COLORS.bg.subtle,
+            borderTop: `1px solid ${COLORS.border.default}`,
+            fontSize: TYPOGRAPHY.fontSize.label,
+            color: COLORS.text.tertiary,
+          }}>
+            {region === "ABMY" ? "Malaysia holidays" : region === "ABSG" ? "Singapore holidays" : "Vietnam holidays"}
           </div>
         </div>
       )}

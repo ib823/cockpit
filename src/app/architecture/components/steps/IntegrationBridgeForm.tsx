@@ -110,7 +110,7 @@ export function IntegrationBridgeForm() {
             No bridge connections defined. Add connections showing how TO-BE will integrate with AS-IS systems.
             <br />
             <span className="text-sm">
-              Example: "Legacy Oracle ERP" (AS-IS) → "SAP S/4HANA Finance" (TO-BE) via Data Migration
+              Example: &quot;Legacy Oracle ERP&quot; (AS-IS) → &quot;SAP S/4HANA Finance&quot; (TO-BE) via Data Migration
             </span>
           </div>
         ) : (
@@ -235,7 +235,7 @@ export function IntegrationBridgeForm() {
             <li>Map each AS-IS system to its TO-BE replacement or integration point</li>
             <li>Define migration strategy: Phased Cutover, Big Bang, or Parallel Run</li>
             <li>Include both data migration AND ongoing integrations</li>
-            <li>Document whether it's a replacement, coexistence, or integration scenario</li>
+            <li>Document whether it&apos;s a replacement, coexistence, or integration scenario</li>
           </ul>
         </div>
       </Card>

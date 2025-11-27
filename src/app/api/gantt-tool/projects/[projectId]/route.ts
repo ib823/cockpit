@@ -12,12 +12,14 @@ import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { validateResourceBatch } from "@/lib/gantt-tool/resource-import-validator";
+import { checkProjectAccess } from "@/lib/gantt-tool/access-control";
 
 // Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
 export const maxDuration = 10; // seconds
 
-// Validation schema for updating a project
+// Validation schema for updating a project (Unified Model - Phase 3)
 const UpdateProjectSchema = z.object({
+  // Timeline fields
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(5000).optional(),
   startDate: z
@@ -31,15 +33,72 @@ const UpdateProjectSchema = z.object({
   milestones: z.array(z.any()).optional(), // Full milestones array
   holidays: z.array(z.any()).optional(), // Full holidays array
   resources: z.array(z.any()).optional(), // Full resources array
+
+  // Architecture fields (Unified Project Model)
+  businessContext: z.any().optional(), // JSON field - BusinessContextData
+  currentLandscape: z.any().optional(), // JSON field - CurrentLandscapeData
+  proposedSolution: z.any().optional(), // JSON field - ProposedSolutionData
+  diagramSettings: z.any().optional(), // JSON field - DiagramSettings
+  architectureVersion: z.string().max(50).optional(), // Version string
+
+  // Optimistic locking
+  expectedVersion: z.number().optional(), // Version number expected by client
 });
 
-// Helper to check project ownership
+// Helper to check project ownership (DEPRECATED - use checkProjectAccess from access-control.ts)
 async function checkProjectOwnership(projectId: string, userId: string) {
   const project = await prisma.ganttProject.findFirst({
     where: {
       id: projectId,
       userId: userId,
       deletedAt: null,
+    },
+  });
+
+  return project !== null;
+}
+
+// Helper to check project read access (owner or collaborator)
+async function checkProjectReadAccess(projectId: string, userId: string) {
+  const project = await prisma.ganttProject.findFirst({
+    where: {
+      id: projectId,
+      deletedAt: null,
+      OR: [
+        { userId: userId },
+        {
+          collaborators: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return project !== null;
+}
+
+// Helper to check project write access (owner or EDITOR/OWNER collaborator)
+async function checkProjectWriteAccess(projectId: string, userId: string) {
+  const project = await prisma.ganttProject.findFirst({
+    where: {
+      id: projectId,
+      deletedAt: null,
+      OR: [
+        { userId: userId },
+        {
+          collaborators: {
+            some: {
+              userId: userId,
+              role: {
+                in: ["EDITOR", "OWNER"],
+              },
+            },
+          },
+        },
+      ],
     },
   });
 
@@ -64,13 +123,28 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const minimal = searchParams.get("minimal") === "true";
 
+    // Check if user has read access to this project
+    const hasReadAccess = await checkProjectReadAccess(projectId, session.user.id);
+    if (!hasReadAccess) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
     const project = minimal
       ? // Minimal query - only basic info + counts (< 50ms)
         await prisma.ganttProject.findFirst({
           where: {
             id: projectId,
-            userId: session.user.id,
             deletedAt: null,
+            OR: [
+              { userId: session.user.id },
+              {
+                collaborators: {
+                  some: {
+                    userId: session.user.id,
+                  },
+                },
+              },
+            ],
           },
           select: {
             id: true,
@@ -81,6 +155,22 @@ export async function GET(
             budget: true,
             createdAt: true,
             updatedAt: true,
+            version: true,
+            lastModifiedBy: true,
+            lastModifiedAt: true,
+            lastModifier: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+            // Architecture fields (Unified Model)
+            businessContext: true,
+            currentLandscape: true,
+            proposedSolution: true,
+            diagramSettings: true,
+            architectureVersion: true,
+            lastArchitectureEdit: true,
             _count: {
               select: {
                 phases: true,
@@ -95,8 +185,17 @@ export async function GET(
         await prisma.ganttProject.findFirst({
           where: {
             id: projectId,
-            userId: session.user.id,
             deletedAt: null,
+            OR: [
+              { userId: session.user.id },
+              {
+                collaborators: {
+                  some: {
+                    userId: session.user.id,
+                  },
+                },
+              },
+            ],
           },
           include: {
             phases: {
@@ -124,6 +223,32 @@ export async function GET(
               },
               orderBy: { createdAt: "asc" },
             },
+            lastModifier: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+            activeSessions: {
+              where: {
+                lastSeenAt: {
+                  gte: new Date(Date.now() - 5 * 60 * 1000), // Active in last 5 minutes
+                },
+              },
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                  },
+                },
+              },
+              orderBy: {
+                lastSeenAt: "desc",
+              },
+            },
           },
         });
 
@@ -131,13 +256,15 @@ export async function GET(
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    // Serialize dates to strings for frontend
+    // Serialize dates to strings for frontend (Unified Model - Phase 3)
     const serializedProject = minimal
       ? {
           ...project,
           startDate: (project as any).startDate.toISOString().split("T")[0],
           createdAt: (project as any).createdAt.toISOString(),
           updatedAt: (project as any).updatedAt.toISOString(),
+          lastModifiedAt: (project as any).lastModifiedAt?.toISOString() || null,
+          lastArchitectureEdit: (project as any).lastArchitectureEdit?.toISOString() || null,
         }
       : {
           ...project,
@@ -175,6 +302,12 @@ export async function GET(
             ...r,
             createdAt: r.createdAt.toISOString(),
           })),
+          lastModifiedAt: (project as any).lastModifiedAt?.toISOString() || null,
+          lastArchitectureEdit: (project as any).lastArchitectureEdit?.toISOString() || null,
+          activeSessions: (project as any).activeSessions.map((s: any) => ({
+            ...s,
+            lastSeenAt: s.lastSeenAt.toISOString(),
+          })),
         };
 
     // Add caching headers to reduce repeated requests
@@ -207,10 +340,13 @@ export async function PATCH(
 
     const { projectId } = await params;
 
-    // Check ownership
-    const hasAccess = await checkProjectOwnership(projectId, session.user.id);
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // Check write access (owner or EDITOR/OWNER collaborator)
+    const hasWriteAccess = await checkProjectWriteAccess(projectId, session.user.id);
+    if (!hasWriteAccess) {
+      return NextResponse.json(
+        { error: "Insufficient permissions. EDITOR or OWNER role required." },
+        { status: 403 }
+      );
     }
 
     let body;
@@ -221,7 +357,39 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 });
     }
 
-    const validatedData = UpdateProjectSchema.parse(body);
+    // Validate request body with proper Zod error handling
+    let validatedData;
+    try {
+      validatedData = UpdateProjectSchema.parse(body);
+    } catch (zodError) {
+      if (zodError instanceof z.ZodError) {
+        const issues = zodError.issues.map(issue => ({
+          path: issue.path.join('.'),
+          message: issue.message,
+          code: issue.code,
+        }));
+
+        if (isDev) {
+          console.error("[API] Validation failed for project update:", {
+            projectId,
+            issues,
+            zodError,
+          });
+        }
+
+        return NextResponse.json(
+          {
+            error: "Request validation failed",
+            code: "VALIDATION_ERROR",
+            details: issues,
+            validationDetails: issues, // For backward compatibility
+          },
+          { status: 400 }
+        );
+      }
+      // Re-throw non-Zod errors
+      throw zodError;
+    }
 
     // NEW: Validate resources if included in update
     if (validatedData.resources && Array.isArray(validatedData.resources)) {
@@ -288,22 +456,93 @@ export async function PATCH(
       }
     }
 
+    // OPTIMISTIC LOCKING: Check version before update
+    if (validatedData.expectedVersion !== undefined) {
+      const currentProject = await prisma.ganttProject.findUnique({
+        where: { id: projectId },
+        select: {
+          version: true,
+          lastModifiedBy: true,
+          lastModifiedAt: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+          lastModifier: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (!currentProject) {
+        return NextResponse.json({ error: "Project not found" }, { status: 404 });
+      }
+
+      if (currentProject.version !== validatedData.expectedVersion) {
+        // Version conflict detected
+        return NextResponse.json(
+          {
+            error: "CONFLICT",
+            code: "VERSION_CONFLICT",
+            message: "This project was modified by another user. Please refresh and try again.",
+            details: {
+              expectedVersion: validatedData.expectedVersion,
+              currentVersion: currentProject.version,
+              lastModifiedBy: currentProject.lastModifier || currentProject.user,
+              lastModifiedAt: currentProject.lastModifiedAt?.toISOString() || currentProject.version,
+            },
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     // Update project in transaction
     const txStartTime = Date.now();
 
-    const updatedProject: { id: string; updatedAt: Date } = await (prisma.$transaction as any)(async (tx: any) => {
-      // Update main project fields
+    const updatedProject: { id: string; updatedAt: Date; version: number } = await (prisma.$transaction as any)(async (tx: any) => {
+      // Update main project fields with version increment (Unified Model - Phase 3)
+      const updateData: any = {
+        // Timeline fields
+        name: validatedData.name,
+        description: validatedData.description,
+        startDate: validatedData.startDate ? new Date(validatedData.startDate) : undefined,
+        viewSettings: validatedData.viewSettings,
+        budget: validatedData.budget,
+        orgChart: validatedData.orgChart, // Organization chart structure
+
+        // Architecture fields (Unified Project Model)
+        businessContext: validatedData.businessContext,
+        currentLandscape: validatedData.currentLandscape,
+        proposedSolution: validatedData.proposedSolution,
+        diagramSettings: validatedData.diagramSettings,
+        architectureVersion: validatedData.architectureVersion,
+
+        // Increment version and track last modifier
+        version: { increment: 1 },
+        lastModifiedBy: session.user.id,
+        lastModifiedAt: new Date(),
+      };
+
+      // Track lastArchitectureEdit when any architecture field is updated
+      if (
+        validatedData.businessContext !== undefined ||
+        validatedData.currentLandscape !== undefined ||
+        validatedData.proposedSolution !== undefined ||
+        validatedData.diagramSettings !== undefined
+      ) {
+        updateData.lastArchitectureEdit = new Date();
+      }
+
       const project = await tx.ganttProject.update({
         where: { id: projectId },
-        data: {
-          name: validatedData.name,
-          description: validatedData.description,
-          startDate: validatedData.startDate ? new Date(validatedData.startDate) : undefined,
-          viewSettings: validatedData.viewSettings,
-          budget: validatedData.budget,
-          orgChart: validatedData.orgChart, // Organization chart structure
-        },
-        select: { id: true, updatedAt: true },
+        data: updateData,
+        select: { id: true, updatedAt: true, version: true },
       });
 
       // IMPORTANT: Create resources FIRST before phases/tasks that reference them
@@ -515,6 +754,7 @@ export async function PATCH(
         project: {
           id: projectId,
           updatedAt: updatedProject.updatedAt.toISOString(),
+          version: updatedProject.version, // Return new version for next save
         },
         meta: {
           txDuration,
@@ -559,10 +799,10 @@ export async function PATCH(
         // Provide specific guidance based on constraint
         if (target.includes("taskId") && target.includes("resourceId")) {
           detailedMessage =
-            "Duplicate resource assignment detected: The same resource is already assigned to this task. Please refresh the page to sync with the latest data.";
+            "Duplicate resource assignment detected: The same resource is already assigned to this task.";
         } else if (target.includes("phaseId") && target.includes("resourceId")) {
           detailedMessage =
-            "Duplicate PM resource assignment detected: The same PM resource is already assigned to this phase. Please refresh the page to sync with the latest data.";
+            "Duplicate PM resource assignment detected: The same PM resource is already assigned to this phase.";
         } else if (target.includes("name")) {
           detailedMessage = "A project with this name already exists. Please use a different name.";
         }
@@ -570,6 +810,7 @@ export async function PATCH(
         return NextResponse.json(
           {
             error: "Unique constraint violation",
+            code: "DUPLICATE_RECORD",
             message: detailedMessage,
             conflictField: target,
             details: meta,
@@ -577,11 +818,15 @@ export async function PATCH(
           { status: 409 }
         );
       } else if (prismaCode === "P2003") {
+        const meta = (error as any).meta;
+        const fieldName = meta?.field_name || "unknown";
+
         return NextResponse.json(
           {
             error: "Foreign key constraint violation",
-            message: "Referenced record does not exist",
-            details: (error as any).meta,
+            code: "FOREIGN_KEY_VIOLATION",
+            message: `Referenced record does not exist (field: ${fieldName}). The data you're trying to save references a resource, phase, or task that was deleted. Please refresh the page to sync with the latest state.`,
+            details: meta,
           },
           { status: 400 }
         );
@@ -589,6 +834,7 @@ export async function PATCH(
         return NextResponse.json(
           {
             error: "Record not found",
+            code: "RECORD_NOT_FOUND",
             message: "The requested record was not found",
             details: (error as any).meta,
           },
@@ -600,6 +846,7 @@ export async function PATCH(
     return NextResponse.json(
       {
         error: "Failed to update project",
+        code: "INTERNAL_ERROR",
         message: error instanceof Error ? error.message : "Unknown error",
         details:
           error instanceof Error
@@ -625,10 +872,13 @@ export async function DELETE(
 
     const { projectId } = await params;
 
-    // Check ownership
-    const hasAccess = await checkProjectOwnership(projectId, session.user.id);
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // Check ownership - only owner can delete
+    const hasOwnership = await checkProjectOwnership(projectId, session.user.id);
+    if (!hasOwnership) {
+      return NextResponse.json(
+        { error: "Only the project owner can delete the project" },
+        { status: 403 }
+      );
     }
 
     // Soft delete

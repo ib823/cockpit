@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Amber Hex Logo Loader</title>
+  <style>
+    /* Fullscreen center layout */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: radial-gradient(circle at 20% 20%, #111827, #020617 60%, #000000 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      color: #e5e7eb;
+    }
+
+    .loader-shell {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .logo-wrapper {
+      position: relative;
+      width: 220px;           /* adjust size as needed */
+      aspect-ratio: 1 / 1;
+      animation: float 3.4s ease-in-out infinite;
+    }
+
+    /* Soft shadow "Pixar-style" under the logo */
+    .logo-wrapper::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -18px;
+      width: 70%;
+      height: 18%;
+      transform: translateX(-50%);
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%);
+      filter: blur(4px);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .logo-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: drop-shadow(0 10px 24px rgba(0,0,0,0.45));
+    }
+
+    /* Core logo intro: soft pop-in, no jarring jumps */
+    .logo-core {
+      transform-box: fill-box;
+      transform-origin: 50% 50%;
+      animation:
+        intro 0.9s cubic-bezier(0.21, 0.9, 0.29, 1.01) 0.05s both,
+        gentle-tilt 4.2s cubic-bezier(0.37, 0, 0.19, 1) infinite 0.9s;
+    }
+
+    /* Facet glow cycle: acts as “loading” motion */
+    .facet {
+      opacity: 0.85;
+      transform-box: fill-box;
+      transform-origin: 50% 50%;
+      animation: facet-glow 1.85s ease-in-out infinite;
+    }
+    .facet-0 { animation-delay: 0.00s; }
+    .facet-1 { animation-delay: 0.25s; }
+    .facet-2 { animation-delay: 0.50s; }
+    .facet-3 { animation-delay: 0.75s; }
+    .facet-4 { animation-delay: 1.00s; }
+    .facet-5 { animation-delay: 1.25s; }
+
+    /* Subtle shimmering for corner caps */
+    .cap {
+      animation: cap-glow 3.2s ease-in-out infinite;
+    }
+
+    /* Loading text */
+    .loader-text {
+      font-size: 0.9rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+    }
+
+    .loader-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: #fbbf24;
+      opacity: 0.3;
+      animation: dot-pulse 1.4s ease-in-out infinite;
+    }
+    .loader-dot:nth-child(2) { animation-delay: 0.18s; }
+    .loader-dot:nth-child(3) { animation-delay: 0.36s; }
+
+    /* === Keyframes === */
+
+    @keyframes intro {
+      0% {
+        opacity: 0;
+        transform: scale(0.78) translateY(26px);
+        filter: blur(6px);
+      }
+      55% {
+        opacity: 1;
+        transform: scale(1.03) translateY(0px);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1.0) translateY(0px);
+      }
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    @keyframes gentle-tilt {
+      0% {
+        transform: rotate(0deg);
+      }
+      25% {
+        transform: rotate(-3deg);
+      }
+      50% {
+        transform: rotate(0.5deg);
+      }
+      75% {
+        transform: rotate(2deg);
+      }
+      100% {
+        transform: rotate(0deg);
+      }
+    }
+
+    @keyframes facet-glow {
+      0%, 100% {
+        opacity: 0.7;
+        transform: scale(1.0);
+        filter: brightness(1.0);
+      }
+      50% {
+        opacity: 1.0;
+        transform: scale(1.03);
+        filter: brightness(1.18);
+      }
+    }
+
+    @keyframes cap-glow {
+      0%, 100% {
+        opacity: 0.6;
+      }
+      50% {
+        opacity: 1.0;
+      }
+    }
+
+    @keyframes dot-pulse {
+      0%, 100% {
+        opacity: 0.25;
+        transform: translateY(0px) scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1.2);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader-shell">
+    <div class="logo-wrapper">
+      <!-- Your amber logo with animation hooks -->
+      <svg class="logo-svg" width="1024" height="1024" viewBox="0 0 1024 1024"
+           xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fitted Hex Logo">
+        <defs>
+          <mask id="rounded">
+            <rect width="100%" height="100%" fill="black"/>
+            <polygon
+              points="
+                511.930,171.025
+                801.975,338.482
+                801.975,673.397
+                511.930,840.854
+                221.885,673.397
+                221.885,338.482
+              "
+              fill="white" stroke="white" stroke-linejoin="round" stroke-width="88.05"/>
+          </mask>
+
+          <!-- Amber gradients -->
+          <radialGradient id="w0" cx="511.9" cy="505.9" r="360.0" gradientUnits="userSpaceOnUse">
+            <stop offset="18%" stop-color="#ffb84d"/>
+            <stop offset="90%" stop-color="#ffd17a"/>
+          </radialGradient>
+          <radialGradient id="w1" cx="511.9" cy="505.9" r="360.0" gradientUnits="userSpaceOnUse">
+            <stop offset="18%" stop-color="#ffae33"/>
+            <stop offset="90%" stop-color="#ffc857"/>
+          </radialGradient>
+          <radialGradient id="w2" cx="511.9" cy="505.9" r="360.0" gradientUnits="userSpaceOnUse">
+            <stop offset="18%" stop-color="#ffa321"/>
+            <stop offset="90%" stop-color="#ffbf3b"/>
+          </radialGradient>
+          <radialGradient id="w3" cx="511.9" cy="505.9" r="360.0" gradientUnits="userSpaceOnUse">
+            <stop offset="18%" stop-color="#ffb733"/>
+            <stop offset="90%" stop-color="#ffd160"/>
+          </radialGradient>
+          <radialGradient id="w4" cx="511.9" cy="505.9" r="360.0" gradientUnits="userSpaceOnUse">
+            <stop offset="18%" stop-color="#ffc247"/>
+            <stop offset="90%" stop-color="#ffdd73"/>
+          </radialGradient>
+          <radialGradient id="w5" cx="511.9" cy="505.9" r="360.0" gradientUnits="userSpaceOnUse">
+            <stop offset="18%" stop-color="#ffd15c"/>
+            <stop offset="90%" stop-color="#ffe48c"/>
+          </radialGradient>
+
+          <radialGradient id="capGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.50"/>
+            <stop offset="60%" stop-color="#ffffff" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="innerVignette" cx="70%" cy="75%" r="60%">
+            <stop offset="0%" stop-color="#000000" stop-opacity="0.05"/>
+            <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Animated core group -->
+        <g class="logo-core" mask="url(#rounded)">
+          <!-- Facets with classes for staggered glow -->
+          <polygon class="facet facet-0"
+                   points="511.9,505.9 183.8,316.5 511.9,127.0"
+                   fill="url(#w0)"/>
+          <polygon class="facet facet-1"
+                   points="511.9,505.9 511.9,127.0 840.1,316.5"
+                   fill="url(#w1)"/>
+          <polygon class="facet facet-2"
+                   points="511.9,505.9 840.1,316.5 840.1,695.4"
+                   fill="url(#w2)"/>
+          <polygon class="facet facet-3"
+                   points="511.9,505.9 840.1,695.4 511.9,884.9"
+                   fill="url(#w3)"/>
+          <polygon class="facet facet-4"
+                   points="511.9,505.9 511.9,884.9 183.8,695.4"
+                   fill="url(#w4)"/>
+          <polygon class="facet facet-5"
+                   points="511.9,505.9 183.8,695.4 183.8,316.5"
+                   fill="url(#w5)"/>
+
+          <!-- Inner vignette -->
+          <rect width="1024" height="1024" fill="url(#innerVignette)"/>
+
+          <!-- Corner gloss caps -->
+          <circle class="cap" cx="511.9" cy="127.0" r="33.0" fill="url(#capGlow)"/>
+          <circle class="cap" cx="840.1" cy="316.5" r="33.0" fill="url(#capGlow)"/>
+          <circle class="cap" cx="840.1" cy="695.4" r="33.0" fill="url(#capGlow)"/>
+          <circle class="cap" cx="511.9" cy="884.9" r="33.0" fill="url(#capGlow)"/>
+          <circle class="cap" cx="183.8" cy="695.4" r="33.0" fill="url(#capGlow)"/>
+          <circle class="cap" cx="183.8" cy="316.5" r="33.0" fill="url(#capGlow)"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="loader-text">
+      LOADING
+      <span class="loader-dot"></span>
+      <span class="loader-dot"></span>
+      <span class="loader-dot"></span>
+    </div>
+  </div>
+</body>
+</html>

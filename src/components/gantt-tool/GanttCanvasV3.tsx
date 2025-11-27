@@ -27,6 +27,9 @@ import {
   eachQuarterOfInterval,
   eachYearOfInterval,
   startOfMonth,
+  endOfMonth,
+  endOfQuarter,
+  endOfYear,
   getMonth,
   getDay,
 } from "date-fns";
@@ -231,9 +234,7 @@ export function GanttCanvasV3({
       // Escape key - Close any open modals (WCAG 2.1 2.1.2 - No Keyboard Trap)
       if (e.key === 'Escape') {
         e.preventDefault();
-        if (barEditorState) {
-          setBarEditorState(null);
-        } else if (editingPhaseId) {
+        if (editingPhaseId) {
           setEditingPhaseId(null);
         } else if (editingTaskId) {
           setEditingTaskId(null);
@@ -443,13 +444,28 @@ export function GanttCanvasV3({
 
   const duration = getProjectDuration();
 
+  // CRITICAL FIX: Memoize AMS phase detection to prevent dependency issues
+  // This creates a stable boolean value instead of depending on the phases array directly
+  const hasAMSPhases = useMemo(() => {
+    return currentProject?.phases.some(p => p.phaseType === 'ams') ?? false;
+  }, [currentProject?.phases]);
+
   // Smart Timeline Interval Adaptation - Jobs/Ive: "Adaptive intelligence"
   // Automatically adjust zoom granularity based on available width
   const [adaptiveZoomMode, setAdaptiveZoomMode] = useState<ZoomMode | null>(null);
   const timelineContainerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!timelineContainerRef.current || !duration) return;
+
+    // CRITICAL FIX: Disable adaptive zoom for projects with AMS phases
+    // AMS phases should maintain consistent visual representation regardless of duration (1/2/3 years)
+    // Adaptive zoom would cause unwanted quarterly view when AMS duration is set to 3 years
+    if (hasAMSPhases) {
+      setAdaptiveZoomMode(null); // Always use original zoomMode for AMS projects
+      return;
+    }
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
@@ -505,7 +521,12 @@ export function GanttCanvasV3({
     observer.observe(timelineContainerRef.current);
 
     return () => observer.disconnect();
-  }, [zoomMode, duration]);
+  }, [zoomMode, duration, hasAMSPhases]);
+
+  // REMOVED: Auto-scroll logic for AMS phases
+  // AMS chevrons are now positioned at the end of the timeline with a fixed 2-month buffer
+  // This ensures they're always visible in the initial viewport without requiring scroll
+  // Previous auto-scroll behavior caused UX issues when AMS phases were far in the future
 
   // Use adaptive zoom if available, otherwise fall back to provided zoomMode
   const effectiveZoomMode = adaptiveZoomMode || zoomMode;
@@ -533,7 +554,8 @@ export function GanttCanvasV3({
     ? currentProject.phases.find(p => p.id === focusedPhaseId)
     : null;
 
-  const timelineBounds = focusedPhase && duration
+  // Use memoized hasAMSPhases value (defined above) for timeline bounds
+  const timelineBounds = (focusedPhase && duration && !hasAMSPhases)
     ? {
         startDate: new Date(focusedPhase.startDate),
         endDate: new Date(focusedPhase.endDate),
@@ -548,24 +570,43 @@ export function GanttCanvasV3({
 
     const { startDate: start, endDate: end } = timelineBounds;
 
-    // Add small padding to end date to ensure last items are fully visible (only for scrollable views)
-    // For auto-fit modes, we don't add padding as everything should fit on screen
-    const paddedEnd = addDays(end, 7); // Small 7-day buffer for visual breathing room
+    // Extend end date to the end of the last time period to ensure last marker is fully visible
+    // This prevents truncation of the last quarter/month/year column
+    let extendedEnd: Date;
+    switch (effectiveZoomMode) {
+      case 'day':
+        extendedEnd = addDays(end, 7); // Small buffer for days
+        break;
+      case 'week':
+        extendedEnd = addDays(end, 7); // Small buffer for weeks
+        break;
+      case 'month':
+        extendedEnd = endOfMonth(end); // Extend to end of last month
+        break;
+      case 'quarter':
+        extendedEnd = endOfQuarter(end); // Extend to end of last quarter (fixes Q1 '27 truncation)
+        break;
+      case 'year':
+        extendedEnd = endOfYear(end); // Extend to end of last year
+        break;
+      default:
+        extendedEnd = endOfMonth(end);
+    }
 
     // Use effective zoom mode (adapts to available width)
     switch (effectiveZoomMode) {
       case 'day':
-        return eachDayOfInterval({ start, end: paddedEnd });
+        return eachDayOfInterval({ start, end: extendedEnd });
       case 'week':
-        return eachWeekOfInterval({ start, end: paddedEnd }, { weekStartsOn: 1 });
+        return eachWeekOfInterval({ start, end: extendedEnd }, { weekStartsOn: 1 });
       case 'month':
-        return eachMonthOfInterval({ start, end: paddedEnd });
+        return eachMonthOfInterval({ start, end: extendedEnd });
       case 'quarter':
-        return eachQuarterOfInterval({ start, end: paddedEnd });
+        return eachQuarterOfInterval({ start, end: extendedEnd });
       case 'year':
-        return eachYearOfInterval({ start, end: paddedEnd });
+        return eachYearOfInterval({ start, end: extendedEnd });
       default:
-        return eachMonthOfInterval({ start, end: paddedEnd });
+        return eachMonthOfInterval({ start, end: extendedEnd });
     }
   }, [timelineBounds, effectiveZoomMode]);
 
@@ -589,9 +630,12 @@ export function GanttCanvasV3({
           secondary: format(date, 'yy'),
         };
       case 'quarter':
+        // Show quarter in "Q1 '26" format for consistency
+        const quarter = Math.ceil((getMonth(date) + 1) / 3);
+        const year = format(date, 'yy');
         return {
-          primary: `Q${Math.ceil((getMonth(date) + 1) / 3)}`,
-          secondary: format(date, 'yy'),
+          primary: `Q${quarter}`,
+          secondary: year,
         };
       case 'year':
         return {
@@ -619,8 +663,37 @@ export function GanttCanvasV3({
     );
   }, [duration, currentProject?.holidays]);
 
+  // CRITICAL: Calculate extended duration BEFORE any early returns to maintain hooks order
+  // This ensures that when timeline markers extend beyond the original timeline (e.g., to end of quarter),
+  // the position calculations are accurate and don't cause truncation
+  const extendedDuration = useMemo(() => {
+    const bounds = timelineBounds || duration;
+    if (!bounds) return 0;
+
+    const { startDate: start, endDate: end, durationDays: days } = bounds;
+    if (!end) return days;
+
+    let extendedEnd: Date;
+    switch (effectiveZoomMode) {
+      case 'month':
+        extendedEnd = endOfMonth(end);
+        break;
+      case 'quarter':
+        extendedEnd = endOfQuarter(end);
+        break;
+      case 'year':
+        extendedEnd = endOfYear(end);
+        break;
+      default:
+        extendedEnd = end;
+    }
+
+    return differenceInDays(extendedEnd, start) + 1;
+  }, [timelineBounds, duration, effectiveZoomMode]);
+
   console.log("[GanttCanvasV3] Render - currentProject:", currentProject?.id, "duration:", duration);
 
+  // Early returns AFTER all hooks have been called
   if (!currentProject) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -642,10 +715,10 @@ export function GanttCanvasV3({
 
   const { startDate, endDate, durationDays } = timelineBounds || duration;
 
-  // Calculate positions
+  // Calculate positions using extended duration to prevent truncation of last time period
   const getPositionPercent = (date: Date) => {
     const dayOffset = differenceInDays(date, startDate);
-    return (dayOffset / durationDays) * 100;
+    return (dayOffset / extendedDuration) * 100;
   };
 
   const getBarPosition = (itemStartDate: string, itemEndDate: string) => {
@@ -653,21 +726,48 @@ export function GanttCanvasV3({
     const itemEnd = new Date(itemEndDate);
     const left = getPositionPercent(itemStart);
     // Add 1 to make dates inclusive (a task from Jan 5 to Jan 30 is 26 days, not 25)
-    const width = ((differenceInDays(itemEnd, itemStart) + 1) / durationDays) * 100;
+    const width = ((differenceInDays(itemEnd, itemStart) + 1) / extendedDuration) * 100;
     return { left, width };
   };
 
-  // Calculate timeline width based on zoom mode
+  // Calculate AMS chevron position - positioned at fixed offset from last non-AMS phase end
+  // This ensures consistent, compact visualization regardless of AMS contract duration (1/2/3 years)
+  const getAMSChevronPosition = (amsPhase: GanttPhase) => {
+    if (!currentProject || !amsPhase) {
+      return { left: 0, width: 0 };
+    }
+
+    // Find the last non-AMS phase end date for positioning reference
+    const nonAmsPhases = currentProject.phases.filter((p) => p.phaseType !== "ams");
+    const nonAmsEndDates = nonAmsPhases.map((p) => new Date(p.endDate).getTime());
+
+    // Position chevrons 3 days after the last non-AMS phase ends
+    // This creates a small visual gap that indicates "project work complete, support begins"
+    const lastNonAmsEndDate = nonAmsEndDates.length > 0
+      ? new Date(Math.max(...nonAmsEndDates))
+      : new Date(amsPhase.startDate); // Fallback to AMS start if no other phases
+
+    const chevronStartDate = addDays(lastNonAmsEndDate, 3);
+    // Fixed 14-day visual width - compact representation (chevrons are 160px fixed width)
+    const chevronEndDate = addDays(chevronStartDate, 14);
+
+    const left = getPositionPercent(chevronStartDate);
+    const width = ((differenceInDays(chevronEndDate, chevronStartDate) + 1) / extendedDuration) * 100;
+
+    return { left, width };
+  };
+
+  // Calculate effective sidebar width (needed for timeline width calculation)
+  const effectiveSidebarWidth = isSidebarCollapsed ? 0 : sidebarWidth;
+
+  // Calculate timeline width based on zoom mode and marker count
   const getTimelineWidth = (): string => {
-    // All zoom modes now fit to viewport by default (no horizontal scrolling)
-    // The zoom mode determines the timeline header granularity (day/week/month/etc)
-    // but the timeline always fits the available width
+    // ULTIMATE POLICY: Always fit timeline to viewport - NO scrolling required
+    // The percentage-based positioning will distribute phases correctly
     return '100%';
   };
 
   const timelineWidth = getTimelineWidth();
-
-  const effectiveSidebarWidth = isSidebarCollapsed ? 0 : sidebarWidth;
 
   // Mobile View - Jobs/Ive/Cook/Musk approved card layout
   if (isMobile) {
@@ -955,9 +1055,15 @@ export function GanttCanvasV3({
                     >
                       <button
                         onClick={() => handlePhaseToggle(phase.id)}
-                        aria-label={isCollapsed ? `Expand ${phase.name} phase` : `Collapse ${phase.name} phase`}
+                        aria-label={isCollapsed
+                          ? `Expand ${phase.name} ${phase.phaseType === "ams" ? "AMS contract phase" : "phase"}`
+                          : `Collapse ${phase.name} ${phase.phaseType === "ams" ? "AMS contract phase" : "phase"}`
+                        }
                         aria-expanded={!isCollapsed}
-                        title={isCollapsed ? "Expand phase" : "Collapse phase"}
+                        title={isCollapsed
+                          ? `Expand ${phase.phaseType === "ams" ? "AMS contract " : ""}phase`
+                          : `Collapse ${phase.phaseType === "ams" ? "AMS contract " : ""}phase`
+                        }
                         style={{
                           display: "flex",
                           alignItems: "center",
@@ -982,62 +1088,130 @@ export function GanttCanvasV3({
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            color: phase.phaseType === "ams" ? "#FF6B35" : "inherit",
                           }}
                         >
-                          <ChevronRight className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                          <ChevronRight className="w-5 h-5 flex-shrink-0" aria-hidden="true" style={{
+                            strokeWidth: phase.phaseType === "ams" ? 2.5 : undefined
+                          }} />
                         </motion.div>
                         <span
                           style={{
                             whiteSpace: "nowrap",
                             overflow: "hidden",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
                           }}
                         >
                           {phase.name}
+                          {phase.phaseType === "ams" && (
+                            <span
+                              style={{
+                                display: "inline-block",
+                                padding: "2px 6px",
+                                fontSize: "10px",
+                                fontWeight: "600",
+                                backgroundColor: "#FF6B35",
+                                color: "#fff",
+                                borderRadius: "4px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px",
+                              }}
+                              aria-label="Application Management Services"
+                            >
+                              AMS
+                            </span>
+                          )}
                         </span>
                       </button>
                     </div>
-                    {/* Calendar Duration */}
-                    <div
-                      style={{
-                        width: `${calendarDurationWidth}px`,
-                        textAlign: "center",
-                        fontFamily: "var(--font-text)",
-                        fontSize: "var(--text-caption)",
-                        opacity: 0.6,
-                      }}
-                    >
-                      {phaseCalendarDuration}
-                    </div>
-                    {/* Working Days */}
-                    <div
-                      style={{
-                        width: `${workingDaysWidth}px`,
-                        textAlign: "center",
-                        fontFamily: "var(--font-text)",
-                        fontSize: "var(--text-caption)",
-                        opacity: 0.6,
-                      }}
-                    >
-                      {phaseWorkingDays} d
-                    </div>
-                    {/* Start/End Date */}
-                    <div
-                      style={{
-                        width: `${startEndDateWidth}px`,
-                        textAlign: "center",
-                        fontFamily: "var(--font-text)",
-                        fontSize: "var(--text-caption)",
-                        opacity: 0.6,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {phase.phaseType === "ams"
-                        ? `AMS Contract - ${phase.amsDuration} Year${phase.amsDuration > 1 ? "s" : ""} (Ongoing)`
-                        : `${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} - ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`
-                      }
-                    </div>
-                    <div style={{ width: `${resourcesWidth}px` }} />
+                    {phase.phaseType === "ams" ? (
+                      // For AMS phases: show Duration, Workdays (SLA-Based), and Dates
+                      <>
+                        {/* Calendar Duration - Show AMS contract duration */}
+                        <div
+                          style={{
+                            width: `${calendarDurationWidth}px`,
+                            textAlign: "center",
+                            fontFamily: "var(--font-text)",
+                            fontSize: "var(--text-caption)",
+                            opacity: 0.6,
+                          }}
+                        >
+                          {phase.amsDuration ? `${phase.amsDuration} year${phase.amsDuration > 1 ? 's' : ''}` : '1 year'}
+                        </div>
+                        {/* Working Days - SLA-Based for AMS */}
+                        <div
+                          style={{
+                            width: `${workingDaysWidth}px`,
+                            textAlign: "center",
+                            fontFamily: "var(--font-text)",
+                            fontSize: "var(--text-caption)",
+                            opacity: 0.6,
+                          }}
+                        >
+                          SLA-Based
+                        </div>
+                        {/* Start/End Date - Show contract duration */}
+                        <div
+                          style={{
+                            width: `${startEndDateWidth}px`,
+                            textAlign: "center",
+                            fontFamily: "var(--font-text)",
+                            fontSize: "var(--text-caption)",
+                            opacity: 0.6,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {`${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} - ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`}
+                        </div>
+                        <div style={{ width: `${resourcesWidth}px` }} />
+                      </>
+                    ) : (
+                      <>
+                        {/* Calendar Duration */}
+                        <div
+                          style={{
+                            width: `${calendarDurationWidth}px`,
+                            textAlign: "center",
+                            fontFamily: "var(--font-text)",
+                            fontSize: "var(--text-caption)",
+                            opacity: 0.6,
+                          }}
+                        >
+                          {phaseCalendarDuration}
+                        </div>
+                        {/* Working Days */}
+                        <div
+                          style={{
+                            width: `${workingDaysWidth}px`,
+                            textAlign: "center",
+                            fontFamily: "var(--font-text)",
+                            fontSize: "var(--text-caption)",
+                            opacity: 0.6,
+                          }}
+                        >
+                          {phaseWorkingDays} d
+                        </div>
+                        {/* Start/End Date */}
+                        <div
+                          style={{
+                            width: `${startEndDateWidth}px`,
+                            textAlign: "center",
+                            fontFamily: "var(--font-text)",
+                            fontSize: "var(--text-caption)",
+                            opacity: 0.6,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {`${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} - ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`}
+                        </div>
+                        <div style={{ width: `${resourcesWidth}px` }} />
+                      </>
+                    )}
                   </div>
 
                   {/* Tasks */}
@@ -1400,7 +1574,7 @@ export function GanttCanvasV3({
         )}
 
         {/* Right Timeline: Visual Bars - Horizontal scroll for zoom, vertical handled by parent */}
-        <div className="flex-1" style={{ overflowX: "auto", overflowY: "hidden" }}>
+        <div ref={scrollContainerRef} className="flex-1" style={{ overflowX: "auto", overflowY: "hidden" }}>
           {/* Timeline Container with zoom width - Observed for smart zoom adaptation */}
           <div
             ref={timelineContainerRef}
@@ -1440,8 +1614,9 @@ export function GanttCanvasV3({
 
                   // Calculate if this cell has enough width to show full labels
                   // Apple HIG: Minimum 11px font size ALWAYS
-                  // If width < 4%, hide secondary text entirely
+                  // If width < 4%, hide secondary text entirely (EXCEPT for quarters - always show year)
                   const isNarrow = width < 4;
+                  const alwaysShowSecondary = effectiveZoomMode === 'quarter'; // Always show year for quarters
 
                   return (
                     <div
@@ -1475,7 +1650,7 @@ export function GanttCanvasV3({
                       }}>
                         {labels.primary}
                       </div>
-                      {labels.secondary && !isNarrow && (
+                      {labels.secondary && (alwaysShowSecondary || !isNarrow) && (
                         <div style={{
                           fontSize: "11px", // Apple HIG: absolute minimum
                           opacity: 0.5,
@@ -1550,7 +1725,10 @@ export function GanttCanvasV3({
             {currentProject.phases.map((phase) => {
               const isCollapsed = phase.collapsed ?? false;
               const visibleTasks = isCollapsed ? [] : phase.tasks || [];
-              const phasePos = getBarPosition(phase.startDate, phase.endDate);
+              // For AMS phases, use the phase's own start date; otherwise use actual dates
+              const phasePos = phase.phaseType === "ams"
+                ? getAMSChevronPosition(phase)
+                : getBarPosition(phase.startDate, phase.endDate);
 
               return (
                 <div key={phase.id}>
@@ -1608,7 +1786,145 @@ export function GanttCanvasV3({
                           setDragOverPhaseId(null);
                         }}
                       />
+                    ) : phase.phaseType === "ams" ? (
+                      // AMS Phase - Short chevron indicator (positioned at correct date)
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: `${phasePos.left}%`,
+                          width: "160px", // Fixed short width, not stretched to contract duration
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          height: "32px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={() => setHoveredBar({ id: phase.id, type: "phase" })}
+                        onMouseLeave={() => setHoveredBar(null)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.innerWidth >= 1024) {
+                            setEditingPhaseId(phase.id);
+                          }
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          e.dataTransfer.dropEffect = "copy";
+                          setDragOverPhaseId(phase.id);
+                        }}
+                        onDragEnter={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDragOverPhaseId(phase.id);
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDragOverPhaseId(null);
+                        }}
+                        onDrop={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const resourceId = e.dataTransfer.getData("resourceId");
+                          const resourceName = e.dataTransfer.getData("resourceName");
+
+                          if (resourceId) {
+                            console.log(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
+                          }
+                          setDragOverPhaseId(null);
+                        }}
+                      >
+                        {/* Chevron 1 */}
+                        <svg width="24" height="32" viewBox="0 0 24 32" style={{
+                          opacity: dragOverPhaseId === phase.id ? 0.8 : (hoveredBar?.id === phase.id && hoveredBar?.type === "phase" ? 0.9 : 0.7),
+                          transition: "all 0.2s ease"
+                        }}>
+                          <path d="M0 0 L16 0 L24 16 L16 32 L0 32 L8 16 Z" fill="#FF6B35" />
+                        </svg>
+                        {/* Chevron 2 */}
+                        <svg width="24" height="32" viewBox="0 0 24 32" style={{
+                          opacity: dragOverPhaseId === phase.id ? 0.8 : (hoveredBar?.id === phase.id && hoveredBar?.type === "phase" ? 0.9 : 0.7),
+                          transition: "all 0.2s ease"
+                        }}>
+                          <path d="M0 0 L16 0 L24 16 L16 32 L0 32 L8 16 Z" fill="#FF6B35" />
+                        </svg>
+                        {/* Chevron 3 */}
+                        <svg width="24" height="32" viewBox="0 0 24 32" style={{
+                          opacity: dragOverPhaseId === phase.id ? 0.8 : (hoveredBar?.id === phase.id && hoveredBar?.type === "phase" ? 0.9 : 0.7),
+                          transition: "all 0.2s ease"
+                        }}>
+                          <path d="M0 0 L16 0 L24 16 L16 32 L0 32 L8 16 Z" fill="#FF6B35" />
+                        </svg>
+                        {/* Chevron 4 */}
+                        <svg width="24" height="32" viewBox="0 0 24 32" style={{
+                          opacity: dragOverPhaseId === phase.id ? 0.8 : (hoveredBar?.id === phase.id && hoveredBar?.type === "phase" ? 0.9 : 0.7),
+                          transition: "all 0.2s ease"
+                        }}>
+                          <path d="M0 0 L16 0 L24 16 L16 32 L0 32 L8 16 Z" fill="#FF6B35" />
+                        </svg>
+                        {/* Chevron 5 */}
+                        <svg width="24" height="32" viewBox="0 0 24 32" style={{
+                          opacity: dragOverPhaseId === phase.id ? 0.8 : (hoveredBar?.id === phase.id && hoveredBar?.type === "phase" ? 0.9 : 0.7),
+                          transition: "all 0.2s ease"
+                        }}>
+                          <path d="M0 0 L16 0 L24 16 L16 32 L0 32 L8 16 Z" fill="#FF6B35" />
+                        </svg>
+
+                        {/* Hover Tooltip - AMS Phase */}
+                        {hoveredBar?.id === phase.id && hoveredBar?.type === "phase" && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "-84px",
+                              left: "50%",
+                              transform: "translateX(-50%)",
+                              backgroundColor: "rgba(0, 0, 0, 0.92)",
+                              color: "white",
+                              padding: "10px 14px",
+                              borderRadius: "8px",
+                              fontSize: "11px",
+                              fontWeight: 500,
+                              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
+                              pointerEvents: "none",
+                              zIndex: 100,
+                              minWidth: "240px",
+                            }}
+                          >
+                            <div style={{ fontWeight: 600, fontSize: "12px", marginBottom: "6px", color: "#fff" }}>
+                              {phase.name}
+                            </div>
+                            <div style={{ fontSize: "11px", opacity: 0.85, marginBottom: "4px" }}>
+                              AMS starts {format(new Date(phase.startDate), "dd-MMM-yy (EEE)")}
+                            </div>
+                            <div style={{ fontSize: "11px", opacity: 0.85 }}>
+                              Ongoing support contract
+                            </div>
+                            {phase.tasks && phase.tasks.length > 0 && (
+                              <div style={{ fontSize: "11px", opacity: 0.85, marginTop: "4px", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "4px" }}>
+                                {phase.tasks.length} task{phase.tasks.length > 1 ? 's' : ''}
+                              </div>
+                            )}
+                            <div
+                              style={{
+                                position: "absolute",
+                                bottom: "-4px",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                width: 0,
+                                height: 0,
+                                borderLeft: "4px solid transparent",
+                                borderRight: "4px solid transparent",
+                                borderTop: "4px solid rgba(0, 0, 0, 0.92)",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
                     ) : (
+                      // Standard Phase - Full-width bar
                       <div
                         style={{
                           position: "absolute",
@@ -1619,19 +1935,10 @@ export function GanttCanvasV3({
                           height: "24px",
                           background: dragOverPhaseId === phase.id
                             ? "rgb(52, 199, 89)"
-                            : phase.phaseType === "ams"
-                            ? `
-                                url("data:image/svg+xml,%3Csvg width='40' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 8 L8 12 L0 16 Z M12 8 L20 12 L12 16 Z M24 8 L32 12 L24 16 Z' fill='rgba(255,255,255,0.4)'/%3E%3C/svg%3E"),
-                                linear-gradient(90deg, rgba(59, 130, 246, 0.85), rgba(59, 130, 246, 0.95))
-                              `
                             : "var(--color-blue)",
                           borderRadius: "6px",
                           opacity: dragOverPhaseId === phase.id ? 0.6 : (hoveredBar?.id === phase.id && hoveredBar?.type === "phase" ? 0.4 : 0.2),
-                          border: dragOverPhaseId === phase.id
-                            ? "2px dashed #34C759"
-                            : phase.phaseType === "ams"
-                            ? "2px dashed rgba(59, 130, 246, 0.8)"
-                            : "none",
+                          border: dragOverPhaseId === phase.id ? "2px dashed #34C759" : "none",
                           boxShadow: dragOverPhaseId === phase.id ? "0 4px 16px rgba(52, 199, 89, 0.6), 0 0 0 3px rgba(52, 199, 89, 0.2)" : "none",
                           cursor: "pointer",
                           transition: "all 0.2s ease",
@@ -1699,13 +2006,13 @@ export function GanttCanvasV3({
                             </div>
                             <div style={{ fontSize: "11px", opacity: 0.85, marginBottom: "4px" }}>
                               {phase.phaseType === "ams"
-                                ? `AMS Support Contract - ${phase.amsDuration} Year${phase.amsDuration > 1 ? "s" : ""}`
+                                ? `AMS starts ${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")}`
                                 : `${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} → ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`
                               }
                             </div>
                             <div style={{ fontSize: "11px", opacity: 0.85 }}>
                               {phase.phaseType === "ams"
-                                ? `Start: ${format(new Date(phase.startDate), "dd-MMM-yy")} • Status: Ongoing`
+                                ? "Ongoing support contract"
                                 : `Duration: ${calculateWorkingDaysInclusive(phase.startDate, phase.endDate, currentProject.holidays || [])} working days`
                               }
                             </div>
