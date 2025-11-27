@@ -23,27 +23,13 @@ import {
   Edit2,
   Trash2,
   X,
-  Users,
-  Save,
   List,
   BarChart3,
   Columns,
   ChevronDown,
   ChevronRight,
-  AlertTriangle,
-  Clock,
-  DollarSign,
-  TrendingUp,
-  Zap,
-  CheckSquare,
-  Copy,
-  ArrowRight,
-  Target,
-  Calendar,
-  Maximize,
-  Maximize2,
-  Monitor,
 } from "lucide-react";
+import { BaseModal } from "@/components/ui/BaseModal";
 import {
   Resource,
   ResourceFormData,
@@ -57,6 +43,8 @@ import {
   GanttTask,
 } from "@/types/gantt-tool";
 import { differenceInCalendarDays, parseISO, format as formatDate } from "date-fns";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS, SHADOWS } from "@/lib/design-system/tokens";
+import { getTotalResourceCount, getAllResources } from "@/lib/gantt-tool/resource-utils";
 
 // Fixed rate ratios based on designation
 const DESIGNATION_RATE_RATIOS: Record<ResourceDesignation, number> = {
@@ -71,7 +59,6 @@ const DESIGNATION_RATE_RATIOS: Record<ResourceDesignation, number> = {
 };
 
 type ViewMode = "matrix" | "timeline" | "hybrid";
-type ModalSize = "nearfull" | "fullscreen" | "adaptive";
 
 interface ResourceAssignment {
   id: string;
@@ -105,7 +92,6 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   } = useGanttToolStoreV2();
 
   const [viewMode, setViewMode] = useState<ViewMode>("matrix");
-  const [modalSize, setModalSize] = useState<ModalSize>("nearfull");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<ResourceCategory | "all">("all");
   const [showForm, setShowForm] = useState(false);
@@ -228,9 +214,16 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
   }, [currentProject, searchQuery, categoryFilter]);
 
   // Calculate overall stats
+  // IMPORTANT: Use canonical resource count to ensure consistency with Org Chart Builder
   const overallStats = useMemo(() => {
+    // Use canonical function for total count (GLOBAL POLICY: single source of truth)
+    const totalResourcesCanonical = getTotalResourceCount(currentProject);
+
     const stats = {
-      totalResources: filteredResources.length,
+      // CRITICAL: This count must match exactly what Org Chart Builder shows
+      // Both use currentProject.resources.length as the source of truth
+      totalResources: totalResourcesCanonical,
+      totalResourcesFiltered: filteredResources.length, // Separate count for filtered view
       totalAssignments: 0,
       totalHours: 0,
       totalCost: 0,
@@ -239,7 +232,9 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
       unassignedCount: 0,
     };
 
-    filteredResources.forEach((resource) => {
+    // Calculate stats based on ALL resources (not filtered) for accuracy
+    const allResources = getAllResources(currentProject);
+    allResources.forEach((resource) => {
       const resourceStat = resourceStats.get(resource.id);
       if (resourceStat) {
         stats.totalAssignments += resourceStat.assignmentCount || 0;
@@ -254,7 +249,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     });
 
     return stats;
-  }, [filteredResources, resourceStats]);
+  }, [currentProject, filteredResources, resourceStats]);
 
   const toggleResourceExpand = (resourceId: string) => {
     const newExpanded = new Set(expandedResources);
@@ -264,38 +259,6 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
       newExpanded.add(resourceId);
     }
     setExpandedResources(newExpanded);
-  };
-
-  const cycleModalSize = () => {
-    const sizes: ModalSize[] = ["nearfull", "fullscreen", "adaptive"];
-    const currentIndex = sizes.indexOf(modalSize);
-    const nextIndex = (currentIndex + 1) % sizes.length;
-    setModalSize(sizes[nextIndex]);
-  };
-
-  // Modal size configuration
-  const modalSizeConfig = {
-    nearfull: {
-      containerClass: "max-w-[98vw] h-[calc(100vh-2rem)]",
-      padding: "p-4",
-      icon: Maximize,
-      label: "Near-Fullscreen",
-      description: "98% viewport - comfortable padding",
-    },
-    fullscreen: {
-      containerClass: "w-screen h-screen",
-      padding: "p-0",
-      icon: Maximize2,
-      label: "Fullscreen",
-      description: "100% viewport - maximum space",
-    },
-    adaptive: {
-      containerClass: "w-full max-w-7xl max-h-[90vh]",
-      padding: "p-4",
-      icon: Monitor,
-      label: "Adaptive",
-      description: "Smart sizing - responsive",
-    },
   };
 
   const handleRemoveAssignment = (assignment: ResourceAssignment) => {
@@ -342,100 +305,72 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
 
   if (!currentProject) return null;
 
-  const currentSizeConfig = modalSizeConfig[modalSize];
-  const SizeIcon = currentSizeConfig.icon;
-
   return (
-    <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/30 z-[60]" onClick={onClose} />
-
-      {/* Modal */}
-      <div
-        className={`fixed inset-0 z-[70] flex items-center justify-center ${currentSizeConfig.padding}`}
-      >
-        <div
-          className={`bg-white rounded-xl shadow-2xl flex flex-col ${currentSizeConfig.containerClass}`}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-                <Users className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Resource Control Center</h2>
-                <p className="text-sm text-gray-600 mt-0.5">
-                  Revolutionary resource & assignment management
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Size Toggle Button */}
-              <button
-                onClick={cycleModalSize}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                title={`Current: ${currentSizeConfig.label}\nClick to cycle: ${currentSizeConfig.description}`}
-              >
-                <SizeIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">{currentSizeConfig.label}</span>
-              </button>
-
-              {/* Close Button */}
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+    <BaseModal
+      isOpen={true}
+      onClose={onClose}
+      title="Resource Control Center"
+      subtitle="Manage resources and assignments"
+      size="xlarge"
+    >
 
           {/* Stats Dashboard */}
-          <div className="px-6 py-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
-            <div className="grid grid-cols-7 gap-3">
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Resources</div>
-                <div className="text-lg font-bold text-gray-900">{overallStats.totalResources}</div>
+          <div style={{ padding: `${SPACING[3]} ${SPACING[6]}`, borderBottom: `1px solid ${COLORS.border.subtle}`, background: "linear-gradient(to right, #EBF5FF, #F5F3FF)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: SPACING[3] }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginBottom: SPACING[1] }}>Resources</div>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.title, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.primary }}>{overallStats.totalResources}</div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Assignments</div>
-                <div className="text-lg font-bold text-blue-600">
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginBottom: SPACING[1] }}>Assignments</div>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.title, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.blue }}>
                   {overallStats.totalAssignments}
                 </div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Total Hours</div>
-                <div className="text-lg font-bold text-purple-600">
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginBottom: SPACING[1] }}>Total Hours</div>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.title, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: "#A855F7" }}>
                   {(Number(overallStats.totalHours) || 0).toFixed(0)}h
                 </div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Total Cost</div>
-                <div className="text-lg font-bold text-green-600">
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginBottom: SPACING[1] }}>Total Cost</div>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.title, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.status.success }}>
                   ${overallStats.totalCost.toFixed(0)}
                 </div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Overallocated</div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginBottom: SPACING[1] }}>Overallocated</div>
                 <div
-                  className={`text-lg font-bold ${overallStats.overallocatedCount > 0 ? "text-red-600" : "text-gray-400"}`}
+                  style={{
+                    fontSize: TYPOGRAPHY.fontSize.title,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: overallStats.overallocatedCount > 0 ? COLORS.red : COLORS.text.tertiary
+                  }}
                 >
                   {overallStats.overallocatedCount}
                 </div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Conflicts</div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginBottom: SPACING[1] }}>Conflicts</div>
                 <div
-                  className={`text-lg font-bold ${overallStats.conflictsCount > 0 ? "text-orange-600" : "text-gray-400"}`}
+                  style={{
+                    fontSize: TYPOGRAPHY.fontSize.title,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: overallStats.conflictsCount > 0 ? COLORS.status.warning : COLORS.text.tertiary
+                  }}
                 >
                   {overallStats.conflictsCount}
                 </div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-600 mb-1">Unassigned</div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginBottom: SPACING[1] }}>Unassigned</div>
                 <div
-                  className={`text-lg font-bold ${overallStats.unassignedCount > 0 ? "text-yellow-600" : "text-gray-400"}`}
+                  style={{
+                    fontSize: TYPOGRAPHY.fontSize.title,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: overallStats.unassignedCount > 0 ? "#FFCC00" : COLORS.text.tertiary
+                  }}
                 >
                   {overallStats.unassignedCount}
                 </div>
@@ -444,76 +379,108 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* View Switcher & Toolbar */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div style={{ padding: `${SPACING[4]} ${SPACING[6]}`, borderBottom: `1px solid ${COLORS.border.subtle}`, backgroundColor: COLORS.bg.subtle }}>
             {/* View Mode Tabs */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex gap-2">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SPACING[3] }}>
+              <div style={{ display: "flex", gap: SPACING[2] }}>
                 <button
                   onClick={() => setViewMode("matrix")}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
-                    viewMode === "matrix"
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                  }`}
+                  style={{
+                    padding: `${SPACING[2]} ${SPACING[4]}`,
+                    borderRadius: RADIUS.default,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    fontSize: TYPOGRAPHY.fontSize.caption,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: SPACING[2],
+                    transition: `all ${TRANSITIONS.duration.fast}`,
+                    backgroundColor: viewMode === "matrix" ? COLORS.blue : COLORS.bg.primary,
+                    color: viewMode === "matrix" ? COLORS.text.inverse : COLORS.text.secondary,
+                    boxShadow: viewMode === "matrix" ? SHADOWS.small : "none",
+                    border: viewMode === "matrix" ? "none" : `1px solid ${COLORS.border.default}`
+                  }}
                 >
-                  <List className="w-4 h-4" />
+                  <List style={{ width: "16px", height: "16px" }} />
                   Matrix View
                 </button>
                 <button
                   onClick={() => setViewMode("timeline")}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
-                    viewMode === "timeline"
-                      ? "bg-purple-600 text-white shadow-md"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                  }`}
+                  style={{
+                    padding: `${SPACING[2]} ${SPACING[4]}`,
+                    borderRadius: RADIUS.default,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    fontSize: TYPOGRAPHY.fontSize.caption,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: SPACING[2],
+                    transition: `all ${TRANSITIONS.duration.fast}`,
+                    backgroundColor: viewMode === "timeline" ? "#A855F7" : COLORS.bg.primary,
+                    color: viewMode === "timeline" ? COLORS.text.inverse : COLORS.text.secondary,
+                    boxShadow: viewMode === "timeline" ? SHADOWS.small : "none",
+                    border: viewMode === "timeline" ? "none" : `1px solid ${COLORS.border.default}`
+                  }}
                 >
-                  <BarChart3 className="w-4 h-4" />
+                  <BarChart3 style={{ width: "16px", height: "16px" }} />
                   Timeline View
                 </button>
                 <button
                   onClick={() => setViewMode("hybrid")}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
-                    viewMode === "hybrid"
-                      ? "bg-green-600 text-white shadow-md"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                  }`}
+                  style={{
+                    padding: `${SPACING[2]} ${SPACING[4]}`,
+                    borderRadius: RADIUS.default,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    fontSize: TYPOGRAPHY.fontSize.caption,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: SPACING[2],
+                    transition: `all ${TRANSITIONS.duration.fast}`,
+                    backgroundColor: viewMode === "hybrid" ? COLORS.status.success : COLORS.bg.primary,
+                    color: viewMode === "hybrid" ? COLORS.text.inverse : COLORS.text.secondary,
+                    boxShadow: viewMode === "hybrid" ? SHADOWS.small : "none",
+                    border: viewMode === "hybrid" ? "none" : `1px solid ${COLORS.border.default}`
+                  }}
                 >
-                  <Columns className="w-4 h-4" />
+                  <Columns style={{ width: "16px", height: "16px" }} />
                   Hybrid View
                 </button>
               </div>
 
               <button
                 onClick={() => setShowForm(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium text-sm"
+                style={{ padding: `${SPACING[2]} ${SPACING[4]}`, backgroundColor: COLORS.blue, color: COLORS.text.inverse, borderRadius: RADIUS.default, display: "flex", alignItems: "center", gap: SPACING[2], fontWeight: TYPOGRAPHY.fontWeight.semibold, fontSize: TYPOGRAPHY.fontSize.caption }}
               >
-                <Plus className="w-4 h-4" />
+                <Plus style={{ width: "16px", height: "16px" }} />
                 Add Resource
               </button>
             </div>
 
             {/* Search & Filters */}
-            <div className="flex gap-3">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <div style={{ display: "flex", gap: SPACING[3] }}>
+              <div style={{ flex: 1, position: "relative" }}>
+                <Search style={{ position: "absolute", left: SPACING[3], top: "50%", transform: "translateY(-50%)", width: "16px", height: "16px", color: COLORS.text.tertiary }} />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search resources..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  style={{ width: "100%", paddingLeft: "40px", paddingRight: SPACING[4], paddingTop: SPACING[2], paddingBottom: SPACING[2], border: `1px solid ${COLORS.border.default}`, borderRadius: RADIUS.default, fontSize: TYPOGRAPHY.fontSize.caption }}
                 />
               </div>
 
               {/* Category Pills */}
-              <div className="flex gap-2">
+              <div style={{ display: "flex", gap: SPACING[2] }}>
                 <button
                   onClick={() => setCategoryFilter("all")}
-                  className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                    categoryFilter === "all"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                  }`}
+                  style={{
+                    padding: `${SPACING[2]} ${SPACING[3]}`,
+                    fontSize: TYPOGRAPHY.fontSize.caption,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    borderRadius: RADIUS.default,
+                    transition: `colors ${TRANSITIONS.duration.fast}`,
+                    backgroundColor: categoryFilter === "all" ? COLORS.blue : COLORS.bg.primary,
+                    color: categoryFilter === "all" ? COLORS.text.inverse : COLORS.text.secondary,
+                    border: categoryFilter === "all" ? "none" : `1px solid ${COLORS.border.default}`
+                  }}
                 >
                   All
                 </button>
@@ -521,13 +488,18 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
                   <button
                     key={key}
                     onClick={() => setCategoryFilter(key as ResourceCategory)}
-                    className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors flex items-center gap-1 ${
-                      categoryFilter === key
-                        ? "text-white"
-                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                    }`}
                     style={{
-                      backgroundColor: categoryFilter === key ? color : undefined,
+                      padding: `${SPACING[2]} ${SPACING[3]}`,
+                      fontSize: TYPOGRAPHY.fontSize.caption,
+                      fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                      borderRadius: RADIUS.default,
+                      transition: `colors ${TRANSITIONS.duration.fast}`,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: SPACING[1],
+                      backgroundColor: categoryFilter === key ? color : COLORS.bg.primary,
+                      color: categoryFilter === key ? COLORS.text.inverse : COLORS.text.secondary,
+                      border: categoryFilter === key ? "none" : `1px solid ${COLORS.border.default}`
                     }}
                   >
                     <span>{icon}</span>
@@ -539,21 +511,21 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
 
             {/* Bulk Actions Bar */}
             {selectedAssignments.size > 0 && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
-                <div className="text-sm font-medium text-blue-900">
+              <div style={{ marginTop: SPACING[3], padding: SPACING[3], backgroundColor: COLORS.bg.subtle, border: `1px solid ${COLORS.border.subtle}`, borderRadius: RADIUS.default, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.blue }}>
                   {selectedAssignments.size} assignment(s) selected
                 </div>
-                <div className="flex gap-2">
+                <div style={{ display: "flex", gap: SPACING[2] }}>
                   <button
                     onClick={handleBulkDelete}
-                    className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium flex items-center gap-1"
+                    style={{ padding: `${SPACING[1]} ${SPACING[3]}`, backgroundColor: COLORS.red, color: COLORS.text.inverse, borderRadius: RADIUS.default, fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, display: "flex", alignItems: "center", gap: SPACING[1] }}
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 style={{ width: "12px", height: "12px" }} />
                     Delete Selected
                   </button>
                   <button
                     onClick={() => setSelectedAssignments(new Set())}
-                    className="px-3 py-1 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 text-sm font-medium"
+                    style={{ padding: `${SPACING[1]} ${SPACING[3]}`, backgroundColor: COLORS.bg.primary, border: `1px solid ${COLORS.border.default}`, color: COLORS.text.secondary, borderRadius: RADIUS.default, fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold }}
                   >
                     Clear Selection
                   </button>
@@ -563,9 +535,9 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Content Area - View Modes */}
-          <div className="flex-1 overflow-hidden">
+          <div style={{ flex: 1, overflow: "hidden" }}>
             {showForm ? (
-              <div className="h-full overflow-y-auto p-6">
+              <div style={{ height: "100%", overflowY: "auto", padding: SPACING[6] }}>
                 <ResourceFormInline
                   resource={editingResource}
                   onClose={() => {
@@ -633,9 +605,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
               />
             )}
           </div>
-        </div>
-      </div>
-    </>
+    </BaseModal>
   );
 }
 
@@ -665,47 +635,46 @@ function MatrixView({
 }) {
   if (resources.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-center p-8">
+      <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: SPACING[8] }}>
         <div>
-          <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No resources found</h3>
-          <p className="text-gray-600">Adjust your search or add a new resource</p>
+          <h3 style={{ fontSize: TYPOGRAPHY.fontSize.title, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.primary, marginBottom: SPACING[2] }}>No resources found</h3>
+          <p style={{ color: COLORS.text.tertiary }}>Adjust your search or add a new resource</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="divide-y divide-gray-200">
+    <div style={{ height: "100%", overflowY: "auto" }}>
+      <div style={{ borderTop: `1px solid ${COLORS.border.subtle}` }}>
         {resources.map((resource) => {
           const stats = resourceStats.get(resource.id);
           const category = RESOURCE_CATEGORIES[resource.category];
           const isExpanded = expandedResources.has(resource.id);
 
           return (
-            <div key={resource.id} className="hover:bg-gray-50 transition-colors">
+            <div key={resource.id} style={{ transition: `colors ${TRANSITIONS.duration.fast}` }}>
               {/* Resource Header Row */}
-              <div className="px-6 py-4 flex items-center gap-4">
+              <div style={{ padding: `${SPACING[4]} ${SPACING[6]}`, display: "flex", alignItems: "center", gap: SPACING[4] }}>
                 {/* Expand/Collapse Button */}
                 <button
                   onClick={() => onToggleExpand(resource.id)}
-                  className="p-1 hover:bg-gray-200 rounded transition-colors flex-shrink-0"
+                  style={{ padding: SPACING[1], borderRadius: RADIUS.small, transition: `colors ${TRANSITIONS.duration.fast}`, flexShrink: 0 }}
                 >
                   {isExpanded ? (
-                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                    <ChevronDown style={{ width: "20px", height: "20px", color: COLORS.text.tertiary }} />
                   ) : (
-                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                    <ChevronRight style={{ width: "20px", height: "20px", color: COLORS.text.tertiary }} />
                   )}
                 </button>
 
                 {/* Resource Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl flex-shrink-0">{category.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">{resource.name}</h3>
-                      <p className="text-sm text-gray-600">
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: SPACING[3] }}>
+                    <span style={{ fontSize: "24px", flexShrink: 0 }}>{category.icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h3 style={{ fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{resource.name}</h3>
+                      <p style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary }}>
                         {RESOURCE_DESIGNATIONS[resource.designation]} · {category.label}
                       </p>
                     </div>
@@ -713,31 +682,27 @@ function MatrixView({
                 </div>
 
                 {/* Stats Pills */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div style={{ display: "flex", alignItems: "center", gap: SPACING[2], flexShrink: 0 }}>
                   {stats && (
                     <>
-                      <div className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium flex items-center gap-1">
-                        <Target className="w-3 h-3" />
+                      <div style={{ padding: `${SPACING[1]} ${SPACING[3]}`, backgroundColor: "#EBF5FF", color: COLORS.blue, borderRadius: "9999px", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold }}>
                         {stats.assignmentCount} assignments
                       </div>
-                      <div className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
+                      <div style={{ padding: `${SPACING[1]} ${SPACING[3]}`, backgroundColor: "#F5F3FF", color: "#A855F7", borderRadius: "9999px", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold }}>
                         {(Number(stats.totalHours) || 0).toFixed(0)}h
                       </div>
                       {resource.isBillable && (
-                        <div className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium flex items-center gap-1">
-                          <DollarSign className="w-3 h-3" />${stats.totalCost.toFixed(0)}
+                        <div style={{ padding: `${SPACING[1]} ${SPACING[3]}`, backgroundColor: "#F0FDF4", color: COLORS.status.success, borderRadius: "9999px", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold }}>
+                          ${stats.totalCost.toFixed(0)}
                         </div>
                       )}
                       {stats.isOverallocated && (
-                        <div className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" />
+                        <div style={{ padding: `${SPACING[1]} ${SPACING[3]}`, backgroundColor: "#FEE", color: COLORS.red, borderRadius: "9999px", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold }}>
                           {stats.utilization.toFixed(0)}% OVER
                         </div>
                       )}
                       {stats.hasConflicts && (
-                        <div className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold flex items-center gap-1">
-                          <Zap className="w-3 h-3" />
+                        <div style={{ padding: `${SPACING[1]} ${SPACING[3]}`, backgroundColor: "#FFEDD5", color: COLORS.status.warning, borderRadius: "9999px", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold }}>
                           CONFLICT
                         </div>
                       )}
@@ -746,41 +711,41 @@ function MatrixView({
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-1 flex-shrink-0">
+                <div style={{ display: "flex", gap: SPACING[1], flexShrink: 0 }}>
                   <button
                     onClick={() => onEditResource(resource)}
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    style={{ padding: SPACING[2], color: COLORS.text.tertiary, borderRadius: RADIUS.small, transition: `colors ${TRANSITIONS.duration.fast}` }}
                     title="Edit resource"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 style={{ width: "16px", height: "16px" }} />
                   </button>
                   <button
                     onClick={() => onDeleteResource(resource.id, resource.name)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    style={{ padding: SPACING[2], color: COLORS.text.tertiary, borderRadius: RADIUS.small, transition: `colors ${TRANSITIONS.duration.fast}` }}
                     title="Delete resource"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 style={{ width: "16px", height: "16px" }} />
                   </button>
                 </div>
               </div>
 
               {/* Expanded: Assignments */}
               {isExpanded && stats && (
-                <div className="px-6 pb-4 pl-20">
+                <div style={{ paddingLeft: "80px", paddingRight: SPACING[6], paddingBottom: SPACING[4] }}>
                   {stats.assignments.length === 0 ? (
-                    <div className="py-4 text-center text-gray-500 text-sm bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                    <div style={{ paddingTop: SPACING[4], paddingBottom: SPACING[4], textAlign: "center", color: COLORS.text.disabled, fontSize: TYPOGRAPHY.fontSize.caption, backgroundColor: COLORS.bg.subtle, borderRadius: RADIUS.default, border: `2px dashed ${COLORS.border.default}` }}>
                       No assignments yet
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div style={{ display: "flex", flexDirection: "column", gap: SPACING[2] }}>
                       {/* Mini Timeline Visualization */}
-                      <div className="mb-3 p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-gray-200">
-                        <div className="text-xs font-medium text-gray-700 mb-2">Timeline</div>
+                      <div style={{ marginBottom: SPACING[3], padding: SPACING[3], background: "linear-gradient(to right, #F9FAFB, #EBF5FF)", borderRadius: RADIUS.default, border: `1px solid ${COLORS.border.subtle}` }}>
+                        <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, marginBottom: SPACING[2] }}>Timeline</div>
                         <ResourceTimelineBar assignments={stats.assignments} />
                       </div>
 
                       {/* Assignment List */}
-                      <div className="text-xs font-medium text-gray-700 mb-2">
+                      <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, marginBottom: SPACING[2] }}>
                         ASSIGNMENTS ({stats.assignments.length})
                       </div>
                       {stats.assignments.map((assignment) => (
@@ -840,29 +805,29 @@ function TimelineView({
 
   if (resources.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No resources to display</h3>
-          <p className="text-gray-600">Add resources to see timeline view</p>
+      <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <BarChart3 style={{ width: "64px", height: "64px", color: COLORS.text.disabled, margin: "0 auto", marginBottom: SPACING[4] }} />
+          <h3 style={{ fontSize: TYPOGRAPHY.fontSize.title, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.primary, marginBottom: SPACING[2] }}>No resources to display</h3>
+          <p style={{ color: COLORS.text.tertiary }}>Add resources to see timeline view</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="min-w-max">
+    <div style={{ height: "100%", overflow: "auto" }}>
+      <div style={{ minWidth: "max-content" }}>
         {/* Timeline Header */}
-        <div className="sticky top-0 bg-white border-b-2 border-gray-300 z-10 flex">
-          <div className="w-64 p-3 border-r-2 border-gray-300 font-semibold text-gray-700 bg-gray-50">
+        <div style={{ position: "sticky", top: 0, backgroundColor: COLORS.bg.primary, borderBottom: `2px solid ${COLORS.border.default}`, zIndex: 10, display: "flex" }}>
+          <div style={{ width: "256px", padding: SPACING[3], borderRight: `2px solid ${COLORS.border.default}`, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, backgroundColor: COLORS.bg.subtle }}>
             Resource
           </div>
-          <div className="flex-1 flex">
+          <div style={{ flex: 1, display: "flex" }}>
             {Array.from({ length: totalWeeks }).map((_, i) => (
               <div
                 key={i}
-                className="flex-1 min-w-[60px] p-2 text-center text-xs font-medium text-gray-600 border-r border-gray-200"
+                style={{ flex: 1, minWidth: "60px", padding: SPACING[2], textAlign: "center", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.tertiary, borderRight: `1px solid ${COLORS.border.subtle}` }}
               >
                 Week {i + 1}
               </div>
@@ -877,16 +842,16 @@ function TimelineView({
             const category = RESOURCE_CATEGORIES[resource.category];
 
             return (
-              <div key={resource.id} className="flex border-b border-gray-200 hover:bg-gray-50">
+              <div key={resource.id} style={{ display: "flex", borderBottom: `1px solid ${COLORS.border.subtle}` }}>
                 {/* Resource Name Column */}
-                <div className="w-64 p-3 border-r-2 border-gray-300 bg-gray-50">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{category.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm text-gray-900 truncate">
+                <div style={{ width: "256px", padding: SPACING[3], borderRight: `2px solid ${COLORS.border.default}`, backgroundColor: COLORS.bg.subtle }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: SPACING[2] }}>
+                    <span style={{ fontSize: TYPOGRAPHY.fontSize.title }}>{category.icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: TYPOGRAPHY.fontWeight.semibold, fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {resource.name}
                       </div>
-                      <div className="text-xs text-gray-600">
+                      <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary }}>
                         {stats
                           ? `${stats.assignmentCount} · ${(Number(stats.totalHours) || 0).toFixed(0)}h`
                           : "Unassigned"}
@@ -894,14 +859,14 @@ function TimelineView({
                     </div>
                   </div>
                   {stats?.isOverallocated && (
-                    <div className="mt-1 text-xs text-red-600 font-semibold">
+                    <div style={{ marginTop: SPACING[1], fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.red, fontWeight: TYPOGRAPHY.fontWeight.semibold }}>
                        {stats.utilization.toFixed(0)}% allocated
                     </div>
                   )}
                 </div>
 
                 {/* Timeline Column */}
-                <div className="flex-1 relative min-h-[60px]">
+                <div style={{ flex: 1, position: "relative", minHeight: "60px" }}>
                   {stats?.assignments.map((assignment, idx) => {
                     // Calculate position
                     const assignmentStart = parseISO(assignment.startDate);
@@ -913,29 +878,36 @@ function TimelineView({
                     const widthPercent = (durationDays / (totalWeeks * 7)) * 100;
 
                     const colors = [
-                      "bg-blue-500",
-                      "bg-purple-500",
-                      "bg-green-500",
-                      "bg-orange-500",
-                      "bg-pink-500",
-                      "bg-indigo-500",
+                      "#3B82F6",  // blue-500
+                      "#A855F7",  // purple-500
+                      "#22C55E",  // green-500
+                      "#F97316",  // orange-500
+                      "#EC4899",  // pink-500
+                      "#6366F1",  // indigo-500
                     ];
                     const color = colors[idx % colors.length];
 
                     return (
                       <div
                         key={assignment.id}
-                        className={`absolute top-2 h-10 ${color} rounded-md shadow-sm hover:shadow-md transition-all cursor-pointer group`}
                         style={{
+                          position: "absolute",
+                          top: SPACING[2],
+                          height: "40px",
+                          backgroundColor: color,
+                          borderRadius: RADIUS.default,
+                          boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)",
+                          transition: `all ${TRANSITIONS.duration.fast}`,
+                          cursor: "pointer",
                           left: `${leftPercent}%`,
                           width: `${Math.max(widthPercent, 1)}%`,
                         }}
                         title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ""}\n${assignment.hours}h`}
                       >
-                        <div className="text-xs text-white font-medium px-2 py-1 truncate">
+                        <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.inverse, fontWeight: TYPOGRAPHY.fontWeight.semibold, padding: `${SPACING[1]} ${SPACING[2]}`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {assignment.taskName || assignment.phaseName}
                         </div>
-                        <div className="text-xs text-white/90 px-2 truncate">
+                        <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: "rgba(255,255,255,0.9)", padding: `0 ${SPACING[2]}`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {assignment.hours}h
                         </div>
                       </div>
@@ -988,65 +960,65 @@ function HybridView({
   }, [currentProject]);
 
   return (
-    <div className="h-full flex">
+    <div style={{ height: "100%", display: "flex" }}>
       {/* Left: Resource List (40%) */}
-      <div className="w-2/5 border-r-2 border-gray-300 overflow-y-auto">
-        <div className="divide-y divide-gray-200">
+      <div style={{ width: "40%", borderRight: `2px solid ${COLORS.border.default}`, overflowY: "auto" }}>
+        <div style={{ borderTop: `1px solid ${COLORS.border.subtle}` }}>
           {resources.map((resource) => {
             const stats = resourceStats.get(resource.id);
             const category = RESOURCE_CATEGORIES[resource.category];
             const isExpanded = expandedResources.has(resource.id);
 
             return (
-              <div key={resource.id} className="hover:bg-gray-50">
-                <div className="px-4 py-3 flex items-center gap-3">
+              <div key={resource.id} style={{ cursor: "pointer" }}>
+                <div style={{ padding: `${SPACING[3]} ${SPACING[4]}`, display: "flex", alignItems: "center", gap: SPACING[3] }}>
                   <button
                     onClick={() => onToggleExpand(resource.id)}
-                    className="p-1 hover:bg-gray-200 rounded"
+                    style={{ padding: SPACING[1], borderRadius: RADIUS.small }}
                   >
                     {isExpanded ? (
-                      <ChevronDown className="w-4 h-4 text-gray-600" />
+                      <ChevronDown style={{ width: "16px", height: "16px", color: COLORS.text.tertiary }} />
                     ) : (
-                      <ChevronRight className="w-4 h-4 text-gray-600" />
+                      <ChevronRight style={{ width: "16px", height: "16px", color: COLORS.text.tertiary }} />
                     )}
                   </button>
-                  <span className="text-xl">{category.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm text-gray-900 truncate">
+                  <span style={{ fontSize: TYPOGRAPHY.fontSize.title }}>{category.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: TYPOGRAPHY.fontWeight.semibold, fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {resource.name}
                     </div>
-                    <div className="text-xs text-gray-600">
+                    <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary }}>
                       {stats
                         ? `${stats.assignmentCount} · ${(Number(stats.totalHours) || 0).toFixed(0)}h`
                         : "Unassigned"}
                     </div>
                   </div>
                   {stats?.isOverallocated && (
-                    <div className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold">
+                    <div style={{ padding: `${SPACING[1]} ${SPACING[2]}`, backgroundColor: "#FEE", color: COLORS.red, borderRadius: RADIUS.small, fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold }}>
                       OVER
                     </div>
                   )}
                 </div>
 
                 {isExpanded && stats && stats.assignments.length > 0 && (
-                  <div className="px-4 pb-3 pl-12 space-y-1">
+                  <div style={{ paddingLeft: "48px", paddingRight: SPACING[4], paddingBottom: SPACING[3], display: "flex", flexDirection: "column", gap: SPACING[1] }}>
                     {stats.assignments.map((assignment) => (
                       <div
                         key={assignment.id}
-                        className="text-xs p-2 bg-gray-50 rounded border border-gray-200 flex items-center justify-between"
+                        style={{ fontSize: TYPOGRAPHY.fontSize.caption, padding: SPACING[2], backgroundColor: COLORS.bg.subtle, borderRadius: RADIUS.small, border: `1px solid ${COLORS.border.subtle}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}
                       >
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {assignment.phaseName}
                             {assignment.taskName && ` → ${assignment.taskName}`}
                           </div>
-                          <div className="text-gray-600">{assignment.hours}h</div>
+                          <div style={{ color: COLORS.text.tertiary }}>{assignment.hours}h</div>
                         </div>
                         <button
                           onClick={() => onRemoveAssignment(assignment)}
-                          className="p-1 text-gray-400 hover:text-red-600 rounded"
+                          style={{ padding: SPACING[1], color: COLORS.text.tertiary, borderRadius: RADIUS.small }}
                         >
-                          <X className="w-3 h-3" />
+                          <X style={{ width: "12px", height: "12px" }} />
                         </button>
                       </div>
                     ))}
@@ -1059,14 +1031,14 @@ function HybridView({
       </div>
 
       {/* Right: Timeline (60%) */}
-      <div className="flex-1 overflow-auto bg-white">
-        <div className="min-w-max">
+      <div style={{ flex: 1, overflow: "auto", backgroundColor: COLORS.bg.primary }}>
+        <div style={{ minWidth: "max-content" }}>
           {/* Timeline Header */}
-          <div className="sticky top-0 bg-gray-50 border-b-2 border-gray-300 flex z-10">
+          <div style={{ position: "sticky", top: 0, backgroundColor: COLORS.bg.subtle, borderBottom: `2px solid ${COLORS.border.default}`, display: "flex", zIndex: 10 }}>
             {Array.from({ length: totalWeeks }).map((_, i) => (
               <div
                 key={i}
-                className="flex-1 min-w-[60px] p-2 text-center text-xs font-medium text-gray-600 border-r border-gray-200"
+                style={{ flex: 1, minWidth: "60px", padding: SPACING[2], textAlign: "center", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.tertiary, borderRight: `1px solid ${COLORS.border.subtle}` }}
               >
                 W{i + 1}
               </div>
@@ -1078,7 +1050,7 @@ function HybridView({
             const stats = resourceStats.get(resource.id);
 
             return (
-              <div key={resource.id} className="border-b border-gray-200 relative min-h-[60px]">
+              <div key={resource.id} style={{ borderBottom: `1px solid ${COLORS.border.subtle}`, position: "relative", minHeight: "60px" }}>
                 {stats?.assignments.map((assignment, idx) => {
                   const assignmentStart = parseISO(assignment.startDate);
                   const assignmentEnd = parseISO(assignment.endDate);
@@ -1088,20 +1060,27 @@ function HybridView({
                   const leftPercent = (daysFromStart / (totalWeeks * 7)) * 100;
                   const widthPercent = (durationDays / (totalWeeks * 7)) * 100;
 
-                  const colors = ["bg-blue-500", "bg-purple-500", "bg-green-500", "bg-orange-500"];
+                  const colors = ["#3B82F6", "#A855F7", "#22C55E", "#F97316"];  // blue, purple, green, orange
                   const color = colors[idx % colors.length];
 
                   return (
                     <div
                       key={assignment.id}
-                      className={`absolute top-2 h-10 ${color} rounded shadow hover:shadow-md transition-all cursor-pointer`}
                       style={{
+                        position: "absolute",
+                        top: SPACING[2],
+                        height: "40px",
+                        backgroundColor: color,
+                        borderRadius: RADIUS.small,
+                        boxShadow: "0 1px 3px 0 rgba(0,0,0,0.1)",
+                        transition: `all ${TRANSITIONS.duration.fast}`,
+                        cursor: "pointer",
                         left: `${leftPercent}%`,
                         width: `${Math.max(widthPercent, 1)}%`,
                       }}
                       title={`${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ""}`}
                     >
-                      <div className="text-xs text-white font-medium px-2 py-1 truncate">
+                      <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: "#FFFFFF", fontWeight: TYPOGRAPHY.fontWeight.semibold, padding: `${SPACING[1]} ${SPACING[2]}`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {assignment.hours}h
                       </div>
                     </div>
@@ -1121,7 +1100,7 @@ function HybridView({
 // ========================================
 
 function ResourceTimelineBar({ assignments }: { assignments: ResourceAssignment[] }) {
-  if (assignments.length === 0) return <div className="h-6 bg-gray-200 rounded" />;
+  if (assignments.length === 0) return <div style={{ height: "24px", backgroundColor: COLORS.bg.subtle, borderRadius: RADIUS.small }} />;
 
   // Find overall timeline bounds
   const dates = assignments.flatMap((a) => [parseISO(a.startDate), parseISO(a.endDate)]);
@@ -1130,7 +1109,7 @@ function ResourceTimelineBar({ assignments }: { assignments: ResourceAssignment[
   const totalDays = differenceInCalendarDays(maxDate, minDate);
 
   return (
-    <div className="relative h-6 bg-gray-200 rounded overflow-hidden">
+    <div style={{ position: "relative", height: "24px", backgroundColor: COLORS.bg.subtle, borderRadius: RADIUS.small, overflow: "hidden" }}>
       {assignments.map((assignment, idx) => {
         const start = parseISO(assignment.startDate);
         const end = parseISO(assignment.endDate);
@@ -1141,19 +1120,22 @@ function ResourceTimelineBar({ assignments }: { assignments: ResourceAssignment[
         const widthPercent = (duration / totalDays) * 100;
 
         const colors = [
-          "bg-blue-600",
-          "bg-purple-600",
-          "bg-green-600",
-          "bg-orange-600",
-          "bg-pink-600",
+          "#2563EB",  // blue-600
+          "#9333EA",  // purple-600
+          "#16A34A",  // green-600
+          "#EA580C",  // orange-600
+          "#DB2777",  // pink-600
         ];
         const color = colors[idx % colors.length];
 
         return (
           <div
             key={assignment.id}
-            className={`absolute top-0 h-full ${color}`}
             style={{
+              position: "absolute",
+              top: 0,
+              height: "100%",
+              backgroundColor: color,
               left: `${leftPercent}%`,
               width: `${Math.max(widthPercent, 1)}%`,
             }}
@@ -1178,50 +1160,48 @@ function AssignmentCard({
 }) {
   return (
     <div
-      className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${
-        isSelected
-          ? "border-blue-500 bg-blue-50"
-          : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
-      }`}
+      style={{
+        padding: SPACING[3],
+        borderRadius: RADIUS.default,
+        border: `2px solid ${isSelected ? COLORS.blue : COLORS.border.subtle}`,
+        backgroundColor: isSelected ? "#EBF5FF" : COLORS.bg.primary,
+        transition: `all ${TRANSITIONS.duration.fast}`,
+        cursor: "pointer"
+      }}
       onClick={onSelect}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: SPACING[3], flex: 1, minWidth: 0 }}>
           <input
             type="checkbox"
             checked={isSelected}
             onChange={() => {}}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            style={{ width: "16px", height: "16px", color: COLORS.blue, borderColor: COLORS.border.default, borderRadius: RADIUS.small }}
             onClick={(e) => e.stopPropagation()}
           />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: SPACING[2] }}>
               {assignment.type === "phase" ? (
-                <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
+                <span style={{ padding: "2px 8px", backgroundColor: "#F3E8FF", color: "#A855F7", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, borderRadius: RADIUS.small }}>
                   Phase
                 </span>
               ) : (
-                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                <span style={{ padding: "2px 8px", backgroundColor: "#DBEAFE", color: COLORS.blue, fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, borderRadius: RADIUS.small }}>
                   Task
                 </span>
               )}
-              <span className="font-semibold text-sm text-gray-900 truncate">
+              <span style={{ fontWeight: TYPOGRAPHY.fontWeight.semibold, fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {assignment.phaseName}
               </span>
             </div>
             {assignment.taskName && (
-              <div className="text-sm text-gray-700 mt-1 flex items-center gap-1">
-                <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">{assignment.taskName}</span>
+              <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.secondary, marginTop: SPACING[1], paddingLeft: SPACING[2] }}>
+                → {assignment.taskName}
               </div>
             )}
-            <div className="flex items-center gap-3 mt-1 text-xs text-gray-600">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {assignment.hours}h
-              </span>
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
+            <div style={{ display: "flex", alignItems: "center", gap: SPACING[3], marginTop: SPACING[1], fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary }}>
+              <span>{assignment.hours}h</span>
+              <span>
                 {formatDate(parseISO(assignment.startDate), "MMM d")} -{" "}
                 {formatDate(parseISO(assignment.endDate), "MMM d")}
               </span>
@@ -1234,10 +1214,10 @@ function AssignmentCard({
             e.stopPropagation();
             onRemove();
           }}
-          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+          style={{ padding: "6px", color: COLORS.text.tertiary, borderRadius: RADIUS.small, transition: `colors ${TRANSITIONS.duration.fast}` }}
           title="Remove assignment"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 style={{ width: "16px", height: "16px" }} />
         </button>
       </div>
     </div>
@@ -1290,49 +1270,49 @@ function ResourceFormInline({
   };
 
   return (
-    <div className="max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-300 rounded-xl p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-2xl font-bold text-gray-900">
+    <div style={{ maxWidth: "768px", margin: "0 auto", background: "linear-gradient(to bottom right, #EBF5FF, #F5F3FF)", border: "2px solid #93C5FD", borderRadius: "12px", padding: SPACING[8] }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SPACING[6] }}>
+        <h3 style={{ fontSize: "24px", fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.primary }}>
           {resource ? "Edit Resource" : "Add New Resource"}
         </h3>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 p-2 hover:bg-white rounded-lg transition-colors"
+          style={{ color: COLORS.text.tertiary, padding: SPACING[2], borderRadius: RADIUS.default, transition: `colors ${TRANSITIONS.duration.fast}` }}
         >
-          <X className="w-6 h-6" />
+          <X style={{ width: "24px", height: "24px" }} />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: SPACING[6] }}>
         {/* Role Name */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Role Name <span className="text-red-500">*</span>
+          <label style={{ display: "block", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, marginBottom: SPACING[2] }}>
+            Role Name <span style={{ color: COLORS.red }}>*</span>
           </label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="e.g., Senior SAP Consultant, Technical Architect"
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+            style={{ width: "100%", padding: `${SPACING[3]} ${SPACING[4]}`, border: `2px solid ${COLORS.border.default}`, borderRadius: RADIUS.default, fontSize: TYPOGRAPHY.fontSize.body }}
             required
             autoFocus
           />
-          <p className="text-xs text-gray-600 mt-1">This is a role, not a person name</p>
+          <p style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginTop: SPACING[1] }}>This is a role, not a person name</p>
         </div>
 
         {/* Category and Designation */}
-        <div className="grid grid-cols-2 gap-4">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: SPACING[4] }}>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Category <span className="text-red-500">*</span>
+            <label style={{ display: "block", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, marginBottom: SPACING[2] }}>
+              Category <span style={{ color: COLORS.red }}>*</span>
             </label>
             <select
               value={formData.category}
               onChange={(e) =>
                 setFormData({ ...formData, category: e.target.value as ResourceCategory })
               }
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+              style={{ width: "100%", padding: `${SPACING[3]} ${SPACING[4]}`, border: `2px solid ${COLORS.border.default}`, borderRadius: RADIUS.default, fontSize: TYPOGRAPHY.fontSize.body }}
             >
               {Object.entries(RESOURCE_CATEGORIES).map(([key, { label, icon }]) => (
                 <option key={key} value={key}>
@@ -1343,15 +1323,15 @@ function ResourceFormInline({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Designation <span className="text-red-500">*</span>
+            <label style={{ display: "block", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, marginBottom: SPACING[2] }}>
+              Designation <span style={{ color: COLORS.red }}>*</span>
             </label>
             <select
               value={formData.designation}
               onChange={(e) =>
                 setFormData({ ...formData, designation: e.target.value as ResourceDesignation })
               }
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+              style={{ width: "100%", padding: `${SPACING[3]} ${SPACING[4]}`, border: `2px solid ${COLORS.border.default}`, borderRadius: RADIUS.default, fontSize: TYPOGRAPHY.fontSize.body }}
             >
               {Object.entries(RESOURCE_DESIGNATIONS).map(([key, label]) => (
                 <option key={key} value={key}>
@@ -1364,30 +1344,30 @@ function ResourceFormInline({
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Description <span className="text-red-500">*</span>
+          <label style={{ display: "block", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, marginBottom: SPACING[2] }}>
+            Description <span style={{ color: COLORS.red }}>*</span>
           </label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="Describe the role, skills, and responsibilities..."
             rows={4}
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+            style={{ width: "100%", padding: `${SPACING[3]} ${SPACING[4]}`, border: `2px solid ${COLORS.border.default}`, borderRadius: RADIUS.default, fontSize: TYPOGRAPHY.fontSize.body }}
             required
           />
         </div>
 
         {/* Company/Organization (Optional) */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Company/Organization <span className="text-gray-500 text-xs">(Optional)</span>
+          <label style={{ display: "block", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, marginBottom: SPACING[2] }}>
+            Company/Organization <span style={{ color: COLORS.text.disabled, fontSize: TYPOGRAPHY.fontSize.caption }}>(Optional)</span>
           </label>
           <select
             value={formData.companyName || ""}
             onChange={(e) =>
               setFormData({ ...formData, companyName: e.target.value || undefined })
             }
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+            style={{ width: "100%", padding: `${SPACING[3]} ${SPACING[4]}`, border: `2px solid ${COLORS.border.default}`, borderRadius: RADIUS.default, fontSize: TYPOGRAPHY.fontSize.body }}
           >
             <option value="">None (Internal resource)</option>
             {Object.keys(availableLogos).map((companyName) => (
@@ -1396,21 +1376,21 @@ function ResourceFormInline({
               </option>
             ))}
           </select>
-          <p className="text-xs text-gray-600 mt-1">
+          <p style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginTop: SPACING[1] }}>
             For multi-stakeholder projects. Assign to show company logo in org chart.
           </p>
         </div>
 
         {/* Assignment Level */}
-        <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
-            Assignment Level <span className="text-red-500">*</span>
+        <div style={{ backgroundColor: COLORS.bg.primary, borderRadius: RADIUS.default, padding: SPACING[4], border: `2px solid ${COLORS.border.subtle}` }}>
+          <label style={{ display: "block", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, marginBottom: SPACING[3] }}>
+            Assignment Level <span style={{ color: COLORS.red }}>*</span>
           </label>
-          <div className="space-y-2">
+          <div style={{ display: "flex", flexDirection: "column", gap: SPACING[2] }}>
             {Object.entries(ASSIGNMENT_LEVELS).map(([key, { label, description }]) => (
               <label
                 key={key}
-                className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors"
+                style={{ display: "flex", alignItems: "flex-start", gap: SPACING[3], cursor: "pointer", padding: SPACING[3], borderRadius: RADIUS.default, transition: `colors ${TRANSITIONS.duration.fast}` }}
               >
                 <input
                   type="radio"
@@ -1420,11 +1400,11 @@ function ResourceFormInline({
                   onChange={(e) =>
                     setFormData({ ...formData, assignmentLevel: e.target.value as AssignmentLevel })
                   }
-                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  style={{ marginTop: SPACING[1], width: "16px", height: "16px", color: COLORS.blue, borderColor: COLORS.border.default }}
                 />
-                <div className="flex-1">
-                  <div className="text-sm font-semibold text-gray-900">{label}</div>
-                  <div className="text-xs text-gray-600 mt-1">{description}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.primary }}>{label}</div>
+                  <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginTop: SPACING[1] }}>{description}</div>
                 </div>
               </label>
             ))}
@@ -1432,54 +1412,53 @@ function ResourceFormInline({
         </div>
 
         {/* Billing Configuration */}
-        <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+        <div style={{ backgroundColor: COLORS.bg.primary, borderRadius: RADIUS.default, padding: SPACING[4], border: `2px solid ${COLORS.border.subtle}` }}>
+          <label style={{ display: "block", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, marginBottom: SPACING[3] }}>
             Billing Configuration
           </label>
 
-          <label className="flex items-center gap-3 cursor-pointer mb-4 hover:bg-gray-50 p-3 rounded-lg transition-colors">
+          <label style={{ display: "flex", alignItems: "center", gap: SPACING[3], cursor: "pointer", marginBottom: SPACING[4], padding: SPACING[3], borderRadius: RADIUS.default, transition: `colors ${TRANSITIONS.duration.fast}` }}>
             <input
               type="checkbox"
               checked={formData.isBillable}
               onChange={(e) => setFormData({ ...formData, isBillable: e.target.checked })}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              style={{ width: "16px", height: "16px", color: COLORS.blue, borderColor: COLORS.border.default, borderRadius: RADIUS.small }}
             />
-            <div className="flex-1">
-              <div className="text-sm font-semibold text-gray-900">Billable resource</div>
-              <div className="text-xs text-gray-600 mt-1">Include in cost calculations</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.primary }}>Billable resource</div>
+              <div style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginTop: SPACING[1] }}>Include in cost calculations</div>
             </div>
           </label>
 
           {formData.isBillable && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Rate Ratio <span className="text-red-500">*</span>
+              <label style={{ display: "block", fontSize: TYPOGRAPHY.fontSize.caption, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text.secondary, marginBottom: SPACING[2] }}>
+                Rate Ratio <span style={{ color: COLORS.red }}>*</span>
               </label>
               <input
                 type="number"
                 value={formData.chargeRatePerHour}
                 readOnly
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+                style={{ width: "100%", padding: `${SPACING[3]} ${SPACING[4]}`, border: `2px solid ${COLORS.border.default}`, borderRadius: RADIUS.default, backgroundColor: COLORS.bg.subtle, color: COLORS.text.secondary, cursor: "not-allowed" }}
               />
-              <p className="text-xs text-gray-600 mt-1">Auto-calculated based on designation</p>
+              <p style={{ fontSize: TYPOGRAPHY.fontSize.caption, color: COLORS.text.tertiary, marginTop: SPACING[1] }}>Auto-calculated based on designation</p>
             </div>
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex gap-4 pt-4">
+        <div style={{ display: "flex", gap: SPACING[4], paddingTop: SPACING[4] }}>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+            style={{ flex: 1, padding: `${SPACING[3]} ${SPACING[6]}`, border: `2px solid ${COLORS.border.default}`, color: COLORS.text.secondary, borderRadius: RADIUS.default, fontWeight: TYPOGRAPHY.fontWeight.semibold, transition: `colors ${TRANSITIONS.duration.fast}` }}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors font-semibold flex items-center justify-center gap-2 shadow-lg"
+            style={{ flex: 1, padding: `${SPACING[3]} ${SPACING[6]}`, background: "linear-gradient(to right, #2563EB, #9333EA)", color: COLORS.text.inverse, borderRadius: RADIUS.default, transition: `colors ${TRANSITIONS.duration.fast}`, fontWeight: TYPOGRAPHY.fontWeight.semibold, display: "flex", alignItems: "center", justifyContent: "center", gap: SPACING[2], boxShadow: SHADOWS.medium }}
           >
-            <Save className="w-5 h-5" />
             {resource ? "Save Changes" : "Add Resource"}
           </button>
         </div>

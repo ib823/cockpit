@@ -18,16 +18,17 @@
  * - Consistent typography and spacing
  * - Support for icons, subtitles, custom footers
  *
- * @version 1.0.0
+ * @version 2.0.0 - Jobs/Ive Discipline
  */
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import FocusTrap from "focus-trap-react";
 import { VARIANTS, SPRING, DURATION, EASING } from "@/lib/design-system/animations";
+import { COLORS, SPACING, RADIUS, SHADOWS, MODAL, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
 
 // ============================================================================
 // TYPES
@@ -80,18 +81,6 @@ export interface BaseModalProps {
   /** Custom className for modal content */
   className?: string;
 }
-
-// ============================================================================
-// SIZE CONFIGURATIONS (8pt Grid)
-// ============================================================================
-
-const MODAL_SIZES: Record<ModalSize, { width: string | number; height: string | number }> = {
-  small: { width: 480, height: "auto" },    // 60 × 8pt
-  medium: { width: 640, height: "auto" },   // 80 × 8pt (default)
-  large: { width: 880, height: "auto" },    // 110 × 8pt
-  xlarge: { width: 1120, height: "auto" },  // 140 × 8pt
-  fullscreen: { width: "100vw", height: "100vh" },
-};
 
 // ============================================================================
 // COMPONENT
@@ -148,7 +137,7 @@ export function BaseModal({
     }
   };
 
-  const modalSize = MODAL_SIZES[size];
+  const modalSize = MODAL.sizes[size];
 
   return (
     <AnimatePresence mode="wait">
@@ -174,12 +163,12 @@ export function BaseModal({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.5)", // Apple HIG overlay
+                backgroundColor: COLORS.overlay.light, // Lighter overlay (0.35 vs 0.5)
                 zIndex,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: size === "fullscreen" ? 0 : "32px", // 4×8pt
+                padding: size === "fullscreen" ? 0 : SPACING[6], // 32px
               }}
             >
               {/* Modal Content */}
@@ -195,39 +184,39 @@ export function BaseModal({
                   height: modalSize.height,
                   maxWidth: size === "fullscreen" ? "none" : "90vw",
                   maxHeight: size === "fullscreen" ? "none" : "90vh",
-                  backgroundColor: "#FFFFFF",
-                  borderRadius: size === "fullscreen" ? 0 : "12px", // Apple HIG radius
-                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)", // Subtle depth
+                  backgroundColor: COLORS.bg.primary, // Pure white
+                  borderRadius: size === "fullscreen" ? 0 : RADIUS.default, // 8px everywhere
+                  boxShadow: SHADOWS.medium, // Consistent shadow
                   display: "flex",
                   flexDirection: "column",
                   overflow: "hidden",
                 }}
                 className={className}
               >
-                {/* Header (72px / 9×8pt) */}
+                {/* Header */}
                 <div
                   style={{
-                    padding: "24px 32px", // 3×8pt horizontal, 4×8pt vertical
-                    borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
-                    backgroundColor: "#FFFFFF",
+                    padding: `${SPACING[5]} ${SPACING[6]}`, // 24px vertical, 32px horizontal
+                    borderBottom: `1px solid ${COLORS.border.default}`, // Consistent border
+                    backgroundColor: COLORS.bg.primary, // Same as body - seamless
                     flexShrink: 0,
                     display: "flex",
                     alignItems: "flex-start",
-                    gap: "16px", // 2×8pt
+                    gap: SPACING[4], // 16px
                   }}
                 >
                   {/* Icon (optional) */}
                   {icon && (
                     <div
                       style={{
-                        width: "40px", // 5×8pt
-                        height: "40px", // 5×8pt
+                        width: '40px', // 5×8pt
+                        height: '40px', // 5×8pt
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor: "rgba(0, 122, 255, 0.1)",
-                        borderRadius: "8px", // 1×8pt
-                        color: "#007AFF",
+                        backgroundColor: COLORS.blueLight, // Subtle blue
+                        borderRadius: RADIUS.default, // 8px
+                        color: COLORS.blue,
                         flexShrink: 0,
                       }}
                     >
@@ -239,12 +228,13 @@ export function BaseModal({
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <h2
                       style={{
-                        fontFamily: "var(--font-display)",
-                        fontSize: "20px",
-                        fontWeight: 600,
-                        color: "#1D1D1F",
-                        lineHeight: 1.4,
-                        marginBottom: subtitle ? "4px" : 0,
+                        fontFamily: TYPOGRAPHY.fontFamily.display,
+                        fontSize: TYPOGRAPHY.fontSize.title, // 20px
+                        fontWeight: TYPOGRAPHY.fontWeight.semibold, // 600
+                        color: COLORS.text.primary, // Black 100%
+                        lineHeight: TYPOGRAPHY.lineHeight.compact, // 1.3
+                        letterSpacing: TYPOGRAPHY.letterSpacing.slightTight, // -0.01em
+                        marginBottom: subtitle ? SPACING[1] : 0, // 4px if subtitle
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -255,11 +245,11 @@ export function BaseModal({
                     {subtitle && (
                       <p
                         style={{
-                          fontFamily: "var(--font-text)",
-                          fontSize: "14px",
-                          fontWeight: 400,
-                          color: "#86868B",
-                          lineHeight: 1.5,
+                          fontFamily: TYPOGRAPHY.fontFamily.text,
+                          fontSize: TYPOGRAPHY.fontSize.caption, // 13px
+                          fontWeight: TYPOGRAPHY.fontWeight.regular, // 400
+                          color: COLORS.text.secondary, // Black 60%
+                          lineHeight: TYPOGRAPHY.lineHeight.normal, // 1.4
                           margin: 0,
                         }}
                       >
@@ -274,56 +264,56 @@ export function BaseModal({
                     onClick={onClose}
                     aria-label="Close modal"
                     style={{
-                      width: "32px", // 4×8pt
-                      height: "32px", // 4×8pt
+                      width: '44px', // Apple HIG minimum touch target
+                      height: '44px', // Apple HIG minimum touch target
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       backgroundColor: "transparent",
                       border: "none",
-                      borderRadius: "6px",
+                      borderRadius: RADIUS.default, // 8px
                       cursor: "pointer",
-                      color: "#86868B",
-                      transition: "all 0.15s ease",
+                      color: COLORS.text.secondary, // Black 60%
+                      transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
                       flexShrink: 0,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#F5F5F7";
-                      e.currentTarget.style.color = "#1D1D1F";
+                      e.currentTarget.style.backgroundColor = COLORS.interactive.hover; // Black 4%
+                      e.currentTarget.style.color = COLORS.text.primary; // Black 100%
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.color = "#86868B";
+                      e.currentTarget.style.color = COLORS.text.secondary; // Black 60%
                     }}
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                {/* Body (auto height) */}
+                {/* Body */}
                 <div
                   style={{
                     flex: 1,
-                    padding: "32px", // 4×8pt on all sides
+                    padding: SPACING[6], // 32px on all sides
                     overflow: "auto",
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: COLORS.bg.primary, // Pure white
                   }}
                 >
                   {children}
                 </div>
 
-                {/* Footer (80px / 10×8pt) */}
+                {/* Footer */}
                 {footer && (
                   <div
                     style={{
-                      padding: "24px 32px", // 3×8pt horizontal, 4×8pt vertical
-                      borderTop: "1px solid rgba(0, 0, 0, 0.08)",
-                      backgroundColor: "#FAFAFA",
+                      padding: `${SPACING[5]} ${SPACING[6]}`, // 24px vertical, 32px horizontal
+                      borderTop: `1px solid ${COLORS.border.default}`, // Black 8%
+                      backgroundColor: COLORS.bg.primary, // Same as body - seamless
                       flexShrink: 0,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "flex-end",
-                      gap: "12px", // 1.5×8pt
+                      gap: SPACING[3], // 12px
                     }}
                   >
                     {footer}
@@ -359,37 +349,38 @@ export function ModalButton({
 }: ButtonProps) {
   const getStyles = () => {
     const base = {
-      padding: "10px 20px", // ~1.25×8pt vertical, 2.5×8pt horizontal
-      fontFamily: "var(--font-text)",
-      fontSize: "14px",
-      fontWeight: 600,
-      borderRadius: "8px", // 1×8pt
+      padding: `${SPACING[2]} ${SPACING[5]}`, // 8px 24px (proper button padding)
+      fontFamily: TYPOGRAPHY.fontFamily.text,
+      fontSize: TYPOGRAPHY.fontSize.body, // 15px
+      fontWeight: TYPOGRAPHY.fontWeight.semibold, // 600
+      borderRadius: RADIUS.default, // 8px
       border: "none",
       cursor: disabled ? "not-allowed" : "pointer",
-      opacity: disabled ? 0.5 : 1,
-      transition: "all 0.15s ease",
+      opacity: disabled ? 0.4 : 1, // Simpler opacity
+      transition: `all ${TRANSITIONS.duration.fast} ${TRANSITIONS.easing.easeOut}`,
+      minWidth: '88px', // Minimum width for buttons
     };
 
     switch (variant) {
       case "primary":
         return {
           ...base,
-          backgroundColor: disabled ? "#86868B" : "#007AFF",
-          color: "#FFFFFF",
+          backgroundColor: disabled ? COLORS.text.disabled : COLORS.blue,
+          color: COLORS.bg.primary, // White text
         };
       case "destructive":
         return {
           ...base,
-          backgroundColor: disabled ? "#86868B" : "#FF3B30",
-          color: "#FFFFFF",
+          backgroundColor: disabled ? COLORS.text.disabled : COLORS.red,
+          color: COLORS.bg.primary, // White text
         };
       case "secondary":
       default:
         return {
           ...base,
           backgroundColor: "transparent",
-          color: "#007AFF",
-          border: "1px solid #D1D1D6",
+          color: COLORS.text.primary, // Black text
+          border: `1px solid ${COLORS.border.strong}`, // Black 12%
         };
     }
   };
@@ -405,19 +396,19 @@ export function ModalButton({
       onMouseEnter={(e) => {
         if (disabled) return;
         if (variant === "primary") {
-          e.currentTarget.style.backgroundColor = "#0051D5";
+          e.currentTarget.style.backgroundColor = COLORS.blueHover;
         } else if (variant === "destructive") {
-          e.currentTarget.style.backgroundColor = "#D70015";
+          e.currentTarget.style.backgroundColor = COLORS.redHover;
         } else {
-          e.currentTarget.style.backgroundColor = "#F5F5F7";
+          e.currentTarget.style.backgroundColor = COLORS.interactive.hover; // Black 4%
         }
       }}
       onMouseLeave={(e) => {
         if (disabled) return;
         if (variant === "primary") {
-          e.currentTarget.style.backgroundColor = "#007AFF";
+          e.currentTarget.style.backgroundColor = COLORS.blue;
         } else if (variant === "destructive") {
-          e.currentTarget.style.backgroundColor = "#FF3B30";
+          e.currentTarget.style.backgroundColor = COLORS.red;
         } else {
           e.currentTarget.style.backgroundColor = "transparent";
         }

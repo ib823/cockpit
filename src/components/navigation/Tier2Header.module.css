@@ -60,15 +60,64 @@
 }
 
 /* ============================================================================
-   RESPONSIVE
+   RESPONSIVE - Jobs/Ive: Adaptive Intelligence
+   Progressive disclosure based on available space
    ============================================================================ */
 
-@media (max-width: 1024px) {
+/* Container query for actual rendered width (handles zoom) */
+@container (max-width: 1400px) {
   .metadata {
+    font-size: 12px;
+  }
+}
+
+/* Hide project metrics first (least critical) */
+@media (max-width: 1280px) {
+  .headerLeft > :nth-child(5), /* Second divider */
+  .headerLeft > :nth-child(6)  /* ProjectMetrics */
+  {
     display: none;
   }
 }
 
+/* Hide version & save status (medium priority) */
+@media (max-width: 1024px) {
+  .headerLeft > :nth-child(2), /* First divider */
+  .headerLeft > :nth-child(3)  /* Version/save metadata */
+  {
+    display: none;
+  }
+}
+
+/* Compact header (small screens or zoomed) */
+@media (max-width: 900px) {
+  .header {
+    padding: 6px 12px;
+    gap: 12px;
+  }
+
+  .headerLeft {
+    gap: 12px;
+  }
+
+  .headerRight {
+    gap: 6px;
+  }
+
+  /* Shrink buttons */
+  .headerRight button {
+    width: 36px !important;
+    height: 36px !important;
+    padding: 6px !important;
+  }
+
+  .headerRight button svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+/* Mobile/very zoomed - stack if needed */
 @media (max-width: 768px) {
   .metadataDivider {
     display: none;
@@ -76,5 +125,31 @@
 
   .header {
     padding: 8px 12px;
+    min-height: 44px;
+  }
+
+  .headerLeft {
+    flex-basis: 100%;
+  }
+
+  .headerRight {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Extreme zoom or tiny screens - ultra compact */
+@media (max-width: 640px) {
+  .header {
+    padding: 6px 8px;
+  }
+
+  .headerLeft {
+    gap: 8px;
+  }
+
+  .headerRight button {
+    width: 32px !important;
+    height: 32px !important;
   }
 }

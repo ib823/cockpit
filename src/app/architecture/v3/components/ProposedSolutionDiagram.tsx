@@ -397,7 +397,7 @@ export function ProposedSolutionDiagram({
               No TO-BE roadmap defined
             </p>
             <p style={{ fontSize: "13px" }}>
-              Add implementation phases in the "Proposed Solution" tab to visualize the migration roadmap
+              Add implementation phases in the &quot;Proposed Solution&quot; tab to visualize the migration roadmap
             </p>
           </div>
         )}

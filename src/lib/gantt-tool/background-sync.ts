@@ -32,8 +32,12 @@ let syncCallbacks: {
   onSyncStart?: (projectId: string) => void;
   onSyncProgress?: (projectId: string, progress: { current: number; total: number }) => void;
   onSyncSuccess?: (projectId: string) => void;
-  onSyncError?: (projectId: string, error: string) => void;
+  onSyncError?: (projectId: string, error: string, errorType?: "foreign_key" | "validation" | "conflict" | "network" | "unknown") => void;
 } = {};
+
+// Track last error for each project to avoid spamming toasts
+const lastErrorTimestamp = new Map<string, number>();
+const ERROR_TOAST_THROTTLE = 10000; // Only show error toast once per 10 seconds per project
 
 /**
  * Format date fields for API
@@ -201,21 +205,58 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({
-      error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
-    }));
+    let errorData: any;
+    try {
+      errorData = await response.json();
+    } catch (jsonParseError) {
+      // Response is not JSON or couldn't be parsed
+      errorData = {
+        error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
+        message: "Server returned a non-JSON response or response could not be parsed",
+      };
+    }
+
     const errorMessage =
       errorData.error || errorData.message || `Sync failed with status ${response.status}`;
 
-    // Log sync failure (suppressed in console filter but useful for debugging)
+    // Extract detailed error information for better debugging
+    const details = errorData.details || errorData.validationDetails || errorData.issues || null;
+    const conflictField = errorData.conflictField || null;
+    const code = errorData.code || null;
+
+    // Log sync failure with comprehensive details
     console.error("[BackgroundSync] Sync failed:", {
       status: response.status,
       statusText: response.statusText,
       error: errorMessage,
+      code,
       projectId,
+      details,
+      conflictField,
+      fullErrorData: errorData, // Include full error for debugging
     });
 
-    throw new Error(errorMessage);
+    // Create error with status code for retry logic
+    const error = new Error(errorMessage) as Error & {
+      status?: number;
+      isPermanent?: boolean;
+      details?: any;
+      validationDetails?: any;
+      code?: string;
+      conflictField?: string[];
+    };
+    error.status = response.status;
+    error.details = details;
+    error.validationDetails = details; // Alias for backward compatibility
+    error.code = code;
+    error.conflictField = conflictField;
+
+    // Mark validation and constraint errors as permanent (don't retry)
+    if (response.status === 400 || response.status === 422 || response.status === 409) {
+      error.isPermanent = true;
+    }
+
+    throw error;
   }
 }
 
@@ -283,9 +324,89 @@ async function processSyncQueue(): Promise<void> {
         syncCallbacks.onSyncSuccess?.(item.projectId);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const isPermanentError = (error as any)?.isPermanent === true;
+        const errorStatus = (error as any)?.status;
+
         console.error("[BackgroundSync] Sync failed for", item.projectId, errorMessage);
 
-        // Update retry count
+        // Handle permanent errors (validation failures) - don't retry
+        if (isPermanentError) {
+          // Get more details about the validation error
+          const validationDetails = (error as any)?.details || (error as any)?.validationDetails;
+          const errorCode = (error as any)?.code;
+          const conflictField = (error as any)?.conflictField;
+
+          // Log with all available details
+          const errorInfo = {
+            projectId: item.projectId || "unknown",
+            status: errorStatus || "unknown",
+            code: errorCode || "unknown",
+            error: errorMessage || "unknown validation error",
+            validationDetails: validationDetails || null,
+            conflictField: conflictField || null,
+            timestamp: item.timestamp ? new Date(item.timestamp).toISOString() : "unknown",
+            itemId: item.id || "unknown",
+          };
+
+          console.error("[BackgroundSync] Permanent error (validation/constraint failure), removing from queue:", errorInfo);
+
+          // Remove from queue - this error won't be fixed by retrying
+          await removeFromSyncQueue(item.id);
+
+          // Determine error type for proper UI handling
+          let errorType: "foreign_key" | "validation" | "conflict" | "network" | "unknown" = "unknown";
+          let userMessage = "";
+
+          if (errorCode === "FOREIGN_KEY_VIOLATION") {
+            // Foreign key constraint error - stale references (most common cause of sync failures)
+            errorType = "foreign_key";
+            userMessage = `Your local changes reference data that no longer exists (likely a deleted resource or task). This usually happens when another user deletes something you're working with.`;
+          } else if (errorCode === "RESOURCE_VALIDATION_ERROR") {
+            errorType = "validation";
+            userMessage = `Invalid resource data detected: ${errorMessage}`;
+          } else if (errorCode === "VERSION_CONFLICT") {
+            errorType = "conflict";
+            userMessage = `Another user modified this project while you were working on it.`;
+          } else if (errorCode === "DUPLICATE_RECORD" || errorStatus === 409 || conflictField) {
+            // Unique constraint or conflict error
+            errorType = "conflict";
+            const fieldInfo = conflictField ? ` (${conflictField.join(", ")})` : "";
+            userMessage = `Data conflict detected${fieldInfo}: ${errorMessage}`;
+          } else if (errorStatus === 400 && validationDetails && Array.isArray(validationDetails)) {
+            // Zod validation error with details
+            errorType = "validation";
+            const issueCount = validationDetails.length;
+            const firstIssue = validationDetails[0];
+            const preview = firstIssue ? `${firstIssue.path || "field"}: ${firstIssue.message || "invalid"}` : "";
+            userMessage = `${issueCount} validation error(s) detected${preview ? ` (${preview})` : ""}`;
+          } else if (errorStatus === 400 && errorMessage.includes("Foreign key constraint")) {
+            // Fallback for foreign key errors without proper error code
+            errorType = "foreign_key";
+            userMessage = `Your local changes reference data that was deleted by another user.`;
+          } else if (validationDetails) {
+            // Generic validation error with details
+            errorType = "validation";
+            userMessage = `Validation failed: ${errorMessage}`;
+          } else {
+            // Generic permanent error
+            errorType = "unknown";
+            userMessage = errorMessage;
+          }
+
+          // Throttle error notifications to avoid spam
+          const lastError = lastErrorTimestamp.get(item.projectId);
+          const now = Date.now();
+          const shouldShowError = !lastError || (now - lastError) > ERROR_TOAST_THROTTLE;
+
+          if (shouldShowError) {
+            lastErrorTimestamp.set(item.projectId, now);
+            syncCallbacks.onSyncError?.(item.projectId, userMessage, errorType);
+          }
+
+          continue; // Skip to next item
+        }
+
+        // Update retry count for transient errors
         item.retryCount++;
         item.lastError = errorMessage;
 

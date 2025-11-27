@@ -403,7 +403,7 @@ export function CurrentLandscapeDiagram({
               No AS-IS architecture data available
             </p>
             <p style={{ fontSize: "13px" }}>
-              Add current systems in the "Current Business Landscape" tab to visualize the AS-IS state
+              Add current systems in the &quot;Current Business Landscape&quot; tab to visualize the AS-IS state
             </p>
           </div>
         )}

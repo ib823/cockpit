@@ -8,18 +8,18 @@
  * - Resource allocation
  * - Risk analysis
  * - Export to PDF, PowerPoint, and interactive HTML
+ *
+ * DESIGN: Pure BaseModal + design tokens - NO Ant Design, NO Tailwind
  */
 
 "use client";
 
 import { useState, useMemo } from "react";
-import { Modal, Tabs, Button, Progress, Tag, Divider, App } from "antd";
 import {
   FileText,
   Download,
   Presentation,
   Globe,
-  Sparkles,
   DollarSign,
   Users,
   Calendar,
@@ -35,17 +35,105 @@ import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { differenceInDays, format } from "date-fns";
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 import { exportToPDF } from "@/lib/gantt-tool/export-utils";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
 
 interface ProposalGenerationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+// ============================================================================
+// Style Objects (Design Tokens Only)
+// ============================================================================
+
+const styles = {
+  heroBox: {
+    padding: SPACING[5],
+    background: `linear-gradient(135deg, ${COLORS.blue}15, ${COLORS.purple}15)`,
+    borderRadius: RADIUS.default,
+    border: `1px solid ${COLORS.blue}40`,
+    marginBottom: SPACING[5],
+  },
+  statCard: (color: string) => ({
+    textAlign: 'center' as const,
+  }),
+  tab: (isActive: boolean) => ({
+    padding: `${SPACING[2]} ${SPACING[3]}`,
+    fontSize: TYPOGRAPHY.fontSize.caption,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    fontFamily: TYPOGRAPHY.fontFamily.text,
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    color: isActive ? COLORS.blue : COLORS.text.tertiary,
+    borderBottom: `2px solid ${isActive ? COLORS.blue : 'transparent'}`,
+    transition: `all ${TRANSITIONS.duration.fast}`,
+    display: 'flex',
+    alignItems: 'center',
+    gap: SPACING[2],
+  }),
+  progressBar: (percent: number, color: string) => ({
+    width: '100%',
+    height: '8px',
+    backgroundColor: COLORS.bg.subtle,
+    borderRadius: RADIUS.full,
+    overflow: 'hidden' as const,
+    position: 'relative' as const,
+  }),
+  progressFill: (percent: number, color: string) => ({
+    width: `${percent}%`,
+    height: '100%',
+    background: `linear-gradient(90deg, ${color}, ${color}dd)`,
+    borderRadius: RADIUS.full,
+    transition: `width ${TRANSITIONS.duration.normal}`,
+  }),
+  tag: {
+    display: 'inline-block',
+    padding: `2px ${SPACING[2]}`,
+    fontSize: '11px',
+    fontFamily: TYPOGRAPHY.fontFamily.text,
+    color: COLORS.text.secondary,
+    backgroundColor: COLORS.bg.subtle,
+    borderRadius: RADIUS.small,
+    border: `1px solid ${COLORS.border.default}`,
+    marginTop: SPACING[1],
+  },
+  phaseCard: {
+    padding: SPACING[3],
+    backgroundColor: COLORS.bg.primary,
+    border: `1px solid ${COLORS.border.default}`,
+    borderRadius: RADIUS.default,
+    transition: `box-shadow ${TRANSITIONS.duration.fast}`,
+  },
+  insightBox: {
+    padding: SPACING[4],
+    background: `linear-gradient(135deg, ${COLORS.purple}15, ${COLORS.status.info}15)`,
+    border: `1px solid ${COLORS.purple}40`,
+    borderRadius: RADIUS.default,
+  },
+  exportButton: (isPrimary: boolean) => ({
+    padding: `${SPACING[2]} ${SPACING[4]}`,
+    fontSize: TYPOGRAPHY.fontSize.caption,
+    fontFamily: TYPOGRAPHY.fontFamily.text,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: isPrimary ? COLORS.bg.primary : COLORS.blue,
+    backgroundColor: isPrimary ? COLORS.blue : 'transparent',
+    border: `1px solid ${isPrimary ? COLORS.blue : COLORS.border.default}`,
+    borderRadius: RADIUS.default,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: SPACING[2],
+    transition: `all ${TRANSITIONS.duration.fast}`,
+  }),
+};
+
 export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationModalProps) {
-  const { message } = App.useApp();
   const { currentProject, getProjectDuration } = useGanttToolStoreV2();
   const [activeTab, setActiveTab] = useState("summary");
   const [isExporting, setIsExporting] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'info' | 'error'; message: string } | null>(null);
 
   const duration = getProjectDuration();
 
@@ -122,423 +210,845 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
 
   if (!proposalData) return null;
 
+  const showNotification = (type: 'success' | 'info' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
   const handleExportPDF = async () => {
     if (!currentProject) return;
     setIsExporting(true);
     try {
       await exportToPDF(currentProject);
-      message.success("Proposal exported to PDF successfully!");
+      showNotification('success', "Proposal exported to PDF successfully!");
     } catch (error) {
-      message.error("Failed to export proposal. Please try again.");
+      showNotification('error', "Failed to export proposal. Please try again.");
     } finally {
       setIsExporting(false);
     }
   };
 
   const handleExportPowerPoint = () => {
-    message.info({
-      content: "PowerPoint export is coming soon! This will generate a client-ready presentation.",
-      duration: 3,
-    });
+    showNotification('info', "PowerPoint export is coming soon! This will generate a client-ready presentation.");
   };
 
   const handleExportHTML = () => {
-    message.info({
-      content:
-        "Interactive HTML export is coming soon! Share a live, explorable proposal with clients.",
-      duration: 3,
-    });
+    showNotification('info', "Interactive HTML export is coming soon! Share a live, explorable proposal with clients.");
   };
 
+  const ProgressBar = ({ percent, color }: { percent: number; color: string }) => (
+    <div style={styles.progressBar(percent, color)}>
+      <div style={styles.progressFill(percent, color)} />
+    </div>
+  );
+
+  const tabs = [
+    {
+      key: 'summary',
+      label: 'Executive Summary',
+      icon: <FileText style={{ width: '16px', height: '16px' }} />,
+    },
+    {
+      key: 'costs',
+      label: 'Cost Breakdown',
+      icon: <DollarSign style={{ width: '16px', height: '16px' }} />,
+    },
+    {
+      key: 'team',
+      label: 'Team & Resources',
+      icon: <Users style={{ width: '16px', height: '16px' }} />,
+    },
+  ];
+
   return (
-    <Modal
-      open={isOpen}
-      onCancel={onClose}
-      afterClose={() => {
-        // PERMANENT FIX: Force cleanup of modal side effects
-        if (document.body.style.overflow === "hidden") document.body.style.overflow = "";
-        if (document.body.style.paddingRight) document.body.style.paddingRight = "";
-        document.body.style.pointerEvents = "";
-      }}
-      destroyOnHidden={true}
-      width={900}
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Generate Proposal"
+      subtitle="AI-powered, client-ready proposal in seconds"
+      size="large"
       footer={null}
-      title={
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 m-0">Generate Proposal</h2>
-            <p className="text-xs text-gray-500 m-0">
-              AI-powered, client-ready proposal in seconds
-            </p>
-          </div>
-        </div>
-      }
-      className="proposal-modal"
     >
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        items={[
-          {
-            key: "summary",
-            label: (
-              <span className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Executive Summary
-              </span>
-            ),
-            children: (
-              <div className="max-h-[600px] overflow-y-auto px-2">
-                {/* Hero Section */}
-                <div className="mb-6 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                    {proposalData.projectName}
-                  </h3>
-                  {proposalData.description && (
-                    <p className="text-sm text-gray-700 mb-4">{proposalData.description}</p>
-                  )}
+      {/* Notification */}
+      {notification && (
+        <div style={{
+          position: 'fixed',
+          top: SPACING[4],
+          right: SPACING[4],
+          padding: SPACING[3],
+          backgroundColor: notification.type === 'success' ? COLORS.status.success :
+                          notification.type === 'error' ? COLORS.red : COLORS.blue,
+          color: COLORS.bg.primary,
+          borderRadius: RADIUS.default,
+          boxShadow: `0 4px 12px ${COLORS.shadow}`,
+          fontSize: TYPOGRAPHY.fontSize.caption,
+          fontFamily: TYPOGRAPHY.fontFamily.text,
+          zIndex: 10000,
+          animation: 'slideIn 0.3s ease',
+        }}>
+          {notification.message}
+        </div>
+      )}
 
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600">
-                        {proposalData.durationMonths}
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1">Months</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-purple-600">
-                        {proposalData.phases}
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1">Phases</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-green-600">
-                        {proposalData.resources}
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1">Team Members</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-orange-600">
-                        ${Math.round(proposalData.estimatedCost / 1000)}K
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1">Investment</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Timeline */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-blue-600" />
-                    Project Timeline
-                  </h4>
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between text-sm">
-                      <div>
-                        <span className="text-gray-600">Start Date:</span>
-                        <span className="ml-2 font-semibold text-gray-900">
-                          {proposalData.startDate}
-                        </span>
-                      </div>
-                      <div className="text-gray-400">→</div>
-                      <div>
-                        <span className="text-gray-600">End Date:</span>
-                        <span className="ml-2 font-semibold text-gray-900">
-                          {proposalData.endDate}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-3">
-                      <Progress
-                        percent={100}
-                        strokeColor={{ from: "#3b82f6", to: "#8b5cf6" }}
-                        showInfo={false}
-                      />
-                      <p className="text-xs text-gray-600 mt-2 text-center">
-                        {proposalData.duration} days · {proposalData.durationMonths} months
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Phases Overview */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <Target className="w-4 h-4 text-purple-600" />
-                    Implementation Phases
-                  </h4>
-                  <div className="space-y-2">
-                    {proposalData.phasesList.map((phase, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-blue-600">
-                                Phase {idx + 1}
-                              </span>
-                              <h5 className="text-sm font-semibold text-gray-900">{phase.name}</h5>
-                            </div>
-                            {phase.description && (
-                              <p className="text-xs text-gray-600 mt-1">{phase.description}</p>
-                            )}
-                            <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                              <span>{phase.tasks} tasks</span>
-                              <span>·</span>
-                              <span>{phase.duration} days</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* AI Insights */}
-                <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="w-4 h-4 text-purple-600" />
-                    <h4 className="text-sm font-semibold text-gray-900">AI Project Analysis</h4>
-                  </div>
-                  <div className="space-y-2 text-xs">
-                    <div className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <p className="text-gray-700">
-                        <strong>Timeline Assessment:</strong> {proposalData.durationMonths}-month
-                        timeline is{" "}
-                        {proposalData.durationMonths < 6 ? "aggressive" : "conservative"} for this
-                        project scope.
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <TrendingUp className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-                      <p className="text-gray-700">
-                        <strong>Resource Optimization:</strong>{" "}
-                        {Math.round(proposalData.utilizationRate)}% team utilization -{" "}
-                        {proposalData.utilizationRate > 85
-                          ? "excellent efficiency"
-                          : "room for optimization"}
-                        .
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <Award className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
-                      <p className="text-gray-700">
-                        <strong>Complexity Score:</strong> {proposalData.complexityScore}/100 -{" "}
-                        {proposalData.complexityScore < 40
-                          ? "Low"
-                          : proposalData.complexityScore < 70
-                            ? "Medium"
-                            : "High"}{" "}
-                        complexity project.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ),
-          },
-          {
-            key: "costs",
-            label: (
-              <span className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
-                Cost Breakdown
-              </span>
-            ),
-            children: (
-              <div className="max-h-[600px] overflow-y-auto px-2">
-                {/* Total Investment */}
-                <div className="mb-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                  <div className="text-center">
-                    <div className="text-sm text-gray-600 mb-2">Total Project Investment</div>
-                    <div className="text-5xl font-bold text-green-700 mb-2">
-                      ${Math.round(proposalData.estimatedCost / 1000)}K
-                    </div>
-                    <div className="text-xs text-gray-600">
-                      Estimated based on {proposalData.resources} team members over{" "}
-                      {proposalData.durationMonths} months
-                    </div>
-                  </div>
-                </div>
-
-                {/* Cost by Category */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Cost by Category</h4>
-                  <div className="space-y-3">
-                    {Object.entries(proposalData.costByCategory).map(([cat, cost]) => {
-                      const category = RESOURCE_CATEGORIES[cat as keyof typeof RESOURCE_CATEGORIES];
-                      const percentage = (cost / proposalData.estimatedCost) * 100;
-
-                      return (
-                        <div key={cat}>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                              <span>{category.icon}</span>
-                              {category.label}
-                            </span>
-                            <span className="text-xs font-bold" style={{ color: category.color }}>
-                              ${Math.round(cost / 1000)}K ({Math.round(percentage)}%)
-                            </span>
-                          </div>
-                          <Progress
-                            percent={percentage}
-                            strokeColor={category.color}
-                            showInfo={false}
-                            size="small"
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Payment Schedule */}
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">
-                    Suggested Payment Schedule
-                  </h4>
-                  <div className="space-y-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-700">Project Kickoff (30%)</span>
-                      <span className="font-semibold text-gray-900">
-                        ${Math.round((proposalData.estimatedCost * 0.3) / 1000)}K
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-700">Mid-Project (40%)</span>
-                      <span className="font-semibold text-gray-900">
-                        ${Math.round((proposalData.estimatedCost * 0.4) / 1000)}K
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-700">Project Completion (30%)</span>
-                      <span className="font-semibold text-gray-900">
-                        ${Math.round((proposalData.estimatedCost * 0.3) / 1000)}K
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ),
-          },
-          {
-            key: "team",
-            label: (
-              <span className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Team & Resources
-              </span>
-            ),
-            children: (
-              <div className="max-h-[600px] overflow-y-auto px-2">
-                {/* Team Overview */}
-                <div className="mb-6 p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Project Team</h4>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-2xl font-bold text-purple-600">
-                        {proposalData.resources}
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1">Total Team Members</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-blue-600">
-                        {proposalData.assignedResources}
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1">Actively Assigned</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-green-600">
-                        {Math.round(proposalData.utilizationRate)}%
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1">Utilization Rate</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Team Members */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Team Composition</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    {proposalData.resourcesList.map((resource, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="text-2xl">{resource.icon}</div>
-                          <div className="flex-1 min-w-0">
-                            <h5 className="text-sm font-semibold text-gray-900 truncate">
-                              {resource.name}
-                            </h5>
-                            <p className="text-xs text-gray-600">{resource.designation}</p>
-                            <Tag className="mt-1 text-xs">{resource.category}</Tag>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Team Benefits */}
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <Award className="w-4 h-4 text-green-600" />
-                    Why Our Team
-                  </h4>
-                  <ul className="space-y-2 text-xs text-gray-700">
-                    <li className="flex items-start gap-2">
-                      <Zap className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span>Carefully balanced team with expertise across all project phases</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Zap className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span>Proven track record in similar implementations</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Zap className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span>Dedicated project management ensuring on-time, on-budget delivery</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            ),
-          },
-        ]}
-      />
-
-      {/* Export Actions */}
-      <Divider />
-      <div className="flex items-center justify-between">
-        <div className="text-xs text-gray-500">Generated with AI · Ready to share with clients</div>
-        <div className="flex items-center gap-2">
-          <Button
-            icon={<FileText className="w-4 h-4" />}
-            onClick={handleExportPDF}
-            loading={isExporting}
-            type="primary"
-            size="large"
-          >
-            Export PDF
-          </Button>
-          <Button
-            icon={<Presentation className="w-4 h-4" />}
-            onClick={handleExportPowerPoint}
-            size="large"
-          >
-            PowerPoint
-          </Button>
-          <Button icon={<Globe className="w-4 h-4" />} onClick={handleExportHTML} size="large">
-            Interactive HTML
-          </Button>
+      {/* Tabs */}
+      <div style={{
+        borderBottom: `1px solid ${COLORS.border.light}`,
+        marginBottom: SPACING[5],
+        marginLeft: `-${SPACING[6]}`,
+        marginRight: `-${SPACING[6]}`,
+        marginTop: `-${SPACING[6]}`,
+      }}>
+        <div style={{ display: 'flex', gap: SPACING[1], paddingLeft: SPACING[6] }}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={styles.tab(activeTab === tab.key)}
+              onMouseEnter={(e) => {
+                if (activeTab !== tab.key) e.currentTarget.style.color = COLORS.text.primary;
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== tab.key) e.currentTarget.style.color = COLORS.text.tertiary;
+              }}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
         </div>
       </div>
-    </Modal>
+
+      {/* Tab Content */}
+      <div style={{ maxHeight: '600px', overflowY: 'auto', paddingRight: SPACING[2] }}>
+        {/* SUMMARY TAB */}
+        {activeTab === 'summary' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[5] }}>
+            {/* Hero Section */}
+            <div style={styles.heroBox}>
+              <h3 style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.title,
+                fontWeight: TYPOGRAPHY.fontWeight.bold,
+                color: COLORS.text.primary,
+                marginBottom: SPACING[2],
+                margin: 0,
+              }}>
+                {proposalData.projectName}
+              </h3>
+              {proposalData.description && (
+                <p style={{
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  fontSize: TYPOGRAPHY.fontSize.caption,
+                  color: COLORS.text.secondary,
+                  marginBottom: SPACING[4],
+                  margin: 0,
+                }}>
+                  {proposalData.description}
+                </p>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: SPACING[4] }}>
+                <div style={styles.statCard(COLORS.blue)}>
+                  <div style={{
+                    fontSize: '32px',
+                    fontWeight: TYPOGRAPHY.fontWeight.bold,
+                    color: COLORS.blue,
+                  }}>
+                    {proposalData.durationMonths}
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    color: COLORS.text.secondary,
+                    marginTop: SPACING[1],
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                  }}>
+                    Months
+                  </div>
+                </div>
+                <div style={styles.statCard(COLORS.purple)}>
+                  <div style={{
+                    fontSize: '32px',
+                    fontWeight: TYPOGRAPHY.fontWeight.bold,
+                    color: COLORS.purple,
+                  }}>
+                    {proposalData.phases}
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    color: COLORS.text.secondary,
+                    marginTop: SPACING[1],
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                  }}>
+                    Phases
+                  </div>
+                </div>
+                <div style={styles.statCard(COLORS.status.success)}>
+                  <div style={{
+                    fontSize: '32px',
+                    fontWeight: TYPOGRAPHY.fontWeight.bold,
+                    color: COLORS.status.success,
+                  }}>
+                    {proposalData.resources}
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    color: COLORS.text.secondary,
+                    marginTop: SPACING[1],
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                  }}>
+                    Team Members
+                  </div>
+                </div>
+                <div style={styles.statCard(COLORS.orange)}>
+                  <div style={{
+                    fontSize: '32px',
+                    fontWeight: TYPOGRAPHY.fontWeight.bold,
+                    color: COLORS.orange,
+                  }}>
+                    ${Math.round(proposalData.estimatedCost / 1000)}K
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    color: COLORS.text.secondary,
+                    marginTop: SPACING[1],
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                  }}>
+                    Investment
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Timeline */}
+            <div>
+              <h4 style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                marginBottom: SPACING[3],
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: SPACING[2],
+              }}>
+                <Calendar style={{ width: '16px', height: '16px', color: COLORS.blue }} />
+                Project Timeline
+              </h4>
+              <div style={{
+                padding: SPACING[4],
+                backgroundColor: COLORS.bg.subtle,
+                borderRadius: RADIUS.default,
+                border: `1px solid ${COLORS.border.default}`,
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: TYPOGRAPHY.fontSize.caption,
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  marginBottom: SPACING[3],
+                }}>
+                  <div>
+                    <span style={{ color: COLORS.text.secondary }}>Start Date:</span>
+                    <span style={{
+                      marginLeft: SPACING[2],
+                      fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                      color: COLORS.text.primary,
+                    }}>
+                      {proposalData.startDate}
+                    </span>
+                  </div>
+                  <div style={{ color: COLORS.text.tertiary }}>→</div>
+                  <div>
+                    <span style={{ color: COLORS.text.secondary }}>End Date:</span>
+                    <span style={{
+                      marginLeft: SPACING[2],
+                      fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                      color: COLORS.text.primary,
+                    }}>
+                      {proposalData.endDate}
+                    </span>
+                  </div>
+                </div>
+                <ProgressBar percent={100} color={COLORS.blue} />
+                <p style={{
+                  fontSize: '11px',
+                  color: COLORS.text.secondary,
+                  marginTop: SPACING[2],
+                  textAlign: 'center',
+                  margin: 0,
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                }}>
+                  {proposalData.duration} days · {proposalData.durationMonths} months
+                </p>
+              </div>
+            </div>
+
+            {/* Phases Overview */}
+            <div>
+              <h4 style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                marginBottom: SPACING[3],
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: SPACING[2],
+              }}>
+                <Target style={{ width: '16px', height: '16px', color: COLORS.purple }} />
+                Implementation Phases
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
+                {proposalData.phasesList.map((phase, idx) => (
+                  <div
+                    key={idx}
+                    style={styles.phaseCard}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = `0 2px 8px ${COLORS.shadow}`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: TYPOGRAPHY.fontWeight.bold,
+                            color: COLORS.blue,
+                            fontFamily: TYPOGRAPHY.fontFamily.text,
+                          }}>
+                            Phase {idx + 1}
+                          </span>
+                          <h5 style={{
+                            fontFamily: TYPOGRAPHY.fontFamily.text,
+                            fontSize: TYPOGRAPHY.fontSize.caption,
+                            fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                            color: COLORS.text.primary,
+                            margin: 0,
+                          }}>
+                            {phase.name}
+                          </h5>
+                        </div>
+                        {phase.description && (
+                          <p style={{
+                            fontSize: '11px',
+                            color: COLORS.text.secondary,
+                            marginTop: SPACING[1],
+                            margin: 0,
+                            fontFamily: TYPOGRAPHY.fontFamily.text,
+                          }}>
+                            {phase.description}
+                          </p>
+                        )}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: SPACING[3],
+                          marginTop: SPACING[2],
+                          fontSize: '11px',
+                          color: COLORS.text.tertiary,
+                          fontFamily: TYPOGRAPHY.fontFamily.text,
+                        }}>
+                          <span>{phase.tasks} tasks</span>
+                          <span>·</span>
+                          <span>{phase.duration} days</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* AI Insights */}
+            <div style={styles.insightBox}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: SPACING[2],
+                marginBottom: SPACING[3],
+              }}>
+                <Sparkles style={{ width: '16px', height: '16px', color: COLORS.purple }} />
+                <h4 style={{
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  fontSize: TYPOGRAPHY.fontSize.caption,
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  color: COLORS.text.primary,
+                  margin: 0,
+                }}>
+                  AI Project Analysis
+                </h4>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2], fontSize: '11px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: SPACING[2] }}>
+                  <CheckCircle style={{ width: '16px', height: '16px', color: COLORS.status.success, flexShrink: 0, marginTop: '2px' }} />
+                  <p style={{
+                    color: COLORS.text.secondary,
+                    margin: 0,
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                  }}>
+                    <strong>Timeline Assessment:</strong> {proposalData.durationMonths}-month
+                    timeline is{" "}
+                    {proposalData.durationMonths < 6 ? "aggressive" : "conservative"} for this
+                    project scope.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: SPACING[2] }}>
+                  <TrendingUp style={{ width: '16px', height: '16px', color: COLORS.blue, flexShrink: 0, marginTop: '2px' }} />
+                  <p style={{
+                    color: COLORS.text.secondary,
+                    margin: 0,
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                  }}>
+                    <strong>Resource Optimization:</strong>{" "}
+                    {Math.round(proposalData.utilizationRate)}% team utilization -{" "}
+                    {proposalData.utilizationRate > 85
+                      ? "excellent efficiency"
+                      : "room for optimization"}
+                    .
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: SPACING[2] }}>
+                  <Award style={{ width: '16px', height: '16px', color: COLORS.orange, flexShrink: 0, marginTop: '2px' }} />
+                  <p style={{
+                    color: COLORS.text.secondary,
+                    margin: 0,
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                  }}>
+                    <strong>Complexity Score:</strong> {proposalData.complexityScore}/100 -{" "}
+                    {proposalData.complexityScore < 40
+                      ? "Low"
+                      : proposalData.complexityScore < 70
+                        ? "Medium"
+                        : "High"}{" "}
+                    complexity project.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* COSTS TAB */}
+        {activeTab === 'costs' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[5] }}>
+            {/* Total Investment */}
+            <div style={{
+              padding: SPACING[5],
+              background: `linear-gradient(135deg, ${COLORS.status.success}15, ${COLORS.greenLight}15)`,
+              borderRadius: RADIUS.default,
+              border: `1px solid ${COLORS.status.success}40`,
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  fontSize: TYPOGRAPHY.fontSize.caption,
+                  color: COLORS.text.secondary,
+                  marginBottom: SPACING[2],
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                }}>
+                  Total Project Investment
+                </div>
+                <div style={{
+                  fontSize: '48px',
+                  fontWeight: TYPOGRAPHY.fontWeight.bold,
+                  color: COLORS.status.success,
+                  marginBottom: SPACING[2],
+                }}>
+                  ${Math.round(proposalData.estimatedCost / 1000)}K
+                </div>
+                <div style={{
+                  fontSize: '11px',
+                  color: COLORS.text.secondary,
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                }}>
+                  Estimated based on {proposalData.resources} team members over{" "}
+                  {proposalData.durationMonths} months
+                </div>
+              </div>
+            </div>
+
+            {/* Cost by Category */}
+            <div>
+              <h4 style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                marginBottom: SPACING[3],
+                margin: 0,
+              }}>
+                Cost by Category
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[3] }}>
+                {Object.entries(proposalData.costByCategory).map(([cat, cost]) => {
+                  const category = RESOURCE_CATEGORIES[cat as keyof typeof RESOURCE_CATEGORIES];
+                  const percentage = (cost / proposalData.estimatedCost) * 100;
+
+                  return (
+                    <div key={cat}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: SPACING[1],
+                      }}>
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                          color: COLORS.text.secondary,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: SPACING[1],
+                          fontFamily: TYPOGRAPHY.fontFamily.text,
+                        }}>
+                          <span>{category.icon}</span>
+                          {category.label}
+                        </span>
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: TYPOGRAPHY.fontWeight.bold,
+                          color: category.color,
+                          fontFamily: TYPOGRAPHY.fontFamily.text,
+                        }}>
+                          ${Math.round(cost / 1000)}K ({Math.round(percentage)}%)
+                        </span>
+                      </div>
+                      <ProgressBar percent={percentage} color={category.color} />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Payment Schedule */}
+            <div style={{
+              padding: SPACING[4],
+              backgroundColor: `${COLORS.blue}15`,
+              border: `1px solid ${COLORS.blue}40`,
+              borderRadius: RADIUS.default,
+            }}>
+              <h4 style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                marginBottom: SPACING[3],
+                margin: 0,
+              }}>
+                Suggested Payment Schedule
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2], fontSize: '11px' }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                }}>
+                  <span style={{ color: COLORS.text.secondary }}>Project Kickoff (30%)</span>
+                  <span style={{
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: COLORS.text.primary,
+                  }}>
+                    ${Math.round((proposalData.estimatedCost * 0.3) / 1000)}K
+                  </span>
+                </div>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                }}>
+                  <span style={{ color: COLORS.text.secondary }}>Mid-Project (40%)</span>
+                  <span style={{
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: COLORS.text.primary,
+                  }}>
+                    ${Math.round((proposalData.estimatedCost * 0.4) / 1000)}K
+                  </span>
+                </div>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                }}>
+                  <span style={{ color: COLORS.text.secondary }}>Project Completion (30%)</span>
+                  <span style={{
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: COLORS.text.primary,
+                  }}>
+                    ${Math.round((proposalData.estimatedCost * 0.3) / 1000)}K
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TEAM TAB */}
+        {activeTab === 'team' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[5] }}>
+            {/* Team Overview */}
+            <div style={{
+              padding: SPACING[4],
+              background: `linear-gradient(135deg, ${COLORS.purple}15, ${COLORS.blue}15)`,
+              borderRadius: RADIUS.default,
+              border: `1px solid ${COLORS.purple}40`,
+            }}>
+              <h4 style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                marginBottom: SPACING[3],
+                margin: 0,
+              }}>
+                Project Team
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: SPACING[4], textAlign: 'center' }}>
+                <div>
+                  <div style={{
+                    fontSize: TYPOGRAPHY.fontSize.title,
+                    fontWeight: TYPOGRAPHY.fontWeight.bold,
+                    color: COLORS.purple,
+                  }}>
+                    {proposalData.resources}
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    color: COLORS.text.secondary,
+                    marginTop: SPACING[1],
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                  }}>
+                    Total Team Members
+                  </div>
+                </div>
+                <div>
+                  <div style={{
+                    fontSize: TYPOGRAPHY.fontSize.title,
+                    fontWeight: TYPOGRAPHY.fontWeight.bold,
+                    color: COLORS.blue,
+                  }}>
+                    {proposalData.assignedResources}
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    color: COLORS.text.secondary,
+                    marginTop: SPACING[1],
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                  }}>
+                    Actively Assigned
+                  </div>
+                </div>
+                <div>
+                  <div style={{
+                    fontSize: TYPOGRAPHY.fontSize.title,
+                    fontWeight: TYPOGRAPHY.fontWeight.bold,
+                    color: COLORS.status.success,
+                  }}>
+                    {Math.round(proposalData.utilizationRate)}%
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    color: COLORS.text.secondary,
+                    marginTop: SPACING[1],
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                  }}>
+                    Utilization Rate
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Team Members */}
+            <div>
+              <h4 style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                marginBottom: SPACING[3],
+                margin: 0,
+              }}>
+                Team Composition
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: SPACING[3] }}>
+                {proposalData.resourcesList.map((resource, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: SPACING[3],
+                      backgroundColor: COLORS.bg.primary,
+                      border: `1px solid ${COLORS.border.default}`,
+                      borderRadius: RADIUS.default,
+                      transition: `box-shadow ${TRANSITIONS.duration.fast}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = `0 2px 8px ${COLORS.shadow}`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+                      <div style={{ fontSize: '24px' }}>{resource.icon}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h5 style={{
+                          fontFamily: TYPOGRAPHY.fontFamily.text,
+                          fontSize: TYPOGRAPHY.fontSize.caption,
+                          fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                          color: COLORS.text.primary,
+                          margin: 0,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {resource.name}
+                        </h5>
+                        <p style={{
+                          fontSize: '11px',
+                          color: COLORS.text.secondary,
+                          margin: 0,
+                          fontFamily: TYPOGRAPHY.fontFamily.text,
+                        }}>
+                          {resource.designation}
+                        </p>
+                        <span style={styles.tag}>{resource.category}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Team Benefits */}
+            <div style={{
+              padding: SPACING[4],
+              backgroundColor: `${COLORS.status.success}15`,
+              border: `1px solid ${COLORS.status.success}40`,
+              borderRadius: RADIUS.default,
+            }}>
+              <h4 style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.primary,
+                marginBottom: SPACING[3],
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: SPACING[2],
+              }}>
+                <Award style={{ width: '16px', height: '16px', color: COLORS.status.success }} />
+                Why Our Team
+              </h4>
+              <ul style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: SPACING[2],
+                fontSize: '11px',
+                color: COLORS.text.secondary,
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                margin: 0,
+                paddingLeft: SPACING[4],
+              }}>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: SPACING[2] }}>
+                  <Zap style={{ width: '16px', height: '16px', color: COLORS.status.success, flexShrink: 0, marginTop: '2px' }} />
+                  <span>Carefully balanced team with expertise across all project phases</span>
+                </li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: SPACING[2] }}>
+                  <Zap style={{ width: '16px', height: '16px', color: COLORS.status.success, flexShrink: 0, marginTop: '2px' }} />
+                  <span>Proven track record in similar implementations</span>
+                </li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: SPACING[2] }}>
+                  <Zap style={{ width: '16px', height: '16px', color: COLORS.status.success, flexShrink: 0, marginTop: '2px' }} />
+                  <span>Dedicated project management ensuring on-time, on-budget delivery</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Export Actions */}
+      <div style={{
+        borderTop: `1px solid ${COLORS.border.default}`,
+        marginTop: SPACING[5],
+        paddingTop: SPACING[4],
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <div style={{
+          fontSize: '11px',
+          color: COLORS.text.tertiary,
+          fontFamily: TYPOGRAPHY.fontFamily.text,
+        }}>
+          Generated with AI · Ready to share with clients
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+          <button
+            onClick={handleExportPDF}
+            disabled={isExporting}
+            style={{
+              ...styles.exportButton(true),
+              opacity: isExporting ? 0.6 : 1,
+              cursor: isExporting ? 'not-allowed' : 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              if (!isExporting) e.currentTarget.style.backgroundColor = COLORS.blueHover;
+            }}
+            onMouseLeave={(e) => {
+              if (!isExporting) e.currentTarget.style.backgroundColor = COLORS.blue;
+            }}
+          >
+            <FileText style={{ width: '16px', height: '16px' }} />
+            {isExporting ? 'Exporting...' : 'Export PDF'}
+          </button>
+          <button
+            onClick={handleExportPowerPoint}
+            style={styles.exportButton(false)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = COLORS.blueLight;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            <Presentation style={{ width: '16px', height: '16px' }} />
+            PowerPoint
+          </button>
+          <button
+            onClick={handleExportHTML}
+            style={styles.exportButton(false)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = COLORS.blueLight;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            <Globe style={{ width: '16px', height: '16px' }} />
+            Interactive HTML
+          </button>
+        </div>
+      </div>
+
+      {/* Notification Animation */}
+      <style>{`
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </BaseModal>
   );
 }

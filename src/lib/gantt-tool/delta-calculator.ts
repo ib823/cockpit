@@ -275,33 +275,90 @@ export function getDeltaSummary(delta: ProjectDelta): string {
 }
 
 /**
- * Sanitize delta to prevent duplicate resource assignments
- * Removes duplicate task/phase resource assignments that would violate unique constraints
+ * Sanitize delta to prevent duplicate resource assignments and invalid foreign key references
+ * Removes:
+ * - Duplicate task/phase resource assignments that would violate unique constraints
+ * - Resource assignments that reference deleted or non-existent resources
+ * - Invalid parent task references
  */
 export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
   const sanitized = { ...delta };
 
-  // Deduplicate phase resource assignments
+  // Build a set of valid resource IDs from the delta
+  const validResourceIds = new Set<string>();
+
+  // Include resources from the delta itself
+  if (sanitized.resources?.created) {
+    sanitized.resources.created.forEach((r) => validResourceIds.add(r.id));
+  }
+  if (sanitized.resources?.updated) {
+    sanitized.resources.updated.forEach((r) => validResourceIds.add(r.id));
+  }
+
+  // Remove resources marked for deletion
+  const deletedResourceIds = new Set<string>(sanitized.resources?.deleted || []);
+
+  /**
+   * Helper to validate and deduplicate resource assignments
+   * Returns cleaned assignments and logs removed entries
+   */
+  function cleanResourceAssignments(
+    assignments: any[],
+    context: string,
+    allowMissingResources: boolean = true
+  ): any[] {
+    const seen = new Set<string>();
+    const cleaned: any[] = [];
+
+    for (const assignment of assignments) {
+      const resourceId = assignment.resourceId;
+
+      // Check for deleted resources
+      if (deletedResourceIds.has(resourceId)) {
+        console.warn(
+          `[Delta Sanitizer] Removing assignment to deleted resource: ${context}, resourceId=${resourceId}`
+        );
+        continue;
+      }
+
+      // Check for duplicates
+      if (seen.has(resourceId)) {
+        console.warn(
+          `[Delta Sanitizer] Removing duplicate resource assignment: ${context}, resourceId=${resourceId}`
+        );
+        continue;
+      }
+
+      // For new resources being created, check they exist in the delta
+      // For existing resources, we allow them (they may already be in the DB)
+      if (!allowMissingResources && validResourceIds.size > 0 && !validResourceIds.has(resourceId)) {
+        console.warn(
+          `[Delta Sanitizer] Removing assignment to non-existent resource in delta: ${context}, resourceId=${resourceId}`
+        );
+        continue;
+      }
+
+      seen.add(resourceId);
+      cleaned.push(assignment);
+    }
+
+    return cleaned;
+  }
+
+  // Sanitize phase resource assignments
   if (sanitized.phases?.created) {
     sanitized.phases.created = sanitized.phases.created.map((phase) => {
       if (!phase.phaseResourceAssignments || phase.phaseResourceAssignments.length === 0) {
         return phase;
       }
 
-      // Deduplicate by resourceId
-      const seen = new Set<string>();
-      const deduplicated = phase.phaseResourceAssignments.filter((assignment) => {
-        if (seen.has(assignment.resourceId)) {
-          console.warn(
-            `[Delta Sanitizer] Removing duplicate PM resource assignment: phaseId=${phase.id}, resourceId=${assignment.resourceId}`
-          );
-          return false;
-        }
-        seen.add(assignment.resourceId);
-        return true;
-      });
+      const cleaned = cleanResourceAssignments(
+        phase.phaseResourceAssignments,
+        `phaseId=${phase.id}`,
+        true // Allow references to existing resources not in this delta
+      );
 
-      return { ...phase, phaseResourceAssignments: deduplicated };
+      return { ...phase, phaseResourceAssignments: cleaned };
     });
   }
 
@@ -311,74 +368,79 @@ export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
         return phase;
       }
 
-      // Deduplicate by resourceId
-      const seen = new Set<string>();
-      const deduplicated = phase.phaseResourceAssignments.filter((assignment) => {
-        if (seen.has(assignment.resourceId)) {
-          console.warn(
-            `[Delta Sanitizer] Removing duplicate PM resource assignment: phaseId=${phase.id}, resourceId=${assignment.resourceId}`
-          );
-          return false;
-        }
-        seen.add(assignment.resourceId);
-        return true;
-      });
+      const cleaned = cleanResourceAssignments(
+        phase.phaseResourceAssignments,
+        `phaseId=${phase.id}`,
+        true
+      );
 
-      return { ...phase, phaseResourceAssignments: deduplicated };
+      return { ...phase, phaseResourceAssignments: cleaned };
     });
   }
 
-  // Deduplicate task resource assignments in phases
+  // Sanitize task resource assignments in phases
   if (sanitized.phases?.created) {
-    sanitized.phases.created = sanitized.phases.created.map((phase) => ({
-      ...phase,
-      tasks: phase.tasks.map((task) => {
-        if (!task.resourceAssignments || task.resourceAssignments.length === 0) {
-          return task;
-        }
+    sanitized.phases.created = sanitized.phases.created.map((phase) => {
+      // Build valid task IDs for parent validation
+      const validTaskIds = new Set(phase.tasks.map((t) => t.id));
 
-        // Deduplicate by resourceId
-        const seen = new Set<string>();
-        const deduplicated = task.resourceAssignments.filter((assignment) => {
-          if (seen.has(assignment.resourceId)) {
+      return {
+        ...phase,
+        tasks: phase.tasks.map((task) => {
+          // Validate parent task reference
+          if (task.parentTaskId && !validTaskIds.has(task.parentTaskId)) {
             console.warn(
-              `[Delta Sanitizer] Removing duplicate task resource assignment: taskId=${task.id}, resourceId=${assignment.resourceId}`
+              `[Delta Sanitizer] Removing invalid parent task reference: taskId=${task.id}, parentTaskId=${task.parentTaskId}`
             );
-            return false;
+            task = { ...task, parentTaskId: null, level: 0 };
           }
-          seen.add(assignment.resourceId);
-          return true;
-        });
 
-        return { ...task, resourceAssignments: deduplicated };
-      }),
-    }));
+          if (!task.resourceAssignments || task.resourceAssignments.length === 0) {
+            return task;
+          }
+
+          const cleaned = cleanResourceAssignments(
+            task.resourceAssignments,
+            `taskId=${task.id}`,
+            true
+          );
+
+          return { ...task, resourceAssignments: cleaned };
+        }),
+      };
+    });
   }
 
   if (sanitized.phases?.updated) {
-    sanitized.phases.updated = sanitized.phases.updated.map((phase) => ({
-      ...phase,
-      tasks: phase.tasks.map((task) => {
-        if (!task.resourceAssignments || task.resourceAssignments.length === 0) {
-          return task;
-        }
+    sanitized.phases.updated = sanitized.phases.updated.map((phase) => {
+      // Build valid task IDs for parent validation
+      const validTaskIds = new Set(phase.tasks.map((t) => t.id));
 
-        // Deduplicate by resourceId
-        const seen = new Set<string>();
-        const deduplicated = task.resourceAssignments.filter((assignment) => {
-          if (seen.has(assignment.resourceId)) {
+      return {
+        ...phase,
+        tasks: phase.tasks.map((task) => {
+          // Validate parent task reference
+          if (task.parentTaskId && !validTaskIds.has(task.parentTaskId)) {
             console.warn(
-              `[Delta Sanitizer] Removing duplicate task resource assignment: taskId=${task.id}, resourceId=${assignment.resourceId}`
+              `[Delta Sanitizer] Removing invalid parent task reference: taskId=${task.id}, parentTaskId=${task.parentTaskId}`
             );
-            return false;
+            task = { ...task, parentTaskId: null, level: 0 };
           }
-          seen.add(assignment.resourceId);
-          return true;
-        });
 
-        return { ...task, resourceAssignments: deduplicated };
-      }),
-    }));
+          if (!task.resourceAssignments || task.resourceAssignments.length === 0) {
+            return task;
+          }
+
+          const cleaned = cleanResourceAssignments(
+            task.resourceAssignments,
+            `taskId=${task.id}`,
+            true
+          );
+
+          return { ...task, resourceAssignments: cleaned };
+        }),
+      };
+    });
   }
 
   return sanitized;

@@ -5,21 +5,22 @@
  *
  * Browse and import from 50+ pre-built project templates.
  * Revolutionary one-click project creation.
+ *
+ * DESIGN: Pure BaseModal + design tokens - NO Ant Design, NO Tailwind
  */
 
 "use client";
 
 import { useState, useMemo } from "react";
-import { Modal, Tabs, Input, Badge, Tag } from "antd";
 import {
   Search,
   Star,
   Calendar,
   CheckCircle,
-  BookOpen,
   Rocket,
   TrendingUp,
   Building,
+  X,
 } from "lucide-react";
 import {
   PROJECT_TEMPLATES,
@@ -29,11 +30,79 @@ import {
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { format } from "date-fns";
 import type { GanttProject } from "@/types/gantt-tool";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// ============================================================================
+// Style Objects (Design Tokens Only)
+// ============================================================================
+
+const styles = {
+  searchInput: {
+    width: '100%',
+    padding: `${SPACING[2]} ${SPACING[3]} ${SPACING[2]} ${SPACING[7]}`,
+    fontFamily: TYPOGRAPHY.fontFamily.text,
+    fontSize: TYPOGRAPHY.fontSize.body,
+    color: COLORS.text.primary,
+    backgroundColor: COLORS.bg.primary,
+    border: `1px solid ${COLORS.border.default}`,
+    borderRadius: RADIUS.default,
+    outline: 'none',
+  },
+  searchIcon: {
+    position: 'absolute' as const,
+    left: SPACING[3],
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: COLORS.text.tertiary,
+  },
+  tab: (isActive: boolean) => ({
+    padding: `${SPACING[2]} ${SPACING[3]}`,
+    fontSize: TYPOGRAPHY.fontSize.caption,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    fontFamily: TYPOGRAPHY.fontFamily.text,
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    color: isActive ? COLORS.blue : COLORS.text.tertiary,
+    borderBottom: `2px solid ${isActive ? COLORS.blue : 'transparent'}`,
+    transition: `all ${TRANSITIONS.duration.fast}`,
+  }),
+  templateCard: (isSelected: boolean) => ({
+    border: `2px solid ${isSelected ? COLORS.blue : COLORS.border.default}`,
+    borderRadius: RADIUS.default,
+    padding: SPACING[4],
+    cursor: 'pointer',
+    transition: `all ${TRANSITIONS.duration.fast}`,
+    backgroundColor: isSelected ? COLORS.blueLight : COLORS.bg.primary,
+  }),
+  tag: {
+    display: 'inline-block',
+    padding: `2px ${SPACING[2]}`,
+    fontSize: '11px',
+    fontFamily: TYPOGRAPHY.fontFamily.text,
+    color: COLORS.text.secondary,
+    backgroundColor: COLORS.bg.subtle,
+    borderRadius: RADIUS.small,
+    border: `1px solid ${COLORS.border.default}`,
+  },
+  popularityBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '2px',
+    backgroundColor: "rgba(255, 193, 7, 0.15)",
+    color: "#F59E0B",
+    padding: `2px ${SPACING[1]}`,
+    borderRadius: RADIUS.small,
+    fontSize: '11px',
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+  },
+};
 
 export function TemplateLibraryModal({ isOpen, onClose }: Props) {
   const { createProjectFromTemplate } = useGanttToolStoreV2();
@@ -76,135 +145,244 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
   };
 
   const categoryTabs = [
-    { key: "all", label: " All Templates", icon: <Rocket className="w-4 h-4" /> },
-    { key: "sap-activate", label: " SAP Activate", icon: <TrendingUp className="w-4 h-4" /> },
-    { key: "greenfield", label: " Greenfield", icon: <Rocket className="w-4 h-4" /> },
-    { key: "brownfield", label: " Brownfield", icon: <Building className="w-4 h-4" /> },
-    { key: "migration", label: " Migration", icon: <TrendingUp className="w-4 h-4" /> },
-    { key: "rapid", label: " Rapid Deploy", icon: <Rocket className="w-4 h-4" /> },
-    { key: "industry", label: " Industry", icon: <Building className="w-4 h-4" /> },
+    { key: "all", label: "All Templates", icon: <Rocket style={{ width: '16px', height: '16px' }} /> },
+    { key: "sap-activate", label: "SAP Activate", icon: <TrendingUp style={{ width: '16px', height: '16px' }} /> },
+    { key: "greenfield", label: "Greenfield", icon: <Rocket style={{ width: '16px', height: '16px' }} /> },
+    { key: "brownfield", label: "Brownfield", icon: <Building style={{ width: '16px', height: '16px' }} /> },
+    { key: "migration", label: "Migration", icon: <TrendingUp style={{ width: '16px', height: '16px' }} /> },
+    { key: "rapid", label: "Rapid Deploy", icon: <Rocket style={{ width: '16px', height: '16px' }} /> },
+    { key: "industry", label: "Industry", icon: <Building style={{ width: '16px', height: '16px' }} /> },
   ];
 
   return (
-    <Modal
-      open={isOpen}
-      onCancel={onClose}
-      afterClose={() => {
-        // PERMANENT FIX: Force cleanup of modal side effects
-        if (document.body.style.overflow === "hidden") {
-          document.body.style.overflow = "";
-        }
-        if (document.body.style.paddingRight) {
-          document.body.style.paddingRight = "";
-        }
-        document.body.style.pointerEvents = "";
-      }}
-      destroyOnHidden={true}
-      width={1200}
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Template Library"
+      subtitle="50+ pre-built project templates to get started instantly"
+      size="large"
       footer={null}
-      title={
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <BookOpen className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 m-0">Template Library</h2>
-            <p className="text-sm text-gray-600 m-0">
-              50+ pre-built project templates to get started instantly
-            </p>
-          </div>
-        </div>
-      }
     >
       {/* Search Bar */}
-      <div className="mb-4">
-        <Input
-          prefix={<Search className="w-4 h-4 text-gray-400" />}
+      <div style={{ marginBottom: SPACING[4], position: 'relative' }}>
+        <div style={styles.searchIcon}>
+          <Search style={{ width: '16px', height: '16px' }} />
+        </div>
+        <input
+          type="text"
           placeholder="Search templates by name, description, or tags..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          size="large"
-          allowClear
+          style={styles.searchInput}
+          onFocus={(e) => {
+            e.target.style.borderColor = COLORS.blue;
+            e.target.style.boxShadow = `0 0 0 3px ${COLORS.blueLight}`;
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = COLORS.border.default;
+            e.target.style.boxShadow = 'none';
+          }}
         />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            style={{
+              position: 'absolute',
+              right: SPACING[3],
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: COLORS.text.tertiary,
+              padding: SPACING[1],
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = COLORS.text.secondary;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = COLORS.text.tertiary;
+            }}
+          >
+            <X style={{ width: '16px', height: '16px' }} />
+          </button>
+        )}
       </div>
 
       {/* Category Tabs */}
-      <Tabs
-        activeKey={selectedCategory}
-        onChange={setSelectedCategory}
-        items={categoryTabs.map((cat) => ({
-          key: cat.key,
-          label: cat.label,
-        }))}
-      />
+      <div style={{
+        borderBottom: `1px solid ${COLORS.border.default}`,
+        marginBottom: SPACING[4],
+        display: 'flex',
+        gap: SPACING[1],
+        overflowX: 'auto',
+      }}>
+        {categoryTabs.map((cat) => (
+          <button
+            key={cat.key}
+            onClick={() => setSelectedCategory(cat.key)}
+            style={styles.tab(selectedCategory === cat.key)}
+            onMouseEnter={(e) => {
+              if (selectedCategory !== cat.key) {
+                e.currentTarget.style.color = COLORS.text.primary;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedCategory !== cat.key) {
+                e.currentTarget.style.color = COLORS.text.tertiary;
+              }
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2], whiteSpace: 'nowrap' }}>
+              {cat.icon}
+              <span>{cat.label}</span>
+            </div>
+          </button>
+        ))}
+      </div>
 
       {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2">
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+        gap: SPACING[4],
+        maxHeight: '500px',
+        overflowY: 'auto',
+        paddingRight: SPACING[2],
+      }}>
         {filteredTemplates.length === 0 ? (
-          <div className="col-span-2 text-center py-12">
-            <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">No templates found</h3>
-            <p className="text-gray-500">Try adjusting your search or category filter</p>
+          <div style={{
+            gridColumn: '1 / -1',
+            textAlign: 'center',
+            padding: `${SPACING[8]} 0`,
+          }}>
+            <BookOpen style={{
+              width: '64px',
+              height: '64px',
+              color: COLORS.bg.subtle,
+              margin: '0 auto',
+              marginBottom: SPACING[4],
+            }} />
+            <h3 style={{
+              fontFamily: TYPOGRAPHY.fontFamily.text,
+              fontSize: TYPOGRAPHY.fontSize.subtitle,
+              fontWeight: TYPOGRAPHY.fontWeight.semibold,
+              color: COLORS.text.secondary,
+              marginBottom: SPACING[2],
+              margin: 0,
+            }}>
+              No templates found
+            </h3>
+            <p style={{
+              fontFamily: TYPOGRAPHY.fontFamily.text,
+              fontSize: TYPOGRAPHY.fontSize.caption,
+              color: COLORS.text.tertiary,
+              margin: 0,
+            }}>
+              Try adjusting your search or category filter
+            </p>
           </div>
         ) : (
           filteredTemplates.map((template) => (
             <div
               key={template.id}
-              className={`border-2 rounded-lg p-4 transition-all cursor-pointer ${
-                selectedTemplate?.id === template.id
-                  ? "border-blue-500 bg-blue-50 shadow-md"
-                  : "border-gray-200 hover:border-blue-300 hover:shadow-sm"
-              }`}
+              style={styles.templateCard(selectedTemplate?.id === template.id)}
               onClick={() => setSelectedTemplate(template)}
+              onMouseEnter={(e) => {
+                if (selectedTemplate?.id !== template.id) {
+                  e.currentTarget.style.borderColor = COLORS.blueLight;
+                  e.currentTarget.style.boxShadow = `0 2px 8px ${COLORS.shadow}`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedTemplate?.id !== template.id) {
+                  e.currentTarget.style.borderColor = COLORS.border.default;
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
             >
               {/* Template Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2 flex-1">
-                  <span className="text-2xl">{template.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-sm truncate">
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                marginBottom: SPACING[3],
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2], flex: 1, minWidth: 0 }}>
+                  <span style={{ fontSize: '24px' }}>{template.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                      fontSize: TYPOGRAPHY.fontSize.caption,
+                      fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                      color: COLORS.text.primary,
+                      margin: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
                       {template.name}
                     </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge
-                        count={
-                          <div className="flex items-center gap-0.5 bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded text-xs font-semibold">
-                            {[...Array(template.popularity)].map((_, i) => (
-                              <Star key={i} className="w-2.5 h-2.5 fill-current" />
-                            ))}
-                          </div>
-                        }
-                      />
-                      <Tag className="text-xs">{template.duration}</Tag>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2], marginTop: SPACING[1] }}>
+                      <div style={styles.popularityBadge}>
+                        {[...Array(template.popularity)].map((_, i) => (
+                          <Star key={i} style={{ width: '10px', height: '10px' }} fill="currentColor" />
+                        ))}
+                      </div>
+                      <span style={styles.tag}>{template.duration}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Template Description */}
-              <p className="text-xs text-gray-600 mb-3 line-clamp-2">{template.description}</p>
+              <p style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: '11px',
+                color: COLORS.text.secondary,
+                marginBottom: SPACING[3],
+                margin: 0,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}>
+                {template.description}
+              </p>
 
               {/* Template Metrics */}
-              <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: SPACING[3],
+                fontSize: '11px',
+                color: COLORS.text.tertiary,
+                marginBottom: SPACING[3],
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
+                  <Calendar style={{ width: '12px', height: '12px' }} />
                   <span>{template.phases.length} phases</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
+                  <CheckCircle style={{ width: '12px', height: '12px' }} />
                   <span>{template.phases.reduce((sum, p) => sum + p.tasks.length, 0)} tasks</span>
                 </div>
               </div>
 
               {/* Tags */}
-              <div className="flex flex-wrap gap-1 mb-3">
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: SPACING[1],
+                marginBottom: SPACING[3],
+              }}>
                 {template.tags.slice(0, 3).map((tag, idx) => (
-                  <Tag key={idx} className="text-xs m-0">
+                  <span key={idx} style={styles.tag}>
                     {tag}
-                  </Tag>
+                  </span>
                 ))}
                 {template.tags.length > 3 && (
-                  <Tag className="text-xs m-0">+{template.tags.length - 3}</Tag>
+                  <span style={styles.tag}>+{template.tags.length - 3}</span>
                 )}
               </div>
 
@@ -214,9 +392,31 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
                   e.stopPropagation();
                   handleImportTemplate(template);
                 }}
-                className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                style={{
+                  width: '100%',
+                  padding: `${SPACING[2]} ${SPACING[3]}`,
+                  backgroundColor: COLORS.blue,
+                  color: COLORS.bg.primary,
+                  borderRadius: RADIUS.default,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: TYPOGRAPHY.fontSize.caption,
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  fontFamily: TYPOGRAPHY.fontFamily.text,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: SPACING[2],
+                  transition: `background-color ${TRANSITIONS.duration.fast}`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = COLORS.blueHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = COLORS.blue;
+                }}
               >
-                <Rocket className="w-4 h-4" />
+                <Rocket style={{ width: '16px', height: '16px' }} />
                 Use This Template
               </button>
             </div>
@@ -226,42 +426,108 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
 
       {/* Template Preview Panel */}
       {selectedTemplate && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-semibold text-gray-900">Template Preview</h4>
+        <div style={{
+          marginTop: SPACING[4],
+          padding: SPACING[4],
+          backgroundColor: COLORS.bg.subtle,
+          borderRadius: RADIUS.default,
+          border: `1px solid ${COLORS.border.default}`,
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: SPACING[3],
+          }}>
+            <h4 style={{
+              fontFamily: TYPOGRAPHY.fontFamily.text,
+              fontSize: TYPOGRAPHY.fontSize.body,
+              fontWeight: TYPOGRAPHY.fontWeight.semibold,
+              color: COLORS.text.primary,
+              margin: 0,
+            }}>
+              Template Preview
+            </h4>
             <button
               onClick={() => setSelectedTemplate(null)}
-              className="text-gray-400 hover:text-gray-600"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: COLORS.text.tertiary,
+                padding: SPACING[1],
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = COLORS.text.secondary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = COLORS.text.tertiary;
+              }}
             >
-              
+              <X style={{ width: '16px', height: '16px' }} />
             </button>
           </div>
 
           {/* Phases Preview */}
-          <div className="space-y-2">
-            <p className="text-sm font-semibold text-gray-700">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
+            <p style={{
+              fontFamily: TYPOGRAPHY.fontFamily.text,
+              fontSize: TYPOGRAPHY.fontSize.caption,
+              fontWeight: TYPOGRAPHY.fontWeight.semibold,
+              color: COLORS.text.secondary,
+              margin: 0,
+            }}>
               Phases ({selectedTemplate.phases.length}):
             </p>
             {selectedTemplate.phases.map((phase, idx) => (
-              <div key={idx} className="flex items-center gap-2 text-xs">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: phase.color }} />
-                <span className="font-medium">{phase.name}</span>
-                <span className="text-gray-500">({phase.tasks.length} tasks)</span>
+              <div key={idx} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: SPACING[2],
+                fontSize: '11px',
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+              }}>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: RADIUS.small,
+                  backgroundColor: phase.color,
+                }} />
+                <span style={{
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  color: COLORS.text.primary,
+                }}>
+                  {phase.name}
+                </span>
+                <span style={{ color: COLORS.text.tertiary }}>
+                  ({phase.tasks.length} tasks)
+                </span>
               </div>
             ))}
           </div>
 
           {/* Milestones Preview */}
           {selectedTemplate.milestones.length > 0 && (
-            <div className="mt-4 space-y-2">
-              <p className="text-sm font-semibold text-gray-700">
+            <div style={{
+              marginTop: SPACING[4],
+              display: 'flex',
+              flexDirection: 'column',
+              gap: SPACING[2],
+            }}>
+              <p style={{
+                fontFamily: TYPOGRAPHY.fontFamily.text,
+                fontSize: TYPOGRAPHY.fontSize.caption,
+                fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                color: COLORS.text.secondary,
+                margin: 0,
+              }}>
                 Milestones ({selectedTemplate.milestones.length}):
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: SPACING[2] }}>
                 {selectedTemplate.milestones.map((milestone, idx) => (
-                  <Tag key={idx} className="text-xs">
+                  <span key={idx} style={styles.tag}>
                     {milestone.icon} {milestone.name}
-                  </Tag>
+                  </span>
                 ))}
               </div>
             </div>
@@ -270,10 +536,16 @@ export function TemplateLibraryModal({ isOpen, onClose }: Props) {
       )}
 
       {/* Footer Note */}
-      <div className="mt-4 text-center text-xs text-gray-500">
-         Tip: All templates are fully customizable after import. Dates will be adjusted to start
+      <div style={{
+        marginTop: SPACING[4],
+        textAlign: 'center',
+        fontSize: '11px',
+        fontFamily: TYPOGRAPHY.fontFamily.text,
+        color: COLORS.text.tertiary,
+      }}>
+        💡 Tip: All templates are fully customizable after import. Dates will be adjusted to start
         from today.
       </div>
-    </Modal>
+    </BaseModal>
   );
 }

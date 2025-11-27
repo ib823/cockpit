@@ -341,20 +341,20 @@ model snapshots {
 }
 
 model users {
-  id                    String                     @id
-  email                 String                     @unique
+  id                    String                      @id
+  email                 String                      @unique
   name                  String?
-  createdAt             DateTime                   @default(now())
+  createdAt             DateTime                    @default(now())
   emailVerified         DateTime?
   image                 String?
-  role                  Role                       @default(USER)
+  role                  Role                        @default(USER)
   updatedAt             DateTime
-  accessExpiresAt       DateTime                   @default(now())
-  exception             Boolean                    @default(false)
+  accessExpiresAt       DateTime                    @default(now())
+  exception             Boolean                     @default(false)
   firstLoginAt          DateTime?
   lastLoginAt           DateTime?
   lastTimelineAt        DateTime?
-  timelinesGenerated    Int                        @default(0)
+  timelinesGenerated    Int                         @default(0)
   lastSeenAt            DateTime?
   passwordHash          String?
   passwordChangedAt     DateTime?
@@ -362,10 +362,10 @@ model users {
   passwordHistory       String[]
   totpSecret            String?
   totpEnabledAt         DateTime?
-  maxConcurrentSessions Int                        @default(1)
+  maxConcurrentSessions Int                         @default(1)
   accountLockedAt       DateTime?
   accountLockedReason   String?
-  failedLoginAttempts   Int                        @default(0)
+  failedLoginAttempts   Int                         @default(0)
   lastFailedLoginAt     DateTime?
   pendingEmail          String?
   pendingEmailToken     String?
@@ -378,10 +378,12 @@ model users {
   dashboardScenarios    DashboardScenario[]
   dashboardSettings     DashboardSettings?
   dashboardSnapshots    DashboardSnapshot[]
-  ganttProjects         GanttProject[]
-  ganttCollaborations   GanttProjectCollaborator[] @relation("GanttCollaborators")
-  ganttInvitesCreated   GanttProjectCollaborator[] @relation("GanttInviters")
-  ganttInvites          GanttProjectInvite[]       @relation("GanttInviteCreators")
+  ganttProjects         GanttProject[]              @relation("GanttProjectOwner")
+  ganttProjectsModified GanttProject[]              @relation("GanttProjectLastModifier")
+  ganttActiveSessions   GanttProjectActiveSession[] @relation("GanttActiveSessions")
+  ganttCollaborations   GanttProjectCollaborator[]  @relation("GanttCollaborators")
+  ganttInvitesCreated   GanttProjectCollaborator[]  @relation("GanttInviters")
+  ganttInvites          GanttProjectInvite[]        @relation("GanttInviteCreators")
   loginHistory          LoginHistory[]
   recoveryCodes         RecoveryCode[]
   securityActions       SecurityAction[]
@@ -391,8 +393,8 @@ model users {
   comments              comments[]
   projects              projects[]
   sessions              sessions[]
-  architectureProjects  ArchitectureProject[]      @relation("ArchitectureProjects")
-  architectureCollabs   ArchitectureCollaborator[] @relation("ArchitectureCollaborators")
+  architectureProjects  ArchitectureProject[]       @relation("ArchitectureProjects")
+  architectureCollabs   ArchitectureCollaborator[]  @relation("ArchitectureCollaborators")
 
   @@index([email])
   @@index([lastSeenAt])
@@ -576,31 +578,87 @@ model ScenarioVersion {
 }
 
 /// Gantt Project - Main project container
+/// Enhanced with version management for timeline changes
 model GanttProject {
-  id            String                     @id @default(cuid())
-  userId        String
-  name          String
-  description   String?
-  startDate     DateTime                   @db.Date
-  viewSettings  Json
-  budget        Json?
-  orgChart      Json?
-  createdAt     DateTime                   @default(now())
-  updatedAt     DateTime                   @updatedAt
-  deletedAt     DateTime?
-  holidays      GanttHoliday[]
-  milestones    GanttMilestone[]
-  phases        GanttPhase[]
-  user          users                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  shares        GanttProjectShare[]
-  collaborators GanttProjectCollaborator[]
-  invites       GanttProjectInvite[]
-  resources     GanttResource[]
+  id           String    @id @default(cuid())
+  userId       String
+  name         String
+  description  String?
+  startDate    DateTime  @db.Date
+  viewSettings Json
+  budget       Json?
+  orgChart     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  // Optimistic locking & collaboration tracking
+  version        Int       @default(1) // Incremental version number
+  lastModifiedBy String?
+  lastModifiedAt DateTime?
+
+  // NEW: Version management for team capacity timeline changes
+  isLatest        Boolean   @default(true) // Only one version should be latest
+  parentVersionId String? // Links to previous version
+  versionReason   String? // Why this version was created
+  archivedAt      DateTime? // When this version was superseded
+
+  // ARCHITECTURE DATA (Unified Project Model - Phase 1)
+  // These fields enable viewing the same project as Timeline OR Architecture
+  businessContext      Json? // BusinessContextData - entities, actors, capabilities
+  currentLandscape     Json? // CurrentLandscapeData - AS-IS systems and integrations
+  proposedSolution     Json? // ProposedSolutionData - TO-BE solution architecture
+  diagramSettings      Json? // DiagramSettings - visual styling preferences
+  architectureVersion  String? // Track architecture diagram version (e.g., "1.0", "2.3")
+  lastArchitectureEdit DateTime? // When architecture data was last modified
+
+  // Relations
+  holidays           GanttHoliday[]
+  milestones         GanttMilestone[]
+  phases             GanttPhase[]
+  user               users                       @relation("GanttProjectOwner", fields: [userId], references: [id], onDelete: Cascade)
+  lastModifier       users?                      @relation("GanttProjectLastModifier", fields: [lastModifiedBy], references: [id], onDelete: SetNull)
+  shares             GanttProjectShare[]
+  collaborators      GanttProjectCollaborator[]
+  invites            GanttProjectInvite[]
+  resources          GanttResource[]
+  activeSessions     GanttProjectActiveSession[]
+  weeklyAllocations  ResourceWeeklyAllocation[] // NEW: Weekly allocation tracking
+  costing            ProjectCosting? // NEW: Calculated costing snapshots (GSR, NSR, margins)
+  costingConfig      ProjectCostingConfig? // NEW: Costing configuration (RR%, defaults)
+  opeExpenses        OutOfPocketExpense[] // NEW: OPE breakdown
+  subcontractorRates SubcontractorRate[] // NEW: Subcontractor-specific rates
+
+  // Version lineage (self-referential)
+  childVersions        GanttProject[]             @relation("ProjectVersions")
+  parentVersion        GanttProject?              @relation("ProjectVersions", fields: [parentVersionId], references: [id], onDelete: SetNull)
+  versionedAllocations ResourceWeeklyAllocation[] @relation("VersionedAllocations") // NEW: Allocations linked to this version
 
   @@index([userId])
   @@index([createdAt])
   @@index([updatedAt])
   @@index([deletedAt])
+  @@index([version, isLatest]) // NEW: Composite index for version queries
+  @@index([parentVersionId]) // NEW: Index for version lineage
+  @@index([lastModifiedBy])
+  @@index([lastArchitectureEdit])
+}
+
+/// Track active users currently viewing/editing a project
+model GanttProjectActiveSession {
+  id           String       @id @default(cuid())
+  projectId    String
+  userId       String
+  lastSeenAt   DateTime     @default(now())
+  isEditing    Boolean      @default(false)
+  currentFocus String? // e.g., "task_123", "phase_456"
+  project      GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user         users        @relation("GanttActiveSessions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@index([lastSeenAt])
 }
 
 /// Gantt Phase - Major project phases
@@ -707,8 +765,10 @@ model GanttResource {
   // Billing & cost tracking
   isBillable        Boolean  @default(false)
   chargeRatePerHour Decimal? @db.Decimal(10, 2) // New: preferred field
-  currency          String?
+  currency          String?  @default("MYR")
   utilizationTarget Int?
+  regionCode        String? // NEW: Multi-region support (ABMY, ABSG, ABVN, ABTH, etc.)
+  isSubcontractor   Boolean  @default(false) // NEW: Flag for subcontractor resources (different costing)
 
   // Deprecated billing fields (kept for backward compatibility during migration)
   rateType   String?
@@ -723,12 +783,18 @@ model GanttResource {
   deletedAt        DateTime? // Soft delete timestamp
 
   // Relations
-  phaseAssignments GanttPhaseResourceAssignment[]
-  project          GanttProject                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  taskAssignments  GanttTaskResourceAssignment[]
+  phaseAssignments   GanttPhaseResourceAssignment[]
+  project            GanttProject                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskAssignments    GanttTaskResourceAssignment[]
+  weeklyAllocations  ResourceWeeklyAllocation[] // NEW: Weekly allocation tracking
+  opeExpenses        OutOfPocketExpense[] // NEW: OPE tracking
+  subcontractorRates SubcontractorRate[] // NEW: Subcontractor-specific rates (if isSubcontractor = true)
 
   @@index([projectId])
   @@index([category])
+  @@index([designation]) // NEW: Index for rate lookups
+  @@index([regionCode]) // NEW: Index for multi-region queries
+  @@index([isSubcontractor]) // NEW: Index for subcontractor queries
   @@index([managerResourceId])
   @@index([isActive])
   @@index([validationStatus])
@@ -752,19 +818,31 @@ model GanttTaskResourceAssignment {
 }
 
 /// Phase Resource Assignment - Links PM resources to phases
+/// Enhanced with pattern-based allocation support
 model GanttPhaseResourceAssignment {
-  id                   String        @id @default(cuid())
+  id                   String @id @default(cuid())
   phaseId              String
   resourceId           String
   assignmentNotes      String
-  allocationPercentage Int
-  assignedAt           DateTime      @default(now())
-  phase                GanttPhase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
-  resource             GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  allocationPercentage Int // 0-100 baseline percentage
+
+  // NEW: Pattern-based allocation support
+  allocationPattern String? // "STEADY" | "CUSTOM" (null for legacy assignments)
+  assignedBy        String? // User ID who created this assignment
+
+  // Timestamps
+  assignedAt DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  // Relations
+  phase    GanttPhase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  resource GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   @@unique([phaseId, resourceId])
   @@index([phaseId])
   @@index([resourceId])
+  @@index([assignedBy]) // NEW: Track who created assignments
+  @@index([allocationPattern]) // NEW: Query by pattern type
 }
 
 /// Gantt Project Share - Share projects with view-only access (DEPRECATED - use GanttProjectInvite)
@@ -1199,6 +1277,272 @@ model ArchitectureCollaborator {
   @@unique([projectId, userId])
   @@index([projectId])
   @@index([userId])
+}
+
+// =============================================================================
+// TEAM CAPACITY & PROPOSAL ENGINE MODELS
+// =============================================================================
+
+/// Resource Weekly Allocation - Week-by-week resource allocation detail
+/// CRITICAL for conflict detection and cross-project capacity planning
+model ResourceWeeklyAllocation {
+  id         String @id @default(cuid())
+  projectId  String
+  resourceId String
+
+  // Week identification (ISO 8601 format: "2025-W03")
+  weekIdentifier String // ISO week format for storage
+  weekStartDate  DateTime @db.Date // Monday of the week
+  weekEndDate    DateTime @db.Date // Sunday of the week
+
+  // NEW: User-selectable week numbering system
+  weekNumberingType WeekNumberingType @default(PROJECT_RELATIVE)
+  weekNumber        Int? // Week number (meaning depends on weekNumberingType)
+
+  // Allocation data (0-100% of resource capacity)
+  allocationPercent Int     @db.SmallInt // 0-100 percentage
+  workingDays       Decimal @db.Decimal(5, 2) // Calculated: allocationPercent * 5 / 100
+
+  // NEW: Alternative mandays tracking (0.00 to 5.00 per week)
+  mandays Decimal? @db.Decimal(4, 2) // For direct mandays entry
+
+  // Source tracking (for pattern regeneration)
+  sourcePhaseId    String? // Which phase this allocation belongs to
+  sourcePattern    String? // "STEADY" | "CUSTOM"
+  isManualOverride Boolean @default(false) // True if user manually edited
+
+  // NEW: Version linkage (uses GanttProject's self-referential versioning)
+  projectVersionId String? // Links to GanttProject version
+
+  // Audit fields
+  createdAt DateTime @default(now())
+  createdBy String?
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  // Relations
+  project        GanttProject  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  resource       GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  projectVersion GanttProject? @relation("VersionedAllocations", fields: [projectVersionId], references: [id], onDelete: SetNull)
+
+  // Constraints & Indexes
+  @@unique([projectId, resourceId, weekIdentifier]) // Prevent duplicate allocations
+  @@index([resourceId, weekIdentifier]) // CRITICAL: Fast conflict detection across projects
+  @@index([projectId, weekStartDate]) // Week-range queries for timeline views
+  @@index([sourcePhaseId]) // Pattern regeneration when phase dates change
+  @@index([createdAt]) // Audit queries
+  @@index([weekNumberingType]) // NEW: Query by week numbering preference
+  @@index([projectVersionId]) // NEW: Version-specific allocation queries
+}
+
+/// Resource Rate Lookup - Multi-region, multi-designation hourly rates
+/// Supports forex conversion and effective date ranges
+model ResourceRateLookup {
+  id String @id @default(cuid())
+
+  // Rate identification
+  regionCode  String // "ABMY", "ABSG", "ABVN", "ABTH", etc.
+  designation String // "Principal", "Director", "Manager", etc.
+
+  // Rate data
+  hourlyRate    Decimal @db.Decimal(10, 2) // In local currency
+  localCurrency String // "MYR", "SGD", "VND", "THB"
+
+  // Forex conversion to base currency (MYR)
+  forexRate    Decimal @db.Decimal(10, 6) // Conversion rate to MYR
+  baseCurrency String  @default("MYR")
+
+  // Effective date range (for rate history)
+  effectiveFrom DateTime  @db.Date
+  effectiveTo   DateTime? @db.Date // null = current active rate
+
+  // Audit fields
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  updatedBy String? // Admin user ID who set this rate
+
+  // Constraints & Indexes
+  @@unique([regionCode, designation, effectiveFrom]) // Prevent duplicate rates for same period
+  @@index([regionCode, designation]) // Fast rate lookups
+  @@index([effectiveFrom, effectiveTo]) // Date range queries for historical rates
+  @@index([updatedAt]) // Audit trail
+}
+
+/// Project Costing - Calculated revenue, costs, and margin analysis
+/// CONFIDENTIAL: Access restricted to Finance team via RBAC
+model ProjectCosting {
+  id        String @id @default(cuid())
+  projectId String @unique // One-to-one with GanttProject
+
+  // Revenue calculations
+  grossServiceRevenue Decimal @db.Decimal(12, 2) // GSR = Total Std Rate × Days
+  realizationRate     Decimal @db.Decimal(5, 4) // RR = e.g., 0.4300 (43%)
+  commercialRate      Decimal @db.Decimal(12, 2) // Commercial = GSR × RR
+  netServiceRevenue   Decimal @db.Decimal(12, 2) // NSR = Commercial × Days (actual billable)
+
+  // Cost breakdown (MANUAL ENTRY - not auto-calculated for confidentiality)
+  internalCost       Decimal @db.Decimal(12, 2) // ABeam resources (manual entry)
+  subcontractorCost  Decimal @db.Decimal(12, 2) // External vendors (manual entry)
+  outOfPocketExpense Decimal @db.Decimal(12, 2) // OPE - travel, onsite, etc.
+
+  // Margin analysis
+  totalCost        Decimal @db.Decimal(12, 2) // Internal + Subcon + OPE
+  grossMargin      Decimal @db.Decimal(12, 2) // NSR - TotalCost
+  marginPercentage Decimal @db.Decimal(5, 2) // (GrossMargin / NSR) × 100
+
+  // Currency
+  baseCurrency String @default("MYR")
+
+  // Snapshot metadata
+  calculatedAt DateTime @default(now())
+  calculatedBy String? // User ID (must have Finance role)
+  version      Int      @default(1) // Links to project version
+
+  // Relations
+  project GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([projectId, version]) // Version-specific costing queries
+  @@index([calculatedAt]) // Audit trail
+  @@index([calculatedBy]) // Track who did costing
+}
+
+/// Out of Pocket Expense - Monthly breakdown of onsite costs
+/// Tracks flights, hotel, parking, mileage per resource per month
+model OutOfPocketExpense {
+  id         String @id @default(cuid())
+  projectId  String
+  resourceId String
+
+  // Time period (monthly aggregation)
+  month DateTime @db.Date // First day of month (e.g., 2026-01-01)
+
+  // OPE calculation inputs
+  totalMandays     Decimal @db.Decimal(5, 2) // Total days worked this month
+  onsitePercentage Decimal @db.Decimal(5, 2) // 0-100% of time spent onsite
+  onsiteDays       Decimal @db.Decimal(5, 2) // totalMandays × onsitePercentage / 100
+
+  // Cost components (from Excel Auto_OPE structure)
+  flightCount     Int     @default(0) // Number of return trips
+  flightRate      Decimal @db.Decimal(10, 2) // Cost per return trip
+  totalFlightCost Decimal @db.Decimal(10, 2)
+
+  hotelRate      Decimal @db.Decimal(10, 2) // Cost per night
+  totalHotelCost Decimal @db.Decimal(10, 2) // hotelRate × onsiteDays
+
+  parkingTollRate      Decimal @db.Decimal(10, 2) // Cost per day
+  totalParkingTollCost Decimal @db.Decimal(10, 2) // parkingTollRate × onsiteDays
+
+  mileageRate      Decimal @db.Decimal(10, 2) // Cost per km
+  mileageKm        Decimal @db.Decimal(10, 2) // Total km traveled
+  totalMileageCost Decimal @db.Decimal(10, 2) // mileageRate × mileageKm
+
+  // Total OPE for this resource this month
+  totalOPECost Decimal @db.Decimal(10, 2) // Sum of all components
+
+  // Audit fields
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project  GanttProject  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  resource GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  // Constraints & Indexes
+  @@unique([projectId, resourceId, month]) // One OPE entry per resource per month
+  @@index([projectId, month]) // Monthly OPE reports
+  @@index([resourceId]) // Per-resource OPE tracking
+}
+
+/// Project Costing Configuration - Stores CONFIGURATION parameters (not calculated values)
+/// NOTE: ProjectCosting stores CALCULATED snapshots (GSR, NSR, margins)
+/// This model stores the INPUT parameters (RR%, internal cost%, OPE defaults)
+model ProjectCostingConfig {
+  id        String @id @default(cuid())
+  projectId String @unique
+
+  // Realization Rate configuration
+  realizationRatePercent Decimal @default(0.4300) @db.Decimal(5, 4) // 43% default from YTL Cement
+
+  // Internal Cost Percentage (confidential - Finance only)
+  internalCostPercent Decimal @default(0.3500) @db.Decimal(5, 4) // 35% of standard rate
+
+  // OPE Defaults (per day rates in MYR)
+  opeAccommodationPerDay Decimal @default(150.00) @db.Decimal(10, 2) // RM 150/night
+  opeMealsPerDay         Decimal @default(50.00) @db.Decimal(10, 2) // RM 50/day
+  opeTransportPerDay     Decimal @default(100.00) @db.Decimal(10, 2) // RM 100/day
+  opeTotalDefaultPerDay  Decimal @default(500.00) @db.Decimal(10, 2) // RM 500/day
+
+  // Intercompany Markup (when using cross-region resources)
+  intercompanyMarkupPercent Decimal @default(1.1500) @db.Decimal(5, 4) // 15% markup
+
+  // Currency
+  baseCurrency String @default("MYR")
+
+  // Security - controls who can view cost data
+  costVisibilityLevel CostVisibilityLevel @default(FINANCE_ONLY)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  project GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+/// Subcontractor Rate - Project-specific rates for external vendors
+/// Finance team only - can have negative margins (cost > revenue)
+model SubcontractorRate {
+  id         String @id @default(cuid())
+  projectId  String
+  resourceId String
+
+  subcontractorCompany String // e.g., "ABC Consulting Sdn Bhd"
+
+  dailyCommercialRate Decimal @db.Decimal(10, 2) // What client pays (revenue)
+  dailyCostRate       Decimal @db.Decimal(10, 2) // What company pays subcon (cost)
+
+  currency String @default("MYR")
+
+  notes String? // Contract details, PO number, etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String // Finance user only
+
+  // Relations
+  project  GanttProject  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  resource GanttResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, resourceId])
+  @@index([projectId])
+  @@index([resourceId])
+}
+
+// =============================================================================
+// END OF TEAM CAPACITY MODELS
+// =============================================================================
+
+// =============================================================================
+// TEAM CAPACITY MODULE ENUMS
+// =============================================================================
+
+/// Week numbering system (user-selectable preference)
+enum WeekNumberingType {
+  PROJECT_RELATIVE // Week 1, 2, 3... from project start
+  ISO_WEEK // ISO 8601 (W01-W53)
+  CALENDAR_WEEK // Sequential from Jan 1
+}
+
+/// Cost visibility levels (three-tier security model)
+enum CostVisibilityLevel {
+  PUBLIC // All users see cost data (NOT RECOMMENDED)
+  PRESALES_AND_FINANCE // Presales sees NSR, Finance sees margins
+  FINANCE_ONLY // Only Finance team (RECOMMENDED DEFAULT)
 }
 
 enum CollaboratorRole {

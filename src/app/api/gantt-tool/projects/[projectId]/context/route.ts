@@ -53,7 +53,7 @@ interface ContextUpdateRequest {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
     // 1. SECURITY: Authentication check
@@ -66,7 +66,7 @@ export async function POST(
     }
 
     const userId = session.user.id;
-    const { projectId } = params;
+    const { projectId } = await params;
 
     // 2. SECURITY: Authorization check
     // User must be project owner or have EDITOR role
@@ -195,7 +195,7 @@ export async function POST(
 // GET endpoint to retrieve context
 export async function GET(
   request: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
     // 1. SECURITY: Authentication check
@@ -208,7 +208,7 @@ export async function GET(
     }
 
     const userId = session.user.id;
-    const { projectId } = params;
+    const { projectId } = await params;
 
     // 2. SECURITY: Check user has access to project (owner or collaborator)
     const project = await prisma.ganttProject.findFirst({

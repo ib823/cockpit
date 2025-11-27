@@ -342,56 +342,6 @@ export function AddPhaseModal({ isOpen, onClose }: AddPhaseModalProps) {
           </p>
         </div>
       )}
-
-      {/* Color Picker - Custom component for phase colors */}
-      <div style={{ marginTop: SPACING[4] }}>
-        <label
-          style={{
-            display: "block",
-            fontFamily: TYPOGRAPHY.fontFamily.text,
-            fontSize: TYPOGRAPHY.fontSize.caption,
-            fontWeight: TYPOGRAPHY.fontWeight.semibold,
-            color: COLORS.text.secondary,
-            marginBottom: SPACING[2],
-          }}
-        >
-          Phase Color
-        </label>
-        <div
-          style={{
-            display: "flex",
-            gap: SPACING[2],
-            flexWrap: "wrap",
-          }}
-        >
-          {PHASE_COLOR_PRESETS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              onClick={() => setFormData({ ...formData, color })}
-              aria-label={`Select color ${color}`}
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: color,
-                border: formData.color === color ? `3px solid ${COLORS.blue}` : "2px solid transparent",
-                borderRadius: RADIUS.default,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                boxShadow: formData.color === color ? `0 0 0 2px ${COLORS.bg.primary}, 0 0 0 5px ${COLORS.blue}` : "none",
-              }}
-              onMouseEnter={(e) => {
-                if (formData.color !== color) {
-                  e.currentTarget.style.transform = "scale(1.1)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            />
-          ))}
-        </div>
-      </div>
     </BaseModal>
   );
 }

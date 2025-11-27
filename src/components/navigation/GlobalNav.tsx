@@ -9,7 +9,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Session } from 'next-auth';
 import { Crown, User, LogOut, Settings } from 'lucide-react';
 import { signOut } from 'next-auth/react';
@@ -19,26 +19,22 @@ interface GlobalNavProps {
   session: Session | null;
 }
 
-type NavTab = 'dashboard' | 'timeline' | 'architecture';
+type NavTab = 'dashboard' | 'timeline' | 'architecture' | 'capacity';
 
 export function GlobalNav({ session }: GlobalNavProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = session?.user?.role === 'ADMIN';
 
-  // Determine active tab based on current path and URL params
+  // Determine active tab based on current path
   const getActiveTab = (): NavTab | null => {
     if (pathname === '/dashboard') return 'dashboard';
-    if (pathname?.startsWith('/gantt-tool')) {
-      // Check if architecture view is active
-      const view = searchParams.get('view');
-      return view === 'architecture' ? 'architecture' : 'timeline';
-    }
+    if (pathname?.startsWith('/gantt-tool')) return 'timeline';
     if (pathname?.startsWith('/architecture')) return 'architecture';
+    if (pathname?.startsWith('/team-capacity')) return 'capacity';
     return null;
   };
 
@@ -102,10 +98,17 @@ export function GlobalNav({ session }: GlobalNavProps) {
         </Link>
 
         <Link
-          href="/gantt-tool?view=architecture"
+          href="/architecture/v3"
           className={`${styles.tab} ${activeTab === 'architecture' ? styles.active : ''}`}
         >
           Architecture
+        </Link>
+
+        <Link
+          href="/team-capacity"
+          className={`${styles.tab} ${activeTab === 'capacity' ? styles.active : ''}`}
+        >
+          Team Capacity
         </Link>
       </div>
 

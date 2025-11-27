@@ -14,11 +14,13 @@ import { GanttCanvas } from "./GanttCanvas";
 import { GanttSidePanel } from "./GanttSidePanel";
 import { QuickResourcePanel } from "./QuickResourcePanel";
 import { MissionControlModal } from "./MissionControlModal";
+import { SyncErrorRecoveryModal } from "./SyncErrorRecoveryModal";
 import { ResponsiveGanttWrapper } from "./ResponsiveGanttWrapper";
 import { format } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import { HexLoader } from "@/components/ui/HexLoader";
 import { useColorMorph } from "@/hooks/useColorMorph";
+import { showError } from "@/lib/toast";
 
 export function GanttToolShell() {
   const {
@@ -36,8 +38,10 @@ export function GanttToolShell() {
     saveProgress,
     syncStatus,
     syncError,
+    syncErrorType,
     lastLocalSaveAt,
     cloudSyncPending,
+    clearSyncError,
   } = useGanttToolStoreV2();
 
   const [showContextPanel, setShowContextPanel] = useState(false);
@@ -45,9 +49,24 @@ export function GanttToolShell() {
   const [autoLoadError, setAutoLoadError] = useState<string | null>(null);
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [showSyncIndicator, setShowSyncIndicator] = useState(true);
+  const [showSyncErrorModal, setShowSyncErrorModal] = useState(false);
 
   // Get morphing color for animated text
   const morphColor = useColorMorph();
+
+  // Handle sync errors - Show toast and open recovery modal
+  useEffect(() => {
+    if (syncStatus === "error" && syncError && syncErrorType) {
+      // Show error toast with concise message
+      showError(`Sync Error: ${syncError}`, 6000);
+
+      // Open recovery modal for actionable options
+      // Only show modal for serious errors (foreign_key, conflict, validation)
+      if (["foreign_key", "conflict", "validation"].includes(syncErrorType)) {
+        setShowSyncErrorModal(true);
+      }
+    }
+  }, [syncStatus, syncError, syncErrorType]);
 
   // Auto-dismiss success messages after 3 seconds (Apple-style)
   useEffect(() => {
@@ -339,6 +358,17 @@ export function GanttToolShell() {
 
       {/* Mission Control - Full-screen command center for deep analysis */}
       <MissionControlModal isOpen={showContextPanel} onClose={() => setShowContextPanel(false)} />
+
+      {/* Sync Error Recovery Modal - Apple-grade error handling with actionable options */}
+      <SyncErrorRecoveryModal
+        isOpen={showSyncErrorModal}
+        onClose={() => {
+          setShowSyncErrorModal(false);
+          clearSyncError();
+        }}
+        errorMessage={syncError || ""}
+        errorType={syncErrorType || "unknown"}
+      />
     </div>
   );
 }

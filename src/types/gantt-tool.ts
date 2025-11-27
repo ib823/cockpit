@@ -414,8 +414,9 @@ export interface Resource {
   // Cost tracking fields
   isBillable: boolean; // Whether this resource is billable to client
   chargeRatePerHour: number; // Hourly billing rate in project currency
-  currency?: string; // Currency code (USD, EUR, GBP, etc.)
+  currency?: string; // Currency code (USD, EUR, GBP, MYR, etc.) - Default: "MYR"
   utilizationTarget?: number; // Target utilization percentage (0-100)
+  regionCode?: string; // Multi-region support (ABMY, ABSG, ABVN, ABTH, etc.)
 
   // Deprecated fields (kept for backward compatibility during migration)
   rateType?: "hourly" | "daily" | "fixed"; // DEPRECATED: Use chargeRatePerHour instead
@@ -467,6 +468,7 @@ export interface ResourceFormData {
   chargeRatePerHour: number;
   currency?: string;
   utilizationTarget?: number;
+  regionCode?: string; // Multi-region support
 }
 
 // Utility Types
@@ -577,6 +579,158 @@ export interface WhatIfScenario {
   projectedCost?: number;
   costDifference?: number; // vs baseline
   budgetUtilization?: number;
+}
+
+// ============================================================================
+// TEAM CAPACITY & PROPOSAL ENGINE TYPES
+// ============================================================================
+
+/**
+ * Allocation Pattern Types
+ * - STEADY: Constant percentage throughout the phase
+ * - CUSTOM: Week-by-week manual allocation (future)
+ */
+export type AllocationPattern = "STEADY" | "CUSTOM";
+
+/**
+ * Resource Weekly Allocation - Week-by-week resource allocation detail
+ * Critical for cross-project conflict detection and capacity planning
+ */
+export interface ResourceWeeklyAllocation {
+  id: string;
+  projectId: string;
+  resourceId: string;
+
+  // Week identification (ISO 8601 format: "2025-W03")
+  weekIdentifier: string; // ISO week format for storage
+  weekStartDate: string; // Monday of the week (ISO 8601)
+  weekEndDate: string; // Sunday of the week (ISO 8601)
+
+  // Allocation data (0-100% of resource capacity)
+  allocationPercent: number; // 0-100 percentage
+  workingDays: number; // Calculated: allocationPercent * 5 / 100
+
+  // Source tracking (for pattern regeneration)
+  sourcePhaseId?: string; // Which phase this allocation belongs to
+  sourcePattern?: AllocationPattern; // "STEADY" | "CUSTOM"
+  isManualOverride: boolean; // True if user manually edited
+
+  // Audit fields
+  createdAt: string;
+  createdBy?: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
+/**
+ * Resource Rate Lookup - Multi-region, multi-designation hourly rates
+ * Supports forex conversion and effective date ranges
+ */
+export interface ResourceRateLookup {
+  id: string;
+
+  // Rate identification
+  regionCode: string; // "ABMY", "ABSG", "ABVN", "ABTH", etc.
+  designation: string; // "Principal", "Director", "Manager", etc.
+
+  // Rate data
+  hourlyRate: number; // In local currency
+  localCurrency: string; // "MYR", "SGD", "VND", "THB"
+
+  // Forex conversion to base currency (MYR)
+  forexRate: number; // Conversion rate to MYR
+  baseCurrency: string; // Default: "MYR"
+
+  // Effective date range (for rate history)
+  effectiveFrom: string; // ISO 8601 date
+  effectiveTo?: string; // ISO 8601 date (null = current active rate)
+
+  // Audit fields
+  createdAt: string;
+  updatedAt: string;
+  updatedBy?: string; // Admin user ID who set this rate
+}
+
+/**
+ * Project Costing - Calculated revenue, costs, and margin analysis
+ * CONFIDENTIAL: Access restricted to Finance team via RBAC
+ */
+export interface ProjectCosting {
+  id: string;
+  projectId: string; // One-to-one with GanttProject
+
+  // Revenue calculations
+  grossServiceRevenue: number; // GSR = Total Std Rate × Days
+  realizationRate: number; // RR = e.g., 0.43 (43%)
+  commercialRate: number; // Commercial = GSR × RR
+  netServiceRevenue: number; // NSR = Commercial × Days (actual billable)
+
+  // Cost breakdown (MANUAL ENTRY - not auto-calculated for confidentiality)
+  internalCost: number; // ABeam resources (manual entry)
+  subcontractorCost: number; // External vendors (manual entry)
+  outOfPocketExpense: number; // OPE - travel, onsite, etc.
+
+  // Margin analysis
+  totalCost: number; // Internal + Subcon + OPE
+  grossMargin: number; // NSR - TotalCost
+  marginPercentage: number; // (GrossMargin / NSR) × 100
+
+  // Currency
+  baseCurrency: string; // Default: "MYR"
+
+  // Snapshot metadata
+  calculatedAt: string; // ISO 8601 timestamp
+  calculatedBy?: string; // User ID (must have Finance role)
+  version: number; // Links to project version
+}
+
+/**
+ * Out of Pocket Expense - Monthly breakdown of onsite costs
+ * Tracks flights, hotel, parking, mileage per resource per month
+ */
+export interface OutOfPocketExpense {
+  id: string;
+  projectId: string;
+  resourceId: string;
+
+  // Time period (monthly aggregation)
+  month: string; // First day of month (ISO 8601: "2026-01-01")
+
+  // OPE calculation inputs
+  totalMandays: number; // Total days worked this month
+  onsitePercentage: number; // 0-100% of time spent onsite
+  onsiteDays: number; // totalMandays × onsitePercentage / 100
+
+  // Cost components (from Excel Auto_OPE structure)
+  flightCount: number; // Number of return trips
+  flightRate: number; // Cost per return trip
+  totalFlightCost: number;
+
+  hotelRate: number; // Cost per night
+  totalHotelCost: number; // hotelRate × onsiteDays
+
+  parkingTollRate: number; // Cost per day
+  totalParkingTollCost: number; // parkingTollRate × onsiteDays
+
+  mileageRate: number; // Cost per km
+  mileageKm: number; // Total km traveled
+  totalMileageCost: number; // mileageRate × mileageKm
+
+  // Total OPE for this resource this month
+  totalOPECost: number; // Sum of all components
+
+  // Audit fields
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Enhanced Phase Resource Assignment with allocation pattern support
+ */
+export interface EnhancedPhaseResourceAssignment extends PhaseResourceAssignment {
+  allocationPattern?: AllocationPattern; // "STEADY" | "CUSTOM"
+  assignedBy?: string; // User ID who created this assignment
+  updatedAt?: string; // When this assignment was last updated
 }
 
 // ============================================================================

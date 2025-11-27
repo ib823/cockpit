@@ -54,7 +54,7 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { exportToPNG, exportToPDF, exportToExcel } from "@/lib/gantt-tool/export-utils";
 import { ResourceManagementModal } from "./ResourceManagementModal";
-import { ImportModalV2 } from "./ImportModalV2";
+import { ImportModal } from "./ImportModal";
 import { ProposalGenerationModal } from "./ProposalGenerationModal";
 import { TemplateLibraryModal } from "./TemplateLibraryModal";
 import { DuplicateCleanupModal } from "./DuplicateCleanupModal";
@@ -150,7 +150,7 @@ export function GanttToolbar({
 
   // Get the logo to display (selected or first available)
   const getDisplayLogo = () => {
-    if (!currentProject.orgChartPro?.companyLogos) return null;
+    if (!currentProject || !currentProject.orgChartPro?.companyLogos) return null;
 
     const logos = currentProject.orgChartPro.companyLogos;
     const selected = currentProject.orgChartPro.selectedLogoCompanyName;
@@ -556,7 +556,7 @@ export function GanttToolbar({
           </div>
         </div>
 
-        {showImportModal && <ImportModalV2 isOpen={showImportModal} onClose={() => setShowImportModal(false)} />}
+        {showImportModal && <ImportModal isOpen={showImportModal} onClose={() => setShowImportModal(false)} />}
 
         <Modal
           title="Create New Project"

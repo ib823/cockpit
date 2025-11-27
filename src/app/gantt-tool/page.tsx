@@ -21,6 +21,7 @@ import { OrgChartHarmonyV2 } from "@/components/gantt-tool/OrgChartHarmonyV2";
 import { ViewModeSelector, type ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
 import { ProjectTabNavigation, type ProjectTab } from "@/components/gantt-tool/ProjectTabNavigation";
 import { ProjectContextTab } from "@/components/gantt-tool/ProjectContextTab";
+import { TeamCapacityTab } from "@/components/gantt-tool/TeamCapacityTab";
 import { GlobalNav } from "@/components/navigation/GlobalNav";
 import { Tier2Header } from "@/components/navigation/Tier2Header";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
@@ -329,33 +330,47 @@ export default function GanttToolV3Page() {
               )}
 
               {/* Add Task Button - Only show on Timeline tab */}
-              {activeTab === 'timeline' && (
-                <button
-                  type="button"
-                  onClick={() => setShowAddTaskModal(true)}
-                  disabled={!currentProject || currentProject.phases.length === 0}
-                  aria-label="Add task (⌘T)"
-                title={currentProject && currentProject.phases.length === 0 ? "Add a phase first" : "Add Task (⌘T)"}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--line)",
-                  backgroundColor: "transparent",
-                  color: currentProject && currentProject.phases.length > 0 ? "var(--color-text-secondary)" : "var(--color-gray-3)",
-                  cursor: currentProject && currentProject.phases.length > 0 ? "pointer" : "not-allowed",
-                  opacity: currentProject && currentProject.phases.length > 0 ? 1 : 0.5,
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => { if (currentProject && currentProject.phases.length > 0) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-              >
-                <CheckSquare className="w-4 h-4" aria-hidden="true" />
-              </button>
-              )}
+              {activeTab === 'timeline' && (() => {
+                // Check if selected phase is AMS with max tasks (1)
+                const selectedPhase = currentProject?.phases.find(p => p.id === selectedPhaseId);
+                const isAMSPhaseAtLimit = selectedPhase?.phaseType === 'ams' && (selectedPhase?.tasks?.length ?? 0) >= 1;
+                const isDisabled = !currentProject || currentProject.phases.length === 0 || isAMSPhaseAtLimit;
+
+                let tooltipText = "Add Task (⌘T)";
+                if (!currentProject || currentProject.phases.length === 0) {
+                  tooltipText = "Add a phase first";
+                } else if (isAMSPhaseAtLimit) {
+                  tooltipText = "AMS phases can only have one task";
+                }
+
+                return (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddTaskModal(true)}
+                    disabled={isDisabled}
+                    aria-label="Add task (⌘T)"
+                    title={tooltipText}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "44px",
+                      height: "44px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--line)",
+                      backgroundColor: "transparent",
+                      color: !isDisabled ? "var(--color-text-secondary)" : "var(--color-gray-3)",
+                      cursor: !isDisabled ? "pointer" : "not-allowed",
+                      opacity: !isDisabled ? 1 : 0.5,
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => { if (!isDisabled) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
+                  >
+                    <CheckSquare className="w-4 h-4" aria-hidden="true" />
+                  </button>
+                );
+              })()}
 
               {/* Add Milestone Button - Only show on Timeline tab */}
               {activeTab === 'timeline' && (
@@ -932,17 +947,15 @@ export default function GanttToolV3Page() {
             onSave={() => {
               loadProject(currentProject.id);
             }}
+            onNavigateToTimeline={() => setActiveTab('timeline')}
           />
         </div>
       )}
 
-      {/* Team Capacity Tab View - Coming Soon */}
+      {/* Team Capacity Tab View */}
       {activeTab === 'capacity' && currentProject && (
-        <div className="flex-1 flex items-center justify-center bg-gray-50">
-          <div className="text-center p-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Team Capacity Planning</h2>
-            <p className="text-sm text-gray-600">Coming soon</p>
-          </div>
+        <div className="flex-1 overflow-auto bg-white">
+          <TeamCapacityTab project={currentProject} />
         </div>
       )}
 
@@ -1170,6 +1183,7 @@ export default function GanttToolV3Page() {
       <AddTaskModal
         isOpen={showAddTaskModal}
         onClose={() => setShowAddTaskModal(false)}
+        preselectedPhaseId={selectedPhaseId || undefined}
       />
 
       {/* Logo Library Modal */}

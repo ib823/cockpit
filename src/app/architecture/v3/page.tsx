@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Share2, Users, GripVertical } from "lucide-react";
 import { format } from "date-fns";
 import { useSession } from "next-auth/react";
-import { useArchitectureStore } from "@/stores/architecture-store";
+import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { GlobalNav } from "@/components/navigation/GlobalNav";
 import { Tier2Header } from "@/components/navigation/Tier2Header";
 import { NewProjectModal } from "@/components/gantt-tool/NewProjectModal";
@@ -46,7 +46,7 @@ export default function ArchitectureV3Page() {
   // Session for GlobalNav
   const { data: session } = useSession();
 
-  // Architecture Store Integration
+  // Gantt Tool Store Integration (shared with Timeline)
   const {
     currentProject,
     projects,
@@ -54,15 +54,17 @@ export default function ArchitectureV3Page() {
     loadProject,
     createProject,
     updateProjectName,
+    deleteProject,
+    unloadCurrentProject,
+    isLoading,
+    lastSyncAt,
+    syncStatus,
+    // Architecture methods (Unified Project Model)
     updateBusinessContext,
     updateCurrentLandscape,
     updateProposedSolution,
     updateDiagramSettings,
-    isLoading,
-    isSaving,
-    lastSaved,
-    error: storeError,
-  } = useArchitectureStore();
+  } = useGanttToolStore();
 
   const [initializing, setInitializing] = useState(true);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
@@ -164,7 +166,7 @@ export default function ArchitectureV3Page() {
         await new Promise(resolve => setTimeout(resolve, 100));
 
         // Get current state after fetch
-        const state = useArchitectureStore.getState();
+        const state = useGanttToolStore.getState();
         console.log("[Architecture V3] After fetch - Current project:", state.currentProject?.id, "Projects count:", state.projects.length);
 
         // If STILL no project is loaded, auto-load or create one
@@ -235,6 +237,15 @@ export default function ArchitectureV3Page() {
     }
   };
 
+  // Handle project deletion
+  const handleDeleteProject = async (projectId: string) => {
+    await deleteProject(projectId);
+    // If the deleted project was the current one, unload it
+    if (currentProject?.id === projectId) {
+      unloadCurrentProject();
+    }
+  };
+
   const handleCreateProject = async (name: string, startDate: string, companyLogos?: Record<string, string>) => {
     await createProject(name, `Started on ${startDate}`);
     // Note: companyLogos and startDate are not currently used in the architecture store
@@ -261,10 +272,11 @@ export default function ArchitectureV3Page() {
           onSelectProject={loadProject}
           onCreateProject={() => setIsNewProjectModalOpen(true)}
           onUpdateProjectName={handleUpdateProjectName}
+          onDeleteProject={handleDeleteProject}
           isLoading={isLoading}
-          version={version}
-          lastSyncAt={lastSaved}
-          syncStatus={isSaving ? "syncing-cloud" : lastSaved ? "synced-cloud" : "idle"}
+          version="v3.0"
+          lastSyncAt={lastSyncAt}
+          syncStatus={syncStatus}
           showMetrics={false}
           rightContent={
             <>

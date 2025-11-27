@@ -965,15 +965,14 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         onClose={onClose}
         title="Import Project"
         subtitle={getSubtitle()}
-        icon={<Upload className="w-5 h-5" />}
-        size="fullscreen"
+        size="large"
         footer={renderFooter()}
         preventClose={isImporting}
       >
 
         {/* Progress Indicator */}
-        <div className="px-4 sm:px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <div className="flex items-center justify-between max-w-2xl mx-auto">
+        <div style={{ padding: '16px 24px', backgroundColor: '#F9FAFB', borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '672px', margin: '0 auto' }}>
             <StageIndicator
               icon={Calendar}
               label="Schedule"

@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { prisma, withRetry } from "@/lib/db";
 import { z } from "zod";
+import { getDefaultHolidaysForProject } from "@/lib/gantt-tool/holiday-integration";
 
 // Validation schema for creating a project
 const CreateProjectSchema = z.object({
@@ -29,7 +30,7 @@ const CreateProjectSchema = z.object({
   budget: z.any().optional(), // JSON field
 });
 
-// GET - List all projects for authenticated user
+// GET - List all projects for authenticated user (owned + shared)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
@@ -40,11 +41,23 @@ export async function GET(request: NextRequest) {
 
     // Use withRetry wrapper for database queries
     // NOTE: This query loads full nested data for offline-first sync architecture
+    // Fetch both owned projects and shared projects
     const projects = await withRetry(() =>
       prisma.ganttProject.findMany({
         where: {
-          userId: session.user.id,
           deletedAt: null,
+          OR: [
+            // Projects owned by the user
+            { userId: session.user.id },
+            // Projects shared with the user
+            {
+              collaborators: {
+                some: {
+                  userId: session.user.id,
+                },
+              },
+            },
+          ],
         },
         include: {
           phases: {
@@ -72,6 +85,23 @@ export async function GET(request: NextRequest) {
             },
             orderBy: { createdAt: "asc" },
           },
+          // Include collaboration info
+          collaborators: {
+            where: {
+              userId: session.user.id,
+            },
+            select: {
+              role: true,
+              acceptedAt: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
         },
         orderBy: {
           updatedAt: "desc",
@@ -80,43 +110,53 @@ export async function GET(request: NextRequest) {
     );
 
     // Serialize dates to strings for frontend
-    const serializedProjects = projects.map((project) => ({
-      ...project,
-      startDate: project.startDate.toISOString().split("T")[0],
-      createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString(),
-      deletedAt: project.deletedAt?.toISOString() || null,
-      phases: project.phases.map((phase) => ({
-        ...phase,
-        startDate: phase.startDate.toISOString().split("T")[0],
-        endDate: phase.endDate.toISOString().split("T")[0],
-        tasks: phase.tasks.map((task) => ({
-          ...task,
-          startDate: task.startDate.toISOString().split("T")[0],
-          endDate: task.endDate.toISOString().split("T")[0],
-          resourceAssignments: task.resourceAssignments.map((ra) => ({
-            ...ra,
-            assignedAt: ra.assignedAt.toISOString(),
+    const serializedProjects = projects.map((project: any) => {
+      const isOwner = project.userId === session.user.id;
+      const collaboratorInfo = project.collaborators[0]; // Will have at most 1 entry due to where clause
+
+      return {
+        ...project,
+        startDate: project.startDate.toISOString().split("T")[0],
+        createdAt: project.createdAt.toISOString(),
+        updatedAt: project.updatedAt.toISOString(),
+        deletedAt: project.deletedAt?.toISOString() || null,
+        // Add ownership and collaboration metadata
+        isOwner,
+        owner: project.user,
+        collaboratorRole: collaboratorInfo?.role || null,
+        collaboratorAcceptedAt: collaboratorInfo?.acceptedAt?.toISOString() || null,
+        phases: project.phases.map((phase: any) => ({
+          ...phase,
+          startDate: phase.startDate.toISOString().split("T")[0],
+          endDate: phase.endDate.toISOString().split("T")[0],
+          tasks: phase.tasks.map((task: any) => ({
+            ...task,
+            startDate: task.startDate.toISOString().split("T")[0],
+            endDate: task.endDate.toISOString().split("T")[0],
+            resourceAssignments: task.resourceAssignments.map((ra: any) => ({
+              ...ra,
+              assignedAt: ra.assignedAt.toISOString(),
+            })),
+          })),
+          phaseResourceAssignments: phase.phaseResourceAssignments.map((pra: any) => ({
+            ...pra,
+            assignedAt: pra.assignedAt.toISOString(),
           })),
         })),
-        phaseResourceAssignments: phase.phaseResourceAssignments.map((pra) => ({
-          ...pra,
-          assignedAt: pra.assignedAt.toISOString(),
+        milestones: project.milestones.map((m: any) => ({
+          ...m,
+          date: m.date.toISOString().split("T")[0],
         })),
-      })),
-      milestones: project.milestones.map((m) => ({
-        ...m,
-        date: m.date.toISOString().split("T")[0],
-      })),
-      holidays: project.holidays.map((h) => ({
-        ...h,
-        date: h.date.toISOString().split("T")[0],
-      })),
-      resources: project.resources.map((r) => ({
-        ...r,
-        createdAt: r.createdAt.toISOString(),
-      })),
-    }));
+        holidays: project.holidays.map((h: any) => ({
+          ...h,
+          date: h.date.toISOString().split("T")[0],
+        })),
+        resources: project.resources.map((r: any) => ({
+          ...r,
+          createdAt: r.createdAt.toISOString(),
+        })),
+      };
+    });
 
     return NextResponse.json({ projects: serializedProjects }, { status: 200 });
   } catch (error) {
@@ -160,7 +200,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use transaction with retry for create + audit log
+    // CRITICAL FIX: Generate default holidays for the project
+    // This ensures working days calculations are accurate from day 1
+    const defaultHolidays = getDefaultHolidaysForProject(
+      new Date(validatedData.startDate),
+      "ABMY" // Default to Malaysia, can be made configurable later
+    );
+
+    // Use transaction with retry for create + audit log + holidays
     const project = (await withRetry(() =>
       (prisma.$transaction as any)(async (tx: any) => {
         const newProject = await tx.ganttProject.create({
@@ -180,6 +227,32 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        // CRITICAL FIX: Create default holidays for the project
+        // This fixes the bug where holidays appeared on timeline but didn't affect working days
+        if (defaultHolidays.length > 0) {
+          await tx.ganttHoliday.createMany({
+            data: defaultHolidays.map(h => ({
+              id: h.id,
+              projectId: newProject.id,
+              name: h.name,
+              date: new Date(h.date),
+              region: h.region,
+              type: h.type,
+            })),
+          });
+        }
+
+        // Fetch updated project with holidays
+        const projectWithHolidays = await tx.ganttProject.findUnique({
+          where: { id: newProject.id },
+          include: {
+            phases: true,
+            milestones: true,
+            holidays: true,
+            resources: true,
+          },
+        });
+
         // Audit log
         await tx.audit_logs.create({
           data: {
@@ -191,11 +264,12 @@ export async function POST(request: NextRequest) {
             changes: {
               name: validatedData.name,
               startDate: validatedData.startDate,
+              holidaysInitialized: defaultHolidays.length,
             },
           },
         });
 
-        return newProject;
+        return projectWithHolidays;
       })
     )) as any;
 

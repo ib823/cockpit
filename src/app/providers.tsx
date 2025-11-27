@@ -44,10 +44,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
           (args[0].includes("Hydration") && args[0].includes("css-dev-only-do-not-override")) ||
           // Suppress IndexedDB transaction errors (fixed in code, but may persist in old sessions)
           (args[0].includes("[BackgroundSync]") && args[0].includes("transaction has finished")) ||
-          // Suppress background sync failures - handled gracefully by the app
-          (args[0].includes("[BackgroundSync]") && args[0].includes("Sync failed")) ||
-          // Suppress background sync debug errors (old message name and detailed error info)
-          (args[0].includes("[BackgroundSync]") && (args[0].includes("Server error details") || args[0].includes("Error details") || args[0].includes("Max retries exceeded"))) ||
+          // Suppress ALL background sync errors - handled gracefully by toast + modal UI
+          (args[0].includes("[BackgroundSync]") && args[0].includes("Sync")) ||
+          // Suppress specific sync error patterns
+          (args[0].includes("[BackgroundSync]") && (args[0].includes("error") || args[0].includes("failed") || args[0].includes("Error"))) ||
+          // Suppress validation and permanent error messages - shown in UI
+          (args[0].includes("[BackgroundSync]") && args[0].includes("Permanent error")) ||
           // Suppress initial loader hydration warnings - loader is created client-side only
           (args[0].includes("Hydration") && args[0].includes("initial-loader")) ||
           // Suppress static message API warnings - we use standalone API for better performance

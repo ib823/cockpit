@@ -13,9 +13,8 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { AlertCircle, X, Loader2 } from "lucide-react";
-import DOMPurify from "isomorphic-dompurify";
 
 interface ProjectContextTabProps {
   projectId: string;
@@ -24,32 +23,33 @@ interface ProjectContextTabProps {
     skills?: string[];
   };
   onSave?: () => void;
+  onNavigateToTimeline?: () => void;
 }
 
 export function ProjectContextTab({
   projectId,
   initialContext,
-  onSave
+  onSave,
+  onNavigateToTimeline
 }: ProjectContextTabProps) {
   // Parse initial context from painPoints field
-  const parseInitialContext = () => {
+  // Use useMemo to recalculate when initialContext changes (e.g., after save)
+  const parsed = useMemo(() => {
     if (!initialContext?.painPoints) {
       return { asIs: "", toBe: "", goals: "" };
     }
 
     const text = initialContext.painPoints;
-    const asIsMatch = text.match(/AS-IS:\s*(.+?)(?=\n\nTO-BE:|$)/s);
-    const toBeMatch = text.match(/TO-BE:\s*(.+?)(?=\n\nGOALS:|$)/s);
-    const goalsMatch = text.match(/GOALS:\s*(.+?)$/s);
+    const asIsMatch = text.match(/AS-IS:\s*([\s\S]+?)(?=\n\nTO-BE:|$)/);
+    const toBeMatch = text.match(/TO-BE:\s*([\s\S]+?)(?=\n\nGOALS:|$)/);
+    const goalsMatch = text.match(/GOALS:\s*([\s\S]+?)$/);
 
     return {
       asIs: asIsMatch?.[1]?.trim() || "",
       toBe: toBeMatch?.[1]?.trim() || "",
       goals: goalsMatch?.[1]?.trim() || "",
     };
-  };
-
-  const parsed = parseInitialContext();
+  }, [initialContext]);
 
   // Form state
   const [asIs, setAsIs] = useState(parsed.asIs);
@@ -64,6 +64,24 @@ export function ProjectContextTab({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
+  // DOMPurify instance (client-side only to avoid SSR jsdom issues)
+  const DOMPurifyRef = useRef<typeof import("isomorphic-dompurify").default | null>(null);
+
+  // Initialize DOMPurify client-side only
+  useEffect(() => {
+    import("isomorphic-dompurify").then((module) => {
+      DOMPurifyRef.current = module.default;
+    });
+  }, []);
+
+  // Update form state when initialContext changes (after successful save)
+  useEffect(() => {
+    setAsIs(parsed.asIs);
+    setToBe(parsed.toBe);
+    setGoals(parsed.goals);
+    setSkills(initialContext?.skills || []);
+  }, [parsed, initialContext?.skills]);
+
   // Track changes for dirty state
   useEffect(() => {
     const hasChanges =
@@ -74,9 +92,18 @@ export function ProjectContextTab({
     setIsDirty(hasChanges);
   }, [asIs, toBe, goals, skills, parsed, initialContext]);
 
-  // XSS Sanitization
+  // XSS Sanitization (client-side only)
   const sanitize = useCallback((input: string): string => {
-    return DOMPurify.sanitize(input, {
+    if (!DOMPurifyRef.current) {
+      // Fallback: basic sanitization if DOMPurify not loaded yet
+      return input
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#x27;")
+        .replace(/\//g, "&#x2F;");
+    }
+    return DOMPurifyRef.current.sanitize(input, {
       ALLOWED_TAGS: [], // No HTML tags allowed - plain text only
       ALLOWED_ATTR: [],
     });
@@ -177,9 +204,40 @@ export function ProjectContextTab({
 
       {/* Success/Error Messages */}
       {saveSuccess && (
-        <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r">
-          <div className="text-sm font-medium text-green-900">
-            Context saved successfully
+        <div className="bg-green-50 border-l-4 border-green-500 p-5 rounded-r">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="text-sm font-semibold text-green-900 mb-1">
+                Context saved successfully
+              </div>
+              <div className="text-sm text-green-800 mb-3">
+                Your business context has been saved and will help inform timeline planning and resource allocation decisions.
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    onNavigateToTimeline?.();
+                    setSaveSuccess(false);
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Go to Timeline
+                </button>
+                <button
+                  onClick={() => setSaveSuccess(false)}
+                  className="text-sm text-green-700 hover:text-green-900 font-medium"
+                >
+                  Continue editing
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={() => setSaveSuccess(false)}
+              className="p-1 hover:bg-green-100 rounded flex-shrink-0"
+              aria-label="Dismiss message"
+            >
+              <X className="w-4 h-4 text-green-600" />
+            </button>
           </div>
         </div>
       )}

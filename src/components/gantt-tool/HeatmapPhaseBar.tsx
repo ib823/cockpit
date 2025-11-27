@@ -162,16 +162,16 @@ export function HeatmapPhaseBar({
       style={{
         position: "absolute",
         left: `${phasePosition.left}%`,
-        width: `${phasePosition.width}%`,
+        width: phase.phaseType === "ams" ? "160px" : `${phasePosition.width}%`,
         top: "50%",
         height: "24px",
         borderRadius: "6px",
-        overflow: "hidden",
+        overflow: phase.phaseType === "ams" ? "visible" : "hidden",
         cursor: "pointer",
         border: isDragOver
           ? "2px solid rgba(52, 199, 89, 0.8)"
           : phase.phaseType === "ams"
-          ? "2px dashed rgba(59, 130, 246, 0.8)"
+          ? "none"
           : "none",
         boxShadow: isDragOver
           ? "0 4px 16px rgba(52, 199, 89, 0.4), 0 0 0 3px rgba(52, 199, 89, 0.15)"
@@ -179,7 +179,7 @@ export function HeatmapPhaseBar({
           ? "0 2px 8px rgba(0, 0, 0, 0.12)"
           : "none",
         background: phase.phaseType === "ams"
-          ? `url("data:image/svg+xml,%3Csvg width='40' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 8 L8 12 L0 16 Z M12 8 L20 12 L12 16 Z M24 8 L32 12 L24 16 Z' fill='rgba(59, 130, 246, 0.25)'/%3E%3C/svg%3E")`
+          ? "transparent"
           : "transparent",
       }}
       onMouseEnter={onMouseEnter}
@@ -193,15 +193,67 @@ export function HeatmapPhaseBar({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      {/* Heatmap Segments */}
-      <div
-        style={{
-          display: "flex",
-          height: "100%",
-          width: "100%",
-        }}
-      >
-        {heatmapSlices.map((slice, index) => {
+      {/* AMS Phase: Chevron Pattern OR Standard Phase: Heatmap Segments */}
+      {phase.phaseType === "ams" ? (
+        // AMS Phase - Short chevron indicator (collapsed view)
+        <div
+          style={{
+            position: "absolute",
+            left: "0",
+            top: "50%",
+            transform: "translateY(-50%)",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            height: "32px",
+          }}
+        >
+          {/* Chevron 1 */}
+          <svg width="24" height="32" viewBox="0 0 24 32" style={{
+            opacity: isHovered ? 0.9 : 0.7,
+            transition: "all 0.2s ease"
+          }}>
+            <path d="M0 0 L16 0 L24 16 L16 32 L0 32 L8 16 Z" fill="#FF6B35" />
+          </svg>
+          {/* Chevron 2 */}
+          <svg width="24" height="32" viewBox="0 0 24 32" style={{
+            opacity: isHovered ? 0.9 : 0.7,
+            transition: "all 0.2s ease"
+          }}>
+            <path d="M0 0 L16 0 L24 16 L16 32 L0 32 L8 16 Z" fill="#FF6B35" />
+          </svg>
+          {/* Chevron 3 */}
+          <svg width="24" height="32" viewBox="0 0 24 32" style={{
+            opacity: isHovered ? 0.9 : 0.7,
+            transition: "all 0.2s ease"
+          }}>
+            <path d="M0 0 L16 0 L24 16 L16 32 L0 32 L8 16 Z" fill="#FF6B35" />
+          </svg>
+          {/* Chevron 4 */}
+          <svg width="24" height="32" viewBox="0 0 24 32" style={{
+            opacity: isHovered ? 0.9 : 0.7,
+            transition: "all 0.2s ease"
+          }}>
+            <path d="M0 0 L16 0 L24 16 L16 32 L0 32 L8 16 Z" fill="#FF6B35" />
+          </svg>
+          {/* Chevron 5 */}
+          <svg width="24" height="32" viewBox="0 0 24 32" style={{
+            opacity: isHovered ? 0.9 : 0.7,
+            transition: "all 0.2s ease"
+          }}>
+            <path d="M0 0 L16 0 L24 16 L16 32 L0 32 L8 16 Z" fill="#FF6B35" />
+          </svg>
+        </div>
+      ) : (
+        // Standard Phase - Heatmap Segments
+        <div
+          style={{
+            display: "flex",
+            height: "100%",
+            width: "100%",
+          }}
+        >
+          {heatmapSlices.map((slice, index) => {
           const sliceDuration = differenceInDays(slice.endDate, slice.startDate);
           const sliceWidthPercent = (sliceDuration / phaseDuration) * 100;
           const isHoveredSlice = hoveredSliceIndex === index;
@@ -292,7 +344,8 @@ export function HeatmapPhaseBar({
             </motion.div>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* Drag overlay - Pixar-style smooth fade */}
       {isDragOver && (

@@ -252,8 +252,8 @@ export function ProposedSolutionTab({
           Proposed Solution (TO-BE Architecture + Migration Roadmap)
         </h4>
         <p className={styles.infoBannerText}>
-          Design your <strong>future state</strong> - what systems you'll implement and when. Define phases, select new
-          systems, and reuse systems marked as "KEEP" from your AS-IS architecture.
+          Design your <strong>future state</strong> - what systems you&apos;ll implement and when. Define phases, select new
+          systems, and reuse systems marked as &quot;KEEP&quot; from your AS-IS architecture.
         </p>
       </div>
 
