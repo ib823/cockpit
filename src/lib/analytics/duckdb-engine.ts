@@ -1,15 +1,28 @@
 /**
- * Keystone - DuckDB Analytics Engine
+ * Keystone - Analytics Engine (DuckDB-Ready)
  *
- * In-memory analytics database for 100-1000x faster dashboard queries
- * DuckDB is an embeddable SQL OLAP database optimized for analytics
+ * STATUS: PLACEHOLDER - Currently using in-memory cache layer
  *
- * Features:
+ * This module provides the architecture for fast analytics queries.
+ * Currently uses an in-memory cache for aggregations.
+ * When DuckDB WASM is added as a dependency, the mock connection
+ * can be replaced with the real implementation.
+ *
+ * Current Implementation:
+ * - AnalyticsCache: 5-minute TTL in-memory cache
+ * - Mock DuckDB connection (logs queries, returns empty results)
+ * - Full interface definitions ready for real implementation
+ *
+ * Future DuckDB Integration:
  * - In-memory columnar storage
  * - Vectorized query execution
- * - SQL interface
- * - Parquet/CSV support
- * - Aggregations 100-1000x faster than Prisma
+ * - SQL interface for complex aggregations
+ * - 100-1000x faster than Prisma for analytics
+ *
+ * To enable DuckDB:
+ * 1. npm install @duckdb/duckdb-wasm
+ * 2. Replace createMockConnection() with real DuckDB initialization
+ * 3. Update loadData() to use DuckDB CREATE TABLE
  *
  * Note: DuckDB WASM works in browser and Node.js
  */
