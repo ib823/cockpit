@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 interface EmailApproval {
   email: string;
-  tokenHash: string;
   tokenExpiresAt: string;
   approvedByUserId: string;
   usedAt: string | null;
@@ -36,23 +35,21 @@ export default function EmailApprovalsPage() {
     setError("");
 
     try {
-      // TODO: Replace with actual API call
-      const mockApprovals: EmailApproval[] = [
-        {
-          email: "test@example.com",
-          tokenHash: "$2a$12$...",
-          tokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          approvedByUserId: "admin123",
-          usedAt: null,
-          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          codeSent: true,
-        },
-      ];
+      const response = await fetch("/api/admin/email-approvals");
+      const data = await response.json();
 
-      setApprovals(mockApprovals);
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || "Failed to load email approvals");
+      }
+
+      setApprovals(data.approvals || []);
     } catch (err: unknown) {
       console.error("[EmailApprovals] Failed to load:", err);
-      setError("Failed to load email approvals");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to load email approvals");
+      }
     } finally {
       setLoading(false);
     }
@@ -75,24 +72,25 @@ export default function EmailApprovalsPage() {
     setSuccess("");
 
     try {
-      // Generate 6-digit code
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const response = await fetch("/api/admin/email-approvals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: newEmail.trim().toLowerCase(),
+        }),
+      });
 
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/admin/email-approvals', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     email: newEmail.trim().toLowerCase(),
-      //     adminId: 'current-admin-id'
-      //   })
-      // });
+      const data = await response.json();
 
-      // For now, simulate success
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || "Failed to create email approval");
+      }
 
-      setGeneratedCode(code);
-      setSuccess(`Email approval created successfully! Code: ${code}`);
+      setGeneratedCode(data.code);
+      const successMessage = data.codeSent
+        ? `Email approval created! Code sent to ${data.email}`
+        : `Email approval created! Share this code with the user: ${data.code}`;
+      setSuccess(successMessage);
       setNewEmail("");
       loadApprovals();
     } catch (err: unknown) {

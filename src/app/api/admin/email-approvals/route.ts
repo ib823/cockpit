@@ -1,7 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { authConfig as authOptions } from "@/lib/auth";
 import { randomInt } from "crypto";
+import { sendSecurityEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -12,28 +15,36 @@ export const runtime = "nodejs";
  * GET /api/admin/email-approvals - List all approvals
  */
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { email, adminId } = body;
+    const { email } = body;
 
     // ============================================
-    // 1. Validate Admin
+    // 1. Validate Admin via Session
     // ============================================
-    if (!adminId) {
-      return NextResponse.json({ ok: false, message: "Admin ID required" }, { status: 401 });
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
     }
 
     const admin = await prisma.users.findUnique({
-      where: { id: adminId },
+      where: { email: session.user.email },
     });
 
-    if (!admin || admin.role !== "ADMIN") {
+    if (!admin) {
+      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
+    }
+
+    if (admin.role !== "ADMIN") {
       return NextResponse.json(
         { ok: false, message: "Unauthorized - Admin access required" },
         { status: 403 }
       );
     }
+
+    const adminId = admin.id;
 
     // ============================================
     // 2. Validate Email
@@ -117,33 +128,77 @@ export async function POST(req: Request) {
     });
 
     // ============================================
-    // 7. Optional: Send Email with Code
+    // 7. Send Email with Code
     // ============================================
-    // TODO: Implement email sending
-    // try {
-    //   const { sendSecurityEmail } = await import('@/lib/email');
-    //   await sendSecurityEmail(
-    //     normalizedEmail,
-    //     'Your Registration Code',
-    //     `Your 6-digit code is: ${code}`
-    //   );
-    //
-    //   await prisma.emailApproval.update({
-    //     where: { email: normalizedEmail },
-    //     data: { codeSent: true }
-    //   });
-    // } catch (emailError) {
-    //   console.error('[EmailApproval] Failed to send email:', emailError);
-    // }
+    let codeSent = false;
+    try {
+      const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f8fafc;">
+  <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 32px; text-align: center;">
+      <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Your Registration Code</h1>
+    </div>
+
+    <div style="padding: 40px 32px;">
+      <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
+        You've been approved to register for an account. Use the code below to complete your registration.
+      </p>
+
+      <div style="background: #f1f5f9; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+        <div style="font-size: 36px; font-weight: bold; font-family: monospace; letter-spacing: 8px; color: #0f172a;">
+          ${code}
+        </div>
+      </div>
+
+      <p style="margin: 24px 0; color: #64748b; font-size: 14px; line-height: 1.6;">
+        Visit the registration page and enter this code along with your email address to create your account.
+      </p>
+
+      <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 24px 0;">
+        <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
+          <strong>This code expires in 7 days.</strong> If you didn't request this, please ignore this email.
+        </p>
+      </div>
+    </div>
+
+    <div style="background: #f8fafc; padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+      <p style="margin: 0; color: #94a3b8; font-size: 12px;">
+        © ${new Date().getFullYear()} Cockpit. All rights reserved.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+      `;
+
+      await sendSecurityEmail(normalizedEmail, "Your Registration Code", emailHtml);
+      codeSent = true;
+
+      await prisma.emailApproval.update({
+        where: { email: normalizedEmail },
+        data: { codeSent: true },
+      });
+    } catch (emailError) {
+      console.error("[EmailApproval] Failed to send email:", emailError);
+      // Don't fail the approval - admin can share the code manually
+    }
 
     return NextResponse.json({
       ok: true,
-      message: "Email approval created successfully",
+      message: codeSent
+        ? "Email approval created and code sent to user"
+        : "Email approval created (email not sent - share code manually)",
       code, // Return code for admin to share
       email: normalizedEmail,
       expiresAt: tokenExpiresAt,
+      codeSent,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[EmailApprovals] POST error:", error);
     return NextResponse.json(
       { ok: false, message: "Failed to create email approval" },
@@ -152,14 +207,39 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    // TODO: Verify admin access
+    // ============================================
+    // 1. Verify Admin via Session
+    // ============================================
+    const session = await getServerSession(authOptions);
 
+    if (!session?.user?.email) {
+      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    const admin = await prisma.users.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!admin) {
+      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
+    }
+
+    if (admin.role !== "ADMIN") {
+      return NextResponse.json(
+        { ok: false, message: "Unauthorized - Admin access required" },
+        { status: 403 }
+      );
+    }
+
+    // ============================================
+    // 2. Fetch Approvals with Optional Filtering
+    // ============================================
     const url = new URL(req.url);
     const status = url.searchParams.get("status"); // 'active', 'used', 'expired', 'all'
 
-    let where: any = {};
+    let where: { usedAt?: { not: null } | null; tokenExpiresAt?: { gt: Date } | { lt: Date } } = {};
 
     if (status === "active") {
       where = {
@@ -180,12 +260,22 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
     });
 
+    // Format response (hide sensitive token hash)
+    const formattedApprovals = approvals.map((approval) => ({
+      email: approval.email,
+      tokenExpiresAt: approval.tokenExpiresAt.toISOString(),
+      approvedByUserId: approval.approvedByUserId,
+      usedAt: approval.usedAt?.toISOString() || null,
+      createdAt: approval.createdAt.toISOString(),
+      codeSent: approval.codeSent,
+    }));
+
     return NextResponse.json({
       ok: true,
-      approvals,
-      total: approvals.length,
+      approvals: formattedApprovals,
+      total: formattedApprovals.length,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[EmailApprovals] GET error:", error);
     return NextResponse.json(
       { ok: false, message: "Failed to fetch email approvals" },
