@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
-import { headers } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { getToken } from "next-auth/jwt";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
+import { authConfig as authOptions } from "@/lib/auth";
 import { parseUserAgent } from "@/lib/security/device-fingerprint";
-import { formatLocation } from "@/lib/security/ip-geolocation";
 
 export const runtime = "nodejs";
 
@@ -17,20 +18,29 @@ export const runtime = "nodejs";
 // ============================================
 // GET - List Active Sessions
 // ============================================
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    // TODO: Get userId from session/auth
-    // For now, getting from query param for testing
-    const url = new URL(req.url);
-    const userId = url.searchParams.get("userId");
+    // Authenticate user via NextAuth session
+    const session = await getServerSession(authOptions);
 
-    if (!userId) {
-      return NextResponse.json({ ok: false, message: "User ID required" }, { status: 401 });
+    if (!session?.user?.email) {
+      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    // Get current session token from headers
-    const headersList = await headers();
-    const currentSessionToken = headersList.get("x-session-token") || "";
+    // Get user from database
+    const user = await prisma.users.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
+    }
+
+    const userId = user.id;
+
+    // Get current session token from JWT
+    const token = await getToken({ req });
+    const currentSessionToken = (token?.sessionToken as string) || "";
 
     const sessions = await prisma.sessions.findMany({
       where: {
@@ -73,19 +83,29 @@ export async function GET(req: Request) {
 // ============================================
 // DELETE - Revoke All Sessions (Except Current)
 // ============================================
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
-    // TODO: Get userId from session/auth
-    const url = new URL(req.url);
-    const userId = url.searchParams.get("userId");
+    // Authenticate user via NextAuth session
+    const session = await getServerSession(authOptions);
 
-    if (!userId) {
-      return NextResponse.json({ ok: false, message: "User ID required" }, { status: 401 });
+    if (!session?.user?.email) {
+      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    // Get current session token
-    const headersList = await headers();
-    const currentSessionToken = headersList.get("x-session-token") || "";
+    // Get user from database
+    const user = await prisma.users.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
+    }
+
+    const userId = user.id;
+
+    // Get current session token from JWT
+    const token = await getToken({ req });
+    const currentSessionToken = (token?.sessionToken as string) || "";
 
     // Revoke all sessions except the current one
     const result = await prisma.sessions.updateMany({

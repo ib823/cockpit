@@ -61,10 +61,8 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const theme = usePreferencesStore((state) => state.theme);
-  // TODO: Add accentColor and densityMode to PreferencesState
-  // Using default values until these are added to the store
-  const accentColor = "blue" as const;
-  const densityMode = "comfortable" as const;
+  const accentColor = usePreferencesStore((state) => state.accentColor);
+  const densityMode = usePreferencesStore((state) => state.densityMode);
 
   // Apply theme to document root
   useEffect(() => {
@@ -101,7 +99,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     algorithms.push(defaultAlgorithm);
   }
 
-  if ((densityMode as DensityMode) === "compact") {
+  if (densityMode === "compact") {
     algorithms.push(compactAlgorithm);
   }
 
@@ -138,7 +136,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           Input: {
             controlHeight: densityConfig.controlHeight,
             fontSize: densityConfig.fontSize,
-            paddingBlock: (densityMode as DensityMode) === "compact" ? 4 : (densityMode as DensityMode) === "comfortable" ? 6 : 8,
+            paddingBlock: densityMode === "compact" ? 4 : densityMode === "comfortable" ? 6 : 8,
           },
           Card: {
             paddingLG: densityConfig.padding * 1.5,
@@ -146,7 +144,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           },
           Table: {
             cellPaddingBlock:
-              (densityMode as DensityMode) === "compact" ? 8 : (densityMode as DensityMode) === "comfortable" ? 12 : 16,
+              densityMode === "compact" ? 8 : densityMode === "comfortable" ? 12 : 16,
             cellPaddingInline: densityConfig.padding,
           },
         },

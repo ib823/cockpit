@@ -1,6 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
+import { authConfig as authOptions } from "@/lib/auth";
 import { sendSecurityEmail } from "@/lib/email";
 import { SignJWT } from "jose";
 
@@ -13,30 +15,37 @@ export const runtime = "nodejs";
  *
  * Approves a user's account recovery request after identity verification
  */
-export async function POST(req: Request, { params }: { params: Promise<{ requestId: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ requestId: string }> }) {
   try {
     const { requestId } = await params;
     const body = await req.json().catch(() => ({}));
-    const { adminId, notes } = body;
+    const { notes } = body;
 
     // ============================================
-    // 1. Verify Admin
+    // 1. Verify Admin via Session
     // ============================================
-    // TODO: Get adminId from authenticated session
-    if (!adminId) {
-      return NextResponse.json({ ok: false, message: "Admin ID required" }, { status: 401 });
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
     }
 
     const admin = await prisma.users.findUnique({
-      where: { id: adminId },
+      where: { email: session.user.email },
     });
 
-    if (!admin || admin.role !== "ADMIN") {
+    if (!admin) {
+      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
+    }
+
+    if (admin.role !== "ADMIN") {
       return NextResponse.json(
         { ok: false, message: "Unauthorized - Admin access required" },
         { status: 403 }
       );
     }
+
+    const adminId = admin.id;
 
     // ============================================
     // 2. Get Recovery Request
