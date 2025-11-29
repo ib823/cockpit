@@ -23,6 +23,8 @@ interface PreferencesState {
   theme: ThemeMode;
   language: LanguageCode;
   compactMode: boolean;
+  accentColor: AccentColor;
+  densityMode: DensityMode;
 
   // Estimator Defaults
   defaultProfile: string;
@@ -46,6 +48,8 @@ interface PreferencesState {
   setTheme: (theme: ThemeMode) => void;
   setLanguage: (language: LanguageCode) => void;
   setCompactMode: (compact: boolean) => void;
+  setAccentColor: (color: AccentColor) => void;
+  setDensityMode: (mode: DensityMode) => void;
   setDefaultProfile: (profile: string) => void;
   setAutoCalculate: (auto: boolean) => void;
   setShowUncertaintyAnalysis: (show: boolean) => void;
@@ -68,6 +72,8 @@ const defaultState = {
   theme: "system" as ThemeMode,
   language: "en" as LanguageCode,
   compactMode: false,
+  accentColor: "blue" as AccentColor,
+  densityMode: "comfortable" as DensityMode,
 
   // Estimator Defaults
   defaultProfile: "malaysia-mid-market",
@@ -104,6 +110,8 @@ export const usePreferencesStore = create<PreferencesState>()(
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
       setCompactMode: (compact) => set({ compactMode: compact }),
+      setAccentColor: (color) => set({ accentColor: color }),
+      setDensityMode: (mode) => set({ densityMode: mode }),
       setDefaultProfile: (profile) => set({ defaultProfile: profile }),
       setAutoCalculate: (auto) => set({ autoCalculate: auto }),
       setShowUncertaintyAnalysis: (show) => set({ showUncertaintyAnalysis: show }),

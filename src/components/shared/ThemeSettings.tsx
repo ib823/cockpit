@@ -45,14 +45,11 @@ interface ThemeSettingsProps {
 export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
   const theme = usePreferencesStore((state) => state.theme);
   const setTheme = usePreferencesStore((state) => state.setTheme);
+  const accentColor = usePreferencesStore((state) => state.accentColor);
+  const setAccentColor = usePreferencesStore((state) => state.setAccentColor);
+  const densityMode = usePreferencesStore((state) => state.densityMode);
+  const setDensityMode = usePreferencesStore((state) => state.setDensityMode);
   const resetToDefaults = usePreferencesStore((state) => state.resetToDefaults);
-
-  // TODO: Add accentColor and densityMode to PreferencesState
-  // Using default values until these are added to the store
-  const accentColor = "blue" as const;
-  const densityMode = "comfortable" as const;
-  const setAccentColor = (_color: string) => {}; // No-op until implemented
-  const setDensityMode = (_mode: string) => {}; // No-op until implemented
 
   const handleResetTheme = () => {
     resetToDefaults();
