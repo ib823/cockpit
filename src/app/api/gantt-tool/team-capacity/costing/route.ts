@@ -86,10 +86,31 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine visibility level based on user role
-    // TODO: Add proper user role checking for Finance team
-    // For now, default to FINANCE_ONLY for project owners
-    const userVisibilityLevel =
-      (validatedData.visibilityLevel as CostVisibilityLevel) || "FINANCE_ONLY";
+    // SECURITY: Visibility level is determined server-side based on user role
+    // - ADMIN: Full FINANCE_ONLY access (margins, internal costs)
+    // - MANAGER: PRESALES_AND_FINANCE (rates and NSR only)
+    // - USER: PUBLIC (no cost data)
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    let userVisibilityLevel: CostVisibilityLevel;
+    if (user?.role === "ADMIN") {
+      // Admin can access full finance data including margins
+      userVisibilityLevel = "FINANCE_ONLY";
+    } else if (user?.role === "MANAGER") {
+      // Managers can see rates and NSR but not margins/internal costs
+      userVisibilityLevel = "PRESALES_AND_FINANCE";
+    } else {
+      // Regular users only see basic info
+      userVisibilityLevel = "PUBLIC";
+    }
+
+    // Log access for audit purposes
+    console.log(
+      `[Costing] User ${session.user.id} (role: ${user?.role}) accessing project ${validatedData.projectId} with visibility: ${userVisibilityLevel}`
+    );
 
     // Calculate project costing summary
     const costingSummary = await calculateProjectCostingSummary(
@@ -145,39 +166,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Build response based on visibility level
+    // - PUBLIC: Only basic metadata, no cost data
+    // - PRESALES_AND_FINANCE: Revenue data only
+    // - FINANCE_ONLY: Full access including margins
+    const canSeeRevenue =
+      userVisibilityLevel === "PRESALES_AND_FINANCE" ||
+      userVisibilityLevel === "FINANCE_ONLY";
+    const canSeeMargins = userVisibilityLevel === "FINANCE_ONLY";
+
     return NextResponse.json({
       success: true,
       costing: {
         projectId: costingSummary.projectId,
         versionNumber: costingSummary.versionNumber,
-        grossServiceRevenue: costingSummary.totalGSR,
-        netServiceRevenue: costingSummary.totalNSR,
-        internalCost:
-          userVisibilityLevel === "FINANCE_ONLY"
-            ? costingSummary.totalInternalCost
-            : undefined,
-        subcontractorCost:
-          userVisibilityLevel === "FINANCE_ONLY"
-            ? costingSummary.totalSubcontractorCost
-            : undefined,
-        outOfPocketExpense:
-          userVisibilityLevel === "FINANCE_ONLY"
-            ? costingSummary.totalOPE
-            : undefined,
-        grossMargin:
-          userVisibilityLevel === "FINANCE_ONLY"
-            ? costingSummary.grossMargin
-            : undefined,
-        marginPercentage:
-          userVisibilityLevel === "FINANCE_ONLY"
-            ? costingSummary.marginPercent
-            : undefined,
-        visibilityLevel: costingSummary.visibilityLevel,
+        // Revenue data - visible to PRESALES_AND_FINANCE and FINANCE_ONLY
+        grossServiceRevenue: canSeeRevenue ? costingSummary.totalGSR : undefined,
+        netServiceRevenue: canSeeRevenue ? costingSummary.totalNSR : undefined,
+        // Confidential data - FINANCE_ONLY
+        internalCost: canSeeMargins ? costingSummary.totalInternalCost : undefined,
+        subcontractorCost: canSeeMargins
+          ? costingSummary.totalSubcontractorCost
+          : undefined,
+        outOfPocketExpense: canSeeMargins ? costingSummary.totalOPE : undefined,
+        grossMargin: canSeeMargins ? costingSummary.grossMargin : undefined,
+        marginPercentage: canSeeMargins ? costingSummary.marginPercent : undefined,
+        visibilityLevel: userVisibilityLevel,
       },
-      breakdown: {
-        byRegion: costingSummary.byRegion,
-        byDesignation: costingSummary.byDesignation,
-      },
+      // Breakdown only visible to users who can see revenue
+      breakdown: canSeeRevenue
+        ? {
+            byRegion: costingSummary.byRegion,
+            byDesignation: costingSummary.byDesignation,
+          }
+        : undefined,
       saved: validatedData.saveToDatabase,
       calculatedAt: new Date().toISOString(),
     });
@@ -243,9 +265,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Determine visibility level
-    const userVisibilityLevel =
-      (visibilityLevel as CostVisibilityLevel) || "FINANCE_ONLY";
+    // Determine visibility level based on user role (server-side)
+    // SECURITY: Never trust client-supplied visibility level
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    let userVisibilityLevel: CostVisibilityLevel;
+    if (user?.role === "ADMIN") {
+      userVisibilityLevel = "FINANCE_ONLY";
+    } else if (user?.role === "MANAGER") {
+      userVisibilityLevel = "PRESALES_AND_FINANCE";
+    } else {
+      userVisibilityLevel = "PUBLIC";
+    }
+
+    console.log(
+      `[Costing] GET User ${session.user.id} (role: ${user?.role}) accessing project ${projectId} with visibility: ${userVisibilityLevel}`
+    );
 
     // Fetch costing data
     const costing = await withRetry(() =>
@@ -265,19 +303,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Apply visibility filter
-    const response: any = {
+    // Apply visibility filter based on user role
+    // - PUBLIC: No cost data (only basic metadata)
+    // - PRESALES_AND_FINANCE: Rates and NSR only
+    // - FINANCE_ONLY: Full access including margins and internal costs
+    const response: Record<string, unknown> = {
       id: costing.id,
       projectId: costing.projectId,
-      grossServiceRevenue: Number(costing.grossServiceRevenue),
-      netServiceRevenue: Number(costing.netServiceRevenue),
       baseCurrency: costing.baseCurrency,
       calculatedAt: costing.calculatedAt.toISOString(),
-      calculatedBy: costing.calculatedBy,
       version: costing.version,
     };
 
-    // Add sensitive fields only for FINANCE_ONLY
+    // PRESALES_AND_FINANCE: Add revenue data but not costs/margins
+    if (
+      userVisibilityLevel === "PRESALES_AND_FINANCE" ||
+      userVisibilityLevel === "FINANCE_ONLY"
+    ) {
+      response.grossServiceRevenue = Number(costing.grossServiceRevenue);
+      response.netServiceRevenue = Number(costing.netServiceRevenue);
+      response.calculatedBy = costing.calculatedBy;
+    }
+
+    // FINANCE_ONLY: Add sensitive financial data (costs, margins)
     if (userVisibilityLevel === "FINANCE_ONLY") {
       response.realizationRate = Number(costing.realizationRate);
       response.internalCost = Number(costing.internalCost);
