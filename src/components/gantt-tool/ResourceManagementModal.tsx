@@ -62,6 +62,7 @@ type ViewMode = "matrix" | "timeline" | "hybrid";
 
 interface ResourceAssignment {
   id: string;
+  assignmentId: string; // The actual assignment ID from the store
   resourceId: string;
   phaseId: string;
   phaseName: string;
@@ -89,6 +90,8 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     addResource,
     updateResource,
     deleteResource,
+    unassignResourceFromTask,
+    unassignResourceFromPhase,
   } = useGanttToolStoreV2();
 
   const [viewMode, setViewMode] = useState<ViewMode>("matrix");
@@ -119,6 +122,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
             totalHours += hours;
             assignments.push({
               id: `phase-${phase.id}-${assignment.resourceId}`,
+              assignmentId: assignment.id,
               resourceId: resource.id,
               phaseId: phase.id,
               phaseName: phase.name,
@@ -142,6 +146,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
               totalHours += hours;
               assignments.push({
                 id: `task-${task.id}-${assignment.resourceId}`,
+                assignmentId: assignment.id,
                 resourceId: resource.id,
                 phaseId: phase.id,
                 phaseName: phase.name,
@@ -267,8 +272,11 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     const confirmMsg = `Remove ${assignment.type === "phase" ? "phase" : "task"} assignment?\n\n${assignment.phaseName}${assignment.taskName ? ` → ${assignment.taskName}` : ""}\n${assignment.hours} hours`;
 
     if (confirm(confirmMsg)) {
-      // TODO: Implement removeResourceAssignment in store
-      console.warn("removeResourceAssignment not yet implemented", assignment);
+      if (assignment.type === "phase") {
+        unassignResourceFromPhase(assignment.phaseId, assignment.assignmentId);
+      } else if (assignment.type === "task" && assignment.taskId) {
+        unassignResourceFromTask(assignment.taskId, assignment.phaseId, assignment.assignmentId);
+      }
     }
   };
 
@@ -276,24 +284,21 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
     if (selectedAssignments.size === 0) return;
 
     if (confirm(`Delete ${selectedAssignments.size} selected assignment(s)?`)) {
-      selectedAssignments.forEach((assignmentId) => {
-        // Parse assignmentId: "phase-{phaseId}-{resourceId}" or "task-{taskId}-{resourceId}"
-        const parts = assignmentId.split("-");
-        const type = parts[0];
+      selectedAssignments.forEach((compositeId) => {
+        // Find the assignment in resourceStats by its composite ID
+        let foundAssignment: ResourceAssignment | undefined;
+        resourceStats.forEach((stats) => {
+          const assignment = stats.assignments.find((a) => a.id === compositeId);
+          if (assignment) {
+            foundAssignment = assignment;
+          }
+        });
 
-        if (type === "phase") {
-          const phaseId = parts[1];
-          const resourceId = parts[2];
-          // TODO: Implement removeResourceAssignment in store
-          console.warn("removeResourceAssignment not yet implemented", resourceId, phaseId);
-        } else if (type === "task") {
-          const taskId = parts[1];
-          const resourceId = parts[2];
-          // Find phase containing this task
-          const phase = currentProject?.phases.find((p) => p.tasks.some((t) => t.id === taskId));
-          if (phase) {
-            // TODO: Implement removeResourceAssignment in store
-            console.warn("removeResourceAssignment not yet implemented", resourceId, phase.id, taskId);
+        if (foundAssignment) {
+          if (foundAssignment.type === "phase") {
+            unassignResourceFromPhase(foundAssignment.phaseId, foundAssignment.assignmentId);
+          } else if (foundAssignment.type === "task" && foundAssignment.taskId) {
+            unassignResourceFromTask(foundAssignment.taskId, foundAssignment.phaseId, foundAssignment.assignmentId);
           }
         }
       });
