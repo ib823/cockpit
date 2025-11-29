@@ -49,49 +49,21 @@ export default function RecoveryRequestsPage() {
     setError("");
 
     try {
-      // TODO: Replace with actual API call
-      // For now, using mock data
-      const mockRequests: RecoveryRequest[] = [
-        {
-          id: "1",
-          userId: "user1",
-          user: {
-            email: "john.doe@example.com",
-            name: "John Doe",
-          },
-          reason: "lost_totp",
-          notes: "Lost my phone with authenticator app",
-          status: "pending",
-          submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          approvedBy: null,
-          approvedAt: null,
-          rejectedBy: null,
-          rejectedAt: null,
-          rejectionReason: null,
-        },
-        {
-          id: "2",
-          userId: "user2",
-          user: {
-            email: "jane.smith@example.com",
-            name: "Jane Smith",
-          },
-          reason: "lost_all",
-          notes: "Lost all backup codes and TOTP device",
-          status: "pending",
-          submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          approvedBy: null,
-          approvedAt: null,
-          rejectedBy: null,
-          rejectedAt: null,
-          rejectionReason: null,
-        },
-      ];
+      const response = await fetch("/api/admin/recovery");
+      const data = await response.json();
 
-      setRequests(mockRequests);
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || "Failed to load recovery requests");
+      }
+
+      setRequests(data.requests || []);
     } catch (err: unknown) {
       console.error("[RecoveryRequests] Failed to load:", err);
-      setError("Failed to load recovery requests");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to load recovery requests");
+      }
     } finally {
       setLoading(false);
     }
@@ -105,12 +77,10 @@ export default function RecoveryRequestsPage() {
     setSuccess("");
 
     try {
-      // TODO: Replace with actual API call
       const response = await fetch(`/api/admin/recovery/${selectedRequest.id}/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          adminId: "current-admin-id", // TODO: Get from session
           notes: approvalNotes,
         }),
       });
@@ -125,6 +95,8 @@ export default function RecoveryRequestsPage() {
         `Recovery request approved. User will receive an email with recovery instructions.`
       );
       setShowApproveModal(false);
+      setApprovalNotes("");
+      loadRequests();
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -150,12 +122,10 @@ export default function RecoveryRequestsPage() {
     setSuccess("");
 
     try {
-      // TODO: Replace with actual API call
       const response = await fetch(`/api/admin/recovery/${selectedRequest.id}/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          adminId: "current-admin-id", // TODO: Get from session
           rejectionReason,
           notes: rejectionNotes,
         }),
