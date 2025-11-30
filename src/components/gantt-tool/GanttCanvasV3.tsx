@@ -39,7 +39,7 @@ import { VARIANTS, SPRING, STAGGER, DURATION, getAnimationConfig } from "@/lib/d
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS, SHADOWS } from "@/lib/design-system/tokens";
 import type { GanttPhase, Task as GanttTask } from "@/types/gantt-tool";
 import { calculateWorkingDaysInclusive, calculateCalendarDaysInclusive, formatCalendarDaysAsMonths } from "@/lib/gantt-tool/working-days";
-import { getHolidaysForTimeline } from "@/lib/gantt-tool/holiday-integration";
+import { getUnifiedHolidays } from "@/lib/gantt-tool/holiday-integration";
 import { ResourceIndicator } from "./ResourceIndicator";
 import { ResourceDrawer } from "./ResourceDrawer";
 import { TaskResourceModal } from "./TaskResourceModal";
@@ -646,22 +646,22 @@ export function GanttCanvasV3({
     }
   };
 
-  // CRITICAL FIX: Calculate holidays to display on timeline using unified source
-  // This ensures markers and working days calculations use the SAME holiday data
-  const allHolidays = useMemo(() => {
+  // Fetch raw holiday data (without position calculation - positions depend on extendedDuration)
+  const holidayData = useMemo(() => {
     if (!duration || !currentProject) return [];
 
-    const { startDate, endDate, durationDays } = duration;
+    // Use timelineBounds if available (focused phase view), otherwise use full project duration
+    const bounds = timelineBounds || duration;
+    const { startDate, endDate } = bounds;
 
-    // Use unified holiday source that merges project holidays + regional holidays
-    return getHolidaysForTimeline(
+    // Get unified holidays from hardcoded regional data + project-specific holidays
+    return getUnifiedHolidays(
       startDate,
       endDate,
-      durationDays,
       currentProject.holidays || [],
-      "ABMY" // Can be made configurable per project later
+      "ABMY"
     );
-  }, [duration, currentProject?.holidays]);
+  }, [duration, timelineBounds, currentProject?.holidays]);
 
   // CRITICAL: Calculate extended duration BEFORE any early returns to maintain hooks order
   // This ensures that when timeline markers extend beyond the original timeline (e.g., to end of quarter),
@@ -690,6 +690,29 @@ export function GanttCanvasV3({
 
     return differenceInDays(extendedEnd, start) + 1;
   }, [timelineBounds, duration, effectiveZoomMode]);
+
+  // Calculate holiday positions using extendedDuration for correct alignment with timeline
+  const allHolidays = useMemo(() => {
+    if (!holidayData.length || !extendedDuration || !duration) return [];
+
+    const bounds = timelineBounds || duration;
+    const { startDate } = bounds;
+
+    return holidayData.map(holiday => {
+      const holidayDate = new Date(holiday.date);
+      const dayOfWeek = holidayDate.getDay();
+      const offset = differenceInDays(holidayDate, startDate);
+      const position = (offset / extendedDuration) * 100;
+
+      return {
+        date: holidayDate,
+        name: holiday.name,
+        position,
+        isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+        type: holiday.type,
+      };
+    }).filter(h => h.position >= 0 && h.position <= 100);
+  }, [holidayData, extendedDuration, timelineBounds, duration]);
 
   console.log("[GanttCanvasV3] Render - currentProject:", currentProject?.id, "duration:", duration);
 
@@ -1670,46 +1693,73 @@ export function GanttCanvasV3({
               </div>
 
               {/* Holiday indicators - Separate row below */}
-              <div style={{ height: "20px", position: "relative", borderTop: "1px solid rgba(0, 0, 0, 0.04)" }}>
+              <div style={{ height: "24px", position: "relative", borderTop: "1px solid rgba(0, 0, 0, 0.06)" }}>
                 {allHolidays.map((holiday, idx) => (
                   <div
                     key={idx}
-                    className="absolute top-1/2 -translate-y-1/2 group cursor-help"
-                    style={{ left: `${holiday.position}%`, transform: "translate(-50%, -50%)" }}
+                    className="absolute group cursor-help"
+                    style={{
+                      left: `${holiday.position}%`,
+                      top: 0,
+                      bottom: 0,
+                      transform: "translateX(-50%)",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                     title={`${holiday.name} - ${format(holiday.date, "dd-MMM-yy (EEE)")}${holiday.isWeekend ? " (Weekend)" : ""}`}
                   >
+                    {/* Vertical line indicator */}
+                    <div style={{
+                      position: "absolute",
+                      top: 0,
+                      bottom: 0,
+                      width: "1px",
+                      backgroundColor: holiday.isWeekend
+                        ? "rgba(255, 59, 48, 0.15)"
+                        : "rgba(255, 59, 48, 0.25)",
+                      transition: "all 0.15s ease",
+                    }} />
+                    {/* Dot indicator */}
                     {holiday.isWeekend ? (
                       <div style={{
-                        width: "4px",
-                        height: "4px",
+                        width: "6px",
+                        height: "6px",
                         borderRadius: "50%",
                         backgroundColor: "transparent",
-                        border: "1.5px solid rgba(255, 59, 48, 0.3)",
+                        border: "1.5px solid rgba(255, 59, 48, 0.4)",
                         transition: "all 0.15s ease",
+                        position: "relative",
+                        zIndex: 1,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.1)";
-                        e.currentTarget.style.borderColor = "rgba(255, 59, 48, 0.6)";
+                        e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.2)";
+                        e.currentTarget.style.borderColor = "rgba(255, 59, 48, 0.7)";
+                        e.currentTarget.style.transform = "scale(1.3)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.borderColor = "rgba(255, 59, 48, 0.3)";
+                        e.currentTarget.style.borderColor = "rgba(255, 59, 48, 0.4)";
+                        e.currentTarget.style.transform = "scale(1)";
                       }}
                       />
                     ) : (
                       <div style={{
-                        width: "4px",
-                        height: "4px",
+                        width: "6px",
+                        height: "6px",
                         borderRadius: "50%",
-                        backgroundColor: "rgba(255, 59, 48, 0.4)",
+                        backgroundColor: "rgba(255, 59, 48, 0.6)",
                         transition: "all 0.15s ease",
+                        position: "relative",
+                        zIndex: 1,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.8)";
+                        e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.9)";
                         e.currentTarget.style.transform = "scale(1.3)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.4)";
+                        e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.6)";
                         e.currentTarget.style.transform = "scale(1)";
                       }}
                       />
