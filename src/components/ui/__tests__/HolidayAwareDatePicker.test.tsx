@@ -291,9 +291,11 @@ describe('HolidayAwareDatePicker - Core Date Selection', () => {
     const todayButton = screen.getByText('Today');
     await userEvent.click(todayButton);
 
-    // Should show current month/year
-    const currentYear = new Date().getFullYear();
-    expect(screen.getByText(new RegExp(currentYear.toString()))).toBeInTheDocument();
+    // Clicking Today selects today's date (if it's not disabled) and closes calendar
+    // Verify onChange was called with today's date in ISO format
+    const today = new Date();
+    const expectedIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    expect(mockOnChange).toHaveBeenCalledWith(expectedIso);
   });
 
   it('SCENARIO 14: small size applies correct styles', () => {

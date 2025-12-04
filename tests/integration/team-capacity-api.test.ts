@@ -294,12 +294,24 @@ describe("Team Capacity API Integration Tests", () => {
 
   describe("POST /api/gantt-tool/team-capacity/costing", () => {
     test("should calculate project costing with FINANCE_ONLY visibility", async () => {
+      // ADMIN users get FINANCE_ONLY visibility (full access to margins and internal costs)
+      // Update user role in database to ADMIN (the route queries DB for role, not session)
+      await testPrisma.users.update({
+        where: { id: testUserId },
+        data: { role: "ADMIN" },
+      });
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(createMockSession({
+        userId: testUserId,
+        email: "admin@example.com",
+        role: "ADMIN",
+      }));
+
       const request = createMockRequest({
         url: "http://localhost:3000/api/gantt-tool/team-capacity/costing",
         method: "POST",
         body: {
           projectId: testProjectId,
-          visibilityLevel: "FINANCE_ONLY",
           saveToDatabase: false,
         },
       });
@@ -312,17 +324,29 @@ describe("Team Capacity API Integration Tests", () => {
       expect(body.costing).toBeDefined();
       expect(body.costing.grossServiceRevenue).toBeGreaterThanOrEqual(0);
       expect(body.costing.netServiceRevenue).toBeGreaterThanOrEqual(0);
-      expect(body.costing.internalCost).toBeDefined(); // Finance only
-      expect(body.costing.grossMargin).toBeDefined(); // Finance only
+      expect(body.costing.internalCost).toBeDefined(); // Finance only (ADMIN access)
+      expect(body.costing.grossMargin).toBeDefined(); // Finance only (ADMIN access)
     });
 
     test("should hide sensitive data with PRESALES_AND_FINANCE visibility", async () => {
+      // MANAGER users get PRESALES_AND_FINANCE visibility (revenue only, no margins)
+      // Update user role in database to MANAGER (the route queries DB for role, not session)
+      await testPrisma.users.update({
+        where: { id: testUserId },
+        data: { role: "MANAGER" },
+      });
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(createMockSession({
+        userId: testUserId,
+        email: "manager@example.com",
+        role: "MANAGER",
+      }));
+
       const request = createMockRequest({
         url: "http://localhost:3000/api/gantt-tool/team-capacity/costing",
         method: "POST",
         body: {
           projectId: testProjectId,
-          visibilityLevel: "PRESALES_AND_FINANCE",
           saveToDatabase: false,
         },
       });
@@ -332,8 +356,8 @@ describe("Team Capacity API Integration Tests", () => {
 
       expect(response.status).toBe(200);
       expect(body.costing.netServiceRevenue).toBeDefined();
-      expect(body.costing.internalCost).toBeUndefined(); // Hidden
-      expect(body.costing.grossMargin).toBeUndefined(); // Hidden
+      expect(body.costing.internalCost).toBeUndefined(); // Hidden (MANAGER access)
+      expect(body.costing.grossMargin).toBeUndefined(); // Hidden (MANAGER access)
     });
 
     test("should save costing to database when requested", async () => {
@@ -364,6 +388,18 @@ describe("Team Capacity API Integration Tests", () => {
 
   describe("GET /api/gantt-tool/team-capacity/costing", () => {
     test("should retrieve saved costing data", async () => {
+      // Update user role in database to ADMIN (the route queries DB for role, not session)
+      await testPrisma.users.update({
+        where: { id: testUserId },
+        data: { role: "ADMIN" },
+      });
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(createMockSession({
+        userId: testUserId,
+        email: "admin@example.com",
+        role: "ADMIN",
+      }));
+
       const request = createMockRequest({
         url: `http://localhost:3000/api/gantt-tool/team-capacity/costing?projectId=${testProjectId}`,
         method: "GET",

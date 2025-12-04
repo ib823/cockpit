@@ -11,6 +11,7 @@
 
 "use client";
 
+import React from "react";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import {
   Plus,

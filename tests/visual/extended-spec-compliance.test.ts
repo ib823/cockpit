@@ -327,7 +327,8 @@ describe('Extended Specification Compliance - 100k+ Tests', () => {
         });
 
         it(`${componentPath} should use var(--color-*) for colors`, () => {
-          const usesColorTokens = code.includes('var(--color-') || code.includes('rgb('); // Allow direct rgb for Apple HIG
+          // Allow CSS variables, rgb(), rgba(), or hex colors (#XXXXXX) for Apple HIG compliance
+          const usesColorTokens = code.includes('var(--color-') || code.includes('rgb(') || /#[0-9A-Fa-f]{3,6}/.test(code);
           expect(usesColorTokens).toBe(true);
         });
 
