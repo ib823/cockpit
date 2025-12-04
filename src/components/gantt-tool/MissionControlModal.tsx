@@ -7,6 +7,7 @@
 
 "use client";
 
+import React from "react";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 interface MissionControlModalProps {

@@ -26,6 +26,19 @@ vi.mock("@/lib/gantt-tool/background-sync", () => ({
   processSyncQueue: vi.fn(),
 }));
 
+// Mock focus-trap-react to avoid focus-trap errors in tests
+vi.mock("focus-trap-react", () => ({
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+// Mock framer-motion to simplify testing
+vi.mock("framer-motion", () => ({
+  motion: {
+    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
+}));
+
 // Helper to create proper resource assignment
 function createResourceAssignment(
   resourceId: string,
