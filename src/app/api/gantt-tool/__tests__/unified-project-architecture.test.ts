@@ -34,6 +34,7 @@ vi.mock('@/lib/db', () => {
   const mockDb = {
     ganttProject: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       update: vi.fn(),
     },
     $transaction: vi.fn(),
@@ -41,7 +42,7 @@ vi.mock('@/lib/db', () => {
 
   return {
     db: mockDb,
-    prisma: mockDb, // Auth module imports prisma
+    prisma: mockDb,
   };
 });
 
@@ -72,6 +73,9 @@ describe('Unified Project API - Architecture Fields', () => {
     resources: [],
     budget: null,
     orgChart: null,
+    activeSessions: [],
+    user: { name: 'Test User', email: 'test@example.com' },
+    lastModifier: null,
   };
 
   beforeEach(() => {
@@ -115,13 +119,9 @@ describe('Unified Project API - Architecture Fields', () => {
         lastArchitectureEdit: new Date('2024-01-15'),
       };
 
-      (db.$transaction as any).mockImplementation(async (callback: any) => {
-        return callback({
-          ganttProject: {
-            findUnique: vi.fn().mockResolvedValue(projectWithArchitecture),
-          },
-        });
-      });
+      // Mock findFirst for access check (returns project = user has access)
+      (db.ganttProject.findFirst as any).mockResolvedValue(projectWithArchitecture);
+      // Mock findFirst again for the main query (same mock handles both calls)
 
       const request = new NextRequest(
         `http://localhost:3000/api/gantt-tool/projects/${testProjectId}`,
@@ -129,7 +129,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await GET(request, { params: { projectId: testProjectId } });
+      const response = await GET(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
@@ -155,13 +155,8 @@ describe('Unified Project API - Architecture Fields', () => {
         lastArchitectureEdit: null,
       };
 
-      (db.$transaction as any).mockImplementation(async (callback: any) => {
-        return callback({
-          ganttProject: {
-            findUnique: vi.fn().mockResolvedValue(timelineOnlyProject),
-          },
-        });
-      });
+      // Mock findFirst for access check and main query
+      (db.ganttProject.findFirst as any).mockResolvedValue(timelineOnlyProject);
 
       const request = new NextRequest(
         `http://localhost:3000/api/gantt-tool/projects/${testProjectId}`,
@@ -169,7 +164,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await GET(request, { params: { projectId: testProjectId } });
+      const response = await GET(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
@@ -197,6 +192,11 @@ describe('Unified Project API - Architecture Fields', () => {
         capabilities: [],
       };
 
+      // Mock findFirst for write access check (returns project = has access)
+      (db.ganttProject.findFirst as any).mockResolvedValue(baseProject);
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(baseProject);
+
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
           ganttProject: {
@@ -223,7 +223,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
@@ -242,6 +242,11 @@ describe('Unified Project API - Architecture Fields', () => {
           { id: 'i1', from: 's1', to: 's2', type: 'api', label: 'Payment API' },
         ],
       };
+
+      // Mock findFirst for write access check
+      (db.ganttProject.findFirst as any).mockResolvedValue(baseProject);
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(baseProject);
 
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
@@ -269,7 +274,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
@@ -288,6 +293,11 @@ describe('Unified Project API - Architecture Fields', () => {
           { id: 'f1', from: 'c1', to: 'c2', type: 'http', label: 'REST API' },
         ],
       };
+
+      // Mock findFirst for write access check
+      (db.ganttProject.findFirst as any).mockResolvedValue(baseProject);
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(baseProject);
 
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
@@ -315,7 +325,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
@@ -330,6 +340,11 @@ describe('Unified Project API - Architecture Fields', () => {
         gridVisible: false,
         snapToGrid: false,
       };
+
+      // Mock findFirst for write access check
+      (db.ganttProject.findFirst as any).mockResolvedValue(baseProject);
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(baseProject);
 
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
@@ -357,7 +372,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
@@ -367,6 +382,11 @@ describe('Unified Project API - Architecture Fields', () => {
 
     it('should save architectureVersion field', async () => {
       // Arrange
+      // Mock findFirst for write access check
+      (db.ganttProject.findFirst as any).mockResolvedValue(baseProject);
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(baseProject);
+
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
           ganttProject: {
@@ -393,7 +413,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
@@ -410,6 +430,11 @@ describe('Unified Project API - Architecture Fields', () => {
       };
 
       let capturedUpdateData: any = null;
+
+      // Mock findFirst for write access check
+      (db.ganttProject.findFirst as any).mockResolvedValue(baseProject);
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(baseProject);
 
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
@@ -440,7 +465,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
 
       // Assert
       expect(response.status).toBe(200);
@@ -460,6 +485,11 @@ describe('Unified Project API - Architecture Fields', () => {
         systems: [{ id: 's1', name: 'System', type: 'application', position: { x: 100, y: 100 } }],
         integrations: [],
       };
+
+      // Mock findFirst for write access check
+      (db.ganttProject.findFirst as any).mockResolvedValue(baseProject);
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(baseProject);
 
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
@@ -489,7 +519,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
@@ -518,6 +548,11 @@ describe('Unified Project API - Architecture Fields', () => {
         capabilities: [],
       };
 
+      // Mock findFirst for write access check
+      (db.ganttProject.findFirst as any).mockResolvedValue(projectWithPhases);
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(projectWithPhases);
+
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
           ganttProject: {
@@ -544,7 +579,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
 
       // Assert
       expect(response.status).toBe(200);
@@ -555,6 +590,13 @@ describe('Unified Project API - Architecture Fields', () => {
   describe('Regression: Timeline fields still work', () => {
     it('should save timeline fields (name, description, startDate)', async () => {
       // Arrange
+      // Mock findFirst for write access check and name duplicate check (return null for duplicate check)
+      (db.ganttProject.findFirst as any)
+        .mockResolvedValueOnce(baseProject) // write access check
+        .mockResolvedValueOnce(null); // name duplicate check (no duplicate)
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(baseProject);
+
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
           ganttProject: {
@@ -583,7 +625,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
@@ -605,6 +647,11 @@ describe('Unified Project API - Architecture Fields', () => {
         },
       ];
 
+      // Mock findFirst for write access check
+      (db.ganttProject.findFirst as any).mockResolvedValue(baseProject);
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(baseProject);
+
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
           ganttProject: {
@@ -615,6 +662,19 @@ describe('Unified Project API - Architecture Fields', () => {
               version: 2,
               updatedAt: new Date(),
             }),
+          },
+          ganttPhase: {
+            deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+            createMany: vi.fn().mockResolvedValue({ count: 1 }),
+          },
+          ganttTask: {
+            createMany: vi.fn().mockResolvedValue({ count: 0 }),
+          },
+          ganttTaskResourceAssignment: {
+            createMany: vi.fn().mockResolvedValue({ count: 0 }),
+          },
+          ganttPhaseResourceAssignment: {
+            createMany: vi.fn().mockResolvedValue({ count: 0 }),
           },
         });
       });
@@ -631,7 +691,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
@@ -657,6 +717,11 @@ describe('Unified Project API - Architecture Fields', () => {
         capabilities: [],
       };
 
+      // Mock findFirst for write access check
+      (db.ganttProject.findFirst as any).mockResolvedValue(baseProject);
+      // Mock findUnique for version check
+      (db.ganttProject.findUnique as any).mockResolvedValue(baseProject);
+
       (db.$transaction as any).mockImplementation(async (callback: any) => {
         return callback({
           ganttProject: {
@@ -668,6 +733,19 @@ describe('Unified Project API - Architecture Fields', () => {
               version: 2,
               updatedAt: new Date(),
             }),
+          },
+          ganttPhase: {
+            deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+            createMany: vi.fn().mockResolvedValue({ count: 1 }),
+          },
+          ganttTask: {
+            createMany: vi.fn().mockResolvedValue({ count: 0 }),
+          },
+          ganttTaskResourceAssignment: {
+            createMany: vi.fn().mockResolvedValue({ count: 0 }),
+          },
+          ganttPhaseResourceAssignment: {
+            createMany: vi.fn().mockResolvedValue({ count: 0 }),
           },
         });
       });
@@ -685,7 +763,7 @@ describe('Unified Project API - Architecture Fields', () => {
       );
 
       // Act
-      const response = await PATCH(request, { params: { projectId: testProjectId } });
+      const response = await PATCH(request, { params: Promise.resolve({ projectId: testProjectId }) });
       const data = await response.json();
 
       // Assert
