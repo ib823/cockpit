@@ -4,26 +4,31 @@
  * Apple HIG-compliant tab bar for switching between project views:
  * - Timeline: Gantt chart view
  * - Context: Business context and requirements
- * - Capacity: Team resource allocation (future)
+ * - Capacity: Team resource allocation
+ * - Financials: Cost and revenue analysis (protected)
  *
  * Design principles:
  * - Segmented control style (Apple Calendar/Mail tabs)
  * - Keyboard navigation (Arrow keys, Tab)
  * - WCAG 2.1 compliant
  * - Responsive (stack on mobile)
+ *
+ * SECURITY: Financials tab visibility is controlled by props
+ * based on user permissions (determined server-side)
  */
 
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useMemo } from "react";
 import styles from "./ProjectTabNavigation.module.css";
 
-export type ProjectTab = "timeline" | "context" | "capacity";
+export type ProjectTab = "timeline" | "context" | "capacity" | "financials";
 
 interface ProjectTabNavigationProps {
   activeTab: ProjectTab;
   onTabChange: (tab: ProjectTab) => void;
   disabled?: boolean;
+  showFinancialsTab?: boolean;
 }
 
 interface TabConfig {
@@ -31,9 +36,10 @@ interface TabConfig {
   label: string;
   shortLabel: string; // For mobile
   ariaLabel: string;
+  protected?: boolean; // For protected tabs like Financials
 }
 
-const TABS: TabConfig[] = [
+const BASE_TABS: TabConfig[] = [
   {
     id: "timeline",
     label: "Timeline",
@@ -54,12 +60,30 @@ const TABS: TabConfig[] = [
   },
 ];
 
+const FINANCIALS_TAB: TabConfig = {
+  id: "financials",
+  label: "Financials",
+  shortLabel: "Finance",
+  ariaLabel: "View project financials and cost analysis",
+  protected: true,
+};
+
 export function ProjectTabNavigation({
   activeTab,
   onTabChange,
   disabled = false,
+  showFinancialsTab = false,
 }: ProjectTabNavigationProps) {
   const tabListRef = useRef<HTMLDivElement>(null);
+
+  // Build tabs array based on permissions
+  const TABS = useMemo(() => {
+    const tabs = [...BASE_TABS];
+    if (showFinancialsTab) {
+      tabs.push(FINANCIALS_TAB);
+    }
+    return tabs;
+  }, [showFinancialsTab]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -83,7 +107,7 @@ export function ProjectTabNavigation({
         onTabChange(TABS[TABS.length - 1].id);
       }
     },
-    [activeTab, disabled, onTabChange]
+    [activeTab, disabled, onTabChange, TABS]
   );
 
   useEffect(() => {
@@ -106,6 +130,7 @@ export function ProjectTabNavigation({
       >
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
+          // Only disable capacity tab (for now); financials is controlled by showFinancialsTab prop
           const isDisabled = disabled || (tab.id === "capacity");
 
           return (

@@ -17,11 +17,14 @@ import { ImportModal } from "@/components/gantt-tool/ImportModal";
 import { AddPhaseModal } from "@/components/gantt-tool/AddPhaseModal";
 import { AddTaskModal } from "@/components/gantt-tool/AddTaskModal";
 import { LogoLibraryModal } from "@/components/gantt-tool/LogoLibraryModal";
-import { OrgChartHarmonyV2 } from "@/components/gantt-tool/OrgChartHarmonyV2";
+import { OrgChartPro } from "@/components/gantt-tool/OrgChartPro";
+// ResourceCapacityPanel is now integrated directly into GanttCanvasV3
 import { ViewModeSelector, type ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
 import { ProjectTabNavigation, type ProjectTab } from "@/components/gantt-tool/ProjectTabNavigation";
 import { ProjectContextTab } from "@/components/gantt-tool/ProjectContextTab";
 import { TeamCapacityTab } from "@/components/gantt-tool/TeamCapacityTab";
+import { FinancialsTab } from "@/components/gantt-tool/FinancialsTab";
+import { useFinancialAccess } from "@/hooks/useFinancialAccess";
 import { GlobalNav } from "@/components/navigation/GlobalNav";
 import { Tier2Header } from "@/components/navigation/Tier2Header";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
@@ -67,6 +70,10 @@ export default function GanttToolV3Page() {
   const [resourcePanelLayout, setResourcePanelLayout] = useState<'sidebar' | 'bottom'>('sidebar'); // User preference
   const [resourcePanelView, setResourcePanelView] = useState<'category' | 'orgchart'>('orgchart'); // View mode - always org chart
   const [activeTab, setActiveTab] = useState<ProjectTab>('timeline'); // Project view tabs
+  const [isCapacityPanelExpanded, setIsCapacityPanelExpanded] = useState(false); // Capacity panel below Gantt
+
+  // Financial access check - determines if Financials tab should be shown
+  const { hasAccess: hasFinancialAccess, isLoading: isFinancialAccessLoading } = useFinancialAccess(currentProject?.id);
 
   // Milestone modal state
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
@@ -530,6 +537,7 @@ export default function GanttToolV3Page() {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             disabled={!currentProject}
+            showFinancialsTab={hasFinancialAccess && !isFinancialAccessLoading}
           />
         )}
 
@@ -544,12 +552,14 @@ export default function GanttToolV3Page() {
           minHeight: 0, // Flexbox fix for scroll containers
         }}
       >
-        {/* Timeline View */}
-        <div className="flex-1" style={{ minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        {/* Timeline View - GanttCanvasV3 handles everything including resource capacity */}
+        <div className="flex-1" style={{ minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
           <GanttCanvasV3
             zoomMode={activeZoomMode}
             showMilestoneModal={showMilestoneModal}
             onShowMilestoneModalChange={setShowMilestoneModal}
+            showResourceCapacity={isCapacityPanelExpanded}
+            onToggleResourceCapacity={() => setIsCapacityPanelExpanded(!isCapacityPanelExpanded)}
           />
         </div>
 
@@ -959,6 +969,13 @@ export default function GanttToolV3Page() {
         </div>
       )}
 
+      {/* Financials Tab View - Protected, only shown for authorized users */}
+      {activeTab === 'financials' && currentProject && hasFinancialAccess && (
+        <div className="flex-1 overflow-auto bg-gray-50">
+          <FinancialsTab project={currentProject} />
+        </div>
+      )}
+
       </div> {/* End h-screen container */}
 
       {/* Global Styles */}
@@ -1194,9 +1211,13 @@ export default function GanttToolV3Page() {
 
       {/* Org Chart Builder Modal - Apple UX: Instant access, no page navigation */}
       {showOrgChartModal && currentProject && (
-        <OrgChartHarmonyV2
+        <OrgChartPro
           onClose={() => setShowOrgChartModal(false)}
           project={currentProject}
+          onOpenLogoLibrary={() => {
+            setShowOrgChartModal(false);
+            setShowLogoLibrary(true);
+          }}
         />
       )}
     </>
