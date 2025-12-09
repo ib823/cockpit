@@ -53,14 +53,17 @@ if (!globalForChallenges.__challenges) {
 const mem = globalForChallenges.__challenges;
 const ttlSec = 600; // 10 minutes - enough time for user to complete passkey prompt
 
+// App-specific prefix to allow sharing Redis across multiple apps
+const APP_PREFIX = process.env.REDIS_KEY_PREFIX || "cockpit";
+
 export const challenges = {
   async set(key: string, val: string) {
-    const k = `chal:${key}`;
+    const k = `${APP_PREFIX}:chal:${key}`;
     if (redis) return void (await redis.set(k, val, { ex: ttlSec }));
     mem.set(k, { v: val, exp: Date.now() + ttlSec * 1000 });
   },
   async get(key: string) {
-    const k = `chal:${key}`;
+    const k = `${APP_PREFIX}:chal:${key}`;
     if (redis) return (await redis.get<string>(k)) ?? null;
     const entry = mem.get(k);
     if (!entry) return null;
@@ -71,7 +74,7 @@ export const challenges = {
     return entry.v;
   },
   async del(key: string) {
-    const k = `chal:${key}`;
+    const k = `${APP_PREFIX}:chal:${key}`;
     if (redis) return void (await redis.del(k));
     mem.delete(k);
   },
