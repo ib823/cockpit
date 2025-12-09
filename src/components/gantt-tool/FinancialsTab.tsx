@@ -26,9 +26,11 @@ import {
   BarChart3,
   PieChart,
   Calculator,
+  Settings,
 } from "lucide-react";
 import type { GanttProject } from "@/types/gantt-tool";
 import { CostVisibilityLevel } from "@prisma/client";
+import { CostingConfigModal } from "./CostingConfigModal";
 
 // Design tokens - Apple HIG compliant
 const TOKENS = {
@@ -126,7 +128,12 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
   const [costingData, setCostingData] = useState<CostingData | null>(null);
   const [breakdownData, setBreakdownData] = useState<BreakdownData | null>(null);
   const [isRecalculating, setIsRecalculating] = useState(false);
-  const [visibilityLevel, setVisibilityLevel] = useState<CostVisibilityLevel>("PUBLIC");
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  // Default to FINANCE_ONLY for dev - actual access is enforced server-side
+  // The tab is only rendered if user has financial access (checked in parent)
+  const [visibilityLevel, setVisibilityLevel] = useState<CostVisibilityLevel>(
+    process.env.NEXT_PUBLIC_DEV_ENABLE_FINANCIALS === "true" ? "FINANCE_ONLY" : "PUBLIC"
+  );
 
   // Fetch costing data
   const fetchCostingData = useCallback(async () => {
@@ -196,6 +203,12 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        // Don't set visibility to PUBLIC for non-permission errors
+        // This prevents showing "Access Restricted" for config/data issues
+        if (response.status !== 403) {
+          // Keep current visibility level, just show the error
+          throw new Error(errorData.error || "Failed to calculate costing");
+        }
         throw new Error(errorData.error || "Failed to calculate costing");
       }
 
@@ -297,8 +310,10 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
     );
   }
 
-  // Error state (no access)
-  if (error && visibilityLevel === "PUBLIC") {
+  // Error state (no access) - only show for actual permission errors (403)
+  // For other errors (like missing config), show a different message
+  const isPermissionError = error?.includes("permission") || error?.includes("403");
+  if (error && visibilityLevel === "PUBLIC" && isPermissionError) {
     return (
       <div
         style={{
@@ -487,32 +502,59 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
             </p>
           </div>
 
-          {/* Recalculate button */}
-          <button
-            onClick={recalculateCosting}
-            disabled={isRecalculating}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: TOKENS.spacing.xs,
-              padding: `${TOKENS.spacing.sm} ${TOKENS.spacing.md}`,
-              backgroundColor: "transparent",
-              color: TOKENS.colors.blue,
-              border: `1px solid ${TOKENS.colors.blue}`,
-              borderRadius: TOKENS.radius.md,
-              fontSize: TOKENS.typography.fontSize.sm,
-              fontWeight: TOKENS.typography.fontWeight.medium,
-              cursor: isRecalculating ? "wait" : "pointer",
-              opacity: isRecalculating ? 0.7 : 1,
-              transition: "all 0.15s ease",
-            }}
-          >
-            <RefreshCw
-              size={14}
-              style={{ animation: isRecalculating ? "spin 1s linear infinite" : "none" }}
-            />
-            {isRecalculating ? "Recalculating..." : "Recalculate"}
-          </button>
+          {/* Action buttons */}
+          <div style={{ display: "flex", alignItems: "center", gap: TOKENS.spacing.sm }}>
+            {/* Settings button - Finance only */}
+            {canSeeMargins && (
+              <button
+                onClick={() => setIsConfigModalOpen(true)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: TOKENS.spacing.xs,
+                  padding: `${TOKENS.spacing.sm} ${TOKENS.spacing.md}`,
+                  backgroundColor: "transparent",
+                  color: TOKENS.colors.text.secondary,
+                  border: `1px solid ${TOKENS.colors.border}`,
+                  borderRadius: TOKENS.radius.md,
+                  fontSize: TOKENS.typography.fontSize.sm,
+                  fontWeight: TOKENS.typography.fontWeight.medium,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <Settings size={14} />
+                Config
+              </button>
+            )}
+
+            {/* Recalculate button */}
+            <button
+              onClick={recalculateCosting}
+              disabled={isRecalculating}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: TOKENS.spacing.xs,
+                padding: `${TOKENS.spacing.sm} ${TOKENS.spacing.md}`,
+                backgroundColor: "transparent",
+                color: TOKENS.colors.blue,
+                border: `1px solid ${TOKENS.colors.blue}`,
+                borderRadius: TOKENS.radius.md,
+                fontSize: TOKENS.typography.fontSize.sm,
+                fontWeight: TOKENS.typography.fontWeight.medium,
+                cursor: isRecalculating ? "wait" : "pointer",
+                opacity: isRecalculating ? 0.7 : 1,
+                transition: "all 0.15s ease",
+              }}
+            >
+              <RefreshCw
+                size={14}
+                style={{ animation: isRecalculating ? "spin 1s linear infinite" : "none" }}
+              />
+              {isRecalculating ? "Recalculating..." : "Recalculate"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1027,6 +1069,18 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
           </div>
         </div>
       </div>
+
+      {/* Costing Configuration Modal */}
+      <CostingConfigModal
+        isOpen={isConfigModalOpen}
+        onClose={() => setIsConfigModalOpen(false)}
+        projectId={project.id}
+        projectName={project.name}
+        onSave={() => {
+          // Trigger recalculation after config changes
+          recalculateCosting();
+        }}
+      />
     </div>
   );
 }

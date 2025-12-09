@@ -872,13 +872,33 @@ export async function DELETE(
 
     const { projectId } = await params;
 
-    // Check ownership - only owner can delete
+    // Check if user is ADMIN (can delete any project)
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+    const isAdmin = user?.role === "ADMIN";
+
+    // Check ownership - only owner or ADMIN can delete
     const hasOwnership = await checkProjectOwnership(projectId, session.user.id);
-    if (!hasOwnership) {
+    if (!isAdmin && !hasOwnership) {
       return NextResponse.json(
-        { error: "Only the project owner can delete the project" },
+        { error: "Only the project owner or admin can delete the project" },
         { status: 403 }
       );
+    }
+
+    // Verify project exists for ADMIN delete
+    if (isAdmin && !hasOwnership) {
+      const projectExists = await prisma.ganttProject.findFirst({
+        where: { id: projectId, deletedAt: null },
+      });
+      if (!projectExists) {
+        return NextResponse.json(
+          { error: "Project not found" },
+          { status: 404 }
+        );
+      }
     }
 
     // Soft delete

@@ -13,11 +13,18 @@
  * - PUBLIC: No financial access (tab not shown)
  * - PRESALES_AND_FINANCE: Revenue only (GSR, NSR)
  * - FINANCE_ONLY: Full access (margins, costs)
+ *
+ * DEV/TEST:
+ * - Set NEXT_PUBLIC_DEV_ENABLE_FINANCIALS=true to show tab in development
+ * - Server-side authorization still applies - data may be restricted
  */
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { CostVisibilityLevel } from "@prisma/client";
+
+// Dev override for testing - only affects UI visibility, not server auth
+const DEV_ENABLE_FINANCIALS = process.env.NEXT_PUBLIC_DEV_ENABLE_FINANCIALS === "true";
 
 interface FinancialAccessResult {
   hasAccess: boolean;
@@ -98,14 +105,17 @@ export function useFinancialAccess(projectId: string | undefined): FinancialAcce
     checkAccess();
   }, [checkAccess]);
 
-  const hasAccess = visibilityLevel !== "PUBLIC";
+  // Dev override shows tab but actual data access is still server-controlled
+  const hasAccess = DEV_ENABLE_FINANCIALS || visibilityLevel !== "PUBLIC";
   const canSeeRevenue =
-    visibilityLevel === "PRESALES_AND_FINANCE" || visibilityLevel === "FINANCE_ONLY";
-  const canSeeMargins = visibilityLevel === "FINANCE_ONLY";
+    DEV_ENABLE_FINANCIALS || visibilityLevel === "PRESALES_AND_FINANCE" || visibilityLevel === "FINANCE_ONLY";
+  const canSeeMargins = DEV_ENABLE_FINANCIALS || visibilityLevel === "FINANCE_ONLY";
 
   return {
     hasAccess,
-    visibilityLevel,
+    visibilityLevel: DEV_ENABLE_FINANCIALS && visibilityLevel === "PUBLIC"
+      ? "FINANCE_ONLY"
+      : visibilityLevel,
     isLoading: isLoading || status === "loading",
     canSeeRevenue,
     canSeeMargins,

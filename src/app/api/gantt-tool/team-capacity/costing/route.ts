@@ -68,14 +68,21 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = CalculateCostingRequestSchema.parse(body);
 
-    // Check project access (OWNER required for costing data)
-    const hasAccess = await hasAnyProjectRole(
+    // Determine user role first (needed for access check)
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    // Check project access (OWNER required, but ADMIN bypasses)
+    const isAdmin = user?.role === "ADMIN";
+    const hasProjectOwnership = await hasAnyProjectRole(
       validatedData.projectId,
       session.user.id,
       ["OWNER"]
     );
 
-    if (!hasAccess) {
+    if (!isAdmin && !hasProjectOwnership) {
       return NextResponse.json(
         {
           error:
@@ -90,13 +97,8 @@ export async function POST(request: NextRequest) {
     // - ADMIN: Full FINANCE_ONLY access (margins, internal costs)
     // - MANAGER: PRESALES_AND_FINANCE (rates and NSR only)
     // - USER: PUBLIC (no cost data)
-    const user = await prisma.users.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    });
-
     let userVisibilityLevel: CostVisibilityLevel;
-    if (user?.role === "ADMIN") {
+    if (isAdmin) {
       // Admin can access full finance data including margins
       userVisibilityLevel = "FINANCE_ONLY";
     } else if (user?.role === "MANAGER") {
@@ -250,12 +252,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check project access (OWNER required for costing data)
-    const hasAccess = await hasAnyProjectRole(projectId, session.user.id, [
+    // Determine user role first (needed for access check)
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    // Check project access (OWNER required, but ADMIN bypasses)
+    const isAdmin = user?.role === "ADMIN";
+    const hasProjectOwnership = await hasAnyProjectRole(projectId, session.user.id, [
       "OWNER",
     ]);
 
-    if (!hasAccess) {
+    if (!isAdmin && !hasProjectOwnership) {
       return NextResponse.json(
         {
           error:
@@ -267,13 +276,8 @@ export async function GET(request: NextRequest) {
 
     // Determine visibility level based on user role (server-side)
     // SECURITY: Never trust client-supplied visibility level
-    const user = await prisma.users.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    });
-
     let userVisibilityLevel: CostVisibilityLevel;
-    if (user?.role === "ADMIN") {
+    if (isAdmin) {
       userVisibilityLevel = "FINANCE_ONLY";
     } else if (user?.role === "MANAGER") {
       userVisibilityLevel = "PRESALES_AND_FINANCE";

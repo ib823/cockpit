@@ -51,6 +51,8 @@ interface ResourceEditModalProps {
   defaultManagerId?: string | null;
   mode: "add" | "edit";
   onOpenLogoLibrary?: () => void;
+  /** Controls visibility of Advanced Options (billing rates, etc.) - requires financial access */
+  showAdvancedOptions?: boolean;
 }
 
 interface FormErrors {
@@ -67,6 +69,7 @@ export function ResourceEditModal({
   defaultManagerId,
   mode,
   onOpenLogoLibrary,
+  showAdvancedOptions = false,
 }: ResourceEditModalProps) {
   const firstInputRef = useRef<HTMLInputElement>(null);
   const {
@@ -829,50 +832,52 @@ export function ResourceEditModal({
               />
             </FieldGroup>
 
-            {/* Advanced Options Toggle */}
-            <button
-              type="button"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                marginBottom: 16,
-                borderRadius: 8,
-                border: `1px solid ${TOKENS.colors.border.default}`,
-                backgroundColor: TOKENS.colors.bg.secondary,
-                fontFamily: TOKENS.typography.family,
-                fontSize: TOKENS.typography.size.sm,
-                fontWeight: TOKENS.typography.weight.medium,
-                color: TOKENS.colors.text.primary,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <span>Advanced Options</span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                style={{
-                  transform: showAdvanced ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 200ms ease",
-                }}
-              >
-                <path
-                  d="M3 4.5L6 7.5L9 4.5"
-                  stroke={TOKENS.colors.text.secondary}
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-              </svg>
-            </button>
+            {/* Advanced Options Toggle - Only shown to users with financial access */}
+            {showAdvancedOptions && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    marginBottom: 16,
+                    borderRadius: 8,
+                    border: `1px solid ${TOKENS.colors.border.default}`,
+                    backgroundColor: TOKENS.colors.bg.secondary,
+                    fontFamily: TOKENS.typography.family,
+                    fontSize: TOKENS.typography.size.sm,
+                    fontWeight: TOKENS.typography.weight.medium,
+                    color: TOKENS.colors.text.primary,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <span>Advanced Options</span>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    style={{
+                      transform: showAdvanced ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 200ms ease",
+                    }}
+                  >
+                    <path
+                      d="M3 4.5L6 7.5L9 4.5"
+                      stroke={TOKENS.colors.text.secondary}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                    />
+                  </svg>
+                </button>
 
-            {/* Advanced Options */}
-            <AnimatePresence>
+                {/* Advanced Options */}
+                <AnimatePresence>
               {showAdvanced && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
@@ -1108,7 +1113,9 @@ export function ResourceEditModal({
                   </div>
                 </motion.div>
               )}
-            </AnimatePresence>
+                </AnimatePresence>
+              </>
+            )}
               </>
             )}
           </div>

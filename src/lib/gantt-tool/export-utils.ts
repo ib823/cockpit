@@ -7,6 +7,7 @@
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import ExcelJS from "exceljs";
+import PptxGenJS from "pptxgenjs";
 import type { GanttProject } from "@/types/gantt-tool";
 import { format, differenceInDays } from "date-fns";
 import { formatGanttDateLong, formatWorkingDays } from "./date-utils";
@@ -1577,6 +1578,130 @@ export async function exportOrgChartToPDF(
     console.error("Failed to export org chart to PDF:", error);
     alert(
       `Failed to export org chart to PDF: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
+}
+
+/**
+ * Export organization chart to PowerPoint
+ * Creates a single-slide presentation with the org chart as an image
+ */
+export async function exportOrgChartToPPT(
+  projectName: string,
+  elementId: string = "org-chart-container"
+): Promise<void> {
+  const loadingDiv = showLoadingIndicator("Exporting Organization Chart to PowerPoint...");
+
+  try {
+    const orgChartElement = document.getElementById(elementId);
+    if (!orgChartElement) {
+      throw new Error("Organization chart not found");
+    }
+
+    // Clone the element for export
+    const clone = orgChartElement.cloneNode(true) as HTMLElement;
+    clone.id = "org-chart-export-clone";
+
+    // Position off-screen and prepare for export
+    clone.style.position = "absolute";
+    clone.style.left = "-9999px";
+    clone.style.top = "0";
+    clone.style.backgroundColor = "#ffffff";
+    clone.style.padding = "40px";
+
+    document.body.appendChild(clone);
+
+    // Hide buttons and interactive elements
+    const buttons = clone.querySelectorAll("button");
+    buttons.forEach((btn) => (btn.style.display = "none"));
+
+    // Wait for rendering
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Capture with html2canvas at high resolution
+    const canvas = await html2canvas(clone, {
+      backgroundColor: "#ffffff",
+      scale: 3,
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+    });
+
+    // Cleanup clone
+    document.body.removeChild(clone);
+
+    // Create PowerPoint presentation
+    const pptx = new PptxGenJS();
+    pptx.author = "Gantt Chart Tool";
+    pptx.title = `${projectName} - Organization Chart`;
+    pptx.subject = "Organization Structure";
+
+    // Use widescreen 16:9 layout
+    pptx.defineLayout({ name: "LAYOUT_WIDE", width: 13.333, height: 7.5 });
+    pptx.layout = "LAYOUT_WIDE";
+
+    // Add a slide with the org chart image
+    const slide = pptx.addSlide();
+
+    // Add title
+    slide.addText(`${projectName} - Organization Chart`, {
+      x: 0.5,
+      y: 0.3,
+      w: "90%",
+      h: 0.5,
+      fontSize: 24,
+      fontFace: "Arial",
+      color: "1a1a1a",
+      bold: true,
+    });
+
+    // Convert canvas to base64 image
+    const imgData = canvas.toDataURL("image/png");
+
+    // Calculate dimensions to fit the slide while maintaining aspect ratio
+    const maxWidth = 12.333; // inches (slide width minus margins)
+    const maxHeight = 6.2; // inches (slide height minus title and margins)
+    const aspectRatio = canvas.width / canvas.height;
+
+    let imgWidth = maxWidth;
+    let imgHeight = imgWidth / aspectRatio;
+
+    if (imgHeight > maxHeight) {
+      imgHeight = maxHeight;
+      imgWidth = imgHeight * aspectRatio;
+    }
+
+    // Center the image horizontally
+    const xPos = (13.333 - imgWidth) / 2;
+
+    // Add the org chart image
+    slide.addImage({
+      data: imgData,
+      x: xPos,
+      y: 1.0,
+      w: imgWidth,
+      h: imgHeight,
+    });
+
+    // Add footer with date
+    slide.addText(`Generated: ${format(new Date(), "MMMM d, yyyy")}`, {
+      x: 0.5,
+      y: 7.1,
+      w: "90%",
+      h: 0.3,
+      fontSize: 10,
+      fontFace: "Arial",
+      color: "666666",
+    });
+
+    // Save the presentation
+    await pptx.writeFile({ fileName: `${sanitizeFilename(projectName)}-org-chart.pptx` });
+    hideLoadingIndicator(loadingDiv);
+  } catch (error) {
+    hideLoadingIndicator(loadingDiv);
+    console.error("Failed to export org chart to PowerPoint:", error);
+    alert(
+      `Failed to export org chart to PowerPoint: ${error instanceof Error ? error.message : "Unknown error"}`
     );
   }
 }

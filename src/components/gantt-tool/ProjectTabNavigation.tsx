@@ -4,7 +4,6 @@
  * Apple HIG-compliant tab bar for switching between project views:
  * - Timeline: Gantt chart view
  * - Context: Business context and requirements
- * - Capacity: Team resource allocation
  * - Financials: Cost and revenue analysis (protected)
  *
  * Design principles:
@@ -22,7 +21,7 @@
 import { useCallback, useEffect, useRef, useMemo } from "react";
 import styles from "./ProjectTabNavigation.module.css";
 
-export type ProjectTab = "timeline" | "context" | "capacity" | "financials";
+export type ProjectTab = "timeline" | "context" | "financials";
 
 interface ProjectTabNavigationProps {
   activeTab: ProjectTab;
@@ -51,12 +50,6 @@ const BASE_TABS: TabConfig[] = [
     label: "Context",
     shortLabel: "Context",
     ariaLabel: "Edit project context and requirements",
-  },
-  {
-    id: "capacity",
-    label: "Team Capacity",
-    shortLabel: "Capacity",
-    ariaLabel: "Manage team resource allocation",
   },
 ];
 
@@ -130,8 +123,7 @@ export function ProjectTabNavigation({
       >
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
-          // Only disable capacity tab (for now); financials is controlled by showFinancialsTab prop
-          const isDisabled = disabled || (tab.id === "capacity");
+          const isDisabled = disabled;
 
           return (
             <button

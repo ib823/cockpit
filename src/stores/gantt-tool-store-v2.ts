@@ -857,7 +857,24 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         });
 
         if (!response.ok) {
-          throw new Error("Failed to delete project");
+          // Parse error response for better error messages
+          let errorMessage = "Failed to delete project";
+          try {
+            const errorData = await response.json();
+            if (errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch {
+            // If JSON parsing fails, use status-based messages
+            if (response.status === 401) {
+              errorMessage = "Session expired. Please log in again.";
+            } else if (response.status === 403) {
+              errorMessage = "You don't have permission to delete this project.";
+            } else if (response.status === 404) {
+              errorMessage = "Project not found. It may have been already deleted.";
+            }
+          }
+          throw new Error(errorMessage);
         }
 
         set((state) => {

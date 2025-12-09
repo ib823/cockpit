@@ -18,11 +18,11 @@ import { AddPhaseModal } from "@/components/gantt-tool/AddPhaseModal";
 import { AddTaskModal } from "@/components/gantt-tool/AddTaskModal";
 import { LogoLibraryModal } from "@/components/gantt-tool/LogoLibraryModal";
 import { OrgChartPro } from "@/components/gantt-tool/OrgChartPro";
+import { ResourceDashboardModal } from "@/components/gantt-tool/ResourceDashboardModal";
 // ResourceCapacityPanel is now integrated directly into GanttCanvasV3
 import { ViewModeSelector, type ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
 import { ProjectTabNavigation, type ProjectTab } from "@/components/gantt-tool/ProjectTabNavigation";
 import { ProjectContextTab } from "@/components/gantt-tool/ProjectContextTab";
-import { TeamCapacityTab } from "@/components/gantt-tool/TeamCapacityTab";
 import { FinancialsTab } from "@/components/gantt-tool/FinancialsTab";
 import { useFinancialAccess } from "@/hooks/useFinancialAccess";
 import { GlobalNav } from "@/components/navigation/GlobalNav";
@@ -77,6 +77,9 @@ export default function GanttToolV3Page() {
 
   // Milestone modal state
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+
+  // Resource Dashboard modal state
+  const [showResourceDashboard, setShowResourceDashboard] = useState(false);
 
   // Selection state for resources, phases, and tasks
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
@@ -235,10 +238,16 @@ export default function GanttToolV3Page() {
 
   // Handle project deletion
   const handleDeleteProject = async (projectId: string) => {
-    await deleteProject(projectId);
-    // If the deleted project was the current one, unload it
-    if (currentProject?.id === projectId) {
-      unloadCurrentProject();
+    try {
+      await deleteProject(projectId);
+      // If the deleted project was the current one, unload it
+      if (currentProject?.id === projectId) {
+        unloadCurrentProject();
+      }
+    } catch (error) {
+      // Error is already stored in syncError state by the store
+      // The error will be displayed via the syncStatus in the header
+      console.error('[GanttTool] Failed to delete project:', error);
     }
   };
 
@@ -560,6 +569,7 @@ export default function GanttToolV3Page() {
             onShowMilestoneModalChange={setShowMilestoneModal}
             showResourceCapacity={isCapacityPanelExpanded}
             onToggleResourceCapacity={() => setIsCapacityPanelExpanded(!isCapacityPanelExpanded)}
+            hasFinancialAccess={hasFinancialAccess}
           />
         </div>
 
@@ -890,7 +900,7 @@ export default function GanttToolV3Page() {
                         </button>
 
                         <button
-                          onClick={() => alert("Resource Dashboard coming soon: Professional analytics including utilization, capacity planning, skill matrix, cost analysis, and workload distribution.")}
+                          onClick={() => setShowResourceDashboard(true)}
                           style={{
                             padding: "16px 20px",
                             backgroundColor: "#FFFFFF",
@@ -959,13 +969,6 @@ export default function GanttToolV3Page() {
             }}
             onNavigateToTimeline={() => setActiveTab('timeline')}
           />
-        </div>
-      )}
-
-      {/* Team Capacity Tab View */}
-      {activeTab === 'capacity' && currentProject && (
-        <div className="flex-1 overflow-auto bg-white">
-          <TeamCapacityTab project={currentProject} />
         </div>
       )}
 
@@ -1218,8 +1221,16 @@ export default function GanttToolV3Page() {
             setShowOrgChartModal(false);
             setShowLogoLibrary(true);
           }}
+          hasFinancialAccess={hasFinancialAccess}
         />
       )}
+
+      {/* Resource Dashboard Modal - Analytics and insights */}
+      <ResourceDashboardModal
+        isOpen={showResourceDashboard}
+        onClose={() => setShowResourceDashboard(false)}
+        projectName={currentProject?.name}
+      />
     </>
   );
 }

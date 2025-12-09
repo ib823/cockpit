@@ -162,34 +162,25 @@ function calculateDuration(
 
 /**
  * Calculate team metrics
+ *
+ * POLICY: Uses canonical resource count from project.resources array
+ * This ensures consistency with Resource Capacity panel and Org Chart Builder
  */
 function calculateTeamMetrics(project: GanttProject) {
-  const allResourceIds = new Set<string>();
   const categoryCount: Record<string, number> = {};
 
-  // Collect all unique resource IDs from phase and task assignments
-  project.phases?.forEach(phase => {
-    phase.phaseResourceAssignments?.forEach(assignment => {
-      allResourceIds.add(assignment.resourceId);
-    });
-
-    phase.tasks?.forEach(task => {
-      task.resourceAssignments?.forEach(assignment => {
-        allResourceIds.add(assignment.resourceId);
-      });
-    });
-  });
+  // Use canonical resource count - ALL resources in the project
+  // This matches the count shown in Resource Capacity panel and Org Chart Builder
+  const resources = project.resources || [];
 
   // Count by category
-  const resources = project.resources || [];
-  allResourceIds.forEach(id => {
-    const resource = resources.find(r => r.id === id);
+  resources.forEach(resource => {
     if (resource?.category) {
       categoryCount[resource.category] = (categoryCount[resource.category] || 0) + 1;
     }
   });
 
-  const teamSize = allResourceIds.size;
+  const teamSize = resources.length;
   const teamDisplay = teamSize === 0
     ? "No team"
     : teamSize === 1

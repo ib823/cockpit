@@ -410,20 +410,32 @@ const ConnectionAnchors = memo(function ConnectionAnchors({
   isConnectionSource,
   onAnchorClick,
 }: ConnectionAnchorsProps) {
-  const anchorBaseStyle: React.CSSProperties = {
-    position: "absolute",
+  // Visual circle style (12px visible)
+  const anchorVisualStyle: React.CSSProperties = {
     width: 12,
     height: 12,
     borderRadius: "50%",
     backgroundColor: isConnectionSource ? TOKENS.colors.accent.blue : TOKENS.colors.bg.primary,
     border: `2px solid ${TOKENS.colors.accent.blue}`,
-    cursor: "crosshair",
-    zIndex: 10,
     transition: "transform 100ms ease, background-color 100ms ease",
+    pointerEvents: "none", // Let parent handle clicks
   };
 
-  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>, transform: string) => {
-    (e.target as HTMLDivElement).style.transform = transform;
+  // Touch-friendly hit area wrapper (44px minimum touch target)
+  const anchorTouchStyle: React.CSSProperties = {
+    position: "absolute",
+    width: 44,
+    height: 44,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "crosshair",
+    zIndex: 10,
+  };
+
+  const handleHover = (e: React.MouseEvent<HTMLDivElement>, scale: number) => {
+    const visual = e.currentTarget.querySelector("div") as HTMLDivElement;
+    if (visual) visual.style.transform = `scale(${scale})`;
   };
 
   return (
@@ -431,31 +443,43 @@ const ConnectionAnchors = memo(function ConnectionAnchors({
       {/* Top anchor */}
       <div
         onClick={(e) => { e.stopPropagation(); onAnchorClick(nodeId, "top"); }}
-        style={{ ...anchorBaseStyle, top: -6, left: "50%", transform: "translateX(-50%)" }}
-        onMouseEnter={(e) => handleMouseEnter(e, "translateX(-50%) scale(1.3)")}
-        onMouseLeave={(e) => handleMouseEnter(e, "translateX(-50%) scale(1)")}
-      />
+        style={{ ...anchorTouchStyle, top: -22, left: "50%", transform: "translateX(-50%)" }}
+        onMouseEnter={(e) => handleHover(e, 1.3)}
+        onMouseLeave={(e) => handleHover(e, 1)}
+        aria-label="Connect from top"
+      >
+        <div style={anchorVisualStyle} />
+      </div>
       {/* Bottom anchor */}
       <div
         onClick={(e) => { e.stopPropagation(); onAnchorClick(nodeId, "bottom"); }}
-        style={{ ...anchorBaseStyle, bottom: -6, left: "50%", transform: "translateX(-50%)" }}
-        onMouseEnter={(e) => handleMouseEnter(e, "translateX(-50%) scale(1.3)")}
-        onMouseLeave={(e) => handleMouseEnter(e, "translateX(-50%) scale(1)")}
-      />
+        style={{ ...anchorTouchStyle, bottom: -22, left: "50%", transform: "translateX(-50%)" }}
+        onMouseEnter={(e) => handleHover(e, 1.3)}
+        onMouseLeave={(e) => handleHover(e, 1)}
+        aria-label="Connect from bottom"
+      >
+        <div style={anchorVisualStyle} />
+      </div>
       {/* Left anchor */}
       <div
         onClick={(e) => { e.stopPropagation(); onAnchorClick(nodeId, "left"); }}
-        style={{ ...anchorBaseStyle, left: -6, top: "50%", transform: "translateY(-50%)" }}
-        onMouseEnter={(e) => handleMouseEnter(e, "translateY(-50%) scale(1.3)")}
-        onMouseLeave={(e) => handleMouseEnter(e, "translateY(-50%) scale(1)")}
-      />
+        style={{ ...anchorTouchStyle, left: -22, top: "50%", transform: "translateY(-50%)" }}
+        onMouseEnter={(e) => handleHover(e, 1.3)}
+        onMouseLeave={(e) => handleHover(e, 1)}
+        aria-label="Connect from left"
+      >
+        <div style={anchorVisualStyle} />
+      </div>
       {/* Right anchor */}
       <div
         onClick={(e) => { e.stopPropagation(); onAnchorClick(nodeId, "right"); }}
-        style={{ ...anchorBaseStyle, right: -6, top: "50%", transform: "translateY(-50%)" }}
-        onMouseEnter={(e) => handleMouseEnter(e, "translateY(-50%) scale(1.3)")}
-        onMouseLeave={(e) => handleMouseEnter(e, "translateY(-50%) scale(1)")}
-      />
+        style={{ ...anchorTouchStyle, right: -22, top: "50%", transform: "translateY(-50%)" }}
+        onMouseEnter={(e) => handleHover(e, 1.3)}
+        onMouseLeave={(e) => handleHover(e, 1)}
+        aria-label="Connect from right"
+      >
+        <div style={anchorVisualStyle} />
+      </div>
     </>
   );
 });
@@ -1686,10 +1710,11 @@ function BulkEditModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close modal"
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
+              width: 44,
+              height: 44,
+              borderRadius: 10,
               border: "none",
               backgroundColor: TOKENS.colors.bg.secondary,
               cursor: "pointer",
@@ -1698,8 +1723,8 @@ function BulkEditModal({
               justifyContent: "center",
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M3 3l8 8M11 3l-8 8" stroke={TOKENS.colors.text.secondary} strokeWidth="1.5" strokeLinecap="round" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 4l8 8M12 4l-8 8" stroke={TOKENS.colors.text.secondary} strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
         </div>
@@ -2539,10 +2564,11 @@ function GroupEditModal({
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close modal"
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
+              width: 44,
+              height: 44,
+              borderRadius: 10,
               border: "none",
               backgroundColor: TOKENS.colors.bg.secondary,
               cursor: "pointer",
@@ -2551,8 +2577,8 @@ function GroupEditModal({
               justifyContent: "center",
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M3 3l8 8M11 3l-8 8" stroke={TOKENS.colors.text.secondary} strokeWidth="1.5" strokeLinecap="round" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 4l8 8M12 4l-8 8" stroke={TOKENS.colors.text.secondary} strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
         </div>
@@ -3019,9 +3045,11 @@ interface OrgChartProProps {
   project?: GanttProject | null;
   isFullPage?: boolean;
   onOpenLogoLibrary?: () => void;
+  /** Controls visibility of Advanced Options in resource modals - requires financial access */
+  hasFinancialAccess?: boolean;
 }
 
-export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLibrary }: OrgChartProProps) {
+export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLibrary, hasFinancialAccess = false }: OrgChartProProps) {
   const deviceType = useDeviceType();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -3063,6 +3091,7 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [listViewMode, setListViewMode] = useState<"resources" | "groups">("resources");
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [showMobileDrawer, setShowMobileDrawer] = useState(false); // Mobile resource list drawer
 
   // Free-form canvas state
   const [isCardDragging, setIsCardDragging] = useState(false);
@@ -4468,9 +4497,9 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
               onClick={onClose}
               aria-label="Close"
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 8,
+                width: 44,
+                height: 44,
+                borderRadius: 10,
                 border: `1px solid ${TOKENS.colors.border.default}`,
                 backgroundColor: "transparent",
                 cursor: "pointer",
@@ -4484,16 +4513,22 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
               </svg>
             </button>
           )}
-          {/* Toggle Resource Panel Button */}
+          {/* Toggle Resource Panel Button - Opens drawer on mobile */}
           <button
-            onClick={() => setShowResourcePanel(!showResourcePanel)}
+            onClick={() => {
+              if (deviceType === "mobile") {
+                setShowMobileDrawer(true);
+              } else {
+                setShowResourcePanel(!showResourcePanel);
+              }
+            }}
             aria-label={showResourcePanel ? "Hide resource panel" : "Show resource panel"}
             style={{
-              height: 40,
-              padding: "0 12px",
-              borderRadius: 8,
+              height: 44,
+              padding: "0 14px",
+              borderRadius: 10,
               border: `1px solid ${TOKENS.colors.border.default}`,
-              backgroundColor: showResourcePanel ? TOKENS.colors.bg.secondary : "transparent",
+              backgroundColor: (showResourcePanel || showMobileDrawer) ? TOKENS.colors.bg.secondary : "transparent",
               fontFamily: TOKENS.typography.family,
               fontSize: TOKENS.typography.size.sm,
               fontWeight: TOKENS.typography.weight.semibold,
@@ -4507,7 +4542,7 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M2 3h10M2 7h10M2 11h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-            List
+            {deviceType !== "mobile" && "List"}
           </button>
         </div>
       </div>
@@ -5919,6 +5954,239 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
         </div>
       </div>
 
+      {/* Mobile Resource Drawer */}
+      <AnimatePresence>
+        {showMobileDrawer && deviceType === "mobile" && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileDrawer(false)}
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.4)",
+                zIndex: 200,
+              }}
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: "85%",
+                maxWidth: 360,
+                backgroundColor: TOKENS.colors.bg.primary,
+                boxShadow: "4px 0 24px rgba(0, 0, 0, 0.15)",
+                zIndex: 201,
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+              }}
+            >
+              {/* Drawer Header */}
+              <div
+                style={{
+                  padding: "16px 20px",
+                  borderBottom: `1px solid ${TOKENS.colors.border.default}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <h3
+                  style={{
+                    fontFamily: TOKENS.typography.family,
+                    fontSize: TOKENS.typography.size.lg,
+                    fontWeight: TOKENS.typography.weight.semibold,
+                    color: TOKENS.colors.text.primary,
+                    margin: 0,
+                  }}
+                >
+                  Resources
+                </h3>
+                <button
+                  onClick={() => setShowMobileDrawer(false)}
+                  aria-label="Close drawer"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 10,
+                    border: "none",
+                    backgroundColor: TOKENS.colors.bg.secondary,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M4 4l8 8M12 4l-8 8" stroke={TOKENS.colors.text.secondary} strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* View Toggle */}
+              <div style={{ padding: "12px 20px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 4,
+                    padding: 4,
+                    backgroundColor: TOKENS.colors.bg.secondary,
+                    borderRadius: 8,
+                  }}
+                >
+                  <button
+                    onClick={() => setListViewMode("resources")}
+                    style={{
+                      flex: 1,
+                      padding: "8px 12px",
+                      borderRadius: 6,
+                      border: "none",
+                      backgroundColor: listViewMode === "resources" ? TOKENS.colors.bg.primary : "transparent",
+                      fontFamily: TOKENS.typography.family,
+                      fontSize: TOKENS.typography.size.sm,
+                      fontWeight: listViewMode === "resources" ? TOKENS.typography.weight.semibold : TOKENS.typography.weight.medium,
+                      color: listViewMode === "resources" ? TOKENS.colors.text.primary : TOKENS.colors.text.secondary,
+                      cursor: "pointer",
+                      boxShadow: listViewMode === "resources" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                    }}
+                  >
+                    Resources ({resources.length})
+                  </button>
+                  <button
+                    onClick={() => setListViewMode("groups")}
+                    style={{
+                      flex: 1,
+                      padding: "8px 12px",
+                      borderRadius: 6,
+                      border: "none",
+                      backgroundColor: listViewMode === "groups" ? TOKENS.colors.bg.primary : "transparent",
+                      fontFamily: TOKENS.typography.family,
+                      fontSize: TOKENS.typography.size.sm,
+                      fontWeight: listViewMode === "groups" ? TOKENS.typography.weight.semibold : TOKENS.typography.weight.medium,
+                      color: listViewMode === "groups" ? TOKENS.colors.text.primary : TOKENS.colors.text.secondary,
+                      cursor: "pointer",
+                      boxShadow: listViewMode === "groups" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                    }}
+                  >
+                    Groups ({groups.length})
+                  </button>
+                </div>
+              </div>
+
+              {/* Search */}
+              <div style={{ padding: "0 20px 12px" }}>
+                <input
+                  type="text"
+                  placeholder={listViewMode === "resources" ? "Search resources..." : "Search groups..."}
+                  value={resourceSearch}
+                  onChange={(e) => setResourceSearch(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: 10,
+                    border: `1px solid ${TOKENS.colors.border.default}`,
+                    backgroundColor: TOKENS.colors.bg.secondary,
+                    fontFamily: TOKENS.typography.family,
+                    fontSize: TOKENS.typography.size.md,
+                    outline: "none",
+                  }}
+                />
+              </div>
+
+              {/* Resource List */}
+              <div style={{ flex: 1, overflow: "auto", padding: "0 20px 20px" }}>
+                {filteredResources.map(resource => (
+                  <div
+                    key={resource.id}
+                    onClick={() => {
+                      setSelectedId(resource.id);
+                      setShowMobileDrawer(false);
+                    }}
+                    style={{
+                      padding: "14px 16px",
+                      marginBottom: 8,
+                      borderRadius: 10,
+                      backgroundColor: selectedId === resource.id ? "rgba(0, 122, 255, 0.08)" : TOKENS.colors.bg.secondary,
+                      border: `1px solid ${selectedId === resource.id ? TOKENS.colors.accent.blue : TOKENS.colors.border.subtle}`,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: TOKENS.typography.family,
+                        fontSize: TOKENS.typography.size.md,
+                        fontWeight: TOKENS.typography.weight.semibold,
+                        color: TOKENS.colors.text.primary,
+                        marginBottom: 4,
+                      }}
+                    >
+                      {resource.name}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: TOKENS.typography.family,
+                        fontSize: TOKENS.typography.size.sm,
+                        color: TOKENS.colors.text.secondary,
+                      }}
+                    >
+                      {RESOURCE_DESIGNATIONS[resource.designation]?.label || resource.designation}
+                    </div>
+                  </div>
+                ))}
+                {filteredResources.length === 0 && (
+                  <div
+                    style={{
+                      padding: 24,
+                      textAlign: "center",
+                      fontFamily: TOKENS.typography.family,
+                      fontSize: TOKENS.typography.size.md,
+                      color: TOKENS.colors.text.tertiary,
+                    }}
+                  >
+                    No resources found
+                  </div>
+                )}
+              </div>
+
+              {/* Add Button */}
+              <div style={{ padding: "16px 20px", borderTop: `1px solid ${TOKENS.colors.border.default}` }}>
+                <button
+                  onClick={() => {
+                    setShowMobileDrawer(false);
+                    handleAdd(null);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "14px 20px",
+                    borderRadius: 10,
+                    border: "none",
+                    backgroundColor: TOKENS.colors.accent.blue,
+                    fontFamily: TOKENS.typography.family,
+                    fontSize: TOKENS.typography.size.md,
+                    fontWeight: TOKENS.typography.weight.semibold,
+                    color: TOKENS.colors.text.inverse,
+                    cursor: "pointer",
+                  }}
+                >
+                  Add Resource
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* FAB */}
       <motion.button
         whileHover={{ scale: 1.05 }}
@@ -5956,6 +6224,7 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
         defaultManagerId={defaultManagerId}
         mode={editModalMode}
         onOpenLogoLibrary={onOpenLogoLibrary}
+        showAdvancedOptions={hasFinancialAccess}
       />
 
       {/* Bulk Edit Modal */}

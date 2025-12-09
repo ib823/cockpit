@@ -19,7 +19,7 @@ interface GlobalNavProps {
   session: Session | null;
 }
 
-type NavTab = 'dashboard' | 'timeline' | 'architecture' | 'capacity';
+type NavTab = 'dashboard' | 'timeline' | 'architecture';
 
 export function GlobalNav({ session }: GlobalNavProps) {
   const pathname = usePathname();
@@ -34,7 +34,6 @@ export function GlobalNav({ session }: GlobalNavProps) {
     if (pathname === '/dashboard') return 'dashboard';
     if (pathname?.startsWith('/gantt-tool')) return 'timeline';
     if (pathname?.startsWith('/architecture')) return 'architecture';
-    if (pathname?.startsWith('/team-capacity')) return 'capacity';
     return null;
   };
 
@@ -102,13 +101,6 @@ export function GlobalNav({ session }: GlobalNavProps) {
           className={`${styles.tab} ${activeTab === 'architecture' ? styles.active : ''}`}
         >
           Architecture
-        </Link>
-
-        <Link
-          href="/team-capacity"
-          className={`${styles.tab} ${activeTab === 'capacity' ? styles.active : ''}`}
-        >
-          Team Capacity
         </Link>
       </div>
 

@@ -33,11 +33,12 @@ import {
   getMonth,
   getDay,
 } from "date-fns";
-import { ChevronDown, ChevronRight, ZoomIn, ZoomOut, Edit2, Calendar, Clock, GripVertical, Flag, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronRight, ZoomIn, ZoomOut, Edit2, Calendar, Clock, GripVertical, Flag, ChevronUp, Search, X, Check, Square, CheckSquare, MoreHorizontal, Users, Columns, Maximize2, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { VARIANTS, SPRING, STAGGER, DURATION, getAnimationConfig } from "@/lib/design-system/animations";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS, SHADOWS } from "@/lib/design-system/tokens";
-import type { GanttPhase, Task as GanttTask } from "@/types/gantt-tool";
+import type { GanttPhase, Task as GanttTask, ResourceCategory, Resource, ResourceDesignation } from "@/types/gantt-tool";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 import { calculateWorkingDaysInclusive, calculateCalendarDaysInclusive, formatCalendarDaysAsMonths } from "@/lib/gantt-tool/working-days";
 import { getUnifiedHolidays } from "@/lib/gantt-tool/holiday-integration";
 import { ResourceIndicator } from "./ResourceIndicator";
@@ -48,6 +49,41 @@ import { EditPhaseModal } from "./EditPhaseModal";
 import { EditTaskModal } from "./EditTaskModal";
 import { PhaseDeletionImpactModal } from "./PhaseDeletionImpactModal";
 import { TaskDeletionImpactModal } from "./TaskDeletionImpactModal";
+import { ResourceEditModal } from "./ResourceEditModal";
+import { ResourceAllocationModal } from "./ResourceAllocationModal";
+import {
+  ResourceRowMemoized,
+  ResourceCapacityRowMemoized,
+  getResourceDisplayInfo,
+} from "./ResourceRowMemoized";
+
+// SubCompanyInfo - company logo indicator configuration
+interface SubCompanyInfo {
+  name: string;
+  parentCompany: string;
+  indicatorColor?: string;
+}
+
+// ResourceGroup from org chart - functional groupings created by user
+interface OrgChartGroup {
+  id: string;
+  name: string;
+  resourceIds: string[];
+  leadResourceId?: string;
+  displayMode?: "expanded" | "collapsed" | "leads-only";
+  visibleResourceIds?: string[];
+  createdAt: string;
+}
+import {
+  calculateResourceCapacity,
+  getProjectWeeks,
+  getAllocationStatusColor,
+  getAvailabilityStatusColor,
+  formatDays,
+  formatPercent,
+  type ResourceCapacityResult,
+  type WeekInfo,
+} from "@/lib/gantt-tool/resource-capacity-calculator";
 import { UndoToast } from "@/components/ui/UndoToast";
 import { optimizeColumnWidths, waitForFonts } from "@/lib/gantt-tool/column-optimizer";
 import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
@@ -66,6 +102,20 @@ const RESOURCES_WIDTH = 110; // Width for resources column
 const TASK_BAR_HEIGHT = 32; // Clean bars without internal text
 const PHASE_ROW_HEIGHT = 40; // 40px for phase headers per Apple HIG spec
 const TASK_ROW_HEIGHT = 40; // 40px per task row per Apple HIG spec
+const RESOURCE_ROW_HEIGHT = 44; // 44px minimum for touch targets (WCAG 2.5.5)
+
+// Category sort order for resources (same as OrgChartPro)
+const CATEGORY_SORT_ORDER: Record<ResourceCategory, number> = {
+  leadership: 0,
+  pm: 1,
+  change: 2,
+  functional: 3,
+  technical: 4,
+  security: 5,
+  basis: 6,
+  qa: 7,
+  other: 8,
+};
 
 // Apple HIG Color System for Gantt Status
 const GANTT_STATUS_COLORS = {
@@ -90,12 +140,19 @@ interface GanttCanvasV3Props {
   zoomMode?: ZoomMode;
   showMilestoneModal?: boolean;
   onShowMilestoneModalChange?: (show: boolean) => void;
+  showResourceCapacity?: boolean;
+  onToggleResourceCapacity?: () => void;
+  /** Controls visibility of Advanced Options in resource modals - requires financial access */
+  hasFinancialAccess?: boolean;
 }
 
 export function GanttCanvasV3({
   zoomMode = 'month',
   showMilestoneModal: externalShowMilestoneModal,
   onShowMilestoneModalChange,
+  showResourceCapacity = false,
+  onToggleResourceCapacity,
+  hasFinancialAccess = false,
 }: GanttCanvasV3Props = {}) {
   const {
     currentProject,
@@ -115,6 +172,7 @@ export function GanttCanvasV3({
     updateMilestone,
     deleteMilestone,
     reorderTask,
+    updateResource,
   } = useGanttToolStore();
 
   const [hoveredTask, setHoveredTask] = useState<string | null>(null);
@@ -158,6 +216,33 @@ export function GanttCanvasV3({
 
   const [milestoneDefaultDate, setMilestoneDefaultDate] = useState<string | undefined>();
 
+  // Resource capacity search state
+  const [resourceSearchQuery, setResourceSearchQuery] = useState("");
+
+  // Resource editing and bulk selection state
+  const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
+  const [selectedResourceIds, setSelectedResourceIds] = useState<Set<string>>(new Set());
+  const [showBulkEditPanel, setShowBulkEditPanel] = useState(false);
+  const [bulkEditFormData, setBulkEditFormData] = useState<{
+    category?: ResourceCategory | "";
+    designation?: ResourceDesignation | "";
+    companyName?: string | "";
+  }>({});
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<ResourceCategory>>(new Set());
+  const [collapsedTeams, setCollapsedTeams] = useState<Set<string>>(new Set()); // For org chart grouping
+
+  // Capacity view state
+  const [manualOverrides, setManualOverrides] = useState<Map<string, number>>(new Map());
+  const [editingCell, setEditingCell] = useState<{ resourceId: string; weekId: string } | null>(null);
+  const [editingCellValue, setEditingCellValue] = useState<string>("");
+  const [showAllocationModal, setShowAllocationModal] = useState(false);
+  const [allocationModalInitialResource, setAllocationModalInitialResource] = useState<string | undefined>();
+  const [allocationModalInitialPhase, setAllocationModalInitialPhase] = useState<string | undefined>();
+
+  // Allocation editing mode - when true, hides sidebar columns for more timeline space
+  // Jobs/Ive: When you need to focus, remove the distractions
+  const [isAllocationEditMode, setIsAllocationEditMode] = useState(false);
+
   // Resizable sidebar state
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
@@ -197,6 +282,48 @@ export function GanttCanvasV3({
     };
 
     autoOptimize();
+  }, [currentProject?.id]); // Re-run when project changes
+
+  // Hydrate allocations from database on project load
+  // Jobs/Ive: Data persistence should be invisible to the user
+  useEffect(() => {
+    if (!currentProject?.id) return;
+
+    const hydrateAllocations = async () => {
+      try {
+        const response = await fetch(
+          `/api/gantt-tool/team-capacity/allocations?projectId=${currentProject.id}`
+        );
+
+        if (!response.ok) {
+          console.warn('[GanttCanvasV3] Could not load saved allocations');
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.allocations && Array.isArray(data.allocations)) {
+          // Build the manualOverrides map from saved allocations
+          const newOverrides = new Map<string, number>();
+
+          data.allocations.forEach((allocation: {
+            resourceId: string;
+            weekIdentifier: string;
+            allocationPercent: number;
+          }) => {
+            // Key format: resourceId_weekIdentifier (e.g., "abc123_W01")
+            const key = `${allocation.resourceId}_${allocation.weekIdentifier}`;
+            newOverrides.set(key, allocation.allocationPercent);
+          });
+
+          setManualOverrides(newOverrides);
+        }
+      } catch (error) {
+        console.error('[GanttCanvasV3] Error loading allocations:', error);
+      }
+    };
+
+    hydrateAllocations();
   }, [currentProject?.id]); // Re-run when project changes
 
   // Detect mobile viewport and manage sidebar state
@@ -655,12 +782,22 @@ export function GanttCanvasV3({
     const { startDate, endDate } = bounds;
 
     // Get unified holidays from hardcoded regional data + project-specific holidays
-    return getUnifiedHolidays(
+    const holidays = getUnifiedHolidays(
       startDate,
       endDate,
       currentProject.holidays || [],
       "ABMY"
     );
+
+    console.log("[GanttCanvasV3] Holiday data:", {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      projectHolidays: currentProject.holidays?.length || 0,
+      unifiedHolidays: holidays.length,
+      firstFew: holidays.slice(0, 3).map(h => ({ date: h.date, name: h.name }))
+    });
+
+    return holidays;
   }, [duration, timelineBounds, currentProject?.holidays]);
 
   // CRITICAL: Calculate extended duration BEFORE any early returns to maintain hooks order
@@ -691,6 +828,15 @@ export function GanttCanvasV3({
     return differenceInDays(extendedEnd, start) + 1;
   }, [timelineBounds, duration, effectiveZoomMode]);
 
+  // PERFORMANCE: Memoized getPositionPercent for stable reference passed to child components
+  // This prevents unnecessary re-renders in ResourceCapacityRowMemoized
+  const getPositionPercentMemoized = useCallback((date: Date) => {
+    const bounds = timelineBounds || duration;
+    if (!bounds || !extendedDuration) return 0;
+    const dayOffset = differenceInDays(date, bounds.startDate);
+    return (dayOffset / extendedDuration) * 100;
+  }, [timelineBounds, duration, extendedDuration]);
+
   // Calculate holiday positions using extendedDuration for correct alignment with timeline
   const allHolidays = useMemo(() => {
     if (!holidayData.length || !extendedDuration || !duration) return [];
@@ -714,7 +860,431 @@ export function GanttCanvasV3({
     }).filter(h => h.position >= 0 && h.position <= 100);
   }, [holidayData, extendedDuration, timelineBounds, duration]);
 
-  console.log("[GanttCanvasV3] Render - currentProject:", currentProject?.id, "duration:", duration);
+  // Performance: Debug logging disabled in production - uncomment for debugging
+  // useEffect(() => {
+  //   if (allHolidays.length > 0) {
+  //     console.log("[GanttCanvasV3] Holiday positions:", allHolidays.map(h => ({
+  //       name: h.name,
+  //       date: format(h.date, "yyyy-MM-dd"),
+  //       position: h.position.toFixed(2) + "%",
+  //       isWeekend: h.isWeekend
+  //     })));
+  //   }
+  // }, [allHolidays]);
+
+  // Performance: Debug logging disabled in production - uncomment for debugging
+  // console.log("[GanttCanvasV3] Render - currentProject:", currentProject?.id, "duration:", duration, "allHolidays:", allHolidays.length, "extendedDuration:", extendedDuration);
+
+  // Sorted resources for capacity section - sorted by category priority then name
+  const sortedResources = useMemo(() => {
+    if (!currentProject?.resources) return [];
+    return [...currentProject.resources].sort((a, b) => {
+      const catA = CATEGORY_SORT_ORDER[a.category] ?? 99;
+      const catB = CATEGORY_SORT_ORDER[b.category] ?? 99;
+      if (catA !== catB) return catA - catB;
+      return a.name.localeCompare(b.name);
+    });
+  }, [currentProject?.resources]);
+
+  // Filtered resources based on search query
+  const filteredResources = useMemo(() => {
+    if (!resourceSearchQuery.trim()) return sortedResources;
+    const query = resourceSearchQuery.toLowerCase();
+    return sortedResources.filter((resource) => {
+      const category = RESOURCE_CATEGORIES[resource.category] || RESOURCE_CATEGORIES.other;
+      return (
+        resource.name.toLowerCase().includes(query) ||
+        category.label.toLowerCase().includes(query) ||
+        resource.companyName?.toLowerCase().includes(query) ||
+        resource.role?.toLowerCase().includes(query)
+      );
+    });
+  }, [sortedResources, resourceSearchQuery]);
+
+  // Total resource count (for display)
+  const totalResourceCount = sortedResources.length;
+
+  // Company logos and sub-companies for resource display (single source of truth with OrgChartPro)
+  const companyLogos = currentProject?.orgChartPro?.companyLogos || {};
+  const subCompanies: SubCompanyInfo[] = currentProject?.orgChartPro?.subCompanies || [];
+
+  // Org Chart functional groups - user-defined groupings from the Org Chart Builder
+  const orgChartGroups: OrgChartGroup[] = currentProject?.orgChartPro?.groups || [];
+
+  // Group resources by category for hierarchical display
+  const groupedResources = useMemo(() => {
+    const groups: { category: ResourceCategory; label: string; color: string; resources: typeof filteredResources }[] = [];
+    const categoryMap = new Map<ResourceCategory, typeof filteredResources>();
+
+    filteredResources.forEach((resource) => {
+      const cat = resource.category;
+      if (!categoryMap.has(cat)) {
+        categoryMap.set(cat, []);
+      }
+      categoryMap.get(cat)!.push(resource);
+    });
+
+    // Sort by CATEGORY_SORT_ORDER
+    const sortedCategories = Array.from(categoryMap.keys()).sort(
+      (a, b) => (CATEGORY_SORT_ORDER[a] ?? 99) - (CATEGORY_SORT_ORDER[b] ?? 99)
+    );
+
+    sortedCategories.forEach((cat) => {
+      const categoryInfo = RESOURCE_CATEGORIES[cat] || RESOURCE_CATEGORIES.other;
+      groups.push({
+        category: cat,
+        label: categoryInfo.label,
+        color: categoryInfo.color,
+        resources: categoryMap.get(cat) || [],
+      });
+    });
+
+    return groups;
+  }, [filteredResources]);
+
+  // Functional groups from Org Chart Builder
+  // Uses user-defined groups if available, otherwise shows all resources flat
+  interface FunctionalGroup {
+    id: string;
+    name: string;
+    leadResource: Resource | null;
+    members: Resource[];
+    color: string; // Derived from lead's category or first member's category
+  }
+
+  const functionalGroups = useMemo((): FunctionalGroup[] => {
+    if (!filteredResources.length) return [];
+
+    // If org chart groups exist, use them
+    if (orgChartGroups.length > 0) {
+      const resourceMap = new Map(filteredResources.map((r) => [r.id, r]));
+      const assignedResourceIds = new Set<string>();
+
+      const groups = orgChartGroups.map((group) => {
+        // Get members that exist in filtered resources
+        const members = group.resourceIds
+          .map((id) => resourceMap.get(id))
+          .filter((r): r is Resource => r !== undefined);
+
+        members.forEach((m) => assignedResourceIds.add(m.id));
+
+        // Get lead resource
+        const leadResource = group.leadResourceId ? resourceMap.get(group.leadResourceId) || null : null;
+
+        // Derive color from lead's category or first member
+        const colorSource = leadResource || members[0];
+        const categoryInfo = colorSource
+          ? RESOURCE_CATEGORIES[colorSource.category] || RESOURCE_CATEGORIES.other
+          : RESOURCE_CATEGORIES.other;
+
+        return {
+          id: group.id,
+          name: group.name,
+          leadResource,
+          members,
+          color: categoryInfo.color,
+        };
+      }).filter((g) => g.members.length > 0);
+
+      // Add "Ungrouped" for resources not in any group
+      const ungroupedResources = filteredResources.filter((r) => !assignedResourceIds.has(r.id));
+      if (ungroupedResources.length > 0) {
+        groups.push({
+          id: "ungrouped",
+          name: "Ungrouped",
+          leadResource: null,
+          members: ungroupedResources,
+          color: RESOURCE_CATEGORIES.other.color,
+        });
+      }
+
+      return groups;
+    }
+
+    // Fallback: Group by category if no org chart groups
+    const categoryMap = new Map<ResourceCategory, Resource[]>();
+    filteredResources.forEach((resource) => {
+      const cat = resource.category;
+      if (!categoryMap.has(cat)) {
+        categoryMap.set(cat, []);
+      }
+      categoryMap.get(cat)!.push(resource);
+    });
+
+    const sortedCategories = Array.from(categoryMap.keys()).sort(
+      (a, b) => (CATEGORY_SORT_ORDER[a] ?? 99) - (CATEGORY_SORT_ORDER[b] ?? 99)
+    );
+
+    return sortedCategories.map((cat) => {
+      const categoryInfo = RESOURCE_CATEGORIES[cat] || RESOURCE_CATEGORIES.other;
+      const members = categoryMap.get(cat) || [];
+      return {
+        id: `category-${cat}`,
+        name: categoryInfo.label,
+        leadResource: null,
+        members,
+        color: categoryInfo.color,
+      };
+    });
+  }, [filteredResources, orgChartGroups]);
+
+  // Toggle group collapse
+  const toggleGroupCollapse = useCallback((groupId: string) => {
+    setCollapsedTeams((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
+      } else {
+        newSet.add(groupId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Toggle category collapse
+  const toggleCategoryCollapse = useCallback((category: ResourceCategory) => {
+    setCollapsedCategories((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Bulk selection handlers
+  const toggleResourceSelection = useCallback((resourceId: string) => {
+    setSelectedResourceIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(resourceId)) {
+        newSet.delete(resourceId);
+      } else {
+        newSet.add(resourceId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const selectAllResources = useCallback(() => {
+    setSelectedResourceIds(new Set(filteredResources.map((r) => r.id)));
+  }, [filteredResources]);
+
+  const clearResourceSelection = useCallback(() => {
+    setSelectedResourceIds(new Set());
+  }, []);
+
+  const selectCategoryResources = useCallback((category: ResourceCategory) => {
+    const categoryResources = filteredResources.filter((r) => r.category === category);
+    setSelectedResourceIds((prev) => {
+      const newSet = new Set(prev);
+      const allSelected = categoryResources.every((r) => prev.has(r.id));
+      if (allSelected) {
+        categoryResources.forEach((r) => newSet.delete(r.id));
+      } else {
+        categoryResources.forEach((r) => newSet.add(r.id));
+      }
+      return newSet;
+    });
+  }, [filteredResources]);
+
+  // Stable callbacks for memoized resource row components
+  const handleResourceEdit = useCallback((resourceId: string) => {
+    setEditingResourceId(resourceId);
+  }, []);
+
+  const handleCellClick = useCallback((resourceId: string, weekId: string, currentValue: number) => {
+    setEditingCell({ resourceId, weekId });
+    setEditingCellValue(currentValue > 0 ? String(currentValue) : "");
+  }, []);
+
+  const handleCellValueChange = useCallback((value: string) => {
+    setEditingCellValue(value);
+  }, []);
+
+  const handleCellEditCancel = useCallback(() => {
+    setEditingCell(null);
+  }, []);
+
+  // Bulk update handler
+  const handleBulkUpdate = useCallback(async () => {
+    if (selectedResourceIds.size === 0) return;
+
+    const updates: Partial<Resource> = {};
+    if (bulkEditFormData.category) {
+      updates.category = bulkEditFormData.category as ResourceCategory;
+    }
+    if (bulkEditFormData.designation) {
+      updates.designation = bulkEditFormData.designation as ResourceDesignation;
+    }
+    if (bulkEditFormData.companyName) {
+      updates.companyName = bulkEditFormData.companyName;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      setShowBulkEditPanel(false);
+      return;
+    }
+
+    // Update each selected resource
+    selectedResourceIds.forEach((id) => {
+      updateResource(id, updates);
+    });
+
+    setShowBulkEditPanel(false);
+    setBulkEditFormData({});
+    setSelectedResourceIds(new Set());
+  }, [selectedResourceIds, bulkEditFormData, updateResource]);
+
+  // Calculate resource capacity with weekly breakdown
+  const resourceCapacity = useMemo(() => {
+    if (!currentProject?.phases || !currentProject.resources?.length || !duration) {
+      return [];
+    }
+
+    const { startDate, endDate } = duration;
+    return calculateResourceCapacity({
+      phases: currentProject.phases,
+      resources: currentProject.resources,
+      projectStartDate: startDate,
+      projectEndDate: endDate,
+      manualOverrides,
+    });
+  }, [currentProject?.phases, currentProject?.resources, duration, manualOverrides]);
+
+  // PERFORMANCE: Create a Map for O(1) capacity lookups instead of O(n) array.find() calls
+  // With 36 resources and frequent lookups, this reduces lookup time significantly
+  const resourceCapacityMap = useMemo(() => {
+    const map = new Map<string, ResourceCapacityResult>();
+    resourceCapacity.forEach((rc) => {
+      map.set(rc.resourceId, rc);
+    });
+    return map;
+  }, [resourceCapacity]);
+
+  // Calculate aggregated capacity for a collapsed group (sum of all members)
+  // PERFORMANCE: Uses resourceCapacityMap for O(1) lookups
+  const getGroupAggregatedCapacity = useCallback(
+    (groupMembers: Resource[]) => {
+      if (!groupMembers.length) return null;
+
+      // Aggregate weekly allocations across all group members
+      const weeklyAggregates = new Map<string, { allocated: number; available: number; memberCount: number }>();
+
+      groupMembers.forEach((member) => {
+        const memberCapacity = resourceCapacityMap.get(member.id);
+        if (memberCapacity) {
+          memberCapacity.weeks.forEach((week) => {
+            const existing = weeklyAggregates.get(week.weekIdentifier) || { allocated: 0, available: 0, memberCount: 0 };
+            existing.allocated += week.allocatedPercent;
+            existing.available += week.availablePercent;
+            existing.memberCount += 1;
+            weeklyAggregates.set(week.weekIdentifier, existing);
+          });
+        }
+      });
+
+      return weeklyAggregates;
+    },
+    [resourceCapacityMap]
+  );
+
+  // Get project weeks for timeline header
+  const projectWeeks = useMemo(() => {
+    if (!duration) return [];
+    return getProjectWeeks(duration.startDate, duration.endDate);
+  }, [duration]);
+
+  // Handle cell edit
+  const handleCellEdit = useCallback((resourceId: string, weekId: string, value: number) => {
+    setManualOverrides((prev) => {
+      const newMap = new Map(prev);
+      if (value === 0) {
+        // Remove override if set to 0 (revert to calculated)
+        newMap.delete(`${resourceId}_${weekId}`);
+      } else {
+        newMap.set(`${resourceId}_${weekId}`, value);
+      }
+      return newMap;
+    });
+    setEditingCell(null);
+  }, []);
+
+  // Handle bulk allocation from modal - persists to database
+  const handleApplyBulkAllocation = useCallback(async (resourceId: string, allocations: Map<string, number>) => {
+    // Update local state immediately for responsive UI
+    setManualOverrides((prev) => {
+      const newMap = new Map(prev);
+      allocations.forEach((value, weekId) => {
+        const key = `${resourceId}_${weekId}`;
+        if (value === 0) {
+          newMap.delete(key);
+        } else {
+          newMap.set(key, value);
+        }
+      });
+      return newMap;
+    });
+
+    // Persist to database
+    if (!currentProject?.id) return;
+
+    try {
+      // Convert weekId (W01, W02, etc.) to weekStartDate (YYYY-MM-DD)
+      // We need the project's week structure to calculate actual dates
+      const projectStart = new Date(currentProject.startDate || Date.now());
+      // Calculate project end from phases or use a default duration
+      const phases = currentProject.phases || [];
+      const projectEnd = phases.length > 0
+        ? new Date(Math.max(...phases.map(p => new Date(p.endDate || p.startDate).getTime())))
+        : addDays(projectStart, 365);
+
+      const projectWeeks = getProjectWeeks(projectStart, projectEnd);
+
+      const allocationPayload: Array<{
+        resourceId: string;
+        weekStartDate: string;
+        allocationPercent: number;
+      }> = [];
+
+      allocations.forEach((percent, weekId) => {
+        // Find the week info by identifier
+        const weekInfo = projectWeeks.find(w => w.weekIdentifier === weekId);
+        if (weekInfo && percent > 0) {
+          allocationPayload.push({
+            resourceId,
+            weekStartDate: format(weekInfo.weekStartDate, 'yyyy-MM-dd'),
+            allocationPercent: Math.min(percent, 100), // API caps at 100%
+          });
+        }
+      });
+
+      if (allocationPayload.length > 0) {
+        const response = await fetch('/api/gantt-tool/team-capacity/allocations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId: currentProject.id,
+            allocations: allocationPayload,
+          }),
+        });
+
+        if (!response.ok) {
+          console.error('[GanttCanvasV3] Failed to save allocations:', await response.text());
+        }
+      }
+    } catch (error) {
+      console.error('[GanttCanvasV3] Error saving allocations:', error);
+    }
+  }, [currentProject]);
+
+  // Open allocation modal with optional pre-selection
+  const openAllocationModal = useCallback((resourceId?: string, phaseId?: string) => {
+    setAllocationModalInitialResource(resourceId);
+    setAllocationModalInitialPhase(phaseId);
+    setShowAllocationModal(true);
+  }, []);
 
   // Early returns AFTER all hooks have been called
   if (!currentProject) {
@@ -781,7 +1351,13 @@ export function GanttCanvasV3({
   };
 
   // Calculate effective sidebar width (needed for timeline width calculation)
-  const effectiveSidebarWidth = isSidebarCollapsed ? 0 : sidebarWidth;
+  // Jobs/Ive: In allocation edit mode, use a compact sidebar (just phase/task names)
+  const COMPACT_SIDEBAR_WIDTH = 280; // Just task name column
+  const effectiveSidebarWidth = isSidebarCollapsed
+    ? 0
+    : isAllocationEditMode
+      ? COMPACT_SIDEBAR_WIDTH
+      : sidebarWidth;
 
   // Calculate timeline width based on zoom mode and marker count
   const getTimelineWidth = (): string => {
@@ -856,7 +1432,7 @@ export function GanttCanvasV3({
   // Desktop View - Full Gantt with sidebar and timeline
   // Jobs/Ive: "Design for humans, not screens" - works at any zoom level
   return (
-    <div className="flex flex-col bg-white" style={{ minHeight: '100%', height: 'auto' }}>
+    <div className="flex flex-col" style={{ minHeight: '100%', height: 'auto', backgroundColor: 'var(--color-bg-primary)' }}>
       {/* Main Container: Sidebar + Timeline - Ive: "Remove all barriers" */}
       <div
         className="flex-1 flex"
@@ -930,101 +1506,107 @@ export function GanttCanvasV3({
               opacity: 0.5,
             }}
           >
-            <div style={{ width: `${taskNameWidth}px`, position: "relative" }}>
+            <div style={{ width: isAllocationEditMode ? "100%" : `${taskNameWidth}px`, position: "relative", flex: isAllocationEditMode ? 1 : undefined }}>
               Phase/Task
-              <div
-                onMouseDown={(e) => handleColumnResizeStart(e, 'taskName', taskNameWidth)}
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: "-12px",
-                  bottom: "-12px",
-                  width: "8px",
-                  cursor: "col-resize",
-                  backgroundColor: resizingColumn === 'taskName' ? "var(--color-blue)" : "transparent",
-                  transition: "background-color 0.15s ease",
-                  zIndex: 10,
-                }}
-                onMouseEnter={(e) => {
-                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
-                }}
-              />
+              {!isAllocationEditMode && (
+                <div
+                  onMouseDown={(e) => handleColumnResizeStart(e, 'taskName', taskNameWidth)}
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "-12px",
+                    bottom: "-12px",
+                    width: "8px",
+                    cursor: "col-resize",
+                    backgroundColor: resizingColumn === 'taskName' ? "var(--color-blue)" : "transparent",
+                    transition: "background-color 0.15s ease",
+                    zIndex: 10,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
+                  }}
+                />
+              )}
             </div>
-            <div style={{ width: `${calendarDurationWidth}px`, textAlign: "center", position: "relative" }}>
-              Duration
-              <div
-                onMouseDown={(e) => handleColumnResizeStart(e, 'calendarDuration', calendarDurationWidth)}
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: "-12px",
-                  bottom: "-12px",
-                  width: "8px",
-                  cursor: "col-resize",
-                  backgroundColor: resizingColumn === 'calendarDuration' ? "var(--color-blue)" : "transparent",
-                  transition: "background-color 0.15s ease",
-                  zIndex: 10,
-                }}
-                onMouseEnter={(e) => {
-                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
-                }}
-              />
-            </div>
-            <div style={{ width: `${workingDaysWidth}px`, textAlign: "center", position: "relative" }}>
-              Work Days
-              <div
-                onMouseDown={(e) => handleColumnResizeStart(e, 'workingDays', workingDaysWidth)}
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: "-12px",
-                  bottom: "-12px",
-                  width: "8px",
-                  cursor: "col-resize",
-                  backgroundColor: resizingColumn === 'workingDays' ? "var(--color-blue)" : "transparent",
-                  transition: "background-color 0.15s ease",
-                  zIndex: 10,
-                }}
-                onMouseEnter={(e) => {
-                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
-                }}
-              />
-            </div>
-            <div style={{ width: `${startEndDateWidth}px`, textAlign: "center", position: "relative" }}>
-              Start-End
-              <div
-                onMouseDown={(e) => handleColumnResizeStart(e, 'startEndDate', startEndDateWidth)}
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: "-12px",
-                  bottom: "-12px",
-                  width: "8px",
-                  cursor: "col-resize",
-                  backgroundColor: resizingColumn === 'startEndDate' ? "var(--color-blue)" : "transparent",
-                  transition: "background-color 0.15s ease",
-                  zIndex: 10,
-                }}
-                onMouseEnter={(e) => {
-                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
-                }}
-              />
-            </div>
-            <div style={{ width: `${resourcesWidth}px`, textAlign: "center", position: "relative" }}>
-              RES
-            </div>
+            {!isAllocationEditMode && (
+              <>
+                <div style={{ width: `${calendarDurationWidth}px`, textAlign: "center", position: "relative" }}>
+                  Duration
+                  <div
+                    onMouseDown={(e) => handleColumnResizeStart(e, 'calendarDuration', calendarDurationWidth)}
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      top: "-12px",
+                      bottom: "-12px",
+                      width: "8px",
+                      cursor: "col-resize",
+                      backgroundColor: resizingColumn === 'calendarDuration' ? "var(--color-blue)" : "transparent",
+                      transition: "background-color 0.15s ease",
+                      zIndex: 10,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  />
+                </div>
+                <div style={{ width: `${workingDaysWidth}px`, textAlign: "center", position: "relative" }}>
+                  Work Days
+                  <div
+                    onMouseDown={(e) => handleColumnResizeStart(e, 'workingDays', workingDaysWidth)}
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      top: "-12px",
+                      bottom: "-12px",
+                      width: "8px",
+                      cursor: "col-resize",
+                      backgroundColor: resizingColumn === 'workingDays' ? "var(--color-blue)" : "transparent",
+                      transition: "background-color 0.15s ease",
+                      zIndex: 10,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  />
+                </div>
+                <div style={{ width: `${startEndDateWidth}px`, textAlign: "center", position: "relative" }}>
+                  Start-End
+                  <div
+                    onMouseDown={(e) => handleColumnResizeStart(e, 'startEndDate', startEndDateWidth)}
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      top: "-12px",
+                      bottom: "-12px",
+                      width: "8px",
+                      cursor: "col-resize",
+                      backgroundColor: resizingColumn === 'startEndDate' ? "var(--color-blue)" : "transparent",
+                      transition: "background-color 0.15s ease",
+                      zIndex: 10,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!resizingColumn) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.2)";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!resizingColumn) e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  />
+                </div>
+                <div style={{ width: `${resourcesWidth}px`, textAlign: "center", position: "relative" }}>
+                  RES
+                </div>
+              </>
+            )}
           </div>
 
           {/* Sidebar Content */}
@@ -1149,91 +1731,93 @@ export function GanttCanvasV3({
                         </span>
                       </button>
                     </div>
-                    {phase.phaseType === "ams" ? (
-                      // For AMS phases: show Duration, Workdays (SLA-Based), and Dates
-                      <>
-                        {/* Calendar Duration - Show AMS contract duration */}
-                        <div
-                          style={{
-                            width: `${calendarDurationWidth}px`,
-                            textAlign: "center",
-                            fontFamily: "var(--font-text)",
-                            fontSize: "var(--text-caption)",
-                            opacity: 0.6,
-                          }}
-                        >
-                          {phase.amsDuration ? `${phase.amsDuration} year${phase.amsDuration > 1 ? 's' : ''}` : '1 year'}
-                        </div>
-                        {/* Working Days - SLA-Based for AMS */}
-                        <div
-                          style={{
-                            width: `${workingDaysWidth}px`,
-                            textAlign: "center",
-                            fontFamily: "var(--font-text)",
-                            fontSize: "var(--text-caption)",
-                            opacity: 0.6,
-                          }}
-                        >
-                          SLA-Based
-                        </div>
-                        {/* Start/End Date - Show contract duration */}
-                        <div
-                          style={{
-                            width: `${startEndDateWidth}px`,
-                            textAlign: "center",
-                            fontFamily: "var(--font-text)",
-                            fontSize: "var(--text-caption)",
-                            opacity: 0.6,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                          }}
-                        >
-                          {`${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} - ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`}
-                        </div>
-                        <div style={{ width: `${resourcesWidth}px` }} />
-                      </>
-                    ) : (
-                      <>
-                        {/* Calendar Duration */}
-                        <div
-                          style={{
-                            width: `${calendarDurationWidth}px`,
-                            textAlign: "center",
-                            fontFamily: "var(--font-text)",
-                            fontSize: "var(--text-caption)",
-                            opacity: 0.6,
-                          }}
-                        >
-                          {phaseCalendarDuration}
-                        </div>
-                        {/* Working Days */}
-                        <div
-                          style={{
-                            width: `${workingDaysWidth}px`,
-                            textAlign: "center",
-                            fontFamily: "var(--font-text)",
-                            fontSize: "var(--text-caption)",
-                            opacity: 0.6,
-                          }}
-                        >
-                          {phaseWorkingDays} d
-                        </div>
-                        {/* Start/End Date */}
-                        <div
-                          style={{
-                            width: `${startEndDateWidth}px`,
-                            textAlign: "center",
-                            fontFamily: "var(--font-text)",
-                            fontSize: "var(--text-caption)",
-                            opacity: 0.6,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                          }}
-                        >
-                          {`${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} - ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`}
-                        </div>
-                        <div style={{ width: `${resourcesWidth}px` }} />
-                      </>
+                    {!isAllocationEditMode && (
+                      phase.phaseType === "ams" ? (
+                        // For AMS phases: show Duration, Workdays (SLA-Based), and Dates
+                        <>
+                          {/* Calendar Duration - Show AMS contract duration */}
+                          <div
+                            style={{
+                              width: `${calendarDurationWidth}px`,
+                              textAlign: "center",
+                              fontFamily: "var(--font-text)",
+                              fontSize: "var(--text-caption)",
+                              opacity: 0.6,
+                            }}
+                          >
+                            {phase.amsDuration ? `${phase.amsDuration} year${phase.amsDuration > 1 ? 's' : ''}` : '1 year'}
+                          </div>
+                          {/* Working Days - SLA-Based for AMS */}
+                          <div
+                            style={{
+                              width: `${workingDaysWidth}px`,
+                              textAlign: "center",
+                              fontFamily: "var(--font-text)",
+                              fontSize: "var(--text-caption)",
+                              opacity: 0.6,
+                            }}
+                          >
+                            SLA-Based
+                          </div>
+                          {/* Start/End Date - Show contract duration */}
+                          <div
+                            style={{
+                              width: `${startEndDateWidth}px`,
+                              textAlign: "center",
+                              fontFamily: "var(--font-text)",
+                              fontSize: "var(--text-caption)",
+                              opacity: 0.6,
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {`${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} - ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`}
+                          </div>
+                          <div style={{ width: `${resourcesWidth}px` }} />
+                        </>
+                      ) : (
+                        <>
+                          {/* Calendar Duration */}
+                          <div
+                            style={{
+                              width: `${calendarDurationWidth}px`,
+                              textAlign: "center",
+                              fontFamily: "var(--font-text)",
+                              fontSize: "var(--text-caption)",
+                              opacity: 0.6,
+                            }}
+                          >
+                            {phaseCalendarDuration}
+                          </div>
+                          {/* Working Days */}
+                          <div
+                            style={{
+                              width: `${workingDaysWidth}px`,
+                              textAlign: "center",
+                              fontFamily: "var(--font-text)",
+                              fontSize: "var(--text-caption)",
+                              opacity: 0.6,
+                            }}
+                          >
+                            {phaseWorkingDays} d
+                          </div>
+                          {/* Start/End Date */}
+                          <div
+                            style={{
+                              width: `${startEndDateWidth}px`,
+                              textAlign: "center",
+                              fontFamily: "var(--font-text)",
+                              fontSize: "var(--text-caption)",
+                              opacity: 0.6,
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {`${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} - ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`}
+                          </div>
+                          <div style={{ width: `${resourcesWidth}px` }} />
+                        </>
+                      )
                     )}
                   </div>
 
@@ -1448,101 +2032,105 @@ export function GanttCanvasV3({
                             </div>
                           </div>
 
-                          {/* Calendar Duration */}
-                          <div
-                            style={{
-                              width: `${calendarDurationWidth}px`,
-                              textAlign: "center",
-                              fontFamily: "var(--font-text)",
-                              fontSize: "var(--text-body)",
-                              fontWeight: "var(--weight-regular)",
-                              color: "#000",
-                            }}
-                          >
-                            {taskCalendarDuration}
-                          </div>
+                          {!isAllocationEditMode && (
+                            <>
+                              {/* Calendar Duration */}
+                              <div
+                                style={{
+                                  width: `${calendarDurationWidth}px`,
+                                  textAlign: "center",
+                                  fontFamily: "var(--font-text)",
+                                  fontSize: "var(--text-body)",
+                                  fontWeight: "var(--weight-regular)",
+                                  color: "#000",
+                                }}
+                              >
+                                {taskCalendarDuration}
+                              </div>
 
-                          {/* Working Days */}
-                          <div
-                            style={{
-                              width: `${workingDaysWidth}px`,
-                              textAlign: "center",
-                              fontFamily: "var(--font-text)",
-                              fontSize: "var(--text-body)",
-                              fontWeight: "var(--weight-regular)",
-                              color: "#000",
-                            }}
-                          >
-                            {workingDays} d
-                          </div>
+                              {/* Working Days */}
+                              <div
+                                style={{
+                                  width: `${workingDaysWidth}px`,
+                                  textAlign: "center",
+                                  fontFamily: "var(--font-text)",
+                                  fontSize: "var(--text-body)",
+                                  fontWeight: "var(--weight-regular)",
+                                  color: "#000",
+                                }}
+                              >
+                                {workingDays} d
+                              </div>
 
-                          {/* Start/End Date */}
-                          <div
-                            style={{
-                              width: `${startEndDateWidth}px`,
-                              textAlign: "center",
-                              fontFamily: "var(--font-text)",
-                              fontSize: "var(--text-body)",
-                              fontWeight: "var(--weight-regular)",
-                              color: "#000",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                            }}
-                          >
-                            {format(new Date(task.startDate), "dd-MMM-yy (EEE)")} - {format(new Date(task.endDate), "dd-MMM-yy (EEE)")}
-                          </div>
+                              {/* Start/End Date */}
+                              <div
+                                style={{
+                                  width: `${startEndDateWidth}px`,
+                                  textAlign: "center",
+                                  fontFamily: "var(--font-text)",
+                                  fontSize: "var(--text-body)",
+                                  fontWeight: "var(--weight-regular)",
+                                  color: "#000",
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                }}
+                              >
+                                {format(new Date(task.startDate), "dd-MMM-yy (EEE)")} - {format(new Date(task.endDate), "dd-MMM-yy (EEE)")}
+                              </div>
 
-                          {/* Resources */}
-                          <div
-                            style={{
-                              width: `${resourcesWidth}px`,
-                              display: "flex",
-                              justifyContent: "center",
-                              alignItems: "center",
-                            }}
-                          >
-                            <ResourceIndicator
-                              resources={
-                                task.resourceAssignments?.map((assignment) => {
-                                  const resource = currentProject.resources.find(
-                                    (r) => r.id === assignment.resourceId
-                                  );
-                                  return {
-                                    resourceId: assignment.resourceId,
-                                    name: resource?.name || "Unknown",
-                                    allocationPercent: assignment.allocationPercentage || 0,
-                                  };
-                                }) || []
-                              }
-                              taskName={task.name}
-                              taskStartDate={task.startDate}
-                              taskEndDate={task.endDate}
-                              taskHolidays={currentProject.holidays || []}
-                              onManageResources={() => setTaskResourceModal({ taskId: task.id, phaseId: phase.id })}
-                              onUpdateAllocation={(resourceId, percentage) => {
-                                const assignment = task.resourceAssignments?.find(
-                                  (a) => a.resourceId === resourceId
-                                );
-                                if (assignment) {
-                                  updateTaskResourceAssignment(
-                                    task.id,
-                                    phase.id,
-                                    assignment.id,
-                                    assignment.assignmentNotes,
-                                    percentage
-                                  );
-                                }
-                              }}
-                              onRemoveResource={(resourceId) => {
-                                const assignment = task.resourceAssignments?.find(
-                                  (a) => a.resourceId === resourceId
-                                );
-                                if (assignment) {
-                                  unassignResourceFromTask(task.id, phase.id, assignment.id);
-                                }
-                              }}
-                            />
-                          </div>
+                              {/* Resources */}
+                              <div
+                                style={{
+                                  width: `${resourcesWidth}px`,
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <ResourceIndicator
+                                  resources={
+                                    task.resourceAssignments?.map((assignment) => {
+                                      const resource = currentProject.resources.find(
+                                        (r) => r.id === assignment.resourceId
+                                      );
+                                      return {
+                                        resourceId: assignment.resourceId,
+                                        name: resource?.name || "Unknown",
+                                        allocationPercent: assignment.allocationPercentage || 0,
+                                      };
+                                    }) || []
+                                  }
+                                  taskName={task.name}
+                                  taskStartDate={task.startDate}
+                                  taskEndDate={task.endDate}
+                                  taskHolidays={currentProject.holidays || []}
+                                  onManageResources={() => setTaskResourceModal({ taskId: task.id, phaseId: phase.id })}
+                                  onUpdateAllocation={(resourceId, percentage) => {
+                                    const assignment = task.resourceAssignments?.find(
+                                      (a) => a.resourceId === resourceId
+                                    );
+                                    if (assignment) {
+                                      updateTaskResourceAssignment(
+                                        task.id,
+                                        phase.id,
+                                        assignment.id,
+                                        assignment.assignmentNotes,
+                                        percentage
+                                      );
+                                    }
+                                  }}
+                                  onRemoveResource={(resourceId) => {
+                                    const assignment = task.resourceAssignments?.find(
+                                      (a) => a.resourceId === resourceId
+                                    );
+                                    if (assignment) {
+                                      unassignResourceFromTask(task.id, phase.id, assignment.id);
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </>
+                          )}
                         </motion.div>
                       );
                     })}
@@ -1552,6 +2140,528 @@ export function GanttCanvasV3({
                 </div>
               );
             })}
+
+            {/* Resource Capacity Section - Integrated directly into timeline */}
+            {showResourceCapacity && totalResourceCount > 0 && (
+              <div>
+                {/* Resource Section Header - Same style as phase header */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "0 24px",
+                    height: `${PHASE_ROW_HEIGHT}px`,
+                    backgroundColor: "rgba(0, 122, 255, 0.04)",
+                    borderTop: "2px solid rgba(0, 122, 255, 0.15)",
+                    borderBottom: "1px solid rgba(0, 0, 0, 0.04)",
+                    fontFamily: "var(--font-text)",
+                  }}
+                >
+                  <div
+                    onClick={onToggleResourceCapacity}
+                    style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                  >
+                    <ChevronDown
+                      size={14}
+                      style={{ color: "var(--color-blue)", opacity: 0.7 }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: "var(--color-blue)",
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      Resource Capacity
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--color-text-secondary)",
+                        opacity: 0.7,
+                      }}
+                    >
+                      {filteredResources.length === totalResourceCount
+                        ? `${totalResourceCount} resources`
+                        : `${filteredResources.length} of ${totalResourceCount}`}
+                    </span>
+                  </div>
+
+                  {/* Column Visibility Toggle - Icon-only for minimal footprint */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsAllocationEditMode(!isAllocationEditMode);
+                    }}
+                    style={{
+                      marginLeft: "auto",
+                      width: 32,
+                      height: 32,
+                      minWidth: 44,
+                      minHeight: 44,
+                      padding: 0,
+                      borderRadius: "6px",
+                      border: "none",
+                      backgroundColor: isAllocationEditMode
+                        ? "rgba(59, 130, 246, 0.1)"
+                        : "transparent",
+                      color: isAllocationEditMode
+                        ? "var(--color-blue)"
+                        : "var(--color-text-tertiary)",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isAllocationEditMode) {
+                        e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.04)";
+                        e.currentTarget.style.color = "var(--color-text-secondary)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isAllocationEditMode) {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.color = "var(--color-text-tertiary)";
+                      }
+                    }}
+                    title={isAllocationEditMode ? "Show all columns" : "Expand timeline"}
+                    aria-label={isAllocationEditMode ? "Show all columns" : "Expand timeline"}
+                    aria-pressed={isAllocationEditMode}
+                  >
+                    {isAllocationEditMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  </button>
+
+                  {!isAllocationEditMode && (
+                    <>
+
+                      {/* Allocate Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openAllocationModal();
+                        }}
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          border: "none",
+                          backgroundColor: "var(--color-blue)",
+                          color: "#fff",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          transition: "all 0.15s ease",
+                        }}
+                        title="Allocate resources to phases in bulk"
+                      >
+                        <Calendar size={14} />
+                        Allocate
+                      </button>
+                    </>
+                  )}
+
+                  {/* Search Input */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      backgroundColor: "rgba(0, 0, 0, 0.04)",
+                      borderRadius: "6px",
+                      padding: "4px 10px",
+                      maxWidth: "200px",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Search size={12} style={{ color: "var(--color-text-tertiary)", flexShrink: 0 }} />
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={resourceSearchQuery}
+                      onChange={(e) => setResourceSearchQuery(e.target.value)}
+                      style={{
+                        border: "none",
+                        outline: "none",
+                        backgroundColor: "transparent",
+                        fontSize: "12px",
+                        color: "var(--color-text-primary)",
+                        width: "100%",
+                        minWidth: 0,
+                      }}
+                    />
+                    {resourceSearchQuery && (
+                      <button
+                        onClick={() => setResourceSearchQuery("")}
+                        style={{
+                          border: "none",
+                          background: "none",
+                          padding: 0,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <X size={12} style={{ color: "var(--color-text-tertiary)" }} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Bulk Selection Bar - Shows when resources are selected */}
+                {selectedResourceIds.size > 0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "8px 24px",
+                      backgroundColor: "rgba(0, 122, 255, 0.08)",
+                      borderBottom: "1px solid rgba(0, 122, 255, 0.15)",
+                    }}
+                  >
+                    <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--color-blue)" }}>
+                      {selectedResourceIds.size} selected
+                    </span>
+                    <button
+                      onClick={() => setShowBulkEditPanel(true)}
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: 6,
+                        border: "none",
+                        backgroundColor: "var(--color-blue)",
+                        color: "#fff",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Bulk Edit
+                    </button>
+                    <button
+                      onClick={clearResourceSelection}
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: 6,
+                        border: "1px solid rgba(0, 0, 0, 0.15)",
+                        backgroundColor: "transparent",
+                        color: "var(--color-text-secondary)",
+                        fontSize: "11px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+
+                {/* Functional Groups from Org Chart Builder */}
+                {functionalGroups.map((group) => {
+                  const isCollapsed = collapsedTeams.has(group.id);
+                  const groupMembers = group.members;
+                  const groupColor = group.color;
+                  const allGroupSelected = groupMembers.every((r) => selectedResourceIds.has(r.id));
+                  const someGroupSelected = groupMembers.some((r) => selectedResourceIds.has(r.id));
+
+                  return (
+                    <div key={group.id}>
+                      {/* Group Header */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "0 24px 0 32px",
+                          height: "36px",
+                          backgroundColor: `${groupColor}08`,
+                          borderBottom: "1px solid rgba(0, 0, 0, 0.04)",
+                          borderLeft: `3px solid ${groupColor}`,
+                          cursor: "pointer",
+                        }}
+                        onClick={() => toggleGroupCollapse(group.id)}
+                      >
+                        {/* Group Checkbox */}
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const allSelected = groupMembers.every((r) => selectedResourceIds.has(r.id));
+                            setSelectedResourceIds((prev) => {
+                              const newSet = new Set(prev);
+                              groupMembers.forEach((r) => {
+                                if (allSelected) {
+                                  newSet.delete(r.id);
+                                } else {
+                                  newSet.add(r.id);
+                                }
+                              });
+                              return newSet;
+                            });
+                          }}
+                          style={{
+                            width: 16,
+                            height: 16,
+                            borderRadius: 4,
+                            border: allGroupSelected || someGroupSelected
+                              ? `2px solid ${groupColor}`
+                              : "2px solid rgba(0, 0, 0, 0.2)",
+                            backgroundColor: allGroupSelected ? groupColor : "transparent",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {allGroupSelected && <Check size={10} style={{ color: "#fff" }} />}
+                          {someGroupSelected && !allGroupSelected && (
+                            <div style={{ width: 8, height: 2, backgroundColor: groupColor, borderRadius: 1 }} />
+                          )}
+                        </div>
+
+                        {isCollapsed ? (
+                          <ChevronRight size={14} style={{ color: groupColor, opacity: 0.8 }} />
+                        ) : (
+                          <ChevronDown size={14} style={{ color: groupColor, opacity: 0.8 }} />
+                        )}
+                        <span
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            color: groupColor,
+                            letterSpacing: "-0.01em",
+                          }}
+                        >
+                          {group.name}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            color: "var(--color-text-tertiary)",
+                          }}
+                        >
+                          ({groupMembers.length})
+                        </span>
+                        {/* Show lead name if available */}
+                        {group.leadResource && (
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              color: "var(--color-text-tertiary)",
+                              marginLeft: "auto",
+                            }}
+                          >
+                            Lead: {group.leadResource.name}
+                          </span>
+                        )}
+                        {/* Collapsed indicator tag */}
+                        {isCollapsed && (
+                          <span
+                            style={{
+                              fontSize: "10px",
+                              fontWeight: 500,
+                              color: "#FF9500",
+                              backgroundColor: "rgba(255, 149, 0, 0.1)",
+                              padding: "2px 6px",
+                              borderRadius: 4,
+                              marginLeft: group.leadResource ? "8px" : "auto",
+                            }}
+                          >
+                            Collapsed
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Group Members - shown when expanded (Memoized for performance) */}
+                      {!isCollapsed && groupMembers.map((resource) => {
+                        const { logo, indicatorColor } = getResourceDisplayInfo(resource, companyLogos, subCompanies);
+                        return (
+                          <ResourceRowMemoized
+                            key={resource.id}
+                            resource={resource}
+                            isSelected={selectedResourceIds.has(resource.id)}
+                            logo={logo}
+                            indicatorColor={indicatorColor}
+                            onSelect={toggleResourceSelection}
+                            onEdit={handleResourceEdit}
+                          />
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+
+                {/* Bulk Edit Panel - Inline dropdown panel */}
+                {showBulkEditPanel && selectedResourceIds.size > 0 && (
+                  <div
+                    style={{
+                      padding: "16px 24px",
+                      backgroundColor: "var(--color-bg-secondary)",
+                      borderTop: "1px solid rgba(0, 0, 0, 0.08)",
+                      borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                      <Users size={14} style={{ color: "var(--color-blue)" }} />
+                      <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--color-text-primary)" }}>
+                        Bulk Edit {selectedResourceIds.size} Resources
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                      {/* Category Select */}
+                      <select
+                        value={bulkEditFormData.category || ""}
+                        onChange={(e) => setBulkEditFormData((prev) => ({ ...prev, category: e.target.value as ResourceCategory | "" }))}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: 6,
+                          border: "1px solid rgba(0, 0, 0, 0.15)",
+                          backgroundColor: "#fff",
+                          fontSize: "12px",
+                          color: "var(--color-text-primary)",
+                          minWidth: "140px",
+                        }}
+                      >
+                        <option value="">Category...</option>
+                        {Object.entries(RESOURCE_CATEGORIES).map(([key, cat]) => (
+                          <option key={key} value={key}>{cat.label}</option>
+                        ))}
+                      </select>
+
+                      {/* Designation Select */}
+                      <select
+                        value={bulkEditFormData.designation || ""}
+                        onChange={(e) => setBulkEditFormData((prev) => ({ ...prev, designation: e.target.value as ResourceDesignation | "" }))}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: 6,
+                          border: "1px solid rgba(0, 0, 0, 0.15)",
+                          backgroundColor: "#fff",
+                          fontSize: "12px",
+                          color: "var(--color-text-primary)",
+                          minWidth: "140px",
+                        }}
+                      >
+                        <option value="">Designation...</option>
+                        {Object.entries(RESOURCE_DESIGNATIONS).map(([key, des]) => (
+                          <option key={key} value={key}>{des.label}</option>
+                        ))}
+                      </select>
+
+                      {/* Company Select */}
+                      {Object.keys(companyLogos).length > 0 && (
+                        <select
+                          value={bulkEditFormData.companyName || ""}
+                          onChange={(e) => setBulkEditFormData((prev) => ({ ...prev, companyName: e.target.value }))}
+                          style={{
+                            padding: "6px 10px",
+                            borderRadius: 6,
+                            border: "1px solid rgba(0, 0, 0, 0.15)",
+                            backgroundColor: "#fff",
+                            fontSize: "12px",
+                            color: "var(--color-text-primary)",
+                            minWidth: "140px",
+                          }}
+                        >
+                          <option value="">Company...</option>
+                          {Object.keys(companyLogos).map((name) => (
+                            <option key={name} value={name}>{name}</option>
+                          ))}
+                          {subCompanies.map((sc) => (
+                            <option key={sc.name} value={sc.name}>{sc.name}</option>
+                          ))}
+                        </select>
+                      )}
+
+                      {/* Apply Button */}
+                      <button
+                        onClick={handleBulkUpdate}
+                        disabled={!bulkEditFormData.category && !bulkEditFormData.designation && !bulkEditFormData.companyName}
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: 6,
+                          border: "none",
+                          backgroundColor: "var(--color-blue)",
+                          color: "#fff",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: !bulkEditFormData.category && !bulkEditFormData.designation && !bulkEditFormData.companyName ? "not-allowed" : "pointer",
+                          opacity: !bulkEditFormData.category && !bulkEditFormData.designation && !bulkEditFormData.companyName ? 0.5 : 1,
+                        }}
+                      >
+                        Apply
+                      </button>
+
+                      {/* Cancel Button */}
+                      <button
+                        onClick={() => {
+                          setShowBulkEditPanel(false);
+                          setBulkEditFormData({});
+                        }}
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: 6,
+                          border: "1px solid rgba(0, 0, 0, 0.15)",
+                          backgroundColor: "transparent",
+                          color: "var(--color-text-secondary)",
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Resource Capacity Toggle Button - Shows when collapsed */}
+            {!showResourceCapacity && totalResourceCount > 0 && (
+              <div
+                onClick={onToggleResourceCapacity}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "0 24px",
+                  height: `${PHASE_ROW_HEIGHT}px`,
+                  backgroundColor: "rgba(0, 0, 0, 0.01)",
+                  borderTop: "1px solid rgba(0, 0, 0, 0.04)",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-text)",
+                }}
+              >
+                <ChevronRight
+                  size={14}
+                  style={{ color: "var(--color-text-secondary)", opacity: 0.5 }}
+                />
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    color: "var(--color-text-secondary)",
+                  }}
+                >
+                  Resource Capacity
+                </span>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--color-text-tertiary)",
+                  }}
+                >
+                  {sortedResources.length} resources
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1618,9 +2728,9 @@ export function GanttCanvasV3({
               }}
             >
             {/* Time Labels - Adaptive to Zoom Mode */}
-            <div className="relative" style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <div className="relative" style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
               {/* Time markers */}
-              <div style={{ height: "44px", position: "relative", width: "100%" }}>
+              <div style={{ height: "40px", position: "relative", width: "100%" }}>
                 {timeMarkers.map((markerDate, idx) => {
                   const left = getPositionPercent(markerDate);
 
@@ -1693,7 +2803,7 @@ export function GanttCanvasV3({
               </div>
 
               {/* Holiday indicators - Separate row below */}
-              <div style={{ height: "24px", position: "relative", borderTop: "1px solid rgba(0, 0, 0, 0.06)" }}>
+              <div style={{ height: "24px", position: "relative", width: "100%", borderTop: "1px solid rgba(0, 0, 0, 0.06)" }}>
                 {allHolidays.map((holiday, idx) => (
                   <div
                     key={idx}
@@ -1710,56 +2820,41 @@ export function GanttCanvasV3({
                     }}
                     title={`${holiday.name} - ${format(holiday.date, "dd-MMM-yy (EEE)")}${holiday.isWeekend ? " (Weekend)" : ""}`}
                   >
-                    {/* Vertical line indicator */}
-                    <div style={{
-                      position: "absolute",
-                      top: 0,
-                      bottom: 0,
-                      width: "1px",
-                      backgroundColor: holiday.isWeekend
-                        ? "rgba(255, 59, 48, 0.15)"
-                        : "rgba(255, 59, 48, 0.25)",
-                      transition: "all 0.15s ease",
-                    }} />
-                    {/* Dot indicator */}
+                    {/* Circle indicator - hollow for weekend, filled for public holiday */}
                     {holiday.isWeekend ? (
                       <div style={{
-                        width: "6px",
-                        height: "6px",
+                        width: "8px",
+                        height: "8px",
                         borderRadius: "50%",
                         backgroundColor: "transparent",
-                        border: "1.5px solid rgba(255, 59, 48, 0.4)",
+                        border: "2px solid rgba(255, 59, 48, 0.5)",
                         transition: "all 0.15s ease",
-                        position: "relative",
-                        zIndex: 1,
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.2)";
-                        e.currentTarget.style.borderColor = "rgba(255, 59, 48, 0.7)";
+                        e.currentTarget.style.borderColor = "rgba(255, 59, 48, 0.8)";
                         e.currentTarget.style.transform = "scale(1.3)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.borderColor = "rgba(255, 59, 48, 0.4)";
+                        e.currentTarget.style.borderColor = "rgba(255, 59, 48, 0.5)";
                         e.currentTarget.style.transform = "scale(1)";
                       }}
                       />
                     ) : (
                       <div style={{
-                        width: "6px",
-                        height: "6px",
+                        width: "8px",
+                        height: "8px",
                         borderRadius: "50%",
-                        backgroundColor: "rgba(255, 59, 48, 0.6)",
+                        backgroundColor: "rgba(255, 59, 48, 0.7)",
                         transition: "all 0.15s ease",
-                        position: "relative",
-                        zIndex: 1,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.9)";
+                        e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 1)";
                         e.currentTarget.style.transform = "scale(1.3)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.6)";
+                        e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.7)";
                         e.currentTarget.style.transform = "scale(1)";
                       }}
                       />
@@ -2369,6 +3464,229 @@ export function GanttCanvasV3({
               );
             })}
 
+            {/* Resource Capacity Timeline Rows - Integrated into same grid */}
+            {showResourceCapacity && totalResourceCount > 0 && (
+              <div>
+                {/* Resource Section Header Row */}
+                <div
+                  style={{
+                    height: `${PHASE_ROW_HEIGHT}px`,
+                    backgroundColor: "rgba(0, 122, 255, 0.04)",
+                    borderTop: "2px solid rgba(0, 122, 255, 0.15)",
+                    borderBottom: "1px solid rgba(0, 0, 0, 0.04)",
+                    position: "relative",
+                  }}
+                >
+                  {/* Timeline grid lines behind */}
+                  {timeMarkers.map((_, idx) => {
+                    const left = getPositionPercent(timeMarkers[idx]);
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          position: "absolute",
+                          left: `${left}%`,
+                          top: 0,
+                          bottom: 0,
+                          width: "1px",
+                          backgroundColor: "rgba(0, 0, 0, 0.04)",
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Bulk Selection Bar Row - empty for timeline alignment */}
+                {selectedResourceIds.size > 0 && (
+                  <div
+                    style={{
+                      height: "37px", // Match the bulk selection bar height
+                      backgroundColor: "rgba(0, 122, 255, 0.08)",
+                      borderBottom: "1px solid rgba(0, 122, 255, 0.15)",
+                      position: "relative",
+                    }}
+                  >
+                    {timeMarkers.map((_, idx) => {
+                      const left = getPositionPercent(timeMarkers[idx]);
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            position: "absolute",
+                            left: `${left}%`,
+                            top: 0,
+                            bottom: 0,
+                            width: "1px",
+                            backgroundColor: "rgba(0, 0, 0, 0.03)",
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Functional Groups Timeline Rows */}
+                {functionalGroups.map((group) => {
+                  const isCollapsed = collapsedTeams.has(group.id);
+                  const groupMembers = group.members;
+                  const groupColor = group.color;
+
+                  // Calculate aggregated capacity for collapsed view
+                  const aggregatedCapacity = isCollapsed ? getGroupAggregatedCapacity(groupMembers) : null;
+
+                  return (
+                    <div key={group.id}>
+                      {/* Group Header Row - Shows aggregated allocation when collapsed */}
+                      <div
+                        style={{
+                          height: "36px",
+                          backgroundColor: `${groupColor}08`,
+                          borderBottom: "1px solid rgba(0, 0, 0, 0.04)",
+                          borderLeft: `3px solid ${groupColor}`,
+                          position: "relative",
+                          display: "flex",
+                        }}
+                      >
+                        {/* When collapsed, show aggregated allocation bars */}
+                        {isCollapsed && aggregatedCapacity && timeMarkers.length > 0 && (
+                          <>
+                            {Array.from(aggregatedCapacity.entries()).map(([weekId, data]) => {
+                              // Find week position from projectWeeks
+                              const weekInfo = projectWeeks.find((w) => w.weekIdentifier === weekId);
+                              if (!weekInfo) return null;
+                              const weekLeft = getPositionPercent(weekInfo.weekStartDate);
+                              const weekRight = getPositionPercent(weekInfo.weekEndDate);
+                              const weekWidth = weekRight - weekLeft;
+
+                              // Average allocation across members
+                              const avgAllocation = data.memberCount > 0 ? data.allocated / data.memberCount : 0;
+                              const barHeight = Math.min((avgAllocation / 100) * 32, 32);
+
+                              return (
+                                <div
+                                  key={weekId}
+                                  style={{
+                                    position: "absolute",
+                                    left: `${weekLeft}%`,
+                                    width: `${weekWidth}%`,
+                                    bottom: 2,
+                                    height: `${barHeight}px`,
+                                    backgroundColor: getAllocationStatusColor(avgAllocation),
+                                    borderRadius: "2px 2px 0 0",
+                                    opacity: 0.7,
+                                  }}
+                                  title={`${group.name}: ${Math.round(avgAllocation)}% avg allocation (${groupMembers.length} members)`}
+                                />
+                              );
+                            })}
+                          </>
+                        )}
+                        {/* Time markers for header row */}
+                        {timeMarkers.map((_, idx) => {
+                          const left = getPositionPercent(timeMarkers[idx]);
+                          return (
+                            <div
+                              key={idx}
+                              style={{
+                                position: "absolute",
+                                left: `${left}%`,
+                                top: 0,
+                                bottom: 0,
+                                width: "1px",
+                                backgroundColor: "rgba(0, 0, 0, 0.03)",
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      {/* Resource Rows within Group - Weekly Capacity Cells (only when expanded) */}
+                      {/* PERFORMANCE: Using memoized ResourceCapacityRowMemoized + O(1) Map lookup */}
+                      {!isCollapsed && groupMembers.map((resource) => {
+                        const capacityData = resourceCapacityMap.get(resource.id);
+                        return (
+                          <ResourceCapacityRowMemoized
+                            key={resource.id}
+                            resource={resource}
+                            isSelected={selectedResourceIds.has(resource.id)}
+                            capacityData={capacityData}
+                            projectWeeks={projectWeeks}
+                            getPositionPercent={getPositionPercentMemoized}
+                            editingCell={editingCell}
+                            editingCellValue={editingCellValue}
+                            onCellClick={handleCellClick}
+                            onCellValueChange={handleCellValueChange}
+                            onCellEdit={handleCellEdit}
+                            onCellEditCancel={handleCellEditCancel}
+                          />
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+
+                {/* Bulk Edit Panel Row - empty for timeline alignment */}
+                {showBulkEditPanel && selectedResourceIds.size > 0 && (
+                  <div
+                    style={{
+                      height: "76px", // Match the bulk edit panel height roughly
+                      backgroundColor: "var(--color-bg-secondary)",
+                      borderTop: "1px solid rgba(0, 0, 0, 0.08)",
+                      borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
+                      position: "relative",
+                    }}
+                  >
+                    {timeMarkers.map((_, idx) => {
+                      const left = getPositionPercent(timeMarkers[idx]);
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            position: "absolute",
+                            left: `${left}%`,
+                            top: 0,
+                            bottom: 0,
+                            width: "1px",
+                            backgroundColor: "rgba(0, 0, 0, 0.03)",
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Collapsed Resource Toggle Row */}
+            {!showResourceCapacity && totalResourceCount > 0 && (
+              <div
+                style={{
+                  height: `${PHASE_ROW_HEIGHT}px`,
+                  backgroundColor: "rgba(0, 0, 0, 0.01)",
+                  borderTop: "1px solid rgba(0, 0, 0, 0.04)",
+                  position: "relative",
+                }}
+              >
+                {/* Timeline grid lines */}
+                {timeMarkers.map((_, idx) => {
+                  const left = getPositionPercent(timeMarkers[idx]);
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        position: "absolute",
+                        left: `${left}%`,
+                        top: 0,
+                        bottom: 0,
+                        width: "1px",
+                        backgroundColor: "rgba(0, 0, 0, 0.03)",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
             {/* Milestone Markers */}
             {currentProject.milestones && currentProject.milestones.length > 0 && (
               <>
@@ -2623,6 +3941,32 @@ export function GanttCanvasV3({
           variant="destructive"
         />
       )}
+
+      {/* Resource Edit Modal */}
+      <ResourceEditModal
+        isOpen={!!editingResourceId}
+        onClose={() => setEditingResourceId(null)}
+        resourceId={editingResourceId}
+        mode="edit"
+        showAdvancedOptions={hasFinancialAccess}
+      />
+
+      {/* Resource Allocation Modal - Bulk allocation to phases */}
+      <ResourceAllocationModal
+        isOpen={showAllocationModal}
+        onClose={() => {
+          setShowAllocationModal(false);
+          setAllocationModalInitialResource(undefined);
+          setAllocationModalInitialPhase(undefined);
+        }}
+        resources={sortedResources}
+        phases={currentProject.phases || []}
+        projectStartDate={duration.startDate}
+        projectEndDate={duration.endDate}
+        onApplyAllocation={handleApplyBulkAllocation}
+        initialResourceId={allocationModalInitialResource}
+        initialPhaseId={allocationModalInitialPhase}
+      />
 
       {/* CSS for divider hover effect and responsive styles */}
       <style jsx>{`

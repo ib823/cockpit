@@ -222,8 +222,15 @@ export async function calculateProjectCostingSummary(
     throw new Error(`Project not found: ${projectId}`);
   }
 
-  if (!project.costingConfig) {
-    throw new Error(`Costing config not found for project: ${projectId}`);
+  // Auto-create default costing config if not exists
+  let costingConfig = project.costingConfig;
+  if (!costingConfig) {
+    costingConfig = await prisma.projectCostingConfig.create({
+      data: {
+        projectId,
+        // Default values are defined in the Prisma schema
+      },
+    });
   }
 
   // Aggregate allocations by resource
@@ -265,7 +272,7 @@ export async function calculateProjectCostingSummary(
           designation: resource.designation,
           totalMandays: allocation.totalMandays,
           isSubcontractor: false,
-          projectCostingConfig: project.costingConfig,
+          projectCostingConfig: costingConfig,
         });
 
         resourceCosts.push(costResult);

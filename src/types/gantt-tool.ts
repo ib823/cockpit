@@ -593,6 +593,160 @@ export interface WhatIfScenario {
 export type AllocationPattern = "STEADY" | "CUSTOM";
 
 /**
+ * Distribution Pattern Types for Intent-Driven Allocation
+ * Defines how total effort is spread across the allocation period
+ */
+export type DistributionPattern =
+  | "STEADY"      // Flat line - equal effort each week
+  | "FRONT_LOAD"  // Heavy start (70% first half), taper off
+  | "BACK_LOAD"   // Light start, ramp up (70% second half)
+  | "BELL_CURVE"  // Peak in middle, taper at ends
+  | "RAMP_UP"     // Linear increase from min to max
+  | "RAMP_DOWN"   // Linear decrease from max to min
+  | "CUSTOM";     // Manual week-by-week control
+
+/**
+ * Distribution Pattern Configuration
+ * Metadata for UI display and algorithm selection
+ */
+export const DISTRIBUTION_PATTERNS: Record<
+  DistributionPattern,
+  { label: string; description: string; curve: number[] }
+> = {
+  STEADY: {
+    label: "Steady",
+    description: "Equal effort each week",
+    curve: [1, 1, 1, 1, 1, 1, 1, 1], // Normalized weights
+  },
+  FRONT_LOAD: {
+    label: "Front Load",
+    description: "Heavy start, taper off",
+    curve: [1, 0.9, 0.8, 0.7, 0.5, 0.4, 0.3, 0.2],
+  },
+  BACK_LOAD: {
+    label: "Back Load",
+    description: "Light start, ramp up",
+    curve: [0.2, 0.3, 0.4, 0.5, 0.7, 0.8, 0.9, 1],
+  },
+  BELL_CURVE: {
+    label: "Bell Curve",
+    description: "Peak in middle",
+    curve: [0.3, 0.5, 0.8, 1, 1, 0.8, 0.5, 0.3],
+  },
+  RAMP_UP: {
+    label: "Ramp Up",
+    description: "Linear increase",
+    curve: [0.2, 0.35, 0.5, 0.65, 0.8, 0.9, 0.95, 1],
+  },
+  RAMP_DOWN: {
+    label: "Ramp Down",
+    description: "Linear decrease",
+    curve: [1, 0.95, 0.9, 0.8, 0.65, 0.5, 0.35, 0.2],
+  },
+  CUSTOM: {
+    label: "Custom",
+    description: "Manual week-by-week",
+    curve: [1, 1, 1, 1, 1, 1, 1, 1],
+  },
+};
+
+/**
+ * Intensity Level - Quick presets for allocation density
+ */
+export type IntensityLevel = "light" | "medium" | "heavy" | "full";
+
+export const INTENSITY_LEVELS: Record<
+  IntensityLevel,
+  { label: string; maxDaysPerWeek: number; description: string }
+> = {
+  light: { label: "Light", maxDaysPerWeek: 1.5, description: "1-1.5 days/week" },
+  medium: { label: "Medium", maxDaysPerWeek: 3, description: "2-3 days/week" },
+  heavy: { label: "Heavy", maxDaysPerWeek: 4, description: "3-4 days/week" },
+  full: { label: "Full-time", maxDaysPerWeek: 5, description: "5 days/week" },
+};
+
+/**
+ * Resource Intent - Declarative resource allocation at project level
+ * User declares "what" they need, system figures out "how" to distribute
+ */
+export interface ResourceIntent {
+  id: string;
+  projectId: string;
+  resourceId: string;
+
+  // Intent declaration
+  totalEffortDays: number; // Total days needed (e.g., 40 days)
+  distributionPattern: DistributionPattern;
+  intensityLevel: IntensityLevel;
+
+  // Time constraints
+  startWeek: string; // ISO week format "2025-W03"
+  endWeek: string; // ISO week format "2025-W15"
+  maxDaysPerWeek: number; // Cap per week (default from intensity)
+
+  // Generation state
+  isGenerated: boolean; // True once allocations are generated
+  generatedAt?: string; // ISO timestamp of last generation
+  manualOverrides: number; // Count of weeks manually adjusted after generation
+
+  // Calculated preview (before generation)
+  previewWeeklyDays?: number[]; // Preview of distribution
+
+  // Audit
+  createdAt: string;
+  createdBy?: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
+/**
+ * Intent Generation Result - Output from distribution algorithm
+ */
+export interface IntentGenerationResult {
+  success: boolean;
+  weeklyAllocations: Array<{
+    weekIdentifier: string;
+    weekStartDate: string;
+    allocationDays: number;
+    allocationPercent: number;
+  }>;
+  totalDaysAllocated: number;
+  warnings?: string[]; // e.g., "Capped at 5 days in week 5"
+}
+
+/**
+ * Visual Allocation Bar - For timeline view (Phase 2)
+ * Represents a resource's allocation as a draggable bar
+ */
+export interface VisualAllocationBar {
+  id: string;
+  resourceId: string;
+  resourceName: string;
+
+  // Time span
+  startWeek: string; // "2025-W03"
+  endWeek: string; // "2025-W15"
+  durationWeeks: number;
+
+  // Intensity metrics
+  totalEffortDays: number;
+  avgDaysPerWeek: number;
+  peakDaysPerWeek: number;
+  intensityLevel: IntensityLevel;
+
+  // Visual properties (derived)
+  barColor: string;
+  barHeight: number; // 0-100% based on intensity
+
+  // Source tracking
+  sourceIntentId?: string; // If generated from intent
+  hasManualOverrides: boolean;
+
+  // Underlying data reference
+  weeklyAllocationIds: string[];
+}
+
+/**
  * Resource Weekly Allocation - Week-by-week resource allocation detail
  * Critical for cross-project conflict detection and capacity planning
  */

@@ -85,12 +85,23 @@ const TOKENS = {
 class LayoutEngine {
   calculateLayout(resources: Resource[]): Map<string, NodePosition> {
     const positions = new Map<string, NodePosition>();
-    const roots = resources.filter(r => !r.managerResourceId);
 
-    if (roots.length === 0) return positions;
+    if (resources.length === 0) return positions;
+
+    // Build a set of all valid resource IDs for fast lookup
+    const resourceIds = new Set(resources.map(r => r.id));
+
+    // Find root nodes: resources with no manager, OR manager doesn't exist in current resources
+    // This handles orphan nodes where managerResourceId points to a non-existent resource
+    const roots = resources.filter(r =>
+      !r.managerResourceId || !resourceIds.has(r.managerResourceId)
+    );
+
+    // If somehow we still have no roots (circular references only), treat first resource as root
+    const effectiveRoots = roots.length > 0 ? roots : [resources[0]];
 
     let currentX = TOKENS.layout.padding;
-    roots.forEach(root => {
+    effectiveRoots.forEach(root => {
       const width = this.layoutSubtree(root, resources, 0, currentX, positions);
       currentX += width + TOKENS.layout.nodeGap * 2;
     });
@@ -185,15 +196,22 @@ export function OrgChartHarmonyV2({ onClose, project }: Props) {
   const resources = currentProject?.resources || [];
   const companyLogos = getAllCompanyLogos(currentProject?.orgChartPro?.companyLogos);
 
-  // Debug logging
+  // Debug logging (development only)
   useEffect(() => {
-    console.log("📊 Current project:", currentProject?.name || "NO PROJECT");
-    console.log("📊 Current resources count:", resources.length);
-    console.log("📊 Resources:", resources);
-    if (!currentProject) {
-      console.warn("⚠️ No project loaded! Resources cannot be saved without a project.");
+    if (process.env.NODE_ENV === "development") {
+      console.log("[OrgChart] Project:", currentProject?.name || "NO PROJECT", "| Resources:", resources.length);
     }
   }, [resources, currentProject]);
+
+  // Layout
+  const layoutEngine = useMemo(() => new LayoutEngine(), []);
+  const positions = useMemo(() => {
+    const pos = layoutEngine.calculateLayout(resources);
+    if (process.env.NODE_ENV === "development") {
+      console.log("[OrgChart] Layout calculated:", pos.size, "positions for", resources.length, "resources");
+    }
+    return pos;
+  }, [resources, layoutEngine]);
 
   // State
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -211,10 +229,6 @@ export function OrgChartHarmonyV2({ onClose, project }: Props) {
   const smoothY = useSpring(y, { stiffness: 150, damping: 28 });
 
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Layout
-  const layoutEngine = useMemo(() => new LayoutEngine(), []);
-  const positions = useMemo(() => layoutEngine.calculateLayout(resources), [resources, layoutEngine]);
 
   // Canvas bounds
   const bounds = useMemo(() => {
