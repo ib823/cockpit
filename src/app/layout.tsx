@@ -14,15 +14,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Keystone",
   description: "From RFP to Proposal in 10 Minutes",
-  icons: {
-    icon: [
-      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-48.png", sizes: "48x48", type: "image/png" },
-      { url: "/favicon.ico", sizes: "any" },
-    ],
-    apple: [{ url: "/apple-touch-icon-180.png", sizes: "180x180", type: "image/png" }],
-  },
   manifest: "/manifest.json",
 };
 

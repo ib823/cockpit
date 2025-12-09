@@ -52,7 +52,7 @@ function getIdentifier(request: NextRequest): string {
   return Buffer.from(userAgent).toString("base64").substring(0, 16);
 }
 
-const publicPaths = ["/", "/login", "/api/auth", "/harmony-demo"];
+const publicPaths = ["/", "/login", "/api/auth", "/harmony-demo", "/api/favicon", "/api/health"];
 const adminPaths = ["/admin"];
 const protectedPaths = [
   "/gantt-tool",

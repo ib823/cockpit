@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AntDThemeBridge } from "@/ui/compat/AntDThemeBridge";
 import { ToastProvider } from "@/ui/toast/ToastProvider";
+import { DynamicFavicon } from "@/components/DynamicFavicon";
 import { useEffect, useState } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -70,6 +71,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <AntDThemeBridge>
             <ToastProvider>
               <App>
+                <DynamicFavicon />
                 {children}
               </App>
             </ToastProvider>
