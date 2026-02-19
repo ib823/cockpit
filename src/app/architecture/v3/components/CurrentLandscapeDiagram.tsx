@@ -25,39 +25,39 @@ export function CurrentLandscapeDiagram({
     switch (settings.visualStyle) {
       case "clean":
         return {
-          primary: "#2563A5",
-          primaryLight: "#EBF5FF",
+          primary: "#007AFF",
+          primaryLight: "rgba(0, 122, 255, 0.08)",
           bg: "#fff",
-          border: "#e0e0e0",
-          text: "#000",
-          textSecondary: "#666",
-          shadow: "0 2px 8px rgba(0,0,0,0.1)",
-          external: "#999",
-          externalBg: "#f9f9f9",
+          border: "var(--color-border-subtle)",
+          text: "var(--color-text-primary)",
+          textSecondary: "var(--color-text-secondary)",
+          shadow: "var(--shadow-sm)",
+          external: "var(--color-text-tertiary)",
+          externalBg: "var(--color-bg-secondary)",
         };
       case "bold":
         return {
-          primary: "#2563A5",
-          primaryLight: "#1e4a80",
-          bg: "#2563A5",
-          border: "#1e4a80",
+          primary: "#007AFF",
+          primaryLight: "#005EC4",
+          bg: "#007AFF",
+          border: "#005EC4",
           text: "#fff",
           textSecondary: "#f0f0f0",
           shadow: "none",
-          external: "#666",
+          external: "var(--color-text-secondary)",
           externalBg: "#888",
         };
       case "gradient":
         return {
-          primary: "#667eea",
-          primaryLight: "#764ba2",
-          bg: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          border: "#667eea",
+          primary: "#007AFF",
+          primaryLight: "#AF52DE",
+          bg: "linear-gradient(135deg, #007AFF 0%, #AF52DE 100%)",
+          border: "#007AFF",
           text: "#fff",
           textSecondary: "#f0f0f0",
-          shadow: "0 4px 12px rgba(102, 126, 234, 0.3)",
-          external: "#999",
-          externalBg: "#764ba2",
+          shadow: "0 4px 12px rgba(0, 122, 255, 0.3)",
+          external: "var(--color-text-tertiary)",
+          externalBg: "#AF52DE",
         };
     }
   };
@@ -73,86 +73,45 @@ export function CurrentLandscapeDiagram({
   };
 
   return (
-    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "48px 32px" }}>
+    <div className="max-w-[1400px] mx-auto py-12 px-8">
       {/* Header */}
-      <header
-        style={{
-          textAlign: "center",
-          marginBottom: "32px",
-        }}
-        role="banner"
-      >
-        <h1
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "28px",
-            fontWeight: 600,
-            color: "#000",
-            marginBottom: "8px",
-          }}
-        >
+      <header className="text-center mb-8" role="banner">
+        <h1 className="font-[var(--font-display)] text-[28px] font-semibold text-[var(--color-text-primary)] mb-2">
           Current Landscape Architecture (AS-IS)
         </h1>
-        <p
-          style={{
-            fontFamily: "var(--font-text)",
-            fontSize: "14px",
-            color: "#666",
-            marginBottom: "16px",
-          }}
-        >
+        <p className="font-[var(--font-text)] text-sm text-[var(--color-text-secondary)] mb-4">
           Existing Systems, Integrations & External Dependencies
         </p>
-        <div
-          style={{
-            fontFamily: "var(--font-text)",
-            fontSize: "13px",
-            color: "#999",
-          }}
-        >
+        <div className="font-[var(--font-text)] text-[13px] text-[var(--color-text-tertiary)]">
           Style: {settings.visualStyle} • Layout: {settings.layoutMode}
         </div>
       </header>
 
       {/* Main Diagram Container */}
       <div
-        style={{
-          padding: "48px",
-          border: "2px solid #333",
-          borderRadius: "12px",
-          backgroundColor: "#fff",
-          minHeight: "600px",
-        }}
+        className="p-12 border-2 border-[var(--color-text-primary)] rounded-xl bg-[var(--color-bg-primary)] min-h-[600px]"
         role="main"
         aria-label="AS-IS architecture diagram content"
       >
         {/* Current Systems Section */}
         {data.systems.length > 0 && (
-          <section
-            style={{ marginBottom: "48px" }}
-            aria-labelledby="systems-heading"
-          >
+          <section className="mb-12" aria-labelledby="systems-heading">
             <h2
               id="systems-heading"
+              className="font-[var(--font-text)] text-lg font-semibold mb-5 pb-2"
               style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "18px",
-                fontWeight: 600,
-                marginBottom: "20px",
                 color: colors.primary,
                 borderBottom: `2px solid ${colors.primary}`,
-                paddingBottom: "8px",
               }}
             >
               CURRENT SYSTEMS ({data.systems.length})
             </h2>
             <div
+              className="grid gap-4"
               style={{
-                display: "grid",
                 gridTemplateColumns: settings.layoutMode === "swim-lanes"
                   ? "1fr"
                   : "repeat(auto-fit, minmax(300px, 1fr))",
-                gap: "16px",
               }}
               role="list"
               aria-label="Current systems list"
@@ -170,20 +129,20 @@ export function CurrentLandscapeDiagram({
                     color: colors.text,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "12px" }}>
+                  <div className="flex items-start gap-3 mb-3">
                     {settings.showIcons && (
                       <Server
-                        className="w-6 h-6"
-                        style={{ color: colors.primary, flexShrink: 0 }}
+                        className="w-6 h-6 shrink-0"
+                        style={{ color: colors.primary }}
                         aria-hidden="true"
                       />
                     )}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: "16px", marginBottom: "4px" }}>
+                    <div className="flex-1">
+                      <div className="font-semibold text-base mb-1">
                         {system.name}
                       </div>
                       {system.vendor && (
-                        <div style={{ fontSize: "13px", color: colors.textSecondary }}>
+                        <div className="text-[13px]" style={{ color: colors.textSecondary }}>
                           Vendor: {system.vendor}
                           {system.version && ` v${system.version}`}
                         </div>
@@ -191,23 +150,20 @@ export function CurrentLandscapeDiagram({
                     </div>
                     {system.status && (
                       <div
+                        className="px-2 py-1 rounded text-[11px] font-semibold"
                         style={{
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          fontSize: "11px",
-                          fontWeight: 600,
                           backgroundColor:
                             system.status === "active"
-                              ? "#E8F5E9"
+                              ? "rgba(52, 199, 89, 0.12)"
                               : system.status === "retiring"
-                              ? "#FFEBEE"
-                              : "#FFF3E0",
+                              ? "rgba(255, 59, 48, 0.1)"
+                              : "rgba(255, 149, 0, 0.1)",
                           color:
                             system.status === "active"
-                              ? "#2E7D32"
+                              ? "#248A3D"
                               : system.status === "retiring"
-                              ? "#C62828"
-                              : "#E65100",
+                              ? "#D70015"
+                              : "#C93400",
                         }}
                       >
                         {system.status.toUpperCase()}
@@ -215,28 +171,21 @@ export function CurrentLandscapeDiagram({
                     )}
                   </div>
                   {system.modules && system.modules.length > 0 && (
-                    <div style={{ marginTop: "12px" }}>
+                    <div className="mt-3">
                       <div
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          marginBottom: "6px",
-                          color: colors.textSecondary,
-                        }}
+                        className="text-xs font-semibold mb-1.5"
+                        style={{ color: colors.textSecondary }}
                       >
                         Modules/Capabilities:
                       </div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                      <div className="flex flex-wrap gap-1.5">
                         {system.modules.map((module, idx) => (
                           <span
                             key={idx}
+                            className="px-2 py-1 rounded text-[11px] font-medium"
                             style={{
-                              padding: "4px 8px",
                               backgroundColor: colors.primaryLight,
                               color: settings.visualStyle === "clean" ? colors.primary : colors.text,
-                              borderRadius: "4px",
-                              fontSize: "11px",
-                              fontWeight: 500,
                             }}
                           >
                             {module}
@@ -253,33 +202,18 @@ export function CurrentLandscapeDiagram({
 
         {/* Integrations Section */}
         {data.integrations.length > 0 && (
-          <section
-            style={{ marginBottom: "48px" }}
-            aria-labelledby="integrations-heading"
-          >
+          <section className="mb-12" aria-labelledby="integrations-heading">
             <h2
               id="integrations-heading"
+              className="font-[var(--font-text)] text-lg font-semibold mb-5 pb-2"
               style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "18px",
-                fontWeight: 600,
-                marginBottom: "20px",
                 color: colors.primary,
                 borderBottom: `2px solid ${colors.primary}`,
-                paddingBottom: "8px",
               }}
             >
               SYSTEM INTEGRATIONS ({data.integrations.length})
             </h2>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-              }}
-              role="list"
-              aria-label="System integrations list"
-            >
+            <div className="flex flex-col gap-3" role="list" aria-label="System integrations list">
               {data.integrations.map((integration) => {
                 const sourceSystem = data.systems.find(s => s.id === integration.sourceId);
                 const targetSystem = data.systems.find(s => s.id === integration.targetId);
@@ -288,27 +222,20 @@ export function CurrentLandscapeDiagram({
                   <div
                     key={integration.id}
                     role="listitem"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "16px",
-                      backgroundColor: "#f9f9f9",
-                      border: "1px solid #e0e0e0",
-                      borderRadius: "6px",
-                    }}
+                    className="flex items-center p-4 bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] rounded-md"
                   >
-                    <div style={{ flex: 1, fontWeight: 600 }}>
+                    <div className="flex-1 font-semibold">
                       {sourceSystem?.name || "Unknown Source"}
                     </div>
-                    <div style={{ padding: "0 16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div className="px-4 flex items-center gap-2">
                       <ArrowRight className="w-5 h-5" style={{ color: colors.primary }} aria-hidden="true" />
                       {integration.type && (
-                        <span style={{ fontSize: "11px", color: "#666" }}>
+                        <span className="text-[11px] text-[var(--color-text-secondary)]">
                           ({integration.type})
                         </span>
                       )}
                     </div>
-                    <div style={{ flex: 1, fontWeight: 600, textAlign: "right" }}>
+                    <div className="flex-1 font-semibold text-right">
                       {targetSystem?.name || "Unknown Target"}
                     </div>
                   </div>
@@ -320,30 +247,20 @@ export function CurrentLandscapeDiagram({
 
         {/* External Systems Section */}
         {data.externalSystems.length > 0 && (
-          <section
-            style={{ marginBottom: "48px" }}
-            aria-labelledby="external-systems-heading"
-          >
+          <section className="mb-12" aria-labelledby="external-systems-heading">
             <h2
               id="external-systems-heading"
+              className="font-[var(--font-text)] text-lg font-semibold mb-5 pb-2"
               style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "18px",
-                fontWeight: 600,
-                marginBottom: "20px",
                 color: colors.external,
                 borderBottom: `2px solid ${colors.external}`,
-                paddingBottom: "8px",
               }}
             >
               EXTERNAL SYSTEMS & DEPENDENCIES ({data.externalSystems.length})
             </h2>
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-                gap: "12px",
-              }}
+              className="grid gap-3"
+              style={{ gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))" }}
               role="list"
               aria-label="External systems list"
             >
@@ -351,36 +268,25 @@ export function CurrentLandscapeDiagram({
                 <div
                   key={system.id}
                   role="listitem"
+                  className="p-4 rounded-md"
                   style={{
-                    padding: "16px",
                     backgroundColor: colors.externalBg,
                     border: `2px dashed ${colors.external}`,
-                    borderRadius: "6px",
-                    color: settings.visualStyle === "clean" ? "#333" : colors.text,
+                    color: settings.visualStyle === "clean" ? "var(--color-text-primary)" : colors.text,
                   }}
                 >
-                  <div style={{ fontWeight: 600, marginBottom: "4px" }}>
+                  <div className="font-semibold mb-1">
                     {system.name}
                   </div>
                   {system.provider && (
-                    <div style={{ fontSize: "12px", opacity: 0.8 }}>
+                    <div className="text-xs opacity-80">
                       Provider: {system.provider}
                     </div>
                   )}
                   {system.category && (
-                    <div
-                      style={{
-                        marginTop: "8px",
-                        padding: "4px 8px",
-                        backgroundColor: "rgba(0,0,0,0.1)",
-                        borderRadius: "4px",
-                        fontSize: "10px",
-                        fontWeight: 600,
-                        display: "inline-block",
-                      }}
-                    >
+                    <span className="inline-block mt-2 px-2 py-1 bg-black/10 rounded text-[10px] font-semibold">
                       {system.category}
-                    </div>
+                    </span>
                   )}
                 </div>
               ))}
@@ -391,18 +297,14 @@ export function CurrentLandscapeDiagram({
         {/* Empty State */}
         {data.systems.length === 0 && data.externalSystems.length === 0 && (
           <div
-            style={{
-              textAlign: "center",
-              padding: "64px 32px",
-              color: "#999",
-            }}
+            className="text-center py-16 px-8 text-[var(--color-text-tertiary)]"
             role="status"
             aria-live="polite"
           >
-            <p style={{ fontSize: "16px", marginBottom: "8px" }}>
+            <p className="text-base mb-2">
               No AS-IS architecture data available
             </p>
-            <p style={{ fontSize: "13px" }}>
+            <p className="text-[13px]">
               Add current systems in the &quot;Current Business Landscape&quot; tab to visualize the AS-IS state
             </p>
           </div>
@@ -411,17 +313,12 @@ export function CurrentLandscapeDiagram({
         {/* Legend */}
         {settings.showLegend && (data.systems.length > 0 || data.externalSystems.length > 0) && (
           <footer
-            style={{
-              marginTop: "48px",
-              padding: "20px",
-              backgroundColor: "#f5f5f5",
-              borderRadius: "8px",
-            }}
+            className="mt-12 p-5 bg-[var(--color-bg-secondary)] rounded-lg"
             role="contentinfo"
             aria-label="Diagram legend and metadata"
           >
-            <div style={{ fontWeight: 600, marginBottom: "12px" }}>Legend:</div>
-            <div style={{ fontSize: "13px", color: "#666", lineHeight: "1.6" }}>
+            <div className="font-semibold mb-3">Legend:</div>
+            <div className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
               <div>• Solid Border: Internal Systems</div>
               <div>• Dashed Border: External Systems/Dependencies</div>
               <div>• Visual Style: {settings.visualStyle.toUpperCase()}</div>
@@ -432,23 +329,10 @@ export function CurrentLandscapeDiagram({
       </div>
 
       {/* Export Button */}
-      <div style={{ textAlign: "center", marginTop: "32px" }}>
+      <div className="text-center mt-8">
         <button
           onClick={handleExport}
-          style={{
-            padding: "14px 32px",
-            backgroundColor: "#2563A5",
-            color: "#fff",
-            border: "none",
-            borderRadius: "8px",
-            fontFamily: "var(--font-text)",
-            fontSize: "15px",
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
+          className="px-8 py-3.5 bg-[var(--color-blue)] text-white border-none rounded-lg font-[var(--font-text)] text-[15px] font-semibold cursor-pointer inline-flex items-center gap-2 hover:brightness-90 transition-all"
           aria-label="Export AS-IS architecture diagram to PDF or PowerPoint"
         >
           <Download className="w-4 h-4" aria-hidden="true" />

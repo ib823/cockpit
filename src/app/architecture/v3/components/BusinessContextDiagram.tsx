@@ -25,33 +25,33 @@ export function BusinessContextDiagram({
     switch (settings.visualStyle) {
       case "clean":
         return {
-          primary: "#2563A5",
-          primaryLight: "#EBF5FF",
+          primary: "#007AFF",
+          primaryLight: "rgba(0, 122, 255, 0.08)",
           bg: "#fff",
-          border: "#e0e0e0",
-          text: "#000",
-          textSecondary: "#666",
-          shadow: "0 2px 8px rgba(0,0,0,0.1)",
+          border: "var(--color-border-subtle)",
+          text: "var(--color-text-primary)",
+          textSecondary: "var(--color-text-secondary)",
+          shadow: "var(--shadow-sm)",
         };
       case "bold":
         return {
-          primary: "#2563A5",
-          primaryLight: "#1e4a80",
-          bg: "#2563A5",
-          border: "#1e4a80",
+          primary: "#007AFF",
+          primaryLight: "#005EC4",
+          bg: "#007AFF",
+          border: "#005EC4",
           text: "#fff",
           textSecondary: "#f0f0f0",
           shadow: "none",
         };
       case "gradient":
         return {
-          primary: "#667eea",
-          primaryLight: "#764ba2",
-          bg: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          border: "#667eea",
+          primary: "#007AFF",
+          primaryLight: "#AF52DE",
+          bg: "linear-gradient(135deg, #007AFF 0%, #AF52DE 100%)",
+          border: "#007AFF",
           text: "#fff",
           textSecondary: "#f0f0f0",
-          shadow: "0 4px 12px rgba(102, 126, 234, 0.3)",
+          shadow: "0 4px 12px rgba(0, 122, 255, 0.3)",
         };
     }
   };
@@ -67,43 +67,16 @@ export function BusinessContextDiagram({
   };
 
   return (
-    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "48px 32px" }}>
+    <div className="max-w-[1400px] mx-auto py-12 px-8">
       {/* Header */}
-      <header
-        style={{
-          textAlign: "center",
-          marginBottom: "32px",
-        }}
-        role="banner"
-      >
-        <h1
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "28px",
-            fontWeight: 600,
-            color: "#000",
-            marginBottom: "8px",
-          }}
-        >
+      <header className="text-center mb-8" role="banner">
+        <h1 className="font-[var(--font-display)] text-[28px] font-semibold text-[var(--color-text-primary)] mb-2">
           Business Context Architecture
         </h1>
-        <p
-          style={{
-            fontFamily: "var(--font-text)",
-            fontSize: "14px",
-            color: "#666",
-            marginBottom: "16px",
-          }}
-        >
+        <p className="font-[var(--font-text)] text-sm text-[var(--color-text-secondary)] mb-4">
           Enterprise Overview: Entities, Stakeholders, Capabilities & Motivation
         </p>
-        <div
-          style={{
-            fontFamily: "var(--font-text)",
-            fontSize: "13px",
-            color: "#999",
-          }}
-        >
+        <div className="font-[var(--font-text)] text-[13px] text-[var(--color-text-tertiary)]">
           Style: {settings.visualStyle} • Actor Display: {settings.actorDisplay} • Layout:{" "}
           {settings.layoutMode}
         </div>
@@ -111,42 +84,26 @@ export function BusinessContextDiagram({
 
       {/* Main Diagram Container */}
       <div
-        style={{
-          padding: "48px",
-          border: "2px solid #333",
-          borderRadius: "12px",
-          backgroundColor: "#fff",
-          minHeight: "600px",
-        }}
+        className="p-12 border-2 border-[var(--color-text-primary)] rounded-xl bg-[var(--color-bg-primary)] min-h-[600px]"
         role="main"
         aria-label="Business context diagram content"
       >
         {/* Business Entities Section */}
         {data.entities.length > 0 && (
-          <section
-            style={{ marginBottom: "48px" }}
-            aria-labelledby="entities-heading"
-          >
+          <section className="mb-12" aria-labelledby="entities-heading">
             <h2
               id="entities-heading"
+              className="font-[var(--font-text)] text-lg font-semibold mb-5 pb-2"
               style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "18px",
-                fontWeight: 600,
-                marginBottom: "20px",
                 color: colors.primary,
                 borderBottom: `2px solid ${colors.primary}`,
-                paddingBottom: "8px",
               }}
             >
               BUSINESS ENTITIES
             </h2>
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: "16px",
-              }}
+              className="grid gap-4"
+              style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}
               role="list"
               aria-label="Business entities list"
             >
@@ -154,30 +111,25 @@ export function BusinessContextDiagram({
                 <div
                   key={entity.id}
                   role="listitem"
+                  className="text-center p-5"
                   style={{
-                    padding: "20px",
                     background: colors.bg,
                     border: `2px solid ${colors.border}`,
                     borderRadius: settings.visualStyle === "clean" ? "8px" : "4px",
                     boxShadow: colors.shadow,
                     color: colors.text,
-                    textAlign: "center",
                   }}
                 >
-                  <div style={{ fontWeight: 600, marginBottom: "4px" }}>{entity.name}</div>
+                  <div className="font-semibold mb-1">{entity.name}</div>
                   {entity.location && (
-                    <div style={{ fontSize: "12px", opacity: 0.8, color: colors.textSecondary }}>
+                    <div className="text-xs opacity-80" style={{ color: colors.textSecondary }}>
                       {entity.location}
                     </div>
                   )}
                   {entity.description && (
                     <div
-                      style={{
-                        fontSize: "11px",
-                        marginTop: "8px",
-                        color: colors.textSecondary,
-                        lineHeight: "1.4",
-                      }}
+                      className="text-[11px] mt-2 leading-snug"
+                      style={{ color: colors.textSecondary }}
                     >
                       {entity.description}
                     </div>
@@ -190,31 +142,21 @@ export function BusinessContextDiagram({
 
         {/* Key Stakeholders Section */}
         {data.actors.length > 0 && (
-          <section
-            style={{ marginBottom: "48px" }}
-            aria-labelledby="stakeholders-heading"
-          >
+          <section className="mb-12" aria-labelledby="stakeholders-heading">
             <h2
               id="stakeholders-heading"
+              className="font-[var(--font-text)] text-lg font-semibold mb-5 pb-2"
               style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "18px",
-                fontWeight: 600,
-                marginBottom: "20px",
                 color: colors.primary,
                 borderBottom: `2px solid ${colors.primary}`,
-                paddingBottom: "8px",
               }}
             >
               KEY STAKEHOLDERS
             </h2>
             {settings.actorDisplay === "cards" ? (
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-                  gap: "16px",
-                }}
+                className="grid gap-4"
+                style={{ gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))" }}
                 role="list"
                 aria-label="Stakeholders list in card format"
               >
@@ -222,20 +164,17 @@ export function BusinessContextDiagram({
                   <div
                     key={actor.id}
                     role="listitem"
+                    className="p-4 rounded-lg"
                     style={{
-                      padding: "16px",
                       background: colors.primaryLight,
                       border: `2px solid ${colors.primary}`,
-                      borderRadius: "8px",
-                      color: settings.visualStyle === "clean" ? "#000" : colors.text,
+                      color: settings.visualStyle === "clean" ? "var(--color-text-primary)" : colors.text,
                     }}
                   >
-                    <div style={{ fontWeight: 600, marginBottom: "4px" }}>{actor.name}</div>
+                    <div className="font-semibold mb-1">{actor.name}</div>
                     <div
+                      className="text-xs opacity-90 mb-2"
                       style={{
-                        fontSize: "12px",
-                        opacity: 0.9,
-                        marginBottom: "8px",
                         color: settings.visualStyle === "clean" ? colors.primary : colors.textSecondary,
                       }}
                     >
@@ -243,11 +182,9 @@ export function BusinessContextDiagram({
                     </div>
                     {actor.activities && actor.activities.length > 0 && (
                       <ul
+                        className="text-[11px] m-0 pl-4"
                         style={{
-                          fontSize: "11px",
-                          margin: 0,
-                          paddingLeft: "16px",
-                          color: settings.visualStyle === "clean" ? "#333" : colors.textSecondary,
+                          color: settings.visualStyle === "clean" ? "var(--color-text-primary)" : colors.textSecondary,
                         }}
                       >
                         {actor.activities.map((activity, idx) => (
@@ -259,19 +196,16 @@ export function BusinessContextDiagram({
                 ))}
               </div>
             ) : (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }} role="list" aria-label="Stakeholders list in tag format">
+              <div className="flex flex-wrap gap-2" role="list" aria-label="Stakeholders list in tag format">
                 {data.actors.map((actor) => (
                   <div
                     key={actor.id}
                     role="listitem"
+                    className="px-4 py-2 rounded-full text-[13px] font-medium"
                     style={{
-                      padding: "8px 16px",
                       backgroundColor: colors.primaryLight,
                       border: `1px solid ${colors.primary}`,
-                      borderRadius: "20px",
                       color: settings.visualStyle === "clean" ? colors.primary : colors.text,
-                      fontSize: "13px",
-                      fontWeight: 500,
                     }}
                   >
                     {actor.name} ({actor.role})
@@ -284,42 +218,32 @@ export function BusinessContextDiagram({
 
         {/* Required Capabilities Section */}
         {data.capabilities.length > 0 && (
-          <section
-            style={{ marginBottom: "48px" }}
-            aria-labelledby="capabilities-heading"
-          >
+          <section className="mb-12" aria-labelledby="capabilities-heading">
             <h2
               id="capabilities-heading"
+              className="font-[var(--font-text)] text-lg font-semibold mb-5 pb-2"
               style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "18px",
-                fontWeight: 600,
-                marginBottom: "20px",
                 color: colors.primary,
                 borderBottom: `2px solid ${colors.primary}`,
-                paddingBottom: "8px",
               }}
             >
               REQUIRED CAPABILITIES
             </h2>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }} role="list" aria-label="Business capabilities list">
+            <div className="flex flex-wrap gap-3" role="list" aria-label="Business capabilities list">
               {data.capabilities.map((cap) => (
                 <div
                   key={cap.id}
                   role="listitem"
+                  className="px-4 py-2.5 rounded-md text-sm font-medium"
                   style={{
-                    padding: "10px 16px",
-                    backgroundColor: "#EBF5FF",
+                    backgroundColor: "rgba(0, 122, 255, 0.08)",
                     border: `2px solid ${colors.primary}`,
-                    borderRadius: "6px",
                     color: colors.primary,
-                    fontSize: "14px",
-                    fontWeight: 500,
                   }}
                 >
                   {cap.name}
                   {cap.category && (
-                    <span style={{ fontSize: "11px", opacity: 0.7, marginLeft: "8px" }}>
+                    <span className="text-[11px] opacity-70 ml-2">
                       ({cap.category})
                     </span>
                   )}
@@ -331,33 +255,23 @@ export function BusinessContextDiagram({
 
         {/* Pain Points Section */}
         {data.painPoints && (
-          <section
-            style={{ marginBottom: "48px" }}
-            aria-labelledby="pain-points-heading"
-          >
+          <section className="mb-12" aria-labelledby="pain-points-heading">
             <h2
               id="pain-points-heading"
+              className="font-[var(--font-text)] text-lg font-semibold mb-5 pb-2"
               style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "18px",
-                fontWeight: 600,
-                marginBottom: "20px",
-                color: "#CC7700",
+                color: "#C93400",
                 borderBottom: "2px solid #FF9500",
-                paddingBottom: "8px",
               }}
             >
               PAIN POINTS & TRANSFORMATION MOTIVATION
             </h2>
             <div
+              className="p-5 rounded-lg text-sm leading-relaxed"
               style={{
-                padding: "20px",
-                backgroundColor: "#FFF3EB",
+                backgroundColor: "rgba(255, 149, 0, 0.08)",
                 border: "2px solid #FF9500",
-                borderRadius: "8px",
-                color: "#CC7700",
-                fontSize: "14px",
-                lineHeight: "1.6",
+                color: "#C93400",
               }}
               role="article"
               aria-label="Business pain points and motivation for transformation"
@@ -370,17 +284,12 @@ export function BusinessContextDiagram({
         {/* Legend */}
         {settings.showLegend && (
           <footer
-            style={{
-              marginTop: "48px",
-              padding: "20px",
-              backgroundColor: "#f5f5f5",
-              borderRadius: "8px",
-            }}
+            className="mt-12 p-5 bg-[var(--color-bg-secondary)] rounded-lg"
             role="contentinfo"
             aria-label="Diagram legend and metadata"
           >
-            <div style={{ fontWeight: 600, marginBottom: "12px" }}>Legend:</div>
-            <div style={{ fontSize: "13px", color: "#666" }}>
+            <div className="font-semibold mb-3">Legend:</div>
+            <div className="text-[13px] text-[var(--color-text-secondary)]">
               Visual Style: {settings.visualStyle.toUpperCase()} • Layout:{" "}
               {settings.layoutMode.toUpperCase()} • Date:{" "}
               {new Date().toLocaleDateString()}
@@ -390,23 +299,10 @@ export function BusinessContextDiagram({
       </div>
 
       {/* Export Button */}
-      <div style={{ textAlign: "center", marginTop: "32px" }}>
+      <div className="text-center mt-8">
         <button
           onClick={handleExport}
-          style={{
-            padding: "14px 32px",
-            backgroundColor: "#2563A5",
-            color: "#fff",
-            border: "none",
-            borderRadius: "8px",
-            fontFamily: "var(--font-text)",
-            fontSize: "15px",
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
+          className="px-8 py-3.5 bg-[var(--color-blue)] text-white border-none rounded-lg font-[var(--font-text)] text-[15px] font-semibold cursor-pointer inline-flex items-center gap-2 hover:brightness-90 transition-all"
           aria-label="Export business context diagram to PDF or PowerPoint"
         >
           <Download className="w-4 h-4" aria-hidden="true" />
