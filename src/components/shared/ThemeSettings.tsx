@@ -15,15 +15,15 @@ import {
 } from "@/stores/preferences-store";
 import { HelpTooltip } from "./HelpTooltip";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const ACCENT_COLOR_OPTIONS: { value: AccentColor; label: string; color: string }[] = [
-  { value: "blue", label: "Blue", color: "#2563eb" },
-  { value: "purple", label: "Purple", color: "#8b5cf6" },
-  { value: "green", label: "Green", color: "#10b981" },
-  { value: "orange", label: "Orange", color: "#f59e0b" },
-  { value: "red", label: "Red", color: "#ef4444" },
-  { value: "teal", label: "Teal", color: "#14b8a6" },
+  { value: "blue", label: "Blue", color: "var(--color-blue)" },
+  { value: "purple", label: "Purple", color: "var(--color-purple)" },
+  { value: "green", label: "Green", color: "var(--color-green)" },
+  { value: "orange", label: "Orange", color: "var(--color-orange)" },
+  { value: "red", label: "Red", color: "var(--color-red)" },
+  { value: "teal", label: "Teal", color: "var(--color-teal)" },
 ];
 
 const DENSITY_OPTIONS: { value: DensityMode; label: string; description: string }[] = [
@@ -37,6 +37,18 @@ const THEME_OPTIONS: { value: ThemeMode; label: string; description: string }[] 
   { value: "dark", label: "Dark", description: "Dark color scheme" },
   { value: "system", label: "System", description: "Follow system preference" },
 ];
+
+const DENSITY_PADDING: Record<DensityMode, number> = {
+  compact: 4,
+  comfortable: 8,
+  spacious: 12,
+};
+
+const DENSITY_FONT_SIZE: Record<DensityMode, number> = {
+  compact: 12,
+  comfortable: 14,
+  spacious: 16,
+};
 
 interface ThemeSettingsProps {
   compact?: boolean;
@@ -60,7 +72,7 @@ export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
     return (
       <Space direction="vertical" style={{ width: "100%" }} size="middle">
         <div>
-          <Text strong style={{ display: "block", marginBottom: 8 }}>
+          <Text strong className="block mb-2">
             Theme Mode
             <HelpTooltip
               title="Theme Mode"
@@ -79,7 +91,7 @@ export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
         </div>
 
         <div>
-          <Text strong style={{ display: "block", marginBottom: 8 }}>
+          <Text strong className="block mb-2">
             Accent Color
             <HelpTooltip
               title="Accent Color"
@@ -91,15 +103,15 @@ export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
               <div
                 key={option.value}
                 onClick={() => setAccentColor(option.value)}
+                className="w-10 h-10 rounded-[var(--radius-md)] cursor-pointer transition-all duration-200"
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 8,
                   backgroundColor: option.color,
-                  cursor: "pointer",
-                  border: accentColor === option.value ? "3px solid #000" : "2px solid #e5e7eb",
-                  transition: "all 0.2s ease",
-                  boxShadow: accentColor === option.value ? "0 0 0 4px rgba(0,0,0,0.1)" : "none",
+                  border: accentColor === option.value
+                    ? "3px solid var(--color-text-primary)"
+                    : "2px solid var(--color-border-subtle)",
+                  boxShadow: accentColor === option.value
+                    ? "0 0 0 4px rgba(0,0,0,0.1)"
+                    : "none",
                 }}
                 title={option.label}
                 role="button"
@@ -110,7 +122,7 @@ export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
         </div>
 
         <div>
-          <Text strong style={{ display: "block", marginBottom: 8 }}>
+          <Text strong className="block mb-2">
             Density
             <HelpTooltip title="Density" description="Adjust the spacing and size of UI elements" />
           </Text>
@@ -125,7 +137,7 @@ export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
                   <div>
                     <Text strong>{option.label}</Text>
                     <br />
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className="text-xs">
                       {option.description}
                     </Text>
                   </div>
@@ -172,11 +184,11 @@ export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
                   }}
                   onClick={() => setTheme(option.value)}
                 >
-                  <Radio value={option.value} style={{ marginBottom: 8 }}>
+                  <Radio value={option.value} className="mb-2">
                     <Text strong>{option.label}</Text>
                   </Radio>
                   <br />
-                  <Text type="secondary" style={{ fontSize: 13 }}>
+                  <Text type="secondary" className="text-[13px]">
                     {option.description}
                   </Text>
                 </Card>
@@ -205,30 +217,26 @@ export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
               <Col xs={12} sm={8} md={4} key={option.value}>
                 <div
                   onClick={() => setAccentColor(option.value)}
-                  style={{
-                    textAlign: "center",
-                    cursor: "pointer",
-                  }}
+                  className="text-center cursor-pointer"
                 >
                   <div
+                    className="w-full h-16 rounded-[var(--radius-lg)] transition-all duration-200"
                     style={{
-                      width: "100%",
-                      height: 64,
-                      borderRadius: 12,
                       backgroundColor: option.color,
-                      border: accentColor === option.value ? "4px solid #000" : "2px solid #e5e7eb",
-                      transition: "all 0.2s ease",
-                      boxShadow:
-                        accentColor === option.value ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
+                      border: accentColor === option.value
+                        ? "4px solid var(--color-text-primary)"
+                        : "2px solid var(--color-border-subtle)",
+                      boxShadow: accentColor === option.value
+                        ? "var(--shadow-md)"
+                        : "none",
                       transform: accentColor === option.value ? "scale(1.05)" : "scale(1)",
                     }}
                     role="button"
                     aria-label={`Select ${option.label} accent color`}
                   />
                   <Text
+                    className="block mt-2"
                     style={{
-                      display: "block",
-                      marginTop: 8,
                       fontWeight: accentColor === option.value ? 600 : 400,
                     }}
                   >
@@ -269,32 +277,19 @@ export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
                   }}
                   onClick={() => setDensityMode(option.value)}
                 >
-                  <Radio value={option.value} style={{ marginBottom: 8 }}>
+                  <Radio value={option.value} className="mb-2">
                     <Text strong>{option.label}</Text>
                   </Radio>
                   <br />
-                  <Text type="secondary" style={{ fontSize: 13 }}>
+                  <Text type="secondary" className="text-[13px]">
                     {option.description}
                   </Text>
-                  <Divider style={{ margin: "12px 0" }} />
+                  <Divider className="my-3" />
                   <div
-                    style={{
-                      padding:
-                        option.value === "compact" ? 4 : option.value === "comfortable" ? 8 : 12,
-                      background: "var(--surface-sub)",
-                      borderRadius: 4,
-                    }}
+                    className="bg-[var(--surface-sub)] rounded"
+                    style={{ padding: DENSITY_PADDING[option.value] }}
                   >
-                    <Text
-                      style={{
-                        fontSize:
-                          option.value === "compact"
-                            ? 12
-                            : option.value === "comfortable"
-                              ? 14
-                              : 16,
-                      }}
-                    >
+                    <Text style={{ fontSize: DENSITY_FONT_SIZE[option.value] }}>
                       Sample text
                     </Text>
                   </div>
@@ -310,7 +305,7 @@ export function ThemeSettings({ compact = false }: ThemeSettingsProps) {
           <div>
             <Text strong>Reset Theme Settings</Text>
             <br />
-            <Text type="secondary" style={{ fontSize: 13 }}>
+            <Text type="secondary" className="text-[13px]">
               Reset all theme customizations to default values
             </Text>
           </div>

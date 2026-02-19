@@ -40,11 +40,11 @@ export function HelpTooltip({
   iconStyle,
 }: HelpTooltipProps) {
   const tooltipContent = description ? (
-    <div style={{ maxWidth: 300 }}>
-      <Text strong style={{ color: "white", display: "block", marginBottom: 4 }}>
+    <div className="max-w-[300px]">
+      <Text strong className="block mb-1 text-white">
         {title}
       </Text>
-      <Text style={{ color: "rgba(255, 255, 255, 0.85)", fontSize: 13 }}>{description}</Text>
+      <Text className="text-white/85 text-[13px]">{description}</Text>
     </div>
   ) : (
     title
@@ -63,11 +63,9 @@ export function HelpTooltip({
   return (
     <Tooltip title={tooltipContent} placement={placement} mouseEnterDelay={0.3}>
       <span
+        className="cursor-help text-sm ml-1"
         style={{
-          cursor: "help",
           color: "var(--ant-color-text-secondary)",
-          fontSize: 14,
-          marginLeft: 4,
           ...iconStyle,
         }}
       >
@@ -90,17 +88,12 @@ interface FormFieldTooltipProps {
 
 export function FormFieldTooltip({ label, helpText, required, example }: FormFieldTooltipProps) {
   const content = (
-    <div style={{ maxWidth: 320 }}>
-      <Text strong style={{ color: "white", display: "block", marginBottom: 4 }}>
-        {label} {required && <span style={{ color: "#ff4d4f" }}>*</span>}
+    <div className="max-w-[320px]">
+      <Text strong className="block mb-1 text-white">
+        {label} {required && <span className="text-[var(--color-red)]">*</span>}
       </Text>
       <Text
-        style={{
-          color: "rgba(255, 255, 255, 0.85)",
-          fontSize: 13,
-          display: "block",
-          marginBottom: example ? 8 : 0,
-        }}
+        className={`block text-white/85 text-[13px] ${example ? "mb-2" : ""}`}
       >
         {helpText}
       </Text>
@@ -108,24 +101,13 @@ export function FormFieldTooltip({ label, helpText, required, example }: FormFie
         <>
           <Text
             strong
-            style={{
-              color: "rgba(255, 255, 255, 0.65)",
-              fontSize: 12,
-              display: "block",
-              marginBottom: 2,
-            }}
+            className="block mb-0.5 text-white/65 text-xs"
           >
             Example:
           </Text>
           <Text
             code
-            style={{
-              color: "rgba(255, 255, 255, 0.85)",
-              fontSize: 12,
-              background: "rgba(0, 0, 0, 0.2)",
-              padding: "2px 4px",
-              borderRadius: 2,
-            }}
+            className="text-white/85 text-xs bg-black/20 px-1 py-0.5 rounded-sm"
           >
             {example}
           </Text>
@@ -137,12 +119,8 @@ export function FormFieldTooltip({ label, helpText, required, example }: FormFie
   return (
     <Tooltip title={content} placement="topLeft" mouseEnterDelay={0.3}>
       <QuestionCircleOutlined
-        style={{
-          cursor: "help",
-          color: "var(--ant-color-text-secondary)",
-          fontSize: 14,
-          marginLeft: 4,
-        }}
+        className="cursor-help text-sm ml-1"
+        style={{ color: "var(--ant-color-text-secondary)" }}
       />
     </Tooltip>
   );
@@ -161,24 +139,17 @@ interface FeatureTooltipProps {
 
 export function FeatureTooltip({ feature, description, benefits, children }: FeatureTooltipProps) {
   const content = (
-    <div style={{ maxWidth: 350 }}>
-      <Text strong style={{ color: "white", display: "block", marginBottom: 6 }}>
+    <div className="max-w-[350px]">
+      <Text strong className="block mb-1.5 text-white">
         {feature}
       </Text>
-      <Text style={{ color: "rgba(255, 255, 255, 0.85)", fontSize: 13, display: "block" }}>
+      <Text className="block text-white/85 text-[13px]">
         {description}
       </Text>
       {benefits && benefits.length > 0 && (
-        <ul
-          style={{
-            margin: "8px 0 0 0",
-            paddingLeft: 16,
-            color: "rgba(255, 255, 255, 0.75)",
-            fontSize: 12,
-          }}
-        >
+        <ul className="mt-2 mb-0 pl-4 text-white/75 text-xs">
           {benefits.map((benefit, idx) => (
-            <li key={idx} style={{ marginBottom: 2 }}>
+            <li key={idx} className="mb-0.5">
               {benefit}
             </li>
           ))}
@@ -211,20 +182,12 @@ export function KeyboardShortcutTooltip({
 }: KeyboardShortcutTooltipProps) {
   const content = (
     <div>
-      <Text style={{ color: "white", display: "block", marginBottom: 4 }}>{action}</Text>
-      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+      <Text className="block mb-1 text-white">{action}</Text>
+      <div className="flex gap-1 flex-wrap">
         {shortcuts.map((shortcut, idx) => (
           <kbd
             key={idx}
-            style={{
-              background: "rgba(0, 0, 0, 0.2)",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              borderRadius: 3,
-              padding: "2px 6px",
-              fontSize: 11,
-              color: "rgba(255, 255, 255, 0.85)",
-              fontFamily: "monospace",
-            }}
+            className="bg-black/20 border border-white/20 rounded-[3px] px-1.5 py-0.5 text-[11px] text-white/85 font-mono"
           >
             {shortcut}
           </kbd>

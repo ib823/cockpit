@@ -7,9 +7,8 @@
 "use client";
 
 import { useState, useEffect, ReactNode } from "react";
-import { Tooltip, Drawer, Collapse, Button } from "antd";
+import { Tooltip, Drawer, Button } from "antd";
 import { HelpCircle, BookOpen, Lightbulb, Video, ExternalLink, X } from "lucide-react";
-import { colorValues, withOpacity } from "@/lib/design-system";
 
 interface HelpContent {
   title: string;
@@ -149,20 +148,18 @@ export function HelpTooltip({
       title={
         <div>
           {title && (
-            <div className="font-semibold mb-1" style={{ color: "#fff" }}>
+            <div className="font-semibold mb-1 text-white">
               {title}
             </div>
           )}
-          <div style={{ color: "rgba(255,255,255,0.85)" }}>{content}</div>
+          <div className="text-white/85">{content}</div>
         </div>
       }
       placement={placement}
-      overlayStyle={{
-        maxWidth: "300px",
-      }}
+      overlayStyle={{ maxWidth: "300px" }}
     >
       {children || (
-        <HelpCircle className="w-4 h-4 cursor-help" style={{ color: colorValues.neutral[400] }} />
+        <HelpCircle className="w-4 h-4 cursor-help text-[var(--color-text-tertiary)]" />
       )}
     </Tooltip>
   );
@@ -195,13 +192,7 @@ export function HelpPanel({ context }: { context: string }) {
       {/* Help Button */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 z-50"
-        style={{
-          backgroundColor: colorValues.primary[500],
-          color: "#fff",
-          border: "none",
-          cursor: "pointer",
-        }}
+        className="fixed bottom-6 right-6 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 z-50 bg-[var(--color-blue)] text-white border-none cursor-pointer"
         title="Get help"
       >
         <HelpCircle className="w-5 h-5" />
@@ -211,7 +202,7 @@ export function HelpPanel({ context }: { context: string }) {
       <Drawer
         title={
           <div className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5" style={{ color: colorValues.primary[600] }} />
+            <BookOpen className="w-5 h-5 text-[var(--color-blue-dark)]" />
             <span>Help & Guidance</span>
           </div>
         }
@@ -223,10 +214,10 @@ export function HelpPanel({ context }: { context: string }) {
         <div className="space-y-6">
           {/* Title & Description */}
           <div>
-            <h3 className="text-lg font-semibold mb-2" style={{ color: colorValues.neutral[900] }}>
+            <h3 className="text-lg font-semibold mb-2 text-[var(--color-text-primary)]">
               {helpContent.title}
             </h3>
-            <p className="text-sm" style={{ color: colorValues.neutral[600] }}>
+            <p className="text-sm text-[var(--color-text-secondary)]">
               {helpContent.description}
             </p>
           </div>
@@ -235,22 +226,17 @@ export function HelpPanel({ context }: { context: string }) {
           {helpContent.steps && helpContent.steps.length > 0 && (
             <div>
               <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <BookOpen className="w-4 h-4" style={{ color: colorValues.primary[600] }} />
-                <span style={{ color: colorValues.neutral[900] }}>How to Use</span>
+                <BookOpen className="w-4 h-4 text-[var(--color-blue-dark)]" />
+                <span className="text-[var(--color-text-primary)]">How to Use</span>
               </h4>
               <ol className="space-y-2">
                 {helpContent.steps.map((step, idx) => (
                   <li
                     key={idx}
-                    className="flex gap-3 text-sm"
-                    style={{ color: colorValues.neutral[700] }}
+                    className="flex gap-3 text-sm text-[var(--color-text-secondary)]"
                   >
                     <span
-                      className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold"
-                      style={{
-                        backgroundColor: withOpacity(colorValues.primary[500], 0.1),
-                        color: colorValues.primary[600],
-                      }}
+                      className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold bg-[var(--color-blue-light)] text-[var(--color-blue-dark)]"
                     >
                       {idx + 1}
                     </span>
@@ -265,20 +251,17 @@ export function HelpPanel({ context }: { context: string }) {
           {helpContent.tips && helpContent.tips.length > 0 && (
             <div>
               <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Lightbulb className="w-4 h-4" style={{ color: colorValues.warning[600] }} />
-                <span style={{ color: colorValues.neutral[900] }}>Pro Tips</span>
+                <Lightbulb className="w-4 h-4 text-[var(--color-orange)]" />
+                <span className="text-[var(--color-text-primary)]">Pro Tips</span>
               </h4>
               <div className="space-y-2">
                 {helpContent.tips.map((tip, idx) => (
                   <div
                     key={idx}
-                    className="p-3 rounded-lg"
-                    style={{
-                      backgroundColor: withOpacity(colorValues.warning[500], 0.05),
-                      border: `1px solid ${colorValues.warning[200]}`,
-                    }}
+                    className="p-3 rounded-lg border border-[var(--color-orange-light)]"
+                    style={{ backgroundColor: "rgba(255, 149, 0, 0.05)" }}
                   >
-                    <p className="text-sm" style={{ color: colorValues.neutral[700] }}>
+                    <p className="text-sm text-[var(--color-text-secondary)]">
                        {tip}
                     </p>
                   </div>
@@ -295,11 +278,7 @@ export function HelpPanel({ context }: { context: string }) {
                   href={helpContent.videoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-3 rounded-lg border transition-colors duration-150"
-                  style={{
-                    borderColor: colorValues.neutral[200],
-                    color: colorValues.primary[600],
-                  }}
+                  className="flex items-center gap-2 p-3 rounded-lg border border-[var(--color-border-subtle)] text-[var(--color-blue)] transition-colors duration-150"
                 >
                   <Video className="w-4 h-4" />
                   <span className="flex-1 text-sm font-medium">Watch Video Tutorial</span>
@@ -311,11 +290,7 @@ export function HelpPanel({ context }: { context: string }) {
                   href={helpContent.docsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-3 rounded-lg border transition-colors duration-150"
-                  style={{
-                    borderColor: colorValues.neutral[200],
-                    color: colorValues.primary[600],
-                  }}
+                  className="flex items-center gap-2 p-3 rounded-lg border border-[var(--color-border-subtle)] text-[var(--color-blue)] transition-colors duration-150"
                 >
                   <BookOpen className="w-4 h-4" />
                   <span className="flex-1 text-sm font-medium">Read Documentation</span>
@@ -327,20 +302,17 @@ export function HelpPanel({ context }: { context: string }) {
 
           {/* Quick Reference */}
           <div
-            className="p-4 rounded-lg"
-            style={{
-              backgroundColor: withOpacity(colorValues.primary[500], 0.03),
-              border: `1px solid ${colorValues.primary[200]}`,
-            }}
+            className="p-4 rounded-lg border border-[var(--color-blue-light)]"
+            style={{ backgroundColor: "rgba(0, 122, 255, 0.03)" }}
           >
-            <h4 className="font-semibold mb-2" style={{ color: colorValues.neutral[900] }}>
+            <h4 className="font-semibold mb-2 text-[var(--color-text-primary)]">
               Need More Help?
             </h4>
-            <p className="text-sm mb-3" style={{ color: colorValues.neutral[600] }}>
+            <p className="text-sm mb-3 text-[var(--color-text-secondary)]">
               Press <kbd className="px-2 py-1 bg-white rounded border text-xs">Cmd+/</kbd> to view
               all keyboard shortcuts
             </p>
-            <p className="text-sm" style={{ color: colorValues.neutral[600] }}>
+            <p className="text-sm text-[var(--color-text-secondary)]">
               Press <kbd className="px-2 py-1 bg-white rounded border text-xs">Cmd+K</kbd> to open
               the command palette
             </p>
@@ -361,23 +333,18 @@ export function QuickTip({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className="flex items-start gap-3 p-3 rounded-lg mb-4"
-      style={{
-        backgroundColor: withOpacity(colorValues.primary[500], 0.05),
-        border: `1px solid ${colorValues.primary[200]}`,
-      }}
+      className="flex items-start gap-3 p-3 rounded-lg mb-4 border border-[var(--color-blue-light)]"
+      style={{ backgroundColor: "rgba(0, 122, 255, 0.05)" }}
     >
       <Lightbulb
-        className="w-4 h-4 flex-shrink-0 mt-0.5"
-        style={{ color: colorValues.primary[600] }}
+        className="w-4 h-4 flex-shrink-0 mt-0.5 text-[var(--color-blue-dark)]"
       />
-      <div className="flex-1 text-sm" style={{ color: colorValues.neutral[700] }}>
+      <div className="flex-1 text-sm text-[var(--color-text-secondary)]">
         {children}
       </div>
       <button
         onClick={() => setDismissed(true)}
-        className="flex-shrink-0 transition-opacity duration-150 hover:opacity-70"
-        style={{ color: colorValues.neutral[400] }}
+        className="flex-shrink-0 transition-opacity duration-150 hover:opacity-70 text-[var(--color-text-tertiary)]"
       >
         <X className="w-4 h-4" />
       </button>
@@ -410,28 +377,19 @@ export function FeatureHighlight({
 }) {
   return (
     <div
-      className="p-4 rounded-xl shadow-lg"
-      style={{
-        backgroundColor: "#fff",
-        border: `2px solid ${colorValues.primary[500]}`,
-        maxWidth: "350px",
-      }}
+      className="p-4 rounded-xl shadow-lg bg-[var(--color-bg-primary)] border-2 border-[var(--color-blue)] max-w-[350px]"
     >
       <div className="flex items-start gap-3">
         <div
-          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{
-            backgroundColor: colorValues.primary[500],
-            color: "#fff",
-          }}
+          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-[var(--color-blue)] text-white"
         >
-          
+
         </div>
         <div className="flex-1">
-          <h4 className="font-semibold mb-1" style={{ color: colorValues.neutral[900] }}>
+          <h4 className="font-semibold mb-1 text-[var(--color-text-primary)]">
             {title}
           </h4>
-          <p className="text-sm mb-3" style={{ color: colorValues.neutral[600] }}>
+          <p className="text-sm mb-3 text-[var(--color-text-secondary)]">
             {description}
           </p>
           <Button type="primary" size="small" onClick={onDismiss}>

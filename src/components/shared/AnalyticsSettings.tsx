@@ -10,7 +10,7 @@ import { LineChartOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import { HelpTooltip } from "./HelpTooltip";
 
-const { Title, Text, Paragraph } = Typography;
+const { Text, Paragraph } = Typography;
 
 interface AnalyticsPreferences {
   analyticsEnabled: boolean;
@@ -28,7 +28,6 @@ const DEFAULT_PREFERENCES: AnalyticsPreferences = {
 
 export function AnalyticsSettings() {
   const [preferences, setPreferences] = useState<AnalyticsPreferences>(DEFAULT_PREFERENCES);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -50,7 +49,6 @@ export function AnalyticsSettings() {
     if (typeof window !== "undefined") {
       localStorage.setItem("analytics-preferences", JSON.stringify(newPrefs));
     }
-    setHasUnsavedChanges(false);
   };
 
   const handleToggle = (key: keyof AnalyticsPreferences, value: boolean) => {
@@ -98,18 +96,16 @@ export function AnalyticsSettings() {
 
           <Divider />
 
-          <div
-            style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}
-          >
-            <div style={{ flex: 1, marginRight: 16 }}>
-              <Text strong style={{ display: "block", marginBottom: 4 }}>
+          <div className="flex justify-between items-start">
+            <div className="flex-1 mr-4">
+              <Text strong className="block mb-1">
                 Enable Analytics
                 <HelpTooltip
                   title="Analytics"
                   description="Allow us to collect anonymized usage data to improve the application"
                 />
               </Text>
-              <Text type="secondary" style={{ fontSize: 13 }}>
+              <Text type="secondary" className="text-[13px]">
                 Help us improve by sharing anonymized usage data
               </Text>
             </div>
@@ -124,22 +120,16 @@ export function AnalyticsSettings() {
             <>
               <Divider />
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                }}
-              >
-                <div style={{ flex: 1, marginRight: 16 }}>
-                  <Text strong style={{ display: "block", marginBottom: 4 }}>
+              <div className="flex justify-between items-start">
+                <div className="flex-1 mr-4">
+                  <Text strong className="block mb-1">
                     Performance Tracking
                     <HelpTooltip
                       title="Performance Tracking"
                       description="Track page load times and performance metrics to identify and fix slow pages"
                     />
                   </Text>
-                  <Text type="secondary" style={{ fontSize: 13 }}>
+                  <Text type="secondary" className="text-[13px]">
                     Monitor page load times and performance metrics
                   </Text>
                 </div>
@@ -151,22 +141,16 @@ export function AnalyticsSettings() {
 
               <Divider />
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                }}
-              >
-                <div style={{ flex: 1, marginRight: 16 }}>
-                  <Text strong style={{ display: "block", marginBottom: 4 }}>
+              <div className="flex justify-between items-start">
+                <div className="flex-1 mr-4">
+                  <Text strong className="block mb-1">
                     Error Tracking
                     <HelpTooltip
                       title="Error Tracking"
                       description="Automatically report errors to help us fix bugs faster"
                     />
                   </Text>
-                  <Text type="secondary" style={{ fontSize: 13 }}>
+                  <Text type="secondary" className="text-[13px]">
                     Help us identify and fix bugs by reporting errors
                   </Text>
                 </div>
@@ -178,22 +162,16 @@ export function AnalyticsSettings() {
 
               <Divider />
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                }}
-              >
-                <div style={{ flex: 1, marginRight: 16 }}>
-                  <Text strong style={{ display: "block", marginBottom: 4 }}>
+              <div className="flex justify-between items-start">
+                <div className="flex-1 mr-4">
+                  <Text strong className="block mb-1">
                     User Behavior Tracking
                     <HelpTooltip
                       title="User Behavior Tracking"
                       description="Track clicks, scrolls, and interactions to improve the user experience"
                     />
                   </Text>
-                  <Text type="secondary" style={{ fontSize: 13 }}>
+                  <Text type="secondary" className="text-[13px]">
                     Track clicks and interactions to optimize the interface
                   </Text>
                 </div>
@@ -210,7 +188,7 @@ export function AnalyticsSettings() {
       <Card>
         <Space direction="vertical" style={{ width: "100%" }} size="small">
           <Text strong>Privacy Information</Text>
-          <Paragraph type="secondary" style={{ fontSize: 13, marginBottom: 0 }}>
+          <Paragraph type="secondary" className="text-[13px] !mb-0">
             • All analytics data is anonymized and encrypted
             <br />
             • We never sell or share your data with third parties
