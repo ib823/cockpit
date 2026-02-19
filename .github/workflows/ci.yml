@@ -9,6 +9,27 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cockpit_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d cockpit_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/cockpit_ci"
+      DATABASE_URL_UNPOOLED: "postgresql://postgres:postgres@localhost:5432/cockpit_ci"
+      NEXTAUTH_SECRET: "test-secret-key-for-ci-only-min-32-chars"
+      NEXTAUTH_URL: "http://localhost:3000"
+      TOTP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      JWT_SECRET_KEY: "test-jwt-secret-key-for-ci-only-32-chars"
 
     steps:
     - uses: actions/checkout@v4
@@ -26,6 +47,18 @@ jobs:
         
     - name: Install dependencies
       run: pnpm install
+
+    - name: Wait for PostgreSQL
+      run: |
+        for i in {1..60}; do
+          if (echo > /dev/tcp/localhost/5432) >/dev/null 2>&1; then
+            echo "PostgreSQL is ready"
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "PostgreSQL did not become ready in time"
+        exit 1
       
     - name: Generate Prisma Client
       run: pnpm prisma generate
@@ -38,12 +71,6 @@ jobs:
       
     - name: Test
       run: pnpm test --run
-      env:
-        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
-        NEXTAUTH_SECRET: "test-secret-key-for-ci-only-min-32-chars"
-        NEXTAUTH_URL: "http://localhost:3000"
-        TOTP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-        JWT_SECRET_KEY: "test-jwt-secret-key-for-ci-only-32-chars"
       
     - name: Build
       run: pnpm build

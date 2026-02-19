@@ -66,6 +66,22 @@ To maintain velocity while adhering to strict quality gates:
 
 ## 8. Session Log
 
+### 2026-02-19T14:45:27Z - Codex (GPT-5)
+- Task IDs: WS-B gate reliability hardening (CI red-check remediation)
+- Summary: Reproduced the CI-red condition and fixed it by hardening the workflow runtime environment. Root cause was missing `DATABASE_URL_UNPOOLED` in CI (`pnpm build` failed env validation while collecting `/api/admin/force-login`). Updated GitHub Actions to provision ephemeral PostgreSQL service and set both DB URLs plus required auth envs at job scope; post-fix strict suite passed locally under CI-like env.
+- Files changed: .github/workflows/ci.yml, docs/HANDOFF.md
+- Commands run: `pnpm lint:strict` (pass), `pnpm typecheck:strict` (pass), `DATABASE_URL=... NEXTAUTH_* ... pnpm test --run` (pass), `DATABASE_URL=... NEXTAUTH_* ... pnpm build` (initial fail: `DATABASE_URL_UNPOOLED` missing), file inspection (`sed -n` on `.github/workflows/ci.yml`, `src/lib/env.ts`, `src/app/api/admin/force-login/route.ts`), workflow patch (Postgres service + job-level env + readiness wait), `pnpm lint:strict` (pass), `pnpm typecheck:strict` (pass), `DATABASE_URL=... DATABASE_URL_UNPOOLED=... NEXTAUTH_* ... pnpm test --run` (pass), `DATABASE_URL=... DATABASE_URL_UNPOOLED=... NEXTAUTH_* ... pnpm build` (pass; non-blocking DB/optional-env warnings only).
+- Blockers: None.
+- Next action: Commit/push workflow fix and re-run GitHub Actions to confirm all checks report green upstream.
+
+### 2026-02-19T14:32:23Z - Codex (GPT-5)
+- Task IDs: CI red-check remediation preflight (Phase 2 context; WS-B strict-gate verification)
+- Summary: Completed mandatory session startup ritual for this remediation request. Re-read canonical governance docs, confirmed active phase is Phase 2, validated no conflicting in-progress ledger entry, and prepared to reproduce all red checks locally before patching.
+- Files changed: docs/HANDOFF.md
+- Commands run: `sed -n '1,220p' docs/MASTER_PLAN.md` (pass), `sed -n '1,220p' docs/AI_EXECUTION_PROTOCOL.md` (pass), `sed -n '1,260p' docs/HANDOFF.md` (pass), `date -u +"%Y-%m-%dT%H:%M:%SZ"` (pass).
+- Blockers: Unknown until local/CI check reproduction completes.
+- Next action: Reproduce failing checks with strict suite and workflow-level checks, then patch and revalidate until green.
+
 ### 2026-02-19T14:28:56Z - Codex (GPT-5)
 - Task IDs: Handoff closure (protocol compliance)
 - Summary: Finalized the reconciliation by committing the validated batch and confirming a clean working tree. Commit `f9321f1` captures strict-gated fixes plus repo-hygiene enforcement (env artifact removal, identifier sanitization, and logo filename migration).
