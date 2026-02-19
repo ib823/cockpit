@@ -203,6 +203,7 @@ All documentation is organized in the `/docs` directory:
 - **Testing Guide**: `docs/testing/TEST_CREDENTIALS.md`
 - **Performance Guide**: `docs/performance/PERFORMANCE_OPTIMIZATION_SUMMARY.md`
 - **Architecture**: `docs/architecture/COMPREHENSIVE_SOLUTION_OVERVIEW.md`
+- **Production Readiness**: `docs/PRODUCTION_READINESS_ENTERPRISE_PLAYBOOK.md`
 
 ## Contributing
 
