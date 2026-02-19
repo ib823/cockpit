@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "noreply@keystone-app.com";
+const FROM_EMAIL = process.env.EMAIL_FROM || "noreply@cockpit-app.com";
 
 // Brevo (Sendinblue) SMTP transporter
 const emailTransporter =

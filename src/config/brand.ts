@@ -10,18 +10,18 @@
 // ============================================================================
 
 export const company = {
-  name: "Keystone",
-  tagline: "SAP Implementation Excellence",
+  name: "Cockpit",
+  tagline: "Enterprise Excellence",
 
   // Website and contact
-  website: "https://keystone.com",
-  email: "hello@keystone.com",
+  website: "https://cockpit-enterprise.com",
+  email: "hello@cockpit-enterprise.com",
 
   // Social links (optional)
   social: {
-    linkedin: "https://linkedin.com/company/keystone",
-    twitter: "https://twitter.com/keystone",
-    github: "https://github.com/keystone",
+    linkedin: "https://linkedin.com/company/cockpit",
+    twitter: "https://twitter.com/cockpit",
+    github: "https://github.com/cockpit",
   },
 } as const;
 
@@ -32,9 +32,9 @@ export const company = {
 export const logo = {
   // Path to your logo files (place in /public folder)
   // Recommended formats: SVG (preferred), PNG (with transparency)
-  light: "/logo-keystone.svg", // Logo for light backgrounds
-  dark: "/logo-keystone.svg", // Logo for dark backgrounds (same logo works on both)
-  icon: "/logo-keystone.svg", // Small icon/favicon
+  light: "/logo-light.svg", // Logo for light backgrounds
+  dark: "/logo-dark.svg", // Logo for dark backgrounds (same logo works on both)
+  icon: "/icon.svg", // Small icon/favicon
 
   // Logo dimensions (adjust to your logo's aspect ratio)
   width: {
@@ -50,7 +50,7 @@ export const logo = {
   },
 
   // Alt text for accessibility
-  alt: "Keystone Logo",
+  alt: "Cockpit Logo",
 } as const;
 
 // ============================================================================
@@ -58,7 +58,7 @@ export const logo = {
 // ============================================================================
 
 export const brandColors = {
-  // PRIMARY BRAND COLOR - Keystone Navy Blue
+  // PRIMARY BRAND COLOR - Navy Blue
   // This will replace the default blue throughout the app
   primary: {
     50: "#e0f2fe", // Lightest tint
@@ -73,7 +73,7 @@ export const brandColors = {
     900: "#172554", // Darkest shade
   },
 
-  // SECONDARY/ACCENT COLOR - Keystone Cyan
+  // SECONDARY/ACCENT COLOR - Cyan
   // Complementary color for CTAs and highlights
   accent: {
     50: "#ecfeff",

@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
 import { SignJWT } from "jose";
 
+import { env } from "@/lib/env";
+
 export const runtime = "nodejs";
 
 /**
@@ -79,9 +81,7 @@ export async function POST(req: Request) {
     const codeHash = await hash(verificationCode, 12);
 
     // Generate revoke token (JWT)
-    const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET_KEY || "default-secret-change-in-production"
-    );
+    const secret = new TextEncoder().encode(env.JWT_SECRET_KEY);
     const revokeToken = await new SignJWT({
       userId: user.id,
       action: "revoke_email_change",

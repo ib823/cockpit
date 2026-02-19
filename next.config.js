@@ -7,13 +7,13 @@ const nextConfig = {
     reactCompiler: false,
   },
 
-  // SECURITY: Type checking runs separately in CI, ignore during builds to prevent warnings from blocking deployment
+  // SECURITY: Strictly enforce type checking during builds to prevent broken code in production
   typescript: {
-    ignoreBuildErrors: true, // Type checking checked separately in CI pipeline
+    ignoreBuildErrors: false,
   },
-  // SECURITY: Linting runs separately in CI, ignore during builds to prevent warnings from blocking deployment
+  // SECURITY: Strictly enforce linting during builds to maintain code quality standards
   eslint: {
-    ignoreDuringBuilds: true, // Linting checked separately in CI pipeline
+    ignoreDuringBuilds: false,
   },
 
   // SECURITY: Add security headers

@@ -38,6 +38,14 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
 
+  // Advanced Auth (Required in production)
+  TOTP_ENCRYPTION_KEY: z.string().length(64).optional(),
+  JWT_SECRET_KEY: z.string().min(32).optional(),
+  CRON_SECRET_KEY: z.string().min(32).optional(),
+
+  // Push Notifications (Optional)
+  VAPID_PRIVATE_KEY: z.string().optional(),
+
   // Feature flags
   ENABLE_PASSKEYS: z
     .string()
@@ -103,6 +111,14 @@ function validateEnv(): Env {
 
       if (!env.NEXT_PUBLIC_POSTHOG_KEY) {
         warnings.push("NEXT_PUBLIC_POSTHOG_KEY (analytics disabled)");
+      }
+
+      if (!env.TOTP_ENCRYPTION_KEY) {
+        warnings.push("TOTP_ENCRYPTION_KEY (TOTP secrets stored in plaintext!)");
+      }
+
+      if (!env.JWT_SECRET_KEY) {
+        warnings.push("JWT_SECRET_KEY (security action tokens disabled)");
       }
 
       if (warnings.length > 0) {

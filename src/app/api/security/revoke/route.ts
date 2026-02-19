@@ -5,6 +5,8 @@ import { jwtVerify } from "jose";
 import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
 
+import { env } from "@/lib/env";
+
 export const runtime = "nodejs";
 
 /**
@@ -63,9 +65,7 @@ export async function GET(req: NextRequest) {
     // ============================================
     let payload: any;
     try {
-      const secret = new TextEncoder().encode(
-        process.env.JWT_SECRET_KEY || "default-secret-change-in-production"
-      );
+      const secret = new TextEncoder().encode(env.JWT_SECRET_KEY);
       const { payload: jwtPayload } = await jwtVerify(token, secret);
       payload = jwtPayload;
     } catch (jwtError) {

@@ -10,7 +10,10 @@ export const runtime = "nodejs";
 // This endpoint allows resetting passkeys for locked-out admin accounts
 
 // One-time secret - change this before deploying
-const RECOVERY_SECRET = process.env.EMERGENCY_RECOVERY_SECRET || "DISABLED";
+const RECOVERY_SECRET = process.env.EMERGENCY_RECOVERY_SECRET;
+if (!RECOVERY_SECRET) {
+  // If not set, this feature is disabled for security
+}
 
 export async function POST(req: Request) {
   try {

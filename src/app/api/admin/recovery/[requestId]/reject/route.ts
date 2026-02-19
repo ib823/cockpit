@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { requireAdmin } from "@/lib/nextauth-helpers";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
-import { authConfig as authOptions } from "@/lib/auth";
 import { sendSecurityEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -23,25 +22,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
     // ============================================
     // 1. Verify Admin via Session
     // ============================================
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
+    const session = await requireAdmin();
+    const adminEmail = session.user.email!;
 
     const admin = await prisma.users.findUnique({
-      where: { email: session.user.email },
+      where: { email: adminEmail },
     });
 
     if (!admin) {
-      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
-    }
-
-    if (admin.role !== "ADMIN") {
-      return NextResponse.json(
-        { ok: false, message: "Unauthorized - Admin access required" },
-        { status: 403 }
-      );
+      return NextResponse.json({ ok: false, message: "Admin user not found" }, { status: 404 });
     }
 
     const adminId = admin.id;
@@ -182,6 +171,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
       message: "Recovery request rejected successfully",
     });
   } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message === "unauthorized") {
+        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "forbidden") {
+        return NextResponse.json(
+          { ok: false, message: "Forbidden - Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
     console.error("[RecoveryReject] Error:", error);
     return NextResponse.json(
       { ok: false, message: "Failed to reject recovery request" },

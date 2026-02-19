@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/nextauth-helpers";
 import { unblockIP } from "@/lib/security/ip-blocker";
 
 export const runtime = "nodejs";
@@ -13,19 +12,8 @@ export const runtime = "nodejs";
  */
 export async function POST(req: Request) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check admin role
-    if ((session.user as { role?: string }).role !== "ADMIN") {
-      return NextResponse.json(
-        { ok: false, message: "Forbidden - Admin access required" },
-        { status: 403 }
-      );
-    }
+    // Check admin authorization
+    await requireAdmin();
 
     const { ip } = await req.json();
 
@@ -40,6 +28,17 @@ export async function POST(req: Request) {
       message: `IP ${ip} has been unblocked`,
     });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "unauthorized") {
+        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "forbidden") {
+        return NextResponse.json(
+          { ok: false, message: "Forbidden - Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
     console.error("[UNBLOCK IP API] Error:", error);
     return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }

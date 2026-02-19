@@ -10,7 +10,11 @@ import { createId } from "@paralleldrive/cuid2";
 const prisma = new PrismaClient();
 
 async function createAdminUser() {
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) {
+    console.error("❌ ADMIN_EMAIL not found in environment variables");
+    process.exit(1);
+  }
   const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
   if (!adminPasswordHash) {

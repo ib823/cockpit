@@ -22,6 +22,8 @@ import { sendSecurityEmail } from "@/lib/email";
 import { newDeviceLoginTemplate } from "@/lib/email-templates";
 import { SignJWT } from "jose";
 
+import { env } from "@/lib/env";
+
 export const runtime = "nodejs";
 
 /**
@@ -455,10 +457,7 @@ export async function POST(req: Request) {
     if (isNewDevice || isSuspiciousLogin) {
       try {
         // Generate "Not Me" token
-        const secret = new TextEncoder().encode(
-          process.env.JWT_SECRET_KEY || "default-secret-change-in-production"
-        );
-        const notMeToken = await new SignJWT({
+              const secret = new TextEncoder().encode(env.JWT_SECRET_KEY);        const notMeToken = await new SignJWT({
           userId: user.id,
           action: "revoke_all",
           loginId: session.id,

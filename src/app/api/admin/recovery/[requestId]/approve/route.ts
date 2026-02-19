@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { requireAdmin } from "@/lib/nextauth-helpers";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
-import { authConfig as authOptions } from "@/lib/auth";
 import { sendSecurityEmail } from "@/lib/email";
 import { SignJWT } from "jose";
+
+import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
 
@@ -24,25 +25,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
     // ============================================
     // 1. Verify Admin via Session
     // ============================================
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
+    const session = await requireAdmin();
+    const adminEmail = session.user.email!;
 
     const admin = await prisma.users.findUnique({
-      where: { email: session.user.email },
+      where: { email: adminEmail },
     });
 
     if (!admin) {
-      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
-    }
-
-    if (admin.role !== "ADMIN") {
-      return NextResponse.json(
-        { ok: false, message: "Unauthorized - Admin access required" },
-        { status: 403 }
-      );
+      return NextResponse.json({ ok: false, message: "Admin user not found" }, { status: 404 });
     }
 
     const adminId = admin.id;
@@ -85,10 +76,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
     // ============================================
     // 3. Generate Recovery Token
     // ============================================
-    const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET_KEY || "default-secret-change-in-production"
-    );
-
+          const secret = new TextEncoder().encode(env.JWT_SECRET_KEY);
     const recoveryToken = await new SignJWT({
       userId: user.id,
       action: "account_recovery",
@@ -258,6 +246,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
       recoveryToken, // For testing - in production, only send via email
     });
   } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message === "unauthorized") {
+        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "forbidden") {
+        return NextResponse.json(
+          { ok: false, message: "Forbidden - Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
     console.error("[RecoveryApprove] Error:", error);
     return NextResponse.json(
       { ok: false, message: "Failed to approve recovery request" },

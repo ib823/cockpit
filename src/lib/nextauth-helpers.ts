@@ -49,11 +49,11 @@ export async function requireAdmin() {
   const session = await getServerSession(authConfig);
 
   if (!session?.user) {
-    throw new Error("Unauthorized");
+    throw new Error("unauthorized");
   }
 
   if (session.user.role !== "ADMIN") {
-    throw new Error("Forbidden: Admin access required");
+    throw new Error("forbidden");
   }
 
   return session;

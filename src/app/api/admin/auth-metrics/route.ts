@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/nextauth-helpers";
 import {
   getAuthMetricsSummary,
   getAuthSuccessRate,
@@ -19,19 +18,8 @@ export const runtime = "nodejs";
  */
 export async function GET(req: Request) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check admin role
-    if ((session.user as { role?: string }).role !== "ADMIN") {
-      return NextResponse.json(
-        { ok: false, message: "Forbidden - Admin access required" },
-        { status: 403 }
-      );
-    }
+    // Check admin authorization
+    await requireAdmin();
 
     // Get query parameters
     const { searchParams } = new URL(req.url);
@@ -105,6 +93,17 @@ export async function GET(req: Request) {
         return NextResponse.json({ ok: false, message: "Invalid action" }, { status: 400 });
     }
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "unauthorized") {
+        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "forbidden") {
+        return NextResponse.json(
+          { ok: false, message: "Forbidden - Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
     console.error("[AUTH METRICS API] Error:", error);
     return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }

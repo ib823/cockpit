@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { requireAdmin } from "@/lib/nextauth-helpers";
 import { prisma, withRetry } from "@/lib/db";
 
 /**
@@ -13,12 +12,8 @@ import { prisma, withRetry } from "@/lib/db";
  */
 export async function GET() {
   try {
-    const session = await getServerSession(authConfig);
-
     // Check admin authorization
-    if (!session || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 403 });
-    }
+    await requireAdmin();
 
     // Fetch statistics in parallel with retry logic for connection errors
     const [totalUsers, activeProjects, proposals] = await withRetry(() =>
@@ -50,6 +45,14 @@ export async function GET() {
       proposals,
     });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "unauthorized") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "forbidden") {
+        return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 });
+      }
+    }
     console.error("[Admin Stats] Error fetching statistics:", error);
     return NextResponse.json({ error: "Failed to fetch statistics" }, { status: 500 });
   }

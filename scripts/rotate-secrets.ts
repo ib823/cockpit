@@ -36,7 +36,10 @@ const ROTATABLE_SECRETS = [
   "NEXTAUTH_SECRET",
   "ADMIN_PASSWORD_HASH",
   "VAPID_PRIVATE_KEY",
-  "UPSTASH_REDIS_REST_TOKEN", // Note: Requires Upstash console update
+  "UPSTASH_REDIS_REST_TOKEN",
+  "TOTP_ENCRYPTION_KEY",
+  "JWT_SECRET_KEY",
+  "CRON_SECRET_KEY",
 ];
 
 /**
@@ -59,6 +62,18 @@ function generateSecret(type: string): string {
 
     case "UPSTASH_REDIS_REST_TOKEN":
       return "MANUAL_ACTION_REQUIRED: Generate new token in Upstash Console";
+
+    case "TOTP_ENCRYPTION_KEY":
+      // Exactly 64 hex chars (32 bytes)
+      return crypto.randomBytes(32).toString("hex");
+
+    case "JWT_SECRET_KEY":
+      // Minimum 32 characters, base64
+      return crypto.randomBytes(32).toString("base64");
+
+    case "CRON_SECRET_KEY":
+      // Minimum 32 characters, hex
+      return crypto.randomBytes(32).toString("hex");
 
     default:
       return crypto.randomBytes(32).toString("hex");

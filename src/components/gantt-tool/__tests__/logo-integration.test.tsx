@@ -454,9 +454,9 @@ describe('Logo Integration Tests (30 scenarios)', () => {
         { wrapper }
       );
 
-      // Should show abbreviation "AB" for Partner Consulting
+      // Should show abbreviation "PA" for Partner Consulting
       const badge = container.querySelector('button[title="Change company"]');
-      expect(badge?.textContent).toContain('AB');
+      expect(badge?.textContent).toContain('PA');
     });
   });
 

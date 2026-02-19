@@ -13,12 +13,12 @@
  */
 
 import React, { useState } from 'react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BaseModal, ModalButton } from '@/components/ui/BaseModal';
 import { HolidayAwareDatePicker } from '@/components/ui/HolidayAwareDatePicker';
-import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from '@/lib/design-system/tokens';
+import { RADIUS, SPACING } from '@/lib/design-system/tokens';
 
 // Mock Framer Motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
@@ -191,7 +191,7 @@ describe('Design System Integration - Modal + Button', () => {
   });
 
   it('INTEGRATION 7: button hover states work inside modal', async () => {
-    const { container } = render(<ModalWithButtons />);
+    render(<ModalWithButtons />);
 
     const confirmButton = screen.getByText('Confirm') as HTMLButtonElement;
     const initialColor = confirmButton.style.backgroundColor;
@@ -206,7 +206,7 @@ describe('Design System Integration - Modal + Button', () => {
   });
 
   it('INTEGRATION 8: modal and buttons both use same typography', () => {
-    const { container } = render(<ModalWithButtons />);
+    render(<ModalWithButtons />);
 
     const title = screen.getByText('Confirm Action') as HTMLElement;
     const button = screen.getByText('Confirm') as HTMLElement;
@@ -321,7 +321,7 @@ describe('Design System Integration - Modal + DatePicker', () => {
 describe('Design System Integration - Token Consistency', () => {
 
   it('INTEGRATION 16: all components use COLORS.blue for primary actions', () => {
-    const { container: modalContainer } = render(<ModalWithButtons />);
+    render(<ModalWithButtons />);
     const { container: dateContainer } = render(
       <HolidayAwareDatePicker value="2025-01-15" onChange={() => {}} />
     );
@@ -338,7 +338,7 @@ describe('Design System Integration - Token Consistency', () => {
   });
 
   it('INTEGRATION 17: all components use 0.4 opacity for disabled state', () => {
-    const { container } = render(
+    render(
       <>
         <ModalButton disabled={true}>Disabled Button</ModalButton>
         <HolidayAwareDatePicker
@@ -359,7 +359,7 @@ describe('Design System Integration - Token Consistency', () => {
   });
 
   it('INTEGRATION 18: all components use same transition timing', () => {
-    const { container } = render(
+    render(
       <>
         <ModalButton>Test Button</ModalButton>
         <HolidayAwareDatePicker value="" onChange={() => {}} />
@@ -400,7 +400,7 @@ describe('Design System Integration - Token Consistency', () => {
   });
 
   it('INTEGRATION 20: all interactive elements have consistent hover state', () => {
-    const { container } = render(
+    render(
       <>
         <ModalButton variant="secondary">Button 1</ModalButton>
         <ModalButton variant="secondary">Button 2</ModalButton>

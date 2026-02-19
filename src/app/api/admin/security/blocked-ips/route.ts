@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/nextauth-helpers";
 import { getBlockedIPs } from "@/lib/security/ip-blocker";
 
 export const runtime = "nodejs";
@@ -14,19 +13,8 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check admin role
-    if ((session.user as { role?: string }).role !== "ADMIN") {
-      return NextResponse.json(
-        { ok: false, message: "Forbidden - Admin access required" },
-        { status: 403 }
-      );
-    }
+    // Check admin authorization
+    await requireAdmin();
 
     const blockedIPs = await getBlockedIPs();
 
@@ -36,6 +24,17 @@ export async function GET() {
       count: blockedIPs.length,
     });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "unauthorized") {
+        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "forbidden") {
+        return NextResponse.json(
+          { ok: false, message: "Forbidden - Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
     console.error("[BLOCKED IPS API] Error:", error);
     return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }

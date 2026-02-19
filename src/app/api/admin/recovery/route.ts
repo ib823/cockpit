@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { requireAdmin } from "@/lib/nextauth-helpers";
 import { prisma } from "@/lib/db";
-import { authConfig as authOptions } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -12,28 +11,8 @@ export const runtime = "nodejs";
  */
 export async function GET(req: NextRequest) {
   try {
-    // Authenticate user via NextAuth session
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get user from database and verify admin role
-    const admin = await prisma.users.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!admin) {
-      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
-    }
-
-    if (admin.role !== "ADMIN") {
-      return NextResponse.json(
-        { ok: false, message: "Unauthorized - Admin access required" },
-        { status: 403 }
-      );
-    }
+    // Authenticate user and verify admin role
+    await requireAdmin();
 
     // Parse query parameters for filtering
     const url = new URL(req.url);
@@ -85,6 +64,17 @@ export async function GET(req: NextRequest) {
       total: formattedRequests.length,
     });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "unauthorized") {
+        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "forbidden") {
+        return NextResponse.json(
+          { ok: false, message: "Forbidden - Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
     console.error("[AdminRecovery] GET error:", error);
     return NextResponse.json(
       { ok: false, message: "Failed to fetch recovery requests" },

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { requireAdmin } from "@/lib/nextauth-helpers";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { authConfig as authOptions } from "@/lib/auth";
 import { randomInt } from "crypto";
 import { sendSecurityEmail } from "@/lib/email";
 
@@ -23,28 +22,8 @@ export async function POST(req: NextRequest) {
     // ============================================
     // 1. Validate Admin via Session
     // ============================================
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const admin = await prisma.users.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!admin) {
-      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
-    }
-
-    if (admin.role !== "ADMIN") {
-      return NextResponse.json(
-        { ok: false, message: "Unauthorized - Admin access required" },
-        { status: 403 }
-      );
-    }
-
-    const adminId = admin.id;
+    const session = await requireAdmin();
+    const adminId = session.user.id;
 
     // ============================================
     // 2. Validate Email
@@ -199,6 +178,17 @@ export async function POST(req: NextRequest) {
       codeSent,
     });
   } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message === "unauthorized") {
+        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "forbidden") {
+        return NextResponse.json(
+          { ok: false, message: "Forbidden - Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
     console.error("[EmailApprovals] POST error:", error);
     return NextResponse.json(
       { ok: false, message: "Failed to create email approval" },
@@ -212,26 +202,7 @@ export async function GET(req: NextRequest) {
     // ============================================
     // 1. Verify Admin via Session
     // ============================================
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const admin = await prisma.users.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!admin) {
-      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
-    }
-
-    if (admin.role !== "ADMIN") {
-      return NextResponse.json(
-        { ok: false, message: "Unauthorized - Admin access required" },
-        { status: 403 }
-      );
-    }
+    await requireAdmin();
 
     // ============================================
     // 2. Fetch Approvals with Optional Filtering
@@ -276,6 +247,17 @@ export async function GET(req: NextRequest) {
       total: formattedApprovals.length,
     });
   } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message === "unauthorized") {
+        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "forbidden") {
+        return NextResponse.json(
+          { ok: false, message: "Forbidden - Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
     console.error("[EmailApprovals] GET error:", error);
     return NextResponse.json(
       { ok: false, message: "Failed to fetch email approvals" },

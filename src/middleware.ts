@@ -52,25 +52,24 @@ function getIdentifier(request: NextRequest): string {
   return Buffer.from(userAgent).toString("base64").substring(0, 16);
 }
 
-const publicPaths = ["/", "/login", "/api/auth", "/harmony-demo", "/api/favicon", "/api/health"];
-const adminPaths = ["/admin"];
-const protectedPaths = [
-  "/gantt-tool",
-  "/project",
-  "/estimator",
-  "/dashboard",
-  "/account",
-  "/architecture",
-  "/organization-chart",
-]; // Require authentication
+// PUBLIC_PATHS: Exact matches or specific allowed prefixes
+const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/register-secure", "/api/favicon", "/api/health"]);
+const PUBLIC_PREFIXES = ["/api/auth/"]; // NextAuth and login endpoints
+// SENSITIVE_PATHS: Require strict rate limiting
+const SENSITIVE_PATHS = ["/api/auth/begin-login", "/api/auth/magic-login", "/api/auth/verify-otp", "/api/auth/check-admin"];
+
+const adminPaths = ["/admin", "/api/admin"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip static files - no rate limiting needed
-  if (pathname.startsWith("/_next") || pathname.startsWith("/static") || pathname === "/sw.js") {
+  if (pathname.startsWith("/_next") || pathname.startsWith("/static") || pathname === "/sw.js" || pathname === "/favicon.ico") {
     return NextResponse.next();
   }
+
+  // Helper to check if path is public
+  const isPublic = PUBLIC_PATHS.has(pathname) || PUBLIC_PREFIXES.some(prefix => pathname.startsWith(prefix));
 
   // Stricter root redirect at edge
   if (pathname === "/") {
@@ -82,32 +81,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect old routes to current versions
-  // DISABLED: User is building org chart UI/UX, will enable when ready
-  // if (pathname === "/organization-chart" || pathname === "/organization-chart/") {
-  //   return NextResponse.redirect(new URL("/architecture/v3", request.url));
-  // }
-
   // Redirect /admin to /dashboard (deprecated route - dashboard shows admin section for admins)
   if (pathname === "/admin" || pathname === "/admin/") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Block non-admin users from accessing admin panel subpages
-  if (pathname.startsWith("/admin")) {
-    const token = await getToken({ req: request });
-    if (token && token.role !== "ADMIN") {
-      // Redirect non-admin users to dashboard
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-  }
-
   // Granular rate limiting based on endpoint type
   const identifier = getIdentifier(request);
-  const isLoginEndpoint = pathname.startsWith("/api/auth/begin-login") && request.method === "POST";
+  const isSensitive = SENSITIVE_PATHS.some(p => pathname.startsWith(p)) || (pathname.startsWith("/api/auth/begin-login") && request.method === "POST");
 
   // Choose appropriate rate limiter
-  const limiter = isLoginEndpoint ? loginRateLimiter : apiRateLimiter;
+  const limiter = isSensitive ? loginRateLimiter : apiRateLimiter;
   const rateLimitResult = await checkRateLimit(identifier, limiter);
 
   if (!rateLimitResult.allowed) {
@@ -126,15 +110,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // CSRF protection for state-changing methods
-  // Skip NextAuth endpoints as they have their own CSRF protection
   if (
     ["POST", "PUT", "DELETE", "PATCH"].includes(request.method) &&
-    !pathname.startsWith("/api/auth")
+    !pathname.startsWith("/api/auth/")
   ) {
     const origin = request.headers.get("origin");
     const host = request.headers.get("host");
 
-    // More robust origin check: compare hostnames, not just string inclusion
     if (origin && host) {
       try {
         const originUrl = new URL(origin);
@@ -142,14 +124,13 @@ export async function middleware(request: NextRequest) {
           return new Response("Invalid origin", { status: 403 });
         }
       } catch {
-        // Invalid origin URL
         return new Response("Invalid origin", { status: 403 });
       }
     }
   }
 
   // Authentication check
-  if (!publicPaths.some((p) => pathname.startsWith(p))) {
+  if (!isPublic) {
     const token = await getToken({ req: request });
 
     if (!token) {
@@ -158,7 +139,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Admin authorization
+    // Admin authorization (Both UI and API)
     if (adminPaths.some((p) => pathname.startsWith(p))) {
       if (token.role !== "ADMIN") {
         return new Response("Forbidden", { status: 403 });
@@ -179,8 +160,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set("X-RateLimit-Reset", String(rateLimitResult.reset));
 
   // CRITICAL: Prevent browser caching of authenticated pages
-  // This stops the back button from showing cached content after logout
-  if (!publicPaths.some((p) => pathname.startsWith(p))) {
+  if (!isPublic) {
     response.headers.set(
       "Cache-Control",
       "no-store, no-cache, must-revalidate, private, max-age=0"
