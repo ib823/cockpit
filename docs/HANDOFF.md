@@ -66,6 +66,14 @@ To maintain velocity while adhering to strict quality gates:
 
 ## 8. Session Log
 
+### 2026-02-19T14:55:39Z - Codex (GPT-5)
+- Task IDs: WS-B CI red-check remediation continuation (workflow execution fix)
+- Summary: First post-fix push triggered CI run `22186689916` and still failed before validation steps due `pnpm/action-setup@v4` version conflict (`version: 10` in workflow vs `packageManager: pnpm@10.13.1` in `package.json`). Updated workflow to pin `version: 10.13.1`, reran full strict suite locally with CI-like env, and prepared corrected commit for repush.
+- Files changed: .github/workflows/ci.yml, docs/HANDOFF.md
+- Commands run: `gh run list --workflow CI --branch main` (captured failing run), `gh run view 22186689916 --json ...` + `gh run view 22186689916 --job 64162361086 --log-failed` (root cause evidence), workflow patch to `pnpm` version, `pnpm lint:strict` (pass), `pnpm typecheck:strict` (pass), `DATABASE_URL=... DATABASE_URL_UNPOOLED=... NEXTAUTH_* ... pnpm test --run` (pass), `DATABASE_URL=... DATABASE_URL_UNPOOLED=... NEXTAUTH_* ... pnpm build` (pass; non-blocking warnings only).
+- Blockers: None.
+- Next action: Commit/push the pnpm-version workflow correction and verify new CI run reaches green.
+
 ### 2026-02-19T14:45:27Z - Codex (GPT-5)
 - Task IDs: WS-B gate reliability hardening (CI red-check remediation)
 - Summary: Reproduced the CI-red condition and fixed it by hardening the workflow runtime environment. Root cause was missing `DATABASE_URL_UNPOOLED` in CI (`pnpm build` failed env validation while collecting `/api/admin/force-login`). Updated GitHub Actions to provision ephemeral PostgreSQL service and set both DB URLs plus required auth envs at job scope; post-fix strict suite passed locally under CI-like env.
