@@ -178,7 +178,7 @@ export function FinancialView({ project }: FinancialViewProps) {
       {
         name: "Revenue",
         value: financialData.revenue,
-        fill: "#10B981",
+        fill: "#34C759",
       },
     ];
 
@@ -217,7 +217,7 @@ export function FinancialView({ project }: FinancialViewProps) {
       {/* Financial KPI Cards */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={8}>
-          <Card bordered={false} style={{ background: "#EFF6FF", borderRadius: "8px" }}>
+          <Card bordered={false} style={{ background: "rgba(0, 122, 255, 0.08)", borderRadius: "8px" }}>
             {editingRevenue ? (
               <Space direction="vertical" style={{ width: "100%" }}>
                 <Text strong>Proposed Price (MYR)</Text>
@@ -250,7 +250,7 @@ export function FinancialView({ project }: FinancialViewProps) {
                   }
                   value={financialData.revenue}
                   prefix="RM"
-                  valueStyle={{ color: "#3B82F6" }}
+                  valueStyle={{ color: "#007AFF" }}
                   className="[&_.ant-statistic-content]:text-xl"
                   formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 />
@@ -264,12 +264,12 @@ export function FinancialView({ project }: FinancialViewProps) {
         </Col>
 
         <Col xs={24} sm={12} lg={8}>
-          <Card bordered={false} style={{ background: "#FEF2F2", borderRadius: "8px" }}>
+          <Card bordered={false} style={{ background: "rgba(255, 59, 48, 0.06)", borderRadius: "8px" }}>
             <Statistic
               title="Total Cost"
               value={financialData.totalCost}
               prefix="RM"
-              valueStyle={{ color: "#EF4444" }}
+              valueStyle={{ color: "#FF3B30" }}
               className="[&_.ant-statistic-content]:text-xl"
               formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
             />
@@ -285,10 +285,10 @@ export function FinancialView({ project }: FinancialViewProps) {
             style={{
               background:
                 financialData.marginPercent >= 20
-                  ? "#ECFDF5"
+                  ? "rgba(52, 199, 89, 0.06)"
                   : financialData.marginPercent >= 10
-                    ? "#FFFBEB"
-                    : "#FEF2F2",
+                    ? "rgba(255, 149, 0, 0.06)"
+                    : "rgba(255, 59, 48, 0.06)",
               borderRadius: "8px",
               border: `3px solid ${getMarginColor(financialData.marginPercent)}`,
             }}
@@ -336,7 +336,7 @@ export function FinancialView({ project }: FinancialViewProps) {
         </Text>
         <ResponsiveContainer width="100%" height={400} style={{ marginTop: "20px" }}>
           <ComposedChart data={waterfallData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle)" />
             <XAxis dataKey="name" tick={{ fontSize: 12 }} className="text-xs" />
             <YAxis
               tick={{ fontSize: 12 }}
@@ -367,7 +367,7 @@ export function FinancialView({ project }: FinancialViewProps) {
         </Text>
         <ResponsiveContainer width="100%" height={300} style={{ marginTop: "20px" }}>
           <BarChart data={phaseChartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle)" />
             <XAxis dataKey="name" tick={{ fontSize: 11 }} className="text-xs" />
             <YAxis
               tick={{ fontSize: 12 }}
@@ -394,10 +394,10 @@ export function FinancialView({ project }: FinancialViewProps) {
           borderRadius: "8px",
           background:
             financialData.marginPercent >= 20
-              ? "#D1FAE5"
+              ? "rgba(52, 199, 89, 0.15)"
               : financialData.marginPercent >= 10
-                ? "#FEF3C7"
-                : "#FEE2E2",
+                ? "rgba(255, 149, 0, 0.1)"
+                : "rgba(255, 59, 48, 0.1)",
           border: `2px solid ${getMarginColor(financialData.marginPercent)}`,
         }}
       >
@@ -408,31 +408,31 @@ export function FinancialView({ project }: FinancialViewProps) {
               margin: 0,
               color:
                 financialData.marginPercent >= 20
-                  ? "#065F46"
+                  ? "#248A3D"
                   : financialData.marginPercent >= 10
-                    ? "#92400E"
-                    : "#7F1D1D",
+                    ? "#C93400"
+                    : "#D70015",
             }}
           >
              Financial Insights
           </Title>
           {financialData.marginPercent >= 30 ? (
-            <Text style={{ color: "#065F46" }}>
+            <Text style={{ color: "#248A3D" }}>
                <strong>Excellent margin!</strong> This proposal offers strong profitability (
               {financialData.marginPercent.toFixed(1)}%).
             </Text>
           ) : financialData.marginPercent >= 20 ? (
-            <Text style={{ color: "#065F46" }}>
+            <Text style={{ color: "#248A3D" }}>
                <strong>Healthy margin.</strong> This proposal meets profit targets (
               {financialData.marginPercent.toFixed(1)}%).
             </Text>
           ) : financialData.marginPercent >= 10 ? (
-            <Text style={{ color: "#92400E" }}>
+            <Text style={{ color: "#C93400" }}>
                <strong>Marginal profitability.</strong> Consider optimizing resources or
               increasing price ({financialData.marginPercent.toFixed(1)}%).
             </Text>
           ) : (
-            <Text style={{ color: "#7F1D1D" }}>
+            <Text style={{ color: "#D70015" }}>
                <strong>Low margin alert!</strong> This proposal may not be profitable. Review
               resource mix or increase price ({financialData.marginPercent.toFixed(1)}%).
             </Text>
@@ -442,10 +442,10 @@ export function FinancialView({ project }: FinancialViewProps) {
             style={{
               color:
                 financialData.marginPercent >= 20
-                  ? "#065F46"
+                  ? "#248A3D"
                   : financialData.marginPercent >= 10
-                    ? "#92400E"
-                    : "#7F1D1D",
+                    ? "#C93400"
+                    : "#D70015",
             }}
           >
             Average daily rate across all resources:{" "}

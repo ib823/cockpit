@@ -122,13 +122,13 @@ export function OperationalView({ project }: OperationalViewProps) {
       {/* Key Metrics */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ background: "#EFF6FF", borderRadius: "8px" }}>
+          <Card bordered={false} style={{ background: "rgba(0, 122, 255, 0.08)", borderRadius: "8px" }}>
             <Statistic
               title="Project Duration"
               value={metrics.durationMonths}
               suffix="months"
-              prefix={<Calendar size={20} style={{ color: "#3B82F6" }} />}
-              valueStyle={{ color: "#3B82F6" }}
+              prefix={<Calendar size={20} style={{ color: "#007AFF" }} />}
+              valueStyle={{ color: "#007AFF" }}
               className="[&_.ant-statistic-content]:text-2xl"
             />
             <Text type="secondary" className="text-xs">
@@ -138,12 +138,12 @@ export function OperationalView({ project }: OperationalViewProps) {
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ background: "#F0FDF4", borderRadius: "8px" }}>
+          <Card bordered={false} style={{ background: "rgba(52, 199, 89, 0.08)", borderRadius: "8px" }}>
             <Statistic
               title="Total Resources"
               value={metrics.totalResources}
-              prefix={<Users size={20} style={{ color: "#10B981" }} />}
-              valueStyle={{ color: "#10B981" }}
+              prefix={<Users size={20} style={{ color: "#34C759" }} />}
+              valueStyle={{ color: "#34C759" }}
               className="[&_.ant-statistic-content]:text-2xl"
             />
             <Text type="secondary" className="text-xs">
@@ -153,13 +153,13 @@ export function OperationalView({ project }: OperationalViewProps) {
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ background: "#ECFDF5", borderRadius: "8px" }}>
+          <Card bordered={false} style={{ background: "rgba(52, 199, 89, 0.06)", borderRadius: "8px" }}>
             <Statistic
               title="Progress"
               value={metrics.overallProgress}
               suffix="%"
-              prefix={<CheckCircle size={20} style={{ color: "#10B981" }} />}
-              valueStyle={{ color: "#10B981" }}
+              prefix={<CheckCircle size={20} style={{ color: "#34C759" }} />}
+              valueStyle={{ color: "#34C759" }}
               className="[&_.ant-statistic-content]:text-2xl"
             />
             <Text type="secondary" className="text-xs">
@@ -172,7 +172,7 @@ export function OperationalView({ project }: OperationalViewProps) {
           <Card
             bordered={false}
             style={{
-              background: metrics.overallocatedResources > 0 ? "#FEF2F2" : "#F0FDF4",
+              background: metrics.overallocatedResources > 0 ? "rgba(255, 59, 48, 0.06)" : "rgba(52, 199, 89, 0.08)",
               borderRadius: "8px",
             }}
           >
@@ -181,13 +181,13 @@ export function OperationalView({ project }: OperationalViewProps) {
               value={metrics.overallocatedResources}
               prefix={
                 metrics.overallocatedResources > 0 ? (
-                  <AlertTriangle size={20} style={{ color: "#EF4444" }} />
+                  <AlertTriangle size={20} style={{ color: "#FF3B30" }} />
                 ) : (
-                  <CheckCircle size={20} style={{ color: "#10B981" }} />
+                  <CheckCircle size={20} style={{ color: "#34C759" }} />
                 )
               }
               valueStyle={{
-                color: metrics.overallocatedResources > 0 ? "#EF4444" : "#10B981",
+                color: metrics.overallocatedResources > 0 ? "#FF3B30" : "#34C759",
               }}
             />
             <Text type="secondary" className="text-xs">
@@ -248,34 +248,34 @@ export function OperationalView({ project }: OperationalViewProps) {
         bordered={false}
         style={{
           borderRadius: "8px",
-          background: metrics.overallocatedResources > 0 ? "#FEF3C7" : "#D1FAE5",
-          border: `2px solid ${metrics.overallocatedResources > 0 ? "#F59E0B" : "#10B981"}`,
+          background: metrics.overallocatedResources > 0 ? "rgba(255, 149, 0, 0.1)" : "rgba(52, 199, 89, 0.15)",
+          border: `2px solid ${metrics.overallocatedResources > 0 ? "#FF9500" : "#34C759"}`,
         }}
       >
         <Space direction="vertical" size={8}>
           <Title
             level={5}
-            style={{ margin: 0, color: metrics.overallocatedResources > 0 ? "#92400E" : "#065F46" }}
+            style={{ margin: 0, color: metrics.overallocatedResources > 0 ? "#C93400" : "#248A3D" }}
           >
              Operational Insights
           </Title>
           {metrics.overallocatedResources > 0 ? (
             <>
-              <Text style={{ color: "#92400E" }}>
+              <Text style={{ color: "#C93400" }}>
                  <strong>{metrics.overallocatedResources}</strong> resource(s) are over-allocated.
                 Consider redistributing work or adding team members.
               </Text>
-              <Text style={{ color: "#92400E" }} className="text-sm">
+              <Text style={{ color: "#C93400" }} className="text-sm">
                 Tip: Look for red cells in the heatmap above to identify specific weeks with
                 conflicts.
               </Text>
             </>
           ) : (
             <>
-              <Text style={{ color: "#065F46" }}>
+              <Text style={{ color: "#248A3D" }}>
                  Resource allocation looks healthy! All team members have manageable workloads.
               </Text>
-              <Text style={{ color: "#065F46" }} className="text-sm">
+              <Text style={{ color: "#248A3D" }} className="text-sm">
                 Tip: Monitor utilization to ensure resources remain productive throughout the
                 project.
               </Text>

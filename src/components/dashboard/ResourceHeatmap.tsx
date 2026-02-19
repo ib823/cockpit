@@ -126,22 +126,22 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
   }, [project]);
 
   const getCellColor = (allocatedDays: number): string => {
-    if (allocatedDays === 0) return "#F3F4F6"; // Grey - Unavailable
-    if (allocatedDays <= 5) return "#D1FAE5"; // Green - Optimal
-    if (allocatedDays <= 6) return "#FEF3C7"; // Yellow - Full
-    return "#FEE2E2"; // Red - Over-allocated
+    if (allocatedDays === 0) return "var(--color-gray-6)";
+    if (allocatedDays <= 5) return "var(--color-green-light)";
+    if (allocatedDays <= 6) return "var(--color-orange-light)";
+    return "var(--color-red-light)";
   };
 
   const getCellBorderColor = (allocatedDays: number): string => {
-    if (allocatedDays === 0) return "#E5E7EB";
-    if (allocatedDays <= 5) return "#10B981";
-    if (allocatedDays <= 6) return "#F59E0B";
-    return "#EF4444";
+    if (allocatedDays === 0) return "var(--color-gray-5)";
+    if (allocatedDays <= 5) return "#34C759"; // Apple HIG green
+    if (allocatedDays <= 6) return "#FF9500"; // Apple HIG orange
+    return "#FF3B30"; // Apple HIG red
   };
 
   if (heatmapData.rows.length === 0) {
     return (
-      <div style={{ textAlign: "center", padding: "40px", color: "#9CA3AF" }}>
+      <div className="text-center py-10 text-[var(--color-text-tertiary)]">
         <Text type="secondary">No resources assigned to this project</Text>
       </div>
     );
@@ -150,53 +150,21 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
   return (
     <div style={{ overflowX: "auto" }}>
       {/* Legend */}
-      <div style={{ marginBottom: "16px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div
-            style={{
-              width: 20,
-              height: 20,
-              background: "#D1FAE5",
-              border: "2px solid #10B981",
-              borderRadius: 4,
-            }}
-          />
+      <div className="mb-4 flex gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded bg-[var(--color-green-light)] border-2 border-[#34C759]" />
           <Text className="text-sm">0-5 days: Optimal</Text>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div
-            style={{
-              width: 20,
-              height: 20,
-              background: "#FEF3C7",
-              border: "2px solid #F59E0B",
-              borderRadius: 4,
-            }}
-          />
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded bg-[var(--color-orange-light)] border-2 border-[#FF9500]" />
           <Text className="text-sm">6 days: Full</Text>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div
-            style={{
-              width: 20,
-              height: 20,
-              background: "#FEE2E2",
-              border: "2px solid #EF4444",
-              borderRadius: 4,
-            }}
-          />
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded bg-[var(--color-red-light)] border-2 border-[#FF3B30]" />
           <Text className="text-sm">7+ days: Over-allocated</Text>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div
-            style={{
-              width: 20,
-              height: 20,
-              background: "#F3F4F6",
-              border: "2px solid #E5E7EB",
-              borderRadius: 4,
-            }}
-          />
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded bg-[var(--color-gray-6)] border-2 border-[var(--color-gray-5)]" />
           <Text className="text-sm">0 days: Bench</Text>
         </div>
       </div>
@@ -209,7 +177,7 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
               style={{
                 textAlign: "left",
                 padding: "8px",
-                background: "#F9FAFB",
+                background: "var(--color-bg-secondary)",
                 borderRadius: "4px",
                 fontWeight: 600,
                 minWidth: "200px",
@@ -222,7 +190,7 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
                 key={idx}
                 style={{
                   padding: "8px",
-                  background: "#F9FAFB",
+                  background: "var(--color-bg-secondary)",
                   borderRadius: "4px",
                   fontWeight: 500,
                   textAlign: "center",
@@ -235,7 +203,7 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
             <th
               style={{
                 padding: "8px",
-                background: "#F9FAFB",
+                background: "var(--color-bg-secondary)",
                 borderRadius: "4px",
                 fontWeight: 600,
                 textAlign: "center",
@@ -252,20 +220,20 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
               <td
                 style={{
                   padding: "8px",
-                  background: "#FFFFFF",
+                  background: "var(--color-bg-primary)",
                   borderRadius: "4px",
                   fontWeight: 500,
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div className="flex items-center gap-2">
                   <span>{row.resource.name}</span>
                   {row.overallocatedWeeks > 0 && (
                     <Tooltip title={`Over-allocated in ${row.overallocatedWeeks} week(s)`}>
-                      <AlertTriangle size={14} color="#EF4444" />
+                      <AlertTriangle size={14} color="#FF3B30" />
                     </Tooltip>
                   )}
                 </div>
-                <div style={{ color: "#6B7280" }} className="text-xs">
+                <div className="text-xs text-[var(--color-text-secondary)]">
                   {row.resource.designation}
                 </div>
               </td>
@@ -283,7 +251,7 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
                         fontWeight: 600,
                         cursor: "pointer",
                         transition: "transform 0.1s",
-                        color: week.allocatedDays === 0 ? "#9CA3AF" : "#1F2937",
+                        color: week.allocatedDays === 0 ? "var(--color-text-tertiary)" : "var(--color-text-primary)",
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = "scale(1.1)";
@@ -300,7 +268,7 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
               <td
                 style={{
                   padding: "8px",
-                  background: "#FFFFFF",
+                  background: "var(--color-bg-primary)",
                   borderRadius: "4px",
                   textAlign: "center",
                   fontWeight: 600,

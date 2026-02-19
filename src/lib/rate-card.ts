@@ -152,8 +152,8 @@ export function calculateMargin(revenue: number, cost: number): number {
  * Get margin color based on percentage
  */
 export function getMarginColor(marginPercent: number): string {
-  if (marginPercent >= 30) return "#10B981"; // Green - Excellent
-  if (marginPercent >= 20) return "#3B82F6"; // Blue - Good
-  if (marginPercent >= 10) return "#F59E0B"; // Orange - Warning
-  return "#EF4444"; // Red - Critical
+  if (marginPercent >= 30) return "#34C759"; // Apple HIG Green - Excellent
+  if (marginPercent >= 20) return "#007AFF"; // Apple HIG Blue - Good
+  if (marginPercent >= 10) return "#FF9500"; // Apple HIG Orange - Warning
+  return "#FF3B30"; // Apple HIG Red - Critical
 }

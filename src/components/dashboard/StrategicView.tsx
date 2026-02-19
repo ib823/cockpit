@@ -205,22 +205,22 @@ export function StrategicView({ project }: StrategicViewProps) {
       {
         name: "Resource\nContention",
         value: resourceContention,
-        fill: resourceContention > 70 ? "#EF4444" : resourceContention > 50 ? "#F59E0B" : "#10B981",
+        fill: resourceContention > 70 ? "#FF3B30" : resourceContention > 50 ? "#FF9500" : "#34C759",
       },
       {
         name: "Critical Path\nComplexity",
         value: criticalPathComplexity,
         fill:
           criticalPathComplexity > 70
-            ? "#EF4444"
+            ? "#FF3B30"
             : criticalPathComplexity > 50
-              ? "#F59E0B"
-              : "#10B981",
+              ? "#FF9500"
+              : "#34C759",
       },
       {
         name: "Budget\nRisk",
         value: budgetRisk,
-        fill: budgetRisk > 70 ? "#EF4444" : budgetRisk > 50 ? "#F59E0B" : "#10B981",
+        fill: budgetRisk > 70 ? "#FF3B30" : budgetRisk > 50 ? "#FF9500" : "#34C759",
       },
     ];
   }, [project, scenario1]);
@@ -228,7 +228,7 @@ export function StrategicView({ project }: StrategicViewProps) {
   return (
     <Space direction="vertical" size="large" style={{ width: "100%", display: "flex" }}>
       {/* Scenario Actions */}
-      <Card bordered={false} style={{ borderRadius: "8px", background: "#FFFBEB" }}>
+      <Card bordered={false} className="rounded-[var(--radius-md)]" style={{ background: "rgba(255, 149, 0, 0.05)" }}>
         <Space size="middle" wrap>
           <Button type="primary" icon={<Plus size={16} />} onClick={generateOptimizedScenario}>
             Create Cost-Optimized Scenario
@@ -236,7 +236,7 @@ export function StrategicView({ project }: StrategicViewProps) {
           <Button icon={<Copy size={16} />} onClick={generatePremiumScenario}>
             Create Premium Scenario
           </Button>
-          <Text type="secondary" style={{ marginLeft: "16px" }}>
+          <Text type="secondary" className="ml-4">
             {scenarios.length} alternative scenario(s) created
           </Text>
         </Space>
@@ -276,7 +276,7 @@ export function StrategicView({ project }: StrategicViewProps) {
                     title="Cost"
                     value={scenario1.cost}
                     prefix="RM"
-                    valueStyle={{ fontSize: "20px", color: "#EF4444" }}
+                    valueStyle={{ fontSize: "20px", color: "#FF3B30" }}
                     formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                   />
                   <Statistic
@@ -326,7 +326,7 @@ export function StrategicView({ project }: StrategicViewProps) {
                     title="Cost"
                     value={scenario2.cost}
                     prefix="RM"
-                    valueStyle={{ fontSize: "20px", color: "#EF4444" }}
+                    valueStyle={{ fontSize: "20px", color: "#FF3B30" }}
                     formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                   />
                   <Statistic
@@ -362,21 +362,14 @@ export function StrategicView({ project }: StrategicViewProps) {
                 <Card
                   size="small"
                   bordered={false}
-                  style={{ background: "#F9FAFB", textAlign: "center" }}
+                  className="text-center" style={{ background: "var(--color-bg-secondary)" }}
                 >
                   <Text type="secondary">Margin Change</Text>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginTop: "8px",
-                    }}
-                  >
+                  <div className="flex items-center justify-center mt-2">
                     {calculateDelta(scenario1, scenario2, "marginPercent") > 0 ? (
-                      <TrendingUp size={20} color="#10B981" />
+                      <TrendingUp size={20} color="#34C759" />
                     ) : (
-                      <TrendingDown size={20} color="#EF4444" />
+                      <TrendingDown size={20} color="#FF3B30" />
                     )}
                     <Text
                       strong
@@ -385,8 +378,8 @@ export function StrategicView({ project }: StrategicViewProps) {
                         marginLeft: "8px",
                         color:
                           calculateDelta(scenario1, scenario2, "marginPercent") > 0
-                            ? "#10B981"
-                            : "#EF4444",
+                            ? "#34C759"
+                            : "#FF3B30",
                       }}
                     >
                       {calculateDelta(scenario1, scenario2, "marginPercent").toFixed(1)}%
@@ -399,16 +392,16 @@ export function StrategicView({ project }: StrategicViewProps) {
                 <Card
                   size="small"
                   bordered={false}
-                  style={{ background: "#F9FAFB", textAlign: "center" }}
+                  className="text-center" style={{ background: "var(--color-bg-secondary)" }}
                 >
                   <Text type="secondary">Cost Change</Text>
-                  <div style={{ marginTop: "8px" }}>
+                  <div className="mt-2">
                     <Text
                       strong
                       style={{
                         fontSize: "16px",
                         color:
-                          calculateDelta(scenario1, scenario2, "cost") < 0 ? "#10B981" : "#EF4444",
+                          calculateDelta(scenario1, scenario2, "cost") < 0 ? "#34C759" : "#FF3B30",
                       }}
                     >
                       {formatMYR(calculateDelta(scenario1, scenario2, "cost"))}
@@ -421,18 +414,18 @@ export function StrategicView({ project }: StrategicViewProps) {
                 <Card
                   size="small"
                   bordered={false}
-                  style={{ background: "#F9FAFB", textAlign: "center" }}
+                  className="text-center" style={{ background: "var(--color-bg-secondary)" }}
                 >
                   <Text type="secondary">Duration Change</Text>
-                  <div style={{ marginTop: "8px" }}>
+                  <div className="mt-2">
                     <Text
                       strong
                       style={{
                         fontSize: "16px",
                         color:
                           calculateDelta(scenario1, scenario2, "duration") < 0
-                            ? "#10B981"
-                            : "#EF4444",
+                            ? "#34C759"
+                            : "#FF3B30",
                       }}
                     >
                       {calculateDelta(scenario1, scenario2, "duration") > 0 ? "+" : ""}
@@ -446,18 +439,18 @@ export function StrategicView({ project }: StrategicViewProps) {
                 <Card
                   size="small"
                   bordered={false}
-                  style={{ background: "#F9FAFB", textAlign: "center" }}
+                  className="text-center" style={{ background: "var(--color-bg-secondary)" }}
                 >
                   <Text type="secondary">Effort Change</Text>
-                  <div style={{ marginTop: "8px" }}>
+                  <div className="mt-2">
                     <Text
                       strong
                       style={{
                         fontSize: "16px",
                         color:
                           calculateDelta(scenario1, scenario2, "effort") < 0
-                            ? "#10B981"
-                            : "#EF4444",
+                            ? "#34C759"
+                            : "#FF3B30",
                       }}
                     >
                       {calculateDelta(scenario1, scenario2, "effort") > 0 ? "+" : ""}
@@ -507,10 +500,10 @@ export function StrategicView({ project }: StrategicViewProps) {
           <Col xs={24} md={12}>
             <Space direction="vertical" size="middle" style={{ width: "100%" }}>
               {scenario1 && scenario1.marginPercent >= 20 && (
-                <div style={{ display: "flex", alignItems: "start", gap: "12px" }}>
-                  <CheckCircle2 size={20} color="#10B981" style={{ marginTop: "2px" }} />
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 size={20} color="#34C759" style={{ marginTop: "2px" }} />
                   <div>
-                    <Text strong style={{ color: "#065F46" }}>
+                    <Text strong className="text-[#248A3D]">
                       Healthy Margin
                     </Text>
                     <br />
@@ -522,10 +515,10 @@ export function StrategicView({ project }: StrategicViewProps) {
               )}
 
               {scenario1 && scenario1.marginPercent < 20 && (
-                <div style={{ display: "flex", alignItems: "start", gap: "12px" }}>
-                  <AlertCircle size={20} color="#F59E0B" style={{ marginTop: "2px" }} />
+                <div className="flex items-start gap-3">
+                  <AlertCircle size={20} color="#FF9500" style={{ marginTop: "2px" }} />
                   <div>
-                    <Text strong style={{ color: "#92400E" }}>
+                    <Text strong className="text-[#C93400]">
                       Margin Risk
                     </Text>
                     <br />
@@ -536,10 +529,10 @@ export function StrategicView({ project }: StrategicViewProps) {
                 </div>
               )}
 
-              <div style={{ display: "flex", alignItems: "start", gap: "12px" }}>
-                <AlertCircle size={20} color="#3B82F6" style={{ marginTop: "2px" }} />
+              <div className="flex items-start gap-3">
+                <AlertCircle size={20} color="#007AFF" style={{ marginTop: "2px" }} />
                 <div>
-                  <Text strong style={{ color: "#1E3A8A" }}>
+                  <Text strong className="text-[var(--color-blue-dark)]">
                     Resource Contention
                   </Text>
                   <br />
@@ -551,10 +544,10 @@ export function StrategicView({ project }: StrategicViewProps) {
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "start", gap: "12px" }}>
-                <CheckCircle2 size={20} color="#10B981" style={{ marginTop: "2px" }} />
+              <div className="flex items-start gap-3">
+                <CheckCircle2 size={20} color="#34C759" style={{ marginTop: "2px" }} />
                 <div>
-                  <Text strong style={{ color: "#065F46" }}>
+                  <Text strong className="text-[#248A3D]">
                     Project Feasibility
                   </Text>
                   <br />
@@ -571,21 +564,18 @@ export function StrategicView({ project }: StrategicViewProps) {
       {/* Strategic Recommendation */}
       <Card
         bordered={false}
-        style={{
-          borderRadius: "8px",
-          background: "#EFF6FF",
-          border: "2px solid #3B82F6",
-        }}
+        className="rounded-[var(--radius-md)] border-2 border-[var(--color-blue)]"
+        style={{ background: "var(--color-blue-light)" }}
       >
         <Space direction="vertical" size={8}>
-          <Title level={5} style={{ margin: 0, color: "#1E3A8A" }}>
+          <Title level={5} className="!m-0 text-[var(--color-blue-dark)]">
              Strategic Recommendation
           </Title>
-          <Text style={{ color: "#1E3A8A" }}>
+          <Text className="text-[var(--color-blue-dark)]">
             Based on the analysis, consider creating scenarios that balance cost, margin, and
             delivery speed. The optimal approach depends on client priorities:
           </Text>
-          <ul style={{ margin: "8px 0", paddingLeft: "20px", color: "#1E3A8A" }}>
+          <ul className="my-2 pl-5 text-[var(--color-blue-dark)]">
             <li>
               <strong>Cost-sensitive clients:</strong> Optimize with mid-level resources
             </li>
