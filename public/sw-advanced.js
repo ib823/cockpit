@@ -1,5 +1,5 @@
 /**
- * Keystone - Advanced Service Worker
+ * Cockpit - Advanced Service Worker
  *
  * High-performance caching strategies for instant load times
  *
@@ -11,7 +11,7 @@
  * - Prefetching critical resources
  */
 
-const CACHE_VERSION = "keystone-v2";
+const CACHE_VERSION = "cockpit-v2";
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_IMAGES = `${CACHE_VERSION}-images`;
@@ -22,7 +22,7 @@ const STATIC_ASSETS = [
   "/",
   "/manifest.json",
   "/favicon.ico",
-  "/logo-keystone.png",
+  "/logo-cockpit.png",
   "/icon-192.png",
   "/icon-512.png",
 ];
@@ -77,7 +77,7 @@ self.addEventListener("activate", (event) => {
             .filter((name) => {
               // Delete old cache versions
               return (
-                name.startsWith("keystone-") &&
+                name.startsWith("cockpit-") &&
                 name !== CACHE_STATIC &&
                 name !== CACHE_DYNAMIC &&
                 name !== CACHE_IMAGES &&
@@ -312,7 +312,7 @@ self.addEventListener("push", (event) => {
     },
   };
 
-  event.waitUntil(self.registration.showNotification(data.title || "Keystone", options));
+  event.waitUntil(self.registration.showNotification(data.title || "Cockpit", options));
 });
 
 /**

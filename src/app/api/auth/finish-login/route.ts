@@ -171,6 +171,7 @@ export async function POST(req: Request) {
 
     // Fixed: V-006 - TOCTOU: Check access expiry atomically in transaction
     // Re-fetch user within transaction to ensure access hasn't expired between check and session creation
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const transactionResult: { role: "USER" | "MANAGER" | "ADMIN" } = await (prisma.$transaction as any)(async (tx: any) => {
       // Re-check access expiry within transaction for atomicity
       const freshUser = await tx.users.findUnique({

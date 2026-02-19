@@ -44,7 +44,8 @@ const CATEGORY_SORT_ORDER: Record<ResourceCategory, number> = {
   security: 5,
   basis: 6,
   qa: 7,
-  other: 8,
+  client: 8,
+  other: 9,
 };
 
 // Design tokens - Apple HIG compliant (matching OrgChartPro)

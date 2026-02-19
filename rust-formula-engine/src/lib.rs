@@ -1,5 +1,5 @@
 /**
- * Keystone - Rust/WASM Formula Engine
+ * Cockpit - Rust/WASM Formula Engine
  *
  * High-performance calculation engine compiled to WebAssembly
  * Expected performance: 10-50x faster than JavaScript

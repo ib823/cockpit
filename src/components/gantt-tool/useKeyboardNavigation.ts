@@ -23,7 +23,7 @@ interface KeyboardNavigationOptions {
   ) => void;
   deletePhase?: (phaseId: string) => void;
   deleteTask?: (taskId: string, phaseId: string) => void;
-  focusPhase?: (phaseId: string | null) => void;
+  focusPhase?: (phaseId: string) => void;
   exitFocusMode?: () => void;
   focusedPhaseId?: string | null;
 }

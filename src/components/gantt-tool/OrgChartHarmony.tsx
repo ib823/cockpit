@@ -387,8 +387,6 @@ export function OrgChartHarmony({ onClose, project }: OrgChartHarmonyProps) {
 
   // Load nodes from project
   useEffect(() => {
-    console.log("[Harmony] Loading nodes, currentProject:", currentProject ? "exists" : "null");
-
     if (currentProject?.resources && currentProject.resources.length > 0) {
       const loadedNodes: OrgNode[] = currentProject.resources.map(resource => ({
         id: resource.id,
@@ -401,11 +399,9 @@ export function OrgChartHarmony({ onClose, project }: OrgChartHarmonyProps) {
         department: resource.department,
         dailyRate: resource.chargeRatePerHour ? resource.chargeRatePerHour * 8 : undefined,
       }));
-      console.log("[Harmony] Loaded from project:", loadedNodes.length, "nodes");
       setNodes(loadedNodes);
     } else {
       // Start with sample data for demo
-      console.log("[Harmony] Loading sample data");
       setNodes([
         {
           id: "1",
@@ -467,9 +463,7 @@ export function OrgChartHarmony({ onClose, project }: OrgChartHarmonyProps) {
   // Calculate layout
   const layoutEngine = useMemo(() => new OrgChartLayoutEngine(), []);
   const nodePositions = useMemo(() => {
-    console.log("[Harmony] Calculating layout for", nodes.length, "nodes");
     const positions = layoutEngine.calculateLayout(nodes);
-    console.log("[Harmony] Layout calculated, positions:", positions.size);
     return positions;
   }, [nodes, layoutEngine]);
 
@@ -508,27 +502,20 @@ export function OrgChartHarmony({ onClose, project }: OrgChartHarmonyProps) {
     // Small delay to ensure container is properly sized
     const timeoutId = setTimeout(() => {
       if (!containerRef.current || nodePositions.size === 0) {
-        console.log("[Harmony] Auto-fit skipped: container or nodes missing");
         return;
       }
 
       const containerWidth = containerRef.current.clientWidth;
       const containerHeight = containerRef.current.clientHeight;
 
-      console.log("[Harmony] Auto-fit: container", containerWidth, "x", containerHeight);
-      console.log("[Harmony] Auto-fit: canvas bounds", canvasBounds.width, "x", canvasBounds.height);
-
       // Ensure we have valid dimensions
       if (containerWidth === 0 || containerHeight === 0) {
-        console.log("[Harmony] Auto-fit skipped: zero dimensions");
         return;
       }
 
       const scaleX = containerWidth / canvasBounds.width;
       const scaleY = containerHeight / canvasBounds.height;
       const autoScale = Math.min(scaleX, scaleY, 1) * 0.85; // 85% for mobile breathing room
-
-      console.log("[Harmony] Auto-fit: scale", autoScale, "x:", (containerWidth - canvasBounds.width * autoScale) / 2, "y:", (containerHeight - canvasBounds.height * autoScale) / 2);
 
       scale.set(autoScale);
       x.set((containerWidth - canvasBounds.width * autoScale) / 2);

@@ -12,16 +12,18 @@ import { withRetry } from "./db";
  * });
  * ```
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function withDatabaseRetry<T extends any[]>(handler: (...args: T) => Promise<NextResponse>) {
   return async (...args: T): Promise<NextResponse> => {
     try {
       return await withRetry(() => handler(...args));
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If we still fail after retries, return a proper error response
       console.error("[API] Database operation failed after retries:", error);
 
       // Return user-friendly error based on error type
-      if (error?.code?.startsWith("P1")) {
+      const prismaError = error as { code?: string } | null;
+      if (prismaError?.code?.startsWith("P1")) {
         // Connection errors
         return NextResponse.json(
           {

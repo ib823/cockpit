@@ -11,7 +11,7 @@
  */
 
 import { vi } from 'vitest';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { GET as getAllProjects, POST as createProject } from '../route';
 import { GET as getProject, PUT as updateProject, DELETE as deleteProject } from '../[projectId]/route';
 import { prisma } from '@/lib/db';
@@ -551,7 +551,7 @@ describe.skip('Architecture API - POST Create Project (20 scenarios)', () => {
     });
 
     const response = await createProject(request);
-    const data = await response.json();
+    const _data = await response.json();
 
     // Should either reject or sanitize
     expect(response.status).toBeLessThan(500);

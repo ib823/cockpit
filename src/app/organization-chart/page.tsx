@@ -16,12 +16,7 @@ export default function OrganizationChartPage() {
   const router = useRouter();
   const { currentProject } = useGanttToolStoreV2();
 
-  // Debug logging
-  useEffect(() => {
-    console.log("🔍 OrganizationChartPage mounted");
-    console.log("🔍 currentProject:", currentProject);
-    console.log("🔍 currentProject exists?", !!currentProject);
-  }, [currentProject]);
+  // Project state is monitored via currentProject dependency below
 
   // Don't redirect immediately - give store time to hydrate
   // Only redirect after a delay if still no project

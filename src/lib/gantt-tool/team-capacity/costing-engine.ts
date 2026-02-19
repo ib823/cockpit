@@ -28,7 +28,7 @@
  * Performance: Optimized for batch calculations with caching
  */
 
-import { Decimal } from "decimal.js";
+import { Decimal } from "@prisma/client/runtime/library";
 import type {
   ResourceWeeklyAllocation,
   ResourceRateLookup,

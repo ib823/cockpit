@@ -11,30 +11,34 @@ import { useState } from "react";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { FormExample } from "@/lib/design-system/showcase-helpers";
 
-interface ConflictResolutionModalProps {
+export interface ConflictResolutionModalProps {
   isOpen: boolean;
-  onClose: () => void;
-  conflictCount: number;
-  conflicts: Array<{
+  onClose?: () => void;
+  onCancel?: () => void;
+  conflictCount?: number;
+  conflicts?: Array<{
     id: string;
     name: string;
     type: string;
   }>;
   onResolve: (strategy: string) => void;
+  [key: string]: unknown;
 }
 
 export function ConflictResolutionModal({
   isOpen,
   onClose,
+  onCancel,
   conflictCount = 3,
   conflicts = [],
   onResolve,
 }: ConflictResolutionModalProps) {
   const [strategy, setStrategy] = useState("merge");
+  const handleClose = onClose ?? onCancel ?? (() => {});
 
   const handleApply = () => {
     onResolve(strategy);
-    onClose();
+    handleClose();
   };
 
   // Default conflicts if none provided
@@ -49,7 +53,7 @@ export function ConflictResolutionModal({
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Resolve Data Conflicts"
       subtitle="Choose how to handle conflicts between imported and existing data"
       size="large"

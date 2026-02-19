@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Keystone - Rust/WASM Build Script
+# Cockpit - Rust/WASM Build Script
 #
 # Builds the Rust formula engine to WebAssembly
 # Output: pkg/ directory with WASM module and TypeScript bindings
@@ -25,8 +25,8 @@ wasm-pack build --target web --out-dir pkg --release
 # Optimize WASM file size
 if command -v wasm-opt &> /dev/null; then
     echo "⚡ Optimizing WASM..."
-    wasm-opt -O4 -o pkg/keystone_formula_engine_bg.wasm.opt pkg/keystone_formula_engine_bg.wasm
-    mv pkg/keystone_formula_engine_bg.wasm.opt pkg/keystone_formula_engine_bg.wasm
+    wasm-opt -O4 -o pkg/cockpit_formula_engine_bg.wasm.opt pkg/cockpit_formula_engine_bg.wasm
+    mv pkg/cockpit_formula_engine_bg.wasm.opt pkg/cockpit_formula_engine_bg.wasm
 fi
 
 # Copy to src/lib/wasm
@@ -41,4 +41,4 @@ ls -lh pkg/*.wasm
 
 echo ""
 echo "🚀 Ready to use! Import in TypeScript:"
-echo "   import * as wasm from '@/lib/wasm/keystone_formula_engine';"
+echo "   import * as wasm from '@/lib/wasm/cockpit_formula_engine';"

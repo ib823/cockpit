@@ -9,8 +9,8 @@
 
 import { useState } from "react";
 import { Modal, Table, InputNumber, Button, Space, Typography, Tag, Divider, App } from "antd";
-import { EditOutlined, SaveOutlined, UndoOutlined, InfoCircleOutlined } from "@ant-design/icons";
-import { DEFAULT_RATE_CARD, RateCardEntry, formatMYR, getHourlyRate } from "@/lib/rate-card";
+import { EditOutlined, SaveOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { DEFAULT_RATE_CARD, RateCardEntry, formatMYR } from "@/lib/rate-card";
 import { ResourceDesignation, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 
 const { Text, Title } = Typography;
@@ -101,7 +101,7 @@ export function RateCardManager({ isOpen, onClose, onSave }: RateCardManagerProp
       dataIndex: "hourlyRate",
       key: "hourlyRate",
       width: 150,
-      render: (_: any, record: RateCardEntry) => {
+      render: (_: unknown, record: RateCardEntry) => {
         const hourlyRate = rates[record.designation] / 8;
         return <Text type="secondary">{formatMYR(hourlyRate)}/hr</Text>;
       },
@@ -111,7 +111,7 @@ export function RateCardManager({ isOpen, onClose, onSave }: RateCardManagerProp
       dataIndex: "monthly",
       key: "monthly",
       width: 150,
-      render: (_: any, record: RateCardEntry) => {
+      render: (_: unknown, record: RateCardEntry) => {
         const monthly = rates[record.designation] * 20;
         return <Tag color="blue">{formatMYR(monthly)}</Tag>;
       },

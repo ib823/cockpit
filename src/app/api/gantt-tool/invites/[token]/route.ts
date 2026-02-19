@@ -142,7 +142,8 @@ export async function POST(
     }
 
     // Accept invite and create collaborator in a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: any = await (prisma.$transaction as any)(async (tx: any) => {
       // Mark invite as accepted
       await tx.ganttProjectInvite.update({
         where: { id: invite.id },

@@ -169,21 +169,24 @@ export function useCapacityWorker(): UseCapacityWorkerResult {
             name: task.name,
             startDate: task.startDate,
             endDate: task.endDate,
-            resourceAssignments: task.resourceAssignments?.map((a) => ({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            resourceAssignments: task.resourceAssignments?.map((a: any) => ({
               resourceId: a.resourceId,
-              allocation: a.allocation,
+              allocation: a.allocationPercentage,
             })),
           })),
-          resourceAssignments: phase.resourceAssignments?.map((a) => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          resourceAssignments: phase.phaseResourceAssignments?.map((a: any) => ({
             resourceId: a.resourceId,
-            allocation: a.allocation,
+            allocation: a.allocationPercentage,
           })),
         })),
         resources: input.resources.map((r) => ({
           id: r.id,
           name: r.name,
           category: r.category,
-          weeklyCapacity: r.weeklyCapacity,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          weeklyCapacity: (r as any).weeklyCapacity ?? 40,
         })),
         projectStartDate: input.projectStartDate.toISOString(),
         projectEndDate: input.projectEndDate.toISOString(),

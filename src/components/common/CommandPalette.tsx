@@ -10,7 +10,6 @@ import {
   Settings,
   FileDown,
   Users,
-  LogOut,
   Moon,
   Sun,
   Monitor,
@@ -45,7 +44,9 @@ export function CommandPalette() {
   if (!open) return null;
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
         className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl"
         onClick={(e) => e.stopPropagation()}
@@ -119,8 +120,7 @@ export function CommandPalette() {
                 label="Export PDF"
                 onSelect={() =>
                   handleSelect(() => {
-                    // Trigger PDF export
-                    console.log("Export PDF");
+                    // TODO: Trigger PDF export
                   })
                 }
               />
@@ -129,7 +129,7 @@ export function CommandPalette() {
                 label="Export PowerPoint"
                 onSelect={() =>
                   handleSelect(() => {
-                    console.log("Export PowerPoint");
+                    // TODO: Trigger PowerPoint export
                   })
                 }
               />

@@ -1,5 +1,5 @@
 /**
- * Keystone - LOBs API
+ * Cockpit - LOBs API
  *
  * GET /api/lobs - Fetch all Lines of Business
  *

@@ -1,5 +1,5 @@
 /**
- * Keystone - Performance Test Script
+ * Cockpit - Performance Test Script
  *
  * Run comprehensive performance tests
  *
@@ -10,7 +10,7 @@
 import { runAllBenchmarks, formatBenchmarkTable } from "../src/lib/performance/benchmarks";
 
 async function main() {
-  console.log("🚀 Keystone Performance Test Suite\n");
+  console.log("🚀 Cockpit Performance Test Suite\n");
   console.log("Running all benchmarks...\n");
 
   const { results, summary } = await runAllBenchmarks();

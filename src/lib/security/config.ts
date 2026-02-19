@@ -171,7 +171,7 @@ export function logSecurityEvent(
     userAgent?: string;
     endpoint?: string;
     reason?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }
 ): void {
   if (!SECURITY_CONFIG.logging.logSecurityEvents) {
@@ -198,7 +198,7 @@ export function logSecurityEvent(
  */
 const eventCounts = new Map<SecurityEventType, number[]>();
 
-function checkAndSendAlert(type: SecurityEventType, event: any): void {
+function checkAndSendAlert(type: SecurityEventType, event: unknown): void {
   const now = Date.now();
   const counts = eventCounts.get(type) || [];
 
@@ -224,7 +224,7 @@ function checkAndSendAlert(type: SecurityEventType, event: any): void {
 async function sendSecurityAlert(
   type: SecurityEventType,
   count: number,
-  lastEvent: any
+  lastEvent: unknown
 ): Promise<void> {
   const webhookUrl = SECURITY_CONFIG.logging.alerts.webhookUrl;
   if (!webhookUrl) {

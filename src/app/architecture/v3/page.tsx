@@ -16,10 +16,6 @@ import { NewProjectModal } from "@/components/gantt-tool/NewProjectModal";
 import { OrgChartBuilder } from "@/components/gantt-tool/OrgChartBuilder";
 import { HexLoader } from "@/components/ui/HexLoader";
 import type {
-  ArchitectureProject,
-  BusinessContextData,
-  CurrentLandscapeData,
-  ProposedSolutionData,
   DiagramSettings,
   DiagramType,
   ExportOptions,
@@ -69,7 +65,7 @@ export default function ArchitectureV3Page() {
   const [initializing, setInitializing] = useState(true);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("business-context");
-  const [version, setVersion] = useState("v1.0");
+  const [_version, _setVersion] = useState("v1.0");
   const [isGenerated, setIsGenerated] = useState(false);
   const [currentDiagramType, setCurrentDiagramType] = useState<DiagramType>("business-context");
   const [showStyleSelector, setShowStyleSelector] = useState(false);
@@ -144,11 +140,8 @@ export default function ArchitectureV3Page() {
 
   // Initialize projects on mount
   useEffect(() => {
-    console.log("[Architecture V3] Mount - currentProject:", currentProject?.id);
-
     // If project already loaded, we're good
     if (currentProject) {
-      console.log("[Architecture V3] Project already loaded:", currentProject.id);
       setInitializing(false);
       return;
     }
@@ -156,18 +149,14 @@ export default function ArchitectureV3Page() {
     // Otherwise, initialize
     const initialize = async () => {
       try {
-        console.log("[Architecture V3] No project loaded, starting initialization...");
-
         // Fetch projects from database
         await fetchProjects();
-        console.log("[Architecture V3] Projects fetched");
 
         // Small delay to ensure state updates
         await new Promise(resolve => setTimeout(resolve, 100));
 
         // Get current state after fetch
         const state = useGanttToolStore.getState();
-        console.log("[Architecture V3] After fetch - Current project:", state.currentProject?.id, "Projects count:", state.projects.length);
 
         // If STILL no project is loaded, auto-load or create one
         if (!state.currentProject) {
@@ -176,18 +165,14 @@ export default function ArchitectureV3Page() {
             const sortedProjects = [...state.projects].sort(
               (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
             );
-            console.log("[Architecture V3] Loading project:", sortedProjects[0].id);
             await loadProject(sortedProjects[0].id);
           } else {
             // Create default project
             const today = format(new Date(), "yyyy-MM-dd");
             const projectName = `Project ${format(new Date(), "yyyy-MM-dd HH:mm")}`;
-            console.log("[Architecture V3] Creating new project:", projectName);
             await createProject(projectName, today);
           }
         }
-
-        console.log("[Architecture V3] Initialization complete");
       } catch (error) {
         console.error("[Architecture V3] Failed to initialize:", error);
       } finally {
@@ -227,7 +212,7 @@ export default function ArchitectureV3Page() {
 
   const handleExport = async (options: ExportOptions) => {
     // TODO: Implement actual export functionality
-    console.log("Export requested:", options);
+    console.warn("Export requested:", options);
     alert(`Export functionality coming soon!\nFormat: ${options.format}\nFilename: ${options.filename}`);
   };
 
@@ -246,7 +231,7 @@ export default function ArchitectureV3Page() {
     }
   };
 
-  const handleCreateProject = async (name: string, startDate: string, companyLogos?: Record<string, string>) => {
+  const handleCreateProject = async (name: string, startDate: string, _companyLogos?: Record<string, string>) => {
     await createProject(name, `Started on ${startDate}`);
     // Note: companyLogos and startDate are not currently used in the architecture store
     // They may be added in a future enhancement
@@ -488,7 +473,11 @@ export default function ArchitectureV3Page() {
           <>
             {/* Resizable Divider */}
             <div
+              role="separator"
+              tabIndex={0}
+              aria-label="Resize panel"
               onMouseDown={handleOrgChartResizeStart}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOrgChartResizeStart(e as unknown as React.MouseEvent); }}
               style={{
                 width: "6px",
                 height: "100%",

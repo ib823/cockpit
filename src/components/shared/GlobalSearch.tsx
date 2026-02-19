@@ -20,6 +20,7 @@ interface SearchResult {
   metadata?: string;
   relevance: number;
   matchedFields: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   item: any;
 }
 
@@ -224,6 +225,7 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
             {/* Tabs */}
             <Tabs
               activeKey={selectedTab}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onChange={(key) => setSelectedTab(key as any)}
               style={{ padding: "0 16px" }}
               items={[

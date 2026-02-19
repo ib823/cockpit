@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { calculateProjectCost, checkBudgetAlerts } from "@/lib/gantt-tool/cost-calculator";
-import type { ResourceCategory } from "@/types/gantt-tool";
 import { RESOURCE_CATEGORIES } from "@/types/gantt-tool";
 
 export function CostDashboard() {

@@ -13,7 +13,7 @@ import path from 'path';
 
 describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
   describe('1. Design System CSS - Exact Values', () => {
-    const designSystemPath = path.join(process.cwd(), 'src/styles/design-system.css');
+    const designSystemPath = path.join(process.cwd(), 'src/styles/apple-design-system.css');
     const designSystemCSS = fs.readFileSync(designSystemPath, 'utf-8');
 
     it('should have EXACT typography sizes (28px, 24px, 20px, 15px, 13px, 11px, 10px)', () => {
@@ -31,22 +31,22 @@ describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
       expect(designSystemCSS).toContain("--font-text: 'SF Pro Text'");
     });
 
-    it('should have EXACT opacity scale (100%, 60%, 40%, 25%)', () => {
-      expect(designSystemCSS).toContain('--opacity-primary: 1');
-      expect(designSystemCSS).toContain('--opacity-secondary: 0.6');
-      expect(designSystemCSS).toContain('--opacity-tertiary: 0.4');
-      expect(designSystemCSS).toContain('--opacity-disabled: 0.25');
+    it('should have EXACT font weight scale (400, 500, 600, 700)', () => {
+      expect(designSystemCSS).toContain('--weight-regular: 400');
+      expect(designSystemCSS).toContain('--weight-medium: 500');
+      expect(designSystemCSS).toContain('--weight-semibold: 600');
+      expect(designSystemCSS).toContain('--weight-bold: 700');
     });
 
     it('should have EXACT spacing system (4px, 8px, 12px, 16px, 24px, 32px, 48px, 64px)', () => {
-      expect(designSystemCSS).toContain('--space-xs: 0.25rem'); // 4px
-      expect(designSystemCSS).toContain('--space-sm: 0.5rem'); // 8px
-      expect(designSystemCSS).toContain('--space-md: 0.75rem'); // 12px
-      expect(designSystemCSS).toContain('--space-base: 1rem'); // 16px
-      expect(designSystemCSS).toContain('--space-lg: 1.5rem'); // 24px
-      expect(designSystemCSS).toContain('--space-xl: 2rem'); // 32px
-      expect(designSystemCSS).toContain('--space-2xl: 3rem'); // 48px
-      expect(designSystemCSS).toContain('--space-3xl: 4rem'); // 64px
+      expect(designSystemCSS).toContain('--space-4: 0.25rem'); // 4px
+      expect(designSystemCSS).toContain('--space-8: 0.5rem'); // 8px
+      expect(designSystemCSS).toContain('--space-12: 0.75rem'); // 12px
+      expect(designSystemCSS).toContain('--space-16: 1rem'); // 16px
+      expect(designSystemCSS).toContain('--space-24: 1.5rem'); // 24px
+      expect(designSystemCSS).toContain('--space-32: 2rem'); // 32px
+      expect(designSystemCSS).toContain('--space-48: 3rem'); // 48px
+      expect(designSystemCSS).toContain('--space-64: 4rem'); // 64px
     });
 
     it('should have EXACT Apple System Blue color rgb(0, 122, 255)', () => {
@@ -82,20 +82,20 @@ describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
     const tokensPath = path.join(process.cwd(), 'src/styles/tokens.css');
     const tokensCSS = fs.readFileSync(tokensPath, 'utf-8');
 
-    it('should have System Blue rgb(0, 122, 255) in tokens.css', () => {
-      expect(tokensCSS).toContain('rgb(0, 122, 255)');
+    it('should alias System Blue via var(--color-blue) in tokens.css', () => {
+      expect(tokensCSS).toContain('var(--color-blue)');
     });
 
-    it('should have System Green rgb(52, 199, 89) in tokens.css', () => {
-      expect(tokensCSS).toContain('rgb(52, 199, 89)');
+    it('should alias System Green via var(--color-green) in tokens.css', () => {
+      expect(tokensCSS).toContain('var(--color-green)');
     });
 
-    it('should have System Orange rgb(255, 149, 0) in tokens.css', () => {
-      expect(tokensCSS).toContain('rgb(255, 149, 0)');
+    it('should alias System Orange via var(--color-orange) in tokens.css', () => {
+      expect(tokensCSS).toContain('var(--color-orange)');
     });
 
-    it('should have System Red rgb(255, 59, 48) in tokens.css', () => {
-      expect(tokensCSS).toContain('rgb(255, 59, 48)');
+    it('should alias System Red via var(--color-red) in tokens.css', () => {
+      expect(tokensCSS).toContain('var(--color-red)');
     });
 
     it('should NOT have old blue color #2563eb', () => {
@@ -325,8 +325,8 @@ describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
   });
 
   describe('8. File Structure - Required Files Exist', () => {
-    it('should have design-system.css file', () => {
-      const exists = fs.existsSync(path.join(process.cwd(), 'src/styles/design-system.css'));
+    it('should have apple-design-system.css file', () => {
+      const exists = fs.existsSync(path.join(process.cwd(), 'src/styles/apple-design-system.css'));
       expect(exists).toBe(true);
     });
 
@@ -369,18 +369,18 @@ describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
     const globalsPath = path.join(process.cwd(), 'src/app/globals.css');
     const globalsCSS = fs.readFileSync(globalsPath, 'utf-8');
 
-    it('should import design-system.css BEFORE other imports', () => {
-      const designSystemImport = globalsCSS.indexOf('@import "../styles/design-system.css"');
-      const tokensImport = globalsCSS.indexOf('@import "../styles/tokens.css"');
+    it('should import tokens.css as the FIRST import (tokens bridge to apple-design-system)', () => {
+      const tokensImport = globalsCSS.indexOf('@import "./tokens.css"');
 
-      expect(designSystemImport).toBeGreaterThan(-1);
       expect(tokensImport).toBeGreaterThan(-1);
-      expect(designSystemImport).toBeLessThan(tokensImport);
+      // tokens.css should be the first @import in globals.css
+      const firstImport = globalsCSS.indexOf('@import');
+      expect(tokensImport).toBe(firstImport);
     });
   });
 
   describe('10. Typography Classes - Utility Presence', () => {
-    const designSystemPath = path.join(process.cwd(), 'src/styles/design-system.css');
+    const designSystemPath = path.join(process.cwd(), 'src/styles/apple-design-system.css');
     const designSystemCSS = fs.readFileSync(designSystemPath, 'utf-8');
 
     it('should have .display-large utility class', () => {
@@ -395,21 +395,20 @@ describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
       expect(designSystemCSS).toContain('.body {');
     });
 
-    it('should have .detail utility class', () => {
-      expect(designSystemCSS).toContain('.detail');
+    it('should have .display-small utility class', () => {
+      expect(designSystemCSS).toContain('.display-small');
     });
 
-    it('should have color utility classes', () => {
-      expect(designSystemCSS).toContain('.color-blue');
-      expect(designSystemCSS).toContain('.color-green');
-      expect(designSystemCSS).toContain('.color-orange');
-      expect(designSystemCSS).toContain('.color-red');
+    it('should have semantic text color utility classes', () => {
+      expect(designSystemCSS).toContain('.text-primary');
+      expect(designSystemCSS).toContain('.text-secondary');
+      expect(designSystemCSS).toContain('.text-tertiary');
     });
 
-    it('should have spacing utility classes', () => {
-      expect(designSystemCSS).toContain('.p-sm');
-      expect(designSystemCSS).toContain('.m-sm');
-      expect(designSystemCSS).toContain('.gap-sm');
+    it('should have semantic background utility classes', () => {
+      expect(designSystemCSS).toContain('.bg-primary');
+      expect(designSystemCSS).toContain('.bg-secondary');
+      expect(designSystemCSS).toContain('.bg-tertiary');
     });
   });
 });

@@ -59,7 +59,7 @@ const CreateResourceSchema = z.object({
   utilizationTarget: z.number().min(0).max(100).nullable().optional(),
 });
 
-type CreateResourceRequest = z.infer<typeof CreateResourceSchema>;
+type _CreateResourceRequest = z.infer<typeof CreateResourceSchema>;
 
 // Helper: Check project ownership
 async function checkProjectOwnership(projectId: string, userId: string) {
@@ -138,7 +138,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: parseResult.error.errors.map(e => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          details: parseResult.error.issues.map((e: any) => ({
             field: e.path.join('.'),
             message: e.message,
           })),
@@ -165,7 +166,8 @@ export async function POST(request: NextRequest) {
       {
         ...data,
         projectId: data.projectId,
-      },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
       existingResources,
       true // isNew
     );
@@ -205,7 +207,8 @@ export async function POST(request: NextRequest) {
         utilizationTarget: data.utilizationTarget || null,
         isActive: true,
         validationStatus: 'valid',
-      },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
     });
 
     return NextResponse.json(

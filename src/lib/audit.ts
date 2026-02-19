@@ -6,7 +6,7 @@
  */
 
 import { prisma } from "./db";
-import { AuditAction } from "@prisma/client";
+import { AuditAction, Prisma } from "@prisma/client";
 
 export { AuditAction };
 
@@ -27,7 +27,7 @@ export async function logAuditEvent(
   action: AuditAction,
   entity: string,
   entityId: string,
-  changes?: Record<string, any>
+  changes?: Record<string, unknown>
 ): Promise<void> {
   try {
     await prisma.audit_logs.create({
@@ -37,7 +37,7 @@ export async function logAuditEvent(
         action,
         entity,
         entityId,
-        changes: changes || undefined,
+        changes: (changes ?? Prisma.DbNull) as Prisma.InputJsonValue,
         ipAddress: context.ipAddress || undefined,
         userAgent: context.userAgent || undefined,
         createdAt: new Date(),
@@ -198,6 +198,7 @@ export async function getAuditStats(days: number = 30) {
     }),
 
     // Events by action type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (prisma.audit_logs.groupBy as any)({
       by: ["action"],
       where: { createdAt: { gte: since } },
@@ -205,6 +206,7 @@ export async function getAuditStats(days: number = 30) {
     }),
 
     // Most active users
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (prisma.audit_logs.groupBy as any)({
       by: ["userId"],
       where: { createdAt: { gte: since } },

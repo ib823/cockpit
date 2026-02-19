@@ -9,7 +9,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, CheckCircle, XCircle, Info } from "lucide-react";
+import { Trash2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
@@ -89,6 +89,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
     if (isOpen && currentProject) {
       detectDuplicates();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, currentProject]);
 
   const detectDuplicates = () => {
@@ -106,7 +107,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
     // Find groups with duplicates
     const duplicates: DuplicateGroup[] = [];
 
-    for (const [normalizedName, phases] of phasesByName.entries()) {
+    for (const [_normalizedName, phases] of phasesByName.entries()) {
       if (phases.length > 1) {
         duplicates.push({
           phaseName: phases[0].name, // Use original name
@@ -174,7 +175,7 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
       await store.fetchProject(currentProject.id);
 
       // Show success (you may want to add a toast notification here)
-      console.log(`Successfully removed ${selectedPhaseIds.size} duplicate phase(s)!`);
+      console.warn(`Successfully removed ${selectedPhaseIds.size} duplicate phase(s)!`);
       onClose();
     } catch (error) {
       console.error("[DuplicateCleanup] Failed to remove duplicates:", error);
@@ -203,9 +204,8 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
             </ModalButton>
             <ModalButton
               onClick={handleRemoveDuplicates}
-              variant="primary"
+              variant="destructive"
               disabled={isRemoving}
-              style={{ backgroundColor: COLORS.red, borderColor: COLORS.red }}
             >
               {isRemoving ? "Removing..." : "Remove Duplicates"}
             </ModalButton>
@@ -238,9 +238,8 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
           </ModalButton>
           <ModalButton
             onClick={() => setShowConfirm(true)}
-            variant="primary"
+            variant="destructive"
             disabled={selectedPhaseIds.size === 0 || isRemoving}
-            style={{ backgroundColor: COLORS.red, borderColor: COLORS.red }}
           >
             <Trash2 style={{ width: '16px', height: '16px', marginRight: SPACING[2] }} />
             Remove {selectedPhaseIds.size > 0 ? `${selectedPhaseIds.size} ` : ""}Selected

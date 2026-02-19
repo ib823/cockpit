@@ -1,8 +1,8 @@
 [package]
-name = "keystone-formula-engine"
+name = "cockpit-formula-engine"
 version = "0.1.0"
 edition = "2021"
-authors = ["Keystone Team"]
+authors = ["Cockpit Team"]
 description = "High-performance formula engine for SAP project estimation"
 
 [lib]

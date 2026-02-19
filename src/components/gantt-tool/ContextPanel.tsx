@@ -16,13 +16,11 @@ import {
   Sparkles,
   X,
   Search,
-  Plus,
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  ChevronRight,
 } from "lucide-react";
-import { Tabs, Badge, Input, Button, Tooltip, Progress, Tag } from "antd";
+import { Tabs, Badge, Input, Button, Progress, Tag } from "antd";
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, type Resource } from "@/types/gantt-tool";
 import { differenceInDays } from "date-fns";
 
@@ -32,7 +30,7 @@ interface ContextPanelProps {
 }
 
 export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
-  const { currentProject, selection, getResourceById } = useGanttToolStoreV2();
+  const { currentProject } = useGanttToolStoreV2();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("resources");
 
@@ -242,6 +240,7 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                       );
 
                       return (
+                        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                         <div
                           key={resource.id}
                           draggable

@@ -14,8 +14,8 @@ interface SimpleModalProps {
   width?: number | string;
   okText?: string;
   cancelText?: string;
-  okButtonProps?: any;
-  cancelButtonProps?: any;
+  okButtonProps?: Record<string, unknown>;
+  cancelButtonProps?: Record<string, unknown>;
   closable?: boolean;
   maskClosable?: boolean;
   centered?: boolean;
@@ -77,7 +77,9 @@ export function SimpleModal({
         );
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
+      role="dialog"
       style={{
         position: "fixed",
         top: 0,
@@ -92,7 +94,9 @@ export function SimpleModal({
         padding: centered ? "0" : "100px 0",
       }}
       onClick={handleBackdropClick}
+      onKeyDown={(e) => { if (e.key === 'Escape') handleBackdropClick(); }}
     >
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
         style={{
           backgroundColor: "white",
@@ -177,13 +181,13 @@ export function SimpleModal({
  * SimpleModal.confirm - Replacement for Modal.confirm
  */
 SimpleModal.confirm = function confirm({
-  title,
-  content,
-  onOk,
-  onCancel,
-  okText = "OK",
-  cancelText = "Cancel",
-  icon,
+  title: _title,
+  content: _content,
+  onOk: _onOk,
+  onCancel: _onCancel,
+  okText: _okText = "OK",
+  cancelText: _cancelText = "Cancel",
+  icon: _icon,
 }: {
   title?: ReactNode;
   content?: ReactNode;

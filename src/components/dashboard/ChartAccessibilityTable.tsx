@@ -15,7 +15,7 @@ const { Text } = Typography;
 interface ChartDataPoint {
   name: string;
   value: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ChartAccessibilityTableProps {
@@ -130,6 +130,7 @@ export function MarginWaterfallTable({
     { name: "Gross Margin", value: margin, type: margin >= 0 ? "positive" : "negative" },
   ];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns: ColumnsType<any> = [
     {
       title: "Item",
@@ -183,6 +184,7 @@ export function CostByPhaseTable({
     percentage: ((phase.cost / totalCost) * 100).toFixed(1),
   }));
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns: ColumnsType<any> = [
     {
       title: "Phase",
@@ -232,6 +234,7 @@ export function ResourceUtilizationTable({
   }>;
   showVisually?: boolean;
 }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns: ColumnsType<any> = [
     {
       title: "Resource",
@@ -293,6 +296,7 @@ export function RiskAssessmentTable({
   }>;
   showVisually?: boolean;
 }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns: ColumnsType<any> = [
     {
       title: "Risk Factor",
@@ -316,6 +320,7 @@ export function RiskAssessmentTable({
     {
       title: "Risk Level",
       key: "level",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render: (_: any, record: any) => {
         if (record.score >= 70) return "Low Risk";
         if (record.score >= 50) return "Medium Risk";
@@ -374,6 +379,7 @@ export function RecommendationsTable({
   }>;
   showVisually?: boolean;
 }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns: ColumnsType<any> = [
     {
       title: "Recommendation",

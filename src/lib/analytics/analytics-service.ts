@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Analytics Service
  * Unified interface for multiple analytics providers (Hotjar, Mixpanel, etc.)

@@ -14,6 +14,7 @@ export interface ProjectAccessCheck {
   isOwner: boolean;
   canRead: boolean;
   canWrite: boolean;
+  canEditResources: boolean;
   canAdmin: boolean;
 }
 
@@ -49,6 +50,7 @@ export async function checkProjectAccess(
       isOwner: false,
       canRead: false,
       canWrite: false,
+      canEditResources: false,
       canAdmin: false,
     };
   }
@@ -60,6 +62,7 @@ export async function checkProjectAccess(
   const hasAccess = isOwner || !!collaborator;
   const canRead = hasAccess;
   const canWrite = isOwner || role === "EDITOR" || role === "OWNER";
+  const canEditResources = canWrite;
   const canAdmin = isOwner || role === "OWNER";
 
   return {
@@ -68,6 +71,7 @@ export async function checkProjectAccess(
     isOwner,
     canRead,
     canWrite,
+    canEditResources,
     canAdmin,
   };
 }

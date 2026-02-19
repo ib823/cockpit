@@ -22,7 +22,7 @@
     "logout": "Abmelden"
   },
   "estimator": {
-    "title": "Keystone Schätzungstool",
+    "title": "Cockpit Schätzungstool",
     "subtitle": "Projektschätzungstool",
     "scopeBreadth": "Umfangsbreite (Sb)",
     "processComplexity": "Prozesskomplexität (Pc)",

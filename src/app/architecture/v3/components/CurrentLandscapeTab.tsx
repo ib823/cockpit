@@ -103,7 +103,7 @@ export function CurrentLandscapeTab({
     onChange({ ...data, systems: data.systems.filter((s) => s.id !== id) });
   };
 
-  const loadSystemTemplate = (templateName: string, systems: any[]) => {
+  const loadSystemTemplate = (templateName: string, systems: Omit<CurrentSystem, "id">[]) => {
     const newSystems = systems.map((sys) => ({
       id: Date.now().toString() + Math.random(),
       ...sys,
@@ -134,7 +134,7 @@ export function CurrentLandscapeTab({
     onChange({ ...data, externalSystems: data.externalSystems.filter((e) => e.id !== id) });
   };
 
-  const loadExternalTemplate = (templateName: string, externals: any[]) => {
+  const loadExternalTemplate = (templateName: string, externals: Omit<ExternalSystem, "id">[]) => {
     const newExternals = externals.map((ext) => ({
       id: Date.now().toString() + Math.random(),
       ...ext,

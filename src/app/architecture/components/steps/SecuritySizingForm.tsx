@@ -1,12 +1,7 @@
 'use client';
 
-import { Card, Input, Button, Space, Tag } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-import { useArchitectureStore } from '../../stores/architectureStore';
 import { SecurityArchitectureForm } from './SecurityArchitectureForm';
 import { SizingScalabilityForm } from './SizingScalabilityForm';
-
-const { TextArea } = Input;
 
 export function SecuritySizingForm() {
   return (

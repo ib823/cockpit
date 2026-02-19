@@ -54,6 +54,7 @@ export function OrgStructureImport({
 
   const currentProject = useGanttToolStore((state) => state.currentProject);
   const addResource = useGanttToolStore((state) => state.addResource);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const assignManager = useGanttToolStore((state) => (state as any).assignManager);
 
   const parseFile = useCallback(async (file: File) => {
@@ -66,6 +67,7 @@ export function OrgStructureImport({
           const workbook = XLSX.read(data, { type: "binary" });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const jsonData = XLSX.utils.sheet_to_json<any>(worksheet, { header: 1 });
 
           if (jsonData.length < 2) {
@@ -92,6 +94,7 @@ export function OrgStructureImport({
           const parsed: ParsedResource[] = [];
 
           for (let i = 1; i < jsonData.length; i++) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const row = jsonData[i] as any[];
             if (!row || row.length === 0 || !row[nameIndex]) continue;
 
@@ -185,6 +188,7 @@ export function OrgStructureImport({
   }, []);
 
   const handleUpload = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async ({ file }: any) => {
       try {
         const parsed = await parseFile(file as File);
@@ -219,6 +223,7 @@ export function OrgStructureImport({
           department: parsed.department,
           location: parsed.location,
           projectRole: parsed.projectRole,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any);
 
         // addResource may not return an ID, so we generate one if needed

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Import Modal V2 - Two-Stage Import with Mobile-Responsive Design
  *
@@ -56,8 +57,12 @@ import {
 } from "@/lib/gantt-tool/conflict-detector";
 import {
   ConflictResolutionModal,
-  type ConflictResolution,
 } from "@/components/gantt-tool/ConflictResolutionModal";
+
+interface ConflictResolution {
+  strategy: string;
+  customNames?: Map<string, string>;
+}
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 // Helper to ensure date is in YYYY-MM-DD format
@@ -1069,7 +1074,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
             0
           )}
           importedResourceCount={preparedProjectData.newResources.length}
-          onResolve={handleConflictResolution}
+          onResolve={(strategy: string) => handleConflictResolution({ strategy })}
           onCancel={handleConflictCancel}
         />
       )}

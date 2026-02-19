@@ -65,12 +65,15 @@ const envSchema = z.object({
 type Env = z.infer<typeof envSchema>;
 
 function validateEnv(): Env {
-  // Skip validation during Vercel build time - env vars are injected at runtime
-  const isVercelBuild = process.env.VERCEL === "1" && process.env.CI === "1";
+  // Skip validation when DATABASE_URL is absent during build. On Vercel
+  // the env vars are injected at runtime; in CI / Codespaces the DB may
+  // not be available during `next build`.
+  const isBuildPhase =
+    process.env.NEXT_PHASE === "phase-production-build" ||
+    (process.env.VERCEL === "1" && process.env.CI === "1");
 
-  // During Vercel build, return minimal config to allow build to complete
-  if (isVercelBuild && !process.env.DATABASE_URL) {
-    console.warn("⚠️  Building on Vercel without runtime env vars - using build-time placeholders");
+  if (isBuildPhase && !process.env.DATABASE_URL) {
+    console.warn("⚠️  Building without runtime env vars - using build-time placeholders");
     console.warn("   Environment variables will be validated at runtime");
     return {
       NODE_ENV: "production",

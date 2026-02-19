@@ -98,6 +98,7 @@ export function IntegrationPanel({
       id: editingIntegration?.id || `integration-${Date.now()}`,
       projectId,
       name: integrationData.name,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       type: integrationData.type as any,
       source: integrationData.source,
       target: integrationData.target,
@@ -122,7 +123,7 @@ export function IntegrationPanel({
       title: "Name",
       dataIndex: "name",
       key: "name",
-      render: (text: string, record: IntegrationItem) => (
+      render: (text: string, _record: IntegrationItem) => (
         <Space>
           <Link2 size={16} />
           <span style={{ fontWeight: 500 }}>{text}</span>
@@ -140,6 +141,7 @@ export function IntegrationPanel({
     {
       title: "Source → Target",
       key: "flow",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render: (_: any, record: IntegrationItem) => (
         <span className="text-xs">
           <span style={{ fontWeight: 500 }}>{record.source}</span>
@@ -171,6 +173,7 @@ export function IntegrationPanel({
     {
       title: "Actions",
       key: "actions",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render: (_: any, record: IntegrationItem) => (
         <Space>
           <Button
@@ -276,6 +279,7 @@ export function IntegrationPanel({
             <Select
               style={{ width: "100%" }}
               value={integrationData.type}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onChange={(type) => setIntegrationData({ ...integrationData, type: type as any })}
             >
               <Option value="api">API Integration</Option>
@@ -318,6 +322,7 @@ export function IntegrationPanel({
               style={{ width: "100%" }}
               value={integrationData.volume}
               onChange={(volume) =>
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 setIntegrationData({ ...integrationData, volume: volume as any })
               }
             >

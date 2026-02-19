@@ -272,7 +272,7 @@ export async function protectAPIRoute(
  * Middleware wrapper for Next.js API routes
  */
 export function withAPIProtection(options: ProtectionOptions = {}) {
-  return async function protectionMiddleware(req: Request, context?: any) {
+  return async function protectionMiddleware(req: Request, context?: unknown) {
     const result = await protectAPIRoute(req, options);
 
     if (!result.allowed) {

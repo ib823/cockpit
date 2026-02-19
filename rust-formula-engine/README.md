@@ -1,4 +1,4 @@
-# Keystone Rust/WASM Formula Engine
+# Cockpit Rust/WASM Formula Engine
 
 High-performance formula engine compiled to WebAssembly for 10-50x faster calculations.
 
@@ -44,7 +44,7 @@ This will:
 ### JavaScript/TypeScript
 
 ```typescript
-import init, { FormulaEngine } from "@/lib/wasm/keystone_formula_engine";
+import init, { FormulaEngine } from "@/lib/wasm/cockpit_formula_engine";
 
 // Initialize WASM module (once)
 await init();

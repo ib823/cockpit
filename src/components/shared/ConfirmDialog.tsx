@@ -100,6 +100,7 @@ export function useConfirmDialog() {
  * Pre-configured destructive action confirm
  */
 export function confirmDelete(itemName: string, additionalInfo?: string): Promise<boolean> {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const confirm = useConfirmDialog();
   return confirm({
     title: `Delete ${itemName}?`,
@@ -126,6 +127,7 @@ export function confirmDelete(itemName: string, additionalInfo?: string): Promis
  * Pre-configured discard changes confirm
  */
 export function confirmDiscardChanges(): Promise<boolean> {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const confirm = useConfirmDialog();
   return confirm({
     title: "Discard unsaved changes?",
@@ -140,6 +142,7 @@ export function confirmDiscardChanges(): Promise<boolean> {
  * Pre-configured navigation confirm (with unsaved changes)
  */
 export function confirmNavigation(destination: string): Promise<boolean> {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const confirm = useConfirmDialog();
   return confirm({
     title: "Leave without saving?",

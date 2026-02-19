@@ -24,6 +24,7 @@ export function Tooltip({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function TooltipTrigger({ children, ...props }: any) {
   return React.cloneElement(children, props);
 }
@@ -35,7 +36,7 @@ export function TooltipContent({
 }: {
   children: React.ReactNode;
   className?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <div

@@ -102,7 +102,7 @@ export interface EstimateSnapshot {
   id: string;
   projectId: string;
   version: number;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   createdBy: string;
   label?: string;
   createdAt: Date;
@@ -228,6 +228,7 @@ export interface IDAL {
   listSnapshots(projectId: string): Promise<EstimateSnapshot[]>;
 
   // Audit Trail
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getAuditLog(entityId: string, limit?: number): Promise<any[]>;
 
   // Transaction Support
@@ -400,7 +401,7 @@ export class DALError extends Error {
   constructor(
     message: string,
     public code: "VALIDATION" | "NOT_FOUND" | "CONFLICT" | "UNAUTHORIZED" | "DATABASE" | "UNKNOWN",
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = "DALError";
@@ -408,7 +409,7 @@ export class DALError extends Error {
 }
 
 export class ValidationError extends DALError {
-  constructor(message: string, details?: any) {
+  constructor(message: string, details?: unknown) {
     super(message, "VALIDATION", details);
     this.name = "ValidationError";
   }

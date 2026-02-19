@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -15,19 +17,31 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { userId, verificationCode } = body;
+    const { userId: requestUserId, verificationCode } = body;
+
+    const session = await getServerSession(authConfig);
+    if (!session?.user?.id || !session.user.email) {
+      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (requestUserId && String(requestUserId) !== session.user.id) {
+      return NextResponse.json({ ok: false, message: "Forbidden" }, { status: 403 });
+    }
+
+    const normalizedVerificationCode = String(verificationCode ?? "");
+    const userId = session.user.id;
 
     // ============================================
     // 1. Validate Input
     // ============================================
-    if (!userId || !verificationCode) {
+    if (!normalizedVerificationCode) {
       return NextResponse.json(
-        { ok: false, message: "User ID and verification code are required" },
+        { ok: false, message: "Verification code is required" },
         { status: 400 }
       );
     }
 
-    if (verificationCode.length !== 6) {
+    if (normalizedVerificationCode.length !== 6) {
       return NextResponse.json(
         { ok: false, message: "Verification code must be 6 digits" },
         { status: 400 }
@@ -76,7 +90,7 @@ export async function POST(req: Request) {
     // ============================================
     // 4. Verify Code
     // ============================================
-    const codeValid = await compare(verificationCode, user.pendingEmailToken);
+    const codeValid = await compare(normalizedVerificationCode, user.pendingEmailToken);
 
     if (!codeValid) {
       return NextResponse.json(
@@ -175,7 +189,7 @@ export async function POST(req: Request) {
       message: "Email changed successfully",
       newEmail,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[EmailVerify] Error:", error);
     return NextResponse.json(
       { ok: false, message: "Failed to verify email change" },

@@ -78,7 +78,7 @@ export async function PATCH(
       for (const resourceData of data.resources) {
         try {
           // Only update fields that are explicitly provided
-          const updateData: Record<string, any> = {};
+          const updateData: Record<string, unknown> = {};
 
           if (resourceData.companyName !== undefined) {
             updateData.companyName = resourceData.companyName;

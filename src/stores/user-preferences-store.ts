@@ -237,7 +237,7 @@ export const useUserPreferences = create<UserPreferencesStore>()(
       name: "sap-cockpit-user-preferences",
       version: 1,
       // Migrate from old versions if needed
-      migrate: (persistedState: any, version: number) => {
+      migrate: (persistedState: unknown, version: number) => {
         if (version === 0) {
           // Migration from v0 to v1 (if needed in future)
           return persistedState;

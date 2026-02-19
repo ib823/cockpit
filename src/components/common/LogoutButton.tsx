@@ -6,7 +6,7 @@ import { LogoutOutlined } from "@ant-design/icons";
 
 export function LogoutButton({
   variant = "button",
-  theme = "light",
+  theme: _theme = "light",
 }: {
   variant?: "button" | "menu-item";
   theme?: "light" | "dark";
@@ -40,7 +40,15 @@ export function LogoutButton({
   };
 
   if (variant === "menu-item") {
-    return <a onClick={() => setOpen(true)}>Logout</a>;
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="bg-transparent border-0 cursor-pointer p-0 [font:inherit] text-inherit"
+      >
+        Logout
+      </button>
+    );
   }
 
   return (

@@ -23,7 +23,6 @@ import { format } from "date-fns";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { FormExample, WorkingDaysIndicator, ImpactWarning } from "@/lib/design-system/showcase-helpers";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
-import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
 import type { Task } from "@/types/gantt-tool";
 
 interface EditTaskModalProps {
@@ -36,8 +35,8 @@ interface EditTaskModalProps {
 
 export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTaskModalProps) {
   const { currentProject, updateTask, deleteTask } = useGanttToolStore();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [_isSubmitting, setIsSubmitting] = useState(false);
+  const [_showDeleteModal, _setShowDeleteModal] = useState(false);
 
   // Form state - pre-populated with current task data
   const [formData, setFormData] = useState({

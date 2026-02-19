@@ -30,7 +30,7 @@ interface ResourceIndicatorProps {
   taskName: string;
   taskStartDate?: string;
   taskEndDate?: string;
-  taskHolidays?: any[];
+  taskHolidays?: unknown[];
   onManageResources?: () => void;
   onUpdateAllocation?: (resourceId: string, percentage: number) => void;
   onRemoveResource?: (resourceId: string) => void;

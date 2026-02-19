@@ -125,8 +125,8 @@ export interface Override {
   id: string;
   targetId: string;
   type: "effort" | "duration" | "resource";
-  originalValue: any;
-  newValue: any;
+  originalValue: unknown;
+  newValue: unknown;
   reason?: string;
   timestamp: Date;
 }
@@ -155,7 +155,7 @@ export interface SAPPackage {
   id: string;
   name: string;
   description: string;
-  modules?: any[];
+  modules?: unknown[];
   baseEffort?: number;
   effort?: number;
   complexity?: number;

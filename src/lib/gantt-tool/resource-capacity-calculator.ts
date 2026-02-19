@@ -109,8 +109,8 @@ function precomputeTaskWeekOverlaps(
     const phaseEnd = phase.endDate ? new Date(phase.endDate) : null;
 
     // Process phase-level assignments
-    if (phase.resourceAssignments && phaseStart && phaseEnd) {
-      phase.resourceAssignments.forEach((assignment) => {
+    if (phase.phaseResourceAssignments && phaseStart && phaseEnd) {
+      phase.phaseResourceAssignments.forEach((assignment: PhaseResourceAssignment) => {
         if (!resourceTaskOverlaps.has(assignment.resourceId)) {
           resourceTaskOverlaps.set(assignment.resourceId, new Map());
         }
@@ -334,8 +334,8 @@ function calculateResourceWeekAllocations(
 
     phases.forEach((phase) => {
       // Check phase-level assignments
-      const phaseAssignment = phase.resourceAssignments?.find(
-        (a) => a.resourceId === resource.id
+      const phaseAssignment = phase.phaseResourceAssignments?.find(
+        (a: PhaseResourceAssignment) => a.resourceId === resource.id
       );
 
       if (phaseAssignment && phase.startDate && phase.endDate) {

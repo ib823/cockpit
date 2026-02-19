@@ -63,7 +63,7 @@ const UpdateResourceSchema = z.object({
   utilizationTarget: z.number().min(0).max(100).nullable().optional(),
 });
 
-type UpdateResourceRequest = z.infer<typeof UpdateResourceSchema>;
+type _UpdateResourceRequest = z.infer<typeof UpdateResourceSchema>;
 
 // Helper: Get resource with ownership check
 async function getResourceWithOwnershipCheck(
@@ -153,7 +153,8 @@ export async function PATCH(
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: parseResult.error.errors.map(e => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          details: parseResult.error.issues.map((e: any) => ({
             field: e.path.join('.'),
             message: e.message,
           })),
@@ -196,7 +197,8 @@ export async function PATCH(
     });
 
     const validationResult = validateResourceData(
-      { ...existingResource, ...updates },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { ...existingResource, ...updates } as any,
       allProjectResources,
       false // isNew = false (update operation)
     );
@@ -219,7 +221,8 @@ export async function PATCH(
     const updated = await prisma.ganttResource.update({
       where: { id },
       data: {
-        ...updates,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...(updates as any),
         updatedAt: new Date(),
       },
     });

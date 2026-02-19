@@ -151,7 +151,7 @@ export function RicefwPanel({
             { key: "enhancements", label: "Enhancements", color: "purple" },
             { key: "forms", label: "Forms", color: "orange" },
             { key: "workflows", label: "Workflows", color: "red" },
-          ].map(({ key, label, color }) => {
+          ].map(({ key, label, color: _color }) => {
             const data = summary[key as keyof Omit<typeof summary, "totals">];
             return (
               <ResponsiveCard key={key} padding="sm" border>

@@ -130,6 +130,7 @@ export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProject
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, projectName, startDate]);
 
   return (
@@ -255,6 +256,7 @@ export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProject
                 }}
               >
                 {companyLogos[company.name] ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={companyLogos[company.name]}
                     alt={company.name}

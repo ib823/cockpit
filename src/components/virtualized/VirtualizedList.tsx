@@ -1,5 +1,5 @@
 /**
- * Keystone - Virtualized List Component
+ * Cockpit - Virtualized List Component
  *
  * High-performance list rendering with react-window
  * Handles 10,000+ items with minimal performance impact
@@ -22,11 +22,13 @@ import AutoSizer from "react-virtualized-auto-sizer";
 interface ListChildComponentProps {
   index: number;
   style: React.CSSProperties;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
 }
 
 export interface VirtualizedListItem {
   id: string | number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -104,6 +106,7 @@ export function VirtualizedList<T extends VirtualizedListItem>({
   overscanCount = 5,
 }: VirtualizedListProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const listRef = useRef<any>(null);
 
   // Filter items based on search query
@@ -128,6 +131,7 @@ export function VirtualizedList<T extends VirtualizedListItem>({
 
   // Render row component
   const Row = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ({ index, style, ariaAttributes }: { index: number; style: React.CSSProperties; ariaAttributes: any }) => {
       const item = filteredItems[index];
 
@@ -214,9 +218,11 @@ export function VirtualizedList<T extends VirtualizedListItem>({
             {({ height, width }) => (
               <List
                 listRef={listRef}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 rowComponent={Row as any}
                 rowCount={filteredItems.length}
                 rowHeight={itemHeight}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 rowProps={{} as any}
                 style={{ height, width }}
                 overscanCount={overscanCount}

@@ -265,6 +265,7 @@ export function GanttSidePanel() {
   return (
     <>
       {/* Overlay */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div className="fixed inset-0 bg-black/20 z-40" onClick={closeSidePanel} />
 
       {/* Side Panel */}
@@ -369,6 +370,7 @@ function PhaseForm({
   onDelete?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getPhaseById: (id: string) => any;
   enableRealTimeUpdate?: boolean;
   updatePhase?: (id: string, data: Partial<PhaseFormData>) => void;
@@ -817,11 +819,13 @@ function TaskForm({
 }: {
   mode: "add" | "edit" | "view";
   itemId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   phases: any[];
   onSubmit: (data: TaskFormData) => void;
   onDelete?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getTaskById: (id: string) => any;
   enableRealTimeUpdate?: boolean;
   updateTask?: (taskId: string, phaseId: string, updates: Partial<TaskFormData>) => void;
@@ -1441,6 +1445,7 @@ function MilestoneForm({
   itemId?: string;
   onSubmit: (data: MilestoneFormData) => void;
   onDelete?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getMilestoneById: (id: string) => any;
 }) {
   const existingMilestone = itemId ? getMilestoneById(itemId) : null;

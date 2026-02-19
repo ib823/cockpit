@@ -13,7 +13,7 @@ type EmailStatus = {
 };
 
 function LoginContent() {
-  const router = useRouter();
+  const _router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<EmailStatus | null>(null);
@@ -29,6 +29,7 @@ function LoginContent() {
     if (token) {
       verifyMagicLink(token);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const verifyMagicLink = async (token: string) => {
@@ -63,7 +64,7 @@ function LoginContent() {
       } else if (statusJson.needsAction === "login") {
         setSuccessMessage("Magic link verified! Please use your passkey to login.");
       }
-    } catch (error) {
+    } catch (_error) {
       setErr("Failed to verify magic link. Please try again.");
     } finally {
       setBusy(false);
@@ -109,8 +110,8 @@ function LoginContent() {
         // Use window.location to force full page reload and update SessionProvider
         window.location.href = "/dashboard";
       }, 1500);
-    } catch (e: any) {
-      if (e.name === "NotAllowedError") {
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "NotAllowedError") {
         setErr("Passkey creation was cancelled.");
       } else {
         setErr("Invalid. Contact Admin.");
@@ -189,7 +190,7 @@ function LoginContent() {
         // Use window.location to force full page reload and update SessionProvider
         window.location.href = "/dashboard";
       }, 1500);
-    } catch (e: any) {
+    } catch (_e: unknown) {
       setErr("Passkey authentication was cancelled or failed. Please try again.");
       setStage("input");
       setStatus(null);
@@ -241,8 +242,8 @@ function LoginContent() {
         // Use window.location to force full page reload and update SessionProvider
         window.location.href = "/dashboard";
       }, 1500);
-    } catch (e: any) {
-      if (e.name === "NotAllowedError") {
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "NotAllowedError") {
         setErr("Passkey creation was cancelled.");
       } else {
         setErr("Invalid. Contact Admin.");
@@ -273,12 +274,13 @@ function LoginContent() {
       if (res.devMode) {
         // In dev mode, show the magic link
         setSuccessMessage(`Magic link: ${res.magicLink}`);
+        // eslint-disable-next-line no-console
         console.log("🔗 Magic Link:", res.magicLink);
       } else {
         setSuccessMessage("Magic link sent! Check your email.");
       }
       setStage("success");
-    } catch (error) {
+    } catch (_error) {
       setErr("Failed to send magic link. Try again.");
     } finally {
       setBusy(false);

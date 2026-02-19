@@ -2,7 +2,7 @@
  * Sentry Error Monitoring Integration
  *
  * Captures and reports application errors, performance issues,
- * and user feedback for the Keystone application.
+ * and user feedback for the Cockpit application.
  *
  * Note: Actual @sentry/nextjs package installation deferred to avoid
  * complex SDK setup. This provides the structure for when it's installed.
@@ -34,7 +34,7 @@ export const sentryConfig: SentryConfig = {
  * Capture exception manually
  * Placeholder for Sentry.captureException
  */
-export function captureException(error: Error, context?: Record<string, any>) {
+export function captureException(error: Error, context?: Record<string, unknown>) {
   console.error("[Sentry Placeholder] Error captured:", error, context);
 
   // In production with Sentry installed:
@@ -49,7 +49,7 @@ export function captureException(error: Error, context?: Record<string, any>) {
 export function captureMessage(
   message: string,
   level: "info" | "warning" | "error" = "info",
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ) {
   console.log(`[Sentry Placeholder] Message (${level}):`, message, context);
 
@@ -83,7 +83,7 @@ export function clearUser() {
 /**
  * Add breadcrumb for debugging
  */
-export function addBreadcrumb(message: string, category: string, data?: Record<string, any>) {
+export function addBreadcrumb(message: string, category: string, data?: Record<string, unknown>) {
   console.log(`[Sentry Placeholder] Breadcrumb [${category}]:`, message, data);
 
   // In production with Sentry installed:
@@ -94,7 +94,7 @@ export function addBreadcrumb(message: string, category: string, data?: Record<s
 /**
  * Wrap async function with error boundary
  */
-export function withSentry<T extends (...args: any[]) => Promise<any>>(fn: T): T {
+export function withSentry<T extends (...args: unknown[]) => Promise<unknown>>(fn: T): T {
   return (async (...args: Parameters<T>) => {
     try {
       return await fn(...args);

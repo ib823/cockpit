@@ -7,7 +7,7 @@
 
 "use client";
 
-import { Plus, Search, Calendar, Filter, Inbox, Users, Upload, FileText } from "lucide-react";
+import { Plus, Search, Calendar, Filter, Inbox, Users, Upload } from "lucide-react";
 import { Button } from "antd";
 
 interface EmptyStateProps {

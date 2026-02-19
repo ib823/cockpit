@@ -6,14 +6,14 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   parseExcelTemplate,
   transformToGanttProject,
   ParsedExcelData,
 } from "@/lib/gantt-tool/excel-template-parser";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
-import { FileSpreadsheet, Copy, Download, AlertCircle, CheckCircle, Upload } from "lucide-react";
+import { FileSpreadsheet, Download, AlertCircle, CheckCircle, Upload } from "lucide-react";
 import { generateCopyPasteTemplate } from "@/lib/gantt-tool/copy-paste-template-generator";
 import {
   detectImportConflicts,
@@ -23,9 +23,13 @@ import {
 } from "@/lib/gantt-tool/conflict-detector";
 import {
   ConflictResolutionModal,
-  type ConflictResolution,
 } from "@/components/gantt-tool/ConflictResolutionModal";
-import type { GanttProject, GanttPhase, Resource } from "@/types/gantt-tool";
+
+interface ConflictResolution {
+  strategy: string;
+  customNames?: Map<string, string>;
+}
+import type { GanttPhase, Resource } from "@/types/gantt-tool";
 
 // FIX ISSUE #16: Add file size limits
 const MAX_ROWS = 500; // Maximum total rows (tasks + resources)
@@ -39,9 +43,10 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   const [importMode, setImportMode] = useState<"new" | "append">("new");
   const [conflictResult, setConflictResult] = useState<ConflictDetectionResult | null>(null);
   const [showConflictModal, setShowConflictModal] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [ganttData, setGanttData] = useState<any>(null);
 
-  const { currentProject, addPhase, addResource, saveProject } = useGanttToolStoreV2();
+  const { currentProject } = useGanttToolStoreV2();
 
   // Handle paste
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -209,6 +214,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   };
 
   // Actually perform the import (called after conflict resolution or directly if no conflicts)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const performImport = async (dataToImport: any, resolution?: ConflictResolution) => {
     try {
       if (importMode === "append" && currentProject) {
@@ -265,6 +271,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
             // Apply custom names from user input or use suggestions
             finalPhases = dataToImport.phases.map((phase: GanttPhase) => {
               const conflictId = conflictResult?.conflicts.find(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (c) => c.type === "phase" && (c.detail as any).phaseName === phase.name
               )?.id;
 
@@ -280,6 +287,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
             finalResources = dataToImport.resources.map((resource: Resource) => {
               const conflictId = conflictResult?.conflicts.find(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (c) => c.type === "resource" && (c.detail as any).resourceName === resource.name
               )?.id;
 
@@ -324,7 +332,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           let errorText;
           try {
             errorText = await response.text();
-          } catch (e) {
+          } catch (_e) {
             errorText = "Unable to read error response";
           }
           console.error("[ExcelImport] Failed to append phases:", errorText);
@@ -543,7 +551,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
                     name="importMode"
                     value="new"
                     checked={importMode === "new"}
-                    onChange={(e) => setImportMode("new")}
+                    onChange={(_e) => setImportMode("new")}
                     className="w-4 h-4 text-blue-600"
                   />
                   <div>
@@ -559,7 +567,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
                     name="importMode"
                     value="append"
                     checked={importMode === "append"}
-                    onChange={(e) => setImportMode("append")}
+                    onChange={(_e) => setImportMode("append")}
                     disabled={!currentProject}
                     className="w-4 h-4 text-blue-600"
                   />
@@ -661,11 +669,12 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           existingProject={currentProject}
           importedPhaseCount={ganttData.phases.length}
           importedTaskCount={ganttData.phases.reduce(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (sum: number, p: any) => sum + p.tasks.length,
             0
           )}
           importedResourceCount={ganttData.resources.length}
-          onResolve={handleConflictResolution}
+          onResolve={(strategy: string) => handleConflictResolution({ strategy })}
           onCancel={handleConflictCancel}
         />
       )}

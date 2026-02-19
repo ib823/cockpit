@@ -442,7 +442,6 @@ export function HolidayAwareDatePicker({
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: TYPOGRAPHY.fontSize.caption,
-                      fontWeight: TYPOGRAPHY.fontWeight.regular,
                       borderRadius: RADIUS.default,
                       border: 'none',
                       cursor: disabled ? 'not-allowed' : 'pointer',

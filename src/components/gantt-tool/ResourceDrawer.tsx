@@ -276,6 +276,7 @@ export function ResourceDrawer({ itemId, itemType, onClose }: Props) {
       pm: [],
       change: [],
       qa: [],
+      client: [],
       other: [],
     };
 
@@ -342,6 +343,7 @@ export function ResourceDrawer({ itemId, itemType, onClose }: Props) {
       if (itemType === "phase") {
         updatePhaseResourceAssignment(itemId, assignment.assignmentId!, finalNotes, percentage);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const task = item as any;
         updateTaskResourceAssignment(
           itemId,
@@ -357,6 +359,7 @@ export function ResourceDrawer({ itemId, itemType, onClose }: Props) {
       if (itemType === "phase") {
         assignResourceToPhase(itemId, resourceId, defaultNotes, percentage);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const task = item as any;
         assignResourceToTask(task.phaseId, itemId, resourceId, defaultNotes, percentage);
       }

@@ -21,17 +21,15 @@ import {
   Row,
   Col,
   Statistic,
-  Tag,
   Select,
   Divider,
   Empty,
   App,
 } from "antd";
 import { Plus, Copy, TrendingUp, TrendingDown, AlertCircle, CheckCircle2 } from "lucide-react";
-import { GanttProject, Resource } from "@/types/gantt-tool";
+import { GanttProject } from "@/types/gantt-tool";
 import { formatMYR, calculateMargin, getMarginColor, getDailyRate } from "@/lib/rate-card";
 import { differenceInDays, parseISO } from "date-fns";
-import { RESOURCE_CATEGORIES } from "@/types/gantt-tool";
 import { RadialBarChart, RadialBar, Legend, ResponsiveContainer, PolarAngleAxis } from "recharts";
 
 const { Title, Text } = Typography;
@@ -188,7 +186,7 @@ export function StrategicView({ project }: StrategicViewProps) {
     return val2 - val1;
   };
 
-  const calculateDeltaPercent = (s1: Scenario, s2: Scenario, field: keyof Scenario): number => {
+  const _calculateDeltaPercent = (s1: Scenario, s2: Scenario, field: keyof Scenario): number => {
     const val1 = s1[field] as number;
     const val2 = s2[field] as number;
     if (val1 === 0) return 0;

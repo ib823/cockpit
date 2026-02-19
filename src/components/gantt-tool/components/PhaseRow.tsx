@@ -16,9 +16,12 @@ interface PhaseRowProps {
   currentProject: GanttProject;
   startDate: Date;
   durationDays: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selection: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dragState: any;
   focusedPhaseId: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   viewSettings: any;
   handlers: {
     togglePhaseCollapse: (id: string) => void;
@@ -26,6 +29,7 @@ interface PhaseRowProps {
     reorderPhase: (id: string, dir: "up" | "down") => void;
     handlePhaseClick: (id: string) => void;
     handlePhaseDoubleClick: (id: string) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleMouseDown: (e: React.MouseEvent, id: string, mode: any) => void;
     handlePhaseResourceDragOver: (e: React.DragEvent, id: string) => void;
     handlePhaseResourceDragLeave: (e: React.DragEvent) => void;

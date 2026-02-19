@@ -1,5 +1,5 @@
 /**
- * Keystone - Analytics Engine (DuckDB-Ready)
+ * Cockpit - Analytics Engine (DuckDB-Ready)
  *
  * STATUS: PLACEHOLDER - Currently using in-memory cache layer
  *
@@ -36,7 +36,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
  * We'll use a lightweight SQL-like interface until DuckDB WASM is installed
  */
 export interface DuckDBConnection {
-  query<T = any>(sql: string, params?: any[]): Promise<T[]>;
+  query<T = unknown>(sql: string, params?: unknown[]): Promise<T[]>;
   close(): Promise<void>;
 }
 
@@ -77,10 +77,10 @@ export interface ProjectAnalytics {
  * This acts as a fast aggregation layer before DuckDB WASM is installed
  */
 class AnalyticsCache {
-  private cache: Map<string, { data: any; timestamp: number }> = new Map();
+  private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private readonly ttl = 5 * 60 * 1000; // 5 minutes
 
-  set(key: string, data: any): void {
+  set(key: string, data: unknown): void {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
@@ -145,7 +145,7 @@ export class DuckDBEngine {
    */
   private async createMockConnection(): Promise<DuckDBConnection> {
     return {
-      query: async <T = any>(sql: string, params?: any[]): Promise<T[]> => {
+      query: async <T = unknown>(sql: string, params?: unknown[]): Promise<T[]> => {
         console.log(`[DuckDB] Query: ${sql}`, params);
         // Mock implementation - replace with real DuckDB
         return [];
@@ -159,7 +159,7 @@ export class DuckDBEngine {
   /**
    * Load data into DuckDB for fast querying
    */
-  async loadData(tableName: string, data: any[]): Promise<void> {
+  async loadData(tableName: string, data: unknown[]): Promise<void> {
     if (!this.initialized) {
       await this.initialize();
     }
@@ -179,9 +179,9 @@ export class DuckDBEngine {
   /**
    * Execute analytics query with caching
    */
-  async query<T = any>(
+  async query<T = unknown>(
     sql: string,
-    params?: any[],
+    params?: unknown[],
     options?: { cache?: boolean; cacheKey?: string }
   ): Promise<T[]> {
     const cacheKey = options?.cacheKey || `query:${sql}:${JSON.stringify(params)}`;
@@ -288,7 +288,7 @@ export class DuckDBEngine {
     dateFrom?: string;
     dateTo?: string;
     status?: string;
-  }): Promise<any[]> {
+  }): Promise<unknown[]> {
     const sql = `
       SELECT
         DATE_TRUNC('month', created_at) as month,
@@ -371,7 +371,7 @@ export function useDuckDBAnalytics() {
   }, [engine]);
 
   const query = useCallback(
-    async <T = any>(sql: string, params?: any[], options?: { cache?: boolean }) => {
+    async <T = unknown>(sql: string, params?: unknown[], options?: { cache?: boolean }) => {
       setLoading(true);
       setError(null);
 

@@ -1,7 +1,7 @@
 /**
  * Dynamic Favicon API
  *
- * Generates favicons with status-based colors for Keystone brand.
+ * Generates favicons with status-based colors for Cockpit brand.
  * Use ?status=connected|disconnected|none to change appearance.
  *
  * Status colors:
@@ -34,14 +34,14 @@ const STATUS_COLORS = {
 type Status = keyof typeof STATUS_COLORS;
 
 /**
- * Custom K letterform SVG - Keystone brand mark
+ * Custom K letterform SVG - Cockpit brand mark
  *
  * Clean, bold, recognizable K design:
  * - Thick vertical stem on the left
  * - Upper arm: diagonal from middle-left to top-right
  * - Lower arm: diagonal from middle-left to bottom-right
  */
-function KeystoneK({
+function CockpitK({
   color = "#FFFFFF",
   size: iconSize = 32,
 }: {
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
           borderRadius: `${borderRadius}px`,
         }}
       >
-        <KeystoneK color={colors.foreground} size={size} />
+        <CockpitK color={colors.foreground} size={size} />
       </div>
     ),
     {

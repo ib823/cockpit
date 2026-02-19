@@ -1,5 +1,5 @@
 /**
- * Keystone - Performance Benchmarks
+ * Cockpit - Performance Benchmarks
  *
  * Comprehensive performance testing and monitoring
  *
@@ -211,9 +211,10 @@ export async function benchmarkFormulaEngine(): Promise<BenchmarkResult> {
     "Formula Engine",
     "Calculate project estimation",
     async () => {
-      // Import and calculate
-      const { calculateEstimate } = await import("@/lib/estimator/formula-engine");
-      calculateEstimate(mockInputs as any);
+      // Import and calculate using the estimation engine
+      const { EstimationEngine } = await import("@/lib/estimation-engine");
+      const engine = new EstimationEngine();
+      engine.estimate(mockInputs as any);
     },
     { iterations: 1000 }
   );

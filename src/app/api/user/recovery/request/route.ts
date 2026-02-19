@@ -234,7 +234,7 @@ export async function POST(req: Request) {
         "Recovery request submitted successfully. You will receive an email confirmation shortly.",
       requestId: recoveryRequest.id,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Recovery] Request error:", error);
     return NextResponse.json(
       { ok: false, message: "Failed to submit recovery request" },

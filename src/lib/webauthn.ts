@@ -12,8 +12,9 @@ const dev = process.env.NODE_ENV !== "production";
 function getWebAuthnConfig() {
   const rpID = process.env.WEBAUTHN_RP_ID;
   const origin = process.env.WEBAUTHN_ORIGIN;
+  const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
-  if (!dev) {
+  if (!dev && !isBuildPhase) {
     if (!rpID || !origin) {
       throw new Error(
         "WEBAUTHN_RP_ID and WEBAUTHN_ORIGIN environment variables are required in production"

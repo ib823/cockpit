@@ -36,7 +36,9 @@ export function BatchOperationsPanel({
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const currentProject = useGanttToolStore((state) => state.currentProject);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const assignManager = useGanttToolStore((state) => (state as any).assignManager);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const unassignManager = useGanttToolStore((state) => (state as any).unassignManager);
 
   const selectedResources =

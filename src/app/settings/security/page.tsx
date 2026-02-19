@@ -86,7 +86,7 @@ export default function SecuritySettingsPage() {
       };
 
       setOverview(mockOverview);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Security] Failed to load data:", err);
       setError("Failed to load security settings. Please try again.");
     } finally {
@@ -122,8 +122,8 @@ export default function SecuritySettingsPage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err: any) {
-      setError(err.message || "Failed to change password");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to change password");
     } finally {
       setChangingPassword(false);
     }
@@ -198,7 +198,7 @@ export default function SecuritySettingsPage() {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as "overview" | "password" | "totp" | "sessions" | "devices")}
                   className={`px-6 py-4 text-sm font-medium whitespace-nowrap transition-colors ${
                     activeTab === tab.id
                       ? "border-b-2 border-blue-600 text-blue-600"

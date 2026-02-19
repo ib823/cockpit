@@ -40,7 +40,7 @@ interface SuspiciousActivity {
     type: "high_failure_rate" | "repeated_failures" | "distributed_attack";
     severity: "low" | "medium" | "high";
     message: string;
-    data: any;
+    data: unknown;
   }>;
 }
 
@@ -123,7 +123,7 @@ export function SecurityDashboardClient({
       } else {
         alert("Failed to unblock IP");
       }
-    } catch (error) {
+    } catch (_error) {
       alert("Error unblocking IP");
     }
   };

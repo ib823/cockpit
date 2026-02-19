@@ -53,7 +53,7 @@ export interface PresalesData {
     effortMD: number;
     selected: boolean;
   }>;
-  decisions: Record<string, any>;
+  decisions: Record<string, unknown>;
 }
 
 export interface TimelineData {
@@ -88,7 +88,7 @@ interface ProjectState {
   addChip: (chip: PresalesData["chips"][0]) => void;
   removeChip: (chipId: string) => void;
   toggleChip: (chipId: string) => void;
-  setDecision: (key: string, value: any) => void;
+  setDecision: (key: string, value: unknown) => void;
 
   // Timeline actions
   setTimelineStart: (dateISO: string) => void;

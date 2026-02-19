@@ -10,7 +10,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Tabs, Button, Space, Typography, Tag, Segmented } from "antd";
+import { Card, Button, Space, Typography, Tag, Segmented } from "antd";
 import {
   BarChart3,
   Users,

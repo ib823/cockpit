@@ -6,7 +6,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Calendar, CheckCircle, Clock, Sparkles, Package, HelpCircle, Cloud } from "lucide-react";
+import { Plus, Trash2, Calendar, CheckCircle, Clock, Sparkles, Package, HelpCircle } from "lucide-react";
 import type { ProposedSolutionData, Phase, ProposedSystem, ProposedIntegration, CurrentSystem, ExternalSystem } from "../types";
 import { ReuseSystemModal } from "./ReuseSystemModal";
 import { PhaseTimeline } from "./PhaseTimeline";
@@ -193,7 +193,7 @@ export function ProposedSolutionTab({
     onChange({ ...data, systems: data.systems.filter((s) => s.id !== id) });
   };
 
-  const loadSystemTemplate = (templateName: string, systems: any[], phaseId: string) => {
+  const loadSystemTemplate = (templateName: string, systems: Omit<ProposedSystem, "id" | "phaseId">[], phaseId: string) => {
     const newSystems = systems.map((sys) => ({
       id: Date.now().toString() + Math.random(),
       phaseId,
@@ -348,6 +348,7 @@ export function ProposedSolutionTab({
       {/* System Templates Modal - Keep fixed for now as it's a major UI element, but tokenized */}
       {showSystemTemplates && selectedPhaseForSystem && (
         <div className="fixed inset-0 flex items-center justify-center p-4 z-[1060]">
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => {
             setShowSystemTemplates(false);
             setSelectedPhaseForSystem(null);
@@ -603,7 +604,7 @@ function SystemCard({
 
 function TOBEArchitectureDiagram({
   proposedSystems,
-  currentSystems,
+  currentSystems: _currentSystems,
   externalSystems,
   retainedExternalSystemIds,
   integrations,
@@ -810,7 +811,10 @@ function SystemNode({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
       className={clsx(
         "p-4 border-2 rounded-xl text-center body-semibold text-xs shadow-sm cursor-pointer transition-default hover:scale-[1.02] active:scale-[0.98]",
         nodeStyles[type]

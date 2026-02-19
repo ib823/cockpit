@@ -7,8 +7,6 @@ import { useArchitectureStore } from '../../stores/architectureStore';
 import { SAP_MODULE_TEMPLATES } from '../../data/templates';
 import type { ModuleArea, Module, NonSAPSystem, Integration } from '../../types';
 
-const { TextArea } = Input;
-
 const NON_SAP_SYSTEM_TYPES = [
   'Legacy ERP',
   'Custom Inventory System',

@@ -1,5 +1,5 @@
 /**
- * Keystone - Redis Caching Layer
+ * Cockpit - Redis Caching Layer
  *
  * High-performance caching with automatic invalidation
  * Expected performance: 90%+ query reduction, <5ms response time
@@ -152,7 +152,7 @@ const statsTracker = new CacheStatsTracker();
  * Redis cache wrapper with fallback to in-memory
  */
 class CacheManager {
-  private memoryCache: Map<string, { data: any; expires: number }> = new Map();
+  private memoryCache: Map<string, { data: unknown; expires: number }> = new Map();
   private readonly useRedis: boolean;
 
   constructor() {
@@ -308,7 +308,7 @@ class CacheManager {
   /**
    * Warm cache with frequently accessed data
    */
-  async warmCache(key: string, fetcher: () => Promise<any>, ttlSeconds: number): Promise<void> {
+  async warmCache(key: string, fetcher: () => Promise<unknown>, ttlSeconds: number): Promise<void> {
     try {
       console.log(`[Cache] 🔥 WARMING ${key}`);
       const data = await fetcher();

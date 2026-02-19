@@ -2,7 +2,7 @@ import sharp from "sharp";
 import { writeFileSync } from "fs";
 import { join } from "path";
 
-const SOURCE_LOGO = "/workspaces/cockpit/public/logo-keystone.svg";
+const SOURCE_LOGO = "/workspaces/cockpit/public/logo-cockpit.svg";
 const PUBLIC_DIR = "/workspaces/cockpit/public";
 
 interface LogoSize {
@@ -30,10 +30,10 @@ const LOGO_SIZES: LogoSize[] = [
   { name: "apple-touch-icon-180.png", size: 180 },
 
   // Icon for general use
-  { name: "keystone-icon.png", size: 256 },
+  { name: "cockpit-icon.png", size: 256 },
 
   // Main logo (optimized but larger)
-  { name: "logo-keystone.png", size: 1024 },
+  { name: "logo-cockpit.png", size: 1024 },
 ];
 
 async function generateLogos() {

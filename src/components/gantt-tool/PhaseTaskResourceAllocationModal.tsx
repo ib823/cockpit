@@ -15,7 +15,7 @@
 
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { useState, useMemo, useEffect } from "react";
-import { ChevronDown, ChevronRight, Plus, Trash2, Calendar } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Trash2, Calendar, Users } from "lucide-react";
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_DESIGNATIONS,
@@ -110,10 +110,7 @@ function AssignedResourceCard({
             setLocalPercentage(val);
             onAllocate(resource.id, val);
           }}
-          style={{ width: "100%", height: "8px", backgroundColor: COLORS.bg.subtle, borderRadius: RADIUS.default, appearance: "none", cursor: "pointer", accentColor: COLORS.blue }}
-          style={{
-            background: `linear-gradient(to right, #2563eb 0%, #2563eb ${localPercentage}%, #e5e7eb ${localPercentage}%, #e5e7eb 100%)`,
-          }}
+          style={{ width: "100%", height: "8px", borderRadius: RADIUS.default, appearance: "none", cursor: "pointer", accentColor: COLORS.blue, background: `linear-gradient(to right, #2563eb 0%, #2563eb ${localPercentage}%, #e5e7eb ${localPercentage}%, #e5e7eb 100%)` }}
         />
       </div>
 
@@ -213,6 +210,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       pm: [],
       change: [],
       qa: [],
+      client: [],
       other: [],
     };
 
@@ -292,6 +290,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       if (itemType === "phase") {
         updatePhaseResourceAssignment(itemId, assignment.assignmentId, finalNotes, percentage);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const task = item as any;
         updateTaskResourceAssignment(
           itemId,
@@ -312,6 +311,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       if (itemType === "phase") {
         assignResourceToPhase(itemId, resourceId, smartNotes, percentage);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const task = item as any;
         assignResourceToTask(itemId, task.phaseId, resourceId, smartNotes, percentage);
       }
@@ -334,6 +334,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       if (itemType === "phase") {
         unassignResourceFromPhase(itemId, assignment.assignmentId);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const task = item as any;
         unassignResourceFromTask(itemId, task.phaseId, assignment.assignmentId);
       }
@@ -467,7 +468,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
                           <ChevronDown style={{ width: "16px", height: "16px" }} />
                         )}
                         <span style={{ fontSize: TYPOGRAPHY.fontSize.heading }}>{category.icon}</span>
-                        <span style={{ fontWeight: TYPOGRAPHY.fontWeight.semibold, fontSize: TYPOGRAPHY.fontSize.caption }} style={{ color: category.color }}>
+                        <span style={{ fontWeight: TYPOGRAPHY.fontWeight.semibold, fontSize: TYPOGRAPHY.fontSize.caption, color: category.color }}>
                           {category.label}
                         </span>
                         <span style={{ fontSize: "11px", color: COLORS.text.tertiary }}>

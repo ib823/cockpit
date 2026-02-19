@@ -1,5 +1,5 @@
 /**
- * Keystone - Code Splitting Utilities
+ * Cockpit - Code Splitting Utilities
  *
  * Lazy load large components and reduce initial bundle size
  * Target: < 200KB initial bundle

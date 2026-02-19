@@ -4,6 +4,8 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
 import { SignJWT } from "jose";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth";
 
 import { env } from "@/lib/env";
 
@@ -23,20 +25,33 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { userId, newEmail, password } = body;
+    const { userId: requestUserId, newEmail, password } = body;
+
+    const session = await getServerSession(authConfig);
+    if (!session?.user?.id || !session.user.email) {
+      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (requestUserId && String(requestUserId) !== session.user.id) {
+      return NextResponse.json({ ok: false, message: "Forbidden" }, { status: 403 });
+    }
+
+    const normalizedNewEmail = String(newEmail ?? "")
+      .trim()
+      .toLowerCase();
 
     // ============================================
     // 1. Validate Input
     // ============================================
-    if (!userId || !newEmail || !password) {
+    if (!normalizedNewEmail || !password) {
       return NextResponse.json(
-        { ok: false, message: "User ID, new email, and password are required" },
+        { ok: false, message: "New email and password are required" },
         { status: 400 }
       );
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(newEmail)) {
+    if (!emailRegex.test(normalizedNewEmail)) {
       return NextResponse.json({ ok: false, message: "Invalid email format" }, { status: 400 });
     }
 
@@ -44,7 +59,7 @@ export async function POST(req: Request) {
     // 2. Get User & Verify Password
     // ============================================
     const user = await prisma.users.findUnique({
-      where: { id: userId },
+      where: { id: session.user.id },
     });
 
     if (!user) {
@@ -63,7 +78,7 @@ export async function POST(req: Request) {
     // 3. Check if New Email Already Exists
     // ============================================
     const existingUser = await prisma.users.findUnique({
-      where: { email: newEmail.trim().toLowerCase() },
+      where: { email: normalizedNewEmail },
     });
 
     if (existingUser) {
@@ -86,7 +101,7 @@ export async function POST(req: Request) {
       userId: user.id,
       action: "revoke_email_change",
       oldEmail: user.email,
-      newEmail: newEmail.trim().toLowerCase(),
+      newEmail: normalizedNewEmail,
       timestamp: Date.now(),
     })
       .setProtectedHeader({ alg: "HS256" })
@@ -100,9 +115,9 @@ export async function POST(req: Request) {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     await prisma.users.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: {
-        pendingEmail: newEmail.trim().toLowerCase(),
+        pendingEmail: normalizedNewEmail,
         pendingEmailToken: codeHash,
         pendingEmailExpiresAt: expiresAt,
       },
@@ -127,7 +142,7 @@ export async function POST(req: Request) {
 
     <div style="padding: 40px 32px;">
       <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
-        You requested to change your email address to <strong>${newEmail}</strong>.
+        You requested to change your email address to <strong>${normalizedNewEmail}</strong>.
       </p>
 
       <div style="background: #f1f5f9; border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
@@ -157,7 +172,7 @@ export async function POST(req: Request) {
     };
 
     await sendSecurityEmail(
-      newEmail.trim().toLowerCase(),
+      normalizedNewEmail,
       verificationEmailContent.subject,
       verificationEmailContent.html
     );
@@ -184,7 +199,7 @@ export async function POST(req: Request) {
         Hi <strong>${user.email}</strong>,
       </p>
       <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
-        A request was made to change your email address to <strong>${newEmail}</strong>.
+        A request was made to change your email address to <strong>${normalizedNewEmail}</strong>.
       </p>
 
       <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 24px 0;">
@@ -234,7 +249,7 @@ export async function POST(req: Request) {
         createdAt: new Date(),
         meta: {
           oldEmail: user.email,
-          newEmail: newEmail.trim().toLowerCase(),
+          newEmail: normalizedNewEmail,
           expiresAt,
         },
       },
@@ -245,7 +260,7 @@ export async function POST(req: Request) {
       message: "Verification code sent to new email address",
       expiresIn: "24 hours",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[EmailChange] Request error:", error);
     return NextResponse.json(
       { ok: false, message: "Failed to process email change request" },

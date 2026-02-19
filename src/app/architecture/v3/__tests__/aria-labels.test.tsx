@@ -6,7 +6,9 @@
  */
 
 import React from 'react';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import { BusinessContextTab } from '../components/BusinessContextTab';
 import { CurrentLandscapeTab } from '../components/CurrentLandscapeTab';
 import { ProposedSolutionTab } from '../components/ProposedSolutionTab';
@@ -89,7 +91,7 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
         painPoints: '',
       };
 
-      const { container } = render(
+      const { container: _container } = render(
         <BusinessContextTab
           data={mockData}
           onChange={() => {}}

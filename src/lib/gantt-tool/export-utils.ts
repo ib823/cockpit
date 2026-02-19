@@ -162,9 +162,9 @@ export async function exportToPDF(project: GanttProject): Promise<void> {
     // Add enhanced metadata
     pdf.setProperties({
       title: `${project.name} - Project Gantt Chart`,
-      author: "Keystone - RFP to Proposal in 10 Minutes",
+      author: "Cockpit - RFP to Proposal in 10 Minutes",
       subject: `Project Timeline - ${project.name}`,
-      creator: "Keystone Gantt Chart Tool",
+      creator: "Cockpit Gantt Chart Tool",
       keywords: "gantt, project, timeline, schedule, planning",
     });
 
@@ -395,7 +395,7 @@ export async function exportToExcel(project: GanttProject): Promise<void> {
 
       // Resource rows
       project.resources.forEach((resource) => {
-        const row: any[] = [resource.name, resource.category, resource.description];
+        const row: unknown[] = [resource.name, resource.category, resource.description];
 
         raciItems.forEach((item) => {
           const assignment = item.raciAssignments.find((a) => a.resourceId === resource.id);
@@ -620,7 +620,7 @@ function addProfessionalCoverPage(pdf: jsPDF, project: GanttProject): void {
   pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(16);
   pdf.setFont("helvetica", "bold");
-  pdf.text("KEYSTONE", pageWidth / 2, 30, { align: "center" });
+  pdf.text("COCKPIT", pageWidth / 2, 30, { align: "center" });
 
   pdf.setFontSize(10);
   pdf.setFont("helvetica", "normal");
@@ -1232,7 +1232,7 @@ function addExportFooter(
   // Right: Branding
   const branding = document.createElement("span");
   branding.style.cssText = "font-weight: 500; color: #3B82F6;";
-  branding.textContent = "Keystone";
+  branding.textContent = "Cockpit";
 
   footer.appendChild(projectName);
   footer.appendChild(exportDate);
@@ -1408,9 +1408,9 @@ async function exportImageAsPDF(
   // Add enhanced metadata
   pdf.setProperties({
     title: `${project.name} - Project Gantt Chart`,
-    author: "Keystone - RFP to Proposal in 10 Minutes",
+    author: "Cockpit - RFP to Proposal in 10 Minutes",
     subject: `Project Timeline - ${project.name}`,
-    creator: "Keystone Gantt Chart Tool",
+    creator: "Cockpit Gantt Chart Tool",
     keywords: "gantt, project, timeline, schedule, planning",
   });
 

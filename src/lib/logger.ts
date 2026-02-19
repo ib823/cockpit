@@ -7,7 +7,7 @@ export const logger = {
    * General logging - development only
    * SECURITY: Stripped in production to prevent information disclosure
    */
-  log: (...args: any[]) => {
+  log: (...args: unknown[]) => {
     if (process.env.NODE_ENV === "development") {
       console.log(...args);
     }

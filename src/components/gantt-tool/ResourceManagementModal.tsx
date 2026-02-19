@@ -116,6 +116,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
 
       // Collect phase assignments
       currentProject.phases.forEach((phase) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         phase.phaseResourceAssignments?.forEach((assignment: any) => {
           if (assignment.resourceId === resource.id) {
             const hours = Number(assignment.hours) || 0; // Safety: convert to number, default to 0
@@ -784,6 +785,7 @@ function TimelineView({
 }: {
   resources: Resource[];
   resourceStats: Map<string, ResourceStats>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   currentProject: any;
 }) {
   // Calculate timeline bounds

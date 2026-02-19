@@ -264,7 +264,8 @@ export const CRITICAL_PATTERNS = {
   ],
 };
 
-export const EFFORT_IMPACT_RULES: any = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- complex nested rule structure
+export const EFFORT_IMPACT_RULES: Record<string, Record<string, unknown>> = {
   legal_entities: {
     low: { max: 1, multiplier: 1.0 },
     medium: { max: 3, multiplier: 1.5 },
@@ -332,7 +333,7 @@ export function getSmartAssumptions(
   _industry?: string,
   _employees?: number,
   _revenue?: number
-): any {
+): Record<string, unknown> {
   return {
     legal_entities: 1,
     branches: 1,

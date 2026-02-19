@@ -35,7 +35,7 @@ interface EditPhaseModalProps {
 
 export function EditPhaseModal({ isOpen, onClose, phase, phaseId }: EditPhaseModalProps) {
   const { currentProject, updatePhase, deletePhase } = useGanttToolStore();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [_isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state - pre-populated with current phase data
   const [formData, setFormData] = useState({
@@ -87,6 +87,7 @@ export function EditPhaseModal({ isOpen, onClose, phase, phaseId }: EditPhaseMod
         // Graceful degradation: Don't update end date if calculation fails
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.phaseType, formData.startDate, formData.amsDuration]);
 
   const isAMSPhase = formData.phaseType === "ams";
@@ -317,7 +318,7 @@ export function EditPhaseModal({ isOpen, onClose, phase, phaseId }: EditPhaseMod
                     Automatically calculated as: <strong>{format(start, "MMM d, yyyy")}</strong> + {formData.amsDuration} {formData.amsDuration === 1 ? "year" : "years"} = <strong>{format(end, "MMM d, yyyy")}</strong>
                   </>
                 );
-              } catch (error) {
+              } catch (_error) {
                 return "Select a valid start date to calculate end date";
               }
             })()}

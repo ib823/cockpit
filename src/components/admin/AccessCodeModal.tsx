@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, Mail, Copy, Check } from "lucide-react";
+import { CheckCircle, Mail, Check } from "lucide-react";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
 interface AccessCodeModalProps {
@@ -91,7 +91,7 @@ Best regards,
 The Cockpit Team
 
 ========================================
-This is an automated message from Keystone.`;
+This is an automated message from Cockpit.`;
 
     // Create mailto link
     const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;

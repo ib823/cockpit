@@ -409,7 +409,7 @@ export function calculateHierarchicalPositions(
 
   // Track grouped resources
   const groupedResourceIds = new Set<string>();
-  groups.forEach(g => g.resourceIds.forEach(id => groupedResourceIds.add(id)));
+  groups.forEach(g => g.resourceIds.forEach((id: string) => groupedResourceIds.add(id)));
 
   // Build items list (ungrouped resources + groups)
   const items: HierarchyItem[] = [];

@@ -86,7 +86,8 @@ export function ResourceEditModal({
   const projectLogos = currentProject?.orgChartPro?.companyLogos || {};
   const subCompanies = currentProject?.orgChartPro?.subCompanies || [];
   const parentCompanyNames = Object.keys(projectLogos);
-  const subCompanyNames = subCompanies.map(sc => sc.name);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const subCompanyNames = subCompanies.map((sc: any) => sc.name);
   // Combine parent companies and sub-companies for dropdown
   const allCompanyNames = [...parentCompanyNames, ...subCompanyNames];
   const hasUploadedLogos = allCompanyNames.length > 0;
@@ -677,14 +678,16 @@ export function ResourceEditModal({
                         <option key={name} value={name}>{name}</option>
                       ))}
                       {/* Sub-companies with indicator */}
-                      {subCompanies.map((sc) => (
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {subCompanies.map((sc: any) => (
                         <option key={sc.id} value={sc.name}>● {sc.name}</option>
                       ))}
                     </select>
 
                     {/* Preview selected logo with indicator if sub-company */}
                     {formData.companyName && (() => {
-                      const selectedSubCompany = subCompanies.find(sc => sc.name === formData.companyName);
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      const selectedSubCompany = subCompanies.find((sc: any) => sc.name === formData.companyName);
                       const logoKey = selectedSubCompany ? selectedSubCompany.parentCompany : formData.companyName;
                       const logo = projectLogos[logoKey];
 

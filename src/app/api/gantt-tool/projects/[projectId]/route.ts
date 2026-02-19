@@ -12,7 +12,6 @@ import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { validateResourceBatch } from "@/lib/gantt-tool/resource-import-validator";
-import { checkProjectAccess } from "@/lib/gantt-tool/access-control";
 
 // Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
 export const maxDuration = 10; // seconds
@@ -257,6 +256,7 @@ export async function GET(
     }
 
     // Serialize dates to strings for frontend (Unified Model - Phase 3)
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     const serializedProject = minimal
       ? {
           ...project,
@@ -309,6 +309,7 @@ export async function GET(
             lastSeenAt: s.lastSeenAt.toISOString(),
           })),
         };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     // Add caching headers to reduce repeated requests
     // Cache for 10 seconds with revalidation (stale-while-revalidate for 60s)
@@ -505,6 +506,7 @@ export async function PATCH(
     // Update project in transaction
     const txStartTime = Date.now();
 
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     const updatedProject: { id: string; updatedAt: Date; version: number } = await (prisma.$transaction as any)(async (tx: any) => {
       // Update main project fields with version increment (Unified Model - Phase 3)
       const updateData: any = {
@@ -721,7 +723,8 @@ export async function PATCH(
       // Resources are already handled at the beginning of the transaction
 
       return project;
-    }) as { id: string; updatedAt: Date };
+    }) as { id: string; updatedAt: Date; version: number };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     const txDuration = Date.now() - txStartTime;
 
@@ -764,7 +767,7 @@ export async function PATCH(
       { status: 200 }
     );
   } catch (error) {
-    const duration = Date.now() - startTime;
+    const _duration = Date.now() - startTime;
 
     if (error instanceof z.ZodError) {
       if (isDev) console.error("[API] Zod validation failed:", error.issues);
@@ -784,16 +787,17 @@ export async function PATCH(
 
     // Check for Prisma-specific errors
     if (error && typeof error === "object" && "code" in error) {
+      const prismaError = error as { code: string; meta?: Record<string, unknown> };
       if (isDev) {
-        console.error("Prisma error code:", (error as any).code);
-        console.error("Prisma error meta:", (error as any).meta);
+        console.error("Prisma error code:", prismaError.code);
+        console.error("Prisma error meta:", prismaError.meta);
       }
 
       // Provide more user-friendly error messages for common Prisma errors
-      const prismaCode = (error as any).code;
+      const prismaCode = prismaError.code;
       if (prismaCode === "P2002") {
-        const meta = (error as any).meta;
-        const target = meta?.target || [];
+        const meta = prismaError.meta as Record<string, unknown> | undefined;
+        const target = (meta?.target as string[]) || [];
         let detailedMessage = "A record with this data already exists.";
 
         // Provide specific guidance based on constraint
@@ -818,8 +822,8 @@ export async function PATCH(
           { status: 409 }
         );
       } else if (prismaCode === "P2003") {
-        const meta = (error as any).meta;
-        const fieldName = meta?.field_name || "unknown";
+        const meta = prismaError.meta as Record<string, unknown> | undefined;
+        const fieldName = (meta?.field_name as string) || "unknown";
 
         return NextResponse.json(
           {
@@ -836,7 +840,7 @@ export async function PATCH(
             error: "Record not found",
             code: "RECORD_NOT_FOUND",
             message: "The requested record was not found",
-            details: (error as any).meta,
+            details: prismaError.meta,
           },
           { status: 404 }
         );

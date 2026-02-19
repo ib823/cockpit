@@ -63,9 +63,9 @@ export async function GET(req: Request) {
   try {
     const mod = await import("@/lib/db").catch(() => null);
     if (mod && "prisma" in mod) {
-      prisma = (mod as any).prisma as PrismaClient;
+      prisma = (mod as { prisma: PrismaClient }).prisma;
     } else if (mod && "default" in mod) {
-      prisma = (mod as any).default as PrismaClient;
+      prisma = (mod as { default: PrismaClient }).default;
     }
     if (!prisma) {
       const { PrismaClient } = await import("@prisma/client");

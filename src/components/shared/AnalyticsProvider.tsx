@@ -66,7 +66,7 @@ export function AnalyticsProvider({ children, config }: AnalyticsProviderProps) 
  */
 interface EventTrackerProps {
   event: string;
-  properties?: Record<string, any>;
+  properties?: Record<string, string | number | boolean | undefined>;
   children: ReactNode;
 }
 

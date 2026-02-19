@@ -338,7 +338,7 @@ export const celebrations = {
 
   /** Celebrate completing onboarding */
   onboardingComplete: (celebrate: ReturnType<typeof useSuccessCelebration>["celebrate"]) => {
-    celebrate("Welcome to Keystone!", "fireworks");
+    celebrate("Welcome to Cockpit!", "fireworks");
   },
 
   /** Celebrate project creation */

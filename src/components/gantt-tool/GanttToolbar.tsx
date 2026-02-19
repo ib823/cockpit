@@ -56,6 +56,7 @@ import { useSession, signOut } from "next-auth/react";
 import { exportToPNG, exportToPDF, exportToExcel } from "@/lib/gantt-tool/export-utils";
 import { ResourceManagementModal } from "./ResourceManagementModal";
 import { ImportModal } from "./ImportModal";
+import { ImportModalV2 } from "./ImportModalV2";
 import { ProposalGenerationModal } from "./ProposalGenerationModal";
 import { TemplateLibraryModal } from "./TemplateLibraryModal";
 import { DuplicateCleanupModal } from "./DuplicateCleanupModal";
@@ -187,6 +188,7 @@ export function GanttToolbar({
     setShowCreateProjectModal(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCreateProjectSubmit = async (values: { projectName: string; startDate: any }) => {
     // Check for duplicate name
     const isDuplicate = projects.some(
@@ -404,6 +406,7 @@ export function GanttToolbar({
         key: `project-${index}-${project.id}`,
         label: (
           <div className="py-1 flex items-center justify-between gap-3">
+            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
             <div className="flex-1" onClick={() => loadProject(project.id)}>
               <div className="font-medium text-sm">
                 {project.name}
@@ -617,6 +620,7 @@ export function GanttToolbar({
                         key: companyName,
                         label: (
                           <div className="flex items-center gap-2 py-1">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={logoUrl as string}
                               alt={companyName}
@@ -642,6 +646,7 @@ export function GanttToolbar({
                     const displayLogo = getDisplayLogo();
                     if (displayLogo) {
                       return (
+                        /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                           src={displayLogo.logoUrl}
                           alt={displayLogo.companyName}

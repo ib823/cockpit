@@ -44,7 +44,7 @@ import { useCallback, useRef } from "react";
 
 export type NavigationType = 'horizontal' | 'vertical' | 'grid' | 'both';
 
-export interface UseKeyboardNavigationOptions<T = any> {
+export interface UseKeyboardNavigationOptions<T = unknown> {
   /**
    * Type of navigation (horizontal for tabs, vertical for lists)
    */
@@ -88,7 +88,7 @@ export interface UseKeyboardNavigationOptions<T = any> {
   preventDefault?: boolean;
 }
 
-export function useKeyboardNavigation<T = any>({
+export function useKeyboardNavigation<T = unknown>({
   type,
   items,
   activeIndex,
@@ -247,7 +247,7 @@ export function useKeyboardNavigation<T = any>({
  * Convenience hook for horizontal tab navigation
  */
 export function useTabKeyboardNavigation(
-  tabs: any[],
+  tabs: { id: string; [key: string]: unknown }[],
   activeTabId: string,
   onTabChange: (tabId: string) => void
 ) {

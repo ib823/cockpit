@@ -177,7 +177,7 @@ export function detectGaps(
       if (gapMandays > 0.5) {
         // Significant gap
         const severity = determineSeverity(gapMandays, required, category);
-        const pattern = CATEGORY_EFFORT_PATTERNS[category];
+        const pattern = CATEGORY_EFFORT_PATTERNS[category as ResourceCategory];
 
         gaps.push({
           id: `gap-${week.weekId}-${category}`,

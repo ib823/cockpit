@@ -129,7 +129,7 @@ export function ResourceCreationModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Create New Resource"
-      maxWidth="md"
+      size="medium"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

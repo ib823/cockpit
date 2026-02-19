@@ -152,13 +152,13 @@ export async function PATCH(
     // Update project in transaction using delta operations
     const txStartTime = Date.now();
 
-    const updatedProject: { id: string; updatedAt: Date } | null = await (prisma.$transaction as any)(async (tx: any) => {
+    const updatedProject: { id: string; updatedAt: Date } | null = await (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<{ id: string; updatedAt: Date } | null>) => Promise<{ id: string; updatedAt: Date } | null>)(async (tx) => {
       // 1. Update project-level fields if any changed
       let project: { id: string; updatedAt: Date } | null;
       if (delta.projectUpdates && Object.keys(delta.projectUpdates).length > 0) {
-        const updates: any = { ...delta.projectUpdates };
+        const updates: Record<string, unknown> = { ...delta.projectUpdates };
         if (updates.startDate) {
-          updates.startDate = new Date(updates.startDate);
+          updates.startDate = new Date(updates.startDate as string | number | Date);
         }
         project = await tx.ganttProject.update({
           where: { id: projectId },
@@ -551,7 +551,7 @@ export async function PATCH(
     }
 
     // Handle Prisma-specific errors
-    const prismaError = error as any;
+    const prismaError = error as { code?: string; meta?: { target?: string[]; field_name?: string } };
     if (prismaError?.code && typeof prismaError.code === 'string') {
       const prismaCode = prismaError.code;
       if (prismaCode === "P2002") {

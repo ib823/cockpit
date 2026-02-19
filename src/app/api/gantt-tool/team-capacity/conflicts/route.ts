@@ -110,9 +110,9 @@ export async function POST(request: NextRequest) {
       ...collaboratedProjects.map((c) => c.projectId),
     ];
 
-    const projectMap = new Map([
-      ...userOwnedProjects.map((p) => [p.id, p.name]),
-      ...collaboratedProjects.map((c) => [c.projectId, c.project.name]),
+    const projectMap = new Map<string, string>([
+      ...userOwnedProjects.map((p) => [p.id, p.name] as [string, string]),
+      ...collaboratedProjects.map((c) => [c.projectId, c.project.name] as [string, string]),
     ]);
 
     // If includeProjects specified, intersect with accessible projects
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build query filters
-    const where: any = {
+    const where: Record<string, unknown> = {
       projectId: {
         in: projectIds,
       },
@@ -157,13 +157,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (validatedData.weekStart || validatedData.weekEnd) {
-      where.weekStartDate = {};
+      const weekDateFilter: { gte?: Date; lte?: Date } = {};
       if (validatedData.weekStart) {
-        where.weekStartDate.gte = new Date(validatedData.weekStart);
+        weekDateFilter.gte = new Date(validatedData.weekStart);
       }
       if (validatedData.weekEnd) {
-        where.weekStartDate.lte = new Date(validatedData.weekEnd);
+        weekDateFilter.lte = new Date(validatedData.weekEnd);
       }
+      where.weekStartDate = weekDateFilter;
     }
 
     // Query all allocations (optimized with composite index)
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
     const conflicts: ConflictResult[] = [];
 
     for (const [resourceId, weekMap] of groupedAllocations.entries()) {
-      for (const [weekKey, weekAllocations] of weekMap.entries()) {
+      for (const [_weekKey, weekAllocations] of weekMap.entries()) {
         // Calculate total allocation for this week
         const totalAllocation = weekAllocations.reduce(
           (sum, a) => sum + a.allocationPercent,

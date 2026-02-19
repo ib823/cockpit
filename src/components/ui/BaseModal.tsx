@@ -66,7 +66,7 @@ export interface BaseModalProps {
     label: string;
     onClick: () => void;
     variant?: string;
-    icon?: React.ComponentType<any>;
+    icon?: React.ComponentType<unknown>;
   }>;
 
   /** Prevent closing on overlay click */

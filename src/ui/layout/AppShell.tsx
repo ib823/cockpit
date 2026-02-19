@@ -32,7 +32,7 @@ export const AppShell: React.FC<AppShellProps> = ({ nav, children, pageHeader })
         )}
       >
         <div className="h-14 px-4 flex items-center justify-between">
-          <div className="font-semibold truncate">Keystone</div>
+          <div className="font-semibold truncate">Cockpit</div>
           <button
             className="p-1.5 rounded-md hover:bg-[var(--canvas)]"
             onClick={() => setOpen((o) => !o)}
@@ -89,7 +89,7 @@ export const AppShell: React.FC<AppShellProps> = ({ nav, children, pageHeader })
               />
             </svg>
           </button>
-          <div className="font-medium">Keystone</div>
+          <div className="font-medium">Cockpit</div>
           <button
             className="p-2"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}

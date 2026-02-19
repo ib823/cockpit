@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Modal, Form, Input, Select, DatePicker, Switch, Button, App, Popconfirm } from "antd";
+import { useState } from "react";
+import { Modal, Form, Input, Select, Switch, Button, App, Popconfirm } from "antd";
 import {
   PlusOutlined,
   EditOutlined,
@@ -21,7 +21,7 @@ interface User {
   exception: boolean;
 }
 
-interface UserFormValues {
+interface _UserFormValues {
   email: string;
   name?: string;
   role: "USER" | "MANAGER" | "ADMIN";
@@ -126,8 +126,8 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
       setIsModalOpen(false);
       form.resetFields();
       await reloadUsers();
-    } catch (error: any) {
-      message.error(error.message || "An error occurred");
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -148,8 +148,8 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
 
       message.success("User deleted successfully");
       await reloadUsers();
-    } catch (error: any) {
-      message.error(error.message || "An error occurred");
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -172,8 +172,8 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
       setGeneratedCode(data);
       setIsCodeModalOpen(true);
       message.success("Access code generated successfully");
-    } catch (error: any) {
-      message.error(error.message || "Failed to generate access code");
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : "Failed to generate access code");
     } finally {
       setLoading(false);
     }

@@ -15,7 +15,7 @@
  * per GLOBAL QUALITY & INTEGRATION POLICY
  */
 
-import type { Resource } from '@prisma/client';
+import type { GanttResource as Resource } from '@prisma/client';
 import {
   validateResourceData,
   validateResourceHierarchy,

@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
 import { jwtVerify } from "jose";
 import { prisma } from "@/lib/db";
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     // ============================================
     // 1. Verify JWT Token
     // ============================================
-    let payload: any;
+    let payload: { email?: string; newEmail?: string; userId?: string; [key: string]: unknown };
     try {
       const secret = new TextEncoder().encode(env.JWT_SECRET_KEY);
       const { payload: jwtPayload } = await jwtVerify(token, secret);
@@ -338,7 +338,7 @@ export async function GET(req: NextRequest) {
         headers: { "Content-Type": "text/html" },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[EmailRevoke] Error:", error);
     return new Response(
       `

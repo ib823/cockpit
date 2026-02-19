@@ -197,8 +197,8 @@ export interface VersionComparisonResult {
 export interface VersionChange {
   type: 'TIMELINE' | 'ALLOCATION' | 'COSTING' | 'RESOURCE';
   description: string;
-  before: any;
-  after: any;
+  before: unknown;
+  after: unknown;
 }
 
 export interface CostImpactAnalysis {
@@ -329,7 +329,7 @@ export interface ValidationError {
   field: string;
   code: string;
   message: string;
-  value?: any;
+  value?: unknown;
 }
 
 export interface ValidationWarning {

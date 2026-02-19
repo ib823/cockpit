@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
 import { jwtVerify } from "jose";
@@ -63,7 +62,7 @@ export async function GET(req: NextRequest) {
     // ============================================
     // 1. Verify JWT Token
     // ============================================
-    let payload: any;
+    let payload: { userId?: string; action?: string; [key: string]: unknown };
     try {
       const secret = new TextEncoder().encode(env.JWT_SECRET_KEY);
       const { payload: jwtPayload } = await jwtVerify(token, secret);

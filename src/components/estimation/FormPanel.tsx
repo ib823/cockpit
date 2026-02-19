@@ -77,6 +77,7 @@ export function FormPanel({ projectId, forms, onChange, readonly = false }: Form
       id: editingForm?.id || `form-${Date.now()}`,
       projectId,
       name: formData.name,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       type: formData.type as any,
       languages: formData.languages || ["en"],
       complexity: formData.complexity || "M",
@@ -99,7 +100,7 @@ export function FormPanel({ projectId, forms, onChange, readonly = false }: Form
       title: "Name",
       dataIndex: "name",
       key: "name",
-      render: (text: string, record: FormItem) => (
+      render: (text: string, _record: FormItem) => (
         <Space>
           <FileText size={16} />
           <span style={{ fontWeight: 500 }}>{text}</span>
@@ -141,6 +142,7 @@ export function FormPanel({ projectId, forms, onChange, readonly = false }: Form
     {
       title: "Actions",
       key: "actions",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render: (_: any, record: FormItem) => (
         <Space>
           <Button
@@ -246,6 +248,7 @@ export function FormPanel({ projectId, forms, onChange, readonly = false }: Form
             <Select
               style={{ width: "100%" }}
               value={formData.type}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onChange={(type) => setFormData({ ...formData, type: type as any })}
             >
               <Option value="po">Purchase Order</Option>

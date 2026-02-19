@@ -31,6 +31,9 @@
     "scripts",
     "i18n.ts",
     "src/__tests__",
+    "**/__tests__",
+    "**/*.test.ts",
+    "**/*.test.tsx",
     "vitest.config.ts",
     "playwright.config.ts"
   ]

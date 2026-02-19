@@ -270,7 +270,7 @@ export function CostingConfigModal({
   projectName,
   onSave,
 }: CostingConfigModalProps) {
-  const [config, setConfig] = useState<CostingConfig | null>(null);
+  const [_config, setConfig] = useState<CostingConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -401,7 +401,9 @@ export function CostingConfigModal({
   if (!isOpen) return null;
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div style={styles.overlay} onClick={onClose}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div style={styles.header}>

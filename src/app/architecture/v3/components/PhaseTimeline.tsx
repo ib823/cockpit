@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Plus, CheckCircle, Clock } from 'lucide-react';
 import type { Phase } from '../types';
 import styles from './proposed-solution-tab.module.css';
@@ -17,8 +17,8 @@ interface PhaseTimelineProps {
 export function PhaseTimeline({
   phases,
   onAddPhase,
-  onUpdatePhase,
-  onRemovePhase,
+  onUpdatePhase: _onUpdatePhase,
+  onRemovePhase: _onRemovePhase,
   selectedPhaseId,
   onSelectPhase,
 }: PhaseTimelineProps) {
@@ -30,8 +30,11 @@ export function PhaseTimeline({
         {sortedPhases.map((phase, index) => (
           <React.Fragment key={phase.id}>
             <div
+              role="button"
+              tabIndex={0}
               className={`${styles.timelineNode} ${selectedPhaseId === phase.id ? styles.timelineNodeSelected : ''}`}
               onClick={() => onSelectPhase(phase.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectPhase(phase.id); }}
             >
               <div className={styles.timelineNodeIcon}>
                 {phase.scope === 'in-scope' ? <CheckCircle size={16} /> : <Clock size={16} />}

@@ -72,8 +72,11 @@ function PhaseCard({ phase }: { phase: GanttPhase }) {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-3">
       {/* Phase Header */}
       <div
+        role="button"
+        tabIndex={0}
         className="p-4 cursor-pointer active:bg-gray-50 transition-colors"
         onClick={() => setExpanded(!expanded)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpanded(!expanded); }}
       >
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2 flex-1 min-w-0">

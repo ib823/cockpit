@@ -221,7 +221,7 @@ export const ResourceRowMemoized = memo(function ResourceRowMemoized({
       <div style={styles.nameContainer}>
         <div style={styles.name}>
           {resource.name}
-          {resource.designation === "root" && (
+          {(resource.designation as string) === "root" && (
             <span
               style={{
                 marginLeft: 6,

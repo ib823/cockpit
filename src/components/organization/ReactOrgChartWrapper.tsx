@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * React Org Chart Integration - ReactFlow Edition
  *

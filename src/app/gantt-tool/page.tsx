@@ -31,12 +31,10 @@ import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-st
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
 import { Share2, Users, GripHorizontal, GripVertical, FileSpreadsheet, Flag, Layers, CheckSquare, Image as ImageIcon } from "lucide-react";
-import { ResourceIcon } from "@/lib/resource-icons";
 import { HexLoader } from "@/components/ui/HexLoader";
 import { format } from "date-fns";
-import { RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 import { getTotalResourceCount } from "@/lib/gantt-tool/resource-utils";
-import { diagnoseResourceHierarchy, getOrphanedResourceIds } from "@/lib/gantt-tool/resource-diagnostics";
+import { getOrphanedResourceIds } from "@/lib/gantt-tool/resource-diagnostics";
 
 export default function GanttToolV3Page() {
   // ⚠️ IMPORTANT: All hooks must be called before any conditional returns
@@ -68,7 +66,7 @@ export default function GanttToolV3Page() {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [isResizingOrgChart, setIsResizingOrgChart] = useState(false);
   const [resourcePanelLayout, setResourcePanelLayout] = useState<'sidebar' | 'bottom'>('sidebar'); // User preference
-  const [resourcePanelView, setResourcePanelView] = useState<'category' | 'orgchart'>('orgchart'); // View mode - always org chart
+  const [_resourcePanelView, _setResourcePanelView] = useState<'category' | 'orgchart'>('orgchart'); // View mode - always org chart
   const [activeTab, setActiveTab] = useState<ProjectTab>('timeline'); // Project view tabs
   const [isCapacityPanelExpanded, setIsCapacityPanelExpanded] = useState(false); // Capacity panel below Gantt
 
@@ -82,9 +80,9 @@ export default function GanttToolV3Page() {
   const [showResourceDashboard, setShowResourceDashboard] = useState(false);
 
   // Selection state for resources, phases, and tasks
-  const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
-  const [selectedPhaseId, setSelectedPhaseId] = useState<string | null>(null);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [_selectedResourceId, _setSelectedResourceId] = useState<string | null>(null);
+  const [selectedPhaseId, _setSelectedPhaseId] = useState<string | null>(null);
+  const [_selectedTaskId, _setSelectedTaskId] = useState<string | null>(null);
 
   // Intelligent zoom levels - semantic, not arbitrary percentages
   const [zoomMode, setZoomMode] = useState<ZoomMode>('auto');
@@ -171,11 +169,8 @@ export default function GanttToolV3Page() {
 
   // Check if project is already loaded on mount
   useEffect(() => {
-    console.log("[V3] Mount - currentProject:", currentProject?.id);
-
     // If project already loaded, we're good
     if (currentProject) {
-      console.log("[V3] Project already loaded:", currentProject.id);
       setInitializing(false);
       return;
     }
@@ -183,18 +178,14 @@ export default function GanttToolV3Page() {
     // Otherwise, initialize
     const initialize = async () => {
       try {
-        console.log("[V3] No project loaded, starting initialization...");
-
         // Fetch projects from database
         await fetchProjects();
-        console.log("[V3] Projects fetched");
 
         // Small delay to ensure state updates
         await new Promise(resolve => setTimeout(resolve, 100));
 
         // Get current state after fetch
         const state = useGanttToolStore.getState();
-        console.log("[V3] After fetch - Current project:", state.currentProject?.id, "Projects count:", state.projects.length);
 
         // If STILL no project is loaded, auto-load or create one
         if (!state.currentProject) {
@@ -203,18 +194,14 @@ export default function GanttToolV3Page() {
             const sortedProjects = [...state.projects].sort(
               (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
             );
-            console.log("[V3] Loading project:", sortedProjects[0].id);
             await loadProject(sortedProjects[0].id);
           } else {
             // Create default project
             const today = format(new Date(), "yyyy-MM-dd");
             const projectName = `Project ${format(new Date(), "yyyy-MM-dd HH:mm")}`;
-            console.log("[V3] Creating new project:", projectName);
             await createProject(projectName, today);
           }
         }
-
-        console.log("[V3] Initialization complete");
       } catch (error) {
         console.error("[V3] Failed to initialize:", error);
       } finally {
@@ -513,7 +500,6 @@ export default function GanttToolV3Page() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Share button clicked - Export functionality coming soon');
                   alert('Share & Export functionality coming soon!\n\nThis will allow you to:\n• Export to PNG/PDF\n• Share project link\n• Export to Excel');
                 }}
                 title="Share & export project"
@@ -578,7 +564,11 @@ export default function GanttToolV3Page() {
           <>
             {/* Resizable Divider */}
             <div
+              role="separator"
+              tabIndex={0}
+              aria-label="Resize panel"
               onMouseDown={handleOrgChartResizeStart}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOrgChartResizeStart(e as unknown as React.MouseEvent); }}
               style={{
                 width: resourcePanelLayout === 'sidebar' ? "6px" : "100%",
                 height: resourcePanelLayout === 'sidebar' ? "100%" : "6px",
@@ -839,7 +829,7 @@ export default function GanttToolV3Page() {
                                   `Delete ${orphanedIds.length} orphaned resource${orphanedIds.length > 1 ? 's' : ''}?\n\nThis action cannot be undone.`
                                 );
                                 if (confirmed) {
-                                  const resources = currentProject.resources || [];
+                                  const _resources = currentProject.resources || [];
                                   for (const id of orphanedIds) {
                                     await deleteResource(id);
                                   }
@@ -963,7 +953,7 @@ export default function GanttToolV3Page() {
         <div className="flex-1 overflow-auto bg-gray-50">
           <ProjectContextTab
             projectId={currentProject.id}
-            initialContext={currentProject.businessContext as any}
+            initialContext={currentProject.businessContext as { painPoints?: string; skills?: string[] } | undefined}
             onSave={() => {
               loadProject(currentProject.id);
             }}

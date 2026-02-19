@@ -30,7 +30,7 @@ import {
   type TaskVariance,
   type PhaseVariance,
 } from "@/lib/project-analytics/baseline";
-import { colorValues, getElevationShadow, withOpacity, spacing } from "@/lib/design-system";
+import { colorValues, withOpacity } from "@/lib/design-system";
 import { format, parseISO } from "date-fns";
 
 interface BaselineComparisonPanelProps {
@@ -528,6 +528,8 @@ function TasksTab({
         {filteredTasks.map((task) => (
           <div
             key={task.taskId}
+            role="button"
+            tabIndex={0}
             className="p-3 rounded-lg border cursor-pointer hover:shadow-sm transition-all duration-200"
             style={{
               backgroundColor:
@@ -544,6 +546,7 @@ function TasksTab({
                     : colorValues.neutral[200],
             }}
             onClick={() => onHighlightTask?.(task.taskId)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onHighlightTask?.(task.taskId); }}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
@@ -651,6 +654,7 @@ function IssuesTab({ comparison }: { comparison: BaselineComparison }) {
 }
 
 // Helper Components
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function MetricCard({
   label,
   baseline,
@@ -663,6 +667,7 @@ function MetricCard({
   color,
   reverseGoodBad = false,
 }: any) {
+/* eslint-enable @typescript-eslint/no-explicit-any */
   if (value !== undefined) {
     return (
       <div
@@ -736,6 +741,7 @@ function MetricCard({
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function StatusBar({ label, count, total, color }: any) {
   const percentage = total > 0 ? (count / total) * 100 : 0;
 
@@ -766,7 +772,7 @@ function StatusBadge({ status }: { status: string }) {
     "at-risk": { label: "At Risk", color: colorValues.error[600], bg: colorValues.error[100] },
   };
 
-  const { label, color, bg } = config[status as keyof typeof config] || config["on-track"];
+  const { label, color, bg: _bg } = config[status as keyof typeof config] || config["on-track"];
 
   return (
     <span
@@ -781,6 +787,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function IssueCard({ issue }: { issue: any }) {
   const isCritical = issue.type === "critical";
 

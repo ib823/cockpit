@@ -36,6 +36,7 @@ export const RESOURCE_CATEGORY_ICONS: Record<ResourceCategory, LucideIcon> = {
   qa: CheckSquare,
   basis: Settings,
   security: Shield,
+  client: Users,
   other: Users,
 } as const;
 

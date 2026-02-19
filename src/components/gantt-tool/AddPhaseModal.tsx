@@ -148,6 +148,7 @@ export function AddPhaseModal({ isOpen, onClose }: AddPhaseModalProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, formData]);
 
   return (
@@ -338,7 +339,7 @@ export function AddPhaseModal({ isOpen, onClose }: AddPhaseModalProps) {
               color: COLORS.text.tertiary,
             }}
           >
-            End date will be automatically calculated as: Start Date + {formData.amsDuration} year{formData.amsDuration > 1 ? "s" : ""}
+            End date will be automatically calculated as: Start Date + {formData.amsDuration ?? 1} year{(formData.amsDuration ?? 1) > 1 ? "s" : ""}
           </p>
         </div>
       )}

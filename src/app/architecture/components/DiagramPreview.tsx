@@ -42,6 +42,7 @@ export function DiagramPreview({ currentStep }: { currentStep: number }) {
 
   useEffect(() => {
     renderDiagram();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, previewStep]);
 
   const renderDiagram = async () => {

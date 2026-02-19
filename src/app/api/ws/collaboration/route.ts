@@ -30,7 +30,7 @@ import { NextRequest } from "next/server";
  *    - Less efficient but works everywhere
  */
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   return new Response(
     JSON.stringify({
       error: "WebSocket connections not supported in Next.js App Router",
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   // This would handle client-to-server messages
   // Store them in Redis/database for SSE to broadcast
-  const body = await request.json();
+  const _body = await request.json();
 
   return new Response(JSON.stringify({ success: true, message: "Message received" }), {
     status: 200,

@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
 /**
  * Org Chart Builder V2 - With Drag & Drop
  * Steve Jobs/Jony Ive Design: Intuitive drag-and-drop for org chart hierarchy
@@ -87,7 +88,7 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
         id: resource.id,
         roleTitle: resource.name,
         designation: mapToOrgDesignation(resource.designation),
-        category: resource.category,
+        category: resource.category as ResourceCategory,
         companyName: resource.description || "Company",
         reportsTo: resource.managerResourceId || undefined,
         dailyRate: resource.chargeRatePerHour ? resource.chargeRatePerHour * 8 : undefined,
@@ -233,11 +234,11 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
           console.warn(`  ${i + 1}. ${issue}`);
         });
         console.warn("\nDetailed Resource Breakdown:");
-        console.table(diagnostics.resourceBreakdown);
+        console.warn(JSON.stringify(diagnostics.resourceBreakdown, null, 2));
       } else {
-        console.log("✓ Org Chart Hierarchy: All resources have valid hierarchy");
-        console.log(`Total Resources: ${diagnostics.totalResources}`);
-        console.log(`Hierarchy Levels: ${diagnostics.hierarchyLevels}`);
+        console.warn("Org Chart Hierarchy: All resources have valid hierarchy");
+        console.warn(`Total Resources: ${diagnostics.totalResources}`);
+        console.warn(`Hierarchy Levels: ${diagnostics.hierarchyLevels}`);
       }
     }
   }, [currentProject, nodes.length]);
@@ -739,6 +740,7 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes.length, zoomMode]); // Re-bind when node count or zoom mode changes
 
   // Render connection lines using new algorithm (Apple 40% control point ratio)

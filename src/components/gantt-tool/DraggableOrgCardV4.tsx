@@ -348,6 +348,7 @@ export function DraggableOrgCardV4({
   };
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       ref={setDragRef}
       {...listeners}
@@ -460,10 +461,14 @@ export function DraggableOrgCardV4({
         {/* Multi-select checkbox (top-left, invisible until hover) */}
         {onToggleMultiSelect && (
           <div
+            role="checkbox"
+            aria-checked={false}
+            tabIndex={0}
             onClick={(e) => {
               e.stopPropagation();
               onToggleMultiSelect(e);
             }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onToggleMultiSelect(e as unknown as React.MouseEvent); } }}
             style={{
               position: "absolute",
               top: "-8px",
@@ -544,6 +549,7 @@ export function DraggableOrgCardV4({
             title="Change company"
           >
             {node.companyLogoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={node.companyLogoUrl}
                 alt={node.companyName || "Company"}
@@ -556,6 +562,7 @@ export function DraggableOrgCardV4({
 
           {/* Company Picker Dropdown */}
           {showCompanyPicker && availableCompanies.length > 0 && (
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
             <div
               style={{
                 position: "absolute",
@@ -612,6 +619,7 @@ export function DraggableOrgCardV4({
                   }}
                 >
                   {/* Show actual logo from logo library */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={company.logoUrl}
                     alt={company.name}
@@ -655,7 +663,10 @@ export function DraggableOrgCardV4({
             />
           ) : (
             <div
+              role="button"
+              tabIndex={0}
               onClick={(e) => { e.stopPropagation(); handleTitleClick(); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); handleTitleClick(); } }}
               style={{
                 fontFamily: "var(--font-text)",
                 fontSize: "15px",
@@ -709,6 +720,7 @@ export function DraggableOrgCardV4({
 
           {/* Designation picker (dropdown for now, radial in next phase) */}
           {showDesignationPicker && (
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
             <div
               style={{
                 position: "absolute",

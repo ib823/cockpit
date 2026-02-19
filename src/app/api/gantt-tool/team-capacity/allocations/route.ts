@@ -23,11 +23,8 @@ import { z } from "zod";
 import { hasAnyProjectRole } from "@/lib/gantt-tool/access-control";
 import {
   calculateWeekNumber,
-  getWeekStartDate,
   getWeekEndDate,
-  getWeeksInRange,
 } from "@/lib/team-capacity/week-numbering";
-import type { AllocationInput } from "@/lib/team-capacity/types";
 import { WeekNumberingType } from "@prisma/client";
 
 export const maxDuration = 30;
@@ -289,7 +286,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query filters
-    const where: any = {
+    const where: Record<string, unknown> = {
       projectId,
     };
 
@@ -306,13 +303,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (weekStart || weekEnd) {
-      where.weekStartDate = {};
+      const weekDateFilter: { gte?: Date; lte?: Date } = {};
       if (weekStart) {
-        where.weekStartDate.gte = new Date(weekStart);
+        weekDateFilter.gte = new Date(weekStart);
       }
       if (weekEnd) {
-        where.weekStartDate.lte = new Date(weekEnd);
+        weekDateFilter.lte = new Date(weekEnd);
       }
+      where.weekStartDate = weekDateFilter;
     }
 
     // Query allocations
@@ -428,7 +426,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Build delete filter
-    const where: any = {
+    const where: Record<string, unknown> = {
       projectId: validatedData.projectId,
     };
 

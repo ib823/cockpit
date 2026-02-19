@@ -76,6 +76,7 @@ export function GanttMinimap() {
         window.removeEventListener("mouseup", upHandler);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDragging, position, dragStart]);
 
   // Get duration and check if minimap should render
@@ -117,6 +118,7 @@ export function GanttMinimap() {
       }}
     >
       {/* Header - Drag Handle */}
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div
         className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-b-2 border-blue-800 cursor-grab active:cursor-grabbing"
         onMouseDown={handleMouseDown}
@@ -139,6 +141,7 @@ export function GanttMinimap() {
       </div>
 
       {/* Minimap Canvas */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
         className="relative bg-gradient-to-b from-gray-100 to-gray-200 cursor-pointer"
         style={{ width: "280px", height: "120px" }}

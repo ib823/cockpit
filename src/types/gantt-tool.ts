@@ -381,6 +381,7 @@ export type ResourceCategory =
   | "pm"
   | "change"
   | "qa"
+  | "client"
   | "other";
 export type ResourceDesignation =
   | "principal"
@@ -497,17 +498,18 @@ export interface WorkingDaysCalculation {
  */
 export const RESOURCE_CATEGORIES: Record<
   ResourceCategory,
-  { label: string; color: string; icon: string }
+  { label: string; color: string; icon: string; abbr: string }
 > = {
-  leadership: { label: "Leadership", color: "#7E22CE", icon: "🎯" }, // Purple - Strategic
-  pm: { label: "Project Management", color: "#7E22CE", icon: "📊" }, // Purple - Strategic
-  change: { label: "Change Management", color: "#7E22CE", icon: "🔄" }, // Purple - Strategic
-  functional: { label: "Functional", color: "#2563EB", icon: "📘" }, // Blue - Technical
-  technical: { label: "Technical", color: "#2563EB", icon: "🔧" }, // Blue - Technical
-  basis: { label: "Basis/Infrastructure", color: "#2563EB", icon: "🏗️" }, // Blue - Technical
-  security: { label: "Security & Authorization", color: "#2563EB", icon: "🔒" }, // Blue - Technical
-  qa: { label: "Quality Assurance", color: "#2563EB", icon: "✅" }, // Blue - Technical
-  other: { label: "Other/General", color: "#6B7280", icon: "👤" }, // Gray - Support
+  leadership: { label: "Leadership", color: "#7E22CE", icon: "🎯", abbr: "LEAD" }, // Purple - Strategic
+  pm: { label: "Project Management", color: "#7E22CE", icon: "📊", abbr: "PM" }, // Purple - Strategic
+  change: { label: "Change Management", color: "#7E22CE", icon: "🔄", abbr: "CHG" }, // Purple - Strategic
+  functional: { label: "Functional", color: "#2563EB", icon: "📘", abbr: "FUNC" }, // Blue - Technical
+  technical: { label: "Technical", color: "#2563EB", icon: "🔧", abbr: "TECH" }, // Blue - Technical
+  basis: { label: "Basis/Infrastructure", color: "#2563EB", icon: "🏗️", abbr: "BASIS" }, // Blue - Technical
+  security: { label: "Security & Authorization", color: "#2563EB", icon: "🔒", abbr: "SEC" }, // Blue - Technical
+  qa: { label: "Quality Assurance", color: "#2563EB", icon: "✅", abbr: "QA" }, // Blue - Technical
+  client: { label: "Client", color: "#D97706", icon: "🤝", abbr: "CLI" }, // Amber - External
+  other: { label: "Other/General", color: "#6B7280", icon: "👤", abbr: "OTH" }, // Gray - Support
 };
 
 export const RESOURCE_DESIGNATIONS: Record<ResourceDesignation, string> = {
@@ -1005,4 +1007,60 @@ export interface EntityTracker {
   created: Set<string>; // IDs of newly created entities
   updated: Set<string>; // IDs of modified entities
   deleted: Set<string>; // IDs of deleted entities
+}
+
+// ============================================================================
+// ORG CHART TYPES
+// ============================================================================
+
+/**
+ * Org chart resource grouping
+ * Groups resources by category or custom grouping on the org chart canvas
+ */
+export interface ResourceGroup {
+  id: string;
+  name: string;
+  category: ResourceCategory;
+  resourceIds: string[];
+  color?: string;
+  position?: { x: number; y: number };
+  leadResourceId?: string;
+  displayMode?: 'expanded' | 'collapsed' | 'leads-only';
+  visibleResourceIds?: string[];
+  createdAt?: string;
+}
+
+/**
+ * Org chart connection between nodes
+ * Represents a relationship line drawn between two resources
+ */
+export interface OrgChartConnection {
+  id: string;
+  fromResourceId: string;
+  toResourceId: string;
+  type: 'reports-to' | 'collaborates' | 'supports';
+  fromAnchor?: ConnectionAnchor;
+  toAnchor?: ConnectionAnchor;
+  lineColor?: string;
+  lineType?: 'solid' | 'dashed' | 'dotted';
+  arrowHead?: 'none' | 'arrow' | 'diamond' | 'end' | 'start' | 'both';
+  label?: string;
+  createdAt?: string;
+}
+
+/**
+ * Connection anchor point on an org chart card
+ */
+export type ConnectionAnchor = 'top' | 'bottom' | 'left' | 'right';
+
+/**
+ * Card position on org chart canvas
+ * Tracks the x/y placement and optional dimensions of a resource card
+ */
+export interface OrgChartCardPosition {
+  resourceId: string;
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
 }

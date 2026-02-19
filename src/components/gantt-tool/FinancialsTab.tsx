@@ -126,7 +126,7 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [costingData, setCostingData] = useState<CostingData | null>(null);
-  const [breakdownData, setBreakdownData] = useState<BreakdownData | null>(null);
+  const [_breakdownData, setBreakdownData] = useState<BreakdownData | null>(null);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   // Default to FINANCE_ONLY for dev - actual access is enforced server-side
@@ -174,6 +174,7 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.id]);
 
   // Recalculate costing

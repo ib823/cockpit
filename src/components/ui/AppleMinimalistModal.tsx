@@ -22,7 +22,8 @@ export type FormField = {
 interface AppleMinimalistModalProps extends Omit<BaseModalProps, 'children'> {
   children?: React.ReactNode;
   fields?: FormField[];
-  formValues?: Record<string, any>;
+  formValues?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onFieldChange?: (fieldId: string, value: any) => void;
   formLayout?: string;
 }
@@ -30,10 +31,10 @@ interface AppleMinimalistModalProps extends Omit<BaseModalProps, 'children'> {
 /**
  * @deprecated Use BaseModal directly
  */
-export function AppleMinimalistModal({ fields, formValues, onFieldChange, formLayout, ...baseProps }: AppleMinimalistModalProps) {
+export function AppleMinimalistModal({ fields, formValues, onFieldChange, formLayout, children, ...baseProps }: AppleMinimalistModalProps) {
   // For now, just pass through to BaseModal and ignore form-specific props
   // The modals using this handle their own form rendering in children
-  return <BaseModal {...baseProps} />;
+  return <BaseModal {...baseProps}>{children ?? null}</BaseModal>;
 }
 
 export default AppleMinimalistModal;

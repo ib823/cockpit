@@ -1,4 +1,4 @@
-import { Role, Prisma } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "../../../../lib/db";
@@ -59,6 +59,7 @@ export async function POST(req: Request) {
 
     // Use a transaction to ensure all or nothing
     type UserResult = { id: string; email: string; role: "USER" | "MANAGER" | "ADMIN"; name: string | null };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const user: UserResult = await (prisma.$transaction as any)(async (tx: any) => {
       const newUser = await tx.users.upsert({
         where: { email },

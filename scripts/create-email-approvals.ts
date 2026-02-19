@@ -27,7 +27,7 @@ async function main() {
     systemAdmin = await prisma.users.create({
       data: {
         id: createId(),
-        email: "system@keystone.local",
+        email: "system@cockpit.local",
         role: "ADMIN",
         name: "System",
         updatedAt: new Date(),

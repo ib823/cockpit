@@ -11,7 +11,7 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Keystone",
+  title: "Cockpit",
   description: "From RFP to Proposal in 10 Minutes",
   manifest: "/manifest.json",
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, Input, Button, Space, Select, Tag } from 'antd';
+import { Card, Input, Button, Space, Select } from 'antd';
 import { PlusOutlined, DeleteOutlined, ThunderboltOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
 import { useArchitectureStore } from '../../stores/architectureStore';
 import { ACTOR_TEMPLATES, SYSTEM_TEMPLATES, SYSTEM_TYPES } from '../../data/templates';

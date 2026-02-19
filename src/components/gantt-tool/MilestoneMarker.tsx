@@ -138,10 +138,12 @@ export function MilestoneMarker({
       {/* Simple Popover */}
       {showPopover && (
         <>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
           <div
             className="fixed inset-0 z-[1000]"
             onClick={() => setShowPopover(false)}
           />
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
           <div
             className="absolute z-[1001] bg-white rounded-lg shadow-lg border border-gray-200 p-3 min-w-[240px]"
             style={{

@@ -159,7 +159,7 @@ ${nonSAPBlocks}
 
   // Integration connections
   integrations?.forEach((integration, idx) => {
-    const source = sanitizeForMermaid(integration.source).replace(/\s+/g, '');
+    const _source = sanitizeForMermaid(integration.source).replace(/\s+/g, '');
     const target = sanitizeForMermaid(integration.target).replace(/\s+/g, '');
     const method = sanitizeForMermaid(integration.method);
     connections.push(`    int${idx}{{${method}}} -.-> |${sanitizeForMermaid(integration.dataType)}| int${idx}target[${target}]`);

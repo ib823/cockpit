@@ -1,5 +1,5 @@
 /**
- * Keystone - Edge Caching with Vercel Edge Config
+ * Cockpit - Edge Caching with Vercel Edge Config
  *
  * Ultra-fast caching at the edge (CDN level)
  * Response times: < 10ms globally
@@ -82,7 +82,7 @@ export function buildCacheHeaders(config: {
 /**
  * Edge-cached fetch wrapper
  */
-export async function edgeFetch<T = any>(
+export async function edgeFetch<T = unknown>(
   url: string,
   options?: RequestInit & {
     cacheConfig?: (typeof EDGE_CACHE_CONFIG)[keyof typeof EDGE_CACHE_CONFIG];
@@ -197,7 +197,7 @@ export interface EdgeCacheStats {
 /**
  * Fetch with edge cache stats
  */
-export async function edgeFetchWithStats<T = any>(
+export async function edgeFetchWithStats<T = unknown>(
   url: string,
   options?: RequestInit & {
     cacheConfig?: (typeof EDGE_CACHE_CONFIG)[keyof typeof EDGE_CACHE_CONFIG];

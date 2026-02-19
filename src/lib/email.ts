@@ -28,14 +28,14 @@ function emailTemplate(code: string, magicLink?: string): string {
             <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
               <!-- Header -->
               <div style="background: linear-gradient(135deg, #0f172a 0%, #334155 100%); padding: 32px; text-align: center;">
-                <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 300; letter-spacing: -0.5px;">Keystone</h1>
+                <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 300; letter-spacing: -0.5px;">Cockpit</h1>
               </div>
 
               <!-- Content -->
               <div style="padding: 40px 32px;">
                 <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 20px; font-weight: 600;">Your Access is Ready</h2>
                 <p style="margin: 0 0 24px 0; color: #64748b; font-size: 15px; line-height: 1.6;">
-                  Welcome to Keystone! Choose your preferred way to get started:
+                  Welcome to Cockpit! Choose your preferred way to get started:
                 </p>
 
                 ${
@@ -97,7 +97,7 @@ function emailTemplate(code: string, magicLink?: string): string {
                     `
                     }
                     <li style="margin-bottom: 8px;">Set up your passkey (fingerprint/Face ID)</li>
-                    <li>Start using Keystone!</li>
+                    <li>Start using Cockpit!</li>
                   </ol>
                 </div>
 
@@ -134,9 +134,9 @@ export async function sendAccessCode(email: string, code: string, magicLink?: st
 
   try {
     await emailTransporter.sendMail({
-      from: `"Keystone" <${FROM_EMAIL}>`,
+      from: `"Cockpit" <${FROM_EMAIL}>`,
       to: email,
-      subject: magicLink ? "🚀 Your Keystone Access is Ready" : "Your Keystone Access Code",
+      subject: magicLink ? "🚀 Your Cockpit Access is Ready" : "Your Cockpit Access Code",
       html: emailTemplate(code, magicLink),
     });
 
@@ -155,7 +155,7 @@ export async function sendSecurityEmail(
   email: string,
   subject: string,
   html: string
-): Promise<{ success: boolean; provider?: string; error?: any; devMode?: boolean }> {
+): Promise<{ success: boolean; provider?: string; error?: unknown; devMode?: boolean }> {
   // Check if email transporter is configured
   if (!emailTransporter) {
     console.log("[Email] SMTP not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in .env");
@@ -165,7 +165,7 @@ export async function sendSecurityEmail(
 
   try {
     await emailTransporter.sendMail({
-      from: `"Keystone Security" <${FROM_EMAIL}>`,
+      from: `"Cockpit Security" <${FROM_EMAIL}>`,
       to: email,
       subject,
       html,

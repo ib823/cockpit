@@ -1,5 +1,5 @@
 /**
- * Keystone - React Query Configuration
+ * Cockpit - React Query Configuration
  *
  * Centralized React Query setup with intelligent caching
  * Performance: Automatic request deduplication, background refetching

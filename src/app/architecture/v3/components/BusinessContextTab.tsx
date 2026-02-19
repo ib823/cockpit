@@ -617,11 +617,14 @@ function CapabilityTag({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={clsx(
         "inline-flex items-center gap-2 px-4 py-1.5 rounded-full border body text-xs font-semibold cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-default group",
         currentStyle
       )}
       onClick={() => setIsEditing(true)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsEditing(true); }}
       title={capability.category ? `Category: ${capability.category}` : "Click to edit"}
     >
       <div className={clsx("w-1.5 h-1.5 rounded-full", currentStyle.split(' ')[1].replace('text', 'bg'))} />

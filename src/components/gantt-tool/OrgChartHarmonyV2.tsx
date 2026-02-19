@@ -193,12 +193,13 @@ export function OrgChartHarmonyV2({ onClose, project }: Props) {
   const currentProject = project ?? storeProject;
 
   // Get resources from current project
-  const resources = currentProject?.resources || [];
+  const resources = useMemo(() => currentProject?.resources || [], [currentProject?.resources]);
   const companyLogos = getAllCompanyLogos(currentProject?.orgChartPro?.companyLogos);
 
   // Debug logging (development only)
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
       console.log("[OrgChart] Project:", currentProject?.name || "NO PROJECT", "| Resources:", resources.length);
     }
   }, [resources, currentProject]);
@@ -208,6 +209,7 @@ export function OrgChartHarmonyV2({ onClose, project }: Props) {
   const positions = useMemo(() => {
     const pos = layoutEngine.calculateLayout(resources);
     if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
       console.log("[OrgChart] Layout calculated:", pos.size, "positions for", resources.length, "resources");
     }
     return pos;
@@ -358,9 +360,7 @@ export function OrgChartHarmonyV2({ onClose, project }: Props) {
   }, [resources, addResource]);
 
   const handleAddResource = useCallback(async (data: ResourceFormData) => {
-    console.log("🔵 Adding resource:", data);
     await addResource(data);
-    console.log("✅ Resource added, closing modal");
     setShowAddModal(false);
   }, [addResource]);
 
@@ -1275,8 +1275,8 @@ function ResourceFormModal({ isOpen, onClose, resource, onSubmit, availableLogos
     }
   }, [isOpen, resource]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!formData.name.trim() || !formData.description.trim()) {
       alert("Please fill in all required fields");
       return;
@@ -1305,7 +1305,7 @@ function ResourceFormModal({ isOpen, onClose, resource, onSubmit, availableLogos
           <ModalButton onClick={onClose} variant="secondary" disabled={isSubmitting}>
             Cancel
           </ModalButton>
-          <ModalButton onClick={handleSubmit} variant="primary" disabled={isSubmitting}>
+          <ModalButton onClick={() => handleSubmit()} variant="primary" disabled={isSubmitting}>
             {isSubmitting ? "Saving..." : resource ? "Save Changes" : "Add Resource"}
           </ModalButton>
         </>

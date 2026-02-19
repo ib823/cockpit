@@ -1,10 +1,10 @@
 /**
- * Service Worker for Keystone
+ * Service Worker for Cockpit
  * Provides offline support and caching strategies
  */
 
-const CACHE_NAME = "keystone-v1";
-const RUNTIME_CACHE = "keystone-runtime";
+const CACHE_NAME = "cockpit-v1";
+const RUNTIME_CACHE = "cockpit-runtime";
 const OFFLINE_URL = "/offline";
 
 // Resources to cache on install
@@ -214,7 +214,7 @@ async function syncOfflineData() {
 // Helper functions for IndexedDB
 function openDatabase() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open("keystone-offline", 1);
+    const request = indexedDB.open("cockpit-offline", 1);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
@@ -263,7 +263,7 @@ self.addEventListener("push", (event) => {
     requireInteraction: false,
   };
 
-  event.waitUntil(self.registration.showNotification("Keystone", options));
+  event.waitUntil(self.registration.showNotification("Cockpit", options));
 });
 
 // Notification click handler

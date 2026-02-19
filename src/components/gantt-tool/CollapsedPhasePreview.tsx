@@ -17,8 +17,8 @@
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock, Users, CheckCircle2 } from "lucide-react";
-import type { GanttPhase, GanttTask } from "@/types/gantt-tool";
-import { VARIANTS, DURATION } from "@/lib/design-system/animations";
+import type { GanttPhase } from "@/types/gantt-tool";
+import { DURATION } from "@/lib/design-system/animations";
 
 interface CollapsedPhasePreviewProps {
   phase: GanttPhase;

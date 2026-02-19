@@ -31,7 +31,7 @@ const CreateProjectSchema = z.object({
 });
 
 // GET - List all projects for authenticated user (owned + shared)
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
 
@@ -110,6 +110,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Serialize dates to strings for frontend
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     const serializedProjects = projects.map((project: any) => {
       const isOwner = project.userId === session.user.id;
       const collaboratorInfo = project.collaborators[0]; // Will have at most 1 entry due to where clause
@@ -157,6 +158,7 @@ export async function GET(request: NextRequest) {
         })),
       };
     });
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     return NextResponse.json({ projects: serializedProjects }, { status: 200 });
   } catch (error) {
@@ -208,6 +210,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Use transaction with retry for create + audit log + holidays
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     const project = (await withRetry(() =>
       (prisma.$transaction as any)(async (tx: any) => {
         const newProject = await tx.ganttProject.create({
@@ -298,6 +301,7 @@ export async function POST(request: NextRequest) {
         createdAt: r.createdAt.toISOString(),
       })),
     };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     return NextResponse.json({ project: serializedProject }, { status: 201 });
   } catch (error) {

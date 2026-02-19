@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
 /**
  * Gantt Canvas V3 - Apple HIG Specification (Proposal Mode)
  *
@@ -114,7 +115,8 @@ const CATEGORY_SORT_ORDER: Record<ResourceCategory, number> = {
   security: 5,
   basis: 6,
   qa: 7,
-  other: 8,
+  client: 8,
+  other: 9,
 };
 
 // Apple HIG Color System for Gantt Status
@@ -193,6 +195,7 @@ export function GanttCanvasV3({
   } | null>(null);
 
   const [deletingTask, setDeletingTask] = useState<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     task: any;
     taskId: string;
     phaseId: string;
@@ -282,6 +285,7 @@ export function GanttCanvasV3({
     };
 
     autoOptimize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentProject?.id]); // Re-run when project changes
 
   // Hydrate allocations from database on project load
@@ -438,6 +442,7 @@ export function GanttCanvasV3({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingPhaseId, editingTaskId, showMilestoneModal, taskResourceModal, selection, currentProject, selectItem]);
 
 
@@ -465,6 +470,7 @@ export function GanttCanvasV3({
     });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleTaskDelete = (task: any, phaseId: string) => {
     setDeletingTask({ task, taskId: task.id, phaseId });
   };
@@ -682,14 +688,17 @@ export function GanttCanvasV3({
     : null;
 
   // Use memoized hasAMSPhases value (defined above) for timeline bounds
-  const timelineBounds = (focusedPhase && duration && !hasAMSPhases)
-    ? {
+  const timelineBounds = useMemo(() => {
+    if (focusedPhase && duration && !hasAMSPhases) {
+      return {
         startDate: new Date(focusedPhase.startDate),
         endDate: new Date(focusedPhase.endDate),
         // Add 1 to make dates inclusive (phase from Jan 5 to Jan 30 is 26 days, not 25)
         durationDays: differenceInDays(new Date(focusedPhase.endDate), new Date(focusedPhase.startDate)) + 1,
-      }
-    : duration;
+      };
+    }
+    return duration;
+  }, [focusedPhase, duration, hasAMSPhases]);
 
   // Generate time markers based on zoom mode (safe to call even if no data)
   const timeMarkers = useMemo(() => {
@@ -789,15 +798,8 @@ export function GanttCanvasV3({
       "ABMY"
     );
 
-    console.log("[GanttCanvasV3] Holiday data:", {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      projectHolidays: currentProject.holidays?.length || 0,
-      unifiedHolidays: holidays.length,
-      firstFew: holidays.slice(0, 3).map(h => ({ date: h.date, name: h.name }))
-    });
-
     return holidays;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration, timelineBounds, currentProject?.holidays]);
 
   // CRITICAL: Calculate extended duration BEFORE any early returns to maintain hooks order
@@ -896,7 +898,7 @@ export function GanttCanvasV3({
         resource.name.toLowerCase().includes(query) ||
         category.label.toLowerCase().includes(query) ||
         resource.companyName?.toLowerCase().includes(query) ||
-        resource.role?.toLowerCase().includes(query)
+        resource.projectRole?.toLowerCase().includes(query)
       );
     });
   }, [sortedResources, resourceSearchQuery]);
@@ -909,7 +911,7 @@ export function GanttCanvasV3({
   const subCompanies: SubCompanyInfo[] = currentProject?.orgChartPro?.subCompanies || [];
 
   // Org Chart functional groups - user-defined groupings from the Org Chart Builder
-  const orgChartGroups: OrgChartGroup[] = currentProject?.orgChartPro?.groups || [];
+  const orgChartGroups: OrgChartGroup[] = useMemo(() => currentProject?.orgChartPro?.groups || [], [currentProject?.orgChartPro?.groups]);
 
   // Group resources by category for hierarchical display
   const groupedResources = useMemo(() => {
@@ -1421,9 +1423,8 @@ export function GanttCanvasV3({
           // DEPRECATED: No longer used - progress updated via edit modal
           // Kept for interface compatibility only
         }}
-        onAddTask={(phaseId) => {
+        onAddTask={(_phaseId) => {
           // Future: Could open add task modal for this phase
-          console.log('[Mobile] Add task requested for phase:', phaseId);
         }}
       />
     );
@@ -2550,7 +2551,7 @@ export function GanttCanvasV3({
                       >
                         <option value="">Designation...</option>
                         {Object.entries(RESOURCE_DESIGNATIONS).map(([key, des]) => (
-                          <option key={key} value={key}>{des.label}</option>
+                          <option key={key} value={key}>{des}</option>
                         ))}
                       </select>
 
@@ -2926,7 +2927,7 @@ export function GanttCanvasV3({
                           const resourceName = e.dataTransfer.getData("resourceName");
 
                           if (resourceId) {
-                            console.log(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
+                            console.warn(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
                           }
                           setDragOverPhaseId(null);
                         }}
@@ -2977,7 +2978,7 @@ export function GanttCanvasV3({
                           const resourceName = e.dataTransfer.getData("resourceName");
 
                           if (resourceId) {
-                            console.log(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
+                            console.warn(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
                           }
                           setDragOverPhaseId(null);
                         }}
@@ -3121,7 +3122,7 @@ export function GanttCanvasV3({
                           const resourceName = e.dataTransfer.getData("resourceName");
 
                           if (resourceId) {
-                            console.log(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
+                            console.warn(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
                           }
                           setDragOverPhaseId(null);
                         }}
@@ -3150,16 +3151,10 @@ export function GanttCanvasV3({
                               {phase.name}
                             </div>
                             <div style={{ fontSize: "11px", opacity: 0.85, marginBottom: "4px" }}>
-                              {phase.phaseType === "ams"
-                                ? `AMS starts ${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")}`
-                                : `${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} → ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`
-                              }
+                              {`${format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} → ${format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}`}
                             </div>
                             <div style={{ fontSize: "11px", opacity: 0.85 }}>
-                              {phase.phaseType === "ams"
-                                ? "Ongoing support contract"
-                                : `Duration: ${calculateWorkingDaysInclusive(phase.startDate, phase.endDate, currentProject.holidays || [])} working days`
-                              }
+                              {`Duration: ${calculateWorkingDaysInclusive(phase.startDate, phase.endDate, currentProject.holidays || [])} working days`}
                             </div>
                             {phase.tasks && phase.tasks.length > 0 && (
                               <div style={{ fontSize: "11px", opacity: 0.85, marginTop: "4px", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "4px" }}>
@@ -3825,14 +3820,21 @@ export function GanttCanvasV3({
       )}
 
       {/* Task Resource Modal - Simple Assignment */}
-      {taskResourceModal && (
-        <TaskResourceModal
-          isOpen={true}
-          taskId={taskResourceModal.taskId}
-          phaseId={taskResourceModal.phaseId}
-          onClose={() => setTaskResourceModal(null)}
-        />
-      )}
+      {taskResourceModal && (() => {
+        const _phase = currentProject.phases.find(p => p.id === taskResourceModal.phaseId);
+        const _task = _phase?.tasks.find(t => t.id === taskResourceModal.taskId);
+        return (
+          <TaskResourceModal
+            isOpen={true}
+            taskName={_task?.name}
+            onClose={() => setTaskResourceModal(null)}
+            onSave={(_resourceId, _allocation, _notes) => {
+              // TODO: Implement resource assignment persistence
+              setTaskResourceModal(null);
+            }}
+          />
+        );
+      })()}
 
       {/* Phase Edit Modal - Apple HIG Compliant */}
       {editingPhaseId && (() => {
@@ -3880,6 +3882,7 @@ export function GanttCanvasV3({
             if (data.id) {
               await updateMilestone(data.id, data);
             } else {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               await addMilestone(data as any);
             }
             setMilestoneDefaultDate(undefined);

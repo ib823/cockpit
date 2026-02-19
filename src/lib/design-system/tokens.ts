@@ -26,12 +26,14 @@ export const COLORS = {
     secondary: 'rgba(0, 0, 0, 0.6)',  // 60% - Body text, labels
     tertiary: 'rgba(0, 0, 0, 0.4)',   // 40% - Captions, disabled text
     disabled: 'rgba(0, 0, 0, 0.25)',  // 25% - Fully disabled
+    inverse: 'rgba(255, 255, 255, 1)', // White text on dark backgrounds
   },
 
   // BACKGROUNDS (White + one subtle alternative)
   bg: {
     primary: '#FFFFFF',    // Pure white - main background
     elevated: '#FFFFFF',   // Cards, modals - same as primary (no elevation color)
+    secondary: '#F5F5F7',  // Secondary background - form sections, grouped content
     subtle: '#FAFAFA',     // Only if absolutely necessary (avoid if possible)
   },
 
@@ -39,6 +41,7 @@ export const COLORS = {
   border: {
     default: 'rgba(0, 0, 0, 0.08)',   // 8% - Standard borders
     strong: 'rgba(0, 0, 0, 0.12)',    // 12% - Emphasized borders
+    light: 'rgba(0, 0, 0, 0.06)',     // 6% - Light borders
     subtle: 'rgba(0, 0, 0, 0.04)',    // 4% - Very subtle dividers
   },
 
@@ -59,6 +62,13 @@ export const COLORS = {
   redHover: '#D70015',      // Red hover state
   redPressed: '#C40010',    // Red pressed state
   redLight: 'rgba(255, 59, 48, 0.1)', // Red subtle background
+
+  purple: '#AF52DE',        // Purple accent
+  orange: '#FF9500',        // Orange accent
+  greenLight: 'rgba(52, 199, 89, 0.1)', // Green subtle background
+
+  // UTILITY COLORS
+  shadow: 'rgba(0, 0, 0, 0.1)', // Default shadow color
 
   // OVERLAYS
   overlay: {
@@ -108,13 +118,16 @@ export const TYPOGRAPHY = {
     caption: '13px',    // Captions, secondary text
     body: '15px',       // Body text (primary size)
     subtitle: '16px',   // Subtitles
+    heading: '17px',    // Section headings
     title: '20px',      // Titles, headings
     display: '32px',    // Display text, hero
   },
 
   fontWeight: {
+    normal: 400,
     regular: 400,
     semibold: 600,
+    bold: 700,
   },
 
   lineHeight: {
@@ -150,6 +163,7 @@ export const SPACING = {
   4: '16px',     // 2 × base (default)
   5: '24px',     // 3 × base (comfortable)
   6: '32px',     // 4 × base (large)
+  7: '40px',     // 5 × base (medium-large)
   8: '48px',     // 6 × base (xlarge)
   10: '64px',    // 8 × base (xxlarge)
   12: '80px',    // 10 × base
@@ -166,6 +180,7 @@ export const SPACING = {
  * Simplified: Only 3 values needed
  */
 export const RADIUS = {
+  sm: '4px',      // Extra small elements (badges, chips)
   small: '6px',   // Small elements (tags, indicators)
   default: '8px', // Everything else (buttons, inputs, modals, cards)
   large: '12px',  // Only for very large containers if needed
@@ -311,7 +326,7 @@ export const GANTT_DIMENSIONS = {
  * Get text color with opacity
  * Usage: getTextColor('primary') => 'rgba(0, 0, 0, 1)'
  */
-export function getTextColor(level: 'primary' | 'secondary' | 'tertiary' | 'disabled'): string {
+export function getTextColor(level: 'primary' | 'secondary' | 'tertiary' | 'disabled' | 'inverse'): string {
   return COLORS.text[level];
 }
 

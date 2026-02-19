@@ -30,6 +30,7 @@ import {
   Clock,
   Award,
   Zap,
+  Sparkles,
 } from "lucide-react";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { differenceInDays, format } from "date-fns";

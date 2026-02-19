@@ -28,10 +28,7 @@ import { prisma, withRetry } from "@/lib/db";
 import { z } from "zod";
 import { hasAnyProjectRole } from "@/lib/gantt-tool/access-control";
 import {
-  calculateInternalResourceCost,
-  calculateSubcontractorCost,
   calculateProjectCostingSummary,
-  applyCostVisibilityFilter,
 } from "@/lib/team-capacity/costing";
 import { CostVisibilityLevel } from "@prisma/client";
 
@@ -110,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log access for audit purposes
-    console.log(
+    console.warn(
       `[Costing] User ${session.user.id} (role: ${user?.role}) accessing project ${validatedData.projectId} with visibility: ${userVisibilityLevel}`
     );
 
@@ -243,7 +240,7 @@ export async function GET(request: NextRequest) {
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get("projectId");
-    const visibilityLevel = searchParams.get("visibilityLevel");
+    const _visibilityLevel = searchParams.get("visibilityLevel");
 
     if (!projectId) {
       return NextResponse.json(
@@ -285,7 +282,7 @@ export async function GET(request: NextRequest) {
       userVisibilityLevel = "PUBLIC";
     }
 
-    console.log(
+    console.warn(
       `[Costing] GET User ${session.user.id} (role: ${user?.role}) accessing project ${projectId} with visibility: ${userVisibilityLevel}`
     );
 

@@ -76,9 +76,14 @@ export function ProjectInsightsDashboard({ project }: ProjectInsightsDashboardPr
       return acc;
     }, {} as Record<string, number>);
 
-    // Calculate resource allocations
-    const allocations = project.weeklyAllocations || [];
-    const totalAllocatedMandays = allocations.reduce((sum, a) => sum + (a.mandays || 0), 0);
+    // Calculate resource allocations from task assignments
+    const totalAllocatedMandays = phases.reduce((sum: number, phase) => {
+      return sum + (phase.tasks?.reduce((taskSum: number, task) => {
+        const taskDays = differenceInDays(new Date(task.endDate), new Date(task.startDate)) || 1;
+        const assignmentCount = task.resourceAssignments?.length || 0;
+        return taskSum + (taskDays * assignmentCount);
+      }, 0) || 0);
+    }, 0);
 
     // Calculate effort estimates (simplified)
     const estimatedEffortMandays = totalTasks * 5; // Rough estimate: 5 days per task

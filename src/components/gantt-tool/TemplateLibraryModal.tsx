@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Building,
   X,
+  BookOpen,
 } from "lucide-react";
 import {
   PROJECT_TEMPLATES,

@@ -247,7 +247,7 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
           </tr>
         </thead>
         <tbody>
-          {heatmapData.rows.map((row, rowIdx) => (
+          {heatmapData.rows.map((row, _rowIdx) => (
             <tr key={row.resource.id}>
               <td
                 style={{
@@ -272,6 +272,7 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
               {row.weeks.map((week, weekIdx) => (
                 <td key={weekIdx}>
                   <Tooltip title={`${week.allocatedDays} days allocated`}>
+                    {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
                     <div
                       style={{
                         padding: "8px",

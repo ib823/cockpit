@@ -20,19 +20,19 @@ interface TaskRowProps {
   isTaskDragging: boolean;
   dropTarget: boolean;
   taskColor: string;
-  viewSettings: any;
+  viewSettings: unknown;
   handlers: {
     autoAlignTask: (id: string, phaseId: string) => void;
     reorderTask: (id: string, phaseId: string, dir: "up" | "down") => void;
     toggleTaskCollapse: (id: string, phaseId: string) => void;
     handleTaskClick: (id: string) => void;
     handleTaskDoubleClick: (id: string) => void;
-    handleTaskMouseDown: (e: React.MouseEvent, id: string, phaseId: string, mode: any) => void;
+    handleTaskMouseDown: (e: React.MouseEvent, id: string, phaseId: string, mode: unknown) => void;
     handleResourceDragOver: (e: React.DragEvent, id: string, phaseId: string) => void;
     handleResourceDragLeave: (e: React.DragEvent) => void;
     handleResourceDrop: (e: React.DragEvent, id: string, phaseId: string) => void;
-    getResourceById: (id: string) => any;
-    calculateItemStatus: (start: string, end: string, progress: number) => any;
+    getResourceById: (id: string) => Record<string, unknown> | undefined;
+    calculateItemStatus: (start: string, end: string, progress: number) => string;
   };
 }
 

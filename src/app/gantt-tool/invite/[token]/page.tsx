@@ -60,6 +60,7 @@ export default function AcceptInvitePage() {
     if (sessionStatus === "authenticated" && token) {
       fetchInviteDetails();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionStatus, token]);
 
   const fetchInviteDetails = async () => {

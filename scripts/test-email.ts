@@ -24,7 +24,7 @@ async function testEmailConfig() {
   console.log(`  SMTP_PORT: ${smtpPort ? "✅ Set" : "❌ Missing"}`);
   console.log(`  SMTP_USER: ${smtpUser ? "✅ Set" : "❌ Missing"}`);
   console.log(`  SMTP_PASS: ${smtpPass ? "✅ Set" : "❌ Missing"}`);
-  console.log(`  EMAIL_FROM: ${emailFrom || "noreply@keystone-app.com"}\n`);
+  console.log(`  EMAIL_FROM: ${emailFrom || "noreply@cockpit-app.com"}\n`);
 
   if (!smtpHost || !smtpUser || !smtpPass) {
     console.log("❌ Error: Missing SMTP configuration!");
@@ -69,7 +69,7 @@ async function testEmailConfig() {
 
   try {
     const info = await transporter.sendMail({
-      from: `"Keystone Test" <${emailFrom || "noreply@keystone-app.com"}>`,
+      from: `"Cockpit Test" <${emailFrom || "noreply@cockpit-app.com"}>`,
       to: testEmail,
       subject: "✅ Email Configuration Test - Success!",
       html: `
@@ -82,14 +82,14 @@ async function testEmailConfig() {
             <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
               <h1 style="color: #0f172a; margin-bottom: 16px;">✅ Email Test Successful!</h1>
               <p style="color: #64748b; font-size: 16px; line-height: 1.6;">
-                Your Keystone email configuration is working perfectly!
+                Your Cockpit email configuration is working perfectly!
               </p>
               <div style="background: #eff6ff; border-left: 3px solid #3b82f6; padding: 16px; border-radius: 8px; margin: 24px 0;">
                 <p style="margin: 0; color: #1e40af; font-size: 14px;">
                   <strong>Test Details:</strong><br>
                   Provider: Brevo (Sendinblue)<br>
                   Server: ${smtpHost}<br>
-                  From: ${emailFrom || "noreply@keystone-app.com"}
+                  From: ${emailFrom || "noreply@cockpit-app.com"}
                 </p>
               </div>
               <p style="color: #64748b; font-size: 14px;">

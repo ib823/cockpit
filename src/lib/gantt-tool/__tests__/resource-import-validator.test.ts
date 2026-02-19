@@ -10,7 +10,7 @@ import {
   validateManagerAssignment,
   getImportValidationSummary,
 } from '../resource-import-validator';
-import type { Resource } from '@prisma/client';
+import type { GanttResource as Resource } from '@prisma/client';
 
 function createMockResource(overrides: Partial<Resource> = {}): Resource {
   return {
@@ -39,6 +39,8 @@ function createMockResource(overrides: Partial<Resource> = {}): Resource {
     rateType: null,
     hourlyRate: null,
     dailyRate: null,
+    regionCode: null,
+    isSubcontractor: false,
     ...overrides,
   };
 }

@@ -25,8 +25,8 @@ import {
   Button,
   App,
 } from "antd";
-import { DollarSign, TrendingUp, TrendingDown, Target, Edit2, Save } from "lucide-react";
-import { GanttProject, Resource } from "@/types/gantt-tool";
+import { TrendingUp, TrendingDown, Edit2, Save } from "lucide-react";
+import { GanttProject } from "@/types/gantt-tool";
 import {
   BarChart,
   Bar,
@@ -34,12 +34,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   Cell,
   ReferenceLine,
   ComposedChart,
-  Line,
 } from "recharts";
 import { differenceInDays, parseISO } from "date-fns";
 import {

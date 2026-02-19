@@ -16,7 +16,7 @@
 import { useState } from "react";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { FormExample } from "@/lib/design-system/showcase-helpers";
-import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "@/lib/design-system/tokens";
+import { COLORS, SPACING, TYPOGRAPHY } from "@/lib/design-system/tokens";
 import type { GanttProject } from "@/types/gantt-tool";
 import { exportGanttEnhanced } from "@/lib/gantt-tool/export-utils";
 
@@ -49,7 +49,7 @@ export default function ExportConfigModal({ isOpen, onClose, project }: ExportCo
     try {
       await exportGanttEnhanced(project, {
         format: format as "png" | "pdf" | "svg",
-        quality: quality as "low" | "medium" | "high",
+        quality: quality as "standard" | "high" | "print",
         sizePreset: "presentation",
         exportScope: "all",
         contentOptions: {

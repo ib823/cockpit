@@ -158,7 +158,7 @@ export function validateResourceData(
   }
 
   // Validate charge rate if billable
-  if (data.isBillable && data.chargeRatePerHour && data.chargeRatePerHour <= 0) {
+  if (data.isBillable && data.chargeRatePerHour && Number(data.chargeRatePerHour) <= 0) {
     errors.push({
       code: 'INVALID_CHARGE_RATE',
       message: 'Charge rate must be greater than 0 for billable resources',
@@ -168,7 +168,7 @@ export function validateResourceData(
   }
 
   // Validate utilization target if provided
-  if (data.utilizationTarget !== undefined) {
+  if (data.utilizationTarget !== undefined && data.utilizationTarget !== null) {
     if (data.utilizationTarget < 0 || data.utilizationTarget > 100) {
       errors.push({
         code: 'INVALID_UTILIZATION_TARGET',

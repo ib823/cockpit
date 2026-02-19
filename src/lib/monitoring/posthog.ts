@@ -1,7 +1,7 @@
 /**
  * PostHog Analytics Integration
  *
- * Product analytics and feature flags for the Keystone application
+ * Product analytics and feature flags for the Cockpit application
  */
 
 import posthog from "posthog-js";
@@ -113,7 +113,7 @@ export const trackEvent = {
   },
 
   // Feature Usage
-  featureUsed: (featureName: string, metadata?: Record<string, any>) => {
+  featureUsed: (featureName: string, metadata?: Record<string, unknown>) => {
     if (typeof window === "undefined") return;
     posthog.capture("feature_used", { feature: featureName, ...metadata });
   },
@@ -128,7 +128,7 @@ export const trackEvent = {
 /**
  * Identify user for analytics
  */
-export function identifyUser(userId: string, traits?: Record<string, any>) {
+export function identifyUser(userId: string, traits?: Record<string, unknown>) {
   if (typeof window === "undefined") return;
   posthog.identify(userId, traits);
 }

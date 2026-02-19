@@ -8,7 +8,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { GanttTask, GanttPhase } from "@/types/gantt-tool";
+import type { GanttPhase } from "@/types/gantt-tool";
 import { differenceInDays } from "date-fns";
 
 interface TaskPosition {
@@ -48,7 +48,7 @@ export function DependencyArrows({
   durationDays,
   containerWidth,
   containerHeight,
-  viewportTop = 0,
+  viewportTop: _viewportTop = 0,
 }: DependencyArrowsProps) {
   // Calculate all task positions
   const taskPositions = useMemo(() => {
@@ -61,8 +61,8 @@ export function DependencyArrows({
       const phaseOffsetDays = differenceInDays(phaseStartDate, startDate);
       const phaseDurationDays = differenceInDays(phaseEndDate, phaseStartDate);
 
-      const phaseLeft = (phaseOffsetDays / durationDays) * 100;
-      const phaseWidth = (phaseDurationDays / durationDays) * 100;
+      const _phaseLeft = (phaseOffsetDays / durationDays) * 100;
+      const _phaseWidth = (phaseDurationDays / durationDays) * 100;
 
       // Phase row height
       const phaseHeight = phase.collapsed ? 100 : 120; // Approximate
@@ -98,7 +98,7 @@ export function DependencyArrows({
     });
 
     return positions;
-  }, [phases, startDate, endDate, durationDays]);
+  }, [phases, startDate, durationDays]);
 
   // Extract all dependencies
   const dependencies = useMemo(() => {

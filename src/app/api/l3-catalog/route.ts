@@ -1,5 +1,5 @@
 /**
- * Keystone - L3 Catalog API
+ * Cockpit - L3 Catalog API
  *
  * GET /api/l3-catalog - Fetch L3 scope items with filtering
  *
@@ -19,7 +19,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { withCache, CacheKeys, CACHE_CONFIG, cache } from "@/lib/cache/redis-cache";
+import { withCache, CACHE_CONFIG, cache } from "@/lib/cache/redis-cache";
+import { requireAdmin } from "@/lib/nextauth-helpers";
 
 const prisma = new PrismaClient();
 
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
         console.warn("[L3 Catalog API] 🔄 Cache MISS - fetching from database");
 
         // Build where clause
-        const where: any = {};
+        const where: Record<string, unknown> = {};
 
         if (lobName) {
           where.lob = { lobName };
@@ -184,6 +185,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    await requireAdmin();
+
     const { action } = await request.json();
 
     if (action === "invalidate") {
@@ -206,6 +209,18 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "unauthorized") {
+        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "forbidden") {
+        return NextResponse.json(
+          { success: false, error: "Forbidden - Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
+
     console.error("[L3 Catalog API] ❌ POST Error:", error);
 
     return NextResponse.json(

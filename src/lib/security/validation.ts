@@ -100,13 +100,13 @@ export function sanitizeArray<T>(input: unknown, itemSanitizer: (item: unknown) 
 /**
  * Sanitize object keys to prevent prototype pollution
  */
-export function sanitizeObjectKeys<T extends Record<string, any>>(input: unknown): T {
+export function sanitizeObjectKeys<T extends Record<string, unknown>>(input: unknown): T {
   if (typeof input !== "object" || input === null) {
     return {} as T;
   }
 
-  const obj = input as Record<string, any>;
-  const safe: Record<string, any> = {};
+  const obj = input as Record<string, unknown>;
+  const safe: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
     // Block dangerous keys
@@ -144,7 +144,7 @@ export function sanitizeObjectKeys<T extends Record<string, any>>(input: unknown
  */
 export function validateRicefwItem(input: unknown): {
   valid: boolean;
-  data?: any;
+  data?: unknown;
   errors?: z.ZodError;
 } {
   try {
@@ -163,7 +163,7 @@ export function validateRicefwItem(input: unknown): {
  */
 export function validateFormItem(input: unknown): {
   valid: boolean;
-  data?: any;
+  data?: unknown;
   errors?: z.ZodError;
 } {
   try {
@@ -182,7 +182,7 @@ export function validateFormItem(input: unknown): {
  */
 export function validateIntegrationItem(input: unknown): {
   valid: boolean;
-  data?: any;
+  data?: unknown;
   errors?: z.ZodError;
 } {
   try {
@@ -201,7 +201,7 @@ export function validateIntegrationItem(input: unknown): {
  */
 export function validatePhase(input: unknown): {
   valid: boolean;
-  data?: any;
+  data?: unknown;
   errors?: z.ZodError;
 } {
   try {
@@ -220,7 +220,7 @@ export function validatePhase(input: unknown): {
  */
 export function validateChip(input: unknown): {
   valid: boolean;
-  data?: any;
+  data?: unknown;
   errors?: z.ZodError;
 } {
   try {

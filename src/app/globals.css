@@ -1,8 +1,8 @@
 @import "./tokens.css";
-@import "./motion.css";
-@import "./button-normalize.css";
-@import "./accessibility.css";
-@import "./responsive.css";
+@import "../styles/motion.css";
+@import "../styles/button-normalize.css";
+@import "../styles/accessibility.css";
+@import "../styles/responsive.css";
 @import "../ui/datagrid/ant-table.css";
 
 @tailwind base;

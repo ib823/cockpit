@@ -163,13 +163,14 @@ describe('TYPOGRAPHY System - Mathematical Precision', () => {
     expect(TYPOGRAPHY.fontSize.display).toBe('32px');
   });
 
-  it('SCENARIO 15: only 2 font weights (regular and semibold)', () => {
+  it('SCENARIO 15: font weights include regular, semibold, bold, and normal', () => {
     expect(TYPOGRAPHY.fontWeight.regular).toBe(400);
     expect(TYPOGRAPHY.fontWeight.semibold).toBe(600);
+    expect(TYPOGRAPHY.fontWeight.bold).toBe(700);
+    expect(TYPOGRAPHY.fontWeight.normal).toBe(400);
 
-    // Verify no other weights exist
     const weights = Object.keys(TYPOGRAPHY.fontWeight);
-    expect(weights).toHaveLength(2);
+    expect(weights).toHaveLength(4);
   });
 
   it('SCENARIO 16: line heights are defined for all text types', () => {

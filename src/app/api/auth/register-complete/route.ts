@@ -128,6 +128,7 @@ export async function POST(req: Request) {
     const passwordExpiresAt = calculatePasswordExpiry();
 
     type UserResult = { id: string; email: string; role: "USER" | "MANAGER" | "ADMIN" };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const user: UserResult = await (prisma.$transaction as any)(async (tx: any) => {
       // Create user
       const newUser = await tx.users.create({

@@ -26,7 +26,7 @@ import {
   getScheduleCompressionSuggestions,
   type CriticalPathTask,
 } from "@/lib/project-analytics/critical-path";
-import { colorValues, getElevationShadow, withOpacity, spacing } from "@/lib/design-system";
+import { colorValues, withOpacity } from "@/lib/design-system";
 
 interface CriticalPathPanelProps {
   open: boolean;
@@ -57,7 +57,7 @@ export function CriticalPathPanel({
   }, [project]);
 
   // Calculate impact for selected task
-  const taskImpact = useMemo(() => {
+  const _taskImpact = useMemo(() => {
     if (!project || !selectedTaskForImpact) return null;
     return getTaskDelayImpact(project, selectedTaskForImpact, 5); // Assume 5-day delay
   }, [project, selectedTaskForImpact]);
@@ -76,8 +76,8 @@ export function CriticalPathPanel({
     );
   }
 
-  const criticalPathPercentage = (analysis.criticalPath.length / analysis.allTasks.length) * 100;
-  const avgSlack =
+  const _criticalPathPercentage = (analysis.criticalPath.length / analysis.allTasks.length) * 100;
+  const _avgSlack =
     analysis.allTasks.filter((t) => !t.isCritical).reduce((sum, t) => sum + t.slack, 0) /
     Math.max(analysis.allTasks.filter((t) => !t.isCritical).length, 1);
 
@@ -349,11 +349,13 @@ function CriticalTasksTab({
       <div className="space-y-2">
         {tasks
           .sort((a, b) => a.earlyStart - b.earlyStart)
-          .map((task, idx) => {
+          .map((task, _idx) => {
             const isInLongestChain = longestChain.includes(task.id);
             return (
               <div
                 key={task.id}
+                role="button"
+                tabIndex={0}
                 className="p-4 rounded-xl border transition-all duration-200 cursor-pointer hover:shadow-md"
                 style={{
                   backgroundColor: isInLongestChain
@@ -362,6 +364,7 @@ function CriticalTasksTab({
                   borderColor: isInLongestChain ? colorValues.error[300] : colorValues.neutral[200],
                 }}
                 onClick={() => onHighlightTask?.(task.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onHighlightTask?.(task.id); }}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
@@ -415,7 +418,7 @@ function CriticalTasksTab({
 function AllTasksTab({
   tasks,
   onSelectTask,
-  selectedTask,
+  selectedTask: _selectedTask,
   onHighlightTask,
 }: {
   tasks: CriticalPathTask[];
@@ -430,6 +433,8 @@ function AllTasksTab({
         .map((task) => (
           <div
             key={task.id}
+            role="button"
+            tabIndex={0}
             className="p-3 rounded-lg border transition-all duration-200 cursor-pointer hover:shadow-sm"
             style={{
               backgroundColor: task.isCritical ? withOpacity(colorValues.error[500], 0.05) : "#fff",
@@ -439,6 +444,7 @@ function AllTasksTab({
               onSelectTask(task.id);
               onHighlightTask?.(task.id);
             }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onSelectTask(task.id); onHighlightTask?.(task.id); } }}
           >
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">

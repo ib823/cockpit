@@ -12,6 +12,7 @@ interface SearchResult {
   title: string;
   subtitle?: string;
   icon: React.ComponentType<{ className?: string }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
 }
 

@@ -23,7 +23,7 @@ export interface ProjectInputs {
   // Presales data
   chipCount?: number;
   completenessScore?: number;
-  decisions?: Record<string, any>;
+  decisions?: Record<string, unknown>;
 
   // Timeline data
   phases?: Phase[];

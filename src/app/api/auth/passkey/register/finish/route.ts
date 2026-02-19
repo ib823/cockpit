@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authConfig as authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { verifyRegistrationResponse, rpID, origin, challenges } from "@/lib/webauthn";
-import type { RegistrationResponseJSON } from "@simplewebauthn/types";
+import type { RegistrationResponseJSON } from "@simplewebauthn/server";
 
 // POST /api/auth/passkey/register/finish - Complete passkey registration
 export async function POST(req: NextRequest) {

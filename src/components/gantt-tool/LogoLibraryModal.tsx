@@ -241,9 +241,11 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
   const handleDeleteLogo = useCallback((logoId: string, companyName: string, isDefault: boolean) => {
     // Check if logo is used by any resources in org chart
     const orgChartNodes = currentProject?.orgChartPro?.nodes || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const usedByResources = orgChartNodes.filter((node: any) => node.companyName === companyName);
 
     if (usedByResources.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const resourceNames = usedByResources.map((r: any) => r.name || 'Unnamed').join(', ');
       const message = `Warning: This logo is currently assigned to ${usedByResources.length} resource${usedByResources.length > 1 ? 's' : ''}: ${resourceNames}.\n\nIf you delete this logo:\n• These resources will lose their company assignment\n• The logo will no longer appear in the org chart\n• You will need to reassign companies to these resources\n\nAre you sure you want to delete "${companyName}"?`;
 
@@ -436,6 +438,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                   padding: SPACING[3],
                 }}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={logo.logoUrl}
                   alt={logo.companyName}
@@ -550,6 +553,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                   padding: SPACING[3],
                 }}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={logo.logoUrl}
                   alt={logo.companyName || "Uploaded logo"}
@@ -615,7 +619,10 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                 </div>
               ) : (
                 <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setEditingCompanyName(logo.id)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setEditingCompanyName(logo.id); }}
                   style={{
                     fontFamily: TYPOGRAPHY.fontFamily.text,
                     fontSize: "13px",
@@ -659,7 +666,10 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
           {Array.from({ length: emptySlots }).map((_, index) => (
             <div
               key={`empty-${index}`}
+              role="button"
+              tabIndex={0}
               onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
               style={{
                 border: "2px dashed #D1D1D6",
                 borderRadius: "12px",
@@ -785,12 +795,15 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
 
         {/* Upload zone */}
         <div
+          role="button"
+          tabIndex={0}
           ref={dropZoneRef}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
           style={{
             border: `2px dashed ${isDragging ? "#007AFF" : "#D1D1D6"}`,
             borderRadius: "12px",

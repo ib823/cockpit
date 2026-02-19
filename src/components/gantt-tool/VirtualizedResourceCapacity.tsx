@@ -12,6 +12,7 @@
  */
 
 import React, { memo, useCallback, useMemo, useRef } from "react";
+// @ts-expect-error react-window types may not export VariableSizeList in all versions
 import { VariableSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { ChevronDown, ChevronRight, Check } from "lucide-react";

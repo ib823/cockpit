@@ -27,7 +27,7 @@ const mockSettings = {
 describe.skip('Focus Trap - StyleSelector Modal', () => {
   describe('Focus Capture on Open (24 scenarios)', () => {
     it('should focus first focusable element when modal opens', async () => {
-      const { rerender } = render(
+      const { rerender: _rerender } = render(
         <StyleSelector
           currentSettings={mockSettings}
           onGenerate={vi.fn()}
@@ -480,7 +480,7 @@ describe.skip('Focus Trap - StyleSelector Modal', () => {
         />
       );
 
-      const initialButtons = screen.getAllByRole('button');
+      const _initialButtons = screen.getAllByRole('button');
 
       rerender(
         <StyleSelector
