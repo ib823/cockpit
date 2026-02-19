@@ -92,9 +92,9 @@ export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChar
         borderLeftWidth: assignments.primaryPhase ? "6px" : "2px",
         borderLeftColor: assignments.primaryPhase?.phaseColor || undefined,
         boxShadow: selected
-          ? `${getElevationShadow(4)}, 0 0 0 4px ${withOpacity("#3B82F6", 0.1)}`
+          ? `${getElevationShadow(4)}, 0 0 0 4px ${withOpacity("#007AFF", 0.1)}`
           : isActivelyWorking
-            ? `${getElevationShadow(3)}, 0 0 0 2px ${withOpacity("#10B981", 0.05)}`
+            ? `${getElevationShadow(3)}, 0 0 0 2px ${withOpacity("#34C759", 0.05)}`
             : getElevationShadow(2),
       }}
     >
@@ -239,7 +239,7 @@ export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChar
         <div
           className="absolute -top-2 -right-2 bg-gradient-to-br from-green-400 to-green-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse border-2 border-white"
           style={{
-            boxShadow: `${getElevationShadow(3)}, 0 0 12px ${withOpacity("#10B981", 0.5)}`,
+            boxShadow: `${getElevationShadow(3)}, 0 0 12px ${withOpacity("#34C759", 0.5)}`,
           }}
         >
           {totalWorkload}

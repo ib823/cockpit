@@ -41,17 +41,15 @@ export function ThreeLayerDashboard({ project, onRefresh, onExport }: ThreeLayer
   const [showRateCard, setShowRateCard] = useState(false);
 
   return (
-    <div style={{ padding: "24px", background: "#f5f5f5", minHeight: "100vh" }}>
+    <div className="p-6 bg-[var(--color-bg-secondary)] min-h-screen">
       {/* Header */}
       <Card
+        className="mb-6 rounded-xl border-none"
         style={{
-          marginBottom: "24px",
-          borderRadius: "12px",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          border: "none",
+          background: "linear-gradient(135deg, #007AFF 0%, #AF52DE 100%)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className="flex justify-between items-center">
           <Space direction="vertical" size={4}>
             <Title level={2} style={{ margin: 0, color: "white" }}>
                Proposal Dashboard
@@ -93,7 +91,7 @@ export function ThreeLayerDashboard({ project, onRefresh, onExport }: ThreeLayer
                 type="primary"
                 style={{
                   background: "white",
-                  color: "#667eea",
+                  color: "#007AFF",
                   border: "none",
                 }}
               >
@@ -104,7 +102,7 @@ export function ThreeLayerDashboard({ project, onRefresh, onExport }: ThreeLayer
         </div>
 
         {/* View Selector */}
-        <div style={{ marginTop: "20px" }}>
+        <div className="mt-5">
           <Segmented
             value={currentView}
             onChange={(value) => setCurrentView(value as DashboardView)}
@@ -163,14 +161,14 @@ export function ThreeLayerDashboard({ project, onRefresh, onExport }: ThreeLayer
           <Card
             title={
               <Space>
-                <Users size={20} style={{ color: "#3B82F6" }} />
+                <Users size={20} style={{ color: "#007AFF" }} />
                 <span>Layer 1: Operational View</span>
                 <Tag color="blue">The &quot;What&quot; and &quot;Who&quot;</Tag>
               </Space>
             }
-            style={{ borderRadius: "12px" }}
+            className="rounded-xl"
             headStyle={{
-              background: "#EFF6FF",
+              background: "rgba(0, 122, 255, 0.08)",
               borderTopLeftRadius: "12px",
               borderTopRightRadius: "12px",
             }}
@@ -184,14 +182,14 @@ export function ThreeLayerDashboard({ project, onRefresh, onExport }: ThreeLayer
           <Card
             title={
               <Space>
-                <DollarSign size={20} style={{ color: "#10B981" }} />
+                <DollarSign size={20} style={{ color: "#34C759" }} />
                 <span>Layer 2: Financial View</span>
                 <Tag color="green">The &quot;So What&quot;</Tag>
               </Space>
             }
-            style={{ borderRadius: "12px" }}
+            className="rounded-xl"
             headStyle={{
-              background: "#ECFDF5",
+              background: "rgba(52, 199, 89, 0.08)",
               borderTopLeftRadius: "12px",
               borderTopRightRadius: "12px",
             }}
@@ -205,14 +203,14 @@ export function ThreeLayerDashboard({ project, onRefresh, onExport }: ThreeLayer
           <Card
             title={
               <Space>
-                <TrendingUp size={20} style={{ color: "#F59E0B" }} />
+                <TrendingUp size={20} style={{ color: "#FF9500" }} />
                 <span>Layer 3: Strategic View</span>
                 <Tag color="orange">The &quot;What If&quot;</Tag>
               </Space>
             }
-            style={{ borderRadius: "12px" }}
+            className="rounded-xl"
             headStyle={{
-              background: "#FFFBEB",
+              background: "rgba(255, 149, 0, 0.08)",
               borderTopLeftRadius: "12px",
               borderTopRightRadius: "12px",
             }}

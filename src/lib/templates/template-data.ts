@@ -25,7 +25,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Prepare",
         description: "Project initiation, team setup, and initial planning",
-        color: "#3B82F6",
+        color: "#007AFF",
         durationDays: 30,
         sortOrder: 1,
         tasks: [
@@ -55,7 +55,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Explore",
         description: "Requirements gathering, fit-gap analysis, and solution design",
-        color: "#10B981",
+        color: "#34C759",
         durationDays: 60,
         sortOrder: 2,
         tasks: [
@@ -88,7 +88,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Realize",
         description: "System configuration, development, and testing",
-        color: "#F59E0B",
+        color: "#FF9500",
         durationDays: 90,
         sortOrder: 3,
         tasks: [
@@ -116,7 +116,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Deploy",
         description: "User training, data migration, cutover, and go-live",
-        color: "#EC4899",
+        color: "#FF2D55",
         durationDays: 45,
         sortOrder: 4,
         tasks: [
@@ -145,7 +145,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Run",
         description: "Hypercare support and optimization",
-        color: "#8B5CF6",
+        color: "#AF52DE",
         durationDays: 30,
         sortOrder: 5,
         tasks: [
@@ -170,7 +170,7 @@ export const TEMPLATES: ProjectTemplate[] = [
         designation: "manager",
         rate: 150,
         workingHours: 8,
-        color: "#F59E0B",
+        color: "#FF9500",
       },
       {
         name: "Solution Architect",
@@ -180,7 +180,7 @@ export const TEMPLATES: ProjectTemplate[] = [
         designation: "senior_manager",
         rate: 200,
         workingHours: 8,
-        color: "#3B82F6",
+        color: "#007AFF",
       },
       {
         name: "Functional Consultant",
@@ -190,7 +190,7 @@ export const TEMPLATES: ProjectTemplate[] = [
         designation: "senior_consultant",
         rate: 130,
         workingHours: 8,
-        color: "#10B981",
+        color: "#34C759",
       },
       {
         name: "ABAP Developer",
@@ -200,7 +200,7 @@ export const TEMPLATES: ProjectTemplate[] = [
         designation: "consultant",
         rate: 120,
         workingHours: 8,
-        color: "#8B5CF6",
+        color: "#AF52DE",
       },
       {
         name: "QA Analyst",
@@ -210,15 +210,15 @@ export const TEMPLATES: ProjectTemplate[] = [
         designation: "consultant",
         rate: 100,
         workingHours: 8,
-        color: "#EC4899",
+        color: "#FF2D55",
       },
     ],
     milestones: [
-      { name: "Project Kickoff", dayOffset: 0, color: "#3B82F6" },
-      { name: "Design Sign-off", dayOffset: 90, color: "#10B981" },
-      { name: "UAT Complete", dayOffset: 210, color: "#F59E0B" },
-      { name: "Go-Live", dayOffset: 255, color: "#EC4899" },
-      { name: "Project Closure", dayOffset: 285, color: "#8B5CF6" },
+      { name: "Project Kickoff", dayOffset: 0, color: "#007AFF" },
+      { name: "Design Sign-off", dayOffset: 90, color: "#34C759" },
+      { name: "UAT Complete", dayOffset: 210, color: "#FF9500" },
+      { name: "Go-Live", dayOffset: 255, color: "#FF2D55" },
+      { name: "Project Closure", dayOffset: 285, color: "#AF52DE" },
     ],
     author: "SAP Practice Team",
     createdAt: "2025-01-01",
@@ -244,7 +244,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Sprint Planning",
         description: "Story refinement and sprint commitment",
-        color: "#3B82F6",
+        color: "#007AFF",
         durationDays: 1,
         sortOrder: 1,
         tasks: [
@@ -265,7 +265,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Development",
         description: "Feature development and daily standups",
-        color: "#10B981",
+        color: "#34C759",
         durationDays: 7,
         sortOrder: 2,
         tasks: [
@@ -277,7 +277,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Testing",
         description: "QA testing and bug fixes",
-        color: "#F59E0B",
+        color: "#FF9500",
         durationDays: 3,
         sortOrder: 3,
         tasks: [
@@ -289,7 +289,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Review & Retro",
         description: "Sprint review and retrospective",
-        color: "#8B5CF6",
+        color: "#AF52DE",
         durationDays: 1,
         sortOrder: 4,
         tasks: [
@@ -312,7 +312,7 @@ export const TEMPLATES: ProjectTemplate[] = [
         designation: "manager",
         rate: 120,
         workingHours: 8,
-        color: "#3B82F6",
+        color: "#007AFF",
       },
       {
         name: "Scrum Master",
@@ -322,7 +322,7 @@ export const TEMPLATES: ProjectTemplate[] = [
         designation: "senior_consultant",
         rate: 110,
         workingHours: 8,
-        color: "#10B981",
+        color: "#34C759",
       },
       {
         name: "Tech Lead",
@@ -332,7 +332,7 @@ export const TEMPLATES: ProjectTemplate[] = [
         designation: "senior_manager",
         rate: 150,
         workingHours: 8,
-        color: "#F59E0B",
+        color: "#FF9500",
       },
       {
         name: "Developer",
@@ -342,7 +342,7 @@ export const TEMPLATES: ProjectTemplate[] = [
         designation: "consultant",
         rate: 100,
         workingHours: 8,
-        color: "#8B5CF6",
+        color: "#AF52DE",
       },
       {
         name: "QA Engineer",
@@ -352,14 +352,14 @@ export const TEMPLATES: ProjectTemplate[] = [
         designation: "consultant",
         rate: 90,
         workingHours: 8,
-        color: "#EC4899",
+        color: "#FF2D55",
       },
     ],
     milestones: [
-      { name: "Sprint Start", dayOffset: 0, color: "#3B82F6" },
-      { name: "Mid-Sprint Check", dayOffset: 5, color: "#10B981" },
-      { name: "Code Freeze", dayOffset: 9, color: "#F59E0B" },
-      { name: "Sprint End", dayOffset: 12, color: "#8B5CF6" },
+      { name: "Sprint Start", dayOffset: 0, color: "#007AFF" },
+      { name: "Mid-Sprint Check", dayOffset: 5, color: "#34C759" },
+      { name: "Code Freeze", dayOffset: 9, color: "#FF9500" },
+      { name: "Sprint End", dayOffset: 12, color: "#AF52DE" },
     ],
     author: "Engineering Team",
     createdAt: "2025-01-01",
@@ -382,7 +382,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Planning",
         description: "Product strategy and launch planning",
-        color: "#3B82F6",
+        color: "#007AFF",
         durationDays: 15,
         sortOrder: 1,
         tasks: [
@@ -399,7 +399,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Development",
         description: "Feature development and testing",
-        color: "#10B981",
+        color: "#34C759",
         durationDays: 40,
         sortOrder: 2,
         tasks: [
@@ -411,7 +411,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Marketing Prep",
         description: "Marketing materials and campaigns",
-        color: "#F59E0B",
+        color: "#FF9500",
         durationDays: 20,
         sortOrder: 3,
         tasks: [
@@ -428,7 +428,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Launch",
         description: "Product release and monitoring",
-        color: "#EC4899",
+        color: "#FF2D55",
         durationDays: 5,
         sortOrder: 4,
         tasks: [
@@ -445,7 +445,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Post-Launch",
         description: "Optimization and iteration",
-        color: "#8B5CF6",
+        color: "#AF52DE",
         durationDays: 20,
         sortOrder: 5,
         tasks: [
@@ -460,10 +460,10 @@ export const TEMPLATES: ProjectTemplate[] = [
       },
     ],
     milestones: [
-      { name: "Planning Complete", dayOffset: 15, color: "#3B82F6" },
-      { name: "Beta Release", dayOffset: 55, color: "#10B981" },
-      { name: "Marketing Ready", dayOffset: 75, color: "#F59E0B" },
-      { name: "Public Launch", dayOffset: 80, color: "#EC4899" },
+      { name: "Planning Complete", dayOffset: 15, color: "#007AFF" },
+      { name: "Beta Release", dayOffset: 55, color: "#34C759" },
+      { name: "Marketing Ready", dayOffset: 75, color: "#FF9500" },
+      { name: "Public Launch", dayOffset: 80, color: "#FF2D55" },
     ],
     author: "Product Team",
     createdAt: "2025-01-01",
@@ -489,7 +489,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Permits & Planning",
         description: "Obtain permits and finalize plans",
-        color: "#3B82F6",
+        color: "#007AFF",
         durationDays: 60,
         sortOrder: 1,
         tasks: [
@@ -511,7 +511,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Site Preparation",
         description: "Clear site and prepare foundation",
-        color: "#10B981",
+        color: "#34C759",
         durationDays: 45,
         sortOrder: 2,
         tasks: [
@@ -523,7 +523,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Foundation",
         description: "Pour foundation and cure",
-        color: "#F59E0B",
+        color: "#FF9500",
         durationDays: 30,
         sortOrder: 3,
         tasks: [
@@ -535,7 +535,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Framing & Structure",
         description: "Build structural framework",
-        color: "#EC4899",
+        color: "#FF2D55",
         durationDays: 90,
         sortOrder: 4,
         tasks: [
@@ -547,7 +547,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "MEP Installation",
         description: "Mechanical, Electrical, Plumbing",
-        color: "#8B5CF6",
+        color: "#AF52DE",
         durationDays: 75,
         sortOrder: 5,
         tasks: [
@@ -564,7 +564,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Finishing",
         description: "Interior and exterior finishing",
-        color: "#06B6D4",
+        color: "#5AC8FA",
         durationDays: 60,
         sortOrder: 6,
         tasks: [
@@ -576,7 +576,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Final Inspection",
         description: "Inspections and handover",
-        color: "#84CC16",
+        color: "#30D158",
         durationDays: 20,
         sortOrder: 7,
         tasks: [
@@ -592,11 +592,11 @@ export const TEMPLATES: ProjectTemplate[] = [
       },
     ],
     milestones: [
-      { name: "Permits Approved", dayOffset: 60, color: "#3B82F6" },
-      { name: "Foundation Complete", dayOffset: 135, color: "#10B981" },
-      { name: "Structure Complete", dayOffset: 225, color: "#EC4899" },
-      { name: "MEP Complete", dayOffset: 300, color: "#8B5CF6" },
-      { name: "Final Inspection", dayOffset: 360, color: "#84CC16" },
+      { name: "Permits Approved", dayOffset: 60, color: "#007AFF" },
+      { name: "Foundation Complete", dayOffset: 135, color: "#34C759" },
+      { name: "Structure Complete", dayOffset: 225, color: "#FF2D55" },
+      { name: "MEP Complete", dayOffset: 300, color: "#AF52DE" },
+      { name: "Final Inspection", dayOffset: 360, color: "#30D158" },
     ],
     author: "Construction Team",
     createdAt: "2025-01-01",
@@ -621,7 +621,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Strategy",
         description: "Campaign planning and strategy",
-        color: "#3B82F6",
+        color: "#007AFF",
         durationDays: 7,
         sortOrder: 1,
         tasks: [
@@ -648,7 +648,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Content Creation",
         description: "Create all campaign assets",
-        color: "#10B981",
+        color: "#34C759",
         durationDays: 14,
         sortOrder: 2,
         tasks: [
@@ -660,7 +660,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Campaign Setup",
         description: "Configure all marketing channels",
-        color: "#F59E0B",
+        color: "#FF9500",
         durationDays: 5,
         sortOrder: 3,
         tasks: [
@@ -682,7 +682,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Launch",
         description: "Campaign goes live",
-        color: "#EC4899",
+        color: "#FF2D55",
         durationDays: 14,
         sortOrder: 4,
         tasks: [
@@ -699,7 +699,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Analysis",
         description: "Results analysis and reporting",
-        color: "#8B5CF6",
+        color: "#AF52DE",
         durationDays: 5,
         sortOrder: 5,
         tasks: [
@@ -709,10 +709,10 @@ export const TEMPLATES: ProjectTemplate[] = [
       },
     ],
     milestones: [
-      { name: "Strategy Approved", dayOffset: 7, color: "#3B82F6" },
-      { name: "Content Ready", dayOffset: 21, color: "#10B981" },
-      { name: "Campaign Launch", dayOffset: 26, color: "#EC4899" },
-      { name: "Final Report", dayOffset: 45, color: "#8B5CF6" },
+      { name: "Strategy Approved", dayOffset: 7, color: "#007AFF" },
+      { name: "Content Ready", dayOffset: 21, color: "#34C759" },
+      { name: "Campaign Launch", dayOffset: 26, color: "#FF2D55" },
+      { name: "Final Report", dayOffset: 45, color: "#AF52DE" },
     ],
     author: "Marketing Team",
     createdAt: "2025-01-01",
@@ -737,7 +737,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Planning",
         description: "Project planning and preparation",
-        color: "#3B82F6",
+        color: "#007AFF",
         durationDays: 10,
         sortOrder: 1,
         tasks: [
@@ -749,7 +749,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Execution",
         description: "Main project work",
-        color: "#10B981",
+        color: "#34C759",
         durationDays: 20,
         sortOrder: 2,
         tasks: [
@@ -761,7 +761,7 @@ export const TEMPLATES: ProjectTemplate[] = [
       {
         name: "Completion",
         description: "Project closure and review",
-        color: "#8B5CF6",
+        color: "#AF52DE",
         durationDays: 5,
         sortOrder: 3,
         tasks: [
@@ -772,9 +772,9 @@ export const TEMPLATES: ProjectTemplate[] = [
       },
     ],
     milestones: [
-      { name: "Project Start", dayOffset: 0, color: "#3B82F6" },
-      { name: "Execution Start", dayOffset: 10, color: "#10B981" },
-      { name: "Project End", dayOffset: 35, color: "#8B5CF6" },
+      { name: "Project Start", dayOffset: 0, color: "#007AFF" },
+      { name: "Execution Start", dayOffset: 10, color: "#34C759" },
+      { name: "Project End", dayOffset: 35, color: "#AF52DE" },
     ],
     author: "Cockpit Team",
     createdAt: "2025-01-01",

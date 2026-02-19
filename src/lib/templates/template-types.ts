@@ -91,42 +91,42 @@ export const TEMPLATE_CATEGORIES: Record<TemplateCategory, TemplateCategoryInfo>
     name: "Software Development",
     description: "Agile sprints, product launches, and feature development",
     icon: "Code",
-    color: "#3B82F6", // Blue
+    color: "#007AFF", // Blue
   },
   "consulting-sap": {
     id: "consulting-sap",
     name: "SAP Consulting",
     description: "SAP implementations, integrations, and transformations",
     icon: "Briefcase",
-    color: "#8B5CF6", // Purple
+    color: "#AF52DE", // Purple
   },
   construction: {
     id: "construction",
     name: "Construction",
     description: "Building projects, renovations, and infrastructure",
     icon: "HardHat",
-    color: "#F59E0B", // Amber
+    color: "#FF9500", // Amber
   },
   marketing: {
     id: "marketing",
     name: "Marketing",
     description: "Campaigns, content strategy, and event planning",
     icon: "Megaphone",
-    color: "#EC4899", // Pink
+    color: "#FF2D55", // Pink
   },
   general: {
     id: "general",
     name: "General Purpose",
     description: "Versatile templates for any industry",
     icon: "FolderKanban",
-    color: "#10B981", // Green
+    color: "#34C759", // Green
   },
   blank: {
     id: "blank",
     name: "Start from Scratch",
     description: "Empty project template",
     icon: "FilePlus",
-    color: "#6B7280", // Gray
+    color: "#8E8E93", // Gray
   },
 };
 

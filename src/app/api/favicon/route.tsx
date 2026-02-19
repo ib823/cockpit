@@ -18,11 +18,11 @@ export const runtime = "edge";
 // Status color configuration
 const STATUS_COLORS = {
   connected: {
-    background: "#2563EB", // Blue
+    background: "#007AFF", // Apple HIG Blue
     foreground: "#FFFFFF", // White
   },
   disconnected: {
-    background: "#F59E0B", // Amber
+    background: "#FF9500", // Apple HIG Orange
     foreground: "#1C1917", // Dark (for contrast)
   },
   none: {

@@ -147,25 +147,25 @@ const generateDefaultTasks = (stageName: string): Task[] => {
 
 // Phase colors for visualization
 const PHASE_COLORS = [
-  "#3B82F6",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
-  "#8B5CF6",
-  "#06B6D4",
-  "#84CC16",
-  "#F97316",
-  "#EC4899",
-  "#6366F1",
+  "#007AFF",
+  "#34C759",
+  "#FF9500",
+  "#FF3B30",
+  "#AF52DE",
+  "#5AC8FA",
+  "#30D158",
+  "#FF9500",
+  "#FF2D55",
+  "#5856D6",
 ];
 
 // SAP Activate phase distribution
 const SAP_ACTIVATE_PHASES = {
-  Prepare: { percentage: 0.15, color: "#10B981" }, // 15% - Green
-  Explore: { percentage: 0.25, color: "#3B82F6" }, // 25% - Blue
-  Realize: { percentage: 0.4, color: "#8B5CF6" }, // 40% - Purple
-  Deploy: { percentage: 0.15, color: "#F59E0B" }, // 15% - Yellow
-  Run: { percentage: 0.05, color: "#10B981" }, // 5% - Green
+  Prepare: { percentage: 0.15, color: "#34C759" }, // 15% - Green
+  Explore: { percentage: 0.25, color: "#007AFF" }, // 25% - Blue
+  Realize: { percentage: 0.4, color: "#AF52DE" }, // 40% - Purple
+  Deploy: { percentage: 0.15, color: "#FF9500" }, // 15% - Yellow
+  Run: { percentage: 0.05, color: "#34C759" }, // 5% - Green
 };
 
 // Generate phases from selected SAP packages

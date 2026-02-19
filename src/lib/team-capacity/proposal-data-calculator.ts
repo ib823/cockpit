@@ -58,16 +58,16 @@ const DAILY_RATES: Record<string, Record<string, number>> = {
 
 // Category labels and colors
 const CATEGORY_INFO: Record<ResourceCategory, { label: string; color: string; icon: string }> = {
-  leadership: { label: "Leadership", color: "#6366F1", icon: "👔" },
-  functional: { label: "Functional", color: "#10B981", icon: "⚙️" },
-  technical: { label: "Technical", color: "#3B82F6", icon: "💻" },
-  basis: { label: "Basis", color: "#8B5CF6", icon: "🖥️" },
-  security: { label: "Security", color: "#F59E0B", icon: "🔐" },
-  pm: { label: "Project Management", color: "#EF4444", icon: "📊" },
-  change: { label: "Change Management", color: "#EC4899", icon: "🎯" },
-  qa: { label: "Quality Assurance", color: "#14B8A6", icon: "✅" },
-  client: { label: "Client", color: "#059669", icon: "C" },
-  other: { label: "Other", color: "#6B7280", icon: "📋" },
+  leadership: { label: "Leadership", color: "#5856D6", icon: "👔" },
+  functional: { label: "Functional", color: "#34C759", icon: "⚙️" },
+  technical: { label: "Technical", color: "#007AFF", icon: "💻" },
+  basis: { label: "Basis", color: "#AF52DE", icon: "🖥️" },
+  security: { label: "Security", color: "#FF9500", icon: "🔐" },
+  pm: { label: "Project Management", color: "#FF3B30", icon: "📊" },
+  change: { label: "Change Management", color: "#FF2D55", icon: "🎯" },
+  qa: { label: "Quality Assurance", color: "#30D158", icon: "✅" },
+  client: { label: "Client", color: "#248A3D", icon: "C" },
+  other: { label: "Other", color: "#8E8E93", icon: "📋" },
 };
 
 interface LocalAllocation {

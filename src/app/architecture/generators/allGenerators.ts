@@ -174,7 +174,7 @@ ${legacySubgraph}
 
 ${connections.slice(0, 10).join('\n')}
 
-    style database fill:#10B981,stroke:#059669,stroke-width:2px,color:#fff`;
+    style database fill:#34C759,stroke:#248A3D,stroke-width:2px,color:#fff`;
 }
 
 // Generator 3: Integration Architecture - TO-BE Solution
@@ -304,7 +304,7 @@ ${envBlocks}
 
     ${infraInfo}
 
-    style infraInfo fill:#F59E0B,stroke:#D97706,stroke-width:2px,color:#000`;
+    style infraInfo fill:#FF9500,stroke:#C93400,stroke-width:2px,color:#000`;
 }
 
 // Generator 5: Security Architecture
@@ -351,7 +351,7 @@ ${authBlock}
 
     internet --> ${firstSecCtrl}
 
-    style compli fill:#10B981,stroke:#059669,stroke-width:2px,color:#fff`;
+    style compli fill:#34C759,stroke:#248A3D,stroke-width:2px,color:#fff`;
 }
 
 // Generator 6: Sizing & Scalability
@@ -395,5 +395,5 @@ ${phaseBlocks}
 ${connections}
 ${finalConnection}
 
-    style SCALE fill:#10B981,stroke:#059669,stroke-width:2px,color:#fff`;
+    style SCALE fill:#34C759,stroke:#248A3D,stroke-width:2px,color:#fff`;
 }

@@ -89,18 +89,18 @@ export function OrgChartTemplateSelector({ onClose }: OrgChartTemplateSelectorPr
                       style={{
                         backgroundColor:
                           resource.category === "pm"
-                            ? "#F59E0B"
+                            ? "#FF9500"
                             : resource.category === "functional"
-                              ? "#3B82F6"
+                              ? "#007AFF"
                               : resource.category === "technical"
-                                ? "#8B5CF6"
+                                ? "#AF52DE"
                                 : resource.category === "basis"
-                                  ? "#10B981"
+                                  ? "#34C759"
                                   : resource.category === "security"
-                                    ? "#EF4444"
+                                    ? "#FF3B30"
                                     : resource.category === "change"
-                                      ? "#EC4899"
-                                      : "#64748B",
+                                      ? "#FF2D55"
+                                      : "#8E8E93",
                       }}
                     />
                     <div className="flex-1">
