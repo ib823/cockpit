@@ -8,7 +8,7 @@
 import React, { useState } from "react";
 import { Plus, Trash2, LayoutGrid, List, ChevronDown } from "lucide-react";
 import type { BusinessContextData, BusinessEntity, Actor, Capability } from "../types";
-import styles from "./business-context-tab.module.css";
+import clsx from "clsx";
 
 type ViewMode = "card" | "list";
 
@@ -24,29 +24,27 @@ const Accordion = ({ title, subtitle, children }: { title: string, subtitle: str
   const contentId = `accordion-${title.toLowerCase().replace(/\s+/g, '-')}`;
 
   return (
-    <div className={styles.accordion}>
+    <div className="border border-subtle rounded-xl overflow-hidden bg-primary mb-4 transition-default shadow-sm hover:shadow-md">
       <button
-        className={styles.accordionHeader}
+        className="w-full flex items-center justify-between p-6 text-left hover:bg-secondary transition-default focus-visible:ring-inset"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-controls={contentId}
       >
-        <div className={styles.accordionTitleWrapper}>
-          <h3 className={styles.sectionTitle}>{title}</h3>
-          <p className={styles.sectionDescription}>{subtitle}</p>
+        <div className="flex-1 min-w-0 pr-4">
+          <h3 className="display-small mb-1">{title}</h3>
+          <p className="detail text-secondary">{subtitle}</p>
         </div>
         <ChevronDown
-          className={styles.accordionIcon}
-          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          className={clsx("w-5 h-5 text-secondary transition-default", isOpen && "rotate-180")}
           aria-hidden="true"
         />
       </button>
       {isOpen && (
         <div
-          className={styles.accordionContent}
+          className="p-6 border-t border-subtle bg-secondary/30"
           id={contentId}
           role="region"
-          aria-labelledby={contentId + '-button'}
         >
           {children}
         </div>
@@ -124,15 +122,14 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
   const hasData = data.entities.length > 0 || data.actors.length > 0 || data.painPoints.trim();
 
   return (
-    <div className={styles.container}>
+    <div className="space-y-6">
       {/* Pain Points is now the primary, always-visible section */}
       <Section title="Pain Points & Motivation" subtitle="Start here: Why does your business need to transform?">
         <textarea
           value={data.painPoints}
           onChange={(e) => onChange({ ...data, painPoints: e.target.value })}
           placeholder="Describe current challenges, business pain points, and the primary motivation for change..."
-          className={styles.textarea}
-          style={{ minHeight: '120px', fontSize: '15px' }}
+          className="w-full min-h-[120px] p-4 rounded-xl border border-strong bg-primary body text-[15px] focus:border-blue focus:ring-2 focus:ring-blue-light outline-none transition-default"
         />
       </Section>
 
@@ -170,40 +167,21 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
       </Accordion>
 
       {/* View Toggle for sections inside accordions */}
-      <div className={styles.viewToggleContainer}>
-        <span className={styles.viewToggleLabel} id="view-mode-label">View mode for details:</span>
+      <div className="flex items-center justify-between py-4 border-t border-subtle">
+        <span className="body text-sm text-secondary" id="view-mode-label">View mode for details:</span>
         <div
           role="radiogroup"
           aria-labelledby="view-mode-label"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            backgroundColor: "#f5f5f5",
-            borderRadius: "8px",
-            padding: "4px",
-            gap: "4px",
-          }}
+          className="flex items-center bg-secondary rounded-lg p-1 gap-1"
         >
           <button
             role="radio"
             aria-checked={viewMode === "card"}
             onClick={() => setViewMode("card")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "8px 16px",
-              borderRadius: "6px",
-              border: "none",
-              backgroundColor: viewMode === "card" ? "#fff" : "transparent",
-              color: viewMode === "card" ? "#2563A5" : "#666",
-              fontFamily: "var(--font-text)",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              boxShadow: viewMode === "card" ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
-            }}
+            className={clsx(
+              "flex items-center gap-2 py-1.5 px-4 rounded-md body text-sm font-semibold cursor-pointer transition-default",
+              viewMode === "card" ? "bg-primary text-blue shadow-sm" : "bg-transparent text-secondary hover:text-primary"
+            )}
           >
             <LayoutGrid className="w-4 h-4" aria-hidden="true" />
             Card View
@@ -212,22 +190,10 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
             role="radio"
             aria-checked={viewMode === "list"}
             onClick={() => setViewMode("list")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "8px 16px",
-              borderRadius: "6px",
-              border: "none",
-              backgroundColor: viewMode === "list" ? "#fff" : "transparent",
-              color: viewMode === "list" ? "#2563A5" : "#666",
-              fontFamily: "var(--font-text)",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              boxShadow: viewMode === "list" ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
-            }}
+            className={clsx(
+              "flex items-center gap-2 py-1.5 px-4 rounded-md body text-sm font-semibold cursor-pointer transition-default",
+              viewMode === "list" ? "bg-primary text-blue shadow-sm" : "bg-transparent text-secondary hover:text-primary"
+            )}
           >
             <List className="w-4 h-4" aria-hidden="true" />
             List View
@@ -237,10 +203,10 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
 
       {/* Generate Button */}
       {hasData && (
-        <div className={styles.generateButtonContainer}>
+        <div className="flex justify-center pt-8">
           <button
             onClick={onGenerate}
-            className={`${styles.button} ${styles.buttonPrimary} ${styles.generateButton}`}
+            className="py-3 px-10 bg-blue color-white rounded-xl display-small font-bold shadow-lg hover:bg-blue-dark hover:scale-[1.02] active:scale-[0.98] transition-default cursor-pointer"
           >
             Generate Diagram
           </button>
@@ -260,14 +226,10 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>
-        {title}
-      </h3>
+    <div className="mb-8">
+      <h3 className="display-small mb-1">{title}</h3>
       {subtitle && (
-        <p className={styles.sectionDescription}>
-          {subtitle}
-        </p>
+        <p className="detail text-secondary mb-4">{subtitle}</p>
       )}
       {children}
     </div>
@@ -284,15 +246,10 @@ function EntityCard({
   onRemove: () => void;
 }) {
   return (
-    <div className={styles.card}>
+    <div className="relative p-6 bg-primary border border-strong rounded-xl shadow-sm hover:shadow-md transition-default group">
       <button
         onClick={onRemove}
-        className={styles.iconButton}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-        }}
+        className="absolute top-4 right-4 p-2 rounded-full text-secondary hover:bg-red-light hover:text-red transition-default opacity-0 group-hover:opacity-100"
         aria-label={`Remove entity ${entity.name || 'untitled'}`}
       >
         <Trash2 className="w-4 h-4" aria-hidden="true" />
@@ -302,35 +259,20 @@ function EntityCard({
         value={entity.name}
         onChange={(e) => onUpdate({ name: e.target.value })}
         placeholder="Entity Name"
-        className={styles.input}
-        style={{
-          borderLeft: "none",
-          borderRight: "none",
-          borderTop: "none",
-          borderBottom: "2px solid #e0e0e0",
-          borderRadius: 0,
-          fontWeight: 600,
-          fontSize: "16px",
-          marginBottom: "12px",
-        }}
+        className="w-full mb-4 pb-2 border-b-2 border-subtle bg-transparent body-semibold text-lg outline-none focus:border-blue transition-default"
       />
       <input
         type="text"
         value={entity.location || ""}
         onChange={(e) => onUpdate({ location: e.target.value })}
         placeholder="Location (optional)"
-        className={`${styles.input} ${styles.inputSmall}`}
-        style={{ marginBottom: "8px" }}
+        className="w-full mb-3 p-2 rounded-md border border-subtle bg-secondary/50 body text-sm focus:border-blue outline-none transition-default"
       />
       <textarea
         value={entity.description || ""}
         onChange={(e) => onUpdate({ description: e.target.value })}
         placeholder="Description (optional)"
-        className={styles.textarea}
-        style={{
-          minHeight: "60px",
-          resize: "none",
-        }}
+        className="w-full min-h-[80px] p-2 rounded-md border border-subtle bg-secondary/50 body text-sm focus:border-blue outline-none transition-default resize-none"
       />
     </div>
   );
@@ -346,15 +288,10 @@ function ActorCard({
   onRemove: () => void;
 }) {
   return (
-    <div className={styles.card}>
+    <div className="relative p-6 bg-primary border border-strong rounded-xl shadow-sm hover:shadow-md transition-default group">
       <button
         onClick={onRemove}
-        className={styles.iconButton}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-        }}
+        className="absolute top-4 right-4 p-2 rounded-full text-secondary hover:bg-red-light hover:text-red transition-default opacity-0 group-hover:opacity-100"
         aria-label={`Remove actor ${actor.name || 'untitled'}`}
       >
         <Trash2 className="w-4 h-4" aria-hidden="true" />
@@ -364,34 +301,22 @@ function ActorCard({
         value={actor.name}
         onChange={(e) => onUpdate({ name: e.target.value })}
         placeholder="Actor Name (e.g., CFO)"
-        className={styles.input}
-        style={{
-          borderLeft: "none",
-          borderRight: "none",
-          borderTop: "none",
-          borderBottom: "2px solid #e0e0e0",
-          borderRadius: 0,
-          fontWeight: 600,
-          fontSize: "16px",
-          marginBottom: "12px",
-        }}
+        className="w-full mb-4 pb-2 border-b-2 border-subtle bg-transparent body-semibold text-lg outline-none focus:border-blue transition-default"
       />
-      <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+      <div className="flex gap-3 mb-4">
         <input
           type="text"
           value={actor.role}
           onChange={(e) => onUpdate({ role: e.target.value })}
           placeholder="Role"
-          className={`${styles.input} ${styles.inputSmall}`}
-          style={{ flex: 1 }}
+          className="flex-1 p-2 rounded-md border border-subtle bg-secondary/50 body text-sm focus:border-blue outline-none transition-default"
         />
         <input
           type="text"
           value={actor.department}
           onChange={(e) => onUpdate({ department: e.target.value })}
           placeholder="Department"
-          className={`${styles.input} ${styles.inputSmall}`}
-          style={{ flex: 1 }}
+          className="flex-1 p-2 rounded-md border border-subtle bg-secondary/50 body text-sm focus:border-blue outline-none transition-default"
         />
       </div>
       <textarea
@@ -400,11 +325,7 @@ function ActorCard({
           onUpdate({ activities: e.target.value.split("\n").filter((a) => a.trim()) })
         }
         placeholder="Key activities (one per line)"
-        className={styles.textarea}
-        style={{
-          minHeight: "80px",
-          resize: "none",
-        }}
+        className="w-full min-h-[100px] p-2 rounded-md border border-subtle bg-secondary/50 body text-sm focus:border-blue outline-none transition-default resize-none"
       />
     </div>
   );
@@ -598,87 +519,29 @@ function CapabilitiesSection({
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Template Selector */}
-      <div className={styles.templateLoader}>
+      <div className="template-loader">
         <button
           onClick={() => setShowTemplates(!showTemplates)}
-          className={`${styles.button} ${styles.buttonSecondary}`}
-          style={{
-            borderColor: "#2563A5",
-            color: "#2563A5",
-          }}
+          className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           {showTemplates ? "Hide" : "Load"} TOGAF Templates
         </button>
 
         {showTemplates && (
-          <div
-            style={{
-              marginTop: "16px",
-              padding: "24px",
-              backgroundColor: "#f9f9f9",
-              borderRadius: "8px",
-              border: "1px solid #e0e0e0",
-            }}
-          >
-            <h4
-              style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "16px",
-                fontWeight: 600,
-                color: "#000",
-                marginBottom: "16px",
-              }}
-            >
-              Select a TOGAF Capability Domain
-            </h4>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "12px",
-              }}
-            >
+          <div className="mt-4 p-6 bg-secondary rounded-xl border border-strong shadow-sm animate-fade-in">
+            <h4 className="body-semibold text-primary mb-4">Select a TOGAF Capability Domain</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {Object.entries(TOGAF_CAPABILITY_TEMPLATES).map(([category, caps]) => (
                 <button
                   key={category}
                   onClick={() => loadTemplate(category, caps)}
-                  className={styles.templateButton}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#2563A5";
-                    e.currentTarget.style.backgroundColor = "#f0f7ff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#e0e0e0";
-                    e.currentTarget.style.backgroundColor = "#fff";
-                  }}
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                  }}
+                  className="flex flex-col p-4 text-left bg-primary border border-subtle rounded-lg hover:border-blue hover:bg-blue-light transition-default cursor-pointer"
                 >
-                  <div
-                    style={{
-                      fontFamily: "var(--font-text)",
-                      fontSize: "15px",
-                      fontWeight: 600,
-                      color: "#000",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    {category}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-text)",
-                      fontSize: "12px",
-                      color: "#666",
-                    }}
-                  >
-                    {caps.length} capabilities
-                  </div>
+                  <div className="body-semibold mb-1">{category}</div>
+                  <div className="detail text-secondary">{caps.length} capabilities</div>
                 </button>
               ))}
             </div>
@@ -687,7 +550,7 @@ function CapabilitiesSection({
       </div>
 
       {/* Capabilities Display */}
-      <div className={styles.capabilitiesGrid}>
+      <div className="flex flex-wrap gap-2">
         {capabilities.map((cap) => (
           <CapabilityTag
             key={cap.id}
@@ -698,13 +561,10 @@ function CapabilitiesSection({
         ))}
         <button
           onClick={onAdd}
-          className={`${styles.button} ${styles.buttonSecondary}`}
-          style={{
-            border: "2px dashed #ccc",
-          }}
+          className="inline-flex items-center gap-2 py-2 px-4 rounded-full border-2 border-dashed border-strong bg-transparent text-secondary hover:border-blue hover:text-blue transition-default cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          Add Custom Capability
+          <span className="detail font-semibold">Add Custom Capability</span>
         </button>
       </div>
     </div>
@@ -724,7 +584,7 @@ function CapabilityTag({
 
   if (isEditing) {
     return (
-      <div style={{ display: "flex", gap: "4px" }}>
+      <div className="flex items-center">
         <input
           autoFocus
           type="text"
@@ -735,48 +595,43 @@ function CapabilityTag({
             if (e.key === "Enter") setIsEditing(false);
             if (e.key === "Escape") setIsEditing(false);
           }}
-          className={styles.input}
-          style={{
-            border: "2px solid #2563A5",
-          }}
+          className="py-1.5 px-3 rounded-full border-2 border-blue bg-primary body text-xs outline-none min-w-[120px]"
         />
       </div>
     );
   }
 
-  // Get category class
-  const getCategoryClass = (category?: string) => {
-    const categoryMap: Record<string, string> = {
-      "Finance & Accounting": styles.capabilityFinance,
-      "Human Capital Management": styles.capabilityHR,
-      "Supply Chain Management": styles.capabilitySupplyChain,
-      "Customer Management": styles.capabilityCustomer,
-      "Product & Service Management": styles.capabilityProduct,
-      "IT Service Management": styles.capabilityIT,
-      "Risk & Compliance": styles.capabilityRisk,
-      "Strategy & Governance": styles.capabilityStrategy,
-    };
-
-    return categoryMap[category || ""] || styles.capabilityDefault;
+  // Get category specific styling
+  const categoryStyles: Record<string, string> = {
+    "Finance & Accounting": "bg-blue-light text-blue border-blue/20",
+    "Human Capital Management": "bg-green-light text-green border-green/20",
+    "Supply Chain Management": "bg-orange-light text-orange border-orange/20",
+    "Customer Management": "bg-pink-light text-pink border-pink/20",
+    "Product & Service Management": "bg-purple-light text-purple border-purple/20",
+    "IT Service Management": "bg-indigo-light text-indigo border-indigo/20",
+    "Risk & Compliance": "bg-red-light text-red border-red/20",
+    "Strategy & Governance": "bg-gray-6 text-gray-1 border-gray-4",
   };
 
-  const categoryClass = getCategoryClass(capability.category);
+  const currentStyle = categoryStyles[capability.category || ""] || "bg-secondary text-primary border-strong";
 
   return (
     <div
-      className={`${styles.capabilityTag} ${categoryClass}`}
+      className={clsx(
+        "inline-flex items-center gap-2 px-4 py-1.5 rounded-full border body text-xs font-semibold cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-default group",
+        currentStyle
+      )}
       onClick={() => setIsEditing(true)}
       title={capability.category ? `Category: ${capability.category}` : "Click to edit"}
     >
-      <span>
-        {capability.name || "Click to edit"}
-      </span>
+      <div className={clsx("w-1.5 h-1.5 rounded-full", currentStyle.split(' ')[1].replace('text', 'bg'))} />
+      <span>{capability.name || "Click to edit"}</span>
       <button
         onClick={(e) => {
           e.stopPropagation();
           onRemove();
         }}
-        className={styles.removeCapabilityButton}
+        className="p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-black/5 transition-default"
         aria-label={`Remove capability ${capability.name || 'untitled'}`}
       >
         <Trash2 className="w-3 h-3" aria-hidden="true" />
@@ -789,26 +644,10 @@ function AddButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <button
       onClick={onClick}
-      className={`${styles.button} ${styles.buttonSecondary}`}
-      style={{
-        minHeight: "150px",
-        border: "2px dashed #ccc",
-        backgroundColor: "#fafafa",
-        flexDirection: "column",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "#2563A5";
-        e.currentTarget.style.backgroundColor = "#f0f7ff";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "#ccc";
-        e.currentTarget.style.backgroundColor = "#fafafa";
-      }}
+      className="flex flex-col items-center justify-center p-8 min-h-[180px] border-2 border-dashed border-strong bg-secondary/30 rounded-xl hover:bg-blue-light hover:border-blue transition-default cursor-pointer group"
     >
-      <Plus className="w-6 h-6" style={{ color: "#999" }} />
-      <span style={{ color: "#666" }}>
-        {label}
-      </span>
+      <Plus className="w-8 h-8 text-secondary group-hover:text-blue mb-2 transition-default" />
+      <span className="body-semibold text-secondary group-hover:text-blue transition-default">{label}</span>
     </button>
   );
 }
@@ -843,16 +682,12 @@ function EntitiesSection({
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Template Selector */}
-      <div className={styles.templateLoader}>
+      <div className="template-loader">
         <button
           onClick={() => setShowTemplates(!showTemplates)}
-          className={`${styles.button} ${styles.buttonSecondary}`}
-          style={{
-            borderColor: "#2563A5",
-            color: "#2563A5",
-          }}
+          className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
           aria-expanded={showTemplates}
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
@@ -860,71 +695,17 @@ function EntitiesSection({
         </button>
 
         {showTemplates && (
-          <div
-            style={{
-              marginTop: "16px",
-              padding: "24px",
-              backgroundColor: "#f9f9f9",
-              borderRadius: "8px",
-              border: "1px solid #e0e0e0",
-            }}
-          >
-            <h4
-              style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "16px",
-                fontWeight: 600,
-                color: "#000",
-                marginBottom: "16px",
-              }}
-            >
-              Select an Organization Type
-            </h4>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "12px",
-              }}
-            >
+          <div className="mt-4 p-6 bg-secondary rounded-xl border border-strong shadow-sm animate-fade-in">
+            <h4 className="body-semibold text-primary mb-4">Select an Organization Type</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {Object.entries(TOGAF_ENTITY_TEMPLATES).map(([templateName, entityTemplates]) => (
                 <button
                   key={templateName}
                   onClick={() => loadTemplate(templateName, entityTemplates)}
-                  className={styles.templateButton}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#2563A5";
-                    e.currentTarget.style.backgroundColor = "#f0f7ff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#e0e0e0";
-                    e.currentTarget.style.backgroundColor = "#fff";
-                  }}
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                  }}
+                  className="flex flex-col p-4 text-left bg-primary border border-subtle rounded-lg hover:border-blue hover:bg-blue-light transition-default cursor-pointer"
                 >
-                  <div
-                    style={{
-                      fontFamily: "var(--font-text)",
-                      fontSize: "15px",
-                      fontWeight: 600,
-                      color: "#000",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    {templateName}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-text)",
-                      fontSize: "12px",
-                      color: "#666",
-                    }}
-                  >
-                    {entityTemplates.length} entities
-                  </div>
+                  <div className="body-semibold mb-1">{templateName}</div>
+                  <div className="detail text-secondary">{entityTemplates.length} entities</div>
                 </button>
               ))}
             </div>
@@ -934,7 +715,7 @@ function EntitiesSection({
 
       {/* View */}
       {viewMode === "card" ? (
-        <div className={styles.cardsGrid}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {entities.map((entity) => (
             <EntityCard
               key={entity.id}
@@ -987,16 +768,12 @@ function ActorsSection({
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Template Selector */}
-      <div className={styles.templateLoader}>
+      <div className="template-loader">
         <button
           onClick={() => setShowTemplates(!showTemplates)}
-          className={`${styles.button} ${styles.buttonSecondary}`}
-          style={{
-            borderColor: "#2563A5",
-            color: "#2563A5",
-          }}
+          className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
           aria-expanded={showTemplates}
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
@@ -1004,71 +781,17 @@ function ActorsSection({
         </button>
 
         {showTemplates && (
-          <div
-            style={{
-              marginTop: "16px",
-              padding: "24px",
-              backgroundColor: "#f9f9f9",
-              borderRadius: "8px",
-              border: "1px solid #e0e0e0",
-            }}
-          >
-            <h4
-              style={{
-                fontFamily: "var(--font-text)",
-                fontSize: "16px",
-                fontWeight: 600,
-                color: "#000",
-                marginBottom: "16px",
-              }}
-            >
-              Select a Stakeholder Group (TOGAF ADM)
-            </h4>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "12px",
-              }}
-            >
+          <div className="mt-4 p-6 bg-secondary rounded-xl border border-strong shadow-sm animate-fade-in">
+            <h4 className="body-semibold text-primary mb-4">Select a Stakeholder Group (TOGAF ADM)</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {Object.entries(TOGAF_ACTOR_TEMPLATES).map(([templateName, actorTemplates]) => (
                 <button
                   key={templateName}
                   onClick={() => loadTemplate(templateName, actorTemplates)}
-                  className={styles.templateButton}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#2563A5";
-                    e.currentTarget.style.backgroundColor = "#f0f7ff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#e0e0e0";
-                    e.currentTarget.style.backgroundColor = "#fff";
-                  }}
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                  }}
+                  className="flex flex-col p-4 text-left bg-primary border border-subtle rounded-lg hover:border-blue hover:bg-blue-light transition-default cursor-pointer"
                 >
-                  <div
-                    style={{
-                      fontFamily: "var(--font-text)",
-                      fontSize: "15px",
-                      fontWeight: 600,
-                      color: "#000",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    {templateName}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-text)",
-                      fontSize: "12px",
-                      color: "#666",
-                    }}
-                  >
-                    {actorTemplates.length} stakeholders
-                  </div>
+                  <div className="body-semibold mb-1">{templateName}</div>
+                  <div className="detail text-secondary">{actorTemplates.length} stakeholders</div>
                 </button>
               ))}
             </div>
@@ -1078,12 +801,7 @@ function ActorsSection({
 
       {/* View */}
       {viewMode === "card" ? (
-        <div
-          className={styles.cardsGrid}
-          style={{
-            gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-          }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {actors.map((actor) => (
             <ActorCard
               key={actor.id}
@@ -1122,17 +840,9 @@ function EntitiesListView({
   onAdd: () => void;
 }) {
   return (
-    <div className={styles.listView}>
+    <div className="border border-strong rounded-xl bg-primary overflow-hidden shadow-sm">
       {/* Header */}
-      <div
-        className={styles.listHeader}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1.5fr 3fr 40px",
-          gap: "16px",
-          padding: "12px 16px",
-        }}
-      >
+      <div className="grid grid-cols-[2fr_1.5fr_3fr_44px] gap-4 p-4 bg-secondary border-b border-strong body-semibold text-xs text-secondary uppercase tracking-wider">
         <div>Name</div>
         <div>Location</div>
         <div>Description</div>
@@ -1140,66 +850,46 @@ function EntitiesListView({
       </div>
 
       {/* Rows */}
-      {entities.map((entity, index) => (
-        <div
-          key={entity.id}
-          className={styles.listRow}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1.5fr 3fr 40px",
-            gap: "16px",
-            padding: "12px 16px",
-            backgroundColor: index % 2 === 0 ? "#fff" : "#fafafa",
-            borderBottom: index < entities.length - 1 ? "1px solid #e0e0e0" : "none",
-            alignItems: "center",
-          }}
-        >
-          <input
-            type="text"
-            value={entity.name}
-            onChange={(e) => onUpdate(entity.id, { name: e.target.value })}
-            placeholder="Entity name"
-            className={styles.input}
-          />
-          <input
-            type="text"
-            value={entity.location || ""}
-            onChange={(e) => onUpdate(entity.id, { location: e.target.value })}
-            placeholder="Location"
-            className={styles.input}
-          />
-          <input
-            type="text"
-            value={entity.description || ""}
-            onChange={(e) => onUpdate(entity.id, { description: e.target.value })}
-            placeholder="Description"
-            className={styles.input}
-          />
-          <button
-            onClick={() => onRemove(entity.id)}
-            className={styles.iconButton}
-            aria-label={`Remove entity ${entity.name || 'untitled'}`}
-          >
-            <Trash2 className="w-4 h-4" aria-hidden="true" />
-          </button>
-        </div>
-      ))}
+      <div className="divide-y divide-subtle">
+        {entities.map((entity) => (
+          <div key={entity.id} className="grid grid-cols-[2fr_1.5fr_3fr_44px] gap-4 p-4 hover:bg-secondary/30 transition-default items-center">
+            <input
+              type="text"
+              value={entity.name}
+              onChange={(e) => onUpdate(entity.id, { name: e.target.value })}
+              placeholder="Entity name"
+              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
+            />
+            <input
+              type="text"
+              value={entity.location || ""}
+              onChange={(e) => onUpdate(entity.id, { location: e.target.value })}
+              placeholder="Location"
+              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
+            />
+            <input
+              type="text"
+              value={entity.description || ""}
+              onChange={(e) => onUpdate(entity.id, { description: e.target.value })}
+              placeholder="Description"
+              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
+            />
+            <button
+              onClick={() => onRemove(entity.id)}
+              className="p-2 rounded-full text-secondary hover:bg-red-light hover:text-red transition-default"
+              aria-label={`Remove entity ${entity.name || 'untitled'}`}
+            >
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+        ))}
+      </div>
 
       {/* Add Row */}
-      <div
-        style={{
-          padding: "12px 16px",
-          backgroundColor: "#f9f9f9",
-          borderTop: "1px solid #e0e0e0",
-        }}
-      >
+      <div className="p-4 bg-secondary/20 border-t border-subtle">
         <button
           onClick={onAdd}
-          className={`${styles.button} ${styles.buttonSecondary}`}
-          style={{
-            borderColor: "#2563A5",
-            color: "#2563A5",
-          }}
+          className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Entity
@@ -1221,17 +911,9 @@ function ActorsListView({
   onAdd: () => void;
 }) {
   return (
-    <div className={styles.listView}>
+    <div className="border border-strong rounded-xl bg-primary overflow-hidden shadow-sm">
       {/* Header */}
-      <div
-        className={styles.listHeader}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1.5fr 1.5fr 3fr 40px",
-          gap: "16px",
-          padding: "12px 16px",
-        }}
-      >
+      <div className="grid grid-cols-[2fr_1.5fr_1.5fr_3fr_44px] gap-4 p-4 bg-secondary border-b border-strong body-semibold text-xs text-secondary uppercase tracking-wider">
         <div>Name</div>
         <div>Role</div>
         <div>Department</div>
@@ -1240,77 +922,57 @@ function ActorsListView({
       </div>
 
       {/* Rows */}
-      {actors.map((actor, index) => (
-        <div
-          key={actor.id}
-          className={styles.listRow}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1.5fr 1.5fr 3fr 40px",
-            gap: "16px",
-            padding: "12px 16px",
-            backgroundColor: index % 2 === 0 ? "#fff" : "#fafafa",
-            borderBottom: index < actors.length - 1 ? "1px solid #e0e0e0" : "none",
-            alignItems: "center",
-          }}
-        >
-          <input
-            type="text"
-            value={actor.name}
-            onChange={(e) => onUpdate(actor.id, { name: e.target.value })}
-            placeholder="Actor name"
-            className={styles.input}
-          />
-          <input
-            type="text"
-            value={actor.role}
-            onChange={(e) => onUpdate(actor.id, { role: e.target.value })}
-            placeholder="Role"
-            className={styles.input}
-          />
-          <input
-            type="text"
-            value={actor.department}
-            onChange={(e) => onUpdate(actor.id, { department: e.target.value })}
-            placeholder="Department"
-            className={styles.input}
-          />
-          <input
-            type="text"
-            value={actor.activities.join(", ")}
-            onChange={(e) =>
-              onUpdate(actor.id, {
-                activities: e.target.value.split(",").map((a) => a.trim()).filter((a) => a),
-              })
-            }
-            placeholder="Activities (comma-separated)"
-            className={styles.input}
-          />
-          <button
-            onClick={() => onRemove(actor.id)}
-            className={styles.iconButton}
-            aria-label={`Remove actor ${actor.name || 'untitled'}`}
-          >
-            <Trash2 className="w-4 h-4" aria-hidden="true" />
-          </button>
-        </div>
-      ))}
+      <div className="divide-y divide-subtle">
+        {actors.map((actor) => (
+          <div key={actor.id} className="grid grid-cols-[2fr_1.5fr_1.5fr_3fr_44px] gap-4 p-4 hover:bg-secondary/30 transition-default items-center">
+            <input
+              type="text"
+              value={actor.name}
+              onChange={(e) => onUpdate(actor.id, { name: e.target.value })}
+              placeholder="Actor name"
+              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
+            />
+            <input
+              type="text"
+              value={actor.role}
+              onChange={(e) => onUpdate(actor.id, { role: e.target.value })}
+              placeholder="Role"
+              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
+            />
+            <input
+              type="text"
+              value={actor.department}
+              onChange={(e) => onUpdate(actor.id, { department: e.target.value })}
+              placeholder="Department"
+              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
+            />
+            <input
+              type="text"
+              value={actor.activities.join(", ")}
+              onChange={(e) =>
+                onUpdate(actor.id, {
+                  activities: e.target.value.split(",").map((a) => a.trim()).filter((a) => a),
+                })
+              }
+              placeholder="Activities (comma-separated)"
+              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
+            />
+            <button
+              onClick={() => onRemove(actor.id)}
+              className="p-2 rounded-full text-secondary hover:bg-red-light hover:text-red transition-default"
+              aria-label={`Remove actor ${actor.name || 'untitled'}`}
+            >
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+        ))}
+      </div>
 
       {/* Add Row */}
-      <div
-        style={{
-          padding: "12px 16px",
-          backgroundColor: "#f9f9f9",
-          borderTop: "1px solid #e0e0e0",
-        }}
-      >
+      <div className="p-4 bg-secondary/20 border-t border-subtle">
         <button
           onClick={onAdd}
-          className={`${styles.button} ${styles.buttonSecondary}`}
-          style={{
-            borderColor: "#2563A5",
-            color: "#2563A5",
-          }}
+          className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Actor

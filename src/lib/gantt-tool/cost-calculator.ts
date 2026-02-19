@@ -215,7 +215,7 @@ function calculateWorkingDays(
 
   // Subtract holidays that fall on working days
   const holidayDates = new Set(holidays.map((h) => h.date));
-  let currentDate = new Date(start);
+  const currentDate = new Date(start);
 
   while (currentDate <= end) {
     const dateStr = currentDate.toISOString().split("T")[0];

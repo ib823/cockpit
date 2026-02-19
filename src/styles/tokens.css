@@ -1,148 +1,88 @@
 /**
- * Design Tokens - Minimalist, Steve Jobs-inspired
- * Zero inline styles. Zero hardcoded colors.
- * Apple HIG principles: Focus, Deference, Depth
+ * Design Tokens Alias Bridge
+ * 
+ * ALIASES ONLY. This file maps legacy token names to the canonical 
+ * Apple Design System tokens in apple-design-system.css.
  */
 
 :root {
   /* ═══ Brand ═══ */
-  --accent: rgb(0, 122, 255); /* System Blue - Apple HIG */
-  --accent-strong: rgb(0, 112, 235); /* Darker blue for hover */
-  --accent-subtle: #dbeafe;
+  --accent: var(--color-blue);
+  --accent-strong: var(--color-blue-dark);
+  --accent-subtle: var(--color-blue-light);
 
-  /* ═══ Greys (neutral, not blue-tinted) ═══ */
-  --ink: #0f172a;
-  --ink-dim: #475569;
-  --ink-muted: #64748b;
-  --surface: #ffffff;
-  --surface-sub: #f8fafc;
-  --surface-raised: #ffffff;
-  --line: #e5e7eb;
+  /* ═══ Greys ═══ */
+  --ink: var(--color-text-primary);
+  --ink-dim: var(--color-text-secondary);
+  --ink-muted: var(--color-text-tertiary);
+  --surface: var(--color-bg-primary);
+  --surface-sub: var(--color-bg-secondary);
+  --surface-raised: var(--color-bg-tertiary);
+  --line: var(--color-border-default);
 
   /* ═══ States ═══ */
-  --success: rgb(52, 199, 89); /* System Green - Apple HIG */
-  --success-bg: #dcfce7;
-  --warn: rgb(255, 149, 0); /* System Orange - Apple HIG */
-  --warn-bg: #fef3c7;
-  --danger: rgb(255, 59, 48); /* System Red - Apple HIG */
-  --danger-bg: #fee2e2;
+  --success: var(--color-green);
+  --success-bg: var(--color-green-light);
+  --warn: var(--color-orange);
+  --warn-bg: var(--color-orange-light);
+  --danger: var(--color-red);
+  --danger-bg: var(--color-red-light);
 
   /* ═══ Focus ═══ */
-  --focus: rgb(0, 122, 255); /* System Blue - Apple HIG */
+  --focus: var(--color-blue);
   --focus-ring: 0 0 0 2px var(--focus);
 
   /* ═══ Radii ═══ */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --r-full: 9999px;
+  --r-sm: var(--radius-sm);
+  --r-md: var(--radius-md);
+  --r-lg: var(--radius-lg);
+  --r-full: var(--radius-full);
 
-  /* ═══ Spacing (8px base grid) ═══ */
-  --s-4: 4px;
-  --s-8: 8px;
-  --s-12: 12px;
-  --s-16: 16px;
-  --s-20: 20px;
-  --s-24: 24px;
-  --s-32: 32px;
-  --s-40: 40px;
-  --s-48: 48px;
-  --s-64: 64px;
+  /* ═══ Spacing ═══ */
+  --s-4: var(--space-4);
+  --s-8: var(--space-8);
+  --s-12: var(--space-12);
+  --s-16: var(--space-16);
+  --s-20: var(--space-20);
+  --s-24: var(--space-24);
+  --s-32: var(--space-32);
+  --s-40: var(--space-40);
+  --s-48: var(--space-48);
+  --s-64: var(--space-64);
 
-  /* ═══ Shadows (very subtle) ═══ */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
+  /* ═══ Shadows ═══ */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
 
   /* ═══ Typography ═══ */
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
-    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "Monaco", "Cascadia Code", "Courier New", monospace;
+  --font-sans: var(--font-text);
+  --font-mono: var(--font-mono);
 
   /* ═══ Motion ═══ */
-  --dur: 180ms;
-  --dur-slow: 300ms;
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur: var(--duration-default);
+  --dur-fast: var(--duration-quick);
+  --dur-slow: var(--duration-slow);
+  --ease: var(--easing-default);
 
-  /* ═══ Gantt Timeline Colors ═══ */
-  --g-grid: #eef2f6;
-  --g-weekend: rgba(2, 6, 23, 0.03);
-  --g-holiday: rgba(244, 63, 94, 0.06);
-  --g-bar: #111827; /* dark charcoal bars, not blue */
-  --g-bar-accent: var(--accent);
-  --g-bar-critical: rgb(255, 59, 48); /* System Red - Apple HIG */
-  --g-bar-progress: #10b981;
-  --g-baseline: #9ca3af;
-  --g-today: #fb923c;
-  --g-link: #6b7280;
+  /* ═══ Gantt Timeline ═══ */
+  --g-grid: var(--color-gantt-grid);
+  --g-weekend: var(--color-gantt-weekend);
+  --g-holiday: var(--color-gantt-holiday);
+  --g-bar: var(--color-gantt-bar);
+  --g-bar-accent: var(--color-gantt-bar-accent);
+  --g-bar-critical: var(--color-gantt-bar-critical);
+  --g-bar-progress: var(--color-gantt-bar-progress);
+  --g-baseline: var(--color-gantt-baseline);
+  --g-today: var(--color-gantt-today);
+  --g-link: var(--color-gantt-link);
 
-  /* ═══ Z-index layers ═══ */
+  /* ═══ Z-index ═══ */
   --z-base: 0;
   --z-dropdown: 1000;
   --z-sticky: 1020;
   --z-modal-backdrop: 1040;
   --z-modal: 1050;
-  --z-toast: 1060;
-  --z-tooltip: 1070;
-
-  /* ═══ Compatibility Aliases (for toolkit components) ═══ */
-  --brand-primary: var(--accent);
-  --brand-secondary: #a855f7; /* purple-500 */
-  --canvas: var(--surface-sub);
-  --warning: var(--warn);
-  --error: var(--danger);
-  --info: var(--accent);
-
-  /* Additional radii for toolkit */
-  --r-xl: 16px;
-  --r-2xl: 20px;
-
-  /* Gray scale (for toolkit components) */
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
-
-  /* Derived tokens for hover states */
-  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
-
-  /* Additional motion tokens */
-  --dur-fast: 150ms;
-}
-
-/* ═══════════════════════════════════════════════════════
-   Dark Mode
-   ═══════════════════════════════════════════════════════ */
-:root.dark,
-[data-theme="dark"] {
-  --ink: #e5e7eb;
-  --ink-dim: #cbd5e1;
-  --ink-muted: #94a3b8;
-  --surface: #0b0f17;
-  --surface-sub: #0f1520;
-  --surface-raised: #1a1f2e;
-  --line: #1f2937;
-
-  --accent-subtle: #1e3a8a;
-
-  --success-bg: #14532d;
-  --warn-bg: #78350f;
-  --danger-bg: #7f1d1d;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.5);
-
-  --g-grid: #1f2937;
-  --g-weekend: rgba(255, 255, 255, 0.03);
-  --g-holiday: rgba(244, 63, 94, 0.1);
-  --g-bar: #e5e7eb;
-  --g-baseline: #6b7280;
+  --z-toast: 1070;
+  --z-tooltip: 1080;
 }

@@ -6,9 +6,9 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
-import type { DiagramSettings, VisualStyle, ActorDisplay, LayoutMode } from "../types";
-import { useModalFocusTrap } from "../hooks/useFocusTrap";
+import type { DiagramSettings } from "../types";
+import { Modal, ModalButton } from "@/ui/components/Modal";
+import clsx from "clsx";
 
 interface StyleSelectorProps {
   currentSettings: DiagramSettings;
@@ -18,104 +18,39 @@ interface StyleSelectorProps {
 
 export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSelectorProps) {
   const [settings, setSettings] = useState<DiagramSettings>(currentSettings);
-  const modalRef = useModalFocusTrap(true, onClose);
 
   const handleGenerate = () => {
     onGenerate(settings);
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-      onClick={onClose}
+    <Modal
+      open={true}
+      onClose={onClose}
+      title="Choose Your Visual Style"
+      size="lg"
+      footer={
+        <>
+          <ModalButton variant="secondary" onClick={onClose}>
+            Cancel
+          </ModalButton>
+          <ModalButton variant="primary" onClick={handleGenerate}>
+            Generate Diagram
+          </ModalButton>
+        </>
+      }
     >
-      <div
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="style-selector-title"
-        style={{
-          backgroundColor: "#fff",
-          borderRadius: "12px",
-          padding: "32px",
-          maxWidth: "800px",
-          width: "90%",
-          maxHeight: "90vh",
-          overflow: "auto",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "24px",
-          }}
-        >
-          <h2
-            id="style-selector-title"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "24px",
-              fontWeight: 600,
-              color: "#000",
-            }}
-          >
-            Choose Your Visual Style
-          </h2>
-          <button
-            onClick={onClose}
-            style={{
-              width: "32px",
-              height: "32px",
-              borderRadius: "50%",
-              border: "none",
-              backgroundColor: "#f5f5f5",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            aria-label="Close style selector"
-          >
-            <X className="w-4 h-4" aria-hidden="true" />
-          </button>
-        </div>
-
+      <div className="space-y-8">
         {/* Visual Style */}
         <Section title="1. Visual Style" subtitle="How should boxes and cards look?">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <StyleOption
               name="Clean & Modern"
               description="Subtle shadows, rounded corners, professional"
-              value="clean"
               selected={settings.visualStyle === "clean"}
               onSelect={() => setSettings({ ...settings, visualStyle: "clean" })}
               preview={
-                <div
-                  style={{
-                    padding: "16px",
-                    backgroundColor: "#fff",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                    textAlign: "center",
-                    fontSize: "12px",
-                  }}
-                >
+                <div className="p-4 bg-primary rounded-md shadow-sm border border-subtle text-center text-[11px]">
                   Clean Style
                 </div>
               }
@@ -123,22 +58,10 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
             <StyleOption
               name="Bold & Flat"
               description="High contrast, bold colors, presentation-ready"
-              value="bold"
               selected={settings.visualStyle === "bold"}
               onSelect={() => setSettings({ ...settings, visualStyle: "bold" })}
               preview={
-                <div
-                  style={{
-                    padding: "16px",
-                    backgroundColor: "#2563A5",
-                    borderRadius: "4px",
-                    border: "3px solid #1e4a80",
-                    textAlign: "center",
-                    fontSize: "12px",
-                    color: "#fff",
-                    fontWeight: 600,
-                  }}
-                >
+                <div className="p-4 bg-blue rounded-sm border-2 border-blue-dark text-center text-[11px] color-white font-semibold">
                   Bold Style
                 </div>
               }
@@ -146,21 +69,10 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
             <StyleOption
               name="Premium & Gradient"
               description="Glossy gradients, polished, enterprise-grade"
-              value="gradient"
               selected={settings.visualStyle === "gradient"}
               onSelect={() => setSettings({ ...settings, visualStyle: "gradient" })}
               preview={
-                <div
-                  style={{
-                    padding: "16px",
-                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                    borderRadius: "8px",
-                    textAlign: "center",
-                    fontSize: "12px",
-                    color: "#fff",
-                    fontWeight: 600,
-                  }}
-                >
+                <div className="p-4 bg-gradient-to-br from-blue to-indigo rounded-md text-center text-[11px] color-white font-semibold">
                   Gradient
                 </div>
               }
@@ -170,7 +82,7 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
 
         {/* Actor Display */}
         <Section title="2. Actor Display" subtitle="How to show stakeholders?">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <OptionCard
               title="Detailed Cards"
               description="Full cards with role, department, and activities"
@@ -188,7 +100,7 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
 
         {/* Layout Mode */}
         <Section title="3. Layout Mode" subtitle="How to organize current landscape?">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <OptionCard
               title="Swim Lanes"
               description="Separate section for each business entity"
@@ -206,7 +118,7 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
 
         {/* Additional Options */}
         <Section title="4. Additional Options">
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div className="space-y-3">
             <Checkbox
               label="Show legend"
               checked={settings.showLegend}
@@ -219,50 +131,8 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
             />
           </div>
         </Section>
-
-        {/* Actions */}
-        <div
-          style={{
-            marginTop: "32px",
-            display: "flex",
-            gap: "12px",
-            justifyContent: "flex-end",
-          }}
-        >
-          <button
-            onClick={onClose}
-            style={{
-              padding: "12px 24px",
-              border: "1px solid #e0e0e0",
-              borderRadius: "6px",
-              backgroundColor: "#fff",
-              fontFamily: "var(--font-text)",
-              fontSize: "14px",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleGenerate}
-            style={{
-              padding: "12px 32px",
-              border: "none",
-              borderRadius: "6px",
-              backgroundColor: "#2563A5",
-              color: "#fff",
-              fontFamily: "var(--font-text)",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
-            Generate Diagram
-          </button>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -276,27 +146,10 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: "32px" }}>
-      <h3
-        style={{
-          fontFamily: "var(--font-text)",
-          fontSize: "16px",
-          fontWeight: 600,
-          color: "#000",
-          marginBottom: "4px",
-        }}
-      >
-        {title}
-      </h3>
+    <div>
+      <h3 className="body-semibold mb-1">{title}</h3>
       {subtitle && (
-        <p
-          style={{
-            fontFamily: "var(--font-text)",
-            fontSize: "13px",
-            color: "#666",
-            marginBottom: "16px",
-          }}
-        >
+        <p className="detail text-secondary mb-4">
           {subtitle}
         </p>
       )}
@@ -308,14 +161,12 @@ function Section({
 function StyleOption({
   name,
   description,
-  value,
   selected,
   onSelect,
   preview,
 }: {
   name: string;
   description: string;
-  value: string;
   selected: boolean;
   onSelect: () => void;
   preview: React.ReactNode;
@@ -323,36 +174,14 @@ function StyleOption({
   return (
     <button
       onClick={onSelect}
-      style={{
-        padding: "16px",
-        border: `2px solid ${selected ? "#2563A5" : "#e0e0e0"}`,
-        borderRadius: "8px",
-        backgroundColor: selected ? "#f0f7ff" : "#fff",
-        cursor: "pointer",
-        textAlign: "left",
-        transition: "all 200ms ease",
-      }}
+      className={clsx(
+        "flex flex-col p-4 border-2 rounded-xl text-left transition-default cursor-pointer",
+        selected ? "border-blue bg-blue-light" : "border-subtle bg-primary hover:bg-secondary"
+      )}
     >
-      <div style={{ marginBottom: "12px" }}>{preview}</div>
-      <div
-        style={{
-          fontFamily: "var(--font-text)",
-          fontSize: "14px",
-          fontWeight: 600,
-          color: "#000",
-          marginBottom: "4px",
-        }}
-      >
-        {name}
-      </div>
-      <div
-        style={{
-          fontFamily: "var(--font-text)",
-          fontSize: "12px",
-          color: "#666",
-          lineHeight: "1.4",
-        }}
-      >
+      <div className="mb-3 w-full">{preview}</div>
+      <div className="body-semibold text-sm mb-1">{name}</div>
+      <div className="detail text-secondary line-height-tight">
         {description}
       </div>
     </button>
@@ -373,35 +202,13 @@ function OptionCard({
   return (
     <button
       onClick={onClick}
-      style={{
-        padding: "20px",
-        border: `2px solid ${selected ? "#2563A5" : "#e0e0e0"}`,
-        borderRadius: "8px",
-        backgroundColor: selected ? "#f0f7ff" : "#fff",
-        cursor: "pointer",
-        textAlign: "left",
-        transition: "all 200ms ease",
-      }}
+      className={clsx(
+        "p-5 border-2 rounded-xl text-left transition-default cursor-pointer",
+        selected ? "border-blue bg-blue-light" : "border-subtle bg-primary hover:bg-secondary"
+      )}
     >
-      <div
-        style={{
-          fontFamily: "var(--font-text)",
-          fontSize: "15px",
-          fontWeight: 600,
-          color: "#000",
-          marginBottom: "6px",
-        }}
-      >
-        {title}
-      </div>
-      <div
-        style={{
-          fontFamily: "var(--font-text)",
-          fontSize: "13px",
-          color: "#666",
-          lineHeight: "1.4",
-        }}
-      >
+      <div className="body-semibold mb-1">{title}</div>
+      <div className="detail text-secondary">
         {description}
       </div>
     </button>
@@ -418,23 +225,14 @@ function Checkbox({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        cursor: "pointer",
-        fontFamily: "var(--font-text)",
-        fontSize: "14px",
-      }}
-    >
+    <label className="flex items-center gap-3 cursor-pointer group">
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        style={{ width: "18px", height: "18px", cursor: "pointer" }}
+        className="w-5 h-5 rounded border-strong text-blue focus:ring-blue cursor-pointer transition-default"
       />
-      {label}
+      <span className="body text-sm group-hover:text-primary transition-default">{label}</span>
     </label>
   );
 }

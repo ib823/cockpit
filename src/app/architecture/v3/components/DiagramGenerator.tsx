@@ -71,65 +71,32 @@ export function DiagramGenerator({
         );
       default:
         return (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "64px 32px",
-              color: "#999",
-            }}
-          >
-            <p style={{ fontSize: "16px" }}>Unknown diagram type</p>
+          <div className="text-center py-16 px-8 text-secondary">
+            <p className="body-large">Unknown diagram type</p>
           </div>
         );
     }
   };
 
   return (
-    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "24px 32px" }}>
+    <div className="content-max-w p-8">
       {/* Header Controls */}
-      <div
-        style={{
-          textAlign: "center",
-          marginBottom: "24px",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+      <div className="text-center mb-6">
+        <div className="flex justify-center gap-3">
           <button
             onClick={onEdit}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#fff",
-              border: "1px solid #e0e0e0",
-              borderRadius: "6px",
-              fontFamily: "var(--font-text)",
-              fontSize: "14px",
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
+            className="inline-flex items-center gap-2 py-2 px-5 bg-primary border border-subtle rounded-md body text-sm cursor-pointer hover:bg-secondary transition-default"
             aria-label="Return to edit mode"
           >
-            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+            <ArrowLeft className="w-4 h-4 text-blue" aria-hidden="true" />
             Back to Edit
           </button>
           <button
             onClick={onChangeStyle}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#fff",
-              border: "1px solid #e0e0e0",
-              borderRadius: "6px",
-              fontFamily: "var(--font-text)",
-              fontSize: "14px",
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
+            className="inline-flex items-center gap-2 py-2 px-5 bg-primary border border-subtle rounded-md body text-sm cursor-pointer hover:bg-secondary transition-default"
             aria-label="Change diagram visual style"
           >
-            <Palette className="w-4 h-4" aria-hidden="true" />
+            <Palette className="w-4 h-4 text-blue" aria-hidden="true" />
             Change Style
           </button>
         </div>

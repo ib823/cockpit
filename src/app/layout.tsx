@@ -5,7 +5,6 @@ import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import "@/styles/apple-design-system.css";
-import "@/styles/design-tokens.css";
 import "@/styles/accessibility.css";
 import { Providers } from "./providers";
 

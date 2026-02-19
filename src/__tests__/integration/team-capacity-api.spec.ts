@@ -19,7 +19,7 @@ import { describe, test, expect, beforeAll, afterAll } from "@playwright/test";
 describe("Team Capacity API Integration Tests", () => {
   let testProjectId: string;
   let testResourceId: string;
-  let authCookie: string;
+  let _authCookie: string;
 
   beforeAll(async () => {
     // Setup: Get test project and resource from database
@@ -310,9 +310,7 @@ describe("Team Capacity API Integration Tests", () => {
       expect(getResponse.status()).toBe(200);
     });
 
-    test("should require OWNER role for costing access", async ({
-      request,
-    }) => {
+    test("should require OWNER role for costing access", async () => {
       // This would test with a non-owner user session
       // Implementation depends on auth setup
     });

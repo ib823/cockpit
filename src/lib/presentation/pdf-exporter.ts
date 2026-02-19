@@ -55,7 +55,7 @@ export async function exportToPDF(
 
     // Determine PDF dimensions
     let pdfWidth: number, pdfHeight: number;
-    let orientation: "landscape" | "portrait" = "landscape";
+    const orientation: "landscape" | "portrait" = "landscape";
 
     if (format === "16:9") {
       pdfWidth = 297;

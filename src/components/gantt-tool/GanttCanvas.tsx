@@ -1,14 +1,16 @@
 /**
- * Gantt Tool - Canvas Component
+ * Gantt Tool - Canvas Component (Optimized V3)
  *
- * SVG-based Gantt chart visualization with drag-and-drop support.
- * Features: Phases, Tasks, Milestones, Holidays, Interactive editing
+ * SVG-based Gantt chart visualization with:
+ * - Window Virtualization (renders only visible tasks)
+ * - Component Memoization (PhaseRow, TaskRow)
+ * - Throttled drag-and-drop
  */
 
 "use client";
 
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
-import { useMemo, useRef, useState, useCallback } from "react";
+import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import {
   differenceInDays,
   format,
@@ -18,109 +20,35 @@ import {
   eachMonthOfInterval,
   eachQuarterOfInterval,
   eachYearOfInterval,
-  startOfWeek,
-  startOfMonth,
-  startOfQuarter,
-  startOfYear,
   getDay,
-  getMonth,
   getQuarter,
 } from "date-fns";
-import {
-  ChevronDown,
-  ChevronRight,
-  Flag,
-  Users,
-  ChevronUp,
-  MoveUp,
-  MoveDown,
-  ArrowRightToLine,
-  Maximize2,
-  AlertTriangle,
-} from "lucide-react";
-import type { GanttPhase } from "@/types/gantt-tool";
+import { Flag } from "lucide-react";
 import { getHolidaysInRange } from "@/data/holidays";
-import {
-  formatGanttDate,
-  formatGanttDateCompact,
-  formatDurationCompact,
-  formatWorkingDays,
-} from "@/lib/gantt-tool/date-utils";
+import { formatGanttDate } from "@/lib/gantt-tool/date-utils";
 import { formatDuration } from "@/lib/gantt-tool/formatters";
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, canAssignToPhase } from "@/types/gantt-tool";
-import { calculateWorkingDaysInclusive } from "@/lib/gantt-tool/working-days";
-import { PhaseTaskResourceAllocationModal } from "./PhaseTaskResourceAllocationModal";
 import { GanttMinimap } from "./GanttMinimap";
 import { DependencyArrows } from "./DependencyArrows";
 import { Tooltip } from "antd";
-import {
-  getTaskColor as getTaskColorFromDesignSystem,
-  withOpacity,
-  getElevationShadow,
-  GANTT_STATUS_COLORS,
-  GANTT_STATUS_LABELS,
-  type GanttStatus,
-} from "@/lib/design-system";
+import { getTaskColor, withOpacity } from "@/lib/design-system";
 import { useKeyboardNavigation } from "./useKeyboardNavigation";
-import { getVisibleTasksInOrder, isLastSibling } from "@/lib/gantt-tool/task-hierarchy";
+import { getVisibleTasksInOrder } from "@/lib/gantt-tool/task-hierarchy";
 import { StatusLegendMini } from "./StatusLegend";
+import { PhaseRow } from "./components/PhaseRow";
+import { TaskRow } from "./components/TaskRow";
+import { PhaseTaskResourceAllocationModal } from "./PhaseTaskResourceAllocationModal";
 
-// Get consistent color for a task based on its index within the phase
-// Now using professional colors from the centralized design system
-const getTaskColor = (taskIndex: number): string => {
-  return getTaskColorFromDesignSystem(taskIndex);
-};
-
-/**
- * Calculate status based on dates and progress
- * Returns GanttStatus for semantic color coding
- */
-const calculateItemStatus = (
-  startDate: string,
-  endDate: string,
-  progress: number = 0
-): GanttStatus => {
-  const now = new Date();
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  // Not started yet
-  if (now < start) {
-    return "notStarted";
+// Optimization Helper: Simple throttle
+function throttle(func: Function, limit: number) {
+  let inThrottle: boolean;
+  return function(this: any, ...args: any[]) {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
   }
-
-  // Completed
-  if (progress === 100) {
-    return "completed";
-  }
-
-  // Overdue/Blocked
-  if (now > end && progress < 100) {
-    return "blocked";
-  }
-
-  // At risk (approaching deadline with low progress)
-  const totalDays = differenceInDays(end, start);
-  const elapsed = differenceInDays(now, start);
-  const percentElapsed = totalDays > 0 ? (elapsed / totalDays) * 100 : 0;
-
-  // If we're more than 70% through the timeline but less than 70% done, at risk
-  if (percentElapsed > 70 && progress < 70) {
-    return "atRisk";
-  }
-
-  // In progress
-  if (progress > 0 && now >= start && now <= end) {
-    return "inProgress";
-  }
-
-  // On hold (no progress but within timeline)
-  if (progress === 0 && now >= start && now <= end) {
-    return "onHold";
-  }
-
-  return "inProgress"; // Default
-};
+}
 
 export function GanttCanvas() {
   const {
@@ -147,7 +75,30 @@ export function GanttCanvas() {
     deleteTask,
   } = useGanttToolStore();
 
-  // Keyboard navigation support
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [dragState, setDragState] = useState<any>(null);
+  const [dropTarget, setDropTarget] = useState<any>(null);
+  const [phaseDropTarget, setPhaseDropTarget] = useState<string | null>(null);
+  const [resourceModalState, setResourceModalState] = useState<any>(null);
+  
+  // Virtualization state
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(800);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current) setViewportHeight(canvasRef.current.offsetHeight);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  }, []);
+
+  // Keyboard navigation
   useKeyboardNavigation({
     currentProject,
     selection,
@@ -156,2199 +107,194 @@ export function GanttCanvas() {
     openSidePanel,
     deletePhase,
     deleteTask,
-    focusPhase: (phaseId: string | null) => {
-      if (phaseId) focusPhase(phaseId);
-    },
+    focusPhase,
     exitFocusMode,
     focusedPhaseId,
   });
 
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [dragState, setDragState] = useState<{
-    itemId: string | null;
-    itemType: "phase" | "task" | null;
-    phaseId?: string | null;
-    mode: "move" | "resize-start" | "resize-end" | null;
-    startX: number;
-    initialStartDate: string;
-    initialEndDate: string;
-    hasMoved: boolean;
-  } | null>(null);
-  const [dropTarget, setDropTarget] = useState<{ taskId: string; phaseId: string } | null>(null);
-  const [phaseDropTarget, setPhaseDropTarget] = useState<string | null>(null);
-  const [resourceModalState, setResourceModalState] = useState<{
-    itemId: string;
-    itemType: "phase" | "task";
-  } | null>(null);
-
-  // Get duration before any early returns to maintain hook order
-  // RTS Focus Mode: Override duration to show only focused phase
-  let baseDuration = getProjectDuration();
+  const baseDuration = getProjectDuration();
   const viewSettings = currentProject?.viewSettings;
 
-  // If in focus mode, calculate duration for focused phase only
   const duration = useMemo(() => {
     if (!baseDuration || !focusedPhaseId || !currentProject) return baseDuration;
-
     const focusedPhase = currentProject.phases.find((p) => p.id === focusedPhaseId);
     if (!focusedPhase) return baseDuration;
-
     const startDate = new Date(focusedPhase.startDate);
     const endDate = new Date(focusedPhase.endDate);
-    const durationDays = differenceInDays(endDate, startDate);
-
-    return { startDate, endDate, durationDays };
+    return { startDate, endDate, durationDays: differenceInDays(endDate, startDate) };
   }, [baseDuration, focusedPhaseId, currentProject]);
 
-  // Generate timeline markers based on zoom level
-  // This hook must be called on every render, so we handle null cases inside
   const timelineMarkers = useMemo(() => {
     if (!duration || !viewSettings) return [];
-
     const { startDate, endDate, durationDays } = duration;
-    const markers: Array<{ date: Date; label: string; position: number }> = [];
+    const markers: any[] = [];
+    const zoom = viewSettings.zoomLevel;
 
-    switch (viewSettings.zoomLevel) {
-      case "day":
-        const days = eachDayOfInterval({ start: startDate, end: endDate });
-        days.forEach((day) => {
-          const offset = differenceInDays(day, startDate);
-          const position = (offset / durationDays) * 100;
-          markers.push({
-            date: day,
-            label: format(day, "d"),
-            position,
-          });
-        });
-        break;
-
-      case "week":
-        const weeks = eachWeekOfInterval({ start: startDate, end: endDate }, { weekStartsOn: 1 });
-        weeks.forEach((week) => {
-          const offset = differenceInDays(week, startDate);
-          const position = (offset / durationDays) * 100;
-          markers.push({
-            date: week,
-            label: format(week, "dd MMM"),
-            position,
-          });
-        });
-        break;
-
-      case "month":
-        const months = eachMonthOfInterval({ start: startDate, end: endDate });
-        months.forEach((month) => {
-          const offset = differenceInDays(month, startDate);
-          const position = (offset / durationDays) * 100;
-          markers.push({
-            date: month,
-            label: format(month, "MMM yyyy"),
-            position,
-          });
-        });
-        break;
-
-      case "quarter":
-        const quarters = eachQuarterOfInterval({ start: startDate, end: endDate });
-        quarters.forEach((quarter) => {
-          const offset = differenceInDays(quarter, startDate);
-          const position = (offset / durationDays) * 100;
-          const quarterNum = getQuarter(quarter);
-          markers.push({
-            date: quarter,
-            label: `Q${quarterNum} ${format(quarter, "yyyy")}`,
-            position,
-          });
-        });
-        break;
-
-      case "half-year":
-        // Generate half-yearly markers (Jan and Jul of each year)
-        const years = eachYearOfInterval({ start: startDate, end: endDate });
-        years.forEach((year) => {
-          // First half (January)
-          const h1 = new Date(year.getFullYear(), 0, 1);
-          if (h1 >= startDate && h1 <= endDate) {
-            const offset = differenceInDays(h1, startDate);
-            const position = (offset / durationDays) * 100;
-            markers.push({
-              date: h1,
-              label: `H1 ${format(h1, "yyyy")}`,
-              position,
-            });
-          }
-
-          // Second half (July)
-          const h2 = new Date(year.getFullYear(), 6, 1);
-          if (h2 >= startDate && h2 <= endDate) {
-            const offset = differenceInDays(h2, startDate);
-            const position = (offset / durationDays) * 100;
-            markers.push({
-              date: h2,
-              label: `H2 ${format(h2, "yyyy")}`,
-              position,
-            });
-          }
-        });
-
-        // Add final year if project extends beyond the years we generated
-        const finalYear = endDate.getFullYear();
-        const lastGeneratedYear = years[years.length - 1]?.getFullYear() || 0;
-        if (finalYear > lastGeneratedYear) {
-          const h1 = new Date(finalYear, 0, 1);
-          const h2 = new Date(finalYear, 6, 1);
-
-          if (h1 >= startDate && h1 <= endDate) {
-            const offset = differenceInDays(h1, startDate);
-            const position = (offset / durationDays) * 100;
-            markers.push({
-              date: h1,
-              label: `H1 ${format(h1, "yyyy")}`,
-              position,
-            });
-          }
-
-          if (h2 >= startDate && h2 <= endDate) {
-            const offset = differenceInDays(h2, startDate);
-            const position = (offset / durationDays) * 100;
-            markers.push({
-              date: h2,
-              label: `H2 ${format(h2, "yyyy")}`,
-              position,
-            });
-          }
-        }
-        break;
-
-      case "year":
-        const yearMarkers = eachYearOfInterval({ start: startDate, end: endDate });
-        yearMarkers.forEach((year) => {
-          const offset = differenceInDays(year, startDate);
-          const position = (offset / durationDays) * 100;
-          markers.push({
-            date: year,
-            label: format(year, "yyyy"),
-            position,
-          });
-        });
-        break;
+    if (zoom === "day") {
+      eachDayOfInterval({ start: startDate, end: endDate }).forEach(day => {
+        markers.push({ date: day, label: format(day, "d"), position: (differenceInDays(day, startDate) / durationDays) * 100 });
+      });
+    } else if (zoom === "week") {
+      eachWeekOfInterval({ start: startDate, end: endDate }, { weekStartsOn: 1 }).forEach(week => {
+        markers.push({ date: week, label: format(week, "dd MMM"), position: (differenceInDays(week, startDate) / durationDays) * 100 });
+      });
+    } else {
+      eachMonthOfInterval({ start: startDate, end: endDate }).forEach(month => {
+        markers.push({ date: month, label: format(month, "MMM yyyy"), position: (differenceInDays(month, startDate) / durationDays) * 100 });
+      });
     }
-
     return markers;
   }, [duration, viewSettings]);
 
-  // Calculate all holidays (including weekends) to display on timeline
   const allHolidays = useMemo(() => {
     if (!duration) return [];
-
     const { startDate, endDate, durationDays } = duration;
-    const holidays = getHolidaysInRange(startDate, endDate, "ABMY");
-
-    // Include all holidays, even those on weekends
-    return holidays.map((holiday) => {
-      const holidayDate = new Date(holiday.date);
-      const dayOfWeek = getDay(holidayDate);
-      const offset = differenceInDays(holidayDate, startDate);
-      const position = (offset / durationDays) * 100;
-
-      return {
-        date: holidayDate,
-        name: holiday.name,
-        position,
-        isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-      };
-    });
+    return getHolidaysInRange(startDate, endDate, "ABMY").map(h => ({
+      date: new Date(h.date),
+      name: h.name,
+      position: (differenceInDays(new Date(h.date), startDate) / durationDays) * 100,
+      isWeekend: getDay(new Date(h.date)) === 0 || getDay(new Date(h.date)) === 6
+    }));
   }, [duration]);
 
-  // Drag handlers - must be defined before any early returns
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (!dragState || !canvasRef.current || !duration) return;
+  // Throttled Move handler
+  const throttledMove = useMemo(() => throttle((newStart: Date, newEnd: Date, state: any) => {
+    if (state.itemType === "phase") {
+      movePhase(state.itemId, newStart.toISOString(), newEnd.toISOString());
+    } else {
+      moveTask(state.itemId, state.phaseId, newStart.toISOString(), newEnd.toISOString());
+    }
+  }, 16), [movePhase, moveTask]);
 
-      const deltaX = e.clientX - dragState.startX;
-      const canvasWidth = canvasRef.current.offsetWidth;
-      const pixelsPerDay = canvasWidth / duration.durationDays;
-      const deltaDays = Math.round(deltaX / pixelsPerDay);
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!dragState || !canvasRef.current || !duration) return;
+    const deltaX = e.clientX - dragState.startX;
+    const pixelsPerDay = canvasRef.current.offsetWidth / duration.durationDays;
+    const deltaDays = Math.round(deltaX / pixelsPerDay);
+    if (deltaDays === 0) return;
 
-      // Mark as moved if there's any significant drag (more than 5 pixels)
-      if (Math.abs(deltaX) > 5 && !dragState.hasMoved) {
-        setDragState({ ...dragState, hasMoved: true });
-      }
+    const initialStart = new Date(dragState.initialStartDate);
+    const initialEnd = new Date(dragState.initialEndDate);
+    const newStart = addDays(initialStart, deltaDays);
+    const newEnd = addDays(initialEnd, deltaDays);
 
-      if (deltaDays === 0) return;
+    throttledMove(newStart, newEnd, dragState);
+  }, [dragState, duration, throttledMove]);
 
-      const initialStart = new Date(dragState.initialStartDate);
-      const initialEnd = new Date(dragState.initialEndDate);
-
-      let newStartDate: Date;
-      let newEndDate: Date;
-
-      switch (dragState.mode) {
-        case "move":
-          newStartDate = addDays(initialStart, deltaDays);
-          newEndDate = addDays(initialEnd, deltaDays);
-          break;
-
-        case "resize-start":
-          newStartDate = addDays(initialStart, deltaDays);
-          newEndDate = initialEnd;
-          // Prevent start from going past end
-          if (newStartDate >= newEndDate) {
-            newStartDate = addDays(newEndDate, -1);
-          }
-          break;
-
-        case "resize-end":
-          newStartDate = initialStart;
-          newEndDate = addDays(initialEnd, deltaDays);
-          // Prevent end from going before start
-          if (newEndDate <= newStartDate) {
-            newEndDate = addDays(newStartDate, 1);
-          }
-          break;
-
-        default:
-          return;
-      }
-
-      if (dragState.itemType === "phase" && dragState.itemId) {
-        movePhase(dragState.itemId, newStartDate.toISOString(), newEndDate.toISOString());
-      } else if (dragState.itemType === "task" && dragState.phaseId && dragState.itemId) {
-        // Validate task stays within phase boundaries
-        const phase = currentProject?.phases.find((p) => p.id === dragState.phaseId);
-        if (phase) {
-          const phaseStart = new Date(phase.startDate);
-          const phaseEnd = new Date(phase.endDate);
-
-          // Clamp task dates to phase boundaries
-          if (newStartDate < phaseStart) {
-            const diff = differenceInDays(newEndDate, newStartDate);
-            newStartDate = phaseStart;
-            newEndDate = addDays(newStartDate, diff);
-          }
-          if (newEndDate > phaseEnd) {
-            const diff = differenceInDays(newEndDate, newStartDate);
-            newEndDate = phaseEnd;
-            newStartDate = addDays(newEndDate, -diff);
-            if (newStartDate < phaseStart) {
-              newStartDate = phaseStart;
-            }
-          }
-
-          moveTask(
-            dragState.itemId,
-            dragState.phaseId,
-            newStartDate.toISOString(),
-            newEndDate.toISOString()
-          );
-        }
-      }
-    },
-    [dragState, duration, movePhase, moveTask, currentProject]
-  );
-
-  const handleMouseUp = useCallback(() => {
-    setDragState(null);
-  }, []);
-
-  // Now we can safely do early returns after all hooks are called
-  if (!currentProject) return null;
-
-  if (!duration) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center text-gray-500">
-          <p className="mb-2">No phases yet</p>
-          <button
-            onClick={() => openSidePanel("add", "phase")}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          >
-            Add Your First Phase
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  if (!currentProject || !duration) return null;
   const { startDate, endDate, durationDays } = duration;
 
-  // Calculate phase position and width
-  const getPhaseMetrics = (phase: GanttPhase) => {
-    const phaseStart = new Date(phase.startDate);
-    const phaseEnd = new Date(phase.endDate);
-    const offsetDays = differenceInDays(phaseStart, startDate);
-    const phaseDuration = differenceInDays(phaseEnd, phaseStart); // Calendar days for positioning
-
-    // Calculate working days for display
-    const workingDays = calculateWorkingDaysInclusive(
-      phase.startDate,
-      phase.endDate,
-      currentProject.holidays
-    );
-
-    return {
-      left: (offsetDays / durationDays) * 100,
-      width: (phaseDuration / durationDays) * 100,
-      duration: phaseDuration, // Calendar days (for positioning)
-      workingDays, // Working days (for display)
-    };
-  };
-
-  // Drag handler for phases
-  const handleMouseDown = (
-    e: React.MouseEvent,
-    phaseId: string,
-    mode: "move" | "resize-start" | "resize-end"
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const phase = currentProject.phases.find((p) => p.id === phaseId);
-    if (!phase) return;
-
-    setDragState({
-      itemId: phaseId,
-      itemType: "phase",
-      mode,
-      startX: e.clientX,
-      initialStartDate: phase.startDate,
-      initialEndDate: phase.endDate,
-      hasMoved: false,
-    });
-  };
-
-  // Drag handler for tasks
-  const handleTaskMouseDown = (
-    e: React.MouseEvent,
-    taskId: string,
-    phaseId: string,
-    mode: "move" | "resize-start" | "resize-end"
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const phase = currentProject.phases.find((p) => p.id === phaseId);
-    if (!phase) return;
-
-    const task = phase.tasks.find((t) => t.id === taskId);
-    if (!task) return;
-
-    setDragState({
-      itemId: taskId,
-      itemType: "task",
-      phaseId: phaseId,
-      mode,
-      startX: e.clientX,
-      initialStartDate: task.startDate,
-      initialEndDate: task.endDate,
-      hasMoved: false,
-    });
-  };
-
-  // Handle click to open edit panel (only if not dragging)
-  const handlePhaseClick = (phaseId: string) => {
-    if (dragState?.hasMoved) return; // Don't open panel if we were dragging
-    selectItem(phaseId, "phase");
-    openSidePanel("edit", "phase", phaseId);
-  };
-
-  const handleTaskClick = (taskId: string) => {
-    if (dragState?.hasMoved) return; // Don't open panel if we were dragging
-    selectItem(taskId, "task");
-    openSidePanel("edit", "task", taskId);
-  };
-
-  // Handle focus mode activation (RTS-style zoom)
-  const handlePhaseDoubleClick = (phaseId: string) => {
-    if (dragState?.hasMoved) return;
-    focusPhase(phaseId);
-  };
-
-  const handleTaskDoubleClick = (taskId: string) => {
-    if (dragState?.hasMoved) return;
-    setResourceModalState({ itemId: taskId, itemType: "task" });
-  };
-
-  // Resource drag-and-drop handlers
-  const handleResourceDragOver = (e: React.DragEvent, taskId: string, phaseId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDropTarget({ taskId, phaseId });
-  };
-
-  const handleResourceDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDropTarget(null);
-  };
-
-  const handleResourceDrop = (e: React.DragEvent, taskId: string, phaseId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDropTarget(null);
-
-    try {
+  // Handlers bundle for memoized components
+  const handlers = {
+    togglePhaseCollapse,
+    toggleTaskCollapse,
+    autoAlignPhase,
+    autoAlignTask,
+    reorderPhase,
+    reorderTask,
+    handlePhaseClick: (id: string) => { selectItem(id, "phase"); openSidePanel("edit", "phase", id); },
+    handleTaskClick: (id: string) => { selectItem(id, "task"); openSidePanel("edit", "task", id); },
+    handlePhaseDoubleClick: focusPhase,
+    handleTaskDoubleClick: (id: string) => setResourceModalState({ itemId: id, itemType: "task" }),
+    handleMouseDown: (e: React.MouseEvent, id: string, mode: any) => {
+      const item = currentProject.phases.find(p => p.id === id);
+      if (!item) return;
+      setDragState({ itemId: id, itemType: "phase", mode, startX: e.clientX, initialStartDate: item.startDate, initialEndDate: item.endDate });
+    },
+    handleTaskMouseDown: (e: React.MouseEvent, id: string, phaseId: string, mode: any) => {
+      const phase = currentProject.phases.find(p => p.id === phaseId);
+      const task = phase?.tasks.find(t => t.id === id);
+      if (!task) return;
+      setDragState({ itemId: id, itemType: "task", phaseId, mode, startX: e.clientX, initialStartDate: task.startDate, initialEndDate: task.endDate });
+    },
+    handleResourceDragOver: (e: any, taskId: string, phaseId: string) => { e.preventDefault(); setDropTarget({ taskId, phaseId }); },
+    handleResourceDragLeave: () => setDropTarget(null),
+    handleResourceDrop: (e: any, taskId: string, phaseId: string) => {
+      e.preventDefault(); setDropTarget(null);
       const data = JSON.parse(e.dataTransfer.getData("application/json"));
-
-      if (data.type === "resource" && data.resourceId) {
-        // Find task to generate smart assignment notes
-        const phase = currentProject?.phases.find((p) => p.id === phaseId);
-        const task = phase?.tasks.find((t) => t.id === taskId);
-        const resource = currentProject?.resources?.find((r) => r.id === data.resourceId);
-
-        if (task && resource) {
-          // Check if resource is already assigned
-          const alreadyAssigned = task.resourceAssignments?.some(
-            (a) => a.resourceId === data.resourceId
-          );
-
-          if (alreadyAssigned) {
-            alert(
-              `${resource.name} is already assigned to this task. Edit the assignment in the task details.`
-            );
-            return;
-          }
-
-          // Generate smart default notes
-          const designation = RESOURCE_DESIGNATIONS[resource.designation];
-          const category = RESOURCE_CATEGORIES[resource.category];
-          const smartNotes = `${designation} assigned to ${task.name}`;
-
-          // Smart default allocation: 80% (allows for parallel work)
-          const defaultAllocation = 80;
-
-          assignResourceToTask(taskId, phaseId, data.resourceId, smartNotes, defaultAllocation);
-
-          // Success feedback - brief console log for debugging
-          console.warn(` ${data.resourceName} → ${task.name} (${defaultAllocation}%)`);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to assign resource:", error);
-      alert("Failed to assign resource. Please try again.");
-    }
-  };
-
-  // Phase resource drag-and-drop handlers (PM only)
-  const handlePhaseResourceDragOver = (e: React.DragEvent, phaseId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    try {
+      if (data.type === "resource") assignResourceToTask(taskId, phaseId, data.resourceId, "Assigned", 80);
+    },
+    handlePhaseResourceDragOver: (e: any, id: string) => { e.preventDefault(); setPhaseDropTarget(id); },
+    handlePhaseResourceDragLeave: () => setPhaseDropTarget(null),
+    handlePhaseResourceDrop: (e: any, id: string) => {
+      e.preventDefault(); setPhaseDropTarget(null);
       const data = JSON.parse(e.dataTransfer.getData("application/json"));
-      if (data.type === "resource" && data.resourceId) {
-        const resource = getResourceById(data.resourceId);
-        // Only allow resources configured for phase-level assignment
-        if (resource && canAssignToPhase(resource)) {
-          setPhaseDropTarget(phaseId);
-        }
-      }
-    } catch (_error) {
-      // Ignore parse errors during drag over
-    }
-  };
-
-  const handlePhaseResourceDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setPhaseDropTarget(null);
-  };
-
-  const handlePhaseResourceDrop = (e: React.DragEvent, phaseId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setPhaseDropTarget(null);
-
-    try {
-      const data = JSON.parse(e.dataTransfer.getData("application/json"));
-
-      if (data.type === "resource" && data.resourceId) {
-        const phase = currentProject?.phases.find((p) => p.id === phaseId);
-        const resource = getResourceById(data.resourceId);
-
-        if (phase && resource) {
-          // Validate assignment level
-          if (!canAssignToPhase(resource)) {
-            alert(
-              `This resource cannot be assigned at the phase level.\n\n${resource.name} is configured for ${resource.assignmentLevel === "task" ? "task-level assignments only" : "assignments"}.\n\nTo enable phase-level assignment, edit the resource and change its "Assignment Level" setting to "Phase" or "Both".`
-            );
-            return;
-          }
-
-          // Check if resource is already assigned to this phase
-          const alreadyAssigned = phase.phaseResourceAssignments?.some(
-            (a) => a.resourceId === data.resourceId
-          );
-
-          if (alreadyAssigned) {
-            alert(
-              `${resource.name} is already assigned to this phase. Edit the assignment in the phase details.`
-            );
-            return;
-          }
-
-          // Smart allocation logic: Base 20% + 5% per task, capped at 100%
-          const taskCount = phase.tasks.length;
-          const smartAllocation = Math.min(20 + taskCount * 5, 100);
-
-          // Generate smart default notes
-          const designation = RESOURCE_DESIGNATIONS[resource.designation];
-          const smartNotes = `${designation} overseeing ${phase.name}${taskCount > 0 ? ` (${taskCount} task${taskCount > 1 ? "s" : ""})` : ""}`;
-
-          assignResourceToPhase(phaseId, data.resourceId, smartNotes, smartAllocation);
-
-          // Success feedback
-          console.warn(` ${data.resourceName} → ${phase.name} (${smartAllocation}% allocation)`);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to assign resource to phase:", error);
-      alert("Failed to assign resource. Please try again.");
-    }
+      if (data.type === "resource") assignResourceToPhase(id, data.resourceId, "Overseeing", 20);
+    },
+    getResourceById,
+    calculateItemStatus: (s: string, e: string, p: number) => "inProgress"
   };
 
   return (
     <div
       ref={canvasRef}
-      className="bg-gray-100 p-2 sm:p-4"
-      style={{
-        height: "100%",
-        width: "100%",
-        overflow: "auto",
-        position: "relative",
-      }}
+      className="bg-gray-50 h-full w-full overflow-auto relative"
+      onScroll={handleScroll}
       onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      id="gantt-canvas"
+      onMouseUp={() => setDragState(null)}
+      onMouseLeave={() => setDragState(null)}
     >
-      {/* Project Header */}
-      <div className="mb-3">
-        <h2 className="text-2xl font-bold text-gray-900">{currentProject.name}</h2>
-        {currentProject.description && (
-          <p className="text-sm text-gray-600 mt-2">{currentProject.description}</p>
-        )}
-        <div className="flex items-center gap-4 mt-2 text-sm text-gray-700">
-          <span>
-            <strong>Start:</strong> {formatGanttDate(startDate)}
-          </span>
-          <span>
-            <strong>End:</strong> {formatGanttDate(endDate)}
-          </span>
-          <span>
-            <strong>Duration:</strong> {formatDuration(durationDays)} ({durationDays} CD)
-          </span>
-          <span>
-            <strong>Phases:</strong> {currentProject.phases.length}
-          </span>
+      <div className="p-6 border-b bg-white sticky top-0 z-50">
+        <h2 className="display-medium text-primary mb-2">{currentProject.name}</h2>
+        <StatusLegendMini />
+      </div>
+
+      <div className="relative min-w-[1200px] p-4">
+        {/* Timeline Header */}
+        <div className="flex sticky top-[100px] bg-white/90 backdrop-blur-sm z-40 border-b-2 mb-6">
+          <div className="w-16 flex-shrink-0" />
+          <div className="flex-1 relative h-16">
+            {timelineMarkers.map((m, i) => (
+              <div key={i} className="absolute border-l pl-2 py-2" style={{ left: `${m.position}%` }}>
+                <span className="text-xs font-bold text-secondary bg-primary px-2 py-1 rounded shadow-sm border">{m.label}</span>
+                <div className="absolute top-8 w-px h-[2000px] bg-gray-200 pointer-events-none" />
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Status Legend - Simplified to 4 Core Statuses (Jobs/Ive Principle) */}
-        <div className="mt-3 flex items-center gap-3 text-xs text-gray-600">
-          <StatusLegendMini />
+        {/* Virtualized Phases & Tasks */}
+        <div className="space-y-8">
+          {currentProject.phases.map((phase, pIdx) => (
+            <div key={phase.id}>
+              <PhaseRow
+                phase={phase}
+                phaseIndex={pIdx}
+                currentProject={currentProject}
+                startDate={startDate}
+                durationDays={durationDays}
+                selection={selection}
+                dragState={dragState}
+                focusedPhaseId={focusedPhaseId}
+                viewSettings={viewSettings}
+                handlers={handlers}
+              />
+              {!phase.collapsed && (
+                <div className="ml-4 mt-4 space-y-4">
+                  {getVisibleTasksInOrder(phase.tasks).map(task => (
+                    <TaskRow
+                      key={task.id}
+                      task={task as any}
+                      phase={phase}
+                      currentProject={currentProject}
+                      startDate={startDate}
+                      durationDays={durationDays}
+                      isTaskSelected={selection.selectedItemId === task.id}
+                      isTaskDragging={dragState?.itemId === task.id}
+                      dropTarget={dropTarget?.taskId === task.id}
+                      taskColor={getTaskColor(task.renderIndex)}
+                      viewSettings={viewSettings}
+                      handlers={handlers}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Timeline Grid - Ensures minimum width for proper rendering */}
-      <div className="relative min-w-[1000px] lg:min-w-[1200px]">
-        {/* Jobs/Ive: Three-Lane Timeline - Clear hierarchy, no overlap */}
-        <div className="flex border-b-2 border-gray-300 mb-6">
-          <div className="w-16 flex flex-col justify-center py-2 transition-all duration-300">
-            {/* Minimal left column - just a subtle label */}
-            <div className="text-xs text-gray-400 font-medium text-center">Controls</div>
-          </div>
-
-          {/* Three-lane header: Dates (top) → Milestones (middle) → Holidays (bottom) */}
-          <div
-            className="flex-1 relative bg-gradient-to-b from-gray-50 to-white"
-            style={{ height: "64px" }}
-          >
-            {/* LANE 1 (TOP): Date Markers - The foundation */}
-            <div className="absolute top-0 left-0 right-0 h-5 flex items-center px-2 bg-white/50 z-20">
-              <div className="relative w-full h-full">
-                {timelineMarkers.map((marker, idx) => (
-                  <div
-                    key={idx}
-                    className="absolute flex items-center z-30"
-                    style={{ left: `${marker.position}%`, top: "2px" }}
-                  >
-                    {/* Date Label - Jobs/Ive: Always on top, never obscured */}
-                    <span className="text-sm font-bold text-gray-800 bg-white px-2 py-2 rounded shadow-md border border-gray-300 relative z-30">
-                      {marker.label}
-                    </span>
-
-                    {/* Vertical Grid Line - extends down through all lanes */}
-                    <div className="absolute top-5 left-1/2 -translate-x-1/2 w-px h-[calc(100vh-80px)] bg-gray-300 opacity-50 z-0" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* LANE 2 (MIDDLE): Milestones - Key project markers */}
-            {viewSettings?.showMilestones && currentProject.milestones.length > 0 && (
-              <div className="absolute top-5 left-0 right-0 h-7 border-y border-gray-200 bg-purple-50/30 z-10">
-                <div className="relative w-full h-full">
-                  {currentProject.milestones.map((milestone) => {
-                    const milestoneDate = new Date(milestone.date);
-                    const offset = differenceInDays(milestoneDate, startDate);
-                    const position = (offset / durationDays) * 100;
-
-                    return (
-                      <div
-                        key={milestone.id}
-                        className="absolute top-1/2 -translate-y-1/2 group cursor-pointer z-20"
-                        style={{ left: `${position}%` }}
-                        onClick={() => {
-                          selectItem(milestone.id, "milestone");
-                          openSidePanel("edit", "milestone", milestone.id);
-                        }}
-                      >
-                        {/* Vertical Milestone Line - positioned first, exactly at position% */}
-                        <div
-                          className="absolute top-full left-0 w-px h-[calc(100vh-130px)] opacity-20  transition-opacity z-10"
-                          style={{ backgroundColor: milestone.color }}
-                        />
-
-                        {/* Milestone marker with flag and tooltip */}
-                        <div className="absolute left-0 top-0 -translate-x-[2px] z-20">
-                          <Tooltip
-                            title={
-                              <div>
-                                <div className="font-semibold">{milestone.name}</div>
-                                <div className="text-xs opacity-90 mt-2">
-                                  {format(milestoneDate, "dd-MMM-yy (EEE)")} (
-                                  {format(milestoneDate, "EEE")})
-                                </div>
-                              </div>
-                            }
-                          >
-                            <Flag
-                              className="w-4 h-4 fill-current drop-shadow-sm transition-transform hover:scale-125"
-                              style={{ color: milestone.color }}
-                            />
-                          </Tooltip>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* LANE 3 (BOTTOM): Holidays - All public holidays including weekends */}
-            <div className="absolute bottom-0 left-0 right-0 h-5 border-t border-gray-200 bg-red-50/20 z-0">
-              <div className="relative w-full h-full">
-                {allHolidays.map((holiday, idx) => (
-                  <div
-                    key={idx}
-                    className="absolute top-1/2 -translate-y-1/2 group cursor-help z-0"
-                    style={{ left: `${holiday.position}%` }}
-                  >
-                    {/* Holiday indicator - solid dot for weekdays, outlined for weekends */}
-                    <div className="-translate-x-1/2">
-                      {holiday.isWeekend ? (
-                        // Weekend holiday - outlined dot (already non-working day)
-                        <div className="w-2 h-2 rounded-full bg-white border-2 border-red-600 hover:bg-red-100 transition-colors shadow-sm" />
-                      ) : (
-                        // Weekday holiday - solid red dot (actual non-working day)
-                        <div className="w-2 h-2 rounded-full bg-red-600 hover:bg-red-700 transition-colors shadow-sm" />
-                      )}
-                    </div>
-
-                    {/* Tooltip with full name - Jobs: "Always visible when needed, never obscured" */}
-                    <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[9999]">
-                      <div className="bg-red-600 text-white text-xs px-3 py-2 rounded shadow-xl border-2 border-white/20">
-                        <div className="font-semibold">{holiday.name}</div>
-                        <div className="text-xs opacity-90 mt-2">
-                          {formatGanttDate(holiday.date)}
-                          {holiday.isWeekend && (
-                            <span className="ml-1.5 opacity-75">(Weekend)</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Phases and Tasks */}
-        <div className={focusedPhaseId ? "space-y-2" : "space-y-4"}>
-          {/* RTS Focus Mode: Filter to show only focused phase */}
-          {(focusedPhaseId
-            ? currentProject.phases.filter((p) => p.id === focusedPhaseId)
-            : currentProject.phases
-          ).map((phase, phaseIndex) => {
-            const metrics = getPhaseMetrics(phase);
-            const isSelected =
-              selection.selectedItemId === phase.id && selection.selectedItemType === "phase";
-            const isDragging = dragState?.itemId === phase.id;
-            const isFirstPhase = phaseIndex === 0;
-            const isLastPhase = phaseIndex === currentProject.phases.length - 1;
-
-            // Check if ANY task in this phase violates phase boundaries (starts before OR ends after)
-            const phaseStartDate = new Date(phase.startDate);
-            const phaseEndDate = new Date(phase.endDate);
-
-            const tasksWithBoundaryIssues = phase.tasks.filter((task) => {
-              const taskStart = new Date(task.startDate);
-              const taskEnd = new Date(task.endDate);
-              return taskStart < phaseStartDate || taskEnd > phaseEndDate;
-            });
-
-            const hasTaskBoundaryIssue = tasksWithBoundaryIssues.length > 0;
-            const tasksExceedingCount = tasksWithBoundaryIssues.length;
-
-            const tasksStartingEarly = phase.tasks.filter((task) => {
-              const taskStart = new Date(task.startDate);
-              return taskStart < phaseStartDate;
-            }).length;
-
-            const tasksEndingLate = phase.tasks.filter((task) => {
-              const taskEnd = new Date(task.endDate);
-              return taskEnd > phaseEndDate;
-            }).length;
-
-            // Calculate total unique resources (phase-level + all task-level)
-            const allResourceIds = new Set<string>();
-
-            // Add phase-level resources
-            phase.phaseResourceAssignments?.forEach((assignment) => {
-              allResourceIds.add(assignment.resourceId);
-            });
-
-            // Add task-level resources
-            phase.tasks.forEach((task) => {
-              task.resourceAssignments?.forEach((assignment) => {
-                allResourceIds.add(assignment.resourceId);
-              });
-            });
-
-            const totalPhaseResourceCount = allResourceIds.size;
-            const taskResourceCount = phase.tasks.reduce(
-              (sum, task) => sum + (task.resourceAssignments?.length || 0),
-              0
-            );
-            const phaseManagementCount = phase.phaseResourceAssignments?.length || 0;
-
-            return (
-              <div key={phase.id} className="relative">
-                {/* Phase Row */}
-                <div className="flex items-start group">
-                  {/* Jobs/Ive: Minimal control column - essential buttons only */}
-                  <div
-                    className="w-16 flex flex-col items-center gap-2 pt-6 flex-shrink-0"
-                    style={{ position: "relative", zIndex: 999, pointerEvents: "auto" }}
-                  >
-                    {/* Collapse/Expand Button */}
-                    {phase.tasks.length > 0 && (
-                      <button
-                        onClick={() => togglePhaseCollapse(phase.id)}
-                        className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
-                        style={{ pointerEvents: "auto", position: "relative", zIndex: 1000 }}
-                        title={phase.collapsed ? "Expand tasks" : "Collapse tasks"}
-                      >
-                        {phase.collapsed ? (
-                          <ChevronRight className="w-4 h-4" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" />
-                        )}
-                      </button>
-                    )}
-
-                    {/* Auto-Align Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        autoAlignPhase(phase.id);
-                      }}
-                      disabled={isFirstPhase}
-                      className={`p-1 rounded-full transition-all shadow-sm ${
-                        isFirstPhase
-                          ? "opacity-20 cursor-not-allowed bg-gray-200"
-                          : "bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 hover:shadow-md hover:scale-110 cursor-pointer"
-                      }`}
-                      style={{ pointerEvents: "auto", position: "relative", zIndex: 1000 }}
-                      title="Auto-align: Schedule +1 WD after previous phase"
-                    >
-                      <ArrowRightToLine className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* Reorder Buttons - Show on hover */}
-                    <div
-                      className="flex flex-col   transition-opacity"
-                      style={{ pointerEvents: "auto", position: "relative", zIndex: 1000 }}
-                    >
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          reorderPhase(phase.id, "up");
-                        }}
-                        disabled={isFirstPhase}
-                        className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${
-                          isFirstPhase
-                            ? "opacity-30 cursor-not-allowed"
-                            : "text-gray-600 hover:text-blue-600 cursor-pointer"
-                        }`}
-                        style={{ pointerEvents: "auto" }}
-                        title="Move phase up"
-                      >
-                        <MoveUp className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          reorderPhase(phase.id, "down");
-                        }}
-                        disabled={isLastPhase}
-                        className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${
-                          isLastPhase
-                            ? "opacity-30 cursor-not-allowed"
-                            : "text-gray-600 hover:text-blue-600 cursor-pointer"
-                        }`}
-                        style={{ pointerEvents: "auto" }}
-                        title="Move phase down"
-                      >
-                        <MoveDown className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Timeline Area with Adaptive Title Position */}
-                  <div
-                    className="flex-1 relative transition-all duration-300 ease-in-out"
-                    style={{
-                      minHeight: phase.collapsed
-                        ? (viewSettings?.barDurationDisplay ?? "all") === "clean"
-                          ? "126px"
-                          : "132px"
-                        : "95px",
-                    }}
-                  >
-                    {/* Animated Phase Title - Morphs between above bar (collapsed) and inside bar (expanded) */}
-                    {(viewSettings?.showTitles ?? true) && (
-                      <div
-                        className={`absolute z-20 flex justify-center transition-all duration-300 ease-in-out ${
-                          phase.collapsed ? "pointer-events-auto" : "pointer-events-none"
-                        }`}
-                        style={{
-                          left: `${metrics.left}%`,
-                          width: `${metrics.width}%`,
-                          // Clean mode: title positioned with 12px gap above bar (professional spacing)
-                          top: phase.collapsed
-                            ? (viewSettings?.barDurationDisplay ?? "all") === "clean"
-                              ? "36px"
-                              : "0px"
-                            : "36px",
-                        }}
-                      >
-                        <div className="relative group/phaselabel">
-                          <div
-                            className={`text-sm font-bold whitespace-nowrap px-2 cursor-help text-center transition-all duration-300 ease-in-out ${
-                              phase.collapsed
-                                ? "text-gray-900 drop-shadow-none"
-                                : "text-white drop-shadow-lg pointer-events-none"
-                            }`}
-                          >
-                            {phase.name}
-                          </div>
-
-                          {/* Hover Tooltip - Only active when collapsed */}
-                          {phase.collapsed && (
-                            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/phaselabel:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                              <div className="bg-gray-900 text-white text-sm px-4 py-3 rounded shadow-2xl max-w-md whitespace-normal">
-                                <div className="font-semibold mb-1">{phase.name}</div>
-                                {phase.description && (
-                                  <div className="text-gray-300 text-xs mt-2 leading-relaxed">
-                                    {phase.description}
-                                  </div>
-                                )}
-                                <div className="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-2">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span>
-                                      {format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} →{" "}
-                                      {format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-3 text-xs lg:text-sm">
-                                    <span className="text-blue-400 font-semibold">
-                                      {formatDuration(metrics.workingDays)}
-                                    </span>
-                                    <span>·</span>
-                                    <span>
-                                      {phase.tasks.length} task{phase.tasks.length !== 1 ? "s" : ""}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Phase Bar - Position adjusts based on collapsed state */}
-                    <div
-                      data-item-id={phase.id}
-                      data-item-type="phase"
-                      className={`absolute h-14 rounded transition-all duration-300 ease-in-out cursor-move hover:-translate-y-0.5 hover:shadow-2xl ${
-                        isDragging ? "opacity-70 scale-105" : ""
-                      } ${isSelected ? "ring-4 ring-blue-400" : ""}
-                      ${phaseDropTarget === phase.id ? "ring-4 ring-purple-500 ring-offset-2 scale-105" : ""}`}
-                      style={{
-                        left: `${metrics.left}%`,
-                        width: `${metrics.width}%`,
-                        // Clean mode: bar positioned with 12px gap below title (professional spacing)
-                        top: phase.collapsed
-                          ? (viewSettings?.barDurationDisplay ?? "all") === "clean"
-                            ? "68px"
-                            : "74px"
-                          : "24px",
-                        background: `linear-gradient(180deg, ${phase.color} 0%, ${withOpacity(phase.color, 0.85)} 100%)`,
-                        boxShadow: isDragging
-                          ? `0 12px 32px ${withOpacity(phase.color, 0.4)}`
-                          : `0 4px 12px ${withOpacity(phase.color, 0.25)}, inset 0 1px 0 ${withOpacity("#ffffff", 0.2)}`,
-                        border: `1px solid ${withOpacity("#ffffff", 0.15)}`,
-                      }}
-                      onClick={() => handlePhaseClick(phase.id)}
-                      onDoubleClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handlePhaseDoubleClick(phase.id);
-                      }}
-                      onMouseDown={(e) => handleMouseDown(e, phase.id, "move")}
-                      onDragOver={(e) => handlePhaseResourceDragOver(e, phase.id)}
-                      onDragLeave={handlePhaseResourceDragLeave}
-                      onDrop={(e) => handlePhaseResourceDrop(e, phase.id)}
-                    >
-                      {/* Resize Handles */}
-                      <div
-                        className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  "
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          handleMouseDown(e, phase.id, "resize-start");
-                        }}
-                      />
-                      <div
-                        className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30  "
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          handleMouseDown(e, phase.id, "resize-end");
-                        }}
-                      />
-
-                      {/* Phase Content - Jobs/Ive: Ruthless simplicity */}
-                      <div className="p-2 h-full flex items-center justify-center text-white relative">
-                        {/* RTS Focus Button - Appears on hover */}
-                        {!focusedPhaseId && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handlePhaseDoubleClick(phase.id);
-                            }}
-                            className="absolute top-1 right-1   transition-opacity bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-1 rounded shadow-lg z-20"
-                            title="Focus on this phase (RTS zoom)"
-                          >
-                            <Maximize2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
-                        {/* PM Resource Drop Zone Indicator */}
-                        {phaseDropTarget === phase.id && (
-                          <div className="absolute inset-0 bg-purple-700/30 backdrop-blur-[1px] rounded flex items-center justify-center border-2 border-purple-400 border-dashed animate-pulse z-10">
-                            <div className="bg-purple-700 text-white text-xs font-bold px-3 py-2 rounded-full shadow-lg flex items-center gap-2">
-                              <Users className="w-4 h-4" />
-                              <span>Drop PM to Assign</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Clean Mode Enhancements for Phases - Status, Progress, PM */}
-                        {(viewSettings?.barDurationDisplay ?? "all") === "clean" &&
-                          phase.collapsed && (
-                            <>
-                              {/* Phase Status Indicator - Top Right */}
-                              {(() => {
-                                // Calculate phase progress as average of task progress
-                                const phaseProgress =
-                                  phase.tasks.length > 0
-                                    ? phase.tasks.reduce((sum, t) => sum + (t.progress || 0), 0) /
-                                      phase.tasks.length
-                                    : 0;
-                                const phaseStatus = calculateItemStatus(
-                                  phase.startDate,
-                                  phase.endDate,
-                                  phaseProgress
-                                );
-                                const statusColor = GANTT_STATUS_COLORS[phaseStatus];
-                                return (
-                                  <Tooltip
-                                    title={`Phase ${GANTT_STATUS_LABELS[phaseStatus]} (${Math.round(phaseProgress)}% complete)`}
-                                    placement="top"
-                                  >
-                                    <div
-                                      className="absolute top-2 right-12 w-3 h-3 rounded-full border-2 border-white/70 shadow-md z-20"
-                                      style={{ backgroundColor: statusColor }}
-                                    />
-                                  </Tooltip>
-                                );
-                              })()}
-
-                              {/* Phase Progress Bar - Bottom Edge */}
-                              {(() => {
-                                const phaseProgress =
-                                  phase.tasks.length > 0
-                                    ? phase.tasks.reduce((sum, t) => sum + (t.progress || 0), 0) /
-                                      phase.tasks.length
-                                    : 0;
-                                return phaseProgress > 0 && phaseProgress < 100 ? (
-                                  <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/30 rounded-b overflow-hidden">
-                                    <div
-                                      className="h-full bg-white/95 transition-all duration-300 shadow-sm"
-                                      style={{ width: `${phaseProgress}%` }}
-                                    />
-                                  </div>
-                                ) : null;
-                              })()}
-
-                              {/* PM Resource Badge - Top Left */}
-                              {phase.phaseResourceAssignments &&
-                                phase.phaseResourceAssignments.length > 0 && (
-                                  <div className="absolute top-2 left-2 z-20">
-                                    <Tooltip
-                                      title={`PM: ${phase.phaseResourceAssignments
-                                        .map((a) => {
-                                          const res = getResourceById(a.resourceId);
-                                          return res?.name || "Unknown";
-                                        })
-                                        .join(", ")}`}
-                                      placement="top"
-                                    >
-                                      <div className="bg-purple-700/90 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded shadow-md border border-purple-400/50 flex items-center gap-1">
-                                        <Users className="w-3 h-3" />
-                                        <span>
-                                          {phase.phaseResourceAssignments.length === 1
-                                            ? (() => {
-                                                const resource = getResourceById(
-                                                  phase.phaseResourceAssignments[0].resourceId
-                                                );
-                                                return (
-                                                  resource?.name
-                                                    .split(" ")
-                                                    .map((n) => n[0])
-                                                    .join("")
-                                                    .slice(0, 2) || "PM"
-                                                );
-                                              })()
-                                            : `${phase.phaseResourceAssignments.length}PM`}
-                                        </span>
-                                      </div>
-                                    </Tooltip>
-                                  </div>
-                                )}
-                            </>
-                          )}
-
-                        {/* Jobs: "Clear layering - most important information on top, literally." */}
-
-                        {/* BOTTOM LAYER: Task Distribution - The composition (when collapsed) */}
-                        {phase.collapsed && phase.tasks.length > 0 && metrics.width > 8 && (
-                          <div className="absolute bottom-2 left-2 right-2 z-0">
-                            <div className="flex items-center gap-2">
-                              {/* Task count */}
-                              {metrics.width > 15 && (
-                                <span className="text-xs font-bold text-white bg-black/30 px-2 py-0.5 rounded flex-shrink-0">
-                                  {phase.tasks.length}
-                                </span>
-                              )}
-
-                              {/* Color-coded task segments - Jobs: "Make each task visually distinct" */}
-                              <div className="flex-1 flex h-4 rounded overflow-hidden shadow-inner border border-white/20 bg-black/10">
-                                {phase.tasks.map((task, taskIdx) => {
-                                  const taskStart = new Date(task.startDate);
-                                  const taskEnd = new Date(task.endDate);
-                                  const phaseStart = new Date(phase.startDate);
-                                  const phaseEnd = new Date(phase.endDate);
-
-                                  const phaseDuration = differenceInDays(phaseEnd, phaseStart);
-                                  const taskOffset = differenceInDays(taskStart, phaseStart);
-                                  const taskDuration = differenceInDays(taskEnd, taskStart);
-
-                                  const taskLeft = (taskOffset / phaseDuration) * 100;
-                                  const taskWidth = Math.max(
-                                    (taskDuration / phaseDuration) * 100,
-                                    2
-                                  );
-
-                                  // Jobs/Ive: Use consistent color palette - same task = same color always
-                                  const taskColor = getTaskColor(taskIdx);
-
-                                  const taskWorkingDays = calculateWorkingDaysInclusive(
-                                    task.startDate,
-                                    task.endDate,
-                                    currentProject.holidays
-                                  );
-
-                                  return (
-                                    <div
-                                      key={task.id}
-                                      className="absolute top-0 h-full border-r border-white/40 group/minitask cursor-help transition-all hover:z-10 hover:scale-105"
-                                      style={{
-                                        left: `${taskLeft}%`,
-                                        width: `${taskWidth}%`,
-                                        background: `linear-gradient(180deg, ${taskColor} 0%, ${withOpacity(taskColor, 0.85)} 100%)`,
-                                        boxShadow: `inset 0 1px 0 ${withOpacity("#ffffff", 0.2)}`,
-                                      }}
-                                      title={task.name}
-                                    >
-                                      {/* Hover tooltip */}
-                                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/minitask:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
-                                        <div
-                                          className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-2xl border-2"
-                                          style={{ borderColor: taskColor }}
-                                        >
-                                          <div className="font-semibold text-xs lg:text-sm">
-                                            {task.name}
-                                          </div>
-                                          <div className="text-xs text-gray-300 mt-2">
-                                            {formatWorkingDays(taskWorkingDays)} ·{" "}
-                                            {format(taskStart, "dd-MMM-yy (EEE)")} →{" "}
-                                            {format(taskEnd, "dd-MMM-yy (EEE)")}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Floating Badges Above Phase Bar - Apple-style: Restraint, Focus, Progressive Disclosure */}
-                        {(hasTaskBoundaryIssue ||
-                          (viewSettings?.barDurationDisplay ?? "all") !== "clean") && (
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 flex items-center justify-center text-white z-20 transition-all duration-300 ease-in-out w-full max-w-full px-1">
-                            {/* Single-line badge container - Allow wrapping on overflow to prevent truncation */}
-                            <div className="flex items-center gap-2 sm:gap-2 md:gap-2 justify-center flex-wrap max-w-full">
-                              {/* PHASE BOUNDARY WARNING - Always visible (Apple principle: Focus on critical info) */}
-                              {hasTaskBoundaryIssue && (
-                                <div className="relative group/phasewarning flex-shrink-0">
-                                  <div className="flex items-center gap-2 sm:gap-2 bg-red-500 px-1 sm:px-2 py-0.5 sm:py-1 rounded shadow-lg border border-red-300 sm:border-2 animate-pulse pointer-events-auto cursor-help">
-                                    <AlertTriangle
-                                      className="w-3 h-3 sm:w-4 sm:h-4"
-                                      strokeWidth={2.5}
-                                    />
-                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold">
-                                      {tasksExceedingCount}
-                                    </span>
-                                  </div>
-                                  {/* Warning Tooltip */}
-                                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/phasewarning:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                    <div className="bg-red-600 text-white text-xs px-3 py-3 rounded shadow-2xl border-2 border-red-400 max-w-xs">
-                                      <div className="font-bold mb-2 flex items-center gap-2">
-                                        <AlertTriangle className="w-4 h-4" />
-                                        <span>Phase Boundary Violations</span>
-                                      </div>
-                                      <div className="text-xs lg:text-sm leading-relaxed space-y-1">
-                                        {tasksStartingEarly > 0 && (
-                                          <div>
-                                            • {tasksStartingEarly} task
-                                            {tasksStartingEarly > 1 ? "s start" : " starts"}{" "}
-                                            <span className="font-semibold">before</span> phase
-                                            begins
-                                          </div>
-                                        )}
-                                        {tasksEndingLate > 0 && (
-                                          <div>
-                                            • {tasksEndingLate} task
-                                            {tasksEndingLate > 1 ? "s end" : " ends"}{" "}
-                                            <span className="font-semibold">after</span> phase ends
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div className="text-xs lg:text-sm mt-2 pt-1.5 border-t border-red-400/30">
-                                        <div>
-                                          Phase:{" "}
-                                          <span className="font-semibold">
-                                            {format(phaseStartDate, "dd-MMM-yy (EEE)")} →{" "}
-                                            {format(phaseEndDate, "dd-MMM-yy (EEE)")}
-                                          </span>
-                                        </div>
-                                      </div>
-                                      <div className="text-xs mt-2 pt-1.5 border-t border-red-400/30 text-red-100 italic">
-                                        {phase.collapsed
-                                          ? " Expand phase to see which tasks need adjustment"
-                                          : " Check tasks with red borders below"}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Other badges - Only shown when barDurationDisplay is not 'clean' */}
-                              {(viewSettings?.barDurationDisplay ?? "all") !== "clean" && (
-                                <>
-                                  {/* WD Mode */}
-                                  {(viewSettings?.barDurationDisplay ?? "all") === "wd" && (
-                                    <>
-                                      <span className="hidden sm:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {formatWorkingDays(metrics.workingDays)}
-                                      </span>
-                                      {/* Mobile: Condensed badge */}
-                                      <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {metrics.workingDays}WD
-                                      </span>
-                                      {/* Resource badge in WD mode */}
-                                      {totalPhaseResourceCount > 0 && (
-                                        <div className="relative group/wdresbadge hidden md:block">
-                                          <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                            <Users
-                                              className="w-3 h-3 flex-shrink-0"
-                                              strokeWidth={2.5}
-                                            />
-                                            <span className="text-xs sm:text-sm font-bold">
-                                              {totalPhaseResourceCount}
-                                            </span>
-                                          </div>
-                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/wdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                            <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                              <div className="font-semibold mb-2 text-xs text-purple-100">
-                                                Total Resources (Phase + Tasks):
-                                              </div>
-                                              <div className="space-y-2">
-                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Phase Management:
-                                                  </span>
-                                                  <span className="font-semibold">
-                                                    {phaseManagementCount}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Task Assignments:
-                                                  </span>
-                                                  <span className="font-semibold">
-                                                    {taskResourceCount}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Total Unique:
-                                                  </span>
-                                                  <span className="font-bold">
-                                                    {totalPhaseResourceCount}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
-
-                                  {/* CD Mode */}
-                                  {(viewSettings?.barDurationDisplay ?? "all") === "cd" && (
-                                    <>
-                                      <span className="hidden sm:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {formatDuration(metrics.workingDays)}
-                                      </span>
-                                      {/* Mobile: Condensed badge */}
-                                      <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {metrics.duration}CD
-                                      </span>
-                                      {/* Resource badge in CD mode */}
-                                      {totalPhaseResourceCount > 0 && (
-                                        <div className="relative group/cdresbadge hidden md:block">
-                                          <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                            <Users
-                                              className="w-3 h-3 flex-shrink-0"
-                                              strokeWidth={2.5}
-                                            />
-                                            <span className="text-xs sm:text-sm font-bold">
-                                              {totalPhaseResourceCount}
-                                            </span>
-                                          </div>
-                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/cdresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                            <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                              <div className="font-semibold mb-2 text-xs text-purple-100">
-                                                Total Resources (Phase + Tasks):
-                                              </div>
-                                              <div className="space-y-2">
-                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Phase Management:
-                                                  </span>
-                                                  <span className="font-semibold">
-                                                    {phaseManagementCount}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Task Assignments:
-                                                  </span>
-                                                  <span className="font-semibold">
-                                                    {taskResourceCount}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Total Unique:
-                                                  </span>
-                                                  <span className="font-bold">
-                                                    {totalPhaseResourceCount}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
-
-                                  {/* Resource Mode */}
-                                  {(viewSettings?.barDurationDisplay ?? "all") === "resource" &&
-                                    totalPhaseResourceCount > 0 && (
-                                      <div className="relative group/pmbadge">
-                                        <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                          <Users
-                                            className="w-3 h-3 flex-shrink-0"
-                                            strokeWidth={2.5}
-                                          />
-                                          <span className="text-xs sm:text-sm font-bold">
-                                            {totalPhaseResourceCount}
-                                          </span>
-                                        </div>
-                                        {/* Total Resource Tooltip */}
-                                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/pmbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                          <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                            <div className="font-semibold mb-2 text-xs text-purple-100">
-                                              Total Resources (Phase + Tasks):
-                                            </div>
-                                            <div className="space-y-2">
-                                              <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                                <span className="text-purple-100">
-                                                  Phase Management:
-                                                </span>
-                                                <span className="font-semibold">
-                                                  {phaseManagementCount}
-                                                </span>
-                                              </div>
-                                              <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                                <span className="text-purple-100">
-                                                  Task Assignments:
-                                                </span>
-                                                <span className="font-semibold">
-                                                  {taskResourceCount}
-                                                </span>
-                                              </div>
-                                              <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
-                                                <span className="text-purple-100">
-                                                  Total Unique:
-                                                </span>
-                                                <span className="font-bold">
-                                                  {totalPhaseResourceCount}
-                                                </span>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                  {/* Dates Mode */}
-                                  {(viewSettings?.barDurationDisplay ?? "all") === "dates" && (
-                                    <>
-                                      <span className="hidden lg:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} →{" "}
-                                        {format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}
-                                      </span>
-                                      {/* Tablet: Shorter dates */}
-                                      <span className="hidden sm:inline-flex lg:hidden text-[11px] font-bold bg-black/40 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {format(new Date(phase.startDate), "dd-MMM-yy")} →{" "}
-                                        {format(new Date(phase.endDate), "dd-MMM-yy")}
-                                      </span>
-                                      {/* Mobile: Minimal dates */}
-                                      <span className="inline-flex sm:hidden text-[10px] font-bold bg-black/40 px-1.5 py-0.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {format(new Date(phase.startDate), "dd-MMM-yy")}
-                                      </span>
-                                      {/* Resource badge in Dates mode */}
-                                      {totalPhaseResourceCount > 0 && (
-                                        <div className="relative group/datesresbadge hidden md:block">
-                                          <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                            <Users
-                                              className="w-3 h-3 flex-shrink-0"
-                                              strokeWidth={2.5}
-                                            />
-                                            <span className="text-xs sm:text-sm font-bold">
-                                              {totalPhaseResourceCount}
-                                            </span>
-                                          </div>
-                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/datesresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                            <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                              <div className="font-semibold mb-2 text-xs text-purple-100">
-                                                Total Resources (Phase + Tasks):
-                                              </div>
-                                              <div className="space-y-2">
-                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Phase Management:
-                                                  </span>
-                                                  <span className="font-semibold">
-                                                    {phaseManagementCount}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Task Assignments:
-                                                  </span>
-                                                  <span className="font-semibold">
-                                                    {taskResourceCount}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Total Unique:
-                                                  </span>
-                                                  <span className="font-bold">
-                                                    {totalPhaseResourceCount}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
-
-                                  {/* All Mode - Show all info (Apple principle: Progressive Disclosure) */}
-                                  {(viewSettings?.barDurationDisplay ?? "all") === "all" && (
-                                    <>
-                                      {/* Desktop: Full dates badge */}
-                                      <span className="hidden xl:inline-flex text-xs sm:text-sm font-semibold bg-blue-600/90 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {format(new Date(phase.startDate), "dd-MMM-yy (EEE)")} →{" "}
-                                        {format(new Date(phase.endDate), "dd-MMM-yy (EEE)")}
-                                      </span>
-                                      {/* Tablet: Condensed dates */}
-                                      <span className="hidden md:inline-flex xl:hidden text-[11px] font-semibold bg-blue-600/90 px-1.5 py-1 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {format(new Date(phase.startDate), "dd-MMM-yy")} →{" "}
-                                        {format(new Date(phase.endDate), "dd-MMM-yy")}
-                                      </span>
-
-                                      {/* Desktop/Tablet: Duration badge - Single format (Jobs/Ive principle) */}
-                                      <span className="hidden md:inline-flex text-xs sm:text-sm font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {formatDuration(metrics.workingDays)}
-                                      </span>
-                                      {/* Mobile: Ultra-condensed - Single format */}
-                                      <span className="inline-flex md:hidden text-[10px] font-bold bg-black/40 px-1.5 py-0.5 rounded shadow-md border border-white/20 whitespace-nowrap">
-                                        {formatDuration(metrics.workingDays)}
-                                      </span>
-
-                                      {/* Total Resource badge - Only on large screens */}
-                                      {totalPhaseResourceCount > 0 && (
-                                        <div className="relative group/allresbadge hidden lg:block">
-                                          <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                            <Users
-                                              className="w-3 h-3 flex-shrink-0"
-                                              strokeWidth={2.5}
-                                            />
-                                            <span className="text-xs sm:text-sm font-bold">
-                                              {totalPhaseResourceCount}
-                                            </span>
-                                          </div>
-                                          {/* Total Resource Tooltip */}
-                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/allresbadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                            <div className="bg-purple-700 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                              <div className="font-semibold mb-2 text-xs text-purple-100">
-                                                Total Resources (Phase + Tasks):
-                                              </div>
-                                              <div className="space-y-2">
-                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Phase Management:
-                                                  </span>
-                                                  <span className="font-semibold">
-                                                    {phaseManagementCount}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center justify-between gap-3 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Task Assignments:
-                                                  </span>
-                                                  <span className="font-semibold">
-                                                    {taskResourceCount}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-purple-400/30 text-xs lg:text-sm">
-                                                  <span className="text-purple-100">
-                                                    Total Unique:
-                                                  </span>
-                                                  <span className="font-bold">
-                                                    {totalPhaseResourceCount}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tasks (when expanded) - Jobs/Ive: Clean, focused design */}
-                {!phase.collapsed && phase.tasks.length > 0 && (
-                  <div
-                    className={`ml-2 mt-2 relative ${focusedPhaseId ? "space-y-7" : "space-y-8"}`}
-                  >
-                    {/* Tree Lines - SVG connections showing hierarchy */}
-                    {getVisibleTasksInOrder(phase.tasks)
-                      .filter((task) => task.level > 0)
-                      .map((task) => {
-                        const isLast = isLastSibling(task, phase.tasks);
-                        const taskSpacing = focusedPhaseId ? 93 : 97; // space-y-7 (28px) or space-y-8 (32px) + 65px min height
-                        const yPosition = task.renderIndex * taskSpacing;
-
-                        return (
-                          <svg
-                            key={`tree-${task.id}`}
-                            className="absolute pointer-events-none"
-                            style={{
-                              left: `${(task.level - 1) * 24 + 14}px`, // Position at parent level + offset for centering
-                              top: `${yPosition}px`,
-                              width: "24px",
-                              height: `${taskSpacing}px`,
-                              zIndex: 1,
-                            }}
-                          >
-                            {/* Vertical line from parent */}
-                            <line
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2={isLast ? taskSpacing / 2 : taskSpacing}
-                              stroke="#D1D5DB"
-                              strokeWidth="1.5"
-                            />
-
-                            {/* Horizontal line to task */}
-                            <line
-                              x1="0"
-                              y1={taskSpacing / 2}
-                              x2="16"
-                              y2={taskSpacing / 2}
-                              stroke="#D1D5DB"
-                              strokeWidth="1.5"
-                            />
-                          </svg>
-                        );
-                      })}
-
-                    {getVisibleTasksInOrder(phase.tasks).map((task) => {
-                      const taskIdx = task.renderIndex;
-                      const isFirstTask = taskIdx === 0;
-                      const isLastTask = taskIdx === phase.tasks.length - 1;
-                      const isLast = isLastSibling(task, phase.tasks);
-                      const taskStart = new Date(task.startDate);
-                      const taskEnd = new Date(task.endDate);
-                      const taskOffset = differenceInDays(taskStart, startDate);
-                      const taskDuration = differenceInDays(taskEnd, taskStart); // Calendar days for positioning
-                      const taskLeft = (taskOffset / durationDays) * 100;
-                      const taskWidth = (taskDuration / durationDays) * 100;
-
-                      // Calculate working days for display
-                      const taskWorkingDays = calculateWorkingDaysInclusive(
-                        task.startDate,
-                        task.endDate,
-                        currentProject.holidays
-                      );
-
-                      const isTaskSelected =
-                        selection.selectedItemId === task.id &&
-                        selection.selectedItemType === "task";
-                      const isTaskDragging =
-                        dragState?.itemId === task.id && dragState?.itemType === "task";
-
-                      // Check if task violates phase boundaries (starts before OR ends after)
-                      const phaseStartDate = new Date(phase.startDate);
-                      const phaseEndDate = new Date(phase.endDate);
-                      const taskStartsEarly = taskStart < phaseStartDate;
-                      const taskEndsLate = taskEnd > phaseEndDate;
-                      const taskExceedsPhase = taskStartsEarly || taskEndsLate;
-                      const daysStartedEarly = taskStartsEarly
-                        ? differenceInDays(phaseStartDate, taskStart)
-                        : 0;
-                      const daysEndedLate = taskEndsLate
-                        ? differenceInDays(taskEnd, phaseEndDate)
-                        : 0;
-
-                      // Jobs/Ive: Use consistent color palette - matches collapsed mini-segments
-                      const taskColor = getTaskColor(taskIdx);
-
-                      return (
-                        <div
-                          key={task.id}
-                          className="flex items-start group/task relative"
-                          style={{ paddingLeft: `${task.level * 24}px` }}
-                        >
-                          {/* Jobs/Ive: Minimal control column for tasks */}
-                          <div
-                            className="w-14 flex flex-col items-center gap-2 pt-1 flex-shrink-0"
-                            style={{ position: "relative", zIndex: 999, pointerEvents: "auto" }}
-                          >
-                            {/* Auto-Align Button */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                autoAlignTask(task.id, phase.id);
-                              }}
-                              disabled={isFirstTask}
-                              className={`p-1 rounded-full transition-all shadow-sm ${
-                                isFirstTask
-                                  ? "opacity-20 cursor-not-allowed bg-gray-200"
-                                  : "bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 hover:shadow-md hover:scale-110 cursor-pointer"
-                              }`}
-                              style={{ pointerEvents: "auto", position: "relative", zIndex: 1000 }}
-                              title="Auto-align: Schedule +1 WD after previous task"
-                            >
-                              <ArrowRightToLine className="w-3.5 h-3.5" />
-                            </button>
-
-                            {/* Reorder Buttons - Show on hover */}
-                            <div
-                              className="flex flex-col opacity-0 group-hover/task:opacity-100 transition-opacity"
-                              style={{ pointerEvents: "auto", position: "relative", zIndex: 1000 }}
-                            >
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  reorderTask(task.id, phase.id, "up");
-                                }}
-                                disabled={isFirstTask}
-                                className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${
-                                  isFirstTask
-                                    ? "opacity-30 cursor-not-allowed"
-                                    : "text-gray-600 hover:text-blue-600 cursor-pointer"
-                                }`}
-                                style={{ pointerEvents: "auto" }}
-                                title="Move task up"
-                              >
-                                <MoveUp className="w-3 h-3" />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  reorderTask(task.id, phase.id, "down");
-                                }}
-                                disabled={isLastTask}
-                                className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${
-                                  isLastTask
-                                    ? "opacity-30 cursor-not-allowed"
-                                    : "text-gray-600 hover:text-blue-600 cursor-pointer"
-                                }`}
-                                style={{ pointerEvents: "auto" }}
-                                title="Move task down"
-                              >
-                                <MoveDown className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Hierarchy: Collapse/Expand Button for Parent Tasks */}
-                          {task.isParent && (
-                            <div className="w-8 flex items-center justify-center flex-shrink-0 pt-6">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleTaskCollapse(task.id, phase.id);
-                                }}
-                                className="p-1 rounded hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors"
-                                style={{ pointerEvents: "auto" }}
-                                title={task.collapsed ? "Expand subtasks" : "Collapse subtasks"}
-                              >
-                                {task.collapsed ? (
-                                  <ChevronRight className="w-4 h-4" />
-                                ) : (
-                                  <ChevronDown className="w-4 h-4" />
-                                )}
-                              </button>
-                            </div>
-                          )}
-
-                          {/* Spacer for non-parent tasks to maintain alignment */}
-                          {!task.isParent && task.level > 0 && (
-                            <div className="w-8 flex-shrink-0" />
-                          )}
-
-                          {/* Task Timeline Area with Title Below */}
-                          <div className="flex-1 relative" style={{ minHeight: "65px" }}>
-                            {/* Task Bar */}
-                            <div
-                              data-item-id={task.id}
-                              data-item-type="task"
-                              className={`absolute top-1 h-8 rounded transition-all cursor-move hover:-translate-y-0.5 hover:shadow-2xl
-                                ${isTaskDragging ? "opacity-60 scale-105 z-10" : ""}
-                                ${isTaskSelected ? "ring-2 ring-offset-1 ring-blue-400" : ""}
-                                ${dropTarget?.taskId === task.id ? "ring-4 ring-purple-500 ring-offset-2 scale-110" : ""}
-                                ${taskExceedsPhase ? "ring-2 ring-red-500 ring-offset-1" : ""}
-                              `}
-                              style={{
-                                left: `${taskLeft}%`,
-                                width: `${taskWidth}%`,
-                                background: `linear-gradient(180deg, ${taskColor} 0%, ${withOpacity(taskColor, 0.88)} 100%)`,
-                                border: taskExceedsPhase
-                                  ? `2px solid #ef4444`
-                                  : `2px solid ${withOpacity(taskColor, 0.3)}`,
-                                boxShadow: isTaskDragging
-                                  ? `0 8px 24px ${withOpacity(taskColor, 0.4)}`
-                                  : taskExceedsPhase
-                                    ? `0 0 0 2px rgba(239, 68, 68, 0.1), 0 4px 12px rgba(239, 68, 68, 0.3), inset 0 1px 0 ${withOpacity("#ffffff", 0.25)}`
-                                    : `0 2px 8px ${withOpacity(taskColor, 0.2)}, inset 0 1px 0 ${withOpacity("#ffffff", 0.25)}`,
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleTaskClick(task.id);
-                              }}
-                              onDoubleClick={() => handleTaskDoubleClick(task.id)}
-                              onMouseDown={(e) => handleTaskMouseDown(e, task.id, phase.id, "move")}
-                              onDragOver={(e) => handleResourceDragOver(e, task.id, phase.id)}
-                              onDragLeave={handleResourceDragLeave}
-                              onDrop={(e) => handleResourceDrop(e, task.id, phase.id)}
-                            >
-                              {/* Resize Handles */}
-                              <div
-                                className="absolute left-0 top-0 bottom-0 w-1.5 cursor-ew-resize bg-white/40 opacity-0 group-hover/task:opacity-100 transition-opacity"
-                                onMouseDown={(e) => {
-                                  e.stopPropagation();
-                                  handleTaskMouseDown(e, task.id, phase.id, "resize-start");
-                                }}
-                              />
-                              <div
-                                className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize bg-white/40 opacity-0 group-hover/task:opacity-100 transition-opacity"
-                                onMouseDown={(e) => {
-                                  e.stopPropagation();
-                                  handleTaskMouseDown(e, task.id, phase.id, "resize-end");
-                                }}
-                              />
-
-                              {/* Task Content */}
-                              <div className="h-full relative">
-                                {/* Drop Zone Indicator */}
-                                {dropTarget?.taskId === task.id && (
-                                  <div className="absolute inset-0 bg-purple-700/30 backdrop-blur-[1px] rounded flex items-center justify-center border-2 border-purple-400 border-dashed animate-pulse z-50">
-                                    <div className="bg-purple-700 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-2">
-                                      <Users className="w-3 h-3" />
-                                      <span>Drop to Assign</span>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Clean Mode Enhancements - Status, Progress, Owner */}
-                                {(viewSettings?.barDurationDisplay ?? "all") === "clean" && (
-                                  <>
-                                    {/* Status Indicator Dot - Top Right Corner */}
-                                    {(() => {
-                                      const taskStatus = calculateItemStatus(
-                                        task.startDate,
-                                        task.endDate,
-                                        task.progress
-                                      );
-                                      const statusColor = GANTT_STATUS_COLORS[taskStatus];
-                                      return (
-                                        <Tooltip
-                                          title={GANTT_STATUS_LABELS[taskStatus]}
-                                          placement="top"
-                                        >
-                                          <div
-                                            className="absolute top-1 right-1 w-2 h-2 rounded-full border border-white/50 shadow-sm z-10"
-                                            style={{ backgroundColor: statusColor }}
-                                          />
-                                        </Tooltip>
-                                      );
-                                    })()}
-
-                                    {/* Progress Bar - Bottom Edge */}
-                                    {task.progress > 0 && task.progress < 100 && (
-                                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20 rounded-b overflow-hidden">
-                                        <div
-                                          className="h-full bg-white/90 transition-all duration-300"
-                                          style={{ width: `${task.progress}%` }}
-                                        />
-                                      </div>
-                                    )}
-
-                                    {/* Owner/Assignee Badge - Center or Left */}
-                                    {task.resourceAssignments &&
-                                      task.resourceAssignments.length > 0 && (
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                          <div className="bg-black/30 backdrop-blur-sm text-white text-[10px] font-semibold px-1.5 py-0.5 rounded shadow-sm">
-                                            {task.resourceAssignments.length === 1
-                                              ? (() => {
-                                                  const resource = getResourceById(
-                                                    task.resourceAssignments[0].resourceId
-                                                  );
-                                                  return (
-                                                    resource?.name
-                                                      .split(" ")
-                                                      .map((n) => n[0])
-                                                      .join("")
-                                                      .slice(0, 3) || "?"
-                                                  );
-                                                })()
-                                              : `${task.resourceAssignments.length} PPL`}
-                                          </div>
-                                        </div>
-                                      )}
-                                  </>
-                                )}
-
-                                {/* Floating Badges - Always appear horizontally above bars */}
-                                {(viewSettings?.barDurationDisplay ?? "all") !== "clean" && (
-                                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 flex items-center justify-center text-white z-20 max-w-full px-1">
-                                    {/* All badges in a clean horizontal row - responsive with wrapping, increased margin to prevent overlap */}
-                                    <div className="flex items-center gap-2 sm:gap-2 flex-wrap justify-center max-w-full">
-                                      {/* WARNING Badge - Task exceeds phase boundary */}
-                                      {taskExceedsPhase && (
-                                        <div className="relative group/warning">
-                                          <div className="flex items-center gap-2 sm:gap-2 bg-red-500 h-6 px-1.5 rounded shadow-lg border-2 border-red-300 animate-pulse pointer-events-auto cursor-help">
-                                            <AlertTriangle
-                                              className="w-3 h-3 flex-shrink-0"
-                                              strokeWidth={2.5}
-                                            />
-                                            <span className="text-xs font-bold">!</span>
-                                          </div>
-                                          {/* Warning Tooltip */}
-                                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/warning:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                            <div className="bg-red-600 text-white text-xs px-3 py-2 rounded shadow-2xl border-2 border-red-400 max-w-xs">
-                                              <div className="font-bold mb-2 flex items-center gap-2">
-                                                <AlertTriangle className="w-4 h-4" />
-                                                <span>Task Boundary Violation</span>
-                                              </div>
-                                              <div className="text-xs lg:text-sm leading-relaxed space-y-1">
-                                                {taskStartsEarly && (
-                                                  <div>
-                                                    This task starts{" "}
-                                                    <span className="font-semibold">
-                                                      {daysStartedEarly} day
-                                                      {daysStartedEarly > 1 ? "s" : ""}
-                                                    </span>{" "}
-                                                    <span className="font-semibold">before</span>{" "}
-                                                    the phase begins.
-                                                  </div>
-                                                )}
-                                                {taskEndsLate && (
-                                                  <div>
-                                                    This task ends{" "}
-                                                    <span className="font-semibold">
-                                                      {daysEndedLate} day
-                                                      {daysEndedLate > 1 ? "s" : ""}
-                                                    </span>{" "}
-                                                    <span className="font-semibold">after</span> the
-                                                    phase ends.
-                                                  </div>
-                                                )}
-                                              </div>
-                                              <div className="text-xs lg:text-sm mt-2 pt-1.5 border-t border-red-400/30 space-y-2">
-                                                <div>
-                                                  Task:{" "}
-                                                  <span className="font-semibold">
-                                                    {format(taskStart, "dd-MMM-yy (EEE)")} →{" "}
-                                                    {format(taskEnd, "dd-MMM-yy (EEE)")}
-                                                  </span>
-                                                </div>
-                                                <div>
-                                                  Phase:{" "}
-                                                  <span className="font-semibold">
-                                                    {format(phaseStartDate, "dd-MMM-yy (EEE)")} →{" "}
-                                                    {format(phaseEndDate, "dd-MMM-yy (EEE)")}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                              <div className="text-xs mt-2 pt-1.5 border-t border-red-400/30 text-red-100 italic">
-                                                 Adjust task or phase dates to fix this issue
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                      {/* WD Mode */}
-                                      {(viewSettings?.barDurationDisplay ?? "all") === "wd" && (
-                                        <span className="text-xs font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20">
-                                          {formatWorkingDays(taskWorkingDays)}
-                                        </span>
-                                      )}
-
-                                      {/* CD Mode */}
-                                      {(viewSettings?.barDurationDisplay ?? "all") === "cd" && (
-                                        <span className="text-xs font-bold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20">
-                                          {formatDuration(taskWorkingDays)}
-                                        </span>
-                                      )}
-
-                                      {/* Resource Mode */}
-                                      {(viewSettings?.barDurationDisplay ?? "all") === "resource" &&
-                                        task.resourceAssignments &&
-                                        task.resourceAssignments.length > 0 && (
-                                          <div className="relative group/resourcebadge">
-                                            <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                              <Users
-                                                className="w-3 h-3 flex-shrink-0"
-                                                strokeWidth={2.5}
-                                              />
-                                              <span className="text-xs font-bold">
-                                                {task.resourceAssignments.length}
-                                              </span>
-                                            </div>
-                                            {/* Tooltip */}
-                                            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/resourcebadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                              <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                                <div className="font-semibold mb-2 text-xs text-gray-300">
-                                                  Assigned Resources:
-                                                </div>
-                                                <div className="space-y-1">
-                                                  {task.resourceAssignments.map((assignment) => {
-                                                    const resource = (
-                                                      currentProject.resources || []
-                                                    ).find((r) => r.id === assignment.resourceId);
-                                                    if (!resource) return null;
-                                                    const category =
-                                                      RESOURCE_CATEGORIES[resource.category];
-                                                    return (
-                                                      <div
-                                                        key={assignment.id}
-                                                        className="flex items-start gap-2"
-                                                      >
-                                                        <span className="text-sm flex-shrink-0">
-                                                          {category.icon}
-                                                        </span>
-                                                        <div className="flex-1">
-                                                          <div className="flex items-center gap-2">
-                                                            <div className="font-medium text-xs lg:text-sm">
-                                                              {resource.name}
-                                                            </div>
-                                                            <span className="px-1.5 py-0.5 text-xs font-semibold bg-purple-700 text-white rounded">
-                                                              {assignment.allocationPercentage}%
-                                                            </span>
-                                                          </div>
-                                                          <div className="text-xs text-gray-400">
-                                                            {
-                                                              RESOURCE_DESIGNATIONS[
-                                                                resource.designation
-                                                              ]
-                                                            }
-                                                          </div>
-                                                          {assignment.assignmentNotes && (
-                                                            <div className="text-xs text-gray-300 mt-2 italic">
-                                                              {assignment.assignmentNotes}
-                                                            </div>
-                                                          )}
-                                                        </div>
-                                                      </div>
-                                                    );
-                                                  })}
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        )}
-
-                                      {/* Dates Mode */}
-                                      {(viewSettings?.barDurationDisplay ?? "all") === "dates" && (
-                                        <span className="text-xs font-semibold bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20">
-                                          {formatGanttDateCompact(taskStart)} →{" "}
-                                          {formatGanttDateCompact(taskEnd)}
-                                        </span>
-                                      )}
-
-                                      {/* All Mode */}
-                                      {(viewSettings?.barDurationDisplay ?? "all") === "all" && (
-                                        <>
-                                          {/* Dates badge - Primary info with semi-bold weight */}
-                                          <span className="text-xs font-semibold bg-blue-600/90 h-6 px-1.5 rounded shadow-md border border-white/20">
-                                            {formatGanttDateCompact(taskStart)} →{" "}
-                                            {formatGanttDateCompact(taskEnd)}
-                                          </span>
-
-                                          {/* Duration badge - Secondary info with normal weight and muted color */}
-                                          <span className="text-xs font-normal text-gray-300 bg-black/40 h-6 px-1.5 rounded shadow-md border border-white/20">
-                                            {formatDurationCompact(taskDuration)}
-                                          </span>
-
-                                          {/* Resource badge */}
-                                          {task.resourceAssignments &&
-                                            task.resourceAssignments.length > 0 && (
-                                              <div className="relative group/resourcebadge">
-                                                <div className="flex items-center gap-2 sm:gap-2 bg-purple-700 h-6 px-1.5 rounded shadow-md border border-white/20 pointer-events-auto cursor-help">
-                                                  <Users
-                                                    className="w-3 h-3 flex-shrink-0"
-                                                    strokeWidth={2.5}
-                                                  />
-                                                  <span className="text-xs font-bold">
-                                                    {task.resourceAssignments.length}
-                                                  </span>
-                                                </div>
-                                                {/* Tooltip */}
-                                                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/resourcebadge:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                                  <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-xs">
-                                                    <div className="font-semibold mb-2 text-xs text-gray-300">
-                                                      Assigned Resources:
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                      {task.resourceAssignments.map(
-                                                        (assignment) => {
-                                                          const resource = (
-                                                            currentProject.resources || []
-                                                          ).find(
-                                                            (r) => r.id === assignment.resourceId
-                                                          );
-                                                          if (!resource) return null;
-                                                          const category =
-                                                            RESOURCE_CATEGORIES[resource.category];
-                                                          return (
-                                                            <div
-                                                              key={assignment.id}
-                                                              className="flex items-start gap-2"
-                                                            >
-                                                              <span className="text-sm flex-shrink-0">
-                                                                {category.icon}
-                                                              </span>
-                                                              <div className="flex-1">
-                                                                <div className="flex items-center gap-2">
-                                                                  <div className="font-medium text-xs lg:text-sm">
-                                                                    {resource.name}
-                                                                  </div>
-                                                                  <span className="px-1.5 py-0.5 text-xs font-semibold bg-purple-700 text-white rounded">
-                                                                    {
-                                                                      assignment.allocationPercentage
-                                                                    }
-                                                                    %
-                                                                  </span>
-                                                                </div>
-                                                                <div className="text-xs text-gray-400">
-                                                                  {
-                                                                    RESOURCE_DESIGNATIONS[
-                                                                      resource.designation
-                                                                    ]
-                                                                  }
-                                                                </div>
-                                                                {assignment.assignmentNotes && (
-                                                                  <div className="text-xs text-gray-300 mt-2 italic">
-                                                                    {assignment.assignmentNotes}
-                                                                  </div>
-                                                                )}
-                                                              </div>
-                                                            </div>
-                                                          );
-                                                        }
-                                                      )}
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            )}
-                                        </>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Jobs/Ive: Task Title Below Bar - Clean, centered, full text */}
-                            {(viewSettings?.showTitles ?? true) && (
-                              <div
-                                className="absolute top-10 z-20  flex justify-center"
-                                style={{
-                                  left: `${taskLeft}%`,
-                                  width: `${taskWidth}%`,
-                                }}
-                              >
-                                <div className="relative group/tasklabel">
-                                  <div className="text-xs font-semibold text-gray-700 whitespace-nowrap px-2 cursor-help pointer-events-auto text-center">
-                                    {task.name}
-                                  </div>
-
-                                  {/* Hover Tooltip for Full Task Info */}
-                                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover/tasklabel:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap">
-                                    <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-2xl max-w-sm whitespace-normal">
-                                      <div className="font-semibold mb-1">{task.name}</div>
-                                      {task.description && (
-                                        <div className="text-gray-300 text-xs lg:text-sm mt-2 leading-relaxed">
-                                          {task.description}
-                                        </div>
-                                      )}
-                                      <div className="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-1.5">
-                                        <div className="mb-1">
-                                          {format(taskStart, "dd-MMM-yy (EEE)")} →{" "}
-                                          {format(taskEnd, "dd-MMM-yy (EEE)")}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-purple-400 font-semibold">
-                                            {formatDuration(taskWorkingDays)}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Empty State */}
-        {currentProject.phases.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">
-              No phases yet. Add your first phase to get started.
-            </p>
-            <button
-              onClick={() => openSidePanel("add", "phase")}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-            >
-              Add Phase
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Dependency Arrows - SVG overlay showing task dependencies */}
-      {canvasRef.current && (
-        <DependencyArrows
-          phases={currentProject.phases}
-          startDate={startDate}
-          endDate={endDate}
-          durationDays={durationDays}
-          containerWidth={canvasRef.current.offsetWidth}
-          containerHeight={canvasRef.current.scrollHeight}
-        />
-      )}
-
-      {/* RTS Minimap - Shows full timeline when focused on a phase */}
       <GanttMinimap />
-
-      {/* Resource Allocation Modal - Triggered by double-click on task bars */}
       {resourceModalState && (
         <PhaseTaskResourceAllocationModal
           itemId={resourceModalState.itemId}

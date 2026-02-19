@@ -8,6 +8,7 @@
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/nextauth-helpers";
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 export const runtime = "nodejs";
 
@@ -126,7 +127,7 @@ export async function PUT(
     }
 
     // Prepare update data
-    const updateData: any = {
+    const updateData: Prisma.ArchitectureProjectUpdateInput = {
       lastEditedAt: new Date(),
       lastEditedBy: session.user.id,
     };
@@ -134,10 +135,10 @@ export async function PUT(
     if (body.name !== undefined) updateData.name = body.name;
     if (body.description !== undefined) updateData.description = body.description;
     if (body.version !== undefined) updateData.version = body.version;
-    if (body.businessContext !== undefined) updateData.businessContext = body.businessContext;
-    if (body.currentLandscape !== undefined) updateData.currentLandscape = body.currentLandscape;
-    if (body.proposedSolution !== undefined) updateData.proposedSolution = body.proposedSolution;
-    if (body.diagramSettings !== undefined) updateData.diagramSettings = body.diagramSettings;
+    if (body.businessContext !== undefined) updateData.businessContext = body.businessContext as Prisma.InputJsonValue;
+    if (body.currentLandscape !== undefined) updateData.currentLandscape = body.currentLandscape as Prisma.InputJsonValue;
+    if (body.proposedSolution !== undefined) updateData.proposedSolution = body.proposedSolution as Prisma.InputJsonValue;
+    if (body.diagramSettings !== undefined) updateData.diagramSettings = body.diagramSettings as Prisma.InputJsonValue;
 
     // Update project
     const project = await prisma.architectureProject.update({
@@ -172,10 +173,10 @@ export async function PUT(
           versionNumber: nextVersionNumber,
           name: body.versionName || `Version ${nextVersionNumber}`,
           description: body.versionDescription || "Auto-saved version",
-          businessContext: project.businessContext as any,
-          currentLandscape: project.currentLandscape as any,
-          proposedSolution: project.proposedSolution as any,
-          diagramSettings: project.diagramSettings as any,
+          businessContext: project.businessContext as Prisma.InputJsonValue,
+          currentLandscape: project.currentLandscape as Prisma.InputJsonValue,
+          proposedSolution: project.proposedSolution as Prisma.InputJsonValue,
+          diagramSettings: project.diagramSettings as Prisma.InputJsonValue,
           createdBy: session.user.id,
         },
       });

@@ -216,7 +216,7 @@ function calculateBudgetMetrics(project: GanttProject) {
   // - Resource allocation percentage
   // - Resource hourly rate
   // Formula: (duration_hours * allocation% * hourly_rate)
-  let budgetSpent = 0;
+  const budgetSpent = 0;
 
   // This is a placeholder - proper implementation requires:
   // 1. Calculate working hours from task dates

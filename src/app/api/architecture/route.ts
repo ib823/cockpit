@@ -7,6 +7,7 @@
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/nextauth-helpers";
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 export const runtime = "nodejs";
 
@@ -150,10 +151,10 @@ export async function POST(req: Request) {
         versionNumber: 1,
         name: "Initial version",
         description: "Project created",
-        businessContext: project.businessContext as any,
-        currentLandscape: project.currentLandscape as any,
-        proposedSolution: project.proposedSolution as any,
-        diagramSettings: project.diagramSettings as any,
+        businessContext: project.businessContext as Prisma.InputJsonValue,
+        currentLandscape: project.currentLandscape as Prisma.InputJsonValue,
+        proposedSolution: project.proposedSolution as Prisma.InputJsonValue,
+        diagramSettings: project.diagramSettings as Prisma.InputJsonValue,
         createdBy: user.id,
       },
     });

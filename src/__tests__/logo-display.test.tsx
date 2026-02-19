@@ -5,11 +5,10 @@
  */
 
 import React from 'react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect, _beforeEach, vi } from 'vitest';
+import { render, _screen, _fireEvent, _waitFor } from '@testing-library/react';
 import { GanttToolbar } from '@/components/gantt-tool/GanttToolbar';
-import { UnifiedProjectSelector } from '@/components/gantt-tool/UnifiedProjectSelector';
+import { _UnifiedProjectSelector } from '@/components/gantt-tool/UnifiedProjectSelector';
 import type { GanttProject } from '@/types/gantt-tool';
 
 // Mock Next.js router
@@ -56,7 +55,7 @@ const mockProject: GanttProject = {
   }
 };
 
-const mockProjectNoLogo: GanttProject = {
+const _mockProjectNoLogo: GanttProject = {
   ...mockProject,
   id: 'proj-2',
   name: 'No Logo Project',

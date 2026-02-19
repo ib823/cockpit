@@ -52,13 +52,13 @@ export function DiagramPreview({ currentStep }: { currentStep: number }) {
       const code = GENERATORS[previewStep](data);
       if (!code) {
         containerRef.current.innerHTML = `
-          <div class="flex items-center justify-center h-full">
+          <div class="flex items-center justify-center h-full min-h-[400px]">
             <div class="text-center max-w-md px-6">
-              <div style="font-size: 64px; opacity: 0.3; margin-bottom: 24px;">📊</div>
-              <h3 style="font-size: 20px; font-weight: 600; color: #374151; margin-bottom: 12px;">
+              <div class="text-[64px] opacity-30 mb-6">📊</div>
+              <h3 class="display-small mb-3 text-primary">
                 Your diagram will appear here
               </h3>
-              <p style="color: #6B7280; font-size: 15px; line-height: 1.6;">
+              <p class="body text-secondary">
                 Add information in the form to see your architecture diagram visualized in real-time
               </p>
             </div>
@@ -76,12 +76,12 @@ export function DiagramPreview({ currentStep }: { currentStep: number }) {
       } catch (mermaidError) {
         console.error('Mermaid render error:', mermaidError);
         if (containerRef.current) {
-          containerRef.current.innerHTML = `<div class="text-red-500 p-4">Error rendering diagram: ${mermaidError instanceof Error ? mermaidError.message : 'Unknown error'}</div>`;
+          containerRef.current.innerHTML = `<div class="text-red p-4 body">Error rendering diagram: ${mermaidError instanceof Error ? mermaidError.message : 'Unknown error'}</div>`;
         }
       }
     } catch (error) {
       if (containerRef.current) {
-        containerRef.current.innerHTML = `<div class="text-red-500 p-4">Error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
+        containerRef.current.innerHTML = `<div class="text-red p-4 body">Error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
       }
     } finally {
       setIsLoading(false);
@@ -104,12 +104,12 @@ export function DiagramPreview({ currentStep }: { currentStep: number }) {
     <Card
       title={
         <Space>
-          <span>Preview</span>
+          <span className="body-semibold">Preview</span>
           <Select
             size="small"
             value={previewStep}
             onChange={setPreviewStep}
-            style={{ width: 180 }}
+            className="w-[180px]"
             options={NAMES.map((name, idx) => ({ label: name, value: idx }))}
           />
         </Space>
@@ -121,7 +121,7 @@ export function DiagramPreview({ currentStep }: { currentStep: number }) {
             icon={<ZoomOutOutlined />}
             onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
           />
-          <span className="text-sm">{Math.round(zoom * 100)}%</span>
+          <span className="detail">{Math.round(zoom * 100)}%</span>
           <Button
             size="small"
             icon={<ZoomInOutlined />}
@@ -132,15 +132,17 @@ export function DiagramPreview({ currentStep }: { currentStep: number }) {
             size="small"
             icon={<DownloadOutlined />}
             onClick={handleDownload}
+            className="bg-blue"
           >
             Export
           </Button>
         </Space>
       }
+      className="shadow-sm border-subtle"
     >
-      <div className="relative h-full min-h-[600px] overflow-auto bg-gray-50 rounded">
+      <div className="relative h-full min-h-[600px] overflow-auto bg-secondary rounded-md border border-subtle">
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/75 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-primary/75 z-10">
             <Spin size="large" />
           </div>
         )}

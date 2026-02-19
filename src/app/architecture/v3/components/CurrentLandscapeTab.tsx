@@ -3,18 +3,14 @@
  * TOGAF Phase B - Current State Documentation
  *
  * Purpose: Document what EXISTS TODAY
- * - Current applications/systems
- * - Current integrations
- * - External system dependencies
- * - Capability gaps and pain points
  */
 
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, ArrowRight, Database, Cloud, Server } from "lucide-react";
-import type { CurrentLandscapeData, CurrentSystem, Integration, ExternalSystem, BusinessEntity } from "../types";
-import styles from "./current-landscape-tab.module.css";
+import { Plus, Trash2, Cloud } from "lucide-react";
+import type { CurrentLandscapeData, CurrentSystem, ExternalSystem, BusinessEntity } from "../types";
+import clsx from "clsx";
 
 interface CurrentLandscapeTabProps {
   data: CurrentLandscapeData;
@@ -78,7 +74,6 @@ const TOGAF_EXTERNAL_SYSTEMS_TEMPLATES = {
 
 export function CurrentLandscapeTab({
   data,
-  entities,
   onChange,
   onGenerate,
 }: CurrentLandscapeTabProps) {
@@ -151,13 +146,13 @@ export function CurrentLandscapeTab({
   const hasData = data.systems.length > 0 || data.externalSystems.length > 0;
 
   return (
-    <div className={styles.container}>
+    <div className="space-y-10">
       {/* Info Banner */}
-      <div className={styles.infoBanner}>
-        <h4 className={styles.infoBannerTitle}>
+      <div className="p-6 bg-blue-light border border-blue/20 rounded-xl">
+        <h4 className="body-semibold text-blue mb-2">
           Current Business Landscape (AS-IS Architecture)
         </h4>
-        <p className={styles.infoBannerText}>
+        <p className="body text-sm text-secondary">
           Document your <strong>current state</strong> - what applications and systems exist TODAY. This will be
           compared against your proposed solution to identify gaps and migration paths.
         </p>
@@ -165,171 +160,96 @@ export function CurrentLandscapeTab({
 
       {/* Current Systems */}
       <Section title="Current Applications & Systems" subtitle="What systems exist today (AS-IS)">
-        {/* Template Loader */}
-        <div className={styles.templateLoader}>
+        <div className="space-y-6">
           <button
             onClick={() => setShowSystemTemplates(!showSystemTemplates)}
-            className={`${styles.button} ${styles.buttonSecondary}`}
+            className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             {showSystemTemplates ? "Hide" : "Load"} Common System Templates
           </button>
 
           {showSystemTemplates && (
-            <div
-              style={{
-                marginTop: "16px",
-                padding: "24px",
-                backgroundColor: "#f9f9f9",
-                borderRadius: "8px",
-                border: "1px solid #e0e0e0",
-              }}
-            >
-              <h4 className={styles.sectionTitle}>
-                Select Current System Category
-              </h4>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                  gap: "12px",
-                  marginTop: "16px",
-                }}
-              >
+            <div className="p-6 bg-secondary rounded-xl border border-strong animate-fade-in">
+              <h4 className="body-semibold mb-4 text-primary">Select Current System Category</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {Object.entries(TOGAF_CURRENT_SYSTEMS_TEMPLATES).map(([templateName, systems]) => (
                   <button
                     key={templateName}
                     onClick={() => loadSystemTemplate(templateName, systems)}
-                    className={styles.templateButton}
+                    className="flex flex-col p-4 text-left bg-primary border border-subtle rounded-lg hover:border-blue hover:bg-blue-light transition-default cursor-pointer"
                   >
-                    <div
-                      style={{
-                        fontFamily: "var(--font-text)",
-                        fontSize: "15px",
-                        fontWeight: 600,
-                        color: "#000",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {templateName}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "var(--font-text)",
-                        fontSize: "12px",
-                        color: "#666",
-                      }}
-                    >
-                      {systems.length} systems
-                    </div>
+                    <div className="body-semibold mb-1">{templateName}</div>
+                    <div className="detail text-secondary">{systems.length} systems</div>
                   </button>
                 ))}
               </div>
             </div>
           )}
-        </div>
 
-        {/* Systems Grid */}
-        <div className={styles.systemsGrid}>
-          {data.systems.map((system) => (
-            <SystemCard
-              key={system.id}
-              system={system}
-              onUpdate={(updates) => updateSystem(system.id, updates)}
-              onRemove={() => removeSystem(system.id)}
-            />
-          ))}
-          <AddButton onClick={addSystem} label="Add Current System" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data.systems.map((system) => (
+              <SystemCard
+                key={system.id}
+                system={system}
+                onUpdate={(updates) => updateSystem(system.id, updates)}
+                onRemove={() => removeSystem(system.id)}
+              />
+            ))}
+            <AddButton onClick={addSystem} label="Add Current System" />
+          </div>
         </div>
       </Section>
 
       {/* External Systems */}
       <Section title="External System Dependencies" subtitle="Third-party and partner systems">
-        {/* Template Loader */}
-        <div className={styles.templateLoader}>
+        <div className="space-y-6">
           <button
             onClick={() => setShowExternalTemplates(!showExternalTemplates)}
-            className={`${styles.button} ${styles.buttonSecondary}`}
+            className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             {showExternalTemplates ? "Hide" : "Load"} External System Templates
           </button>
 
           {showExternalTemplates && (
-            <div
-              style={{
-                marginTop: "16px",
-                padding: "24px",
-                backgroundColor: "#f9f9f9",
-                borderRadius: "8px",
-                border: "1px solid #e0e0e0",
-              }}
-            >
-              <h4 className={styles.sectionTitle}>
-                Select External System Category
-              </h4>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                  gap: "12px",
-                  marginTop: "16px",
-                }}
-              >
+            <div className="p-6 bg-secondary rounded-xl border border-strong animate-fade-in">
+              <h4 className="body-semibold mb-4 text-primary">Select External System Category</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {Object.entries(TOGAF_EXTERNAL_SYSTEMS_TEMPLATES).map(([templateName, externals]) => (
                   <button
                     key={templateName}
                     onClick={() => loadExternalTemplate(templateName, externals)}
-                    className={styles.templateButton}
+                    className="flex flex-col p-4 text-left bg-primary border border-subtle rounded-lg hover:border-blue hover:bg-blue-light transition-default cursor-pointer"
                   >
-                    <div
-                      style={{
-                        fontFamily: "var(--font-text)",
-                        fontSize: "15px",
-                        fontWeight: 600,
-                        color: "#000",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {templateName}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "var(--font-text)",
-                        fontSize: "12px",
-                        color: "#666",
-                      }}
-                    >
-                      {externals.length} systems
-                    </div>
+                    <div className="body-semibold mb-1">{templateName}</div>
+                    <div className="detail text-secondary">{externals.length} systems</div>
                   </button>
                 ))}
               </div>
             </div>
           )}
-        </div>
 
-        {/* External Systems Grid */}
-        <div className={styles.systemsGrid}>
-          {data.externalSystems.map((external) => (
-            <ExternalSystemCard
-              key={external.id}
-              external={external}
-              onUpdate={(updates) => updateExternalSystem(external.id, updates)}
-              onRemove={() => removeExternalSystem(external.id)}
-            />
-          ))}
-          <AddButton onClick={addExternalSystem} label="Add External System" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data.externalSystems.map((external) => (
+              <ExternalSystemCard
+                key={external.id}
+                external={external}
+                onUpdate={(updates) => updateExternalSystem(external.id, updates)}
+                onRemove={() => removeExternalSystem(external.id)}
+              />
+            ))}
+            <AddButton onClick={addExternalSystem} label="Add External System" />
+          </div>
         </div>
       </Section>
 
       {/* Generate Button */}
       {hasData && (
-        <div style={{ textAlign: "right", marginTop: "32px" }}>
+        <div className="flex justify-end pt-8 border-t border-subtle">
           <button
             onClick={onGenerate}
-            className={`${styles.button} ${styles.buttonPrimary}`}
-            style={{ padding: "14px 32px" }}
+            className="py-3 px-8 bg-blue color-white rounded-xl display-small font-bold shadow-lg hover:bg-blue-dark hover:scale-[1.02] active:scale-[0.98] transition-default cursor-pointer"
           >
             Generate AS-IS Diagram
           </button>
@@ -349,22 +269,9 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>
-        {title}
-      </h3>
-      {subtitle && (
-        <p
-          style={{
-            fontFamily: "var(--font-text)",
-            fontSize: "14px",
-            color: "#666",
-            marginBottom: "20px",
-          }}
-        >
-          {subtitle}
-        </p>
-      )}
+    <div>
+      <h3 className="display-small mb-1">{title}</h3>
+      {subtitle && <p className="detail text-secondary mb-6">{subtitle}</p>}
       {children}
     </div>
   );
@@ -380,78 +287,68 @@ function SystemCard({
   onRemove: () => void;
 }) {
   const status = system.status || "active";
-  const statusClass = status === "active" ? styles.statusActive : status === "retiring" ? styles.statusRetiring : styles.statusKeep;
+  const statusColors = {
+    active: "bg-blue text-white",
+    retiring: "bg-orange text-white",
+    keep: "bg-green text-white",
+  };
 
   return (
-    <div className={styles.systemCard}>
+    <div className="relative p-6 bg-primary border border-strong rounded-xl shadow-sm hover:shadow-md transition-default group">
       <button
         onClick={onRemove}
-        className={styles.iconButton}
-        style={{ position: "absolute", top: "10px", right: "10px" }}
+        className="absolute top-4 right-4 p-2 rounded-full text-secondary hover:bg-red-light hover:text-red transition-default opacity-0 group-hover:opacity-100"
         aria-label={`Remove current system ${system.name || 'untitled'}`}
       >
         <Trash2 className="w-4 h-4" aria-hidden="true" />
       </button>
 
       {/* Status Badge */}
-      <div className={`${styles.statusBadge} ${statusClass}`}>
-        {status.toUpperCase()}
+      <div className={clsx("absolute top-4 left-6 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider", statusColors[status as keyof typeof statusColors])}>
+        {status}
       </div>
 
-      <input
-        type="text"
-        value={system.name}
-        onChange={(e) => onUpdate({ name: e.target.value })}
-        placeholder="System Name (e.g., SAP ECC)"
-        className={styles.input}
-        style={{
-          padding: "8px 0",
-          borderTop: "none",
-          borderLeft: "none",
-          borderRight: "none",
-          borderBottom: "2px solid #e0e0e0",
-          borderRadius: 0,
-          fontWeight: 600,
-          fontSize: "16px",
-          marginBottom: "12px",
-        }}
-      />
-      <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+      <div className="mt-6 space-y-4">
         <input
           type="text"
-          value={system.vendor || ""}
-          onChange={(e) => onUpdate({ vendor: e.target.value })}
-          placeholder="Vendor"
-          className={styles.input}
-          style={{ flex: 1, fontSize: "13px" }}
+          value={system.name}
+          onChange={(e) => onUpdate({ name: e.target.value })}
+          placeholder="System Name (e.g., SAP ECC)"
+          className="w-full pb-2 border-b-2 border-subtle bg-transparent body-semibold text-lg outline-none focus:border-blue transition-default"
         />
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={system.vendor || ""}
+            onChange={(e) => onUpdate({ vendor: e.target.value })}
+            placeholder="Vendor"
+            className="flex-1 p-2 rounded-md border border-subtle bg-secondary/50 body text-xs focus:border-blue outline-none transition-default"
+          />
+          <input
+            type="text"
+            value={system.version || ""}
+            onChange={(e) => onUpdate({ version: e.target.value })}
+            placeholder="Version"
+            className="flex-1 p-2 rounded-md border border-subtle bg-secondary/50 body text-xs focus:border-blue outline-none transition-default"
+          />
+        </div>
         <input
           type="text"
-          value={system.version || ""}
-          onChange={(e) => onUpdate({ version: e.target.value })}
-          placeholder="Version"
-          className={styles.input}
-          style={{ flex: 1, fontSize: "13px" }}
+          value={system.modules.join(", ")}
+          onChange={(e) => onUpdate({ modules: e.target.value.split(",").map((m) => m.trim()).filter((m) => m) })}
+          placeholder="Modules (comma-separated)"
+          className="w-full p-2 rounded-md border border-subtle bg-secondary/50 body text-xs focus:border-blue outline-none transition-default"
         />
+        <select
+          value={status}
+          onChange={(e) => onUpdate({ status: e.target.value as "active" | "retiring" | "keep" })}
+          className="w-full p-2 rounded-md border border-subtle bg-secondary body text-xs outline-none focus:border-blue transition-default cursor-pointer"
+        >
+          <option value="active">Active</option>
+          <option value="keep">Keep (TO-BE)</option>
+          <option value="retiring">Retiring</option>
+        </select>
       </div>
-      <input
-        type="text"
-        value={system.modules.join(", ")}
-        onChange={(e) => onUpdate({ modules: e.target.value.split(",").map((m) => m.trim()).filter((m) => m) })}
-        placeholder="Modules (comma-separated)"
-        className={styles.input}
-        style={{ fontSize: "13px", marginBottom: "12px" }}
-      />
-      <select
-        value={status}
-        onChange={(e) => onUpdate({ status: e.target.value as "active" | "retiring" | "keep" })}
-        className={styles.select}
-        style={{ fontSize: "13px" }}
-      >
-        <option value="active">Active</option>
-        <option value="keep">Keep (TO-BE)</option>
-        <option value="retiring">Retiring</option>
-      </select>
     </div>
   );
 }
@@ -466,65 +363,47 @@ function ExternalSystemCard({
   onRemove: () => void;
 }) {
   return (
-    <div
-      className={styles.systemCard}
-      style={{
-        border: "1px solid #FFC107",
-        backgroundColor: "#FFF8E1",
-      }}
-    >
+    <div className="relative p-6 bg-orange-light/30 border border-orange/30 rounded-xl shadow-sm hover:shadow-md transition-default group">
       <button
         onClick={onRemove}
-        className={styles.iconButton}
-        style={{ position: "absolute", top: "10px", right: "10px" }}
+        className="absolute top-4 right-4 p-2 rounded-full text-orange/60 hover:bg-orange/10 hover:text-orange transition-default opacity-0 group-hover:opacity-100"
         aria-label={`Remove external system ${external.name || 'untitled'}`}
       >
         <Trash2 className="w-4 h-4" aria-hidden="true" />
       </button>
-      <Cloud className="w-5 h-5" style={{ color: "#F57F17", marginBottom: "8px" }} aria-hidden="true" />
-      <input
-        type="text"
-        value={external.name}
-        onChange={(e) => onUpdate({ name: e.target.value })}
-        placeholder="External System Name"
-        className={styles.input}
-        style={{
-          padding: "8px 0",
-          borderTop: "none",
-          borderLeft: "none",
-          borderRight: "none",
-          borderBottom: "2px solid #FFC107",
-          borderRadius: 0,
-          fontWeight: 600,
-          fontSize: "16px",
-          marginBottom: "12px",
-          backgroundColor: "transparent",
-        }}
-      />
-      <input
-        type="text"
-        value={external.type}
-        onChange={(e) => onUpdate({ type: e.target.value })}
-        placeholder="Type (Banking, Partner, etc.)"
-        className={styles.input}
-        style={{ fontSize: "13px", marginBottom: "8px", border: "1px solid #FFD54F" }}
-      />
-      <input
-        type="text"
-        value={external.purpose}
-        onChange={(e) => onUpdate({ purpose: e.target.value })}
-        placeholder="Purpose"
-        className={styles.input}
-        style={{ fontSize: "13px", marginBottom: "8px", border: "1px solid #FFD54F" }}
-      />
-      <input
-        type="text"
-        value={external.interface || ""}
-        onChange={(e) => onUpdate({ interface: e.target.value })}
-        placeholder="Interface (API, EDI, SFTP, etc.)"
-        className={styles.input}
-        style={{ fontSize: "13px", border: "1px solid #FFD54F" }}
-      />
+      
+      <Cloud className="w-5 h-5 text-orange mb-4" aria-hidden="true" />
+      
+      <div className="space-y-3">
+        <input
+          type="text"
+          value={external.name}
+          onChange={(e) => onUpdate({ name: e.target.value })}
+          placeholder="External System Name"
+          className="w-full pb-2 border-b-2 border-orange/20 bg-transparent body-semibold text-lg outline-none focus:border-orange transition-default"
+        />
+        <input
+          type="text"
+          value={external.type}
+          onChange={(e) => onUpdate({ type: e.target.value })}
+          placeholder="Type (Banking, Partner, etc.)"
+          className="w-full p-2 rounded-md border border-orange/20 bg-primary/50 body text-xs focus:border-orange outline-none transition-default"
+        />
+        <input
+          type="text"
+          value={external.purpose}
+          onChange={(e) => onUpdate({ purpose: e.target.value })}
+          placeholder="Purpose"
+          className="w-full p-2 rounded-md border border-orange/20 bg-primary/50 body text-xs focus:border-orange outline-none transition-default"
+        />
+        <input
+          type="text"
+          value={external.interface || ""}
+          onChange={(e) => onUpdate({ interface: e.target.value })}
+          placeholder="Interface (API, EDI, SFTP, etc.)"
+          className="w-full p-2 rounded-md border border-orange/20 bg-primary/50 body text-xs focus:border-orange outline-none transition-default"
+        />
+      </div>
     </div>
   );
 }
@@ -533,25 +412,10 @@ function AddButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <button
       onClick={onClick}
-      className={`${styles.button} ${styles.buttonSecondary}`}
-      style={{
-        minHeight: "200px",
-        border: "2px dashed #ccc",
-        flexDirection: "column",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "#2563A5";
-        e.currentTarget.style.backgroundColor = "#f0f7ff";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "#ccc";
-        e.currentTarget.style.backgroundColor = "#fafafa";
-      }}
+      className="flex flex-col items-center justify-center p-8 min-h-[200px] border-2 border-dashed border-strong bg-secondary/30 rounded-xl hover:bg-blue-light hover:border-blue transition-default cursor-pointer group"
     >
-      <Plus className="w-6 h-6" style={{ color: "#999" }} />
-      <span style={{ fontFamily: "var(--font-text)", fontSize: "14px", color: "#666" }}>
-        {label}
-      </span>
+      <Plus className="w-8 h-8 text-secondary group-hover:text-blue mb-2 transition-default" />
+      <span className="body text-sm font-semibold text-secondary group-hover:text-blue transition-default">{label}</span>
     </button>
   );
 }

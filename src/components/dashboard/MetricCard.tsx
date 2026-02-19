@@ -1,12 +1,11 @@
 /**
  * MetricCard Component
  * Displays a single metric with icon, value, and description
- * Apple HIG compliant design
  */
 
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
-import styles from './MetricCard.module.css';
+import clsx from 'clsx';
 
 interface MetricCardProps {
   icon: LucideIcon;
@@ -25,19 +24,26 @@ export function MetricCard({
   description,
   isEmpty = false,
 }: MetricCardProps) {
+  const colorClasses = {
+    blue: "bg-blue-light text-blue",
+    green: "bg-green-light text-green",
+    orange: "bg-orange-light text-orange",
+    purple: "bg-purple-light text-purple",
+  };
+
   return (
-    <div className={styles.card}>
-      <div className={styles.header}>
-        <div className={`${styles.iconWrapper} ${styles[iconColor]}`}>
-          <Icon className={`${styles.icon} ${styles[iconColor]}`} />
+    <div className="p-6 bg-primary border border-subtle rounded-2xl shadow-sm hover:shadow-md transition-default animate-fade-in">
+      <div className="mb-4">
+        <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", colorClasses[iconColor])}>
+          <Icon className="w-5 h-5" />
         </div>
       </div>
-      <div className={styles.content}>
-        <div className={isEmpty ? styles.emptyValue : styles.value}>
+      <div>
+        <div className={clsx("display-medium mb-1 truncate", isEmpty ? "text-tertiary" : "text-primary")}>
           {isEmpty ? '—' : value}
         </div>
-        <div className={styles.label}>{label}</div>
-        <div className={styles.description}>{description}</div>
+        <div className="body-semibold text-sm mb-1 text-primary">{label}</div>
+        <div className="detail text-secondary line-clamp-2">{description}</div>
       </div>
     </div>
   );
