@@ -37,12 +37,7 @@ export function SegmentedControl({
 }: SegmentedControlProps) {
   return (
     <div
-      className={`inline-flex items-center gap-0 bg-gray-100 rounded-lg p-1 ${className}`}
-      style={{
-        backgroundColor: "var(--color-gray-6)",
-        borderRadius: "var(--radius-md)",
-        padding: "var(--space-xs)",
-      }}
+      className={`inline-flex items-center gap-0 bg-[var(--color-gray-6)] rounded-[var(--radius-md)] p-[var(--space-4)] ${className}`}
     >
       {options.map((option) => {
         const isSelected = option.value === value;
@@ -50,34 +45,21 @@ export function SegmentedControl({
           <button
             key={option.value}
             onClick={() => onChange(option.value)}
-            className="relative px-6 py-2 rounded-md transition-all duration-200 flex items-center gap-2"
-            style={{
-              fontFamily: "var(--font-text)",
-              fontSize: "var(--text-body)",
-              fontWeight: "var(--weight-regular)",
-              padding: "var(--space-sm) var(--space-lg)",
-              borderRadius: "var(--radius-sm)",
-              backgroundColor: isSelected ? "var(--color-bg-primary)" : "transparent",
-              border: isSelected ? "1px solid var(--color-gray-4)" : "1px solid transparent",
-              boxShadow: isSelected ? "var(--shadow-sm)" : "none",
-              opacity: isSelected ? 1 : 0.6,
-              color: "var(--ink)",
-              cursor: "pointer",
-              transition: "all var(--duration-default) var(--easing-default)",
-            }}
-            onMouseEnter={(e) => {
-              if (!isSelected) {
-                e.currentTarget.style.opacity = "0.8";
+            className={`
+              relative flex items-center gap-2 cursor-pointer
+              font-[var(--font-text)] text-[var(--text-body)] font-normal
+              py-[var(--space-8)] px-[var(--space-24)]
+              rounded-[var(--radius-sm)]
+              text-[var(--ink)]
+              transition-all duration-[var(--duration-default)] ease-[var(--easing-default)]
+              ${isSelected
+                ? "bg-[var(--color-bg-primary)] border border-[var(--color-gray-4)] shadow-[var(--shadow-sm)] opacity-100"
+                : "bg-transparent border border-transparent opacity-60 hover:opacity-80"
               }
-            }}
-            onMouseLeave={(e) => {
-              if (!isSelected) {
-                e.currentTarget.style.opacity = "0.6";
-              }
-            }}
+            `}
           >
             {option.icon && (
-              <span style={{ display: "flex", alignItems: "center" }}>
+              <span className="flex items-center">
                 {option.icon}
               </span>
             )}

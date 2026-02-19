@@ -30,12 +30,12 @@ const sizeMap = {
 };
 
 const colorMap = {
-  blue: "#3B82F6",
+  blue: "#007AFF",
   white: "#FFFFFF",
-  gray: "#6B7280",
-  purple: "#8B5CF6",
-  green: "#10B981",
-  red: "#EF4444",
+  gray: "#8E8E93",
+  purple: "#AF52DE",
+  green: "#34C759",
+  red: "#FF3B30",
 };
 
 export function AnimatedSpinner({

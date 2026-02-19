@@ -112,34 +112,16 @@ This is an automated message from Cockpit.`;
       title="Access Approved!"
       subtitle={
         <>
-          Access code ready for <span style={{ fontWeight: 600, color: "#1D1D1F" }}>{email}</span>
+          Access code ready for <span className="font-semibold text-[var(--color-text-primary)]">{email}</span>
         </>
       }
-      icon={<CheckCircle className="w-6 h-6" style={{ color: "#34C759" }} />}
+      icon={<CheckCircle className="w-6 h-6 text-[var(--color-green)]" />}
       size="medium"
       footer={
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+        <div className="flex flex-col gap-3 w-full">
           <button
             onClick={handleOpenEmail}
-            style={{
-              width: "100%",
-              padding: "12px 20px",
-              fontFamily: "var(--font-text)",
-              fontSize: "14px",
-              fontWeight: 600,
-              backgroundColor: "#007AFF",
-              color: "#FFFFFF",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              transition: "background-color 0.15s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0051D5")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#007AFF")}
+            className="w-full py-3 px-5 font-[var(--font-text)] text-sm font-semibold bg-[var(--color-blue)] text-white border-none rounded-[var(--radius-md)] cursor-pointer flex items-center justify-center gap-2 transition-colors duration-150 hover:brightness-90"
           >
             <Mail className="w-5 h-5" />
             Compose Email (Manual Send)
@@ -150,81 +132,32 @@ This is an automated message from Cockpit.`;
         </div>
       }
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <div className="flex flex-col gap-6">
         {/* Warning Banner */}
-        <div
-          style={{
-            padding: "12px 16px",
-            backgroundColor: "rgba(255, 149, 0, 0.1)",
-            border: "1px solid rgba(255, 149, 0, 0.2)",
-            borderRadius: "8px",
-            fontFamily: "var(--font-text)",
-            fontSize: "13px",
-            color: "#D97706",
-            textAlign: "center",
-          }}
-        >
+        <div className="py-3 px-4 bg-[var(--color-orange-light)] border border-[rgba(255,149,0,0.2)] rounded-[var(--radius-md)] font-[var(--font-text)] text-[13px] text-[var(--color-orange)] text-center">
           No email sent - Share manually with user
         </div>
 
         {/* Magic Link Section */}
         {magicUrl && (
           <div>
-            <div style={{ textAlign: "center", marginBottom: "12px" }}>
-              <h3 style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 600, color: "#1D1D1F", margin: "0 0 4px 0" }}>
+            <div className="text-center mb-3">
+              <h3 className="font-[var(--font-display)] text-sm font-semibold text-[var(--color-text-primary)] mb-1">
                 Magic Link
               </h3>
-              <p style={{ fontFamily: "var(--font-text)", fontSize: "12px", color: "#86868B", margin: 0 }}>
+              <p className="font-[var(--font-text)] text-xs text-[var(--color-text-tertiary)] m-0">
                 Expires in 2 minutes
               </p>
             </div>
-            <div style={{ position: "relative" }}>
-              <div
-                style={{
-                  backgroundColor: "rgba(0, 122, 255, 0.05)",
-                  border: "2px solid rgba(0, 122, 255, 0.2)",
-                  borderRadius: "8px",
-                  padding: "16px",
-                  overflow: "hidden",
-                }}
-              >
-                <p
-                  style={{
-                    fontFamily: "monospace",
-                    fontSize: "12px",
-                    color: "#007AFF",
-                    textAlign: "center",
-                    margin: 0,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+            <div className="relative">
+              <div className="bg-[var(--color-blue-light)] border-2 border-[rgba(0,122,255,0.2)] rounded-[var(--radius-md)] p-4 overflow-hidden">
+                <p className="font-mono text-xs text-[var(--color-blue)] text-center m-0 overflow-hidden text-ellipsis whitespace-nowrap">
                   {magicUrl}
                 </p>
               </div>
               <button
                 onClick={handleCopyLink}
-                style={{
-                  position: "absolute",
-                  right: "8px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  padding: "6px 12px",
-                  backgroundColor: "#007AFF",
-                  color: "#FFFFFF",
-                  border: "none",
-                  borderRadius: "6px",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  transition: "background-color 0.15s ease",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0051D5")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#007AFF")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 py-1.5 px-3 bg-[var(--color-blue)] text-white border-none rounded-[var(--radius-sm)] text-xs font-semibold cursor-pointer flex items-center gap-1 transition-colors duration-150 hover:brightness-90"
               >
                 {copiedLink ? (
                   <>
@@ -241,59 +174,23 @@ This is an automated message from Cockpit.`;
 
         {/* 6-Digit Code Section */}
         <div>
-          <div style={{ textAlign: "center", marginBottom: "12px" }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 600, color: "#1D1D1F", margin: "0 0 4px 0" }}>
+          <div className="text-center mb-3">
+            <h3 className="font-[var(--font-display)] text-sm font-semibold text-[var(--color-text-primary)] mb-1">
               6-Digit Code
             </h3>
-            <p style={{ fontFamily: "var(--font-text)", fontSize: "12px", color: "#86868B", margin: 0 }}>
+            <p className="font-[var(--font-text)] text-xs text-[var(--color-text-tertiary)] m-0">
               Expires in 7 days
             </p>
           </div>
-          <div style={{ position: "relative" }}>
-            <div
-              style={{
-                backgroundColor: "#F5F5F7",
-                border: "2px solid #D1D1D6",
-                borderRadius: "8px",
-                padding: "24px",
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: "36px",
-                  fontWeight: 700,
-                  color: "#1D1D1F",
-                  textAlign: "center",
-                  margin: 0,
-                  letterSpacing: "0.1em",
-                }}
-              >
+          <div className="relative">
+            <div className="bg-[var(--color-bg-secondary)] border-2 border-[var(--color-gray-4)] rounded-[var(--radius-md)] p-6">
+              <p className="font-mono text-4xl font-bold text-[var(--color-text-primary)] text-center m-0 tracking-widest">
                 {code}
               </p>
             </div>
             <button
               onClick={handleCopyCode}
-              style={{
-                position: "absolute",
-                right: "8px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                padding: "6px 12px",
-                backgroundColor: "#1D1D1F",
-                color: "#FFFFFF",
-                border: "none",
-                borderRadius: "6px",
-                fontSize: "12px",
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-                transition: "background-color 0.15s ease",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#000000")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1D1D1F")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 py-1.5 px-3 bg-[var(--color-text-primary)] text-white border-none rounded-[var(--radius-sm)] text-xs font-semibold cursor-pointer flex items-center gap-1 transition-colors duration-150 hover:brightness-90"
             >
               {copiedCode ? (
                 <>

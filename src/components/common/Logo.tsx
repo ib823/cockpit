@@ -9,6 +9,17 @@ interface LogoProps {
   className?: string;
 }
 
+const textSizeClass = {
+  sm: "text-sm",
+  md: "text-lg",
+  lg: "text-[22px]",
+} as const;
+
+const taglineSizeClass = {
+  md: "text-[11px]",
+  lg: "text-xs",
+} as const;
+
 /**
  * Company Logo Component
  *
@@ -29,21 +40,11 @@ export function Logo({ size = "md", theme = "light", showText = true, className 
       {/* Company Name (optional) */}
       {showText && (
         <div className="flex flex-col">
-          <span
-            className="font-semibold text-gray-900"
-            style={{
-              fontSize: size === "sm" ? "14px" : size === "md" ? "18px" : "22px",
-            }}
-          >
+          <span className={`font-semibold text-[var(--color-text-primary)] ${textSizeClass[size]}`}>
             {company.name}
           </span>
           {size !== "sm" && (
-            <span
-              className="text-gray-600 text-xs"
-              style={{
-                fontSize: size === "md" ? "11px" : "12px",
-              }}
-            >
+            <span className={`text-[var(--color-text-secondary)] ${taglineSizeClass[size as "md" | "lg"]}`}>
               {company.tagline}
             </span>
           )}

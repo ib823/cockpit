@@ -62,9 +62,7 @@ export function SimpleModal({
     footer === null
       ? null
       : footer || (
-          <div
-            style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "24px" }}
-          >
+          <div className="flex justify-end gap-2 mt-6">
             <Button onClick={onCancel} {...cancelButtonProps}>
               {cancelText}
             </Button>
@@ -80,69 +78,33 @@ export function SimpleModal({
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       role="dialog"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.45)",
-        display: "flex",
-        alignItems: centered ? "center" : "flex-start",
-        justifyContent: "center",
-        zIndex: 1000,
-        padding: centered ? "0" : "100px 0",
-      }}
+      className={`fixed inset-0 bg-black/45 flex justify-center z-[1000] ${
+        centered ? "items-center" : "items-start pt-[100px]"
+      }`}
       onClick={handleBackdropClick}
       onKeyDown={(e) => { if (e.key === 'Escape') handleBackdropClick(); }}
     >
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
+        className="bg-[var(--color-bg-primary)] rounded-[var(--radius-md)] max-w-[90vw] max-h-[90vh] overflow-hidden flex flex-col"
         style={{
-          backgroundColor: "white",
-          borderRadius: "8px",
-          padding: "0",
           width: typeof width === "number" ? `${width}px` : width,
-          maxWidth: "90vw",
-          maxHeight: "90vh",
-          boxShadow:
-            "0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05)",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
+          boxShadow: "var(--shadow-lg)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         {(title || closable) && (
-          <div
-            style={{
-              padding: "16px 24px",
-              borderBottom: "1px solid #f0f0f0",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
+          <div className="px-6 py-4 border-b border-[var(--color-border-subtle)] flex items-center justify-between">
             {title && (
-              <div className="text-base" style={{ fontWeight: "600", color: "#1f2937", flex: 1 }}>
+              <div className="text-base font-semibold text-[var(--color-text-primary)] flex-1">
                 {title}
               </div>
             )}
             {closable && (
               <button
                 onClick={onCancel}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  padding: "4px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#00000073",
-                }}
-                className="text-base"
+                className="border-none bg-transparent cursor-pointer p-1 flex items-center justify-center text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]"
               >
                 <CloseOutlined />
               </button>
@@ -151,24 +113,13 @@ export function SimpleModal({
         )}
 
         {/* Body */}
-        <div
-          style={{
-            padding: "24px",
-            flex: 1,
-            overflow: "auto",
-          }}
-        >
+        <div className="p-6 flex-1 overflow-auto">
           {children}
         </div>
 
         {/* Footer */}
         {defaultFooter && (
-          <div
-            style={{
-              padding: "10px 16px",
-              borderTop: "1px solid #f0f0f0",
-            }}
-          >
+          <div className="px-4 py-2.5 border-t border-[var(--color-border-subtle)]">
             {defaultFooter}
           </div>
         )}
