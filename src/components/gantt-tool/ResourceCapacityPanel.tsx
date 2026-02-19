@@ -3,9 +3,9 @@
 /**
  * Resource Capacity Panel - Integrated below Gantt Timeline
  *
- * Policy Compliance:
- * - ULTIMATE GLOBAL QUALITY.md: System-level thinking, performance by design
- * - UX System.md: Apple HIG, 44px touch targets, semantic colors
+ * Design intent:
+ * - System-level performance and data consistency
+ * - Accessible touch targets and semantic color usage
  *
  * Features:
  * - Resource list matches OrgChartPro format (avatars, ROOT badges, hierarchy)

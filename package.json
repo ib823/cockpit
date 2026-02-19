@@ -161,5 +161,6 @@
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
-  }
+  },
+  "license": "UNLICENSED"
 }

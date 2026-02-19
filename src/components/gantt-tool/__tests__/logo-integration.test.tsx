@@ -44,7 +44,7 @@ vi.mock('@/stores/gantt-tool-store-v2', () => ({
 
 describe('Logo Integration Tests (30 scenarios)', () => {
   const mockCompanyLogos = {
-    'ABeam Consulting': 'data:image/png;base64,abeam123',
+    'Partner Consulting': 'data:image/png;base64,partner123',
     'SAP': 'data:image/png;base64,sap456',
     'Accenture': 'data:image/png;base64,accenture789',
     'Deloitte': 'data:image/png;base64,deloitte012',
@@ -54,8 +54,8 @@ describe('Logo Integration Tests (30 scenarios)', () => {
     id: 'node-1',
     roleTitle: 'Project Manager',
     designation: 'manager',
-    companyName: 'ABeam Consulting',
-    companyLogoUrl: 'data:image/png;base64,abeam123',
+    companyName: 'Partner Consulting',
+    companyLogoUrl: 'data:image/png;base64,partner123',
   };
 
   describe('DraggableOrgCardV4 Logo Integration (10 scenarios)', () => {
@@ -116,9 +116,9 @@ describe('Logo Integration Tests (30 scenarios)', () => {
         { wrapper }
       );
 
-      const logoImg = container.querySelector('img[alt="ABeam Consulting"]');
+      const logoImg = container.querySelector('img[alt="Partner Consulting"]');
       expect(logoImg).toBeTruthy();
-      expect(logoImg?.getAttribute('src')).toBe('data:image/png;base64,abeam123');
+      expect(logoImg?.getAttribute('src')).toBe('data:image/png;base64,partner123');
     });
 
     it('should show company picker dropdown when badge clicked', async () => {
@@ -159,7 +159,7 @@ describe('Logo Integration Tests (30 scenarios)', () => {
       await waitFor(() => {
         const companyButtons = Array.from(container.querySelectorAll('button'));
         const hasCompanyNames = companyButtons.some(btn =>
-          btn.textContent === 'ABeam Consulting' ||
+          btn.textContent === 'Partner Consulting' ||
           btn.textContent === 'SAP' ||
           btn.textContent === 'Accenture'
         );
@@ -201,7 +201,7 @@ describe('Logo Integration Tests (30 scenarios)', () => {
       const companyButtons = container.querySelectorAll('button');
       const companyNames = Array.from(companyButtons).map(btn => btn.textContent);
 
-      expect(companyNames).toContain('ABeam Consulting');
+      expect(companyNames).toContain('Partner Consulting');
       expect(companyNames).toContain('SAP');
       expect(companyNames).toContain('Accenture');
       expect(companyNames).toContain('Deloitte');
@@ -241,7 +241,7 @@ describe('Logo Integration Tests (30 scenarios)', () => {
       const pickerImages = Array.from(container.querySelectorAll('img'));
       const logoSources = pickerImages.map(img => img.getAttribute('src'));
 
-      expect(logoSources).toContain('data:image/png;base64,abeam123');
+      expect(logoSources).toContain('data:image/png;base64,partner123');
       expect(logoSources).toContain('data:image/png;base64,sap456');
       expect(logoSources).toContain('data:image/png;base64,accenture789');
       expect(logoSources).toContain('data:image/png;base64,deloitte012');
@@ -412,13 +412,13 @@ describe('Logo Integration Tests (30 scenarios)', () => {
       const badge = container.querySelector('button[title="Change company"]');
       fireEvent.click(badge!);
 
-      // Find ABeam button (current company)
+      // Find PartnerCo button (current company)
       const companyButtons = Array.from(container.querySelectorAll('button'));
-      const abeamButton = companyButtons.find(btn => btn.textContent === 'ABeam Consulting');
+      const partnerButton = companyButtons.find(btn => btn.textContent === 'Partner Consulting');
 
       // Should have highlighted background
-      const bgColor = window.getComputedStyle(abeamButton!).backgroundColor;
-      expect(abeamButton).toBeTruthy();
+      const bgColor = window.getComputedStyle(partnerButton!).backgroundColor;
+      expect(partnerButton).toBeTruthy();
       // Note: actual styling check would require jsdom or similar
     });
 
@@ -454,7 +454,7 @@ describe('Logo Integration Tests (30 scenarios)', () => {
         { wrapper }
       );
 
-      // Should show abbreviation "AB" for ABeam Consulting
+      // Should show abbreviation "AB" for Partner Consulting
       const badge = container.querySelector('button[title="Change company"]');
       expect(badge?.textContent).toContain('AB');
     });

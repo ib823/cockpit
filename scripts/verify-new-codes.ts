@@ -7,8 +7,8 @@ async function verifyNewCodes() {
   console.log("🔍 Verifying new codes...\n");
 
   const testCases = [
-    { email: "ikmls@hotmail.com", code: "543794" },
-    { email: "ibaharudin@abeam.com", code: "335819" },
+    { email: "admin@example.com", code: "543794" },
+    { email: "user@example.com", code: "335819" },
   ];
 
   for (const { email, code } of testCases) {

@@ -12,7 +12,7 @@ async function main() {
     (process.env.VERCEL_PROJECT_PRODUCTION_URL
       ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
       : null) ||
-    "https://cockpit-r7xjukyir-ikmals-projects-4ec38ef0.vercel.app";
+    "https://example-cockpit.vercel.app";
   console.log("🌐 Production URL:", prodUrl);
   console.log("🗄️  Database:", process.env.DATABASE_URL ? "✅ Connected" : "❌ Not connected");
   console.log("\n");

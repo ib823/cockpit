@@ -2150,8 +2150,8 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       if (!currentProject?.orgChartPro?.companyLogos) {
         return {};
       }
-      // Default logos are: "ABeam Consulting", "ABeam", "SAP", "SAP SE"
-      const defaultKeys = ["ABeam Consulting", "ABeam", "SAP", "SAP SE"];
+      // Default logos are: "Partner Consulting", "PartnerCo", "SAP", "SAP SE"
+      const defaultKeys = ["Partner Consulting", "PartnerCo", "SAP", "SAP SE"];
       const customLogos: Record<string, string> = {};
       Object.entries(currentProject.orgChartPro.companyLogos).forEach(([key, value]) => {
         if (!defaultKeys.includes(key)) {

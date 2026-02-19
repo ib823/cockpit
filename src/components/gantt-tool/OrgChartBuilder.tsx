@@ -6,7 +6,7 @@
  *
  * Features:
  * - Single unified org chart (not dual hierarchy)
- * - Choose company per node (ABeam/Client/SAP)
+ * - Choose company per node (PartnerCo/Client/SAP)
  * - Direction toggle: top-to-bottom or left-to-right
  * - Visual SVG connecting lines
  * - Inline editing and company selection
@@ -22,7 +22,7 @@ interface OrgChartBuilderProps {
   onClose: () => void;
 }
 
-type Company = "abeam" | "client" | "sap";
+type Company = "partner" | "client" | "sap";
 type Direction = "vertical" | "horizontal";
 
 interface OrgNode {
@@ -34,13 +34,13 @@ interface OrgNode {
 }
 
 const COMPANY_COLORS = {
-  abeam: "#007AFF", // Blue
+  partner: "#007AFF", // Blue
   client: "#34C759", // Green
   sap: "#FF9500", // Orange
 };
 
 const COMPANY_LABELS = {
-  abeam: "ABeam",
+  partner: "PartnerCo",
   client: "Client",
   sap: "SAP",
 };
@@ -51,13 +51,13 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
     {
       id: "node-1",
       roleTitle: "Project Manager",
-      company: "abeam",
+      company: "partner",
       dailyRate: 1500,
     },
     {
       id: "node-2",
       roleTitle: "SAP FI Lead",
-      company: "abeam",
+      company: "partner",
       dailyRate: 1200,
       reportsTo: "node-1",
     },
@@ -70,14 +70,14 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
     {
       id: "node-4",
       roleTitle: "FI Consultant",
-      company: "abeam",
+      company: "partner",
       dailyRate: 1000,
       reportsTo: "node-2",
     },
     {
       id: "node-5",
       roleTitle: "SAP MM Lead",
-      company: "abeam",
+      company: "partner",
       dailyRate: 1200,
       reportsTo: "node-1",
     },
@@ -128,7 +128,7 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
     const newNode: OrgNode = {
       id: `node-${Date.now()}`,
       roleTitle: "New Role",
-      company: "abeam",
+      company: "partner",
       dailyRate: 1000,
       reportsTo: parentId,
     };
@@ -260,7 +260,7 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
               overflow: "hidden",
             }}
           >
-            {(["abeam", "client", "sap"] as Company[]).map((company) => (
+            {(["partner", "client", "sap"] as Company[]).map((company) => (
               <button
                 key={company}
                 onClick={(e) => {

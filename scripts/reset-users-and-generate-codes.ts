@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function resetUsersAndGenerateCodes() {
   console.log("🔄 Resetting users and generating 6-digit codes...\n");
 
-  const userEmails = ["ikmls@hotmail.com", "ibaharudin@abeam.com"];
+  const userEmails = ["admin@example.com", "user@example.com"];
   const results: Array<{ email: string; code: string; userId: string }> = [];
 
   for (const email of userEmails) {

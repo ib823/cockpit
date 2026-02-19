@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function checkAdminSession() {
   console.log("🔍 Checking admin user session and passkey...\n");
 
-  const email = "ikmls@hotmail.com";
+  const email = "admin@example.com";
 
   const user = await prisma.users.findUnique({
     where: { email },

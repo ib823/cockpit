@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const email = "ikmls@hotmail.com";
+  const email = "admin@example.com";
   const tokenHash = await hash(code, 10);
   const tokenExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year
 
@@ -43,7 +43,7 @@ async function main() {
   });
 
   console.log(`✅ Admin code set to: ${code}`);
-  console.log("📧 Email: ikmls@hotmail.com");
+  console.log("📧 Email: admin@example.com");
   console.log("🔗 Login: http://localhost:3000/login");
 }
 

@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function testAuth() {
   console.log('\n=== TESTING PASSKEY AUTHENTICATION ===\n');
 
-  const email = 'ikmls@hotmail.com';
+  const email = 'admin@example.com';
 
   try {
     console.log(`1. Fetching user: ${email}`);

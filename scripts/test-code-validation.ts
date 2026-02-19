@@ -7,8 +7,8 @@ async function testCodeValidation() {
   console.log("🔍 Testing code validation...\n");
 
   const testCases = [
-    { email: "ikmls@hotmail.com", code: "472221" },
-    { email: "ibaharudin@abeam.com", code: "216055" },
+    { email: "admin@example.com", code: "472221" },
+    { email: "user@example.com", code: "216055" },
   ];
 
   for (const { email, code } of testCases) {

@@ -820,7 +820,7 @@ export interface ProjectCosting {
   netServiceRevenue: number; // NSR = Commercial × Days (actual billable)
 
   // Cost breakdown (MANUAL ENTRY - not auto-calculated for confidentiality)
-  internalCost: number; // ABeam resources (manual entry)
+  internalCost: number; // PartnerCo resources (manual entry)
   subcontractorCost: number; // External vendors (manual entry)
   outOfPocketExpense: number; // OPE - travel, onsite, etc.
 

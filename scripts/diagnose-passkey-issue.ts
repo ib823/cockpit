@@ -2,7 +2,7 @@ import { prisma } from "../src/lib/db";
 
 async function diagnosePasskeyIssue() {
   try {
-    const email = "ikmls@hotmail.com";
+    const email = "admin@example.com";
 
     console.log("\n═══════════════════════════════════════");
     console.log("🔍 Passkey Diagnosis for:", email);

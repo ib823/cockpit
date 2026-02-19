@@ -40,7 +40,7 @@ async function checkWebAuthnConfig() {
     }
 
     // Check admin user's passkey
-    const email = "ikmls@hotmail.com";
+    const email = "admin@example.com";
     const user = await prisma.users.findUnique({
       where: { email },
       include: {

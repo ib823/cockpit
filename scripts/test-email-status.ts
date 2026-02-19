@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function testEmailStatus() {
   console.log("🔍 Testing email status for both users...\n");
 
-  const userEmails = ["ikmls@hotmail.com", "ibaharudin@abeam.com"];
+  const userEmails = ["admin@example.com", "user@example.com"];
 
   for (const emailRaw of userEmails) {
     const email = emailRaw.toLowerCase();

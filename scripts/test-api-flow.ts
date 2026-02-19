@@ -11,7 +11,7 @@ async function main() {
   console.log("🧪 Testing API Flow\n");
   console.log("=".repeat(80));
 
-  const testEmail = "ikmls@hotmail.com";
+  const testEmail = "admin@example.com";
   const testCode = "357457";
 
   // Step 1: Test email-status API logic

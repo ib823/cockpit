@@ -1,7 +1,7 @@
 import { prisma } from "../src/lib/db";
 
 async function main() {
-  const adminEmail = "ikmls@hotmail.com";
+  const adminEmail = "admin@example.com";
 
   // Check if user exists
   const user = await prisma.users.findUnique({ where: { email: adminEmail } });

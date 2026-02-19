@@ -20,7 +20,7 @@ export async function GET() {
   }
 
   try {
-    const adminEmail = process.env.ADMIN_EMAIL || "ikmls@hotmail.com";
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
 
     // Get admin user
     const user = await prisma.users.findUnique({

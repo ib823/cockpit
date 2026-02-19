@@ -2,7 +2,7 @@ import { prisma } from "../src/lib/db";
 
 async function clearAdminPasskey() {
   try {
-    const email = "ikmls@hotmail.com";
+    const email = "admin@example.com";
 
     console.log("\n🔄 Clearing passkeys for:", email);
     console.log("═══════════════════════════════════════════════════\n");
@@ -92,7 +92,7 @@ const confirmed = args.includes("--confirm");
 
 if (!confirmed) {
   console.log("\n⚠️  SAFETY CHECK REQUIRED\n");
-  console.log("This script will DELETE all passkeys for ikmls@hotmail.com");
+  console.log("This script will DELETE all passkeys for admin@example.com");
   console.log("");
   console.log("To proceed, run:");
   console.log("  npx tsx scripts/clear-admin-passkey.ts --confirm");

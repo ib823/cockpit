@@ -78,5 +78,5 @@ async function generatePasskeyRegistrationToken(email: string) {
 }
 
 // Run for the specified email
-const email = process.argv[2] || "ikmls@hotmail.com";
+const email = process.argv[2] || "admin@example.com";
 generatePasskeyRegistrationToken(email);

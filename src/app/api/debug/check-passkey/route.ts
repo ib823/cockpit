@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     // Get email from query params
     const { searchParams } = new URL(request.url);
-    const email = searchParams.get("email") || "ikmls@hotmail.com";
+    const email = searchParams.get("email") || "admin@example.com";
 
     // Find user
     const user = await prisma.users.findUnique({

@@ -12,8 +12,8 @@ async function main() {
   console.log("🔧 Setting 6-digit codes for production users...\n");
 
   const users = [
-    { email: "ikmls@hotmail.com", role: "ADMIN" },
-    { email: "ibaharudin@abeam.com", role: "USER" },
+    { email: "admin@example.com", role: "ADMIN" },
+    { email: "user@example.com", role: "USER" },
   ];
 
   // Get system admin for approvedByUserId

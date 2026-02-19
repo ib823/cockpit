@@ -61,10 +61,10 @@ async function main() {
   console.log("For passkeys to work, you need to set these in Vercel:");
   console.log("");
   console.log("1. WEBAUTHN_ORIGIN should be:");
-  console.log("   https://cockpit-r7xjukyir-ikmals-projects-4ec38ef0.vercel.app");
+  console.log("   https://example-cockpit.vercel.app");
   console.log("");
   console.log("2. WEBAUTHN_RP_ID should be:");
-  console.log("   cockpit-r7xjukyir-ikmals-projects-4ec38ef0.vercel.app");
+  console.log("   example-cockpit.vercel.app");
   console.log("");
   console.log("⚠️  If you change these values, users will need to RE-REGISTER their passkeys!");
   console.log("");

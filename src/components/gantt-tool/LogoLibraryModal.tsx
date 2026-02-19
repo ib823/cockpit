@@ -5,7 +5,7 @@
  * Apple-level UX: Simple, clear, beautiful.
  *
  * Features:
- * - Default logos (ABeam, SAP) - always available
+ * - Default logos (PartnerCo, SAP) - always available
  * - Custom logo uploads (up to 3)
  * - Drag-and-drop file upload
  * - Image preview and validation

@@ -9,7 +9,7 @@ import { randomUUID } from "crypto";
 const prisma = new PrismaClient();
 
 async function createAdminSession() {
-  const adminEmail = "ikmls@hotmail.com";
+  const adminEmail = "admin@example.com";
 
   try {
     // Get admin user

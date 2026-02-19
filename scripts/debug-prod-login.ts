@@ -12,7 +12,7 @@ async function main() {
   console.log("🔍 DEBUGGING PRODUCTION LOGIN ISSUE\n");
   console.log("=".repeat(80));
 
-  const testEmail = "ikmls@hotmail.com";
+  const testEmail = "admin@example.com";
   const testCode = "357457";
 
   // 1. Check if user exists

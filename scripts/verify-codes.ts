@@ -11,8 +11,8 @@ async function main() {
   console.log("✅ VERIFYING PRODUCTION CODES\n");
 
   const tests = [
-    { email: "ikmls@hotmail.com", code: "405045" },
-    { email: "ibaharudin@abeam.com", code: "885712" },
+    { email: "admin@example.com", code: "405045" },
+    { email: "user@example.com", code: "885712" },
   ];
 
   for (const test of tests) {

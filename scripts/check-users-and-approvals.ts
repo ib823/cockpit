@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function checkUsersAndApprovals() {
   console.log("🔍 Checking users and email approvals...\n");
 
-  const userEmails = ["ikmls@hotmail.com", "ibaharudin@abeam.com"];
+  const userEmails = ["admin@example.com", "user@example.com"];
 
   for (const email of userEmails) {
     console.log(`\n${"=".repeat(60)}`);

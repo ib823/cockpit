@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 async function resetUsersProperly() {
   console.log("🔄 Resetting users with proper email approvals...\n");
 
-  const userEmails = ["ikmls@hotmail.com", "ibaharudin@abeam.com"];
+  const userEmails = ["admin@example.com", "user@example.com"];
   const results: Array<{ email: string; code: string; userId: string }> = [];
 
   for (const email of userEmails) {

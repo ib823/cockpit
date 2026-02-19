@@ -56,7 +56,7 @@ export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProject
 
   // Company presets
   const COMPANY_PRESETS = [
-    { name: "ABeam Consulting", key: "abeam", color: COLORS.blue },
+    { name: "Partner Consulting", key: "partner", color: COLORS.blue },
     { name: "Client", key: "client", color: COLORS.status.success },
     { name: "SAP", key: "sap", color: "#FF9500" }, // Orange
     { name: "Partner", key: "partner", color: "#AF52DE" }, // Purple

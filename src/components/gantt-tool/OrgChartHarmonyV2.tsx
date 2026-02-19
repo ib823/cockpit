@@ -6,7 +6,7 @@
  * - Drag-and-drop works on desktop, tablet, AND mobile
  * - All action buttons are clickable and functional
  * - Company logos, categories, and designations fully integrated
- * - Main company identification (ABeam)
+ * - Main company identification (PartnerCo)
  * - Changes save back to store automatically
  * - Apple-grade UX on all devices
  * - 50,000% test coverage in design
@@ -18,7 +18,7 @@
  * 4. ✅ Category badges with proper colors/icons (RESOURCE_CATEGORIES)
  * 5. ✅ Designation labels (RESOURCE_DESIGNATIONS)
  * 6. ✅ All changes save to gantt-tool store
- * 7. ✅ Main company (ABeam) identification
+ * 7. ✅ Main company (PartnerCo) identification
  */
 
 "use client";
@@ -382,10 +382,10 @@ export function OrgChartHarmonyV2({ onClose, project }: Props) {
     );
   }, [resources, searchQuery]);
 
-  // Main company (first one or ABeam if exists)
+  // Main company (first one or PartnerCo if exists)
   const mainCompany = useMemo(() => {
-    const abeam = resources.find(r => r.companyName?.toLowerCase().includes("abeam"));
-    return abeam?.companyName || resources[0]?.companyName || "Company";
+    const partner = resources.find(r => r.companyName?.toLowerCase().includes("partner"));
+    return partner?.companyName || resources[0]?.companyName || "Company";
   }, [resources]);
 
   // Prevent body scroll when modal open (mobile UX)

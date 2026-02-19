@@ -8,7 +8,7 @@ import { hash } from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function createAdminCode() {
-  const adminEmail = "ikmls@hotmail.com";
+  const adminEmail = "admin@example.com";
   const accessCode = "123456"; // Simple code for testing
 
   try {
@@ -44,7 +44,7 @@ async function createAdminCode() {
     console.log("\n✅ Admin access code created!");
     console.log("\n=== LOGIN INSTRUCTIONS ===");
     console.log("1. Go to: http://localhost:3000/login");
-    console.log("2. Enter email: ikmls@hotmail.com");
+    console.log("2. Enter email: admin@example.com");
     console.log("3. Enter code: 123456");
     console.log("4. Complete passkey registration");
     console.log("\nCode expires:", approval.tokenExpiresAt);

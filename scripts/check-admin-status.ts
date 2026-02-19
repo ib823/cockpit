@@ -7,7 +7,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function checkAdminStatus() {
-  const adminEmail = "ikmls@hotmail.com";
+  const adminEmail = "admin@example.com";
 
   try {
     // Check user

@@ -86,13 +86,13 @@ try {
   const logosPath = path.join(process.cwd(), 'src/lib/default-company-logos.ts');
   if (fs.existsSync(logosPath)) {
     const content = fs.readFileSync(logosPath, 'utf-8');
-    const hasAbeamLogo = content.includes('export const ABEAM_LOGO');
+    const hasPartnerLogo = content.includes('export const PARTNER_LOGO');
     const hasSapLogo = content.includes('export const SAP_LOGO');
     const hasDefaultMap = content.includes('export const DEFAULT_COMPANY_LOGOS');
     const hasRealLogos = content.includes('data:image/png;base64') && content.length > 50000;
 
-    if (hasAbeamLogo && hasSapLogo && hasDefaultMap && hasRealLogos) {
-      logTest('PHASE 1', 'Test 1.3: Default Company Logos', 'PASS', 'Real ABeam & SAP logos present');
+    if (hasPartnerLogo && hasSapLogo && hasDefaultMap && hasRealLogos) {
+      logTest('PHASE 1', 'Test 1.3: Default Company Logos', 'PASS', 'Real PartnerCo & SAP logos present');
     } else {
       logTest('PHASE 1', 'Test 1.3: Default Company Logos', 'FAIL', 'Placeholder logos still in use');
     }

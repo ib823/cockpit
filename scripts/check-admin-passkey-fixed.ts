@@ -2,7 +2,7 @@ import { prisma } from "../src/lib/db";
 
 async function checkAdminPasskey() {
   try {
-    const email = "ikmls@hotmail.com";
+    const email = "admin@example.com";
     console.log("\n🔍 Checking passkey for:", email);
     console.log("═══════════════════════════════════════════════════\n");
 

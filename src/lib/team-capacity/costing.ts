@@ -79,7 +79,7 @@ export async function lookupStandardRate(
 // ============================================================================
 
 /**
- * Calculate cost for internal resources (ABeam consultants)
+ * Calculate cost for internal resources (PartnerCo consultants)
  * Implements full 7-layer calculation model
  */
 export async function calculateInternalResourceCost(

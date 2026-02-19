@@ -1381,7 +1381,7 @@ model ProjectCosting {
   netServiceRevenue   Decimal @db.Decimal(12, 2) // NSR = Commercial × Days (actual billable)
 
   // Cost breakdown (MANUAL ENTRY - not auto-calculated for confidentiality)
-  internalCost       Decimal @db.Decimal(12, 2) // ABeam resources (manual entry)
+  internalCost       Decimal @db.Decimal(12, 2) // PartnerCo resources (manual entry)
   subcontractorCost  Decimal @db.Decimal(12, 2) // External vendors (manual entry)
   outOfPocketExpense Decimal @db.Decimal(12, 2) // OPE - travel, onsite, etc.
 
