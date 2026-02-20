@@ -74,3 +74,6 @@ jobs:
       
     - name: Build
       run: pnpm build
+
+    - name: Performance budget check
+      run: pnpm vitest run tests/performance/ --run
