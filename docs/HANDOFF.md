@@ -10,7 +10,7 @@ This file is the takeover ledger for any AI LLM CLI.
 Execute `docs/MASTER_PLAN.md` to reach enterprise-grade production readiness with top-tier UI/UX quality while maintaining strict public-repo hygiene and proprietary protection.
 
 ## 2. Active Phase
-Current phase: Phase 4 (Enterprise Hardening)
+Current phase: Phase 5 (Release Certification)
 
 ## 3. Program Scoreboard
 
@@ -20,10 +20,10 @@ Current phase: Phase 4 (Enterprise Hardening)
 | WS-A Security & Privacy | Completed | All tasks A-01 through A-07 closed |
 | WS-B Quality Gates | Completed | All tasks B-01 through B-06 closed |
 | WS-C UI/UX Unification | Completed | All tasks C-01 through C-07 closed (gantt C-04/C-05 deferred to WS-E) |
-| WS-D Accessibility | In Progress | D-01/D-02/D-03/D-04 done; D-05/D-06 pending |
+| WS-D Accessibility | Completed | All tasks D-01 through D-06 closed |
 | WS-E Performance Refactor | Completed | All tasks E-01 through E-06 closed |
 | WS-F API/Data Consistency | Completed | All tasks F-01 through F-05 closed |
-| WS-G Operability | Pending | Phase 4 scope: G-01 through G-05 |
+| WS-G Operability | Completed | All tasks G-01 through G-05 closed |
 
 ## 4. Task State Ledger (Updated)
 
@@ -68,6 +68,13 @@ Current phase: Phase 4 (Enterprise Hardening)
 | F-03 Error codes/response envelopes | Completed | 2026-02-20 | src/lib/api-response.ts: 7 response helpers. tests/api/api-response.test.ts: 17 contract tests |
 | F-04 Data validation centralized | Completed | 2026-02-20 | tests/api/validation-coverage.test.ts: 5 coverage audit tests. 13 routes with Zod, 17 centralized schemas |
 | F-05 Endpoint inventory | Completed | 2026-02-20 | docs/ENDPOINT_INVENTORY.md: 82 endpoints catalogued with auth type, methods, validation status |
+| G-01 Structured logging baseline | Completed | 2026-02-20 | src/lib/logger.ts: canonical structured logger with child(), JSON prod output. tests/infra/structured-logger.test.ts: 20 tests. docs/LOGGING_STANDARDS.md. Deleted unused src/utils/logger.ts |
+| G-02 Metrics and tracing baseline | Completed | 2026-02-20 | docs/METRICS_AND_TRACING.md: instrumentation inventory, metric definitions, tracing strategy, integration map |
+| G-03 SLOs/SLIs and alerting policy | Completed | 2026-02-20 | docs/SLO_POLICY.md: 5 SLIs, 7 SLO targets, 3-tier alerting (P1/P2/P3), error budget policy |
+| G-04 Incident runbooks/postmortem | Completed | 2026-02-20 | docs/INCIDENT_RUNBOOKS.md: 5 runbooks (DB, auth, errors, perf, security), postmortem template |
+| G-05 Backup/restore validation | Completed | 2026-02-20 | docs/BACKUP_RESTORE.md: data asset inventory, 4 restore procedures, quarterly drill protocol |
+| D-05 Real-device validation protocol | Completed | 2026-02-20 | docs/REAL_DEVICE_VALIDATION.md: 8-device matrix, 5 journeys, 7 a11y checks, validation template |
+| D-06 A11y test evidence archive | Completed | 2026-02-20 | docs/A11Y_EVIDENCE.md: 13 automated tests, landmark fixes, WCAG 2.2 AA coverage summary |
 
 ## 5. Baseline Facts to Preserve
 1. Strict gates pass in current working state: `pnpm lint:strict`, `pnpm typecheck:strict`, `pnpm test --run`, `pnpm build`.
@@ -86,16 +93,29 @@ To maintain velocity while adhering to strict quality gates:
 2. **Integration/Security Tests**: Many require a live database. In the absence of a local DB, these are documented as environment-blocked and MUST be verified in the GitHub Actions CI pipeline.
 3. **Compensating Check**: Manually verified Prisma schema integrity using `pnpm prisma validate` and performed logic "Dry Runs" using mocked state.
 
-## 8. Next Mandatory Actions (Phase 4: Enterprise Hardening)
-1. G-01: Structured logging baseline.
-2. G-02: Metrics and tracing baseline.
-3. G-03: SLOs/SLIs and alerting policy.
-4. G-04: Incident runbooks and postmortem template.
-5. G-05: Backup/restore validation drills.
-6. D-05: Manual real-device validation protocol.
-7. D-06: Accessibility test evidence archive.
+## 8. Next Mandatory Actions (Phase 5: Release Certification)
+1. Full workstream closure verification — all 8 workstreams must show Completed.
+2. Evidence review — every task has evidence in the ledger above.
+3. Quality gate final run — all 4 strict commands pass.
+4. Certification checklist — all Phase gates P0-P5 verified green.
+5. Release approval note entered in this ledger.
 
 ## 9. Session Log
+
+### 2026-02-20T05:25:00Z - Claude Opus 4.6
+- Task IDs: G-01, G-02, G-03, G-04, G-05, D-05, D-06 (Phase 4 completion, WS-D/WS-G closure)
+- Summary: Completed all Phase 4 (Enterprise Hardening) tasks, closing WS-D and WS-G workstreams:
+  - **G-01** (commit `08cc1cf`): Replaced two unused logger utilities with canonical structured logger. JSON output in production, human-readable in development. Child loggers, LOG_LEVEL filtering, safe error serialization. 20 contract tests. Deleted duplicate `src/utils/logger.ts`. Created `docs/LOGGING_STANDARDS.md`.
+  - **G-02** (commit `9ecc266`): Created `docs/METRICS_AND_TRACING.md` — full instrumentation inventory (health check, QueryMonitor, auth-metrics, PostHog), metric definitions, tracing strategy with request ID pattern.
+  - **G-03** (commit `9ecc266`): Created `docs/SLO_POLICY.md` — 5 SLIs, 7 SLO targets, 3-tier alerting policy (P1 critical/P2 warning/P3 informational), error budget management.
+  - **G-04** (commit `9ecc266`): Created `docs/INCIDENT_RUNBOOKS.md` — 5 runbooks covering DB failure, auth failure spike, high error rate, performance degradation, security incident. Includes postmortem template.
+  - **G-05** (commit `9ecc266`): Created `docs/BACKUP_RESTORE.md` — data asset inventory, 4 restore procedures, quarterly drill protocol, disaster recovery matrix.
+  - **D-05** (commit `9ecc266`): Created `docs/REAL_DEVICE_VALIDATION.md` — 8-device matrix (iOS/Android/Desktop), 5 core user journeys, 7 accessibility checks per journey, validation checklist template.
+  - **D-06** (commit `9ecc266`): Created `docs/A11Y_EVIDENCE.md` — 13 automated axe-core tests archived, landmark fix inventory, WCAG 2.2 AA coverage summary, known gaps, validation cadence.
+- Files changed: src/lib/logger.ts (rewritten), src/utils/logger.ts (deleted), tests/infra/structured-logger.test.ts (new), docs/LOGGING_STANDARDS.md (new), docs/METRICS_AND_TRACING.md (new), docs/SLO_POLICY.md (new), docs/INCIDENT_RUNBOOKS.md (new), docs/BACKUP_RESTORE.md (new), docs/REAL_DEVICE_VALIDATION.md (new), docs/A11Y_EVIDENCE.md (new), docs/HANDOFF.md
+- Commands run: `pnpm lint:strict` (pass x2), `pnpm typecheck:strict` (pass x2), `pnpm test --run` (pass x2, 60 files/1843 tests), `pnpm build` (pass x2)
+- Blockers: None.
+- Next action: Execute Phase 5 — release certification (full workstream closure verification, evidence review, gate P5 sign-off).
 
 ### 2026-02-20T03:20:00Z - Claude Opus 4.6
 - Task IDs: B-05, B-06, C-06, C-07 (Phase 2 closure, WS-B/WS-C completion)
