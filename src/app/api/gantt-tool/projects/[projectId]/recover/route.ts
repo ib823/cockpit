@@ -98,8 +98,7 @@ export async function PATCH(
             results.resourcesUpdated++;
           }
         } catch (err) {
-          const errorMsg = err instanceof Error ? err.message : "Unknown error";
-          results.errors.push(`Resource ${resourceData.id}: ${errorMsg}`);
+          results.errors.push(`Resource ${resourceData.id}: recovery failed`);
         }
       }
     }

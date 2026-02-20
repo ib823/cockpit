@@ -576,7 +576,6 @@ export async function PATCH(
             code: "DUPLICATE_RECORD",
             message: detailedMessage,
             conflictField: target,
-            details: meta,
           },
           { status: 409 }
         );
@@ -589,7 +588,6 @@ export async function PATCH(
             error: "Foreign key constraint violation",
             code: "FOREIGN_KEY_VIOLATION",
             message: `Referenced record does not exist (field: ${fieldName}). The data you're trying to save references a resource, phase, or task that was deleted. Please refresh the page to sync with the latest state.`,
-            details: meta,
           },
           { status: 400 }
         );
@@ -599,7 +597,6 @@ export async function PATCH(
             error: "Record not found",
             code: "RECORD_NOT_FOUND",
             message: "The requested record was not found",
-            details: prismaError.meta,
           },
           { status: 404 }
         );
@@ -610,7 +607,6 @@ export async function PATCH(
       {
         error: "Failed to update project",
         code: "INTERNAL_ERROR",
-        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

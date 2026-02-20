@@ -236,7 +236,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to create allocations",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: "An internal error occurred",
       },
       { status: 500 }
     );
@@ -388,7 +388,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to fetch allocations",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: "An internal error occurred",
       },
       { status: 500 }
     );
@@ -469,7 +469,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to delete allocations",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: "An internal error occurred",
       },
       { status: 500 }
     );

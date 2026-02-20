@@ -26,13 +26,8 @@ export async function GET() {
           },
           database: {
             latency: dbHealth.latency,
-            error: dbHealth.error,
           },
           responseTimeMs: responseTime,
-          environment: {
-            nodeEnv: process.env.NODE_ENV,
-            hasDatabaseUrl: !!process.env.DATABASE_URL,
-          },
         },
         { status: 503 }
       );
@@ -50,9 +45,6 @@ export async function GET() {
           latency: dbHealth.latency,
         },
         responseTimeMs: responseTime,
-        environment: {
-          nodeEnv: process.env.NODE_ENV,
-        },
       },
       { status: 200 }
     );
@@ -69,12 +61,7 @@ export async function GET() {
           database: "error",
           api: "degraded",
         },
-        error: error instanceof Error ? error.message : "Unknown error",
         responseTimeMs: responseTime,
-        environment: {
-          nodeEnv: process.env.NODE_ENV,
-          hasDatabaseUrl: !!process.env.DATABASE_URL,
-        },
       },
       { status: 500 }
     );

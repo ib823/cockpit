@@ -267,7 +267,7 @@ export async function GET(req: Request) {
       {
         ok: false,
         message: "Cron job failed",
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: "Cron execution failed",
       },
       { status: 500 }
     );

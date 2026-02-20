@@ -308,7 +308,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to detect conflicts",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: "An internal error occurred",
       },
       { status: 500 }
     );
@@ -468,7 +468,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to calculate utilization",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: "An internal error occurred",
       },
       { status: 500 }
     );
