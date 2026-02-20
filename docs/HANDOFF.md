@@ -17,7 +17,7 @@ Current phase: Phase 2 (UI/UX System Foundation)
 | Workstream | Status | Notes |
 |---|---|---|
 | WS-H Repo Hygiene & IP | Completed | Cleaned and generalized |
-| WS-A Security & Privacy | In Progress | Main gates closed, rotation script ready |
+| WS-A Security & Privacy | Completed | All tasks A-01 through A-07 closed |
 | WS-B Quality Gates | Completed | Strict gates enforced (Build/CI/Hooks) |
 | WS-C UI/UX Unification | In Progress | C-01/C-02/C-03/C-04/C-05 complete (non-gantt scope) |
 | WS-D Accessibility | In Progress | D-02 standards documented |
@@ -48,6 +48,9 @@ Current phase: Phase 2 (UI/UX System Foundation)
 | C-04 Replace inline styles | In Progress | 2026-02-20 | Non-gantt shared/org/dashboard/arch components migrated (8 commits). Gantt-tool components deferred to WS-E |
 | C-05 Remove hardcoded colors | In Progress | 2026-02-20 | All non-gantt Tailwind/Ant Design legacy colors → Apple HIG. 8 gantt-tool files remain |
 | D-02 Keyboard nav standards | Completed | 2026-02-20 | docs/KEYBOARD_A11Y_STANDARDS.md: infrastructure surveyed, patterns/gaps documented, remediation plan |
+| A-02 API endpoint auth classification | Completed | 2026-02-20 | 4 unprotected routes fixed: import/gantt (auth guard), revalidate-admin (requireAdmin), projects/chips (auth guard), check-admin (constant-time anti-enumeration) |
+| A-06 Error response sanitization | Completed | 2026-02-20 | 8 findings across 10 files: removed stack traces, raw Prisma meta, env flags, raw error.message from all client responses |
+| A-07 Security regression test suite | Completed | 2026-02-20 | tests/security/auth-guards.test.ts: 9 tests (auth guards, error sanitization, anti-enumeration, input validation) |
 
 ## 5. Baseline Facts to Preserve
 1. Strict gates pass in current working state: `pnpm lint:strict`, `pnpm typecheck:strict`, `pnpm test --run`, `pnpm build`.
@@ -67,12 +70,24 @@ To maintain velocity while adhering to strict quality gates:
 3. **Compensating Check**: Manually verified Prisma schema integrity using `pnpm prisma validate` and performed logic "Dry Runs" using mocked state.
 
 ## 8. Next Mandatory Actions
-1. Phase 2 gate: Wire global keyboard shortcuts (useKeyboardShortcuts) per D-02 standards.
-2. Continue C-04/C-05 on gantt-tool components (WS-E scope, ~250 colorValues usages in 8 files).
-3. Execute A-02 (classify/guard unprotected API endpoints), A-06 (sanitize error responses), A-07 (security regression tests).
-4. Phase 3: E-01, E-02, D-01, D-04, F-01.
+1. B-05: Enforce minimum coverage and failing-threshold policies.
+2. B-06: Standardize test environments (unit/integration/e2e) with stable fixtures.
+3. C-06: Typography, spacing, and motion standards baseline.
+4. C-07: UX writing and state-pattern consistency (empty/loading/error/success).
+5. Phase 3: E-01 (break up monolithic UI files), E-02 (route-level code splitting), D-01 (fix semantic/a11y violations), D-04 (automated a11y in CI), F-01 (API contract validation).
 
 ## 9. Session Log
+
+### 2026-02-20T02:10:00Z - Claude Opus 4.6
+- Task IDs: A-02, A-06, A-07 (WS-A closure)
+- Summary: Completed all remaining WS-A Security & Privacy tasks, closing the workstream:
+  - **A-02** (commit `7f81704`): Comprehensive API route security audit found 4 unprotected routes. Added `getServerSession(authConfig)` to import/gantt and projects/chips, `requireAdmin()` to revalidate-admin, and constant-time anti-enumeration pattern (200ms minimum delay) to check-admin.
+  - **A-06** (commit `62e4c56`): Error response leakage audit found 8 categories of information disclosure across 10 files. Removed all stack traces, raw Prisma meta objects, `hasDatabaseUrl` env flag, and raw `error.message` strings from client-facing API responses while preserving server-side `console.error` for debugging.
+  - **A-07** (commit `45e59c2`): Created `tests/security/auth-guards.test.ts` with 9 tests across 4 describe blocks: Auth Guard Regression (4 tests), Error Response Sanitization (2 tests), Anti-Enumeration Protection (2 tests), Input Validation (1 test).
+- Files changed: src/app/api/import/gantt/route.ts, src/app/api/revalidate-admin/route.ts, src/app/api/projects/[projectId]/chips/route.ts, src/app/api/auth/check-admin/route.ts, src/app/api/health/route.ts, src/app/api/gantt-tool/projects/[projectId]/route.ts, src/app/api/gantt-tool/projects/[projectId]/delta/route.ts, src/app/api/lobs/route.ts, src/app/api/l3-catalog/route.ts, src/app/api/gantt-tool/team-capacity/allocations/route.ts, src/app/api/gantt-tool/team-capacity/costing/route.ts, src/app/api/gantt-tool/team-capacity/conflicts/route.ts, src/app/api/gantt-tool/projects/[projectId]/recover/route.ts, src/app/api/cron/password-expiry-warnings/route.ts, tests/security/auth-guards.test.ts (new), docs/HANDOFF.md
+- Commands run: `pnpm lint:strict` (pass x3), `pnpm typecheck:strict` (pass x3), `pnpm test --run` (pass x3, 54 files/1733 tests), `pnpm build` (pass x3)
+- Blockers: None.
+- Next action: Execute B-05 (coverage thresholds), B-06 (test environment standardization), then C-06/C-07.
 
 ### 2026-02-20T01:30:00Z - Claude Opus 4.6
 - Task IDs: C-04, C-05, C-02, D-02 (Phase 2 continuation)
