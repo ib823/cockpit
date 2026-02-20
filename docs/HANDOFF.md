@@ -20,8 +20,8 @@ Current phase: Phase 3 (Core Experience Refactor)
 | WS-A Security & Privacy | Completed | All tasks A-01 through A-07 closed |
 | WS-B Quality Gates | Completed | All tasks B-01 through B-06 closed |
 | WS-C UI/UX Unification | Completed | All tasks C-01 through C-07 closed (gantt C-04/C-05 deferred to WS-E) |
-| WS-D Accessibility | In Progress | D-02 standards documented, D-01/D-04 pending |
-| WS-E Performance Refactor | Pending | Heavy surfaces identified |
+| WS-D Accessibility | In Progress | D-01/D-02/D-04 done; D-03/D-05/D-06 pending |
+| WS-E Performance Refactor | In Progress | E-01/E-02 done; E-03 through E-06 pending |
 | WS-F API/Data Consistency | In Progress | admin APIs standardized |
 | WS-G Operability | Pending | SLO/runbook work pending |
 
@@ -55,6 +55,10 @@ Current phase: Phase 3 (Core Experience Refactor)
 | B-06 Test environment standardization | Completed | 2026-02-20 | Removed dead jest.config.js/jest.setup.js. docs/TEST_STANDARDS.md: dual-setup strategy, fixture patterns |
 | C-06 Typography/spacing/motion standards | Completed | 2026-02-20 | docs/TYPOGRAPHY_SPACING_MOTION.md: 7-step type scale, 15-step spacing grid, 5 durations, 5 easings |
 | C-07 UX state patterns | Completed | 2026-02-20 | docs/UX_STATE_PATTERNS.md: empty/loading/error/success patterns, component hierarchy, UX writing rules |
+| E-01 Monolithic file decomposition | Completed | 2026-02-20 | docs/DECOMPOSITION_PLAN.md: 9 files/23K lines identified, extraction strategies for OrgChartPro/GanttCanvasV3/store |
+| E-02 Route-level code splitting | Completed | 2026-02-20 | gantt-tool page: 9 static→dynamic imports, 654kB→55.4kB page JS (91.5% reduction), 930kB→269kB first load |
+| D-01 A11y violation fixes | Completed | 2026-02-20 | Login: <main> landmark, role=status/alert, label+htmlFor. Admin tables: caption+scope. Modals: role=dialog, aria-modal, aria-labelledby |
+| D-04 Automated a11y in CI | Completed | 2026-02-20 | tests/a11y/axe-automated.test.ts: 13 axe-core tests (forms, tables, modals, toggles, filters, status, images, headings) |
 
 ## 5. Baseline Facts to Preserve
 1. Strict gates pass in current working state: `pnpm lint:strict`, `pnpm typecheck:strict`, `pnpm test --run`, `pnpm build`.
@@ -73,12 +77,14 @@ To maintain velocity while adhering to strict quality gates:
 2. **Integration/Security Tests**: Many require a live database. In the absence of a local DB, these are documented as environment-blocked and MUST be verified in the GitHub Actions CI pipeline.
 3. **Compensating Check**: Manually verified Prisma schema integrity using `pnpm prisma validate` and performed logic "Dry Runs" using mocked state.
 
-## 8. Next Mandatory Actions (Phase 3)
-1. E-01: Break up monolithic UI files with domain boundaries.
-2. E-02: Route-level code splitting for heavy pages.
-3. D-01: Fix semantic/a11y violations in high-traffic workflows.
-4. D-04: Automated a11y checks in CI.
-5. F-01: API contract validation with schema-first request/response checks.
+## 8. Next Mandatory Actions (Phase 3 continued)
+1. F-01: API contract validation with schema-first request/response checks.
+2. D-03: Screen reader landmark audit and fixes.
+3. E-03: Remove unnecessary global scripts and expensive polling.
+4. E-04: Define and enforce bundle/page performance budgets.
+5. F-03: Consistent error codes and response envelopes.
+6. F-04: Data validation rules centralized and reused.
+7. F-05: Endpoint inventory published and maintained in handoff ledger.
 
 ## 9. Session Log
 
