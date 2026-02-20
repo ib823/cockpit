@@ -175,6 +175,7 @@ latestEnd
 # Canonical repository docs must remain tracked
 !docs/MASTER_PLAN.md
 !docs/TEST_STANDARDS.md
+!docs/DECOMPOSITION_PLAN.md
 
 # Archive (keep local only)
 .archive/
