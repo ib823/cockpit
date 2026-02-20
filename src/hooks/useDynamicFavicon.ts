@@ -31,7 +31,7 @@ interface UseDynamicFaviconOptions {
 export function useDynamicFavicon(options: UseDynamicFaviconOptions = {}) {
   const {
     healthCheckUrl = "/api/health",
-    healthCheckInterval = 30000,
+    healthCheckInterval = 60000,
   } = options;
 
   const { status: sessionStatus } = useSession();
@@ -98,11 +98,14 @@ export function useDynamicFavicon(options: UseDynamicFaviconOptions = {}) {
     };
   }, [checkHealth]);
 
-  // Periodic health check when online
+  // Periodic health check when online and tab is visible
   useEffect(() => {
     if (networkStatus === "offline") return;
 
-    const intervalId = setInterval(checkHealth, healthCheckInterval);
+    const tick = () => {
+      if (document.visibilityState === "visible") checkHealth();
+    };
+    const intervalId = setInterval(tick, healthCheckInterval);
     return () => clearInterval(intervalId);
   }, [networkStatus, healthCheckInterval, checkHealth]);
 

@@ -86,8 +86,7 @@ export default function OverlaySafety() {
       attributeFilter: ["hidden", "aria-hidden", "class"], // Don't observe 'style' to prevent loops
     });
 
-    // Periodic safety sweep (less frequent)
-    const id = window.setInterval(fix, 2000); // Every 2s instead of 400ms
+    // Initial fix on mount
     fix();
 
     // ESC often closes modals; sweep afterward
@@ -96,9 +95,15 @@ export default function OverlaySafety() {
     };
     window.addEventListener("keydown", onKey);
 
+    // Sweep on visibility change (returning to tab)
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") fix();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       window.removeEventListener("keydown", onKey);
-      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibility);
       mo.disconnect();
       if (timeoutId) clearTimeout(timeoutId);
     };
