@@ -8,7 +8,16 @@
 "use client";
 
 import { ReactNode, ButtonHTMLAttributes, forwardRef } from "react";
-import { colorValues, getColoredShadow, withOpacity, spacing } from "@/lib/design-system";
+/** Apple HIG-aligned button colors and utilities */
+function coloredShadow(hex: string, intensity: "sm" | "md" | "lg"): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const sizes = { sm: "0 2px 8px", md: "0 4px 16px", lg: "0 8px 24px" };
+  return `${sizes[intensity]} rgba(${r}, ${g}, ${b}, 0.25)`;
+}
+
+const BTN_SPACING = { 3: "0.75rem", 4: "1rem", 6: "1.5rem" } as const;
 import { HexLoader } from "@/components/ui/HexLoader";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
@@ -44,21 +53,21 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const sizeConfig = {
       sm: {
         height: "32px",
-        padding: `0 ${spacing[3]}`,
+        padding: `0 ${BTN_SPACING[3]}`,
         className: "text-sm",
         iconSize: "w-3.5 h-3.5",
         fontSize: "14px",
       },
       md: {
         height: "40px",
-        padding: `0 ${spacing[4]}`,
+        padding: `0 ${BTN_SPACING[4]}`,
         className: "text-sm",
         iconSize: "w-4 h-4",
         fontSize: "14px",
       },
       lg: {
         height: "48px",
-        padding: `0 ${spacing[6]}`,
+        padding: `0 ${BTN_SPACING[6]}`,
         className: "text-base",
         iconSize: "w-5 h-5",
         fontSize: "16px",
@@ -67,42 +76,42 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const config = sizeConfig[size];
 
-    // Variant configurations
+    // Variant configurations (Apple HIG)
     const variantConfig = {
       primary: {
-        bg: colorValues.primary[600],
-        hover: colorValues.primary[700],
+        bg: "#007AFF",
+        hover: "#0056B3",
         text: "#ffffff",
-        shadow: getColoredShadow(colorValues.primary[600], "md"),
-        hoverShadow: getColoredShadow(colorValues.primary[600], "lg"),
+        shadow: coloredShadow("#007AFF", "md"),
+        hoverShadow: coloredShadow("#007AFF", "lg"),
       },
       secondary: {
-        bg: colorValues.accent[600],
-        hover: colorValues.accent[700],
+        bg: "#AF52DE",
+        hover: "#7D3ACF",
         text: "#ffffff",
-        shadow: getColoredShadow(colorValues.accent[600], "md"),
-        hoverShadow: getColoredShadow(colorValues.accent[600], "lg"),
+        shadow: coloredShadow("#AF52DE", "md"),
+        hoverShadow: coloredShadow("#AF52DE", "lg"),
       },
       ghost: {
         bg: "transparent",
-        hover: colorValues.gray[100],
-        text: colorValues.gray[700],
+        hover: "#F2F2F7",
+        text: "#48484A",
         shadow: "none",
         hoverShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
       },
       danger: {
-        bg: colorValues.error[600],
-        hover: colorValues.error[700],
+        bg: "#FF3B30",
+        hover: "#D70015",
         text: "#ffffff",
-        shadow: getColoredShadow(colorValues.error[600], "md"),
-        hoverShadow: getColoredShadow(colorValues.error[600], "lg"),
+        shadow: coloredShadow("#FF3B30", "md"),
+        hoverShadow: coloredShadow("#FF3B30", "lg"),
       },
       success: {
-        bg: colorValues.success[600],
-        hover: colorValues.success[700],
+        bg: "#248A3D",
+        hover: "#1B6E32",
         text: "#ffffff",
-        shadow: getColoredShadow(colorValues.success[600], "md"),
-        hoverShadow: getColoredShadow(colorValues.success[600], "lg"),
+        shadow: coloredShadow("#248A3D", "md"),
+        hoverShadow: coloredShadow("#248A3D", "lg"),
       },
     };
 
@@ -131,7 +140,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           fontSize: config.fontSize,
           backgroundColor: colors.bg,
           color: colors.text,
-          border: variant === "ghost" ? `1px solid ${colorValues.gray[300]}` : "none",
+          border: variant === "ghost" ? "1px solid #C7C7CC" : "none",
           boxShadow: isDisabled ? "none" : colors.shadow,
           ...style,
         }}

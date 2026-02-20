@@ -11,7 +11,16 @@ import { Clock, DollarSign, FolderKanban, CheckCircle2, ChevronRight, Star } fro
 import type { ProjectTemplate } from "@/lib/templates/template-types";
 import { getCategoryInfo } from "@/lib/templates/template-types";
 import { getTemplateStats } from "@/lib/templates/template-engine";
-import { colorValues, getElevationShadow, withOpacity } from "@/lib/design-system";
+/** Apple HIG-aligned color constants */
+function hexToRgba(hex: string, opacity: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
+const ELEVATION_1 = "0 1px 2px 0 rgb(0 0 0 / 0.05)";
+const ELEVATION_3 = "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)";
 
 interface TemplateCardProps {
   template: ProjectTemplate;
@@ -24,11 +33,11 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
   const categoryInfo = getCategoryInfo(template.category);
   const stats = getTemplateStats(template);
 
-  // Complexity badge colors
+  // Complexity badge colors (Apple HIG)
   const complexityColors = {
-    beginner: { bg: "#ECFDF5", text: "#059669", border: "#A7F3D0" },
-    intermediate: { bg: "#FEF3C7", text: "#D97706", border: "#FDE68A" },
-    advanced: { bg: "#FEE2E2", text: "#DC2626", border: "#FECACA" },
+    beginner: { bg: "rgba(52, 199, 89, 0.08)", text: "#248A3D", border: "rgba(52, 199, 89, 0.25)" },
+    intermediate: { bg: "rgba(255, 149, 0, 0.08)", text: "#C93400", border: "rgba(255, 149, 0, 0.25)" },
+    advanced: { bg: "rgba(255, 59, 48, 0.08)", text: "#D70015", border: "rgba(255, 59, 48, 0.25)" },
   };
 
   const complexityColor = complexityColors[template.complexity];
@@ -37,7 +46,7 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
     <div
       className="relative bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-300 cursor-pointer"
       style={{
-        boxShadow: isHovered ? getElevationShadow(3) : getElevationShadow(1),
+        boxShadow: isHovered ? ELEVATION_3 : ELEVATION_1,
         transform: isHovered ? "translateY(-4px)" : "translateY(0)",
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -49,15 +58,15 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
         <div
           className="absolute top-3 right-3 z-10 px-2 py-1 rounded-full flex items-center gap-1"
           style={{
-            backgroundColor: withOpacity(colorValues.warning[500], 0.1),
-            border: `1px solid ${colorValues.warning[200]}`,
+            backgroundColor: "rgba(255, 149, 0, 0.1)",
+            border: "1px solid rgba(255, 149, 0, 0.2)",
           }}
         >
           <Star
             className="w-3 h-3"
-            style={{ color: colorValues.warning[600], fill: colorValues.warning[600] }}
+            style={{ color: "#C93400", fill: "#C93400" }}
           />
-          <span className="text-xs font-medium" style={{ color: colorValues.warning[700] }}>
+          <span className="text-xs font-medium" style={{ color: "#A85800" }}>
             Featured
           </span>
         </div>
@@ -67,7 +76,7 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
       <div
         className="px-5 py-4 border-b border-gray-100"
         style={{
-          background: `linear-gradient(135deg, ${withOpacity(categoryInfo.color, 0.05)} 0%, ${withOpacity(
+          background: `linear-gradient(135deg, ${hexToRgba(categoryInfo.color, 0.05)} 0%, ${hexToRgba(
             categoryInfo.color,
             0.02
           )} 100%)`,
@@ -79,8 +88,8 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
               <div
                 className="px-2.5 py-1 rounded-lg flex items-center gap-1.5"
                 style={{
-                  backgroundColor: withOpacity(categoryInfo.color, 0.1),
-                  border: `1px solid ${withOpacity(categoryInfo.color, 0.2)}`,
+                  backgroundColor: hexToRgba(categoryInfo.color, 0.1),
+                  border: `1px solid ${hexToRgba(categoryInfo.color, 0.2)}`,
                 }}
               >
                 <FolderKanban className="w-3.5 h-3.5" style={{ color: categoryInfo.color }} />
@@ -119,9 +128,9 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: withOpacity(colorValues.primary[500], 0.1) }}
+              style={{ backgroundColor: "rgba(0, 122, 255, 0.1)" }}
             >
-              <Clock className="w-4 h-4" style={{ color: colorValues.primary[600] }} />
+              <Clock className="w-4 h-4" style={{ color: "#007AFF" }} />
             </div>
             <div>
               <div className="text-xs text-gray-500 font-medium">Duration</div>
@@ -136,9 +145,9 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
             <div className="flex items-center gap-2">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: withOpacity(colorValues.success[600], 0.1) }}
+                style={{ backgroundColor: "rgba(52, 199, 89, 0.1)" }}
               >
-                <DollarSign className="w-4 h-4" style={{ color: colorValues.success[600] }} />
+                <DollarSign className="w-4 h-4" style={{ color: "#248A3D" }} />
               </div>
               <div>
                 <div className="text-xs text-gray-500 font-medium">Est. Cost</div>
@@ -195,10 +204,10 @@ export function TemplateCard({ template, onSelect, featured = false }: TemplateC
         <button
           className="w-full px-4 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200"
           style={{
-            backgroundColor: isHovered ? colorValues.primary[600] : colorValues.primary[500],
+            backgroundColor: isHovered ? "#0056B3" : "#007AFF",
             color: "#ffffff",
             boxShadow: isHovered
-              ? `0 4px 12px ${withOpacity(colorValues.primary[600], 0.3)}`
+              ? "0 4px 12px rgba(0, 122, 255, 0.3)"
               : "none",
             transform: isHovered ? "scale(1.02)" : "scale(1)",
           }}

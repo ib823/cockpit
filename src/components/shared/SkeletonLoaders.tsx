@@ -8,7 +8,6 @@
 "use client";
 
 import { Skeleton } from "antd";
-import { colorValues } from "@/lib/design-system";
 
 /**
  * Base Skeleton Line - Reusable building block

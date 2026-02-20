@@ -17,7 +17,6 @@ import {
 } from "@/lib/templates/template-types";
 import { TEMPLATES, getFeaturedTemplates } from "@/lib/templates/template-data";
 import { TemplateCard } from "./TemplateCard";
-import { colorValues, spacing } from "@/lib/design-system";
 
 interface TemplateGalleryProps {
   open: boolean;
@@ -150,7 +149,7 @@ export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGal
             <div className="flex flex-col items-center justify-center py-20">
               <div
                 className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-                style={{ backgroundColor: colorValues.gray[100] }}
+                style={{ backgroundColor: "#F2F2F7" }}
               >
                 <Search className="w-8 h-8 text-gray-400" />
               </div>

@@ -23,7 +23,23 @@ import {
   Database,
   FileQuestion,
 } from "lucide-react";
-import { colorValues, getElevationShadow, withOpacity } from "@/lib/design-system";
+/** Apple HIG-aligned color scheme for empty states */
+const HIG_COLORS = {
+  blue: { main: "#007AFF", bg: "rgba(0, 122, 255, 0.06)", ring: "rgba(0, 122, 255, 0.12)", light: "rgba(0, 122, 255, 0.08)" },
+  purple: { main: "#AF52DE", bg: "rgba(175, 82, 222, 0.06)", ring: "rgba(175, 82, 222, 0.12)", light: "rgba(175, 82, 222, 0.08)" },
+  cyan: { main: "#5AC8FA", bg: "rgba(90, 200, 250, 0.06)", ring: "rgba(90, 200, 250, 0.12)" },
+  green: { main: "#34C759", bg: "rgba(52, 199, 89, 0.06)", ring: "rgba(52, 199, 89, 0.12)" },
+  red: { main: "#FF3B30", bg: "rgba(255, 59, 48, 0.06)", ring: "rgba(255, 59, 48, 0.12)" },
+  orange: { main: "#FF9500", bg: "rgba(255, 149, 0, 0.06)", ring: "rgba(255, 149, 0, 0.12)" },
+  gray: { main: "#8E8E93", bg: "#F2F2F7", ring: "#E5E5EA", light: "#AEAEB2" },
+} as const;
+
+function hexToRgba(hex: string, opacity: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
 
 // Icon mapping for different empty states
 const ICON_MAP = {
@@ -94,50 +110,18 @@ export function EmptyState({
 
   const config = sizeConfig[size];
 
-  // Color scheme based on type
+  // Color scheme based on type (Apple HIG)
   const colorScheme = {
-    projects: {
-      bg: colorValues.primary[50],
-      icon: colorValues.primary[500],
-      ring: colorValues.primary[100],
-    },
-    phases: {
-      bg: colorValues.accent[50],
-      icon: colorValues.accent[500],
-      ring: colorValues.accent[100],
-    },
-    tasks: { bg: colorValues.info[50], icon: colorValues.info[500], ring: colorValues.info[100] },
-    resources: {
-      bg: colorValues.success[50],
-      icon: colorValues.success[500],
-      ring: colorValues.success[100],
-    },
-    files: { bg: colorValues.gray[100], icon: colorValues.gray[500], ring: colorValues.gray[200] },
-    search: {
-      bg: colorValues.primary[50],
-      icon: colorValues.primary[400],
-      ring: colorValues.primary[100],
-    },
-    error: {
-      bg: colorValues.error[50],
-      icon: colorValues.error[500],
-      ring: colorValues.error[100],
-    },
-    generic: {
-      bg: colorValues.gray[100],
-      icon: colorValues.gray[400],
-      ring: colorValues.gray[200],
-    },
-    data: {
-      bg: colorValues.accent[50],
-      icon: colorValues.accent[400],
-      ring: colorValues.accent[100],
-    },
-    unknown: {
-      bg: colorValues.warning[50],
-      icon: colorValues.warning[500],
-      ring: colorValues.warning[100],
-    },
+    projects: { bg: HIG_COLORS.blue.bg, icon: HIG_COLORS.blue.main, ring: HIG_COLORS.blue.ring },
+    phases: { bg: HIG_COLORS.purple.bg, icon: HIG_COLORS.purple.main, ring: HIG_COLORS.purple.ring },
+    tasks: { bg: HIG_COLORS.cyan.bg, icon: HIG_COLORS.cyan.main, ring: HIG_COLORS.cyan.ring },
+    resources: { bg: HIG_COLORS.green.bg, icon: HIG_COLORS.green.main, ring: HIG_COLORS.green.ring },
+    files: { bg: HIG_COLORS.gray.bg, icon: HIG_COLORS.gray.main, ring: HIG_COLORS.gray.ring },
+    search: { bg: HIG_COLORS.blue.bg, icon: HIG_COLORS.blue.light!, ring: HIG_COLORS.blue.ring },
+    error: { bg: HIG_COLORS.red.bg, icon: HIG_COLORS.red.main, ring: HIG_COLORS.red.ring },
+    generic: { bg: HIG_COLORS.gray.bg, icon: HIG_COLORS.gray.light, ring: HIG_COLORS.gray.ring },
+    data: { bg: HIG_COLORS.purple.bg, icon: HIG_COLORS.purple.light!, ring: HIG_COLORS.purple.ring },
+    unknown: { bg: HIG_COLORS.orange.bg, icon: HIG_COLORS.orange.main, ring: HIG_COLORS.orange.ring },
   };
 
   const colors = colorScheme[type];
@@ -174,12 +158,12 @@ export function EmptyState({
 
       {/* Content */}
       <div className={`max-w-md ${config.gap} flex flex-col items-center`}>
-        <h3 className={`${config.title} font-semibold`} style={{ color: colorValues.gray[900] }}>
+        <h3 className={`${config.title} font-semibold`} style={{ color: "#1D1D1F" }}>
           {title}
         </h3>
 
         {description && (
-          <p className={`${config.description}`} style={{ color: colorValues.gray[600] }}>
+          <p className={`${config.description}`} style={{ color: "#636366" }}>
             {description}
           </p>
         )}
@@ -194,7 +178,7 @@ export function EmptyState({
             style={{
               backgroundColor: colors.icon,
               borderColor: colors.icon,
-              boxShadow: `0 4px 12px ${withOpacity(colors.icon, 0.25)}`,
+              boxShadow: `0 4px 12px ${hexToRgba(colors.icon, 0.25)}`,
             }}
           >
             {action.label}

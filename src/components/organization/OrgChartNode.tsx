@@ -15,7 +15,12 @@ import { TeamOutlined, CalendarOutlined, CheckSquareOutlined } from "@ant-design
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 import type { OrgChartNode } from "@/lib/organization/layout-calculator";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
-import { withOpacity, getElevationShadow } from "@/lib/design-system";
+// Elevation shadows (Apple HIG-aligned)
+const ELEVATION = {
+  2: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+  3: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+  4: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+} as const;
 
 export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChartNode["data"]>) => {
   const categoryInfo = RESOURCE_CATEGORIES[data.category];
@@ -92,10 +97,10 @@ export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChar
         borderLeftWidth: assignments.primaryPhase ? "6px" : "2px",
         borderLeftColor: assignments.primaryPhase?.phaseColor || undefined,
         boxShadow: selected
-          ? `${getElevationShadow(4)}, 0 0 0 4px ${withOpacity("#007AFF", 0.1)}`
+          ? `${ELEVATION[4]}, 0 0 0 4px rgba(0, 122, 255, 0.1)`
           : isActivelyWorking
-            ? `${getElevationShadow(3)}, 0 0 0 2px ${withOpacity("#34C759", 0.05)}`
-            : getElevationShadow(2),
+            ? `${ELEVATION[3]}, 0 0 0 2px rgba(52, 199, 89, 0.05)`
+            : ELEVATION[2],
       }}
     >
       {/* Manager Connection Handle (Top) - Hidden by default */}
@@ -239,7 +244,7 @@ export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChar
         <div
           className="absolute -top-2 -right-2 bg-gradient-to-br from-green-400 to-green-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse border-2 border-white"
           style={{
-            boxShadow: `${getElevationShadow(3)}, 0 0 12px ${withOpacity("#34C759", 0.5)}`,
+            boxShadow: `${ELEVATION[3]}, 0 0 12px rgba(52, 199, 89, 0.5)`,
           }}
         >
           {totalWorkload}
