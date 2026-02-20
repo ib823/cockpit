@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     }
 
     const options = await generateRegistrationOptions({
-      rpName: "Cockpit",
+      rpName: "Bound",
       rpID,
       userName: email,
       authenticatorSelection: { residentKey: "required", userVerification: "required" },

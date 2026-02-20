@@ -74,7 +74,7 @@ function generateSingleCode(): string {
  * Create downloadable .txt file content
  */
 function createDownloadFile(codes: string[]): string {
-  const appName = process.env.NEXT_PUBLIC_APP_NAME || "Cockpit";
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || "Bound";
   const date = new Date().toISOString().split("T")[0];
 
   return `${appName} - Backup Recovery Codes

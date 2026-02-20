@@ -162,9 +162,9 @@ export async function exportToPDF(project: GanttProject): Promise<void> {
     // Add enhanced metadata
     pdf.setProperties({
       title: `${project.name} - Project Gantt Chart`,
-      author: "Cockpit - RFP to Proposal in 10 Minutes",
+      author: "Bound - RFP to Proposal in 10 Minutes",
       subject: `Project Timeline - ${project.name}`,
-      creator: "Cockpit Gantt Chart Tool",
+      creator: "Bound Gantt Chart Tool",
       keywords: "gantt, project, timeline, schedule, planning",
     });
 
@@ -620,7 +620,7 @@ function addProfessionalCoverPage(pdf: jsPDF, project: GanttProject): void {
   pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(16);
   pdf.setFont("helvetica", "bold");
-  pdf.text("COCKPIT", pageWidth / 2, 30, { align: "center" });
+  pdf.text("BOUND", pageWidth / 2, 30, { align: "center" });
 
   pdf.setFontSize(10);
   pdf.setFont("helvetica", "normal");
@@ -1232,7 +1232,7 @@ function addExportFooter(
   // Right: Branding
   const branding = document.createElement("span");
   branding.style.cssText = "font-weight: 500; color: #3B82F6;";
-  branding.textContent = "Cockpit";
+  branding.textContent = "Bound";
 
   footer.appendChild(projectName);
   footer.appendChild(exportDate);
@@ -1408,9 +1408,9 @@ async function exportImageAsPDF(
   // Add enhanced metadata
   pdf.setProperties({
     title: `${project.name} - Project Gantt Chart`,
-    author: "Cockpit - RFP to Proposal in 10 Minutes",
+    author: "Bound - RFP to Proposal in 10 Minutes",
     subject: `Project Timeline - ${project.name}`,
-    creator: "Cockpit Gantt Chart Tool",
+    creator: "Bound Gantt Chart Tool",
     keywords: "gantt, project, timeline, schedule, planning",
   });
 

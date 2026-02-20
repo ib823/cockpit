@@ -266,7 +266,7 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-light text-slate-900 tracking-tight">Cockpit</h1>
+              <h1 className="text-3xl font-light text-slate-900 tracking-tight">Bound</h1>
               <p className="text-sm text-slate-600 mt-1">Admin Dashboard</p>
             </div>
             <div className="flex items-center gap-4">

@@ -70,14 +70,14 @@ export function GlobalNav({ session }: GlobalNavProps) {
       <Link href="/dashboard" className={styles.brand}>
         <div className={styles.logoWrapper}>
           <Image
-            src="/logo-cockpit.svg"
-            alt="Cockpit"
+            src="/logo-bound.svg"
+            alt="Bound"
             width={32}
             height={32}
             priority
           />
         </div>
-        <div className={styles.brandLogo}>Cockpit</div>
+        <div className={styles.brandLogo}>Bound</div>
       </Link>
 
       {/* Center Zone - Global Tabs */}

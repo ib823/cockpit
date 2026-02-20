@@ -69,7 +69,7 @@ async function testEmailConfig() {
 
   try {
     const info = await transporter.sendMail({
-      from: `"Cockpit Test" <${emailFrom || "noreply@cockpit-app.com"}>`,
+      from: `"Bound Test" <${emailFrom || "noreply@bound-app.com"}>`,
       to: testEmail,
       subject: "✅ Email Configuration Test - Success!",
       html: `
@@ -82,7 +82,7 @@ async function testEmailConfig() {
             <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
               <h1 style="color: #0f172a; margin-bottom: 16px;">✅ Email Test Successful!</h1>
               <p style="color: #64748b; font-size: 16px; line-height: 1.6;">
-                Your Cockpit email configuration is working perfectly!
+                Your Bound email configuration is working perfectly!
               </p>
               <div style="background: #eff6ff; border-left: 3px solid #3b82f6; padding: 16px; border-radius: 8px; margin: 24px 0;">
                 <p style="margin: 0; color: #1e40af; font-size: 14px;">

@@ -56,14 +56,33 @@ export function Logo({ size = "md", theme = "light", showText = true, className 
 
 /**
  * Logo Icon Only (for favicons, mobile nav, etc.)
+ * Renders ≈ mark in a clean rounded square
  */
 export function LogoIcon({ size = 32, className = "" }: { size?: number; className?: string }) {
   return (
     <div
-      className={`flex items-center justify-center bg-gradient-to-br from-blue-600 to-purple-600 text-white font-bold rounded-lg ${className}`}
-      style={{ width: size, height: size, fontSize: size * 0.5 }}
+      className={`flex items-center justify-center bg-[#007AFF] text-white rounded-lg ${className}`}
+      style={{ width: size, height: size }}
     >
-      {company.name.charAt(0)}
+      <svg
+        width={size * 0.6}
+        height={size * 0.6}
+        viewBox="0 0 100 100"
+        fill="none"
+      >
+        <path
+          d="M15 38 C25 24, 40 24, 50 38 C60 52, 75 52, 85 38"
+          stroke="currentColor"
+          strokeWidth="10"
+          strokeLinecap="round"
+        />
+        <path
+          d="M15 62 C25 48, 40 48, 50 62 C60 76, 75 76, 85 62"
+          stroke="currentColor"
+          strokeWidth="10"
+          strokeLinecap="round"
+        />
+      </svg>
     </div>
   );
 }

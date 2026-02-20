@@ -124,7 +124,7 @@ async function lookupIPAPIco(ip: string): Promise<IPGeolocation | null> {
   try {
     const response = await fetch(`https://ipapi.co/${ip}/json/`, {
       headers: {
-        "User-Agent": "Cockpit-Security/1.0",
+        "User-Agent": "Bound-Security/1.0",
       },
       next: { revalidate: 3600 }, // Cache for 1 hour
     });

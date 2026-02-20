@@ -54,7 +54,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             onClick={() => router.push("/")}
           >
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg" />
-            <span className="text-lg font-semibold">Cockpit</span>
+            <span className="text-lg font-semibold">Bound</span>
           </div>
 
           {/* Desktop Menu - Hidden on mobile */}

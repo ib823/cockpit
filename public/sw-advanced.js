@@ -22,7 +22,7 @@ const STATIC_ASSETS = [
   "/",
   "/manifest.json",
   "/favicon.ico",
-  "/logo-cockpit.png",
+  "/logo-bound.png",
   "/icon-192.png",
   "/icon-512.png",
 ];
@@ -312,7 +312,7 @@ self.addEventListener("push", (event) => {
     },
   };
 
-  event.waitUntil(self.registration.showNotification(data.title || "Cockpit", options));
+  event.waitUntil(self.registration.showNotification(data.title || "Bound", options));
 });
 
 /**

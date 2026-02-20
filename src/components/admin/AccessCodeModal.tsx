@@ -44,11 +44,11 @@ export default function AccessCodeModal({
   };
 
   const handleOpenEmail = () => {
-    const subject = "Welcome to Cockpit - Your Access is Ready!";
+    const subject = "Welcome to Bound - Your Access is Ready!";
 
     const bodyText = `Hi there,
 
-Welcome to Cockpit! Your access has been approved and you're all set to get started.
+Welcome to Bound! Your access has been approved and you're all set to get started.
 
 Choose your preferred way to login:
 
@@ -78,7 +78,7 @@ Option 2 (Manual):
 - Enter your email
 - Enter the 6-digit code above
 - Set up your passkey
-- Start using Cockpit!
+- Start using Bound!
 
 ========================================
 
@@ -88,10 +88,10 @@ After setup, you'll use your device's passkey (fingerprint or Face ID) to sign i
 Need help? Reply to this email or contact your admin.
 
 Best regards,
-The Cockpit Team
+The Bound Team
 
 ========================================
-This is an automated message from Cockpit.`;
+This is an automated message from Bound.`;
 
     // Create mailto link
     const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;

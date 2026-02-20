@@ -89,7 +89,7 @@ export async function getIPGeolocation(ip: string): Promise<GeoLocation | null> 
     // Use ip-api.com (free, no API key needed, 45 req/min limit)
     const response = await fetch(`http://ip-api.com/json/${ip}?fields=66846719`, {
       headers: {
-        "User-Agent": "SAP-Cockpit-Security-Monitor/1.0",
+        "User-Agent": "Bound-Security-Monitor/1.0",
       },
     });
 

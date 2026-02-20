@@ -6,7 +6,7 @@ import {
 } from "@simplewebauthn/server";
 import { Redis } from "@upstash/redis";
 
-export const rpName = "Cockpit";
+export const rpName = "Bound";
 const dev = process.env.NODE_ENV !== "production";
 
 function getWebAuthnConfig() {

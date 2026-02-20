@@ -263,7 +263,7 @@ self.addEventListener("push", (event) => {
     requireInteraction: false,
   };
 
-  event.waitUntil(self.registration.showNotification("Cockpit", options));
+  event.waitUntil(self.registration.showNotification("Bound", options));
 });
 
 // Notification click handler

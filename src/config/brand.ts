@@ -10,18 +10,18 @@
 // ============================================================================
 
 export const company = {
-  name: "Cockpit",
+  name: "Bound",
   tagline: "Enterprise Excellence",
 
   // Website and contact
-  website: "https://cockpit-enterprise.com",
-  email: "hello@cockpit-enterprise.com",
+  website: "https://bound-enterprise.com",
+  email: "hello@bound-enterprise.com",
 
   // Social links (optional)
   social: {
-    linkedin: "https://linkedin.com/company/cockpit",
-    twitter: "https://twitter.com/cockpit",
-    github: "https://github.com/cockpit",
+    linkedin: "https://linkedin.com/company/bound",
+    twitter: "https://twitter.com/bound",
+    github: "https://github.com/bound",
   },
 } as const;
 
@@ -50,7 +50,7 @@ export const logo = {
   },
 
   // Alt text for accessibility
-  alt: "Cockpit Logo",
+  alt: "Bound Logo",
 } as const;
 
 // ============================================================================

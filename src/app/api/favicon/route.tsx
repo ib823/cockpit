@@ -1,12 +1,12 @@
 /**
  * Dynamic Favicon API
  *
- * Generates favicons with status-based colors for Cockpit brand.
+ * Generates favicons with status-based colors for Bound brand.
  * Use ?status=connected|disconnected|none to change appearance.
  *
  * Status colors:
- * - connected: Blue (#2563EB) - Active/online state
- * - disconnected: Amber (#F59E0B) - Warning/offline state
+ * - connected: Blue (#007AFF) - Active/online state
+ * - disconnected: Amber (#FF9500) - Warning/offline state
  * - none/default: Dark (#0F172A) - Default brand state
  */
 
@@ -34,21 +34,20 @@ const STATUS_COLORS = {
 type Status = keyof typeof STATUS_COLORS;
 
 /**
- * Custom K letterform SVG - Cockpit brand mark
+ * Bound ≈ mark - two parallel wave strokes
  *
- * Clean, bold, recognizable K design:
- * - Thick vertical stem on the left
- * - Upper arm: diagonal from middle-left to top-right
- * - Lower arm: diagonal from middle-left to bottom-right
+ * Clean, bold, recognizable ≈ design:
+ * - Two parallel sinusoidal curves
+ * - Optically centered in the container
+ * - Gentle wave (Apple-like restraint)
  */
-function CockpitK({
+function BoundMark({
   color = "#FFFFFF",
   size: iconSize = 32,
 }: {
   color?: string;
   size?: number;
 }) {
-  // Scale the K to fit nicely within the icon with padding
   const scale = iconSize * 0.65;
 
   return (
@@ -56,17 +55,25 @@ function CockpitK({
       width={scale}
       height={scale}
       viewBox="0 0 100 100"
-      fill={color}
+      fill="none"
       style={{ display: "block" }}
     >
-      {/* Vertical stem */}
-      <rect x="10" y="5" width="22" height="90" />
-
-      {/* Upper diagonal arm */}
-      <polygon points="32,50 32,35 90,5 90,25 50,50" />
-
-      {/* Lower diagonal arm */}
-      <polygon points="32,50 32,65 90,95 90,75 50,50" />
+      {/* Top wave stroke */}
+      <path
+        d="M15 38 C25 24, 40 24, 50 38 C60 52, 75 52, 85 38"
+        stroke={color}
+        strokeWidth="10"
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* Bottom wave stroke */}
+      <path
+        d="M15 62 C25 48, 40 48, 50 62 C60 76, 75 76, 85 62"
+        stroke={color}
+        strokeWidth="10"
+        strokeLinecap="round"
+        fill="none"
+      />
     </svg>
   );
 }
@@ -103,7 +110,7 @@ export async function GET(request: NextRequest) {
           borderRadius: `${borderRadius}px`,
         }}
       >
-        <CockpitK color={colors.foreground} size={size} />
+        <BoundMark color={colors.foreground} size={size} />
       </div>
     ),
     {

@@ -5,7 +5,7 @@
 
   <!-- Header -->
   <rect width="1280" height="64" fill="#2563eb"/>
-  <text x="24" y="42" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="white">SAP Cockpit</text>
+  <text x="24" y="42" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="white">Bound</text>
 
   <!-- Dashboard cards -->
   <g transform="translate(40, 100)">
@@ -50,5 +50,5 @@
   </g>
 
   <!-- Footer indicator -->
-  <text x="640" y="700" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#94a3b8">SAP Cockpit Dashboard • Desktop View</text>
+  <text x="640" y="700" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#94a3b8">Bound Dashboard • Desktop View</text>
 </svg>

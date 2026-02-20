@@ -1,6 +1,6 @@
 {
-  "name": "Cockpit",
-  "short_name": "Cockpit",
+  "name": "Bound",
+  "short_name": "Bound",
   "description": "SAP S/4HANA project estimation and management tool",
   "start_url": "/dashboard",
   "display": "standalone",

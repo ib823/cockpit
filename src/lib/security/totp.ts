@@ -12,7 +12,7 @@ import speakeasy from "speakeasy";
 import QRCode from "qrcode";
 import crypto from "crypto";
 
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Cockpit";
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Bound";
 const TOTP_WINDOW = 2; // Allow 2 time steps before/after (60 second window)
 
 export interface TOTPSecret {

@@ -251,7 +251,7 @@ describe("axe: Image and icon accessibility", () => {
   it("passes axe with decorative images hidden from AT", async () => {
     const results = await runAxe(`
       <div>
-        <img src="/logo.png" alt="Cockpit logo" />
+        <img src="/logo.png" alt="Bound logo" />
         <svg aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="5" /></svg>
         <button aria-label="Close">
           <svg aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6l-12 12" /></svg>

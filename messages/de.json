@@ -22,7 +22,7 @@
     "logout": "Abmelden"
   },
   "estimator": {
-    "title": "Cockpit Schätzungstool",
+    "title": "Bound Schätzungstool",
     "subtitle": "Projektschätzungstool",
     "scopeBreadth": "Umfangsbreite (Sb)",
     "processComplexity": "Prozesskomplexität (Pc)",
