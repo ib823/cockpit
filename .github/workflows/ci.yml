@@ -69,8 +69,8 @@ jobs:
     - name: Typecheck
       run: pnpm typecheck:strict
       
-    - name: Test
-      run: pnpm test --run
+    - name: Test with coverage
+      run: pnpm test:coverage --run
       
     - name: Build
       run: pnpm build

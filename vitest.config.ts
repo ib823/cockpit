@@ -24,6 +24,17 @@ export default defineConfig({
       "**/tests/**/e2e/**",
       "**/*.spec.ts", // Playwright uses .spec.ts, Vitest uses .test.ts
     ],
+    // Coverage configuration (B-05: regression floor thresholds)
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json-summary"],
+      thresholds: {
+        statements: 10,
+        branches: 70,
+        functions: 50,
+        lines: 10,
+      },
+    },
   },
   resolve: {
     alias: {
