@@ -11,19 +11,21 @@
 
 "use client";
 
+import dynamic from "next/dynamic";
 import { GanttCanvasV3 } from "@/components/gantt-tool/GanttCanvasV3";
-import { NewProjectModal } from "@/components/gantt-tool/NewProjectModal";
-import { ImportModal } from "@/components/gantt-tool/ImportModal";
-import { AddPhaseModal } from "@/components/gantt-tool/AddPhaseModal";
-import { AddTaskModal } from "@/components/gantt-tool/AddTaskModal";
-import { LogoLibraryModal } from "@/components/gantt-tool/LogoLibraryModal";
-import { OrgChartPro } from "@/components/gantt-tool/OrgChartPro";
-import { ResourceDashboardModal } from "@/components/gantt-tool/ResourceDashboardModal";
+// Lazy-load modals and heavy tabs (E-02: route-level code splitting)
+const NewProjectModal = dynamic(() => import("@/components/gantt-tool/NewProjectModal").then(m => ({ default: m.NewProjectModal })), { ssr: false });
+const ImportModal = dynamic(() => import("@/components/gantt-tool/ImportModal").then(m => ({ default: m.ImportModal })), { ssr: false });
+const AddPhaseModal = dynamic(() => import("@/components/gantt-tool/AddPhaseModal").then(m => ({ default: m.AddPhaseModal })), { ssr: false });
+const AddTaskModal = dynamic(() => import("@/components/gantt-tool/AddTaskModal").then(m => ({ default: m.AddTaskModal })), { ssr: false });
+const LogoLibraryModal = dynamic(() => import("@/components/gantt-tool/LogoLibraryModal").then(m => ({ default: m.LogoLibraryModal })), { ssr: false });
+const OrgChartPro = dynamic(() => import("@/components/gantt-tool/OrgChartPro").then(m => ({ default: m.OrgChartPro })), { ssr: false });
+const ResourceDashboardModal = dynamic(() => import("@/components/gantt-tool/ResourceDashboardModal").then(m => ({ default: m.ResourceDashboardModal })), { ssr: false });
 // ResourceCapacityPanel is now integrated directly into GanttCanvasV3
 import { ViewModeSelector, type ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
 import { ProjectTabNavigation, type ProjectTab } from "@/components/gantt-tool/ProjectTabNavigation";
-import { ProjectContextTab } from "@/components/gantt-tool/ProjectContextTab";
-import { FinancialsTab } from "@/components/gantt-tool/FinancialsTab";
+const ProjectContextTab = dynamic(() => import("@/components/gantt-tool/ProjectContextTab").then(m => ({ default: m.ProjectContextTab })), { ssr: false });
+const FinancialsTab = dynamic(() => import("@/components/gantt-tool/FinancialsTab").then(m => ({ default: m.FinancialsTab })), { ssr: false });
 import { useFinancialAccess } from "@/hooks/useFinancialAccess";
 import { GlobalNav } from "@/components/navigation/GlobalNav";
 import { Tier2Header } from "@/components/navigation/Tier2Header";
