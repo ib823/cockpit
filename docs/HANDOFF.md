@@ -10,7 +10,7 @@ This file is the takeover ledger for any AI LLM CLI.
 Execute `docs/MASTER_PLAN.md` to reach enterprise-grade production readiness with top-tier UI/UX quality while maintaining strict public-repo hygiene and proprietary protection.
 
 ## 2. Active Phase
-Current phase: Phase 2 (UI/UX System Foundation)
+Current phase: Phase 3 (Core Experience Refactor)
 
 ## 3. Program Scoreboard
 
@@ -18,9 +18,9 @@ Current phase: Phase 2 (UI/UX System Foundation)
 |---|---|---|
 | WS-H Repo Hygiene & IP | Completed | Cleaned and generalized |
 | WS-A Security & Privacy | Completed | All tasks A-01 through A-07 closed |
-| WS-B Quality Gates | Completed | Strict gates enforced (Build/CI/Hooks) |
-| WS-C UI/UX Unification | In Progress | C-01/C-02/C-03/C-04/C-05 complete (non-gantt scope) |
-| WS-D Accessibility | In Progress | D-02 standards documented |
+| WS-B Quality Gates | Completed | All tasks B-01 through B-06 closed |
+| WS-C UI/UX Unification | Completed | All tasks C-01 through C-07 closed (gantt C-04/C-05 deferred to WS-E) |
+| WS-D Accessibility | In Progress | D-02 standards documented, D-01/D-04 pending |
 | WS-E Performance Refactor | Pending | Heavy surfaces identified |
 | WS-F API/Data Consistency | In Progress | admin APIs standardized |
 | WS-G Operability | Pending | SLO/runbook work pending |
@@ -51,6 +51,10 @@ Current phase: Phase 2 (UI/UX System Foundation)
 | A-02 API endpoint auth classification | Completed | 2026-02-20 | 4 unprotected routes fixed: import/gantt (auth guard), revalidate-admin (requireAdmin), projects/chips (auth guard), check-admin (constant-time anti-enumeration) |
 | A-06 Error response sanitization | Completed | 2026-02-20 | 8 findings across 10 files: removed stack traces, raw Prisma meta, env flags, raw error.message from all client responses |
 | A-07 Security regression test suite | Completed | 2026-02-20 | tests/security/auth-guards.test.ts: 9 tests (auth guards, error sanitization, anti-enumeration, input validation) |
+| B-05 Coverage thresholds | Completed | 2026-02-20 | V8 coverage in vitest.config.ts: 10% stmt/lines, 70% branches, 50% functions. CI enforces via test:coverage |
+| B-06 Test environment standardization | Completed | 2026-02-20 | Removed dead jest.config.js/jest.setup.js. docs/TEST_STANDARDS.md: dual-setup strategy, fixture patterns |
+| C-06 Typography/spacing/motion standards | Completed | 2026-02-20 | docs/TYPOGRAPHY_SPACING_MOTION.md: 7-step type scale, 15-step spacing grid, 5 durations, 5 easings |
+| C-07 UX state patterns | Completed | 2026-02-20 | docs/UX_STATE_PATTERNS.md: empty/loading/error/success patterns, component hierarchy, UX writing rules |
 
 ## 5. Baseline Facts to Preserve
 1. Strict gates pass in current working state: `pnpm lint:strict`, `pnpm typecheck:strict`, `pnpm test --run`, `pnpm build`.
@@ -69,14 +73,26 @@ To maintain velocity while adhering to strict quality gates:
 2. **Integration/Security Tests**: Many require a live database. In the absence of a local DB, these are documented as environment-blocked and MUST be verified in the GitHub Actions CI pipeline.
 3. **Compensating Check**: Manually verified Prisma schema integrity using `pnpm prisma validate` and performed logic "Dry Runs" using mocked state.
 
-## 8. Next Mandatory Actions
-1. B-05: Enforce minimum coverage and failing-threshold policies.
-2. B-06: Standardize test environments (unit/integration/e2e) with stable fixtures.
-3. C-06: Typography, spacing, and motion standards baseline.
-4. C-07: UX writing and state-pattern consistency (empty/loading/error/success).
-5. Phase 3: E-01 (break up monolithic UI files), E-02 (route-level code splitting), D-01 (fix semantic/a11y violations), D-04 (automated a11y in CI), F-01 (API contract validation).
+## 8. Next Mandatory Actions (Phase 3)
+1. E-01: Break up monolithic UI files with domain boundaries.
+2. E-02: Route-level code splitting for heavy pages.
+3. D-01: Fix semantic/a11y violations in high-traffic workflows.
+4. D-04: Automated a11y checks in CI.
+5. F-01: API contract validation with schema-first request/response checks.
 
 ## 9. Session Log
+
+### 2026-02-20T03:20:00Z - Claude Opus 4.6
+- Task IDs: B-05, B-06, C-06, C-07 (Phase 2 closure, WS-B/WS-C completion)
+- Summary: Completed all remaining Phase 2 tasks, closing WS-B and WS-C workstreams:
+  - **B-05** (commit `8953311`): Added V8 coverage configuration to vitest.config.ts with regression floor thresholds (10% statements/lines, 70% branches, 50% functions). CI updated to run test:coverage.
+  - **B-06** (commit `908c968`): Removed dead jest.config.js and jest.setup.js. Created docs/TEST_STANDARDS.md documenting dual-setup strategy (in-memory mock vs real DB), fixture patterns, coverage policy, and CI environment.
+  - **C-06** (commit `57d6db3`): Created docs/TYPOGRAPHY_SPACING_MOTION.md — canonical reference for 7-step type scale, 15-step 8pt spacing grid, 5 duration tokens, 5 easing functions, pre-composed animation utilities. Documented known debt.
+  - **C-07** (commit `69b70b6`): Created docs/UX_STATE_PATTERNS.md — standards for empty/loading/error/success states with component hierarchy, decision trees, UX writing rules, toast system usage, error severity classification, and known debt (duplicate EmptyState/toast implementations).
+- Files changed: vitest.config.ts, .github/workflows/ci.yml, jest.config.js (deleted), jest.setup.js (deleted), .gitignore, docs/TEST_STANDARDS.md (new), docs/TYPOGRAPHY_SPACING_MOTION.md (new), docs/UX_STATE_PATTERNS.md (new), docs/HANDOFF.md
+- Commands run: `pnpm lint:strict` (pass x4), `pnpm typecheck:strict` (pass x4), `pnpm test --run` (pass x4, 54 files/1733 tests), `pnpm build` (pass x4), `pnpm test:coverage --run` (pass, all thresholds met)
+- Blockers: None.
+- Next action: Begin Phase 3 — E-01 (monolithic file decomposition), E-02 (code splitting), D-01 (a11y fixes), D-04 (automated a11y in CI), F-01 (API contracts).
 
 ### 2026-02-20T02:10:00Z - Claude Opus 4.6
 - Task IDs: A-02, A-06, A-07 (WS-A closure)
