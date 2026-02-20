@@ -288,7 +288,7 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="w-full max-w-md px-6">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Header */}
@@ -309,8 +309,8 @@ function LoginContent() {
 
           {/* Loading/Success States */}
           {(stage === "creating" || stage === "verifying") && (
-            <div className="text-center py-8">
-              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 mb-4"></div>
+            <div className="text-center py-8" role="status" aria-live="polite">
+              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 mb-4" aria-hidden="true"></div>
               <p className="text-slate-600">
                 {stage === "creating" && "Waiting for passkey..."}
                 {stage === "verifying" && "Verifying credentials..."}
@@ -319,13 +319,14 @@ function LoginContent() {
           )}
 
           {stage === "success" && (
-            <div className="text-center py-8">
+            <div className="text-center py-8" role="status" aria-live="polite">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
                 <svg
                   className="w-8 h-8 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -345,7 +346,7 @@ function LoginContent() {
             <div className="space-y-6">
               {/* Error Message */}
               {err && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm space-y-3">
+                <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm space-y-3">
                   <p>{err}</p>
                   {err.includes("cancelled") && (
                     <button
@@ -363,9 +364,12 @@ function LoginContent() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Work Email</label>
+                <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 mb-2">Work Email</label>
                 <input
+                  id="login-email"
                   type="email"
+                  aria-required="true"
+                  autoComplete="email"
                   className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -514,7 +518,7 @@ function LoginContent() {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

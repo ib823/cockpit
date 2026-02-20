@@ -219,6 +219,7 @@ export default function RecoveryRequestsPage() {
               <button
                 key={status}
                 onClick={() => setFilter(status)}
+                aria-current={filter === status ? "page" : undefined}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filter === status
                     ? "bg-blue-600 text-white"
@@ -329,9 +330,9 @@ export default function RecoveryRequestsPage() {
 
       {/* Approve Modal */}
       {showApproveModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="approve-modal-title">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Approve Recovery Request</h2>
+            <h2 id="approve-modal-title" className="text-2xl font-bold text-slate-900 mb-4">Approve Recovery Request</h2>
             <p className="text-slate-600 mb-6">
               You are about to approve the recovery request for{" "}
               <strong>{selectedRequest.user.email}</strong>. This will:
@@ -381,9 +382,9 @@ export default function RecoveryRequestsPage() {
 
       {/* Reject Modal */}
       {showRejectModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="reject-modal-title">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Reject Recovery Request</h2>
+            <h2 id="reject-modal-title" className="text-2xl font-bold text-slate-900 mb-4">Reject Recovery Request</h2>
             <p className="text-slate-600 mb-6">
               You are about to reject the recovery request for{" "}
               <strong>{selectedRequest.user.email}</strong>.

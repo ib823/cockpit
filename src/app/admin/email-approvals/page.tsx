@@ -186,21 +186,22 @@ export default function EmailApprovalsPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
+                <caption className="sr-only">Email approval requests</caption>
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
                       Email
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
                       Created
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
                       Expires
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
                       Code Sent
                     </th>
                   </tr>

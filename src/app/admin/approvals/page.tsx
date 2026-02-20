@@ -86,17 +86,18 @@ export default function AdminApprovalsPage() {
           <p className="absolute -top-5 left-1/2 -translate-x-1/2 text-sm text-slate-700">{msg}</p>
         )}
         <table className="w-full text-left text-sm">
+          <caption className="sr-only">User approvals and audit data</caption>
           <thead className="bg-slate-50 text-slate-700">
             <tr>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Exception</th>
-              <th className="px-4 py-3">Expires</th>
-              <th className="px-4 py-3">Logins</th>
-              <th className="px-4 py-3">Last login</th>
-              <th className="px-4 py-3">Timelines</th>
-              <th className="px-4 py-3">Last timeline</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th scope="col" className="px-4 py-3">Email</th>
+              <th scope="col" className="px-4 py-3">Status</th>
+              <th scope="col" className="px-4 py-3">Exception</th>
+              <th scope="col" className="px-4 py-3">Expires</th>
+              <th scope="col" className="px-4 py-3">Logins</th>
+              <th scope="col" className="px-4 py-3">Last login</th>
+              <th scope="col" className="px-4 py-3">Timelines</th>
+              <th scope="col" className="px-4 py-3">Last timeline</th>
+              <th scope="col" className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -108,6 +109,8 @@ export default function AdminApprovalsPage() {
                   <button
                     className={`rounded-full px-3 py-1 text-xs font-medium ${r.exception ? "bg-slate-900 text-white" : "bg-slate-100"}`}
                     onClick={() => toggleException(r.email)}
+                    aria-pressed={r.exception}
+                    aria-label={`Exception ${r.exception ? "enabled" : "disabled"} for ${r.email}`}
                   >
                     {r.exception ? "Enabled" : "Disabled"}
                   </button>
