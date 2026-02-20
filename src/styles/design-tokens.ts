@@ -1,10 +1,10 @@
 export const tokens = {
   colors: {
-    primary: "#1890ff",
-    primaryHover: "#40a9ff",
+    primary: "#007AFF",
+    primaryHover: "#0056B3",
     background: "#ffffff",
-    text: "#1f2937",
-    textSecondary: "#6b7280",
+    text: "#1D1D1F",
+    textSecondary: "#8E8E93",
   },
   spacing: {
     xs: "0.25rem",

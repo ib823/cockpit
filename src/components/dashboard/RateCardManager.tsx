@@ -136,7 +136,7 @@ export function RateCardManager({ isOpen, onClose, onSave }: RateCardManagerProp
     <Modal
       title={
         <Space>
-          <InfoCircleOutlined style={{ color: "#1890ff" }} />
+          <InfoCircleOutlined style={{ color: "#007AFF" }} />
           <span>Rate Card Management</span>
           <Tag color="blue">MYR</Tag>
         </Space>

@@ -118,7 +118,7 @@ export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChar
             <Badge
               count={data.directReportsCount}
               showZero={false}
-              style={{ backgroundColor: "#52c41a" }}
+              style={{ backgroundColor: "#34C759" }}
               className="text-xs"
               overflowCount={99}
             />
@@ -184,7 +184,7 @@ export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChar
                 }
               >
                 <div className="flex items-center gap-1 text-xs">
-                  <CalendarOutlined className="text-xs" style={{ color: "#1890ff" }} />
+                  <CalendarOutlined className="text-xs" style={{ color: "#007AFF" }} />
                   <span className="font-semibold text-blue-600">{assignments.phases.length}</span>
                 </div>
               </Tooltip>
@@ -214,7 +214,7 @@ export const OrgChartNodeComponent = memo(({ data, selected }: NodeProps<OrgChar
                 }
               >
                 <div className="flex items-center gap-1 text-xs">
-                  <CheckSquareOutlined className="text-xs" style={{ color: "#722ed1" }} />
+                  <CheckSquareOutlined className="text-xs" style={{ color: "#AF52DE" }} />
                   <span className="font-semibold text-purple-600">{assignments.tasks.length}</span>
                 </div>
               </Tooltip>

@@ -10,7 +10,22 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { Modal, Input, Empty, Tabs } from "antd";
 import { Search, FolderKanban, CheckCircle2, Calendar, Users, Target } from "lucide-react";
 import type { GanttProject, GanttTask, GanttPhase, Resource } from "@/types/gantt-tool";
-import { colorValues, withOpacity } from "@/lib/design-system";
+// Apple HIG color constants for dynamic operations (CSS vars can't be used in JS color math)
+const SEARCH_COLORS = {
+  project: "#007AFF",   // Apple HIG Blue
+  phase: "#FF9500",     // Apple HIG Orange
+  task: "#34C759",      // Apple HIG Green
+  resource: "#007AFF",  // Apple HIG Blue
+  milestone: "#FF3B30", // Apple HIG Red
+} as const;
+
+/** Convert hex color to rgba with opacity */
+function hexToRgba(hex: string, opacity: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
 
 interface SearchResult {
   type: "project" | "phase" | "task" | "resource" | "milestone";
@@ -209,7 +224,7 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
           <Input
             size="large"
             placeholder="Search projects, tasks, resources..."
-            prefix={<Search className="w-5 h-5" style={{ color: colorValues.neutral[400] }} />}
+            prefix={<Search className="w-5 h-5 text-[var(--color-text-tertiary)]" />}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
@@ -261,11 +276,8 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
           </>
         ) : (
           <div className="p-12 text-center">
-            <Search
-              className="w-12 h-12 mx-auto mb-3"
-              style={{ color: colorValues.neutral[300] }}
-            />
-            <p className="text-sm" style={{ color: colorValues.neutral[500] }}>
+            <Search className="w-12 h-12 mx-auto mb-3 text-[var(--color-text-disabled)]" />
+            <p className="text-sm text-[var(--color-text-secondary)]">
               Type at least 2 characters to search
             </p>
           </div>
@@ -293,13 +305,7 @@ function SearchResultCard({
     milestone: <Target className="w-4 h-4" />,
   }[result.type];
 
-  const color = {
-    project: colorValues.primary[500],
-    phase: colorValues.warning[600],
-    task: colorValues.success[600],
-    resource: colorValues.primary[600],
-    milestone: colorValues.error[500],
-  }[result.type];
+  const color = SEARCH_COLORS[result.type];
 
   // Highlight matching text
   const highlightText = (text: string) => {
@@ -313,7 +319,7 @@ function SearchResultCard({
             <mark
               key={i}
               style={{
-                backgroundColor: withOpacity(colorValues.warning[500], 0.3),
+                backgroundColor: "rgba(255, 149, 0, 0.3)",
                 padding: "0 2px",
                 borderRadius: "2px",
               }}
@@ -332,17 +338,17 @@ function SearchResultCard({
     <div
       className="p-3 rounded-lg border cursor-pointer transition-all duration-150 hover:shadow-md"
       style={{
-        backgroundColor: "#fff",
-        borderColor: colorValues.neutral[200],
+        backgroundColor: "var(--color-bg-primary)",
+        borderColor: "var(--color-border-subtle)",
       }}
       onClick={onClick}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = color;
-        e.currentTarget.style.backgroundColor = withOpacity(color, 0.02);
+        e.currentTarget.style.backgroundColor = hexToRgba(color, 0.02);
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = colorValues.neutral[200];
-        e.currentTarget.style.backgroundColor = "#fff";
+        e.currentTarget.style.borderColor = "var(--color-border-subtle)";
+        e.currentTarget.style.backgroundColor = "var(--color-bg-primary)";
       }}
     >
       <div className="flex items-start gap-3">
@@ -350,7 +356,7 @@ function SearchResultCard({
         <div
           className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
           style={{
-            backgroundColor: withOpacity(color, 0.1),
+            backgroundColor: hexToRgba(color, 0.1),
             color,
           }}
         >
@@ -363,7 +369,7 @@ function SearchResultCard({
             <span
               className="text-xs px-1.5 py-0.5 rounded uppercase font-semibold"
               style={{
-                backgroundColor: withOpacity(color, 0.1),
+                backgroundColor: hexToRgba(color, 0.1),
                 color,
               }}
             >
@@ -371,18 +377,18 @@ function SearchResultCard({
             </span>
             <span
               className="text-sm font-medium truncate"
-              style={{ color: colorValues.neutral[900] }}
+              style={{ color: "var(--color-text-primary)" }}
             >
               {highlightText(result.title)}
             </span>
           </div>
           {result.subtitle && (
-            <div className="text-xs truncate" style={{ color: colorValues.neutral[500] }}>
+            <div className="text-xs truncate text-[var(--color-text-secondary)]">
               {highlightText(result.subtitle)}
             </div>
           )}
           {result.metadata && (
-            <div className="text-xs mt-1" style={{ color: colorValues.neutral[400] }}>
+            <div className="text-xs mt-1 text-[var(--color-text-tertiary)]">
               {result.metadata}
             </div>
           )}
@@ -393,7 +399,7 @@ function SearchResultCard({
           <div
             className="text-xs px-2 py-0.5 rounded"
             style={{
-              backgroundColor: withOpacity(color, 0.1),
+              backgroundColor: hexToRgba(color, 0.1),
               color,
             }}
           >

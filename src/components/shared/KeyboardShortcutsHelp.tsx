@@ -117,11 +117,11 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
           width: "48px",
           height: "48px",
           borderRadius: "50%",
-          background: "#1890ff",
+          background: "#007AFF",
           color: "#fff",
           border: "none",
           cursor: "pointer",
-          boxShadow: "0 4px 12px rgba(24, 144, 255, 0.4)",
+          boxShadow: "0 4px 12px rgba(0, 122, 255, 0.4)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -135,7 +135,7 @@ export function KeyboardShortcutsHelp({ context }: KeyboardShortcutsHelpProps) {
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = "0 4px 12px rgba(24, 144, 255, 0.4)";
+          e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 122, 255, 0.4)";
         }}
         aria-label="Show keyboard shortcuts"
         title="Keyboard Shortcuts (⌘/)"

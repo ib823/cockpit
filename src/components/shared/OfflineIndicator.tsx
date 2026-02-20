@@ -45,13 +45,13 @@ export function OfflineIndicator({
         <Space>
           {isOnline ? (
             <>
-              <CheckCircleOutlined style={{ color: "#52c41a", fontSize: 18 }} />
-              <Text style={{ color: "#52c41a" }}>Online</Text>
+              <CheckCircleOutlined style={{ color: "#34C759", fontSize: 18 }} />
+              <Text style={{ color: "#34C759" }}>Online</Text>
             </>
           ) : (
             <>
-              <DisconnectOutlined style={{ color: "#ff4d4f", fontSize: 18 }} />
-              <Text style={{ color: "#ff4d4f" }}>Offline</Text>
+              <DisconnectOutlined style={{ color: "#FF3B30", fontSize: 18 }} />
+              <Text style={{ color: "#FF3B30" }}>Offline</Text>
             </>
           )}
         </Space>
@@ -107,19 +107,19 @@ export function OfflineIndicator({
           width: 48,
           height: 48,
           borderRadius: "50%",
-          background: isOnline ? "#ffffff" : "#ff4d4f",
+          background: isOnline ? "#ffffff" : "#FF3B30",
           boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: showPopover ? "pointer" : "default",
-          border: isOnline ? "2px solid #52c41a" : "2px solid #ffffff",
+          border: isOnline ? "2px solid #34C759" : "2px solid #ffffff",
         }}
       >
         {isSyncing ? (
-          <SyncOutlined spin style={{ fontSize: 20, color: "#1890ff" }} />
+          <SyncOutlined spin style={{ fontSize: 20, color: "#007AFF" }} />
         ) : isOnline ? (
-          <WifiOutlined style={{ fontSize: 20, color: "#52c41a" }} />
+          <WifiOutlined style={{ fontSize: 20, color: "#34C759" }} />
         ) : (
           <DisconnectOutlined style={{ fontSize: 20, color: "#ffffff" }} />
         )}

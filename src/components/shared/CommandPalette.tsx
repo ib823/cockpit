@@ -376,7 +376,7 @@ export function CommandPalette({ userRole = "USER" }: CommandPaletteProps) {
                     cursor: "pointer",
                     backgroundColor: index === selectedIndex ? "#f5f5f5" : "transparent",
                     borderLeft:
-                      index === selectedIndex ? "3px solid #1890ff" : "3px solid transparent",
+                      index === selectedIndex ? "3px solid #007AFF" : "3px solid transparent",
                   }}
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
@@ -385,7 +385,7 @@ export function CommandPalette({ userRole = "USER" }: CommandPaletteProps) {
                       <div
                         className="text-lg"
                         style={{
-                          color: index === selectedIndex ? "#1890ff" : "#8c8c8c",
+                          color: index === selectedIndex ? "#007AFF" : "#8c8c8c",
                           display: "flex",
                           alignItems: "center",
                         }}

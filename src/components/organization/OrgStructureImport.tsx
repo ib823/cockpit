@@ -276,10 +276,10 @@ export function OrgStructureImport({
       width: 80,
       render: (status: string) => {
         if (status === "valid")
-          return <CheckCircleOutlined className="text-lg" style={{ color: "#52c41a" }} />;
+          return <CheckCircleOutlined className="text-lg" style={{ color: "#34C759" }} />;
         if (status === "warning")
-          return <InfoCircleOutlined className="text-lg" style={{ color: "#faad14" }} />;
-        return <CloseCircleOutlined className="text-lg" style={{ color: "#ff4d4f" }} />;
+          return <InfoCircleOutlined className="text-lg" style={{ color: "#FF9500" }} />;
+        return <CloseCircleOutlined className="text-lg" style={{ color: "#FF3B30" }} />;
       },
     },
     {
