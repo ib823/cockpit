@@ -88,7 +88,7 @@ export function UnifiedDashboard({ session }: UnifiedDashboardProps) {
       <GlobalNav session={session} />
 
       <div className="min-h-screen bg-secondary">
-        <main className="max-w-[1400px] mx-auto px-6 py-10 md:px-10 md:py-16">
+        <main id="main-content" className="max-w-[1400px] mx-auto px-6 py-10 md:px-10 md:py-16">
           {/* Welcome Section */}
           <div className="mb-12 animate-slide-up">
             <h1 className="display-large mb-2 text-primary">

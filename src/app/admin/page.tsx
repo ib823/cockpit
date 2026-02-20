@@ -57,7 +57,7 @@ export default async function AdminDashboard() {
       </nav>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Database Connection Error Banner */}
         {dbError && (
           <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md">
@@ -258,7 +258,7 @@ export default async function AdminDashboard() {
             </a>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

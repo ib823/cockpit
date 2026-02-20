@@ -54,6 +54,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
+        {/* Skip navigation link for screen readers (WCAG 2.4.1) */}
+        <a href="#main-content" className="skip-to-content">
+          Skip to content
+        </a>
         {/* Initial loader created entirely by client-side script to avoid hydration errors */}
         <script
           dangerouslySetInnerHTML={{

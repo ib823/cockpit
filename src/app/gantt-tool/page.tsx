@@ -275,7 +275,8 @@ export default function GanttToolV3Page() {
 
       {/* Jobs/Ive: "It just works" - Support any zoom level, any screen size */}
       {/* WCAG 2.1: Content must be usable at 200% zoom without horizontal scrolling */}
-      <div
+      <main
+        id="main-content"
         className="flex flex-col bg-white"
         style={{
           minHeight: "calc(100vh - 56px)", // Minimum height, but allows growth
@@ -971,7 +972,7 @@ export default function GanttToolV3Page() {
         </div>
       )}
 
-      </div> {/* End h-screen container */}
+      </main> {/* End main content container */}
 
       {/* Global Styles */}
       <style jsx global>{`

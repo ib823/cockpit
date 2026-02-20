@@ -70,7 +70,7 @@ export default function AdminApprovalsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
+    <main id="main-content" className="mx-auto max-w-5xl p-6">
       <h1 className="text-xl font-semibold text-slate-900">Admin · Approvals & Audit</h1>
       {kpi && (
         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -166,7 +166,7 @@ export default function AdminApprovalsPage() {
           </tbody>
         </table>
       </div>
-    </div>
+    </main>
   );
 }
 
