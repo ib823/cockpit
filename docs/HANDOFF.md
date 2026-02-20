@@ -2,7 +2,7 @@
 
 Status: Active  
 Version: 1.0.0  
-Last Updated (UTC): 2026-02-19
+Last Updated (UTC): 2026-02-20
 
 This file is the takeover ledger for any AI LLM CLI.
 
@@ -19,8 +19,8 @@ Current phase: Phase 2 (UI/UX System Foundation)
 | WS-H Repo Hygiene & IP | Completed | Cleaned and generalized |
 | WS-A Security & Privacy | In Progress | Main gates closed, rotation script ready |
 | WS-B Quality Gates | Completed | Strict gates enforced (Build/CI/Hooks) |
-| WS-C UI/UX Unification | Pending | Foundation tasks next |
-| WS-D Accessibility | Pending | Baseline debt acknowledged |
+| WS-C UI/UX Unification | In Progress | C-01/C-02/C-03/C-04/C-05 complete (non-gantt scope) |
+| WS-D Accessibility | In Progress | D-02 standards documented |
 | WS-E Performance Refactor | Pending | Heavy surfaces identified |
 | WS-F API/Data Consistency | In Progress | admin APIs standardized |
 | WS-G Operability | Pending | SLO/runbook work pending |
@@ -42,6 +42,12 @@ Current phase: Phase 2 (UI/UX System Foundation)
 | B-03 Strict CI gates | Completed | 2026-02-19 | .github/workflows/ci.yml created |
 | B-04 Local hooks enforcement | Completed | 2026-02-19 | Husky pre-commit/pre-push configured |
 | F-02 Standardized auth wrappers | Completed | 2026-02-19 | admin APIs refactored to use requireAdmin |
+| C-01 Canonical token system | Completed | 2026-02-19 | apple-design-system.css + tokens.css bridge, visual compliance test |
+| C-02 Canonical component library | Completed | 2026-02-20 | docs/COMPONENT_STANDARDS.md: Ant Design v5 declared canonical, 43 components/62 files surveyed |
+| C-03 Deprecate duplicate UI stacks | Completed | 2026-02-19 | unified-theme.css + vibe-theme.css deleted, competing token files identified |
+| C-04 Replace inline styles | In Progress | 2026-02-20 | Non-gantt shared/org/dashboard/arch components migrated (8 commits). Gantt-tool components deferred to WS-E |
+| C-05 Remove hardcoded colors | In Progress | 2026-02-20 | All non-gantt Tailwind/Ant Design legacy colors → Apple HIG. 8 gantt-tool files remain |
+| D-02 Keyboard nav standards | Completed | 2026-02-20 | docs/KEYBOARD_A11Y_STANDARDS.md: infrastructure surveyed, patterns/gaps documented, remediation plan |
 
 ## 5. Baseline Facts to Preserve
 1. Strict gates pass in current working state: `pnpm lint:strict`, `pnpm typecheck:strict`, `pnpm test --run`, `pnpm build`.
@@ -61,10 +67,24 @@ To maintain velocity while adhering to strict quality gates:
 3. **Compensating Check**: Manually verified Prisma schema integrity using `pnpm prisma validate` and performed logic "Dry Runs" using mocked state.
 
 ## 8. Next Mandatory Actions
-1. Continue Phase 2 WS-C token/component unification in small, task-scoped batches (C-04/C-05/C-07).
-2. Execute manual accessibility/device validation evidence workflow for WS-D (D-02/D-05) and log results.
+1. Phase 2 gate: Wire global keyboard shortcuts (useKeyboardShortcuts) per D-02 standards.
+2. Continue C-04/C-05 on gantt-tool components (WS-E scope, ~250 colorValues usages in 8 files).
+3. Execute A-02 (classify/guard unprotected API endpoints), A-06 (sanitize error responses), A-07 (security regression tests).
+4. Phase 3: E-01, E-02, D-01, D-04, F-01.
 
-## 8. Session Log
+## 9. Session Log
+
+### 2026-02-20T01:30:00Z - Claude Opus 4.6
+- Task IDs: C-04, C-05, C-02, D-02 (Phase 2 continuation)
+- Summary: Continued Phase 2 execution across 4 batches (batches 4-7 cumulative from prior session, plus C-02/D-02 standards creation):
+  - **Batch 7** (commit `8b30805`): Migrated 6 non-gantt components off wrong `@/lib/design-system` import. TemplateCard, TemplateGallery, EmptyState, SkeletonLoaders, Button, OrgChartNode — all now use Apple HIG hex values, local elevation constants, and local utility functions instead of Tailwind-based `colorValues`/`withOpacity`/`getElevationShadow`.
+  - **C-02** (new file `docs/COMPONENT_STANDARDS.md`): Declared Ant Design v5 as canonical component library. Surveyed 43 components across 62 files, 52 icons. Defined selection rules, style integration rules, and migration debt inventory.
+  - **D-02** (new file `docs/KEYBOARD_A11Y_STANDARDS.md`): Full infrastructure survey of 4 keyboard hooks, 2 focus trap mechanisms, 2 screen reader utilities. Documented standards for new components (interaction patterns, ARIA attributes, focus indicators, touch targets). Identified 7 gaps with remediation plan.
+- Files changed: src/components/templates/TemplateCard.tsx, src/components/templates/TemplateGallery.tsx, src/components/shared/EmptyState.tsx, src/components/shared/SkeletonLoaders.tsx, src/components/shared/Button.tsx, src/components/organization/OrgChartNode.tsx, docs/COMPONENT_STANDARDS.md (new), docs/KEYBOARD_A11Y_STANDARDS.md (new), docs/HANDOFF.md
+- Commands run: `pnpm lint:strict` (pass), `pnpm typecheck:strict` (pass), `pnpm test --run` (pass, 53 files/1724 tests), `pnpm build` (pass)
+- Blockers: None.
+- Residual debt: 8 gantt-tool files still import from `@/lib/design-system` (~250 colorValues usages). These are deferred to WS-E (Performance/Architecture Refactor) scope due to volume.
+- Next action: Execute A-02 (classify/guard unprotected API endpoints), then A-06, A-07.
 
 ### 2026-02-19T22:25:00Z - Claude Opus 4.6
 - Task IDs: C-03, C-04, C-05 (Phase 2 WS-C batch execution)
