@@ -10,7 +10,7 @@ This file is the takeover ledger for any AI LLM CLI.
 Execute `docs/MASTER_PLAN.md` to reach enterprise-grade production readiness with top-tier UI/UX quality while maintaining strict public-repo hygiene and proprietary protection.
 
 ## 2. Active Phase
-Current phase: Phase 3 (Core Experience Refactor)
+Current phase: Phase 4 (Enterprise Hardening)
 
 ## 3. Program Scoreboard
 
@@ -20,10 +20,10 @@ Current phase: Phase 3 (Core Experience Refactor)
 | WS-A Security & Privacy | Completed | All tasks A-01 through A-07 closed |
 | WS-B Quality Gates | Completed | All tasks B-01 through B-06 closed |
 | WS-C UI/UX Unification | Completed | All tasks C-01 through C-07 closed (gantt C-04/C-05 deferred to WS-E) |
-| WS-D Accessibility | In Progress | D-01/D-02/D-04 done; D-03/D-05/D-06 pending |
-| WS-E Performance Refactor | In Progress | E-01/E-02 done; E-03 through E-06 pending |
-| WS-F API/Data Consistency | In Progress | admin APIs standardized |
-| WS-G Operability | Pending | SLO/runbook work pending |
+| WS-D Accessibility | In Progress | D-01/D-02/D-03/D-04 done; D-05/D-06 pending |
+| WS-E Performance Refactor | Completed | All tasks E-01 through E-06 closed |
+| WS-F API/Data Consistency | Completed | All tasks F-01 through F-05 closed |
+| WS-G Operability | Pending | Phase 4 scope: G-01 through G-05 |
 
 ## 4. Task State Ledger (Updated)
 
@@ -59,6 +59,15 @@ Current phase: Phase 3 (Core Experience Refactor)
 | E-02 Route-level code splitting | Completed | 2026-02-20 | gantt-tool page: 9 static→dynamic imports, 654kB→55.4kB page JS (91.5% reduction), 930kB→269kB first load |
 | D-01 A11y violation fixes | Completed | 2026-02-20 | Login: <main> landmark, role=status/alert, label+htmlFor. Admin tables: caption+scope. Modals: role=dialog, aria-modal, aria-labelledby |
 | D-04 Automated a11y in CI | Completed | 2026-02-20 | tests/a11y/axe-automated.test.ts: 13 axe-core tests (forms, tables, modals, toggles, filters, status, images, headings) |
+| D-03 Screen reader landmarks | Completed | 2026-02-20 | Skip-to-content link in layout, <main id=main-content> on all 9 pages (gantt, admin×5, login, dashboard, architecture) |
+| E-03 Remove global scripts/polling | Completed | 2026-02-20 | OverlaySafety: removed 2s setInterval (MutationObserver sufficient). DynamicFavicon: 30s→60s, skip when tab hidden |
+| E-04 Bundle performance budgets | Completed | 2026-02-20 | tests/performance/bundle-budgets.test.ts: 17 routes with per-page JS budgets, first-load ceiling 300kB |
+| E-05 Rendering strategy review | Completed | 2026-02-20 | docs/RENDERING_STRATEGY.md: 12 pages audited, 3 canonical patterns documented, hydration risks identified |
+| E-06 Performance CI checks | Completed | 2026-02-20 | CI pipeline: post-build performance budget test step added to .github/workflows/ci.yml |
+| F-01 API contract validation | Completed | 2026-02-20 | tests/api/api-validators.test.ts: 49 schema contract tests. docs/API_CONTRACTS.md: response envelope standards |
+| F-03 Error codes/response envelopes | Completed | 2026-02-20 | src/lib/api-response.ts: 7 response helpers. tests/api/api-response.test.ts: 17 contract tests |
+| F-04 Data validation centralized | Completed | 2026-02-20 | tests/api/validation-coverage.test.ts: 5 coverage audit tests. 13 routes with Zod, 17 centralized schemas |
+| F-05 Endpoint inventory | Completed | 2026-02-20 | docs/ENDPOINT_INVENTORY.md: 82 endpoints catalogued with auth type, methods, validation status |
 
 ## 5. Baseline Facts to Preserve
 1. Strict gates pass in current working state: `pnpm lint:strict`, `pnpm typecheck:strict`, `pnpm test --run`, `pnpm build`.
@@ -77,14 +86,14 @@ To maintain velocity while adhering to strict quality gates:
 2. **Integration/Security Tests**: Many require a live database. In the absence of a local DB, these are documented as environment-blocked and MUST be verified in the GitHub Actions CI pipeline.
 3. **Compensating Check**: Manually verified Prisma schema integrity using `pnpm prisma validate` and performed logic "Dry Runs" using mocked state.
 
-## 8. Next Mandatory Actions (Phase 3 continued)
-1. F-01: API contract validation with schema-first request/response checks.
-2. D-03: Screen reader landmark audit and fixes.
-3. E-03: Remove unnecessary global scripts and expensive polling.
-4. E-04: Define and enforce bundle/page performance budgets.
-5. F-03: Consistent error codes and response envelopes.
-6. F-04: Data validation rules centralized and reused.
-7. F-05: Endpoint inventory published and maintained in handoff ledger.
+## 8. Next Mandatory Actions (Phase 4: Enterprise Hardening)
+1. G-01: Structured logging baseline.
+2. G-02: Metrics and tracing baseline.
+3. G-03: SLOs/SLIs and alerting policy.
+4. G-04: Incident runbooks and postmortem template.
+5. G-05: Backup/restore validation drills.
+6. D-05: Manual real-device validation protocol.
+7. D-06: Accessibility test evidence archive.
 
 ## 9. Session Log
 
