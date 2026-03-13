@@ -7,6 +7,7 @@
 
 import { prisma } from "@/lib/db";
 import posthog from "./posthog";
+import { logger } from "@/lib/logger";
 
 export type AuthEventType =
   | "login_success"
@@ -82,7 +83,7 @@ export async function logAuthEvent(
 
     // Log critical failures to console for alerting
     if (isFailure || type === "rate_limit_exceeded" || type === "account_locked") {
-      console.warn("[AUTH METRICS]", {
+      logger.warn("[AUTH METRICS]", {
         type,
         email: metadata.email,
         ipAddress: metadata.ipAddress,
@@ -91,7 +92,7 @@ export async function logAuthEvent(
       });
     }
   } catch (error) {
-    console.error("[AUTH METRICS] Failed to log auth event:", error);
+    logger.error("[AUTH METRICS] Failed to log auth event:", error);
     // Don't throw - logging should not break auth flow
   }
 }
@@ -153,7 +154,8 @@ export async function getAuthSuccessRate(
   events.forEach((event) => {
     const isSuccess = event.type.includes("_success");
     const isFailure = event.type.includes("_failure");
-    const eventMethod = (event.meta as any)?.method as AuthMethod | undefined;
+    const meta = event.meta as Record<string, unknown> | null;
+    const eventMethod = meta?.method as AuthMethod | undefined;
 
     if (method && eventMethod !== method) {
       return; // Skip if filtering by method
@@ -228,13 +230,13 @@ export async function getRecentFailedAttempts(
   });
 
   return events.map((event) => {
-    const meta = event.meta as any;
+    const meta = event.meta as Record<string, unknown> | null;
     return {
-      email: meta?.email || null,
-      ipAddress: meta?.ipAddress || null,
-      failureReason: meta?.failureReason || event.type,
+      email: (meta?.email as string) || null,
+      ipAddress: (meta?.ipAddress as string) || null,
+      failureReason: (meta?.failureReason as string) || event.type,
       timestamp: event.createdAt,
-      method: meta?.method || null,
+      method: (meta?.method as AuthMethod) || null,
     };
   });
 }
@@ -321,14 +323,14 @@ export async function checkForSuspiciousActivity(): Promise<{
     type: "high_failure_rate" | "repeated_failures" | "distributed_attack";
     severity: "low" | "medium" | "high";
     message: string;
-    data: any;
+    data: Record<string, unknown>;
   }>;
 }> {
   const alerts: Array<{
     type: "high_failure_rate" | "repeated_failures" | "distributed_attack";
     severity: "low" | "medium" | "high";
     message: string;
-    data: any;
+    data: Record<string, unknown>;
   }> = [];
 
   // Check for high failure rate in last 15 minutes
