@@ -63,7 +63,7 @@ import { DuplicateCleanupModal } from "./DuplicateCleanupModal";
 import { LogoLibraryModal } from "./LogoLibraryModal";
 import ExportConfigModal from "./ExportConfigModal";
 import type { MenuProps } from "antd";
-import dayjs from "dayjs";
+import dayjs from "dayjs"; // Required for Ant Design DatePicker compatibility
 import { colorValues, getColoredShadow, spacing } from "@/lib/design-system";
 
 interface GanttToolbarProps {

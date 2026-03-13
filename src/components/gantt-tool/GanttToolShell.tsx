@@ -112,8 +112,9 @@ export function GanttToolShell() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // No dependencies - get functions from store directly
+    // Intentionally empty: undo/redo are retrieved from store.getState() inside the handler,
+    // so this effect only needs to run once to register the listener.
+  }, []);
 
   // Fetch projects from database on mount
   useEffect(() => {
@@ -127,8 +128,8 @@ export function GanttToolShell() {
       }
     };
     loadInitialProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
+    // fetchProjects is a stable store action - only run on mount
+  }, [fetchProjects]);
 
   // Auto-load the most recent project or create a default one
   useEffect(() => {
@@ -158,14 +159,15 @@ export function GanttToolShell() {
 
       autoLoad();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     initialFetchDone,
     isLoading,
-    projects.length,
+    projects,
     currentProject,
     manuallyUnloaded,
     autoLoadError,
+    loadProject,
+    createProject,
   ]);
 
   // Error State - Show when auto-load fails

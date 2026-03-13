@@ -199,8 +199,7 @@ export function OrgChartHarmonyV2({ onClose, project }: Props) {
   // Debug logging (development only)
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
-      console.log("[OrgChart] Project:", currentProject?.name || "NO PROJECT", "| Resources:", resources.length);
+      logger.debug("Project loaded", { project: currentProject?.name || "NO PROJECT", resourceCount: resources.length });
     }
   }, [resources, currentProject]);
 
@@ -209,8 +208,7 @@ export function OrgChartHarmonyV2({ onClose, project }: Props) {
   const positions = useMemo(() => {
     const pos = layoutEngine.calculateLayout(resources);
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
-      console.log("[OrgChart] Layout calculated:", pos.size, "positions for", resources.length, "resources");
+      logger.debug("Layout calculated", { positionCount: pos.size, resourceCount: resources.length });
     }
     return pos;
   }, [resources, layoutEngine]);

@@ -17,6 +17,7 @@ import {
   markProjectSynced,
   addToSyncQueue,
 } from "./local-storage";
+import { logger } from "@/lib/logger";
 import { calculateProjectDelta, isDeltaEmpty, sanitizeDelta } from "./delta-calculator";
 import { shouldBatchDelta, batchDelta } from "./delta-batcher";
 import type { GanttProject, GanttTask, ProjectDelta } from "@/types/gantt-tool";
@@ -162,17 +163,17 @@ async function syncProjectToServer(
 
   // Skip if nothing changed
   if (isDeltaEmpty(delta)) {
-    console.log("[BackgroundSync] No changes to sync for", projectId);
+    logger.info("[BackgroundSync] No changes to sync for", { projectId });
     await markProjectSynced(projectId);
     return;
   }
 
-  console.log("[BackgroundSync] Syncing project", projectId);
+  logger.info("[BackgroundSync] Syncing project", { projectId });
 
   // Check if we need to batch
   if (shouldBatchDelta(delta)) {
     const batches = batchDelta(delta);
-    console.log(`[BackgroundSync] Batching into ${batches.length} requests`);
+    logger.info("[BackgroundSync] Batching into requests", { batchCount: batches.length });
 
     for (let i = 0; i < batches.length; i++) {
       const batchInfo = batches[i];
@@ -193,7 +194,7 @@ async function syncProjectToServer(
 
   // Mark as synced
   await markProjectSynced(projectId);
-  console.log("[BackgroundSync] Successfully synced", projectId);
+  logger.info("[BackgroundSync] Successfully synced", { projectId });
 }
 
 /**
@@ -227,16 +228,7 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
     const code = errorData.code || null;
 
     // Log sync failure with comprehensive details
-    console.error("[BackgroundSync] Sync failed:", {
-      status: response.status,
-      statusText: response.statusText,
-      error: errorMessage,
-      code,
-      projectId,
-      details,
-      conflictField,
-      fullErrorData: errorData, // Include full error for debugging
-    });
+    logger.error("[BackgroundSync] Sync failed", new Error(String(errorMessage)));
 
     // Create error with status code for retry logic
     const error = new Error(errorMessage) as Error & {
@@ -267,13 +259,13 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
  */
 async function processSyncQueue(): Promise<void> {
   if (isSyncing) {
-    console.log("[BackgroundSync] Already syncing, skipping...");
+    logger.info("[BackgroundSync] Already syncing, skipping...");
     return;
   }
 
   // Check if online
   if (!navigator.onLine) {
-    console.log("[BackgroundSync] Offline, skipping sync");
+    logger.info("[BackgroundSync] Offline, skipping sync");
     return;
   }
 

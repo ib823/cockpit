@@ -6,6 +6,7 @@
  */
 
 import type { GanttProject, Resource } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 const DB_NAME = "gantt_tool_local_v1";
 const DB_VERSION = 1;
@@ -62,7 +63,7 @@ export async function getAllLocalProjects(): Promise<GanttProject[]> {
       request.onerror = () => reject(request.error);
     });
   } catch (error) {
-    console.error("[Recovery] Failed to get local projects:", error);
+    logger.error("[Recovery] Failed to get local projects", error);
     return [];
   }
 }
@@ -82,7 +83,7 @@ export async function getLocalProject(projectId: string): Promise<GanttProject |
       request.onerror = () => reject(request.error);
     });
   } catch (error) {
-    console.error("[Recovery] Failed to get local project:", error);
+    logger.error("[Recovery] Failed to get local project", error);
     return null;
   }
 }
@@ -199,7 +200,7 @@ export async function pushRecoveredDataToServer(projectId: string): Promise<{
       if (result.errors && result.errors.length > 0) {
         errors.push(...result.errors);
       }
-      console.log(`[Recovery] Successfully pushed ${updatedCount} resources to server`);
+      logger.info(`[Recovery] Successfully pushed ${updatedCount} resources to server`);
     } else {
       const errorData = await response.json().catch(() => ({}));
       errors.push(`Server error: ${errorData.error || response.statusText}`);
