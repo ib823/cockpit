@@ -7,6 +7,7 @@
 
 import { NextResponse } from "next/server";
 import { ValidationError } from "./api-validators";
+import { logger } from "./logger";
 
 // ============================================================================
 // ERROR RESPONSES
@@ -67,6 +68,6 @@ export function handleApiError(err: unknown) {
   }
 
   // Log for debugging but return safe message
-  console.error("[API Error]", err);
+  logger.error("[API Error]", err);
   return serverError();
 }

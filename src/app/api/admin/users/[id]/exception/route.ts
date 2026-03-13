@@ -8,7 +8,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     await requireAdmin();
     const { id } = await params;
-    const { exception } = await req.json().catch(() => ({ exception: false }));
+    let exception = false;
+    try {
+      const body = await req.json();
+      exception = body.exception ?? false;
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     await prisma.users.update({
       where: { id },

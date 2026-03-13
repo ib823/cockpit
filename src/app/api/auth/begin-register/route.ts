@@ -11,7 +11,12 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ ok: false, message: "Invalid request body." }, { status: 400 });
+    }
 
     // SECURITY FIX: DEFECT-20251027-002
     // Sanitize email input to prevent XSS attacks

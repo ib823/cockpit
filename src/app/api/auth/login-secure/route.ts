@@ -21,6 +21,7 @@ import {
 import { sendSecurityEmail } from "@/lib/email";
 import { newDeviceLoginTemplate } from "@/lib/email-templates";
 import { SignJWT } from "jose";
+import { badRequest, unauthorized, forbidden, serverError } from "@/lib/api-response";
 
 import { env } from "@/lib/env";
 
@@ -45,7 +46,12 @@ export async function POST(req: Request) {
   const startTime = Date.now();
 
   try {
-    const body = await req.json().catch(() => ({}));
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
     const email = String(body.email ?? "")
       .trim()
       .toLowerCase();

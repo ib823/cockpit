@@ -10,7 +10,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: "Disabled" }, { status: 404 });
   }
   try {
-    const { email, code } = await req.json().catch(() => ({}));
+    let email: string | undefined;
+    let code: string | undefined;
+    try {
+      const body = await req.json();
+      email = body.email;
+      code = body.code;
+    } catch {
+      return NextResponse.json(
+        { ok: false, message: "Invalid request body" },
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
     if (!email || !code) {
       return NextResponse.json(
         { ok: false, message: "Email and code required" },
@@ -86,8 +97,6 @@ export async function POST(req: Request) {
         },
       }
     );
-
-    return NextResponse.json({ ok: true }, { headers: { "Content-Type": "application/json" } });
   } catch (e) {
     console.error("admin-login error", e);
     return NextResponse.json(
