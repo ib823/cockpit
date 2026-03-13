@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { startRegistration, startAuthentication } from "@simplewebauthn/browser";
+import { logger } from "@/lib/logger";
 import VersionDisplay from "@/components/shared/VersionDisplay";
 
 type EmailStatus = {
@@ -23,55 +24,7 @@ function LoginContent() {
   const [stage, setStage] = useState<"input" | "creating" | "verifying" | "success">("input");
   const [successMessage, setSuccessMessage] = useState<string>("");
 
-  // Handle magic link token on page load
-  useEffect(() => {
-    const token = searchParams?.get("token");
-    if (token) {
-      verifyMagicLink(token);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
-  const verifyMagicLink = async (token: string) => {
-    setBusy(true);
-    setErr(null);
-    try {
-      const res = await fetch("/api/auth/verify-magic-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-
-      const json = await res.json();
-
-      if (!json.ok) {
-        setErr(json.message || "Invalid or expired magic link");
-        return;
-      }
-
-      // Auto-populate email and check status
-      setEmail(json.email);
-      const statusRes = await fetch(
-        `/api/auth/email-status?email=${encodeURIComponent(json.email)}`
-      );
-      const statusJson = await statusRes.json();
-      setStatus(statusJson);
-
-      if (statusJson.needsAction === "enter_invite") {
-        // Automatically trigger passkey registration since magic link was verified
-        setSuccessMessage("Magic link verified! Creating your passkey...");
-        setTimeout(() => onRegisterWithMagicLink(json.email), 500);
-      } else if (statusJson.needsAction === "login") {
-        setSuccessMessage("Magic link verified! Please use your passkey to login.");
-      }
-    } catch (_error) {
-      setErr("Failed to verify magic link. Please try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const onRegisterWithMagicLink = async (emailAddress: string) => {
+  const onRegisterWithMagicLink = useCallback(async (emailAddress: string) => {
     setBusy(true);
     setErr(null);
     setStage("creating");
@@ -120,7 +73,54 @@ function LoginContent() {
     } finally {
       setBusy(false);
     }
-  };
+  }, []);
+
+  const verifyMagicLink = useCallback(async (token: string) => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch("/api/auth/verify-magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      const json = await res.json();
+
+      if (!json.ok) {
+        setErr(json.message || "Invalid or expired magic link");
+        return;
+      }
+
+      // Auto-populate email and check status
+      setEmail(json.email);
+      const statusRes = await fetch(
+        `/api/auth/email-status?email=${encodeURIComponent(json.email)}`
+      );
+      const statusJson = await statusRes.json();
+      setStatus(statusJson);
+
+      if (statusJson.needsAction === "enter_invite") {
+        // Automatically trigger passkey registration since magic link was verified
+        setSuccessMessage("Magic link verified! Creating your passkey...");
+        setTimeout(() => onRegisterWithMagicLink(json.email), 500);
+      } else if (statusJson.needsAction === "login") {
+        setSuccessMessage("Magic link verified! Please use your passkey to login.");
+      }
+    } catch (_error) {
+      setErr("Failed to verify magic link. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }, [onRegisterWithMagicLink]);
+
+  // Handle magic link token on page load
+  useEffect(() => {
+    const token = searchParams?.get("token");
+    if (token) {
+      verifyMagicLink(token);
+    }
+  }, [searchParams, verifyMagicLink]);
 
   const onCheck = async () => {
     setErr(null);
@@ -274,8 +274,7 @@ function LoginContent() {
       if (res.devMode) {
         // In dev mode, show the magic link
         setSuccessMessage(`Magic link: ${res.magicLink}`);
-        // eslint-disable-next-line no-console
-        console.log("🔗 Magic Link:", res.magicLink);
+        logger.info("Magic Link:", { magicLink: res.magicLink });
       } else {
         setSuccessMessage("Magic link sent! Check your email.");
       }

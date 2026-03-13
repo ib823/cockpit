@@ -13,6 +13,8 @@
 // Types
 // ============================================================================
 
+import { logger } from "@/lib/logger";
+
 export interface SecretConfig {
   key: string;
   required: boolean;
@@ -76,7 +78,7 @@ export function getSecret(key: string): string | undefined {
   const config = SECRETS[key];
 
   if (!config) {
-    console.warn(`[Secrets] Unknown secret key: ${key}`);
+    logger.warn(`[Secrets] Unknown secret key: ${key}`);
     return undefined;
   }
 
@@ -84,14 +86,14 @@ export function getSecret(key: string): string | undefined {
 
   if (!value) {
     if (config.required) {
-      console.error(`[Secrets] Required secret missing: ${key}`);
+      logger.error(`[Secrets] Required secret missing: ${key}`);
     }
     return undefined;
   }
 
   // Validate format if regex is provided
   if (config.validationRegex && !config.validationRegex.test(value)) {
-    console.error(`[Secrets] Secret validation failed: ${key}`);
+    logger.error(`[Secrets] Secret validation failed: ${key}`);
     return undefined;
   }
 

@@ -13,6 +13,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { logger } from "@/lib/logger";
 import { Modal, Input, List, Typography, Space, Tag, Empty } from "antd";
 import {
   SearchOutlined,
@@ -62,7 +63,7 @@ export function CommandPalette({ userRole = "USER" }: CommandPaletteProps) {
       try {
         setRecentItems(JSON.parse(stored));
       } catch (e) {
-        console.warn("[CommandPalette] Failed to parse recent items:", e);
+        logger.warn("[CommandPalette] Failed to parse recent items:", e);
       }
     }
   }, []);

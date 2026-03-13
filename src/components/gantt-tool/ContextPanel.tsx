@@ -240,9 +240,10 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                       );
 
                       return (
-                        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                         <div
                           key={resource.id}
+                          role="listitem"
+                          aria-label={`Drag resource: ${resource.name}`}
                           draggable
                           onDragStart={(e) => handleResourceDragStart(e, resource)}
                           className="p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-move bg-white"

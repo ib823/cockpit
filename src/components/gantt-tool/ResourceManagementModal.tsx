@@ -41,6 +41,7 @@ import {
   AssignmentLevel,
   GanttPhase,
   GanttTask,
+  GanttProject,
 } from "@/types/gantt-tool";
 import { differenceInCalendarDays, parseISO, format as formatDate } from "date-fns";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS, SHADOWS } from "@/lib/design-system/tokens";
@@ -116,8 +117,7 @@ export function ResourceManagementModal({ onClose }: { onClose: () => void }) {
 
       // Collect phase assignments
       currentProject.phases.forEach((phase) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        phase.phaseResourceAssignments?.forEach((assignment: any) => {
+        phase.phaseResourceAssignments?.forEach((assignment: { resourceId: string; hours?: number; allocationPercentage: number; assignmentNotes: string; id: string }) => {
           if (assignment.resourceId === resource.id) {
             const hours = Number(assignment.hours) || 0; // Safety: convert to number, default to 0
             totalHours += hours;
@@ -785,8 +785,7 @@ function TimelineView({
 }: {
   resources: Resource[];
   resourceStats: Map<string, ResourceStats>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  currentProject: any;
+  currentProject: GanttProject;
 }) {
   // Calculate timeline bounds
   const { startDate, endDate, totalWeeks } = useMemo(() => {
@@ -943,7 +942,7 @@ function HybridView({
 }: {
   resources: Resource[];
   resourceStats: Map<string, ResourceStats>;
-  currentProject: any;
+  currentProject: GanttProject;
   expandedResources: Set<string>;
   onToggleExpand: (id: string) => void;
   onRemoveAssignment: (assignment: ResourceAssignment) => void;

@@ -23,8 +23,7 @@ interface AppleMinimalistModalProps extends Omit<BaseModalProps, 'children'> {
   children?: React.ReactNode;
   fields?: FormField[];
   formValues?: Record<string, unknown>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onFieldChange?: (fieldId: string, value: any) => void;
+  onFieldChange?: (fieldId: string, value: unknown) => void;
   formLayout?: string;
 }
 

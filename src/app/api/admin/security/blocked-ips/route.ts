@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/nextauth-helpers";
 import { getBlockedIPs } from "@/lib/security/ip-blocker";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +36,7 @@ export async function GET() {
         );
       }
     }
-    console.error("[BLOCKED IPS API] Error:", error);
+    logger.error("[BLOCKED IPS API] Error", { error: error });
     return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }
 }

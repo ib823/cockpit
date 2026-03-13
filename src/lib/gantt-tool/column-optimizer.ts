@@ -11,6 +11,7 @@
 
 import { format } from "date-fns";
 import type { GanttProject } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 /**
  * Column width measurements and constraints
@@ -382,6 +383,6 @@ export async function waitForFonts(): Promise<void> {
     ]);
   } catch (error) {
     // Font loading failed - continue with fallback fonts
-    console.warn('[Column Optimizer] Font loading timeout, using fallback fonts');
+    logger.warn("[Column Optimizer] Font loading timeout, using fallback fonts");
   }
 }

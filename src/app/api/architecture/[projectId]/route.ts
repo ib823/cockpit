@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/nextauth-helpers";
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -69,7 +70,7 @@ export async function GET(
 
     return NextResponse.json(project);
   } catch (error) {
-    console.error("[Architecture API] GET error:", error);
+    logger.error("[Architecture API] GET error", { error: error });
     return NextResponse.json(
       { error: "Failed to fetch project" },
       { status: 500 }
@@ -92,7 +93,7 @@ export async function PUT(
     }
 
     const { projectId } = await params;
-    const body = await req.json();
+    const body: Record<string, unknown> = await req.json();
 
     // Check if user has edit access
     const existing = await prisma.architectureProject.findFirst({
@@ -132,9 +133,9 @@ export async function PUT(
       lastEditedBy: session.user.id,
     };
 
-    if (body.name !== undefined) updateData.name = body.name;
-    if (body.description !== undefined) updateData.description = body.description;
-    if (body.version !== undefined) updateData.version = body.version;
+    if (body.name !== undefined) updateData.name = body.name as string;
+    if (body.description !== undefined) updateData.description = body.description as string;
+    if (body.version !== undefined) updateData.version = body.version as string;
     if (body.businessContext !== undefined) updateData.businessContext = body.businessContext as Prisma.InputJsonValue;
     if (body.currentLandscape !== undefined) updateData.currentLandscape = body.currentLandscape as Prisma.InputJsonValue;
     if (body.proposedSolution !== undefined) updateData.proposedSolution = body.proposedSolution as Prisma.InputJsonValue;
@@ -171,8 +172,8 @@ export async function PUT(
         data: {
           projectId: project.id,
           versionNumber: nextVersionNumber,
-          name: body.versionName || `Version ${nextVersionNumber}`,
-          description: body.versionDescription || "Auto-saved version",
+          name: (body.versionName as string) || `Version ${nextVersionNumber}`,
+          description: (body.versionDescription as string) || "Auto-saved version",
           businessContext: project.businessContext as Prisma.InputJsonValue,
           currentLandscape: project.currentLandscape as Prisma.InputJsonValue,
           proposedSolution: project.proposedSolution as Prisma.InputJsonValue,
@@ -184,7 +185,7 @@ export async function PUT(
 
     return NextResponse.json(project);
   } catch (error) {
-    console.error("[Architecture API] PUT error:", error);
+    logger.error("[Architecture API] PUT error", { error: error });
     return NextResponse.json(
       { error: "Failed to update project" },
       { status: 500 }
@@ -232,7 +233,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[Architecture API] DELETE error:", error);
+    logger.error("[Architecture API] DELETE error", { error: error });
     return NextResponse.json(
       { error: "Failed to delete project" },
       { status: 500 }

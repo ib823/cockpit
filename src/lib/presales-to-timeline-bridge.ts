@@ -3,6 +3,7 @@ import { detectEmployeeCount, detectMultiEntityFactors } from "@/lib/critical-pa
 import { Chip, ClientProfile, Decision, Phase } from "@/types/core";
 import { ScenarioGenerator } from "@/lib/scenario-generator";
 import { sanitizeObject, sanitizeHtml } from "@/lib/input-sanitizer";
+import { logger } from "@/lib/logger";
 
 /**
  * SECURITY: Basic sanitization for chip values
@@ -28,7 +29,7 @@ function sanitizeChipValue(value: unknown): string {
  * SECURITY: Validate and sanitize phase data before rendering
  * Prevents XSS in phase names, descriptions, and metadata
  */
-function sanitizePhase(phase: any): any {
+function sanitizePhase(phase: Phase): Phase {
   return {
     ...phase,
     id: sanitizeHtml(String(phase.id || "")),
@@ -38,7 +39,7 @@ function sanitizePhase(phase: any): any {
     workingDays: Math.max(0, Math.min(1000, Number(phase.workingDays) || 0)), // Clamp to 0-1000
     startBusinessDay: Math.max(0, Number(phase.startBusinessDay) || 0),
     effort: Math.max(0, Number(phase.effort) || 0),
-    resources: phase.resources?.map((r: any) => ({
+    resources: phase.resources?.map((r: { name?: string; role?: string; allocation?: number; hourlyRate?: number; id: string; region?: string }) => ({
       ...r,
       name: sanitizeHtml(String(r.name || "")),
       role: sanitizeHtml(String(r.role || "")),
@@ -202,10 +203,10 @@ export function convertPresalesToTimeline(
     // Calculate multipliers from chips
     const multipliersResult = calculateMultipliers(chips);
 
-    console.log(
+    logger.info(
       `[Bridge] ✅ Conversion complete using ScenarioGenerator: ${plan.totalEffort} PD total`
     );
-    console.log(`[Bridge] 🔒 Sanitized ${sanitizedPhases.length} phases for rendering`);
+    logger.info(`[Bridge] 🔒 Sanitized ${sanitizedPhases.length} phases for rendering`);
 
     return {
       profile,
@@ -222,7 +223,7 @@ export function convertPresalesToTimeline(
       warnings: multipliersResult.warnings,
     };
   } catch (error) {
-    console.error("[Bridge] ❌ Conversion failed:", error);
+    logger.error("[Bridge] Conversion failed", { error });
 
     return {
       profile: getDefaultProfile(),
@@ -253,17 +254,17 @@ export function mapModulesToPackages(chips: Chip[]): string[] {
     // SECURITY: Sanitize chip value before processing
     const moduleName = sanitizeChipValue(chip.value).toLowerCase();
 
-    console.log(`[Bridge] Mapping module: "${moduleName}"`);
+    logger.info(`[Bridge] Mapping module: "${moduleName}"`);
 
     if (moduleName.includes("finance") || moduleName.includes("fi")) {
       packages.add("Finance_1");
       packages.add("Finance_3");
-      console.log("[Bridge] → Added Finance packages");
+      logger.info("[Bridge] → Added Finance packages");
     }
 
     if (moduleName.includes("hr") || moduleName.includes("hcm") || moduleName.includes("human")) {
       packages.add("HCM_1");
-      console.log("[Bridge] → Added HCM package");
+      logger.info("[Bridge] → Added HCM package");
     }
 
     if (
@@ -273,7 +274,7 @@ export function mapModulesToPackages(chips: Chip[]): string[] {
       moduleName.includes("inventory")
     ) {
       packages.add("SCM_1");
-      console.log("[Bridge] → Added SCM package");
+      logger.info("[Bridge] → Added SCM package");
     }
 
     if (
@@ -282,7 +283,7 @@ export function mapModulesToPackages(chips: Chip[]): string[] {
       moduleName.includes("mm")
     ) {
       packages.add("PROC_1");
-      console.log("[Bridge] → Added Procurement package");
+      logger.info("[Bridge] → Added Procurement package");
     }
 
     if (
@@ -291,12 +292,12 @@ export function mapModulesToPackages(chips: Chip[]): string[] {
       moduleName.includes("customer")
     ) {
       packages.add("CX_1");
-      console.log("[Bridge] → Added CX package");
+      logger.info("[Bridge] → Added CX package");
     }
   });
 
   const packageArray = Array.from(packages);
-  console.log(`[Bridge] Total packages mapped: ${packageArray.length}`, packageArray);
+  logger.info(`[Bridge] Total packages mapped: ${packageArray.length}`, { packages: packageArray });
 
   return packageArray;
 }
@@ -356,7 +357,7 @@ export function extractClientProfile(chips: Chip[]): ClientProfile {
 function applyMultipliers(
   baseEffort: number,
   chips: Chip[],
-  decisions: any
+  decisions: unknown
 ): {
   totalEffort: number;
   multipliers: {
@@ -384,14 +385,14 @@ function applyMultipliers(
   const entityDetection = detectMultiEntityFactors(fullText);
   if (entityDetection.totalMultiplier > 1) {
     multipliers.entity = entityDetection.totalMultiplier;
-    console.log(`[Bridge] 🔥 Multi-entity multiplier: ${entityDetection.totalMultiplier}x`);
+    logger.info(`[Bridge] 🔥 Multi-entity multiplier: ${entityDetection.totalMultiplier}x`);
     warnings.push(...entityDetection.warnings);
   }
 
   const employeeDetection = detectEmployeeCount(fullText);
   if (employeeDetection.count) {
     multipliers.employee = calculateEmployeeMultiplier(employeeDetection.count);
-    console.log(
+    logger.info(
       `[Bridge] 👥 Employee multiplier (${employeeDetection.count} users): ${multipliers.employee}x`
     );
   }
@@ -399,7 +400,7 @@ function applyMultipliers(
   const integrationChips = chips.filter((c) => c.type === "INTEGRATION");
   if (integrationChips.length > 0) {
     multipliers.integration = 1 + integrationChips.length * 0.15;
-    console.log(
+    logger.info(
       `[Bridge] 🔗 Integration multiplier (${integrationChips.length} systems): ${multipliers.integration}x`
     );
   }
@@ -407,7 +408,7 @@ function applyMultipliers(
   const complianceChips = chips.filter((c) => c.type === "COMPLIANCE");
   if (complianceChips.length > 0) {
     multipliers.compliance = 1 + complianceChips.length * 0.1;
-    console.log(
+    logger.info(
       `[Bridge] ⚖️ Compliance multiplier (${complianceChips.length} requirements): ${multipliers.compliance}x`
     );
   }
@@ -419,7 +420,7 @@ function applyMultipliers(
 
   const finalEffort = Math.round(baseEffort * multipliers.total);
 
-  console.log(
+  logger.info(
     `[Bridge] 🎯 Final calculation: ${baseEffort} PD × ${multipliers.total.toFixed(2)}x = ${finalEffort} PD`
   );
 

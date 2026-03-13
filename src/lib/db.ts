@@ -1,7 +1,10 @@
 import { PrismaClient } from "@prisma/client";
+import { logger } from "@/lib/logger";
+
+type ExtendedPrismaClient = ReturnType<typeof prismaClientSingleton>;
 
 const globalForPrisma = global as unknown as {
-  prisma?: PrismaClient;
+  prisma?: ExtendedPrismaClient;
   prismaConnecting?: Promise<void>;
 };
 
@@ -33,7 +36,7 @@ class QueryMonitor {
     if (duration > this.slowQueryThreshold) {
       this.stats.slowQueries++;
       if (process.env.NODE_ENV === "development") {
-        console.warn(`[DB] ⚠️  Slow query: ${duration.toFixed(2)}ms`);
+        logger.warn(`[DB] Slow query: ${duration.toFixed(2)}ms`);
       }
     }
 
@@ -42,9 +45,9 @@ class QueryMonitor {
       this.queryTimes.shift();
     }
 
-    // Update stats
+    // Update stats — track max incrementally to avoid spread operator overflow
     this.stats.avgQueryTime = this.queryTimes.reduce((a, b) => a + b, 0) / this.queryTimes.length;
-    this.stats.maxQueryTime = Math.max(...this.queryTimes);
+    this.stats.maxQueryTime = Math.max(this.stats.maxQueryTime, duration);
   }
 
   getStats(): QueryStats {
@@ -102,7 +105,7 @@ const prismaClientSingleton = () => {
           queryMonitor.recordQuery(duration);
 
           if (process.env.NODE_ENV === "development" && duration > 50) {
-            console.log(`[DB] ${model}.${operation} - ${duration.toFixed(2)}ms`);
+            logger.info(`[DB] ${model}.${operation} - ${duration.toFixed(2)}ms`);
           }
 
           return result;
@@ -118,7 +121,7 @@ export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
 // In development, store the client globally to prevent hot-reload issues
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma as any; // Extended client type
+  globalForPrisma.prisma = prisma;
 }
 
 /**
@@ -135,9 +138,9 @@ async function warmupConnection() {
       const startTime = performance.now();
       await prisma.$queryRaw`SELECT 1`;
       const duration = performance.now() - startTime;
-      console.log(`[DB] Connection warmed up in ${duration.toFixed(2)}ms`);
+      logger.info(`[DB] Connection warmed up in ${duration.toFixed(2)}ms`);
     } catch (error) {
-      console.error("[DB] Failed to warm up connection:", error);
+      logger.error("[DB] Failed to warm up connection", { error });
     } finally {
       globalForPrisma.prismaConnecting = undefined;
     }
@@ -149,7 +152,7 @@ async function warmupConnection() {
 // Warm up connection in production on module load (for serverless cold starts)
 if (process.env.NODE_ENV === "production" && typeof window === "undefined") {
   warmupConnection().catch((err) => {
-    console.error("[DB] Connection warmup failed:", err);
+    logger.error("[DB] Connection warmup failed", { error: err });
   });
 }
 
@@ -182,40 +185,42 @@ export async function withRetry<T>(
         try {
           await prisma.$queryRaw`SELECT 1`;
         } catch (healthError) {
-          console.warn(`[DB] Connection health check failed on attempt ${attempt + 1}`);
+          logger.warn(`[DB] Connection health check failed on attempt ${attempt + 1}`);
           // Continue to retry even if health check fails
         }
       }
 
       return await operation();
-    } catch (error: any) {
-      lastError = error;
+    } catch (error: unknown) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      const errorMessage = lastError.message;
+      const errorCode = (error as { code?: string })?.code;
 
       // Check if it's a connection error worth retrying
-      const errorString = String(error?.message || error || "").toLowerCase();
+      const errorString = errorMessage.toLowerCase();
       const isConnectionError =
         errorString.includes("connection") ||
         errorString.includes("closed") ||
         errorString.includes("timeout") ||
         errorString.includes("econnrefused") ||
         errorString.includes("enotfound") ||
-        error?.code === "P1001" || // Can't reach database
-        error?.code === "P1002" || // Database timeout
-        error?.code === "P1008" || // Operations timed out
-        error?.code === "P1017" || // Server closed connection
-        error?.code === "P2024"; // Timed out fetching
+        errorCode === "P1001" || // Can't reach database
+        errorCode === "P1002" || // Database timeout
+        errorCode === "P1008" || // Operations timed out
+        errorCode === "P1017" || // Server closed connection
+        errorCode === "P2024"; // Timed out fetching
 
       if (!isConnectionError || attempt === maxRetries - 1) {
         if (attempt > 0) {
-          console.error(`[DB] Operation failed after ${attempt + 1} attempts:`, error?.message || error);
+          logger.error(`[DB] Operation failed after ${attempt + 1} attempts`, { errorMessage });
         }
         throw error;
       }
 
       // Exponential backoff with jitter
       const delay = delayMs * Math.pow(2, attempt) + Math.random() * 100;
-      console.warn(
-        `[DB] Connection error (${error?.message || error}), retrying in ${delay.toFixed(0)}ms... (attempt ${attempt + 1}/${maxRetries})`
+      logger.warn(
+        `[DB] Connection error (${errorMessage}), retrying in ${delay.toFixed(0)}ms... (attempt ${attempt + 1}/${maxRetries})`
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
@@ -244,7 +249,7 @@ export async function checkDatabaseHealth(): Promise<{
     };
   } catch (error) {
     const latency = performance.now() - startTime;
-    console.error("[DB] Health check failed:", error);
+    logger.error("[DB] Health check failed", { error });
 
     return {
       healthy: false,

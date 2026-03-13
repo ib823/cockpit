@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
 /**
  * OrgChartPro - Apple-Quality Organization Chart
  *
@@ -21,6 +20,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo, useEffect, memo } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import type {
@@ -443,7 +443,10 @@ const ConnectionAnchors = memo(function ConnectionAnchors({
     <>
       {/* Top anchor */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={(e) => { e.stopPropagation(); onAnchorClick(nodeId, "top"); }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onAnchorClick(nodeId, "top"); } }}
         style={{ ...anchorTouchStyle, top: -22, left: "50%", transform: "translateX(-50%)" }}
         onMouseEnter={(e) => handleHover(e, 1.3)}
         onMouseLeave={(e) => handleHover(e, 1)}
@@ -453,7 +456,10 @@ const ConnectionAnchors = memo(function ConnectionAnchors({
       </div>
       {/* Bottom anchor */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={(e) => { e.stopPropagation(); onAnchorClick(nodeId, "bottom"); }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onAnchorClick(nodeId, "bottom"); } }}
         style={{ ...anchorTouchStyle, bottom: -22, left: "50%", transform: "translateX(-50%)" }}
         onMouseEnter={(e) => handleHover(e, 1.3)}
         onMouseLeave={(e) => handleHover(e, 1)}
@@ -463,7 +469,10 @@ const ConnectionAnchors = memo(function ConnectionAnchors({
       </div>
       {/* Left anchor */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={(e) => { e.stopPropagation(); onAnchorClick(nodeId, "left"); }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onAnchorClick(nodeId, "left"); } }}
         style={{ ...anchorTouchStyle, left: -22, top: "50%", transform: "translateY(-50%)" }}
         onMouseEnter={(e) => handleHover(e, 1.3)}
         onMouseLeave={(e) => handleHover(e, 1)}
@@ -473,7 +482,10 @@ const ConnectionAnchors = memo(function ConnectionAnchors({
       </div>
       {/* Right anchor */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={(e) => { e.stopPropagation(); onAnchorClick(nodeId, "right"); }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onAnchorClick(nodeId, "right"); } }}
         style={{ ...anchorTouchStyle, right: -22, top: "50%", transform: "translateY(-50%)" }}
         onMouseEnter={(e) => handleHover(e, 1.3)}
         onMouseLeave={(e) => handleHover(e, 1)}
@@ -651,10 +663,14 @@ const OrgNode = memo(function OrgNode({
 
   return (
     <div
+      role="option"
+      tabIndex={0}
+      aria-selected={isAnySelected}
       onClick={(e) => {
         e.stopPropagation();
         if (!isCardDragging) onSelect(e);
       }}
+      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); onEdit(); } else if (e.key === ' ') { e.preventDefault(); e.stopPropagation(); onSelect(e as unknown as React.MouseEvent); } }}
       onDoubleClick={(e) => { e.stopPropagation(); onEdit(); }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -674,9 +690,6 @@ const OrgNode = memo(function OrgNode({
         userSelect: "none",
         willChange: isCardDragging ? "left, top" : "auto",
       }}
-      tabIndex={0}
-      role="option"
-      aria-selected={isAnySelected}
     >
       {/* Card */}
       <div
@@ -718,10 +731,12 @@ const OrgNode = memo(function OrgNode({
               }}
             >
               {logo ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
+                <Image
                   src={logo}
                   alt={resource.companyName || ""}
+                  width={32}
+                  height={32}
+                  unoptimized
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
@@ -990,10 +1005,14 @@ const GroupNode = memo(function GroupNode({
 
   return (
     <div
+      role="option"
+      tabIndex={0}
+      aria-selected={isSelected}
       onClick={(e) => {
         e.stopPropagation();
         if (!isCardDragging) onSelect();
       }}
+      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); onEdit(); } else if (e.key === ' ') { e.preventDefault(); e.stopPropagation(); onSelect(); } }}
       onDoubleClick={(e) => { e.stopPropagation(); onEdit(); }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -1012,9 +1031,6 @@ const GroupNode = memo(function GroupNode({
         transition: isCardDragging ? "none" : "opacity 150ms ease, transform 150ms ease",
         userSelect: "none",
       }}
-      tabIndex={0}
-      role="option"
-      aria-selected={isSelected}
     >
       {/* Card - Styled like resource cards */}
       <div
@@ -1227,10 +1243,12 @@ const GroupNode = memo(function GroupNode({
                   }}
                 >
                   {memberLogo ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
+                    <Image
                       src={memberLogo}
                       alt={member.companyName || ""}
+                      width={32}
+                      height={32}
+                      unoptimized
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                   ) : (
@@ -1374,8 +1392,12 @@ const Minimap = memo(function Minimap({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       ref={minimapRef}
       onClick={handleClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); } }}
+      aria-label="Minimap navigation"
       style={{
         position: "absolute",
         bottom: 16,
@@ -1658,14 +1680,20 @@ function BulkEditModal({
         zIndex: 10000,
         padding: 20,
       }}
+      role="button"
+      tabIndex={0}
+      aria-label="Close modal"
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose(); } }}
     >
       <motion.div
+        role="presentation"
         initial={{ scale: 0.95, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         transition={TOKENS.spring.default}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
         style={{
           width: "100%",
           maxWidth: 560,
@@ -2525,14 +2553,20 @@ function GroupEditModal({
         zIndex: 10000,
         padding: 20,
       }}
+      role="button"
+      tabIndex={0}
+      aria-label="Close modal"
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose(); } }}
     >
       <motion.div
+        role="presentation"
         initial={{ scale: 0.95, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         transition={TOKENS.spring.default}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
         style={{
           width: "100%",
           maxWidth: 600,
@@ -3070,8 +3104,12 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
     updateResourceGroup = async (_id: string, _data: unknown) => {},
     deleteResourceGroup = async (_id: string) => {},
     getResourceGroups = () => [] as ResourceGroup[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } = useGanttToolStoreV2() as any;
+  } = useGanttToolStoreV2() as unknown as {
+    addResourceGroup: () => Promise<void>;
+    updateResourceGroup: (id: string, data: unknown) => Promise<void>;
+    deleteResourceGroup: (id: string) => Promise<void>;
+    getResourceGroups: () => ResourceGroup[];
+  };
 
   const currentProject = project ?? storeProject;
   const resources = useMemo(() => currentProject?.resources || [], [currentProject?.resources]);
@@ -3138,8 +3176,7 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
     const posMap = new Map<string, NodePosition>();
 
     // First, apply stored positions
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    storedCardPositions.forEach((stored: any) => {
+    storedCardPositions.forEach((stored: OrgChartCardPosition) => {
       posMap.set(stored.resourceId, { x: stored.x, y: stored.y });
     });
 
@@ -3387,8 +3424,9 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
   }, []);
 
   // Get updateOrgChartCanvas from store (may not yet exist on GanttToolStateV2)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { updateOrgChartCanvas = (_data: unknown) => {} } = useGanttToolStoreV2() as any;
+  const { updateOrgChartCanvas = (_data: unknown) => {} } = useGanttToolStoreV2() as unknown as {
+    updateOrgChartCanvas: (data: unknown) => void;
+  };
 
   // Handler for updating card position (free-form drag) - called on drag END
   const handlePositionChange = useCallback((resourceId: string, newX: number, newY: number) => {
@@ -3934,8 +3972,7 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
       x.set(offsetX);
       y.set(offsetY);
     }, 50);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resources, groups, savedHierarchy, storedCardPositions, storedGroupPositions, updateOrgChartCanvas, scale, x, y, MIN_ZOOM]);
+  }, [resources, groups, savedHierarchy, storedCardPositions, storedGroupPositions, updateOrgChartCanvas, scale, x, y, MIN_ZOOM, GAP, containerRef]);
 
   // Checkbox selection handlers for bulk edit
   const handleToggleResourceCheck = useCallback((resourceId: string) => {
@@ -4787,10 +4824,13 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
                       return (
                         <div
                           key={group.id}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => {
                             setEditingGroupId(group.id);
                             setShowGroupModal(true);
                           }}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditingGroupId(group.id); setShowGroupModal(true); } }}
                           style={{
                             padding: "12px 16px",
                             margin: "0 8px 6px",
@@ -4949,7 +4989,10 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
                   return (
                     <div
                       key={resource.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setSelectedId(resource.id)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleEdit(resource.id); } else if (e.key === ' ') { e.preventDefault(); setSelectedId(resource.id); } }}
                       onDoubleClick={() => handleEdit(resource.id)}
                       style={{
                         padding: "10px 16px",
@@ -4993,10 +5036,12 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
                         {/* Company Logo or Category dot with sub-company indicator */}
                         <div style={{ position: "relative", flexShrink: 0 }}>
                           {logo ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
+                            <Image
                               src={logo}
                               alt={resource.companyName}
+                              width={24}
+                              height={24}
+                              unoptimized
                               style={{
                                 width: 24,
                                 height: 24,
@@ -5208,6 +5253,8 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
 
         {/* Canvas */}
         <div
+          role="button"
+          tabIndex={0}
           id="org-chart-canvas"
           ref={containerRef}
           onWheel={handleWheel}
@@ -5218,6 +5265,7 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
             backgroundColor: TOKENS.colors.bg.secondary,
             cursor: isCardDragging ? "default" : "grab",
           }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedId(null); setSelectedGroupId(null); setSelectedConnectionId(null); } }}
           onClick={() => {
             setSelectedId(null);
             setSelectedGroupId(null);
@@ -5489,11 +5537,14 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
                 return (
                   <div
                     key={`group-boundary-${groupId}`}
+                    role="button"
+                    tabIndex={0}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedGroupId(groupId);
                       setSelectedId(null);
                     }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); setEditingGroupId(groupId); setShowGroupModal(true); } else if (e.key === ' ') { e.preventDefault(); e.stopPropagation(); setSelectedGroupId(groupId); setSelectedId(null); } }}
                     onDoubleClick={(e) => {
                       e.stopPropagation();
                       setEditingGroupId(groupId);
@@ -5763,7 +5814,9 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
 
                 return (
                   <div
+                    role="presentation"
                     onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     style={{
                       padding: isMobileDevice ? "10px 12px" : "8px 12px",
@@ -6123,10 +6176,13 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
                 {filteredResources.map(resource => (
                   <div
                     key={resource.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => {
                       setSelectedId(resource.id);
                       setShowMobileDrawer(false);
                     }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedId(resource.id); setShowMobileDrawer(false); } }}
                     style={{
                       padding: "14px 16px",
                       marginBottom: 8,
@@ -6298,14 +6354,20 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
         zIndex: 9999,
         padding: deviceType === "mobile" ? 0 : 20,
       }}
+      role="button"
+      tabIndex={0}
+      aria-label="Close modal"
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose(); } }}
     >
       <motion.div
+        role="presentation"
         initial={{ scale: 0.95, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         transition={TOKENS.spring.default}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
         style={{
           width: deviceType === "mobile" ? "100%" : "95%",
           maxWidth: 1600,

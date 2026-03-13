@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -148,7 +149,7 @@ export async function POST(req: Request) {
       message: "Please authenticate with your passkey",
     });
   } catch (error) {
-    console.error("Magic login error:", error);
+    logger.error("Magic login error", { error: error });
     return NextResponse.json({ ok: false, error: "Authentication failed" }, { status: 500 });
   }
 }

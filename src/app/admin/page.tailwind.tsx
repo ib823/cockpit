@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AccessCodeModal from "@/components/admin/AccessCodeModal";
+import { logger } from "@/lib/logger";
 
 interface User {
   id: string;
@@ -51,7 +52,7 @@ export default function AdminPage() {
         setCurrentUser({ email: data.user.email, name: data.user.name });
       }
     } catch (e) {
-      console.error("Failed to fetch current user", e);
+      logger.error("Failed to fetch current user", { error: e });
     }
   }
 
@@ -63,7 +64,7 @@ export default function AdminPage() {
         setUsers(data.users);
       }
     } catch (e) {
-      console.error("Failed to fetch users", e);
+      logger.error("Failed to fetch users", { error: e });
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,7 @@ export default function AdminPage() {
       await fetch("/api/auth/logout", { method: "POST" });
       router.push("/login");
     } catch (e) {
-      console.error("Logout failed", e);
+      logger.error("Logout failed", { error: e });
       setLoggingOut(false);
     }
   }

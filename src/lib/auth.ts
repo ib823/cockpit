@@ -4,7 +4,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./db";
 
 export const authConfig = {
-  adapter: PrismaAdapter(prisma as any), // Extended Prisma client
+  adapter: PrismaAdapter(prisma as Parameters<typeof PrismaAdapter>[0]),
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   providers: [],
 

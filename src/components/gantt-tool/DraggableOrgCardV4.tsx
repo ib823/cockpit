@@ -18,6 +18,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import type { Designation, OrgNode, DropZoneType, DragData, DropZoneData, ResourceCategory } from "@/hooks/useOrgChartDragDrop";
 
@@ -348,13 +349,15 @@ export function DraggableOrgCardV4({
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       ref={setDragRef}
       {...listeners}
       {...attributes}
+      role="button"
+      tabIndex={0}
       style={getCardStyle()}
       onClick={onSelect}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect?.(e as unknown as React.MouseEvent); } }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
@@ -549,10 +552,12 @@ export function DraggableOrgCardV4({
             title="Change company"
           >
             {node.companyLogoUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
+              <Image
                 src={node.companyLogoUrl}
                 alt={node.companyName || "Company"}
+                width={32}
+                height={32}
+                unoptimized
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             ) : (
@@ -562,8 +567,8 @@ export function DraggableOrgCardV4({
 
           {/* Company Picker Dropdown */}
           {showCompanyPicker && availableCompanies.length > 0 && (
-            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
             <div
+              role="presentation"
               style={{
                 position: "absolute",
                 top: "32px",
@@ -579,6 +584,7 @@ export function DraggableOrgCardV4({
                 overflowY: "auto",
               }}
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
             >
               {availableCompanies.map((company) => (
                 <button
@@ -619,10 +625,12 @@ export function DraggableOrgCardV4({
                   }}
                 >
                   {/* Show actual logo from logo library */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={company.logoUrl}
                     alt={company.name}
+                    width={20}
+                    height={20}
+                    unoptimized
                     style={{
                       width: "20px",
                       height: "20px",
@@ -720,8 +728,8 @@ export function DraggableOrgCardV4({
 
           {/* Designation picker (dropdown for now, radial in next phase) */}
           {showDesignationPicker && (
-            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
             <div
+              role="presentation"
               style={{
                 position: "absolute",
                 top: "100%",
@@ -736,6 +744,7 @@ export function DraggableOrgCardV4({
                 minWidth: "160px",
               }}
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
             >
               {Object.entries(DESIGNATION_LABELS).map(([key, label]) => (
                 <button

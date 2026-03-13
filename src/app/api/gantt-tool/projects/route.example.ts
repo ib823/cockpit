@@ -11,6 +11,7 @@ import { getServerSession } from "next-auth";
 import { protectAPIRoute } from "@/lib/security/api-protection";
 import { RATE_LIMITS } from "@/lib/security/rate-limiter";
 import { addSecurityHeaders } from "@/lib/security/api-protection";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/gantt-tool/projects
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest) {
 
     return addSecurityHeaders(response);
   } catch (error) {
-    console.error("[API] Project creation failed:", error);
+    logger.error("[API] Project creation failed", { error: error });
 
     return NextResponse.json(
       {
@@ -149,7 +150,7 @@ export async function GET(req: NextRequest) {
 
     return addSecurityHeaders(response);
   } catch (error) {
-    console.error("[API] Failed to fetch projects:", error);
+    logger.error("[API] Failed to fetch projects", { error: error });
 
     return NextResponse.json(
       {

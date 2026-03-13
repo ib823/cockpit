@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { destroyAuthSession } from "@/lib/nextauth-helpers";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -32,7 +33,7 @@ export async function POST() {
 
     return response;
   } catch (error) {
-    console.error("Logout error:", error);
+    logger.error("Logout error", { error: error });
     return NextResponse.json(
       {
         ok: false,

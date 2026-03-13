@@ -53,7 +53,7 @@ export interface GanttProject {
     companyLogos?: Record<string, string>; // company name -> base64 logo URL
     selectedLogoCompanyName?: string; // Currently selected logo to display
     peerLinks?: PeerLink[]; // Explicit peer relationships (only appear when user creates them via drag-drop)
-    [key: string]: any; // Other org chart data
+    [key: string]: unknown;
   };
 
   // ARCHITECTURE DATA (Phase 1: Unified Project Model)
@@ -897,7 +897,7 @@ export interface EnhancedPhaseResourceAssignment extends PhaseResourceAssignment
  * Migrates a legacy resource to the new schema with assignmentLevel, isBillable, and chargeRatePerHour
  * This ensures backward compatibility when loading old project data
  */
-export function migrateResourceToNewSchema(resource: any): Resource {
+export function migrateResourceToNewSchema(resource: Record<string, unknown>): Resource {
   // Determine assignment level based on category (PM can assign to both, others only tasks)
   const assignmentLevel: AssignmentLevel = resource.category === "pm" ? "both" : "task";
 
@@ -961,7 +961,7 @@ export interface ProjectDelta {
     startDate?: string;
     viewSettings?: GanttViewSettings;
     budget?: ProjectBudget;
-    orgChart?: any;
+    orgChart?: Record<string, unknown>;
   };
 
   // Phase changes

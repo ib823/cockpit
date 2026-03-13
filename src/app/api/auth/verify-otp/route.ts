@@ -5,6 +5,7 @@ import { otpVerifyLimiter } from "@/lib/server-rate-limiter";
 import { hashOTP, timingSafeCompare } from "@/lib/crypto-utils";
 import { logAuthEvent } from "@/lib/monitoring/auth-metrics";
 import { isIPBlocked, checkAndBlockIP } from "@/lib/security/ip-blocker";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -246,7 +247,7 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error) {
-    console.error("Verify OTP error:", error);
+    logger.error("Verify OTP error", { error: error });
     return NextResponse.json(
       { ok: false, message: "Verification failed. Please try again." },
       { status: 500 }

@@ -228,8 +228,7 @@ export interface IDAL {
   listSnapshots(projectId: string): Promise<EstimateSnapshot[]>;
 
   // Audit Trail
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getAuditLog(entityId: string, limit?: number): Promise<any[]>;
+  getAuditLog(entityId: string, limit?: number): Promise<Record<string, unknown>[]>;
 
   // Transaction Support
   transaction<T>(fn: (dal: IDAL) => Promise<T>): Promise<T>;

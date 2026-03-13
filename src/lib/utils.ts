@@ -36,8 +36,7 @@ export function formatCurrency(amount: number, currency: string = "MYR"): string
 /**
  * Debounce function for performance optimization
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic function type requires any for proper inference
-export function debounce<T extends (...args: unknown[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {

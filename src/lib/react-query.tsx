@@ -9,9 +9,10 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
+import { logger } from "@/lib/logger";
 
 // Devtools import - may not be available in all environments
-let ReactQueryDevtools: any;
+let ReactQueryDevtools: React.ComponentType<{ initialIsOpen?: boolean; position?: string }> | undefined;
 try {
   ReactQueryDevtools = require("@tanstack/react-query-devtools").ReactQueryDevtools;
 } catch {
@@ -30,9 +31,10 @@ const defaultQueryOptions = {
     gcTime: 30 * 60 * 1000, // 30 minutes (previously cacheTime)
 
     // Retry failed requests
-    retry: (failureCount: number, error: any) => {
+    retry: (failureCount: number, error: unknown) => {
       // Don't retry on 4xx errors
-      if (error?.status >= 400 && error?.status < 500) {
+      const statusError = error as { status?: number } | null;
+      if (statusError?.status && statusError.status >= 400 && statusError.status < 500) {
         return false;
       }
       // Retry up to 3 times for other errors
@@ -131,7 +133,7 @@ export const queryKeys = {
   l3Catalog: {
     all: ["l3-catalog"] as const,
     lists: () => [...queryKeys.l3Catalog.all, "list"] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.l3Catalog.lists(), filters] as const,
+    list: (filters: Record<string, unknown>) => [...queryKeys.l3Catalog.lists(), filters] as const,
     details: () => [...queryKeys.l3Catalog.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.l3Catalog.details(), id] as const,
   },
@@ -140,7 +142,7 @@ export const queryKeys = {
   lobs: {
     all: ["lobs"] as const,
     lists: () => [...queryKeys.lobs.all, "list"] as const,
-    list: (filters?: Record<string, any>) => [...queryKeys.lobs.lists(), filters ?? {}] as const,
+    list: (filters?: Record<string, unknown>) => [...queryKeys.lobs.lists(), filters ?? {}] as const,
     details: () => [...queryKeys.lobs.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.lobs.details(), id] as const,
   },
@@ -149,7 +151,7 @@ export const queryKeys = {
   projects: {
     all: ["projects"] as const,
     lists: () => [...queryKeys.projects.all, "list"] as const,
-    list: (filters?: Record<string, any>) =>
+    list: (filters?: Record<string, unknown>) =>
       [...queryKeys.projects.lists(), filters ?? {}] as const,
     details: () => [...queryKeys.projects.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.projects.details(), id] as const,
@@ -184,7 +186,7 @@ export const queryKeys = {
 /**
  * Helper to invalidate queries by pattern
  */
-export async function invalidateQueries(client: QueryClient, keys: readonly any[]) {
+export async function invalidateQueries(client: QueryClient, keys: readonly unknown[]) {
   await client.invalidateQueries({ queryKey: keys });
 }
 
@@ -193,7 +195,7 @@ export async function invalidateQueries(client: QueryClient, keys: readonly any[
  */
 export async function prefetchQuery<T>(
   client: QueryClient,
-  queryKey: readonly any[],
+  queryKey: readonly unknown[],
   queryFn: () => Promise<T>,
   options?: { staleTime?: number }
 ) {
@@ -224,5 +226,5 @@ export function getQueryCacheStats(client: QueryClient) {
  */
 export function clearAllCache(client: QueryClient) {
   client.clear();
-  console.log("[React Query] 🗑️  All cache cleared");
+  logger.info("[React Query] All cache cleared");
 }

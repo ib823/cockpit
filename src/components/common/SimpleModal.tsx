@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { logger } from "@/lib/logger";
 import { Button } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 
@@ -75,23 +76,24 @@ export function SimpleModal({
         );
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
-      role="dialog"
+      role="presentation"
       className={`fixed inset-0 bg-black/45 flex justify-center z-[1000] ${
         centered ? "items-center" : "items-start pt-[100px]"
       }`}
       onClick={handleBackdropClick}
       onKeyDown={(e) => { if (e.key === 'Escape') handleBackdropClick(); }}
     >
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
+        role="dialog"
+        aria-modal="true"
         className="bg-[var(--color-bg-primary)] rounded-[var(--radius-md)] max-w-[90vw] max-h-[90vh] overflow-hidden flex flex-col"
         style={{
           width: typeof width === "number" ? `${width}px` : width,
           boxShadow: "var(--shadow-lg)",
         }}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         {/* Header */}
         {(title || closable) && (
@@ -150,7 +152,7 @@ SimpleModal.confirm = function confirm({
 }) {
   // For confirm modals, you need to manage state in the parent component
   // This is a placeholder that throws an error to guide developers
-  console.error(
+  logger.error(
     "SimpleModal.confirm requires state management in the parent component. " +
       "Please use a state variable and SimpleModal component instead. Example:\n\n" +
       "const [showConfirm, setShowConfirm] = useState(false);\n" +

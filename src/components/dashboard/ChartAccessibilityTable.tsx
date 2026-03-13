@@ -130,8 +130,7 @@ export function MarginWaterfallTable({
     { name: "Gross Margin", value: margin, type: margin >= 0 ? "positive" : "negative" },
   ];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const columns: ColumnsType<any> = [
+  const columns: ColumnsType<ChartDataPoint> = [
     {
       title: "Item",
       dataIndex: "name",
@@ -184,8 +183,7 @@ export function CostByPhaseTable({
     percentage: ((phase.cost / totalCost) * 100).toFixed(1),
   }));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const columns: ColumnsType<any> = [
+  const columns: ColumnsType<ChartDataPoint> = [
     {
       title: "Phase",
       dataIndex: "name",
@@ -234,8 +232,7 @@ export function ResourceUtilizationTable({
   }>;
   showVisually?: boolean;
 }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const columns: ColumnsType<any> = [
+  const columns: ColumnsType<ChartDataPoint> = [
     {
       title: "Resource",
       dataIndex: "name",
@@ -296,8 +293,14 @@ export function RiskAssessmentTable({
   }>;
   showVisually?: boolean;
 }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const columns: ColumnsType<any> = [
+  interface RiskFactorRecord {
+    name: string;
+    score: number;
+    weight: number;
+    description: string;
+  }
+
+  const columns: ColumnsType<RiskFactorRecord> = [
     {
       title: "Risk Factor",
       dataIndex: "name",
@@ -320,8 +323,7 @@ export function RiskAssessmentTable({
     {
       title: "Risk Level",
       key: "level",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render: (_: any, record: any) => {
+      render: (_: unknown, record: RiskFactorRecord) => {
         if (record.score >= 70) return "Low Risk";
         if (record.score >= 50) return "Medium Risk";
         return "High Risk";
@@ -379,8 +381,15 @@ export function RecommendationsTable({
   }>;
   showVisually?: boolean;
 }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const columns: ColumnsType<any> = [
+  interface RecommendationRecord {
+    title: string;
+    type: string;
+    confidence: number;
+    impact: string;
+    priority: string;
+  }
+
+  const columns: ColumnsType<RecommendationRecord> = [
     {
       title: "Recommendation",
       dataIndex: "title",

@@ -21,8 +21,7 @@ export function Select({ value, onValueChange, children, disabled }: SelectProps
     <div className="relative">
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return React.cloneElement(child as React.ReactElement<any>, {
+          return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
             value,
             onValueChange,
             disabled,
@@ -85,8 +84,7 @@ export function SelectContent({
       <div className="p-1">
         {React.Children.map(children, (child) => {
           if (React.isValidElement(child)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return React.cloneElement(child as React.ReactElement<any>, {
+          return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
               onValueChange,
             });
           }

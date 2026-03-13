@@ -1,6 +1,7 @@
 // Cross-tab synchronization hook for localStorage changes
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useEffect } from "react";
 import { useTimelineStore } from "@/stores/timeline-store";
 
@@ -22,7 +23,7 @@ export function useStorageSync() {
     const handleStorageChange = (e: StorageEvent) => {
       // Only respond to changes to our timeline store
       if (e.key === "timeline-store" && e.newValue !== null) {
-        console.log("[StorageSync] Detected change in another tab, reloading state...");
+        logger.info("[StorageSync] Detected change in another tab, reloading state...");
 
         try {
           // Parse the new state
@@ -46,21 +47,21 @@ export function useStorageSync() {
 
           if (currentState !== incomingState) {
             // Ask user before reloading to prevent data loss
-            console.log("[StorageSync] State changed, prompting user...");
+            logger.info("[StorageSync] State changed, prompting user...");
             const userConfirmed = window.confirm(
               "Timeline was updated in another tab. Reload to see changes?\n\n" +
                 "(Any unsaved work in this tab will be lost)"
             );
 
             if (userConfirmed) {
-              console.log("[StorageSync] User confirmed, reloading page...");
+              logger.info("[StorageSync] User confirmed, reloading page...");
               window.location.reload();
             } else {
-              console.log("[StorageSync] User cancelled reload, keeping current state");
+              logger.info("[StorageSync] User cancelled reload, keeping current state");
             }
           }
         } catch (error) {
-          console.error("[StorageSync] Failed to sync state:", error);
+          logger.error("[StorageSync] Failed to sync state", { error });
           // On error, do nothing to avoid breaking the current tab
         }
       }

@@ -5,6 +5,7 @@
  */
 
 import type { GanttProject } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 export interface MigrationResult {
   success: boolean;
@@ -42,7 +43,7 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
     // Check authentication first
     const authCheck = await fetch("/api/gantt-tool/projects");
     if (authCheck.status === 401) {
-      console.error("[Migration] User not authenticated");
+      logger.error("[Migration] User not authenticated");
       result.success = false;
       result.errors.push("Authentication required. Please log in and try again.");
       return result;
@@ -83,7 +84,7 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-          console.error(`[Migration] Failed to create project "${project.name}":`, {
+          logger.error(`[Migration] Failed to create project "${project.name}"`, {
             status: response.status,
             statusText: response.statusText,
             error: errorData,
@@ -113,7 +114,7 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
             ...h,
             date: formatDateForAPI(h.date),
           })),
-          resources: (project.resources || []).map((r: any) => ({
+          resources: (project.resources || []).map((r) => ({
             id: r.id,
             name: r.name,
             category: r.category,
@@ -141,7 +142,7 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
 
         if (!updateResponse.ok) {
           const errorData = await updateResponse.json().catch(() => ({ error: "Unknown error" }));
-          console.error(`[Migration] Failed to update project "${project.name}":`, {
+          logger.error(`[Migration] Failed to update project "${project.name}"`, {
             status: updateResponse.status,
             statusText: updateResponse.statusText,
             error: errorData,
@@ -154,14 +155,14 @@ export async function migrateLocalStorageToDatabase(): Promise<MigrationResult> 
         result.migratedCount++;
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[Migration] ✗ Failed to migrate project "${project.name}":`, error);
+        logger.error(`[Migration] Failed to migrate project "${project.name}"`, { error });
         result.errors.push(`"${project.name}": ${errorMsg}`);
         result.success = false;
       }
     }
 
     if (result.errors.length > 0) {
-      console.error("[Migration] Errors:", result.errors);
+      logger.error("[Migration] Errors", { errors: result.errors });
     }
 
     // If all successful, backup and clear localStorage

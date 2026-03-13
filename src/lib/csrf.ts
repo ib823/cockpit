@@ -6,6 +6,7 @@
 
 import { timingSafeEqual as cryptoTimingSafeEqual, randomBytes } from "crypto";
 import { cookies } from "next/headers";
+import { logger } from "@/lib/logger";
 
 const CSRF_COOKIE = "csrf-token";
 const CSRF_HEADER = "x-csrf-token";
@@ -21,7 +22,7 @@ export async function generateCsrfToken(): Promise<string> {
 
   const store = await cookies();
   store.set(CSRF_COOKIE, token, {
-    httpOnly: true,
+    httpOnly: false, // Must be readable by JavaScript for double-submit cookie pattern
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     path: "/",
@@ -49,7 +50,7 @@ export async function validateCsrfToken(request: Request): Promise<boolean> {
   const cookieToken = store.get(CSRF_COOKIE)?.value;
 
   if (!cookieToken) {
-    console.warn("[CSRF] No CSRF cookie found");
+    logger.warn("[CSRF] No CSRF cookie found");
     return false;
   }
 
@@ -70,7 +71,7 @@ export async function validateCsrfToken(request: Request): Promise<boolean> {
   }
 
   if (!requestToken) {
-    console.warn("[CSRF] No CSRF token in request");
+    logger.warn("[CSRF] No CSRF token in request");
     return false;
   }
 
@@ -85,7 +86,7 @@ export async function validateCsrfToken(request: Request): Promise<boolean> {
 
     return cryptoTimingSafeEqual(cookieBuffer, requestBuffer);
   } catch (error) {
-    console.error("[CSRF] Token comparison failed:", error);
+    logger.error("[CSRF] Token comparison failed", { error });
     return false;
   }
 }
@@ -123,7 +124,7 @@ export async function csrfMiddleware(request: Request): Promise<Response | null>
   const isValid = await validateCsrfToken(request);
 
   if (!isValid) {
-    console.warn("[SECURITY] CSRF validation failed", {
+    logger.warn("[SECURITY] CSRF validation failed", {
       method: request.method,
       url: request.url,
       hasHeader: !!request.headers.get(CSRF_HEADER),

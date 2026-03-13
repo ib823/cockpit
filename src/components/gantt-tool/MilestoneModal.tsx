@@ -20,6 +20,7 @@ import type { GanttMilestone } from "@/types/gantt-tool";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { FormExample } from "@/lib/design-system/showcase-helpers";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "@/lib/design-system/tokens";
+import { logger } from "@/lib/logger";
 
 interface MilestoneModalProps {
   open: boolean;
@@ -113,7 +114,7 @@ export function MilestoneModal({
       setColor('#FF3B30');
       setValidationErrors({});
     } catch (error) {
-      console.error('Error saving milestone:', error);
+      logger.error('Error saving milestone:', { error });
       alert('Failed to save milestone. Please try again.');
     }
   };
@@ -131,7 +132,7 @@ export function MilestoneModal({
           setValidationErrors({});
         }
       } catch (error) {
-        console.error('Error deleting milestone:', error);
+        logger.error('Error deleting milestone:', { error });
       }
     }
   };
@@ -390,9 +391,9 @@ export function MilestoneModal({
               {[...milestones]
                 .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                 .map((milestone) => (
-                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                   <div
                     key={milestone.id}
+                    role="listitem"
                     style={{
                       display: "flex",
                       alignItems: "center",

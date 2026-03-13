@@ -335,8 +335,8 @@ export async function calculateProjectCostingSummary(
 function aggregateAllocationsByResource(
   allocations: Array<{
     resourceId: string;
-    workingDays: any;
-    mandays: any | null;
+    workingDays: { toNumber: () => number };
+    mandays: { toNumber: () => number } | null;
   }>
 ): Record<string, { totalMandays: number }> {
   const aggregated: Record<string, { totalMandays: number }> = {};
@@ -360,11 +360,18 @@ function aggregateAllocationsByResource(
 /**
  * Calculate cost breakdown by region (with security filtering)
  */
+interface CostBreakdownItem {
+  label: string;
+  mandays: number;
+  gsr: number;
+  nsr: number;
+}
+
 function calculateCostBreakdownByRegion(
-  allocations: any[],
-  costs: CostCalculationResult[],
-  visibilityLevel: CostVisibilityLevel
-): any[] {
+  _allocations: unknown[],
+  _costs: CostCalculationResult[],
+  _visibilityLevel: CostVisibilityLevel
+): CostBreakdownItem[] {
   // Implementation would group by region
   // Simplified for now
   return [];
@@ -374,9 +381,9 @@ function calculateCostBreakdownByRegion(
  * Calculate cost breakdown by designation
  */
 function calculateCostBreakdownByDesignation(
-  allocations: any[],
-  costs: CostCalculationResult[]
-): any[] {
+  _allocations: unknown[],
+  _costs: CostCalculationResult[]
+): CostBreakdownItem[] {
   // Implementation would group by designation
   // Simplified for now
   return [];

@@ -837,9 +837,9 @@ export class ScenarioGenerator {
 
     streams.forEach((stream) => {
       phases.forEach((phase) => {
-        const streamWeight = (ESTIMATION_CONSTANTS.STREAM_WEIGHTS as any)[stream] || 0.125;
+        const streamWeight = (ESTIMATION_CONSTANTS.STREAM_WEIGHTS as Record<string, number>)[stream] || 0.125;
         const phaseWeight =
-          (ESTIMATION_CONSTANTS.PHASE_DISTRIBUTION as any)[phase.toLowerCase()] || 0.2;
+          (ESTIMATION_CONSTANTS.PHASE_DISTRIBUTION as Record<string, number>)[phase.toLowerCase()] || 0.2;
 
         const effort = plan.totalEffort * streamWeight * phaseWeight;
 
@@ -980,7 +980,7 @@ export class ScenarioGenerator {
       const categoryPhases = phasesByCategory[category] || [];
       const categoryDuration = Math.floor(
         plan.duration *
-          ((ESTIMATION_CONSTANTS.PHASE_DISTRIBUTION as any)[category.toLowerCase()] || 0.2)
+          ((ESTIMATION_CONSTANTS.PHASE_DISTRIBUTION as Record<string, number>)[category.toLowerCase()] || 0.2)
       );
 
       categoryPhases.forEach((phase) => {

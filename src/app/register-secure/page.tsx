@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { logger } from "@/lib/logger";
 import Image from "next/image";
 
 type RegistrationStep = "email" | "password" | "totp" | "backup-codes" | "complete";
@@ -148,7 +149,7 @@ export default function SecureRegisterPage() {
       setLoading(false);
       setStep("totp");
     } catch (err) {
-      console.error("Registration error:", err);
+      logger.error("Registration error:", { error: err });
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }

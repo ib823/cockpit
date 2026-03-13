@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const UpdatePresenceSchema = z.object({
   isEditing: z.boolean().optional(),
@@ -84,7 +85,7 @@ export async function POST(
       );
     }
 
-    console.error("[API] Failed to update presence:", error);
+    logger.error("[API] Failed to update presence", { error: error });
     return NextResponse.json({ error: "Failed to update presence" }, { status: 500 });
   }
 }
@@ -167,7 +168,7 @@ export async function GET(
       totalActive: activeSessions.length,
     });
   } catch (error) {
-    console.error("[API] Failed to get active sessions:", error);
+    logger.error("[API] Failed to get active sessions", { error: error });
     return NextResponse.json({ error: "Failed to get active sessions" }, { status: 500 });
   }
 }
@@ -195,7 +196,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[API] Failed to remove presence:", error);
+    logger.error("[API] Failed to remove presence", { error: error });
     return NextResponse.json({ error: "Failed to remove presence" }, { status: 500 });
   }
 }

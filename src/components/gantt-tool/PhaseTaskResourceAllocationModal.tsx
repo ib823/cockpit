@@ -26,6 +26,7 @@ import {
 } from "@/types/gantt-tool";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
+import { logger } from "@/lib/logger";
 
 interface Props {
   itemId: string;
@@ -220,7 +221,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
         grouped[resource.category].push(resource);
       } else {
         // Fallback to 'other' if category is invalid or missing
-        console.warn(`Resource "${resource.name}" has invalid category: ${resource.category}`);
+        logger.warn(`Resource "${resource.name}" has invalid category: ${resource.category}`);
         grouped.other.push(resource);
       }
     });
@@ -290,8 +291,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       if (itemType === "phase") {
         updatePhaseResourceAssignment(itemId, assignment.assignmentId, finalNotes, percentage);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const task = item as any;
+          const task = item as { phaseId: string };
         updateTaskResourceAssignment(
           itemId,
           task.phaseId,
@@ -311,8 +311,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       if (itemType === "phase") {
         assignResourceToPhase(itemId, resourceId, smartNotes, percentage);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const task = item as any;
+        const task = item as { phaseId: string };
         assignResourceToTask(itemId, task.phaseId, resourceId, smartNotes, percentage);
       }
     }
@@ -334,8 +333,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       if (itemType === "phase") {
         unassignResourceFromPhase(itemId, assignment.assignmentId);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const task = item as any;
+          const task = item as { phaseId: string };
         unassignResourceFromTask(itemId, task.phaseId, assignment.assignmentId);
       }
     }

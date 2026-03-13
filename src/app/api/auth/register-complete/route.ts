@@ -11,6 +11,8 @@ import {
 import { generateTOTPSecret, encryptTOTPSecret } from "@/lib/security/totp";
 import { generateBackupCodes, saveBackupCodes } from "@/lib/security/backup-codes";
 import { Role } from "@prisma/client";
+import { badRequest, unauthorized, forbidden, serverError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -28,56 +30,52 @@ export const runtime = "nodejs";
  */
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const email = String(body.email ?? "")
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const email = String((body as Record<string, unknown>).email ?? "")
       .trim()
       .toLowerCase();
-    const code = body.code;
-    const password = body.password;
+    const code = (body as Record<string, unknown>).code as string | undefined;
+    const password = (body as Record<string, unknown>).password;
 
     // ============================================
     // 1. Validate Email & Code
     // ============================================
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!email || !emailRegex.test(email) || email.length > 255) {
-      return NextResponse.json({ ok: false, message: "Invalid email format." }, { status: 400 });
+      return badRequest("Invalid email format.");
     }
 
     if (!code || code.length !== 6) {
-      return NextResponse.json({ ok: false, message: "Invalid access code." }, { status: 400 });
+      return badRequest("Invalid access code.");
     }
 
     if (!password || typeof password !== "string") {
-      return NextResponse.json({ ok: false, message: "Password is required." }, { status: 400 });
+      return badRequest("Password is required.");
     }
 
     // Check if email approval exists and is valid
     const approval = await prisma.emailApproval.findUnique({ where: { email } });
 
     if (!approval) {
-      return NextResponse.json(
-        { ok: false, message: "This email has not been approved for access." },
-        { status: 403 }
-      );
+      return forbidden("This email has not been approved for access.");
     }
 
     if (approval.usedAt) {
-      return NextResponse.json(
-        { ok: false, message: "This access code has already been used." },
-        { status: 403 }
-      );
+      return forbidden("This access code has already been used.");
     }
 
     if (approval.tokenExpiresAt < new Date()) {
-      return NextResponse.json(
-        { ok: false, message: "This access code has expired." },
-        { status: 403 }
-      );
+      return forbidden("This access code has expired.");
     }
 
     const codeIsValid = await compare(code, approval.tokenHash);
     if (!codeIsValid) {
-      return NextResponse.json({ ok: false, message: "Incorrect access code." }, { status: 401 });
+      return unauthorized("Incorrect access code.");
     }
 
     // ============================================
@@ -87,27 +85,13 @@ export async function POST(req: Request) {
     // Check complexity
     const complexityCheck = validatePasswordComplexity(password);
     if (!complexityCheck.valid) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "Password does not meet security requirements.",
-          errors: complexityCheck.errors,
-        },
-        { status: 400 }
-      );
+      return badRequest("Password does not meet security requirements.");
     }
 
     // Check if password has been breached
     const breachCheck = await checkPasswordBreach(password);
     if (breachCheck.breached) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: `This password has been found in ${breachCheck.count.toLocaleString()} data breaches. Please choose a different password.`,
-          breached: true,
-        },
-        { status: 400 }
-      );
+      return badRequest(`This password has been found in ${breachCheck.count.toLocaleString()} data breaches. Please choose a different password.`);
     }
 
     // ============================================
@@ -128,8 +112,7 @@ export async function POST(req: Request) {
     const passwordExpiresAt = calculatePasswordExpiry();
 
     type UserResult = { id: string; email: string; role: "USER" | "MANAGER" | "ADMIN" };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user: UserResult = await (prisma.$transaction as any)(async (tx: any) => {
+    const user: UserResult = await (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<UserResult>) => Promise<UserResult>)(async (tx) => {
       // Create user
       const newUser = await tx.users.create({
         data: {
@@ -191,7 +174,7 @@ export async function POST(req: Request) {
       await sendSecurityEmail(user.email, emailContent.subject, emailContent.html);
     } catch (emailError) {
       // Don't fail registration if email fails
-      console.error("[Registration] Failed to send welcome email:", emailError);
+      logger.error("[Registration] Failed to send welcome email", { error: emailError });
     }
 
     // ============================================
@@ -216,13 +199,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (e) {
-    console.error("Registration failed:", e);
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "An internal server error occurred. Please try again.",
-      },
-      { status: 500 }
-    );
+    logger.error("Registration failed", { error: e });
+    return serverError();
   }
 }

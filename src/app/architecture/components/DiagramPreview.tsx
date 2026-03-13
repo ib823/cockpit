@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 import { Card, Button, Space, Spin, Select } from 'antd';
 import { DownloadOutlined, ZoomInOutlined, ZoomOutOutlined } from '@ant-design/icons';
 import mermaid from 'mermaid';
@@ -40,12 +41,7 @@ export function DiagramPreview({ currentStep }: { currentStep: number }) {
     setPreviewStep(currentStep);
   }, [currentStep]);
 
-  useEffect(() => {
-    renderDiagram();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, previewStep]);
-
-  const renderDiagram = async () => {
+  const renderDiagram = useCallback(async () => {
     if (!containerRef.current) return;
     setIsLoading(true);
 
@@ -75,7 +71,7 @@ export function DiagramPreview({ currentStep }: { currentStep: number }) {
           containerRef.current.innerHTML = svg;
         }
       } catch (mermaidError) {
-        console.error('Mermaid render error:', mermaidError);
+        logger.error('Mermaid render error:', { error: mermaidError });
         if (containerRef.current) {
           containerRef.current.innerHTML = `<div class="text-red p-4 body">Error rendering diagram: ${mermaidError instanceof Error ? mermaidError.message : 'Unknown error'}</div>`;
         }
@@ -87,7 +83,11 @@ export function DiagramPreview({ currentStep }: { currentStep: number }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [data, previewStep]);
+
+  useEffect(() => {
+    renderDiagram();
+  }, [renderDiagram]);
 
   const handleDownload = () => {
     const svg = containerRef.current?.querySelector('svg');

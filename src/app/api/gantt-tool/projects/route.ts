@@ -10,7 +10,9 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { prisma, withRetry } from "@/lib/db";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { getDefaultHolidaysForProject } from "@/lib/gantt-tool/holiday-integration";
+import { logger } from "@/lib/logger";
 
 // Validation schema for creating a project
 const CreateProjectSchema = z.object({
@@ -27,8 +29,63 @@ const CreateProjectSchema = z.object({
     showTitles: z.boolean().optional(),
     barDurationDisplay: z.enum(["wd", "cd", "resource", "dates", "all", "clean"]).optional(),
   }),
-  budget: z.any().optional(), // JSON field
+  budget: z.record(z.string(), z.unknown()).transform((val) => val as Prisma.InputJsonObject).optional(), // JSON field
 });
+
+// Prisma payload types for the GET query with nested includes
+type ProjectWithFullIncludes = Prisma.GanttProjectGetPayload<{
+  include: {
+    phases: {
+      include: {
+        tasks: {
+          include: {
+            resourceAssignments: true;
+          };
+        };
+        phaseResourceAssignments: true;
+      };
+    };
+    milestones: true;
+    holidays: true;
+    resources: true;
+    collaborators: {
+      select: {
+        role: true;
+        acceptedAt: true;
+      };
+    };
+    user: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+      };
+    };
+  };
+}>;
+
+type PhaseWithTasks = ProjectWithFullIncludes["phases"][number];
+type TaskWithAssignments = PhaseWithTasks["tasks"][number];
+type TaskResourceAssignment = TaskWithAssignments["resourceAssignments"][number];
+type PhaseResourceAssignment = PhaseWithTasks["phaseResourceAssignments"][number];
+type ProjectMilestone = ProjectWithFullIncludes["milestones"][number];
+type ProjectHoliday = ProjectWithFullIncludes["holidays"][number];
+type ProjectResource = ProjectWithFullIncludes["resources"][number];
+
+// Prisma payload type for the POST query with simpler includes
+type ProjectWithBasicIncludes = Prisma.GanttProjectGetPayload<{
+  include: {
+    phases: true;
+    milestones: true;
+    holidays: true;
+    resources: true;
+  };
+}>;
+
+type BasicPhase = ProjectWithBasicIncludes["phases"][number];
+type BasicMilestone = ProjectWithBasicIncludes["milestones"][number];
+type BasicHoliday = ProjectWithBasicIncludes["holidays"][number];
+type BasicResource = ProjectWithBasicIncludes["resources"][number];
 
 // GET - List all projects for authenticated user (owned + shared)
 export async function GET(_request: NextRequest) {
@@ -110,8 +167,7 @@ export async function GET(_request: NextRequest) {
     );
 
     // Serialize dates to strings for frontend
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const serializedProjects = projects.map((project: any) => {
+    const serializedProjects = projects.map((project: ProjectWithFullIncludes) => {
       const isOwner = project.userId === session.user.id;
       const collaboratorInfo = project.collaborators[0]; // Will have at most 1 entry due to where clause
 
@@ -126,43 +182,42 @@ export async function GET(_request: NextRequest) {
         owner: project.user,
         collaboratorRole: collaboratorInfo?.role || null,
         collaboratorAcceptedAt: collaboratorInfo?.acceptedAt?.toISOString() || null,
-        phases: project.phases.map((phase: any) => ({
+        phases: project.phases.map((phase: PhaseWithTasks) => ({
           ...phase,
           startDate: phase.startDate.toISOString().split("T")[0],
           endDate: phase.endDate.toISOString().split("T")[0],
-          tasks: phase.tasks.map((task: any) => ({
+          tasks: phase.tasks.map((task: TaskWithAssignments) => ({
             ...task,
             startDate: task.startDate.toISOString().split("T")[0],
             endDate: task.endDate.toISOString().split("T")[0],
-            resourceAssignments: task.resourceAssignments.map((ra: any) => ({
+            resourceAssignments: task.resourceAssignments.map((ra: TaskResourceAssignment) => ({
               ...ra,
               assignedAt: ra.assignedAt.toISOString(),
             })),
           })),
-          phaseResourceAssignments: phase.phaseResourceAssignments.map((pra: any) => ({
+          phaseResourceAssignments: phase.phaseResourceAssignments.map((pra: PhaseResourceAssignment) => ({
             ...pra,
             assignedAt: pra.assignedAt.toISOString(),
           })),
         })),
-        milestones: project.milestones.map((m: any) => ({
+        milestones: project.milestones.map((m: ProjectMilestone) => ({
           ...m,
           date: m.date.toISOString().split("T")[0],
         })),
-        holidays: project.holidays.map((h: any) => ({
+        holidays: project.holidays.map((h: ProjectHoliday) => ({
           ...h,
           date: h.date.toISOString().split("T")[0],
         })),
-        resources: project.resources.map((r: any) => ({
+        resources: project.resources.map((r: ProjectResource) => ({
           ...r,
           createdAt: r.createdAt.toISOString(),
         })),
       };
     });
-    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     return NextResponse.json({ projects: serializedProjects }, { status: 200 });
-  } catch (error) {
-    console.error("[API] Failed to fetch gantt projects:", error);
+  } catch (error: unknown) {
+    logger.error("[API] Failed to fetch gantt projects", { error: error });
     return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
   }
 }
@@ -210,9 +265,8 @@ export async function POST(request: NextRequest) {
     );
 
     // Use transaction with retry for create + audit log + holidays
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const project = (await withRetry(() =>
-      (prisma.$transaction as any)(async (tx: any) => {
+    const project = await withRetry(() =>
+      (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<ProjectWithBasicIncludes | null>) => Promise<ProjectWithBasicIncludes | null>)(async (tx) => {
         const newProject = await tx.ganttProject.create({
           data: {
             userId: session.user.id,
@@ -220,7 +274,7 @@ export async function POST(request: NextRequest) {
             description: validatedData.description,
             startDate: new Date(validatedData.startDate),
             viewSettings: validatedData.viewSettings,
-            budget: validatedData.budget || null,
+            budget: validatedData.budget ?? Prisma.DbNull,
           },
           include: {
             phases: true,
@@ -274,7 +328,11 @@ export async function POST(request: NextRequest) {
 
         return projectWithHolidays;
       })
-    )) as any;
+    );
+
+    if (!project) {
+      return NextResponse.json({ error: "Failed to create project" }, { status: 500 });
+    }
 
     // Serialize dates to strings for frontend
     const serializedProject = {
@@ -283,28 +341,27 @@ export async function POST(request: NextRequest) {
       createdAt: project.createdAt.toISOString(),
       updatedAt: project.updatedAt.toISOString(),
       deletedAt: project.deletedAt?.toISOString() || null,
-      phases: project.phases.map((phase: any) => ({
+      phases: project.phases.map((phase: BasicPhase) => ({
         ...phase,
         startDate: phase.startDate.toISOString().split("T")[0],
         endDate: phase.endDate.toISOString().split("T")[0],
       })),
-      milestones: project.milestones.map((m: any) => ({
+      milestones: project.milestones.map((m: BasicMilestone) => ({
         ...m,
         date: m.date.toISOString().split("T")[0],
       })),
-      holidays: project.holidays.map((h: any) => ({
+      holidays: project.holidays.map((h: BasicHoliday) => ({
         ...h,
         date: h.date.toISOString().split("T")[0],
       })),
-      resources: project.resources.map((r: any) => ({
+      resources: project.resources.map((r: BasicResource) => ({
         ...r,
         createdAt: r.createdAt.toISOString(),
       })),
     };
-    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     return NextResponse.json({ project: serializedProject }, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation failed", details: error.issues },
@@ -312,7 +369,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("[API] Failed to create gantt project:", error);
+    logger.error("[API] Failed to create gantt project", { error: error });
     return NextResponse.json({ error: "Failed to create project" }, { status: 500 });
   }
 }

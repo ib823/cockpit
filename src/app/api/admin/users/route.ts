@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/nextauth-helpers";
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { withCsrfProtection } from "@/lib/api-route-wrapper";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -68,7 +69,7 @@ export async function GET() {
         { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error("users error", e);
+    logger.error("users error", { error: e });
     return NextResponse.json(
       { error: "Internal error" },
       { status: 500, headers: { "Content-Type": "application/json" } }
@@ -143,7 +144,7 @@ export const POST = withCsrfProtection(async (req: Request) => {
         { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error("create user error", e);
+    logger.error("create user error", { error: e });
     return NextResponse.json(
       { error: "Failed to create user" },
       { status: 500, headers: { "Content-Type": "application/json" } }

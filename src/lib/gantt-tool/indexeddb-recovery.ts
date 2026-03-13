@@ -6,6 +6,7 @@
  */
 
 import type { GanttProject, Resource } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 const DB_NAME = "gantt_tool_local_v1";
 const DB_VERSION = 1;
@@ -62,7 +63,7 @@ export async function getAllLocalProjects(): Promise<GanttProject[]> {
       request.onerror = () => reject(request.error);
     });
   } catch (error) {
-    console.error("[Recovery] Failed to get local projects:", error);
+    logger.error("[Recovery] Failed to get local projects", error);
     return [];
   }
 }
@@ -82,7 +83,7 @@ export async function getLocalProject(projectId: string): Promise<GanttProject |
       request.onerror = () => reject(request.error);
     });
   } catch (error) {
-    console.error("[Recovery] Failed to get local project:", error);
+    logger.error("[Recovery] Failed to get local project", error);
     return null;
   }
 }
@@ -96,7 +97,7 @@ export async function generateRecoveryReport(): Promise<RecoveryReport[]> {
   const reports: RecoveryReport[] = [];
 
   for (const project of localProjects) {
-    const localMeta = project as any;
+    const localMeta = project as GanttProject & { needsSync?: boolean; localUpdatedAt?: string };
 
     const resourcesWithCompany = (project.resources || [])
       .filter((r: Resource) => r.companyName)
@@ -199,7 +200,7 @@ export async function pushRecoveredDataToServer(projectId: string): Promise<{
       if (result.errors && result.errors.length > 0) {
         errors.push(...result.errors);
       }
-      console.log(`[Recovery] Successfully pushed ${updatedCount} resources to server`);
+      logger.info(`[Recovery] Successfully pushed ${updatedCount} resources to server`);
     } else {
       const errorData = await response.json().catch(() => ({}));
       errors.push(`Server error: ${errorData.error || response.statusText}`);
@@ -221,65 +222,65 @@ export async function pushRecoveredDataToServer(projectId: string): Promise<{
  */
 export function installConsoleHelpers(): void {
   if (typeof window !== "undefined") {
-    (window as any).__recoveryReport = async () => {
-      console.log("[Recovery] Generating recovery report...");
+    (window as unknown as Record<string, unknown>).__recoveryReport = async () => {
+      logger.info("[Recovery] Generating recovery report...");
       const reports = await generateRecoveryReport();
 
-      console.log("\n=== IndexedDB Recovery Report ===\n");
+      logger.info("\n=== IndexedDB Recovery Report ===\n");
 
       if (reports.length === 0) {
-        console.log("No local data found in IndexedDB.");
+        logger.info("No local data found in IndexedDB.");
         return;
       }
 
       for (const report of reports) {
-        console.log(`Project: ${report.projectName} (${report.projectId})`);
-        console.log(`  Local updated: ${report.localUpdatedAt || "N/A"}`);
-        console.log(`  Needs sync: ${report.needsSync ? "YES" : "No"}`);
-        console.log(`  Resources with companyName: ${report.resourcesWithCompanyName.length}`);
+        logger.info(`Project: ${report.projectName} (${report.projectId})`);
+        logger.info(`  Local updated: ${report.localUpdatedAt || "N/A"}`);
+        logger.info(`  Needs sync: ${report.needsSync ? "YES" : "No"}`);
+        logger.info(`  Resources with companyName: ${report.resourcesWithCompanyName.length}`);
 
         if (report.resourcesWithCompanyName.length > 0) {
-          console.log("    Company assignments:");
+          logger.info("    Company assignments:");
           report.resourcesWithCompanyName.forEach(r => {
-            console.log(`      - ${r.resourceName}: "${r.companyName}"`);
+            logger.info(`      - ${r.resourceName}: "${r.companyName}"`);
           });
         }
 
-        console.log(`  Company logos: ${report.orgChartData.logoCount}`);
+        logger.info(`  Company logos: ${report.orgChartData.logoCount}`);
         if (report.orgChartData.logoCount > 0) {
-          console.log(`    Companies: ${report.orgChartData.companyNames.join(", ")}`);
+          logger.info(`    Companies: ${report.orgChartData.companyNames.join(", ")}`);
         }
-        console.log("");
+        logger.info("");
       }
 
-      console.log("To recover data for a project, run:");
-      console.log("  window.__recoverProject('PROJECT_ID')");
+      logger.info("To recover data for a project, run:");
+      logger.info("  window.__recoverProject('PROJECT_ID')");
 
       return reports;
     };
 
-    (window as any).__recoverProject = async (projectId: string) => {
-      console.log(`[Recovery] Attempting to recover data for project: ${projectId}`);
+    (window as unknown as Record<string, unknown>).__recoverProject = async (projectId: string) => {
+      logger.info(`[Recovery] Attempting to recover data for project: ${projectId}`);
       const result = await pushRecoveredDataToServer(projectId);
 
       if (result.success) {
-        console.log(`[Recovery] SUCCESS: Updated ${result.updatedCount} resources`);
-        console.log("[Recovery] Please refresh the page to see the recovered data.");
+        logger.info(`[Recovery] SUCCESS: Updated ${result.updatedCount} resources`);
+        logger.info("[Recovery] Please refresh the page to see the recovered data.");
       } else {
-        console.error("[Recovery] FAILED:", result.errors);
+        logger.error("[Recovery] FAILED:", result.errors);
       }
 
       return result;
     };
 
-    (window as any).__recoverAllProjects = async () => {
-      console.log("[Recovery] Attempting to recover all projects...");
+    (window as unknown as Record<string, unknown>).__recoverAllProjects = async () => {
+      logger.info("[Recovery] Attempting to recover all projects...");
       const reports = await generateRecoveryReport();
-      const results: Array<{ projectId: string; projectName: string; result: any }> = [];
+      const results: Array<{ projectId: string; projectName: string; result: Awaited<ReturnType<typeof pushRecoveredDataToServer>> }> = [];
 
       for (const report of reports) {
         if (report.resourcesWithCompanyName.length > 0) {
-          console.log(`[Recovery] Processing: ${report.projectName}`);
+          logger.info(`[Recovery] Processing: ${report.projectName}`);
           const result = await pushRecoveredDataToServer(report.projectId);
           results.push({
             projectId: report.projectId,
@@ -289,18 +290,18 @@ export function installConsoleHelpers(): void {
         }
       }
 
-      console.log("\n=== Recovery Results ===");
+      logger.info("\n=== Recovery Results ===");
       for (const r of results) {
         const status = r.result.success ? "SUCCESS" : "FAILED";
-        console.log(`${r.projectName}: ${status} (${r.result.updatedCount} resources)`);
+        logger.info(`${r.projectName}: ${status} (${r.result.updatedCount} resources)`);
       }
 
       return results;
     };
 
-    console.log("[Recovery] Console helpers installed. Available commands:");
-    console.log("  window.__recoveryReport() - Show what data is in IndexedDB");
-    console.log("  window.__recoverProject('ID') - Push recovered data to server");
-    console.log("  window.__recoverAllProjects() - Recover all projects");
+    logger.info("[Recovery] Console helpers installed. Available commands:");
+    logger.info("  window.__recoveryReport() - Show what data is in IndexedDB");
+    logger.info("  window.__recoverProject('ID') - Push recovered data to server");
+    logger.info("  window.__recoverAllProjects() - Recover all projects");
   }
 }

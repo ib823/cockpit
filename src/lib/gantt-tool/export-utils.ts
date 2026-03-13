@@ -19,6 +19,7 @@ import {
   weekSpanToExcelColumns,
   calculateTotalWeeks,
 } from "@/lib/export/timeline-granularity";
+import { logger } from "@/lib/logger";
 
 /**
  * Export Gantt chart to PNG image
@@ -91,7 +92,7 @@ export async function exportToPNG(
     }, "image/png");
   } catch (error) {
     hideLoadingIndicator(loadingDiv);
-    console.error("Failed to export PNG:", error);
+    logger.error("Failed to export PNG", { error });
     alert(`Failed to export PNG: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
@@ -174,7 +175,7 @@ export async function exportToPDF(project: GanttProject): Promise<void> {
     hideLoadingIndicator(loadingDiv);
   } catch (error) {
     hideLoadingIndicator(loadingDiv);
-    console.error("Failed to export PDF:", error);
+    logger.error("Failed to export PDF", { error });
     alert(`Failed to export PDF: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
@@ -444,7 +445,7 @@ export async function exportToExcel(project: GanttProject): Promise<void> {
     // Cleanup
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Failed to export Excel:", error);
+    logger.error("Failed to export Excel", { error });
     alert("Failed to export Excel. Please try again.");
   }
 }
@@ -858,7 +859,7 @@ export async function exportGanttEnhanced(
     hideLoadingIndicator(loadingDiv);
   } catch (error) {
     hideLoadingIndicator(loadingDiv);
-    console.error("Failed to export:", error);
+    logger.error("Failed to export", { error });
     alert(`Failed to export: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
@@ -1499,7 +1500,7 @@ export async function exportOrgChartToPNG(
     }, "image/png");
   } catch (error) {
     hideLoadingIndicator(loadingDiv);
-    console.error("Failed to export org chart:", error);
+    logger.error("Failed to export org chart", { error });
     alert(
       `Failed to export org chart: ${error instanceof Error ? error.message : "Unknown error"}`
     );
@@ -1575,7 +1576,7 @@ export async function exportOrgChartToPDF(
     hideLoadingIndicator(loadingDiv);
   } catch (error) {
     hideLoadingIndicator(loadingDiv);
-    console.error("Failed to export org chart to PDF:", error);
+    logger.error("Failed to export org chart to PDF", { error });
     alert(
       `Failed to export org chart to PDF: ${error instanceof Error ? error.message : "Unknown error"}`
     );
@@ -1699,7 +1700,7 @@ export async function exportOrgChartToPPT(
     hideLoadingIndicator(loadingDiv);
   } catch (error) {
     hideLoadingIndicator(loadingDiv);
-    console.error("Failed to export org chart to PowerPoint:", error);
+    logger.error("Failed to export org chart to PowerPoint", { error });
     alert(
       `Failed to export org chart to PowerPoint: ${error instanceof Error ? error.message : "Unknown error"}`
     );

@@ -17,9 +17,10 @@ import {
   markProjectSynced,
   addToSyncQueue,
 } from "./local-storage";
+import { logger } from "@/lib/logger";
 import { calculateProjectDelta, isDeltaEmpty, sanitizeDelta } from "./delta-calculator";
 import { shouldBatchDelta, batchDelta } from "./delta-batcher";
-import type { GanttProject, ProjectDelta } from "@/types/gantt-tool";
+import type { GanttProject, GanttTask, ProjectDelta } from "@/types/gantt-tool";
 
 const MAX_RETRY_COUNT = 10; // Increased from 5 to give more chances
 const RETRY_DELAYS = [1000, 2000, 5000, 10000, 30000, 60000]; // Exponential backoff up to 1 minute
@@ -55,15 +56,17 @@ function serializeDelta(delta: ProjectDelta): ProjectDelta {
   const serialized: ProjectDelta = {};
 
   if (delta.projectUpdates) {
-    serialized.projectUpdates = {};
-    Object.keys(delta.projectUpdates).forEach((key) => {
-      const value = (delta.projectUpdates as any)[key];
+    const updates = delta.projectUpdates as Record<string, unknown>;
+    const serializedUpdates: Record<string, unknown> = {};
+    Object.keys(updates).forEach((key) => {
+      const value = updates[key];
       if (key === "startDate" && value) {
-        (serialized.projectUpdates as any)[key] = formatDateField(value);
+        serializedUpdates[key] = formatDateField(value as string | Date);
       } else {
-        (serialized.projectUpdates as any)[key] = value;
+        serializedUpdates[key] = value;
       }
     });
+    serialized.projectUpdates = serializedUpdates as typeof delta.projectUpdates;
   }
 
   if (delta.phases) {
@@ -73,7 +76,7 @@ function serializeDelta(delta: ProjectDelta): ProjectDelta {
         ...phase,
         startDate: formatDateField(phase.startDate),
         endDate: formatDateField(phase.endDate),
-        tasks: phase.tasks.map((task: any) => ({
+        tasks: phase.tasks.map((task: GanttTask) => ({
           ...task,
           startDate: formatDateField(task.startDate),
           endDate: formatDateField(task.endDate),
@@ -85,7 +88,7 @@ function serializeDelta(delta: ProjectDelta): ProjectDelta {
         ...phase,
         startDate: formatDateField(phase.startDate),
         endDate: formatDateField(phase.endDate),
-        tasks: phase.tasks.map((task: any) => ({
+        tasks: phase.tasks.map((task: GanttTask) => ({
           ...task,
           startDate: formatDateField(task.startDate),
           endDate: formatDateField(task.endDate),
@@ -160,17 +163,17 @@ async function syncProjectToServer(
 
   // Skip if nothing changed
   if (isDeltaEmpty(delta)) {
-    console.log("[BackgroundSync] No changes to sync for", projectId);
+    logger.info("[BackgroundSync] No changes to sync for", { projectId });
     await markProjectSynced(projectId);
     return;
   }
 
-  console.log("[BackgroundSync] Syncing project", projectId);
+  logger.info("[BackgroundSync] Syncing project", { projectId });
 
   // Check if we need to batch
   if (shouldBatchDelta(delta)) {
     const batches = batchDelta(delta);
-    console.log(`[BackgroundSync] Batching into ${batches.length} requests`);
+    logger.info("[BackgroundSync] Batching into requests", { batchCount: batches.length });
 
     for (let i = 0; i < batches.length; i++) {
       const batchInfo = batches[i];
@@ -191,7 +194,7 @@ async function syncProjectToServer(
 
   // Mark as synced
   await markProjectSynced(projectId);
-  console.log("[BackgroundSync] Successfully synced", projectId);
+  logger.info("[BackgroundSync] Successfully synced", { projectId });
 }
 
 /**
@@ -205,10 +208,10 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
   });
 
   if (!response.ok) {
-    let errorData: any;
+    let errorData: Record<string, unknown>;
     try {
       errorData = await response.json();
-    } catch (jsonParseError) {
+    } catch (_jsonParseError) {
       // Response is not JSON or couldn't be parsed
       errorData = {
         error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
@@ -225,23 +228,14 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
     const code = errorData.code || null;
 
     // Log sync failure with comprehensive details
-    console.error("[BackgroundSync] Sync failed:", {
-      status: response.status,
-      statusText: response.statusText,
-      error: errorMessage,
-      code,
-      projectId,
-      details,
-      conflictField,
-      fullErrorData: errorData, // Include full error for debugging
-    });
+    logger.error("[BackgroundSync] Sync failed", new Error(String(errorMessage)));
 
     // Create error with status code for retry logic
     const error = new Error(errorMessage) as Error & {
       status?: number;
       isPermanent?: boolean;
-      details?: any;
-      validationDetails?: any;
+      details?: unknown;
+      validationDetails?: unknown;
       code?: string;
       conflictField?: string[];
     };
@@ -265,13 +259,13 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
  */
 async function processSyncQueue(): Promise<void> {
   if (isSyncing) {
-    console.log("[BackgroundSync] Already syncing, skipping...");
+    logger.info("[BackgroundSync] Already syncing, skipping...");
     return;
   }
 
   // Check if online
   if (!navigator.onLine) {
-    console.log("[BackgroundSync] Offline, skipping sync");
+    logger.info("[BackgroundSync] Offline, skipping sync");
     return;
   }
 
@@ -284,13 +278,13 @@ async function processSyncQueue(): Promise<void> {
       return;
     }
 
-    console.log(`[BackgroundSync] Processing ${pendingItems.length} pending sync items`);
+    logger.info(`[BackgroundSync] Processing ${pendingItems.length} pending sync items`);
 
     for (const item of pendingItems) {
       // Reset retry count for old items (gives them another chance after app reload or long delay)
       const itemAge = Date.now() - item.timestamp;
       if (item.retryCount > 0 && itemAge > RETRY_RESET_TIME) {
-        console.log(
+        logger.info(
           `[BackgroundSync] Resetting retry count for old item (age: ${Math.round(itemAge / 1000)}s)`,
           item.projectId
         );
@@ -308,10 +302,10 @@ async function processSyncQueue(): Promise<void> {
           if (response.ok) {
             const data = await response.json();
             serverState = data.project;
-            console.log("[BackgroundSync] Fetched server state for delta calculation");
+            logger.info("[BackgroundSync] Fetched server state for delta calculation");
           }
         } catch (fetchError) {
-          console.warn(
+          logger.warn(
             "[BackgroundSync] Could not fetch server state, syncing full state:",
             fetchError
           );
@@ -324,17 +318,18 @@ async function processSyncQueue(): Promise<void> {
         syncCallbacks.onSyncSuccess?.(item.projectId);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        const isPermanentError = (error as any)?.isPermanent === true;
-        const errorStatus = (error as any)?.status;
+        const syncError = error as { isPermanent?: boolean; status?: number; details?: unknown; validationDetails?: unknown; code?: string; conflictField?: string[] };
+        const isPermanentError = syncError.isPermanent === true;
+        const errorStatus = syncError.status;
 
-        console.error("[BackgroundSync] Sync failed for", item.projectId, errorMessage);
+        logger.error("[BackgroundSync] Sync failed for", item.projectId, errorMessage);
 
         // Handle permanent errors (validation failures) - don't retry
         if (isPermanentError) {
           // Get more details about the validation error
-          const validationDetails = (error as any)?.details || (error as any)?.validationDetails;
-          const errorCode = (error as any)?.code;
-          const conflictField = (error as any)?.conflictField;
+          const validationDetails = syncError.details || syncError.validationDetails;
+          const errorCode = syncError.code;
+          const conflictField = syncError.conflictField;
 
           // Log with all available details
           const errorInfo = {
@@ -348,7 +343,7 @@ async function processSyncQueue(): Promise<void> {
             itemId: item.id || "unknown",
           };
 
-          console.error("[BackgroundSync] Permanent error (validation/constraint failure), removing from queue:", errorInfo);
+          logger.error("[BackgroundSync] Permanent error (validation/constraint failure), removing from queue:", errorInfo);
 
           // Remove from queue - this error won't be fixed by retrying
           await removeFromSyncQueue(item.id);
@@ -412,8 +407,8 @@ async function processSyncQueue(): Promise<void> {
 
         if (item.retryCount >= MAX_RETRY_COUNT) {
           // Don't remove from queue - keep it for potential recovery
-          console.error("[BackgroundSync] Max retries exceeded for", item.projectId);
-          console.error("[BackgroundSync] Error details:", {
+          logger.error("[BackgroundSync] Max retries exceeded for", item.projectId);
+          logger.error("[BackgroundSync] Error details:", {
             projectId: item.projectId,
             retryCount: item.retryCount,
             lastError: errorMessage,
@@ -428,13 +423,13 @@ async function processSyncQueue(): Promise<void> {
           );
 
           // Skip this item for now but don't remove it - will retry after RETRY_RESET_TIME
-          console.log(
+          logger.info(
             `[BackgroundSync] Will retry again after ${RETRY_RESET_TIME / 1000}s or on app reload`
           );
         } else {
           // Schedule retry
           const delay = RETRY_DELAYS[Math.min(item.retryCount - 1, RETRY_DELAYS.length - 1)];
-          console.log(
+          logger.info(
             `[BackgroundSync] Retrying in ${delay}ms (attempt ${item.retryCount + 1}/${MAX_RETRY_COUNT})`
           );
 
@@ -454,14 +449,14 @@ async function processSyncQueue(): Promise<void> {
  * Start background sync
  */
 export function startBackgroundSync(callbacks?: typeof syncCallbacks): void {
-  console.log("[BackgroundSync] Starting background sync");
+  logger.info("[BackgroundSync] Starting background sync");
 
   if (callbacks) {
     syncCallbacks = callbacks;
   }
 
   // Process immediately
-  processSyncQueue().catch(console.error);
+  processSyncQueue().catch((err: unknown) => logger.error(err));
 
   // Start interval
   if (syncInterval) {
@@ -469,13 +464,13 @@ export function startBackgroundSync(callbacks?: typeof syncCallbacks): void {
   }
 
   syncInterval = setInterval(() => {
-    processSyncQueue().catch(console.error);
+    processSyncQueue().catch((err: unknown) => logger.error(err));
   }, SYNC_INTERVAL);
 
   // Listen for online/offline events
   window.addEventListener("online", () => {
-    console.log("[BackgroundSync] Back online, triggering sync");
-    processSyncQueue().catch(console.error);
+    logger.info("[BackgroundSync] Back online, triggering sync");
+    processSyncQueue().catch((err: unknown) => logger.error(err));
   });
 }
 
@@ -483,7 +478,7 @@ export function startBackgroundSync(callbacks?: typeof syncCallbacks): void {
  * Stop background sync
  */
 export function stopBackgroundSync(): void {
-  console.log("[BackgroundSync] Stopping background sync");
+  logger.info("[BackgroundSync] Stopping background sync");
 
   if (syncInterval) {
     clearInterval(syncInterval);
@@ -521,14 +516,14 @@ export async function clearSyncQueue(): Promise<void> {
     await removeFromSyncQueue(item.id);
   }
 
-  console.log(`[BackgroundSync] Cleared ${items.length} items from sync queue`);
+  logger.info(`[BackgroundSync] Cleared ${items.length} items from sync queue`);
 }
 
 /**
  * Force immediate sync (for debugging)
  */
 export async function forceSyncNow(projectId?: string): Promise<void> {
-  console.log("[BackgroundSync] Force sync triggered");
+  logger.info("[BackgroundSync] Force sync triggered");
 
   if (projectId) {
     await addToSyncQueue(projectId);

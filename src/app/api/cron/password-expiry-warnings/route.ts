@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
 import { passwordExpiryWarningTemplate } from "@/lib/email-templates";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -35,7 +36,7 @@ export async function GET(req: Request) {
     // Allow execution without key in development
     if (process.env.NODE_ENV === "production") {
       if (!cronSecret) {
-        console.error("[PasswordExpiryCron] CRON_SECRET_KEY not configured");
+        logger.error("[PasswordExpiryCron] CRON_SECRET_KEY not configured");
         return NextResponse.json(
           { ok: false, message: "Cron secret not configured" },
           { status: 500 }
@@ -43,7 +44,7 @@ export async function GET(req: Request) {
       }
 
       if (providedKey !== cronSecret) {
-        console.warn("[PasswordExpiryCron] Invalid cron secret provided");
+        logger.warn("[PasswordExpiryCron] Invalid cron secret provided");
         return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
       }
     }
@@ -183,7 +184,7 @@ export async function GET(req: Request) {
 
           results.sent++;
         } catch (emailError: unknown) {
-          console.error(`[PasswordExpiryCron] Failed to send email to ${user.email}:`, emailError);
+          logger.error(`[PasswordExpiryCron] Failed to send email to ${user.email}`, { error: emailError });
           results.failed++;
           const errorMessage = emailError instanceof Error ? emailError.message : String(emailError);
           results.errors.push(`${user.email}: ${errorMessage}`);
@@ -258,11 +259,11 @@ export async function GET(req: Request) {
     };
 
     // Log execution summary for monitoring
-    console.warn("[PasswordExpiryCron] Execution summary:", summary);
+    logger.warn("[PasswordExpiryCron] Execution summary", { summary: summary });
 
     return NextResponse.json(summary);
   } catch (error: unknown) {
-    console.error("[PasswordExpiryCron] Cron job failed:", error);
+    logger.error("[PasswordExpiryCron] Cron job failed", { error: error });
     return NextResponse.json(
       {
         ok: false,

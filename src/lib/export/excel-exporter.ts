@@ -16,7 +16,7 @@ export interface ExportData {
   projectName: string;
   chips: Chip[];
   phases: Phase[];
-  decisions?: Record<string, any>;
+  decisions?: Record<string, unknown>;
   totalCost: number;
   totalDuration: number;
   metadata?: {
@@ -79,7 +79,7 @@ export async function exportToExcel(data: ExportData): Promise<void> {
 /**
  * Create Summary sheet
  */
-function createSummarySheet(workbook: any, data: ExportData): void {
+function createSummarySheet(workbook: import("exceljs").Workbook, data: ExportData): void {
   const worksheet = workbook.addWorksheet("Summary");
 
   // Add title
@@ -124,7 +124,7 @@ function createSummarySheet(workbook: any, data: ExportData): void {
 /**
  * Create Timeline sheet
  */
-function createTimelineSheet(workbook: any, phases: Phase[]): void {
+function createTimelineSheet(workbook: import("exceljs").Workbook, phases: Phase[]): void {
   const worksheet = workbook.addWorksheet("Timeline");
 
   // Add headers
@@ -172,7 +172,7 @@ function createTimelineSheet(workbook: any, phases: Phase[]): void {
 /**
  * Create Cost Breakdown sheet
  */
-function createCostBreakdownSheet(workbook: any, phases: Phase[], totalCost: number): void {
+function createCostBreakdownSheet(workbook: import("exceljs").Workbook, phases: Phase[], totalCost: number): void {
   const worksheet = workbook.addWorksheet("Cost Breakdown");
 
   // Add headers
@@ -193,7 +193,7 @@ function createCostBreakdownSheet(workbook: any, phases: Phase[], totalCost: num
   let runningTotal = 0;
   phases.forEach((phase) => {
     if (phase.resources && phase.resources.length > 0) {
-      phase.resources.forEach((resource: any) => {
+      phase.resources.forEach((resource) => {
         const totalHours = phase.workingDays * 8 * (resource.allocation / 100);
         const cost = totalHours * resource.hourlyRate;
         runningTotal += cost;
@@ -240,7 +240,7 @@ function createCostBreakdownSheet(workbook: any, phases: Phase[], totalCost: num
 /**
  * Create Requirements sheet
  */
-function createRequirementsSheet(workbook: any, chips: Chip[]): void {
+function createRequirementsSheet(workbook: import("exceljs").Workbook, chips: Chip[]): void {
   const worksheet = workbook.addWorksheet("Requirements");
 
   // Add headers
@@ -270,7 +270,7 @@ function createRequirementsSheet(workbook: any, chips: Chip[]): void {
 /**
  * Create Decisions sheet
  */
-function createDecisionsSheet(workbook: any, decisions: Record<string, any>): void {
+function createDecisionsSheet(workbook: import("exceljs").Workbook, decisions: Record<string, unknown>): void {
   const worksheet = workbook.addWorksheet("Decisions");
 
   // Add title
@@ -327,7 +327,7 @@ function sanitizeFilename(name: string): string {
 /**
  * Export to CSV (single sheet alternative)
  */
-export async function exportToCSV(data: any[][], filename: string): Promise<void> {
+export async function exportToCSV(data: unknown[][], filename: string): Promise<void> {
   // Convert data to CSV
   const csvContent = data.map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
 

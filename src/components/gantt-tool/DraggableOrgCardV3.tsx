@@ -13,6 +13,7 @@
 
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import Image from "next/image";
 import type { OrgNode, DropZoneType, Designation } from "@/hooks/useOrgChartDragDrop";
 import { Trash2, GripVertical } from "lucide-react";
 import { useState } from "react";
@@ -135,8 +136,8 @@ export function DraggableOrgCardV3({
   const designationColor = DESIGNATION_COLORS[node.designation];
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
+      role="group"
       style={{ position: "relative" }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -248,10 +249,12 @@ export function DraggableOrgCardV3({
       </div>
 
       {/* Main Card */}
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
         ref={setDragRef}
+        role="button"
+        tabIndex={0}
         onClick={onSelect}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect?.(e as unknown as React.MouseEvent); } }}
         style={{
           ...dragStyle,
           position: "relative",
@@ -306,10 +309,12 @@ export function DraggableOrgCardV3({
           }}
         >
           {node.companyLogoUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
+            <Image
               src={node.companyLogoUrl}
               alt={node.companyName || "Company"}
+              width={32}
+              height={32}
+              unoptimized
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (

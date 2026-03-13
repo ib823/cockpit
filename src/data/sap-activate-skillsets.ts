@@ -5,6 +5,7 @@
  */
 
 import { Resource } from "@/types/core";
+import { logger } from "@/lib/logger";
 
 export interface RoleRequirement {
   role: string;
@@ -574,7 +575,7 @@ export function getSkillsetRequirements(
 ): RoleRequirement[] {
   const moduleSkillsets = SAP_ACTIVATE_SKILLSETS[moduleId];
   if (!moduleSkillsets) {
-    console.warn(`No skillsets defined for module: ${moduleId}`);
+    logger.warn(`No skillsets defined for module: ${moduleId}`);
     return [];
   }
 

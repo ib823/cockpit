@@ -15,11 +15,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { Upload } from "lucide-react";
 import { format } from "date-fns";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { FormExample } from "@/lib/design-system/showcase-helpers";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
+import { logger } from "@/lib/logger";
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -110,12 +112,17 @@ export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProject
       await onCreateProject(projectName.trim(), startDate, companyLogos);
       onClose();
     } catch (error) {
-      console.error("Failed to create project:", error);
+      logger.error("Failed to create project:", { error });
       alert("Failed to create project. Please try again.");
     } finally {
       setIsCreating(false);
     }
   };
+
+  // Keep a stable ref to handleSubmit so the keyboard shortcut effect
+  // always calls the latest version without needing form state in its deps.
+  const handleSubmitRef = useRef(handleSubmit);
+  handleSubmitRef.current = handleSubmit;
 
   // Keyboard shortcut: Cmd/Ctrl + Enter to submit
   useEffect(() => {
@@ -124,14 +131,13 @@ export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProject
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        handleSubmit();
+        handleSubmitRef.current();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, projectName, startDate]);
+  }, [isOpen]);
 
   return (
     <BaseModal
@@ -256,10 +262,12 @@ export function NewProjectModal({ isOpen, onClose, onCreateProject }: NewProject
                 }}
               >
                 {companyLogos[company.name] ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
+                  <Image
                     src={companyLogos[company.name]}
                     alt={company.name}
+                    width={64}
+                    height={64}
+                    unoptimized
                     style={{
                       width: "100%",
                       height: "100%",

@@ -7,6 +7,7 @@ import {
   checkForSuspiciousActivity,
   AuthMethod,
 } from "@/lib/monitoring/auth-metrics";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -104,7 +105,7 @@ export async function GET(req: Request) {
         );
       }
     }
-    console.error("[AUTH METRICS API] Error:", error);
+    logger.error("[AUTH METRICS API] Error", { error: error });
     return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }
 }

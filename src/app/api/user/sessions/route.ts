@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { authConfig as authOptions } from "@/lib/auth";
 import { parseUserAgent } from "@/lib/security/device-fingerprint";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -75,7 +76,7 @@ export async function GET(req: NextRequest) {
       total: sessions.length,
     });
   } catch (error) {
-    console.error("[Sessions] GET error:", error);
+    logger.error("[Sessions] GET error", { error: error });
     return NextResponse.json({ ok: false, message: "Failed to fetch sessions" }, { status: 500 });
   }
 }
@@ -141,7 +142,7 @@ export async function DELETE(req: NextRequest) {
       revokedCount: result.count,
     });
   } catch (error) {
-    console.error("[Sessions] DELETE error:", error);
+    logger.error("[Sessions] DELETE error", { error: error });
     return NextResponse.json({ ok: false, message: "Failed to revoke sessions" }, { status: 500 });
   }
 }

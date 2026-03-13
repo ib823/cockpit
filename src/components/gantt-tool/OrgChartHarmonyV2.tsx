@@ -39,6 +39,7 @@ import type {
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, ASSIGNMENT_LEVELS } from "@/types/gantt-tool";
 import { getAllCompanyLogos } from "@/lib/default-company-logos";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { logger } from "@/lib/logger";
 
 // ============================================================================
 // Types
@@ -199,8 +200,7 @@ export function OrgChartHarmonyV2({ onClose, project }: Props) {
   // Debug logging (development only)
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
-      console.log("[OrgChart] Project:", currentProject?.name || "NO PROJECT", "| Resources:", resources.length);
+      logger.debug("Project loaded", { project: currentProject?.name || "NO PROJECT", resourceCount: resources.length });
     }
   }, [resources, currentProject]);
 
@@ -209,8 +209,7 @@ export function OrgChartHarmonyV2({ onClose, project }: Props) {
   const positions = useMemo(() => {
     const pos = layoutEngine.calculateLayout(resources);
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
-      console.log("[OrgChart] Layout calculated:", pos.size, "positions for", resources.length, "resources");
+      logger.debug("Layout calculated", { positionCount: pos.size, resourceCount: resources.length });
     }
     return pos;
   }, [resources, layoutEngine]);
@@ -1286,7 +1285,7 @@ function ResourceFormModal({ isOpen, onClose, resource, onSubmit, availableLogos
       await onSubmit(formData);
       onClose();
     } catch (error) {
-      console.error("Error submitting resource:", error);
+      logger.error("Error submitting resource:", { error });
       alert("Failed to save resource. Please try again.");
     } finally {
       setIsSubmitting(false);

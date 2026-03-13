@@ -21,6 +21,7 @@ import { AlertTriangle } from "lucide-react";
 import { HexLoader } from "@/components/ui/HexLoader";
 import { useColorMorph } from "@/hooks/useColorMorph";
 import { showError } from "@/lib/toast";
+import { logger } from "@/lib/logger";
 
 export function GanttToolShell() {
   const {
@@ -112,8 +113,9 @@ export function GanttToolShell() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // No dependencies - get functions from store directly
+    // Intentionally empty: undo/redo are retrieved from store.getState() inside the handler,
+    // so this effect only needs to run once to register the listener.
+  }, []);
 
   // Fetch projects from database on mount
   useEffect(() => {
@@ -121,14 +123,14 @@ export function GanttToolShell() {
       try {
         await fetchProjects();
       } catch (error) {
-        console.error("[GanttToolShell] Initial fetch failed:", error);
+        logger.error("[GanttToolShell] Initial fetch failed:", { error });
       } finally {
         setInitialFetchDone(true);
       }
     };
     loadInitialProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
+    // fetchProjects is a stable store action - only run on mount
+  }, [fetchProjects]);
 
   // Auto-load the most recent project or create a default one
   useEffect(() => {
@@ -151,21 +153,22 @@ export function GanttToolShell() {
             await createProject(projectName, today);
           }
         } catch (error) {
-          console.error("[GanttToolShell] Auto-load failed:", error);
+          logger.error("[GanttToolShell] Auto-load failed:", { error });
           setAutoLoadError(error instanceof Error ? error.message : "Failed to load project");
         }
       };
 
       autoLoad();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     initialFetchDone,
     isLoading,
-    projects.length,
+    projects,
     currentProject,
     manuallyUnloaded,
     autoLoadError,
+    loadProject,
+    createProject,
   ]);
 
   // Error State - Show when auto-load fails

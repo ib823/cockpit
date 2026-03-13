@@ -10,6 +10,7 @@
  */
 
 import posthog from "posthog-js";
+import { logger } from "@/lib/logger";
 
 // Initialize PostHog (only in browser)
 if (typeof window !== "undefined") {
@@ -29,7 +30,7 @@ if (typeof window !== "undefined") {
       autocapture: false, // Disable automatic clicks
     });
   } else {
-    console.warn("[Analytics] PostHog key not found. Telemetry disabled.");
+    logger.warn("[Analytics] PostHog key not found. Telemetry disabled.");
   }
 }
 
@@ -166,7 +167,7 @@ export function track<E extends AnalyticsEvent>(name: E["name"], props: E["props
   try {
     posthog.capture(name, props);
   } catch (error) {
-    console.error("[Analytics] Failed to track event:", error);
+    logger.error("[Analytics] Failed to track event", { error });
   }
 }
 
@@ -187,7 +188,7 @@ export function identifyUser(
   try {
     posthog.identify(userId, traits);
   } catch (error) {
-    console.error("[Analytics] Failed to identify user:", error);
+    logger.error("[Analytics] Failed to identify user", { error });
   }
 }
 
@@ -200,7 +201,7 @@ export function trackPageView(path: string): void {
   try {
     posthog.capture("$pageview", { $current_url: path });
   } catch (error) {
-    console.error("[Analytics] Failed to track pageview:", error);
+    logger.error("[Analytics] Failed to track pageview", { error });
   }
 }
 
@@ -213,7 +214,7 @@ export function resetUser(): void {
   try {
     posthog.reset();
   } catch (error) {
-    console.error("[Analytics] Failed to reset user:", error);
+    logger.error("[Analytics] Failed to reset user", { error });
   }
 }
 

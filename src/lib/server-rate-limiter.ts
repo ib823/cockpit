@@ -4,6 +4,7 @@
 // Fixed: V-002 - OTP Brute Force vulnerability
 
 import { Redis } from "@upstash/redis";
+import { logger } from "@/lib/logger";
 
 // Try to initialize Redis, fallback to in-memory storage
 let redis: Redis | null = null;
@@ -14,9 +15,9 @@ try {
     redis = new Redis({ url, token });
   }
 } catch (error) {
-  console.warn(
-    "[server-rate-limiter] Redis initialization failed, using in-memory fallback:",
-    error
+  logger.warn(
+    "[server-rate-limiter] Redis initialization failed, using in-memory fallback",
+    { error }
   );
   redis = null;
 }
@@ -91,7 +92,7 @@ export class ServerRateLimiter {
           retryAfter: success ? undefined : Math.ceil(this.windowMs / 1000),
         };
       } catch (error) {
-        console.error("[server-rate-limiter] Redis error, falling back to in-memory:", error);
+        logger.error("[server-rate-limiter] Redis error, falling back to in-memory", { error });
         // Fall through to in-memory implementation
       }
     }
@@ -135,7 +136,7 @@ export class ServerRateLimiter {
         await redis.del(key);
         return;
       } catch (error) {
-        console.error("[server-rate-limiter] Redis reset error:", error);
+        logger.error("[server-rate-limiter] Redis reset error", { error });
       }
     }
 

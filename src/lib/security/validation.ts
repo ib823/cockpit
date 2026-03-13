@@ -13,6 +13,7 @@ import {
   PhaseSchema,
   ChipSchema,
 } from "@/data/dal";
+import { logger } from "@/lib/logger";
 
 // ============================================================================
 // Constants
@@ -61,7 +62,7 @@ export function sanitizeString(input: unknown): string {
   // Check for dangerous protocols
   for (const protocol of DANGEROUS_PROTOCOLS) {
     if (cleaned.toLowerCase().includes(protocol)) {
-      console.warn(`[Security] Blocked dangerous protocol: ${protocol}`);
+      logger.warn(`[Security] Blocked dangerous protocol: ${protocol}`);
       return cleaned.replace(new RegExp(protocol, "gi"), "");
     }
   }
@@ -111,7 +112,7 @@ export function sanitizeObjectKeys<T extends Record<string, unknown>>(input: unk
   for (const [key, value] of Object.entries(obj)) {
     // Block dangerous keys
     if (key === "__proto__" || key === "constructor" || key === "prototype") {
-      console.warn(`[Security] Blocked dangerous key: ${key}`);
+      logger.warn(`[Security] Blocked dangerous key: ${key}`);
       continue;
     }
 

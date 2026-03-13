@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig as authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 // GET /api/account/passkeys - List all passkeys
 export async function GET() {
@@ -44,7 +45,7 @@ export async function GET() {
 
     return NextResponse.json(formattedPasskeys);
   } catch (error) {
-    console.error("Passkeys fetch error:", error);
+    logger.error("Passkeys fetch error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

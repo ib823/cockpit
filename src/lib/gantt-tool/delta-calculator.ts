@@ -7,30 +7,28 @@
 
 import type {
   GanttProject,
-  GanttPhase,
-  GanttTask,
-  GanttMilestone,
-  GanttHoliday,
-  Resource,
   ProjectDelta,
 } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 /**
  * Deep equality check for objects
  */
-function deepEqual(obj1: any, obj2: any): boolean {
+function deepEqual(obj1: unknown, obj2: unknown): boolean {
   if (obj1 === obj2) return true;
   if (obj1 == null || obj2 == null) return false;
   if (typeof obj1 !== "object" || typeof obj2 !== "object") return false;
 
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
+  const o1 = obj1 as Record<string, unknown>;
+  const o2 = obj2 as Record<string, unknown>;
+  const keys1 = Object.keys(o1);
+  const keys2 = Object.keys(o2);
 
   if (keys1.length !== keys2.length) return false;
 
   for (const key of keys1) {
     if (!keys2.includes(key)) return false;
-    if (!deepEqual(obj1[key], obj2[key])) return false;
+    if (!deepEqual(o1[key], o2[key])) return false;
   }
 
   return true;
@@ -105,7 +103,7 @@ export function calculateProjectDelta(
   const delta: ProjectDelta = {};
 
   // Check project-level updates
-  const projectUpdates: any = {};
+  const projectUpdates: Partial<GanttProject> = {};
   let hasProjectUpdates = false;
 
   if (current.name !== lastSaved.name) {
@@ -128,8 +126,10 @@ export function calculateProjectDelta(
     projectUpdates.budget = current.budget;
     hasProjectUpdates = true;
   }
-  if (!deepEqual((current as any).orgChart, (lastSaved as any).orgChart)) {
-    projectUpdates.orgChart = (current as any).orgChart;
+  const currentRecord = current as Record<string, unknown>;
+  const lastSavedRecord = lastSaved as Record<string, unknown>;
+  if (!deepEqual(currentRecord.orgChart, lastSavedRecord.orgChart)) {
+    (projectUpdates as Record<string, unknown>).orgChart = currentRecord.orgChart;
     hasProjectUpdates = true;
   }
 
@@ -303,19 +303,19 @@ export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
    * Returns cleaned assignments and logs removed entries
    */
   function cleanResourceAssignments(
-    assignments: any[],
+    assignments: Array<{ resourceId: string; [key: string]: unknown }>,
     context: string,
     allowMissingResources: boolean = true
-  ): any[] {
+  ): Array<{ resourceId: string; [key: string]: unknown }> {
     const seen = new Set<string>();
-    const cleaned: any[] = [];
+    const cleaned: Array<{ resourceId: string; [key: string]: unknown }> = [];
 
     for (const assignment of assignments) {
       const resourceId = assignment.resourceId;
 
       // Check for deleted resources
       if (deletedResourceIds.has(resourceId)) {
-        console.warn(
+        logger.warn(
           `[Delta Sanitizer] Removing assignment to deleted resource: ${context}, resourceId=${resourceId}`
         );
         continue;
@@ -323,7 +323,7 @@ export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
 
       // Check for duplicates
       if (seen.has(resourceId)) {
-        console.warn(
+        logger.warn(
           `[Delta Sanitizer] Removing duplicate resource assignment: ${context}, resourceId=${resourceId}`
         );
         continue;
@@ -332,7 +332,7 @@ export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
       // For new resources being created, check they exist in the delta
       // For existing resources, we allow them (they may already be in the DB)
       if (!allowMissingResources && validResourceIds.size > 0 && !validResourceIds.has(resourceId)) {
-        console.warn(
+        logger.warn(
           `[Delta Sanitizer] Removing assignment to non-existent resource in delta: ${context}, resourceId=${resourceId}`
         );
         continue;
@@ -389,7 +389,7 @@ export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
         tasks: phase.tasks.map((task) => {
           // Validate parent task reference
           if (task.parentTaskId && !validTaskIds.has(task.parentTaskId)) {
-            console.warn(
+            logger.warn(
               `[Delta Sanitizer] Removing invalid parent task reference: taskId=${task.id}, parentTaskId=${task.parentTaskId}`
             );
             task = { ...task, parentTaskId: null, level: 0 };
@@ -421,7 +421,7 @@ export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
         tasks: phase.tasks.map((task) => {
           // Validate parent task reference
           if (task.parentTaskId && !validTaskIds.has(task.parentTaskId)) {
-            console.warn(
+            logger.warn(
               `[Delta Sanitizer] Removing invalid parent task reference: taskId=${task.id}, parentTaskId=${task.parentTaskId}`
             );
             task = { ...task, parentTaskId: null, level: 0 };

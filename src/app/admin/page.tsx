@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LogoutButton } from "@/components/common/LogoutButton";
 import { prisma, withRetry } from "@/lib/db";
 import { unstable_cache } from "next/cache";
+import { logger } from "@/lib/logger";
 
 // Cache admin stats with smart error handling and retry logic
 const getCachedAdminStats = unstable_cache(
@@ -20,7 +21,7 @@ const getCachedAdminStats = unstable_cache(
 
       return { totalUsers, activeProjects, proposals, dbError: false };
     } catch (error) {
-      console.error("[Admin Dashboard] Failed to fetch statistics:", error);
+      logger.error("[Admin Dashboard] Failed to fetch statistics:", { error });
       return { totalUsers: 0, activeProjects: 0, proposals: 0, dbError: true };
     }
   },

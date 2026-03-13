@@ -4,6 +4,7 @@ import { randomBytes, randomInt } from "crypto";
 import { sendAccessCode } from "@/lib/email";
 import { otpSendLimiter } from "@/lib/server-rate-limiter";
 import { hashOTP } from "@/lib/crypto-utils";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -99,7 +100,7 @@ export async function POST(req: Request) {
     const emailResult = await sendAccessCode(user.email, otp);
 
     if (!emailResult.success && !emailResult.devMode) {
-      console.error("[send-otp] Failed to send email:", emailResult.error);
+      logger.error("[send-otp] Failed to send email", { error: emailResult.error });
       return NextResponse.json(
         { ok: false, message: "Failed to send verification code. Please try again." },
         { status: 500 }
@@ -119,7 +120,7 @@ export async function POST(req: Request) {
       ...(emailResult.devMode && { otp }),
     });
   } catch (error) {
-    console.error("Send OTP error:", error);
+    logger.error("Send OTP error", { error: error });
     return NextResponse.json(
       { ok: false, message: "Failed to send verification code. Please try again." },
       { status: 500 }

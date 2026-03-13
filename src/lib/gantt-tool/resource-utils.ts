@@ -11,6 +11,7 @@
  */
 
 import type { GanttProject, Resource } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 /**
  * Get total resource count from project
@@ -108,7 +109,7 @@ export function validateResourceCount(
     const errorMessage = `[Resource Count Mismatch] ${componentName} shows ${displayedCount} resources, but canonical count is ${canonicalCount}`;
 
     // Log error in all environments
-    console.error(errorMessage, {
+    logger.error(errorMessage, {
       component: componentName,
       displayed: displayedCount,
       canonical: canonicalCount,

@@ -5,6 +5,7 @@
  * Maintains backward compatibility for migration.
  */
 
+import { logger } from "@/lib/logger";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { nanoid } from "nanoid";
@@ -39,7 +40,7 @@ import type {
   DiagramSettings,
 } from "@/app/architecture/v3/types";
 import { PHASE_COLOR_PRESETS } from "@/types/gantt-tool";
-import { differenceInDays, addDays, addMonths, format } from "date-fns";
+import { differenceInDays, addDays, format } from "date-fns";
 import {
   adjustDatesToWorkingDays,
   calculateWorkingDaysInclusive,
@@ -51,14 +52,14 @@ import {
   getDeltaSummary,
   sanitizeDelta,
 } from "@/lib/gantt-tool/delta-calculator";
-import { shouldBatchDelta, batchDelta, type DeltaBatch } from "@/lib/gantt-tool/delta-batcher";
+import { shouldBatchDelta, batchDelta } from "@/lib/gantt-tool/delta-batcher";
 import {
   saveProjectLocal,
   addToSyncQueue,
   getProjectLocal,
   getAllProjectsLocal,
 } from "@/lib/gantt-tool/local-storage";
-import { startBackgroundSync, stopBackgroundSync } from "@/lib/gantt-tool/background-sync";
+import { startBackgroundSync } from "@/lib/gantt-tool/background-sync";
 // import { createDefaultResources } from '@/lib/gantt-tool/default-resources'; // No longer used - users add resources manually or via import
 
 // Debounce timer for save operations (500ms)
@@ -286,19 +287,19 @@ function formatDateField(date: string | Date): string {
       const cleaned = date.includes("T") ? date.split("T")[0] : date;
       // Validate format
       if (!/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
-        console.error("Invalid date format:", date, "cleaned:", cleaned);
+        logger.error("Invalid date format", { date, cleaned });
         throw new Error(`Invalid date format: ${cleaned}`);
       }
       return cleaned;
     }
     // It's a Date object, format it
     if (!(date instanceof Date) || isNaN(date.getTime())) {
-      console.error("Invalid date object:", date);
+      logger.error("Invalid date object", { date });
       throw new Error(`Invalid date object: ${date}`);
     }
     return format(date, "yyyy-MM-dd");
   } catch (error) {
-    console.error("Error formatting date:", date, error);
+    logger.error("Error formatting date", { date, error });
     throw error;
   }
 }
@@ -347,7 +348,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
       try {
         // STEP 1: Load from IndexedDB first (instant, offline-capable)
         const localProjects = await getAllProjectsLocal();
-        console.log(`[Store] Loaded ${localProjects.length} projects from IndexedDB`);
+        logger.info("[Store] Loaded projects from IndexedDB", { count: localProjects.length });
 
         // STEP 2: Fetch from server (for sync)
         let serverProjects: GanttProject[] = [];
@@ -356,10 +357,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           if (response.ok) {
             const data = await response.json();
             serverProjects = data.projects;
-            console.log(`[Store] Loaded ${serverProjects.length} projects from server`);
+            logger.info("[Store] Loaded projects from server", { count: serverProjects.length });
           }
         } catch (fetchError) {
-          console.warn("[Store] Could not fetch from server, using local data only:", fetchError);
+          logger.warn("[Store] Could not fetch from server, using local data only", { error: fetchError });
         }
 
         // STEP 3: Merge: Local projects with unsaved changes take priority
@@ -370,11 +371,11 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
         // Override with local projects (they're more recent if they exist)
         localProjects.forEach((p) => {
-          const localMeta = p as any;
+          const localMeta = p as GanttProject & { needsSync?: boolean; localUpdatedAt?: string };
           // If local project is newer or has unsaved changes, use it
           if (localMeta.needsSync || localMeta.localUpdatedAt) {
             projectMap.set(p.id, p);
-            console.log(`[Store] Using local version of project: ${p.name} (has unsaved changes)`);
+            logger.info("[Store] Using local version of project (has unsaved changes)", { projectName: p.name });
           }
         });
 
@@ -386,7 +387,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           state.lastSyncAt = new Date();
         });
 
-        console.log(`[Store] Total projects after merge: ${mergedProjects.length}`);
+        logger.info("[Store] Total projects after merge", { count: mergedProjects.length });
       } catch (error) {
         set((state) => {
           state.error = error instanceof Error ? error.message : "Unknown error";
@@ -558,7 +559,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
       // Skip if already saving locally
       if (syncStatus === "saving-local") {
-        console.log("[Store] Save already in progress, skipping...");
+        logger.info("[Store] Save already in progress, skipping...");
         return;
       }
 
@@ -587,14 +588,14 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
             // Queue for background cloud sync (non-blocking)
             await addToSyncQueue(currentProject.id);
 
-            console.log("[Store] ✓ Saved locally, queued for cloud sync");
+            logger.info("[Store] Saved locally, queued for cloud sync");
             resolve();
           } catch (error) {
             set((state) => {
               state.syncStatus = "error";
               state.syncError = error instanceof Error ? error.message : "Unknown error";
             });
-            console.error("[Store] Local save failed:", error);
+            logger.error("[Store] Local save failed", { error });
             reject(error);
           }
         }, 300); // Reduced debounce for faster feedback
@@ -609,7 +610,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
       // Skip if already syncing
       if (isSyncing) {
-        console.log("[Store] Save already in progress, skipping...");
+        logger.info("[Store] Save already in progress, skipping...");
         return;
       }
 
@@ -645,7 +646,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
               ...phase,
               startDate: formatDateField(phase.startDate),
               endDate: formatDateField(phase.endDate),
-              tasks: phase.tasks.map((task: any) => ({
+              tasks: phase.tasks.map((task: GanttTask) => ({
                 ...task,
                 startDate: formatDateField(task.startDate),
                 endDate: formatDateField(task.endDate),
@@ -657,7 +658,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
               ...phase,
               startDate: formatDateField(phase.startDate),
               endDate: formatDateField(phase.endDate),
-              tasks: phase.tasks.map((task: any) => ({
+              tasks: phase.tasks.map((task: GanttTask) => ({
                 ...task,
                 startDate: formatDateField(task.startDate),
                 endDate: formatDateField(task.endDate),
@@ -729,7 +730,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           const errorMessage = errorData.error || `Failed to save project (${response.status})`;
 
           // Enhanced error logging to debug validation issues
-          console.error("Save project failed:", {
+          logger.error("Save project failed", {
             status: response.status,
             errorMessage,
             errorData,
@@ -739,7 +740,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           // If validation failed, show detailed error
           if (errorData.details && Array.isArray(errorData.details)) {
             const detailedErrors = errorData.details
-              .map((issue: any) => `${issue.path.join(".")}: ${issue.message}`)
+              .map((issue: { path: string[]; message: string }) => `${issue.path.join(".")}: ${issue.message}`)
               .join(", ");
             throw new Error(`Validation failed: ${detailedErrors}`);
           }
@@ -777,7 +778,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
             // Skip save if nothing changed
             if (isDeltaEmpty(delta)) {
-              console.log("[Store] No changes detected, skipping save");
+              logger.info("[Store] No changes detected, skipping save");
               set((state) => {
                 state.isSyncing = false;
                 state.saveProgress = null;
@@ -787,13 +788,13 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
             }
 
             // Log delta summary
-            console.log("[Store] Saving delta:", getDeltaSummary(delta));
+            logger.info("[Store] Saving delta", { summary: getDeltaSummary(delta) });
 
             // Check if we need to batch
             if (shouldBatchDelta(delta)) {
-              console.log("[Store] Large delta detected, using batched save...");
+              logger.info("[Store] Large delta detected, using batched save...");
               const batches = batchDelta(delta);
-              console.log(`[Store] Split into ${batches.length} batches`);
+              logger.info("[Store] Split into batches", { count: batches.length });
 
               // Save each batch sequentially
               for (const batchInfo of batches) {
@@ -805,9 +806,11 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
                   };
                 });
 
-                console.log(
-                  `[Store] Batch ${batchInfo.batchNumber}/${batchInfo.totalBatches}: ${batchInfo.description}`
-                );
+                logger.info("[Store] Processing batch", {
+                  batch: batchInfo.batchNumber,
+                  total: batchInfo.totalBatches,
+                  description: batchInfo.description,
+                });
                 const serializedBatch = serializeDelta(batchInfo.batch);
                 await sendDeltaBatch(serializedBatch);
               }
@@ -903,13 +906,11 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         const localProject = await getProjectLocal(projectId);
 
         if (localProject) {
-          const localMeta = localProject as any;
+          const localMeta = localProject as GanttProject & { needsSync?: boolean; localUpdatedAt?: string };
 
           // STEP 2: If local version has unsaved changes, use it!
           if (localMeta.needsSync || localMeta.localUpdatedAt) {
-            console.log(
-              `[Store] Loading from IndexedDB (has unsaved changes): ${localProject.name}`
-            );
+            logger.info("[Store] Loading from IndexedDB (has unsaved changes)", { projectName: localProject.name });
             set((state) => {
               state.currentProject = localProject;
               state.manuallyUnloaded = false;
@@ -918,7 +919,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           }
 
           // STEP 3: Otherwise use local but update from server if possible
-          console.log(`[Store] Loading from IndexedDB: ${localProject.name}`);
+          logger.info("[Store] Loading from IndexedDB", { projectName: localProject.name });
           set((state) => {
             state.currentProject = localProject;
             state.manuallyUnloaded = false;
@@ -928,7 +929,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           get()
             .fetchProject(projectId)
             .catch((err) => {
-              console.warn("[Store] Could not refresh from server:", err);
+              logger.warn("[Store] Could not refresh from server", { error: err });
             });
           return;
         }
@@ -937,16 +938,16 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         const { projects } = get();
         const project = projects.find((p) => p.id === projectId);
         if (project) {
-          console.log(`[Store] Loading from memory: ${project.name}`);
+          logger.info("[Store] Loading from memory", { projectName: project.name });
           set((state) => {
             state.currentProject = project;
             state.manuallyUnloaded = false;
           });
         } else {
-          console.warn(`[Store] Project ${projectId} not found in local storage or memory`);
+          logger.warn("[Store] Project not found in local storage or memory", { projectId });
         }
       } catch (error) {
-        console.error("[Store] Error loading project:", error);
+        logger.error("[Store] Error loading project", { error });
 
         // Final fallback to in-memory
         const { projects } = get();
@@ -1343,9 +1344,9 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           order: phase.tasks.length, // Set order to current array length
 
           // Task Hierarchy fields
-          parentTaskId: (data as any).parentTaskId || null,
-          level: (data as any).parentTaskId
-            ? (phase.tasks.find((t) => t.id === (data as any).parentTaskId)?.level ?? 0) + 1
+          parentTaskId: data.parentTaskId || null,
+          level: data.parentTaskId
+            ? (phase.tasks.find((t) => t.id === data.parentTaskId)?.level ?? 0) + 1
             : 0,
           collapsed: false,
           isParent: false,
@@ -1779,9 +1780,10 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
               (r) => r.id === updates.managerResourceId
             );
             if (!managerExists) {
-              console.warn(
-                `Cannot set managerResourceId "${updates.managerResourceId}" for resource "${resource.name}" - manager does not exist. Clearing invalid reference.`
-              );
+              logger.warn("Cannot set managerResourceId - manager does not exist. Clearing invalid reference.", {
+                managerResourceId: updates.managerResourceId,
+                resourceName: resource.name,
+              });
               updates.managerResourceId = undefined;
             }
           }
@@ -1805,9 +1807,9 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         // PREVENTIVE CLEANUP: Clear any managerResourceId references to deleted resource
         state.currentProject.resources.forEach((resource) => {
           if (resource.managerResourceId === resourceId) {
-            console.warn(
-              `Clearing managerResourceId for "${resource.name}" because manager was deleted`
-            );
+            logger.warn("Clearing managerResourceId because manager was deleted", {
+              resourceName: resource.name,
+            });
             resource.managerResourceId = undefined;
           }
         });
@@ -1864,7 +1866,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         );
 
         if (linkExists) {
-          console.warn("Peer link already exists");
+          logger.warn("Peer link already exists");
           return;
         }
 
@@ -1925,7 +1927,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         if (!task) return;
 
         if (task.resourceAssignments?.some((a) => a.resourceId === resourceId)) {
-          console.warn("Resource already assigned to this task");
+          logger.warn("Resource already assigned to this task");
           return;
         }
 
@@ -2004,12 +2006,12 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
         const resource = state.currentProject.resources.find((r) => r.id === resourceId);
         if (!resource || (resource.category !== "pm" && resource.category !== "leadership")) {
-          console.warn("Only PM and Leadership resources can be assigned to phases");
+          logger.warn("Only PM and Leadership resources can be assigned to phases");
           return;
         }
 
         if (phase.phaseResourceAssignments?.some((a) => a.resourceId === resourceId)) {
-          console.warn("Resource already assigned to this phase");
+          logger.warn("Resource already assigned to this phase");
           return;
         }
 
@@ -2616,7 +2618,7 @@ export { useGanttToolStoreV2 as useGanttToolStore };
 
 // Initialize background sync (client-side only)
 if (typeof window !== "undefined") {
-  console.log("[Store] Initializing background sync...");
+  logger.info("[Store] Initializing background sync...");
 
   startBackgroundSync({
     onSyncStart: (projectId) => {
@@ -2624,7 +2626,7 @@ if (typeof window !== "undefined") {
       if (store.currentProject?.id === projectId) {
         useGanttToolStoreV2.setState({ syncStatus: "syncing-cloud" });
       }
-      console.log("[BackgroundSync] Started syncing project:", projectId);
+      logger.info("[BackgroundSync] Started syncing project", { projectId });
     },
 
     onSyncProgress: (projectId, progress) => {
@@ -2638,7 +2640,7 @@ if (typeof window !== "undefined") {
           },
         });
       }
-      console.log(`[BackgroundSync] Progress: ${progress.current}/${progress.total}`);
+      logger.info("[BackgroundSync] Progress", { current: progress.current, total: progress.total });
     },
 
     onSyncSuccess: (projectId) => {
@@ -2662,7 +2664,7 @@ if (typeof window !== "undefined") {
           }
         }, 3000);
       }
-      console.log("[BackgroundSync] ✓ Successfully synced project:", projectId);
+      logger.info("[BackgroundSync] Successfully synced project", { projectId });
     },
 
     onSyncError: (projectId, error, errorType) => {
@@ -2675,7 +2677,7 @@ if (typeof window !== "undefined") {
           saveProgress: null,
         });
       }
-      console.error("[BackgroundSync] ✗ Sync error for project:", projectId, error, errorType || "unknown");
+      logger.error("[BackgroundSync] Sync error for project", { projectId, error, errorType: errorType || "unknown" });
     },
   });
 }

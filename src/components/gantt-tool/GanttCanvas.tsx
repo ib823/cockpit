@@ -29,13 +29,33 @@ import { StatusLegendMini } from "./StatusLegend";
 import { PhaseRow } from "./components/PhaseRow";
 import { TaskRow } from "./components/TaskRow";
 import { PhaseTaskResourceAllocationModal } from "./PhaseTaskResourceAllocationModal";
+import type { SelectionState, GanttViewSettings } from "@/types/gantt-tool";
+
+// Internal types for GanttCanvas state
+interface CanvasDragState {
+  itemId: string;
+  itemType: "phase" | "task";
+  phaseId?: string;
+  mode: "move" | "resize-start" | "resize-end";
+  startX: number;
+  initialStartDate: string;
+  initialEndDate: string;
+}
+
+interface DropTargetState {
+  taskId: string;
+  phaseId: string;
+}
+
+interface ResourceModalState {
+  itemId: string;
+  itemType: "task" | "phase";
+}
 
 // Optimization Helper: Simple throttle
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-function throttle(func: Function, limit: number) {
+function throttle<T extends (...args: Parameters<T>) => void>(func: T, limit: number) {
   let inThrottle: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function(this: any, ...args: any[]) {
+  return function(this: ThisParameterType<T>, ...args: Parameters<T>) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
@@ -70,13 +90,10 @@ export function GanttCanvas() {
   } = useGanttToolStore();
 
   const canvasRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [dragState, setDragState] = useState<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [dropTarget, setDropTarget] = useState<any>(null);
+  const [dragState, setDragState] = useState<CanvasDragState | null>(null);
+  const [dropTarget, setDropTarget] = useState<DropTargetState | null>(null);
   const [phaseDropTarget, setPhaseDropTarget] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [resourceModalState, setResourceModalState] = useState<any>(null);
+  const [resourceModalState, setResourceModalState] = useState<ResourceModalState | null>(null);
   
   // Virtualization state
   const [scrollTop, setScrollTop] = useState(0);
@@ -155,12 +172,11 @@ export function GanttCanvas() {
   }, [duration]);
 
   // Throttled Move handler
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const throttledMove = useMemo(() => throttle((newStart: Date, newEnd: Date, state: any) => {
+  const throttledMove = useMemo(() => throttle((newStart: Date, newEnd: Date, state: CanvasDragState) => {
     if (state.itemType === "phase") {
       movePhase(state.itemId, newStart.toISOString(), newEnd.toISOString());
     } else {
-      moveTask(state.itemId, state.phaseId, newStart.toISOString(), newEnd.toISOString());
+      moveTask(state.itemId, state.phaseId!, newStart.toISOString(), newEnd.toISOString());
     }
   }, 16), [movePhase, moveTask]);
 
@@ -183,7 +199,6 @@ export function GanttCanvas() {
   const { startDate, endDate, durationDays } = duration;
 
   // Handlers bundle for memoized components
-  /* eslint-disable @typescript-eslint/no-explicit-any */
   const handlers = {
     togglePhaseCollapse,
     toggleTaskCollapse,
@@ -195,40 +210,44 @@ export function GanttCanvas() {
     handleTaskClick: (id: string) => { selectItem(id, "task"); openSidePanel("edit", "task", id); },
     handlePhaseDoubleClick: focusPhase,
     handleTaskDoubleClick: (id: string) => setResourceModalState({ itemId: id, itemType: "task" }),
-    handleMouseDown: (e: React.MouseEvent, id: string, mode: any) => {
+    handleMouseDown: (e: React.MouseEvent, id: string, mode: "move" | "resize-start" | "resize-end") => {
       const item = currentProject.phases.find(p => p.id === id);
       if (!item) return;
       setDragState({ itemId: id, itemType: "phase", mode, startX: e.clientX, initialStartDate: item.startDate, initialEndDate: item.endDate });
     },
-    handleTaskMouseDown: (e: React.MouseEvent, id: string, phaseId: string, mode: any) => {
+    handleTaskMouseDown: (e: React.MouseEvent, id: string, phaseId: string, mode: unknown) => {
       const phase = currentProject.phases.find(p => p.id === phaseId);
       const task = phase?.tasks.find(t => t.id === id);
       if (!task) return;
-      setDragState({ itemId: id, itemType: "task", phaseId, mode, startX: e.clientX, initialStartDate: task.startDate, initialEndDate: task.endDate });
+      const dragMode = mode as "move" | "resize-start" | "resize-end";
+      setDragState({ itemId: id, itemType: "task", phaseId, mode: dragMode, startX: e.clientX, initialStartDate: task.startDate, initialEndDate: task.endDate });
     },
-    handleResourceDragOver: (e: any, taskId: string, phaseId: string) => { e.preventDefault(); setDropTarget({ taskId, phaseId }); },
-    handleResourceDragLeave: () => setDropTarget(null),
-    handleResourceDrop: (e: any, taskId: string, phaseId: string) => {
+    handleResourceDragOver: (e: React.DragEvent, taskId: string, phaseId: string) => { e.preventDefault(); setDropTarget({ taskId, phaseId }); },
+    handleResourceDragLeave: (_e: React.DragEvent) => setDropTarget(null),
+    handleResourceDrop: (e: React.DragEvent, taskId: string, phaseId: string) => {
       e.preventDefault(); setDropTarget(null);
-      const data = JSON.parse(e.dataTransfer.getData("application/json"));
-      if (data.type === "resource") assignResourceToTask(taskId, phaseId, data.resourceId, "Assigned", 80);
+      const data: Record<string, unknown> = JSON.parse(e.dataTransfer.getData("application/json"));
+      if (data.type === "resource") assignResourceToTask(taskId, phaseId, data.resourceId as string, "Assigned", 80);
     },
-    handlePhaseResourceDragOver: (e: any, id: string) => { e.preventDefault(); setPhaseDropTarget(id); },
-    handlePhaseResourceDragLeave: () => setPhaseDropTarget(null),
-    handlePhaseResourceDrop: (e: any, id: string) => {
+    handlePhaseResourceDragOver: (e: React.DragEvent, id: string) => { e.preventDefault(); setPhaseDropTarget(id); },
+    handlePhaseResourceDragLeave: (_e: React.DragEvent) => setPhaseDropTarget(null),
+    handlePhaseResourceDrop: (e: React.DragEvent, id: string) => {
       e.preventDefault(); setPhaseDropTarget(null);
-      const data = JSON.parse(e.dataTransfer.getData("application/json"));
-      if (data.type === "resource") assignResourceToPhase(id, data.resourceId, "Overseeing", 20);
+      const data: Record<string, unknown> = JSON.parse(e.dataTransfer.getData("application/json"));
+      if (data.type === "resource") assignResourceToPhase(id, data.resourceId as string, "Overseeing", 20);
     },
-    getResourceById,
+    getResourceById: (id: string): Record<string, unknown> | undefined => {
+      const resource = getResourceById(id);
+      return resource as Record<string, unknown> | undefined;
+    },
     calculateItemStatus: (s: string, e: string, p: number) => "inProgress"
   };
-  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       ref={canvasRef}
+      role="application"
+      aria-label="Gantt chart canvas"
       className="bg-gray-50 h-full w-full overflow-auto relative"
       onScroll={handleScroll}
       onMouseMove={handleMouseMove}
@@ -272,11 +291,10 @@ export function GanttCanvas() {
               />
               {!phase.collapsed && (
                 <div className="ml-4 mt-4 space-y-4">
-                  {/* eslint-disable @typescript-eslint/no-explicit-any */}
                   {getVisibleTasksInOrder(phase.tasks).map(task => (
                     <TaskRow
                       key={task.id}
-                      task={task as any}
+                      task={task}
                       phase={phase}
                       currentProject={currentProject}
                       startDate={startDate}
@@ -286,10 +304,9 @@ export function GanttCanvas() {
                       dropTarget={dropTarget?.taskId === task.id}
                       taskColor={getTaskColor(task.renderIndex)}
                       viewSettings={viewSettings}
-                      handlers={handlers as any}
+                      handlers={handlers}
                     />
                   ))}
-                  {/* eslint-enable @typescript-eslint/no-explicit-any */}
                 </div>
               )}
             </div>

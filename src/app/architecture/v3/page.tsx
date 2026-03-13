@@ -5,7 +5,8 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { logger } from "@/lib/logger";
 import { Share2, Users, GripVertical } from "lucide-react";
 import { format } from "date-fns";
 import { useSession } from "next-auth/react";
@@ -139,9 +140,12 @@ export default function ArchitectureV3Page() {
   }, [isResizingOrgChart]);
 
   // Initialize projects on mount
+  // Use ref so the effect doesn't re-run when currentProject changes
+  const initialProjectRef = useRef(currentProject);
+
   useEffect(() => {
     // If project already loaded, we're good
-    if (currentProject) {
+    if (initialProjectRef.current) {
       setInitializing(false);
       return;
     }
@@ -174,15 +178,14 @@ export default function ArchitectureV3Page() {
           }
         }
       } catch (error) {
-        console.error("[Architecture V3] Failed to initialize:", error);
+        logger.error("[Architecture V3] Failed to initialize:", { error });
       } finally {
         setInitializing(false);
       }
     };
 
     initialize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchProjects, loadProject, createProject]); // Store actions are stable references
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
@@ -212,7 +215,7 @@ export default function ArchitectureV3Page() {
 
   const handleExport = async (options: ExportOptions) => {
     // TODO: Implement actual export functionality
-    console.warn("Export requested:", options);
+    logger.warn("Export requested:", { options });
     alert(`Export functionality coming soon!\nFormat: ${options.format}\nFilename: ${options.filename}`);
   };
 

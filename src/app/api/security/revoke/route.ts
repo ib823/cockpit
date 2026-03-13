@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
 
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -68,7 +69,7 @@ export async function GET(req: NextRequest) {
       const { payload: jwtPayload } = await jwtVerify(token, secret);
       payload = jwtPayload;
     } catch (jwtError) {
-      console.error("[SecurityAction] JWT verification failed:", jwtError);
+      logger.error("[SecurityAction] JWT verification failed", { error: jwtError });
       return new Response(
         `
 <!DOCTYPE html>
@@ -363,7 +364,7 @@ export async function GET(req: NextRequest) {
 
       await sendSecurityEmail(user.email, confirmationEmail.subject, confirmationEmail.html);
     } catch (emailError) {
-      console.error("[SecurityAction] Failed to send confirmation email:", emailError);
+      logger.error("[SecurityAction] Failed to send confirmation email", { error: emailError });
       // Continue even if email fails
     }
 
@@ -563,7 +564,7 @@ export async function GET(req: NextRequest) {
       }
     );
   } catch (error) {
-    console.error("[SecurityAction] Error:", error);
+    logger.error("[SecurityAction] Error", { error: error });
     return new Response(
       `
 <!DOCTYPE html>

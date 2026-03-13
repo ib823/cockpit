@@ -9,6 +9,7 @@
  * - Version management
  */
 
+import { logger } from '@/lib/logger';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type {
@@ -115,7 +116,7 @@ export const useArchitectureStore = create<ArchitectureStoreState>()(
           const projects = await response.json();
           set({ projects, isLoading: false });
         } catch (error) {
-          console.error('[Architecture Store] fetchProjects error:', error);
+          logger.error('[Architecture Store] fetchProjects error', { error });
           set({
             error: error instanceof Error ? error.message : 'Failed to fetch projects',
             isLoading: false,
@@ -134,7 +135,7 @@ export const useArchitectureStore = create<ArchitectureStoreState>()(
           const project = await response.json();
           set({ currentProject: project, isLoading: false });
         } catch (error) {
-          console.error('[Architecture Store] fetchProject error:', error);
+          logger.error('[Architecture Store] fetchProject error', { error });
           set({
             error: error instanceof Error ? error.message : 'Failed to fetch project',
             isLoading: false,
@@ -166,7 +167,7 @@ export const useArchitectureStore = create<ArchitectureStoreState>()(
 
           return project;
         } catch (error) {
-          console.error('[Architecture Store] createProject error:', error);
+          logger.error('[Architecture Store] createProject error', { error });
           set({
             error: error instanceof Error ? error.message : 'Failed to create project',
             isLoading: false,
@@ -213,7 +214,7 @@ export const useArchitectureStore = create<ArchitectureStoreState>()(
           const updated = await response.json();
           set({ currentProject: updated, lastSaved: new Date() });
         } catch (error) {
-          console.error('[Architecture Store] updateProjectName error:', error);
+          logger.error('[Architecture Store] updateProjectName error', { error });
           set({ error: 'Failed to update project name' });
           // Revert on error
           set({ currentProject });
@@ -301,7 +302,7 @@ export const useArchitectureStore = create<ArchitectureStoreState>()(
             pendingChanges: false,
           });
         } catch (error) {
-          console.error('[Architecture Store] saveNow error:', error);
+          logger.error('[Architecture Store] saveNow error', { error });
           set({
             error: error instanceof Error ? error.message : 'Failed to save project',
             isSaving: false,
@@ -338,7 +339,7 @@ export const useArchitectureStore = create<ArchitectureStoreState>()(
             lastSaved: new Date(),
           });
         } catch (error) {
-          console.error('[Architecture Store] createVersion error:', error);
+          logger.error('[Architecture Store] createVersion error', { error });
           set({
             error: error instanceof Error ? error.message : 'Failed to create version',
             isSaving: false,
@@ -365,7 +366,7 @@ export const useArchitectureStore = create<ArchitectureStoreState>()(
             isLoading: false,
           }));
         } catch (error) {
-          console.error('[Architecture Store] deleteProject error:', error);
+          logger.error('[Architecture Store] deleteProject error', { error });
           set({
             error: error instanceof Error ? error.message : 'Failed to delete project',
             isLoading: false,
@@ -405,7 +406,7 @@ function scheduleAutoSave() {
 
   // Schedule new save
   const timeoutId = setTimeout(async () => {
-    console.log('[Architecture Store] Auto-saving...');
+    logger.info('[Architecture Store] Auto-saving...');
     await state.saveNow();
   }, AUTO_SAVE_DEBOUNCE_MS);
 

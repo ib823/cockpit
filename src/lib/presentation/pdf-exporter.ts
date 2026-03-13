@@ -9,6 +9,7 @@
 
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { logger } from "@/lib/logger";
 
 export interface ExportOptions {
   fileName?: string;
@@ -131,7 +132,7 @@ export async function exportToPDF(
       message: "PDF exported successfully!",
     });
   } catch (error) {
-    console.error("[PDFExporter] Export failed:", error);
+    logger.error("[PDFExporter] Export failed", { error });
 
     onProgress?.({
       currentSlide: 0,

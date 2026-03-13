@@ -17,6 +17,7 @@ import { authConfig } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { validateResourceData } from '@/lib/gantt-tool/resource-validator';
+import { logger } from "@/lib/logger";
 
 export const maxDuration = 10; // seconds
 
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('GET /api/gantt-tool/resources failed:', error);
+    logger.error('GET /api/gantt-tool/resources failed', { error });
     return NextResponse.json(
       { error: 'Failed to fetch resources' },
       { status: 500 }
@@ -138,8 +139,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Validation failed',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          details: parseResult.error.issues.map((e: any) => ({
+          details: parseResult.error.issues.map((e: z.ZodIssue) => ({
             field: e.path.join('.'),
             message: e.message,
           })),
@@ -166,8 +166,7 @@ export async function POST(request: NextRequest) {
       {
         ...data,
         projectId: data.projectId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any,
+      } as Partial<import('@prisma/client').GanttResource>,
       existingResources,
       true // isNew
     );
@@ -207,8 +206,7 @@ export async function POST(request: NextRequest) {
         utilizationTarget: data.utilizationTarget || null,
         isActive: true,
         validationStatus: 'valid',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any,
+      },
     });
 
     return NextResponse.json(
@@ -221,7 +219,7 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error) {
-    console.error('POST /api/gantt-tool/resources failed:', error);
+    logger.error('POST /api/gantt-tool/resources failed', { error });
     return NextResponse.json(
       { error: 'Failed to create resource' },
       { status: 500 }

@@ -25,6 +25,7 @@ import { FormExample, WorkingDaysIndicator } from "@/lib/design-system/showcase-
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "@/lib/design-system/tokens";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import type { Phase } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 interface EditPhaseModalProps {
   isOpen: boolean;
@@ -70,7 +71,7 @@ export function EditPhaseModal({ isOpen, onClose, phase, phaseId }: EditPhaseMod
 
         // Guard: Validate date is actually valid
         if (isNaN(startDate.getTime())) {
-          console.warn("Invalid start date for AMS calculation:", formData.startDate);
+          logger.warn("Invalid start date for AMS calculation:", { startDate: formData.startDate });
           return;
         }
 
@@ -79,15 +80,16 @@ export function EditPhaseModal({ isOpen, onClose, phase, phaseId }: EditPhaseMod
           "yyyy-MM-dd"
         );
 
-        if (formData.endDate !== calculatedEndDate) {
-          setFormData(prev => ({ ...prev, endDate: calculatedEndDate }));
-        }
+        // Use functional update to avoid needing formData.endDate in deps
+        setFormData(prev => {
+          if (prev.endDate === calculatedEndDate) return prev;
+          return { ...prev, endDate: calculatedEndDate };
+        });
       } catch (error) {
-        console.error("Failed to calculate AMS end date:", error);
+        logger.error("Failed to calculate AMS end date:", { error });
         // Graceful degradation: Don't update end date if calculation fails
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.phaseType, formData.startDate, formData.amsDuration]);
 
   const isAMSPhase = formData.phaseType === "ams";
@@ -131,7 +133,7 @@ export function EditPhaseModal({ isOpen, onClose, phase, phaseId }: EditPhaseMod
       });
       onClose();
     } catch (error) {
-      console.error("Failed to update phase:", error);
+      logger.error("Failed to update phase:", { error });
       alert("Failed to save. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -145,7 +147,7 @@ export function EditPhaseModal({ isOpen, onClose, phase, phaseId }: EditPhaseMod
         await deletePhase(phaseId);
         onClose();
       } catch (error) {
-        console.error("Failed to delete phase:", error);
+        logger.error("Failed to delete phase:", { error });
         alert("Failed to delete phase. Please try again.");
       }
     }

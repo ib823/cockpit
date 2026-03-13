@@ -22,14 +22,12 @@ import AutoSizer from "react-virtualized-auto-sizer";
 interface ListChildComponentProps {
   index: number;
   style: React.CSSProperties;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data?: any;
+  data?: unknown;
 }
 
 export interface VirtualizedListItem {
   id: string | number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface VirtualizedListProps<T extends VirtualizedListItem> {
@@ -106,8 +104,7 @@ export function VirtualizedList<T extends VirtualizedListItem>({
   overscanCount = 5,
 }: VirtualizedListProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const listRef = useRef<any>(null);
+  const listRef = useRef<List>(null);
 
   // Filter items based on search query
   const filteredItems = useMemo(() => {
@@ -131,8 +128,7 @@ export function VirtualizedList<T extends VirtualizedListItem>({
 
   // Render row component
   const Row = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ({ index, style, ariaAttributes }: { index: number; style: React.CSSProperties; ariaAttributes: any }) => {
+    ({ index, style, ariaAttributes }: { index: number; style: React.CSSProperties; ariaAttributes: Record<string, string> }) => {
       const item = filteredItems[index];
 
       return (
@@ -218,12 +214,10 @@ export function VirtualizedList<T extends VirtualizedListItem>({
             {({ height, width }) => (
               <List
                 listRef={listRef}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                rowComponent={Row as any}
+                rowComponent={Row as React.ComponentType<ListChildComponentProps>}
                 rowCount={filteredItems.length}
                 rowHeight={itemHeight}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                rowProps={{} as any}
+                rowProps={{} as Record<string, unknown>}
                 style={{ height, width }}
                 overscanCount={overscanCount}
               />

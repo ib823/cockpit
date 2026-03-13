@@ -11,6 +11,7 @@
 
 "use client";
 
+import { logger } from "@/lib/logger";
 import {
   ComputedOutputs,
   ProjectInputs,
@@ -98,7 +99,7 @@ export function useRecompute(
     }
 
     if (debug) {
-      console.log("[useRecompute] Computing outputs", { inputs, isDirty });
+      logger.debug("[useRecompute] Computing outputs", { inputs, isDirty });
     }
 
     const result = recompute(inputs);
@@ -115,7 +116,7 @@ export function useRecompute(
   // Manual recompute function
   const manualRecompute = useCallback(() => {
     if (debug) {
-      console.log("[useRecompute] Manual recompute triggered");
+      logger.debug("[useRecompute] Manual recompute triggered");
     }
     lastComputedInputsRef.current = "";
     lastComputedAtRef.current = new Date();
@@ -123,10 +124,10 @@ export function useRecompute(
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
+    const timerRef = debounceTimerRef;
     return () => {
-      if (debounceTimerRef.current) {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        clearTimeout(debounceTimerRef.current);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
       }
     };
   }, []);

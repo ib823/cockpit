@@ -12,6 +12,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -114,7 +115,7 @@ export async function PATCH(
       ...results,
     });
   } catch (error) {
-    console.error("[API Recovery] Error:", error);
+    logger.error("[API Recovery] Error", { error: error });
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

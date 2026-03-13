@@ -11,7 +11,7 @@ export interface CompletenessResult {
 export function validateCompleteness(chips: Chip[]): CompletenessResult {
   const requiredFields = ["country", "employees", "modules", "timeline", "industry", "revenue"];
 
-  const extractedKinds = new Set(chips.map((chip) => (chip as any).kind));
+  const extractedKinds = new Set(chips.map((chip) => (chip as Chip & { kind?: string }).kind));
   const gaps = requiredFields.filter((field) => !extractedKinds.has(field));
 
   const score = Math.max(

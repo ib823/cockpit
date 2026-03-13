@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/nextauth-helpers";
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -37,7 +38,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("Error fetching user session:", error);
+    logger.error("Error fetching user session", { error: error });
     return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

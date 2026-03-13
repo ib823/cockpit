@@ -35,8 +35,7 @@ interface SearchResult {
   metadata?: string;
   relevance: number;
   matchedFields: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  item: any;
+  item: GanttProject | GanttPhase | GanttTask | Resource | GanttProject["milestones"][number];
 }
 
 interface GlobalSearchProps {
@@ -240,8 +239,7 @@ export function GlobalSearch({ open, onClose, projects = [], onSelectResult }: G
             {/* Tabs */}
             <Tabs
               activeKey={selectedTab}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onChange={(key) => setSelectedTab(key as any)}
+              onChange={(key) => setSelectedTab(key as "all" | SearchResult["type"])}
               style={{ padding: "0 16px" }}
               items={[
                 { key: "all", label: `All (${counts.all})` },

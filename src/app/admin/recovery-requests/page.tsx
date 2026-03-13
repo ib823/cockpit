@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { logger } from "@/lib/logger";
 
 interface RecoveryRequest {
   id: string;
@@ -58,7 +59,7 @@ export default function RecoveryRequestsPage() {
 
       setRequests(data.requests || []);
     } catch (err: unknown) {
-      console.error("[RecoveryRequests] Failed to load:", err);
+      logger.error("[RecoveryRequests] Failed to load:", { error: err });
       if (err instanceof Error) {
         setError(err.message);
       } else {

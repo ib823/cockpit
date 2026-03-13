@@ -10,6 +10,7 @@
 import { useRouter } from "next/navigation";
 import { OrgChartHarmonyV2 } from "@/components/gantt-tool/OrgChartHarmonyV2";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
+import { logger } from "@/lib/logger";
 import { useEffect } from "react";
 
 export default function OrganizationChartPage() {
@@ -23,7 +24,7 @@ export default function OrganizationChartPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!currentProject) {
-        console.warn("⚠️ No project loaded after 1 second, redirecting to dashboard");
+        logger.warn("No project loaded after 1 second, redirecting to dashboard");
         router.push("/dashboard");
       }
     }, 1000);

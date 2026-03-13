@@ -3,7 +3,7 @@
  * Confirmation dialogs for destructive actions with clear visual hierarchy
  *
  * Usage:
- * const [showConfirm, confirmDialog] = useConfirmDialog();
+ * const [showConfirm, confirmDialog] = createConfirmDialog();
  *
  * await showConfirm({
  *   title: "Delete Project?",
@@ -76,9 +76,9 @@ export function ConfirmDialog({
 }
 
 /**
- * Hook for easier confirm dialog usage
+ * Factory for confirm dialog usage (not a React hook - safe to call anywhere)
  */
-export function useConfirmDialog() {
+export function createConfirmDialog() {
   const showConfirm = (options: Omit<ConfirmDialogProps, "onConfirm" | "onCancel">) => {
     return new Promise<boolean>((resolve) => {
       ConfirmDialog({
@@ -100,8 +100,7 @@ export function useConfirmDialog() {
  * Pre-configured destructive action confirm
  */
 export function confirmDelete(itemName: string, additionalInfo?: string): Promise<boolean> {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const confirm = useConfirmDialog();
+  const confirm = createConfirmDialog();
   return confirm({
     title: `Delete ${itemName}?`,
     description: (
@@ -127,8 +126,7 @@ export function confirmDelete(itemName: string, additionalInfo?: string): Promis
  * Pre-configured discard changes confirm
  */
 export function confirmDiscardChanges(): Promise<boolean> {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const confirm = useConfirmDialog();
+  const confirm = createConfirmDialog();
   return confirm({
     title: "Discard unsaved changes?",
     description: "You have unsaved changes. If you leave now, your changes will be lost.",
@@ -142,8 +140,7 @@ export function confirmDiscardChanges(): Promise<boolean> {
  * Pre-configured navigation confirm (with unsaved changes)
  */
 export function confirmNavigation(destination: string): Promise<boolean> {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const confirm = useConfirmDialog();
+  const confirm = createConfirmDialog();
   return confirm({
     title: "Leave without saving?",
     description: (

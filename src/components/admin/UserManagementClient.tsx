@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { logger } from "@/lib/logger";
 import { Modal, Form, Input, Select, Switch, Button, App, Popconfirm } from "antd";
 import {
   PlusOutlined,
@@ -9,7 +10,7 @@ import {
   KeyOutlined,
   CopyOutlined,
 } from "@ant-design/icons";
-import dayjs from "dayjs";
+import { format, addDays } from "date-fns";
 
 interface User {
   id: string;
@@ -58,7 +59,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
         setUsers(data.users);
       }
     } catch (error) {
-      console.error("Failed to reload users:", error);
+      logger.error("Failed to reload users", { error });
     }
   };
 
@@ -69,7 +70,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
     form.setFieldsValue({
       role: "USER",
       exception: false,
-      accessExpiresAt: dayjs().add(90, "days").format("YYYY-MM-DD"),
+      accessExpiresAt: format(addDays(new Date(), 90), "yyyy-MM-dd"),
     });
     setIsModalOpen(true);
   };
@@ -82,7 +83,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
       name: user.name,
       role: user.role,
       exception: user.exception,
-      accessExpiresAt: dayjs(user.accessExpiresAt).format("YYYY-MM-DD"),
+      accessExpiresAt: format(new Date(user.accessExpiresAt), "yyyy-MM-dd"),
     });
     setIsModalOpen(true);
   };
@@ -307,7 +308,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
                         className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
                         suppressHydrationWarning
                       >
-                        {dayjs(user.createdAt).format("MMM D, YYYY")}
+                        {format(new Date(user.createdAt), "MMM d, yyyy")}
                       </td>
                       <td
                         className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
@@ -316,7 +317,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
                         {user.exception ? (
                           <span className="text-green-600 font-medium">Never</span>
                         ) : user.accessExpiresAt ? (
-                          dayjs(user.accessExpiresAt).format("MMM D, YYYY")
+                          format(new Date(user.accessExpiresAt), "MMM d, yyyy")
                         ) : (
                           <span className="text-gray-400">Not set</span>
                         )}

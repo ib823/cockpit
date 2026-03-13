@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig as authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 // GET /api/account/profile - Get user profile
 export async function GET() {
@@ -46,7 +47,7 @@ export async function GET() {
       lastLoginAt: user.lastLoginAt?.toISOString() || null,
     });
   } catch (error) {
-    console.error("Profile fetch error:", error);
+    logger.error("Profile fetch error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -138,7 +139,7 @@ export async function PATCH(req: NextRequest) {
       lastLoginAt: updatedUser.lastLoginAt?.toISOString() || null,
     });
   } catch (error) {
-    console.error("Profile update error:", error);
+    logger.error("Profile update error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

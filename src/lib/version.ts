@@ -2,6 +2,8 @@
  * Version utility for accessing build and version information
  */
 
+import { logger } from "@/lib/logger";
+
 export interface VersionInfo {
   version: string;
   gitCommit: string;
@@ -19,8 +21,8 @@ export async function getVersionInfo(): Promise<VersionInfo> {
     if (response.ok) {
       return await response.json();
     }
-  } catch (error) {
-    console.warn("Could not fetch version.json, using fallback");
+  } catch (_error) {
+    logger.warn("Could not fetch version.json, using fallback");
   }
 
   // Fallback: read from package.json (won't have git info)

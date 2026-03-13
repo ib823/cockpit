@@ -15,7 +15,14 @@ export async function POST(req: Request) {
   const MIN_RESPONSE_MS = 200;
 
   try {
-    const { email } = await req.json().catch(() => ({}));
+    let email: string | undefined;
+    try {
+      const body = await req.json();
+      email = body.email;
+    } catch {
+      await delayUntil(start, MIN_RESPONSE_MS);
+      return NextResponse.json({ isAdmin: false }, { headers: { "Content-Type": "application/json" } });
+    }
     if (!email || typeof email !== "string") {
       await delayUntil(start, MIN_RESPONSE_MS);
       return NextResponse.json({ isAdmin: false }, { headers: { "Content-Type": "application/json" } });

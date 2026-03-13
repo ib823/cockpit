@@ -47,8 +47,7 @@ const nextConfig = {
             value: [
               "default-src 'self'",
               // Only allow unsafe-eval in development (required by Next.js HMR)
-              // Allow cdnjs.cloudflare.com for Lottie animation library
-              `script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com${isDev ? " 'unsafe-eval'" : ""}`,
+              `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self'",
@@ -136,14 +135,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-
-// Suppress React 19 warnings
-if (typeof window !== "undefined") {
-  const originalError = console.error;
-  console.error = (...args) => {
-    if (typeof args[0] === "string" && args[0].includes("antd: compatible")) {
-      return;
-    }
-    originalError.apply(console, args);
-  };
-}

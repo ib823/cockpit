@@ -3,6 +3,7 @@ import { createSessionToken } from "@/lib/nextauth-helpers";
 import { compare } from "bcryptjs";
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
@@ -10,7 +11,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: "Disabled" }, { status: 404 });
   }
   try {
-    const { email, code } = await req.json().catch(() => ({}));
+    let email: string | undefined;
+    let code: string | undefined;
+    try {
+      const body = await req.json();
+      email = body.email;
+      code = body.code;
+    } catch {
+      return NextResponse.json(
+        { ok: false, message: "Invalid request body" },
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
     if (!email || !code) {
       return NextResponse.json(
         { ok: false, message: "Email and code required" },
@@ -86,10 +98,8 @@ export async function POST(req: Request) {
         },
       }
     );
-
-    return NextResponse.json({ ok: true }, { headers: { "Content-Type": "application/json" } });
   } catch (e) {
-    console.error("admin-login error", e);
+    logger.error("admin-login error", { error: e });
     return NextResponse.json(
       { ok: false, message: "Internal error" },
       { status: 500, headers: { "Content-Type": "application/json" } }

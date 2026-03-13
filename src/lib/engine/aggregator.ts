@@ -8,7 +8,14 @@
  */
 
 import { Phase } from "@/types/core";
-import { RicefwItem, FormItem, IntegrationItem } from "@/lib/ricefw/model";
+import {
+  RicefwItem,
+  FormItem,
+  IntegrationItem,
+  type RicefwType,
+  type Complexity,
+  type Phase as RicefwPhase,
+} from "@/lib/ricefw/model";
 import { ProjectInputs } from "./recompute";
 
 // ============================================================================
@@ -23,7 +30,7 @@ export interface StoreSnapshot {
     value: string;
     confidence: number;
   }>;
-  decisions?: Record<string, any>;
+  decisions?: Record<string, unknown>;
   completenessScore?: number;
 
   // From timeline-store
@@ -82,14 +89,81 @@ export function aggregateFromStores(snapshot: StoreSnapshot): AggregatedData {
 /**
  * Aggregate data from database query results
  */
+interface DatabaseProject {
+  averageHourlyRate?: number;
+  region?: string;
+}
+
+interface DatabaseChip {
+  type?: string;
+  [key: string]: unknown;
+}
+
+interface DatabaseDecision {
+  key: string;
+  value: unknown;
+}
+
+interface DatabasePhase {
+  id: string;
+  name: string;
+  category?: string;
+  startBusinessDay?: number;
+  workingDays?: number;
+  duration?: number;
+  effort?: number;
+  color?: string;
+  dependencies?: string[];
+  skipHolidays?: boolean;
+}
+
+interface DatabaseRicefwItem {
+  id: string;
+  projectId: string;
+  type: string;
+  name: string;
+  description?: string;
+  complexity: string;
+  count: number;
+  effortPerItem: number | string;
+  totalEffort: number | string;
+  phase: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface DatabaseFormItem {
+  id: string;
+  projectId: string;
+  name: string;
+  type: string;
+  languages?: string[];
+  complexity: string;
+  effort: number | string;
+  createdAt: Date;
+}
+
+interface DatabaseIntegrationItem {
+  id: string;
+  projectId: string;
+  name: string;
+  type: string;
+  source: string;
+  target: string;
+  complexity: string;
+  volume: string;
+  effort: number | string;
+  createdAt: Date;
+}
+
 export function aggregateFromDatabase(data: {
-  project?: any;
-  chips?: any[];
-  decisions?: any[];
-  phases?: any[];
-  ricefwItems?: any[];
-  formItems?: any[];
-  integrationItems?: any[];
+  project?: DatabaseProject;
+  chips?: DatabaseChip[];
+  decisions?: DatabaseDecision[];
+  phases?: DatabasePhase[];
+  ricefwItems?: DatabaseRicefwItem[];
+  formItems?: DatabaseFormItem[];
+  integrationItems?: DatabaseIntegrationItem[];
 }): AggregatedData {
   // Extract project configuration
   const project = data.project || {};
@@ -97,7 +171,7 @@ export function aggregateFromDatabase(data: {
   const region = project.region || "ABMY";
 
   // Convert decisions array to record
-  const decisions: Record<string, any> = {};
+  const decisions: Record<string, unknown> = {};
   if (data.decisions) {
     for (const decision of data.decisions) {
       decisions[decision.key] = decision.value;
@@ -121,14 +195,14 @@ export function aggregateFromDatabase(data: {
   const ricefwItems: RicefwItem[] = (data.ricefwItems || []).map((item) => ({
     id: item.id,
     projectId: item.projectId,
-    type: item.type as any,
+    type: item.type as RicefwType,
     name: item.name,
     description: item.description || undefined,
-    complexity: item.complexity as any,
+    complexity: item.complexity as Complexity,
     count: item.count,
     effortPerItem: Number(item.effortPerItem),
     totalEffort: Number(item.totalEffort),
-    phase: item.phase as any,
+    phase: item.phase as RicefwPhase,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
   }));
@@ -138,9 +212,9 @@ export function aggregateFromDatabase(data: {
     id: item.id,
     projectId: item.projectId,
     name: item.name,
-    type: item.type as any,
+    type: item.type as FormItem["type"],
     languages: item.languages || [],
-    complexity: item.complexity as any,
+    complexity: item.complexity as Complexity,
     effort: Number(item.effort),
     createdAt: item.createdAt,
   }));
@@ -150,11 +224,11 @@ export function aggregateFromDatabase(data: {
     id: item.id,
     projectId: item.projectId,
     name: item.name,
-    type: item.type as any,
+    type: item.type as IntegrationItem["type"],
     source: item.source,
     target: item.target,
-    complexity: item.complexity as any,
-    volume: item.volume as any,
+    complexity: item.complexity as Complexity,
+    volume: item.volume as IntegrationItem["volume"],
     effort: Number(item.effort),
     createdAt: item.createdAt,
   }));
@@ -206,7 +280,7 @@ export function mergeUpdates(
  * Calculate completeness score from chips
  * (Simplified version - actual logic should match presales-store)
  */
-function calculateCompletenessFromChips(chips: any[]): number {
+function calculateCompletenessFromChips(chips: DatabaseChip[]): number {
   if (chips.length === 0) return 0;
 
   // Count chips by type
@@ -241,7 +315,7 @@ function calculateCompletenessFromChips(chips: any[]): number {
 /**
  * Extract selected SAP packages from decisions
  */
-export function extractSelectedPackages(decisions: Record<string, any>): string[] {
+export function extractSelectedPackages(decisions: Record<string, unknown>): string[] {
   const packages: string[] = [];
 
   // Check module combo decision

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 const prisma = new PrismaClient();
 
@@ -73,7 +74,7 @@ export async function GET() {
         },
       })
       .catch((err) => {
-        console.warn("[Dashboard Stats] Analytics logging failed:", err);
+        logger.warn("[Dashboard Stats] Analytics logging failed", { error: err });
         // Don't fail the request if analytics fails
       });
 
@@ -81,7 +82,7 @@ export async function GET() {
 
     // Performance: Log slow queries (>1000ms)
     if (totalDuration > 1000) {
-      console.warn(
+      logger.warn(
         `[Dashboard Stats] Slow query detected: ${Math.round(totalDuration)}ms for user ${user.id}`
       );
     }
@@ -97,7 +98,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("[Dashboard Stats] Error:", error);
+    logger.error("[Dashboard Stats] Error", { error: error });
     return NextResponse.json({ error: "Failed to fetch statistics" }, { status: 500 });
   } finally {
     await prisma.$disconnect();

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { logger } from "@/lib/logger";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button, Spin, Result, Card, Descriptions, Typography, Space } from "antd";
@@ -55,15 +56,7 @@ export default function AcceptInvitePage() {
     }
   }, [sessionStatus, router, token]);
 
-  // Fetch invite details when authenticated
-  useEffect(() => {
-    if (sessionStatus === "authenticated" && token) {
-      fetchInviteDetails();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionStatus, token]);
-
-  const fetchInviteDetails = async () => {
+  const fetchInviteDetails = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -84,12 +77,19 @@ export default function AcceptInvitePage() {
         setInviteDetails(data);
       }
     } catch (err) {
-      console.error("Failed to fetch invite details:", err);
+      logger.error("Failed to fetch invite details:", { error: err });
       setError("Failed to load invite details. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  // Fetch invite details when authenticated
+  useEffect(() => {
+    if (sessionStatus === "authenticated" && token) {
+      fetchInviteDetails();
+    }
+  }, [sessionStatus, token, fetchInviteDetails]);
 
   const acceptInvite = async () => {
     if (!token) return;
@@ -130,7 +130,7 @@ export default function AcceptInvitePage() {
         }, 2000);
       }
     } catch (err) {
-      console.error("Failed to accept invite:", err);
+      logger.error("Failed to accept invite:", { error: err });
       setError("Failed to accept invite. Please try again.");
     } finally {
       setAccepting(false);

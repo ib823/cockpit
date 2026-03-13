@@ -5,6 +5,8 @@
  * Uses ip-api.com for free geolocation lookups (no API key required for non-commercial use).
  */
 
+import { logger } from "@/lib/logger";
+
 export interface GeoLocation {
   ip: string;
   country: string;
@@ -94,14 +96,14 @@ export async function getIPGeolocation(ip: string): Promise<GeoLocation | null> 
     });
 
     if (!response.ok) {
-      console.error("[geolocation] API error:", response.status, response.statusText);
+      logger.error("[geolocation] API error", { status: response.status, statusText: response.statusText });
       return null;
     }
 
     const data = await response.json();
 
     if (data.status === "fail") {
-      console.error("[geolocation] Lookup failed:", data.message);
+      logger.error("[geolocation] Lookup failed", { message: data.message });
       return null;
     }
 
@@ -126,7 +128,7 @@ export async function getIPGeolocation(ip: string): Promise<GeoLocation | null> 
 
     return geoData;
   } catch (error) {
-    console.error("[geolocation] Error fetching geolocation:", error);
+    logger.error("[geolocation] Error fetching geolocation", { error });
     return null;
   }
 }

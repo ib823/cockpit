@@ -15,6 +15,7 @@
 
 import dynamic from "next/dynamic";
 import { ComponentType, lazy, Suspense, ReactNode } from "react";
+import { logger } from "@/lib/logger";
 
 /**
  * Loading component
@@ -53,7 +54,7 @@ export function ErrorFallback({ error }: { error: Error }) {
 /**
  * Dynamic import with loading state
  */
-export function lazyLoad<T extends ComponentType<any>>(
+export function lazyLoad<T extends ComponentType<Record<string, unknown>>>(
   importFn: () => Promise<{ default: T }>,
   options?: {
     loading?: ReactNode;
@@ -69,7 +70,7 @@ export function lazyLoad<T extends ComponentType<any>>(
 /**
  * Lazy load with retry logic
  */
-export function lazyLoadWithRetry<T extends ComponentType<any>>(
+export function lazyLoadWithRetry<T extends ComponentType<Record<string, unknown>>>(
   importFn: () => Promise<{ default: T }>,
   options?: {
     maxRetries?: number;
@@ -86,7 +87,7 @@ export function lazyLoadWithRetry<T extends ComponentType<any>>(
         throw error;
       }
 
-      console.warn(`[Code Splitting] Import failed, retrying... (${retriesLeft} attempts left)`);
+      logger.warn("[Code Splitting] Import failed, retrying...", { retriesLeft });
 
       // Wait before retrying
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -104,12 +105,12 @@ export function lazyLoadWithRetry<T extends ComponentType<any>>(
 /**
  * Preload a dynamic component
  */
-export async function preloadComponent(importFn: () => Promise<any>): Promise<void> {
+export async function preloadComponent(importFn: () => Promise<unknown>): Promise<void> {
   try {
     await importFn();
-    console.log("[Code Splitting] ✅ Component preloaded");
+    logger.info("[Code Splitting] Component preloaded");
   } catch (error) {
-    console.error("[Code Splitting] ❌ Failed to preload component:", error);
+    logger.error("[Code Splitting] Failed to preload component", { error });
   }
 }
 
@@ -119,39 +120,30 @@ export async function preloadComponent(importFn: () => Promise<any>): Promise<vo
  */
 
 // Gantt Chart (1,453 lines)
-export const GanttCanvas = lazyLoadWithRetry<any>(() =>
-  import("@/components/gantt-tool/GanttCanvas").then((m) => ({ default: m.GanttCanvas }))
+export const GanttCanvas = lazyLoadWithRetry<ComponentType<Record<string, unknown>>>(() =>
+  import("@/components/gantt-tool/GanttCanvas").then((m) => ({ default: m.GanttCanvas as ComponentType<Record<string, unknown>> }))
 );
 
 // Gantt Side Panel (1,193 lines)
-export const GanttSidePanel = lazyLoadWithRetry<any>(() =>
-  import("@/components/gantt-tool/GanttSidePanel").then((m) => ({ default: m.GanttSidePanel }))
+export const GanttSidePanel = lazyLoadWithRetry<ComponentType<Record<string, unknown>>>(() =>
+  import("@/components/gantt-tool/GanttSidePanel").then((m) => ({ default: m.GanttSidePanel as ComponentType<Record<string, unknown>> }))
 );
 
 // Import Modal (347 lines - showcase compliant)
-export const ImportModal = lazyLoadWithRetry<any>(() =>
-  import("@/components/gantt-tool/ImportModal").then((m) => ({ default: m.ImportModal }))
+export const ImportModal = lazyLoadWithRetry<ComponentType<Record<string, unknown>>>(() =>
+  import("@/components/gantt-tool/ImportModal").then((m) => ({ default: m.ImportModal as ComponentType<Record<string, unknown>> }))
 );
 
 // Plan Mode (1,137 lines) - DISABLED: Module removed
-// export const PlanMode = lazyLoadWithRetry<any>(() =>
-//   import("@/components/project-v2/modes/PlanMode").then((m) => ({ default: m.PlanMode }))
-// );
 
 // Organization Chart (1,553 lines) - DISABLED: Module removed
-// export const OrganizationChart = lazyLoad<any>(
-//   () => import("@/app/organization-chart/page").then((m) => ({ default: m.default || m })) as any
-// );
 
 // Dashboard Content
-export const DashboardContent = lazyLoad<any>(() =>
-  import("@/components/dashboard/DashboardContent").then((m) => ({ default: m.DashboardContent }))
+export const DashboardContent = lazyLoad<ComponentType<Record<string, unknown>>>(() =>
+  import("@/components/dashboard/DashboardContent").then((m) => ({ default: m.DashboardContent as ComponentType<Record<string, unknown>> }))
 );
 
 // Export components - DISABLED: Module removed
-// export const ExportButton = lazyLoad<any>(() =>
-//   import("@/components/export/ExportButton").then((m) => ({ default: m.ExportButton }))
-// );
 
 /**
  * Route-based preloading
@@ -234,9 +226,11 @@ export function trackBundleLoad(component: string, size: number, loadTime: numbe
     loadTime,
   });
 
-  console.log(
-    `[Bundle] Loaded ${component}: ${(size / 1024).toFixed(2)}KB in ${loadTime.toFixed(2)}ms`
-  );
+  logger.info("[Bundle] Component loaded", {
+    component,
+    sizeKB: (size / 1024).toFixed(2),
+    loadTimeMs: loadTime.toFixed(2),
+  });
 }
 
 export function getBundleStats(): BundleStats[] {

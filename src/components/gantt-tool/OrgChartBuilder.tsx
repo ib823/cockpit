@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
 /**
  * Org Chart Builder - Unified Visual Tree
  *
@@ -203,7 +202,10 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
     return (
       <div
         key={node.id}
+        role="button"
+        tabIndex={0}
         onClick={() => setSelectedNode(node.id)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedNode(node.id); } }}
         style={{
           position: "relative",
           width: "200px",
@@ -221,10 +223,13 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
       >
         {/* Company Badge - Clickable */}
         <div
+          role="button"
+          tabIndex={0}
           onClick={(e) => {
             e.stopPropagation();
             setShowCompanyPicker(isShowingCompanyPicker ? null : node.id);
           }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setShowCompanyPicker(isShowingCompanyPicker ? null : node.id); } }}
           style={{
             position: "absolute",
             top: "-10px",
@@ -360,10 +365,13 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
           </div>
         ) : (
           <div
+            role="button"
+            tabIndex={0}
             onClick={(e) => {
               e.stopPropagation();
               startEditing(node.id, node.roleTitle, node.dailyRate);
             }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); startEditing(node.id, node.roleTitle, node.dailyRate); } }}
             style={{
               fontSize: "14px",
               fontWeight: 600,
@@ -835,6 +843,9 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label="Close organization chart"
       style={{
         position: "fixed",
         top: 0,
@@ -849,9 +860,12 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
         padding: "20px",
       }}
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose(); } }}
     >
       <div
+        role="presentation"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
         style={{
           backgroundColor: "#ffffff",
           borderRadius: "12px",

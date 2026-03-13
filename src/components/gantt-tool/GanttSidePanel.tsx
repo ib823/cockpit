@@ -37,6 +37,8 @@ import type {
   Resource,
   TaskResourceAssignment,
   GanttTask,
+  GanttPhase,
+  GanttMilestone,
 } from "@/types/gantt-tool";
 import { differenceInDays, addDays } from "date-fns";
 import {
@@ -48,6 +50,7 @@ import { PhaseTaskResourceAllocationModal } from "./PhaseTaskResourceAllocationM
 import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
 import { TaskDeletionImpactModal } from "./TaskDeletionImpactModal";
 import { PhaseDeletionImpactModal } from "./PhaseDeletionImpactModal";
+import { logger } from "@/lib/logger";
 
 export function GanttSidePanel() {
   const {
@@ -265,8 +268,12 @@ export function GanttSidePanel() {
   return (
     <>
       {/* Overlay */}
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-      <div className="fixed inset-0 bg-black/20 z-40" onClick={closeSidePanel} />
+      <div
+        role="presentation"
+        className="fixed inset-0 bg-black/20 z-40"
+        onClick={closeSidePanel}
+        onKeyDown={(e) => { if (e.key === 'Escape') closeSidePanel(); }}
+      />
 
       {/* Side Panel */}
       <div className="fixed right-0 top-0 bottom-0 w-96 bg-white shadow-2xl z-50 flex flex-col">
@@ -370,8 +377,7 @@ function PhaseForm({
   onDelete?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getPhaseById: (id: string) => any;
+  getPhaseById: (id: string) => GanttPhase | undefined;
   enableRealTimeUpdate?: boolean;
   updatePhase?: (id: string, data: Partial<PhaseFormData>) => void;
 }) {
@@ -473,7 +479,7 @@ function PhaseForm({
         });
       } catch (error) {
         // Ignore errors from invalid dates during input
-        console.warn("Date calculation skipped:", error);
+        logger.warn("Date calculation skipped:", { error });
       }
     }
   };
@@ -819,14 +825,12 @@ function TaskForm({
 }: {
   mode: "add" | "edit" | "view";
   itemId?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  phases: any[];
+  phases: GanttPhase[];
   onSubmit: (data: TaskFormData) => void;
   onDelete?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getTaskById: (id: string) => any;
+  getTaskById: (id: string) => { task: GanttTask; phase: GanttPhase } | undefined;
   enableRealTimeUpdate?: boolean;
   updateTask?: (taskId: string, phaseId: string, updates: Partial<TaskFormData>) => void;
 }) {
@@ -954,7 +958,7 @@ function TaskForm({
         });
       } catch (error) {
         // Ignore errors from invalid dates during input
-        console.warn("Date calculation skipped:", error);
+        logger.warn("Date calculation skipped:", { error });
       }
     }
   };
@@ -1445,8 +1449,7 @@ function MilestoneForm({
   itemId?: string;
   onSubmit: (data: MilestoneFormData) => void;
   onDelete?: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getMilestoneById: (id: string) => any;
+  getMilestoneById: (id: string) => GanttMilestone | undefined;
 }) {
   const existingMilestone = itemId ? getMilestoneById(itemId) : null;
 

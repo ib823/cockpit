@@ -77,8 +77,7 @@ export function FormPanel({ projectId, forms, onChange, readonly = false }: Form
       id: editingForm?.id || `form-${Date.now()}`,
       projectId,
       name: formData.name,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      type: formData.type as any,
+      type: formData.type as FormItem["type"],
       languages: formData.languages || ["en"],
       complexity: formData.complexity || "M",
       effort: formData.effort || 5,
@@ -142,8 +141,7 @@ export function FormPanel({ projectId, forms, onChange, readonly = false }: Form
     {
       title: "Actions",
       key: "actions",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render: (_: any, record: FormItem) => (
+      render: (_: unknown, record: FormItem) => (
         <Space>
           <Button
             type="link"
@@ -248,8 +246,7 @@ export function FormPanel({ projectId, forms, onChange, readonly = false }: Form
             <Select
               style={{ width: "100%" }}
               value={formData.type}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onChange={(type) => setFormData({ ...formData, type: type as any })}
+              onChange={(type) => setFormData({ ...formData, type: type as FormItem["type"] })}
             >
               <Option value="po">Purchase Order</Option>
               <Option value="invoice">Invoice</Option>

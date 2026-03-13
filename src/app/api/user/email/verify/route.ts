@@ -4,6 +4,8 @@ import { compare } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
+import { badRequest, unauthorized, forbidden, notFound, conflict, serverError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -16,16 +18,21 @@ export const runtime = "nodejs";
  */
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { userId: requestUserId, verificationCode } = body;
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const { userId: requestUserId, verificationCode } = body as { userId?: string; verificationCode?: string };
 
     const session = await getServerSession(authConfig);
     if (!session?.user?.id || !session.user.email) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     if (requestUserId && String(requestUserId) !== session.user.id) {
-      return NextResponse.json({ ok: false, message: "Forbidden" }, { status: 403 });
+      return forbidden();
     }
 
     const normalizedVerificationCode = String(verificationCode ?? "");
@@ -35,17 +42,11 @@ export async function POST(req: Request) {
     // 1. Validate Input
     // ============================================
     if (!normalizedVerificationCode) {
-      return NextResponse.json(
-        { ok: false, message: "Verification code is required" },
-        { status: 400 }
-      );
+      return badRequest("Verification code is required");
     }
 
     if (normalizedVerificationCode.length !== 6) {
-      return NextResponse.json(
-        { ok: false, message: "Verification code must be 6 digits" },
-        { status: 400 }
-      );
+      return badRequest("Verification code must be 6 digits");
     }
 
     // ============================================
@@ -56,17 +57,14 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
+      return notFound("User not found");
     }
 
     // ============================================
     // 3. Validate Pending Email Change
     // ============================================
     if (!user.pendingEmail || !user.pendingEmailToken || !user.pendingEmailExpiresAt) {
-      return NextResponse.json(
-        { ok: false, message: "No pending email change found" },
-        { status: 400 }
-      );
+      return badRequest("No pending email change found");
     }
 
     // Check expiration
@@ -93,10 +91,7 @@ export async function POST(req: Request) {
     const codeValid = await compare(normalizedVerificationCode, user.pendingEmailToken);
 
     if (!codeValid) {
-      return NextResponse.json(
-        { ok: false, message: "Invalid verification code" },
-        { status: 401 }
-      );
+      return unauthorized("Invalid verification code");
     }
 
     // ============================================
@@ -107,10 +102,7 @@ export async function POST(req: Request) {
     });
 
     if (existingUser && existingUser.id !== userId) {
-      return NextResponse.json(
-        { ok: false, message: "This email is now in use by another account" },
-        { status: 409 }
-      );
+      return conflict("This email is now in use by another account");
     }
 
     // ============================================
@@ -180,7 +172,7 @@ export async function POST(req: Request) {
         `
       );
     } catch (emailError) {
-      console.error("[EmailVerify] Failed to send confirmation emails:", emailError);
+      logger.error("[EmailVerify] Failed to send confirmation emails", { error: emailError });
       // Don't fail the request if emails fail
     }
 
@@ -190,10 +182,7 @@ export async function POST(req: Request) {
       newEmail,
     });
   } catch (error: unknown) {
-    console.error("[EmailVerify] Error:", error);
-    return NextResponse.json(
-      { ok: false, message: "Failed to verify email change" },
-      { status: 500 }
-    );
+    logger.error("[EmailVerify] Error", { error: error });
+    return serverError("Failed to verify email change");
   }
 }

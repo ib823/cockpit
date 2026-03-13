@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * React Org Chart Integration - ReactFlow Edition
  *
@@ -89,8 +88,77 @@ interface SimpleOrgChart {
   levels: OrgLevel[];
 }
 
+// Node data types for custom ReactFlow nodes
+interface ProjectNodeData {
+  label: string;
+}
+
+interface GroupNodeData {
+  label: string;
+  designation: string;
+}
+
+interface SubGroupNodeData {
+  label: string;
+  parentGroup: string;
+}
+
+interface PhaseAssignment {
+  phaseId: string;
+  phaseName: string;
+  phaseColor: string;
+}
+
+interface TaskAssignment {
+  taskId: string;
+  taskName: string;
+  phaseId: string;
+}
+
+interface ResourceAssignments {
+  phases: PhaseAssignment[];
+  tasks: TaskAssignment[];
+  primaryPhase: PhaseAssignment | null;
+}
+
+interface ResourceNodeData {
+  person: {
+    id: string;
+    name: string;
+    designation?: string;
+    category?: string;
+    projectRole?: string;
+    department?: string;
+    resource?: Resource;
+    assignments?: ResourceAssignments;
+  };
+  isSpotlighted: boolean | string | null;
+  isDimmed: boolean | string | null;
+}
+
+// Internal data structures for layout computation
+interface ResourceEntry {
+  id: string;
+  resource: Resource;
+  assignments: ResourceAssignments;
+}
+
+interface SubGroupEntry {
+  subGroupId: string;
+  subGroupName: string;
+  resources: ResourceEntry[];
+}
+
+interface LevelGroupEntry {
+  groupId: string;
+  groupName: string;
+  levelName: string;
+  resources: ResourceEntry[];
+  subGroups: SubGroupEntry[];
+}
+
 // Custom node components
-function ProjectNode({ data }: { data: any }) {
+function ProjectNode({ data }: { data: ProjectNodeData }) {
   return (
     <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-lg border-2 border-blue-400 p-4 w-[280px] h-[100px] flex items-center justify-center">
       <div className="text-center">
@@ -101,7 +169,7 @@ function ProjectNode({ data }: { data: any }) {
   );
 }
 
-function GroupNode({ data }: { data: any }) {
+function GroupNode({ data }: { data: GroupNodeData }) {
   return (
     <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg shadow-md border-2 border-gray-300 p-3 w-[280px] h-[80px] flex items-center justify-center">
       <div className="text-center">
@@ -112,7 +180,7 @@ function GroupNode({ data }: { data: any }) {
   );
 }
 
-function SubGroupNode({ data }: { data: any }) {
+function SubGroupNode({ data }: { data: SubGroupNodeData }) {
   return (
     <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg shadow-md border-2 border-indigo-300 p-3 w-[240px] h-[70px] flex items-center justify-center">
       <div className="text-center">
@@ -123,7 +191,7 @@ function SubGroupNode({ data }: { data: any }) {
   );
 }
 
-function ResourceNode({ data }: { data: any }) {
+function ResourceNode({ data }: { data: ResourceNodeData }) {
   const { person, isSpotlighted, isDimmed } = data;
   const resource = person.resource;
   const assignments = person.assignments;
@@ -214,7 +282,7 @@ function ResourceNode({ data }: { data: any }) {
                       Managing {assignments.phases.length} Phase
                       {assignments.phases.length > 1 ? "s" : ""}:
                     </div>
-                    {assignments.phases.map((p: any) => (
+                    {assignments.phases.map((p: PhaseAssignment) => (
                       <div key={p.phaseId} className="text-xs">
                         • {p.phaseName}
                       </div>
@@ -238,7 +306,7 @@ function ResourceNode({ data }: { data: any }) {
                       {assignments.tasks.length > 1 ? "s" : ""}:
                     </div>
                     <div style={{ maxHeight: "150px", overflowY: "auto" }}>
-                      {assignments.tasks.slice(0, 10).map((t: any) => (
+                      {assignments.tasks.slice(0, 10).map((t: TaskAssignment) => (
                         <div key={t.taskId} className="text-xs">
                           • {t.taskName}
                         </div>
@@ -370,7 +438,7 @@ function OrgChartFlow({
 
     // Process levels
     orgChart.levels.forEach((level, levelIndex) => {
-      const levelGroups: any[] = [];
+      const levelGroups: LevelGroupEntry[] = [];
 
       // Check if this level is collapsed
       const isCollapsed = collapsedLevels.has(level.id);
@@ -382,8 +450,8 @@ function OrgChartFlow({
       }
 
       level.groups.forEach((group) => {
-        const groupResources: any[] = [];
-        const groupSubGroups: any[] = [];
+        const groupResources: ResourceEntry[] = [];
+        const groupSubGroups: SubGroupEntry[] = [];
 
         // Process positions (resources) at group level (no sub-group)
         group.positions.forEach((position) => {
@@ -416,7 +484,7 @@ function OrgChartFlow({
         // Process sub-groups
         if (group.subGroups && group.subGroups.length > 0) {
           group.subGroups.forEach((subGroup) => {
-            const subGroupResources: any[] = [];
+            const subGroupResources: ResourceEntry[] = [];
 
             subGroup.positions.forEach((position) => {
               if (position.resourceId) {
@@ -476,7 +544,7 @@ function OrgChartFlow({
         const totalWidth = levelGroups.reduce((sum, lg) => {
           // If group has sub-groups, calculate based on sub-groups
           if (lg.subGroups && lg.subGroups.length > 0) {
-            const subGroupsWidth = lg.subGroups.reduce((sgSum: number, sg: any) => {
+            const subGroupsWidth = lg.subGroups.reduce((sgSum: number, sg: SubGroupEntry) => {
               return sgSum + sg.resources.length * (nodeWidth + nodeSpacing);
             }, 0);
             return sum + subGroupsWidth + 200; // Extra spacing for sub-groups
@@ -494,7 +562,7 @@ function OrgChartFlow({
           // Calculate group center based on whether it has sub-groups or resources
           let groupWidth = 0;
           if (lg.subGroups && lg.subGroups.length > 0) {
-            groupWidth = lg.subGroups.reduce((sgSum: number, sg: any) => {
+            groupWidth = lg.subGroups.reduce((sgSum: number, sg: SubGroupEntry) => {
               return sgSum + sg.resources.length * (nodeWidth + nodeSpacing);
             }, 0);
           } else {
@@ -528,7 +596,7 @@ function OrgChartFlow({
             // Render sub-groups
             let subGroupXOffset = xOffset;
 
-            lg.subGroups.forEach((sg: any) => {
+            lg.subGroups.forEach((sg: SubGroupEntry) => {
               const subGroupNodeId = `subgroup-${sg.subGroupId}`;
               const subGroupWidth = sg.resources.length * (nodeWidth + nodeSpacing);
               const subGroupX = subGroupXOffset + subGroupWidth / 2;
@@ -556,7 +624,7 @@ function OrgChartFlow({
               });
 
               // Add resource nodes under this sub-group
-              sg.resources.forEach((resData: any, idx: number) => {
+              sg.resources.forEach((resData: ResourceEntry, idx: number) => {
                 const resourceNodeId = resData.id;
                 const resourceX = subGroupXOffset + idx * (nodeWidth + nodeSpacing);
 
@@ -603,7 +671,7 @@ function OrgChartFlow({
             xOffset += groupWidth + 200;
           } else {
             // No sub-groups, render resources directly under group (existing behavior)
-            lg.resources.forEach((resData: any, idx: number) => {
+            lg.resources.forEach((resData: ResourceEntry, idx: number) => {
               const resourceNodeId = resData.id;
               const resourceX = xOffset + idx * (nodeWidth + nodeSpacing);
 

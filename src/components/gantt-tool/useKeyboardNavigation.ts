@@ -7,6 +7,7 @@
 
 import { useEffect, useCallback, useRef } from "react";
 import type { GanttProject, GanttPhase, GanttTask } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 interface KeyboardNavigationOptions {
   currentProject: GanttProject | null;
@@ -199,7 +200,7 @@ export function useKeyboardNavigation({
                 await deletePhase(selection.selectedItemId);
                 lastActionRef.current = "delete-phase";
               } catch (error) {
-                console.error("Failed to delete phase:", error);
+                logger.error("Failed to delete phase:", error);
               }
             }
           } else if (selection.selectedItemType === "task" && deleteTask) {
@@ -256,7 +257,7 @@ export function useKeyboardNavigation({
       else if (key === "?" && shiftKey) {
         event.preventDefault();
         // TODO: Show keyboard shortcuts modal
-        console.log("Keyboard shortcuts help");
+        logger.info("Keyboard shortcuts help");
         lastActionRef.current = "show-help";
       }
     },

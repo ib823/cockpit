@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
 /**
  * Org Chart Builder V2 - With Drag & Drop
  * Steve Jobs/Jony Ive Design: Intuitive drag-and-drop for org chart hierarchy
@@ -37,6 +36,7 @@ import { getAllCompanyLogos } from "@/lib/default-company-logos";
 import { getTotalResourceCount } from "@/lib/gantt-tool/resource-utils";
 import { diagnoseResourceHierarchy, getOrphanedResourceIds } from "@/lib/gantt-tool/resource-diagnostics";
 import "../../styles/org-chart-drag-drop.css";
+import { logger } from "@/lib/logger";
 
 interface OrgChartBuilderV2Props {
   onClose: () => void;
@@ -225,20 +225,18 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
       const diagnostics = diagnoseResourceHierarchy(currentProject);
 
       if (diagnostics.issues.length > 0 || diagnostics.orphanedResources > 0) {
-        console.warn("⚠️ Org Chart Hierarchy Issues Detected:");
-        console.warn(`Total Resources in Project: ${diagnostics.totalResources}`);
-        console.warn(`Resources Showing in Org Chart: ${diagnostics.validHierarchyResources}`);
-        console.warn(`Orphaned Resources (invisible): ${diagnostics.orphanedResources}`);
-        console.warn("Issues:");
-        diagnostics.issues.forEach((issue, i) => {
-          console.warn(`  ${i + 1}. ${issue}`);
+        logger.warn("Org Chart Hierarchy Issues Detected:", {
+          totalResources: diagnostics.totalResources,
+          validHierarchyResources: diagnostics.validHierarchyResources,
+          orphanedResources: diagnostics.orphanedResources,
+          issues: diagnostics.issues,
+          resourceBreakdown: diagnostics.resourceBreakdown,
         });
-        console.warn("\nDetailed Resource Breakdown:");
-        console.warn(JSON.stringify(diagnostics.resourceBreakdown, null, 2));
       } else {
-        console.warn("Org Chart Hierarchy: All resources have valid hierarchy");
-        console.warn(`Total Resources: ${diagnostics.totalResources}`);
-        console.warn(`Hierarchy Levels: ${diagnostics.hierarchyLevels}`);
+        logger.warn("Org Chart Hierarchy: All resources have valid hierarchy", {
+          totalResources: diagnostics.totalResources,
+          hierarchyLevels: diagnostics.hierarchyLevels,
+        });
       }
     }
   }, [currentProject, nodes.length]);
@@ -468,7 +466,7 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
         onClose();
       }, 1500);
     } catch (error) {
-      console.error("Error saving resources:", error);
+      logger.error("Error saving resources:", { error });
       showToast("Failed to save resources. Please try again.");
     } finally {
       setIsSaving(false);
@@ -656,17 +654,17 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
   }, [containerWidth, containerHeight, nodes.length, maxDepth]);
 
   // Zoom control handlers
-  const handleZoomIn = () => {
+  const handleZoomIn = useCallback(() => {
     setZoomScale(prev => Math.min(prev * 1.2, 2.0));
     setZoomMode("scrollable"); // Switch to manual control
-  };
+  }, []);
 
-  const handleZoomOut = () => {
+  const handleZoomOut = useCallback(() => {
     setZoomScale(prev => Math.max(prev / 1.2, 0.1));
     setZoomMode("scrollable"); // Switch to manual control
-  };
+  }, []);
 
-  const handleZoomReset = () => {
+  const handleZoomReset = useCallback(() => {
     // Reset to smart auto mode
     const nodeCount = nodes.length;
     if (nodeCount <= 6) {
@@ -677,7 +675,7 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
       setPanPosition({ x: 0, y: 0 });
       setZoomMode("scrollable");
     }
-  };
+  }, [nodes.length]);
 
   // Pan handlers (for manual panning in scrollable mode)
   // FIX: Only allow panning when Space is held AND not currently dragging
@@ -740,8 +738,7 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodes.length, zoomMode]); // Re-bind when node count or zoom mode changes
+  }, [nodes.length, zoomMode, handleZoomIn, handleZoomOut, handleZoomReset]);
 
   // Render connection lines using new algorithm (Apple 40% control point ratio)
   const connectionPaths = calculateAllConnectionPaths(layout.positions, layoutNodes);
@@ -815,6 +812,7 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
       onDragCancel={handleDragCancel}
     >
       <div
+        role="presentation"
         style={{
           position: "fixed",
           top: 0,
@@ -829,9 +827,14 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
           padding: "20px",
         }}
         onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
       >
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Org Chart Builder"
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
           style={{
             backgroundColor: "#ffffff",
             borderRadius: "12px",

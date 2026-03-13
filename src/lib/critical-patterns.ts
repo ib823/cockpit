@@ -264,7 +264,6 @@ export const CRITICAL_PATTERNS = {
   ],
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- complex nested rule structure
 export const EFFORT_IMPACT_RULES: Record<string, Record<string, unknown>> = {
   legal_entities: {
     low: { max: 1, multiplier: 1.0 },

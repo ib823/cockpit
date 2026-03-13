@@ -1,5 +1,6 @@
 // src/lib/timeline/date-calculations-fixed.ts
 import { addDays, isWeekend, format, parseISO } from "date-fns";
+import { logger } from "@/lib/logger";
 
 export interface Holiday {
   date: string; // ISO format: "2024-12-25"
@@ -23,7 +24,7 @@ export function businessDayToDate(
 ): Date {
   // Validation
   if (businessDay < 0) {
-    console.error("businessDay cannot be negative:", businessDay);
+    logger.error("businessDay cannot be negative", { businessDay });
     return projectStartDate;
   }
 
@@ -51,7 +52,7 @@ export function businessDayToDate(
   while (businessDaysRemaining > 0) {
     iterations++;
     if (iterations > MAX_ITERATIONS) {
-      console.error("businessDayToDate exceeded max iterations", {
+      logger.error("businessDayToDate exceeded max iterations", {
         businessDay,
         iterations,
         holidayCount: holidays.length,
@@ -82,7 +83,7 @@ export function businessDayToDate(
 /**
  * Calculate project start date from phases
  */
-export function getProjectStartDate(phases: any[], holidays: Holiday[] = []): Date {
+export function getProjectStartDate(phases: Array<{ startBusinessDay: number; workingDays: number }>, holidays: Holiday[] = []): Date {
   if (!phases || phases.length === 0) {
     return DEFAULT_PROJECT_START_DATE;
   }
@@ -99,7 +100,7 @@ export function getProjectStartDate(phases: any[], holidays: Holiday[] = []): Da
 /**
  * Calculate project end date from phases
  */
-export function getProjectEndDate(phases: any[], holidays: Holiday[] = []): Date {
+export function getProjectEndDate(phases: Array<{ startBusinessDay: number; workingDays: number }>, holidays: Holiday[] = []): Date {
   if (!phases || phases.length === 0) {
     return DEFAULT_PROJECT_START_DATE;
   }
@@ -129,7 +130,7 @@ export function formatDateElegant(date: Date | null | undefined): string {
 
     return `${day} ${month} ${year} (${weekday})`;
   } catch (error) {
-    console.error("formatDateElegant error:", error);
+    logger.error("formatDateElegant error", { error });
     return "TBD";
   }
 }

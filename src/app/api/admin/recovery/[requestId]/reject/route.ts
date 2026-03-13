@@ -3,6 +3,8 @@ import { requireAdmin } from "@/lib/nextauth-helpers";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
+import { badRequest, unauthorized, forbidden, notFound, serverError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -16,8 +18,14 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest, { params }: { params: Promise<{ requestId: string }> }) {
   try {
     const { requestId } = await params;
-    const body = await req.json().catch(() => ({}));
-    const { rejectionReason, notes } = body;
+
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const { rejectionReason, notes } = body as { rejectionReason?: string; notes?: string };
 
     // ============================================
     // 1. Verify Admin via Session
@@ -30,7 +38,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
     });
 
     if (!admin) {
-      return NextResponse.json({ ok: false, message: "Admin user not found" }, { status: 404 });
+      return notFound("Admin user not found");
     }
 
     const adminId = admin.id;
@@ -46,17 +54,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
     });
 
     if (!recoveryRequest) {
-      return NextResponse.json(
-        { ok: false, message: "Recovery request not found" },
-        { status: 404 }
-      );
+      return notFound("Recovery request not found");
     }
 
     if (recoveryRequest.status !== "pending") {
-      return NextResponse.json(
-        { ok: false, message: `Request already ${recoveryRequest.status}` },
-        { status: 400 }
-      );
+      return badRequest(`Request already ${recoveryRequest.status}`);
     }
 
     const user = recoveryRequest.user;
@@ -162,7 +164,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
         rejectionEmailContent.html
       );
     } catch (emailError) {
-      console.error("[RecoveryReject] Failed to send rejection email:", emailError);
+      logger.error("[RecoveryReject] Failed to send rejection email", { error: emailError });
       // Don't fail the rejection
     }
 
@@ -173,19 +175,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
   } catch (error: unknown) {
     if (error instanceof Error) {
       if (error.message === "unauthorized") {
-        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+        return unauthorized();
       }
       if (error.message === "forbidden") {
-        return NextResponse.json(
-          { ok: false, message: "Forbidden - Admin access required" },
-          { status: 403 }
-        );
+        return forbidden("Admin access required");
       }
     }
-    console.error("[RecoveryReject] Error:", error);
-    return NextResponse.json(
-      { ok: false, message: "Failed to reject recovery request" },
-      { status: 500 }
-    );
+    logger.error("[RecoveryReject] Error", { error: error });
+    return serverError("Failed to reject recovery request");
   }
 }

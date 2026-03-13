@@ -20,6 +20,7 @@
  * ```
  */
 
+import { logger } from "@/lib/logger";
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { GanttPhase, Resource } from "@/types/gantt-tool";
 import type { ResourceCapacityResult } from "@/lib/gantt-tool/resource-capacity-calculator";
@@ -73,7 +74,7 @@ function getWorker(): Worker | null {
         { type: "module" }
       );
     } catch (error) {
-      console.warn("[useCapacityWorker] Web Worker not supported, falling back to main thread:", error);
+      logger.warn("[useCapacityWorker] Web Worker not supported, falling back to main thread", { error });
       workerSupported = false;
       return null;
     }
@@ -131,7 +132,7 @@ export function useCapacityWorker(): UseCapacityWorkerResult {
       };
 
       const handleError = (event: ErrorEvent) => {
-        console.error("[useCapacityWorker] Worker error:", event);
+        logger.error("[useCapacityWorker] Worker error", { event });
         setError("Worker encountered an error");
         setIsCalculating(false);
       };
@@ -169,14 +170,12 @@ export function useCapacityWorker(): UseCapacityWorkerResult {
             name: task.name,
             startDate: task.startDate,
             endDate: task.endDate,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            resourceAssignments: task.resourceAssignments?.map((a: any) => ({
+            resourceAssignments: task.resourceAssignments?.map((a: { resourceId: string; allocationPercentage: number }) => ({
               resourceId: a.resourceId,
               allocation: a.allocationPercentage,
             })),
           })),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          resourceAssignments: phase.phaseResourceAssignments?.map((a: any) => ({
+          resourceAssignments: phase.phaseResourceAssignments?.map((a: { resourceId: string; allocationPercentage: number }) => ({
             resourceId: a.resourceId,
             allocation: a.allocationPercentage,
           })),
@@ -185,8 +184,7 @@ export function useCapacityWorker(): UseCapacityWorkerResult {
           id: r.id,
           name: r.name,
           category: r.category,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          weeklyCapacity: (r as any).weeklyCapacity ?? 40,
+          weeklyCapacity: (r as Resource & { weeklyCapacity?: number }).weeklyCapacity ?? 40,
         })),
         projectStartDate: input.projectStartDate.toISOString(),
         projectEndDate: input.projectEndDate.toISOString(),

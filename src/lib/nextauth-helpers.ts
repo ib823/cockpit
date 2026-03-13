@@ -34,7 +34,7 @@ export async function createAuthSession(
   role: "USER" | "MANAGER" | "ADMIN" | string,
   name?: string | null
 ) {
-  const token = await createSessionToken(userId, email, role as any, name);
+  const token = await createSessionToken(userId, email, role as "USER" | "MANAGER" | "ADMIN", name);
   const cookieStore = await cookies();
   cookieStore.set("next-auth.session-token", token, {
     httpOnly: true,

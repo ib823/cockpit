@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const UpdateCollaboratorSchema = z.object({
   role: z.enum(["VIEWER", "EDITOR", "OWNER"]),
@@ -92,7 +93,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("[API] Failed to remove collaborator:", error);
+    logger.error("[API] Failed to remove collaborator", { error: error });
     return NextResponse.json({ error: "Failed to remove collaborator" }, { status: 500 });
   }
 }
@@ -179,7 +180,7 @@ export async function PATCH(
       );
     }
 
-    console.error("[API] Failed to update collaborator:", error);
+    logger.error("[API] Failed to update collaborator", { error: error });
     return NextResponse.json({ error: "Failed to update collaborator" }, { status: 500 });
   }
 }

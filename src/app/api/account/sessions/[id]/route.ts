@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authConfig as authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getToken } from "next-auth/jwt";
+import { logger } from "@/lib/logger";
 
 // DELETE /api/account/sessions/:id - Revoke a session
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -77,7 +78,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Session revoke error:", error);
+    logger.error("Session revoke error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

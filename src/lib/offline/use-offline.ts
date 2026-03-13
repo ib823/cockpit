@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { syncService } from "./sync-service";
 import { offlineStorage } from "./offline-storage";
+import { logger } from "@/lib/logger";
 
 /**
  * Hook to track online/offline status
@@ -107,7 +108,7 @@ export function useAutoSaveOffline<T>(key: string, data: T, enabled = true, debo
         await offlineStorage.setCache(key, data, 60 * 24); // 24 hour TTL
         setLastSaved(new Date());
       } catch (error) {
-        console.error("[useAutoSaveOffline] Failed to save:", error);
+        logger.error("[useAutoSaveOffline] Failed to save", { error });
       } finally {
         setSaving(false);
       }
@@ -140,7 +141,7 @@ export function useCachedData<T>(key: string, defaultValue: T | null = null) {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("[useCachedData] Failed to load:", error);
+        logger.error("[useCachedData] Failed to load", { error });
         setLoading(false);
       });
   }, [key]);
@@ -167,7 +168,7 @@ export function useServiceWorker() {
     navigator.serviceWorker
       .register("/service-worker.js")
       .then((reg) => {
-        console.log("[ServiceWorker] Registered:", reg.scope);
+        logger.info("[ServiceWorker] Registered", { scope: reg.scope });
         setRegistration(reg);
 
         // Check for updates
@@ -183,7 +184,7 @@ export function useServiceWorker() {
         });
       })
       .catch((error) => {
-        console.error("[ServiceWorker] Registration failed:", error);
+        logger.error("[ServiceWorker] Registration failed", { error });
       });
   }, []);
 

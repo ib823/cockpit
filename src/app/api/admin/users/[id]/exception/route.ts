@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/nextauth-helpers";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -8,7 +9,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     await requireAdmin();
     const { id } = await params;
-    const { exception } = await req.json().catch(() => ({ exception: false }));
+    let exception = false;
+    try {
+      const body = await req.json();
+      exception = body.exception ?? false;
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     await prisma.users.update({
       where: { id },
@@ -29,7 +39,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error("toggle exception error", e);
+    logger.error("toggle exception error", { error: e });
     return NextResponse.json(
       { error: "Failed to update exception" },
       { status: 500, headers: { "Content-Type": "application/json" } }

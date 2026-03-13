@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
       message: "Magic link verified successfully",
     });
   } catch (error) {
-    console.error("Verify magic link error:", error);
+    logger.error("Verify magic link error", { error: error });
     return NextResponse.json(
       { ok: false, message: "Failed to verify magic link" },
       { status: 500 }

@@ -18,6 +18,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 // Input validation constants
 const MAX_TEXT_LENGTH = 10000; // 10K characters per field
@@ -174,7 +175,7 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error("Error updating project context:", error);
+    logger.error("Error updating project context", { error: error });
 
     // Handle specific Prisma errors
     if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
@@ -244,7 +245,7 @@ export async function GET(
       context: project.businessContext || {},
     });
   } catch (error) {
-    console.error("Error fetching project context:", error);
+    logger.error("Error fetching project context", { error: error });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

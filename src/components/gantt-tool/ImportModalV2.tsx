@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Import Modal V2 - Two-Stage Import with Mobile-Responsive Design
  *
@@ -48,22 +47,53 @@ import {
 } from "@/lib/gantt-tool/template-generator-v2";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { allocateResourcesToTasks } from "@/lib/gantt-tool/resource-allocator";
-import type { ResourceDesignation, ResourceCategory } from "@/types/gantt-tool";
+import type {
+  ResourceDesignation,
+  ResourceCategory,
+  GanttProject,
+  GanttPhase,
+  GanttTask,
+  Resource,
+  TaskResourceAssignment,
+  PhaseResourceAssignment,
+} from "@/types/gantt-tool";
 import {
   detectImportConflicts,
   generatePhaseSuggestions,
   generateResourceSuggestions,
   type ConflictDetectionResult,
+  type PhaseConflictDetail,
+  type ResourceConflictDetail,
 } from "@/lib/gantt-tool/conflict-detector";
 import {
   ConflictResolutionModal,
 } from "@/components/gantt-tool/ConflictResolutionModal";
+import { logger } from "@/lib/logger";
 
 interface ConflictResolution {
   strategy: string;
   customNames?: Map<string, string>;
 }
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+
+interface PreparedProjectData {
+  targetProject: GanttProject;
+  newPhases: GanttPhase[];
+  newResources: Resource[];
+  isNewProject: boolean;
+}
+
+interface ValidationDetail {
+  path: string[];
+  message: string;
+}
+
+interface ResourceCategoryConfig {
+  label: string;
+  color: string;
+  icon: string;
+  abbr: string;
+}
 
 // Helper to ensure date is in YYYY-MM-DD format
 function formatDateField(date: string | Date): string {
@@ -114,7 +144,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
   // Conflict detection
   const [conflictResult, setConflictResult] = useState<ConflictDetectionResult | null>(null);
   const [showConflictModal, setShowConflictModal] = useState(false);
-  const [preparedProjectData, setPreparedProjectData] = useState<any>(null);
+  const [preparedProjectData, setPreparedProjectData] = useState<PreparedProjectData | null>(null);
 
   // PERMANENT FIX: Prevent body scroll when modal is open and cleanup on unmount
   useEffect(() => {
@@ -179,7 +209,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
     try {
       await performImportWithResolution(preparedProjectData, resolution);
     } catch (err) {
-      console.error("[ImportModalV2] Import failed after conflict resolution:", err);
+      logger.error("[ImportModalV2] Import failed after conflict resolution:", { error: err });
       alert(err instanceof Error ? err.message : "Failed to import project");
     } finally {
       setIsImporting(false);
@@ -273,9 +303,10 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
       const allParsedResources: ParsedResource[] = [];
 
       if (parsedResources && !skipResources) {
-        console.warn(" Collecting resources...");
-        console.warn("  - Mapped resources:", parsedResources.resources.length);
-        console.warn("  - Unmapped resources:", parsedResources.unmappedResources?.length || 0);
+        logger.warn("Collecting resources...", {
+          mappedResources: parsedResources.resources.length,
+          unmappedResources: parsedResources.unmappedResources?.length || 0,
+        });
 
         // Add already-mapped resources
         allParsedResources.push(...parsedResources.resources);
@@ -290,9 +321,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
               );
             }
 
-            console.warn(
-              `   Applying mapping for row ${unmapped.rowNumber}: ${unmapped.originalDesignation} → ${mapping.designation}, ${mapping.category}`
-            );
+            logger.warn(`Applying mapping for row ${unmapped.rowNumber}: ${unmapped.originalDesignation} -> ${mapping.designation}, ${mapping.category}`);
 
             allParsedResources.push({
               name: unmapped.name,
@@ -306,15 +335,9 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
           }
         }
 
-        console.warn(` Total resources to process: ${allParsedResources.length}`);
+        logger.warn(`Total resources to process: ${allParsedResources.length}`);
       } else {
-        console.warn(
-          "⏭️ Skipping resources (skipResources:",
-          skipResources,
-          ", parsedResources:",
-          !!parsedResources,
-          ")"
-        );
+        logger.warn("Skipping resources", { skipResources, hasParsedResources: !!parsedResources });
       }
 
       // Step 2: Create resource entities and build ID map
@@ -338,12 +361,13 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         };
       });
 
-      targetProject.resources = [...(targetProject.resources || []), ...newResources] as any;
+      targetProject.resources = [...(targetProject.resources || []), ...newResources];
 
       // Step 3: Allocate resources to tasks based on weekly effort
-      console.warn(" Starting resource allocation...");
-      console.warn("Parsed resources:", allParsedResources);
-      console.warn("Resource ID map:", Array.from(resourceIdMap.entries()));
+      logger.warn("Starting resource allocation...", {
+        parsedResources: allParsedResources,
+        resourceIdMap: Array.from(resourceIdMap.entries()),
+      });
 
       const allocationResult = allocateResourcesToTasks(
         allParsedResources,
@@ -351,20 +375,20 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         resourceIdMap
       );
 
-      console.warn(" Allocation result:", allocationResult);
+      logger.warn("Allocation result:", { allocationResult });
 
       if (!allocationResult.success) {
-        console.error("Resource allocation errors:", allocationResult.errors);
+        logger.error("Resource allocation errors:", { errors: allocationResult.errors });
         alert(`Resource allocation failed:\n${allocationResult.errors.join("\n")}`);
         return;
       }
 
       // Show allocation warnings if any
       if (allocationResult.warnings.length > 0) {
-        console.warn("Resource allocation warnings:", allocationResult.warnings);
+        logger.warn("Resource allocation warnings:", { warnings: allocationResult.warnings });
       }
 
-      console.warn(" Resource allocations created:", allocationResult.allocations.length);
+      logger.warn("Resource allocations created:", { count: allocationResult.allocations.length });
 
       // Step 4: Create phases with tasks that have resource assignments
       const newPhases = parsedSchedule.phases.map((phase, phaseIndex) => {
@@ -374,7 +398,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
           const taskId = `task-${Date.now()}-${phaseIndex}-${taskIndex}-${Math.random().toString(36).substr(2, 9)}`;
 
           // Find resource allocations for this task
-          const taskResourceAssignments: any[] = [];
+          const taskResourceAssignments: TaskResourceAssignment[] = [];
 
           for (const allocatedResource of allocationResult.allocations) {
             const taskAlloc = allocatedResource.taskAllocations.find(
@@ -393,10 +417,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
             }
           }
 
-          console.warn(
-            ` Task "${task.name}" in phase "${phase.name}": ${taskResourceAssignments.length} resource assignments`,
-            taskResourceAssignments
-          );
+          logger.warn(`Task "${task.name}" in phase "${phase.name}": ${taskResourceAssignments.length} resource assignments`, { taskResourceAssignments });
 
           return {
             id: taskId,
@@ -433,10 +454,10 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
 
       // Check for conflicts if appending to existing project
       if (!isNewProject && targetProject.phases.length > 0) {
-        const conflicts = detectImportConflicts(targetProject, newPhases, newResources as any);
+        const conflicts = detectImportConflicts(targetProject, newPhases, newResources);
 
         if (conflicts.hasConflicts) {
-          console.warn("[ImportModalV2] Conflicts detected:", conflicts.summary);
+          logger.warn("[ImportModalV2] Conflicts detected:", { summary: conflicts.summary });
 
           // Store prepared data for later use after conflict resolution
           setPreparedProjectData({
@@ -459,8 +480,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
       targetProject.updatedAt = new Date().toISOString();
 
       // Log what we're about to save
-      console.warn("\n About to save to database...");
-      console.warn("Total phases:", targetProject.phases.length);
+      logger.warn("About to save to database...", { totalPhases: targetProject.phases.length });
       const totalTasksWithResources = targetProject.phases.reduce(
         (sum, phase) =>
           sum +
@@ -468,13 +488,9 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
             .length,
         0
       );
-      console.warn("Tasks with resource assignments:", totalTasksWithResources);
-      console.warn(
-        "Sample task with resources:",
-        targetProject.phases
+      logger.warn("Tasks with resource assignments:", { totalTasksWithResources, sampleTask: targetProject.phases
           .flatMap((p) => p.tasks)
-          .find((t) => t.resourceAssignments && t.resourceAssignments.length > 0)
-      );
+          .find((t) => t.resourceAssignments && t.resourceAssignments.length > 0) });
 
       // Prepare payload for API call
       // Only send the fields that the API expects, clean up database-only fields
@@ -484,7 +500,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         startDate: targetProject.startDate,
         viewSettings: targetProject.viewSettings,
         budget: targetProject.budget,
-        phases: targetProject.phases.map((phase: any) => ({
+        phases: targetProject.phases.map((phase: GanttPhase) => ({
           id: phase.id,
           name: phase.name,
           description: phase.description ?? "", // FIX: Use nullish coalescing
@@ -494,7 +510,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
           collapsed: phase.collapsed,
           order: phase.order || 0,
           dependencies: phase.dependencies || [],
-          tasks: (phase.tasks || []).map((task: any) => ({
+          tasks: (phase.tasks || []).map((task: GanttTask) => ({
             id: task.id,
             name: task.name,
             description: task.description ?? "", // FIX: Use nullish coalescing
@@ -504,7 +520,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
             assignee: task.assignee ?? "", // FIX: Use nullish coalescing
             order: task.order || 0,
             dependencies: task.dependencies || [],
-            resourceAssignments: (task.resourceAssignments || []).map((ra: any) => ({
+            resourceAssignments: (task.resourceAssignments || []).map((ra: TaskResourceAssignment) => ({
               id: ra.id,
               resourceId: ra.resourceId,
               assignmentNotes: ra.assignmentNotes ?? "", // FIX: Use nullish coalescing
@@ -512,7 +528,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
               assignedAt: ra.assignedAt ?? new Date().toISOString(),
             })),
           })),
-          phaseResourceAssignments: (phase.phaseResourceAssignments || []).map((pra: any) => ({
+          phaseResourceAssignments: (phase.phaseResourceAssignments || []).map((pra: PhaseResourceAssignment) => ({
             id: pra.id,
             resourceId: pra.resourceId,
             assignmentNotes: pra.assignmentNotes ?? "", // FIX: Use nullish coalescing
@@ -520,7 +536,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
             assignedAt: pra.assignedAt ?? new Date().toISOString(),
           })),
         })),
-        resources: targetProject.resources.map((r: any) => ({
+        resources: targetProject.resources.map((r: Resource) => ({
           id: r.id,
           name: r.name,
           category: r.category,
@@ -537,15 +553,15 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         holidays: targetProject.holidays || [],
       };
 
-      console.warn(" Sending project payload with", {
+      logger.warn("Sending project payload", {
         mode: importMode,
         phases: projectPayload.phases.length,
         resources: projectPayload.resources.length,
-        totalTasks: projectPayload.phases.reduce((sum: number, p: any) => sum + p.tasks.length, 0),
+        totalTasks: projectPayload.phases.reduce((sum: number, p: { tasks: unknown[] }) => sum + p.tasks.length, 0),
         tasksWithResources: projectPayload.phases.reduce(
-          (sum: number, p: any) =>
+          (sum: number, p: { tasks: Array<{ resourceAssignments?: unknown[] }> }) =>
             sum +
-            p.tasks.filter((t: any) => t.resourceAssignments && t.resourceAssignments.length > 0)
+            p.tasks.filter((t) => t.resourceAssignments && t.resourceAssignments.length > 0)
               .length,
           0
         ),
@@ -555,7 +571,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
       try {
         if (isNewProject) {
           // Create new project via importProject
-          console.warn(" Fetching: POST /api/gantt-tool/projects");
+          logger.warn("Fetching: POST /api/gantt-tool/projects");
           response = await fetch("/api/gantt-tool/projects", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -563,7 +579,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
           });
         } else {
           // Update existing project
-          console.warn(` Fetching: PATCH /api/gantt-tool/projects/${selectedProjectId}`);
+          logger.warn(`Fetching: PATCH /api/gantt-tool/projects/${selectedProjectId}`);
           response = await fetch(`/api/gantt-tool/projects/${selectedProjectId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -571,33 +587,30 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
           });
         }
       } catch (fetchError) {
-        console.error(" Network error during fetch:", fetchError);
+        logger.error("Network error during fetch:", { error: fetchError });
         throw new Error(
           "Network error: Cannot connect to the server. Make sure the development server is running."
         );
       }
 
-      console.warn("API Response status:", response.status);
+      logger.warn("API Response status:", { status: response.status });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({
           error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
         }));
-        console.error(" API Error Response:", errorData);
+        logger.error("API Error Response:", { errorData });
 
         // Log the payload that caused the error for debugging
         if (errorData.error?.includes("Validation failed")) {
-          console.error(
-            " Payload that failed validation:",
-            JSON.stringify(projectPayload, null, 2)
-          );
+          logger.error("Payload that failed validation:", { projectPayload });
         }
 
         // Show detailed validation errors if available
         if (errorData.details) {
-          console.error("Validation errors:", errorData.details);
+          logger.error("Validation errors:", { details: errorData.details });
           const validationErrors = errorData.details
-            .map((d: any) => `${d.path.join(".")}: ${d.message}`)
+            .map((d: ValidationDetail) => `${d.path.join(".")}: ${d.message}`)
             .join("\n");
           throw new Error(`Validation failed:\n${validationErrors}`);
         }
@@ -624,21 +637,19 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         const updatedState = useGanttToolStoreV2.getState();
         const fetchedProject = updatedState.currentProject;
         if (fetchedProject) {
-          console.warn("\n Verifying persisted data...");
+          logger.warn("Verifying persisted data...");
           const tasksWithResources = fetchedProject.phases
             .flatMap((p) => p.tasks)
             .filter((t) => t.resourceAssignments && t.resourceAssignments.length > 0);
-          console.warn("Tasks with resources after fetch:", tasksWithResources.length);
+          logger.warn("Tasks with resources after fetch:", { count: tasksWithResources.length });
           if (tasksWithResources.length > 0) {
-            console.warn(" Sample persisted task:", tasksWithResources[0]);
+            logger.warn("Sample persisted task:", { task: tasksWithResources[0] });
           } else {
-            console.warn(
-              " No resource assignments found after fetch (resources were imported but not assigned)"
-            );
+            logger.warn("No resource assignments found after fetch (resources were imported but not assigned)");
           }
         }
       } else {
-        console.warn("⏭️ Resources were skipped - no resource verification needed");
+        logger.warn("Resources were skipped - no resource verification needed");
       }
 
       alert(
@@ -650,7 +661,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
       // Close modal
       onClose();
     } catch (error) {
-      console.error("Import failed:", error);
+      logger.error("Import failed:", { error });
       const errorMessage = (error as Error).message || "Import failed. Please try again.";
       alert(`Import failed: ${errorMessage}`);
     } finally {
@@ -659,7 +670,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
   };
 
   // Perform import with conflict resolution
-  const performImportWithResolution = async (preparedData: any, resolution: ConflictResolution) => {
+  const performImportWithResolution = async (preparedData: PreparedProjectData, resolution: ConflictResolution) => {
     const { targetProject, newPhases, newResources, isNewProject } = preparedData;
 
     // Apply resolution strategy
@@ -668,12 +679,12 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
 
     if (resolution.strategy === "refresh") {
       // Total Refresh: Replace all existing data
-      console.warn("[ImportModalV2] Applying Total Refresh strategy");
+      logger.warn("[ImportModalV2] Applying Total Refresh strategy");
       targetProject.phases = newPhases;
       targetProject.resources = newResources;
     } else if (resolution.strategy === "merge") {
       // Smart Merge: Apply suggested renames
-      console.warn("[ImportModalV2] Applying Smart Merge strategy");
+      logger.warn("[ImportModalV2] Applying Smart Merge strategy");
 
       // Generate suggested names for conflicts
       const phaseSuggestions = generatePhaseSuggestions(newPhases, targetProject.phases);
@@ -683,9 +694,9 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
       );
 
       // Apply custom names from user input or use suggestions
-      finalPhases = newPhases.map((phase: any) => {
+      finalPhases = newPhases.map((phase: GanttPhase) => {
         const conflictId = conflictResult?.conflicts.find(
-          (c) => c.type === "phase" && (c.detail as any).phaseName === phase.name
+          (c) => c.type === "phase" && (c.detail as PhaseConflictDetail).phaseName === phase.name
         )?.id;
 
         if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -696,9 +707,9 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         return phase;
       });
 
-      finalResources = newResources.map((resource: any) => {
+      finalResources = newResources.map((resource: Resource) => {
         const conflictId = conflictResult?.conflicts.find(
-          (c) => c.type === "resource" && (c.detail as any).resourceName === resource.name
+          (c) => c.type === "resource" && (c.detail as ResourceConflictDetail).resourceName === resource.name
         )?.id;
 
         if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -723,7 +734,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
       startDate: targetProject.startDate,
       viewSettings: targetProject.viewSettings,
       budget: targetProject.budget,
-      phases: targetProject.phases.map((phase: any) => ({
+      phases: targetProject.phases.map((phase: GanttPhase) => ({
         id: phase.id,
         name: phase.name,
         description: phase.description ?? "",
@@ -733,7 +744,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         collapsed: phase.collapsed,
         order: phase.order || 0,
         dependencies: phase.dependencies || [],
-        tasks: (phase.tasks || []).map((task: any) => ({
+        tasks: (phase.tasks || []).map((task: GanttTask) => ({
           id: task.id,
           phaseId: task.phaseId,
           name: task.name,
@@ -747,7 +758,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         })),
         phaseResourceAssignments: phase.phaseResourceAssignments || [],
       })),
-      resources: targetProject.resources.map((resource: any) => ({
+      resources: targetProject.resources.map((resource: Resource) => ({
         id: resource.id,
         name: resource.name,
         category: resource.category,
@@ -1070,7 +1081,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
           existingProject={preparedProjectData.targetProject}
           importedPhaseCount={preparedProjectData.newPhases.length}
           importedTaskCount={preparedProjectData.newPhases.reduce(
-            (sum: number, p: any) => sum + p.tasks.length,
+            (sum: number, p: GanttPhase) => sum + p.tasks.length,
             0
           )}
           importedResourceCount={preparedProjectData.newResources.length}
@@ -1501,7 +1512,7 @@ function ResourceMappingStage({
                         onChange={(e) => handleCategoryChange(unmapped.rowNumber, e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       >
-                        {Object.entries(RESOURCE_CATEGORIES).map(([key, config]: [string, any]) => (
+                        {Object.entries(RESOURCE_CATEGORIES).map(([key, config]: [string, ResourceCategoryConfig]) => (
                           <option key={key} value={key}>
                             {config.icon} {config.label}
                           </option>
@@ -1563,7 +1574,7 @@ function ReviewStage({
   onNewProjectNameChange: (name: string) => void;
   selectedProjectId: string | null;
   onSelectedProjectIdChange: (id: string | null) => void;
-  existingProjects: any[];
+  existingProjects: GanttProject[];
 }) {
   return (
     <div className="space-y-6">

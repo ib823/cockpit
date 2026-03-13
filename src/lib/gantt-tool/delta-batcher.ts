@@ -160,7 +160,7 @@ export function batchDelta(delta: ProjectDelta): DeltaBatch[] {
 /**
  * Batch resources into smaller chunks
  */
-function batchResources(resources: { created?: any[]; updated?: any[]; deleted?: string[] }) {
+function batchResources(resources: NonNullable<ProjectDelta["resources"]>) {
   const batches: (typeof resources)[] = [];
   const maxPerBatch = BATCH_THRESHOLDS.maxResourcesPerBatch;
 
@@ -179,7 +179,7 @@ function batchResources(resources: { created?: any[]; updated?: any[]; deleted?:
   let currentBatchSize = 0;
 
   const addToBatch = (
-    items: any[] | string[] | undefined,
+    items: unknown[] | undefined,
     type: "created" | "updated" | "deleted"
   ) => {
     if (!items || items.length === 0) return;
@@ -192,9 +192,9 @@ function batchResources(resources: { created?: any[]; updated?: any[]; deleted?:
       }
 
       if (!currentBatch[type]) {
-        currentBatch[type] = [];
+        (currentBatch as Record<string, unknown[]>)[type] = [];
       }
-      (currentBatch[type] as any[]).push(item);
+      (currentBatch[type] as unknown[]).push(item);
       currentBatchSize++;
     }
   };
@@ -215,17 +215,17 @@ function batchResources(resources: { created?: any[]; updated?: any[]; deleted?:
 /**
  * Batch phases into smaller chunks
  */
-function batchPhases(phases: { created?: any[]; updated?: any[]; deleted?: string[] }) {
+function batchPhases(phases: NonNullable<ProjectDelta["phases"]>) {
   const batches: (typeof phases)[] = [];
   const maxPerBatch = BATCH_THRESHOLDS.maxPhasesPerBatch;
 
   // For phases, we need to be careful because they include tasks
   // We'll batch by phase count, not task count
 
-  const batchPhaseArray = (items: any[] | undefined) => {
+  const batchPhaseArray = <T>(items: T[] | undefined): T[][] => {
     if (!items || items.length === 0) return [];
 
-    const result: any[][] = [];
+    const result: T[][] = [];
     for (let i = 0; i < items.length; i += maxPerBatch) {
       result.push(items.slice(i, i + maxPerBatch));
     }

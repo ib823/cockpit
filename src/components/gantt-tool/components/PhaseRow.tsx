@@ -10,27 +10,36 @@ import { formatDuration } from "@/lib/gantt-tool/formatters";
 import { withOpacity } from "@/lib/design-system";
 import type { GanttPhase, GanttProject } from "@/types/gantt-tool";
 
+interface PhaseSelection {
+  selectedItemId: string | null;
+  selectedItemType: string | null;
+}
+
+interface PhaseDragState {
+  itemId: string | null;
+}
+
+interface PhaseViewSettings {
+  showTitles?: boolean;
+}
+
 interface PhaseRowProps {
   phase: GanttPhase;
   phaseIndex: number;
   currentProject: GanttProject;
   startDate: Date;
   durationDays: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  selection: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dragState: any;
+  selection: PhaseSelection;
+  dragState: PhaseDragState | null;
   focusedPhaseId: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  viewSettings: any;
+  viewSettings: PhaseViewSettings | null;
   handlers: {
     togglePhaseCollapse: (id: string) => void;
     autoAlignPhase: (id: string) => void;
     reorderPhase: (id: string, dir: "up" | "down") => void;
     handlePhaseClick: (id: string) => void;
     handlePhaseDoubleClick: (id: string) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handleMouseDown: (e: React.MouseEvent, id: string, mode: any) => void;
+    handleMouseDown: (e: React.MouseEvent, id: string, mode: string) => void;
     handlePhaseResourceDragOver: (e: React.DragEvent, id: string) => void;
     handlePhaseResourceDragLeave: (e: React.DragEvent) => void;
     handlePhaseResourceDrop: (e: React.DragEvent, id: string) => void;

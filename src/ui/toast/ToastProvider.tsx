@@ -67,10 +67,9 @@ const ToastViewport: React.FC = () => {
 
   useEffect(() => {
     if (!ctx || !isMounted) return;
-    const timers = toasts.map((t) => setTimeout(() => remove(t.id), t.duration ?? 3500));
+    const timers = toasts.map((t) => setTimeout(() => ctx.remove(t.id), t.duration ?? 3500));
     return () => timers.forEach(clearTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toasts, isMounted]);
+  }, [toasts, isMounted, ctx]);
 
   // Early return AFTER all hooks
   if (!ctx || !isMounted) return null;

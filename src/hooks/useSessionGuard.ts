@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logger";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -18,7 +19,7 @@ export function useSessionGuard() {
       // Only redirect if status is 'unauthenticated' and not 'loading'
       // This prevents redirect during initial session load
       if (status === "unauthenticated") {
-        console.warn("[SessionGuard] No valid session detected, redirecting to login");
+        logger.warn("[SessionGuard] No valid session detected, redirecting to login");
         router.replace("/login");
       }
     };
@@ -31,7 +32,7 @@ export function useSessionGuard() {
     // CRITICAL: Re-check when page becomes visible (handles back button)
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible" && status !== "loading") {
-        console.log("[SessionGuard] Page became visible, validating session");
+        logger.info("[SessionGuard] Page became visible, validating session");
         checkSession();
       }
     };
@@ -39,7 +40,7 @@ export function useSessionGuard() {
     // CRITICAL: Re-check when window gets focus (handles back button)
     const handleFocus = () => {
       if (status !== "loading") {
-        console.log("[SessionGuard] Window focused, validating session");
+        logger.info("[SessionGuard] Window focused, validating session");
         checkSession();
       }
     };
@@ -47,7 +48,7 @@ export function useSessionGuard() {
     // CRITICAL: Prevent bfcache (Back-Forward Cache) from serving stale pages
     const handlePageShow = (event: PageTransitionEvent) => {
       if (event.persisted && status !== "loading") {
-        console.warn("[SessionGuard] Page restored from bfcache, validating session");
+        logger.warn("[SessionGuard] Page restored from bfcache, validating session");
         checkSession();
       }
     };

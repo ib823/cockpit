@@ -15,6 +15,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 // Input validation schema
 const CostingConfigSchema = z.object({
@@ -109,7 +110,7 @@ export async function GET(
       updatedAt: config.updatedAt,
     });
   } catch (error) {
-    console.error("[CostingConfig] GET error:", error);
+    logger.error("[CostingConfig] GET error", { error: error });
     return NextResponse.json(
       { error: "Failed to retrieve costing configuration" },
       { status: 500 }
@@ -238,7 +239,7 @@ export async function PUT(
       updatedAt: config.updatedAt,
     });
   } catch (error) {
-    console.error("[CostingConfig] PUT error:", error);
+    logger.error("[CostingConfig] PUT error", { error: error });
     return NextResponse.json(
       { error: "Failed to update costing configuration" },
       { status: 500 }

@@ -5,6 +5,8 @@ import { sendAccessCode } from "@/lib/email";
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { sanitizeHtml } from "@/lib/input-sanitizer";
+import { badRequest, forbidden, serverError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 export const runtime = "nodejs";
 
 // SECURITY FIX: DEFECT-20251027-006
@@ -18,7 +20,13 @@ export async function POST(req: Request) {
     // Require admin authentication
     const session = await requireAdmin();
 
-    const { email: rawEmail } = await req.json().catch(() => ({}));
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const { email: rawEmail } = body as { email?: string };
 
     // SECURITY FIX: DEFECT-20251027-002
     // Sanitize email input to prevent XSS attacks
@@ -28,10 +36,7 @@ export async function POST(req: Request) {
 
     // Validate email format and length
     if (!email || email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json(
-        { ok: false, error: "Valid email required" },
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return badRequest("Valid email required");
     }
 
     // Generate 6-digit code
@@ -88,15 +93,9 @@ export async function POST(req: Request) {
     );
   } catch (e: unknown) {
     if (e instanceof Error && e.message === "forbidden") {
-      return NextResponse.json(
-        { ok: false, error: "Admin access required" },
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
+      return forbidden("Admin access required");
     }
-    console.error("create-access error", e);
-    return NextResponse.json(
-      { ok: false, error: "Internal error" },
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    logger.error("create-access error", { error: e });
+    return serverError();
   }
 }

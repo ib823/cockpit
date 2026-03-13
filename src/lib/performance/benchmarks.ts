@@ -14,6 +14,8 @@
 /**
  * Benchmark result
  */
+import { logger } from "@/lib/logger";
+
 export interface BenchmarkResult {
   name: string;
   description: string;
@@ -54,7 +56,7 @@ export async function runBenchmark(
 ): Promise<BenchmarkResult> {
   const { iterations = 100, warmup = 10 } = options || {};
 
-  console.log(`[Benchmark] 🏁 Running: ${name}`);
+  logger.info(`[Benchmark] 🏁 Running: ${name}`);
 
   try {
     // Warmup runs
@@ -96,13 +98,13 @@ export async function runBenchmark(
       success: true,
     };
 
-    console.log(
+    logger.info(
       `[Benchmark] ✅ ${name}: ${avgTime.toFixed(2)}ms avg (${opsPerSecond.toFixed(0)} ops/sec)`
     );
 
     return result;
   } catch (error) {
-    console.error(`[Benchmark] ❌ ${name} failed:`, error);
+    logger.error(`[Benchmark] ${name} failed`, { error });
 
     return {
       name,
@@ -132,7 +134,7 @@ export async function compareBenchmarks(
 ): Promise<ComparisonResult> {
   const { name = "Comparison", iterations = 100 } = options || {};
 
-  console.log(`[Benchmark] 🔬 Running comparison: ${name}`);
+  logger.info(`[Benchmark] 🔬 Running comparison: ${name}`);
 
   const baseline = await runBenchmark(`${name} (Baseline)`, "Original implementation", baselineFn, {
     iterations,
@@ -154,7 +156,7 @@ export async function compareBenchmarks(
     faster: speedup > 1,
   };
 
-  console.log(
+  logger.info(
     `[Benchmark] 📊 ${name}: ${speedup.toFixed(2)}x faster (${percentage.toFixed(1)}% improvement)`
   );
 
@@ -214,7 +216,7 @@ export async function benchmarkFormulaEngine(): Promise<BenchmarkResult> {
       // Import and calculate using the estimation engine
       const { EstimationEngine } = await import("@/lib/estimation-engine");
       const engine = new EstimationEngine();
-      engine.estimate(mockInputs as any);
+      engine.estimate(mockInputs as unknown as Parameters<typeof engine.estimate>[0]);
     },
     { iterations: 1000 }
   );
@@ -275,7 +277,7 @@ export async function runAllBenchmarks(): Promise<{
     totalTime: number;
   };
 }> {
-  console.log("[Benchmark] 🚀 Running all benchmarks...\n");
+  logger.info("[Benchmark] 🚀 Running all benchmarks...\n");
 
   const startTime = performance.now();
 
@@ -296,11 +298,11 @@ export async function runAllBenchmarks(): Promise<{
     totalTime,
   };
 
-  console.log("\n[Benchmark] 📊 Summary:");
-  console.log(`  Total tests: ${summary.totalTests}`);
-  console.log(`  Successful: ${summary.successful}`);
-  console.log(`  Failed: ${summary.failed}`);
-  console.log(`  Total time: ${totalTime.toFixed(2)}ms`);
+  logger.info("\n[Benchmark] 📊 Summary:");
+  logger.info(`  Total tests: ${summary.totalTests}`);
+  logger.info(`  Successful: ${summary.successful}`);
+  logger.info(`  Failed: ${summary.failed}`);
+  logger.info(`  Total time: ${totalTime.toFixed(2)}ms`);
 
   return { results, summary };
 }
@@ -334,7 +336,7 @@ export function formatBenchmarkTable(results: BenchmarkResult[]): string {
  */
 export function exportBenchmarkResults(
   results: BenchmarkResult[],
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): string {
   return JSON.stringify(
     {
@@ -384,8 +386,8 @@ export class PerformanceMonitor {
     };
   }
 
-  getAllMetrics(): Record<string, any> {
-    const result: Record<string, any> = {};
+  getAllMetrics(): Record<string, ReturnType<PerformanceMonitor["getMetrics"]>> {
+    const result: Record<string, ReturnType<PerformanceMonitor["getMetrics"]>> = {};
 
     for (const [name, _] of this.metrics) {
       result[name] = this.getMetrics(name);

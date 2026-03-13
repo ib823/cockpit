@@ -401,10 +401,20 @@ export function CostingConfigModal({
   if (!isOpen) return null;
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
-    <div style={styles.overlay} onClick={onClose}>
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div
+      role="presentation"
+      style={styles.overlay}
+      onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Costing Configuration"
+        style={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div style={styles.header}>
           <div style={styles.title}>

@@ -8,6 +8,7 @@
 import { Card, Space, Switch, Typography, Alert, Divider } from "antd";
 import { LineChartOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { HelpTooltip } from "./HelpTooltip";
 
 const { Text, Paragraph } = Typography;
@@ -37,7 +38,7 @@ export function AnalyticsSettings() {
         try {
           setPreferences(JSON.parse(saved));
         } catch (error) {
-          console.error("Failed to load analytics preferences:", error);
+          logger.error("Failed to load analytics preferences:", error);
         }
       }
     }
@@ -59,10 +60,8 @@ export function AnalyticsSettings() {
   const isDoNotTrackEnabled =
     typeof window !== "undefined" &&
     (window.navigator.doNotTrack === "1" ||
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window.navigator as any).msDoNotTrack === "1" ||
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).doNotTrack === "1");
+      (window.navigator as Navigator & { msDoNotTrack?: string }).msDoNotTrack === "1" ||
+      (window as Window & { doNotTrack?: string }).doNotTrack === "1");
 
   return (
     <Space direction="vertical" style={{ width: "100%" }} size="large">

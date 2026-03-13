@@ -296,9 +296,64 @@ export function transformToGanttProject(
 ): {
   name: string;
   startDate: string;
-  phases: any[];
-  resources: any[];
-  viewSettings: any;
+  phases: Array<{
+    id: string;
+    name: string;
+    description: string;
+    color: string;
+    startDate: string;
+    endDate: string;
+    collapsed: boolean;
+    order: number;
+    dependencies: string[];
+    tasks: Array<{
+      id: string;
+      name: string;
+      description: string;
+      startDate: string;
+      endDate: string;
+      progress: number;
+      assignee: null;
+      order: number;
+      dependencies: string[];
+      resourceAssignments: Array<{
+        id: string;
+        resourceId: string;
+        allocationPercentage: number;
+        assignmentNotes: string;
+        assignedAt: string;
+      }>;
+    }>;
+    phaseResourceAssignments: unknown[];
+  }>;
+  resources: Array<{
+    id: string;
+    name: string;
+    category: string;
+    designation: string;
+    description: string;
+    managerResourceId: null;
+    email: null;
+    department: null;
+    location: null;
+    projectRole: string;
+    rateType: null;
+    hourlyRate: null;
+    dailyRate: null;
+    currency: null;
+    utilizationTarget: null;
+    createdAt: string;
+  }>;
+  viewSettings: {
+    zoomLevel: string;
+    showWeekends: boolean;
+    showHolidays: boolean;
+    showMilestones: boolean;
+    showTaskDependencies: boolean;
+    showCriticalPath: boolean;
+    showTitles: boolean;
+    barDurationDisplay: string;
+  };
 } {
   const { tasks, resources, projectStartDate } = parsed;
 
@@ -313,7 +368,7 @@ export function transformToGanttProject(
   }
 
   // Create phases from grouped tasks
-  const phases: any[] = [];
+  const phases: ReturnType<typeof transformToGanttProject>["phases"] = [];
   let phaseOrder = 0;
 
   for (const [phaseName, phaseTasks] of phaseMap.entries()) {

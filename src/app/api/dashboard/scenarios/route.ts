@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/dashboard/scenarios
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ scenarios });
   } catch (error) {
-    console.error("Error fetching scenarios:", error);
+    logger.error("Error fetching scenarios", { error: error });
     return NextResponse.json({ error: "Failed to fetch scenarios" }, { status: 500 });
   }
 }
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ scenario }, { status: 201 });
   } catch (error) {
-    console.error("Error creating scenario:", error);
+    logger.error("Error creating scenario", { error: error });
     return NextResponse.json({ error: "Failed to create scenario" }, { status: 500 });
   }
 }
@@ -177,7 +178,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting scenario:", error);
+    logger.error("Error deleting scenario", { error: error });
     return NextResponse.json({ error: "Failed to delete scenario" }, { status: 500 });
   }
 }

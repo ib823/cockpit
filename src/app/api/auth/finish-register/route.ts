@@ -4,6 +4,9 @@ import { randomUUID } from "crypto";
 import { prisma } from "../../../../lib/db";
 import { createSessionToken } from "@/lib/nextauth-helpers";
 import { challenges, verifyRegistrationResponse, rpID } from "../../../../lib/webauthn";
+import type { RegistrationResponseJSON } from "@simplewebauthn/server";
+import { badRequest, conflict, serverError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 type AuthenticatorTransport = "ble" | "internal" | "nfc" | "usb" | "hybrid";
 export const runtime = "nodejs";
@@ -12,28 +15,32 @@ export async function POST(req: Request) {
   const expectedOrigin =
     process.env.WEBAUTHN_ORIGIN ?? new URL(process.env.NEXTAUTH_URL ?? req.url).origin;
   try {
-    const body = await req.json().catch(() => ({}));
-    const email = String(body.email ?? "")
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const email = String((body as Record<string, unknown>).email ?? "")
       .trim()
       .toLowerCase();
-    const response = body.response;
+    const response = (body as Record<string, unknown>).response as RegistrationResponseJSON | undefined;
 
     // Validate email format
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!email || !emailRegex.test(email) || email.length > 255) {
-      return NextResponse.json({ ok: false, message: "Invalid email format." }, { status: 400 });
+      return badRequest("Invalid email format.");
     }
 
     if (!response) {
-      return NextResponse.json({ ok: false, message: "Missing required fields." }, { status: 400 });
+      return badRequest("Missing required fields.");
     }
 
     const expectedChallenge = await challenges.get(`reg:${email}`);
     if (!expectedChallenge) {
       return NextResponse.json(
         {
-          ok: false,
-          message: "Session expired. Please enter your code again.",
+          error: "Session expired. Please enter your code again.",
           challengeExpired: true,
         },
         { status: 408 }
@@ -49,18 +56,14 @@ export async function POST(req: Request) {
     });
 
     if (!verification.verified || !verification.registrationInfo) {
-      return NextResponse.json(
-        { ok: false, message: "Passkey verification failed." },
-        { status: 400 }
-      );
+      return badRequest("Passkey verification failed.");
     }
 
     const { credential, credentialBackedUp, credentialDeviceType } = verification.registrationInfo;
 
     // Use a transaction to ensure all or nothing
     type UserResult = { id: string; email: string; role: "USER" | "MANAGER" | "ADMIN"; name: string | null };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user: UserResult = await (prisma.$transaction as any)(async (tx: any) => {
+    const user: UserResult = await (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<UserResult>) => Promise<UserResult>)(async (tx) => {
       const newUser = await tx.users.upsert({
         where: { email },
         update: {
@@ -124,13 +127,10 @@ export async function POST(req: Request) {
 
     return jsonResponse;
   } catch (e) {
-    console.error("Finish registration failed:", e);
-    const message =
-      e instanceof Error && e.message.includes("Unique constraint failed")
-        ? "This passkey is already registered."
-        : "An internal server error occurred.";
-    const status = e instanceof Error && e.message.includes("Unique constraint failed") ? 409 : 500;
-
-    return NextResponse.json({ ok: false, message }, { status });
+    logger.error("Finish registration failed", { error: e });
+    if (e instanceof Error && e.message.includes("Unique constraint failed")) {
+      return conflict("This passkey is already registered.");
+    }
+    return serverError();
   }
 }

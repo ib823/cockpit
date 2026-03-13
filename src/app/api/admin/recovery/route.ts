@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/nextauth-helpers";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -75,7 +76,7 @@ export async function GET(req: NextRequest) {
         );
       }
     }
-    console.error("[AdminRecovery] GET error:", error);
+    logger.error("[AdminRecovery] GET error", { error: error });
     return NextResponse.json(
       { ok: false, message: "Failed to fetch recovery requests" },
       { status: 500 }

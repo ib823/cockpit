@@ -15,6 +15,8 @@
 /**
  * Edge cache configuration
  */
+import { logger } from "@/lib/logger";
+
 export const EDGE_CACHE_CONFIG = {
   // Static resources - cache aggressively
   STATIC_ASSETS: {
@@ -123,15 +125,15 @@ export async function purgeCacheByTag(tag: string): Promise<void> {
       });
 
       if (response.ok) {
-        console.log(`[Edge Cache] ✅ Purged tag: ${tag}`);
+        logger.info(`[Edge Cache] ✅ Purged tag: ${tag}`);
       } else {
-        console.error(`[Edge Cache] ❌ Failed to purge tag: ${tag}`);
+        logger.error(`[Edge Cache] ❌ Failed to purge tag: ${tag}`);
       }
     } catch (error) {
-      console.error(`[Edge Cache] ❌ Error purging tag:`, error);
+      logger.error("[Edge Cache] Error purging tag", { error });
     }
   } else {
-    console.warn("[Edge Cache] ⚠️  Vercel token not configured, skipping purge");
+    logger.warn("[Edge Cache] ⚠️  Vercel token not configured, skipping purge");
   }
 }
 
@@ -218,7 +220,7 @@ export async function edgeFetchWithStats<T = unknown>(
     responseTime,
   };
 
-  console.log(
+  logger.info(
     `[Edge Cache] ${stats.cached ? "✅ HIT" : "❌ MISS"} ${url} (${responseTime.toFixed(2)}ms)`
   );
 
@@ -229,18 +231,18 @@ export async function edgeFetchWithStats<T = unknown>(
  * Preload critical resources at edge
  */
 export async function preloadEdgeResources(urls: string[]): Promise<void> {
-  console.log(`[Edge Cache] 🔥 Preloading ${urls.length} resources...`);
+  logger.info(`[Edge Cache] 🔥 Preloading ${urls.length} resources...`);
 
   const promises = urls.map((url) =>
     fetch(url, {
       method: "HEAD",
       next: { revalidate: 86400 }, // Cache for 24 hours
-    }).catch((err) => console.warn(`[Edge Cache] ⚠️  Failed to preload ${url}:`, err))
+    }).catch((err) => logger.warn(`[Edge Cache] Failed to preload ${url}`, { error: err }))
   );
 
   await Promise.all(promises);
 
-  console.log(`[Edge Cache] ✅ Preloaded ${urls.length} resources`);
+  logger.info(`[Edge Cache] ✅ Preloaded ${urls.length} resources`);
 }
 
 /**
