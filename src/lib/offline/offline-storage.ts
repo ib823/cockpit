@@ -17,8 +17,8 @@ const STORES = {
 export interface StoredEstimate {
   id: string;
   profile: string;
-  inputs: any;
-  results: any;
+  inputs: Record<string, unknown>;
+  results: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
   synced: boolean;
@@ -27,7 +27,7 @@ export interface StoredEstimate {
 export interface StoredProject {
   id: string;
   name: string;
-  data: any;
+  data: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
   synced: boolean;
@@ -165,7 +165,7 @@ class OfflineStorage {
       const transaction = db.transaction([STORES.ESTIMATES], "readonly");
       const store = transaction.objectStore(STORES.ESTIMATES);
       const index = store.index("synced");
-      const request = index.getAll(false as any); // IDBKeyRange accepts boolean in some implementations
+      const request = index.getAll(IDBKeyRange.only(0)); // false synced state
 
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -292,7 +292,7 @@ class OfflineStorage {
   /**
    * Set cached data with expiry
    */
-  async setCache(key: string, data: any, ttlMinutes = 60): Promise<void> {
+  async setCache(key: string, data: unknown, ttlMinutes = 60): Promise<void> {
     const db = await this.init();
     const expiresAt = Date.now() + ttlMinutes * 60 * 1000;
 
@@ -314,7 +314,7 @@ class OfflineStorage {
   /**
    * Get cached data
    */
-  async getCache(key: string): Promise<any | null> {
+  async getCache(key: string): Promise<unknown | null> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([STORES.CACHE], "readonly");
