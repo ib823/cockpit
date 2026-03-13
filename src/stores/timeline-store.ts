@@ -20,7 +20,7 @@ interface TimelineState {
   projectId: string | null;
   isLoading: boolean;
   error: string | null;
-  profile: any | null;
+  profile: Record<string, unknown> | null;
   phases: Phase[];
   resources: Resource[];
   holidays: Holiday[];
@@ -36,8 +36,8 @@ interface TimelineState {
 
   // Actions
   loadProject: (projectId: string) => Promise<void>;
-  updateProfile: (profileData: any) => Promise<void>;
-  setProfile: (profile: any) => void;
+  updateProfile: (profileData: Record<string, unknown>) => Promise<void>;
+  setProfile: (profile: Record<string, unknown> | null) => void;
   setPhases: (phasesData: Omit<Phase, "id" | "projectId">[]) => void;
   addPhase: (
     phaseData: Omit<Phase, "projectId" | "id" | "startBusinessDay"> & {
@@ -346,12 +346,13 @@ export const useTimelineStore = create<TimelineState>()(
         phaseColors: state.phaseColors,
       }),
       version: 1,
-      migrate: (persistedState: any, version: number) => {
+      migrate: (persistedState: unknown, version: number) => {
         console.log(`[TimelineStore Migration] Starting from v${version}`);
 
         if (version === 0) {
           // Handle v0 data structure where state was nested
-          const oldState = persistedState.state || persistedState;
+          const ps = persistedState as Record<string, unknown>;
+          const oldState = (ps.state || persistedState) as Record<string, unknown>;
 
           return {
             // Preserve all existing data
