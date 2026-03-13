@@ -4,7 +4,7 @@
  * Prevents XSS, DoS, and other malicious inputs
  */
 
-import DOMPurify from "dompurify";
+import DOMPurify from "isomorphic-dompurify";
 
 /**
  * Sanitize HTML/script tags from user input
@@ -12,38 +12,18 @@ import DOMPurify from "dompurify";
 export function sanitizeHtml(input: string): string {
   if (typeof input !== "string") return "";
 
-  // Use DOMPurify for comprehensive XSS protection
-  if (typeof window !== "undefined") {
-    const sanitized = DOMPurify.sanitize(input, {
-      ALLOWED_TAGS: [], // Strip all HTML tags
-      ALLOWED_ATTR: [], // Strip all attributes
-      KEEP_CONTENT: true, // Keep text content
-    });
+  // isomorphic-dompurify works both client-side and server-side
+  const sanitized = DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [], // Strip all HTML tags
+    ALLOWED_ATTR: [], // Strip all attributes
+    KEEP_CONTENT: true, // Keep text content
+  });
 
-    // Additional sanitization for protocol-based attacks
-    return sanitized
-      .replace(/javascript:/gi, "")
-      .replace(/vbscript:/gi, "")
-      .replace(/data:/gi, "");
-  }
-
-  // Fallback for server-side (shouldn't occur in client-only app)
-  return (
-    input
-      // Remove script tags
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-      // Remove event handlers
-      .replace(/on\w+\s*=\s*["'][^"']*["']/gi, "")
-      .replace(/on\w+\s*=\s*[^\s>]*/gi, "")
-      // Remove javascript: protocol
-      .replace(/javascript:/gi, "")
-      // Remove data: protocol
-      .replace(/data:text\/html/gi, "")
-      // Remove iframe
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
-      // Trim
-      .trim()
-  );
+  // Additional sanitization for protocol-based attacks
+  return sanitized
+    .replace(/javascript:/gi, "")
+    .replace(/vbscript:/gi, "")
+    .replace(/data:/gi, "");
 }
 
 /**
@@ -146,18 +126,18 @@ export function validateRfpText(text: string): {
 /**
  * Sanitize object recursively
  */
-export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
+export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
   const result = { ...obj };
 
   for (const key in result) {
     const value = result[key];
 
     if (typeof value === "string") {
-      result[key] = sanitizeHtml(value) as any;
+      (result as Record<string, unknown>)[key] = sanitizeHtml(value);
     } else if (typeof value === "number") {
-      result[key] = sanitizeNumber(value) as any;
+      (result as Record<string, unknown>)[key] = sanitizeNumber(value);
     } else if (typeof value === "object" && value !== null) {
-      result[key] = sanitizeObject(value);
+      (result as Record<string, unknown>)[key] = sanitizeObject(value as Record<string, unknown>);
     }
   }
 

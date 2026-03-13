@@ -1,7 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 
+type ExtendedPrismaClient = ReturnType<typeof prismaClientSingleton>;
+
 const globalForPrisma = global as unknown as {
-  prisma?: PrismaClient;
+  prisma?: ExtendedPrismaClient;
   prismaConnecting?: Promise<void>;
 };
 
@@ -118,7 +120,7 @@ export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
 // In development, store the client globally to prevent hot-reload issues
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma as any; // Extended client type
+  globalForPrisma.prisma = prisma;
 }
 
 /**
@@ -188,26 +190,28 @@ export async function withRetry<T>(
       }
 
       return await operation();
-    } catch (error: any) {
-      lastError = error;
+    } catch (error: unknown) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      const errorMessage = lastError.message;
+      const errorCode = (error as { code?: string })?.code;
 
       // Check if it's a connection error worth retrying
-      const errorString = String(error?.message || error || "").toLowerCase();
+      const errorString = errorMessage.toLowerCase();
       const isConnectionError =
         errorString.includes("connection") ||
         errorString.includes("closed") ||
         errorString.includes("timeout") ||
         errorString.includes("econnrefused") ||
         errorString.includes("enotfound") ||
-        error?.code === "P1001" || // Can't reach database
-        error?.code === "P1002" || // Database timeout
-        error?.code === "P1008" || // Operations timed out
-        error?.code === "P1017" || // Server closed connection
-        error?.code === "P2024"; // Timed out fetching
+        errorCode === "P1001" || // Can't reach database
+        errorCode === "P1002" || // Database timeout
+        errorCode === "P1008" || // Operations timed out
+        errorCode === "P1017" || // Server closed connection
+        errorCode === "P2024"; // Timed out fetching
 
       if (!isConnectionError || attempt === maxRetries - 1) {
         if (attempt > 0) {
-          console.error(`[DB] Operation failed after ${attempt + 1} attempts:`, error?.message || error);
+          console.error(`[DB] Operation failed after ${attempt + 1} attempts:`, errorMessage);
         }
         throw error;
       }
@@ -215,7 +219,7 @@ export async function withRetry<T>(
       // Exponential backoff with jitter
       const delay = delayMs * Math.pow(2, attempt) + Math.random() * 100;
       console.warn(
-        `[DB] Connection error (${error?.message || error}), retrying in ${delay.toFixed(0)}ms... (attempt ${attempt + 1}/${maxRetries})`
+        `[DB] Connection error (${errorMessage}), retrying in ${delay.toFixed(0)}ms... (attempt ${attempt + 1}/${maxRetries})`
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
