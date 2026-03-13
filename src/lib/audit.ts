@@ -7,6 +7,7 @@
 
 import { prisma } from "./db";
 import { AuditAction, Prisma } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 export { AuditAction };
 
@@ -44,7 +45,7 @@ export async function logAuditEvent(
       },
     });
 
-    console.log("[Audit]", {
+    logger.info("[Audit]", {
       action,
       entity,
       entityId,
@@ -53,12 +54,12 @@ export async function logAuditEvent(
     });
   } catch (error) {
     // CRITICAL: Log to monitoring but don't fail the request
-    console.error("[Audit] Failed to log event:", error);
+    logger.error("[Audit] Failed to log event:", error);
 
     // In production, alert monitoring system
     if (process.env.NODE_ENV === "production") {
       // Note: Integrate with Sentry or monitoring service for production alerts
-      console.error("[Audit] ALERT: Audit logging failed in production!", {
+      logger.error("[Audit] ALERT: Audit logging failed in production!", {
         action,
         entity,
         entityId,
@@ -198,16 +199,14 @@ export async function getAuditStats(days: number = 30) {
     }),
 
     // Events by action type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (prisma.audit_logs.groupBy as any)({
+    prisma.audit_logs.groupBy({
       by: ["action"],
       where: { createdAt: { gte: since } },
       _count: { _all: true },
     }),
 
     // Most active users
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (prisma.audit_logs.groupBy as any)({
+    prisma.audit_logs.groupBy({
       by: ["userId"],
       where: { createdAt: { gte: since } },
       _count: { _all: true },
@@ -222,11 +221,11 @@ export async function getAuditStats(days: number = 30) {
 
   return {
     totalEvents,
-    byAction: byAction.map((item: any) => ({
+    byAction: byAction.map((item) => ({
       action: item.action,
       count: item._count?._all || 0,
     })),
-    topUsers: byUser.map((item: any) => ({
+    topUsers: byUser.map((item) => ({
       userId: item.userId,
       count: item._count?._all || 0,
     })),
@@ -241,7 +240,7 @@ export async function detectSuspiciousActivity(hours: number = 24) {
   const since = new Date(Date.now() - hours * 60 * 60 * 1000);
 
   // Find users with unusual delete activity
-  const suspiciousDeletes = await (prisma.audit_logs.groupBy as any)({
+  const suspiciousDeletes = await prisma.audit_logs.groupBy({
     by: ["userId"],
     where: {
       action: "DELETE",
@@ -274,9 +273,9 @@ export async function detectSuspiciousActivity(hours: number = 24) {
   });
 
   return {
-    suspiciousDeletes: suspiciousDeletes.map((item: { userId: string; _count: number }) => ({
+    suspiciousDeletes: suspiciousDeletes.map((item) => ({
       userId: item.userId,
-      deleteCount: item._count,
+      deleteCount: item._count?._all || 0,
     })),
     failedAccessAttempts: failedAccess.length,
     incidents: failedAccess.slice(0, 20), // Latest 20
