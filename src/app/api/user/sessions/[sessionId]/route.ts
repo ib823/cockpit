@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { authConfig as authOptions } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -81,7 +82,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ s
       message: "Session revoked successfully",
     });
   } catch (error) {
-    console.error("[Session] DELETE error:", error);
+    logger.error("[Session] DELETE error", { error: error });
     return NextResponse.json({ ok: false, message: "Failed to revoke session" }, { status: 500 });
   }
 }

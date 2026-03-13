@@ -54,8 +54,7 @@ export function OrgStructureImport({
 
   const currentProject = useGanttToolStore((state) => state.currentProject);
   const addResource = useGanttToolStore((state) => state.addResource);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const assignManager = useGanttToolStore((state) => (state as any).assignManager);
+  const assignManager = useGanttToolStore((state) => (state as Record<string, unknown>).assignManager) as ((resourceId: string, managerId: string) => void) | undefined;
 
   const parseFile = useCallback(async (file: File) => {
     return new Promise<ParsedResource[]>((resolve, reject) => {
@@ -67,8 +66,7 @@ export function OrgStructureImport({
           const workbook = XLSX.read(data, { type: "binary" });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const jsonData = XLSX.utils.sheet_to_json<any>(worksheet, { header: 1 });
+          const jsonData = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1 });
 
           if (jsonData.length < 2) {
             reject(new Error("File must contain headers and at least one row of data"));
@@ -94,8 +92,7 @@ export function OrgStructureImport({
           const parsed: ParsedResource[] = [];
 
           for (let i = 1; i < jsonData.length; i++) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const row = jsonData[i] as any[];
+            const row = jsonData[i] as unknown[];
             if (!row || row.length === 0 || !row[nameIndex]) continue;
 
             const name = String(row[nameIndex] || "").trim();
@@ -188,8 +185,7 @@ export function OrgStructureImport({
   }, []);
 
   const handleUpload = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async ({ file }: any) => {
+    async ({ file }: { file: File | Blob }) => {
       try {
         const parsed = await parseFile(file as File);
         setParsedData(parsed);
@@ -223,8 +219,7 @@ export function OrgStructureImport({
           department: parsed.department,
           location: parsed.location,
           projectRole: parsed.projectRole,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any);
+        } as Record<string, unknown>);
 
         // addResource may not return an ID, so we generate one if needed
         if (parsed.email && resourceId) {

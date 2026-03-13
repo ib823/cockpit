@@ -3,6 +3,7 @@ import { createSessionToken } from "@/lib/nextauth-helpers";
 import { compare } from "bcryptjs";
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
@@ -98,7 +99,7 @@ export async function POST(req: Request) {
       }
     );
   } catch (e) {
-    console.error("admin-login error", e);
+    logger.error("admin-login error", { error: e });
     return NextResponse.json(
       { ok: false, message: "Internal error" },
       { status: 500, headers: { "Content-Type": "application/json" } }

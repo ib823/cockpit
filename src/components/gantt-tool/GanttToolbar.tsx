@@ -188,8 +188,7 @@ export function GanttToolbar({
     setShowCreateProjectModal(true);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleCreateProjectSubmit = async (values: { projectName: string; startDate: any }) => {
+  const handleCreateProjectSubmit = async (values: { projectName: string; startDate: string | Date }) => {
     // Check for duplicate name
     const isDuplicate = projects.some(
       (p) => p.name.toLowerCase() === values.projectName.toLowerCase()
@@ -406,8 +405,7 @@ export function GanttToolbar({
         key: `project-${index}-${project.id}`,
         label: (
           <div className="py-1 flex items-center justify-between gap-3">
-            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-            <div className="flex-1" onClick={() => loadProject(project.id)}>
+            <div className="flex-1" role="button" tabIndex={0} onClick={() => loadProject(project.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); loadProject(project.id); } }}>
               <div className="font-medium text-sm">
                 {project.name}
                 {project.id === currentProject?.id && <span className="ml-2 text-blue-500">●</span>}

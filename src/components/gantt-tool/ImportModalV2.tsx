@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Import Modal V2 - Two-Stage Import with Mobile-Responsive Design
  *
@@ -48,12 +47,23 @@ import {
 } from "@/lib/gantt-tool/template-generator-v2";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { allocateResourcesToTasks } from "@/lib/gantt-tool/resource-allocator";
-import type { ResourceDesignation, ResourceCategory } from "@/types/gantt-tool";
+import type {
+  ResourceDesignation,
+  ResourceCategory,
+  GanttProject,
+  GanttPhase,
+  GanttTask,
+  Resource,
+  TaskResourceAssignment,
+  PhaseResourceAssignment,
+} from "@/types/gantt-tool";
 import {
   detectImportConflicts,
   generatePhaseSuggestions,
   generateResourceSuggestions,
   type ConflictDetectionResult,
+  type PhaseConflictDetail,
+  type ResourceConflictDetail,
 } from "@/lib/gantt-tool/conflict-detector";
 import {
   ConflictResolutionModal,
@@ -64,6 +74,25 @@ interface ConflictResolution {
   customNames?: Map<string, string>;
 }
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+
+interface PreparedProjectData {
+  targetProject: GanttProject;
+  newPhases: GanttPhase[];
+  newResources: Resource[];
+  isNewProject: boolean;
+}
+
+interface ValidationDetail {
+  path: string[];
+  message: string;
+}
+
+interface ResourceCategoryConfig {
+  label: string;
+  color: string;
+  icon: string;
+  abbr: string;
+}
 
 // Helper to ensure date is in YYYY-MM-DD format
 function formatDateField(date: string | Date): string {
@@ -114,7 +143,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
   // Conflict detection
   const [conflictResult, setConflictResult] = useState<ConflictDetectionResult | null>(null);
   const [showConflictModal, setShowConflictModal] = useState(false);
-  const [preparedProjectData, setPreparedProjectData] = useState<any>(null);
+  const [preparedProjectData, setPreparedProjectData] = useState<PreparedProjectData | null>(null);
 
   // PERMANENT FIX: Prevent body scroll when modal is open and cleanup on unmount
   useEffect(() => {
@@ -338,7 +367,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         };
       });
 
-      targetProject.resources = [...(targetProject.resources || []), ...newResources] as any;
+      targetProject.resources = [...(targetProject.resources || []), ...newResources];
 
       // Step 3: Allocate resources to tasks based on weekly effort
       console.warn(" Starting resource allocation...");
@@ -374,7 +403,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
           const taskId = `task-${Date.now()}-${phaseIndex}-${taskIndex}-${Math.random().toString(36).substr(2, 9)}`;
 
           // Find resource allocations for this task
-          const taskResourceAssignments: any[] = [];
+          const taskResourceAssignments: TaskResourceAssignment[] = [];
 
           for (const allocatedResource of allocationResult.allocations) {
             const taskAlloc = allocatedResource.taskAllocations.find(
@@ -433,7 +462,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
 
       // Check for conflicts if appending to existing project
       if (!isNewProject && targetProject.phases.length > 0) {
-        const conflicts = detectImportConflicts(targetProject, newPhases, newResources as any);
+        const conflicts = detectImportConflicts(targetProject, newPhases, newResources);
 
         if (conflicts.hasConflicts) {
           console.warn("[ImportModalV2] Conflicts detected:", conflicts.summary);
@@ -484,7 +513,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         startDate: targetProject.startDate,
         viewSettings: targetProject.viewSettings,
         budget: targetProject.budget,
-        phases: targetProject.phases.map((phase: any) => ({
+        phases: targetProject.phases.map((phase: GanttPhase) => ({
           id: phase.id,
           name: phase.name,
           description: phase.description ?? "", // FIX: Use nullish coalescing
@@ -494,7 +523,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
           collapsed: phase.collapsed,
           order: phase.order || 0,
           dependencies: phase.dependencies || [],
-          tasks: (phase.tasks || []).map((task: any) => ({
+          tasks: (phase.tasks || []).map((task: GanttTask) => ({
             id: task.id,
             name: task.name,
             description: task.description ?? "", // FIX: Use nullish coalescing
@@ -504,7 +533,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
             assignee: task.assignee ?? "", // FIX: Use nullish coalescing
             order: task.order || 0,
             dependencies: task.dependencies || [],
-            resourceAssignments: (task.resourceAssignments || []).map((ra: any) => ({
+            resourceAssignments: (task.resourceAssignments || []).map((ra: TaskResourceAssignment) => ({
               id: ra.id,
               resourceId: ra.resourceId,
               assignmentNotes: ra.assignmentNotes ?? "", // FIX: Use nullish coalescing
@@ -512,7 +541,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
               assignedAt: ra.assignedAt ?? new Date().toISOString(),
             })),
           })),
-          phaseResourceAssignments: (phase.phaseResourceAssignments || []).map((pra: any) => ({
+          phaseResourceAssignments: (phase.phaseResourceAssignments || []).map((pra: PhaseResourceAssignment) => ({
             id: pra.id,
             resourceId: pra.resourceId,
             assignmentNotes: pra.assignmentNotes ?? "", // FIX: Use nullish coalescing
@@ -520,7 +549,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
             assignedAt: pra.assignedAt ?? new Date().toISOString(),
           })),
         })),
-        resources: targetProject.resources.map((r: any) => ({
+        resources: targetProject.resources.map((r: Resource) => ({
           id: r.id,
           name: r.name,
           category: r.category,
@@ -541,11 +570,11 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         mode: importMode,
         phases: projectPayload.phases.length,
         resources: projectPayload.resources.length,
-        totalTasks: projectPayload.phases.reduce((sum: number, p: any) => sum + p.tasks.length, 0),
+        totalTasks: projectPayload.phases.reduce((sum: number, p: { tasks: unknown[] }) => sum + p.tasks.length, 0),
         tasksWithResources: projectPayload.phases.reduce(
-          (sum: number, p: any) =>
+          (sum: number, p: { tasks: Array<{ resourceAssignments?: unknown[] }> }) =>
             sum +
-            p.tasks.filter((t: any) => t.resourceAssignments && t.resourceAssignments.length > 0)
+            p.tasks.filter((t) => t.resourceAssignments && t.resourceAssignments.length > 0)
               .length,
           0
         ),
@@ -597,7 +626,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         if (errorData.details) {
           console.error("Validation errors:", errorData.details);
           const validationErrors = errorData.details
-            .map((d: any) => `${d.path.join(".")}: ${d.message}`)
+            .map((d: ValidationDetail) => `${d.path.join(".")}: ${d.message}`)
             .join("\n");
           throw new Error(`Validation failed:\n${validationErrors}`);
         }
@@ -659,7 +688,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
   };
 
   // Perform import with conflict resolution
-  const performImportWithResolution = async (preparedData: any, resolution: ConflictResolution) => {
+  const performImportWithResolution = async (preparedData: PreparedProjectData, resolution: ConflictResolution) => {
     const { targetProject, newPhases, newResources, isNewProject } = preparedData;
 
     // Apply resolution strategy
@@ -683,9 +712,9 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
       );
 
       // Apply custom names from user input or use suggestions
-      finalPhases = newPhases.map((phase: any) => {
+      finalPhases = newPhases.map((phase: GanttPhase) => {
         const conflictId = conflictResult?.conflicts.find(
-          (c) => c.type === "phase" && (c.detail as any).phaseName === phase.name
+          (c) => c.type === "phase" && (c.detail as PhaseConflictDetail).phaseName === phase.name
         )?.id;
 
         if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -696,9 +725,9 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         return phase;
       });
 
-      finalResources = newResources.map((resource: any) => {
+      finalResources = newResources.map((resource: Resource) => {
         const conflictId = conflictResult?.conflicts.find(
-          (c) => c.type === "resource" && (c.detail as any).resourceName === resource.name
+          (c) => c.type === "resource" && (c.detail as ResourceConflictDetail).resourceName === resource.name
         )?.id;
 
         if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -723,7 +752,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
       startDate: targetProject.startDate,
       viewSettings: targetProject.viewSettings,
       budget: targetProject.budget,
-      phases: targetProject.phases.map((phase: any) => ({
+      phases: targetProject.phases.map((phase: GanttPhase) => ({
         id: phase.id,
         name: phase.name,
         description: phase.description ?? "",
@@ -733,7 +762,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         collapsed: phase.collapsed,
         order: phase.order || 0,
         dependencies: phase.dependencies || [],
-        tasks: (phase.tasks || []).map((task: any) => ({
+        tasks: (phase.tasks || []).map((task: GanttTask) => ({
           id: task.id,
           phaseId: task.phaseId,
           name: task.name,
@@ -747,7 +776,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         })),
         phaseResourceAssignments: phase.phaseResourceAssignments || [],
       })),
-      resources: targetProject.resources.map((resource: any) => ({
+      resources: targetProject.resources.map((resource: Resource) => ({
         id: resource.id,
         name: resource.name,
         category: resource.category,
@@ -1070,7 +1099,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
           existingProject={preparedProjectData.targetProject}
           importedPhaseCount={preparedProjectData.newPhases.length}
           importedTaskCount={preparedProjectData.newPhases.reduce(
-            (sum: number, p: any) => sum + p.tasks.length,
+            (sum: number, p: GanttPhase) => sum + p.tasks.length,
             0
           )}
           importedResourceCount={preparedProjectData.newResources.length}
@@ -1501,7 +1530,7 @@ function ResourceMappingStage({
                         onChange={(e) => handleCategoryChange(unmapped.rowNumber, e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       >
-                        {Object.entries(RESOURCE_CATEGORIES).map(([key, config]: [string, any]) => (
+                        {Object.entries(RESOURCE_CATEGORIES).map(([key, config]: [string, ResourceCategoryConfig]) => (
                           <option key={key} value={key}>
                             {config.icon} {config.label}
                           </option>
@@ -1563,7 +1592,7 @@ function ReviewStage({
   onNewProjectNameChange: (name: string) => void;
   selectedProjectId: string | null;
   onSelectedProjectIdChange: (id: string | null) => void;
-  existingProjects: any[];
+  existingProjects: GanttProject[];
 }) {
   return (
     <div className="space-y-6">

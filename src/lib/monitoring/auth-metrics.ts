@@ -92,7 +92,7 @@ export async function logAuthEvent(
       });
     }
   } catch (error) {
-    logger.error("[AUTH METRICS] Failed to log auth event:", error);
+    logger.error("[AUTH METRICS] Failed to log auth event", { error });
     // Don't throw - logging should not break auth flow
   }
 }

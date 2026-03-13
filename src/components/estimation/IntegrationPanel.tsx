@@ -98,8 +98,7 @@ export function IntegrationPanel({
       id: editingIntegration?.id || `integration-${Date.now()}`,
       projectId,
       name: integrationData.name,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      type: integrationData.type as any,
+      type: integrationData.type as IntegrationItem["type"],
       source: integrationData.source,
       target: integrationData.target,
       complexity: integrationData.complexity || "M",
@@ -141,8 +140,7 @@ export function IntegrationPanel({
     {
       title: "Source → Target",
       key: "flow",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render: (_: any, record: IntegrationItem) => (
+      render: (_: unknown, record: IntegrationItem) => (
         <span className="text-xs">
           <span style={{ fontWeight: 500 }}>{record.source}</span>
           {" → "}
@@ -173,8 +171,7 @@ export function IntegrationPanel({
     {
       title: "Actions",
       key: "actions",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render: (_: any, record: IntegrationItem) => (
+      render: (_: unknown, record: IntegrationItem) => (
         <Space>
           <Button
             type="link"
@@ -279,8 +276,7 @@ export function IntegrationPanel({
             <Select
               style={{ width: "100%" }}
               value={integrationData.type}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onChange={(type) => setIntegrationData({ ...integrationData, type: type as any })}
+              onChange={(type) => setIntegrationData({ ...integrationData, type: type as IntegrationItem["type"] })}
             >
               <Option value="api">API Integration</Option>
               <Option value="file">File Transfer</Option>
@@ -322,8 +318,7 @@ export function IntegrationPanel({
               style={{ width: "100%" }}
               value={integrationData.volume}
               onChange={(volume) =>
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                setIntegrationData({ ...integrationData, volume: volume as any })
+                setIntegrationData({ ...integrationData, volume: volume as IntegrationItem["volume"] })
               }
             >
               <Option value="low">Low (&lt;1000 records/day)</Option>

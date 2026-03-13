@@ -43,8 +43,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   const [importMode, setImportMode] = useState<"new" | "append">("new");
   const [conflictResult, setConflictResult] = useState<ConflictDetectionResult | null>(null);
   const [showConflictModal, setShowConflictModal] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [ganttData, setGanttData] = useState<any>(null);
+  const [ganttData, setGanttData] = useState<ReturnType<typeof transformToGanttProject> | null>(null);
 
   const { currentProject } = useGanttToolStoreV2();
 
@@ -214,8 +213,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   };
 
   // Actually perform the import (called after conflict resolution or directly if no conflicts)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const performImport = async (dataToImport: any, resolution?: ConflictResolution) => {
+  const performImport = async (dataToImport: ReturnType<typeof transformToGanttProject>, resolution?: ConflictResolution) => {
     try {
       if (importMode === "append" && currentProject) {
         // Append to existing project
@@ -271,8 +269,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
             // Apply custom names from user input or use suggestions
             finalPhases = dataToImport.phases.map((phase: GanttPhase) => {
               const conflictId = conflictResult?.conflicts.find(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (c) => c.type === "phase" && (c.detail as any).phaseName === phase.name
+                (c) => c.type === "phase" && (c.detail as Record<string, unknown>).phaseName === phase.name
               )?.id;
 
               if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -287,8 +284,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
             finalResources = dataToImport.resources.map((resource: Resource) => {
               const conflictId = conflictResult?.conflicts.find(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (c) => c.type === "resource" && (c.detail as any).resourceName === resource.name
+                (c) => c.type === "resource" && (c.detail as Record<string, unknown>).resourceName === resource.name
               )?.id;
 
               if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -669,8 +665,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           existingProject={currentProject}
           importedPhaseCount={ganttData.phases.length}
           importedTaskCount={ganttData.phases.reduce(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (sum: number, p: any) => sum + p.tasks.length,
+            (sum: number, p: { tasks: unknown[] }) => sum + p.tasks.length,
             0
           )}
           importedResourceCount={ganttData.resources.length}

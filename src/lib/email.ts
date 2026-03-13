@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { logger } from "@/lib/logger";
 
 const FROM_EMAIL = process.env.EMAIL_FROM || "noreply@bound-app.com";
 
@@ -124,10 +125,10 @@ function emailTemplate(code: string, magicLink?: string): string {
 export async function sendAccessCode(email: string, code: string, magicLink?: string) {
   // Check if email transporter is configured
   if (!emailTransporter) {
-    console.log("[Email] SMTP not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in .env");
-    console.log("[Email] Dev mode - Would send to:", email);
+    logger.info("[Email] SMTP not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in .env");
+    logger.info("[Email] Dev mode - Would send to", { email });
     if (magicLink) {
-      console.log("[Email] Magic link:", magicLink);
+      logger.info("[Email] Magic link", { magicLink });
     }
     return { success: false, devMode: true };
   }
@@ -140,10 +141,10 @@ export async function sendAccessCode(email: string, code: string, magicLink?: st
       html: emailTemplate(code, magicLink),
     });
 
-    console.log(`[Email] Successfully sent to ${email} via SMTP`);
+    logger.info(`[Email] Successfully sent to ${email} via SMTP`);
     return { success: true, provider: "smtp" };
   } catch (error) {
-    console.error("[SMTP] Failed to send email:", error);
+    logger.error("[SMTP] Failed to send email", { error });
     return { success: false, error };
   }
 }
@@ -158,8 +159,8 @@ export async function sendSecurityEmail(
 ): Promise<{ success: boolean; provider?: string; error?: unknown; devMode?: boolean }> {
   // Check if email transporter is configured
   if (!emailTransporter) {
-    console.log("[Email] SMTP not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in .env");
-    console.log("[Email] Dev mode - Would send:", subject, "to", email);
+    logger.info("[Email] SMTP not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in .env");
+    logger.info("[Email] Dev mode - Would send", { subject, email });
     return { success: false, devMode: true };
   }
 
@@ -171,10 +172,10 @@ export async function sendSecurityEmail(
       html,
     });
 
-    console.log(`[Email] Security email sent to ${email} via SMTP`);
+    logger.info(`[Email] Security email sent to ${email} via SMTP`);
     return { success: true, provider: "smtp" };
   } catch (error) {
-    console.error("[SMTP] Failed to send security email:", error);
+    logger.error("[SMTP] Failed to send security email", { error });
     return { success: false, error };
   }
 }

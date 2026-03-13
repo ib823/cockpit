@@ -2,6 +2,8 @@
 // Error message sanitization for production
 // SECURITY: Prevents information disclosure through error messages
 
+import { logger } from "@/lib/logger";
+
 export type ErrorType =
   | "ValidationError"
   | "CalculationError"
@@ -103,10 +105,10 @@ export function isUserSafeError(error: unknown): boolean {
  */
 export function logSecureError(context: string, error: unknown): void {
   if (process.env.NODE_ENV === "development") {
-    console.error(`[${context}]`, error);
+    logger.error(`[${context}]`, { error });
   } else {
     // In production, log minimal info
-    console.error(`[${context}] Error occurred`, {
+    logger.error(`[${context}] Error occurred`, {
       timestamp: new Date().toISOString(),
       type: error instanceof Error ? error.name : "Unknown",
     });

@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { checkProjectAccess } from "@/lib/gantt-tool/access-control";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   request: NextRequest,
@@ -48,7 +49,7 @@ export async function GET(
       isOwner: access.isOwner,
     });
   } catch (error) {
-    console.error("[API] Failed to check project access:", error);
+    logger.error("[API] Failed to check project access", { error: error });
     return NextResponse.json(
       { error: "Failed to check project access" },
       { status: 500 }

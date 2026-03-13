@@ -8,6 +8,8 @@
  * - Turnstile (Cloudflare)
  */
 
+import { logger } from "@/lib/logger";
+
 export type CaptchaProvider = "hcaptcha" | "recaptcha" | "turnstile";
 
 interface CaptchaConfig {
@@ -80,7 +82,7 @@ export async function verifyCaptcha(
         throw new Error(`Unsupported CAPTCHA provider: ${config.provider}`);
     }
   } catch (error) {
-    console.error("[CAPTCHA] Verification failed:", error);
+    logger.error("[CAPTCHA] Verification failed", { error });
     return {
       success: false,
       errorCodes: ["verification-failed"],

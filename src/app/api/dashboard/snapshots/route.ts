@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/dashboard/snapshots
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ snapshots });
   } catch (error) {
-    console.error("Error fetching snapshots:", error);
+    logger.error("Error fetching snapshots", { error: error });
     return NextResponse.json({ error: "Failed to fetch snapshots" }, { status: 500 });
   }
 }
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ snapshot }, { status: 201 });
   } catch (error) {
-    console.error("Error creating snapshot:", error);
+    logger.error("Error creating snapshot", { error: error });
     return NextResponse.json({ error: "Failed to create snapshot" }, { status: 500 });
   }
 }

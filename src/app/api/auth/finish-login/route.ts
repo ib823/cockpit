@@ -1,11 +1,13 @@
-import { Prisma as _Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
 import { createSessionToken } from "@/lib/nextauth-helpers";
 import { randomUUID } from "crypto";
 import { challenges, verifyAuthenticationResponse, rpID } from "../../../../lib/webauthn";
+import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
 import { logAuthEvent } from "@/lib/monitoring/auth-metrics";
 import { isIPBlocked, checkAndBlockIP } from "@/lib/security/ip-blocker";
+import { badRequest, unauthorized, forbidden, notFound, serverError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 type AuthenticatorTransport = "ble" | "internal" | "nfc" | "usb" | "hybrid";
 export const runtime = "nodejs";
@@ -20,21 +22,19 @@ export async function POST(req: Request) {
     // Check if IP is blocked
     const blockCheck = await isIPBlocked(ipAddress);
     if (blockCheck.blocked) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "Access denied. Your IP has been blocked due to suspicious activity.",
-          blocked: true,
-        },
-        { status: 403 }
-      );
+      return forbidden("Access denied. Your IP has been blocked due to suspicious activity.");
     }
 
-    const body = await req.json().catch(() => ({}));
-    const email = String(body.email ?? "")
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const email = String((body as Record<string, unknown>).email ?? "")
       .trim()
       .toLowerCase();
-    const response = body.response;
+    const response = (body as Record<string, unknown>).response as AuthenticationResponseJSON | undefined;
 
     if (!email || !response) {
       await logAuthEvent("webauthn_failure", {
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       });
       // Check if this IP should be blocked after failure
       await checkAndBlockIP(ipAddress);
-      return NextResponse.json({ ok: false, message: "Missing required fields." }, { status: 400 });
+      return badRequest("Missing required fields.");
     }
 
     const expectedChallenge = await challenges.get(`auth:${email}`);
@@ -61,8 +61,7 @@ export async function POST(req: Request) {
       await checkAndBlockIP(ipAddress);
       return NextResponse.json(
         {
-          ok: false,
-          message: "Session expired. Please try logging in again.",
+          error: "Session expired. Please try logging in again.",
           challengeExpired: true,
         },
         { status: 408 }
@@ -86,7 +85,7 @@ export async function POST(req: Request) {
         method: "passkey",
       });
       await checkAndBlockIP(ipAddress);
-      return NextResponse.json({ ok: false, message: "Invalid credentials." }, { status: 401 });
+      return unauthorized("Invalid credentials.");
     }
 
     // Fixed: V-006 - Check access expiry BEFORE passkey verification
@@ -105,13 +104,7 @@ export async function POST(req: Request) {
         user.id
       );
       await checkAndBlockIP(ipAddress);
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "Your access has expired. Please contact your administrator.",
-        },
-        { status: 403 }
-      );
+      return forbidden("Your access has expired. Please contact your administrator.");
     }
 
     const authenticator = user.Authenticator.find((auth) => auth.id === response.id);
@@ -128,10 +121,7 @@ export async function POST(req: Request) {
         user.id
       );
       await checkAndBlockIP(ipAddress);
-      return NextResponse.json(
-        { ok: false, message: "This passkey is not registered for this account." },
-        { status: 404 }
-      );
+      return notFound("This passkey is not registered for this account.");
     }
 
     const verification = await verifyAuthenticationResponse({
@@ -161,18 +151,15 @@ export async function POST(req: Request) {
         user.id
       );
       await checkAndBlockIP(ipAddress);
-      return NextResponse.json(
-        { ok: false, message: "Passkey verification failed." },
-        { status: 401 }
-      );
+      return unauthorized("Passkey verification failed.");
     }
 
     const { newCounter } = verification.authenticationInfo;
 
     // Fixed: V-006 - TOCTOU: Check access expiry atomically in transaction
     // Re-fetch user within transaction to ensure access hasn't expired between check and session creation
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const transactionResult: { role: "USER" | "MANAGER" | "ADMIN" } = await (prisma.$transaction as any)(async (tx: any) => {
+    type TxResult = { role: "USER" | "MANAGER" | "ADMIN" };
+    const transactionResult: TxResult = await (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<TxResult>) => Promise<TxResult>)(async (tx) => {
       // Re-check access expiry within transaction for atomicity
       const freshUser = await tx.users.findUnique({
         where: { id: user.id },
@@ -222,7 +209,7 @@ export async function POST(req: Request) {
         throw e;
       }
       throw e;
-    }) as { role: "USER" | "MANAGER" | "ADMIN" };
+    });
 
     // Log successful authentication for analytics
     await logAuthEvent(
@@ -269,10 +256,7 @@ export async function POST(req: Request) {
 
     return jsonResponse;
   } catch (e) {
-    console.error("Finish login failed:", e);
-    return NextResponse.json(
-      { ok: false, message: "An internal server error occurred." },
-      { status: 500 }
-    );
+    logger.error("Finish login failed", { error: e });
+    return serverError();
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/nextauth-helpers";
 import { getRecentFailedAttempts } from "@/lib/monitoring/auth-metrics";
 import { getFailureGeoDistribution } from "@/lib/security/geolocation";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,7 +58,7 @@ export async function GET(req: Request) {
         );
       }
     }
-    console.error("[GEO ANALYSIS API] Error:", error);
+    logger.error("[GEO ANALYSIS API] Error", { error: error });
     return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }
 }

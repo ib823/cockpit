@@ -654,7 +654,18 @@ function IssuesTab({ comparison }: { comparison: BaselineComparison }) {
 }
 
 // Helper Components
-/* eslint-disable @typescript-eslint/no-explicit-any */
+interface MetricCardProps {
+  label: string;
+  baseline?: number;
+  actual?: number;
+  variance?: number;
+  format?: string;
+  icon?: React.ReactNode;
+  value?: number;
+  total?: number;
+  color?: string;
+  reverseGoodBad?: boolean;
+}
 function MetricCard({
   label,
   baseline,
@@ -666,8 +677,7 @@ function MetricCard({
   total,
   color,
   reverseGoodBad = false,
-}: any) {
-/* eslint-enable @typescript-eslint/no-explicit-any */
+}: MetricCardProps) {
   if (value !== undefined) {
     return (
       <div
@@ -741,8 +751,7 @@ function MetricCard({
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function StatusBar({ label, count, total, color }: any) {
+function StatusBar({ label, count, total, color }: { label: string; count: number; total: number; color: string }) {
   const percentage = total > 0 ? (count / total) * 100 : 0;
 
   return (
@@ -787,8 +796,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function IssueCard({ issue }: { issue: any }) {
+function IssueCard({ issue }: { issue: { type: string; title: string; description: string; impact?: string } }) {
   const isCritical = issue.type === "critical";
 
   return (

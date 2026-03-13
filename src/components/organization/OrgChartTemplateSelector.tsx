@@ -11,8 +11,7 @@ interface OrgChartTemplateSelectorProps {
 export function OrgChartTemplateSelector({ onClose }: OrgChartTemplateSelectorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<OrgChartTemplate | null>(null);
   const [replaceExisting, setReplaceExisting] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const applyOrgChartTemplate = useGanttToolStore((state) => (state as any).applyOrgChartTemplate);
+  const applyOrgChartTemplate = useGanttToolStore((state) => (state as Record<string, unknown>).applyOrgChartTemplate as (template: OrgChartTemplate, replace: boolean) => void);
   const currentProject = useGanttToolStore((state) => state.currentProject);
 
   const handleApplyTemplate = () => {

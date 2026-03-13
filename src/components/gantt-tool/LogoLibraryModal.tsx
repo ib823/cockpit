@@ -240,13 +240,11 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
   // Handle delete logo with dependency check
   const handleDeleteLogo = useCallback((logoId: string, companyName: string, isDefault: boolean) => {
     // Check if logo is used by any resources in org chart
-    const orgChartNodes = currentProject?.orgChartPro?.nodes || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const usedByResources = orgChartNodes.filter((node: any) => node.companyName === companyName);
+    const orgChartNodes = (currentProject?.orgChartPro?.nodes ?? []) as Array<Record<string, unknown>>;
+    const usedByResources = orgChartNodes.filter((node) => node.companyName === companyName);
 
     if (usedByResources.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const resourceNames = usedByResources.map((r: any) => r.name || 'Unnamed').join(', ');
+      const resourceNames = usedByResources.map((r) => (r.name as string) || 'Unnamed').join(', ');
       const message = `Warning: This logo is currently assigned to ${usedByResources.length} resource${usedByResources.length > 1 ? 's' : ''}: ${resourceNames}.\n\nIf you delete this logo:\n• These resources will lose their company assignment\n• The logo will no longer appear in the org chart\n• You will need to reassign companies to these resources\n\nAre you sure you want to delete "${companyName}"?`;
 
       if (!confirm(message)) {

@@ -31,6 +31,7 @@ import {
   calculateProjectCostingSummary,
 } from "@/lib/team-capacity/costing";
 import { CostVisibilityLevel } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 export const maxDuration = 30;
 
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log access for audit purposes
-    console.warn(
+    logger.warn(
       `[Costing] User ${session.user.id} (role: ${user?.role}) accessing project ${validatedData.projectId} with visibility: ${userVisibilityLevel}`
     );
 
@@ -203,7 +204,7 @@ export async function POST(request: NextRequest) {
       calculatedAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("[Team Capacity] Error calculating costing:", error);
+    logger.error("[Team Capacity] Error calculating costing", { error: error });
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -282,7 +283,7 @@ export async function GET(request: NextRequest) {
       userVisibilityLevel = "PUBLIC";
     }
 
-    console.warn(
+    logger.warn(
       `[Costing] GET User ${session.user.id} (role: ${user?.role}) accessing project ${projectId} with visibility: ${userVisibilityLevel}`
     );
 
@@ -342,7 +343,7 @@ export async function GET(request: NextRequest) {
       visibilityLevel: userVisibilityLevel,
     });
   } catch (error) {
-    console.error("[Team Capacity] Error fetching costing:", error);
+    logger.error("[Team Capacity] Error fetching costing", { error: error });
 
     return NextResponse.json(
       {

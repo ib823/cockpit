@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authConfig as authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { generateRegistrationOptions, rpName, rpID, challenges } from "@/lib/webauthn";
+import { logger } from "@/lib/logger";
 
 // POST /api/auth/passkey/register/begin - Start passkey registration
 export async function POST() {
@@ -55,7 +56,7 @@ export async function POST() {
 
     return NextResponse.json(options);
   } catch (error) {
-    console.error("Passkey registration begin error:", error);
+    logger.error("Passkey registration begin error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

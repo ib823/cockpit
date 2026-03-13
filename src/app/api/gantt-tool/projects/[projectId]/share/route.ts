@@ -12,6 +12,7 @@ import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import crypto from "crypto";
+import { logger } from "@/lib/logger";
 
 const ShareProjectSchema = z.object({
   email: z.string().email(),
@@ -173,7 +174,7 @@ export async function POST(
       );
     }
 
-    console.error("[API] Failed to create project invite:", error);
+    logger.error("[API] Failed to create project invite", { error: error });
     return NextResponse.json({ error: "Failed to create invite" }, { status: 500 });
   }
 }
@@ -276,7 +277,7 @@ export async function GET(
       })),
     });
   } catch (error) {
-    console.error("[API] Failed to fetch project sharing info:", error);
+    logger.error("[API] Failed to fetch project sharing info", { error: error });
     return NextResponse.json({ error: "Failed to fetch sharing information" }, { status: 500 });
   }
 }

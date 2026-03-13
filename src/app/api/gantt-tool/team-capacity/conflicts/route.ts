@@ -19,6 +19,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { prisma, withRetry } from "@/lib/db";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 export const maxDuration = 30;
 
@@ -293,7 +294,7 @@ export async function POST(request: NextRequest) {
       summary,
     });
   } catch (error) {
-    console.error("[Team Capacity] Error detecting conflicts:", error);
+    logger.error("[Team Capacity] Error detecting conflicts", { error: error });
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -463,7 +464,7 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => a.weekStartDate.localeCompare(b.weekStartDate)),
     });
   } catch (error) {
-    console.error("[Team Capacity] Error calculating utilization:", error);
+    logger.error("[Team Capacity] Error calculating utilization", { error: error });
 
     return NextResponse.json(
       {

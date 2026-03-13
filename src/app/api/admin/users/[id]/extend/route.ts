@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/nextauth-helpers";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error("extend access error", e);
+    logger.error("extend access error", { error: e });
     return NextResponse.json(
       { error: "Failed to extend access" },
       { status: 500, headers: { "Content-Type": "application/json" } }

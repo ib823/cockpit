@@ -54,7 +54,7 @@ export async function logAuditEvent(
     });
   } catch (error) {
     // CRITICAL: Log to monitoring but don't fail the request
-    logger.error("[Audit] Failed to log event:", error);
+    logger.error("[Audit] Failed to log event", { error });
 
     // In production, alert monitoring system
     if (process.env.NODE_ENV === "production") {

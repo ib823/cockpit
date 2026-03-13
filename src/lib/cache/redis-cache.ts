@@ -13,6 +13,7 @@
  */
 
 import { Redis } from "@upstash/redis";
+import { logger } from "@/lib/logger";
 
 // Initialize Redis client
 const redis =
@@ -158,7 +159,7 @@ class CacheManager {
   constructor() {
     this.useRedis = redis !== null;
     if (!this.useRedis) {
-      console.warn("[Cache] Redis not configured, using in-memory fallback");
+      logger.warn("[Cache] Redis not configured, using in-memory fallback");
     }
   }
 
@@ -175,10 +176,10 @@ class CacheManager {
 
         if (value !== null) {
           statsTracker.recordHit(latency);
-          console.log(`[Cache] ✅ HIT ${key} (${latency.toFixed(2)}ms)`);
+          logger.info(`[Cache] ✅ HIT ${key} (${latency.toFixed(2)}ms)`);
         } else {
           statsTracker.recordMiss(latency);
-          console.log(`[Cache] ❌ MISS ${key} (${latency.toFixed(2)}ms)`);
+          logger.info(`[Cache] ❌ MISS ${key} (${latency.toFixed(2)}ms)`);
         }
 
         return value;
@@ -190,16 +191,16 @@ class CacheManager {
 
       if (cached && cached.expires > Date.now()) {
         statsTracker.recordHit(latency);
-        console.log(`[Cache] ✅ HIT (memory) ${key}`);
+        logger.info(`[Cache] ✅ HIT (memory) ${key}`);
         return cached.data as T;
       }
 
       statsTracker.recordMiss(latency);
-      console.log(`[Cache] ❌ MISS (memory) ${key}`);
+      logger.info(`[Cache] ❌ MISS (memory) ${key}`);
       return null;
     } catch (error) {
       statsTracker.recordError();
-      console.error("[Cache] Error getting from cache:", error);
+      logger.error("[Cache] Error getting from cache", { error });
       return null;
     }
   }
@@ -212,7 +213,7 @@ class CacheManager {
       if (this.useRedis && redis) {
         await redis.set(key, value, { ex: ttlSeconds });
         statsTracker.recordSet();
-        console.log(`[Cache] 💾 SET ${key} (TTL: ${ttlSeconds}s)`);
+        logger.info(`[Cache] 💾 SET ${key} (TTL: ${ttlSeconds}s)`);
       } else {
         // Memory fallback
         this.memoryCache.set(key, {
@@ -220,11 +221,11 @@ class CacheManager {
           expires: Date.now() + ttlSeconds * 1000,
         });
         statsTracker.recordSet();
-        console.log(`[Cache] 💾 SET (memory) ${key} (TTL: ${ttlSeconds}s)`);
+        logger.info(`[Cache] 💾 SET (memory) ${key} (TTL: ${ttlSeconds}s)`);
       }
     } catch (error) {
       statsTracker.recordError();
-      console.error("[Cache] Error setting cache:", error);
+      logger.error("[Cache] Error setting cache", { error });
     }
   }
 
@@ -236,15 +237,15 @@ class CacheManager {
       if (this.useRedis && redis) {
         await redis.del(key);
         statsTracker.recordDelete();
-        console.log(`[Cache] 🗑️  DELETE ${key}`);
+        logger.info(`[Cache] 🗑️  DELETE ${key}`);
       } else {
         this.memoryCache.delete(key);
         statsTracker.recordDelete();
-        console.log(`[Cache] 🗑️  DELETE (memory) ${key}`);
+        logger.info(`[Cache] 🗑️  DELETE (memory) ${key}`);
       }
     } catch (error) {
       statsTracker.recordError();
-      console.error("[Cache] Error deleting from cache:", error);
+      logger.error("[Cache] Error deleting from cache", { error });
     }
   }
 
@@ -258,7 +259,7 @@ class CacheManager {
         if (keys.length > 0) {
           await redis.del(...keys);
           statsTracker.recordDelete();
-          console.log(`[Cache] 🗑️  DELETE PATTERN ${pattern} (${keys.length} keys)`);
+          logger.info(`[Cache] 🗑️  DELETE PATTERN ${pattern} (${keys.length} keys)`);
         }
       } else {
         // Memory fallback - delete matching keys
@@ -269,11 +270,11 @@ class CacheManager {
           }
         }
         keysToDelete.forEach((key) => this.memoryCache.delete(key));
-        console.log(`[Cache] 🗑️  DELETE PATTERN (memory) ${pattern} (${keysToDelete.length} keys)`);
+        logger.info(`[Cache] 🗑️  DELETE PATTERN (memory) ${pattern} (${keysToDelete.length} keys)`);
       }
     } catch (error) {
       statsTracker.recordError();
-      console.error("[Cache] Error deleting pattern from cache:", error);
+      logger.error("[Cache] Error deleting pattern from cache", { error });
     }
   }
 
@@ -296,7 +297,7 @@ class CacheManager {
     }
 
     // Cache miss - fetch fresh data
-    console.log(`[Cache] 🔄 FETCHING ${key}`);
+    logger.info(`[Cache] 🔄 FETCHING ${key}`);
     const data = await fetcher();
 
     // Cache the result
@@ -310,11 +311,11 @@ class CacheManager {
    */
   async warmCache(key: string, fetcher: () => Promise<unknown>, ttlSeconds: number): Promise<void> {
     try {
-      console.log(`[Cache] 🔥 WARMING ${key}`);
+      logger.info(`[Cache] 🔥 WARMING ${key}`);
       const data = await fetcher();
       await this.set(key, data, ttlSeconds);
     } catch (error) {
-      console.error(`[Cache] Error warming cache for ${key}:`, error);
+      logger.error(`[Cache] Error warming cache for ${key}`, { error });
     }
   }
 
@@ -339,13 +340,13 @@ class CacheManager {
     try {
       if (this.useRedis && redis) {
         await redis.flushdb();
-        console.log("[Cache] 🗑️  CLEARED ALL (Redis)");
+        logger.info("[Cache] 🗑️  CLEARED ALL (Redis)");
       } else {
         this.memoryCache.clear();
-        console.log("[Cache] 🗑️  CLEARED ALL (memory)");
+        logger.info("[Cache] 🗑️  CLEARED ALL (memory)");
       }
     } catch (error) {
-      console.error("[Cache] Error clearing cache:", error);
+      logger.error("[Cache] Error clearing cache", { error });
     }
   }
 }
@@ -378,7 +379,7 @@ export async function withCache<T>(
       // Refresh in background
       fetcher()
         .then((fresh) => cache.set(key, fresh, ttlSeconds))
-        .catch((err) => console.error("[Cache] Background refresh failed:", err));
+        .catch((err) => logger.error("[Cache] Background refresh failed", { error: err }));
 
       return cached;
     }

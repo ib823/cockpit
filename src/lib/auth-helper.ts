@@ -142,10 +142,9 @@ export function isSessionValid(
  * @param user - User object with potentially sensitive data
  * @returns Sanitized user object safe for client
  */
-export function sanitizeUserData<T extends Record<string, any>>(user: T): Partial<T> {
-  // Remove sensitive fields
-  const { password, hashedPassword, resetToken, sessionToken, ...safeUser } = user as any;
-  return safeUser;
+export function sanitizeUserData<T extends Record<string, unknown>>(user: T): Partial<T> {
+  const { password, hashedPassword, resetToken, sessionToken, ...safeUser } = user as Record<string, unknown>;
+  return safeUser as Partial<T>;
 }
 
 /**

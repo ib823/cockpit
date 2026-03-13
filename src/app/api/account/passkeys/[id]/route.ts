@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig as authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 // DELETE /api/account/passkeys/:id - Delete a passkey
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -77,7 +78,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Passkey delete error:", error);
+    logger.error("Passkey delete error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

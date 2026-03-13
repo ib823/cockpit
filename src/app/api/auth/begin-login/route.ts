@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
 import { challenges, generateAuthenticationOptions, rpID } from "../../../../lib/webauthn";
+import { badRequest, forbidden, notFound, serverError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 type AuthenticatorTransport = "ble" | "internal" | "nfc" | "usb" | "hybrid";
 
@@ -8,25 +10,23 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const email = String(body.email ?? "")
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const email = String((body as Record<string, unknown>).email ?? "")
       .trim()
       .toLowerCase();
     if (!email) {
-      // Return a 400 Bad Request if email is missing
-      return NextResponse.json({ ok: false, message: "Email is required." }, { status: 400 });
+      return badRequest("Email is required.");
     }
 
     // Validate email format to prevent injection attacks
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email) || email.length > 255) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "Invalid email format.",
-        },
-        { status: 400 }
-      );
+      return badRequest("Invalid email format.");
     }
 
     const user = await prisma.users.findUnique({
@@ -36,27 +36,13 @@ export async function POST(req: Request) {
 
     // Check if user exists and is approved
     if (!user) {
-      
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "Email not found. Please contact your administrator for access.",
-          notApproved: true,
-        },
-        { status: 404 }
-      );
+      return notFound("Email not found. Please contact your administrator for access.");
     }
 
     // Check if user's access has expired
     const isExpired = !user.exception && user.accessExpiresAt && user.accessExpiresAt <= new Date();
     if (isExpired) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "Your access has expired. Please contact your administrator.",
-        },
-        { status: 403 }
-      );
+      return forbidden("Your access has expired. Please contact your administrator.");
     }
 
     // If user has no passkeys, they need to go through registration.
@@ -67,14 +53,7 @@ export async function POST(req: Request) {
       });
 
       if (!approval) {
-        return NextResponse.json(
-          {
-            ok: false,
-            message: "Invalid. Contact Admin.",
-            notApproved: true,
-          },
-          { status: 404 }
-        );
+        return notFound("Invalid. Contact Admin.");
       }
 
       // User is approved but hasn't registered passkey yet
@@ -96,10 +75,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, pendingPasskey: true, options });
   } catch (e) {
-    console.error("Begin login failed:", e);
-    return NextResponse.json(
-      { ok: false, message: "An internal server error occurred." },
-      { status: 500 }
-    );
+    logger.error("Begin login failed", { error: e });
+    return serverError();
   }
 }

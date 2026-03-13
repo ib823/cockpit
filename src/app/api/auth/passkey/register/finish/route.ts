@@ -4,6 +4,7 @@ import { authConfig as authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { verifyRegistrationResponse, rpID, origin, challenges } from "@/lib/webauthn";
 import type { RegistrationResponseJSON } from "@simplewebauthn/server";
+import { logger } from "@/lib/logger";
 
 // POST /api/auth/passkey/register/finish - Complete passkey registration
 export async function POST(req: NextRequest) {
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
         expectedRPID: rpID,
       });
     } catch (err) {
-      console.error("Verification error:", err);
+      logger.error("Verification error", { error: err });
       return NextResponse.json({ error: "Passkey verification failed" }, { status: 400 });
     }
 
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Passkey registration finish error:", error);
+    logger.error("Passkey registration finish error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/nextauth-helpers";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -85,7 +86,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error("update user error", e);
+    logger.error("update user error", { error: e });
     return NextResponse.json(
       { error: "Failed to update user" },
       { status: 500, headers: { "Content-Type": "application/json" } }
@@ -110,7 +111,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
         { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error("delete user error", e);
+    logger.error("delete user error", { error: e });
     return NextResponse.json(
       { error: "Failed to delete user" },
       { status: 500, headers: { "Content-Type": "application/json" } }

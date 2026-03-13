@@ -4,6 +4,8 @@
  * Central configuration for all security features
  */
 
+import { logger } from "@/lib/logger";
+
 export const SECURITY_CONFIG = {
   /**
    * CAPTCHA Settings
@@ -185,7 +187,7 @@ export function logSecurityEvent(
   };
 
   // Log to console (replace with proper logging service in production)
-  console.warn("[SECURITY EVENT]", JSON.stringify(event));
+  logger.warn("[SECURITY EVENT]", { event });
 
   // Send alert if critical
   if (SECURITY_CONFIG.logging.alerts.enabled) {
@@ -247,7 +249,7 @@ async function sendSecurityAlert(
       }),
     });
   } catch (error) {
-    console.error("[SECURITY ALERT] Failed to send alert:", error);
+    logger.error("[SECURITY ALERT] Failed to send alert", { error });
   }
 }
 

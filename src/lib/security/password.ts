@@ -11,6 +11,7 @@
 
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { logger } from "@/lib/logger";
 
 const BCRYPT_COST = 12;
 const PASSWORD_MIN_LENGTH = 12;
@@ -119,7 +120,7 @@ export async function checkPasswordBreach(
     });
 
     if (!response.ok) {
-      console.error("[HIBP] API request failed:", response.status);
+      logger.error("[HIBP] API request failed", { status: response.status });
       return { breached: false, count: 0 }; // Fail open (don't block user on API failure)
     }
 
@@ -136,7 +137,7 @@ export async function checkPasswordBreach(
 
     return { breached: false, count: 0 };
   } catch (error) {
-    console.error("[HIBP] Error checking password:", error);
+    logger.error("[HIBP] Error checking password", { error });
     return { breached: false, count: 0 }; // Fail open
   }
 }

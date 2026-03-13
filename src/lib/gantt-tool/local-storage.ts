@@ -229,7 +229,7 @@ export async function markProjectSynced(projectId: string): Promise<void> {
  */
 export async function projectNeedsSync(projectId: string): Promise<boolean> {
   const project = await getProjectLocal(projectId);
-  return !!(project && (project as any).needsSync);
+  return !!(project && (project as GanttProject & { needsSync?: boolean }).needsSync);
 }
 
 /**

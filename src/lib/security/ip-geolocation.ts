@@ -10,6 +10,7 @@
  */
 
 import { headers } from "next/headers";
+import { logger } from "@/lib/logger";
 
 export interface IPGeolocation {
   ip: string;
@@ -24,7 +25,7 @@ export interface IPGeolocation {
   isVPN: boolean;
 }
 
-interface IPAPIResponse {
+interface _IPAPIResponse {
   ip: string;
   city?: string;
   region?: string;
@@ -130,7 +131,7 @@ async function lookupIPAPIco(ip: string): Promise<IPGeolocation | null> {
     });
 
     if (!response.ok) {
-      console.error(`[IPAPIco] Failed to lookup ${ip}: ${response.status}`);
+      logger.error(`[IPAPIco] Failed to lookup ${ip}: ${response.status}`);
       return null;
     }
 
@@ -138,7 +139,7 @@ async function lookupIPAPIco(ip: string): Promise<IPGeolocation | null> {
 
     // Check for rate limit or error
     if (data.error) {
-      console.error(`[IPAPIco] Error: ${data.reason}`);
+      logger.error(`[IPAPIco] Error: ${data.reason}`);
       return null;
     }
 
@@ -155,7 +156,7 @@ async function lookupIPAPIco(ip: string): Promise<IPGeolocation | null> {
       isVPN: detectVPN(data.org),
     };
   } catch (error) {
-    console.error("[IPAPIco] Lookup failed:", error);
+    logger.error("[IPAPIco] Lookup failed", { error });
     return null;
   }
 }
@@ -173,14 +174,14 @@ async function lookupIPAPIcom(ip: string): Promise<IPGeolocation | null> {
     );
 
     if (!response.ok) {
-      console.error(`[IPAPIcom] Failed to lookup ${ip}: ${response.status}`);
+      logger.error(`[IPAPIcom] Failed to lookup ${ip}: ${response.status}`);
       return null;
     }
 
     const data = await response.json();
 
     if (data.status !== "success") {
-      console.error(`[IPAPIcom] Status: ${data.status}`);
+      logger.error(`[IPAPIcom] Status: ${data.status}`);
       return null;
     }
 
@@ -197,7 +198,7 @@ async function lookupIPAPIcom(ip: string): Promise<IPGeolocation | null> {
       isVPN: data.proxy || false,
     };
   } catch (error) {
-    console.error("[IPAPIcom] Lookup failed:", error);
+    logger.error("[IPAPIcom] Lookup failed", { error });
     return null;
   }
 }

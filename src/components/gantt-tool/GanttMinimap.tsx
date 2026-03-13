@@ -141,11 +141,14 @@ export function GanttMinimap() {
       </div>
 
       {/* Minimap Canvas */}
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Minimap navigation canvas"
         className="relative bg-gradient-to-b from-gray-100 to-gray-200 cursor-pointer"
         style={{ width: "280px", height: "120px" }}
         onClick={handleBackgroundClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleBackgroundClick(e as unknown as React.MouseEvent); } }}
       >
         {/* Phase bars */}
         <div className="absolute inset-0 p-2">

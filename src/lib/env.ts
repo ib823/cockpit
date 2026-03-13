@@ -5,6 +5,7 @@
  */
 
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const envSchema = z.object({
   // Node environment
@@ -73,8 +74,8 @@ function validateEnv(): Env {
     (process.env.VERCEL === "1" && process.env.CI === "1");
 
   if (isBuildPhase && !process.env.DATABASE_URL) {
-    console.warn("⚠️  Building without runtime env vars - using build-time placeholders");
-    console.warn("   Environment variables will be validated at runtime");
+    logger.warn("⚠️  Building without runtime env vars - using build-time placeholders");
+    logger.warn("   Environment variables will be validated at runtime");
     return {
       NODE_ENV: "production",
       DATABASE_URL: "postgresql://placeholder:placeholder@localhost:5432/placeholder",
@@ -125,9 +126,9 @@ function validateEnv(): Env {
       }
 
       if (warnings.length > 0) {
-        console.warn("⚠️  Production warnings - Missing optional environment variables:");
-        warnings.forEach((w) => console.warn(`   • ${w}`));
-        console.warn("💡 Set these variables in your Vercel dashboard for full functionality\n");
+        logger.warn("⚠️  Production warnings - Missing optional environment variables:");
+        warnings.forEach((w) => logger.warn(`   • ${w}`));
+        logger.warn("💡 Set these variables in your Vercel dashboard for full functionality\n");
       }
     }
 
@@ -144,33 +145,33 @@ function validateEnv(): Env {
       ];
 
       if (dangerousDefaults.some((bad) => env.NEXTAUTH_SECRET.toLowerCase().includes(bad))) {
-        console.error(
+        logger.error(
           "❌ SECURITY VIOLATION: NEXTAUTH_SECRET appears to use a default or weak value"
         );
-        console.error("   Generate a strong secret with: openssl rand -base64 32");
+        logger.error("   Generate a strong secret with: openssl rand -base64 32");
         throw new Error("Weak NEXTAUTH_SECRET detected");
       }
     }
 
     // Log successful validation
     if (env.NODE_ENV === "production") {
-      console.log("✅ Environment validation passed (production mode)");
+      logger.info("✅ Environment validation passed (production mode)");
     } else {
-      console.log("✅ Environment validation passed (development mode)");
+      logger.info("✅ Environment validation passed (development mode)");
     }
 
     return env;
   } catch (error) {
-    console.error("❌ Environment validation failed:");
+    logger.error("❌ Environment validation failed:");
     if (error instanceof z.ZodError) {
       error.issues.forEach((issue: z.ZodIssue) => {
         const path = issue.path.join(".");
-        console.error(`   • ${path}: ${issue.message}`);
+        logger.error(`   • ${path}: ${issue.message}`);
       });
     } else {
-      console.error("   • ", error);
+      logger.error("Environment validation error", { error });
     }
-    console.error("\n💡 See .env.example for required environment variables");
+    logger.error("\n💡 See .env.example for required environment variables");
     throw new Error("Environment validation failed - check logs above");
   }
 }

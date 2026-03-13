@@ -348,13 +348,15 @@ export function DraggableOrgCardV4({
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       ref={setDragRef}
       {...listeners}
       {...attributes}
+      role="button"
+      tabIndex={0}
       style={getCardStyle()}
       onClick={onSelect}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect?.(e as unknown as React.MouseEvent); } }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
@@ -562,8 +564,8 @@ export function DraggableOrgCardV4({
 
           {/* Company Picker Dropdown */}
           {showCompanyPicker && availableCompanies.length > 0 && (
-            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
             <div
+              role="presentation"
               style={{
                 position: "absolute",
                 top: "32px",
@@ -579,6 +581,7 @@ export function DraggableOrgCardV4({
                 overflowY: "auto",
               }}
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
             >
               {availableCompanies.map((company) => (
                 <button
@@ -720,8 +723,8 @@ export function DraggableOrgCardV4({
 
           {/* Designation picker (dropdown for now, radial in next phase) */}
           {showDesignationPicker && (
-            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
             <div
+              role="presentation"
               style={{
                 position: "absolute",
                 top: "100%",
@@ -736,6 +739,7 @@ export function DraggableOrgCardV4({
                 minWidth: "160px",
               }}
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
             >
               {Object.entries(DESIGNATION_LABELS).map(([key, label]) => (
                 <button

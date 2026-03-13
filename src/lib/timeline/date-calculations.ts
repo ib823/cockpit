@@ -1,6 +1,8 @@
 // src/lib/timeline/date-calculations.ts
 // Business day calculation with holiday support
 
+import { logger } from "@/lib/logger";
+
 export interface Holiday {
   date: string; // YYYY-MM-DD
   name: string;
@@ -38,12 +40,12 @@ export function businessDayToDate(
 ): Date {
   // Validation
   if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
-    console.error("Invalid startDate:", startDate);
+    logger.error("Invalid startDate", { startDate });
     return new Date(); // Fallback to today
   }
 
   if (typeof businessDayIndex !== "number" || businessDayIndex < 0) {
-    console.error("Invalid businessDayIndex:", businessDayIndex);
+    logger.error("Invalid businessDayIndex", { businessDayIndex });
     return new Date(startDate); // Fallback to start date
   }
 
@@ -114,7 +116,7 @@ export function isHoliday(date: Date, holidays: Holiday[] = DEFAULT_HOLIDAYS): b
  */
 export function formatDateElegant(date: Date): string {
   if (!(date instanceof Date) || isNaN(date.getTime())) {
-    console.error("formatDateElegant received invalid date:", date);
+    logger.error("formatDateElegant received invalid date", { date });
     return "Invalid Date";
   }
 
@@ -155,7 +157,7 @@ export function generateCalendarDates(startDate: Date, endDate: Date): Date[] {
  * Calculate project start date from phases
  */
 export function calculateProjectStartDate(
-  phases: any[],
+  phases: Array<{ startBusinessDay?: number; workingDays?: number }>,
   holidays: Holiday[] = DEFAULT_HOLIDAYS
 ): Date | null {
   if (!phases || phases.length === 0) return null;
@@ -180,7 +182,7 @@ export function calculateProjectStartDate(
  * Calculate project end date from phases
  */
 export function calculateProjectEndDate(
-  phases: any[],
+  phases: Array<{ startBusinessDay?: number; workingDays?: number }>,
   holidays: Holiday[] = DEFAULT_HOLIDAYS
 ): Date | null {
   if (!phases || phases.length === 0) return null;

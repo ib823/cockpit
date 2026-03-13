@@ -203,7 +203,7 @@ export function getResourceUtilization(plan: ResourcePlan): {
   const byRoleWithPercentage: Record<
     ResourceRole,
     { hours: number; cost: number; percentage: number }
-  > = {} as any;
+  > = {} as Record<ResourceRole, { hours: number; cost: number; percentage: number }>;
   Object.keys(byRole).forEach((role) => {
     byRoleWithPercentage[role as ResourceRole] = {
       ...byRole[role],

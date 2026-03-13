@@ -348,11 +348,10 @@ export function ProposedSolutionTab({
       {/* System Templates Modal - Keep fixed for now as it's a major UI element, but tokenized */}
       {showSystemTemplates && selectedPhaseForSystem && (
         <div className="fixed inset-0 flex items-center justify-center p-4 z-[1060]">
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => {
+          <div role="presentation" className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => {
             setShowSystemTemplates(false);
             setSelectedPhaseForSystem(null);
-          }} />
+          }} onKeyDown={(e) => { if (e.key === 'Escape') { setShowSystemTemplates(false); setSelectedPhaseForSystem(null); } }} />
           <div className="relative w-full max-w-4xl max-h-[80vh] bg-primary border border-strong rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-fade-in">
             <div className="p-6 border-b border-subtle flex justify-between items-center">
               <h3 className="display-small">Select Future System Template</h3>

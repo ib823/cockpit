@@ -25,7 +25,7 @@ import {
 export interface ImportValidationError {
   rowOrIndex: number;
   field: string;
-  value: any;
+  value: unknown;
   message: string;
   code: string;
   severity: 'error' | 'warning';
@@ -103,7 +103,7 @@ export function validateResourceBatch(
     // Manager will be validated in the hierarchy pass
     const resourceWithoutManager = { ...resource, managerResourceId: null };
     const validationResult = validateResourceData(
-      resourceWithoutManager as any,
+      resourceWithoutManager as Partial<Resource>,
       validatedResources, // Check against already-validated resources
       true // isNew
     );
@@ -113,7 +113,7 @@ export function validateResourceBatch(
         result.invalid.push({
           rowOrIndex: index,
           field: error.field || 'unknown',
-          value: (resource as any)[error.field || 'id'],
+          value: (resource as Record<string, unknown>)[error.field || 'id'],
           message: error.message,
           code: error.code,
           severity: error.severity,

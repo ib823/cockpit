@@ -3,6 +3,7 @@ import { randomUUID, randomBytes, randomInt } from "crypto";
 import { requireAdmin } from "@/lib/nextauth-helpers";
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -94,7 +95,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     if (e instanceof Error && e.message === "forbidden") {
       return NextResponse.json({ ok: false, error: "Admin access required" }, { status: 403 });
     }
-    console.error("generate-code error:", e);
+    logger.error("generate-code error", { error: e });
     return NextResponse.json({ ok: false, error: "Failed to generate code" }, { status: 500 });
   }
 }

@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/nextauth-helpers";
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -58,7 +59,7 @@ export async function GET() {
 
     return NextResponse.json(projects);
   } catch (error) {
-    console.error("[Architecture API] GET error:", error);
+    logger.error("[Architecture API] GET error", { error: error });
     return NextResponse.json(
       { error: "Failed to fetch projects" },
       { status: 500 }
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const body = await req.json();
+    const body: Record<string, unknown> = await req.json();
 
     // Validate required fields
     if (!body.name) {
@@ -99,27 +100,27 @@ export async function POST(req: Request) {
     const project = await prisma.architectureProject.create({
       data: {
         userId: user.id,
-        name: body.name,
-        description: body.description || null,
-        version: body.version || "1.0",
-        businessContext: body.businessContext || {
+        name: body.name as string,
+        description: (body.description as string) || null,
+        version: (body.version as string) || "1.0",
+        businessContext: (body.businessContext as Prisma.InputJsonValue) || {
           entities: [],
           actors: [],
           capabilities: [],
           painPoints: "",
         },
-        currentLandscape: body.currentLandscape || {
+        currentLandscape: (body.currentLandscape as Prisma.InputJsonValue) || {
           systems: [],
           integrations: [],
           externalSystems: [],
         },
-        proposedSolution: body.proposedSolution || {
+        proposedSolution: (body.proposedSolution as Prisma.InputJsonValue) || {
           phases: [],
           systems: [],
           integrations: [],
           retainedExternalSystems: [],
         },
-        diagramSettings: body.diagramSettings || {
+        diagramSettings: (body.diagramSettings as Prisma.InputJsonValue) || {
           visualStyle: "bold",
           actorDisplay: "cards",
           layoutMode: "swim-lanes",
@@ -161,7 +162,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
-    console.error("[Architecture API] POST error:", error);
+    logger.error("[Architecture API] POST error", { error: error });
     return NextResponse.json(
       { error: "Failed to create project" },
       { status: 500 }

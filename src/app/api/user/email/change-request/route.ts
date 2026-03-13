@@ -6,8 +6,10 @@ import { sendSecurityEmail } from "@/lib/email";
 import { SignJWT } from "jose";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
+import { badRequest, unauthorized, forbidden, notFound, conflict, serverError } from "@/lib/api-response";
 
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -24,16 +26,21 @@ export const runtime = "nodejs";
  */
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { userId: requestUserId, newEmail, password } = body;
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const { userId: requestUserId, newEmail, password } = body as { userId?: string; newEmail?: string; password?: string };
 
     const session = await getServerSession(authConfig);
     if (!session?.user?.id || !session.user.email) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     if (requestUserId && String(requestUserId) !== session.user.id) {
-      return NextResponse.json({ ok: false, message: "Forbidden" }, { status: 403 });
+      return forbidden();
     }
 
     const normalizedNewEmail = String(newEmail ?? "")
@@ -44,15 +51,12 @@ export async function POST(req: Request) {
     // 1. Validate Input
     // ============================================
     if (!normalizedNewEmail || !password) {
-      return NextResponse.json(
-        { ok: false, message: "New email and password are required" },
-        { status: 400 }
-      );
+      return badRequest("New email and password are required");
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(normalizedNewEmail)) {
-      return NextResponse.json({ ok: false, message: "Invalid email format" }, { status: 400 });
+      return badRequest("Invalid email format");
     }
 
     // ============================================
@@ -63,7 +67,7 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
+      return notFound("User not found");
     }
 
     // Verify password (security requirement)
@@ -71,7 +75,7 @@ export async function POST(req: Request) {
     const passwordValid = await verifyPassword(password, user.passwordHash || "");
 
     if (!passwordValid) {
-      return NextResponse.json({ ok: false, message: "Invalid password" }, { status: 401 });
+      return unauthorized("Invalid password");
     }
 
     // ============================================
@@ -82,10 +86,7 @@ export async function POST(req: Request) {
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { ok: false, message: "This email is already in use" },
-        { status: 409 }
-      );
+      return conflict("This email is already in use");
     }
 
     // ============================================
@@ -261,10 +262,7 @@ export async function POST(req: Request) {
       expiresIn: "24 hours",
     });
   } catch (error: unknown) {
-    console.error("[EmailChange] Request error:", error);
-    return NextResponse.json(
-      { ok: false, message: "Failed to process email change request" },
-      { status: 500 }
-    );
+    logger.error("[EmailChange] Request error", { error: error });
+    return serverError("Failed to process email change request");
   }
 }

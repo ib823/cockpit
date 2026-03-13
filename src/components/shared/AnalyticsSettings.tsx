@@ -59,10 +59,8 @@ export function AnalyticsSettings() {
   const isDoNotTrackEnabled =
     typeof window !== "undefined" &&
     (window.navigator.doNotTrack === "1" ||
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window.navigator as any).msDoNotTrack === "1" ||
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).doNotTrack === "1");
+      (window.navigator as Navigator & { msDoNotTrack?: string }).msDoNotTrack === "1" ||
+      (window as Window & { doNotTrack?: string }).doNotTrack === "1");
 
   return (
     <Space direction="vertical" style={{ width: "100%" }} size="large">

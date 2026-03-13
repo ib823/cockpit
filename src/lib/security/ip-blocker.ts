@@ -7,6 +7,7 @@
 
 import { Redis } from "@upstash/redis";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 // Redis connection (with fallback)
 let redis: Redis | null = null;
@@ -17,7 +18,7 @@ try {
     redis = new Redis({ url, token });
   }
 } catch (error) {
-  console.warn("[ip-blocker] Redis initialization failed, using in-memory fallback:", error);
+  logger.warn("[ip-blocker] Redis initialization failed, using in-memory fallback", { error });
 }
 
 // In-memory fallback for development
@@ -67,7 +68,7 @@ export async function isIPBlocked(ip: string): Promise<{ blocked: boolean; reaso
         return { blocked: true, reason: blockData.reason };
       }
     } catch (error) {
-      console.error("[ip-blocker] Redis check error:", error);
+      logger.error("[ip-blocker] Redis check error", { error });
     }
   }
 
@@ -115,7 +116,7 @@ export async function blockIP(
         await redis.setex(`ipblock:${ip}`, durationMinutes! * 60, blockData);
       }
     } catch (error) {
-      console.error("[ip-blocker] Redis set error:", error);
+      logger.error("[ip-blocker] Redis set error", { error });
     }
   }
 
@@ -139,10 +140,10 @@ export async function blockIP(
       },
     });
   } catch (error) {
-    console.error("[ip-blocker] Failed to log block event:", error);
+    logger.error("[ip-blocker] Failed to log block event", { error });
   }
 
-  console.warn(`[IP BLOCKER] Blocked IP ${ip}: ${reason}`, {
+  logger.warn(`[IP BLOCKER] Blocked IP ${ip}: ${reason}`, {
     expiresAt: expiresAt?.toISOString() || "permanent",
   });
 }
@@ -156,7 +157,7 @@ export async function unblockIP(ip: string): Promise<void> {
     try {
       await redis.del(`ipblock:${ip}`);
     } catch (error) {
-      console.error("[ip-blocker] Redis delete error:", error);
+      logger.error("[ip-blocker] Redis delete error", { error });
     }
   }
 
@@ -177,10 +178,10 @@ export async function unblockIP(ip: string): Promise<void> {
       },
     });
   } catch (error) {
-    console.error("[ip-blocker] Failed to log unblock event:", error);
+    logger.error("[ip-blocker] Failed to log unblock event", { error });
   }
 
-  console.log(`[IP BLOCKER] Unblocked IP ${ip}`);
+  logger.info(`[IP BLOCKER] Unblocked IP ${ip}`);
 }
 
 /**
@@ -242,7 +243,7 @@ export async function checkAndBlockIP(
 
     return { blocked: false };
   } catch (error) {
-    console.error("[ip-blocker] Error checking failures:", error);
+    logger.error("[ip-blocker] Error checking failures", { error });
     return { blocked: false };
   }
 }
@@ -267,7 +268,7 @@ export async function getBlockedIPs(): Promise<BlockedIP[]> {
         }
       }
     } catch (error) {
-      console.error("[ip-blocker] Error fetching blocked IPs from Redis:", error);
+      logger.error("[ip-blocker] Error fetching blocked IPs from Redis", { error });
     }
   }
 
@@ -315,11 +316,11 @@ export async function getIPBlockHistory(ip: string): Promise<
     return events.map((event) => ({
       type: event.type,
       createdAt: event.createdAt,
-      reason: (event.meta as any)?.reason,
-      permanent: (event.meta as any)?.permanent,
+      reason: (event.meta as Record<string, unknown>)?.reason as string | undefined,
+      permanent: (event.meta as Record<string, unknown>)?.permanent as boolean | undefined,
     }));
   } catch (error) {
-    console.error("[ip-blocker] Error fetching block history:", error);
+    logger.error("[ip-blocker] Error fetching block history", { error });
     return [];
   }
 }
@@ -352,7 +353,7 @@ export async function cleanupExpiredBlocks(): Promise<number> {
         }
       }
     } catch (error) {
-      console.error("[ip-blocker] Error cleaning up Redis:", error);
+      logger.error("[ip-blocker] Error cleaning up Redis", { error });
     }
   }
 

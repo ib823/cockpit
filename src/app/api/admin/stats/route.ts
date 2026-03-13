@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/nextauth-helpers";
 import { prisma, withRetry } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/admin/stats
@@ -53,7 +54,7 @@ export async function GET() {
         return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 });
       }
     }
-    console.error("[Admin Stats] Error fetching statistics:", error);
+    logger.error("[Admin Stats] Error fetching statistics", { error: error });
     return NextResponse.json({ error: "Failed to fetch statistics" }, { status: 500 });
   }
 }

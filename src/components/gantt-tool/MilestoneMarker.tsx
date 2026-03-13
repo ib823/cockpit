@@ -138,19 +138,22 @@ export function MilestoneMarker({
       {/* Simple Popover */}
       {showPopover && (
         <>
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
           <div
+            role="presentation"
             className="fixed inset-0 z-[1000]"
             onClick={() => setShowPopover(false)}
+            onKeyDown={(e) => { if (e.key === 'Escape') setShowPopover(false); }}
           />
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
           <div
+            role="dialog"
+            aria-label={`Milestone details: ${milestone.name}`}
             className="absolute z-[1001] bg-white rounded-lg shadow-lg border border-gray-200 p-3 min-w-[240px]"
             style={{
               left: `${displayX + 20}px`,
               top: `${yPosition}px`,
             }}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <div className="space-y-3">
               {/* Header */}

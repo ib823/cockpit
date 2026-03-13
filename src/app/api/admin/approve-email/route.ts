@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/nextauth-helpers";
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { sendAccessCode } from "@/lib/email";
+import { badRequest, forbidden, conflict, serverError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 export const runtime = "nodejs";
 
 // SECURITY FIX: DEFECT-20251027-006 & REGRESSION-001
@@ -19,13 +21,17 @@ function generateMagicToken(): string {
 export async function POST(req: Request) {
   try {
     const session = await requireAdmin();
-    const { email, name } = await req.json().catch(() => ({}));
+
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const { email, name } = body as { email?: string; name?: string };
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json(
-        { ok: false, error: "Valid email required" },
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return badRequest("Valid email required");
     }
 
     // Generate code but don't send it yet
@@ -88,17 +94,14 @@ export async function POST(req: Request) {
     const magicUrl = `${baseUrl}/login?token=${magicToken}`;
 
     // OPTIONAL: Send email if explicitly requested (sendEmail=true in request)
-    const { sendEmail } = await req
-      .clone()
-      .json()
-      .catch(() => ({ sendEmail: false }));
+    const { sendEmail } = body as { sendEmail?: boolean };
     let emailSent = false;
     if (sendEmail && process.env.SMTP_HOST && process.env.SMTP_USER) {
       try {
         await sendAccessCode(email, code, magicUrl);
         emailSent = true;
       } catch (err) {
-        console.error("Failed to send access code email:", err);
+        logger.error("Failed to send access code email", { error: err });
       }
     }
 
@@ -120,27 +123,14 @@ export async function POST(req: Request) {
     );
   } catch (e: unknown) {
     if (e instanceof Error && e.message === "forbidden") {
-      return NextResponse.json(
-        { ok: false, error: "Admin access required" },
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
+      return forbidden("Admin access required");
     }
-    console.error("approve-email error:", e);
+    logger.error("approve-email error", { error: e });
 
-    // Provide more specific error messages
-    let errorMessage = "Internal error";
-    if (e instanceof Error) {
-      if (e.message?.includes("connect")) {
-        errorMessage =
-          "Database connection failed. Please check your database configuration.";
-      } else if (e.message?.includes("Unique constraint")) {
-        errorMessage = "This email is already registered";
-      }
+    if (e instanceof Error && e.message?.includes("Unique constraint")) {
+      return conflict("This email is already registered");
     }
 
-    return NextResponse.json(
-      { ok: false, error: errorMessage },
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return serverError();
   }
 }

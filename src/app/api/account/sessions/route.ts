@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authConfig as authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getToken } from "next-auth/jwt";
+import { logger } from "@/lib/logger";
 
 
 // GET /api/account/sessions - List all active sessions
@@ -62,7 +63,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(formattedSessions);
   } catch (error) {
-    console.error("Sessions fetch error:", error);
+    logger.error("Sessions fetch error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -18,6 +18,7 @@ import {
   validateResourceHierarchy,
   getValidationSummary,
 } from '@/lib/gantt-tool/resource-validator';
+import { logger } from "@/lib/logger";
 
 export const maxDuration = 10; // seconds
 
@@ -142,7 +143,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('GET /api/gantt-tool/resources/validate failed:', error);
+    logger.error('GET /api/gantt-tool/resources/validate failed', { error });
     return NextResponse.json(
       { error: 'Failed to validate resources' },
       { status: 500 }

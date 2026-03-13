@@ -290,8 +290,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       if (itemType === "phase") {
         updatePhaseResourceAssignment(itemId, assignment.assignmentId, finalNotes, percentage);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const task = item as any;
+          const task = item as { phaseId: string };
         updateTaskResourceAssignment(
           itemId,
           task.phaseId,
@@ -311,8 +310,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       if (itemType === "phase") {
         assignResourceToPhase(itemId, resourceId, smartNotes, percentage);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const task = item as any;
+        const task = item as { phaseId: string };
         assignResourceToTask(itemId, task.phaseId, resourceId, smartNotes, percentage);
       }
     }
@@ -334,8 +332,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
       if (itemType === "phase") {
         unassignResourceFromPhase(itemId, assignment.assignmentId);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const task = item as any;
+          const task = item as { phaseId: string };
         unassignResourceFromTask(itemId, task.phaseId, assignment.assignmentId);
       }
     }

@@ -195,10 +195,10 @@ export function withRateLimit(config: RateLimitConfig) {
     const result = checkRateLimit(identifier, config);
 
     if (!result.allowed) {
-      const error = new Error("Rate limit exceeded");
-      (error as any).statusCode = 429;
-      (error as any).retryAfter = result.retryAfter;
-      (error as any).resetTime = result.resetTime;
+      const error = new Error("Rate limit exceeded") as Error & { statusCode: number; retryAfter: number | undefined; resetTime: number };
+      error.statusCode = 429;
+      error.retryAfter = result.retryAfter;
+      error.resetTime = result.resetTime;
       throw error;
     }
 

@@ -11,7 +11,18 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { validateResourceBatch } from "@/lib/gantt-tool/resource-import-validator";
+import type {
+  Resource,
+  GanttPhase,
+  GanttTask,
+  TaskResourceAssignment,
+  PhaseResourceAssignment,
+  GanttMilestone,
+  GanttHoliday,
+} from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 // Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
 export const maxDuration = 10; // seconds
@@ -25,19 +36,19 @@ const UpdateProjectSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
-  viewSettings: z.any().optional(), // JSON field
-  budget: z.any().optional(), // JSON field
-  orgChart: z.any().optional(), // JSON field - organization chart structure
-  phases: z.array(z.any()).optional(), // Full phases array
-  milestones: z.array(z.any()).optional(), // Full milestones array
-  holidays: z.array(z.any()).optional(), // Full holidays array
-  resources: z.array(z.any()).optional(), // Full resources array
+  viewSettings: z.record(z.string(), z.unknown()).optional(), // JSON field
+  budget: z.record(z.string(), z.unknown()).optional(), // JSON field
+  orgChart: z.record(z.string(), z.unknown()).optional(), // JSON field - organization chart structure
+  phases: z.array(z.record(z.string(), z.unknown())).optional(), // Full phases array
+  milestones: z.array(z.record(z.string(), z.unknown())).optional(), // Full milestones array
+  holidays: z.array(z.record(z.string(), z.unknown())).optional(), // Full holidays array
+  resources: z.array(z.record(z.string(), z.unknown())).optional(), // Full resources array
 
   // Architecture fields (Unified Project Model)
-  businessContext: z.any().optional(), // JSON field - BusinessContextData
-  currentLandscape: z.any().optional(), // JSON field - CurrentLandscapeData
-  proposedSolution: z.any().optional(), // JSON field - ProposedSolutionData
-  diagramSettings: z.any().optional(), // JSON field - DiagramSettings
+  businessContext: z.record(z.string(), z.unknown()).optional(), // JSON field - BusinessContextData
+  currentLandscape: z.record(z.string(), z.unknown()).optional(), // JSON field - CurrentLandscapeData
+  proposedSolution: z.record(z.string(), z.unknown()).optional(), // JSON field - ProposedSolutionData
+  diagramSettings: z.record(z.string(), z.unknown()).optional(), // JSON field - DiagramSettings
   architectureVersion: z.string().max(50).optional(), // Version string
 
   // Optimistic locking
@@ -256,60 +267,82 @@ export async function GET(
     }
 
     // Serialize dates to strings for frontend (Unified Model - Phase 3)
-    /* eslint-disable @typescript-eslint/no-explicit-any */
+    // Define Prisma result types for full query
+    type FullProject = Prisma.GanttProjectGetPayload<{
+      include: {
+        phases: {
+          include: {
+            tasks: { include: { resourceAssignments: true } };
+            phaseResourceAssignments: true;
+          };
+        };
+        milestones: true;
+        holidays: true;
+        resources: true;
+        lastModifier: { select: { name: true; email: true } };
+        activeSessions: {
+          include: {
+            user: { select: { id: true; name: true; email: true; image: true } };
+          };
+        };
+      };
+    }>;
+
     const serializedProject = minimal
       ? {
           ...project,
-          startDate: (project as any).startDate.toISOString().split("T")[0],
-          createdAt: (project as any).createdAt.toISOString(),
-          updatedAt: (project as any).updatedAt.toISOString(),
-          lastModifiedAt: (project as any).lastModifiedAt?.toISOString() || null,
-          lastArchitectureEdit: (project as any).lastArchitectureEdit?.toISOString() || null,
+          startDate: project.startDate.toISOString().split("T")[0],
+          createdAt: project.createdAt.toISOString(),
+          updatedAt: project.updatedAt.toISOString(),
+          lastModifiedAt: project.lastModifiedAt?.toISOString() || null,
+          lastArchitectureEdit: project.lastArchitectureEdit?.toISOString() || null,
         }
-      : {
-          ...project,
-          startDate: (project as any).startDate.toISOString().split("T")[0],
-          createdAt: (project as any).createdAt.toISOString(),
-          updatedAt: (project as any).updatedAt.toISOString(),
-          deletedAt: (project as any).deletedAt?.toISOString() || null,
-          phases: (project as any).phases.map((phase: any) => ({
+      : (() => {
+          const fullProject = project as FullProject;
+          return {
+          ...fullProject,
+          startDate: fullProject.startDate.toISOString().split("T")[0],
+          createdAt: fullProject.createdAt.toISOString(),
+          updatedAt: fullProject.updatedAt.toISOString(),
+          deletedAt: fullProject.deletedAt?.toISOString() || null,
+          phases: fullProject.phases.map((phase) => ({
             ...phase,
             startDate: phase.startDate.toISOString().split("T")[0],
             endDate: phase.endDate.toISOString().split("T")[0],
-            tasks: phase.tasks.map((task: any) => ({
+            tasks: phase.tasks.map((task) => ({
               ...task,
               startDate: task.startDate.toISOString().split("T")[0],
               endDate: task.endDate.toISOString().split("T")[0],
-              resourceAssignments: task.resourceAssignments.map((ra: any) => ({
+              resourceAssignments: task.resourceAssignments.map((ra) => ({
                 ...ra,
                 assignedAt: ra.assignedAt.toISOString(),
               })),
             })),
-            phaseResourceAssignments: phase.phaseResourceAssignments.map((pra: any) => ({
+            phaseResourceAssignments: phase.phaseResourceAssignments.map((pra) => ({
               ...pra,
               assignedAt: pra.assignedAt.toISOString(),
             })),
           })),
-          milestones: (project as any).milestones.map((m: any) => ({
+          milestones: fullProject.milestones.map((m) => ({
             ...m,
             date: m.date.toISOString().split("T")[0],
           })),
-          holidays: (project as any).holidays.map((h: any) => ({
+          holidays: fullProject.holidays.map((h) => ({
             ...h,
             date: h.date.toISOString().split("T")[0],
           })),
-          resources: (project as any).resources.map((r: any) => ({
+          resources: fullProject.resources.map((r) => ({
             ...r,
             createdAt: r.createdAt.toISOString(),
           })),
-          lastModifiedAt: (project as any).lastModifiedAt?.toISOString() || null,
-          lastArchitectureEdit: (project as any).lastArchitectureEdit?.toISOString() || null,
-          activeSessions: (project as any).activeSessions.map((s: any) => ({
+          lastModifiedAt: fullProject.lastModifiedAt?.toISOString() || null,
+          lastArchitectureEdit: fullProject.lastArchitectureEdit?.toISOString() || null,
+          activeSessions: fullProject.activeSessions.map((s) => ({
             ...s,
             lastSeenAt: s.lastSeenAt.toISOString(),
           })),
         };
-    /* eslint-enable @typescript-eslint/no-explicit-any */
+        })();
 
     // Add caching headers to reduce repeated requests
     // Cache for 10 seconds with revalidation (stale-while-revalidate for 60s)
@@ -319,7 +352,7 @@ export async function GET(
 
     return response;
   } catch (error) {
-    console.error("[API] Failed to fetch gantt project:", error);
+    logger.error("[API] Failed to fetch gantt project", { error: error });
     return NextResponse.json({ error: "Failed to fetch project" }, { status: 500 });
   }
 }
@@ -354,7 +387,7 @@ export async function PATCH(
     try {
       body = await request.json();
     } catch (jsonError) {
-      if (isDev) console.error("[API] Failed to parse JSON:", jsonError);
+      if (isDev) logger.error("[API] Failed to parse JSON", { error: jsonError });
       return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 });
     }
 
@@ -371,7 +404,7 @@ export async function PATCH(
         }));
 
         if (isDev) {
-          console.error("[API] Validation failed for project update:", {
+          logger.error("[API] Validation failed for project update", {
             projectId,
             issues,
             zodError,
@@ -420,7 +453,7 @@ export async function PATCH(
       // Log warnings if any (circular references, incomplete resources)
       if (resourceValidation.warnings.length > 0) {
         if (isDev) {
-          console.warn(
+          logger.warn(
             `[API] Resource validation warnings for project ${projectId}:`,
             resourceValidation.warnings
           );
@@ -506,23 +539,22 @@ export async function PATCH(
     // Update project in transaction
     const txStartTime = Date.now();
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const updatedProject: { id: string; updatedAt: Date; version: number } = await (prisma.$transaction as any)(async (tx: any) => {
+    const updatedProject: { id: string; updatedAt: Date; version: number } = await (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<{ id: string; updatedAt: Date; version: number }>) => Promise<{ id: string; updatedAt: Date; version: number }>)(async (tx) => {
       // Update main project fields with version increment (Unified Model - Phase 3)
-      const updateData: any = {
+      const updateData: Prisma.GanttProjectUncheckedUpdateInput = {
         // Timeline fields
         name: validatedData.name,
         description: validatedData.description,
         startDate: validatedData.startDate ? new Date(validatedData.startDate) : undefined,
-        viewSettings: validatedData.viewSettings,
-        budget: validatedData.budget,
-        orgChart: validatedData.orgChart, // Organization chart structure
+        viewSettings: validatedData.viewSettings as Prisma.InputJsonValue | undefined,
+        budget: validatedData.budget as Prisma.InputJsonValue | undefined,
+        orgChart: validatedData.orgChart as Prisma.InputJsonValue | undefined,
 
         // Architecture fields (Unified Project Model)
-        businessContext: validatedData.businessContext,
-        currentLandscape: validatedData.currentLandscape,
-        proposedSolution: validatedData.proposedSolution,
-        diagramSettings: validatedData.diagramSettings,
+        businessContext: validatedData.businessContext as Prisma.InputJsonValue | undefined,
+        currentLandscape: validatedData.currentLandscape as Prisma.InputJsonValue | undefined,
+        proposedSolution: validatedData.proposedSolution as Prisma.InputJsonValue | undefined,
+        diagramSettings: validatedData.diagramSettings as Prisma.InputJsonValue | undefined,
         architectureVersion: validatedData.architectureVersion,
 
         // Increment version and track last modifier
@@ -554,7 +586,7 @@ export async function PATCH(
         });
 
         await tx.ganttResource.createMany({
-          data: validatedData.resources.map((r: any) => ({
+          data: (validatedData.resources as unknown as Resource[]).map((r) => ({
             id: r.id,
             projectId: projectId,
             name: r.name,
@@ -587,9 +619,12 @@ export async function PATCH(
         // Create phases with nested tasks in parallel using createMany + manual nested creation
         // This is much faster than sequential for-loop
         if (validatedData.phases.length > 0) {
+          // Cast phases to proper type for field access
+          const typedPhases = validatedData.phases as unknown as GanttPhase[];
+
           // Create all phases first (without nested tasks)
           await tx.ganttPhase.createMany({
-            data: validatedData.phases.map((phase: any) => ({
+            data: typedPhases.map((phase) => ({
               id: phase.id,
               projectId: projectId,
               name: phase.name,
@@ -605,13 +640,13 @@ export async function PATCH(
           });
 
           // Collect all tasks for batch creation
-          const allTasks: any[] = [];
-          const allTaskResourceAssignments: any[] = [];
-          const allPhaseResourceAssignments: any[] = [];
+          const allTasks: Prisma.GanttTaskUncheckedCreateInput[] = [];
+          const allTaskResourceAssignments: Prisma.GanttTaskResourceAssignmentUncheckedCreateInput[] = [];
+          const allPhaseResourceAssignments: Prisma.GanttPhaseResourceAssignmentUncheckedCreateInput[] = [];
 
-          validatedData.phases.forEach((phase: any) => {
+          typedPhases.forEach((phase) => {
             // Collect tasks
-            (phase.tasks || []).forEach((task: any, index: number) => {
+            (phase.tasks || []).forEach((task: GanttTask, index: number) => {
               allTasks.push({
                 id: task.id,
                 phaseId: phase.id,
@@ -626,7 +661,7 @@ export async function PATCH(
               });
 
               // Collect task resource assignments
-              (task.resourceAssignments || []).forEach((ra: any) => {
+              (task.resourceAssignments || []).forEach((ra: TaskResourceAssignment) => {
                 allTaskResourceAssignments.push({
                   id: ra.id,
                   taskId: task.id,
@@ -639,7 +674,7 @@ export async function PATCH(
             });
 
             // Collect phase resource assignments
-            (phase.phaseResourceAssignments || []).forEach((pra: any) => {
+            (phase.phaseResourceAssignments || []).forEach((pra: PhaseResourceAssignment) => {
               allPhaseResourceAssignments.push({
                 id: pra.id,
                 phaseId: phase.id,
@@ -685,7 +720,7 @@ export async function PATCH(
 
         if (validatedData.milestones.length > 0) {
           await tx.ganttMilestone.createMany({
-            data: validatedData.milestones.map((m: any) => ({
+            data: (validatedData.milestones as unknown as GanttMilestone[]).map((m) => ({
               id: m.id,
               projectId: projectId,
               name: m.name,
@@ -707,7 +742,7 @@ export async function PATCH(
 
         if (validatedData.holidays.length > 0) {
           await tx.ganttHoliday.createMany({
-            data: validatedData.holidays.map((h: any) => ({
+            data: (validatedData.holidays as unknown as GanttHoliday[]).map((h) => ({
               id: h.id,
               projectId: projectId,
               name: h.name,
@@ -724,7 +759,6 @@ export async function PATCH(
 
       return project;
     }) as { id: string; updatedAt: Date; version: number };
-    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     const txDuration = Date.now() - txStartTime;
 
@@ -737,13 +771,13 @@ export async function PATCH(
           action: "UPDATE",
           entity: "gantt_project",
           entityId: projectId,
-          changes: validatedData,
+          changes: validatedData as unknown as Prisma.InputJsonValue,
         },
       });
     } catch (auditError) {
       // Log the error but don't fail the request (only in development)
       if (process.env.NODE_ENV === "development") {
-        console.error("[API] Failed to create audit log (non-critical):", auditError);
+        logger.error("[API] Failed to create audit log (non-critical)", { error: auditError });
       }
     }
 
@@ -770,7 +804,7 @@ export async function PATCH(
     const _duration = Date.now() - startTime;
 
     if (error instanceof z.ZodError) {
-      if (isDev) console.error("[API] Zod validation failed:", error.issues);
+      if (isDev) logger.error("[API] Zod validation failed", { value: error.issues });
       return NextResponse.json(
         { error: "Validation failed", details: error.issues },
         { status: 400 }
@@ -779,18 +813,18 @@ export async function PATCH(
 
     // Log detailed error information (only in development)
     if (isDev) {
-      console.error("[API] Failed to update gantt project:");
-      console.error("Error name:", error instanceof Error ? error.name : "Unknown");
-      console.error("Error message:", error instanceof Error ? error.message : error);
-      console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
+      logger.error("[API] Failed to update gantt project", {
+        errorName: error instanceof Error ? error.name : "Unknown",
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : "No stack trace",
+      });
     }
 
     // Check for Prisma-specific errors
     if (error && typeof error === "object" && "code" in error) {
       const prismaError = error as { code: string; meta?: Record<string, unknown> };
       if (isDev) {
-        console.error("Prisma error code:", prismaError.code);
-        console.error("Prisma error meta:", prismaError.meta);
+        logger.error("Prisma error details", { code: prismaError.code, meta: prismaError.meta });
       }
 
       // Provide more user-friendly error messages for common Prisma errors
@@ -916,7 +950,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("[API] Failed to delete gantt project:", error);
+    logger.error("[API] Failed to delete gantt project", { error: error });
     return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
   }
 }

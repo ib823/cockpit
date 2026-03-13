@@ -21,6 +21,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { withCache, CACHE_CONFIG, cache } from "@/lib/cache/redis-cache";
 import { requireAdmin } from "@/lib/nextauth-helpers";
+import { logger } from "@/lib/logger";
 
 const prisma = new PrismaClient();
 
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     // Query params logged for debugging (development only)
     if (process.env.NODE_ENV === "development") {
-      console.warn("[L3 Catalog API] Query params:", {
+      logger.warn("[L3 Catalog API] Query params", {
         lobName,
         module: moduleFilter,
         tier,
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
     const result = await withCache(
       cacheKey,
       async () => {
-        console.warn("[L3 Catalog API] 🔄 Cache MISS - fetching from database");
+        logger.warn("[L3 Catalog API] 🔄 Cache MISS - fetching from database");
 
         // Build where clause
         const where: Record<string, unknown> = {};
@@ -156,7 +157,7 @@ export async function GET(request: NextRequest) {
 
     const duration = performance.now() - startTime;
 
-    console.warn(`[L3 Catalog API] ✅ Returned ${result.count} items in ${duration.toFixed(2)}ms`);
+    logger.warn(`[L3 Catalog API] ✅ Returned ${result.count} items in ${duration.toFixed(2)}ms`);
 
     // Add cache hit indicator
     return NextResponse.json({
@@ -166,7 +167,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const duration = performance.now() - startTime;
-    console.error(`[L3 Catalog API] ❌ Error after ${duration.toFixed(2)}ms:`, error);
+    logger.error(`[L3 Catalog API] ❌ Error after ${duration.toFixed(2)}ms`, { error: error });
 
     return NextResponse.json(
       {
@@ -193,7 +194,7 @@ export async function POST(request: NextRequest) {
       // Invalidate all L3 catalog cache
       await cache.deletePattern("l3:catalog:*");
 
-      console.warn("[L3 Catalog API] 🗑️  Cache invalidated");
+      logger.warn("[L3 Catalog API] 🗑️  Cache invalidated");
 
       return NextResponse.json({
         success: true,
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.error("[L3 Catalog API] ❌ POST Error:", error);
+    logger.error("[L3 Catalog API] ❌ POST Error", { error: error });
 
     return NextResponse.json(
       {

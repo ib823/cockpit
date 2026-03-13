@@ -8,6 +8,7 @@ import type {
   DataMigration,
   Integration,
 } from "./scenario-generator";
+import { logger } from "@/lib/logger";
 
 interface Totals {
   e: number; // Explore
@@ -145,15 +146,15 @@ class EstimationEngine {
 
     // Validate complexity to prevent prototype pollution
     const validComplexities = ["small", "medium", "large", "xlarge"] as const;
-    if (!validComplexities.includes(item.complexity as any)) {
-      console.warn(`Invalid complexity: ${item.complexity}, defaulting to medium`);
+    if (!validComplexities.includes(item.complexity as typeof validComplexities[number])) {
+      logger.warn(`Invalid complexity: ${item.complexity}, defaulting to medium`);
       item.complexity = "medium";
     }
 
     // Base effort by complexity
     const base = this.constants.SCOPE_BASE[item.complexity];
     if (!base) {
-      console.error(`No base found for complexity: ${item.complexity}`);
+      logger.error(`No base found for complexity: ${item.complexity}`);
       return t;
     }
 
@@ -442,7 +443,7 @@ class EstimationEngine {
     const t: Totals = { e: 0, r: 0, d: 0, ru: 0 };
 
     // Protocol baseline
-    const protoBase = (this.constants.PROTOCOL_BASELINES as any)[integration.protocol] || 15;
+    const protoBase = (this.constants.PROTOCOL_BASELINES as Record<string, number>)[integration.protocol] || 15;
     t.e += protoBase * 0.15;
     t.r += protoBase * 0.5;
     t.d += protoBase * 0.25;
@@ -450,7 +451,7 @@ class EstimationEngine {
 
     // Security factor
     const securityFactor =
-      (this.constants.SECURITY_FACTORS as any)[integration.securityLevel] || 1.0;
+      (this.constants.SECURITY_FACTORS as Record<string, number>)[integration.securityLevel] || 1.0;
     t.e *= securityFactor;
     t.r *= securityFactor;
     t.d *= securityFactor;

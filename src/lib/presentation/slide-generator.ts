@@ -241,7 +241,7 @@ function getUniqueTeamMembers(phases: Phase[]): string[] {
         if (typeof resource === "string") {
           members.add(resource);
         } else if (resource && typeof resource === "object" && "role" in resource) {
-          members.add((resource as any).role);
+          members.add((resource as { role: string }).role);
         }
       });
     }

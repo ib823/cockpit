@@ -111,9 +111,9 @@ export function instantiateTemplate(
   const resources: Resource[] = (template.resources || []).map((templateResource) => ({
     id: generateId(),
     name: templateResource.name,
-    category: templateResource.category as any,
+    category: templateResource.category as Resource["category"],
     description: templateResource.role || "", // Use role as description
-    designation: templateResource.designation as any,
+    designation: templateResource.designation as Resource["designation"],
     createdAt: now.toISOString(),
     email: templateResource.email || "",
     projectRole: templateResource.role,

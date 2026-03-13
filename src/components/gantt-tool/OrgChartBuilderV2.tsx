@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
 /**
  * Org Chart Builder V2 - With Drag & Drop
  * Steve Jobs/Jony Ive Design: Intuitive drag-and-drop for org chart hierarchy
@@ -815,6 +814,7 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
       onDragCancel={handleDragCancel}
     >
       <div
+        role="presentation"
         style={{
           position: "fixed",
           top: 0,
@@ -829,9 +829,14 @@ export function OrgChartBuilderV2({ onClose, project }: OrgChartBuilderV2Props) 
           padding: "20px",
         }}
         onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
       >
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Org Chart Builder"
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
           style={{
             backgroundColor: "#ffffff",
             borderRadius: "12px",

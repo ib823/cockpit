@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 type ExtendedPrismaClient = ReturnType<typeof prismaClientSingleton>;
 
@@ -35,7 +36,7 @@ class QueryMonitor {
     if (duration > this.slowQueryThreshold) {
       this.stats.slowQueries++;
       if (process.env.NODE_ENV === "development") {
-        console.warn(`[DB] Slow query: ${duration.toFixed(2)}ms`);
+        logger.warn(`[DB] Slow query: ${duration.toFixed(2)}ms`);
       }
     }
 
@@ -104,7 +105,7 @@ const prismaClientSingleton = () => {
           queryMonitor.recordQuery(duration);
 
           if (process.env.NODE_ENV === "development" && duration > 50) {
-            console.log(`[DB] ${model}.${operation} - ${duration.toFixed(2)}ms`);
+            logger.info(`[DB] ${model}.${operation} - ${duration.toFixed(2)}ms`);
           }
 
           return result;
@@ -137,9 +138,9 @@ async function warmupConnection() {
       const startTime = performance.now();
       await prisma.$queryRaw`SELECT 1`;
       const duration = performance.now() - startTime;
-      console.log(`[DB] Connection warmed up in ${duration.toFixed(2)}ms`);
+      logger.info(`[DB] Connection warmed up in ${duration.toFixed(2)}ms`);
     } catch (error) {
-      console.error("[DB] Failed to warm up connection:", error);
+      logger.error("[DB] Failed to warm up connection", { error });
     } finally {
       globalForPrisma.prismaConnecting = undefined;
     }
@@ -151,7 +152,7 @@ async function warmupConnection() {
 // Warm up connection in production on module load (for serverless cold starts)
 if (process.env.NODE_ENV === "production" && typeof window === "undefined") {
   warmupConnection().catch((err) => {
-    console.error("[DB] Connection warmup failed:", err);
+    logger.error("[DB] Connection warmup failed", { error: err });
   });
 }
 
@@ -184,7 +185,7 @@ export async function withRetry<T>(
         try {
           await prisma.$queryRaw`SELECT 1`;
         } catch (healthError) {
-          console.warn(`[DB] Connection health check failed on attempt ${attempt + 1}`);
+          logger.warn(`[DB] Connection health check failed on attempt ${attempt + 1}`);
           // Continue to retry even if health check fails
         }
       }
@@ -211,14 +212,14 @@ export async function withRetry<T>(
 
       if (!isConnectionError || attempt === maxRetries - 1) {
         if (attempt > 0) {
-          console.error(`[DB] Operation failed after ${attempt + 1} attempts:`, errorMessage);
+          logger.error(`[DB] Operation failed after ${attempt + 1} attempts`, { errorMessage });
         }
         throw error;
       }
 
       // Exponential backoff with jitter
       const delay = delayMs * Math.pow(2, attempt) + Math.random() * 100;
-      console.warn(
+      logger.warn(
         `[DB] Connection error (${errorMessage}), retrying in ${delay.toFixed(0)}ms... (attempt ${attempt + 1}/${maxRetries})`
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -248,7 +249,7 @@ export async function checkDatabaseHealth(): Promise<{
     };
   } catch (error) {
     const latency = performance.now() - startTime;
-    console.error("[DB] Health check failed:", error);
+    logger.error("[DB] Health check failed", { error });
 
     return {
       healthy: false,

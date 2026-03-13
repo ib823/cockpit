@@ -44,12 +44,17 @@ export function CommandPalette() {
   if (!open) return null;
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)}>
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
+    <div
+      role="presentation"
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+      onClick={() => setOpen(false)}
+      onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false); }}
+    >
       <div
+        role="presentation"
         className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <Command className="rounded-lg border shadow-2xl bg-white dark:bg-gray-900">
           <div className="flex items-center border-b px-3">

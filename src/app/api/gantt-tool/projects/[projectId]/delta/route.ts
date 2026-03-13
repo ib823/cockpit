@@ -21,6 +21,7 @@ import type {
   GanttMilestone,
   GanttHoliday,
 } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 // Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
 export const maxDuration = 30; // seconds - increased for large projects with many resource assignments
@@ -35,43 +36,43 @@ const DeltaSaveSchema = z.object({
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/)
         .optional(),
-      viewSettings: z.any().optional(),
-      budget: z.any().optional(),
-      orgChart: z.any().optional(),
+      viewSettings: z.record(z.string(), z.unknown()).optional(),
+      budget: z.record(z.string(), z.unknown()).optional(),
+      orgChart: z.record(z.string(), z.unknown()).optional(),
     })
     .optional(),
   phases: z
     .object({
-      created: z.array(z.any()).optional(),
-      updated: z.array(z.any()).optional(),
+      created: z.array(z.record(z.string(), z.unknown())).optional(),
+      updated: z.array(z.record(z.string(), z.unknown())).optional(),
       deleted: z.array(z.string()).optional(),
     })
     .optional(),
   tasks: z
     .object({
-      created: z.array(z.any()).optional(),
-      updated: z.array(z.any()).optional(),
+      created: z.array(z.record(z.string(), z.unknown())).optional(),
+      updated: z.array(z.record(z.string(), z.unknown())).optional(),
       deleted: z.array(z.string()).optional(),
     })
     .optional(),
   resources: z
     .object({
-      created: z.array(z.any()).optional(),
-      updated: z.array(z.any()).optional(),
+      created: z.array(z.record(z.string(), z.unknown())).optional(),
+      updated: z.array(z.record(z.string(), z.unknown())).optional(),
       deleted: z.array(z.string()).optional(),
     })
     .optional(),
   milestones: z
     .object({
-      created: z.array(z.any()).optional(),
-      updated: z.array(z.any()).optional(),
+      created: z.array(z.record(z.string(), z.unknown())).optional(),
+      updated: z.array(z.record(z.string(), z.unknown())).optional(),
       deleted: z.array(z.string()).optional(),
     })
     .optional(),
   holidays: z
     .object({
-      created: z.array(z.any()).optional(),
-      updated: z.array(z.any()).optional(),
+      created: z.array(z.record(z.string(), z.unknown())).optional(),
+      updated: z.array(z.record(z.string(), z.unknown())).optional(),
       deleted: z.array(z.string()).optional(),
     })
     .optional(),
@@ -117,7 +118,7 @@ export async function PATCH(
     try {
       body = await request.json();
     } catch (jsonError) {
-      if (isDev) console.error("[API Delta] Failed to parse JSON:", jsonError);
+      if (isDev) logger.error("[API Delta] Failed to parse JSON", { error: jsonError });
       return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 });
     }
 
@@ -188,7 +189,7 @@ export async function PATCH(
         // Create resources
         if (delta.resources.created && delta.resources.created.length > 0) {
           await tx.ganttResource.createMany({
-            data: delta.resources.created.map((r: Resource) => ({
+            data: (delta.resources.created as unknown as Resource[]).map((r) => ({
               id: r.id,
               projectId: projectId,
               name: r.name,
@@ -213,7 +214,7 @@ export async function PATCH(
 
         // Update resources
         if (delta.resources.updated && delta.resources.updated.length > 0) {
-          for (const r of delta.resources.updated) {
+          for (const r of delta.resources.updated as unknown as Resource[]) {
             await tx.ganttResource.update({
               where: { id: r.id },
               data: {
@@ -252,7 +253,7 @@ export async function PATCH(
         // Create phases
         if (delta.phases.created && delta.phases.created.length > 0) {
           await tx.ganttPhase.createMany({
-            data: delta.phases.created.map((phase: GanttPhase) => ({
+            data: (delta.phases.created as unknown as GanttPhase[]).map((phase) => ({
               id: phase.id,
               projectId: projectId,
               name: phase.name,
@@ -268,10 +269,10 @@ export async function PATCH(
           });
 
           // Create tasks for new phases
-          for (const phase of delta.phases.created) {
+          for (const phase of delta.phases.created as unknown as GanttPhase[]) {
             if (phase.tasks && phase.tasks.length > 0) {
               await tx.ganttTask.createMany({
-                data: phase.tasks.map((task: GanttTask, index: number) => ({
+                data: phase.tasks.map((task, index: number) => ({
                   id: task.id,
                   phaseId: phase.id,
                   name: task.name,
@@ -290,7 +291,7 @@ export async function PATCH(
               for (const task of phase.tasks) {
                 if (task.resourceAssignments && task.resourceAssignments.length > 0) {
                   await tx.ganttTaskResourceAssignment.createMany({
-                    data: task.resourceAssignments.map((ra: TaskResourceAssignment) => ({
+                    data: task.resourceAssignments.map((ra) => ({
                       id: ra.id,
                       taskId: task.id,
                       resourceId: ra.resourceId,
@@ -307,7 +308,7 @@ export async function PATCH(
             // Create phase resource assignments
             if (phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0) {
               await tx.ganttPhaseResourceAssignment.createMany({
-                data: phase.phaseResourceAssignments.map((pra: PhaseResourceAssignment) => ({
+                data: phase.phaseResourceAssignments.map((pra) => ({
                   id: pra.id,
                   phaseId: phase.id,
                   resourceId: pra.resourceId,
@@ -323,7 +324,7 @@ export async function PATCH(
 
         // Update phases
         if (delta.phases.updated && delta.phases.updated.length > 0) {
-          for (const phase of delta.phases.updated) {
+          for (const phase of delta.phases.updated as unknown as GanttPhase[]) {
             await tx.ganttPhase.update({
               where: { id: phase.id },
               data: {
@@ -348,7 +349,7 @@ export async function PATCH(
               // Recreate tasks
               if (phase.tasks.length > 0) {
                 await tx.ganttTask.createMany({
-                  data: phase.tasks.map((task: GanttTask, index: number) => ({
+                  data: phase.tasks.map((task, index: number) => ({
                     id: task.id,
                     phaseId: phase.id,
                     name: task.name,
@@ -367,7 +368,7 @@ export async function PATCH(
                 for (const task of phase.tasks) {
                   if (task.resourceAssignments && task.resourceAssignments.length > 0) {
                     await tx.ganttTaskResourceAssignment.createMany({
-                      data: task.resourceAssignments.map((ra: TaskResourceAssignment) => ({
+                      data: task.resourceAssignments.map((ra) => ({
                         id: ra.id,
                         taskId: task.id,
                         resourceId: ra.resourceId,
@@ -392,7 +393,7 @@ export async function PATCH(
               // Recreate
               if (phase.phaseResourceAssignments.length > 0) {
                 await tx.ganttPhaseResourceAssignment.createMany({
-                  data: phase.phaseResourceAssignments.map((pra: PhaseResourceAssignment) => ({
+                  data: phase.phaseResourceAssignments.map((pra) => ({
                     id: pra.id,
                     phaseId: phase.id,
                     resourceId: pra.resourceId,
@@ -421,7 +422,7 @@ export async function PATCH(
 
         if (delta.milestones.created && delta.milestones.created.length > 0) {
           await tx.ganttMilestone.createMany({
-            data: delta.milestones.created.map((m: GanttMilestone) => ({
+            data: (delta.milestones.created as unknown as GanttMilestone[]).map((m) => ({
               id: m.id,
               projectId: projectId,
               name: m.name,
@@ -435,7 +436,7 @@ export async function PATCH(
         }
 
         if (delta.milestones.updated && delta.milestones.updated.length > 0) {
-          for (const m of delta.milestones.updated) {
+          for (const m of delta.milestones.updated as unknown as GanttMilestone[]) {
             await tx.ganttMilestone.update({
               where: { id: m.id },
               data: {
@@ -463,7 +464,7 @@ export async function PATCH(
 
         if (delta.holidays.created && delta.holidays.created.length > 0) {
           await tx.ganttHoliday.createMany({
-            data: delta.holidays.created.map((h: GanttHoliday) => ({
+            data: (delta.holidays.created as unknown as GanttHoliday[]).map((h) => ({
               id: h.id,
               projectId: projectId,
               name: h.name,
@@ -476,7 +477,7 @@ export async function PATCH(
         }
 
         if (delta.holidays.updated && delta.holidays.updated.length > 0) {
-          for (const h of delta.holidays.updated) {
+          for (const h of delta.holidays.updated as unknown as GanttHoliday[]) {
             await tx.ganttHoliday.update({
               where: { id: h.id },
               data: {
@@ -513,7 +514,7 @@ export async function PATCH(
         },
       });
     } catch (auditError) {
-      if (isDev) console.error("[API Delta] Failed to create audit log:", auditError);
+      if (isDev) logger.error("[API Delta] Failed to create audit log", { error: auditError });
     }
 
     // Return minimal response
@@ -536,7 +537,7 @@ export async function PATCH(
 
     if (error instanceof z.ZodError) {
       if (process.env.NODE_ENV === "development") {
-        console.error("[API Delta] Zod validation failed:", error.issues);
+        logger.error("[API Delta] Zod validation failed", { value: error.issues });
       }
       return NextResponse.json(
         { error: "Validation failed", details: error.issues },
@@ -546,8 +547,7 @@ export async function PATCH(
 
     // Log detailed error information (only in development)
     if (process.env.NODE_ENV === "development") {
-      console.error("[API Delta] Failed to update project:");
-      console.error("Error:", error instanceof Error ? error.message : error);
+      logger.error("[API Delta] Failed to update project", { error });
     }
 
     // Handle Prisma-specific errors

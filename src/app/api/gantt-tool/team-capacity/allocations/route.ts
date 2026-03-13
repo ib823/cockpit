@@ -26,6 +26,7 @@ import {
   getWeekEndDate,
 } from "@/lib/team-capacity/week-numbering";
 import { WeekNumberingType } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 export const maxDuration = 30;
 
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("[Team Capacity] Error creating allocations:", error);
+    logger.error("[Team Capacity] Error creating allocations", { error: error });
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -383,7 +384,7 @@ export async function GET(request: NextRequest) {
       summary,
     });
   } catch (error) {
-    console.error("[Team Capacity] Error fetching allocations:", error);
+    logger.error("[Team Capacity] Error fetching allocations", { error: error });
 
     return NextResponse.json(
       {
@@ -454,7 +455,7 @@ export async function DELETE(request: NextRequest) {
       deletedCount: result.count,
     });
   } catch (error) {
-    console.error("[Team Capacity] Error deleting allocations:", error);
+    logger.error("[Team Capacity] Error deleting allocations", { error: error });
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

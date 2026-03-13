@@ -68,6 +68,6 @@ export function handleApiError(err: unknown) {
   }
 
   // Log for debugging but return safe message
-  logger.error("[API Error]", err);
+  logger.error("[API Error]", { error: err });
   return serverError();
 }

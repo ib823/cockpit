@@ -390,9 +390,9 @@ export function MilestoneModal({
               {[...milestones]
                 .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                 .map((milestone) => (
-                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                   <div
                     key={milestone.id}
+                    role="listitem"
                     style={{
                       display: "flex",
                       alignItems: "center",

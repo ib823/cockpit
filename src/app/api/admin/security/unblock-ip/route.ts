@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/nextauth-helpers";
 import { unblockIP } from "@/lib/security/ip-blocker";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
         );
       }
     }
-    console.error("[UNBLOCK IP API] Error:", error);
+    logger.error("[UNBLOCK IP API] Error", { error: error });
     return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }
 }

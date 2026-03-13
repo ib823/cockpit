@@ -17,6 +17,7 @@ import { authConfig } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { validateResourceData } from '@/lib/gantt-tool/resource-validator';
+import { logger } from "@/lib/logger";
 
 export const maxDuration = 10; // seconds
 
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('GET /api/gantt-tool/resources failed:', error);
+    logger.error('GET /api/gantt-tool/resources failed', { error });
     return NextResponse.json(
       { error: 'Failed to fetch resources' },
       { status: 500 }
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error) {
-    console.error('POST /api/gantt-tool/resources failed:', error);
+    logger.error('POST /api/gantt-tool/resources failed', { error });
     return NextResponse.json(
       { error: 'Failed to create resource' },
       { status: 500 }

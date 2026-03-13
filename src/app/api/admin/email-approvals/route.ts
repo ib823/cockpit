@@ -4,6 +4,8 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { randomInt } from "crypto";
 import { sendSecurityEmail } from "@/lib/email";
+import { badRequest, unauthorized, forbidden, conflict, serverError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -16,8 +18,13 @@ export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { email } = body;
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const { email } = body as { email?: string };
 
     // ============================================
     // 1. Validate Admin via Session
@@ -29,12 +36,12 @@ export async function POST(req: NextRequest) {
     // 2. Validate Email
     // ============================================
     if (!email) {
-      return NextResponse.json({ ok: false, message: "Email is required" }, { status: 400 });
+      return badRequest("Email is required");
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json({ ok: false, message: "Invalid email format" }, { status: 400 });
+      return badRequest("Invalid email format");
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -47,10 +54,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { ok: false, message: "User with this email already exists" },
-        { status: 409 }
-      );
+      return conflict("User with this email already exists");
     }
 
     // ============================================
@@ -63,10 +67,7 @@ export async function POST(req: NextRequest) {
     if (existingApproval) {
       // Check if it's expired or used
       if (existingApproval.usedAt) {
-        return NextResponse.json(
-          { ok: false, message: "This email approval has already been used" },
-          { status: 409 }
-        );
+        return conflict("This email approval has already been used");
       }
 
       if (existingApproval.tokenExpiresAt < new Date()) {
@@ -75,10 +76,7 @@ export async function POST(req: NextRequest) {
           where: { email: normalizedEmail },
         });
       } else {
-        return NextResponse.json(
-          { ok: false, message: "Active approval already exists for this email" },
-          { status: 409 }
-        );
+        return conflict("Active approval already exists for this email");
       }
     }
 
@@ -163,7 +161,7 @@ export async function POST(req: NextRequest) {
         data: { codeSent: true },
       });
     } catch (emailError) {
-      console.error("[EmailApproval] Failed to send email:", emailError);
+      logger.error("[EmailApproval] Failed to send email", { error: emailError });
       // Don't fail the approval - admin can share the code manually
     }
 
@@ -180,20 +178,14 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     if (error instanceof Error) {
       if (error.message === "unauthorized") {
-        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+        return unauthorized();
       }
       if (error.message === "forbidden") {
-        return NextResponse.json(
-          { ok: false, message: "Forbidden - Admin access required" },
-          { status: 403 }
-        );
+        return forbidden("Admin access required");
       }
     }
-    console.error("[EmailApprovals] POST error:", error);
-    return NextResponse.json(
-      { ok: false, message: "Failed to create email approval" },
-      { status: 500 }
-    );
+    logger.error("[EmailApprovals] POST error", { error: error });
+    return serverError("Failed to create email approval");
   }
 }
 
@@ -249,19 +241,13 @@ export async function GET(req: NextRequest) {
   } catch (error: unknown) {
     if (error instanceof Error) {
       if (error.message === "unauthorized") {
-        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+        return unauthorized();
       }
       if (error.message === "forbidden") {
-        return NextResponse.json(
-          { ok: false, message: "Forbidden - Admin access required" },
-          { status: 403 }
-        );
+        return forbidden("Admin access required");
       }
     }
-    console.error("[EmailApprovals] GET error:", error);
-    return NextResponse.json(
-      { ok: false, message: "Failed to fetch email approvals" },
-      { status: 500 }
-    );
+    logger.error("[EmailApprovals] GET error", { error: error });
+    return serverError("Failed to fetch email approvals");
   }
 }

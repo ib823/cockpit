@@ -5,9 +5,10 @@
  * heuristics, pattern recognition, and best practices.
  */
 
-import type { GanttProject, GanttTask, GanttPhase } from "@/types/gantt-tool";
-import { differenceInDays, parseISO, addDays, format, isWeekend } from "date-fns";
+import type { GanttProject } from "@/types/gantt-tool";
+import { differenceInDays, parseISO, isWeekend } from "date-fns";
 import { calculateCriticalPath } from "./critical-path";
+import { logger } from "@/lib/logger";
 
 export interface SchedulingSuggestion {
   id: string;
@@ -89,7 +90,7 @@ export function generateSchedulingSuggestions(project: GanttProject): AIInsights
  */
 function analyzeParallelization(project: GanttProject): SchedulingSuggestion[] {
   const suggestions: SchedulingSuggestion[] = [];
-  const allTasks = project.phases.flatMap((p) => p.tasks);
+  const _allTasks = project.phases.flatMap((p) => p.tasks);
 
   // Find sequential tasks that could run in parallel
   project.phases.forEach((phase) => {
@@ -507,6 +508,6 @@ export function applySuggestion(
 ): GanttProject {
   // This would implement the actual changes
   // For now, return project unchanged (implementation would vary by suggestion type)
-  console.log("[AI] Would apply suggestion:", suggestion.id);
+  logger.info("[AI] Would apply suggestion", { suggestionId: suggestion.id });
   return project;
 }

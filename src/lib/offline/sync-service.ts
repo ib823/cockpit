@@ -140,7 +140,7 @@ class SyncService {
       if ("serviceWorker" in navigator && "sync" in ServiceWorkerRegistration.prototype) {
         const registration = await navigator.serviceWorker.ready;
         // Use type assertion for Background Sync API
-        await (registration as any).sync.register("sync-offline-data");
+        await (registration as ServiceWorkerRegistration & { sync: { register: (tag: string) => Promise<void> } }).sync.register("sync-offline-data");
       }
     } catch (error) {
       console.error("[SyncService] Sync error:", error);

@@ -4,6 +4,7 @@ import { jwtVerify } from "jose";
 import { prisma } from "@/lib/db";
 
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -58,7 +59,7 @@ export async function GET(req: NextRequest) {
       const { payload: jwtPayload } = await jwtVerify(token, secret);
       payload = jwtPayload;
     } catch (jwtError) {
-      console.error("[EmailRevoke] JWT verification failed:", jwtError);
+      logger.error("[EmailRevoke] JWT verification failed", { error: jwtError });
       return new Response(
         `
 <!DOCTYPE html>
@@ -240,7 +241,7 @@ export async function GET(req: NextRequest) {
         `
       );
     } catch (emailError) {
-      console.error("[EmailRevoke] Failed to send confirmation:", emailError);
+      logger.error("[EmailRevoke] Failed to send confirmation", { error: emailError });
       // Don't fail the request
     }
 
@@ -339,7 +340,7 @@ export async function GET(req: NextRequest) {
       }
     );
   } catch (error: unknown) {
-    console.error("[EmailRevoke] Error:", error);
+    logger.error("[EmailRevoke] Error", { error: error });
     return new Response(
       `
 <!DOCTYPE html>

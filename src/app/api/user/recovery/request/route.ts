@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
+import { badRequest, conflict, serverError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -19,22 +21,24 @@ export const runtime = "nodejs";
  */
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { email, reason, notes } = body;
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
+    const { email, reason, notes } = body as { email?: string; reason?: string; notes?: string };
 
     // ============================================
     // 1. Validate Input
     // ============================================
     if (!email || !reason) {
-      return NextResponse.json(
-        { ok: false, message: "Email and reason are required" },
-        { status: 400 }
-      );
+      return badRequest("Email and reason are required");
     }
 
     const validReasons = ["lost_totp", "lost_all", "lost_passkey", "account_locked"];
     if (!validReasons.includes(reason)) {
-      return NextResponse.json({ ok: false, message: "Invalid reason" }, { status: 400 });
+      return badRequest("Invalid reason");
     }
 
     // ============================================
@@ -66,13 +70,7 @@ export async function POST(req: Request) {
     // ============================================
     if (user.recoveryRequests.length > 0) {
       const existingRequest = user.recoveryRequests[0];
-      return NextResponse.json(
-        {
-          ok: false,
-          message: `You already have a pending recovery request submitted on ${existingRequest.submittedAt.toLocaleDateString()}. Please wait for admin review.`,
-        },
-        { status: 409 }
-      );
+      return conflict(`You already have a pending recovery request submitted on ${existingRequest.submittedAt.toLocaleDateString()}. Please wait for admin review.`);
     }
 
     // ============================================
@@ -186,7 +184,7 @@ export async function POST(req: Request) {
 
       await sendSecurityEmail(user.email, confirmationEmail.subject, confirmationEmail.html);
     } catch (emailError) {
-      console.error("[Recovery] Failed to send confirmation email:", emailError);
+      logger.error("[Recovery] Failed to send confirmation email", { error: emailError });
       // Don't fail the request
     }
 
@@ -224,7 +222,7 @@ export async function POST(req: Request) {
         );
       }
     } catch (emailError) {
-      console.error("[Recovery] Failed to send admin notifications:", emailError);
+      logger.error("[Recovery] Failed to send admin notifications", { error: emailError });
       // Don't fail the request
     }
 
@@ -235,10 +233,7 @@ export async function POST(req: Request) {
       requestId: recoveryRequest.id,
     });
   } catch (error: unknown) {
-    console.error("[Recovery] Request error:", error);
-    return NextResponse.json(
-      { ok: false, message: "Failed to submit recovery request" },
-      { status: 500 }
-    );
+    logger.error("[Recovery] Request error", { error: error });
+    return serverError("Failed to submit recovery request");
   }
 }

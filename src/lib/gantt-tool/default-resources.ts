@@ -19,8 +19,8 @@ export function createDefaultResources(): Resource[] {
   ): Resource => ({
     id: nanoid(),
     name,
-    category: category as any,
-    designation: designation as any,
+    category: category as Resource["category"],
+    designation: designation as Resource["designation"],
     description,
     createdAt: now,
     managerResourceId: undefined,

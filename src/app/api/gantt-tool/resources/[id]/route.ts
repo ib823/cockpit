@@ -22,6 +22,7 @@ import {
   canSetManager,
   canDeleteResource,
 } from '@/lib/gantt-tool/resource-validator';
+import { logger } from "@/lib/logger";
 
 export const maxDuration = 10; // seconds
 
@@ -111,7 +112,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error(`GET /api/gantt-tool/resources/[id] failed:`, error);
+    logger.error(`GET /api/gantt-tool/resources/[id] failed`, { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch resource' },
       { status: 500 }
@@ -234,7 +235,7 @@ export async function PATCH(
     });
 
   } catch (error) {
-    console.error(`PATCH /api/gantt-tool/resources/[id] failed:`, error);
+    logger.error(`PATCH /api/gantt-tool/resources/[id] failed`, { error: error });
     return NextResponse.json(
       { error: 'Failed to update resource' },
       { status: 500 }
@@ -316,7 +317,7 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error(`DELETE /api/gantt-tool/resources/[id] failed:`, error);
+    logger.error(`DELETE /api/gantt-tool/resources/[id] failed`, { error: error });
     return NextResponse.json(
       { error: 'Failed to delete resource' },
       { status: 500 }

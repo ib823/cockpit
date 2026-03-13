@@ -96,7 +96,7 @@ export async function generateRecoveryReport(): Promise<RecoveryReport[]> {
   const reports: RecoveryReport[] = [];
 
   for (const project of localProjects) {
-    const localMeta = project as any;
+    const localMeta = project as GanttProject & { needsSync?: boolean; localUpdatedAt?: string };
 
     const resourcesWithCompany = (project.resources || [])
       .filter((r: Resource) => r.companyName)
@@ -221,7 +221,7 @@ export async function pushRecoveredDataToServer(projectId: string): Promise<{
  */
 export function installConsoleHelpers(): void {
   if (typeof window !== "undefined") {
-    (window as any).__recoveryReport = async () => {
+    (window as unknown as Record<string, unknown>).__recoveryReport = async () => {
       console.log("[Recovery] Generating recovery report...");
       const reports = await generateRecoveryReport();
 
@@ -258,7 +258,7 @@ export function installConsoleHelpers(): void {
       return reports;
     };
 
-    (window as any).__recoverProject = async (projectId: string) => {
+    (window as unknown as Record<string, unknown>).__recoverProject = async (projectId: string) => {
       console.log(`[Recovery] Attempting to recover data for project: ${projectId}`);
       const result = await pushRecoveredDataToServer(projectId);
 
@@ -272,10 +272,10 @@ export function installConsoleHelpers(): void {
       return result;
     };
 
-    (window as any).__recoverAllProjects = async () => {
+    (window as unknown as Record<string, unknown>).__recoverAllProjects = async () => {
       console.log("[Recovery] Attempting to recover all projects...");
       const reports = await generateRecoveryReport();
-      const results: Array<{ projectId: string; projectName: string; result: any }> = [];
+      const results: Array<{ projectId: string; projectName: string; result: Awaited<ReturnType<typeof pushRecoveredDataToServer>> }> = [];
 
       for (const report of reports) {
         if (report.resourcesWithCompanyName.length > 0) {

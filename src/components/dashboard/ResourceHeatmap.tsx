@@ -240,8 +240,9 @@ export function ResourceHeatmap({ project }: ResourceHeatmapProps) {
               {row.weeks.map((week, weekIdx) => (
                 <td key={weekIdx}>
                   <Tooltip title={`${week.allocatedDays} days allocated`}>
-                    {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
                     <div
+                      role="gridcell"
+                      aria-label={`${row.resource.name}: ${week.allocatedDays} days allocated`}
                       style={{
                         padding: "8px",
                         background: getCellColor(week.allocatedDays),

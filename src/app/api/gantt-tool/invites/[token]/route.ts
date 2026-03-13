@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 // GET - Get invite details (for preview before accepting)
 export async function GET(
@@ -71,7 +72,7 @@ export async function GET(
       expiresAt: invite.expiresAt?.toISOString() || null,
     });
   } catch (error) {
-    console.error("[API] Failed to fetch invite:", error);
+    logger.error("[API] Failed to fetch invite", { error: error });
     return NextResponse.json({ error: "Failed to fetch invite" }, { status: 500 });
   }
 }
@@ -142,8 +143,7 @@ export async function POST(
     }
 
     // Accept invite and create collaborator in a transaction
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result: any = await (prisma.$transaction as any)(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Mark invite as accepted
       await tx.ganttProjectInvite.update({
         where: { id: invite.id },
@@ -193,7 +193,7 @@ export async function POST(
       message: "Successfully joined the project",
     });
   } catch (error) {
-    console.error("[API] Failed to accept invite:", error);
+    logger.error("[API] Failed to accept invite", { error: error });
     return NextResponse.json({ error: "Failed to accept invite" }, { status: 500 });
   }
 }

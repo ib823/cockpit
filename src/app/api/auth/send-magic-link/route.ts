@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { sendAccessCode } from "@/lib/email";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
     const emailResult = await sendAccessCode(user.email, "000000", magicLink);
 
     if (!emailResult.success && !emailResult.devMode) {
-      console.error("[send-magic-link] Failed to send email:", emailResult.error);
+      logger.error("[send-magic-link] Failed to send email", { error: emailResult.error });
       return NextResponse.json(
         { ok: false, message: "Failed to send email. Please try again." },
         { status: 500 }
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
       ...(emailResult.devMode && { magicLink }),
     });
   } catch (error) {
-    console.error("Send magic link error:", error);
+    logger.error("Send magic link error", { error: error });
     return NextResponse.json(
       { ok: false, message: "Failed to send magic link. Please try again." },
       { status: 500 }

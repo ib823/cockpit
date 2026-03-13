@@ -6,6 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { checkDatabaseHealth } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   const startTime = Date.now();
@@ -51,7 +52,7 @@ export async function GET() {
   } catch (error) {
     const responseTime = Date.now() - startTime;
 
-    console.error("[Health] Health check failed:", error);
+    logger.error("[Health] Health check failed", { error: error });
 
     return NextResponse.json(
       {

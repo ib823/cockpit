@@ -11,6 +11,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { withCache, CACHE_CONFIG, CacheKeys } from "@/lib/cache/redis-cache";
+import { logger } from "@/lib/logger";
 
 const prisma = new PrismaClient();
 
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
     const result = await withCache(
       CacheKeys.lobsAll(),
       async () => {
-        console.warn("[LOBs API] 🔄 Cache MISS - fetching from database");
+        logger.warn("[LOBs API] 🔄 Cache MISS - fetching from database");
 
         const lobs = await prisma.lob.findMany({
           orderBy: { lobName: "asc" },
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     const duration = performance.now() - startTime;
 
-    console.warn(`[LOBs API] ✅ Returned ${result.count} LOBs in ${duration.toFixed(2)}ms`);
+    logger.warn(`[LOBs API] ✅ Returned ${result.count} LOBs in ${duration.toFixed(2)}ms`);
 
     return NextResponse.json({
       ...result,
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const duration = performance.now() - startTime;
-    console.error(`[LOBs API] ❌ Error after ${duration.toFixed(2)}ms:`, error);
+    logger.error(`[LOBs API] ❌ Error after ${duration.toFixed(2)}ms`, { error: error });
 
     return NextResponse.json(
       {

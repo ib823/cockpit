@@ -136,8 +136,7 @@ export function TemplateGallery({ open, onClose, onSelectTemplate }: TemplateGal
         <div className="px-6 pt-4 border-b border-gray-200">
           <Tabs
             activeKey={selectedCategory}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onChange={(key) => setSelectedCategory(key as any)}
+            onChange={(key) => setSelectedCategory(key as TemplateCategory | "all" | "featured")}
             items={tabItems}
             size="large"
           />

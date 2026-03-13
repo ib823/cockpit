@@ -24,6 +24,7 @@ import { SignJWT } from "jose";
 import { badRequest, unauthorized, forbidden, serverError } from "@/lib/api-response";
 
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -73,22 +74,16 @@ export async function POST(req: Request) {
     // 2. Validate Input
     // ============================================
     if (!email || !password || !totpCode) {
-      return NextResponse.json(
-        { ok: false, message: "Email, password, and TOTP code are required." },
-        { status: 400 }
-      );
+      return badRequest("Email, password, and TOTP code are required.");
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json({ ok: false, message: "Invalid email format." }, { status: 400 });
+      return badRequest("Invalid email format.");
     }
 
     if (totpCode.length !== 6 || !/^\d{6}$/.test(totpCode)) {
-      return NextResponse.json(
-        { ok: false, message: "TOTP code must be 6 digits." },
-        { status: 400 }
-      );
+      return badRequest("TOTP code must be 6 digits.");
     }
 
     // ============================================
@@ -108,10 +103,7 @@ export async function POST(req: Request) {
     if (!user) {
       // Don't reveal whether user exists
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Timing attack mitigation
-      return NextResponse.json(
-        { ok: false, message: "Invalid email or password." },
-        { status: 401 }
-      );
+      return unauthorized("Invalid email or password.");
     }
 
     // ============================================
@@ -168,10 +160,7 @@ export async function POST(req: Request) {
     // 5. Verify Password
     // ============================================
     if (!user.passwordHash) {
-      return NextResponse.json(
-        { ok: false, message: "Please complete your account setup first." },
-        { status: 400 }
-      );
+      return badRequest("Please complete your account setup first.");
     }
 
     const passwordValid = await verifyPassword(password, user.passwordHash);
@@ -217,35 +206,21 @@ export async function POST(req: Request) {
         }),
       ]);
 
-      return NextResponse.json(
-        { ok: false, message: "Invalid email or password." },
-        { status: 401 }
-      );
+      return unauthorized("Invalid email or password.");
     }
 
     // ============================================
     // 6. Check Password Expiry
     // ============================================
     if (user.passwordExpiresAt && user.passwordExpiresAt < new Date()) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "Your password has expired. Please reset your password.",
-          passwordExpired: true,
-          requirePasswordReset: true,
-        },
-        { status: 403 }
-      );
+      return forbidden("Your password has expired. Please reset your password.");
     }
 
     // ============================================
     // 7. Verify TOTP Code
     // ============================================
     if (!user.totpSecret) {
-      return NextResponse.json(
-        { ok: false, message: "TOTP not set up. Please complete registration." },
-        { status: 400 }
-      );
+      return badRequest("TOTP not set up. Please complete registration.");
     }
 
     const decryptedSecret = decryptTOTPSecret(user.totpSecret);
@@ -295,7 +270,7 @@ export async function POST(req: Request) {
         }),
       ]);
 
-      return NextResponse.json({ ok: false, message: "Invalid TOTP code." }, { status: 401 });
+      return unauthorized("Invalid TOTP code.");
     }
 
     // ============================================
@@ -330,7 +305,7 @@ export async function POST(req: Request) {
         }
       }
     } catch (geoError) {
-      console.error("[Login] IP geolocation failed:", geoError);
+      logger.error("[Login] IP geolocation failed", { error: geoError });
       // Fail open - don't block login
     }
 
@@ -504,7 +479,7 @@ export async function POST(req: Request) {
 
         await sendSecurityEmail(user.email, emailContent.subject, emailContent.html);
       } catch (emailError) {
-        console.error("[Login] Failed to send security alert:", emailError);
+        logger.error("[Login] Failed to send security alert", { error: emailError });
         // Don't fail login if email fails
       }
     }
@@ -540,10 +515,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    console.error("[Login] Error:", error);
-    return NextResponse.json(
-      { ok: false, message: "An internal server error occurred." },
-      { status: 500 }
-    );
+    logger.error("[Login] Error", { error: error });
+    return serverError();
   }
 }
