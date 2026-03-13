@@ -21,7 +21,7 @@ export async function generateCsrfToken(): Promise<string> {
 
   const store = await cookies();
   store.set(CSRF_COOKIE, token, {
-    httpOnly: true,
+    httpOnly: false, // Must be readable by JavaScript for double-submit cookie pattern
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     path: "/",

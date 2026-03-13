@@ -17,6 +17,40 @@ interface CaptchaConfig {
   scoreThreshold?: number; // For reCAPTCHA v3 (0.0 - 1.0)
 }
 
+interface CaptchaVerifyResult {
+  success: boolean;
+  score?: number;
+  challengeTimestamp?: string;
+  hostname?: string;
+  errorCodes?: string[];
+}
+
+/** Raw response from CAPTCHA provider APIs */
+interface CaptchaProviderResponse {
+  success: boolean;
+  score?: number;
+  challenge_ts?: string;
+  hostname?: string;
+  "error-codes"?: string[];
+}
+
+/** Window augmentation for CAPTCHA providers */
+interface CaptchaWindow extends Window {
+  hcaptcha?: {
+    execute: (siteKey: string, opts: { async: boolean }) => Promise<string>;
+  };
+  grecaptcha?: {
+    ready: (cb: () => void) => void;
+    execute: (siteKey: string, opts: { action: string }) => Promise<string>;
+  };
+  turnstile?: {
+    execute: (
+      siteKey: string,
+      opts: { callback: (token: string) => void; "error-callback": () => void }
+    ) => void;
+  };
+}
+
 /**
  * Verify CAPTCHA token on server-side
  */
@@ -57,7 +91,7 @@ export async function verifyCaptcha(
 /**
  * Verify hCaptcha token
  */
-async function verifyHCaptcha(token: string, secretKey: string, userIP?: string): Promise<any> {
+async function verifyHCaptcha(token: string, secretKey: string, userIP?: string): Promise<CaptchaVerifyResult> {
   const response = await fetch("https://hcaptcha.com/siteverify", {
     method: "POST",
     headers: {
@@ -70,7 +104,7 @@ async function verifyHCaptcha(token: string, secretKey: string, userIP?: string)
     }),
   });
 
-  const data = await response.json();
+  const data = (await response.json()) as CaptchaProviderResponse;
 
   return {
     success: data.success,
@@ -83,7 +117,7 @@ async function verifyHCaptcha(token: string, secretKey: string, userIP?: string)
 /**
  * Verify Google reCAPTCHA v3 token
  */
-async function verifyRecaptcha(token: string, secretKey: string, userIP?: string): Promise<any> {
+async function verifyRecaptcha(token: string, secretKey: string, userIP?: string): Promise<CaptchaVerifyResult> {
   const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
     method: "POST",
     headers: {
@@ -96,7 +130,7 @@ async function verifyRecaptcha(token: string, secretKey: string, userIP?: string
     }),
   });
 
-  const data = await response.json();
+  const data = (await response.json()) as CaptchaProviderResponse;
 
   return {
     success: data.success,
@@ -110,7 +144,7 @@ async function verifyRecaptcha(token: string, secretKey: string, userIP?: string
 /**
  * Verify Cloudflare Turnstile token
  */
-async function verifyTurnstile(token: string, secretKey: string, userIP?: string): Promise<any> {
+async function verifyTurnstile(token: string, secretKey: string, userIP?: string): Promise<CaptchaVerifyResult> {
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
     method: "POST",
     headers: {
@@ -123,7 +157,7 @@ async function verifyTurnstile(token: string, secretKey: string, userIP?: string
     }),
   });
 
-  const data = await response.json();
+  const data = (await response.json()) as CaptchaProviderResponse;
 
   return {
     success: data.success,
@@ -194,30 +228,27 @@ export function executeCaptcha(
       return;
     }
 
+    const captchaWindow = window as unknown as CaptchaWindow;
+
     switch (provider) {
       case "hcaptcha":
-        // @ts-ignore
-        if (window.hcaptcha) {
-          // @ts-ignore
-          window.hcaptcha
+        if (captchaWindow.hcaptcha) {
+          captchaWindow.hcaptcha
             .execute(siteKey, { async: true })
             .then((token: string) => resolve(token))
-            .catch((error: any) => reject(error));
+            .catch((error: unknown) => reject(error));
         } else {
           reject(new Error("hCaptcha not loaded"));
         }
         break;
 
       case "recaptcha":
-        // @ts-ignore
-        if (window.grecaptcha) {
-          // @ts-ignore
-          window.grecaptcha.ready(() => {
-            // @ts-ignore
-            window.grecaptcha
+        if (captchaWindow.grecaptcha) {
+          captchaWindow.grecaptcha.ready(() => {
+            captchaWindow.grecaptcha!
               .execute(siteKey, { action: action || "submit" })
               .then((token: string) => resolve(token))
-              .catch((error: any) => reject(error));
+              .catch((error: unknown) => reject(error));
           });
         } else {
           reject(new Error("reCAPTCHA not loaded"));
@@ -225,10 +256,8 @@ export function executeCaptcha(
         break;
 
       case "turnstile":
-        // @ts-ignore
-        if (window.turnstile) {
-          // @ts-ignore
-          window.turnstile.execute(siteKey, {
+        if (captchaWindow.turnstile) {
+          captchaWindow.turnstile.execute(siteKey, {
             callback: (token: string) => resolve(token),
             "error-callback": () => reject(new Error("Turnstile failed")),
           });

@@ -33,7 +33,7 @@ class QueryMonitor {
     if (duration > this.slowQueryThreshold) {
       this.stats.slowQueries++;
       if (process.env.NODE_ENV === "development") {
-        console.warn(`[DB] ⚠️  Slow query: ${duration.toFixed(2)}ms`);
+        console.warn(`[DB] Slow query: ${duration.toFixed(2)}ms`);
       }
     }
 
@@ -42,9 +42,9 @@ class QueryMonitor {
       this.queryTimes.shift();
     }
 
-    // Update stats
+    // Update stats — track max incrementally to avoid spread operator overflow
     this.stats.avgQueryTime = this.queryTimes.reduce((a, b) => a + b, 0) / this.queryTimes.length;
-    this.stats.maxQueryTime = Math.max(...this.queryTimes);
+    this.stats.maxQueryTime = Math.max(this.stats.maxQueryTime, duration);
   }
 
   getStats(): QueryStats {

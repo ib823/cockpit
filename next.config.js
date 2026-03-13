@@ -136,14 +136,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-
-// Suppress React 19 warnings
-if (typeof window !== "undefined") {
-  const originalError = console.error;
-  console.error = (...args) => {
-    if (typeof args[0] === "string" && args[0].includes("antd: compatible")) {
-      return;
-    }
-    originalError.apply(console, args);
-  };
-}

@@ -248,9 +248,11 @@ export function generateSecurePassword(length: number = 16): string {
     password += allChars[crypto.randomInt(allChars.length)];
   }
 
-  // Shuffle the password
-  return password
-    .split("")
-    .sort(() => crypto.randomInt(3) - 1)
-    .join("");
+  // Fisher-Yates shuffle for unbiased randomization
+  const chars = password.split("");
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = crypto.randomInt(i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join("");
 }

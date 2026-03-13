@@ -95,13 +95,17 @@ export async function GET(req: Request) {
       where: { email: emailRaw },
       include: { Authenticator: true },
     });
-  } catch {}
+  } catch (_dbError) {
+    // Database query may fail if schema is not migrated — proceed with null
+  }
 
   // Invited?
   let invite: EmailApproval | null = null;
   try {
     invite = await prisma.emailApproval.findUnique?.({ where: { email: emailRaw } });
-  } catch {}
+  } catch (_dbError) {
+    // Database query may fail if schema is not migrated — proceed with null
+  }
 
   const registered = !!user;
   const hasPasskey = !!(user && user.Authenticator && user.Authenticator.length > 0);
