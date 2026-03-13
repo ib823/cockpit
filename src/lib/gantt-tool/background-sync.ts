@@ -19,7 +19,7 @@ import {
 } from "./local-storage";
 import { calculateProjectDelta, isDeltaEmpty, sanitizeDelta } from "./delta-calculator";
 import { shouldBatchDelta, batchDelta } from "./delta-batcher";
-import type { GanttProject, ProjectDelta } from "@/types/gantt-tool";
+import type { GanttProject, GanttTask, ProjectDelta } from "@/types/gantt-tool";
 
 const MAX_RETRY_COUNT = 10; // Increased from 5 to give more chances
 const RETRY_DELAYS = [1000, 2000, 5000, 10000, 30000, 60000]; // Exponential backoff up to 1 minute
@@ -55,15 +55,17 @@ function serializeDelta(delta: ProjectDelta): ProjectDelta {
   const serialized: ProjectDelta = {};
 
   if (delta.projectUpdates) {
-    serialized.projectUpdates = {};
-    Object.keys(delta.projectUpdates).forEach((key) => {
-      const value = (delta.projectUpdates as any)[key];
+    const updates = delta.projectUpdates as Record<string, unknown>;
+    const serializedUpdates: Record<string, unknown> = {};
+    Object.keys(updates).forEach((key) => {
+      const value = updates[key];
       if (key === "startDate" && value) {
-        (serialized.projectUpdates as any)[key] = formatDateField(value);
+        serializedUpdates[key] = formatDateField(value as string | Date);
       } else {
-        (serialized.projectUpdates as any)[key] = value;
+        serializedUpdates[key] = value;
       }
     });
+    serialized.projectUpdates = serializedUpdates as typeof delta.projectUpdates;
   }
 
   if (delta.phases) {
@@ -73,7 +75,7 @@ function serializeDelta(delta: ProjectDelta): ProjectDelta {
         ...phase,
         startDate: formatDateField(phase.startDate),
         endDate: formatDateField(phase.endDate),
-        tasks: phase.tasks.map((task: any) => ({
+        tasks: phase.tasks.map((task: GanttTask) => ({
           ...task,
           startDate: formatDateField(task.startDate),
           endDate: formatDateField(task.endDate),
@@ -85,7 +87,7 @@ function serializeDelta(delta: ProjectDelta): ProjectDelta {
         ...phase,
         startDate: formatDateField(phase.startDate),
         endDate: formatDateField(phase.endDate),
-        tasks: phase.tasks.map((task: any) => ({
+        tasks: phase.tasks.map((task: GanttTask) => ({
           ...task,
           startDate: formatDateField(task.startDate),
           endDate: formatDateField(task.endDate),
@@ -205,10 +207,10 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
   });
 
   if (!response.ok) {
-    let errorData: any;
+    let errorData: Record<string, unknown>;
     try {
       errorData = await response.json();
-    } catch (jsonParseError) {
+    } catch (_jsonParseError) {
       // Response is not JSON or couldn't be parsed
       errorData = {
         error: `HTTP ${response.status}: ${response.statusText || "Unknown Error"}`,
@@ -240,8 +242,8 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
     const error = new Error(errorMessage) as Error & {
       status?: number;
       isPermanent?: boolean;
-      details?: any;
-      validationDetails?: any;
+      details?: unknown;
+      validationDetails?: unknown;
       code?: string;
       conflictField?: string[];
     };
@@ -324,17 +326,18 @@ async function processSyncQueue(): Promise<void> {
         syncCallbacks.onSyncSuccess?.(item.projectId);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        const isPermanentError = (error as any)?.isPermanent === true;
-        const errorStatus = (error as any)?.status;
+        const syncError = error as { isPermanent?: boolean; status?: number; details?: unknown; validationDetails?: unknown; code?: string; conflictField?: string[] };
+        const isPermanentError = syncError.isPermanent === true;
+        const errorStatus = syncError.status;
 
         console.error("[BackgroundSync] Sync failed for", item.projectId, errorMessage);
 
         // Handle permanent errors (validation failures) - don't retry
         if (isPermanentError) {
           // Get more details about the validation error
-          const validationDetails = (error as any)?.details || (error as any)?.validationDetails;
-          const errorCode = (error as any)?.code;
-          const conflictField = (error as any)?.conflictField;
+          const validationDetails = syncError.details || syncError.validationDetails;
+          const errorCode = syncError.code;
+          const conflictField = syncError.conflictField;
 
           // Log with all available details
           const errorInfo = {
