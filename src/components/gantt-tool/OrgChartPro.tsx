@@ -3070,8 +3070,12 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
     updateResourceGroup = async (_id: string, _data: unknown) => {},
     deleteResourceGroup = async (_id: string) => {},
     getResourceGroups = () => [] as ResourceGroup[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } = useGanttToolStoreV2() as any;
+  } = useGanttToolStoreV2() as unknown as {
+    addResourceGroup: () => Promise<void>;
+    updateResourceGroup: (id: string, data: unknown) => Promise<void>;
+    deleteResourceGroup: (id: string) => Promise<void>;
+    getResourceGroups: () => ResourceGroup[];
+  };
 
   const currentProject = project ?? storeProject;
   const resources = useMemo(() => currentProject?.resources || [], [currentProject?.resources]);
@@ -3138,8 +3142,7 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
     const posMap = new Map<string, NodePosition>();
 
     // First, apply stored positions
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    storedCardPositions.forEach((stored: any) => {
+    storedCardPositions.forEach((stored: OrgChartCardPosition) => {
       posMap.set(stored.resourceId, { x: stored.x, y: stored.y });
     });
 
@@ -3387,8 +3390,9 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
   }, []);
 
   // Get updateOrgChartCanvas from store (may not yet exist on GanttToolStateV2)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { updateOrgChartCanvas = (_data: unknown) => {} } = useGanttToolStoreV2() as any;
+  const { updateOrgChartCanvas = (_data: unknown) => {} } = useGanttToolStoreV2() as unknown as {
+    updateOrgChartCanvas: (data: unknown) => void;
+  };
 
   // Handler for updating card position (free-form drag) - called on drag END
   const handlePositionChange = useCallback((resourceId: string, newX: number, newY: number) => {

@@ -154,8 +154,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           error: 'Validation failed',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          details: parseResult.error.issues.map((e: any) => ({
+          details: parseResult.error.issues.map((e) => ({
             field: e.path.join('.'),
             message: e.message,
           })),
@@ -198,8 +197,7 @@ export async function PATCH(
     });
 
     const validationResult = validateResourceData(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { ...existingResource, ...updates } as any,
+      { ...existingResource, ...updates } as Parameters<typeof validateResourceData>[0],
       allProjectResources,
       false // isNew = false (update operation)
     );
@@ -222,8 +220,7 @@ export async function PATCH(
     const updated = await prisma.ganttResource.update({
       where: { id },
       data: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...(updates as any),
+        ...(updates as Record<string, unknown>),
         updatedAt: new Date(),
       },
     });

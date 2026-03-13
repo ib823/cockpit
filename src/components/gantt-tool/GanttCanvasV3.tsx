@@ -38,7 +38,7 @@ import { ChevronDown, ChevronRight, ZoomIn, ZoomOut, Edit2, Calendar, Clock, Gri
 import { motion, AnimatePresence } from "framer-motion";
 import { VARIANTS, SPRING, STAGGER, DURATION, getAnimationConfig } from "@/lib/design-system/animations";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS, SHADOWS } from "@/lib/design-system/tokens";
-import type { GanttPhase, Task as GanttTask, ResourceCategory, Resource, ResourceDesignation } from "@/types/gantt-tool";
+import type { GanttPhase, Task as GanttTask, ResourceCategory, Resource, ResourceDesignation, MilestoneFormData } from "@/types/gantt-tool";
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
 import { calculateWorkingDaysInclusive, calculateCalendarDaysInclusive, formatCalendarDaysAsMonths } from "@/lib/gantt-tool/working-days";
 import { getUnifiedHolidays } from "@/lib/gantt-tool/holiday-integration";
@@ -195,8 +195,7 @@ export function GanttCanvasV3({
   } | null>(null);
 
   const [deletingTask, setDeletingTask] = useState<{
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    task: any;
+    task: GanttTask;
     taskId: string;
     phaseId: string;
   } | null>(null);
@@ -470,8 +469,7 @@ export function GanttCanvasV3({
     });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleTaskDelete = (task: any, phaseId: string) => {
+  const handleTaskDelete = (task: GanttTask, phaseId: string) => {
     setDeletingTask({ task, taskId: task.id, phaseId });
   };
 
@@ -3882,8 +3880,7 @@ export function GanttCanvasV3({
             if (data.id) {
               await updateMilestone(data.id, data);
             } else {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              await addMilestone(data as any);
+              await addMilestone(data as MilestoneFormData);
             }
             setMilestoneDefaultDate(undefined);
           } catch (error) {

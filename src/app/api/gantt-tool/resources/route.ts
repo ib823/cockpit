@@ -139,8 +139,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Validation failed',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          details: parseResult.error.issues.map((e: any) => ({
+          details: parseResult.error.issues.map((e: z.ZodIssue) => ({
             field: e.path.join('.'),
             message: e.message,
           })),
@@ -167,8 +166,7 @@ export async function POST(request: NextRequest) {
       {
         ...data,
         projectId: data.projectId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any,
+      } as Partial<import('@prisma/client').GanttResource>,
       existingResources,
       true // isNew
     );
@@ -208,8 +206,7 @@ export async function POST(request: NextRequest) {
         utilizationTarget: data.utilizationTarget || null,
         isActive: true,
         validationStatus: 'valid',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any,
+      },
     });
 
     return NextResponse.json(
